@@ -60,7 +60,6 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
             self.max_value_is_table = True
             inlet_model_part = model.GetModelPart(settings["inlet_model_part_name"].GetString())
             self.table = ReadCsvTableUtility(settings["parabola_vertex_value"]).Read(inlet_model_part)
-
         self.value_is_flow_rate = settings["value_is_flow_rate"].GetBool()
 
         # Save model and settings containers
