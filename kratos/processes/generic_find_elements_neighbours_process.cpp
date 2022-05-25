@@ -25,21 +25,21 @@ void GenericFindElementalNeighboursProcess::ExecuteInitialize()
     KRATOS_TRY
 
     //finding elemental neighbours of nodes
-    FindGlobalNodalElementalNeighboursProcess nodal_neigh_proc(mr_model_part);
+    FindGlobalNodalElementalNeighboursProcess nodal_neigh_proc(mrModelPart);
     nodal_neigh_proc.Execute();
 
     //main loop
-    block_for_each(mr_model_part.Elements(), [&](Element & rElement) {
+    block_for_each(mrModelPart.Elements(), [&](Element & rElement) {
         //creating temp face conditions
-        Geometry<Node<3> >& geom = rElement.GetGeometry();
-        const PointerVector<GeometryType> ElemBoundaries = geom.LocalSpaceDimension()==3 ? geom.GenerateFaces() : geom.GenerateEdges() ;
-        const unsigned int nBoundaries = ElemBoundaries.size();
+        const auto& r_geom = rElement.GetGeometry();
+        const auto elem_boundaries = r_geom.LocalSpaceDimension()==3 ? r_geom.GenerateFaces() : r_geom.GenerateEdges() ;
+        const unsigned int nBoundaries = elem_boundaries.size();
         
         //initializing elem neighbours
         if (rElement.Has(NEIGHBOUR_ELEMENTS)) {
-            ElementPointerVector& r_neighbour_elements = rElement.GetValue(NEIGHBOUR_ELEMENTS);
+            auto& r_neighbour_elements = rElement.GetValue(NEIGHBOUR_ELEMENTS);
             r_neighbour_elements.reserve(nBoundaries); 
-            r_neighbour_elements.erase(r_neighbour_elements.begin(),r_neighbour_elements.end() );
+            r_neighbour_elements.clear();
         } else {
             ElementPointerVector empty_vector;
             empty_vector.reserve(nBoundaries); 
@@ -51,7 +51,7 @@ void GenericFindElementalNeighboursProcess::ExecuteInitialize()
 
         //looping faces of element to find neighb element sharing the same face
         for(unsigned int i_boundary=0; i_boundary<nBoundaries; i_boundary++){
-            rElemNeighbours(i_boundary) = CheckForNeighbourElems(ElemBoundaries[i_boundary], rElement);
+            rElemNeighbours(i_boundary) = CheckForNeighbourElems(elem_boundaries[i_boundary], rElement);
         }
     });
 
@@ -60,14 +60,14 @@ void GenericFindElementalNeighboursProcess::ExecuteInitialize()
 
 
 GlobalPointer<Element> GenericFindElementalNeighboursProcess::CheckForNeighbourElems (const Geometry<Node<3> >& rBoundaryGeom,
-                                                 Element & rElement)
+                                                                                      Element & rElement)
 {
     //creating a a vector of all the elem pointers
     //therefore the elem of interest will be repeated as many times as nodes in the faces are
     ElementPointerVector PointersOfAllBoundaryNodes;
     const unsigned int nNodes = rBoundaryGeom.size();
     for( unsigned int node_i = 0 ; node_i < nNodes; node_i++){ //starting from node 1
-        const ElementPointerVector& rNeighCandidates_i = rBoundaryGeom[node_i].GetValue(NEIGHBOUR_ELEMENTS);
+        const auto& rNeighCandidates_i = rBoundaryGeom[node_i].GetValue(NEIGHBOUR_ELEMENTS);
         for( unsigned int candidate_i_k = 0 ; candidate_i_k < rNeighCandidates_i.size(); candidate_i_k++){ //all against all
             PointersOfAllBoundaryNodes.push_back(rNeighCandidates_i(candidate_i_k));
         }
@@ -96,49 +96,11 @@ GlobalPointer<Element> GenericFindElementalNeighboursProcess::CheckForNeighbourE
     return nullptr;
 }
 
-
-    //TODO: CheckForNeighbourElems should be done with unordered_map instead
-    //unfortunately the operator == is not yet supported by the GlobalPointer, so it does not work
-    //when this feature is added, replace the previous code with this one:
-    /*
-    {
-        const int main_elem_id = rElement.Id();
-        const ElementPointerVector& rNeighCandidates_0 = rFaceGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
-        std::unordered_map< GlobalPointer<Element> , int > CandidatesRepetitions;
-
-        for( unsigned int j = 0 ; j < rNeighCandidates_0.size(); j++){ 
-            if(rNeighCandidates_0[j].Id()==main_elem_id){ //removing element from the list
-                CandidatesRepetitions.insert(std::make_pair(rNeighCandidates_0(j),1)); //found once
-            }
-        }
-        //now checking in the rest of the geometry nodes if element is repeated.
-        for( unsigned int node_i = 1 ; node_i < rFaceGeom.size(); node_i++){ //starting from node 1
-            const ElementPointerVector& rNeighCandidates_i = rFaceGeom[node_i].GetValue(NEIGHBOUR_ELEMENTS);
-            for( unsigned int candidate_i_k = 0 ; candidate_i_k < rNeighCandidates_i.size(); candidate_i_k++){ //all against all
-                auto search = CandidatesRepetitions.find(rNeighCandidates_i(candidate_i_k));
-                if (search != CandidatesRepetitions.end()) {
-                    search->second++;
-                }
-            }
-        }
-
-        //for(const auto iter = CandidatesRepetitions.begin(); iter != CandidatesRepetitions.end(); ++iter){
-        for(const auto iter : CandidatesRepetitions) {
-            if(iter.second==rFaceGeom.size()){
-                return iter.first;
-            }
-        }
-
-        //if not found, return pointer to element itself
-        return nullptr;
-    } */
-
-
 std::vector<bool> GenericFindElementalNeighboursProcess::HasNeighboursInFaces(const Element& rElement)
 {
     std::vector<bool> has_neigh_in_faces;    
     if (rElement.Has(NEIGHBOUR_ELEMENTS)) {
-        const ElementPointerVector& r_neighbour_elements = rElement.GetValue(NEIGHBOUR_ELEMENTS);
+        const auto& r_neighbour_elements = rElement.GetValue(NEIGHBOUR_ELEMENTS);
         has_neigh_in_faces.resize(r_neighbour_elements.size());
         for( unsigned int i = 0 ; i < r_neighbour_elements.size(); i++){ //all against all
             has_neigh_in_faces[i] = (r_neighbour_elements(i).get() != nullptr);
