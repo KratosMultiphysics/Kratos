@@ -344,7 +344,7 @@ void TotalLagrangianQ1P0MixedElement::CalculateOnIntegrationPoints(
 
     if (rVariable == PRESSURE) {
         const double pressure  = this->GetValue(PRESSURE);
-        for (int i = 0; i < number_of_integration_points; i++) {
+        for (IndexType i = 0; i < number_of_integration_points; i++) {
             rOutput[i] = pressure;
         }
     }
