@@ -1036,7 +1036,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
             // we return the stress and constitutive tensor to the global coordinates
             rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
             noalias(layer_stress[i_layer]) = rValues.GetStressVector();
-            // noalias(undamaged_auxiliar_stress_vector) += factor * rValues.GetStressVector();
+            noalias(undamaged_auxiliar_stress_vector) += factor * rValues.GetStressVector();
 
             // we reset the properties and Strain
             rValues.SetMaterialProperties(r_material_properties);
@@ -1105,27 +1105,46 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
             // End damage calculation
         }
 
-        for(int i=0; i < mConstitutiveLaws.size(); ++i) {
+        // Calculating output stress
 
-            Properties& r_prop             = *(it_prop_begin + i);
-            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-            const double factor            = mCombinationFactors[i];
+        // for(int i=0; i < mConstitutiveLaws.size(); ++i) {
 
-            std::vector<double> layer_damage_vector(6);
-            layer_damage_vector = {1,
-                                    1,
-                                    (1-delamination_damage[i])*(1-delamination_damage[i+1]),
-                                    1,
-                                    (1-delamination_damage[i])*(1-delamination_damage[i+1]),
-                                    (1-delamination_damage[i])*(1-delamination_damage[i+1])};
+        //     Properties& r_prop             = *(it_prop_begin + i);
+        //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
+        //     const double factor            = mCombinationFactors[i];
 
-            auxiliar_stress_vector[0] += factor * layer_damage_vector[0] * layer_stress[i][0];
-            auxiliar_stress_vector[1] += factor * layer_damage_vector[1] * layer_stress[i][1];
-            auxiliar_stress_vector[2] += factor * layer_damage_vector[2] * layer_stress[i][2];
-            auxiliar_stress_vector[3] += factor * layer_damage_vector[3] * layer_stress[i][3];
-            auxiliar_stress_vector[4] += factor * layer_damage_vector[4] * layer_stress[i][4];
-            auxiliar_stress_vector[5] += factor * layer_damage_vector[5] * layer_stress[i][5];
+        //     std::vector<double> layer_damage_vector(6);
+        //     layer_damage_vector = {1,
+        //                             1,
+        //                             (1-delamination_damage[i])*(1-delamination_damage[i+1]),
+        //                             1,
+        //                             (1-delamination_damage[i])*(1-delamination_damage[i+1]),
+        //                             (1-delamination_damage[i])*(1-delamination_damage[i+1])};
+
+        //     auxiliar_stress_vector[0] += factor * layer_damage_vector[0] * layer_stress[i][0];
+        //     auxiliar_stress_vector[1] += factor * layer_damage_vector[1] * layer_stress[i][1];
+        //     auxiliar_stress_vector[2] += factor * layer_damage_vector[2] * layer_stress[i][2];
+        //     auxiliar_stress_vector[3] += factor * layer_damage_vector[3] * layer_stress[i][3];
+        //     auxiliar_stress_vector[4] += factor * layer_damage_vector[4] * layer_stress[i][4];
+        //     auxiliar_stress_vector[5] += factor * layer_damage_vector[5] * layer_stress[i][5];
+        // }
+
+        double damage_coeff = 1;
+
+        for(int i=1; i < mConstitutiveLaws.size(); ++i) {
+            damage_coeff *= (1-delamination_damage[i]);
         }
+
+        auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
+        auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
+        auxiliar_stress_vector[2] = damage_coeff * undamaged_auxiliar_stress_vector[2];
+        auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
+        auxiliar_stress_vector[4] = damage_coeff * undamaged_auxiliar_stress_vector[4];
+        auxiliar_stress_vector[5] = damage_coeff * undamaged_auxiliar_stress_vector[5];
+
+
+        // End calculating output stress
+
         //
 
         // Delamination Damage Criterion V1
@@ -1733,7 +1752,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
             // we return the stress and constitutive tensor to the global coordinates
             rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
             noalias(layer_stress[i_layer]) = rValues.GetStressVector();
-            // noalias(undamaged_auxiliar_stress_vector) += factor * rValues.GetStressVector();
+            noalias(undamaged_auxiliar_stress_vector) += factor * rValues.GetStressVector();
 
             // we reset the properties and Strain
             rValues.SetMaterialProperties(r_material_properties);
@@ -1809,29 +1828,44 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
             // End damage calculation
         }
 
-        for(int i=0; i < mConstitutiveLaws.size(); ++i) {
+        // Calculating output stress
 
-            Properties& r_prop             = *(it_prop_begin + i);
-            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-            const double factor            = mCombinationFactors[i];
+        // for(int i=0; i < mConstitutiveLaws.size(); ++i) {
 
-            std::vector<double> layer_damage_vector(6);
-            layer_damage_vector = {1,
-                                    1,
-                                    (1-delamination_damage[i])*(1-delamination_damage[i+1]),
-                                    1,
-                                    (1-delamination_damage[i])*(1-delamination_damage[i+1]),
-                                    (1-delamination_damage[i])*(1-delamination_damage[i+1])};
+        //     Properties& r_prop             = *(it_prop_begin + i);
+        //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
+        //     const double factor            = mCombinationFactors[i];
 
-            auxiliar_stress_vector[0] += factor * layer_damage_vector[0] * layer_stress[i][0];
-            auxiliar_stress_vector[1] += factor * layer_damage_vector[1] * layer_stress[i][1];
-            auxiliar_stress_vector[2] += factor * layer_damage_vector[2] * layer_stress[i][2];
-            auxiliar_stress_vector[3] += factor * layer_damage_vector[3] * layer_stress[i][3];
-            auxiliar_stress_vector[4] += factor * layer_damage_vector[4] * layer_stress[i][4];
-            auxiliar_stress_vector[5] += factor * layer_damage_vector[5] * layer_stress[i][5];
+        //     std::vector<double> layer_damage_vector(6);
+        //     layer_damage_vector = {1,
+        //                             1,
+        //                             (1-delamination_damage[i])*(1-delamination_damage[i+1]),
+        //                             1,
+        //                             (1-delamination_damage[i])*(1-delamination_damage[i+1]),
+        //                             (1-delamination_damage[i])*(1-delamination_damage[i+1])};
+
+        //     auxiliar_stress_vector[0] += factor * layer_damage_vector[0] * layer_stress[i][0];
+        //     auxiliar_stress_vector[1] += factor * layer_damage_vector[1] * layer_stress[i][1];
+        //     auxiliar_stress_vector[2] += factor * layer_damage_vector[2] * layer_stress[i][2];
+        //     auxiliar_stress_vector[3] += factor * layer_damage_vector[3] * layer_stress[i][3];
+        //     auxiliar_stress_vector[4] += factor * layer_damage_vector[4] * layer_stress[i][4];
+        //     auxiliar_stress_vector[5] += factor * layer_damage_vector[5] * layer_stress[i][5];
+        // }
+
+        double damage_coeff = 1;
+
+        for(int i=1; i < mConstitutiveLaws.size(); ++i) {
+            damage_coeff *= (1-delamination_damage[i]);
         }
-    
 
+        auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
+        auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
+        auxiliar_stress_vector[2] = damage_coeff * undamaged_auxiliar_stress_vector[2];
+        auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
+        auxiliar_stress_vector[4] = damage_coeff * undamaged_auxiliar_stress_vector[4];
+        auxiliar_stress_vector[5] = damage_coeff * undamaged_auxiliar_stress_vector[5];
+    
+        // End calculating output stress
 
         KRATOS_WATCH(delamination_damage);
         
