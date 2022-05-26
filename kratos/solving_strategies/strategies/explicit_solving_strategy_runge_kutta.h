@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla, Edurd Gómez
+//  Main authors:    Ruben Zorrilla, Eduard Gómez
 //
 //
 
@@ -183,18 +183,6 @@ public:
         return default_parameters;
     }
 
-    /**
-     * @brief Returns the name of the class as used in the settings (snake_case format)
-     * @return The name of the class
-     */
-    static std::string Name()
-    {
-        std::stringstream s;
-        s << "explicit_solving_strategy_runge_kutta"
-          << "[TButcherTableau=" << TButcherTableau::Name() << "]";
-        return s.str();
-    }
-
     ///@}
     ///@name Operators
     ///@{
@@ -214,11 +202,22 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        std::stringstream s;
+        s << "explicit_solving_strategy_runge_kutta_" << TButcherTableau::Name();
+        return s.str();
+    }
+
+    /// Return information as a string.
     std::string Info() const override
     {
         std::stringstream ss;
-        ss << "ExplicitSolvingStrategyRungeKutta with tableau " << mButcherTableau.Name();
+        ss << "ExplicitSolvingStrategyRungeKutta<" << mButcherTableau.Info() << ">";
         return ss.str();
     }
 
@@ -260,7 +259,7 @@ protected:
         KRATOS_TRY
 
         // Get the required data from the explicit builder and solver
-auto& r_explicit_bs = BaseType::GetExplicitBuilder();
+        auto& r_explicit_bs = BaseType::GetExplicitBuilder();
         auto& r_dof_set = r_explicit_bs.GetDofSet();
         const unsigned int dof_size = r_explicit_bs.GetEquationSystemSize();
         const auto& r_lumped_mass_vector = r_explicit_bs.GetLumpedMassMatrixVector();

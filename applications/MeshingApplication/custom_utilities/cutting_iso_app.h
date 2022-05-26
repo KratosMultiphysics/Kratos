@@ -30,7 +30,6 @@
 #include "includes/model_part.h"
 #include "includes/variables.h"
 #include "processes/find_nodal_neighbours_process.h"
-#include "processes/find_elements_neighbours_process.h"
 #include "utilities/math_utils.h"
 #include "utilities/split_tetrahedra.h"
 #include "utilities/split_triangle.h"
