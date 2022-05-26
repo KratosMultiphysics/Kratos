@@ -10,6 +10,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class Bingham_Dam_Break_2D_Test(TF.TestFactory):
     file_name = "fluid_element_tests/Test_2D_Bingham/Test_2D_Bingham"
     file_parameters = "fluid_element_tests/Test_2D_Bingham/ProjectParameters.json"
+    
+class Multi_Fluid_2D_Test(TF.TestFactory):
+    file_name = "fluid_element_tests/Test_2D_MultiFluid/Test_2D_MultiFluid"
+    file_parameters = "fluid_element_tests/Test_2D_MultiFluid/ProjectParameters.json"
 
 class Water_Sloshing_3D_Test(TF.TestFactory):
     file_name = "fluid_element_tests/Test_3D_Newtonian_Sloshing/Test_3D_Newtonian_Sloshing"
@@ -36,7 +40,7 @@ def SetTestSuite(suites):
 
     night_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            Thermal_Coupling_2D_Test,Nodal_Integration_2D_Test#,Inlet_3D_Test, Water_Sloshing_3D_Test
+            Nodal_Integration_2D_Test#Thermal_Coupling_2D_Test,Inlet_3D_Test, Water_Sloshing_3D_Test
         ])
     )
 

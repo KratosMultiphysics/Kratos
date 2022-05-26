@@ -94,6 +94,7 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, int>())
         .def("Execute", &DistributedModelPartInitializer::Execute)
         ;
+
 }
 
 } // namespace Python
