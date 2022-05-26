@@ -1134,12 +1134,15 @@ private:
         GlobalPointersVector<Element>& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i = 0; i != neighb_elems.size(); i++)
         {
-            GeometryType& geom = neighb_elems[i].GetGeometry();
-            bool is_found_2 = CalculatePosition(geom, rPosition[0], rPosition[1], rPosition[2], N);
-            if (is_found_2)
-            {
-                pElement = neighb_elems[i].shared_from_this();
-                return true;
+            if(neighb_elems(i).get()!=nullptr)
+			{
+                GeometryType& geom = neighb_elems[i].GetGeometry();
+                bool is_found_2 = CalculatePosition(geom, rPosition[0], rPosition[1], rPosition[2], N);
+                if (is_found_2)
+                {
+                    pElement = neighb_elems[i].shared_from_this();
+                    return true;
+                }
             }
         }
 
@@ -1230,18 +1233,21 @@ private:
         GlobalPointersVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
-            GeometryType& geom = neighb_elems[i].GetGeometry();
-            bool is_found_2 = CalculatePosition(geom, rPosition[0], rPosition[1], rPosition[2], N);
-            if (is_found_2)
-            {
-                pElement = neighb_elems[i].shared_from_this();
-                if (rNumberOfElementsInTrajectory < 20)
+            if(neighb_elems(i).get()!=nullptr)
+			{
+                GeometryType& geom = neighb_elems[i].GetGeometry();
+                bool is_found_2 = CalculatePosition(geom, rPosition[0], rPosition[1], rPosition[2], N);
+                if (is_found_2)
                 {
-                    rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;
-                    rNumberOfElementsInTrajectory++;
-                    rCheckFromElementNumber = rNumberOfElementsInTrajectory;  //we do it after doing the ++ to the counter, so we woudlnt enter the loop that searches in the rElementsInTrajectory list. we are the particle that is adding elements to the list
+                    pElement = neighb_elems[i].shared_from_this();
+                    if (rNumberOfElementsInTrajectory < 20)
+                    {
+                        rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;
+                        rNumberOfElementsInTrajectory++;
+                        rCheckFromElementNumber = rNumberOfElementsInTrajectory;  //we do it after doing the ++ to the counter, so we woudlnt enter the loop that searches in the rElementsInTrajectory list. we are the particle that is adding elements to the list
+                    }
+                    return true;
                 }
-                return true;
             }
         }
 

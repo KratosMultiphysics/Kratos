@@ -1608,7 +1608,8 @@ namespace Kratos
 		//we check all the neighbour elements
 		for (unsigned int i=0;i!=(neighb_elems.size());i++)
 		{
-
+			if(neighb_elems(i).get()!=nullptr)
+			{
 				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
@@ -1616,6 +1617,7 @@ namespace Kratos
 					pelement=neighb_elems(i)->shared_from_this();
 					return true;
 				}
+			}
 		}
 
 	    //if checking all the neighbour elements did not work, we have to use the bins
@@ -1707,7 +1709,8 @@ namespace Kratos
 		//we check all the neighbour elements
 		for (unsigned int i=0;i!=(neighb_elems.size());i++)
 		{
-
+			if(neighb_elems(i).get()!=nullptr)
+			{
 				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
@@ -1721,6 +1724,7 @@ namespace Kratos
 					}
 					return true;
 				}
+			}
 		}
 
 
