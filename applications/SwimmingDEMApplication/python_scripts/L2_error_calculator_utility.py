@@ -16,17 +16,12 @@ class L2ErrorCalculatorUtility:
         """
         self.model_part = model
 
-        self.U = parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"]["u_char"].GetDouble()
+        self.u_characteristic = parameters["error_projection_parameters"]["u_characteristic"].GetDouble()
 
         for element in self.model_part.Elements:
             self.rho = element.Properties.GetValue(KratosMultiphysics.DENSITY)
             self.nu = element.Properties.GetValue(KratosMultiphysics.VISCOSITY)
             break
-
-        porosity_field = [node.GetSolutionStepValue(KratosMultiphysics.FLUID_FRACTION) for node in self.model_part.Nodes]
-        self.porosity_mean = np.mean(porosity_field)
-
-        self.u_characteristic = self.U**2*0.01/self.porosity_mean
 
         self.p_characteristic = (1/2)*self.rho*self.u_characteristic**2
 
@@ -54,9 +49,7 @@ class L2ErrorCalculatorUtility:
         self.velocity_error_norm = self.VectorL2ErrorNorm()
         self.pressure_error_norm = self.ScalarL2ErrorNorm()
 
-        self.reynolds_number = self.porosity_mean * self.u_characteristic / self.nu
-
-        return self.velocity_error_norm/self.u_characteristic, self.pressure_error_norm/self.p_characteristic, self.error_model_part, self.reynolds_number, self.porosity_mean
+        return self.velocity_error_norm/self.u_characteristic, self.pressure_error_norm/self.p_characteristic, self.error_model_part
 
     def ComputeDofsErrors(self):
         SDEM.L2ErrorNormCalculator().ComputeDofsErrors(self.error_model_part)
