@@ -32,9 +32,20 @@ class ErrorProjectionPostProcessTool(object):
         self.dtype = np.float64
         self.group_name = str(test_number)
 
-    def WriteData(self, error_model_part, velocity_error_projected, pressure_error_projected, projection_type, model_type, subscale_type, reynolds_number, porosity_mean, n_iterations, max_iteration, relax_alpha):
+    def WriteData(self, 
+                  error_model_part, 
+                  velocity_error_projected,
+                  pressure_error_projected,
+                  projection_type,
+                  model_type,
+                  subscale_type,
+                  reynolds_number,
+                  porosity_mean,
+                  n_iterations,
+                  max_iteration,
+                  relax_alpha):
+        
         self.error_model_part = error_model_part
-
         self.projection_type = projection_type
         self.model_type = model_type
         self.subscale_type = subscale_type
