@@ -32,6 +32,7 @@ THE SOFTWARE.
  */
 
 #include <amgcl/backend/builtin.hpp>
+#include <amgcl/value_type/interface.hpp>
 #include <amgcl/adapter/block_matrix.hpp>
 
 namespace amgcl {
@@ -39,8 +40,10 @@ namespace backend {
 
 // Hybrid backend uses scalar matrices to build the hierarchy,
 // but stores the computed matrices in the block format.
-template <typename ScalarType, typename BlockType, typename ColumnType = ptrdiff_t, typename PointerType = ColumnType>
-struct builtin_hybrid : public builtin<ScalarType> {
+template <typename BlockType, typename ColumnType = ptrdiff_t, typename PointerType = ColumnType>
+struct builtin_hybrid : public builtin<typename math::scalar_of<BlockType>::type, ColumnType, PointerType>
+{
+    typedef typename math::scalar_of<BlockType>::type ScalarType;
     typedef builtin<ScalarType, ColumnType, PointerType> Base;
     typedef crs<BlockType, ColumnType, PointerType> matrix;
     struct provides_row_iterator : std::false_type {};
@@ -52,14 +55,14 @@ struct builtin_hybrid : public builtin<ScalarType> {
     }
 };
 
-template <typename T1, typename B1, typename T2, typename B2>
-struct backends_compatible< builtin_hybrid<T1, B1>, builtin_hybrid<T2, B2> > : std::true_type {};
+template <typename B1, typename B2, typename C, typename P>
+struct backends_compatible< builtin_hybrid<B1, C, P>, builtin_hybrid<B2, C, P> > : std::true_type {};
 
-template <typename T1, typename T2, typename B2>
-struct backends_compatible< builtin<T1>, builtin_hybrid<T2, B2> > : std::true_type {};
+template <typename T1, typename B2, typename C, typename P>
+struct backends_compatible< builtin<T1, C, P>, builtin_hybrid<B2, C, P> > : std::true_type {};
 
-template <typename T1, typename B1, typename T2>
-struct backends_compatible< builtin_hybrid<T1, B1>, builtin<T2> > : std::true_type {};
+template <typename B1, typename T2, typename C, typename P>
+struct backends_compatible< builtin_hybrid<B1, C, P>, builtin<T2, C, P> > : std::true_type {};
 
 } // namespace backend
 } // namespace amgcl

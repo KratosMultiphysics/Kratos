@@ -48,6 +48,12 @@ struct rhs_of {
     typedef T type;
 };
 
+/// Element type of a non-scalar type
+template <class T, class Enable = void>
+struct element_of {
+    typedef T type;
+};
+
 /// Replace scalar type in the static matrix
 template<class T, class S, class Enable = void>
 struct replace_scalar {

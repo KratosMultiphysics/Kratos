@@ -6,8 +6,8 @@ class _ElementData:
     def __init__(self, dim, num_nodes):
         block_size = dim + 2
 
-        self.U = self._ZeroMatrix(block_size, num_nodes)
-        self.dUdt = self._ZeroMatrix(block_size, num_nodes)
+        self.U = self._ZeroMatrix(num_nodes, block_size)
+        self.dUdt = self._ZeroMatrix(num_nodes, block_size)
 
         self.m_ext = self._ZeroVector(num_nodes)
         self.r_ext = self._ZeroVector(num_nodes)

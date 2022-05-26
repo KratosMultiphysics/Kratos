@@ -24,6 +24,14 @@ Build [Kratos](https://github.com/KratosMultiphysics/Kratos/wiki) and make sure 
 
 between the compilation configurations, so the Particle Mechanics application is compiled along with auxiliary external solvers required.
 
+## Examples
+Some use-cases and validation examples are available in the Particle Mechanics section of the [Examples](https://kratosmultiphysics.github.io/Examples/) repository. Also, some unit tests of the main features can be found in the [tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ParticleMechanicsApplication/tests) folder.
+
+### GiD Interface
+It is located in GiD interface repository in [GiD interface repository](https://github.com/KratosMultiphysics/GiDInterface/tree/master/).
+
+Requires [GiD](https://www.gidhome.com/) - Pre and Post Processing software.
+
 ## Theory
 
 Particle or meshfree methods are a category of methods where the state of a system is represented by a set of discrete particles, without a fixed connectivity; hence, making such methods suitable for the analysis of moving discontinuities and large deformations with breaking and fragmentation. This approach does not suffer from the mesh distortion and entanglement issues posed by other Lagrangian discretizations such as the finite element method.
@@ -74,15 +82,6 @@ The following features are currently available and subject to development within
     * Staggered coupling with Finite Element Method - weak and strong coupling of nonconforming discretization
     * Particle erase features - to delete particle outside the interest domain
 
-Some unit tests of the above features can be found in the [tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ParticleMechanicsApplication/tests) folder, while some use-cases and validation examples are also available in the [Examples](https://github.com/KratosMultiphysics/Examples/tree/master/particle_mechanics) repository.
-
-## Available Interfaces
-
-### GiD Interface
-It is located in GiD interface repository in [GiD interface repository](https://github.com/KratosMultiphysics/GiDInterface/tree/master/).
-
-Requires [GiD](https://www.gidhome.com/) - Pre and Post Processing software.
-
 ## License
 
 The Particle Mechanics Application is OPEN SOURCE. The main code and program structure is available and aimed to grow with the need of any user willing to expand it. The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
@@ -90,11 +89,5 @@ The Particle Mechanics Application is OPEN SOURCE. The main code and program str
 ## Contact
 
 * **Antonia Larese** - *Group Leader* - [antonia.larese@unipd.it](mailto:antonia.larese@unipd.it)
-* **Bodhinanda Chandra** - *Developer* - [bchandra@berkeley.edu](mailto:bchandra@berkeley.edu)
 * **Veronika Singer** - *Developer* - [veronika.singer@tum.de](mailto:veronika.singer@tum.de)
-* **Tobias Teschemacher** - *Developer* - [tobias.teschemacher@tum.de ](mailto:tobias.teschemacher@tum.de )
-* **Peter Wilson** - *Developer* - [peter.wilson@uq.edu.au ](mailto:peter.wilson@uq.edu.au )
-
-## FAQs
-
-Check [here](https://github.com/KratosMultiphysics/Kratos/blob/MPM/linear_implicit/applications/ParticleMechanicsApplication/FAQs.md) for some FAQs.
+* **Laura Moreno** - *Developer* - [laura.morenomartinez@unipd.it](mailto:laura.morenomartinez@unipd.it)

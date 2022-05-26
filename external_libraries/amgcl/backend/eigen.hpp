@@ -54,7 +54,7 @@ struct eigen {
     typedef ptrdiff_t ptr_type;
 
     typedef
-        Eigen::MappedSparseMatrix<value_type, Eigen::RowMajor, index_type>
+        Eigen::Map<Eigen::SparseMatrix<value_type, Eigen::RowMajor, index_type>>
         matrix;
 
     typedef Eigen::Matrix<value_type, Eigen::Dynamic, 1> vector;

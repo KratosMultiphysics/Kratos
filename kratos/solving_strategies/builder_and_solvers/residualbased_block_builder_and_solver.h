@@ -445,6 +445,9 @@ public:
         if(rModelPart.MasterSlaveConstraints().size() != 0) {
             TSystemVectorType Dxmodified(rb.size());
 
+            // Initialize the vector
+            TSparseSpace::SetToZero(Dxmodified);
+
             InternalSystemSolveWithPhysics(rA, Dxmodified, rb, rModelPart);
 
             //recover solution of the original problem
@@ -484,7 +487,6 @@ public:
             //do solve
             BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
         } else {
-            TSparseSpace::SetToZero(Dx);
             KRATOS_WARNING_IF("ResidualBasedBlockBuilderAndSolver", mOptions.IsNot(SILENT_WARNINGS)) << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
