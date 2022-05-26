@@ -199,7 +199,7 @@ namespace Testing {
         auto geom = GeneratePointsDiagonalLine2D2();
 
         // Set the point to be checked
-        Point test_point({1.5,1.5,0.0});
+        Point test_point(1.5,1.5,0.0);
 
         // Compute the centre local coordinates
         array_1d<double, 3> test_point_local_coords;
@@ -219,7 +219,7 @@ namespace Testing {
         auto geom = GeneratePointsDiagonalLine2D2();
 
         // Set the point to be checked
-        Point test_point({2.5,2.5,0.0});
+        Point test_point(2.5,2.5,0.0);
 
         // Compute the centre local coordinates
         array_1d<double, 3> test_point_local_coords;
@@ -239,7 +239,7 @@ namespace Testing {
         auto geom = GeneratePointsDiagonalLine2D2();
 
         // Set the point to be checked
-        Point test_point({-0.25,-0.25,0.0});
+        Point test_point(-0.25,-0.25,0.0);
 
         // Compute the centre local coordinates
         array_1d<double, 3> test_point_local_coords;
@@ -259,7 +259,7 @@ namespace Testing {
         auto geom = GeneratePointsDiagonalLine2D2();
 
         // Set the point to be checked
-        Point test_point({-1.5,-1.5,0.0});
+        Point test_point(-1.5,-1.5,0.0);
 
         // Compute the centre local coordinates
         array_1d<double, 3> test_point_local_coords;
