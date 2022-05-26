@@ -142,10 +142,11 @@ public:
         tbb::scalable_allocator<std::size_t>
     > IndicesType;
 #else 
-    std::unordered_set<std::size_t> IndicesType;
+    typedef std::unordered_set<
+        std::size_t
+    > IndicesType;
 #endif
     
-
     ///@}
     ///@name Life Cycle
     ///@{
