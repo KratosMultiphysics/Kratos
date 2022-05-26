@@ -23,7 +23,6 @@ from shallow_water_test_factory import TestSolitaryWaveBenchmark
 from shallow_water_test_factory import TestMeshMovingStrategy
 from processes_tests.test_line_graph_output_process import TestLineGraphOutputProcess
 from processes_tests.test_derivatives_recovery_process import TestDerivativesRecoveryProcess
-from processes_tests.test_convergence_output_process import TestConvergenceOutputProcess
 from processes_tests.test_wave_generator_process import TestWaveGeneratorProcess
 
 def AssembleTestSuites():
@@ -56,7 +55,6 @@ def AssembleTestSuites():
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestSolitaryWaveBenchmark]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestLineGraphOutputProcess]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestDerivativesRecoveryProcess]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestConvergenceOutputProcess]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestWaveGeneratorProcess]))
 
     # Create a test suit with the selected tests plus all small tests
