@@ -39,7 +39,7 @@ void GenericFindElementalNeighboursProcess::ExecuteInitialize()
         if (rElement.Has(NEIGHBOUR_ELEMENTS)) {
             auto& r_neighbour_elements = rElement.GetValue(NEIGHBOUR_ELEMENTS);
             r_neighbour_elements.reserve(nBoundaries); 
-            r_neighbour_elements.clear();
+            r_neighbour_elements.erase(r_neighbour_elements.begin(),r_neighbour_elements.end() );
         } else {
             ElementPointerVector empty_vector;
             empty_vector.reserve(nBoundaries); 
