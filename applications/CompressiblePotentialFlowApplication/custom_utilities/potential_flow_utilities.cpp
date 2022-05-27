@@ -1194,10 +1194,14 @@ void AddPotentialGradientStabilizationTerm(
                     const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
                     const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
                     Vector detJ0;
-                    PotentialFlowUtilities::ElementalData<NumNodes,Dim> neighbour_data;
+                    const auto neighbour_data = [&]()
+                    {
+                        PotentialFlowUtilities::ElementalData<NumNodes,Dim> neighbour_data;
+                        GeometryUtils::CalculateGeometryData(r_geometry, neighbour_data.DN_DX, neighbour_data.N, neighbour_data.vol);
+                        neighbour_data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(r_elem);
+                        return neighbour_data;
+                    }();
 
-                    GeometryUtils::CalculateGeometryData(r_geometry, neighbour_data.DN_DX, neighbour_data.N, neighbour_data.vol);
-                    neighbour_data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(r_elem);
                     r_geometry.DeterminantOfJacobian(detJ0, r_integration_method);
 
                     const int is_neighbour_wake = r_elem.GetValue(WAKE);
