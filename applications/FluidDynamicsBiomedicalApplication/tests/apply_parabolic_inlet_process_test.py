@@ -87,6 +87,7 @@ class ApplyParabolicInletProcessTest(UnitTest.TestCase):
             settings)
         check_and_prepare_proc.Execute()
 
+    @classmethod
     def tearDown(self):
         KratosUtilities.DeleteFileIfExisting("aux_table.csv")
 

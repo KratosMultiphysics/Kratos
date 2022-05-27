@@ -1,6 +1,4 @@
 # Importing the Kratos Library
-from doctest import ELLIPSIS_MARKER
-from logging import Logger
 import KratosMultiphysics
 from KratosMultiphysics.read_csv_table_utility import ReadCsvTableUtility
 
