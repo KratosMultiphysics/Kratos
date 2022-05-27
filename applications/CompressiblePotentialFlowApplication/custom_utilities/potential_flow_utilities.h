@@ -35,7 +35,13 @@ namespace Kratos
 namespace PotentialFlowUtilities
 {
 template <unsigned int TNumNodes, unsigned int TDim>
-struct ElementalData{
+struct ElementalData
+{
+    ElementalData(const GeometryType& rGeometry)
+    {
+        GeometryUtils::CalculateGeometryData(r_geometry, DN_DX, N, vol);
+    }
+
     array_1d<double, TNumNodes> potentials, distances;
     double vol;
 
