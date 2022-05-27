@@ -1077,20 +1077,12 @@ public:
 
         if (length_1 <= (length + tolerance) && length_2 <= (length + tolerance)) {
             rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0;
-        } else if (length_1 > (length + tolerance)) {
-            if (length_1 > length_2) {
-                rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0;
-            } else {
-                rResult[0] = -2.0 * length_1/(length + tolerance) - 1.0;
-            }
-        } else if (length_2 > (length + tolerance)) {
-            if (length_1 > length_2) {
-                rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0;
-            } else {
-                rResult[0] = -2.0 * length_1/(length + tolerance) - 1.0;
-            }
         } else {
-            KRATOS_ERROR << "Unreachable PointLocalCoordinates case." << std::endl;
+            if (length_1 > length_2) {
+                rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0;
+            } else {
+                rResult[0] = -2.0 * length_1/(length + tolerance) - 1.0;
+            }
         }
 
         return rResult ;
