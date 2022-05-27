@@ -132,21 +132,22 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         strategy_settings.AddEmptyValue("move_mesh_flag").SetBool(self.settings["move_mesh_flag"].GetBool())
         strategy_settings.AddEmptyValue("shock_capturing_settings").RecursivelyAddMissingParameters(self.settings["shock_capturing_settings"])
 
-        rk_parameter = self.settings["time_scheme"].GetString()
+        requested_strategy = self.settings["time_scheme"].GetString()
 
-        rk_startegies = {
+        available_strategies = {
             "RK3-TVD"       : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD,
             "RK4"           : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4,
-            "forward_euler" : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyForwardEuler
+            "forward_euler" : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyForwardEuler,
+            "bfecc" :         KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyBFECC
         }
 
-        if rk_parameter in rk_startegies:
-            strat = rk_startegies[rk_parameter](self.computing_model_part, strategy_settings)
+        if requested_strategy in available_strategies:
+            strat = available_strategies[requested_strategy](self.computing_model_part, strategy_settings)
             self.settings["shock_capturing_settings"] = strategy_settings["shock_capturing_settings"]
             return strat
 
-        err_msg = "Runge-Kutta method of type '{}' not available. Try any of\n".format(rk_parameter)
-        for key in rk_startegies:
+        err_msg = "Time scheme of type '{}' not available. Try any of\n".format(requested_strategy)
+        for key in available_strategies:
             err_msg = err_msg + " - {}\n".format(key)
         raise RuntimeError(err_msg)
 

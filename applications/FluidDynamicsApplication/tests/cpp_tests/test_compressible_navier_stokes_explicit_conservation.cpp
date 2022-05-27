@@ -248,7 +248,7 @@ std::vector<double> Assemble(ModelPart& rModelPart, const bool debug_prints = fa
  *  - ∇U = 0
  * then the time derivatives should be zero.
  */
-KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidTranslation, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationRigidTranslation, FluidDynamicsApplicationFastSuite)
 {
     using namespace CompressibleNSConservation;
 
@@ -286,7 +286,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidTr
  *  - λ = 0
  * the time derivatives should be zero
  */
-KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationStatic, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationStatic, FluidDynamicsApplicationFastSuite)
 {
     using namespace CompressibleNSConservation;
 
@@ -333,7 +333,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationStatic,
  *              |
  * 
  */
-KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRotation, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationRigidRotation, FluidDynamicsApplicationFastSuite)
 {
     using namespace CompressibleNSConservation;
 
