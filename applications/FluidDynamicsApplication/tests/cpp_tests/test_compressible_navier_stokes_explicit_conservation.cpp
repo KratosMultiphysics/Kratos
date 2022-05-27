@@ -177,11 +177,12 @@ void SetViscosities(
     }
 }
 
+template<typename TCallableRho, typename TCallableMom, typename TCallableE>
 void SetEulerFluxesAtMidPoint(
     ModelPart& rModelPart,
-    double(*Rho)(array_1d<double, 3> const&),
-    array_1d<double, 3>(*Momentum)(array_1d<double, 3> const&),
-    double(*TotalEnergy)(array_1d<double, 3> const&))
+    TCallableRho Rho,
+    TCallableMom Momentum,
+    TCallableE TotalEnergy)
 {
     for (auto& r_condition: rModelPart.Conditions())
     {
