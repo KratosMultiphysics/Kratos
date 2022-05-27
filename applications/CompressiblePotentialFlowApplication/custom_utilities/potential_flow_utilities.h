@@ -16,6 +16,7 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/ublas_interface.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -37,10 +38,10 @@ namespace PotentialFlowUtilities
 template <unsigned int TNumNodes, unsigned int TDim>
 struct ElementalData
 {
-    using GeometryType = ModelPart::GeometryType;
-    ElementalData(const GeometryType& rGeometry)
+    template<typename TGeometryType>
+    ElementalData(const TGeometryType& rGeometry)
     {
-        GeometryUtils::CalculateGeometryData(r_geometry, DN_DX, N, vol);
+        GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, vol);
     }
 
     array_1d<double, TNumNodes> potentials, distances;
