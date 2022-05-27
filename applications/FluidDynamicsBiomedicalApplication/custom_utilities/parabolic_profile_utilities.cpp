@@ -29,7 +29,7 @@ namespace Kratos {
 double ParabolicProfileUtilities::CalculateInletArea(const ModelPart& rModelPart)
 {
     double inlet_area = block_for_each<SumReduction<double>>(rModelPart.Conditions(), [](const Condition& rCondition){
-        return rCondition.GetGeometry().Area();
+        return rCondition.GetGeometry().DomainSize();
     });
     inlet_area = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(inlet_area);
     return inlet_area;
