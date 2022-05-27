@@ -31,9 +31,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-typedef  ModelPart::NodesContainerType NodesContainerType;
-typedef  ModelPart::ElementsContainerType ElementsContainerType;
-typedef Geometry<Node < 3 > > GeometryType;
 
 
 ///@}
@@ -48,15 +45,24 @@ typedef Geometry<Node < 3 > > GeometryType;
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/**
+ * @class FindNodalHProcess
+ * @ingroup KratosCore
+ * @brief Finds Neighbour elements of elements (by face/edge)
+ * @details Finds the NEIGHBOUR_ELEMENTS of elements. For 3D , they are the elements connected by faces. For 2D, elements connected by edges
+ * @details The neighbour vector has size = nfaces(volumetric geom) or nedges(planar geom). The order of the faces is the one given by the geom.GenerateFaces(). If no neigh elem is in a face, then this slot in the vector contains a nullptr
+ * @author Pablo Becker
+ */
 class  KRATOS_API(KRATOS_CORE) GenericFindElementalNeighboursProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
+    typedef  ModelPart::NodesContainerType NodesContainerType;
+    typedef  ModelPart::ElementsContainerType ElementsContainerType;
+    typedef Geometry<Node < 3 > > GeometryType;
+
 
     /// Pointer definition of GenericFindElementalNeighboursProcess
     KRATOS_CLASS_POINTER_DEFINITION(GenericFindElementalNeighboursProcess);
@@ -69,7 +75,7 @@ public:
 
     /// Default constructor.
     GenericFindElementalNeighboursProcess(ModelPart& model_part)
-        : mr_model_part(model_part)
+        : mrModelPart(model_part)
     {
     }
 
@@ -127,51 +133,29 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
+private:
+    ///@name Private static Member Variables
     ///@{
 
 
     ///@}
-    ///@name Protected member Variables
+    ///@name Private member Variables
     ///@{
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
 
     ///@}
-    ///@name Protected Operators
+    ///@name Private Operators
     ///@{
 
 
     ///@}
-    ///@name Protected Operations
+    ///@name Private Operations
     ///@{
 
 
     GlobalPointer<Element> CheckForNeighbourElems (const Geometry<Node<3> >& rBoundaryGeom,
                                                    Element & rElement);
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-
-    
-    ///@}
-    ///@name Private Operations
-    ///@{
 
 
     ///@}
@@ -185,7 +169,7 @@ protected:
 
 
     ///@}
-    ///@name Un accessible methods
+    ///@name Private LifeCycle
     ///@{
 
     /// Assignment operator.
