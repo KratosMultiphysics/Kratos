@@ -37,6 +37,7 @@ namespace PotentialFlowUtilities
 template <unsigned int TNumNodes, unsigned int TDim>
 struct ElementalData
 {
+    using GeometryType = ModelPart::GeometryType;
     ElementalData(const GeometryType& rGeometry)
     {
         GeometryUtils::CalculateGeometryData(r_geometry, DN_DX, N, vol);
