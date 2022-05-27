@@ -167,7 +167,7 @@ public:
     ///@name Operations
     ///@{
 
-    GeometryData::IntegrationMethod GetIntegrationMethod() override;
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     /**
      * is called to initialize the condition

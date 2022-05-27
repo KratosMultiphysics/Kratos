@@ -46,7 +46,7 @@ namespace Kratos {
  * Computation of RHS integration method is chosen in the symbolic generator.
  */
 template<>
-GeometryData::IntegrationMethod CompressibleNavierStokesExplicitNeumannCondition<2,2>::GetIntegrationMethod()
+GeometryData::IntegrationMethod CompressibleNavierStokesExplicitNeumannCondition<2,2>::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }

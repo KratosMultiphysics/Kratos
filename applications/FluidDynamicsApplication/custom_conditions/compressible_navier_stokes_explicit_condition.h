@@ -185,7 +185,7 @@ public:
     ///@name Operations
     ///@{
 
-    GeometryData::IntegrationMethod GetIntegrationMethod() override;
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     /// Create a new CompressibleNavierStokesExplicitCondition object.
     /**
