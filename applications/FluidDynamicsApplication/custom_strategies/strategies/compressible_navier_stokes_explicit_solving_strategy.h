@@ -242,7 +242,7 @@ public:
     {
         BaseType::InitializeSolutionStep();
 
-        if (ConservativeMagnitudeCalculationEnabled()) {
+        if (mFirstStep) {
             CalculateNonConservativeMagnitudes();
         }
 
@@ -277,6 +277,8 @@ public:
         if (ShockCapturingEnabled()) {
             GetShockCapturingProcess()->ExecuteFinalizeSolutionStep();
         }
+
+        mFirstStep = false;
     }
 
     /// Turn back information as a string.
@@ -528,6 +530,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    bool mFirstStep = true;
     bool mApplySlipCondition = true;
     bool mCalculateNonConservativeMagnitudes = true;
     Process::UniquePointer mpShockCapturingProcess = nullptr;

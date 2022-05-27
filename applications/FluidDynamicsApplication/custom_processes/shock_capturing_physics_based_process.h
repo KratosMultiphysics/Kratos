@@ -139,7 +139,7 @@ public:
 
     void ExecuteInitialize() override;
 
-    void ExecuteFinalizeSolutionStep() override;
+    void ExecuteInitializeSolutionStep() override;
 
     int Check() override;
 
