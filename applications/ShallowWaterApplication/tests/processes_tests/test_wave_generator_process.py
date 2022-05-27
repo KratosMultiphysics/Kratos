@@ -31,7 +31,6 @@ class TestWaveGeneratorProcess(KratosUnittest.TestCase):
                 "kratos_module"  : "KratosMultiphysics.ShallowWaterApplication",
                 "Parameters"            : {
                     "model_part_name"          : "model_part.Condition1",
-                    "formulation"              : "primitive_variables",
                     "interval"                 : [0.0, "End"],
                     "direction"                : [1.0, 0.0, 0.0],
                     "normal_positive_outwards" : true,
@@ -82,7 +81,6 @@ class TestWaveGeneratorProcess(KratosUnittest.TestCase):
                 "kratos_module"  : "KratosMultiphysics.ShallowWaterApplication",
                 "Parameters"     : {
                     "model_part_name"          : "model_part.Condition1",
-                    "formulation"              : "primitive_variables",
                     "interval"                 : [0.0, "End"],
                     "direction"                : "normal",
                     "normal_positive_outwards" : true,
@@ -134,7 +132,6 @@ class TestWaveGeneratorProcess(KratosUnittest.TestCase):
                 "kratos_module"  : "KratosMultiphysics.ShallowWaterApplication",
                 "Parameters"     : {
                     "model_part_name"          : "model_part.Condition1",
-                    "formulation"              : "primitive_variables",
                     "interval"                 : [0.0, "End"],
                     "direction"                : "normal",
                     "normal_positive_outwards" : true,
@@ -189,6 +186,11 @@ def CreateAndSetModelPartForWaveGeneratorProcess(model):
 
 def SolutionLoopForProcesses(model, process_list, end_time):
     model_part = model.GetModelPart("model_part")
+    element_replace_settings = KM.Parameters("""{
+        "element_name"   : "WaveElement2D3N",
+        "condition_name" : "WaveCondition2D2N"
+    }""")
+    KM.ReplaceElementsAndConditionsProcess(model_part, element_replace_settings).Execute()
     list_of_processes = KratosProcessFactory(model).ConstructListOfProcesses(process_list)
 
     for process in list_of_processes:

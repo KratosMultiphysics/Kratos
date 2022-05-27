@@ -25,10 +25,6 @@
 
 namespace Kratos
 {
-    enum Framework {EULERIAN_FRAMEWORK = 0, PFEM2_FRAMEWORK = 1};
-    enum Formulation {PrimitiveVariables = 0, ConservativeVariables = 1};
-    enum Variables {FreeSurfaceVariable = 0, VelocityVariable = 1, FreeSurfaceAndVelocity = 2};
-
     // Primary variables
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, HEIGHT)
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, FREE_SURFACE_ELEVATION)
