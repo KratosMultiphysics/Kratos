@@ -3,22 +3,22 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis_rve import FluidDynamicsAnalysisRVE
 
 class TestFluidRVETest(KratosUnittest.TestCase):
-    
+
     def setUp(self):
-        # Change to True to generate GiD Output 
+        # Change to True to generate GiD Output
         self.print_output = False
 
         # Change to True if no refence value file exists
         self.check_tolerance = 1e-6
         self.check_relative_tolerance = 1e-8
         self.print_reference_values = False
-    
+
     def test_fluid_rve_computation_2d(self):
         #Within location context:
-        with KratosUnittest.WorkFolderScope(".",__file__):            
+        with KratosUnittest.WorkFolderScope(".",__file__):
             with open("FluidRVETest/fluid_rve_test_parameters.json", 'r') as parameter_file:
                 self.parameters =  KratosMultiphysics.Parameters(parameter_file.read())
-                
+
             self.parameters["solver_settings"]["domain_size"].SetInt(2)
             self.parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString("FluidRVETest/fluid_rve_test_2D")
             self.parameters["solver_settings"]["material_import_settings"]["materials_filename"].SetString("FluidRVETest/fluid_rve_test_materials_2D.json")
@@ -26,15 +26,15 @@ class TestFluidRVETest(KratosUnittest.TestCase):
             self.parameters["solver_settings"]["skin_parts"][0].SetString("Slip2D")
             self.parameters["processes"]["initial_conditions_process_list"][0]["Parameters"]["value"][0].SetInt(0)
             self.parameters["processes"]["initial_conditions_process_list"][0]["Parameters"]["value"][1].SetInt(0)
-                        
+
             self._aux_fluid_rve_computation()
-        
+
     def test_fluid_rve_computation_3d(self):
         #Within location context:
         with KratosUnittest.WorkFolderScope(".",__file__):
             with open("FluidRVETest/fluid_rve_test_parameters.json", 'r') as parameter_file:
                 self.parameters =  KratosMultiphysics.Parameters(parameter_file.read())
-                
+
             self.parameters["solver_settings"]["domain_size"].SetInt(3)
             self.parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString("FluidRVETest/fluid_rve_test_3D")
             self.parameters["solver_settings"]["material_import_settings"]["materials_filename"].SetString("FluidRVETest/fluid_rve_test_materials_3D.json")
@@ -43,14 +43,14 @@ class TestFluidRVETest(KratosUnittest.TestCase):
             self.parameters["processes"]["initial_conditions_process_list"][0]["Parameters"]["value"][0].SetInt(0)
             self.parameters["processes"]["initial_conditions_process_list"][0]["Parameters"]["value"][1].SetInt(0)
             self.parameters["processes"]["initial_conditions_process_list"][0]["Parameters"]["value"][2].SetInt(0)
-            
+
             self._aux_fluid_rve_computation()
-        
+
     def _aux_fluid_rve_computation(self):
         # If required, add the output process to the test settings
         if self.print_output:
-            self._AddOutput()        
-        
+            self._AddOutput()
+
         # If required, add the reference values output process to the test settings
         if self.print_reference_values:
             self._AddReferenceValuesOutput()
@@ -97,7 +97,7 @@ class TestFluidRVETest(KratosUnittest.TestCase):
         }]''')
         output_settings[0]["Parameters"]["output_name"].SetString("FluidRVETest/fluid_rve_test_{}D".format(domain_size))
         self.parameters["output_processes"].AddValue("gid_output", output_settings)
-            
+
     def _AddReferenceValuesOutput(self):
         json_output_settings = KratosMultiphysics.Parameters("""{
             "python_module" : "json_output_process",
@@ -140,6 +140,5 @@ class TestFluidRVETest(KratosUnittest.TestCase):
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-    KratosUnittest.main()  
-        
-            
+    KratosUnittest.main()
+
