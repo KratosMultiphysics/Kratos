@@ -105,14 +105,14 @@ class TestFluidRVETest(KratosUnittest.TestCase):
             "process_name"  : "JsonOutputProcess",
             "Parameters"    : {
                 "output_variables" : ["VELOCITY","PRESSURE"],
-                "output_file_name" : "FluidRVETest/fluid_rve_test",
+                "output_file_name" : "FluidRVETest/fluid_rve_test_results",
                 "model_part_name"  : "FluidModelPart",
                 "time_frequency"   : 0.1
             }
         }""")
         domain_size = self.parameters["solver_settings"]["domain_size"].GetInt()
         output_file_name = json_output_settings["Parameters"]["output_file_name"].GetString()
-        output_file_name += "_{0}D".format(domain_size)
+        output_file_name += "_{0}D.json".format(domain_size)
         json_output_settings["Parameters"]["output_file_name"].SetString(output_file_name)
         self.parameters["processes"]["json_check_process_list"].Append(json_output_settings)
 
@@ -123,7 +123,7 @@ class TestFluidRVETest(KratosUnittest.TestCase):
             "process_name"  : "FromJsonCheckResultProcess",
             "Parameters"    : {
                 "check_variables"      : ["VELOCITY_X","VELOCITY_Y","PRESSURE"],
-                "input_file_name"      : "FluidRVETest/fluid_rve_test",
+                "input_file_name"      : "FluidRVETest/fluid_rve_test_results",
                 "model_part_name"      : "FluidModelPart",
                 "tolerance"            : 0.0,
                 "relative_tolerance"   : 0.0,
@@ -132,7 +132,7 @@ class TestFluidRVETest(KratosUnittest.TestCase):
         }""")
         domain_size = self.parameters["solver_settings"]["domain_size"].GetInt()
         input_file_name = json_check_settings["Parameters"]["input_file_name"].GetString()
-        input_file_name += "_{0}D".format(domain_size)
+        input_file_name += "_{0}D.json".format(domain_size)
         json_check_settings["Parameters"]["input_file_name"].SetString(input_file_name)
         json_check_settings["Parameters"]["tolerance"].SetDouble(self.check_tolerance)
         json_check_settings["Parameters"]["relative_tolerance"].SetDouble(self.check_relative_tolerance)
