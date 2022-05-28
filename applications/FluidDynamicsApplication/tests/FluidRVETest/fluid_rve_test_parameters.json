@@ -4,7 +4,7 @@
         "parallel_type": "OpenMP",
         "echo_level": 0,
         "start_time": 0.0,
-        "end_time": 0.1
+        "end_time": 0.2
     },
     "rve_settings": {
         "boundary_mp_name": "TO_BE_SET_IN_TEST",
@@ -61,7 +61,8 @@
                 "value": [0, 0, null],
                 "interval": [0.0, 0.0]
             }
-        }]
+        }],
+        "json_check_process_list": []
     },
     "output_processes": {}
 }
