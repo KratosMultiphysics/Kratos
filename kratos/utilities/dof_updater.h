@@ -48,9 +48,9 @@ public:
 	using DofType = Dof<typename TSparseSpace::DataType>;
 	using DofsArrayType = PointerVectorSet<
 		DofType,
-		SetIdentityFunction<DofType>,
-		std::less<decltype(std::declval<SetIdentityFunction<DofType>>()(std::declval<DofType>()))>,
-		std::equal_to<decltype(std::declval<SetIdentityFunction<DofType>>()(std::declval<DofType>()))>,
+		IndexedObject,
+		std::less<decltype(std::declval<IndexedObject>()(std::declval<DofType>()))>,
+		std::equal_to<decltype(std::declval<IndexedObject>()(std::declval<DofType>()))>,
 		DofType* >;
 
     using SystemVectorType = typename TSparseSpace::VectorType;

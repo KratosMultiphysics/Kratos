@@ -82,17 +82,17 @@ public:
     /// DoF array type definition
     typedef ModelPart::DofsArrayType DofsArrayType;
     /// DoF iterator type definition
-    typedef typename PointerVectorSet<DofType,
+    typedef typename PointerVectorSet<TDofType,
         IndexedObject,
-        std::less<decltype(std::declval<IndexedObject>()(std::declval<DofType>()))>,
-        std::equal_to<decltype(std::declval<IndexedObject>()(std::declval<DofType>()))>,
-        DofType* >::iterator DofIterator;
+        std::less<decltype(std::declval<IndexedObject>()(std::declval<TDofType>()))>,
+        std::equal_to<decltype(std::declval<IndexedObject>()(std::declval<TDofType>()))>,
+        TDofType* >::iterator DofIterator;
     /// DoF constant iterator type definition
-    typedef typename PointerVectorSet<DofType,
+    typedef typename PointerVectorSet<TDofType,
         IndexedObject,
-        std::less<decltype(std::declval<IndexedObject>()(std::declval<DofType>()))>,
-        std::equal_to<decltype(std::declval<IndexedObject>()(std::declval<DofType>()))>,
-        DofType* >::const_iterator DofConstantIterator;
+        std::less<decltype(std::declval<IndexedObject>()(std::declval<TDofType>()))>,
+        std::equal_to<decltype(std::declval<IndexedObject>()(std::declval<TDofType>()))>,
+        TDofType* >::const_iterator DofConstantIterator;
 
     /// Elements containers definition
     typedef ModelPart::ElementsContainerType ElementsArrayType;
