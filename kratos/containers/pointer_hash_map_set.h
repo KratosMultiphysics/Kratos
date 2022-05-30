@@ -22,6 +22,8 @@
 
 
 // External includes
+#include <utility>
+#include <type_traits>
 #include <unordered_map>
 
 // Project includes
@@ -76,16 +78,16 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(PointerHashMapSet);
 
     /// Key type for searching in this container.
-    typedef typename TGetKeyType::result_type key_type;
+    typedef decltype(std::declval<TGetKeyType>()(std::declval<TDataType>())) key_type;
 
-    /// data type stores in this container.
+    /// Data type stores in this container.
     typedef TDataType data_type;
     typedef TDataType value_type;
-    typedef THashType hasher;
     typedef TPointerType pointer_type;
     typedef TDataType& reference;
     typedef const TDataType& const_reference;
-	typedef std::unordered_map<key_type, TPointerType, hasher> ContainerType;
+	// typedef std::unordered_map<key_type, TPointerType, THashType> ContainerType;
+    typedef std::unordered_map<typename std::remove_reference<key_type>::type, TPointerType, THashType> ContainerType;
 
     typedef typename ContainerType::size_type size_type;
     typedef typename ContainerType::iterator ptr_iterator;
