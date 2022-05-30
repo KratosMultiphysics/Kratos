@@ -28,9 +28,12 @@ namespace Kratos {
 
 double ParabolicProfileUtilities::CalculateInletArea(const ModelPart& rModelPart)
 {
-    double inlet_area = block_for_each<SumReduction<double>>(rModelPart.Conditions(), [](const Condition& rCondition){
-        return rCondition.GetGeometry().DomainSize();
-    });
+    double inlet_area = 0.0;
+    if (rModelPart.GetCommunicator().LocalMesh().NumberOfConditions() != 0) {
+        inlet_area = block_for_each<SumReduction<double>>(rModelPart.Conditions(), [](const Condition& rCondition){
+            return rCondition.GetGeometry().DomainSize();
+        });
+    }
     inlet_area = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(inlet_area);
     return inlet_area;
 }
