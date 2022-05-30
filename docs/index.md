@@ -1,7 +1,7 @@
 ---
 keywords: Kratos Main Overview Readme
 tags: []
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 permalink: index.html
 ---
 
@@ -54,7 +54,7 @@ Here you can find the basic documentation of the project:
 * Getting Kratos (Last compiled Release)
     * [Kratos for Linux](Getting-Kratos-Binaries-for-Linux)
     * [Kratos for Windows](Getting-Kratos-Binaries-for-Windows)
-    // * [Kratos for Mac](MacOS-install) 
+    // * [Kratos for Mac](MacOS-install)
     * [Kratos for GiD](Getting-Kratos-binaries-(via-GiD))
 * Compiling Kratos
     * [See INSTALL.md](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md)

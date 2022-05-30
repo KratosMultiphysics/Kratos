@@ -1,9 +1,9 @@
 ---
 title: Sum
-keywords:
+keywords: 
 tags: [Sum.md]
 sidebar: statistics_application
-summary:
+summary: 
 ---
 ## Definition
 
