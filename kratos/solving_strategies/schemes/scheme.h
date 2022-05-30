@@ -82,9 +82,17 @@ public:
     /// DoF array type definition
     typedef ModelPart::DofsArrayType DofsArrayType;
     /// DoF iterator type definition
-    typedef typename PointerVectorSet<TDofType, IndexedObject>::iterator DofIterator;
+    typedef typename PointerVectorSet<DofType,
+        IndexedObject,
+        std::less<decltype(std::declval<IndexedObject>()(std::declval<DofType>()))>,
+        std::equal_to<decltype(std::declval<IndexedObject>()(std::declval<DofType>()))>,
+        DofType* >::iterator DofIterator;
     /// DoF constant iterator type definition
-    typedef typename PointerVectorSet<TDofType, IndexedObject>::const_iterator DofConstantIterator;
+    typedef typename PointerVectorSet<DofType,
+        IndexedObject,
+        std::less<decltype(std::declval<IndexedObject>()(std::declval<DofType>()))>,
+        std::equal_to<decltype(std::declval<IndexedObject>()(std::declval<DofType>()))>,
+        DofType* >::const_iterator DofConstantIterator;
 
     /// Elements containers definition
     typedef ModelPart::ElementsContainerType ElementsArrayType;

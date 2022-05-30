@@ -109,9 +109,9 @@ public:
 
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
     typedef PointerVectorSet<Dof<double>, 
-        SetIdentityFunction<Dof<double>>, 
-        std::less<decltype(std::declval<SetIdentityFunction<Dof<double>>>()(std::declval<Dof<double>>()))>, 
-        std::equal_to<decltype(std::declval<SetIdentityFunction<Dof<double>>>()(std::declval<Dof<double>>()))>, 
+        IndexedObject,
+        std::less<decltype(std::declval<IndexedObject>()(std::declval<Dof<double>>()))>,
+        std::equal_to<decltype(std::declval<IndexedObject>()(std::declval<Dof<double>>()))>,
         Dof<double>* > DofsArrayType;
 
     ///@}
