@@ -1,6 +1,5 @@
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.kratos_utilities as KratosUtilities
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -90,7 +89,7 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
         return default_settings
 
     def __init__(self, model, custom_settings):
-        """Initializing the solver"""
+        """Initializing the solver."""
         # TODO: DO SOMETHING IN HERE TO REMOVE THE "time_order" FROM THE DEFAULT SETTINGS BUT KEEPING THE BACKWARDS COMPATIBILITY
 
         if custom_settings.Has("levelset_convection_settings"):

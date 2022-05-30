@@ -8,6 +8,7 @@ import KratosMultiphysics
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class DropletDynamicsAnalysis(AnalysisStage):
+
     '''Main script for droplet dynamics simulations.'''
     def __init__(self,model,parameters):
         # Deprecation warnings
@@ -47,8 +48,8 @@ class DropletDynamicsAnalysis(AnalysisStage):
         """Create a list of Processes
 
         This method is TEMPORARY to not break existing code
-        It will be removed in the future
 
+        It will be removed in the future
         """
         list_of_processes = super(DropletDynamicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 

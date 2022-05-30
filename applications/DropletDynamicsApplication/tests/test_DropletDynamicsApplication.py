@@ -10,7 +10,6 @@ from generalTests import KratosDropletDynamicsGeneralTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
-
     Populates the test suites to run. At least, it should pupulate the suites:
     "small", "nighlty" and "all"
 
