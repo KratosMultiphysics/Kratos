@@ -1,4 +1,5 @@
 # Importing the Kratos Library
+from typing import Type
 import KratosMultiphysics
 from KratosMultiphysics.read_csv_table_utility import ReadCsvTableUtility
 
@@ -132,7 +133,7 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
                 current_max_value = self.table.GetValue(current_time)
                 KratosBio.ParabolicProfileUtilities.ImposeParabolicInlet(inlet_model_part, current_max_value, max_value_factor)
             else:
-                raise Exception("Wrong maximum value data type.")
+                raise TypeError("Wrong maximum value data type.")
 
     def ExecuteFinalizeSolutionStep(self):
         # Here we free all of the nodes in the inlet
