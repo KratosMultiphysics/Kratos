@@ -88,12 +88,7 @@ namespace Kratos
         typedef LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >LineSearchStrategyType;
 
         // Dof arrays
-        typedef PointerVectorSet<Dof<double>, 
-            SetIdentityFunction<Dof<double>>, 
-            std::less<decltype(std::declval<SetIdentityFunction<Dof<double>>>()(std::declval<Dof<double>>()))>, 
-            std::equal_to<decltype(std::declval<SetIdentityFunction<Dof<double>>>()(std::declval<Dof<double>>()))>, 
-            Dof<double>* > DofsArrayType;
-
+        typedef ModelPart::DofsArrayType DofsArrayType;
         typedef TestElement::ResidualType ResidualType;
 
         static inline DofsArrayType BasicTestStrategyDisplacement(
