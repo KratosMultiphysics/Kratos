@@ -9,7 +9,6 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class DropletDynamicsAnalysis(AnalysisStage):
     '''Main script for droplet dynamics simulations.'''
-
     def __init__(self,model,parameters):
         # Deprecation warnings
         solver_settings = parameters["solver_settings"]
@@ -30,14 +29,13 @@ class DropletDynamicsAnalysis(AnalysisStage):
 
 
     def _CreateSolver(self):
-        if (type(self.model) != KratosMultiphysics.Model):
+        if not isinstance(self.model, KratosMultiphysics.Model):
             raise Exception("input is expected to be provided as a Kratos Model object")#
 
-        if (type(self.project_parameters) != KratosMultiphysics.Parameters):
+        if not isinstance(self.project_parameters, KratosMultiphysics.Parameters):
             raise Exception("input is expected to be provided as a Kratos Parameters object")
 
         solver_settings = self.project_parameters["solver_settings"]
-        parallelism = self.project_parameters["problem_data"]["parallel_type"].GetString()
 
         module_full_name = 'KratosMultiphysics.DropletDynamicsApplication.droplet_dynamics_solver'
         solver = import_module(module_full_name).CreateSolver(self.model, solver_settings)
@@ -47,8 +45,10 @@ class DropletDynamicsAnalysis(AnalysisStage):
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
+
         This method is TEMPORARY to not break existing code
         It will be removed in the future
+
         """
         list_of_processes = super(DropletDynamicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 

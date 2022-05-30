@@ -4,15 +4,10 @@ import KratosMultiphysics.kratos_utilities as KratosUtilities
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-have_conv_diff = KratosUtilities.CheckIfApplicationsAvailable("ConvectionDiffusionApplication")
-if have_conv_diff:
-    import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 
 # Import base class file
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_two_fluids_solver import NavierStokesTwoFluidsSolver
-from KratosMultiphysics.FluidDynamicsApplication.read_distance_from_file import DistanceImportUtility
-
-from pathlib import Path
 
 def CreateSolver(model, custom_settings):
     return DropletDynamicsSolver(model, custom_settings)
@@ -95,6 +90,7 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
         return default_settings
 
     def __init__(self, model, custom_settings):
+        """Initializing the solver"""
         # TODO: DO SOMETHING IN HERE TO REMOVE THE "time_order" FROM THE DEFAULT SETTINGS BUT KEEPING THE BACKWARDS COMPATIBILITY
 
         if custom_settings.Has("levelset_convection_settings"):
@@ -109,7 +105,7 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
             if custom_settings.Has("bfecc_number_substeps"):
                 custom_settings.RemoveValue("bfecc_number_substeps")
 
-        super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
+        FluidSolver.__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "TwoFluidNavierStokesWallCondition"

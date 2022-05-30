@@ -20,7 +20,6 @@ def AssembleTestSuites():
     suites: A dictionary of suites
         The set of suites with its test_cases added.
     '''
-
     suites = KratosUnittest.KratosSuites
 
     # Create a test suit with the selected tests (Small tests):
