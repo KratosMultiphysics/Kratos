@@ -16,7 +16,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.OptimizationApplication.controls.shape.explicit_vertex_morphing as evm
 import KratosMultiphysics.OptimizationApplication.controls.shape.implicit_vertex_morphing as ivm
 import KratosMultiphysics.OptimizationApplication.controls.thickness.helmholtz_thickness as hlt
-import KratosMultiphysics.OptimizationApplication.controls.topology.helmholtz_topology as thp
+import KratosMultiphysics.OptimizationApplication.controls.material.helmholtz_material as hlm
 import KratosMultiphysics.OptimizationApplication as KOA
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, math
@@ -58,9 +58,9 @@ class ControlsController:
             self.controls_settings[itr]["settings"].ValidateAndAssignDefaults(default_settings["settings"])  
 
 
-        self.supported_control_types_techniques = {"shape":["explicit_vertex_morphing","implicit_vertex_morphing"],"topology":["helmholtz_topology"],"thickness":["helmholtz_thickness"]}
+        self.supported_control_types_techniques = {"shape":["explicit_vertex_morphing","implicit_vertex_morphing"],"material":["helmholtz_material"],"thickness":["helmholtz_thickness"]}
         # sanity checks
-        self.controls_types_vars_dict = {"shape":[],"topology":[],"thickness":[]}
+        self.controls_types_vars_dict = {"shape":[],"material":[],"thickness":[]}
         self.controls = {}
         self.controls_type = {}
         self.controls_controlling_objects = {}
@@ -104,9 +104,9 @@ class ControlsController:
             elif control_type == "thickness":
                 if control_technique == "helmholtz_thickness":
                     control = hlt.HelmholtzThickness(control_name,model,control_settings["settings"])    
-            elif control_type == "topology":
-                if control_technique == "helmholtz_topology":
-                    control = thp.HelmholtzTopology(control_name,model,control_settings["settings"])                                                          
+            elif control_type == "material":
+                if control_technique == "helmholtz_material":
+                    control = hlm.HelmholtzMaterial(control_name,model,control_settings["settings"])                                                          
 
             self.controls[control_name] = control
             self.controls_types_vars_dict[control_type].extend(control_controlling_objects_list)

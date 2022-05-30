@@ -68,7 +68,7 @@ public:
   ///@{
 
   /// Default constructor.
-  Response(std::string ResponseName, std::string ResponseType, Parameters ResponseSettings): mResponseName(ResponseName), mResponseType(ResponseType), mResponseSettings(ResponseSettings){}
+  Response(std::string ResponseName, std::string ResponseType, Model& rModel, Parameters& rResponseSettings): mResponseName(ResponseName), mResponseType(ResponseType), mrModel(rModel), mrResponseSettings(rResponseSettings){}
 
   /// Destructor.
   virtual ~Response(){}
@@ -136,7 +136,8 @@ protected:
   ///@{
     std::string mResponseName;
     std::string mResponseType;
-    Parameters mResponseSettings;
+    Model& mrModel;
+    Parameters& mrResponseSettings;
 
   ///@}
   ///@name Protected Operators

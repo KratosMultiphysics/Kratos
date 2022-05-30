@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_SMALL_DISPLACEMENT_NON_UNIFORM_DESNITY_H_INCLUDED )
-#define  KRATOS_SMALL_DISPLACEMENT_NON_UNIFORM_DESNITY_H_INCLUDED
+#if !defined(KRATOS_SMALL_DISPLACEMENT_NON_UNIFORM_MATERIAL_H_INCLUDED )
+#define  KRATOS_SMALL_DISPLACEMENT_NON_UNIFORM_MATERIAL_H_INCLUDED
 
 // System includes
 
@@ -44,7 +44,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class SmallDisplacementNonUniformDensity
+ * @class SmallDisplacementNonUniformMaterial
  * @ingroup StructuralMechanicsApplication
  * @brief Small displacement element for 2D and 3D geometries.
  * @details Implements a small displacement definition for structural analysis. This works for arbitrary geometries in 2D and 3D
@@ -52,7 +52,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementNonUniformDensity
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementNonUniformMaterial
     : public BaseSolidElement
 {
 public:
@@ -74,24 +74,24 @@ public:
     /// The definition of the sizetype
     typedef std::size_t SizeType;
 
-    /// Counted pointer of SmallDisplacementNonUniformDensity
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallDisplacementNonUniformDensity);
+    /// Counted pointer of SmallDisplacementNonUniformMaterial
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallDisplacementNonUniformMaterial);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    SmallDisplacementNonUniformDensity(IndexType NewId, GeometryType::Pointer pGeometry);
-    SmallDisplacementNonUniformDensity(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SmallDisplacementNonUniformMaterial(IndexType NewId, GeometryType::Pointer pGeometry);
+    SmallDisplacementNonUniformMaterial(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     // Copy constructor
-    SmallDisplacementNonUniformDensity(SmallDisplacementNonUniformDensity const& rOther)
+    SmallDisplacementNonUniformMaterial(SmallDisplacementNonUniformMaterial const& rOther)
         :BaseType(rOther)
     {};
 
     /// Destructor.
-    ~SmallDisplacementNonUniformDensity() override;
+    ~SmallDisplacementNonUniformMaterial() override;
 
     ///@}
     ///@name Operators
@@ -185,7 +185,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    SmallDisplacementNonUniformDensity() : BaseSolidElement()
+    SmallDisplacementNonUniformMaterial() : BaseSolidElement()
     {
     }
 
@@ -317,12 +317,12 @@ private:
     ///@name Un accessible methods
     ///@{
     /// Assignment operator.
-    //SmallDisplacementNonUniformDensity& operator=(const SmallDisplacementNonUniformDensity& rOther);
+    //SmallDisplacementNonUniformMaterial& operator=(const SmallDisplacementNonUniformMaterial& rOther);
     /// Copy constructor.
-    //SmallDisplacementNonUniformDensity(const SmallDisplacementNonUniformDensity& rOther);
+    //SmallDisplacementNonUniformMaterial(const SmallDisplacementNonUniformMaterial& rOther);
     ///@}
 
-}; // Class SmallDisplacementNonUniformDensity
+}; // Class SmallDisplacementNonUniformMaterial
 
 ///@}
 ///@name Type Definitions
@@ -333,4 +333,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SMALL_DISPLACEMENT_NON_UNIFORM_DESNITY_H_INCLUDED  defined
+#endif // KRATOS_SMALL_DISPLACEMENT_NON_UNIFORM_MATERIAL_H_INCLUDED  defined

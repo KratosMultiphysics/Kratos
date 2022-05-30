@@ -8,8 +8,8 @@
 //
 // ==============================================================================
 
-#ifndef TOPOLOGY_CONTROL_H
-#define TOPOLOGY_CONTROL_H
+#ifndef MATERIAL_CONTROL_H
+#define MATERIAL_CONTROL_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -52,26 +52,26 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) TopologyControl : public Control
+class KRATOS_API(OPTIMIZATION_APPLICATION) MaterialControl : public Control
 {
 public:
     ///@name Type Definitions
     ///@{
 
 
-    /// Pointer definition of TopologyControl
-    KRATOS_CLASS_POINTER_DEFINITION(TopologyControl);
+    /// Pointer definition of MaterialControl
+    KRATOS_CLASS_POINTER_DEFINITION(MaterialControl);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    TopologyControl(std::string ControlName, Model& rModel, Parameters ControlSettings )
-        : Control(ControlName,"topology",ControlSettings),mrModel(rModel){}
+    MaterialControl(std::string ControlName, Model& rModel, Parameters ControlSettings )
+        : Control(ControlName,"material",ControlSettings),mrModel(rModel){}
 
     /// Destructor.
-    virtual ~TopologyControl()
+    virtual ~MaterialControl()
     {
     }
 
@@ -106,13 +106,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
-        return "TopologyControl";
+        return "MaterialControl";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "TopologyControl";
+        rOStream << "MaterialControl";
     }
 
     /// Print object's data.
@@ -203,15 +203,15 @@ private:
     ///@{
 
     /// Assignment operator.
-//      TopologyControl& operator=(TopologyControl const& rOther);
+//      MaterialControl& operator=(MaterialControl const& rOther);
 
     /// Copy constructor.
-//      TopologyControl(TopologyControl const& rOther);
+//      MaterialControl(MaterialControl const& rOther);
 
 
     ///@}
 
-}; // Class TopologyControl
+}; // Class MaterialControl
 
 ///@}
 
@@ -228,4 +228,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // TOPOLOGY_CONTROL_H
+#endif // MATERIAL_CONTROL_H

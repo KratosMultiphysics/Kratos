@@ -194,7 +194,7 @@ class OptimizationAlgorithm:
                 control_settings.AddInt("size",3)
             elif control_type == "thickness":
                 control_settings.AddInt("size",1)
-            elif control_type == "topology":
+            elif control_type == "material":
                 control_settings.AddInt("size",1)
             else:
                 raise RuntimeError("OptimizationAlgorithm:__init__:error in compile settings for c++ optimizer")

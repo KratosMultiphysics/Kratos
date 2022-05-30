@@ -86,8 +86,8 @@ public:
     ///@{
 
     /// Default constructor.
-    Linear(std::string ResponseName, Model& rModel, Parameters ResponseSettings )
-        : Response(ResponseName,"shape",ResponseSettings),mrModel(rModel){}
+    Linear(std::string ResponseName, Model& rModel, Parameters& ResponseSettings )
+        : Response(ResponseName,"shape",rModel, ResponseSettings){}
 
     /// Destructor.
     virtual ~Linear()
@@ -106,7 +106,7 @@ public:
     // --------------------------------------------------------------------------
     void Initialize() override {
 
-        for(auto& eval_obj : mResponseSettings["evaluated_objects"]){
+        for(auto& eval_obj : mrResponseSettings["evaluated_objects"]){
             ModelPart& r_eval_object = mrModel.GetModelPart(eval_obj.GetString());
             // check if control_obj has surface condition and root_model_part has elements
             KRATOS_ERROR_IF_NOT(r_eval_object.Conditions().size()>0)
@@ -121,7 +121,7 @@ public:
     // --------------------------------------------------------------------------
     void CalculateGradient() override {
 
-        for(auto& eval_obj : mResponseSettings["evaluated_objects"]){
+        for(auto& eval_obj : mrResponseSettings["evaluated_objects"]){
             ModelPart& r_eval_object = mrModel.GetModelPart(eval_obj.GetString());
             VariableUtils().SetHistoricalVariableToZero(D_LINEAR_D_X, r_eval_object.Nodes());
             for(auto& cond_i : r_eval_object.Conditions()){
@@ -238,7 +238,7 @@ protected:
     ///@{
 
     // Initialized by class constructor
-    Model& mrModel;
+
     
     ///@}
     ///@name Protected Operators

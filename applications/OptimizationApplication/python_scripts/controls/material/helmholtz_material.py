@@ -11,20 +11,20 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 import KratosMultiphysics.OptimizationApplication as KOA
-from KratosMultiphysics.OptimizationApplication.controls.topology.topology_control import TopologyControl
+from KratosMultiphysics.OptimizationApplication.controls.material.material_control import MaterialControl
 
-class HelmholtzTopology(TopologyControl):
+class HelmholtzMaterial(MaterialControl):
 
     def __init__(self, name, model, settings):
         super().__init__(name,model,settings)
         self.technique_settings = self.settings["technique_settings"]
-
         self.default_technique_settings = KM.Parameters("""{
                     "automatic_filter_size" : true,
                     "filter_radius" : 0.000000000001,
                     "beta":25,
-                    "sigmoid_projection":true,
-                    "penalization":false,        
+                    "initial_density":0.000001,
+                    "youngs_modules": [], 
+                    "physical_densities": [],    
                     "linear_solver_settings" : {
                         "solver_type" : "amgcl",
                         "smoother_type":"ilu0",
@@ -61,20 +61,20 @@ class HelmholtzTopology(TopologyControl):
                 root_model_parts.append(extracted_root_model_part_name)
                 self.linear_solvers.append(python_linear_solver_factory.ConstructSolver(self.technique_settings["linear_solver_settings"]))
 
-        self.helmholtz_topology_control = KOA.HelmholtzTopology(self.name,self.model,self.linear_solvers,self.settings)
+        self.helmholtz_material_control = KOA.HelmholtzMaterial(self.name,self.model,self.linear_solvers,self.settings)
 
     def Initialize(self):
         super().Initialize()
-        self.helmholtz_topology_control.Initialize()
+        self.helmholtz_material_control.Initialize()
     
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
-        self.helmholtz_topology_control.MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)
+        self.helmholtz_material_control.MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)
 
     def Compute(self):
         pass
 
     def Update(self):
-        self.helmholtz_topology_control.Update() 
+        self.helmholtz_material_control.Update() 
 
     def GetControllingObjects(self):
         return self.controlling_objects

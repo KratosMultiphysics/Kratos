@@ -210,7 +210,7 @@ protected:
 
     ///@}
 
-private:
+
     ///@name Static Member Variables
     ///@{
 
@@ -233,7 +233,7 @@ private:
     ///@name Private Operators
     ///@{
 
-
+private:
     ///@}
     ///@name Private Operations
     ///@{

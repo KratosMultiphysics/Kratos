@@ -26,7 +26,7 @@
 #include "custom_python/add_custom_controls_to_python.h"
 #include "custom_controls/shape_controls/vertex_morphing/implicit_vertex_morphing.h"
 #include "custom_controls/thickness_controls/helmholtz_thickness.h"
-#include "custom_controls/topology_controls/helmholtz_topology.h"
+#include "custom_controls/material_controls/helmholtz_material.h"
 
 
 // ==============================================================================
@@ -65,13 +65,13 @@ void  AddCustomControlsToPython(pybind11::module& m)
         .def("Finalize", &HelmholtzThickness::Finalize)
         ;
 
-    py::class_<HelmholtzTopology >(m, "HelmholtzTopology")
+    py::class_<HelmholtzMaterial >(m, "HelmholtzMaterial")
         .def(py::init<std::string, Model&, std::vector<LinearSolverType::Pointer>&, Parameters>())
-        .def("Initialize", &HelmholtzTopology::Initialize)
-        .def("Update", &HelmholtzTopology::Update)
-        .def("MapControlUpdate", &HelmholtzTopology::MapControlUpdate)
-        .def("MapFirstDerivative", &HelmholtzTopology::MapFirstDerivative)
-        .def("Finalize", &HelmholtzTopology::Finalize)
+        .def("Initialize", &HelmholtzMaterial::Initialize)
+        .def("Update", &HelmholtzMaterial::Update)
+        .def("MapControlUpdate", &HelmholtzMaterial::MapControlUpdate)
+        .def("MapFirstDerivative", &HelmholtzMaterial::MapFirstDerivative)
+        .def("Finalize", &HelmholtzMaterial::Finalize)
         ;                  
  
 }

@@ -86,8 +86,8 @@ public:
     ///@{
 
     /// Default constructor.
-    PlaneSymmetry(std::string ResponseName, Model& rModel, Parameters ResponseSettings )
-        : Response(ResponseName,"shape",ResponseSettings),mrModel(rModel){}
+    PlaneSymmetry(std::string ResponseName, Model& rModel, Parameters& ResponseSettings )
+        : Response(ResponseName,"shape",rModel, ResponseSettings){}
 
     /// Destructor.
     virtual ~PlaneSymmetry()
@@ -106,7 +106,7 @@ public:
     // --------------------------------------------------------------------------
     void Initialize() override {
         int total_num_points = 0;
-        for(auto& eval_obj : mResponseSettings["evaluated_objects"]){
+        for(auto& eval_obj : mrResponseSettings["evaluated_objects"]){
             ModelPart& r_eval_object = mrModel.GetModelPart(eval_obj.GetString());
             // check if control_obj has surface condition and root_model_part has elements
             KRATOS_ERROR_IF_NOT(r_eval_object.Conditions().size()>0)
@@ -118,7 +118,7 @@ public:
 
         mListOfNodesInModelPart.resize(total_num_points);
         int counter = 0;
-        for(auto& eval_obj : mResponseSettings["evaluated_objects"]){
+        for(auto& eval_obj : mrResponseSettings["evaluated_objects"]){
             ModelPart& r_eval_object = mrModel.GetModelPart(eval_obj.GetString());            
             for (ModelPart::NodesContainerType::iterator node_it = r_eval_object.NodesBegin(); node_it != r_eval_object.NodesEnd(); ++node_it)
             {
@@ -142,7 +142,7 @@ public:
         const size_t bucket_size = 100;
         KDTree search_tree(mListOfNodesInModelPart.begin(), mListOfNodesInModelPart.end(), bucket_size);
 
-        for(auto& eval_obj : mResponseSettings["evaluated_objects"]){
+        for(auto& eval_obj : mrResponseSettings["evaluated_objects"]){
             ModelPart& r_eval_object = mrModel.GetModelPart(eval_obj.GetString());            
             for (auto& r_node : r_eval_object.Nodes()){
                 const array_1d<double, 3>& coords = r_node.Coordinates();
@@ -180,7 +180,7 @@ public:
         }        
 
         double total_value = 0.0;
-        for(auto& eval_obj : mResponseSettings["evaluated_objects"]){
+        for(auto& eval_obj : mrResponseSettings["evaluated_objects"]){
             ModelPart& r_eval_object = mrModel.GetModelPart(eval_obj.GetString());
             VariableUtils().SetHistoricalVariableToZero(D_PLANE_SYMMETRY_D_X, r_eval_object.Nodes());
             for(auto& cond_i : r_eval_object.Conditions()){
@@ -321,7 +321,6 @@ protected:
     ///@{
 
     // Initialized by class constructor
-    Model& mrModel;
     KDTree::Pointer mpSearchTree;
     NodeVector mListOfNodesInModelPart;
     double mDelta = 1e-6;

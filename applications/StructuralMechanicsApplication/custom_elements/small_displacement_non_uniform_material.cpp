@@ -19,13 +19,13 @@
 #include "utilities/math_utils.h"
 
 // Application includes
-#include "custom_elements/small_displacement_non_uniform_desnity.h"
+#include "custom_elements/small_displacement_non_uniform_material.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
-SmallDisplacementNonUniformDensity::SmallDisplacementNonUniformDensity( IndexType NewId, GeometryType::Pointer pGeometry )
+SmallDisplacementNonUniformMaterial::SmallDisplacementNonUniformMaterial( IndexType NewId, GeometryType::Pointer pGeometry )
     : BaseSolidElement( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
@@ -34,7 +34,7 @@ SmallDisplacementNonUniformDensity::SmallDisplacementNonUniformDensity( IndexTyp
 /***********************************************************************************/
 /***********************************************************************************/
 
-SmallDisplacementNonUniformDensity::SmallDisplacementNonUniformDensity( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+SmallDisplacementNonUniformMaterial::SmallDisplacementNonUniformMaterial( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
         : BaseSolidElement( NewId, pGeometry, pProperties )
 {
     //DO NOT ADD DOFS HERE!!!
@@ -43,37 +43,37 @@ SmallDisplacementNonUniformDensity::SmallDisplacementNonUniformDensity( IndexTyp
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer SmallDisplacementNonUniformDensity::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+Element::Pointer SmallDisplacementNonUniformMaterial::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_intrusive<SmallDisplacementNonUniformDensity>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<SmallDisplacementNonUniformMaterial>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer SmallDisplacementNonUniformDensity::Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
+Element::Pointer SmallDisplacementNonUniformMaterial::Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_intrusive<SmallDisplacementNonUniformDensity>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<SmallDisplacementNonUniformMaterial>( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-SmallDisplacementNonUniformDensity::~SmallDisplacementNonUniformDensity()
+SmallDisplacementNonUniformMaterial::~SmallDisplacementNonUniformMaterial()
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer SmallDisplacementNonUniformDensity::Clone (
+Element::Pointer SmallDisplacementNonUniformMaterial::Clone (
     IndexType NewId,
     NodesArrayType const& rThisNodes
     ) const
 {
     KRATOS_TRY
 
-    SmallDisplacementNonUniformDensity::Pointer p_new_elem = Kratos::make_intrusive<SmallDisplacementNonUniformDensity>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    SmallDisplacementNonUniformMaterial::Pointer p_new_elem = Kratos::make_intrusive<SmallDisplacementNonUniformMaterial>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 
@@ -91,7 +91,7 @@ Element::Pointer SmallDisplacementNonUniformDensity::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SmallDisplacementNonUniformDensity::UseElementProvidedStrain() const
+bool SmallDisplacementNonUniformMaterial::UseElementProvidedStrain() const
 {
     return true;
 }
@@ -99,7 +99,7 @@ bool SmallDisplacementNonUniformDensity::UseElementProvidedStrain() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementNonUniformDensity::CalculateAll(
+void SmallDisplacementNonUniformMaterial::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -175,11 +175,11 @@ void SmallDisplacementNonUniformDensity::CalculateAll(
             int_to_reference_weight *= GetProperties()[THICKNESS];
 
 
-        double this_density = 0;    
+        double this_young_modulus = 0;    
         for(unsigned int node_element = 0; node_element<number_of_nodes; node_element++)
-            this_density += r_geometry[node_element].FastGetSolutionStepValue(DENSITY) * this_kinematic_variables.N(node_element);
+            this_young_modulus += r_geometry[node_element].FastGetSolutionStepValue(YOUNG_MODULUS) * this_kinematic_variables.N(node_element);
 
-        int_to_reference_weight *= this_density;
+        int_to_reference_weight *= this_young_modulus;
 
         if ( CalculateStiffnessMatrixFlag ) { // Calculation of the matrix is required
             // Contributions to stiffness matrix calculated on the reference config
@@ -194,7 +194,7 @@ void SmallDisplacementNonUniformDensity::CalculateAll(
     KRATOS_CATCH( "" )
 }
 
-void SmallDisplacementNonUniformDensity::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementNonUniformMaterial::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == DENSITY_SENSITIVITY){
 
@@ -256,7 +256,7 @@ void SmallDisplacementNonUniformDensity::Calculate(const Variable<Matrix>& rVari
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementNonUniformDensity::CalculateKinematicVariables(
+void SmallDisplacementNonUniformMaterial::CalculateKinematicVariables(
     KinematicVariables& rThisKinematicVariables,
     const IndexType PointNumber,
     const GeometryType::IntegrationMethod& rIntegrationMethod
@@ -285,7 +285,7 @@ void SmallDisplacementNonUniformDensity::CalculateKinematicVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementNonUniformDensity::SetConstitutiveVariables(
+void SmallDisplacementNonUniformMaterial::SetConstitutiveVariables(
     KinematicVariables& rThisKinematicVariables,
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
@@ -318,7 +318,7 @@ void SmallDisplacementNonUniformDensity::SetConstitutiveVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementNonUniformDensity::CalculateB(
+void SmallDisplacementNonUniformMaterial::CalculateB(
     Matrix& rB,
     const Matrix& rDN_DX,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
@@ -335,7 +335,7 @@ void SmallDisplacementNonUniformDensity::CalculateB(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementNonUniformDensity::ComputeEquivalentF(
+void SmallDisplacementNonUniformMaterial::ComputeEquivalentF(
     Matrix& rF,
     const Vector& rStrainTensor
     ) const
@@ -346,7 +346,7 @@ void SmallDisplacementNonUniformDensity::ComputeEquivalentF(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementNonUniformDensity::save( Serializer& rSerializer ) const
+void SmallDisplacementNonUniformMaterial::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseSolidElement );
 }
@@ -354,7 +354,7 @@ void SmallDisplacementNonUniformDensity::save( Serializer& rSerializer ) const
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementNonUniformDensity::load( Serializer& rSerializer )
+void SmallDisplacementNonUniformMaterial::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseSolidElement );
 }

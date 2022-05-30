@@ -67,7 +67,7 @@
 
 /* Adding solid elements */
 #include "custom_elements/small_displacement.h"
-#include "custom_elements/small_displacement_non_uniform_desnity.h"
+#include "custom_elements/small_displacement_non_uniform_material.h"
 #include "custom_elements/axisym_small_displacement.h"
 #include "custom_elements/z_strain_driven_2p5_small_displacement.h"
 #include "custom_elements/total_lagrangian.h"
@@ -317,7 +317,7 @@ private:
     const SmallDisplacement mSmallDisplacement3D20N;
     const SmallDisplacement mSmallDisplacement3D27N;
 
-    const SmallDisplacementNonUniformDensity mSmallDisplacementNonUniformDensity3D4N;
+    const SmallDisplacementNonUniformMaterial mSmallDisplacementNonUniformMaterial3D4N;
 
     const SmallDisplacementBbar mSmallDisplacementBbar2D4N;
     const SmallDisplacementBbar mSmallDisplacementBbar3D8N;

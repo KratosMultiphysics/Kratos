@@ -8,8 +8,8 @@
 //
 // ==============================================================================
 
-#ifndef HELMHOLTZ_TOPOLOGY_H
-#define HELMHOLTZ_TOPOLOGY_H
+#ifndef HELMHOLTZ_MATERIAL_H
+#define HELMHOLTZ_MATERIAL_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -30,7 +30,7 @@
 #include "input_output/vtk_output.h"
 #include "containers/model.h"
 #include "utilities/variable_utils.h"
-#include "custom_controls/topology_controls/topology_control.h"
+#include "custom_controls/material_controls/material_control.h"
 #include "custom_elements/helmholtz_bulk_topology_element.h"
 #include "custom_strategies/strategies/helmholtz_strategy.h"
 
@@ -63,7 +63,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzTopology : public TopologyControl
+class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzMaterial : public MaterialControl
 {
 public:
     ///@name Type Definitions
@@ -85,23 +85,23 @@ public:
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;  
     typedef HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> StrategyType;
 
-    /// Pointer definition of HelmholtzTopology
-    KRATOS_CLASS_POINTER_DEFINITION(HelmholtzTopology);
+    /// Pointer definition of HelmholtzMaterial
+    KRATOS_CLASS_POINTER_DEFINITION(HelmholtzMaterial);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    HelmholtzTopology( std::string ControlName, Model& rModel, std::vector<LinearSolverType::Pointer>& rLinearSolvers, Parameters ControlSettings )
-        :  TopologyControl(ControlName,rModel,ControlSettings){
+    HelmholtzMaterial( std::string ControlName, Model& rModel, std::vector<LinearSolverType::Pointer>& rLinearSolvers, Parameters ControlSettings )
+        :  MaterialControl(ControlName,rModel,ControlSettings){
             for(int lin_i=0;lin_i<rLinearSolvers.size();lin_i++)
                 rLinearSystemSolvers.push_back(rLinearSolvers[lin_i]);
             mTechniqueSettings = ControlSettings["technique_settings"];
         }
 
     /// Destructor.
-    virtual ~HelmholtzTopology()
+    virtual ~HelmholtzMaterial()
     {
     }
 
@@ -118,7 +118,7 @@ public:
     void Initialize() override {
 
         BuiltinTimer timer;
-        KRATOS_INFO("HelmholtzTopology:Initialize ") << "Starting initialization of topology control "<<mControlName<<" ..." << std::endl;
+        KRATOS_INFO("HelmholtzMaterial:Initialize ") << "Starting initialization of material control "<<mControlName<<" ..." << std::endl;
 
         CreateModelParts();
 
@@ -130,25 +130,50 @@ public:
             mpStrategies.push_back(mpStrategy);
         }
 
-        AdjustFilterSizes();
+        physical_densities =  mTechniqueSettings["physical_densities"].GetVector();
+        initial_density = mTechniqueSettings["initial_density"].GetDouble();
+        youngs_modules =  mTechniqueSettings["youngs_modules"].GetVector();
+        beta = mTechniqueSettings["beta"].GetDouble();        
+        filtered_densities.resize(physical_densities.size());
+        
+        for(int i=0;i<physical_densities.size();i++){
+            filtered_densities[i] = i;
+        }
+        double initial_filtered_density = ProjectBackward(initial_density,filtered_densities,physical_densities,beta);
+        double initial_control_density = initial_filtered_density;
+        double initial_young_modulus = ProjectForward(initial_filtered_density,filtered_densities,youngs_modules,beta);
 
-        //initialize control topology
-        for(int model_i=0;model_i<mpVMModelParts.size();model_i++)
-            SetVariable(mpVMModelParts[model_i],CD,0.5);
+        std::cout<<"initial_filtered_density : "<<initial_filtered_density<<std::endl;
+        std::cout<<"initial_young_modulus : "<<initial_young_modulus<<std::endl;
 
-        //now compute physical density
-        beta = mTechniqueSettings["beta"].GetDouble();
-        sigmoid_projection = mTechniqueSettings["sigmoid_projection"].GetBool();
-        penalization = mTechniqueSettings["penalization"].GetBool();
-        opt_itr = 0;
-        ComputePhyiscalDensity();
 
-        KRATOS_INFO("HelmholtzTopology:Initialize") << "Finished initialization of desnity control "<<mControlName<<" in " << timer.ElapsedSeconds() << " s." << std::endl;
+        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+            SetVariable(mpVMModelParts[model_i],CD,initial_filtered_density); 
+            SetVariable(mpVMModelParts[model_i],FD,initial_filtered_density); 
+            SetVariable(mpVMModelParts[model_i],PD,initial_density); 
+            SetVariable(mpVMModelParts[model_i],YOUNG_MODULUS,initial_young_modulus);
+        }             
+
+        KRATOS_INFO("HelmholtzMaterial:Initialize") << "Finished initialization of material control "<<mControlName<<" in " << timer.ElapsedSeconds() << " s." << std::endl;
 
     };
     // --------------------------------------------------------------------------
     void Update() override {
+
+        opt_itr++;
+
+        ComputeFilteredDensity();
         ComputePhyiscalDensity();
+        ComputeYoungModulus();
+
+        if(opt_itr==1)
+            beta = 5;
+
+        if (opt_itr % 10 == 0 && beta <35.0)
+            beta *=1.5;
+
+        std::cout<<"++++++++++++++++++++++ beta : "<<beta<<" ++++++++++++++++++++++"<<std::endl;
+
     };  
     // --------------------------------------------------------------------------
     void MapControlUpdate(const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable) override{};
@@ -158,7 +183,7 @@ public:
 
         BuiltinTimer timer;
         KRATOS_INFO("") << std::endl;
-        KRATOS_INFO("HelmholtzTopology:MapFirstDerivative") << "Starting mapping of " << rDerivativeVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("HelmholtzMaterial:MapFirstDerivative") << "Starting mapping of " << rDerivativeVariable.Name() << "..." << std::endl;
 
         for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
@@ -168,35 +193,19 @@ public:
                 const auto& filtered_density = node_i.FastGetSolutionStepValue(FD);
                 const auto& derivative = node_i.FastGetSolutionStepValue(rDerivativeVariable);
                 auto& helmholtz_source = node_i.FastGetSolutionStepValue(HELMHOLTZ_SOURCE_DENSITY);
-                if(sigmoid_projection)
-                {
-                    double value = -2*beta*(filtered_density-0.5);
-                    if(value<-600)
-                        value = -600;
-                    if(value>600)
-                        value = 600;
-                    helmholtz_source = derivative * (2.0*beta*std::exp(value)) * std::pow(1.0/(1+std::exp(value)),2);
-
-                }
-                else if(penalization)
-                {
-                    helmholtz_source = 3 * filtered_density * filtered_density * derivative;
-                }
+                if(rDerivativeVariable.Name()=="D_MASS_D_PD")
+                    helmholtz_source = ProjectFirstDerivative(derivative,filtered_density,filtered_densities,physical_densities,beta);
                 else
-                    helmholtz_source = derivative;
+                    helmholtz_source = ProjectFirstDerivative(derivative,filtered_density,filtered_densities,youngs_modules,beta);
             }
 
             SetVariable(mpVMModePart,HELMHOLTZ_VAR_DENSITY,0.0);
 
             //now solve 
             mpStrategies[model_i]->Solve();
-
             SetVariable1ToVarible2(mpVMModePart,HELMHOLTZ_VAR_DENSITY,rMappedDerivativeVariable);
         }
-
-    
-        KRATOS_INFO("HelmholtzTopology:MapFirstDerivative") << "Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
-
+        KRATOS_INFO("HelmholtzMaterial:MapFirstDerivative") << "Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
     };  
 
     ///@}
@@ -216,13 +225,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
-        return "HelmholtzTopology";
+        return "HelmholtzMaterial";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "HelmholtzTopology";
+        rOStream << "HelmholtzMaterial";
     }
 
     /// Print object's data.
@@ -254,9 +263,11 @@ protected:
     std::vector<Properties::Pointer> mpVMModelPartsProperties;
     Parameters mTechniqueSettings;
     double beta;
-    int opt_itr;
-    bool sigmoid_projection;
-    bool penalization;
+    int opt_itr = 0;
+    Vector physical_densities;
+    Vector filtered_densities;
+    double initial_density;
+    Vector youngs_modules;    
     
     ///@}
     ///@name Protected Operators
@@ -361,7 +372,7 @@ private:
         for(auto& control_obj : mControlSettings["controlling_objects"]){
             ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
             ModelPart& root_model_part = r_controlling_object.GetRootModelPart();
-            std::string vm_model_part_name =  root_model_part.Name()+"_HELMHOLTZ_TOPOLOGY_Part";
+            std::string vm_model_part_name =  root_model_part.Name()+"_HELMHOLTZ_MATERIAL_Part";
             ModelPart* p_vm_model_part;
             Properties::Pointer p_vm_model_part_property;
 
@@ -388,13 +399,13 @@ private:
 
             //check if the controlling model part has elements which have desnity value
             if(!r_controlling_object.Elements().size()>0)
-                KRATOS_ERROR << "HelmholtzTopology:CreateModelParts : controlling model part " <<control_obj.GetString()<<" does not have elements"<<std::endl;
+                KRATOS_ERROR << "HelmholtzMaterial:CreateModelParts : controlling model part " <<control_obj.GetString()<<" does not have elements"<<std::endl;
 
             for (int i = 0; i < (int)r_controlling_object.Elements().size(); i++) {
                 ModelPart::ElementsContainerType::iterator it = r_controlling_object.ElementsBegin() + i;
                 const Properties& elem_i_prop = it->GetProperties();
                 if(!elem_i_prop.Has(DENSITY))
-                    KRATOS_ERROR << "HelmholtzTopology:CreateModelParts : element " << it->Id()<<" of controlling model part "<<control_obj.GetString()<<" does not have desnity property !"<<std::endl;
+                    KRATOS_ERROR << "HelmholtzMaterial:CreateModelParts : element " << it->Id()<<" of controlling model part "<<control_obj.GetString()<<" does not have desnity property !"<<std::endl;
                 Element::Pointer p_element = new HelmholtzBulkTopologyElement(it->Id(), it->pGetGeometry(), p_vm_model_part_property);
                 rmesh_elements.push_back(p_element);
             }   
@@ -412,45 +423,8 @@ private:
 
     }
 
-    void AdjustFilterSizes()
-    {
-        // now adjust the filter size if its adaptive
-        if(mTechniqueSettings["automatic_filter_size"].GetBool()){
-            for(auto& control_obj : mControlSettings["controlling_objects"]){
-                ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
-                ModelPart& root_model_part = r_controlling_object.GetRootModelPart();
-                std::string vm_model_part_name =  root_model_part.Name()+"_HELMHOLTZ_TOPOLOGY_Part";
-                ModelPart* mpVMModePart = &(root_model_part.GetSubModelPart(vm_model_part_name));
+    void ComputeFilteredDensity(){   
 
-                double max_detJ = 0.0;
-                double min_detJ = 1e9;
-                for(auto& elem_i : mpVMModePart->Elements()){
-                    const auto& r_geom = elem_i.GetGeometry();
-                    const IntegrationMethod& integration_method = r_geom.GetDefaultIntegrationMethod();
-                    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
-                    const unsigned int NumGauss = integration_points.size();
-                    Vector GaussPtsJDet = ZeroVector(NumGauss);
-                    r_geom.DeterminantOfJacobian(GaussPtsJDet,integration_method);  
-                    for(std::size_t i_point = 0; i_point<NumGauss; ++i_point){
-                        if(GaussPtsJDet[i_point]>max_detJ)
-                            max_detJ = GaussPtsJDet[i_point];
-                        if(GaussPtsJDet[i_point]<min_detJ)
-                            min_detJ = GaussPtsJDet[i_point];                  
-                    }   
-                }     
-
-                double surface_filter_size = sqrt(std::pow(max_detJ/min_detJ, 0.5));
-                for(auto& elem_i : mpVMModePart->Elements())
-                    elem_i.GetProperties().SetValue(HELMHOLTZ_RADIUS_DENSITY,surface_filter_size);
-
-                KRATOS_INFO("HelmholtzTopology:AdjustFilterSizes") << " Surface filter of "<<control_obj.GetString() <<" is adjusted to " << surface_filter_size << std::endl;
-            }
-        }    
-    }
-
-    void ComputePhyiscalDensity(){            
-
-        //now initialize control and physical density
         for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
 
             //first update control density
@@ -470,54 +444,143 @@ private:
                 VectorType int_vals = prod(mass_matrix,origin_values);
                 AddElementVariableValuesVector(elem_i,HELMHOLTZ_SOURCE_DENSITY,int_vals);
             }
-
             mpStrategies[model_i]->Solve();
-
             SetVariable1ToVarible2(mpVMModelParts[model_i],HELMHOLTZ_VAR_DENSITY,FD);
+        }        
+    } 
 
+    void ComputePhyiscalDensity(){            
+        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
             //now do the projection and then set the PD
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
                 const auto& filtered_density = node_i.FastGetSolutionStepValue(FD);
                 auto& physical_density = node_i.FastGetSolutionStepValue(PD);
-                auto& density = node_i.FastGetSolutionStepValue(DENSITY);
-                if (sigmoid_projection)
-                {
-                    double value = -2*beta*(filtered_density-0.5); 
-                    if(value<-600)
-                        value = -600;
-                    if(value>600)
-                        value = 600;                    
-                    physical_density = (1.0/(1+std::exp(value)));
-                    if(physical_density<0.001)
-                        physical_density = 0.001;
-
-                }
-                else if(penalization){
-                    physical_density = std::pow(filtered_density,3);
-                }
-                else
-                    physical_density = filtered_density;
-
-                density = physical_density;
-
+                physical_density = ProjectForward(filtered_density,filtered_densities,physical_densities,beta);
             }
         }
-        opt_itr++;
-        
-        // if(opt_itr==20)
-        //     beta *=1.5;
-        // if(opt_itr==40)
-        //     beta *=1.5;
-        // if(opt_itr==80)
-        //     beta *=1.5;
-        // if(opt_itr==160)
-        //     beta *=1.5; 
-        // if(opt_itr==300)
-        //     beta *=1.5; 
-        // if(opt_itr==600)
-        //     beta *=1.5;           
+    }
 
-    }  
+    void ComputeYoungModulus(){      
+        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+            //now do the projection and then set the PD
+            for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
+                const auto& filtered_density = node_i.FastGetSolutionStepValue(FD);
+                auto& youngs_modulus = node_i.FastGetSolutionStepValue(YOUNG_MODULUS);
+                youngs_modulus = ProjectForward(filtered_density,filtered_densities,youngs_modules,beta);
+            }
+        }
+    }
+
+    double ProjectForward(double x,Vector x_limits,Vector y_limits,double beta){
+
+        double x1,x2,y1,y2;
+        if(x>=x_limits[x_limits.size()-1]){
+            x1=x_limits[x_limits.size()-2];
+            x2=x_limits[x_limits.size()-1];
+            y1=y_limits[y_limits.size()-2];
+            y2=y_limits[y_limits.size()-1];
+        }
+        else if(x<=x_limits[0]){
+            x1=x_limits[0];
+            x2=x_limits[1];
+            y1=y_limits[0];
+            y2=y_limits[1];
+        }
+        else{
+            for(int i=0;i<x_limits.size()-1;i++)
+                if((x>=x_limits[i]) && (x<=x_limits[i+1]))
+                {
+                    y1 = y_limits[i];
+                    y2 = y_limits[i+1];
+                    x1 = x_limits[i];
+                    x2 = x_limits[i+1];
+                    break;
+                }            
+        }        
+        
+        double pow_val = -2.0*beta*(x-(x1+x2)/2);
+
+        // if(pow_val<-600)
+        //     pow_val = -600;
+        // if(pow_val>600)
+        //     pow_val = 600;
+
+        return (y2-y1)/(1+std::exp(pow_val)) + y1;
+    }
+
+
+    double ProjectBackward(double y,Vector x_limits,Vector y_limits,double beta){
+        
+        double x = 0;
+        if(y>=y_limits[y_limits.size()-1])
+            x = x_limits[y_limits.size()-1];
+        else if(y<=y_limits[0])
+            x = x_limits[0];
+        else{
+            for(int i=0;i<y_limits.size()-1;i++)
+                if((y>y_limits[i]) && (y<y_limits[i+1]))
+                {
+                    double y1 = y_limits[i];
+                    double y2 = y_limits[i+1];
+                    double x1 = x_limits[i];
+                    double x2 = x_limits[i+1];
+                    x = ((x2+x1)/2.0) + (1.0/(-2.0*beta)) * std::log(((y2-y1)/(y-y1))-1);
+                    break;
+                } 
+                else if(y==y_limits[i]){
+                    x = x_limits[i];
+                    break;
+                }
+                else if(y==y_limits[i+1]){
+                    x = x_limits[i+1];
+                    break;
+                }                           
+        }
+        return x;
+    }
+
+    double ProjectFirstDerivative(double dfdy,double x,Vector x_limits,Vector y_limits,double beta){
+
+        double dfdx = 0;
+        double x1,x2,y1,y2;
+        if(x>=x_limits[x_limits.size()-1]){
+            x1=x_limits[x_limits.size()-2];
+            x2=x_limits[x_limits.size()-1];
+            y1=y_limits[y_limits.size()-2];
+            y2=y_limits[y_limits.size()-1];
+        }
+        else if(x<=x_limits[0]){
+            x1=x_limits[0];
+            x2=x_limits[1];
+            y1=y_limits[0];
+            y2=y_limits[1];
+        }
+        else{
+            for(int i=0;i<x_limits.size()-1;i++)
+                if((x>=x_limits[i]) && (x<=x_limits[i+1]))
+                {
+                    y1 = y_limits[i];
+                    y2 = y_limits[i+1];
+                    x1 = x_limits[i];
+                    x2 = x_limits[i+1];
+                    break;
+                }            
+        }
+
+        double pow_val = -2.0*beta*(x-(x1+x2)/2);
+        // if(pow_val<-600)
+        //     pow_val = -600;
+        // if(pow_val>600)
+        //     pow_val = 600;
+
+        double dydx = (1.0/(1+std::exp(pow_val))) * (1.0/(1+std::exp(pow_val))) * 2.0 * beta * std::exp(pow_val);
+
+        if (y2<y1)
+            dydx *=-1;
+
+        return dfdy * dydx;
+
+    }    
 
     void GetElementVariableValuesVector(const Element& rElement,
                                         const Variable<double> &rVariable,
@@ -623,15 +686,15 @@ private:
     ///@{
 
     /// Assignment operator.
-//      HelmholtzTopology& operator=(HelmholtzTopology const& rOther);
+//      HelmholtzMaterial& operator=(HelmholtzMaterial const& rOther);
 
     /// Copy constructor.
-//      HelmholtzTopology(HelmholtzTopology const& rOther);
+//      HelmholtzMaterial(HelmholtzMaterial const& rOther);
 
 
     ///@}
 
-}; // Class HelmholtzTopology
+}; // Class HelmholtzMaterial
 
 ///@}
 
@@ -648,4 +711,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // HELMHOLTZ_TOPOLOGY_H
+#endif // HELMHOLTZ_MATERIAL_H
