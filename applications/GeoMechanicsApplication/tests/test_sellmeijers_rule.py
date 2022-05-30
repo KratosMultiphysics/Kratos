@@ -3,6 +3,7 @@ import os
 import csv
 import json
 import math
+
 sys.path.append(os.path.join('D:/kratos'))
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -22,24 +23,20 @@ class LatexWriterFile:
     def write_latex_file(self, result_list):
         with open(self.filename, "w+") as output_latex_file:
             for result_pair in result_list:
-                if result_pair['kratos_results'] is None:
-                    error = 1
-                    error_equivalent_software = 1
-                    output_latex_file.write(
-                        f"{str(result_pair['value_name'])} & {result_pair['test_result']} & "
-                        f"{result_pair['equivalent_software']} & "
-                        f" NaN & {round(error, 2)} &"
-                        f" {round(error_equivalent_software, 2)} \\\\ \hline \n")
-                else:
-                    error = abs(result_pair['kratos_results'] - result_pair['test_result']) / \
-                            (abs(result_pair['test_result']) + 1e-60)
-                    error_equivalent_software = abs(result_pair['kratos_results'] - result_pair['equivalent_software']) / \
-                                                (abs(result_pair['equivalent_software']) + 1e-60)
-                    output_latex_file.write(
-                        f"{result_pair['value_name']} & {result_pair['test_result']} & "
-                        f"{result_pair['equivalent_software']} & "
-                        f" {round(result_pair['kratos_results'], 2)} & {round(error, 2)} &"
-                        f" {round(error_equivalent_software, 2)} \\\\ \hline \n")
+                error_height = abs(result_pair['kratos_results_h'] - result_pair['test_result_h']) / \
+                               (abs(result_pair['test_result_h']) + 1e-60)
+                error_equivalent_software_height = abs(
+                    result_pair['kratos_results_h'] - result_pair['equivalent_software_h']) / \
+                                                   (abs(result_pair['equivalent_software_h']) + 1e-60)
+                error_equivalent_software_length = abs(
+                    result_pair['kratos_results_l'] - result_pair['equivalent_software_l']) / \
+                                                   (abs(result_pair['equivalent_software_l']) + 1e-60)
+                output_latex_file.write(
+                    f"{result_pair['value_name']} & {result_pair['test_result_h']} & "
+                    f"{result_pair['equivalent_software_h']} &  {round(result_pair['kratos_results_h'], 2)} & "
+                    f" {round(error_height * 100, 2)} &  {round(error_equivalent_software_height * 100, 2)} & "
+                    f" {round(result_pair['equivalent_software_l'], 2)} &  {round(result_pair['kratos_results_l'], 2)} & "
+                    f" {round(error_equivalent_software_length * 100, 2)} \\\\ \hline \n")
 
 
 class TestSellmeijersRule(KratosUnittest.TestCase):
@@ -62,10 +59,10 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
     def tearDown(self):
         pass
 
-
     def csv_file_reader(self):
         with open(test_helper.get_file_path(os.path.join('.', 'test_compare_sellmeijer/tests.csv')), 'r') as file:
-            results = {"name": [], "L": [], "D": [], "d70": [], "kappa": [], "Hc": [], "Hn": [], "Hc_kratos": []}
+            results = {"name": [], "L": [], "D": [], "d70": [], "kappa": [], "Hc": [], "Hn": [], "Hc_kratos": [],
+                       "Pipe_length_kratos": [], "Length_n": []}
             reader = csv.reader(file, delimiter=';')
             for counter, row in enumerate(reader):
                 if counter != 0:
@@ -76,6 +73,7 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
                     results["kappa"].append(float(row[4]))
                     results["Hc"].append(float(row[5]))
                     results["Hn"].append(float(row[6]))
+                    results["Length_n"].append(float(row[7]))
         return results
 
     def change_material_parameters(self, file_path, kappa, d70):
@@ -94,9 +92,11 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
         with open(parameter_file_name, 'r') as parameter_file:
             parameters = json.load(parameter_file)
             if "Left" in parameters['processes']['constraints_process_list'][0]['Parameters']['model_part_name']:
-                parameters['processes']['constraints_process_list'][0]['Parameters']['reference_coordinate'] = head_level
+                parameters['processes']['constraints_process_list'][0]['Parameters'][
+                    'reference_coordinate'] = head_level
             else:
-                parameters['processes']['constraints_process_list'][1]['Parameters']['reference_coordinate'] = head_level
+                parameters['processes']['constraints_process_list'][1]['Parameters'][
+                    'reference_coordinate'] = head_level
         with open(parameter_file_name, 'w') as parameter_file:
             json.dump(parameters, parameter_file, indent=4)
 
@@ -104,24 +104,31 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
         self.change_head_level_polder_side(file_path, head)
         simulation = test_helper.run_kratos(file_path)
         pipe_active = test_helper.get_pipe_active_in_elements(simulation)
-        return all(pipe_active)
+        length = test_helper.get_pipe_length(simulation)
+        return all(pipe_active), length
 
     def linear_search(self, file_path, search_array):
         counter_head = 0
+        pipe_length_total = []
         while counter_head < len(search_array):
             # check if pipe elements become active
-            if self.model_kratos_run(file_path, search_array[counter_head]):
-                return search_array[counter_head - 1]
+            pipe_active, pipe_length = self.model_kratos_run(file_path, search_array[counter_head])
+            pipe_length_total.append(pipe_length)
+            if pipe_active:
+                return search_array[counter_head - 1], pipe_length_total[counter_head - 1]
             counter_head = counter_head + 1
-        return None
+        return None, None
 
     def critical_head_loop(self, file_path, counter, search_type='linear'):
         self.change_material_parameters(file_path, self.test_lists["kappa"][counter], self.test_lists["d70"][counter])
-        heads = [x * 0.1 for x in range(int(self.test_lists["Hc"][counter] * 10 - 40), int(self.test_lists["Hc"][counter] * 10 + 90), 1)]
+        heads = [x * 0.1 for x in
+                 range(int(self.test_lists["Hc"][counter] * 10 - 40), int(self.test_lists["Hc"][counter] * 10 + 90), 1)]
         critical_head_found = math.nan
+        length = math.nan
         if search_type == 'linear':
-            critical_head_found = self.linear_search(file_path, heads)
+            critical_head_found, length = self.linear_search(file_path, heads)
         self.test_lists["Hc_kratos"].append(critical_head_found)
+        self.test_lists["Pipe_length_kratos"].append(length)
 
     def test_sellmeijers_rule_height(self):
         for counter, test_name in enumerate(self.test_lists["name"]):
@@ -133,10 +140,13 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
         for counter, test_n in enumerate(self.test_lists['name']):
             index_test = self.test_lists['name'].index(test_n)
             temp_results = {"value_name": test_n,
-                            "test_result": self.test_lists['Hc'][index_test],
-                            "equivalent_software": self.test_lists['Hn'][index_test],
-                            "kratos_results": self.test_lists['Hc_kratos'][counter]}
+                            "test_result_h": self.test_lists['Hc'][index_test],
+                            "equivalent_software_h": self.test_lists['Hn'][index_test],
+                            "kratos_results_h": self.test_lists['Hc_kratos'][counter],
+                            "equivalent_software_l": self.test_lists['Length_n'][index_test],
+                            "kratos_results_l": self.test_lists['Pipe_length_kratos'][counter]}
             all_results.append(temp_results)
         if self.is_running_under_teamcity:
-            self.latex_writer.filename = test_helper.get_file_path('test_compare_sellmeijer/test_compare_sellmeijer.tex')
+            self.latex_writer.filename = test_helper.get_file_path(
+                'test_compare_sellmeijer/test_compare_sellmeijer.tex')
             self.latex_writer.write_latex_file(all_results)
