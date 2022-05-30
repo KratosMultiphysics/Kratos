@@ -1,0 +1,113 @@
+from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+from sys import argv
+from importlib import import_module
+
+import KratosMultiphysics
+
+from KratosMultiphysics.analysis_stage import AnalysisStage
+
+class DropletDynamicsAnalysis(AnalysisStage):
+    '''Main script for droplet dynamics simulations.'''
+
+    def __init__(self,model,parameters):
+        # Deprecation warnings
+        solver_settings = parameters["solver_settings"]
+
+        if solver_settings.Has("domain_size") and parameters["problem_data"].Has("domain_size"):
+            raise Exception('FluidDynamicsAnalysis: "domain_size" defined both in "problem_data" and "solver_settings"!')
+
+        if solver_settings.Has("model_part_name") and parameters["problem_data"].Has("model_part_name"):
+            raise Exception('FluidDynamicsAnalysis: "model_part_name" defined both in "problem_data" and "solver_settings"!')
+
+        if not solver_settings.Has("domain_size") and parameters["problem_data"].Has("domain_size"):
+            raise Exception("FluidDynamicsAnalysis: Using the old way to pass the domain_size, this was removed!")
+
+        if not solver_settings.Has("model_part_name") and parameters["problem_data"].Has("model_part_name"):
+            raise Exception("FluidDynamicsAnalysis: Using the old way to pass the model_part_name, this was removed!")
+
+        super(DropletDynamicsAnalysis,self).__init__(model,parameters)
+
+
+    def _CreateSolver(self):
+        if (type(self.model) != KratosMultiphysics.Model):
+            raise Exception("input is expected to be provided as a Kratos Model object")#
+
+        if (type(self.project_parameters) != KratosMultiphysics.Parameters):
+            raise Exception("input is expected to be provided as a Kratos Parameters object")
+
+        solver_settings = self.project_parameters["solver_settings"]
+        parallelism = self.project_parameters["problem_data"]["parallel_type"].GetString()
+
+        module_full_name = 'KratosMultiphysics.DropletDynamicsApplication.droplet_dynamics_solver'
+        solver = import_module(module_full_name).CreateSolver(self.model, solver_settings)
+
+        return solver
+
+
+    def _CreateProcesses(self, parameter_name, initialization_order):
+        """Create a list of Processes
+        This method is TEMPORARY to not break existing code
+        It will be removed in the future
+        """
+        list_of_processes = super(DropletDynamicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+
+        if parameter_name == "processes":
+            processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
+            if len(list_of_processes) == 0: # Processes are given in the old format (or no processes are specified)
+                for process_name in processes_block_names:
+                    if self.project_parameters.Has(process_name):
+                        info_msg  = "Using the old way to create the processes, this was removed!\n"
+                        info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                        info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                        info_msg += "for a description of the new format"
+                        raise Exception("FluidDynamicsAnalysis: " + info_msg)
+            else: # Processes are given in the new format
+                for process_name in processes_block_names:
+                    if (self.project_parameters.Has(process_name) is True):
+                        raise Exception("Mixing of process initialization is not alowed!")
+        elif parameter_name == "output_processes":
+            if self.project_parameters.Has("output_configuration"):
+                info_msg  = "Using the old way to create the gid-output, this was removed!\n"
+                info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                info_msg += "for a description of the new format"
+                raise Exception("FluidDynamicsAnalysis: " + info_msg)
+        else:
+            raise NameError("wrong parameter name")
+
+        return list_of_processes
+
+    def _GetOrderOfProcessesInitialization(self):
+        # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
+        # Note 1: gravity is constructed first. Outlet process might need its information.
+        # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
+        return ["gravity",
+                "initial_conditions_process_list",
+                "boundary_conditions_process_list",
+                "auxiliar_process_list"]
+
+    def _GetSimulationName(self):
+        return "Droplet Dynamics Analysis"
+
+if __name__ == '__main__':
+    if len(argv) > 2:
+        err_msg =  'Too many input arguments!\n'
+        err_msg += 'Use this script in the following way:\n'
+        err_msg += '- With default parameter file (assumed to be called "ProjectParameters.json"):\n'
+        err_msg += '    "python droplet_dynamics_analysis.py"\n'
+        err_msg += '- With custom parameter file:\n'
+        err_msg += '    "python droplet_dynamics_analysis.py <my-parameter-file>.json"\n'
+        raise Exception(err_msg)
+
+    if len(argv) == 2: # ProjectParameters is being passed from outside
+        parameter_file_name = argv[1]
+    else: # using default name
+        parameter_file_name = "ProjectParameters.json"
+
+    with open(parameter_file_name,'r') as parameter_file:
+        parameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+    model = KratosMultiphysics.Model()
+    simulation = DropletDynamicsAnalysis(model,parameters)
+    simulation.Run()
