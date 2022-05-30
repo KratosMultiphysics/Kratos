@@ -205,12 +205,11 @@ public:
             double rot_solution_norm = 0.0, rot_increase_norm = 0.0;
             IndexType rot_dof_num(0);
 
-            // First iterator
-            const auto it_dof_begin = rDofSet.begin();
-
             // Auxiliar values
-            std::size_t dof_id = 0;
-            double dof_value = 0.0, dof_incr = 0.0;
+            struct AuxValues {
+                std::size_t dof_id = 0;
+                double dof_value = 0.0, dof_incr = 0.0;
+            };
 
             // Auxiliar displacement DoF check
             const std::function<bool(const VariableData&)> check_without_rot =
@@ -220,28 +219,23 @@ public:
             const auto* p_check_disp = (mOptions.Is(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED)) ? &check_with_rot : &check_without_rot;
 
             // Loop over Dofs
-            #pragma omp parallel for reduction(+:disp_solution_norm,disp_increase_norm,disp_dof_num,rot_solution_norm,rot_increase_norm,rot_dof_num,dof_id,dof_value,dof_incr)
-            for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-                auto it_dof = it_dof_begin + i;
+            using SixReduction = CombinedReduction<SumReduction<double>, SumReduction<double>, SumReduction<IndexType>, SumReduction<double>, SumReduction<double>, SumReduction<IndexType>>;
+            std::tie(disp_solution_norm,disp_increase_norm,disp_dof_num,rot_solution_norm,rot_increase_norm,rot_dof_num) = block_for_each<SixReduction>(rDofSet, AuxValues(), [p_check_disp,&rDx](Dof<double>& rDof, AuxValues& aux_values) {
+                if (rDof.IsFree()) {
+                    aux_values.dof_id = rDof.EquationId();
+                    aux_values.dof_value = rDof.GetSolutionStepValue(0);
+                    aux_values.dof_incr = rDx[aux_values.dof_id];
 
-                if (it_dof->IsFree()) {
-                    dof_id = it_dof->EquationId();
-                    dof_value = it_dof->GetSolutionStepValue(0);
-                    dof_incr = rDx[dof_id];
-
-                    const auto& r_curr_var = it_dof->GetVariable();
+                    const auto& r_curr_var = rDof.GetVariable();
                     if ((*p_check_disp)(r_curr_var)) {
-                        disp_solution_norm += std::pow(dof_value, 2);
-                        disp_increase_norm += std::pow(dof_incr, 2);
-                        ++disp_dof_num;
+                        return std::make_tuple(std::pow(aux_values.dof_value, 2),std::pow(aux_values.dof_incr, 2),1,0.0,0.0,0);
                     } else {
                         KRATOS_DEBUG_ERROR_IF_NOT((r_curr_var == ROTATION_X) || (r_curr_var == ROTATION_Y) || (r_curr_var == ROTATION_Z)) << "Variable must be a ROTATION and it is: " << r_curr_var.Name() << std::endl;
-                        rot_solution_norm += std::pow(dof_value, 2);
-                        rot_increase_norm += std::pow(dof_incr, 2);
-                        ++rot_dof_num;
+                        return std::make_tuple(0.0,0.0,0,std::pow(aux_values.dof_value, 2),std::pow(aux_values.dof_incr, 2),1);
                     }
                 }
-            }
+                return std::make_tuple(0.0,0.0,0,0.0,0.0,0);
+            });
 
             if(disp_increase_norm == 0.0) disp_increase_norm = 1.0;
             if(disp_solution_norm == 0.0) disp_solution_norm = 1.0;
@@ -249,11 +243,8 @@ public:
             if(rot_solution_norm == 0.0) rot_solution_norm = 1.0;
 
             const double disp_ratio = std::sqrt(disp_increase_norm/disp_solution_norm);
-
             const double disp_abs = std::sqrt(disp_increase_norm)/ static_cast<double>(disp_dof_num);
-
             const double rot_ratio = std::sqrt(rot_increase_norm/rot_solution_norm);
-
             const double rot_abs = std::sqrt(rot_increase_norm)/ static_cast<double>(rot_dof_num);
 
             // The process info of the model part

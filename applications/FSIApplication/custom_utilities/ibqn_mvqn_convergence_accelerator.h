@@ -81,6 +81,8 @@ public:
     ///@name Life Cycle
     ///@{
 
+    explicit IBQNMVQNConvergenceAccelerator() = default;
+
     /**
      * @brief Construct a new IBQNMVQNConvergenceAccelerator object
      * MVQN convergence accelerator Json settings constructor
@@ -89,17 +91,14 @@ public:
 
     explicit IBQNMVQNConvergenceAccelerator(Parameters rParameters)
     {
-        Parameters mvqn_default_parameters(R"({
-            "solver_type"            : "IBQN_MVQN",
-            "w_0"                    : 0.825,
-            "abs_cut_off_tol"        : 1e-8
-        })");
-        rParameters.ValidateAndAssignDefaults(mvqn_default_parameters);
-
+        rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
         mInitialOmega = rParameters["w_0"].GetDouble();
+
+        // Set the subdomains MVQN convergence accelerator pointers
+        // Note that we call the simplified constructor with default zero relaxation omega and IBQN switch
         const double abs_cut_off_tol = rParameters["abs_cut_off_tol"].GetDouble();
-        mpConvergenceAcceleratorLeft = Kratos::make_unique<MVQNType>(mInitialOmega, abs_cut_off_tol, true);
-        mpConvergenceAcceleratorRight = Kratos::make_unique<MVQNType>(mInitialOmega, abs_cut_off_tol, true);
+        mpConvergenceAcceleratorLeft = Kratos::make_unique<MVQNType>(abs_cut_off_tol);
+        mpConvergenceAcceleratorRight = Kratos::make_unique<MVQNType>(abs_cut_off_tol);
     }
 
     /**
@@ -172,7 +171,7 @@ public:
 
         KRATOS_ERROR << "The UpdateSolution() method cannot be called in the interface block Newton case. Use either \'UpdateSolutionLeft\' or \'UpdateSolutionRight\'" << std::endl;
 
-        KRATOS_CATCH( "" );
+        KRATOS_CATCH("");
     }
 
     //TODO: CREATE AN INTERMEDIATE IBQN BASE CLASS
@@ -181,6 +180,8 @@ public:
         const VectorType& rDisplacementOutputVector,
         VectorType& rIterationGuess)
     {
+        KRATOS_TRY;
+
         // Save the uncorrected force vector for the displacement update
         auto p_uncor_disp_aux = Kratos::make_shared<VectorType>(rDisplacementOutputVector);
         std::swap(mpUncorrectedDisplacementVector, p_uncor_disp_aux);
@@ -198,41 +199,15 @@ public:
             mFirstRightCorrectionPerformed = true;
 
         } else {
-            // Get the interface problem size
-            std::size_t problem_size = mpConvergenceAcceleratorRight->GetProblemSize();
+            // Calculate the right (displacement) correction
+            SolveInterfaceBlockQuasiNewtonRightUpdate(rForceInputVector, rDisplacementOutputVector, rIterationGuess, right_correction);
 
-            // Get both left and inverse Jacobian
-            auto p_inv_jac_right = mpConvergenceAcceleratorRight->pGetInverseJacobianApproximation();
-            auto p_inv_jac_left = mpConvergenceAcceleratorLeft->pGetInverseJacobianApproximation();
-
-            // Set the residual of the update problem to be solved
-            VectorType aux_RHS = rDisplacementOutputVector - rIterationGuess;
-            VectorType aux_right_onto_left(problem_size);
-            VectorType force_iteration_update = *mpUncorrectedForceVector - rForceInputVector;
-            TSparseSpace::Mult(*p_inv_jac_right, force_iteration_update, aux_right_onto_left);
-            TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_right_onto_left);
-
-            // Set the LHS of the update problem to be solved
-            MatrixType aux_LHS = IdentityMatrix(problem_size, problem_size);
-            IndexPartition<std::size_t>(problem_size).for_each(
-                VectorType(problem_size),
-                [&aux_LHS, &p_inv_jac_right, &p_inv_jac_left, &problem_size](std::size_t Col, VectorType& rAuxColumnTLS)
-            {
-                TDenseSpace::GetColumn(Col, *p_inv_jac_left, rAuxColumnTLS);
-                for (std::size_t row = 0; row < problem_size; ++row) {
-                    aux_LHS(row,Col) -= TDenseSpace::RowDot(row, *p_inv_jac_right, rAuxColumnTLS);
-                }
-            });
-
-            // Calculate the correction
-            // Do the QR decomposition of (I - J_{S}J_{F}) and solve for the force update
-            QR<double, row_major> qr_util;
-            qr_util.compute(problem_size, problem_size, &(aux_LHS)(0,0));
-            qr_util.solve(&(aux_RHS)(0), &(right_correction)(0));
         }
 
         // Update the iteration guess
         TSparseSpace::UnaliasedAdd(rIterationGuess, 1.0, right_correction);
+
+        KRATOS_CATCH("");
     }
 
     //TODO: CREATE AN INTERMEDIATE IBQN BASE CLASS
@@ -260,37 +235,9 @@ public:
             mFirstLeftCorrectionPerformed = true;
 
         } else {
-            // Get the interface problem size
-            std::size_t problem_size = mpConvergenceAcceleratorLeft->GetProblemSize();
+            // Calculate the left (traction) correction
+            SolveInterfaceBlockQuasiNewtonLeftUpdate(rDisplacementInputVector, rForceOutputVector, rIterationGuess, left_correction);
 
-            // Get both left and inverse Jacobian
-            auto p_inv_jac_left = mpConvergenceAcceleratorLeft->pGetInverseJacobianApproximation();
-            auto p_inv_jac_right = mpConvergenceAcceleratorRight->pGetInverseJacobianApproximation();
-
-            // Set the residual of the update problem to be solved
-            VectorType aux_RHS = rForceOutputVector - rIterationGuess;
-            VectorType aux_left_onto_right(problem_size);
-            VectorType displacement_iteration_update = *mpUncorrectedDisplacementVector - rDisplacementInputVector;
-            TSparseSpace::Mult(*p_inv_jac_left, displacement_iteration_update, aux_left_onto_right);
-            TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_left_onto_right);
-
-            // Set the LHS of the update problem to be solved
-            MatrixType aux_LHS = IdentityMatrix(problem_size, problem_size);
-            IndexPartition<std::size_t>(problem_size).for_each(
-                VectorType(problem_size),
-                [&aux_LHS, &p_inv_jac_left, &p_inv_jac_right, &problem_size](std::size_t Col, VectorType& rAuxColumnTLS)
-            {
-                TDenseSpace::GetColumn(Col, *p_inv_jac_right, rAuxColumnTLS);
-                for (std::size_t row = 0; row < problem_size; ++row) {
-                    aux_LHS(row,Col) -= TDenseSpace::RowDot(row, *p_inv_jac_left, rAuxColumnTLS);
-                }
-            });
-
-            // Calculate the correction
-            // Do the QR decomposition of (I - J_{F}J_{S}) and solve for the force update
-            QR<double, row_major> qr_util;
-            qr_util.compute(problem_size, problem_size, &(aux_LHS)(0,0));
-            qr_util.solve(&(aux_RHS)(0), &(left_correction)(0));
         }
 
         // Update the iteration guess
@@ -354,6 +301,17 @@ public:
         return true;
     }
 
+    virtual Parameters GetDefaultParameters() const
+    {
+        Parameters ibqn_mvqn_default_parameters(R"({
+            "solver_type"            : "IBQN_MVQN",
+            "w_0"                    : 0.825,
+            "abs_cut_off_tol"        : 1e-8
+        })");
+
+        return ibqn_mvqn_default_parameters;
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -371,6 +329,148 @@ public:
 
     ///@}
     ///@name Friends
+    ///@{
+
+
+    ///@}
+protected:
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    virtual void SolveInterfaceBlockQuasiNewtonLeftUpdate(
+        const VectorType& rDisplacementInputVector,
+        const VectorType& rForceOutputVector,
+        const VectorType& rIterationGuess,
+        VectorType& rLeftCorrection)
+    {
+        // Get the interface problem size
+        std::size_t problem_size = mpConvergenceAcceleratorLeft->GetProblemSize();
+
+        // Get both left and inverse Jacobian
+        auto p_inv_jac_left = mpConvergenceAcceleratorLeft->pGetInverseJacobianApproximation();
+        auto p_inv_jac_right = mpConvergenceAcceleratorRight->pGetInverseJacobianApproximation();
+
+        // Set the residual of the update problem to be solved
+        VectorType aux_RHS = rForceOutputVector - rIterationGuess;
+        VectorType aux_left_onto_right(problem_size);
+        VectorType displacement_iteration_update = *mpUncorrectedDisplacementVector - rDisplacementInputVector;
+        TSparseSpace::Mult(*p_inv_jac_left, displacement_iteration_update, aux_left_onto_right);
+        TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_left_onto_right);
+
+        // Set the LHS of the update problem to be solved
+        MatrixType aux_LHS = IdentityMatrix(problem_size, problem_size);
+        IndexPartition<std::size_t>(problem_size).for_each(
+            VectorType(problem_size),
+            [&aux_LHS, &p_inv_jac_left, &p_inv_jac_right, &problem_size](std::size_t Col, VectorType& rAuxColumnTLS)
+        {
+            TDenseSpace::GetColumn(Col, *p_inv_jac_right, rAuxColumnTLS);
+            for (std::size_t row = 0; row < problem_size; ++row) {
+                aux_LHS(row,Col) -= TDenseSpace::RowDot(row, *p_inv_jac_left, rAuxColumnTLS);
+            }
+        });
+
+        // Calculate the correction
+        // Do the QR decomposition of (I - J_{F}J_{S}) and solve for the force update
+        QR<double, row_major> qr_util;
+        qr_util.compute(problem_size, problem_size, &(aux_LHS)(0,0));
+        qr_util.solve(&(aux_RHS)(0), &(rLeftCorrection)(0));
+    }
+
+    virtual void SolveInterfaceBlockQuasiNewtonRightUpdate(
+        const VectorType& rForceInputVector,
+        const VectorType& rDisplacementOutputVector,
+        const VectorType& rIterationGuess,
+        VectorType& rRightCorrection)
+    {
+        // Get the interface problem size
+        std::size_t problem_size = mpConvergenceAcceleratorRight->GetProblemSize();
+
+        // Get both left and inverse Jacobian
+        auto p_inv_jac_right = mpConvergenceAcceleratorRight->pGetInverseJacobianApproximation();
+        auto p_inv_jac_left = mpConvergenceAcceleratorLeft->pGetInverseJacobianApproximation();
+
+        // Set the residual of the update problem to be solved
+        VectorType aux_RHS = rDisplacementOutputVector - rIterationGuess;
+        VectorType aux_right_onto_left(problem_size);
+        VectorType force_iteration_update = *mpUncorrectedForceVector - rForceInputVector;
+        TSparseSpace::Mult(*p_inv_jac_right, force_iteration_update, aux_right_onto_left);
+        TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_right_onto_left);
+
+        // Set the LHS of the update problem to be solved
+        MatrixType aux_LHS = IdentityMatrix(problem_size, problem_size);
+        IndexPartition<std::size_t>(problem_size).for_each(
+            VectorType(problem_size),
+            [&aux_LHS, &p_inv_jac_right, &p_inv_jac_left, &problem_size](std::size_t Col, VectorType& rAuxColumnTLS)
+        {
+            TDenseSpace::GetColumn(Col, *p_inv_jac_left, rAuxColumnTLS);
+            for (std::size_t row = 0; row < problem_size; ++row) {
+                aux_LHS(row,Col) -= TDenseSpace::RowDot(row, *p_inv_jac_right, rAuxColumnTLS);
+            }
+        });
+
+        // Calculate the correction
+        // Do the QR decomposition of (I - J_{S}J_{F}) and solve for the force update
+        QR<double, row_major> qr_util;
+        qr_util.compute(problem_size, problem_size, &(aux_LHS)(0,0));
+        qr_util.solve(&(aux_RHS)(0), &(rRightCorrection)(0));
+    }
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    void SetInitialRelaxationOmega(const double Omega)
+    {
+        mInitialOmega = Omega;
+    }
+
+    void SetLeftConvergenceAcceleratorPointer(MVQNPointerType pConvergenceAcceleratorLeft)
+    {
+        mpConvergenceAcceleratorLeft = pConvergenceAcceleratorLeft;
+    }
+
+    void SetRightConvergenceAcceleratorPointer(MVQNPointerType pConvergenceAcceleratorRight)
+    {
+        mpConvergenceAcceleratorRight = pConvergenceAcceleratorRight;
+    }
+
+    VectorPointerType pGetUncorrectedForceVector()
+    {
+        return mpUncorrectedForceVector;
+    }
+
+    VectorPointerType pGetUncorrectedDisplacementVector()
+    {
+        return mpUncorrectedDisplacementVector;
+    }
+
+    MVQNPointerType pGetConvergenceAcceleratorLeft()
+    {
+        return mpConvergenceAcceleratorLeft;
+    }
+
+    MVQNPointerType pGetConvergenceAcceleratorRight()
+    {
+        return mpConvergenceAcceleratorRight;
+    }
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
     ///@{
 
 
@@ -393,8 +493,8 @@ private:
     MVQNPointerType mpConvergenceAcceleratorLeft;
     MVQNPointerType mpConvergenceAcceleratorRight;
 
-    typename BaseType::VectorPointerType mpUncorrectedForceVector;
-    typename BaseType::VectorPointerType mpUncorrectedDisplacementVector;
+    VectorPointerType mpUncorrectedForceVector;
+    VectorPointerType mpUncorrectedDisplacementVector;
 
 
     ///@}

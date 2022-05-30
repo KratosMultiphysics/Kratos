@@ -48,7 +48,7 @@ namespace Kratos {
         mBeamConstitutiveLawArray.resize(mContinuumInitialNeighborsSize);
 
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-            Properties::Pointer properties_of_this_contact = GetProperties().pGetSubProperties(mNeighbourElements[i]->GetProperties().Id());            
+            Properties::Pointer properties_of_this_contact = GetProperties().pGetSubProperties(mNeighbourElements[i]->GetProperties().Id());
             mBeamConstitutiveLawArray[i] = (*properties_of_this_contact)[DEM_BEAM_CONSTITUTIVE_LAW_POINTER]-> Clone();
             SphericContinuumParticle* p_cont_neighbour_particle = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
             mBeamConstitutiveLawArray[i]->Initialize(this, p_cont_neighbour_particle, properties_of_this_contact);
@@ -312,7 +312,7 @@ namespace Kratos {
 
             } else if (indentation > 0.0) {
                 const double previous_indentation = indentation + LocalDeltDisp[2];
-                mDiscontinuumConstitutiveLaw = pGetDiscontinuumConstitutiveLawWithNeighbour(data_buffer.mpOtherParticle);
+                mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithNeighbour(data_buffer.mpOtherParticle);
                 mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info,
                                                               OldLocalElasticContactForce,
                                                               LocalElasticContactForce,

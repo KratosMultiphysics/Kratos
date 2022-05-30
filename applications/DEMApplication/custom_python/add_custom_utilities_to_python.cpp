@@ -154,7 +154,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<ParticleCreatorDestructor, ParticleCreatorDestructor::Pointer>(m, "ParticleCreatorDestructor")
         .def(py::init<>())
+        .def(py::init<Parameters>())
         .def(py::init<AnalyticWatcher::Pointer>())
+        .def(py::init<AnalyticWatcher::Pointer, const Parameters&>())
         .def("CalculateSurroundingBoundingBox", &ParticleCreatorDestructor::CalculateSurroundingBoundingBox)
         .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox)
         .def("MarkParticlesForErasingGivenScalarVariableValue", &ParticleCreatorDestructor::MarkParticlesForErasingGivenScalarVariableValue)

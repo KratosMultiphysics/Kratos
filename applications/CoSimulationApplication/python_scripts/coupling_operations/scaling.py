@@ -15,7 +15,7 @@ class ScalingOperation(CoSimulationCouplingOperation):
     """This operation performs scaling of values on an InterfaceData
     The value can be given directly as a value or as a string containing an evaluable function
     """
-    def __init__(self, settings, solver_wrappers, process_info):
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
         if not settings.Has("scaling_factor"):
             raise Exception('Please provide a "scaling_factor"!')
 
@@ -29,13 +29,15 @@ class ScalingOperation(CoSimulationCouplingOperation):
         # removing since the type of "scaling_factor" can be double or string and hence would fail in the validation
         settings.RemoveValue("scaling_factor")
 
-        super().__init__(settings, process_info)
+        super().__init__(settings, process_info, data_communicator)
 
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
 
     def Execute(self):
+        if not self.interface_data.IsDefinedOnThisRank(): return
+
         process_info = self.interface_data.GetModelPart().ProcessInfo
         time = process_info[KM.TIME]
         step = process_info[KM.STEP]

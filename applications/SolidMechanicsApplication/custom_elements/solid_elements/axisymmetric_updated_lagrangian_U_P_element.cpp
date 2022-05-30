@@ -36,8 +36,8 @@ AxisymmetricUpdatedLagrangianUPElement::AxisymmetricUpdatedLagrangianUPElement( 
     : LargeDisplacementUPElement( NewId, pGeometry, pProperties )
 {
     //mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-    mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
-    //mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+    //mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 
@@ -1162,7 +1162,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rM
     // Not Lumped Mass Matrix (numerical integration):
 
     //reading integration points
-    IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
+    IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::IntegrationMethod::GI_GAUSS_2; //GeometryData::IntegrationMethod::GI_GAUSS_1;
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 

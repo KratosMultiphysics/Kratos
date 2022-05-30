@@ -302,7 +302,7 @@ void DistanceSmoothingElement<2>::CalculateLocalSystem(
             }
 
             if (contact_node == num_face_nodes){
-                auto IntegrationMethod = GeometryData::GI_GAUSS_1;
+                auto IntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
                 auto face_gauss_pts = outer_face.IntegrationPoints(IntegrationMethod);
                 const unsigned int num_int_pts = face_gauss_pts.size();
 
@@ -450,7 +450,7 @@ void DistanceSmoothingElement<3>::CalculateLocalSystem(
             }
 
             if (contact_node == num_face_nodes){
-                auto IntegrationMethod = GeometryData::GI_GAUSS_1;
+                auto IntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
                 auto face_gauss_pts = outer_face.IntegrationPoints(IntegrationMethod);
                 const unsigned int num_int_pts = face_gauss_pts.size();
 

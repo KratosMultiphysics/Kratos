@@ -216,6 +216,33 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         return std::sqrt(3.0 * J2);
     }
 
+    /**
+     * @brief This converts the
+     * 3x3 rotation matrix to the 6x6
+     * Cook et al., "Concepts and applications
+     * of finite element analysis"
+     */
+    static void CalculateRotationOperatorVoigt(
+        const BoundedMatrixType &rOldOperator,
+        BoundedMatrixVoigtType &rNewOperator
+    );
+
+    /**
+     * @brief This checks if a vector has null norm
+     */
+    template <class TVector>
+    static void CheckAndNormalizeVector(
+        TVector& rVector
+        )
+    {
+        const double norm = MathUtils<double>::Norm3(rVector);
+        if (norm > std::numeric_limits<double>::epsilon()) {
+            rVector /= norm;
+        } else {
+            KRATOS_ERROR << "The norm of one LOCAL_AXIS is null" << std::endl;
+        }
+    }
+
 private:
 
 }; // class ConstitutiveLawUtilities

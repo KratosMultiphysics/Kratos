@@ -25,6 +25,12 @@
 
 /* ELEMENTS */
 
+/* 0D elements */
+#include "custom_elements/nodal_concentrated_element.hpp"
+
+/* Mass elements */
+#include "custom_elements/mass_element.h"
+
 /* Adding truss element */
 #include "custom_elements/truss_element_3D2N.hpp"
 #include "custom_elements/truss_element_linear_3D2N.hpp"
@@ -52,8 +58,6 @@
 #include "custom_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/shell_thick_element_3D3N.hpp"
-#include "custom_elements/nodal_concentrated_element.hpp"
-#include "custom_elements/mass_element.h"
 
 /* Adding the spring damper element */
 #include "custom_elements/spring_damper_element_3D2N.hpp"

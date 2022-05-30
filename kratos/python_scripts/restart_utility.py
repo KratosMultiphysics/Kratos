@@ -182,10 +182,7 @@ class RestartUtility:
 
     def CreateOutputFolder(self):
         if self.save_restart_files_in_folder:
-            folder_path = self.__GetFolderPathSave()
-            if not os.path.isdir(folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
-                os.makedirs(folder_path)
-            self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
+            KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(self.__GetFolderPathSave())
 
     #### Protected functions ####
 

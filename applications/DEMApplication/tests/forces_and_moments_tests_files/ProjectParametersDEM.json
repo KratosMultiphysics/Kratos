@@ -58,7 +58,7 @@
                 "interval"             : [0.0, 1.0e30]
             }
         },{
-            "python_module" : "processes.apply_forces_and_moments_to_walls_process",
+            "python_module" : "processes.apply_forces_and_moments_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "RigidFacePart.Cube1",
@@ -73,7 +73,7 @@
                 "interval"             : [0.2, 0.4]
             }
         },{
-            "python_module" : "processes.apply_forces_and_moments_to_walls_process",
+            "python_module" : "processes.apply_forces_and_moments_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "RigidFacePart.Cube2",

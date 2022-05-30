@@ -305,12 +305,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Prism;
+        return GeometryData::KratosGeometryFamily::Kratos_Prism;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Prism3D15;
+        return GeometryData::KratosGeometryType::Kratos_Prism3D15;
     }
 
     /**
@@ -1228,7 +1228,7 @@ public:
      *
      * :TODO: TESTING!!!
      */
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod ) const override
     {
@@ -1272,8 +1272,6 @@ public:
                 }
             }
         }//end of loop over integration points
-
-        return rResult;
     }
 
     /** This method gives gradient of all shape functions evaluated
@@ -1447,8 +1445,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -1497,8 +1494,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -1581,11 +1577,11 @@ private:
         {
             {
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 )
 
             }
         };
@@ -1602,11 +1598,11 @@ private:
         {
             {
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_3 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 )
             }
         };
         return shape_functions_local_gradients;
@@ -1650,7 +1646,7 @@ template<class TPointType> inline std::ostream& operator << (
 template<class TPointType> const
 GeometryData Prism3D15<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_3,
+    GeometryData::IntegrationMethod::GI_GAUSS_3,
     Prism3D15<TPointType>::AllIntegrationPoints(),
     Prism3D15<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()

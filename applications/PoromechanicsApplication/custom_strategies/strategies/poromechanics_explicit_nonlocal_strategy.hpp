@@ -36,7 +36,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(PoromechanicsExplicitNonlocalStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef MechanicalExplicitStrategy<TSparseSpace, TDenseSpace, TLinearSolver> GrandMotherType;
     typedef PoromechanicsExplicitStrategy<TSparseSpace, TDenseSpace, TLinearSolver> MotherType;
     typedef typename BaseType::TSchemeType TSchemeType;

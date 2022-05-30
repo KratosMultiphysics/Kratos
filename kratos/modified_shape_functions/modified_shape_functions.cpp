@@ -530,7 +530,7 @@ namespace Kratos
             // Get the subdivision shape function values
             const Matrix subdivision_sh_func_values = r_subdivision_geom.ShapeFunctionsValues(IntegrationMethod);
             ShapeFunctionsGradientsType subdivision_sh_func_gradients_values;
-            subdivision_sh_func_gradients_values = r_subdivision_geom.ShapeFunctionsIntegrationPointsGradients(subdivision_sh_func_gradients_values, IntegrationMethod);
+            r_subdivision_geom.ShapeFunctionsIntegrationPointsGradients(subdivision_sh_func_gradients_values, IntegrationMethod);
 
             // Get the subdivision Jacobian values on all Gauss pts.
             Vector subdivision_jacobians_values;

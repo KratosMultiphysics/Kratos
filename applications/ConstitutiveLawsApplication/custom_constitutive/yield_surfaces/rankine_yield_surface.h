@@ -17,6 +17,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/plastic_potentials/rankine_plastic_potential.h"
 
 namespace Kratos
 {
@@ -119,10 +120,15 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        array_1d<double, Dimension> principal_stress_vector = ZeroVector(Dimension);
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
-        // The rEquivalentStress is the maximum principal stress
-        rEquivalentStress = std::max(std::max(principal_stress_vector[0], principal_stress_vector[1]), principal_stress_vector[2]);
+        double I1, J2, J3, lode_angle;
+        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
+
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(deviator, J3);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
+
+        rEquivalentStress = 2.0 * std::sqrt(3 * J2) / 3.0 * std::cos(lode_angle + Globals::Pi / 6.0) + I1 / 3.0;
     }
 
     /**
@@ -201,7 +207,7 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        KRATOS_ERROR << "Yield surface derivative not defined for Rankine..." << std::endl;
+        RankinePlasticPotential<VoigtSize>::CalculatePlasticPotentialDerivative(rPredictiveStressVector, rDeviator, J2, rFFlux, rValues);
     }
 
     /**

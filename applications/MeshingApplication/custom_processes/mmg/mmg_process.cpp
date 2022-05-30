@@ -204,10 +204,11 @@ void MmgProcess<TMMGLibrary>::ExecuteInitializeSolutionStep()
     // We retrieve the data form the Kratos model part to fill sol
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         InitializeSolDataDistance();
-    } else {
-        if (!optimization_mode) {
-            InitializeSolDataMetric();
-        }
+    }
+
+    // We load the metric field, unless optimization mode is enabled.
+    if (!optimization_mode) {
+        InitializeSolDataMetric();
     }
 
     // We set the displacement vector
@@ -288,6 +289,7 @@ void MmgProcess<TMMGLibrary>::ExecuteFinalize()
     // Nodes not belonging to an element are removed
     if(mRemoveRegions) {
         CleanSuperfluousNodes();
+        CleanSuperfluousConditions();
     }
 
     // Save the mesh in an .mdpa format
@@ -369,8 +371,15 @@ void MmgProcess<TMMGLibrary>::InitializeSolDataMetric()
 {
     KRATOS_TRY;
 
-    // We initialize the solution data with the given modelpart
-    mMmgUtilities.GenerateSolDataFromModelPart(mrThisModelPart);
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        // This will only run for version >= 5.5
+        if (mThisParameters["isosurface_parameters"]["use_metric_field"].GetBool())
+            mMmgUtilities.GenerateIsosurfaceMetricDataFromModelPart(mrThisModelPart);
+    } else {
+        // We initialize the solution data with the given modelpart
+        mMmgUtilities.GenerateSolDataFromModelPart(mrThisModelPart);
+    }
+
 
     KRATOS_CATCH("");
 }
@@ -1190,6 +1199,65 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
     KRATOS_CATCH("");
 }
 
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::CleanSuperfluousConditions()
+{
+    KRATOS_TRY;
+
+    const SizeType initial_num_cond = mrThisModelPart.Conditions().size();
+
+    // Check which conditions do not have a parent element
+    typedef std::unordered_map<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > IndexCondMapType;
+    IndexCondMapType faces_map;
+
+    for (auto& r_cond :  mrThisModelPart.Conditions()) {
+        // Set all conditions to erase, to later discard those with a parent element
+        r_cond.Set(TO_ERASE, true);
+
+        auto& r_geometry = r_cond.GetGeometry();
+        DenseVector<int> ids(r_geometry.size());
+
+        for(IndexType i=0; i<ids.size(); i++) {
+            ids[i] = r_geometry[i].Id();
+        }
+
+        // Sort the ids to be hashed
+        std::sort(ids.begin(), ids.end());
+
+        // Insert a pointer to the condition identified by the hash value ids
+        if(faces_map.find(ids) != faces_map.end() ) { // Already defined geometry
+            faces_map[ids].push_back(&r_cond);
+        } else {
+            faces_map[ids] = std::vector<Condition::Pointer>({&r_cond});
+        }
+    }
+
+    // Check faces of elements and mark conditions that match them
+    for (auto& r_elem : mrThisModelPart.Elements()) {
+        auto& r_geometry = r_elem.GetGeometry();
+        for (auto& r_face_geometry : r_geometry.GenerateBoundariesEntities()) {
+            DenseVector<int> ids(r_face_geometry.size());
+            for(IndexType i=0; i<ids.size(); i++) {
+                ids[i] = r_face_geometry[i].Id();
+            }
+            std::sort(ids.begin(), ids.end());
+            if(faces_map.find(ids) != faces_map.end()) {
+                // Found condition in element face, do not erase
+                for (auto p_cond : faces_map[ids]) {
+                    p_cond->Set(TO_ERASE,false);
+                }
+            }
+        }
+    }
+
+    mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+
+    const SizeType final_num_cond = mrThisModelPart.Conditions().size();
+    KRATOS_INFO("MmgProcess") << "In total " << (initial_num_cond - final_num_cond) <<" wrong conditions were cleared" << std::endl;
+
+    KRATOS_CATCH("");
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -1217,6 +1285,7 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
         {
             "isosurface_variable"              : "DISTANCE",
             "nonhistorical_variable"           : false,
+            "use_metric_field"                 : false,
             "remove_internal_regions"          : false
         },
         "framework"                            : "Eulerian",

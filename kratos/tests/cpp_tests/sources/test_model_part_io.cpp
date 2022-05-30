@@ -19,8 +19,6 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/model_part_io.h"
-#include "includes/kratos_application.h"
-#include "includes/kernel.h"
 
 namespace Kratos {
 namespace Testing {
@@ -91,11 +89,6 @@ KRATOS_TEST_CASE_IN_SUITE(
                                     End SubModelPart
                                 End SubModelPart
 			)input"));
-
-    Kernel kernel;
-    KratosApplication application(std::string("Kratos"));
-    application.Register();
-    kernel.Initialize();
 
     Model current_model;
 
@@ -179,7 +172,7 @@ KRATOS_TEST_CASE_IN_SUITE(
 KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
 
     Model current_model;
-    
+
     // Create a model part to write
     ModelPart& main_model_part = current_model.CreateModelPart("MainModelPart");
     main_model_part.SetBufferSize(1);
@@ -325,11 +318,6 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOVariableNotInSolutionStepData, KratosCoreFa
 				3    0    5.0
 				End NodalData
 			)input"));
-
-    Kernel kernel;
-    KratosApplication application(std::string("Kratos"));
-    application.Register();
-    kernel.Initialize();
 
     Model current_model;
 

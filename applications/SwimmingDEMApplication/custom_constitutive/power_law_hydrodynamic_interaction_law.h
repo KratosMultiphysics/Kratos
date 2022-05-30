@@ -43,13 +43,13 @@ public:
                                              const double flow_behavior_index,
                                              const double modulus_of_minus_slip_velocity);
 
-    void ComputeDragForce(Geometry<Node<3> >& r_geometry,
+    void ComputeDragForce(SphericParticle* p_particle,
                           double particle_radius,
                           double fluid_density,
                           double fluid_kinematic_viscosity,
                           array_1d<double, 3>& minus_slip_velocity,
                           array_1d<double, 3>& drag_force,
-                          const ProcessInfo& r_current_process_info) override;
+                          const ProcessInfo& r_current_process_info);
 
 private:
 

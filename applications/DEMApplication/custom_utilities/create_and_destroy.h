@@ -42,6 +42,7 @@ public:
         typedef Configure::IteratorType                     ParticleIterator;
         typedef PointerVectorSet<Element, IndexedObject>    ElementsContainerType;
         typedef ModelPart::ElementsContainerType            ElementsArrayType;
+        typedef ModelPart::NodesContainerType               NodesArrayType;
         unsigned int mMaxNodeId;
 
     KRATOS_CLASS_POINTER_DEFINITION(ParticleCreatorDestructor);
@@ -49,7 +50,11 @@ public:
     /// Default constructor
     ParticleCreatorDestructor();
 
+    ParticleCreatorDestructor(Parameters settings);
+
     ParticleCreatorDestructor(AnalyticWatcher::Pointer p_watcher);
+
+    ParticleCreatorDestructor(AnalyticWatcher::Pointer p_watcher, Parameters settings);
 
     /// Destructor
     virtual ~ParticleCreatorDestructor();
@@ -243,9 +248,10 @@ public:
                                          double scale_factor,
                                          bool automatic);
 
+    bool CheckParticlePreservationCriteria(const Element::Pointer p_element, const double current_time);
     void DestroyParticles(ModelPart& r_model_part);
     void DestroyParticleElements(ModelPart& r_model_part, Flags flag_for_destruction);
-    void DestroyParticles(ModelPart::MeshType& rMesh);
+    void DestroyParticles(ModelPart::MeshType& rMesh, const double current_time);
     void DestroyContactElements(ModelPart& r_model_part);
     void MarkIsolatedParticlesForErasing(ModelPart& r_model_part);
     void MarkInitialNeighboursThatAreBeingRemoved(ModelPart& r_model_part);
@@ -298,9 +304,10 @@ private:
     array_1d<double, 3 > mStrictLowPoint;
     double mDiameter;
     double mStrictDiameter;
-    double mScaleFactor;
+    double mScaleFactor=1.0;
     bool mDoSearchNeighbourElements;
     AnalyticWatcher::Pointer mpAnalyticWatcher;
+    Parameters mSettings;
     void Clear(ModelPart::NodesContainerType::iterator node_it, int step_data_size);
     inline void ClearVariables(ModelPart::NodesContainerType::iterator node_it, Variable<array_1d<double, 3 > >& rVariable);
     inline void ClearVariables(ParticleIterator particle_it, Variable<double>& rVariable);

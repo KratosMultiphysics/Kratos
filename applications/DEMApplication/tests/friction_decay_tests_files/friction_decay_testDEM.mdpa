@@ -76,3 +76,19 @@ Begin SubModelPart 3 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: 
          6
   End SubModelPartNodes
 End SubModelPart
+
+Begin SubModelPart mat_1
+  Begin SubModelPartElements
+         1
+         3
+         5
+  End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart mat_2
+  Begin SubModelPartElements
+         2
+         4
+         6
+  End SubModelPartElements
+End SubModelPart

@@ -40,10 +40,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseImplicitSolvingStrategyType;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
     typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
-    
+
     // Custom strategy types
     typedef EigensolverNitscheStabilizationStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverNitscheStabilizationStrategyType;
 
@@ -51,7 +51,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef EigensolverNitscheStabilizationScheme< SparseSpaceType, LocalSpaceType > EigensolverNitscheStabilizationSchemeType;
 
     // Eigensolver Strategy
-    py::class_< EigensolverNitscheStabilizationStrategyType, typename EigensolverNitscheStabilizationStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverNitscheStabilizationStrategy")
+    py::class_< EigensolverNitscheStabilizationStrategyType, typename EigensolverNitscheStabilizationStrategyType::Pointer,BaseImplicitSolvingStrategyType >(m,"EigensolverNitscheStabilizationStrategy")
         .def(py::init<ModelPart&,
              BaseSchemeType::Pointer,
              BuilderAndSolverPointer>(),

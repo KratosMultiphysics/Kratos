@@ -11,7 +11,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    ElSamniLiftLaw::ElSamniLiftLaw(Parameters& r_parameters)
+    ElSamniLiftLaw::ElSamniLiftLaw(Parameters r_parameters)
     {
 
     }

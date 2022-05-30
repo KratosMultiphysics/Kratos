@@ -427,7 +427,7 @@ void DamageDPlusDMinusMasonry2DLaw::GetLawFeatures(
 int DamageDPlusDMinusMasonry2DLaw::Check(
 	const Properties& rMaterialProperties,
 	const GeometryType& rElementGeometry,
-	const ProcessInfo& rCurrentProcessInfo)
+	const ProcessInfo& rCurrentProcessInfo) const
 {
 	KRATOS_TRY
 

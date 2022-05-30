@@ -1,9 +1,10 @@
 import setuptools
 import os
 import json
+import glob
+import shutil
 
 kratos_version = os.environ["KRATOS_VERSION"]
-
 
 def replaceKeyword(str):
     return str.replace("${KRATOS_VERSION}", kratos_version).replace("${PYTHON}", os.environ["PYTHON"])
@@ -11,20 +12,20 @@ def replaceKeyword(str):
 def replaceKeywords(stringArray):
     return list(map(lambda str: replaceKeyword(str), stringArray))
 
+
 with open("wheel.json", "r") as conf_file:
     conf = json.loads(conf_file.read())
 
 with open(os.path.join(os.environ["KRATOS_ROOT"], conf["readme"]), "r") as fh:
     long_description = fh.read()
 
-
-import shutil
-
 for module in conf["included_modules"]:
     shutil.copytree(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "KratosMultiphysics", module), os.path.join("KratosMultiphysics", module))
 
 for binary in conf["included_binaries"]:
-    shutil.copy(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "libs", replaceKeyword(binary)), os.path.join("KratosMultiphysics", ".libs"))
+    for file in glob.glob(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "libs", replaceKeyword(binary))):
+        print("Adding {} matching binary: {}".format(file, binary))
+        shutil.copy(file, os.path.join("KratosMultiphysics", ".libs"))
 
 if "excluded_binaries" in conf:
     f = open("excluded.txt", "w")

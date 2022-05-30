@@ -265,12 +265,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Prism;
+        return GeometryData::KratosGeometryFamily::Kratos_Prism;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Prism3D6;
+        return GeometryData::KratosGeometryType::Kratos_Prism3D6;
     }
 
     ///@}
@@ -1060,7 +1060,7 @@ public:
      * KLUDGE: method call only works with explicit JacobiansType rather than creating
      * JacobiansType within argument list
     */
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod ) const override
     {
@@ -1104,8 +1104,6 @@ public:
                 }
             }
         }//end of loop over integration points
-
-        return rResult;
     }
 
     ///@}
@@ -1353,8 +1351,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -1402,8 +1399,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -1467,9 +1463,9 @@ private:
         {
             {
                 PrismInterface3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 PrismInterface3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Matrix(),
                 Matrix()
             }
@@ -1486,8 +1482,8 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                PrismInterface3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
-                PrismInterface3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
+                PrismInterface3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_1 ),
+                PrismInterface3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 ShapeFunctionsGradientsType(),
                 ShapeFunctionsGradientsType(),
             }
@@ -1552,7 +1548,7 @@ template<class TPointType> inline std::ostream& operator << (
 template<class TPointType> const
 GeometryData PrismInterface3D6<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_2,
+    GeometryData::IntegrationMethod::GI_GAUSS_2,
     PrismInterface3D6<TPointType>::AllIntegrationPoints(),
     PrismInterface3D6<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
@@ -1560,7 +1556,7 @@ GeometryData PrismInterface3D6<TPointType>::msGeometryData(
 
 template<class TPointType> const
 GeometryDimension PrismInterface3D6<TPointType>::msGeometryDimension(
-    3, 3, 2);
+    3, 3, 3);
 
 }// namespace Kratos.
 

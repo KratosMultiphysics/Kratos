@@ -551,7 +551,9 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationMesh()
     // If MPI, this creates the communication plan among processes
     // If serial, it is only required to set the current mesh as local mesh in order to output the values
     if (mrVisualizationModelPart.IsDistributed()) {
-        ParallelEnvironment::CreateFillCommunicator(mrVisualizationModelPart)->Execute();
+        ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(
+            mrVisualizationModelPart, mrVisualizationModelPart.GetCommunicator().GetDataCommunicator()
+            )->Execute();
     } else {
         mrVisualizationModelPart.GetCommunicator().SetLocalMesh(mrVisualizationModelPart.pGetMesh(0));
     }
@@ -1030,7 +1032,7 @@ Geometry< Node<3> >::Pointer EmbeddedSkinVisualizationProcess::SetNewConditionGe
         case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
             return Kratos::make_shared<Triangle3D3< Node<3> > >(rNewNodesArray);
         default:
-            KRATOS_ERROR << "Implement the visualization for the intersection geometry type " << rOriginGeometryType;
+            KRATOS_ERROR << "Implement the visualization for the intersection geometry type " << static_cast<int>(rOriginGeometryType);
     }
 }
 

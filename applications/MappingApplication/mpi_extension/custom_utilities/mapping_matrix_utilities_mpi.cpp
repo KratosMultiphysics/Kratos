@@ -20,6 +20,7 @@
 #include "Epetra_FECrsGraph.h"
 
 // Project includes
+#include "utilities/parallel_utilities.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "mapper_mpi_define.h"
 #include "custom_utilities/mapper_utilities.h"
@@ -141,16 +142,14 @@ void MappingMatrixUtilitiesType::BuildMappingMatrix(
     std::vector<int> global_equation_ids_destination(num_local_nodes_dest);
 
     const auto nodes_begin_orig = r_local_mesh_origin.NodesBegin();
-    #pragma omp parallel for
-    for (int i=0; i<num_local_nodes_orig; ++i) {
-        global_equation_ids_origin[i] = ( nodes_begin_orig + i )->GetValue(INTERFACE_EQUATION_ID);
-    }
+    IndexPartition<std::size_t>(num_local_nodes_orig).for_each([&global_equation_ids_origin, &nodes_begin_orig](const std::size_t Index){
+        global_equation_ids_origin[Index] = (nodes_begin_orig+Index)->GetValue(INTERFACE_EQUATION_ID);
+    });
 
     const auto nodes_begin_dest = r_local_mesh_destination.NodesBegin();
-    #pragma omp parallel for
-    for (int i=0; i<num_local_nodes_dest; ++i) {
-        global_equation_ids_destination[i] = ( nodes_begin_dest + i )->GetValue(INTERFACE_EQUATION_ID);
-    }
+    IndexPartition<std::size_t>(num_local_nodes_dest).for_each([&global_equation_ids_destination, &nodes_begin_dest](const std::size_t Index){
+        global_equation_ids_destination[Index] = (nodes_begin_dest+Index)->GetValue(INTERFACE_EQUATION_ID);
+    });
 
     // Construct vectors containing all the equation ids of rows and columns this processor contributes to
     std::set<int> row_equation_ids_set;

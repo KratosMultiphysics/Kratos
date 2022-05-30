@@ -175,7 +175,7 @@ typedef TUblasDenseSpace<double> LocalSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;
-typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
+typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
 
 AdjointResponseFunction::Pointer ResponseFunctionFactory(ModelPart* pModelPart, unsigned ResponseNodeId)
 {

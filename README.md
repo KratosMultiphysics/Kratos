@@ -1,8 +1,13 @@
 <p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>
 
-[![Release][release-image]][releases] [![License][license-image]][license] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI] [![Twitter][twitter-image]][twitter]
+[![License][license-image]][license] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI] [![Twitter][twitter-image]][twitter]
 
-[release-image]: https://img.shields.io/badge/release-8.1-green.svg?style=flat
+[![Release][release-image]][releases]
+<a href="https://github.com/KratosMultiphysics/Kratos/releases/latest"><img src="https://img.shields.io/github/release-date/KratosMultiphysics/Kratos?label="></a>
+<a href="https://github.com/KratosMultiphysics/Kratos/compare/Release-8.1...master"><img src="https://img.shields.io/github/commits-since/KratosMultiphysics/Kratos/latest?label=commits%20since"></a>
+<a href="https://github.com/KratosMultiphysics/Kratos/commit/master"><img src="https://img.shields.io/github/last-commit/KratosMultiphysics/Kratos?label=latest%20commit"></a>
+
+[release-image]: https://img.shields.io/badge/release-9.0-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
@@ -123,6 +128,10 @@ In applications:
 - [Eigen](http://eigen.tuxfamily.org) For linear solvers used in the [LinearSolversApplication](applications/LinearSolversApplication)
 - [Trilinos](https://trilinos.org/) for MPI linear algebra and solvers used in [TrilinosApplication](applications/TrilinosApplication)
 - [METIS](http://glaros.dtc.umn.edu/gkhome/views/metis) for partitioning in [MetisApplication](applications/MetisApplication/README.md)
+- [CoSimIO](https://github.com/KratosMultiphysics/CoSimIO) for performing coupled simulations with external solvers within the [CoSimulationApplication](applications/CoSimulationApplication/README.md). The CoSimIO in Kratos uses the following libraries:
+  - [Boost](http://www.boost.org/) for the `intrusive_ptr`
+  - [filesystem](https://github.com/gulrak/filesystem) Header-only single-file std::filesystem compatible helper library, based on the C++17 specs
+  - [asio](https://think-async.com/Asio/) for socket based interprocess communication
 
 # How to cite Kratos?
 Please, use the following references when citing Kratos in your work.

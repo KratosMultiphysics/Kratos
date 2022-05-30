@@ -354,7 +354,6 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
             for (unsigned int d = 0; d < Dim; d++)
             {
 
-
                 // Stabilization: (a * Grad(v)) * tau_one * Grad(p)
                 P = rData.DN_DX(i,d) * rData.N[j]; // Div(v) * p
                 U = fluid_fraction_gradient[d] * rData.N[j] * rData.N[i];
@@ -442,7 +441,7 @@ void QSVMSDEMCoupled<TElementData>::CalculateTau(
     const TElementData& rData,
     const array_1d<double,3> &Velocity,
     BoundedMatrix<double,Dim,Dim> &TauOne,
-    double &TauTwo)
+    double &TauTwo) const
 {
     constexpr double c1 = 8.0;
     constexpr double c2 = 2.0;
@@ -479,6 +478,49 @@ void QSVMSDEMCoupled<TElementData>::CalculateTau(
     BoundedMatrix<double,Dim,Dim> inv_PTau = prod(inv_eigen_matrix, non_diag_tau_one);
     TauOne = prod(inv_PTau, eigen_vectors_matrix);
     TauTwo = viscosity + c2 * density * velocity_norm * h / c1;
+}
+
+template< class TElementData >
+void QSVMSDEMCoupled<TElementData>::SubscaleVelocity(
+    const TElementData& rData,
+    array_1d<double,3> &rVelocitySubscale) const
+{
+    BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
+    double tau_two;
+    array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
+    this->CalculateTau(rData,convective_velocity,tau_one,tau_two);
+
+    array_1d<double,3> Residual = ZeroVector(3);
+
+    if (!rData.UseOSS)
+        this->AlgebraicMomentumResidual(rData,convective_velocity,Residual);
+    else
+        this->OrthogonalMomentumResidual(rData,convective_velocity,Residual);
+
+    for (unsigned int d = 0; d < Dim; ++d)
+        rVelocitySubscale[d] = tau_one(d,d) * Residual[d];
+}
+
+template< class TElementData >
+void QSVMSDEMCoupled<TElementData>::SubscalePressure(
+        const TElementData& rData,
+        double &rPressureSubscale) const
+{
+    BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
+    double tau_two;
+    array_1d<double, 3> convective_velocity =
+        this->GetAtCoordinate(rData.Velocity, rData.N) -
+        this->GetAtCoordinate(rData.MeshVelocity, rData.N);
+    this->CalculateTau(rData, convective_velocity, tau_one, tau_two);
+
+    double Residual = 0.0;
+
+    if (!rData.UseOSS)
+        this->AlgebraicMassResidual(rData,Residual);
+    else
+        this->OrthogonalMassResidual(rData,Residual);
+
+    rPressureSubscale = tau_two*Residual;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

@@ -85,7 +85,7 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                       buoyancy,
                                                       r_current_process_info);
 
-    mHydrodynamicInteractionLaw->ComputeDragForce(r_geometry,
+    mHydrodynamicInteractionLaw->ComputeDragForce(this,
                                                   mRadius,
                                                   mFluidDensity,
                                                   mKinematicViscosity,

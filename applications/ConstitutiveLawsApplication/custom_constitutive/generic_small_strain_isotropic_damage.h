@@ -81,6 +81,7 @@ public:
 
     /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+    static constexpr double threshold_tolerance = 1.0e-5;
 
     ///@}
     ///@name Life Cycle
@@ -338,7 +339,7 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        ) const override;
 
 
     /**

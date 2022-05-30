@@ -12,26 +12,26 @@ This application is part of the Kratos Multiphysics Platform. Instructions on ho
 
 ### Prerequisites
 
-Build [Kratos](https://github.com/KratosMultiphysics/Kratos/wiki) and make sure that you put
+Build [Kratos](https://github.com/KratosMultiphysics/Kratos/wiki) and, before that, make sure that you add
 
 ``` cmake
 -DDEM_APPLICATION=ON
 ```
 
-between the compilation options, so the DEM application is compiled.
+amongst the compilation options, so the DEM application is compiled.
 
 No auxiliar external libraries are needed.
 
 ## Theory
 
 The DEM is a numerical method that has been applied to simulate and analyze flow behavior in a wide range of disciplines including mechanical and process engineering, pharmaceutical, materials science, agricultural engineering and more.
-Coupling with fluid is already available through the Swimming-DEM application also integrated in the Kratos Multiphysics Platform.
+Coupling with fluid is already available through the Swimming-DEM application, also integrated in the Kratos Multiphysics Platform.
 
 The fundamental theoretical background corresponding to the discontinuous (granular matter) part of the code can be found in the DEM literature easily.
 
 ### Contact laws
 
-The contact laws are implemented in [this folder](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/DEMApplication/custom_constitutive). Note that a letter 'D' or 'd' in the file name means 'discontiuum'. It is, related to non cohesive or slightly cohesive contacts.
+The contact laws are implemented in [this folder](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/DEMApplication/custom_constitutive). Note that the letter 'D' or 'd' in the file name stands for 'discontiuum'. It is related to non cohesive or slightly cohesive contacts.
 
 #### Linear repulsive force
 
@@ -40,18 +40,18 @@ The most simple representation of a repulsive contact force between a sphere and
 #### Non-Linear repulsive force
 
 Hertz solved in 1882 the non-cohesive normal contact between a sphere and a plane. In 1971 Johnson, Kendall and Roberts presented the solution (JKR-Theory) for the same problem in this case adding cohesive behaviour. Not much later, Derjaguin, Müller and Toporov published similar results (DMT-Theory).
-Both theories are very close and correct, while the JKR theory is adequate to the study of flexible, large spheres, the DMT theory is specially suited to represent the behaviour of rigid, small ones.
+Both theories are very close and correct and, while the JKR theory is adequate to the study of flexible, large spheres, the DMT theory is specially suited to represent the behaviour of rigid, small ones.
 
 ## Numerical approach
 
 The application includes two types of DEM elements used for different purposes:
 
 * Spheric Particle - Base element used to simulate granular materials (non cohesive or slightly cohesive)
-* Spheric Continuum Particle - With specific build-in variables to simulate fracture in cohesive materials. It can also be understood as a discretization method of the continuum, with spheres.
+* Spheric Continuum Particle - With specific build-in variables to simulate fracture in cohesive materials. It can also be understood as a discretization method of the continuum by using spheres.
 
-With the following easy-to-use capabilities:
+And has the following easy-to-use capabilities:
 
-* Interaction with FEM-based walls - Objects that can not be crossed by DEM spheres. The user can choose to impose Linear-periodic conditions or rigid body conditions.
+* Interaction with FEM-based walls - Objects that cannot be crossed by DEM spheres. The user can choose to impose Linear-periodic conditions or rigid body conditions.
 * Inlets - Inject new particles while running the simulation linked to some material properties. With user defined granulometry, mass flow and particle type (single particle or clusters). Inlets are based on FEM-based walls and boundary conditions can also be applied to them.
 * Initial conditions on particle elements.
 * Boundary conditions on particle elements.
@@ -65,7 +65,7 @@ It also includes several predefined cluster formations to be used.
 Once contact between two spheres occurs, the forces at the contact point are computed. The interaction between the two contacting spheres can be represented by two forces with the same module but opposite directions. This force F can be decomposed into its normal and shear components Fn and Fs, respectively.
 The contact interface for the simplest formulation is characterized by the normal and tangential stiffness Kn and Ks, respectively, a frictional device obeying the Couloumb law with a frictional coefficient, and a dashpot defined by a contact damping coefficient.
 
-In order to represent irregular particles with spheres, a numerical correction is used. the rolling friction imposes a virtual moment opposite to particle rotation and dependent on its size.
+In order to represent irregular particles with spheres, a numerical correction is used. The rolling friction imposes a virtual moment opposite to particle rotation and dependent on its size.
 
 #### Continuum materials strategy
 
@@ -86,34 +86,37 @@ Also, two rotational specific integration schemes are available:
 
 ### Contact search
 
-The contact detection basically consists in determining, for every target object, what other objects are in contact with, and then, judge for the correspondent interaction. It is usually not needed to perform a search every time step, which is generally limited for the stability of the explicit integration of the equations of motion.
+The contact detection basically consists in determining, for every target object, which other objects are in contact with it, and then apply the corresponding interaction. It is usually not needed to perform a search at every time step, which is generally limited by the stability of the explicit integration of the equations of motion.
 A bins based technique is used for this purpose.
 
 ## Available interfaces
 
-### G-DEMPack
+### DEM
 
-G-DEMPack (formerly D-DEMpack) is the package that allows a user to create, run and analyze results of a DEM simulation for discontinuum / granular / little-cohesive materials. Requires [GiD](https://www.gidhome.com/) - Pre and Post Processing software.
+This is the package that allows a user to create, run and analyze results of a DEM simulation for discontinuum / granular / little-cohesive materials. Requires [GiD](https://www.gidhome.com/) - Pre and Post Processing software. It has both 2D and 3D versions. Check the manuals, follow the tutorials or play with the preloaded sample problems in order to learn how this application works.
 
-You can read the G-DEMPack manual or follow the G-DEMPack Tutorials included in DEMPack Tutorials for fast learning on how to use the GUI.
+### Cohesive-DEM
 
-### C-DEMPack
+This package combines the features of the previous one also with the simulation of continuum/cohesive materials. It also offers the possibility of tackling both 2D and 3D problems. Check also the manuals or tutorials or load the test examples in the GUI in order to learn how this problem type works.
 
-C-DEMPack combines the features of G-DEMPack with the simulation of continuum/cohesive materials. Refer to the C-DEMPack manual or follow the C-DEMPack Tutorials included in DEMPack Tutorials for more information.
+### Fluid-DEM
 
-### F-DEMPack
+This package allows you to simulate a wide spectrum of problems involving the interaction of granular DEM and fluids. This application has only a 3D version. Check also for existing manuals or tutorials to get a feel of how to work with this application.
 
-F-DEMPack allows you to simulate a wide spectrum of problems involving the interaction of granular DEM and fluid.
+
+## Contact
 
 * **Miguel Angel Celigueta** - *Core Development* - [maceli@cimne.upc.edu](mailto:maceli@cimne.upc.edu)
 * **Salva Latorre** - *Granular materials* - [latorre@cimne.upc.edu](mailto:latorre@cimne.upc.edu)
 * **Ferran Arrufat** - *Cohesive materials* - [farrufat@cimne.upc.edu](mailto:farrufat@cimne.upc.edu)
 * **Guillermo Casas** - *Fluid coupling* - [gcasas@cimne.upc.edu](mailto:gcasas@cimne.upc.edu)
 * **Joaquín Irazabal** - *Particle clusters & DEM-Solid interaction* - [jirazabal@cimne.upc.edu](mailto:jirazabal@cimne.upc.edu)
+* **Joaquín González-Usúa** - *Fluid coupling* - [jgonzalez@cimne.upc.edu](mailto:jgonzalez@cimne.upc.edu)
+
 
 ## License
 
-The DEM application is OPEN SOURCE. The main code and program structure is available and aimed to grow with the need of any user willing to expand it. The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
+The DEM application is OPEN SOURCE. The main code and program structure is available and aimed to grow with the need of any users willing to expand it. The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
 
 
 ## New GIDInterface for Kratos
@@ -125,8 +128,8 @@ The new GIDInterface currently under developement can be found [here](https://gi
 
 ### What to do if particles behave strangely
 
-* Check the Young Modulus. Materials with low elasticity may require smaller timesteps to ensure stability.
+* Check the Young Modulus. Materials with high stiffness may require smaller time steps to ensure stability.
 * Check the material density.
-* Check the Time Step. If the time step is too big, the elements can fail to interact with each other. In worst case scenarios it may even crash the program.
-* Check the frequency of neighbour search. If the search is not done frequently enough, new contacts may not be detected.
-* Check the restitution coefficient of the material. Explicit integration schemes gain energy noticeably, unless you use a really small time step. If the time step is high (but stable), use the restitution coefficient to compensate the gain of energy and get more realistic results.
+* Check the time step. If the time step is too large, the elements can fail to interact with each other. In the worst case scenarios, the simulation may even crash.
+* Check the frequency of neighbours' search. If the search is not done frequently enough, new contacts may not be detected.
+* Check the restitution coefficient of the material. Explicit integration schemes gain energy noticeably unless an enough small time step is used. If the time step is large (but stable), use the restitution coefficient to compensate for the gain of energy to obtain more realistic results.

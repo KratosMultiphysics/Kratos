@@ -299,10 +299,10 @@ class TestXMCAlgorithm(unittest.TestCase):
             estimated_mean = 1.47
             self.assertAlmostEqual(estimations[0], estimated_mean, delta=1.0)
             if "asynchronous_adaptivefixednumberlevels" in parametersPath:
-                self.assertAlmostEqual(sum(estimations), 1.5285582403120515, delta=parameters["monoCriteriaInputDictionary"]["statisticalError"]["tolerance"][0])
+                self.assertAlmostEqual(sum(estimations), 1.548764325805218, delta=parameters["monoCriteriaInputDictionary"]["statisticalError"]["tolerance"][0])
                 # self.assertEqual(sum(algo.hierarchy()[i][-1] for i in range (0,len(algo.hierarchy()))), 194) # uncomment once issue #62 is solved
             elif "adaptivefixednumberlevels" in parametersPath:
-                self.assertAlmostEqual(sum(estimations), 1.528129424481246, delta=parameters["monoCriteriaInputDictionary"]["statisticalError"]["tolerance"][0])
+                self.assertAlmostEqual(sum(estimations), 1.5487442468183323, delta=parameters["monoCriteriaInputDictionary"]["statisticalError"]["tolerance"][0])
                 # self.assertEqual(sum(algo.hierarchy()[i][-1] for i in range (0,len(algo.hierarchy()))), 122) # uncomment once issue #62 is solved
             else:
                 for level in algo.hierarchy():

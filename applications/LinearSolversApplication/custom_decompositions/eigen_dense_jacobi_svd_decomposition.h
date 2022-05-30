@@ -170,6 +170,11 @@ public:
         return mJacobiSVD.nonzeroSingularValues();
     }
 
+    void SetThreshold(const double RelTolerance) override
+    {
+        mJacobiSVD.setThreshold(RelTolerance);
+    }
+
     std::size_t Rank() override
     {
         return mJacobiSVD.rank();

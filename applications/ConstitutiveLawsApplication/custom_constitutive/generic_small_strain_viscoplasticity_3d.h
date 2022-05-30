@@ -131,7 +131,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericSmallStrainViscoplasticit
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return 6;
     };

@@ -469,7 +469,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     BoundedMatrix<double,3,3> aux_matrix = ZeroMatrix(3,3);
     BoundedMatrix<double,3,3> aux_matrix1 = ZeroMatrix(3,3);
 
-    mThisIntegrationMethod= GeometryData::GI_GAUSS_1;
+    mThisIntegrationMethod= GeometryData::IntegrationMethod::GI_GAUSS_1;
 
     if(rRightHandSideVector.size() != 3)
       {

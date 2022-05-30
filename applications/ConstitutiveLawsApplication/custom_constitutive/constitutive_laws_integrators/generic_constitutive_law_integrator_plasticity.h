@@ -196,7 +196,6 @@ class GenericConstitutiveLawIntegratorPlasticity
             F = CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
                                         rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement,
                                         rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain);
-            CalculateTangentMatrix(tangent_tensor, rConstitutiveMatrix, rFflux, rGflux, rPlasticDenominator);
 
             if (F <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 is_converged = true;
@@ -204,9 +203,9 @@ class GenericConstitutiveLawIntegratorPlasticity
                 iteration++;
             }
         }
-        rConstitutiveMatrix = tangent_tensor;
+        CalculateTangentMatrix(tangent_tensor, rConstitutiveMatrix, rFflux, rGflux, rPlasticDenominator);
+        noalias(rConstitutiveMatrix) = tangent_tensor;
         KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
-
     }
 
     /**
@@ -332,7 +331,7 @@ class GenericConstitutiveLawIntegratorPlasticity
     {
         // We do an initial check
         if (norm_2(rPredictiveStressVector) < 1.0e-8) {
-            rTensileIndicatorFactor = 0.0;
+            rTensileIndicatorFactor = 1.0;
             rCompressionIndicatorFactor = 0.0;
             return;
         }

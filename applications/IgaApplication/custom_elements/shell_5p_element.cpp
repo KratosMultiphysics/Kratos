@@ -479,12 +479,10 @@ namespace Kratos
     template< typename ContainerType, typename NodeFunctor, typename ...Args>
     BoundedVector<double, 3> Shell5pElement::InterpolateNodalVariable(const ContainerType& vec, const NodeFunctor& funct, const Args&... args) const
     {
-        auto nodeValuesTimesAnsatzFunction = [&](double nodalVar, const NodeType& node)
-        { return nodalVar * (node.*funct)(args...); };
         BoundedVector<double, 3> nullVec;
         nullVec = ZeroVector(3);
         for (IndexType i = 0; i < vec.size(); ++i) {
-            nullVec += nodeValuesTimesAnsatzFunction(vec[i], GetGeometry()[i]);
+            nullVec += vec[i] * (GetGeometry()[i].*funct)(args...);
         }
 
         return nullVec;//std::inner_product(vec.begin(), vec.end(), GetGeometry().begin(), nullVec, std::plus<BoundedVector<double, 3>>(), nodeValuesTimesAnsatzFunction);

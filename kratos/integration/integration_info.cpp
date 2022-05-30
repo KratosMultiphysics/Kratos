@@ -128,7 +128,7 @@ namespace Kratos
         mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = NumberOfIntegrationPointsPerSpan;
     }
 
-    void IntegrationInfo::SetQuadratureMethodVector(IndexType DimensionIndex,
+    void IntegrationInfo::SetQuadratureMethod(IndexType DimensionIndex,
         QuadratureMethod ThisQuadratureMethod)
     {
         mQuadratureMethodVector[DimensionIndex] = ThisQuadratureMethod;
@@ -142,7 +142,7 @@ namespace Kratos
     {
         return GetIntegrationMethod(
             GetNumberOfIntegrationPointsPerSpan(DimensionIndex),
-            GetQuadratureMethodVector(DimensionIndex));
+            GetQuadratureMethod(DimensionIndex));
     }
 
     ///@}

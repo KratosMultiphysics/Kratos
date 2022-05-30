@@ -66,7 +66,7 @@ namespace Kratos
  * IMPORTANT NOTE: it is BY DESIGN NOT threadsafe! (a graph should be computed in each thread and then merged)
 */
 template< class TIndexType=std::size_t >
-class DistributedSparseGraph
+class DistributedSparseGraph final
 {
 public:
     ///@name Type Definitions
@@ -98,7 +98,7 @@ public:
 
 
     /// Destructor.
-    virtual ~DistributedSparseGraph() {}
+    ~DistributedSparseGraph() {}
 
     inline const DataCommunicator& GetComm() const
     {
@@ -320,7 +320,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "DistributedSparseGraph" ;
@@ -328,13 +328,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "DistributedSparseGraph";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const {}
 
     ///@}
     ///@name Friends

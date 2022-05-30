@@ -291,13 +291,13 @@ public:
 
         if(ndivisions == 1) //compute gauss points for exact integration of a tetra element
         {
-            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_2);
+            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-            Ngauss = this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            Ngauss = this->GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             volumes.resize(IntegrationPoints.size(),false);
 
-            for (unsigned int g = 0; g < this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
+            for (unsigned int g = 0; g < this->GetGeometry().IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2); g++)
 	    {
                 volumes[g] = 6.0*Area * IntegrationPoints[g].Weight();
 		        signs[g] = signs[0];

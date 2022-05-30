@@ -17,14 +17,11 @@ namespace Kratos {
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_Mohr_Coulomb);
 
-        DEM_KDEM_Mohr_Coulomb() {
-        }
+        DEM_KDEM_Mohr_Coulomb() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
         void Check(Properties::Pointer pProp) const override;
 
-        ~DEM_KDEM_Mohr_Coulomb() {
-        }
+        ~DEM_KDEM_Mohr_Coulomb() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 

@@ -186,36 +186,6 @@ public:
     }
 
     /**
-     * @brief Calculates the determinant of a 2x2, 3x3 and 4x4 matrix (using bounded matrix for performance)
-     * @param rInputMatrix The matrix to calculate
-     * @return DetA: The determinant of the matrix
-     */
-    template<class TMatrixType>
-    KRATOS_DEPRECATED_MESSAGE("Please use Det() instead")
-    static inline TDataType DetMat(const TMatrixType& rInputMatrix)
-    {
-        static_assert(std::is_same<typename TMatrixType::value_type, TDataType>::value, "Bad value type.");
-        TDataType rInputMatrixDet;
-
-        if (rInputMatrix.size1() == 1) {
-            rInputMatrixDet = rInputMatrix(0, 0);
-        } else if (rInputMatrix.size1() == 2) {
-            rInputMatrixDet = rInputMatrix(0, 0) * rInputMatrix(1, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 0);
-        } else if (rInputMatrix.size1() == 3) {
-            rInputMatrixDet = rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(2, 2)
-                           + rInputMatrix(1, 0) * rInputMatrix(2, 1) * rInputMatrix(0, 2)
-                           + rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(2, 0)
-                           - rInputMatrix(2, 0) * rInputMatrix(1, 1) * rInputMatrix(0, 2)
-                           - rInputMatrix(2, 1) * rInputMatrix(1, 2) * rInputMatrix(0, 0)
-                           - rInputMatrix(1, 0) * rInputMatrix(0, 1) * rInputMatrix(2,2);
-        } else {
-            rInputMatrixDet = rInputMatrix(0, 1) * rInputMatrix(1, 3) * rInputMatrix(2, 2) * rInputMatrix(3, 0) - rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(2, 3) * rInputMatrix(3, 0) - rInputMatrix(0, 0) * rInputMatrix(1, 3) * rInputMatrix(2, 2) * rInputMatrix(3, 1) + rInputMatrix(0, 0) * rInputMatrix(1, 2) * rInputMatrix(2, 3) * rInputMatrix(3, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 3) * rInputMatrix(2, 0) * rInputMatrix(3, 2) + rInputMatrix(0, 0) * rInputMatrix(1, 3) * rInputMatrix(2, 1) * rInputMatrix(3, 2) + rInputMatrix(0, 1) * rInputMatrix(1, 0) * rInputMatrix(2, 3) * rInputMatrix(3, 2) - rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(2, 3) * rInputMatrix(3, 2) + rInputMatrix(0, 3) * (rInputMatrix(1, 2) * rInputMatrix(2, 1) * rInputMatrix(3, 0) - rInputMatrix(1, 1) * rInputMatrix(2, 2) * rInputMatrix(3, 0) - rInputMatrix(1, 2) * rInputMatrix(2, 0) * rInputMatrix(3, 1) + rInputMatrix(1, 0) * rInputMatrix(2, 2) * rInputMatrix(3, 1) + rInputMatrix(1, 1) * rInputMatrix(2, 0) * rInputMatrix(3, 2) - rInputMatrix(1, 0) * rInputMatrix(2, 1) * rInputMatrix(3, 2)) + (rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(2, 0) - rInputMatrix(0, 0) * rInputMatrix(1, 2) * rInputMatrix(2, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 0) * rInputMatrix(2, 2) + rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(2, 2)) * rInputMatrix(3, 3) + rInputMatrix(0, 2) * (-(rInputMatrix(1, 3) * rInputMatrix(2, 1) * rInputMatrix(3, 0)) + rInputMatrix(1, 1) * rInputMatrix(2, 3) * rInputMatrix(3, 0) + rInputMatrix(1, 3) * rInputMatrix(2, 0) * rInputMatrix(3, 1) - rInputMatrix(1, 0) * rInputMatrix(2, 3) * rInputMatrix(3, 1) - rInputMatrix(1, 1) * rInputMatrix(2, 0) * rInputMatrix(3, 3) + rInputMatrix(1, 0) * rInputMatrix(2, 1) * rInputMatrix(3, 3));
-        }
-
-        return rInputMatrixDet;
-    }
-
-    /**
      * @brief Calculates the cofactor
      * @param rMat The matrix to calculate
      * @param i The index i
@@ -355,25 +325,27 @@ public:
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
+     * @param Tolerance The maximum tolerance considered
      */
     static void GeneralizedInvertMatrix(
         const MatrixType& rInputMatrix,
         MatrixType& rInvertedMatrix,
-        TDataType& rInputMatrixDet
+        TDataType& rInputMatrixDet,
+        const TDataType Tolerance = ZeroTolerance
         )
     {
         const SizeType size_1 = rInputMatrix.size1();
         const SizeType size_2 = rInputMatrix.size2();
 
         if (size_1 == size_2) {
-            InvertMatrix(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
+            InvertMatrix(rInputMatrix, rInvertedMatrix, rInputMatrixDet, Tolerance);
         } else if (size_1 < size_2) { // Right inverse
             if (rInvertedMatrix.size1() != size_2 || rInvertedMatrix.size2() != size_1) {
                 rInvertedMatrix.resize(size_2, size_1, false);
             }
             const Matrix aux = prod(rInputMatrix, trans(rInputMatrix));
             Matrix auxInv;
-            InvertMatrix(aux, auxInv, rInputMatrixDet);
+            InvertMatrix(aux, auxInv, rInputMatrixDet, Tolerance);
             rInputMatrixDet = std::sqrt(rInputMatrixDet);
             noalias(rInvertedMatrix) = prod(trans(rInputMatrix), auxInv);
         } else { // Left inverse
@@ -382,7 +354,7 @@ public:
             }
             const Matrix aux = prod(trans(rInputMatrix), rInputMatrix);
             Matrix auxInv;
-            InvertMatrix(aux, auxInv, rInputMatrixDet);
+            InvertMatrix(aux, auxInv, rInputMatrixDet, Tolerance);
             rInputMatrixDet = std::sqrt(rInputMatrixDet);
             noalias(rInvertedMatrix) = prod(auxInv, trans(rInputMatrix));
         }
@@ -1097,14 +1069,15 @@ public:
     /**
      * @brief "rInputMatrix" is ADDED to "Destination" matrix starting from InitialRow and InitialCol of the destination matrix
      * @details "Destination" is assumed to be able to contain the "input matrix" (no check is performed on the bounds)
-     * @param rDestination The matric destination
-     * @param rInputMatrix The input matrix to be computed
-     * @param InitialRow The initial row to compute
-     * @param InitialCol The initial column to compute
+     * @param rDestination The matrix destination
+     * @param rInputMatrix The input matrix to be added
+     * @param InitialRow The initial row
+     * @param InitialCol The initial column
      */
-    static inline void  AddMatrix(
-        MatrixType& rDestination,
-        const MatrixType& rInputMatrix,
+    template<class TMatrixType1, class TMatrixType2>
+    static inline void AddMatrix(
+        TMatrixType1& rDestination,
+        const TMatrixType2& rInputMatrix,
         const IndexType InitialRow,
         const IndexType InitialCol
         )
@@ -1115,6 +1088,28 @@ public:
             for(IndexType j = 0; j < rInputMatrix.size2(); ++j) {
                 rDestination(InitialRow+i, InitialCol+j) += rInputMatrix(i,j);
             }
+        }
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief "rInputVector" is ADDED to "Destination" vector starting from InitialIndex of the destination matrix
+     * @details "Destination" is assumed to be able to contain the "input vector" (no check is performed on the bounds)
+     * @param rDestination The vector destination
+     * @param rInputVector The input vector to be added
+     * @param InitialIndex The initial index
+     */
+    template<class TVectorType1, class TVectorType2>
+    static inline void AddVector(
+        TVectorType1& rDestination,
+        const TVectorType2& rInputVector,
+        const IndexType InitialIndex
+        )
+    {
+        KRATOS_TRY
+
+        for(IndexType i = 0; i < rInputVector.size(); ++i) {
+            rDestination[InitialIndex+i] += rInputVector[i];
         }
         KRATOS_CATCH("")
     }
