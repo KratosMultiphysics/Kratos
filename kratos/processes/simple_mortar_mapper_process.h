@@ -275,6 +275,13 @@ public:
     typedef DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>          DualLagrangeMultiplierOperatorsType;
     typedef ExactMortarIntegrationUtility<TDim, TNumNodes, false, TNumNodesMaster> ExactMortarIntegrationUtilityType;
 
+    /// Auxiliar struct for mapping
+    struct TLS {
+        MortarKinematicVariablesType this_kinematic_variables;    // Create and initialize condition variables:
+        MortarOperatorType this_mortar_operators;                 // Create the mortar operators
+        ExactMortarIntegrationUtilityType integration_utility;    // We call the exact integration utility
+    };
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -660,7 +667,7 @@ private:
      * @param rb The RHS of the system
      * @param rInverseConectivityDatabase The inverse database that will be used to assemble the system
      * @param pIndexesPairs The pointer to indexed objects
-     * @param pGeometricalObject Pointer of a geometrical object
+     * @param rGeometricalObject Reference of a geometrical object
      * @param rIntegrationUtility An integration utility for mortar
      * @param rThisKineticVariables Kinematic variables (shape functions)
      * @param rThisMortarOperators The mortar operators
@@ -674,7 +681,7 @@ private:
         std::vector<VectorType>& rb,
         IntMap& rInverseConectivityDatabase,
         typename TClassType::Pointer pIndexesPairs,
-        GeometricalObject::Pointer pGeometricalObject,
+        GeometricalObject& rGeometricalObject,
         ExactMortarIntegrationUtilityType& rIntegrationUtility,
         MortarKinematicVariablesType& rThisKineticVariables,
         MortarOperatorType& rThisMortarOperators,
@@ -697,7 +704,7 @@ private:
         GeometryType::CoordinatesArrayType aux_coords;
 
         // Geometrical values
-        auto& r_slave_geometry = pGeometricalObject->GetGeometry();
+        auto& r_slave_geometry = rGeometricalObject.GetGeometry();
         r_slave_geometry.PointLocalCoordinates(aux_coords, r_slave_geometry.Center());
         const array_1d<double, 3> slave_normal = r_slave_geometry.UnitNormal(aux_coords);
 
@@ -778,7 +785,7 @@ private:
                                 for (auto it_master_pair = r_index_masp_master->begin(); it_master_pair != r_index_masp_master->end(); ++it_master_pair ) {
 
                                     const IndexType auxiliar_slave_id = r_index_masp_master->GetId(it_master_pair);
-                                    if (pGeometricalObject->Id() != auxiliar_slave_id) {
+                                    if (rGeometricalObject.Id() != auxiliar_slave_id) {
                                         GeometryType& r_auxiliar_slave_geometry =  const_cast<GeometryType&>(mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED) ? r_const_destination_model_part.GetCondition(auxiliar_slave_id).GetGeometry() : r_const_destination_model_part.GetElement(auxiliar_slave_id).GetGeometry());
 
                                         for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
@@ -828,14 +835,14 @@ private:
     /**
      * @brief This method can be used to clear the unused indexes
      * @param pIndexesPairs The pointer to indexed objects
-     * @param pGeometricalObject Pointer of a geometrical object
+     * @param rGeometricalObject Reference of a geometrical object
      * @param rIntegrationUtility An integration utility for mortar
      * @tparam TClassType The class of index pairs considered
      */
     template<class TClassType>
     void ClearIndexes(
         typename TClassType::Pointer pIndexesPairs,
-        GeometricalObject::Pointer pGeometricalObject,
+        GeometricalObject& rGeometricalObject,
         ExactMortarIntegrationUtilityType& rIntegrationUtility
         )
     {
@@ -849,7 +856,7 @@ private:
         GeometryType::CoordinatesArrayType aux_coords;
 
         // Geometrical values
-        auto& r_slave_geometry = pGeometricalObject->GetGeometry();
+        auto& r_slave_geometry = rGeometricalObject.GetGeometry();
         r_slave_geometry.PointLocalCoordinates(aux_coords, r_slave_geometry.Center());
         const array_1d<double, 3> slave_normal = r_slave_geometry.UnitNormal(aux_coords);
 
@@ -895,14 +902,14 @@ private:
 
     /**
      * @brief This method fills the database
-     * @param pGeometricalObject Pointer of a geometrical object
+     * @param rGeometricalObject Reference of a geometrical object
      * @param rTreePoints The search tree
      * @param AllocationSize The allocation size of the tree
      * @param SearchFactor The search factor of the tree
      */
     template<class TEntity>
     void FillDatabase(
-        typename TEntity::Pointer pGeometricalObject,
+        TEntity& rGeometricalObject,
         KDTreeType& rTreePoints,
         const SizeType AllocationSize,
         const double SearchFactor
@@ -911,7 +918,7 @@ private:
         // Initialize values
         PointVector points_found(AllocationSize);
 
-        GeometryType& r_geometry = pGeometricalObject->GetGeometry();
+        GeometryType& r_geometry = rGeometricalObject.GetGeometry();
         const Point center = r_geometry.Center();
 
         double radius = 0.0;
@@ -927,11 +934,11 @@ private:
 
         if (number_points_found > 0) {
             // In case of missing is created
-            if (!pGeometricalObject->Has(INDEX_SET))
-                pGeometricalObject->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
+            if (!rGeometricalObject.Has(INDEX_SET))
+                rGeometricalObject.SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
 
             // Accessing to the index set
-            IndexSet::Pointer indexes_set = pGeometricalObject->GetValue(INDEX_SET);
+            IndexSet::Pointer indexes_set = rGeometricalObject.GetValue(INDEX_SET);
 
             for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
                 auto p_geometrical_object_master = points_found[i_point]->GetGeometricalObject();

@@ -38,17 +38,17 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
     {
         const PropertiesType& Prop = this->GetProperties();
         const GeometryType& Geom = this->GetGeometry();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
         //Defining the shape functions, the jacobian and the shape functions local gradients Containers
-        const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
-        const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = Geom.ShapeFunctionsLocalGradients( this->GetIntegrationMethod() );
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+        const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = Geom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
         GeometryType::JacobiansType JContainer(NumGPoints);
-        Geom.Jacobian( JContainer, this->GetIntegrationMethod() );
+        Geom.Jacobian( JContainer, mThisIntegrationMethod );
 
         //Defining necessary variables
         array_1d<double,TNumNodes> PressureVector;
-        for (unsigned int i=0; i<TNumNodes; i++)
+        for (unsigned int i=0; i<TNumNodes; ++i)
             PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
         array_1d<double,TNumNodes*TDim> DisplacementVector;
         GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector,Geom,DISPLACEMENT);
@@ -108,52 +108,52 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
     else if (rVariable == LOCAL_STRESS_VECTOR)
     {
         //Defining necessary variables
-        const PropertiesType& Prop = this->GetProperties();
-        const GeometryType& Geom = this->GetGeometry();
-        const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
-        array_1d<double,TNumNodes*TDim> DisplacementVector;
-        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector,Geom,DISPLACEMENT);
-        BoundedMatrix<double,TDim, TDim> RotationMatrix;
-        this->CalculateRotationMatrix(RotationMatrix,Geom);
-        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
-        array_1d<double,TDim> RelDispVector;
-        const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
-        double JointWidth;
+        // const PropertiesType& Prop = this->GetProperties();
+        // const GeometryType& Geom = this->GetGeometry();
+        // const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+        // array_1d<double,TNumNodes*TDim> DisplacementVector;
+        // GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector,Geom,DISPLACEMENT);
+        // BoundedMatrix<double,TDim, TDim> RotationMatrix;
+        // this->CalculateRotationMatrix(RotationMatrix,Geom);
+        // BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+        // array_1d<double,TDim> RelDispVector;
+        // const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+        // double JointWidth;
         array_1d<double,TDim> LocalStressVector;
 
-        //Create constitutive law parameters:
-        Vector StrainVector(TDim);
-        Matrix ConstitutiveMatrix(TDim,TDim);
-        Vector Np(TNumNodes);
-        Matrix GradNpT(TNumNodes,TDim);
-        Matrix F = identity_matrix<double>(TDim);
-        double detF = 1.0;
-        ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
-        ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
-        ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-        ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-        ConstitutiveParameters.SetStrainVector(StrainVector);
-        ConstitutiveParameters.SetShapeFunctionsValues(Np);
-        ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
-        ConstitutiveParameters.SetDeterminantF(detF);
-        ConstitutiveParameters.SetDeformationGradientF(F);
+        // //Create constitutive law parameters:
+        // Vector StrainVector(TDim);
+        // Matrix ConstitutiveMatrix(TDim,TDim);
+        // Vector Np(TNumNodes);
+        // Matrix GradNpT(TNumNodes,TDim);
+        // Matrix F = identity_matrix<double>(TDim);
+        // double detF = 1.0;
+        // ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+        // ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
+        // ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        // ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
+        // ConstitutiveParameters.SetStrainVector(StrainVector);
+        // ConstitutiveParameters.SetShapeFunctionsValues(Np);
+        // ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
+        // ConstitutiveParameters.SetDeterminantF(detF);
+        // ConstitutiveParameters.SetDeformationGradientF(F);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
         {
-            InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
+            // InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
-            noalias(RelDispVector) = prod(Nu,DisplacementVector);
+            // noalias(RelDispVector) = prod(Nu,DisplacementVector);
 
-            noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
+            // noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
 
-            this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint);
+            // this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint);
 
-            noalias(Np) = row(NContainer,GPoint);
+            // noalias(Np) = row(NContainer,GPoint);
 
-            //compute constitutive tensor and/or stresses
-            ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
-            mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+            // //compute constitutive tensor and/or stresses
+            // ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
+            // mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
             noalias(LocalStressVector) = mStressVector[GPoint];
 
@@ -164,7 +164,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
     {
         //Defining necessary variables
         const GeometryType& Geom = this->GetGeometry();
-        const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
         array_1d<double,TNumNodes*TDim> DisplacementVector;
         GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector,Geom,DISPLACEMENT);
         BoundedMatrix<double,TDim, TDim> RotationMatrix;
@@ -189,17 +189,17 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
     {
         const PropertiesType& Prop = this->GetProperties();
         const GeometryType& Geom = this->GetGeometry();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
         //Defining the shape functions, the jacobian and the shape functions local gradients Containers
-        const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
-        const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = Geom.ShapeFunctionsLocalGradients( this->GetIntegrationMethod() );
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+        const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = Geom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
         GeometryType::JacobiansType JContainer(NumGPoints);
-        Geom.Jacobian( JContainer, this->GetIntegrationMethod() );
+        Geom.Jacobian( JContainer, mThisIntegrationMethod );
 
         //Defining necessary variables
         array_1d<double,TNumNodes> PressureVector;
-        for (unsigned int i=0; i<TNumNodes; i++)
+        for (unsigned int i=0; i<TNumNodes; ++i)
             PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
         array_1d<double,TNumNodes*TDim> DisplacementVector;
         GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector,Geom,DISPLACEMENT);
@@ -271,7 +271,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
         const PropertiesType& Prop = this->GetProperties();
 
         //Defining the shape functions container
-        const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
 
         //Defining necessary variables
         array_1d<double,TNumNodes*TDim> DisplacementVector;
@@ -311,7 +311,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
         const PropertiesType& Prop = this->GetProperties();
 
         //Defining the shape functions container
-        const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
 
         //Defining necessary variables
         array_1d<double,TNumNodes*TDim> DisplacementVector;
@@ -361,16 +361,16 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
     //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( this->GetIntegrationMethod() );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
     const unsigned int NumGPoints = IntegrationPoints.size();
 
     //Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
-    const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = Geom.ShapeFunctionsLocalGradients( this->GetIntegrationMethod() );
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = Geom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
     GeometryType::JacobiansType JContainer(NumGPoints);
-    Geom.Jacobian( JContainer, this->GetIntegrationMethod() );
+    Geom.Jacobian( JContainer, mThisIntegrationMethod );
     Vector detJContainer(NumGPoints);
-    Geom.DeterminantOfJacobian(detJContainer,this->GetIntegrationMethod());
+    Geom.DeterminantOfJacobian(detJContainer,mThisIntegrationMethod);
 
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);

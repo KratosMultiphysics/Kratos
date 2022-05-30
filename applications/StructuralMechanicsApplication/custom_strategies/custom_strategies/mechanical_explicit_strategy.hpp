@@ -18,7 +18,7 @@
 /* System includes */
 
 /* Project includes */
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
 #include "utilities/constraint_utilities.h"
@@ -49,13 +49,13 @@ template <class TSparseSpace,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
 class MechanicalExplicitStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> {
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> {
 public:
     ///@name Type Definitions
     ///@{
 
     // Base class definition
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     /// Some definitions from the base class
     typedef typename BaseType::TSchemeType TSchemeType;
@@ -94,7 +94,7 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = true)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+        : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
           mpScheme(pScheme),
           mReformDofSetAtEachStep(ReformDofSetAtEachStep),
           mCalculateReactionsFlag(CalculateReactions)

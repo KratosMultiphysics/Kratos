@@ -40,7 +40,7 @@ def ComputeDiffusiveFlux(dofs, dUdx, params):
 
     return G
 
-def ComputeDiffusiveFluxWithPhysicsBasedShockCapturing(dofs, dUdx, params, beta_sc, lamb_sc, mu_sc):
+def ComputeDiffusiveFluxWithShockCapturing(dofs, dUdx, params, alpha_sc, beta_sc, lamb_sc, mu_sc):
     """Calculate the diffusive flux matrix with a physics-based shock capturing contribution.
     See A physics-based shock capturing methods for large-eddy simulation, Fernandez, Nguyen and Peraire (2018)."""
 
@@ -55,6 +55,9 @@ def ComputeDiffusiveFluxWithPhysicsBasedShockCapturing(dofs, dUdx, params, beta_
         mom.append(dofs[i + 1])
         vel.append(dofs[i + 1] / rho)
     e_tot = dofs[dim + 1]
+
+    # Calculate the density flux
+    mass_flux = CalculuateMassFluxVector(alpha_sc, dUdx)
 
     ## Calculate the viscous stress tensor
     mu = params["mu"] # Dynamic viscosity
@@ -72,14 +75,22 @@ def ComputeDiffusiveFluxWithPhysicsBasedShockCapturing(dofs, dUdx, params, beta_
 
     ## Define and fill the isotropic shock capturing diffusive flux matrix
     G = DefineMatrix('G', dim + 2, dim)
+    G[0,:] = mass_flux
     for j in range(dim):
-        G[0,j] = 0.0
         G[dim + 1, j] = heat_flux[j]
         for i in range(dim):
             G[i + 1, j] = -tau_stress[j,i]
             G[dim + 1, j] -= vel[i] * tau_stress[i,j]
 
     return G
+
+def CalculuateMassFluxVector(alpha, dUdx):
+    """ Auxiliary function to calculate mass flux vector f_rho = alpha * gradient(u)
+
+    Mass diffusivity (alpha) is 0 in the Navier-Stokes equations but some shock capturing methods
+    introduce a positive, non-zero value
+    """
+    return alpha * dUdx[0, :]
 
 def CalculateViscousStressTensor(mu, beta, rho, mom, dim, dUdx):
     """Auxiliary function to calculate the viscous stress tensor for the given dynamic and bulk viscosity values"""
@@ -155,7 +166,7 @@ def RevertVoigtNotation(dim, voigt_tensor):
         tensor[2,0] = voigt_tensor[4]
         tensor[0,1] = voigt_tensor[5]
         tensor[1,0] = voigt_tensor[5]
-    
+
     return tensor
 
 def PrintDiffusiveFluxMatrix(G,params):

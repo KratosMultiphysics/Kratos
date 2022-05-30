@@ -228,7 +228,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ViscousGeneralizedMaxwell
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        ) const override;
 
     ///@}
     ///@name Access

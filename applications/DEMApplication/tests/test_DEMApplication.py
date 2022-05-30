@@ -22,7 +22,7 @@ import test_DEM_3D_continuum
 import test_DEM_2D_inlet
 import test_DEM_3D_inlet
 import test_inlet
-#import test_DEM_2D_control_module
+import test_DEM_2D_control_module
 import test_post_process
 import test_friction_decay
 import test_forces_and_moments
@@ -32,6 +32,8 @@ import test_DEM_schemes
 import test_random_variable
 import test_DEM_search_tolerance
 import test_DEM_search_flags
+import test_erase_particles
+import test_search_nodes
 
 def AssembleTestSuites():
 
@@ -72,7 +74,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_1"))
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_2"))
     smallSuite.addTest(test_DEM_3D_continuum.TestDEM3DContinuum("test_DEM3D_continuum"))
-    #smallSuite.addTest(test_DEM_2D_control_module.TestDEM2DControlModule("test_DEM2D_control_module"))
+    smallSuite.addTest(test_DEM_2D_control_module.TestDEM2DControlModule("test_DEM2DControlModule"))
     smallSuite.addTest(test_post_process.TestPostProcess("test_gid_printing_many_results"))
     smallSuite.addTest(test_friction_decay.TestFrictionDecay("test_Friction_Decay"))
     smallSuite.addTest(test_forces_and_moments.TestExternalForcesAndMoments("test_ForcesAndMoments"))
@@ -88,7 +90,10 @@ def AssembleTestSuites():
     smallSuite.addTest(test_DEM_2D_contact.TestDEM2DContact("test_DEM2D_contact"))
     smallSuite.addTest(test_kinematic_constraints.TestKinematicConstraints("test_KinematicConstraints_1"))
     smallSuite.addTest(test_DEM_search_flags.TestDEM3DSearchFlag("test_DEM3D_search"))
-
+    smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_no_delay"))
+    smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_little_delay"))
+    smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_with_delay"))
+    smallSuite.addTest(test_search_nodes.TestSearchNodes("test_SearchNodesInTargetModelPart"))
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTest(test_restart.TestRestartOneBall("test_execution"))

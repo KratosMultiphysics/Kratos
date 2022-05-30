@@ -15,7 +15,7 @@ namespace Kratos
         //only include validation with c++11 since raw_literals do not exist in c++03
         Parameters default_parameters( R"(
             {
-                "help"                 : "This process applies loads over the particles in a certain submodelpart, for a certain time interval",
+                "help"                 : "This process applies loads over the particles and walls in a certain submodelpart, for a certain time interval",
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "force_settings" : {
@@ -118,11 +118,11 @@ namespace Kratos
 
         if(!mInterval.IsInInterval(time)) return;
 
-        block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
+        block_for_each(mrModelPart.Elements(), [&](Element& rElement)
         {
 
-            array_1d<double, 3>& force = rNode.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
-            array_1d<double, 3>& moment = rNode.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
+            array_1d<double, 3>& force = rElement.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
+            array_1d<double, 3>& moment = rElement.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
 
             for(int i=0; i<3; i++) {
                 if (mForceTableId[i] != 0) {
@@ -134,7 +134,7 @@ namespace Kratos
                         force_value = mForceValues[i];
                     }
                     else {
-                        force_value = mForceFunctions[i].CallFunction(rNode.X(), rNode.Y(), rNode.Z(), time);
+                        force_value = mForceFunctions[i].CallFunction(rElement.GetGeometry()[0].X(), rElement.GetGeometry()[0].Y(), rElement.GetGeometry()[0].Z(), time);
                     }
                     force[i] = force_value;
                 }
@@ -148,7 +148,7 @@ namespace Kratos
                         moment_value = mMomentValues[i];
                     }
                     else {
-                        moment_value = mMomentFunctions[i].CallFunction(rNode.X(), rNode.Y(), rNode.Z(), time);
+                        moment_value = mMomentFunctions[i].CallFunction(rElement.GetGeometry()[0].X(), rElement.GetGeometry()[0].Y(), rElement.GetGeometry()[0].Z(), time);
                     }
                     moment[i] = moment_value;
                 }
@@ -167,10 +167,10 @@ namespace Kratos
 
         if(mInterval.IsInInterval(time)) return;
 
-        block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
+        block_for_each(mrModelPart.Elements(), [&](Element& rElement)
         {
-            rNode.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = ZeroVector(3);
-            rNode.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT) = ZeroVector(3);
+            rElement.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = ZeroVector(3);
+            rElement.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT) = ZeroVector(3);
         });
 
         KRATOS_CATCH("");

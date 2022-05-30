@@ -243,13 +243,9 @@ public:
     {
         // We save the current WEIGHTED_GAP in the buffer
         auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
-            it_node->FastGetSolutionStepValue(WEIGHTED_GAP, 1) = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-        }
+        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            rNode.FastGetSolutionStepValue(WEIGHTED_GAP, 1) = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
+        });
 
         // Set to zero the weighted gap
         ResetWeightedGap(rModelPart);
@@ -549,20 +545,15 @@ private:
         // Iterate over the computing conditions
         ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
         auto& r_conditions_array = r_computing_contact_model_part.Conditions();
-        const auto it_cond_begin = r_conditions_array.begin();
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-
+        block_for_each(r_conditions_array, [&](Condition& rCond) {
             // Aux coordinates
             Point::CoordinatesArrayType aux_coords;
 
             // We update the paired normal
-            GeometryType& r_parent_geometry = it_cond->GetGeometry().GetGeometryPart(0);
+            GeometryType& r_parent_geometry = rCond.GetGeometry().GetGeometryPart(0);
             aux_coords = r_parent_geometry.PointLocalCoordinates(aux_coords, r_parent_geometry.Center());
-            it_cond->SetValue(NORMAL, r_parent_geometry.UnitNormal(aux_coords));
-        }
+            rCond.SetValue(NORMAL, r_parent_geometry.UnitNormal(aux_coords));
+        });
     }
 
     ///@}

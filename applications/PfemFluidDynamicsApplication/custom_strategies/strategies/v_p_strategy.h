@@ -55,14 +55,14 @@ namespace Kratos
   template <class TSparseSpace,
             class TDenseSpace,
             class TLinearSolver>
-  class VPStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+  class VPStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace>
   {
   public:
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION(VPStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace> BaseType;
 
     typedef TwoStepVPSolverSettings<TSparseSpace, TDenseSpace, TLinearSolver> SolverSettingsType;
 
@@ -548,7 +548,7 @@ namespace Kratos
 
           //ShapeFunctionDerivativesArrayType DN_DX;
           Matrix NContainer;
-          NContainer = geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+          NContainer = geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
           const Vector &N = row(NContainer, 0);
           const unsigned int NumNodes = geometry.size();
@@ -697,7 +697,7 @@ namespace Kratos
 
           //ShapeFunctionDerivativesArrayType DN_DX;
           Matrix NContainer;
-          NContainer = geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+          NContainer = geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
           //this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
 
           const Vector &N = row(NContainer, 0);

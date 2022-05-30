@@ -64,6 +64,7 @@ public:
     ///@{
 
     /// Constructor.
+    KRATOS_DEPRECATED_MESSAGE("This constructor is deprecated, please use the one that accepts a DataCommunicator")
     FillCommunicator(ModelPart& rModelPart);
 
     FillCommunicator(

@@ -1,0 +1,108 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 2
+    DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb
+    PARTICLE_DENSITY 2500.0
+    YOUNG_MODULUS 100000.0
+    POISSON_RATIO 0.20
+    FRICTION 0.577350269189494
+    COEFFICIENT_OF_RESTITUTION 0.2
+    PARTICLE_MATERIAL 1
+    ROLLING_FRICTION 0.01
+    ROLLING_FRICTION_WITH_WALLS 0.01
+    PARTICLE_SPHERICITY 1.0
+    DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
+End Properties
+
+Begin Nodes
+  521   0.0000000000   0.0050000000   0.0900000000
+  646   0.0000000000   0.0050000000   0.0700000000
+  756  -0.0200000000   0.0350000000   0.0300000000
+  941   0.0000000000   0.0050000000   0.0500000000
+ 1428   0.0000000000   0.0050000000   0.0300000000
+ 1653   0.0200000000   0.0250000000   0.0300000000
+ 2506   0.0400000000   0.0050000000   0.0300000000
+End Nodes
+
+
+Begin Nodes
+  521   0.0000000000   0.0050000000   0.0900000000
+  646   0.0000000000   0.0050000000   0.0700000000
+  756  -0.0200000000   0.0350000000   0.0300000000
+  941   0.0000000000   0.0050000000   0.0500000000
+ 1428   0.0000000000   0.0050000000   0.0300000000
+ 1653   0.0200000000   0.0250000000   0.0300000000
+ 2506   0.0400000000   0.0050000000   0.0300000000
+End Nodes
+
+
+Begin Elements SphericSwimmingParticle3D// GUI group identifier: Particles
+    17329          2   521
+    17330          2   646
+    17331          2   756
+    17332          2   941
+    17333          2  1428
+    17334          2  1653
+    17335          2  2506
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: Particles
+        521 0 0.00626325
+        646 0 0.00652576
+        756 0 0.00434443
+        941 0 0.00356635
+       1428 0 0.00297505
+       1653 0 0.00265892
+       2506 0 0.00491108
+End NodalData
+
+Begin SubModelPart DEMParts_Particles // Group Particles // Subtree DEMParts
+    Begin SubModelPartNodes
+          521
+          646
+          756
+          941
+         1428
+         1653
+         2506
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        17329
+        17330
+        17331
+        17332
+        17333
+        17334
+        17335
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart 1 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: Particles
+  Begin SubModelPartData // DEM-VelocityBC. Group name: Particles
+    LINEAR_VELOCITY [3] (0.0, -1.0, 0.0)
+    VELOCITY_PERIOD 0.03
+    ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
+    ROTATION_CENTER [3] (0.0,0.0,0.0)
+    ANGULAR_VELOCITY_PERIOD 0.0
+    VELOCITY_START_TIME 0.0
+    VELOCITY_STOP_TIME 100.0
+    ANGULAR_VELOCITY_START_TIME 0.0
+    ANGULAR_VELOCITY_STOP_TIME 1000.0
+    RIGID_BODY_MOTION 1
+    FORCE_INTEGRATION_GROUP 0
+    IDENTIFIER Particles
+  End SubModelPartData
+  Begin SubModelPartNodes
+       521
+       646
+       756
+       941
+      1428
+      1653
+      2506
+  End SubModelPartNodes
+End SubModelPart
+

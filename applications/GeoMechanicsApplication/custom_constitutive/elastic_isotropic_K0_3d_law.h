@@ -126,7 +126,7 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return VoigtSize;
     };
@@ -256,7 +256,7 @@ public:
      */
     int Check(const Properties& rMaterialProperties,
               const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) override;
+              const ProcessInfo& rCurrentProcessInfo) const override;
 
     void SetValue( const Variable<double>& rVariable,
                    const double& rValue,

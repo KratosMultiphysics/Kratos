@@ -52,14 +52,10 @@ double SaturatedBelowPhreaticLevelLaw::
 
     const double &p = rParameters.GetFluidPressure();
 
-    if (p < 0.0)
-    {
-        const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
-        return rMaterialProperties[SATURATED_SATURATION];
-    }
-    else
-    {
-        return 0.0;
+    if (p < 0.0) {
+        return rParameters.GetMaterialProperties()[SATURATED_SATURATION];
+    } else {
+        return rParameters.GetMaterialProperties()[RESIDUAL_SATURATION];
     }
 
     KRATOS_CATCH("")
@@ -95,14 +91,10 @@ double SaturatedBelowPhreaticLevelLaw::
 
     const double &p = rParameters.GetFluidPressure();
 
-    if (p < 0.0)
-    {
+    if (p < 0.0) {
         return 1.0;
-    }
-    else
-    {
-        const auto &rMaterialProperties = rParameters.GetMaterialProperties();
-        return rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY];;
+    } else {
+        return rParameters.GetMaterialProperties()[MINIMUM_RELATIVE_PERMEABILITY];
     }
 
     KRATOS_CATCH("")
@@ -114,8 +106,7 @@ double SaturatedBelowPhreaticLevelLaw::
 {
     KRATOS_TRY;
 
-    const double effSat = CalculateEffectiveSaturation(rParameters);
-    return effSat;
+    return CalculateEffectiveSaturation(rParameters);
 
     KRATOS_CATCH("")
 }
@@ -125,33 +116,24 @@ double& SaturatedBelowPhreaticLevelLaw::CalculateValue(RetentionLaw::Parameters&
                                         const Variable<double>& rThisVariable,
                                         double& rValue)
 {
-    if (rThisVariable == DEGREE_OF_SATURATION)
-    {
+    if (rThisVariable == DEGREE_OF_SATURATION) {
         rValue = this->CalculateSaturation(rParameterValues);
         return rValue;
-    }
-    else if (rThisVariable == EFFECTIVE_SATURATION)
-    {
+    } else if (rThisVariable == EFFECTIVE_SATURATION) {
         rValue = this->CalculateEffectiveSaturation(rParameterValues);
         return rValue;
-    }
-    else if (rThisVariable == BISHOP_COEFICIENT)
-    {
+    } else if (rThisVariable == BISHOP_COEFFICIENT) {
         rValue = this->CalculateBishopCoefficient(rParameterValues);
         return rValue;
-    }
-    else if (rThisVariable == DERIVATIVE_OF_SATURATION)
-    {
+    } else if (rThisVariable == DERIVATIVE_OF_SATURATION) {
         rValue = this->CalculateDerivativeOfSaturation(rParameterValues);
         return rValue;
-    }
-    else if (rThisVariable == RELATIVE_PERMEABILITY)
-    {
+    } else if (rThisVariable == RELATIVE_PERMEABILITY) {
         rValue = this->CalculateRelativePermeability(rParameterValues);
         return rValue;
     }
 
-    return( rValue );
+    return rValue;
 }
 
 //------------------------- RETENSION LAW GENERAL FEATURES ----------------------------------------
@@ -196,18 +178,25 @@ void SaturatedBelowPhreaticLevelLaw::
 int SaturatedBelowPhreaticLevelLaw::Check(const Properties& rMaterialProperties,
                            const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(SATURATED_SATURATION))
-                    << "SATURATED_SATURATION is not availabe in material parameters" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SATURATED_SATURATION))
+                        << "SATURATED_SATURATION is not availabe in material parameters" << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[SATURATED_SATURATION] < 0.0)
                     << "SATURATED_SATURATION cannot be less than 0 " << std::endl;
+
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(RESIDUAL_SATURATION))
+                        << "RESIDUAL_SATURATION is not availabe in material parameters" << std::endl;
+    KRATOS_DEBUG_ERROR_IF_NOT(rMaterialProperties[RESIDUAL_SATURATION] > 0.0)
+                            << "RESIDUAL_SATURATION must be greater than 0 " << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[RESIDUAL_SATURATION] > 1.0)
+                    << "RESIDUAL_SATURATION cannot be greater than 1.0 " << std::endl;
 
     KRATOS_ERROR_IF(rMaterialProperties[SATURATED_SATURATION] < rMaterialProperties[RESIDUAL_SATURATION])
                     << "RESIDUAL_SATURATION cannot be greater than SATURATED_SATURATION " << std::endl;
 
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(MINIMUM_RELATIVE_PERMEABILITY))
-                    << "MINIMUM_RELATIVE_PERMEABILITY is not availabe in material parameters" << std::endl;
-    KRATOS_ERROR_IF(!(rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY] > 0.0))
-                    << "MINIMUM_RELATIVE_PERMEABILITY must be greater than 0 " << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MINIMUM_RELATIVE_PERMEABILITY))
+                        << "MINIMUM_RELATIVE_PERMEABILITY is not availabe in material parameters" << std::endl;
+    KRATOS_ERROR_IF_NOT((rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY] > 0.0))
+                        << "MINIMUM_RELATIVE_PERMEABILITY must be greater than 0 " << std::endl;
 
     return 0;
 }

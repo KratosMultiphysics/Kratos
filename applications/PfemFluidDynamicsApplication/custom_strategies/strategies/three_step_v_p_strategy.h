@@ -86,7 +86,7 @@ namespace Kratos
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
+    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace>::Pointer StrategyPointerType;
 
     typedef TwoStepVPSolverSettings<TSparseSpace, TDenseSpace, TLinearSolver> SolverSettingsType;
 
@@ -123,7 +123,7 @@ namespace Kratos
 
       // Additional Typedefs
       typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
-      typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+      typedef SolvingStrategy<TSparseSpace, TDenseSpace> BaseType;
 
       //initializing fractional velocity solution step
       typedef Scheme<TSparseSpace, TDenseSpace> SchemeType;

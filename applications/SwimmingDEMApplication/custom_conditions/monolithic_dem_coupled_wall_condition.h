@@ -258,10 +258,10 @@ public:
 //            const unsigned int LocalSize = TDim;
 
 //            const GeometryType& rGeom = this->GetGeometry();
-//            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+//            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
 //            const unsigned int NumGauss = IntegrationPoints.size();
 
-//            MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+//            MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
 //            array_1d<double,3> Normal;
 //            this->CalculateNormal(Normal); //this already contains the area

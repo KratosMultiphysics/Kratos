@@ -26,7 +26,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
@@ -50,7 +50,7 @@ typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;
-typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
+typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
 
 struct PrimalResults
 {
@@ -60,13 +60,13 @@ struct PrimalResults
     virtual void LoadCurrentSolutionStep(ModelPart& rModelPart) const = 0;
 };
 
-class PrimalStrategy : public SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
+class PrimalStrategy : public ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PrimalStrategy);
 
     PrimalStrategy(ModelPart& rModelPart, PrimalResults::Pointer pPrimalResults)
-        : SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>(rModelPart),
+        : ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>(rModelPart),
           mpPrimalResults(pPrimalResults)
     {
         auto p_scheme =
@@ -100,7 +100,7 @@ private:
     SolvingStrategyType::Pointer mpSolver;
 };
 
-class AdjointStrategy : public SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
+class AdjointStrategy : public ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(AdjointStrategy);
@@ -108,7 +108,7 @@ public:
     AdjointStrategy(ModelPart& rModelPart,
                     Kratos::shared_ptr<PrimalResults> pPrimalResults,
                     AdjointResponseFunction::Pointer pResponseFunction)
-        : SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>(rModelPart),
+        : ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>(rModelPart),
           mpPrimalResults(pPrimalResults)
     {
         auto p_linear_solver =

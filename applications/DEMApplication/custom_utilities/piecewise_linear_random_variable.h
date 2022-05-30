@@ -12,10 +12,8 @@
 #include <iostream>
 
 // Project includes
-#include "includes/define.h"
-#include "DEM_application_variables.h"
-#include "includes/model_part.h"
 #include "random_variable.h"
+#include <random>
 
 namespace Kratos {
 

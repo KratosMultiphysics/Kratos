@@ -195,15 +195,19 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
 
     /**
      * @brief This method computes the first vector
-     * @param rFirstVector The first vector
+     * to be used in the derivative of the yield surface
+     * @param rFirstVector The first vector is the
+     * d(I1)/d(Stress)
      */
     static void CalculateFirstVector(BoundedVectorType& rFirstVector);
 
     /**
-     * @brief This method computes the second vector
+     * @brief This method computes the first vector
+     * to be used in the derivative of the yield surface
      * @param rDeviator The deviator of the stress
      * @param J2 The resultant J2 stress
-     * @param rSecondVector The second vector
+     * @param rSecondVector The second vector is
+     * 1/(2*sqrt(J2))*d(J2)/d(Stress)
      */
     static void CalculateSecondVector(
         const BoundedVectorType& rDeviator,
@@ -213,9 +217,11 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
 
     /**
      * @brief This method computes the third vector
+     * to be used in the derivative of the yield surface
      * @param rDeviator The deviator of the stress
      * @param J2 The resultant J2 stress
-     * @param rThirdVector The third vector
+     * @param rThirdVector The third vector is
+     * d(J3)/d(Stress)
      * @todo Adapt for 2D dimension
      */
     static void CalculateThirdVector(
@@ -452,7 +458,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
 
     /**
      * @brief This computes the total rotation matrix
-     * rotates from local to global coordinates.
+     * rotates from global to local coordinates.
      * The so-called "x convention" is used.
      * Order of the rotations:
      *    1. The first rotation PHI around the Z-axis

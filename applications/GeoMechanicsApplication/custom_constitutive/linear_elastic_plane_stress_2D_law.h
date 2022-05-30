@@ -47,7 +47,7 @@ namespace Kratos
  * @details This class derives from the linear elastic case on 3D
  * @author Riccardo Rossi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStress2DLaw 
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStress2DLaw
     : public ElasticIsotropicK03DLaw
 {
 public:
@@ -56,23 +56,23 @@ public:
 
     /// The base class ConstitutiveLaw type definition
     typedef ConstitutiveLaw       CLBaseType;
-    
+
     /// The base class ElasticIsotropicK03DLaw type definition
     typedef ElasticIsotropicK03DLaw      BaseType;
 
     // Adding the respective using to avoid overload conflicts
     using BaseType::Has;
     using BaseType::GetValue;
-    
+
     /// The size type definition
     typedef std::size_t             SizeType;
-    
+
     /// Static definition of the dimension
     static constexpr SizeType Dimension = 2;
-    
+
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 3;
-    
+
     /// Counted pointer of GeoLinearElasticPlaneStress2DLaw
     KRATOS_CLASS_POINTER_DEFINITION( GeoLinearElasticPlaneStress2DLaw );
 
@@ -122,7 +122,7 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return VoigtSize;
     }

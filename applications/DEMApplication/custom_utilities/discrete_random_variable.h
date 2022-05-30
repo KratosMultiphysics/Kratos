@@ -9,12 +9,11 @@
 
 // System includes
 #include <string>
+#include <numeric>
 #include <iostream>
+#include <random>
 
 // Project includes
-#include "includes/define.h"
-#include "DEM_application_variables.h"
-#include "includes/model_part.h"
 #include "random_variable.h"
 
 namespace Kratos {

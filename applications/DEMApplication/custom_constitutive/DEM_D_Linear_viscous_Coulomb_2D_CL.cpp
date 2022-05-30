@@ -11,18 +11,19 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_D_Linear_viscous_Coulomb2D::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Linear_viscous_Coulomb2D to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_Linear_viscous_Coulomb2D::CloneUnique() {
+        return Kratos::make_unique<DEM_D_Linear_viscous_Coulomb2D>();
     }
 
     void DEM_D_Linear_viscous_Coulomb2D::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
 
+        //Get equivalent Young's Modulus
         const double my_young        = element1->GetYoung();
         const double other_young     = element2->GetYoung();
         const double my_poisson      = element1->GetPoisson();
         const double other_poisson   = element2->GetPoisson();
         const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
+
         double equiv_poisson;
         if (my_poisson + other_poisson) {
             equiv_poisson = 2.0 * my_poisson * other_poisson / (my_poisson + other_poisson);

@@ -106,7 +106,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
         positive_side_sh_func,
         positive_side_sh_func_gradients,
         positive_side_weights,
-        GeometryData::GI_GAUSS_1);
+        GeometryData::IntegrationMethod::GI_GAUSS_1);
 
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 

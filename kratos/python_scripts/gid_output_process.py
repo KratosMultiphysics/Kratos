@@ -4,6 +4,7 @@ from KratosMultiphysics import * # TODO remove
 # Other imports
 from  KratosMultiphysics.deprecation_management import DeprecationManager
 import os
+from pathlib import Path
 
 def Factory(settings, Model):
     if not isinstance(settings, KM.Parameters):
@@ -29,6 +30,7 @@ class GiDOutputProcess(KM.Process):
                 "MultiFileFlag": "SingleFile"
             },
             "file_label": "time",
+            "time_label_format": "{:.12f}",
             "output_control_type": "step",
             "output_interval": 1.0,
             "flush_after_output": false,
@@ -105,7 +107,7 @@ class GiDOutputProcess(KM.Process):
             param.ValidateAndAssignDefaults(self.defaults)
 
         self.param = param
-        self.base_file_name = file_name
+        self.base_file_name = self._ValidateFileName(file_name)
 
         self.model_part = model_part
         self.body_io = None
@@ -197,6 +199,8 @@ class GiDOutputProcess(KM.Process):
         else:
             msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
             raise Exception(msg)
+
+        self.time_label_format = result_file_configuration["time_label_format"].GetString()
 
         output_control_type = result_file_configuration["output_control_type"].GetString()
         if output_control_type == "time":
@@ -361,7 +365,7 @@ class GiDOutputProcess(KM.Process):
                                 WriteConditionsFlag.WriteConditionsOnly) # Cuts are conditions, so we always print conditions in the cut ModelPart
 
     def __get_pretty_time(self,time):
-        pretty_time = "{0:.12g}".format(time)
+        pretty_time = self.time_label_format.format(time)
         pretty_time = float(pretty_time)
         return pretty_time
 
@@ -727,7 +731,7 @@ class GiDOutputProcess(KM.Process):
         else:
             self.next_output = self.model_part.ProcessInfo[KM.STEP]
 
-            # Remove post results
+        # Remove post results
         if self.output_label_is_time:
             label = self.model_part.ProcessInfo[KM.TIME]
         else:
@@ -737,3 +741,15 @@ class GiDOutputProcess(KM.Process):
 
         # Restart .post.lst files
         self.__restart_list_files(additional_list_files) # FIXME
+
+    @staticmethod
+    def _ValidateFileName(file_name):
+        # A file name must be specified
+        if not file_name:
+            raise Exception('No "file_name" was specified!')
+
+        # Make sure that the path to the desired output folder exists
+        output_path = Path(file_name).parent
+        KM.FilesystemExtensions.MPISafeCreateDirectories(str(output_path))
+
+        return file_name

@@ -21,7 +21,6 @@
 #include "includes/define.h"
 #include "factories/factory.h"
 #include "includes/kratos_components.h"
-#include "solving_strategies/strategies/explicit_solving_strategy.h"
 #include "solving_strategies/builder_and_solvers/explicit_builder.h"
 #include "spaces/ublas_space.h"
 
@@ -35,12 +34,7 @@ typedef TUblasDenseSpace<double> LocalSpaceType;
 
 ///@}
 
-typedef ExplicitSolvingStrategy<SparseSpaceType, LocalSpaceType> ExplicitSolvingStrategyType;
 typedef ExplicitBuilder<SparseSpaceType, LocalSpaceType> ExplicitBuilderType;
-
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ExplicitSolvingStrategyType>;
-
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, ExplicitSolvingStrategyType const& ThisComponent);
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ExplicitBuilderType>;
 

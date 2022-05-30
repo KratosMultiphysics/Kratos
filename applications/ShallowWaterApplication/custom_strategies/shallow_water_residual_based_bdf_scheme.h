@@ -61,8 +61,6 @@ public:
 
     typedef Scheme<TSparseSpace,TDenseSpace>                             BaseType;
 
-    typedef typename BaseType::Pointer                            BaseTypePointer;
-
     typedef ResidualBasedBDFScheme<TSparseSpace,TDenseSpace>          BDFBaseType;
 
     typedef typename BDFBaseType::DofsArrayType                     DofsArrayType;
@@ -90,21 +88,35 @@ public:
         : BDFBaseType(Order)
         , mRotationTool()
         , mUpdateVelocities(UpdateVelocities)
-    {}
+    {
+        mVariables = {&MOMENTUM_X, &MOMENTUM_Y, &HEIGHT};
+        mDerivativeVariables = {&ACCELERATION_X, &ACCELERATION_Y, &VERTICAL_VELOCITY};
+    }
+
+    // Constructor with parameters
+    explicit ShallowWaterResidualBasedBDFScheme(Parameters ThisParameters)
+        : BDFBaseType(ThisParameters["integration_order"].GetDouble())
+        , mRotationTool()
+    {
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
 
     // Copy Constructor
     explicit ShallowWaterResidualBasedBDFScheme(ShallowWaterResidualBasedBDFScheme& rOther)
         : BDFBaseType(rOther)
         , mRotationTool()
         , mUpdateVelocities(rOther.mUpdateVelocities)
+        , mVariables(rOther.mVariables)
+        , mDerivativeVariables(rOther.mDerivativeVariables)
     {}
 
     /**
      * Clone
      */
-    BaseTypePointer Clone() override
+    typename BaseType::Pointer Clone() override
     {
-        return BaseTypePointer( new ShallowWaterResidualBasedBDFScheme(*this) );
+        return typename BaseType::Pointer(new ShallowWaterResidualBasedBDFScheme(*this));
     }
 
     // Destructor
@@ -173,18 +185,15 @@ public:
         const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
         const auto it_node_begin = rModelPart.Nodes().begin();
 
-        const std::array<const Variable<double>*, 3> var_components = {&MOMENTUM_X, &MOMENTUM_Y, &HEIGHT};
-        const std::array<const Variable<double>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &VERTICAL_VELOCITY};
-
         IndexPartition<std::size_t>(num_nodes).for_each([&](std::size_t i){
             auto it_node = it_node_begin + i;
 
             for (std::size_t j = 0; j < 3; ++j)
             {
-                if (!it_node->IsFixed(*var_components[j])) {
-                    double& un0 = it_node->FastGetSolutionStepValue(*var_components[j]);
-                    double un1 = it_node->FastGetSolutionStepValue(*var_components[j], 1);
-                    double dot_un1 = it_node->FastGetSolutionStepValue(*accel_components[j], 1);
+                if (!it_node->IsFixed(*mVariables[j])) {
+                    double& un0 = it_node->FastGetSolutionStepValue(*mVariables[j]);
+                    double un1 = it_node->FastGetSolutionStepValue(*mVariables[j], 1);
+                    double dot_un1 = it_node->FastGetSolutionStepValue(*mDerivativeVariables[j], 1);
                     un0 = un1 + delta_time * dot_un1;
                 }
             }
@@ -297,12 +306,31 @@ public:
         mRotationTool.ApplySlipCondition(rRHS_Contribution,rCurrentCondition.GetGeometry());
     }
 
-    /*
+    /**
      * @brief Free memory allocated by this class.
      */
     void Clear() override
     {
         this->mpDofUpdater->Clear();
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"               : "shallow_water_residual_based_bdf_scheme",
+            "integration_order"  : 2,
+            "update_velocities"  : false,
+            "solution_variables" : ["MOMENTUM","HEIGHT"]
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BDFBaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
     }
 
     ///@}
@@ -329,8 +357,56 @@ public:
 
 protected:
 
-    ///@name Protected static Member Variables
+    ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method validate and assign default parameters
+     * @param rParameters Parameters to be validated
+     * @param DefaultParameters The default parameters
+     * @return Returns validated Parameters
+     */
+    Parameters ValidateAndAssignParameters(
+        Parameters ThisParameters,
+        const Parameters DefaultParameters
+        ) const override
+    {
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        return ThisParameters;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        mUpdateVelocities = ThisParameters["update_velocities"].GetBool();
+
+        const auto variable_names = ThisParameters["solution_variables"].GetStringArray();
+
+        for (std::string variable_name : variable_names)
+        {
+            if (KratosComponents<Variable<double>>::Has(variable_name))
+            {
+                const auto& r_var = KratosComponents<Variable<double>>::Get(variable_name);
+                mVariables.push_back(&r_var);
+            }
+            else if (KratosComponents<Variable<array_1d<double,3>>>::Has(variable_name)) {
+                const auto& r_var_x = KratosComponents<Variable<double>>::Get(variable_name+"_X");
+                const auto& r_var_y = KratosComponents<Variable<double>>::Get(variable_name+"_Y");
+                mVariables.push_back(&r_var_x);
+                mVariables.push_back(&r_var_y);
+            }
+            else
+            {
+                KRATOS_ERROR << "Only double and component variables are allowed in the solution variables list." ;
+            }
+        }
+        mDerivativeVariables.push_back(&ACCELERATION_X);
+        mDerivativeVariables.push_back(&ACCELERATION_Y);
+        mDerivativeVariables.push_back(&VERTICAL_VELOCITY);
+    }
 
     ///@}
     ///@name Protected member Variables
@@ -341,6 +417,9 @@ protected:
     FlowRateSlipToolType mRotationTool;
 
     bool mUpdateVelocities;
+
+    std::vector<const Variable<double>*> mVariables;
+    std::vector<const Variable<double>*> mDerivativeVariables;
 
     ///@}
     ///@name Protected Operators
@@ -356,14 +435,15 @@ protected:
      */
     void UpdateFirstDerivative(NodesArrayType::iterator itNode) override
     {
-        array_1d<double, 3>& dot_un0 = itNode->FastGetSolutionStepValue(ACCELERATION);
-        double& dot_hn0 = itNode->FastGetSolutionStepValue(VERTICAL_VELOCITY);
-        noalias(dot_un0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(MOMENTUM);
-        dot_hn0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(HEIGHT);
-        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+        for (std::size_t i_var = 0; i_var < 3; ++i_var)
         {
-            noalias(dot_un0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(MOMENTUM, i_order);
-            dot_hn0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(HEIGHT, i_order);
+            double& dot_un0 = itNode->FastGetSolutionStepValue(*mDerivativeVariables[i_var]);
+            dot_un0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(*mVariables[i_var]);
+
+            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+            {
+                dot_un0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(*mVariables[i_var], i_order);
+            }
         }
     }
 

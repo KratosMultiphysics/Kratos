@@ -637,7 +637,7 @@ protected:
     //calculating the normals and storing it on nodes
 
     Vector An(3);
-    Element::IntegrationMethod mIntegrationMethod = Element::GeometryDataType::GI_GAUSS_1; //one gauss point
+    Element::IntegrationMethod mIntegrationMethod = Element::GeometryDataType::IntegrationMethod::GI_GAUSS_1; //one gauss point
     int PointNumber = 0; //one gauss point
     Matrix J;
     Matrix InvJ;

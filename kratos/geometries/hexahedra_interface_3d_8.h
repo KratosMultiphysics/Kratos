@@ -421,12 +421,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Hexahedra;
+        return GeometryData::KratosGeometryFamily::Kratos_Hexahedra;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Hexahedra3D8;
+        return GeometryData::KratosGeometryType::Kratos_Hexahedra3D8;
     }
 
     /**
@@ -1337,7 +1337,7 @@ public:
      *
      * :TODO: TESTING!!!
      */
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod ) const override
     {
@@ -1381,12 +1381,10 @@ public:
                 }
             }
         }//end of loop over integration points
-
-        return rResult;
     }
 
 
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         Vector& determinants_of_jacobian,
         IntegrationMethod ThisMethod) const override
@@ -1448,8 +1446,6 @@ public:
                 }
             }
         }
-
-        return rResult;
     }
 
 
@@ -1586,7 +1582,7 @@ private:
         typename BaseType::IntegrationMethod ThisMethod )
     {
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
-        IntegrationPointsArrayType& integration_points = all_integration_points[ThisMethod];
+        IntegrationPointsArrayType& integration_points = all_integration_points[static_cast<int>(ThisMethod)];
 
         //number of integration points
         const int integration_points_number = integration_points.size();
@@ -1652,8 +1648,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -1763,9 +1758,9 @@ private:
         {
             {
                 HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Matrix(),
                 Matrix()
             }
@@ -1783,9 +1778,9 @@ private:
         {
             {
                 HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 ShapeFunctionsGradientsType(),
                 ShapeFunctionsGradientsType()
             }
@@ -1835,7 +1830,7 @@ template<class TPointType> inline std::ostream& operator << (
 template<class TPointType> const
 GeometryData HexahedraInterface3D8<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_2,
+    GeometryData::IntegrationMethod::GI_GAUSS_2,
     HexahedraInterface3D8<TPointType>::AllIntegrationPoints(),
     HexahedraInterface3D8<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
@@ -1843,7 +1838,7 @@ GeometryData HexahedraInterface3D8<TPointType>::msGeometryData(
 
 template<class TPointType>
 const GeometryDimension HexahedraInterface3D8<TPointType>::msGeometryDimension(
-    3, 3, 2);
+    3, 3, 3);
 
 }// namespace Kratos.
 

@@ -60,7 +60,7 @@ RansNewtonian3DLaw::~RansNewtonian3DLaw()
 int RansNewtonian3DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

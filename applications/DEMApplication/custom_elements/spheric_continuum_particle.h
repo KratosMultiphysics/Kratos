@@ -20,16 +20,6 @@
 #include "Particle_Contact_Element.h"
 #include "custom_constitutive/DEM_continuum_constitutive_law.h"
 
-#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
-
-#ifdef CUSTOMTIMER
-#define KRATOS_TIMER_START(t) Timer::Start(t);
-#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
-#else
-#define KRATOS_TIMER_START(t)
-#define KRATOS_TIMER_STOP(t)
-#endif
-
 namespace Kratos
 {
     class KRATOS_API(DEM_APPLICATION) SphericContinuumParticle : public SphericParticle
@@ -101,7 +91,6 @@ namespace Kratos
         virtual void ReorderFEMneighbours();
         virtual void ComputeForceWithNeighbourFinalOperations();
 
-        virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) override;
         virtual double CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info);
         virtual bool OverlappedParticleRemoval();
         virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info);

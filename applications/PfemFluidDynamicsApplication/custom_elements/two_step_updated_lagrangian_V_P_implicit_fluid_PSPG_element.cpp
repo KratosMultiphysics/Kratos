@@ -4,8 +4,6 @@
 //   Date:                $Date:                May 2021 $
 //   Revision:            $Revision:                 0.0 $
 //
-//   Implementation of the Gauss-Seidel two step Updated Lagrangian Velocity-Pressure element
-//     ( There is a ScalingConstant to multiply the mass balance equation for a number because i read it somewhere)
 //
 
 // System includes

@@ -56,6 +56,9 @@ class ScordelisRoofShell3pTest(IgaTestFactory):
 class LinearBeamShell3pTest(IgaTestFactory):
     file_name = "linear_beam_shell_3p_test/linear_beam_shell_3p"
 
+class LinearBeamShell3pAdditiveSchwarzTest(IgaTestFactory):
+    file_name = "linear_beam_shell_3p_test/linear_beam_shell_3p_additive_schwarz"
+
 # Hierarchic 5p Shell
 class Shell5pHierarchicLinearThickBeamTest(IgaTestFactory):
     file_name = "linear_beam_thick_p4_nCP5/shell_5p"

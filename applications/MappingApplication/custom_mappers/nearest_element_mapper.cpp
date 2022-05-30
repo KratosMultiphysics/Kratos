@@ -26,14 +26,12 @@ namespace Kratos {
 typedef std::size_t IndexType;
 typedef std::size_t SizeType;
 
-void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject,
-                                                      const double NeighborDistance)
+void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject)
 {
     SaveSearchResult(rInterfaceObject, false);
 }
 
-void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject,
-                                                                      const double NeighborDistance)
+void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject)
 {
     SaveSearchResult(rInterfaceObject, true);
 }
@@ -146,19 +144,21 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     else ResizeToZero(rLocalMappingMatrix, rOriginIds, rDestinationIds, rPairingStatus);
 }
 
-std::string NearestElementLocalSystem::PairingInfo(const int EchoLevel) const
+void NearestElementLocalSystem::PairingInfo(std::ostream& rOStream, const int EchoLevel) const
 {
     KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
 
-    std::stringstream buffer;
-    buffer << "NearestElementLocalSystem based on " << mpNode->Info();
-    if (EchoLevel > 1) {// TODO leave here?
-        buffer << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
+    rOStream << "NearestElementLocalSystem based on " << mpNode->Info();
+    if (EchoLevel > 3) {
+        rOStream << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
+    }
+}
+
+void NearestElementLocalSystem::SetPairingStatusForPrinting()
+{
         if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
             mpNode->SetValue(PAIRING_STATUS, (int)mPairingIndex);
         }
-    }
-    return buffer.str();
 }
 
 }  // namespace Kratos.

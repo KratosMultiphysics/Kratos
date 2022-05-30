@@ -17,7 +17,7 @@
 #include "spaces/ublas_space.h"
 
 //strategies
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/strategies/v_p_strategy.h"
 #include "custom_strategies/strategies/two_step_v_p_strategy.h"
 #include "custom_strategies/strategies/three_step_v_p_strategy.h"
@@ -50,7 +50,8 @@ namespace Kratos
 
             //base types
             typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-            typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
+            typedef SolvingStrategy<SparseSpaceType, LocalSpaceType> BaseSolvingStrategyType;
+            typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ImplicitBaseSolvingStrategyType;
             typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
             typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
             //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
@@ -63,35 +64,38 @@ namespace Kratos
             typedef NodalTwoStepVPStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> NodalTwoStepVPStrategyType;
             typedef NodalTwoStepVPStrategyForFSI<SparseSpaceType, LocalSpaceType, LinearSolverType> NodalTwoStepVPStrategyForFSIType;
             typedef GaussSeidelLinearStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> GaussSeidelLinearStrategyType;
+
+            // Clustom Settings Types
+            typedef TwoStepVPSolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> TwoStepVPSolverSettingsType;
             //********************************************************************
             //*************************SHCHEME CLASSES****************************
             //********************************************************************
 
             py::class_<VPStrategyType, VPStrategyType::Pointer, BaseSolvingStrategyType>(m, "VPStrategy")
-                .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, unsigned int>())
+                .def(py::init<ModelPart &, TwoStepVPSolverSettingsType &>())
                 .def("CalculateAccelerations", &VPStrategyType::CalculateAccelerations)
                 .def("CalculateDisplacements", &VPStrategyType::CalculateDisplacementsAndPorosity)
                 // .def("InitializeStressStrain",&VPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::InitializeStressStrain)
                 ;
 
-            py::class_<TwoStepVPStrategyType, TwoStepVPStrategyType::Pointer, BaseSolvingStrategyType>(m, "TwoStepVPStrategy")
+            py::class_<TwoStepVPStrategyType, TwoStepVPStrategyType::Pointer, VPStrategyType>(m, "TwoStepVPStrategy")
                 .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int, unsigned int>());
             ;
 
-            py::class_<ThreeStepVPStrategyType, ThreeStepVPStrategyType::Pointer, BaseSolvingStrategyType>(m, "ThreeStepVPStrategy")
+            py::class_<ThreeStepVPStrategyType, ThreeStepVPStrategyType::Pointer, VPStrategyType>(m, "ThreeStepVPStrategy")
                 .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int, unsigned int>());
             ;
 
             py::class_<TwoStepVPDEMcouplingStrategyType, TwoStepVPDEMcouplingStrategyType::Pointer, TwoStepVPStrategyType>(m, "TwoStepVPDEMcouplingStrategy")
                 .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int, unsigned int>());
 
-            py::class_<NodalTwoStepVPStrategyType, NodalTwoStepVPStrategyType::Pointer, BaseSolvingStrategyType>(m, "NodalTwoStepVPStrategy")
+            py::class_<NodalTwoStepVPStrategyType, NodalTwoStepVPStrategyType::Pointer, ImplicitBaseSolvingStrategyType>(m, "NodalTwoStepVPStrategy")
                 .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int, unsigned int>());
 
-            py::class_<NodalTwoStepVPStrategyForFSIType, NodalTwoStepVPStrategyForFSIType::Pointer, BaseSolvingStrategyType>(m, "NodalTwoStepVPStrategyForFSI")
+            py::class_<NodalTwoStepVPStrategyForFSIType, NodalTwoStepVPStrategyForFSIType::Pointer, NodalTwoStepVPStrategyType>(m, "NodalTwoStepVPStrategyForFSI")
                 .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int, unsigned int>());
 
-            py::class_<GaussSeidelLinearStrategyType, GaussSeidelLinearStrategyType::Pointer, BaseSolvingStrategyType>(m, "GaussSeidelLinearStrategy")
+            py::class_<GaussSeidelLinearStrategyType, GaussSeidelLinearStrategyType::Pointer, ImplicitBaseSolvingStrategyType>(m, "GaussSeidelLinearStrategy")
                 .def(py::init<ModelPart &, BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool>())
                 .def("GetResidualNorm", &GaussSeidelLinearStrategyType::GetResidualNorm)
                 .def("SetBuilderAndSolver", &GaussSeidelLinearStrategyType::SetBuilderAndSolver);

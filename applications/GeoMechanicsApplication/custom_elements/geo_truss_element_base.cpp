@@ -235,7 +235,7 @@ void GeoTrussElementBase<TDim,TNumNodes>::
 
     KRATOS_TRY
     // getting shapefunctionvalues
-    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
     // creating necessary values
     const double A = GetProperties()[CROSS_AREA];
@@ -578,7 +578,7 @@ int GeoTrussElementBase<TDim,TNumNodes>::
         KRATOS_ERROR << "Wrong dimension or number of nodes in the truss element." << std::endl
                      << "This element works with dimension: " << TDim << std::endl
                      << "and number of nodes: " << TNumNodes << std::endl;
-                     
+
     }
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
@@ -839,7 +839,7 @@ void GeoTrussElementBase<2,2>::
         UnitCrossProduct(direction_vector_y_3D, direction_vector_x_3D, global_z_vector_3D);
 
     // 2nd fill big rotation matrix
-    BoundedMatrix<double, DIM_2D, DIM_2D> 
+    BoundedMatrix<double, DIM_2D, DIM_2D>
         current_coordinate_system = ZeroMatrix(DIM_2D, DIM_2D);
 
     for (unsigned int i = 0; i < DIM_2D; ++i) {
@@ -899,7 +899,7 @@ void GeoTrussElementBase<TDim,TNumNodes>::
 
     if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
 
-        FullDofVectorType 
+        FullDofVectorType
             damping_residual_contribution = ZeroVector(TDim*TNumNodes);
         Vector current_nodal_velocities = ZeroVector(TDim*TNumNodes);
         GetFirstDerivativesVector(current_nodal_velocities);

@@ -166,7 +166,7 @@ public:
     typedef typename TLinearSolver::Pointer LinearSolverPointerType;
     typedef typename Scheme<TSparseSpace,TDenseSpace>::Pointer SchemePointerType;
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverPointerType;
-    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::UniquePointer SolvingStrategyPointerType;
+    typedef typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::UniquePointer SolvingStrategyPointerType;
     typedef typename FindIntersectedGeometricalObjectsProcess::UniquePointer FindIntersectedGeometricalObjectsProcessPointerType;
 
     typedef std::unordered_set<std::pair<std::size_t, std::size_t>, PairHasher<std::size_t, std::size_t>, PairComparor<std::size_t, std::size_t>> EdgesSetType;
@@ -245,10 +245,10 @@ public:
         const auto &r_aux_geom = (mrBaseModelPart.ElementsBegin())->GetGeometry();
         const unsigned int dim = r_aux_geom.Dimension();
         if(dim == 2){
-            KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
+            KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle) <<
                 "In 2D the element type is expected to be a triangle." << std::endl;
         } else if(dim == 3) {
-            KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
+            KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) <<
                 "In 3D the element type is expected to be a tetrahedron" << std::endl;
         } else {
             KRATOS_ERROR << "Wrong geometry Dimension(). Expected 2 or 3 and obtained: " << dim;

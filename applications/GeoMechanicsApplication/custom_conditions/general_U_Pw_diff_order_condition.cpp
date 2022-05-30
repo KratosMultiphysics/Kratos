@@ -30,7 +30,8 @@ GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition() : Condition() {}
 //Constructor 1
 GeneralUPwDiffOrderCondition::
     GeneralUPwDiffOrderCondition(IndexType NewId,
-                                 GeometryType::Pointer pGeometry) : Condition(NewId, pGeometry) {}
+                                 GeometryType::Pointer pGeometry) :
+                                 Condition(NewId, pGeometry) {}
 
 //----------------------------------------------------------------------------------------
 
@@ -38,7 +39,8 @@ GeneralUPwDiffOrderCondition::
 GeneralUPwDiffOrderCondition::
     GeneralUPwDiffOrderCondition(IndexType NewId,
                                  GeometryType::Pointer pGeometry,
-                                 PropertiesType::Pointer pProperties) : Condition(NewId, pGeometry, pProperties)
+                                 PropertiesType::Pointer pProperties) :
+                                 Condition(NewId, pGeometry, pProperties)
 {
     mThisIntegrationMethod = this->GetIntegrationMethod();
 }
@@ -55,7 +57,9 @@ Condition::Pointer GeneralUPwDiffOrderCondition::
            NodesArrayType const& ThisNodes,
            PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new GeneralUPwDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new GeneralUPwDiffOrderCondition(NewId,
+                                                               GetGeometry().Create(ThisNodes),
+                                                               pProperties));
 }
 
 //----------------------------------------------------------------------------------------
@@ -67,8 +71,7 @@ void GeneralUPwDiffOrderCondition::Initialize(const ProcessInfo& rCurrentProcess
     const GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
 
-    switch(NumUNodes)
-    {
+    switch(NumUNodes) {
         case 3: //2D L3P2
             mpPressureGeometry = GeometryType::Pointer( new Line2D2< Node<3> >(rGeom(0), rGeom(1)) );
             break;
@@ -107,15 +110,14 @@ void GeneralUPwDiffOrderCondition::
 
     SizeType Index = 0;
 
-    for(SizeType i = 0; i < NumUNodes; i++)
-    {
+    for(SizeType i = 0; i < NumUNodes; ++i) {
         rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_X );
         rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Y );
-        if(Dim > 2)
+        if (Dim > 2)
             rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Z );
     }
 
-    for(SizeType i=0; i<NumPNodes; i++)
+    for (SizeType i=0; i<NumPNodes; ++i)
         rConditionDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
 
     KRATOS_CATCH( "" )
@@ -216,7 +218,7 @@ void GeneralUPwDiffOrderCondition::
 
     SizeType Index = 0;
 
-    for ( SizeType i = 0; i < NumUNodes; i++ )
+    for ( SizeType i = 0; i < NumUNodes; ++i )
     {
         rResult[Index++] = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
         rResult[Index++] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
@@ -224,7 +226,7 @@ void GeneralUPwDiffOrderCondition::
             rResult[Index++] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
     }
 
-    for ( SizeType i = 0; i < NumPNodes; i++ )
+    for ( SizeType i = 0; i < NumPNodes; ++i )
         rResult[Index++] = GetGeometry()[i].GetDof( WATER_PRESSURE ).EquationId();
 
     KRATOS_CATCH( "" )
@@ -294,7 +296,7 @@ void GeneralUPwDiffOrderCondition::
     (rVariables.Np).resize(NumPNodes,false);
 
     (rVariables.JContainer).resize(NumGPoints,false);
-    for(SizeType i = 0; i<NumGPoints; i++)
+    for(SizeType i = 0; i<NumGPoints; ++i)
         ((rVariables.JContainer)[i]).resize(WorkingDim,LocalDim,false);
     rGeom.Jacobian( rVariables.JContainer, mThisIntegrationMethod );
 }

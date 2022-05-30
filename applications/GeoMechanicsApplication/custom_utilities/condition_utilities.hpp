@@ -33,11 +33,9 @@ public:
                                          const Matrix& NContainer,
                                          const unsigned int& GPoint)
     {
-        for (unsigned int i=0; i < TDim; ++i)
-        {
+        for (unsigned int i=0; i < TDim; ++i) {
             unsigned int index = i - TDim;
-            for (unsigned int j=0; j < TNumNodes; ++j)
-            {
+            for (unsigned int j=0; j < TNumNodes; ++j) {
                 index += TDim;
                 rNu(i, index) = NContainer(GPoint, j);
             }
@@ -54,10 +52,8 @@ public:
         noalias(rVector) = ZeroVector(TDim);
 
         unsigned int index = 0;
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int idim=0; idim<TDim; idim++)
-            {
+        for (unsigned int i=0; i<TNumNodes; ++i) {
+            for (unsigned int idim=0; idim<TDim; ++idim) {
                 rVector[idim] += Ncontainer(GPoint,i)*VariableWithComponents[index++];
             }
         }
@@ -70,8 +66,7 @@ public:
         //Line_2d_2
         array_1d<double,3> DisplacementAux;
         unsigned int index = 0;
-        for(unsigned int i=0; i<2; i++)
-        {
+        for (unsigned int i=0; i<2; ++i) {
             noalias(DisplacementAux) = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
             rDisplacementVector[index++] = DisplacementAux[0];
             rDisplacementVector[index++] = DisplacementAux[1];
@@ -85,8 +80,7 @@ public:
         //Quadrilateral_3d_4
         array_1d<double,3> DisplacementAux;
         unsigned int index = 0;
-        for(unsigned int i=0; i<4; i++)
-        {
+        for (unsigned int i=0; i<4; ++i) {
             noalias(DisplacementAux) = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
             rDisplacementVector[index++] = DisplacementAux[0];
             rDisplacementVector[index++] = DisplacementAux[1];
@@ -104,11 +98,9 @@ public:
         const unsigned int TDim = 3;
         array_1d<double,3> FaceLoadAux;
         unsigned int index = 0;
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
+        for (unsigned int i=0; i<TNumNodes; ++i) {
             noalias(FaceLoadAux) = Geom[i].FastGetSolutionStepValue(SURFACE_LOAD);
-            for (unsigned int idim=0; idim<TDim; idim++)
-            {
+            for (unsigned int idim=0; idim<TDim; ++idim) {
                 rFaceLoadVector[index++] = FaceLoadAux[idim];
             }
         }
@@ -124,11 +116,9 @@ public:
         const unsigned int TDim = 2;
         array_1d<double,3> FaceLoadAux;
         unsigned int index = 0;
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
+        for (unsigned int i=0; i<TNumNodes; ++i) {
             noalias(FaceLoadAux) = Geom[i].FastGetSolutionStepValue(LINE_LOAD);
-            for (unsigned int idim=0; idim < TDim; idim++)
-            {
+            for (unsigned int idim=0; idim < TDim; ++idim) {
                 rFaceLoadVector[index++] = FaceLoadAux[idim];
             }
         }
@@ -141,12 +131,10 @@ public:
     {
         unsigned int Global_i, Local_i;
 
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             Global_i = i * (TDim + 1);
             Local_i  = i * TDim;
-            for (unsigned int idim = 0; idim < TDim; ++idim)
-            {
+            for (unsigned int idim = 0; idim < TDim; ++idim) {
               rRightHandSideVector[Global_i + idim] += UBlockVector[Local_i + idim];
             }
         }
@@ -161,8 +149,7 @@ public:
     {
         unsigned int Global_i;
 
-        for(unsigned int i = 0; i < NumNodes; i++)
-        {
+        for (unsigned int i = 0; i < NumNodes; ++i) {
             Global_i = i * (Dim + 1) + Dim;
 
             rRightHandSideVector[Global_i] += PBlockVector[i];
@@ -177,16 +164,13 @@ public:
         //Quadrilateral_3d_4
         unsigned int Global_i, Global_j, Local_i;
 
-        for(unsigned int i = 0; i < TNumNodes; i++)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             Global_i = i * (TDim + 1);
             Local_i = i * TDim;
 
-            for(unsigned int j = 0; j < TNumNodes; j++)
-            {
+            for (unsigned int j = 0; j < TNumNodes; ++j) {
                 Global_j = j * (TDim + 1) + TDim;
-                for (unsigned int idim = 0; idim < TDim; ++idim)
-                {
+                for (unsigned int idim = 0; idim < TDim; ++idim) {
                    rLeftHandSideMatrix(Global_i+idim, Global_j) += UPBlockMatrix(Local_i+idim, j);
                 }
             }
@@ -201,16 +185,13 @@ public:
         //Quadrilateral_3d_4
         unsigned int Global_i, Global_j, Local_j;
 
-        for(unsigned int i = 0; i < TNumNodes; i++)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             Global_i = i * (TDim + 1) + TDim;
 
-            for(unsigned int j = 0; j < TNumNodes; j++)
-            {
+            for (unsigned int j = 0; j < TNumNodes; ++j) {
                 Global_j = j * (TDim + 1);
                 Local_j = j * TDim;
-                for (unsigned int idim = 0; idim < TDim; ++idim)
-                {
+                for (unsigned int idim = 0; idim < TDim; ++idim) {
                     rLeftHandSideMatrix(Global_i, Global_j+idim) += PUBlockMatrix(i, Local_j+idim);
                 }
             }

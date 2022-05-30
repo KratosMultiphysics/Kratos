@@ -231,18 +231,19 @@ bool ComputeProjection(const GeometryType& rGeometry,
     const auto geom_family = rGeometry.GetGeometryFamily();
     bool is_full_projection = false;
 
-    if (geom_family == GeometryData::Kratos_Linear && num_points == 2) { // linear line
+    if (geom_family == GeometryData::KratosGeometryFamily::Kratos_Linear && num_points == 2) { // linear line
         rPairingIndex = ProjectOnLine(rGeometry, rPointToProject, LocalCoordTol, rShapeFunctionValues, rEquationIds, rProjectionDistance, ComputeApproximation);
         is_full_projection = (rPairingIndex == PairingIndex::Line_Inside);
 
-    } else if ((geom_family == GeometryData::Kratos_Triangle      && num_points == 3) || // linear triangle
-               (geom_family == GeometryData::Kratos_Quadrilateral && num_points == 4)) { // linear quad
+    } else if ((geom_family == GeometryData::KratosGeometryFamily::Kratos_Triangle      && num_points == 3) || // linear triangle
+               (geom_family == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral && num_points == 4)) { // linear quad
         rPairingIndex = ProjectOnSurface(rGeometry, rPointToProject, LocalCoordTol, rShapeFunctionValues, rEquationIds, rProjectionDistance, ComputeApproximation);
         is_full_projection = (rPairingIndex == PairingIndex::Surface_Inside);
 
-    } else if (geom_family == GeometryData::Kratos_Tetrahedra ||
-               geom_family == GeometryData::Kratos_Prism ||
-               geom_family == GeometryData::Kratos_Hexahedra) { // Volume projection
+    } else if (geom_family == GeometryData::KratosGeometryFamily::Kratos_Tetrahedra ||
+               geom_family == GeometryData::KratosGeometryFamily::Kratos_Prism ||
+               geom_family == GeometryData::KratosGeometryFamily::Kratos_Pyramid ||
+               geom_family == GeometryData::KratosGeometryFamily::Kratos_Hexahedra) { // Volume projection
         rPairingIndex = ProjectIntoVolume(rGeometry, rPointToProject, LocalCoordTol, rShapeFunctionValues, rEquationIds, rProjectionDistance, ComputeApproximation);
         is_full_projection = (rPairingIndex == PairingIndex::Volume_Inside);
 

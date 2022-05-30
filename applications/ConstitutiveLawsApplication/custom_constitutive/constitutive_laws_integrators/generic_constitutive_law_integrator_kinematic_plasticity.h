@@ -180,7 +180,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         BoundedArrayType& rDerivativePlasticPotential,
         double& rPlasticDissipation,
         BoundedArrayType& rPlasticStrainIncrement,
-        const Matrix& rConstitutiveMatrix,
+        Matrix& rConstitutiveMatrix,
         Vector& rPlasticStrain,
         ConstitutiveLaw::Parameters& rValues,
         const double CharacteristicLength,
@@ -214,7 +214,6 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                                         rPlasticDenominator, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDissipation, rPlasticStrainIncrement,
                                         rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain, rBackStressVector);
 
-            CalculateTangentMatrix(tangent_tensor, rConstitutiveMatrix, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDenominator);
 
             if (std::abs(threshold_indicator) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 is_converged = true;
@@ -222,6 +221,8 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                 iteration++;
             }
         }
+        CalculateTangentMatrix(tangent_tensor, rConstitutiveMatrix, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDenominator);
+        noalias(rConstitutiveMatrix) = tangent_tensor;
         KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorKinematicPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     }
 

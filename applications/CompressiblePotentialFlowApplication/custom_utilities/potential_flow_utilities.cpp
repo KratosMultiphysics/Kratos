@@ -14,6 +14,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos {
 namespace PotentialFlowUtilities {

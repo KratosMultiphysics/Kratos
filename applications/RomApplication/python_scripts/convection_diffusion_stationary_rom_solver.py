@@ -20,6 +20,8 @@ class ROMSolver(ConvectionDiffusionStationarySolver):
     """
 
     def __init__(self, model, custom_settings):
+        KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[DEPRECATED CLASS] \x1b[0m',"\'convection_diffusion_stationary_rom_solver\'", "class is deprecated. Use the generic\'RomSolver\' one instead.")
+
         super(ROMSolver, self).__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[ROMSolver]:: ", "Construction finished")
 
@@ -27,7 +29,7 @@ class ROMSolver(ConvectionDiffusionStationarySolver):
     @classmethod
     def GetDefaultParameters(cls):
         default_settings = KratosMultiphysics.Parameters("""
-        {            
+        {
             "rom_settings": {
             "nodal_unknowns": [ "TEMPERATURE" ],
             "number_of_rom_dofs": 3
@@ -41,8 +43,8 @@ class ROMSolver(ConvectionDiffusionStationarySolver):
         super(ROMSolver, self).AddVariables() #Adding nodal area variable
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
-    def _create_builder_and_solver(self):
-        linear_solver = self.get_linear_solver()
+    def _CreateBuilderAndSolver(self):
+        linear_solver = self._GetLinearSolver()
         rom_parameters=self.settings["rom_settings"]
         builder_and_solver = romapp.ROMBuilderAndSolver(linear_solver, rom_parameters)
         return builder_and_solver
