@@ -72,7 +72,7 @@ class Model;
  */
 class KRATOS_API(KRATOS_CORE) ModelPart : public DataValueContainer, public Flags
 {
-    class GetModelPartName : public std::unary_function<const ModelPart* const, std::string>
+    class GetModelPartName
     {
     public:
         std::string const& operator()(const ModelPart& rModelPart) const
@@ -111,10 +111,10 @@ public:
 
 //     typedef PointerVectorSet<DofType, SetIdentityFunction<DofType> > DofsArrayType;
     typedef PointerVectorSet<DofType,
-                SetIdentityFunction<DofType>,
-                std::less<SetIdentityFunction<DofType>::result_type>,
-                std::equal_to<SetIdentityFunction<DofType>::result_type>,
-                DofType* > DofsArrayType;
+            SetIdentityFunction<DofType>,
+            std::less<decltype(std::declval<SetIdentityFunction<DofType>>()(std::declval<DofType>()))>,
+            std::equal_to<decltype(std::declval<SetIdentityFunction<DofType>>()(std::declval<DofType>()))>,
+            DofType* > DofsArrayType;
 
 
     typedef Node < 3 > NodeType;

@@ -96,7 +96,12 @@ public:
 
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+    // typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+    typedef PointerVectorSet<Dof<double>, 
+        SetIdentityFunction<Dof<double>>, 
+        std::less<decltype(std::declval<SetIdentityFunction<Dof<double>>>()(std::declval<Dof<double>>()))>, 
+        std::equal_to<decltype(std::declval<SetIdentityFunction<Dof<double>>>()(std::declval<Dof<double>>()))>, 
+        Dof<double>* > DofsArrayType;
 
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;

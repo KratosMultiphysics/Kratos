@@ -49,8 +49,8 @@ public:
 	using DofsArrayType = PointerVectorSet<
 		DofType,
 		SetIdentityFunction<DofType>,
-		std::less<typename SetIdentityFunction<DofType>::result_type>,
-		std::equal_to<typename SetIdentityFunction<DofType>::result_type>,
+		std::less<decltype(SetIdentityFunction<Dof<double>>())>,
+		std::equal_to<decltype(SetIdentityFunction<Dof<double>>())>,
 		DofType* >;
 
     using SystemVectorType = typename TSparseSpace::VectorType;
