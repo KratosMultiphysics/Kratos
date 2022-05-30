@@ -85,7 +85,7 @@ if(MSVC)
     endif()
 
 elseif(${CMAKE_COMPILER_IS_GNUCXX})
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c89")
 
     if (CO_SIM_IO_STRICT_COMPILER)
@@ -98,7 +98,7 @@ elseif(${CMAKE_COMPILER_IS_GNUCXX})
     endif()
 
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c89")
 
     if (CO_SIM_IO_STRICT_COMPILER)
@@ -107,7 +107,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     endif()
 
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c89")
 
     if (CO_SIM_IO_STRICT_COMPILER)
@@ -116,7 +116,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     endif()
 
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wpedantic")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -Wpedantic")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c89 -Wall -Wpedantic")
 endif()
 
