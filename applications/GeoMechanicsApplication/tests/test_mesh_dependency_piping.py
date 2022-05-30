@@ -4,15 +4,13 @@ import json
 import math
 import csv
 
-sys.path.append(os.path.join('..', '..', '..', 'bin', 'Release'))
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
 
 class TestMeshDependencyPiping(KratosUnittest.TestCase):
     """
-    TODO add description of the test
+    Class that does piping mesh dependency check
     """
 
     def setUp(self):
