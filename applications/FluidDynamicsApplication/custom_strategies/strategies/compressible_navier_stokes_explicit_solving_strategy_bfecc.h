@@ -335,10 +335,17 @@ private:
     ///@name Member Variables
     ///@{
 
+#if __cplusplus >= 201703L
+    struct Stash {
+        std::optional<double> conductivity = {};
+        std::optional<double> dynamic_viscosity = {};
+    } mDiffusionStash;
+#else
     struct Stash {
         optional<double> conductivity = {};
         optional<double> dynamic_viscosity = {};
     } mDiffusionStash;
+#endif
 
     ///@}
     ///@name Private Operators
