@@ -104,7 +104,7 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
             if custom_settings.Has("bfecc_number_substeps"):
                 custom_settings.RemoveValue("bfecc_number_substeps")
 
-        FluidSolver.__init__(model,custom_settings)
+        FluidSolver.__init__(self,model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "TwoFluidNavierStokesWallCondition"
