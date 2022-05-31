@@ -84,6 +84,7 @@ class Optimizer:
 
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_S)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_MAX)
+        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_MAX_MAPPED)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DF1DX)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DF1DX_MAPPED)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DC1DX)
@@ -103,6 +104,8 @@ class Optimizer:
 
         model_part.AddNodalSolutionStepVariable(KSO.DF1DX_NORMALIZED)
         model_part.AddNodalSolutionStepVariable(KSO.DC1DX_NORMALIZED)
+        model_part.AddNodalSolutionStepVariable(KSO.DF1DX_MAPPED_NORMALIZED)
+        model_part.AddNodalSolutionStepVariable(KSO.DC1DX_MAPPED_NORMALIZED)
 
 
     def __AddVariablesToBeUsedByDesignVariables(self):

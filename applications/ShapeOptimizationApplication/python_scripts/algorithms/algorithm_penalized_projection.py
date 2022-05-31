@@ -180,6 +180,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         for i in range(len(self.design_surface.Nodes)):
             delta_s = cm.Minus(s[i], self.prev_s[i])
             if cm.Dot(delta_s, self.d_prev_c[i]) == 0.0:
+            # if cm.Dot(delta_s, self.d_prev_c[i]) < 1e6:
                 alpha_s = 1e8
             else:
                 alpha_s = abs(cm.Dot(delta_s, delta_s) / cm.Dot(delta_s, self.d_prev_c[i]))
@@ -195,130 +196,194 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         WriteListToNodalVariable(d_s, self.design_surface, KSO.HEATMAP_S, 3)
 
         # Heatmap DF1DX
-        d_f_x = []
+        heat_f_x = []
         hessian_diag_f_x = []
         inv_hessian_diag_f_x = []
         for i in range(len(self.design_surface.Nodes)):
             delta_f_x = cm.Minus(df_dx[i], self.df_prev_x[i])
             if cm.Dot(delta_f_x, self.d_prev_x[i]) == 0.0:
+            # if cm.Dot(delta_f_x, self.d_prev_x[i]) < 1e6:
                 alpha_f_x = 1e8
             else:
                 alpha_f_x = abs(cm.Dot(delta_f_x, delta_f_x) / cm.Dot(delta_f_x, self.d_prev_x[i]))
-            d_f_x_temp = cm.ScalarVectorProduct(-1/alpha_f_x, df_dx[i])
-            d_f_x.append(d_f_x_temp[0])
-            d_f_x.append(d_f_x_temp[1])
-            d_f_x.append(d_f_x_temp[2])
+            heat_f_x_i = cm.ScalarVectorProduct(-1/alpha_f_x, df_dx[i])
+            heat_f_x.append(heat_f_x_i[0])
+            heat_f_x.append(heat_f_x_i[1])
+            heat_f_x.append(heat_f_x_i[2])
             hessian_diag_f_x.append(alpha_f_x)
             inv_hessian_diag_f_x.append(1/alpha_f_x)
 
         WriteListToNodalVariable(hessian_diag_f_x, self.design_surface, KSO.HESSIAN_DF1DX, 1)
         WriteListToNodalVariable(inv_hessian_diag_f_x, self.design_surface, KSO.INV_HESSIAN_DF1DX, 1)
-        WriteListToNodalVariable(d_f_x, self.design_surface, KSO.HEATMAP_DF1DX, 3)
+        WriteListToNodalVariable(heat_f_x, self.design_surface, KSO.HEATMAP_DF1DX, 3)
 
         # Heatmap DF1DX_MAPPED
-        d_f_c = []
+        heat_f_c = []
         hessian_diag_f_c = []
         inv_hessian_diag_f_c = []
         for i in range(len(self.design_surface.Nodes)):
             delta_f_c = cm.Minus(df_dc[i], self.df_prev_c[i])
             if cm.Dot(delta_f_c, self.d_prev_c[i]) == 0.0:
+            # if cm.Dot(delta_f_c, self.d_prev_c[i]) < 1e6:
                 alpha_f_c = 1e8
             else:
                 alpha_f_c = abs(cm.Dot(delta_f_c, delta_f_c) / cm.Dot(delta_f_c, self.d_prev_c[i]))
-            d_f_c_temp = cm.ScalarVectorProduct(-1/alpha_f_c, df_dc[i])
-            d_f_c.append(d_f_c_temp[0])
-            d_f_c.append(d_f_c_temp[1])
-            d_f_c.append(d_f_c_temp[2])
+            heat_f_c_i = cm.ScalarVectorProduct(-1/alpha_f_c, df_dc[i])
+            heat_f_c.append(heat_f_c_i[0])
+            heat_f_c.append(heat_f_c_i[1])
+            heat_f_c.append(heat_f_c_i[2])
             hessian_diag_f_c.append(alpha_f_c)
             inv_hessian_diag_f_c.append(1/alpha_f_c)
 
         WriteListToNodalVariable(hessian_diag_f_c, self.design_surface, KSO.HESSIAN_DF1DX_MAPPED, 1)
         WriteListToNodalVariable(inv_hessian_diag_f_c, self.design_surface, KSO.INV_HESSIAN_DF1DX_MAPPED, 1)
-        WriteListToNodalVariable(d_f_c, self.design_surface, KSO.HEATMAP_DF1DX_MAPPED, 3)
+        WriteListToNodalVariable(heat_f_c, self.design_surface, KSO.HEATMAP_DF1DX_MAPPED, 3)
 
         # Heatmap DC1DX
-        d_c_x = []
+        heat_c_x = []
         hessian_diag_c_x = []
         inv_hessian_diag_c_x = []
         for i in range(len(self.design_surface.Nodes)):
             delta_c_x = cm.Minus(dc_dx[i], self.dc_prev_x[i])
             if cm.Dot(delta_c_x, self.d_prev_x[i]) == 0.0:
+            # if cm.Dot(delta_c_x, self.d_prev_x[i]) < 1e6:
                 alpha_c_x = 1e8
             else:
                 alpha_c_x = abs(cm.Dot(delta_c_x, delta_c_x) / cm.Dot(delta_c_x, self.d_prev_x[i]))
-            d_c_x_temp = cm.ScalarVectorProduct(-1/alpha_c_x, dc_dx[i])
-            d_c_x.append(d_c_x_temp[0])
-            d_c_x.append(d_c_x_temp[1])
-            d_c_x.append(d_c_x_temp[2])
+            heat_c_x_i = cm.ScalarVectorProduct(-1/alpha_c_x, dc_dx[i])
+            heat_c_x.append(heat_c_x_i[0])
+            heat_c_x.append(heat_c_x_i[1])
+            heat_c_x.append(heat_c_x_i[2])
             hessian_diag_c_x.append(alpha_c_x)
             inv_hessian_diag_c_x.append(1/alpha_c_x)
 
         WriteListToNodalVariable(hessian_diag_c_x, self.design_surface, KSO.HESSIAN_DC1DX, 1)
         WriteListToNodalVariable(inv_hessian_diag_c_x, self.design_surface, KSO.INV_HESSIAN_DC1DX, 1)
-        WriteListToNodalVariable(d_c_x, self.design_surface, KSO.HEATMAP_DC1DX, 3)
+        WriteListToNodalVariable(heat_c_x, self.design_surface, KSO.HEATMAP_DC1DX, 3)
 
         # Heatmap DC1DX_MAPPED
-        d_c_c = []
+        heat_c_c = []
         hessian_diag_c_c = []
         inv_hessian_diag_c_c = []
         for i in range(len(self.design_surface.Nodes)):
             delta_c_c = cm.Minus(dc_dc[i], self.dc_prev_c[i])
             if cm.Dot(delta_c_c, self.d_prev_c[i]) == 0.0:
+            # if cm.Dot(delta_c_c, self.d_prev_c[i]) < 1e6:
                 alpha_c_c = 1e8
             else:
                 alpha_c_c = abs(cm.Dot(delta_c_c, delta_c_c) / cm.Dot(delta_c_c, self.d_prev_c[i]))
-            d_c_c_temp = cm.ScalarVectorProduct(-1/alpha_c_c, df_dc[i])
-            d_c_c.append(d_c_c_temp[0])
-            d_c_c.append(d_c_c_temp[1])
-            d_c_c.append(d_c_c_temp[2])
+            heat_c_c_i = cm.ScalarVectorProduct(-1/alpha_c_c, dc_dc[i])
+            heat_c_c.append(heat_c_c_i[0])
+            heat_c_c.append(heat_c_c_i[1])
+            heat_c_c.append(heat_c_c_i[2])
             hessian_diag_c_c.append(alpha_c_c)
             inv_hessian_diag_c_c.append(1/alpha_c_c)
 
         WriteListToNodalVariable(hessian_diag_c_c, self.design_surface, KSO.HESSIAN_DC1DX_MAPPED, 1)
         WriteListToNodalVariable(inv_hessian_diag_c_c, self.design_surface, KSO.INV_HESSIAN_DC1DX_MAPPED, 1)
-        WriteListToNodalVariable(d_c_c, self.design_surface, KSO.HEATMAP_DC1DX_MAPPED, 3)
+        WriteListToNodalVariable(heat_c_c, self.design_surface, KSO.HEATMAP_DC1DX_MAPPED, 3)
 
         # Heatmap Max
-        heat = []
+        heat_max = []
         df_dx = ReadNodalVariableToList(self.design_surface, KSO.DF1DX)
-        # df_dx_norm = cm.NormInf3D(df_dx)
-        # if df_dx_norm != 0.0:
-        #     df_dx_normalized = cm.ScalarVectorProduct(1/df_dx_norm, df_dx)
-        # else:
-        #     df_dx_normalized = [0] * len(df_dx)
-        objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
-        df_dx_normalized = cm.ScalarVectorProduct(1/objective_value, df_dx)
+
+        ### Start: Normalize objective gradient
+        df_dx_norm = cm.NormInf3D(df_dx)
+        if df_dx_norm != 0.0:
+            df_dx_normalized = cm.ScalarVectorProduct(1/df_dx_norm, df_dx)
+        else:
+            df_dx_normalized = [0] * len(df_dx)
+        ### End: Normalize objective gradient
+
+        # ### Start: Normalize objective gradient by objective value
+        # objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
+        # df_dx_normalized = cm.ScalarVectorProduct(1/objective_value, df_dx)
+        # ### End: Normalize objective gradient by objective value
 
         dc_dx = ReadNodalVariableToList(self.design_surface, KSO.DC1DX)
-        # dc_dx_norm = cm.NormInf3D(dc_dx)
-        # if dc_dx_norm != 0.0:
-        #     dc_dx_normalized = cm.ScalarVectorProduct(1/dc_dx_norm, dc_dx)
-        # else:
-        #     dc_dx_normalized = [0] * len(dc_dx)
-        constraint_value = self.communicator.getStandardizedValue(self.constraints[0]["identifier"].GetString())
-        if constraint_value != 0.0:
-            dc_dx_normalized = cm.ScalarVectorProduct(1/constraint_value, dc_dx)
+        ## Start: Normalize constraint gradient
+        dc_dx_norm = cm.NormInf3D(dc_dx)
+        if dc_dx_norm != 0.0:
+            dc_dx_normalized = cm.ScalarVectorProduct(1/dc_dx_norm, dc_dx)
         else:
             dc_dx_normalized = [0] * len(dc_dx)
+        ## End: Normalize constraint gradient
+
+        # ### Start: Normalize constraint gradient by constraint value
+        # constraint_value = self.communicator.getStandardizedValue(self.constraints[0]["identifier"].GetString())
+        # if constraint_value != 0.0:
+        #     dc_dx_normalized = cm.ScalarVectorProduct(1/constraint_value, dc_dx)
+        # else:
+        #     dc_dx_normalized = [0] * len(dc_dx)
+        # ### End: Normalize constraint gradient by constraint value
 
         for i in range(len(self.design_surface.Nodes)):
             df_dx_i = df_dx_normalized[3*i:3*i+3]
-            print("df_dx_i: {}".format(df_dx_i))
             df_dx_i_norm = cm.Norm2(df_dx_i)
-            print("df_dx_i_norm: {}".format(df_dx_i_norm))
             dc_dx_i = dc_dx_normalized[3*i:3*i+3]
-            print("dc_dx_i: {}".format(dc_dx_i))
             dc_dx_i_norm = cm.Norm2(dc_dx_i)
-            print("dc_dx_i_norm: {}".format(dc_dx_i_norm))
-            heat_temp = max(df_dx_i_norm, dc_dx_i_norm)
-            print("heat_i: {}".format(heat_temp))
-            heat.append(heat_temp)
+            heat_max_i = max(df_dx_i_norm, dc_dx_i_norm)
+            heat_max.append(heat_max_i)
 
-        heat_norm = cm.NormInf3D(heat)
-        heat = cm.ScalarVectorProduct(1/heat_norm, heat)
-        WriteListToNodalVariable(heat, self.design_surface, KSO.HEATMAP_MAX, 1)
+        ### Start: Normalize heat sens field
+        # heat_norm = cm.NormInf3D(heat)
+        # heat = cm.ScalarVectorProduct(1/heat_norm, heat)
+        ### End: Normalize heat sens field
+
+        WriteListToNodalVariable(heat_max, self.design_surface, KSO.HEATMAP_MAX, 1)
         WriteListToNodalVariable(df_dx_normalized, self.design_surface, KSO.DF1DX_NORMALIZED, 3)
         WriteListToNodalVariable(dc_dx_normalized, self.design_surface, KSO.DC1DX_NORMALIZED, 3)
+
+        # Heatmap Max Mapped
+        heat_max_mapped = []
+        df_dc = ReadNodalVariableToList(self.design_surface, KSO.DF1DX_MAPPED)
+
+        ### Start: Normalize objective gradient
+        df_dc_norm = cm.NormInf3D(df_dc)
+        if df_dc_norm != 0.0:
+            df_dc_normalized = cm.ScalarVectorProduct(1/df_dc_norm, df_dc)
+        else:
+            df_dc_normalized = [0] * len(df_dc)
+        ### End: Normalize objective gradient
+
+        # ### Start: Normalize objective gradient by objective value
+        # objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
+        # df_dc_normalized = cm.ScalarVectorProduct(1/objective_value, df_dc)
+        # ### End: Normalize objective gradient by objective value
+
+        dc_dc = ReadNodalVariableToList(self.design_surface, KSO.DC1DX_MAPPED)
+        ## Start: Normalize constraint gradient
+        dc_dc_norm = cm.NormInf3D(dc_dc)
+        if dc_dc_norm != 0.0:
+            dc_dc_normalized = cm.ScalarVectorProduct(1/dc_dc_norm, dc_dc)
+        else:
+            dc_dc_normalized = [0] * len(dc_dc)
+        ## End: Normalize constraint gradient
+
+        # ### Start: Normalize constraint gradient by constraint value
+        # constraint_value = self.communicator.getStandardizedValue(self.constraints[0]["identifier"].GetString())
+        # if constraint_value != 0.0:
+        #     dc_dc_normalized = cm.ScalarVectorProduct(1/constraint_value, dc_dc)
+        # else:
+        #     dc_dc_normalized = [0] * len(dc_dc)
+        # ### End: Normalize constraint gradient by constraint value
+
+        for i in range(len(self.design_surface.Nodes)):
+            df_dc_i = df_dc_normalized[3*i:3*i+3]
+            df_dc_i_norm = cm.Norm2(df_dc_i)
+            dc_dc_i = dc_dc_normalized[3*i:3*i+3]
+            dc_dc_i_norm = cm.Norm2(dc_dc_i)
+            heat_max_mapped_i = max(df_dc_i_norm, dc_dc_i_norm)
+            heat_max_mapped.append(heat_max_mapped_i)
+
+        ### Start: Normalize heat sens field
+        # heat_norm = cm.NormInf3D(heat)
+        # heat = cm.ScalarVectorProduct(1/heat_norm, heat)
+        ### End: Normalize heat sens field
+
+        WriteListToNodalVariable(heat_max_mapped, self.design_surface, KSO.HEATMAP_MAX_MAPPED, 1)
+        WriteListToNodalVariable(df_dc_normalized, self.design_surface, KSO.DF1DX_MAPPED_NORMALIZED, 3)
+        WriteListToNodalVariable(dc_dc_normalized, self.design_surface, KSO.DC1DX_MAPPED_NORMALIZED, 3)
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):
