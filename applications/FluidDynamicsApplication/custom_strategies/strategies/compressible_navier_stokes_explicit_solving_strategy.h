@@ -242,7 +242,8 @@ public:
     {
         BaseType::InitializeSolutionStep();
 
-        if (mFirstStep) {
+        if (mFirstStep && ConservativeMagnitudeCalculationEnabled()) {
+            // This needs to be here because the initial conditions are set during ExecuteInitializeSolutionStep.
             CalculateNonConservativeMagnitudes();
         }
 
