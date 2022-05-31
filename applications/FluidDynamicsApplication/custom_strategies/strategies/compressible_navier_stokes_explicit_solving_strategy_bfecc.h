@@ -75,7 +75,7 @@ public:
 
     // Replace with proper std::optional when upgrading to c++17
 #if __cplusplus >= 201703L
-    using std::optional;
+    // using std::optional;
 #else
     /** Naive implementation of std::optional, used as a replacement for c++11 support.
      * Use only with simple types.
