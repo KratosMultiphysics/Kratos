@@ -281,17 +281,26 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         # Heatmap Max
         heat = []
         df_dx = ReadNodalVariableToList(self.design_surface, KSO.DF1DX)
-        df_dx_norm = cm.NormInf3D(df_dx)
-        if df_dx_norm != 0.0:
-            df_dx_normalized = cm.ScalarVectorProduct(1/df_dx_norm, df_dx)
-        else:
-            df_dx_normalized = [0] * len(df_dx)
+        # df_dx_norm = cm.NormInf3D(df_dx)
+        # if df_dx_norm != 0.0:
+        #     df_dx_normalized = cm.ScalarVectorProduct(1/df_dx_norm, df_dx)
+        # else:
+        #     df_dx_normalized = [0] * len(df_dx)
+        objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
+        df_dx_normalized = cm.ScalarVectorProduct(1/objective_value, df_dx)
+
         dc_dx = ReadNodalVariableToList(self.design_surface, KSO.DC1DX)
-        dc_dx_norm = cm.NormInf3D(dc_dx)
-        if dc_dx_norm != 0.0:
-            dc_dx_normalized = cm.ScalarVectorProduct(1/dc_dx_norm, dc_dx)
+        # dc_dx_norm = cm.NormInf3D(dc_dx)
+        # if dc_dx_norm != 0.0:
+        #     dc_dx_normalized = cm.ScalarVectorProduct(1/dc_dx_norm, dc_dx)
+        # else:
+        #     dc_dx_normalized = [0] * len(dc_dx)
+        constraint_value = self.communicator.getStandardizedValue(self.constraints[0]["identifier"].GetString())
+        if constraint_value != 0.0:
+            dc_dx_normalized = cm.ScalarVectorProduct(1/constraint_value, dc_dx)
         else:
             dc_dx_normalized = [0] * len(dc_dx)
+
         for i in range(len(self.design_surface.Nodes)):
             df_dx_i = df_dx_normalized[3*i:3*i+3]
             print("df_dx_i: {}".format(df_dx_i))
@@ -305,6 +314,8 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
             print("heat_i: {}".format(heat_temp))
             heat.append(heat_temp)
 
+        heat_norm = cm.NormInf3D(heat)
+        heat = cm.ScalarVectorProduct(1/heat_norm, heat)
         WriteListToNodalVariable(heat, self.design_surface, KSO.HEATMAP_MAX, 1)
         WriteListToNodalVariable(df_dx_normalized, self.design_surface, KSO.DF1DX_NORMALIZED, 3)
         WriteListToNodalVariable(dc_dx_normalized, self.design_surface, KSO.DC1DX_NORMALIZED, 3)
