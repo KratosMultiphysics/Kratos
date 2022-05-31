@@ -9,7 +9,7 @@ import test_helper
 
 class TestConsecutivePipeLines(KratosUnittest.TestCase):
     """
-    Checking to see if consecutive pipelines with different configurations, work.
+    Class to Check consecutive pipelines with different configurations
     """
 
     def setUp(self):
@@ -47,15 +47,15 @@ class TestConsecutivePipeLines(KratosUnittest.TestCase):
         return math.nan
 
     def test_consecutive_pipe_lines(self):
-        test_files = ["split_geometry_double_lines", "reference_geometry"]
+        test_files = ["reference_geometry", "split_geometry_permeability_soil1_e10", "split_geometry_permeability_soil2_e10", "split_geometry_permeability_soil1_soil2_e10", "split_geometry_double_lines_pipe2_added", "split_geometry_pipe2_D70_3e4"]
         result_dict = {}
 
         for test_file in test_files:
             test_name = os.path.join('test_consecutive_pipe_lines', test_file)
             file_path = test_helper.get_file_path(os.path.join('.', test_name))
-            heads = [x * 1 for x in range(int(0),
-                                          int(10), 1)]
+            heads = [x * 0.1 for x in range(int(0),
+                                          int(120), 1)]
             critical_head_found = self.linear_search(file_path, heads)
             result_dict[test_file] = critical_head_found
 
-        assert math.isclose(result_dict["reference_geometry"], result_dict["split_geometry_double_lines"])
+        assert math.isclose(result_dict["reference_geometry"], result_dict["split_geometry_permeability_soil1_e10", "split_geometry_permeability_soil2_e10", "split_geometry_permeability_soil1_soil2_e10", "split_geometry_double_lines_pipe2_added", "split_geometry_pipe2_D70_3e4"])
