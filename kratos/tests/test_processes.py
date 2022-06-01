@@ -1322,7 +1322,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         # Here we also test if the output to folder(s) (and subfolder(s)) works
         settings = KratosMultiphysics.Parameters("""{
-                "process_list" : [ {
+                "output_process_list" : [ {
                         "python_module"  : "point_output_process",
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "PointOutputProcess",
@@ -1352,7 +1352,8 @@ class TestProcesses(KratosUnittest.TestCase):
                             "entity_type"      : "node",
                             "search_configuration"    : "current"
                         }
-                    },{
+                    } ],
+            "process_list" : [ {
                         "python_module"  : "compare_two_files_check_process",
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
@@ -1373,8 +1374,8 @@ class TestProcesses(KratosUnittest.TestCase):
                     } ]
         }""")
 
-        settings["process_list"][2]["Parameters"]["reference_file_name"].SetString(reference_file_name_1)
-        settings["process_list"][3]["Parameters"]["reference_file_name"].SetString(reference_file_name_2)
+        settings["process_list"][0]["Parameters"]["reference_file_name"].SetString(reference_file_name_1)
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name_2)
 
         end_time = 5.0
         delta_time = 0.15
@@ -1401,7 +1402,7 @@ class TestProcesses(KratosUnittest.TestCase):
         reference_file_name = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/element_output_ref.dat")
 
         settings = KratosMultiphysics.Parameters("""{
-            "process_list" : [ {
+            "output_process_list" : [ {
                     "python_module"  : "point_output_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "PointOutputProcess",
@@ -1413,7 +1414,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         },
                         "output_variables" : ["DISPLACEMENT_X", "VISCOSITY", "ACCELERATION"]
                     }
-                },{
+                } ],
+            "process_list" : [ {
                     "python_module"  : "compare_two_files_check_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "CompareTwoFilesCheckProcess",
@@ -1425,7 +1427,7 @@ class TestProcesses(KratosUnittest.TestCase):
                 } ]
         }""")
 
-        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+        settings["process_list"][0]["Parameters"]["reference_file_name"].SetString(reference_file_name)
 
         end_time = 5.0
         delta_time = 0.15
@@ -1449,7 +1451,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         # Here we also test if setting the write_buffer_size works
         settings = KratosMultiphysics.Parameters("""{
-            "process_list" : [ {
+            "output_process_list" : [ {
                     "python_module"  : "point_output_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "PointOutputProcess",
@@ -1458,13 +1460,13 @@ class TestProcesses(KratosUnittest.TestCase):
                         "model_part_name"  : "Main",
                         "interval"             : [0.0, "End"],
                         "output_file_settings": {
-                            "file_name"   : "condition_output",
-                            "write_buffer_size" : 512
+                            "file_name"   : "condition_output"
                         },
                         "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                         "entity_type"      : "condition"
                     }
-                },{
+                } ],
+            "process_list" : [ {
                     "python_module"  : "compare_two_files_check_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "CompareTwoFilesCheckProcess",
@@ -1476,7 +1478,7 @@ class TestProcesses(KratosUnittest.TestCase):
                 } ]
         }""")
 
-        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+        settings["process_list"][0]["Parameters"]["reference_file_name"].SetString(reference_file_name)
 
         end_time = 5.0
         delta_time = 0.15
@@ -1500,7 +1502,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         # Here we also test if setting the write_buffer_size works
         settings = KratosMultiphysics.Parameters("""{
-            "process_list" : [ {
+            "output_process_list" : [ {
                     "python_module"  : "point_output_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "PointOutputProcess",
@@ -1509,13 +1511,13 @@ class TestProcesses(KratosUnittest.TestCase):
                         "model_part_name"  : "Main",
                         "interval"             : [0.3, 3.0],
                         "output_file_settings": {
-                            "file_name"   : "interval_output",
-                            "write_buffer_size" : 512
+                            "file_name"   : "interval_output"
                         },
                         "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                         "entity_type"      : "condition"
                     }
-                },{
+                } ],
+            "process_list" : [ {
                     "python_module"  : "compare_two_files_check_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "CompareTwoFilesCheckProcess",
@@ -1527,7 +1529,7 @@ class TestProcesses(KratosUnittest.TestCase):
                 } ]
         }""")
 
-        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+        settings["process_list"][0]["Parameters"]["reference_file_name"].SetString(reference_file_name)
 
         end_time = 5.0
         delta_time = 0.15
@@ -1550,7 +1552,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         # Note that we are comparing the same file as for without restart
         settings = KratosMultiphysics.Parameters("""{
-            "process_list" : [ {
+            "output_process_list" : [ {
                     "python_module"  : "point_output_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "PointOutputProcess",
@@ -1564,7 +1566,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                         "entity_type"      : "node"
                     }
-                },{
+                } ],
+            "process_list" : [ {
                     "python_module"  : "compare_two_files_check_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "CompareTwoFilesCheckProcess",
@@ -1576,14 +1579,14 @@ class TestProcesses(KratosUnittest.TestCase):
                 } ]
         }""")
 
-        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+        settings["process_list"][0]["Parameters"]["reference_file_name"].SetString(reference_file_name)
 
         # From this file we copy some lines into a new file , which will be used as basis for the restart
-        ref_file_name = settings["process_list"][1]["Parameters"]["reference_file_name"].GetString()
+        ref_file_name = settings["process_list"][0]["Parameters"]["reference_file_name"].GetString()
 
         # here we create a dat file from a "previous run"
-        out_file_name = GetFilePath('/'.join([settings["process_list"][0]["Parameters"]["output_file_settings"]["output_path"].GetString(),
-            settings["process_list"][0]["Parameters"]["output_file_settings"]["file_name"].GetString()]))
+        out_file_name = GetFilePath('/'.join([settings["output_process_list"][0]["Parameters"]["output_file_settings"]["output_path"].GetString(),
+            settings["output_process_list"][0]["Parameters"]["output_file_settings"]["file_name"].GetString()]))
         out_file_name += ".dat"
 
         with open(ref_file_name, 'r') as ref_file, open(out_file_name, 'w') as out_file:
@@ -1617,7 +1620,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         # Note that we are comparing the same file as for without restart
         settings = KratosMultiphysics.Parameters("""{
-            "process_list" : [ {
+            "output_process_list" : [ {
                     "python_module"  : "point_output_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "PointOutputProcess",
@@ -1631,7 +1634,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                         "entity_type"      : "node"
                     }
-                },{
+                } ],
+            "process_list" : [ {
                     "python_module"  : "compare_two_files_check_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "CompareTwoFilesCheckProcess",
@@ -1643,14 +1647,14 @@ class TestProcesses(KratosUnittest.TestCase):
                 } ]
         }""")
 
-        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+        settings["process_list"][0]["Parameters"]["reference_file_name"].SetString(reference_file_name)
 
         # From this file we copy some lines into a new file , which will be used as basis for the restart
-        ref_file_name = settings["process_list"][1]["Parameters"]["reference_file_name"].GetString()
+        ref_file_name = settings["process_list"][0]["Parameters"]["reference_file_name"].GetString()
 
         # here we create a dat file from a "previous run"
-        out_file_name = GetFilePath('/'.join([settings["process_list"][0]["Parameters"]["output_file_settings"]["output_path"].GetString(),
-            settings["process_list"][0]["Parameters"]["output_file_settings"]["file_name"].GetString()]))
+        out_file_name = GetFilePath('/'.join([settings["output_process_list"][0]["Parameters"]["output_file_settings"]["output_path"].GetString(),
+            settings["output_process_list"][0]["Parameters"]["output_file_settings"]["file_name"].GetString()]))
         out_file_name += ".dat"
 
         with open(ref_file_name, 'r') as ref_file, open(out_file_name, 'w') as out_file:
@@ -1683,7 +1687,7 @@ class TestProcesses(KratosUnittest.TestCase):
         reference_file_name = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/node_output_failed_restart_ref.dat")
 
         settings = KratosMultiphysics.Parameters("""{
-            "process_list" : [ {
+            "output_process_list" : [ {
                     "python_module"  : "point_output_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "PointOutputProcess",
@@ -1697,7 +1701,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                         "entity_type"      : "node"
                     }
-                },{
+                } ],
+            "process_list" : [ {
                     "python_module"  : "compare_two_files_check_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "CompareTwoFilesCheckProcess",
@@ -1709,7 +1714,7 @@ class TestProcesses(KratosUnittest.TestCase):
                 } ]
         }""")
 
-        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+        settings["process_list"][0]["Parameters"]["reference_file_name"].SetString(reference_file_name)
 
         end_time = 5.0
         delta_time = 0.15
@@ -1738,7 +1743,7 @@ class TestProcesses(KratosUnittest.TestCase):
         reference_file_name_3 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/node_output_3_ref.dat")
 
         settings = KratosMultiphysics.Parameters("""{
-            "process_list" : [ {
+            "output_process_list" : [ {
                     "python_module"  : "multiple_points_output_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "MultiplePointsOutputProcess",
@@ -1754,7 +1759,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                         "entity_type"      : "node"
                     }
-                },{
+                } ],
+            "process_list" : [ {
                     "python_module"  : "compare_two_files_check_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "CompareTwoFilesCheckProcess",
@@ -1784,9 +1790,9 @@ class TestProcesses(KratosUnittest.TestCase):
                 } ]
         }""")
 
-        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name_1)
-        settings["process_list"][2]["Parameters"]["reference_file_name"].SetString(reference_file_name_2)
-        settings["process_list"][3]["Parameters"]["reference_file_name"].SetString(reference_file_name_3)
+        settings["process_list"][0]["Parameters"]["reference_file_name"].SetString(reference_file_name_1)
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name_2)
+        settings["process_list"][2]["Parameters"]["reference_file_name"].SetString(reference_file_name_3)
 
         end_time = 5.0
         delta_time = 0.15
@@ -1809,7 +1815,7 @@ class TestProcesses(KratosUnittest.TestCase):
         reference_file_name_3 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/line_output_3_ref.dat")
 
         settings = KratosMultiphysics.Parameters("""{
-            "process_list" : [ {
+            "output_process_list" : [ {
                     "python_module"  : "line_output_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "LineOutputProcess",
@@ -1823,7 +1829,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         },
                         "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"]
                     }
-                },{
+                } ],
+            "process_list" : [ {
                     "python_module"  : "compare_two_files_check_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "CompareTwoFilesCheckProcess",
@@ -1853,9 +1860,9 @@ class TestProcesses(KratosUnittest.TestCase):
                 }]
         }""")
 
-        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name_1)
-        settings["process_list"][2]["Parameters"]["reference_file_name"].SetString(reference_file_name_2)
-        settings["process_list"][3]["Parameters"]["reference_file_name"].SetString(reference_file_name_3)
+        settings["process_list"][0]["Parameters"]["reference_file_name"].SetString(reference_file_name_1)
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name_2)
+        settings["process_list"][2]["Parameters"]["reference_file_name"].SetString(reference_file_name_3)
 
         model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
@@ -1881,7 +1888,7 @@ class TestProcesses(KratosUnittest.TestCase):
         reference_file_name_3 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/csv_points_output_3_ref.dat")
 
         settings = KratosMultiphysics.Parameters("""{
-            "process_list" : [ {
+            "output_process_list" : [ {
                     "python_module"  : "csv_points_output_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "CSVPointsOutputProcess",
@@ -1895,7 +1902,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         },
                         "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"]
                     }
-                },{
+                } ],
+            "process_list" : [ {
                     "python_module"  : "compare_two_files_check_process",
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "CompareTwoFilesCheckProcess",
@@ -1925,10 +1933,10 @@ class TestProcesses(KratosUnittest.TestCase):
                 }]
         }""")
 
-        settings["process_list"][0]["Parameters"]["csv_file_path"].SetString(reference_input_file_name)
-        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name_1)
-        settings["process_list"][2]["Parameters"]["reference_file_name"].SetString(reference_file_name_2)
-        settings["process_list"][3]["Parameters"]["reference_file_name"].SetString(reference_file_name_3)
+        settings["output_process_list"][0]["Parameters"]["csv_file_path"].SetString(reference_input_file_name)
+        settings["process_list"][0]["Parameters"]["reference_file_name"].SetString(reference_file_name_1)
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name_2)
+        settings["process_list"][2]["Parameters"]["reference_file_name"].SetString(reference_file_name_3)
 
         model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
@@ -2527,9 +2535,17 @@ def SetNodalValuesForPointOutputProcesses(model_part):
 
 def SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time):
     current_model = model_part.GetModel()
+
+    # create lists of processes the same way it is happening for analysis_stage.py
     list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses(
         settings["process_list"] )
+    list_of_output_processes = []
+    if settings.Has("output_process_list"):
+        list_of_output_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses(
+        settings["output_process_list"] )
+    list_of_processes.extend(list_of_output_processes)
 
+    # call the methods of processes the same order it is happening in analysis_stage.py
     for process in list_of_processes:
         process.ExecuteInitialize()
 
@@ -2545,13 +2561,17 @@ def SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
             process.ExecuteInitializeSolutionStep()
 
         for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+        for process in list_of_processes:
             process.ExecuteBeforeOutputStep()
+
+        for output_process in list_of_output_processes:
+            if output_process.IsOutputStep():
+                output_process.PrintOutput()
 
         for process in list_of_processes:
             process.ExecuteAfterOutputStep()
-
-        for process in list_of_processes:
-            process.ExecuteFinalizeSolutionStep()
 
     for process in list_of_processes:
         process.ExecuteFinalize()
