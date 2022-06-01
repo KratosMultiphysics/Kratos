@@ -61,7 +61,9 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
       mQSConvectionDiffusionExplicit2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mQSConvectionDiffusionExplicit3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mDConvectionDiffusionExplicit2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-      mDConvectionDiffusionExplicit3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))) {}
+      mDConvectionDiffusionExplicit3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mSymbolicPureConvectionElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mSymbolicPureConvectionElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))) {}
 
 void KratosConvectionDiffusionApplication::Register() {
     KRATOS_INFO("") <<
@@ -113,6 +115,9 @@ void KratosConvectionDiffusionApplication::Register() {
 
     KRATOS_REGISTER_ELEMENT("AdjointDiffusionElement2D3N", mAdjointDiffusionElement2D3N);
     KRATOS_REGISTER_ELEMENT("AdjointDiffusionElement3D4N", mAdjointDiffusionElement3D4N);
+
+    KRATOS_REGISTER_ELEMENT("SymbolicPureConvectionElement2D3N", mSymbolicPureConvectionElement2D3N);
+    KRATOS_REGISTER_ELEMENT("SymbolicPureConvectionElement3D4N", mSymbolicPureConvectionElement3D4N);
 
     KRATOS_REGISTER_CONDITION("ThermalFace2D2N", mThermalFace2D2N);
     KRATOS_REGISTER_CONDITION("ThermalFace3D3N", mThermalFace3D3N);

@@ -34,6 +34,7 @@
 #include "custom_elements/adjoint_diffusion_element.h"
 #include "custom_elements/qs_convection_diffusion_explicit.h"
 #include "custom_elements/d_convection_diffusion_explicit.h"
+#include "custom_elements/symbolic_pure_convection_element.h"
 
 #include "custom_conditions/thermal_face.h"
 #include "custom_conditions/flux_condition.h"
@@ -261,6 +262,9 @@ private:
     const QSConvectionDiffusionExplicit<3,4> mQSConvectionDiffusionExplicit3D4N;
     const DConvectionDiffusionExplicit<2,3> mDConvectionDiffusionExplicit2D3N;
     const DConvectionDiffusionExplicit<3,4> mDConvectionDiffusionExplicit3D4N;
+
+    const SymbolicPureConvectionElement<2,3> mSymbolicPureConvectionElement2D3N;
+    const SymbolicPureConvectionElement<3,4> mSymbolicPureConvectionElement3D4N;
 
     ///@}
     ///@name Private Operators

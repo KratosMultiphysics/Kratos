@@ -84,6 +84,8 @@ public:
         mpSpecificHeatVar(rOther.mpSpecificHeatVar),
         mpReactionVar(rOther.mpReactionVar),
         mpReactionGradientVar(rOther.mpReactionGradientVar),
+        mpFirstStabilizationVar(rOther.mpFirstStabilizationVar),
+        mpSecondStabilizationVar(rOther.mpSecondStabilizationVar),
         mis_defined_DensityVar(rOther.mis_defined_DensityVar),
 		mis_defined_DiffusionVar(rOther.mis_defined_DiffusionVar),
 		mis_defined_UnknownVar(rOther.mis_defined_UnknownVar),
@@ -97,7 +99,9 @@ public:
 		mis_defined_VelocityVar(rOther.mis_defined_VelocityVar),
 		mis_defined_SpecificHeatVar(rOther.mis_defined_SpecificHeatVar),
         mis_defined_ReactionVar(rOther.mis_defined_ReactionVar),
-        mIsDefinedReactionGradientVar(rOther.mIsDefinedReactionGradientVar)
+        mIsDefinedReactionGradientVar(rOther.mIsDefinedReactionGradientVar),
+        mis_defined_FirstStabilizationVar(rOther.mis_defined_FirstStabilizationVar),
+        mis_defined_SecondStabilizationVar(rOther.mis_defined_SecondStabilizationVar)
     {
     }
 
@@ -303,6 +307,34 @@ public:
 		return mpReactionGradientVar != nullptr;
 	}
 
+    void SetFirstStabilizationVariable(const Variable<double>& rvar)
+    {
+        mpFirstStabilizationVar = &rvar;
+		mis_defined_FirstStabilizationVar=true;
+    }
+    const Variable<double>& GetFirstStabilizationVariable() const
+    {
+        return *mpFirstStabilizationVar;
+    }
+    bool IsDefinedFirstStabilizationVariable() const
+    {
+		return mpFirstStabilizationVar != nullptr;
+	}
+
+    void SetSecondStabilizationVariable(const Variable<double>& rvar)
+    {
+        mpSecondStabilizationVar = &rvar;
+		mis_defined_SecondStabilizationVar=true;
+    }
+    const Variable<double>& GetSecondStabilizationVariable() const
+    {
+        return *mpSecondStabilizationVar;
+    }
+    bool IsDefinedSecondStabilizationVariable() const
+    {
+		return mpSecondStabilizationVar != nullptr;
+	}
+
     ///@}
     ///@name Operations
     ///@{
@@ -328,6 +360,8 @@ public:
 		mpSpecificHeatVar = rOther.mpSpecificHeatVar;
         mpReactionVar = rOther.mpReactionVar;
         mpReactionGradientVar = rOther.mpReactionGradientVar;
+        mpFirstStabilizationVar = rOther.mpFirstStabilizationVar;
+        mpSecondStabilizationVar = rOther.mpSecondStabilizationVar;
         //now the is_defined
         mis_defined_DensityVar = rOther.mis_defined_DensityVar;
 		mis_defined_DiffusionVar = rOther.mis_defined_DiffusionVar;
@@ -343,6 +377,8 @@ public:
 		mis_defined_SpecificHeatVar = rOther.mis_defined_SpecificHeatVar;
         mis_defined_ReactionVar = rOther.mis_defined_ReactionVar;
         mIsDefinedReactionGradientVar = rOther.mIsDefinedReactionGradientVar;
+        mis_defined_FirstStabilizationVar = rOther.mis_defined_FirstStabilizationVar;
+        mis_defined_SecondStabilizationVar = rOther.mis_defined_SecondStabilizationVar;
 
         return *this;
     }
@@ -443,6 +479,8 @@ private:
     const Variable<double>* mpSpecificHeatVar = nullptr;
     const Variable<double>* mpReactionVar = nullptr;
     const Variable<array_1d<double,3>>* mpReactionGradientVar = nullptr;
+    const Variable<double>* mpFirstStabilizationVar = nullptr;
+    const Variable<double>* mpSecondStabilizationVar = nullptr;
     bool mis_defined_DensityVar = false;
     bool mis_defined_DiffusionVar = false;
     bool mis_defined_UnknownVar = false;
@@ -457,6 +495,8 @@ private:
     bool mis_defined_SpecificHeatVar = false;
     bool mis_defined_ReactionVar = false;
     bool mIsDefinedReactionGradientVar = false;
+    bool mis_defined_FirstStabilizationVar = false;
+    bool mis_defined_SecondStabilizationVar = false;
 
     ///@}
     ///@name Private Operators
