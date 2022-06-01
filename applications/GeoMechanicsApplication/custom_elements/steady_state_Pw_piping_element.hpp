@@ -117,6 +117,10 @@ protected:
          std::vector<bool>& rValues,
          const ProcessInfo& rCurrentProcessInfo) override;
 
+     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+         std::vector<double>& rValues,
+         const ProcessInfo& rCurrentProcessInfo) override;
+
     double CalculateParticleDiameter(const PropertiesType& Prop);
     
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

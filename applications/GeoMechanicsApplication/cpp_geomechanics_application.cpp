@@ -114,11 +114,24 @@ void GaussRELATIVE_PERMEABILITY::write(Kratos::GidIO<>& gid_io, Kratos::ModelPar
 
 void GaussPIPE_ACTIVE::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) { gid_io.PrintOnGaussPoints(Kratos::PIPE_ACTIVE, model_part, 0, 0); }
 
+void GaussPIPE_HEIGHT::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) { gid_io.PrintOnGaussPoints(Kratos::PIPE_HEIGHT, model_part, 0, 0); }
+
 #pragma endregion GaussVariables
 
 namespace Kratos
 {
-    KratosExecute::ConvergenceCriteriaType::Pointer KratosExecute::setup_criteria_dgeoflow()
+
+    int KratosExecute::GetEchoLevel()
+    {
+        return echoLevel;
+    }
+
+    void KratosExecute::SetEchoLevel(int level)
+    {
+        echoLevel = level;
+    }
+
+	KratosExecute::ConvergenceCriteriaType::Pointer KratosExecute::setup_criteria_dgeoflow()
     {
         const double rel_tol = 1.0e-4;
         const double abs_tol = 1.0e-9;
@@ -517,6 +530,7 @@ namespace Kratos
         GaussOutput["DERIVATIVE_OF_SATURATION"] = std::make_unique<GaussDERIVATIVE_OF_SATURATION>();
         GaussOutput["RELATIVE_PERMEABILITY"] = std::make_unique<GaussRELATIVE_PERMEABILITY>();
         GaussOutput["PIPE_ACTIVE"] = std::make_unique<GaussPIPE_ACTIVE>();
+        GaussOutput["PIPE_HEIGHT"] = std::make_unique<GaussPIPE_HEIGHT>();
     	auto gauss_outputs = outputParameters["postprocess_parameters"]["result_file_configuration"]["gauss_point_results"].GetStringArray();
         for (string var : gauss_outputs)
         {
@@ -568,13 +582,14 @@ namespace Kratos
         return 0;
     }
 
+    
+
     int KratosExecute::geoflow(string workingDirectory, string projectName, bool hasPiping)
     {
 
-        cout << "Working Directory: " << workingDirectory << std::endl;
-        cout << "Project Name: " << projectName << std::endl;
+        this->SetEchoLevel(0);
 
-        string projectpath = workingDirectory + "/" + projectName;
+    	string projectpath = workingDirectory + "/" + projectName;
     	auto projectfile = openProjectParamsFile(projectpath);
 
         auto materialname = projectfile["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
@@ -599,11 +614,13 @@ namespace Kratos
         const auto rank = model_part.GetCommunicator().MyPID();
         model_part.SetBufferSize(2);
 
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "Working Directory: " << workingDirectory << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "Project Name: " << projectName << std::endl;
 
         const auto p_solving_strategy = setup_strategy_dgeoflow(model_part);
         p_solving_strategy->SetEchoLevel(0);
 
-        std::cout << "Setup Solving Strategy" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "Setup Solving Strategy" << std::endl;
 
         model_part.AddNodalSolutionStepVariable(VELOCITY);
         model_part.AddNodalSolutionStepVariable(ACCELERATION);
@@ -634,11 +651,11 @@ namespace Kratos
         model_part.AddNodalSolutionStepVariable(NODAL_JOINT_WIDTH);
         model_part.AddNodalSolutionStepVariable(NODAL_JOINT_DAMAGE);
 
-        std::cout << "Nodal Solution Variables Added" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "Nodal Solution Variables Added" << std::endl;
 
         parseMesh(model_part, meshpath);
 
-        std::cout << "Parsed Mesh" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "Parsed Mesh" << std::endl;
 
         parseMaterial(current_model, materialpath);
 
@@ -650,12 +667,12 @@ namespace Kratos
         VariableUtils().AddDof(VOLUME_ACCELERATION_Y, model_part);
         VariableUtils().AddDof(VOLUME_ACCELERATION_Z, model_part);
 
-        std::cout << "Added DoF" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "Added DoF" << std::endl;
 
         std::vector<std::shared_ptr<Process>> processes = parseProcess(model_part, projectfile);
 
-        std::cout << "Parsed Process Data" << std::endl;
-        std::cout << "Critical Head Search: " << hasPiping << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "Parsed Process Data" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "Critical Head Search: " << hasPiping << std::endl;
 
         if (!hasPiping) {
             int error = mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
@@ -723,14 +740,17 @@ namespace Kratos
             int count = 0;
             double criticalHead;
             double currentHead;
+            bool pipingSuccess = false;
 
             auto currentProcess = std::static_pointer_cast<GeoFlowApplyConstantHydrostaticPressureProcess>(RiverBoundary);
             currentHead = currentProcess->GetReferenceCoord();
             currentProcess->SetReferenceCoord(0.0);
 
-            while (count != noPipeElements)
+            int searchIteration = 0;
+        	while (true)
             {
-                criticalHead = currentHead;
+                searchIteration += 1;
+        		criticalHead = currentHead;
             	int error = mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
 
                 count = 0;
@@ -752,9 +772,42 @@ namespace Kratos
                     currentProcess->SetReferenceCoord(currentHead + 0.1);
                 }
 
+                if (count == noPipeElements)
+                {
+                    pipingSuccess = true;
+                	break;
+                }
+
+                if (searchIteration > 1000)
+                {
+                    pipingSuccess = false;
+                    break;
+                }
+
             }
 
-			cout << "critical Head: " << criticalHead << " Elements: " << count << " / " << noPipeElements << std::endl;
+            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "critical Head: " << criticalHead << " Elements: " << count << " / " << noPipeElements << std::endl;
+
+            // output critical head_json
+            ofstream CriticalHeadFile(workingDirectory + "\\criticalHead.json");
+            CriticalHeadFile << "[\n";
+            CriticalHeadFile << "\t {\n";
+            CriticalHeadFile << "\t \"PipeData\":\t{\n";
+            if (pipingSuccess)
+            {
+                CriticalHeadFile << "\t\t \"Success\": \"True\"\n";
+                CriticalHeadFile << "\t\t \"CriticalHead\": \"" + std::to_string(criticalHead) +"\"\n";
+            }
+            else
+            {
+                CriticalHeadFile << "\t\t \"Success\": \"False\"\n";
+            }
+            CriticalHeadFile << "\t }\n";
+            CriticalHeadFile << "]\n";
+            
+            // Close the file
+            CriticalHeadFile.close();
+
         }
 
         outputGiD(current_model, model_part, projectfile, workingDirectory);

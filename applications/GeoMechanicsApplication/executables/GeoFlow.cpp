@@ -23,7 +23,6 @@ int main(int argc, char** argv) {
     string hasPiping = argv[3];
     bool hasPipingFlag;
     hasPipingFlag = hasPiping=="1";
-    cout <<"Test :"<< argv[3] << std::endl;
     auto execute = Kratos::KratosExecute();
     execute.geoflow(workingDirectory, projectName, hasPipingFlag);
 }

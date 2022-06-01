@@ -110,10 +110,37 @@ CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
         if (rValues.size() != OutputGPoints)
             rValues.resize(OutputGPoints);
 
-        bool pipe_active = this->GetValue(PIPE_ACTIVE);
+        bool pipe_active = this->GetValue(rVariable);
         for (unsigned int GPoint = 0; GPoint < OutputGPoints; ++GPoint) {
             rValues[GPoint] = pipe_active;
         }
+    }
+    KRATOS_CATCH("")
+}
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SteadyStatePwPipingElement<TDim, TNumNodes>::
+CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    if (rVariable == PIPE_HEIGHT)
+    {
+        const GeometryType& Geom = this->GetGeometry();
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+        if (rValues.size() != OutputGPoints)
+            rValues.resize(OutputGPoints);
+
+        double pipe_height = this->GetValue(rVariable);
+        for (unsigned int GPoint = 0; GPoint < OutputGPoints; ++GPoint) {
+            rValues[GPoint] = pipe_height;
+        }
+    }
+    else
+    {
+        TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
     KRATOS_CATCH("")
 }

@@ -121,7 +121,10 @@ class GaussPIPE_ACTIVE : public GaussOperation {
 public:
     void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
 };
-
+class GaussPIPE_HEIGHT : public GaussOperation {
+public:
+    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+};
 #pragma endregion GaussVariables
 
 namespace Kratos
@@ -183,6 +186,11 @@ namespace Kratos
         void outputGiD(Model& model, ModelPart& model_part, Parameters parameters, string workingDirectory);
 
     private:
+        int echoLevel = 1;
+
+        int GetEchoLevel();
+
+        void SetEchoLevel(int level);
 
         int mainExecution(ModelPart& model_part,
             std::vector<std::shared_ptr<Process>> processes,
