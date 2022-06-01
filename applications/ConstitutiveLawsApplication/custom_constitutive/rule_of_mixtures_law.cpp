@@ -237,6 +237,10 @@ bool ParallelRuleOfMixturesLaw<TDim>::Has(const Variable<Vector>& rThisVariable)
         }
     }
 
+    if (rThisVariable == DELAMINATION_DAMAGE_VECTOR) {
+        return true;
+    }
+    
     return has;
 }
 
@@ -373,15 +377,23 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::GetValue(
 {
     // We combine the values of the layers
     rValue.clear();
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    // for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+    //     const double factor = mCombinationFactors[i_layer];
+    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 
-        Vector aux_value;
-        p_law->GetValue(rThisVariable, aux_value);
-        rValue += aux_value * factor;
+    //     Vector aux_value;
+    //     p_law->GetValue(rThisVariable, aux_value);
+    //     rValue += aux_value * factor;
+    // }
+
+    if (rThisVariable == DELAMINATION_DAMAGE_VECTOR) {
+        
+        rValue.resize(mCombinationFactors.size()+1, false);
+        
+        noalias(rValue) = mdelamination_damage;
+        return rValue;
     }
-
+    
     return rValue;
 }
 
