@@ -145,11 +145,17 @@ void ConservativeElement<TNumNodes>::CalculateArtificialViscosity(
 {
     double jump = .0;
     array_1d<double,2> inner_grad_h = prod(rData.nodal_h + rData.nodal_z, rDN_DX);
-    for (auto& r_elem : this->GetValue(NEIGHBOUR_ELEMENTS)) {
+    const auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
+    for (unsigned int i_ne = 0; i_ne < neighbour_elems.size(); i_ne++){
         array_1d<double,2> outer_grad_h;
         array_1d<double,2> normal;
-        CalculateGradient(outer_grad_h, r_elem.GetGeometry());
-        CalculateEdgeUnitNormal(normal, r_elem.GetGeometry());
+        if(nullptr != neighbour_elems(i_ne).get()){
+            CalculateGradient(outer_grad_h, neighbour_elems[i_ne].GetGeometry());
+            CalculateEdgeUnitNormal(normal, neighbour_elems[i_ne].GetGeometry());
+        } else {
+             CalculateGradient(outer_grad_h, this->GetGeometry());
+            CalculateEdgeUnitNormal(normal, this->GetGeometry());
+        }
 
         const double gj_h = norm_2(inner_grad_h - outer_grad_h);
         const double gm_h = std::abs(inner_prod(inner_grad_h, normal)) + std::abs(inner_prod(outer_grad_h, normal)) + 1e-16;

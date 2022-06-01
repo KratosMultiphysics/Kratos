@@ -141,9 +141,13 @@ double ShockCapturingEntropyViscosityProcess::TotalDerivativeUtil::Divergence(
 
 void ShockCapturingEntropyViscosityProcess::ExecuteInitializeSolutionStep()
 {
-    if(!mIsInitialized)
+    if (mComputeAreasEveryStep || !mIsInitialized)
     {
         UpdateNodalAreaProcess();
+    }
+
+    if(!mIsInitialized)
+    {
         ComputeNodalEntropies(1);
         /* ^ Necessary in order to compute derivative in first step.
          *   Stored in buffer index 1 to prevent it from being overwritten at the
@@ -152,16 +156,6 @@ void ShockCapturingEntropyViscosityProcess::ExecuteInitializeSolutionStep()
          *      processes don't run until ExecuteInitializeSolutionStep
          */
         mIsInitialized = true;
-    }
-}
-
-
-void ShockCapturingEntropyViscosityProcess::ExecuteFinalizeSolutionStep()
-{
-
-    if (mComputeAreasEveryStep)
-    {
-        UpdateNodalAreaProcess();
     }
 
     ComputeNodalEntropies();

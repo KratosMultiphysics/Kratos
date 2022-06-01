@@ -153,11 +153,8 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
     }
     rRightHandSideVector.clear();
 
-    ElementalData data;
-
-    // Calculate shape functions
     const auto& r_geometry = this->GetGeometry();
-    GeometryUtils::CalculateGeometryData(r_geometry, data.DN_DX, data.N, data.vol);
+    ElementalData data{r_geometry};
 
     const array_1d<double, 3>& free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     array_1d<double, TDim> upper_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<TDim,TNumNodes>(*this);
@@ -200,10 +197,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
     }
     rLeftHandSideMatrix.clear();
 
-    ElementalData data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
+    ElementalData data{this->GetGeometry()};
 
     // Compute upper and lower velocities
     const array_1d<double, TDim> upper_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
@@ -340,8 +334,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Assembl
         densityDerivativeWRTVelocity, densityDerivativeWRTUpwindVelocity, velocity, upwindVelocity, rCurrentProcessInfo);
 
     // Calculate shape functions
-    ElementalData data;
-    GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
+    ElementalData data{this->GetGeometry()};
 
     const double density = PotentialFlowUtilities::ComputeUpwindedDensity<TDim, TNumNodes>(velocity, upwindVelocity, rCurrentProcessInfo);
 
