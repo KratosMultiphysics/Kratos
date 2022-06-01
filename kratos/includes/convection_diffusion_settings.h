@@ -86,6 +86,7 @@ public:
         mpReactionGradientVar(rOther.mpReactionGradientVar),
         mpFirstStabilizationVar(rOther.mpFirstStabilizationVar),
         mpSecondStabilizationVar(rOther.mpSecondStabilizationVar),
+        mpDynamicStabilizationVar(rOther.mpDynamicStabilizationVar),
         mis_defined_DensityVar(rOther.mis_defined_DensityVar),
 		mis_defined_DiffusionVar(rOther.mis_defined_DiffusionVar),
 		mis_defined_UnknownVar(rOther.mis_defined_UnknownVar),
@@ -101,7 +102,8 @@ public:
         mis_defined_ReactionVar(rOther.mis_defined_ReactionVar),
         mIsDefinedReactionGradientVar(rOther.mIsDefinedReactionGradientVar),
         mis_defined_FirstStabilizationVar(rOther.mis_defined_FirstStabilizationVar),
-        mis_defined_SecondStabilizationVar(rOther.mis_defined_SecondStabilizationVar)
+        mis_defined_SecondStabilizationVar(rOther.mis_defined_SecondStabilizationVar),
+        mis_defined_DynamicStabilizationVar(rOther.mis_defined_DynamicStabilizationVar)
     {
     }
 
@@ -335,6 +337,20 @@ public:
 		return mpSecondStabilizationVar != nullptr;
 	}
 
+    void SetDynamicStabilizationVariable(const Variable<double>& rvar)
+    {
+        mpDynamicStabilizationVar = &rvar;
+		mis_defined_DynamicStabilizationVar=true;
+    }
+    const Variable<double>& GetDynamicStabilizationVariable() const
+    {
+        return *mpDynamicStabilizationVar;
+    }
+    bool IsDefinedDynamicStabilizationVariable() const
+    {
+		return mpDynamicStabilizationVar != nullptr;
+	}
+
     ///@}
     ///@name Operations
     ///@{
@@ -362,6 +378,8 @@ public:
         mpReactionGradientVar = rOther.mpReactionGradientVar;
         mpFirstStabilizationVar = rOther.mpFirstStabilizationVar;
         mpSecondStabilizationVar = rOther.mpSecondStabilizationVar;
+        mpDynamicStabilizationVar = rOther.mpDynamicStabilizationVar;
+
         //now the is_defined
         mis_defined_DensityVar = rOther.mis_defined_DensityVar;
 		mis_defined_DiffusionVar = rOther.mis_defined_DiffusionVar;
@@ -379,6 +397,7 @@ public:
         mIsDefinedReactionGradientVar = rOther.mIsDefinedReactionGradientVar;
         mis_defined_FirstStabilizationVar = rOther.mis_defined_FirstStabilizationVar;
         mis_defined_SecondStabilizationVar = rOther.mis_defined_SecondStabilizationVar;
+        mis_defined_DynamicStabilizationVar = rOther.mis_defined_DynamicStabilizationVar;
 
         return *this;
     }
@@ -481,6 +500,8 @@ private:
     const Variable<array_1d<double,3>>* mpReactionGradientVar = nullptr;
     const Variable<double>* mpFirstStabilizationVar = nullptr;
     const Variable<double>* mpSecondStabilizationVar = nullptr;
+    const Variable<double>* mpDynamicStabilizationVar = nullptr;
+
     bool mis_defined_DensityVar = false;
     bool mis_defined_DiffusionVar = false;
     bool mis_defined_UnknownVar = false;
@@ -497,6 +518,7 @@ private:
     bool mIsDefinedReactionGradientVar = false;
     bool mis_defined_FirstStabilizationVar = false;
     bool mis_defined_SecondStabilizationVar = false;
+    bool mis_defined_DynamicStabilizationVar = false;
 
     ///@}
     ///@name Private Operators

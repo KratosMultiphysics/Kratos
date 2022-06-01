@@ -20,6 +20,7 @@
 #include "includes/convection_diffusion_settings.h"
 #include "utilities/element_size_calculator.h"
 #include "utilities/math_utils.h"
+#include "utilities/geometry_utilities.h"
 
 // Application includes
 #include "custom_elements/symbolic_pure_convection_element.h"
@@ -95,6 +96,7 @@ void SymbolicPureConvectionElement<TDim, TNumNodes>::CalculateLocalSystem(
     const auto& r_unknown_var = p_settings->GetUnknownVariable();
     const auto& r_convection_var = p_settings->GetConvectionVariable();
     const auto& r_supg_tau_var = p_settings->GetFirstStabilizationVariable();
+    const auto& r_supg_dyn_tau_var = p_settings->GetDynamicStabilizationVariable();
     const auto& r_crosswind_alpha_var = p_settings->GetSecondStabilizationVariable();
 
     //getting data for the given geometry
@@ -114,22 +116,20 @@ void SymbolicPureConvectionElement<TDim, TNumNodes>::CalculateLocalSystem(
         phi_old[i] = GetGeometry()[i].FastGetSolutionStepValue(r_unknown_var,1);
 
         v[i] = GetGeometry()[i].FastGetSolutionStepValue(r_convection_var);
-        vold[i] = GetGeometry()[i].FastGetSolutionStepValue(r_convection_var,1);
+        v_old[i] = GetGeometry()[i].FastGetSolutionStepValue(r_convection_var,1);
     }
 
-    array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(phi+phi_old));
-    const double norm_grad = norm_2(grad_phi_halfstep);
+    const array_1d<double,TDim> grad_phi = prod(trans(DN_DX), phi);
+    const double norm_grad_phi = norm_2(grad_phi);
 
-    const double supg_tau = this->GetValue(r_supg_tau_var);
-    const double cross_wing_alpha = this->GetValue(r_crosswind_alpha_var);
+    // These coefficients would be O(1.0) if we follow the analytical estimation (based on the dimensional analysis)
+    const double supg_tau_coeff = this->GetValue(r_supg_tau_var);
+    const double supg_dyn_tau_coeff = this->GetValue(r_supg_dyn_tau_var);
+    const double cross_wind_alpha_coeff = this->GetValue(r_crosswind_alpha_var);
 
-    /////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////
-
-    BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
-    BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
+    BoundedMatrix<double,TNumNodes, TNumNodes> mass_matrix_stabilized = ZeroMatrix(TNumNodes, TNumNodes);
+    BoundedMatrix<double,TNumNodes, TNumNodes> conv_matrix_stabilized = ZeroMatrix(TNumNodes, TNumNodes);
     BoundedMatrix<double,TNumNodes, TDim> tmp;
-
 
     BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
     GetShapeFunctionsOnGauss(Ncontainer);
@@ -141,47 +141,49 @@ void SymbolicPureConvectionElement<TDim, TNumNodes>::CalculateLocalSystem(
         array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-                for(unsigned int k=0; k<TDim; k++)
-                vel_gauss[k] += 0.5*N[i]*(v[i][k]+vold[i][k]);
+            for(unsigned int k=0; k<TDim; k++)
+            vel_gauss[k] += N[i]*(theta*v[i][k] + (1.0-theta)*v_old[i][k]);
         }
         const double norm_vel = norm_2(vel_gauss);
-        array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, vel_gauss);
+        array_1d<double, TNumNodes > v_dot_grad_N = prod(DN_DX, vel_gauss);
 
-        const double tau_denom = std::max(dyn_st_beta *dt_inv + 2.0 * norm_vel / h + std::abs(/*beta**/div_v),  1e-2); //the term std::abs(div_v) is added following Pablo Becker's suggestion
-        const double tau = 1.0 / (tau_denom);
+        const double tau_denominator = std::max(2.0 * norm_vel / h,  1.0e-3);
+        const double tau_estimated = 1.0 / (tau_denominator);
 
-        //terms multiplying dphi/dt (aux1)
-        noalias(aux1) += (1.0+tau*beta*div_v)*outer_prod(N, N);
-        noalias(aux1) +=  tau*outer_prod(a_dot_grad, N);
+        //terms multiplying dphi/dt
+        noalias(mass_matrix_stabilized) += outer_prod(N, N);
+        noalias(mass_matrix_stabilized) += supg_dyn_tau_coeff*tau_estimated*outer_prod(v_dot_grad_N, N); // We reserve the freedom to exclude the time derivative from PG group
 
-        //terms which multiply the gradient of phi
-        noalias(aux2) += (1.0+tau*beta*div_v)*outer_prod(N, a_dot_grad);
-        noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
+        //terms which multiply v.grad_phi
+        noalias(conv_matrix_stabilized) += outer_prod(N, v_dot_grad_N);
+        noalias(conv_matrix_stabilized) += supg_tau_coeff*tau_estimated*outer_prod(v_dot_grad_N, v_dot_grad_N); // SUPG
 
         //cross-wind term
-        if(norm_grad > 1e-3 && norm_vel > 1e-9)
+        if(norm_grad_phi > 1.0e-6 && norm_vel > 1e-12)
         {
-            const double C = rCurrentProcessInfo.GetValue(CROSS_WIND_STABILIZATION_FACTOR);
-            const double time_derivative = dt_inv*(inner_prod(N,phi)-inner_prod(N,phi_old));
-            const double res = -time_derivative -inner_prod(vel_gauss, grad_phi_halfstep);
+            // Estimating the (current) FEM residual at the Gauss point
+            const double residual = -dt_inv*(inner_prod(N,phi)-inner_prod(N,phi_old)) - inner_prod(vel_gauss, grad_phi);
 
-            const double disc_capturing_coeff = 0.5*C*h*fabs(res/norm_grad);
-            BoundedMatrix<double,TDim,TDim> D = disc_capturing_coeff*( IdentityMatrix(TDim));
+            const double discontinuity_capturing_coeff = 0.5*cross_wind_alpha_coeff*h*fabs(residual/norm_grad_phi);
+
+            // Only if we want to remove stream-wise contribution (here we have preserved the freedom to reduce tau while increasing alpha; this would do the magic)
+            /* BoundedMatrix<double,TDim,TDim> artificial_diffusion_matrix = discontinuity_capturing_coeff*IdentityMatrix(TDim);
             const double norm_vel_squared = norm_vel*norm_vel;
-            D += (std::max( disc_capturing_coeff - tau*norm_vel_squared , 0.0) - disc_capturing_coeff)/(norm_vel_squared) * outer_prod(vel_gauss,vel_gauss);
+            artificial_diffusion_matrix += (std::max(discontinuity_capturing_coeff - supg_tau_coeff*tau_estimated*norm_vel_squared, 0.0)
+                - discontinuity_capturing_coeff)/(norm_vel_squared) * outer_prod(vel_gauss,vel_gauss);
 
-            noalias(tmp) = prod(DN_DX,D);
-            noalias(aux2) += prod(tmp,trans(DN_DX));
+            noalias(tmp) = prod(DN_DX,artificial_diffusion_matrix);
+            noalias(conv_matrix_stabilized) += prod(tmp,trans(DN_DX)); */
+
+            noalias(conv_matrix_stabilized) += discontinuity_capturing_coeff*prod(DN_DX, trans(DN_DX));
         }
     }
 
-    //adding the second and third term in the formulation
-    noalias(rLeftHandSideMatrix)  = (dt_inv + theta*beta*div_v)*aux1;
-    noalias(rRightHandSideVector) = (dt_inv - (1.0 - theta)*beta*div_v)*prod(aux1,phi_old);
+    noalias(rLeftHandSideMatrix)  = dt_inv*mass_matrix_stabilized;
+    noalias(rRightHandSideVector) = dt_inv*prod(mass_matrix_stabilized,phi_old);
 
-    //terms in aux2
-    noalias(rLeftHandSideMatrix) += theta*aux2;
-    noalias(rRightHandSideVector) -= (1.0 - theta)*prod(aux2,phi_old);
+    noalias(rLeftHandSideMatrix) += theta*conv_matrix_stabilized;
+    noalias(rRightHandSideVector) -= (1.0 - theta)*prod(conv_matrix_stabilized,phi_old);
 
     // Using an incremental solution scheme, it is necessary
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, phi);
