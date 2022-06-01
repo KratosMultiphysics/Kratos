@@ -1,4 +1,4 @@
-# Thermal DEM Application
+# Thermal DEM Application 
 
 This application is an extension of the [DEM Application](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/DEMApplication) to include **thermal effects** such as:
 
