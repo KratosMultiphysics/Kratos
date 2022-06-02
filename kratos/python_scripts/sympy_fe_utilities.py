@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 import re
 import sympy
 
@@ -75,6 +76,55 @@ def StrainToVoigt(M):
     elif M.shape[0] == 3:
         raise NotImplementedError()
     return vm
+
+def ConvertVoigtMatrixToTensor(C):
+    """
+    This method converts a matrix given in Voigt notation in a 4th order tensor.
+
+    Keyword arguments:
+    - C -- The matrix in Voigt notation to be converted to 4th order tensor
+    """
+    # Get input Voigt matrix strain size
+    strain_size = C.shape[0]
+    if strain_size != C.shape[1]:
+        raise ValueError("Input Voigt matrix is not square. Shape is ({},{})".format(strain_size, C.shape[1]))
+
+    # Set the Voigt to tensor indices conversion dictionary from the input strain size
+    if strain_size == 3:
+        dim = 2
+        conversion = {
+            (0,0) : 0,
+            (1,1) : 1,
+            (0,1) : 2,
+            (1,0) : 2
+        }
+    elif strain_size == 6:
+        dim = 3
+        conversion = {
+            (0,0) : 0,
+            (1,1) : 1,
+            (2,2) : 2,
+            (1,2) : 3,
+            (2,1) : 3,
+            (0,2) : 4,
+            (2,0) : 4,
+            (0,1) : 5,
+            (1,0) : 5
+        }
+    else:
+        raise ValueError("Wrong strain size {} in input Voigt matrix.".format(strain_size))
+
+    # Set and fill the symmetric fourth order tensor
+    C_tensor = sympy.MutableDenseNDimArray(sympy.zeros(dim**4),shape=(dim,dim,dim,dim))
+    for i in range(dim):
+        for j in range(dim):
+            index_1 = conversion[(i,j)]
+            for k in range(dim):
+                for l in range(dim):
+                    index_2 = conversion[(k,l)]
+                    C_tensor[i,j,k,l] = C[index_1,index_2]
+
+    return C_tensor
 
 def MatrixB(DN):
     """

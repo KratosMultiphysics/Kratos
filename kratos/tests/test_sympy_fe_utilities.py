@@ -6,6 +6,42 @@ import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 
 class TestSympyFEUtilities(KratosUnittest.TestCase):
 
+    def testConvertVoigtMatrixToTensor2D(self):
+        dim = 2
+        C_voigt = sympy.Matrix([
+            [1,2,3],
+            [2,4,5],
+            [3,5,6]])
+        C = KratosSympy.ConvertVoigtMatrixToTensor(C_voigt)
+        C_reference = [
+            [[[1,3],[3,2]],[[3,6],[6,5]]],
+            [[[3,6],[6,5]],[[2,5],[5,4]]]]
+        for i in range(dim):
+            for j in range(dim):
+                for k in range(dim):
+                    for l in range(dim):
+                        self.assertEqual(C[i][j][k][l], C_reference[i][j][k][l])
+
+    def testConvertVoigtMatrixToTensor3D(self):
+        dim = 3
+        C_voigt = sympy.Matrix([
+            [1,2,3,4,5,6],
+            [2,7,8,9,10,11],
+            [3,8,12,13,14,15],
+            [4,9,13,16,17,18],
+            [5,10,14,17,19,20],
+            [6,11,15,18,20,21]])
+        C = KratosSympy.ConvertVoigtMatrixToTensor(C_voigt)
+        C_reference = [
+            [[[1,6,5],[6,2,4],[5,4,3]],[[6,21,20],[21,11,18],[20,18,15]],[[5,20,19],[20,10,17],[19,17,14]]],
+            [[[6,21,20],[21,11,18],[20,18,15]],[[2,11,10],[11,7,9],[10,9,8]],[[4,18,17],[18,9,16],[17,16,13]]],
+            [[[5,20,19],[20,10,17],[19,17,14]],[[4,18,17],[18,9,16],[17,16,13]],[[3,15,14],[15,8,13],[14,13,12]]]]
+        for i in range(dim):
+            for j in range(dim):
+                for k in range(dim):
+                    for l in range(dim):
+                        self.assertEqual(C[i][j][k][l], C_reference[i][j][k][l])
+
     def testScalarOutput(self):
         x = sympy.var('x')
         y = sympy.var('y')
