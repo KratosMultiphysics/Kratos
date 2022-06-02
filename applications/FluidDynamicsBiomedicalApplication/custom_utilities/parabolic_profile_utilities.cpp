@@ -26,6 +26,18 @@
 
 namespace Kratos {
 
+double ParabolicProfileUtilities::CalculateInletArea(const ModelPart& rModelPart)
+{
+    double inlet_area = 0.0;
+    if (rModelPart.GetCommunicator().LocalMesh().NumberOfConditions() != 0) {
+        inlet_area = block_for_each<SumReduction<double>>(rModelPart.Conditions(), [](const Condition& rCondition){
+            return rCondition.GetGeometry().DomainSize();
+        });
+    }
+    inlet_area = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(inlet_area);
+    return inlet_area;
+}
+
 void ParabolicProfileUtilities::CalculateWallParallelDistance(
     ModelPart& rWallModelPart,
     ModelPart& rFluidModelPart,
@@ -127,24 +139,27 @@ void ParabolicProfileUtilities::CalculateWallParallelDistance(
 
 void ParabolicProfileUtilities::ImposeParabolicInlet(
     ModelPart& rModelPart,
-    const double MaxParabolaValue)
+    const double MaxParabolaValue,
+    const double MaxValueFactor)
 {
     // Impose the parabolic inlet profile
-    ImposeParabolicProfile(rModelPart, MaxParabolaValue);
+    ImposeParabolicProfile(rModelPart, MaxParabolaValue, MaxValueFactor);
 }
 
 void ParabolicProfileUtilities::ImposeParabolicInlet(
     ModelPart& rModelPart,
-    const GenericFunctionUtility::Pointer MaxParabolaValue)
+    const GenericFunctionUtility::Pointer MaxParabolaValue,
+    const double MaxValueFactor)
 {
     // Impose the parabolic inlet profile
-    ImposeParabolicProfile(rModelPart, MaxParabolaValue);
+    ImposeParabolicProfile(rModelPart, MaxParabolaValue, MaxValueFactor);
 }
 
 template<class TInputType>
 void ParabolicProfileUtilities::ImposeParabolicProfile(
     ModelPart &rModelPart,
-    const TInputType& rMaxParabolaValue)
+    const TInputType& rMaxParabolaValue,
+    const double MaxValueFactor)
 {
     // Get time value from model part ProcessInfo
     const auto& r_process_info = rModelPart.GetProcessInfo();
@@ -158,7 +173,7 @@ void ParabolicProfileUtilities::ImposeParabolicProfile(
     KRATOS_ERROR_IF(std::abs(max_dist) < 1.0e-12) << "WALL_DISTANCE is close to zero." << std::endl;
 
     // Impose the parabolic profile values
-    block_for_each(rModelPart.Nodes(), array_1d<double,3>(), [time, max_dist, &rMaxParabolaValue](NodeType& rNode, array_1d<double,3>& rTLSValue){
+    block_for_each(rModelPart.Nodes(), array_1d<double,3>(), [time, max_dist, MaxValueFactor, &rMaxParabolaValue](NodeType& rNode, array_1d<double,3>& rTLSValue){
         //Calculate distance for each node
         const double wall_dist = rNode.GetValue(WALL_DISTANCE) < 0.0 ? 0.0 : rNode.GetValue(WALL_DISTANCE);
 
@@ -173,7 +188,7 @@ void ParabolicProfileUtilities::ImposeParabolicProfile(
         }
 
         // Calculate the inlet value module
-        const double max_value = GetMaxParabolaValue(time, rNode, rMaxParabolaValue);
+        const double max_value = MaxValueFactor * GetMaxParabolaValue(time, rNode, rMaxParabolaValue);
         const double value_in = max_value * (1.0-(std::pow(max_dist-wall_dist,2)/std::pow(max_dist,2)));
         rTLSValue *= value_in;
 
@@ -236,7 +251,7 @@ double ParabolicProfileUtilities::CalculateBoundingBoxCharacteristicLength(const
     return char_length;
 }
 
-template KRATOS_API(FLUID_DYNAMICS_BIOMEDICAL_APPLICATION) void ParabolicProfileUtilities::ImposeParabolicProfile<double>(ModelPart&, const double&);
-template KRATOS_API(FLUID_DYNAMICS_BIOMEDICAL_APPLICATION) void ParabolicProfileUtilities::ImposeParabolicProfile<GenericFunctionUtility::Pointer>(ModelPart&, const GenericFunctionUtility::Pointer&);
+template KRATOS_API(FLUID_DYNAMICS_BIOMEDICAL_APPLICATION) void ParabolicProfileUtilities::ImposeParabolicProfile<double>(ModelPart&, const double&, const double);
+template KRATOS_API(FLUID_DYNAMICS_BIOMEDICAL_APPLICATION) void ParabolicProfileUtilities::ImposeParabolicProfile<GenericFunctionUtility::Pointer>(ModelPart&, const GenericFunctionUtility::Pointer&, const double);
 
 } //namespace Kratos
