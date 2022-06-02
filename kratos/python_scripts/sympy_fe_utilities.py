@@ -126,6 +126,19 @@ def ConvertVoigtMatrixToTensor(C):
 
     return C_tensor
 
+def DoubleContraction(A,B):
+    """
+    This method performs the double contraction A:B.
+
+    Keyword arguments:
+    - A -- Left tensor
+    - B -- Right tensor
+    """
+    AB = sympy.tensorproduct(A,B)
+    tmp = sympy.tensorcontraction(AB, (A.rank()-1,A.rank()+1))
+    output = sympy.tensorcontraction(tmp, (A.rank()-2,A.rank()-1))
+    return output
+
 def MatrixB(DN):
     """
     This method defines the deformation matrix B.

@@ -42,6 +42,21 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
                     for l in range(dim):
                         self.assertEqual(C[i][j][k][l], C_reference[i][j][k][l])
 
+    def testDoubleContraction(self):
+        A_2nd_order = sympy.Matrix([
+            [1,2],
+            [2,3]])
+        B_4th_order = sympy.MutableDenseNDimArray([
+            [[[1,3],[3,2]],[[3,6],[6,5]]],
+            [[[3,6],[6,5]],[[2,5],[5,4]]]], shape=(2,2,2,2))
+        C_2nd_order = KratosSympy.DoubleContraction(A_2nd_order,B_4th_order)
+        C_2nd_order_reference = [
+            [19,42],
+            [42,34]]
+        for i in range(2):
+            for j in range(2):
+                self.assertEqual(C_2nd_order[i][j], C_2nd_order_reference[i][j])
+
     def testScalarOutput(self):
         x = sympy.var('x')
         y = sympy.var('y')
