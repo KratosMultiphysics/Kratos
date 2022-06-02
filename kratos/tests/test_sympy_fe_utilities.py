@@ -144,5 +144,18 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
 
         self.assertEqual(A_square.T, A_square)
 
+    def testDefineSymmetricFourthOrderTensor(self):
+        A = KratosSympy.DefineSymmetricFourthOrderTensor("A",3,3,3,3)
+        self.assertEqual(A.rank(), 4)
+        for i in range(3):
+            for j in range(3):
+                aux_i = min(i,j)
+                aux_j = max(i,j)
+                for k in range(3):
+                    for l in range(3):
+                        aux_k = min(k,l)
+                        aux_l = max(k,l)
+                        self.assertEqual(A[i,j,k,l].name, "A_{}_{}_{}_{}".format(aux_i,aux_j,aux_k,aux_l))
+
 if __name__ == '__main__':
     KratosUnittest.main()
