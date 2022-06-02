@@ -109,13 +109,7 @@ public:
     typedef Matrix MatrixType;
     typedef Vector VectorType;
 
-//     typedef PointerVectorSet<DofType, SetIdentityFunction<DofType> > DofsArrayType;
-    typedef PointerVectorSet<DofType,
-            IndexedObject,
-            std::less<decltype(std::declval<IndexedObject>()(std::declval<DofType>()))>,
-            std::equal_to<decltype(std::declval<IndexedObject>()(std::declval<DofType>()))>,
-            DofType* > DofsArrayType;
-
+    typedef PointerVectorSet<DofType> DofsArrayType;
 
     typedef Node < 3 > NodeType;
     typedef Geometry<NodeType> GeometryType;

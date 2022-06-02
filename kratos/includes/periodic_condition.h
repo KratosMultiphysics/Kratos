@@ -101,18 +101,17 @@ public:
 
     typedef Matrix MatrixType;
 
-    typedef std::size_t IndexType;
+    typedef BaseType::IndexType IndexType;
 
-    typedef std::size_t SizeType;
+    typedef BaseType::SizeType SizeType;
 
-    typedef std::vector<std::size_t> EquationIdVectorType;
+    typedef BaseType::DofType DofType;
 
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
-    typedef PointerVectorSet<Dof<double>, 
-        IndexedObject,
-        std::less<decltype(std::declval<IndexedObject>()(std::declval<Dof<double>>()))>,
-        std::equal_to<decltype(std::declval<IndexedObject>()(std::declval<Dof<double>>()))>,
-        Dof<double>* > DofsArrayType;
+    typedef BaseType::EquationIdVectorType EquationIdVectorType;
+
+    typedef BaseType::DofsVectorType DofsVectorType;
+
+    typedef BaseType::DofsArrayType DofsArrayType;
 
     ///@}
     ///@name Life Cycle
