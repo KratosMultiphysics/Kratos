@@ -225,6 +225,39 @@ double OptimizationUtilities::ComputeCorrectionFactor(ModelPart& rModelPart, con
     return CorrectionScaling * norm_search_direction / norm_correction_term;
 }
 
+void OptimizationUtilities::AssembleScalar( ModelPart& rModelPart,
+    Vector& rScalar,
+    const Variable<double> &rVariable)
+{
+    if (rScalar.size() != rModelPart.NumberOfNodes()){
+        rScalar.resize(rModelPart.NumberOfNodes());
+    }
+
+    int i=0;
+    for (auto & node_i : rModelPart.Nodes())
+    {
+        rScalar[i] = node_i.FastGetSolutionStepValue(rVariable);
+        ++i;
+    }
+}
+
+void OptimizationUtilities::AssignScalarToVariable(ModelPart& rModelPart,
+    const Vector& rScalar,
+    const Variable<double> &rVariable)
+{
+    KRATOS_ERROR_IF(rScalar.size() != rModelPart.NumberOfNodes())
+        << "AssignScalarToVariable: Scalar size does not mach number of Nodes!" << std::endl;
+
+    int i=0;
+    for (auto & node_i : rModelPart.Nodes())
+    {
+        double& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
+        variable_vector= rScalar[i];
+        ++i;
+    }
+}
+
+
 void OptimizationUtilities::AssembleVector( ModelPart& rModelPart,
     Vector& rVector,
     const Variable<array_3d> &rVariable)

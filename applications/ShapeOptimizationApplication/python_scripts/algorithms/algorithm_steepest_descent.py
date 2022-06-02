@@ -140,83 +140,6 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):
-
-        # ############ Calculate heatmap
-        # # final update of shape
-        # self.optimization_iteration += 1
-
-        # # save previous search direction and objective gradient
-        # d_prev_c = []
-        # d_prev_x = []
-        # df_prev_c = []
-        # df_prev_x = []
-        # for node in self.design_surface.Nodes:
-        #     # The following variables are not yet updated and therefore contain the information from the previos step
-        #     d_prev_x.append(node.GetSolutionStepValue(KSO.SHAPE_UPDATE))
-        #     df_prev_x.append(node.GetSolutionStepValue(KSO.DF1DX))
-        #     d_prev_c.append(node.GetSolutionStepValue(KSO.CONTROL_POINT_UPDATE))
-        #     df_prev_c.append(node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
-
-        # self.__initializeNewShape()
-        # # self.__analyzeShape()
-
-        # # analyzeShape without damping
-        # self.communicator.initializeCommunication()
-        # self.communicator.requestValueOf(self.objectives[0]["identifier"].GetString())
-        # self.communicator.requestGradientOf(self.objectives[0]["identifier"].GetString())
-
-        # self.analyzer.AnalyzeDesignAndReportToCommunicator(self.optimization_model_part, self.optimization_iteration, self.communicator)
-
-        # objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
-        # WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX)
-
-        # if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
-        #     self.model_part_controller.ComputeUnitSurfaceNormals()
-        #     self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DF1DX)
-
-        # # map df
-        # self.mapper.Update()
-        # self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
-        # # set variables to zero
-        # # KM.VariableUtils().SetVariable(KSO.CONTROL_POINT_UPDATE, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
-        # # KM.VariableUtils().SetVariable(KSO.SHAPE_UPDATE, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
-        # # KM.VariableUtils().SetVariable(KSO.DF1DX_MAPPED, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
-
-        # df_c = []
-        # df_x = []
-        # for node in self.design_surface.Nodes:
-        #     df_x.append(node.GetSolutionStepValue(KSO.DF1DX))
-        #     df_c.append(node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
-
-        # d_c = []
-        # hessian_diag_c = []
-        # d_x = []
-        # hessian_diag_x = []
-        # for i in range(len(self.design_surface.Nodes)):
-        #     delta_f_c = cm.Minus(df_c[i], df_prev_c[i])
-        #     alpha_c = abs(cm.Dot(delta_f_c, delta_f_c) / cm.Dot(delta_f_c, d_prev_c[i]))
-        #     s_c = cm.ScalarVectorProduct(-1/alpha_c, df_c[i])
-        #     d_c.append(s_c[0])
-        #     d_c.append(s_c[1])
-        #     d_c.append(s_c[2])
-        #     hessian_diag_c.append(alpha_c)
-
-        #     delta_f_x = cm.Minus(df_x[i], df_prev_x[i])
-        #     alpha_x = abs(cm.Dot(delta_f_x, delta_f_x) / cm.Dot(delta_f_x, d_prev_x[i]))
-        #     s_x = cm.ScalarVectorProduct(-1/alpha_x, df_x[i])
-        #     d_x.append(s_x[0])
-        #     d_x.append(s_x[1])
-        #     d_x.append(s_x[2])
-        #     hessian_diag_x.append(alpha_x)
-
-        # WriteListToNodalVariable(hessian_diag_c, self.design_surface, KSO.SENS_HEATMAP_CONTROL_1D, 1)
-        # WriteListToNodalVariable(d_c, self.design_surface, KSO.SENS_HEATMAP_CONTROL_3D, 3)
-        # WriteListToNodalVariable(hessian_diag_x, self.design_surface, KSO.SENS_HEATMAP_DESIGN_1D, 1)
-        # WriteListToNodalVariable(d_x, self.design_surface, KSO.SENS_HEATMAP_DESIGN_3D, 3)
-
-        # self.__logCurrentOptimizationStep()
-        # ############ End of Calculate heatmap
-
         self.data_logger.FinalizeDataLogging()
         self.analyzer.FinalizeAfterOptimizationLoop()
 
@@ -243,30 +166,66 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             df_c.append(-1.0*node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
 
         d_c = []
+        inv_hessian_diag_c = []
         hessian_diag_c = []
         d_x = []
+        inv_hessian_diag_x = []
         hessian_diag_x = []
+        # max_step = 3000 * self.step_size
+        max_step = 1e9
         for i in range(len(self.design_surface.Nodes)):
-            delta_f_c = cm.Minus(df_c[i], self.df_prev_c[i])
-            alpha_c = abs(cm.Dot(delta_f_c, delta_f_c) / cm.Dot(delta_f_c, self.d_prev_c[i]))
-            s_c = cm.ScalarVectorProduct(-1/alpha_c, df_c[i])
+            y_i = cm.Minus(self.df_prev_c[i], df_c[i])
+            d_i = self.d_prev_c[i]
+            if cm.Dot(y_i, y_i) < 1e-9:
+                inv_hessian_i = max_step
+            else:
+                inv_hessian_i = abs(cm.Dot(d_i, y_i) / cm.Dot(y_i, y_i))
+            if inv_hessian_i > max_step:
+                inv_hessian_i = max_step
+            s_c = cm.ScalarVectorProduct(-inv_hessian_i, df_c[i])
             d_c.append(s_c[0])
             d_c.append(s_c[1])
             d_c.append(s_c[2])
-            hessian_diag_c.append(alpha_c)
+            inv_hessian_diag_c.append(inv_hessian_i)
 
-            delta_f_x = cm.Minus(df_x[i], self.df_prev_x[i])
-            alpha_x = abs(cm.Dot(delta_f_x, delta_f_x) / cm.Dot(delta_f_x, self.d_prev_x[i]))
-            s_x = cm.ScalarVectorProduct(-1/alpha_x, df_x[i])
+            if inv_hessian_i > 1e-9:
+                hessian_diag_c_i = 1/inv_hessian_i
+            else:
+                hessian_diag_c_i = max_step
+            if hessian_diag_c_i > max_step:
+                hessian_diag_c_i = max_step
+            hessian_diag_c.append(hessian_diag_c_i)
+
+
+            y_i = cm.Minus(self.df_prev_x[i], df_x[i])
+            d_i = self.d_prev_x[i]
+            if cm.Dot(y_i, y_i) < 1e-9:
+                inv_hessian_i = max_step
+            else:
+                inv_hessian_i = abs(cm.Dot(d_i, y_i) / cm.Dot(y_i, y_i))
+            if inv_hessian_i > max_step:
+                inv_hessian_i = max_step
+            s_x = cm.ScalarVectorProduct(-inv_hessian_i, df_x[i])
             d_x.append(s_x[0])
             d_x.append(s_x[1])
             d_x.append(s_x[2])
-            hessian_diag_x.append(alpha_x)
+            inv_hessian_diag_x.append(inv_hessian_i)
 
-        WriteListToNodalVariable(hessian_diag_c, self.design_surface, KSO.SENS_HEATMAP_CONTROL_1D, 1)
-        WriteListToNodalVariable(d_c, self.design_surface, KSO.SENS_HEATMAP_CONTROL_3D, 3)
-        WriteListToNodalVariable(hessian_diag_x, self.design_surface, KSO.SENS_HEATMAP_DESIGN_1D, 1)
-        WriteListToNodalVariable(d_x, self.design_surface, KSO.SENS_HEATMAP_DESIGN_3D, 3)
+            if inv_hessian_i > 1e-9:
+                hessian_diag_x_i = 1/inv_hessian_i
+            else:
+                hessian_diag_x_i = max_step
+            if hessian_diag_x_i > max_step:
+                hessian_diag_x_i = max_step
+            hessian_diag_x.append(hessian_diag_x_i)
+
+        WriteListToNodalVariable(inv_hessian_diag_c, self.design_surface, KSO.INV_HESSIAN_DF1DX_MAPPED, 1)
+        WriteListToNodalVariable(hessian_diag_c, self.design_surface, KSO.HESSIAN_DF1DX_MAPPED, 1)
+        WriteListToNodalVariable(d_c, self.design_surface, KSO.HEATMAP_DF1DX_MAPPED, 3)
+
+        WriteListToNodalVariable(inv_hessian_diag_x, self.design_surface, KSO.INV_HESSIAN_DF1DX, 1)
+        WriteListToNodalVariable(hessian_diag_x, self.design_surface, KSO.HESSIAN_DF1DX, 1)
+        WriteListToNodalVariable(d_x, self.design_surface, KSO.HEATMAP_DF1DX, 3)
 
     # --------------------------------------------------------------------------
     def __initializeNewShape(self):

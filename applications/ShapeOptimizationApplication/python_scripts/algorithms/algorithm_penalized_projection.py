@@ -176,110 +176,115 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         # Heatmap from search direction
         d_s = []
         hessian_diag_s = []
+        max_step = 4 * self.step_size
         inv_hessian_diag_s = []
         for i in range(len(self.design_surface.Nodes)):
-            delta_s = cm.Minus(s[i], self.prev_s[i])
-            if cm.Dot(delta_s, self.d_prev_c[i]) == 0.0:
-            # if cm.Dot(delta_s, self.d_prev_c[i]) < 1e6:
-                alpha_s = 1e8
+            y_i = cm.Minus(self.prev_s[i], s[i])
+            d_i = self.d_prev_c[i]
+            if cm.Dot(y_i, y_i) < 1e-9:
+                # inv_hessian_i = max_step
+                inv_hessian_i = 1e6
             else:
-                alpha_s = abs(cm.Dot(delta_s, delta_s) / cm.Dot(delta_s, self.d_prev_c[i]))
-            d_s_temp = cm.ScalarVectorProduct(-1/alpha_s, s[i])
+                inv_hessian_i = abs(cm.Dot(d_i, y_i) / cm.Dot(y_i, y_i))
+            # if inv_hessian_i > max_step:
+            #     inv_hessian_i = max_step
+            d_s_temp = cm.ScalarVectorProduct(-inv_hessian_i, s[i])
             d_s.append(d_s_temp[0])
             d_s.append(d_s_temp[1])
             d_s.append(d_s_temp[2])
-            hessian_diag_s.append(alpha_s)
-            inv_hessian_diag_s.append(1/alpha_s)
+            inv_hessian_diag_s.append(inv_hessian_i)
+            if inv_hessian_i > 1e-6:
+                hessian_diag_s.append(1/inv_hessian_i)
+            else:
+                hessian_diag_s.append(1e6)
 
+        prev_inv_hessian_diag_s = KM.Vector()
+        self.optimization_utilities.AssembleScalar(self.design_surface, prev_inv_hessian_diag_s, KSO.INV_HESSIAN_S)
         WriteListToNodalVariable(hessian_diag_s, self.design_surface, KSO.HESSIAN_S, 1)
         WriteListToNodalVariable(inv_hessian_diag_s, self.design_surface, KSO.INV_HESSIAN_S, 1)
         WriteListToNodalVariable(d_s, self.design_surface, KSO.HEATMAP_S, 3)
 
         # Heatmap DF1DX
         heat_f_x = []
-        hessian_diag_f_x = []
         inv_hessian_diag_f_x = []
         for i in range(len(self.design_surface.Nodes)):
-            delta_f_x = cm.Minus(df_dx[i], self.df_prev_x[i])
-            if cm.Dot(delta_f_x, self.d_prev_x[i]) == 0.0:
-            # if cm.Dot(delta_f_x, self.d_prev_x[i]) < 1e6:
-                alpha_f_x = 1e8
+            y_i = cm.Minus(self.df_prev_x[i], df_dx[i])
+            d_i = self.d_prev_x[i]
+            if cm.Dot(y_i, y_i) < 1e-9:
+                inv_hessian_i = max_step
             else:
-                alpha_f_x = abs(cm.Dot(delta_f_x, delta_f_x) / cm.Dot(delta_f_x, self.d_prev_x[i]))
-            heat_f_x_i = cm.ScalarVectorProduct(-1/alpha_f_x, df_dx[i])
+                inv_hessian_i = abs(cm.Dot(d_i, y_i) / cm.Dot(y_i, y_i))
+            if inv_hessian_i > max_step:
+                inv_hessian_i = max_step
+            heat_f_x_i = cm.ScalarVectorProduct(-inv_hessian_i, df_dx[i])
             heat_f_x.append(heat_f_x_i[0])
             heat_f_x.append(heat_f_x_i[1])
             heat_f_x.append(heat_f_x_i[2])
-            hessian_diag_f_x.append(alpha_f_x)
-            inv_hessian_diag_f_x.append(1/alpha_f_x)
+            inv_hessian_diag_f_x.append(inv_hessian_i)
 
-        WriteListToNodalVariable(hessian_diag_f_x, self.design_surface, KSO.HESSIAN_DF1DX, 1)
         WriteListToNodalVariable(inv_hessian_diag_f_x, self.design_surface, KSO.INV_HESSIAN_DF1DX, 1)
         WriteListToNodalVariable(heat_f_x, self.design_surface, KSO.HEATMAP_DF1DX, 3)
 
         # Heatmap DF1DX_MAPPED
         heat_f_c = []
-        hessian_diag_f_c = []
         inv_hessian_diag_f_c = []
         for i in range(len(self.design_surface.Nodes)):
-            delta_f_c = cm.Minus(df_dc[i], self.df_prev_c[i])
-            if cm.Dot(delta_f_c, self.d_prev_c[i]) == 0.0:
-            # if cm.Dot(delta_f_c, self.d_prev_c[i]) < 1e6:
-                alpha_f_c = 1e8
+            y_i = cm.Minus(self.df_prev_c[i], df_dc[i])
+            d_i = self.d_prev_c[i]
+            if cm.Dot(y_i, y_i) < 1e-9:
+                inv_hessian_i = max_step
             else:
-                alpha_f_c = abs(cm.Dot(delta_f_c, delta_f_c) / cm.Dot(delta_f_c, self.d_prev_c[i]))
-            heat_f_c_i = cm.ScalarVectorProduct(-1/alpha_f_c, df_dc[i])
+                inv_hessian_i = abs(cm.Dot(d_i, y_i) / cm.Dot(y_i, y_i))
+            if inv_hessian_i > max_step:
+                inv_hessian_i = max_step
+            heat_f_c_i = cm.ScalarVectorProduct(-inv_hessian_i, df_dc[i])
             heat_f_c.append(heat_f_c_i[0])
             heat_f_c.append(heat_f_c_i[1])
             heat_f_c.append(heat_f_c_i[2])
-            hessian_diag_f_c.append(alpha_f_c)
-            inv_hessian_diag_f_c.append(1/alpha_f_c)
+            inv_hessian_diag_f_c.append(inv_hessian_i)
 
-        WriteListToNodalVariable(hessian_diag_f_c, self.design_surface, KSO.HESSIAN_DF1DX_MAPPED, 1)
         WriteListToNodalVariable(inv_hessian_diag_f_c, self.design_surface, KSO.INV_HESSIAN_DF1DX_MAPPED, 1)
         WriteListToNodalVariable(heat_f_c, self.design_surface, KSO.HEATMAP_DF1DX_MAPPED, 3)
 
         # Heatmap DC1DX
         heat_c_x = []
-        hessian_diag_c_x = []
         inv_hessian_diag_c_x = []
         for i in range(len(self.design_surface.Nodes)):
-            delta_c_x = cm.Minus(dc_dx[i], self.dc_prev_x[i])
-            if cm.Dot(delta_c_x, self.d_prev_x[i]) == 0.0:
-            # if cm.Dot(delta_c_x, self.d_prev_x[i]) < 1e6:
-                alpha_c_x = 1e8
+            y_i = cm.Minus(self.dc_prev_x[i], dc_dx[i])
+            d_i = self.d_prev_x[i]
+            if cm.Dot(y_i, y_i) < 1e-9:
+                inv_hessian_i = max_step
             else:
-                alpha_c_x = abs(cm.Dot(delta_c_x, delta_c_x) / cm.Dot(delta_c_x, self.d_prev_x[i]))
-            heat_c_x_i = cm.ScalarVectorProduct(-1/alpha_c_x, dc_dx[i])
+                inv_hessian_i = abs(cm.Dot(d_i, y_i) / cm.Dot(y_i, y_i))
+            if inv_hessian_i > max_step:
+                inv_hessian_i = max_step
+            heat_c_x_i = cm.ScalarVectorProduct(inv_hessian_i, dc_dx[i])
             heat_c_x.append(heat_c_x_i[0])
             heat_c_x.append(heat_c_x_i[1])
             heat_c_x.append(heat_c_x_i[2])
-            hessian_diag_c_x.append(alpha_c_x)
-            inv_hessian_diag_c_x.append(1/alpha_c_x)
+            inv_hessian_diag_c_x.append(inv_hessian_i)
 
-        WriteListToNodalVariable(hessian_diag_c_x, self.design_surface, KSO.HESSIAN_DC1DX, 1)
         WriteListToNodalVariable(inv_hessian_diag_c_x, self.design_surface, KSO.INV_HESSIAN_DC1DX, 1)
         WriteListToNodalVariable(heat_c_x, self.design_surface, KSO.HEATMAP_DC1DX, 3)
 
         # Heatmap DC1DX_MAPPED
         heat_c_c = []
-        hessian_diag_c_c = []
         inv_hessian_diag_c_c = []
         for i in range(len(self.design_surface.Nodes)):
-            delta_c_c = cm.Minus(dc_dc[i], self.dc_prev_c[i])
-            if cm.Dot(delta_c_c, self.d_prev_c[i]) == 0.0:
-            # if cm.Dot(delta_c_c, self.d_prev_c[i]) < 1e6:
-                alpha_c_c = 1e8
+            y_i = cm.Minus(self.dc_prev_c[i], dc_dc[i])
+            d_i = self.d_prev_c[i]
+            if cm.Dot(y_i, y_i) < 1e-9:
+                inv_hessian_i = max_step
             else:
-                alpha_c_c = abs(cm.Dot(delta_c_c, delta_c_c) / cm.Dot(delta_c_c, self.d_prev_c[i]))
-            heat_c_c_i = cm.ScalarVectorProduct(-1/alpha_c_c, dc_dc[i])
+                inv_hessian_i = abs(cm.Dot(d_i, y_i) / cm.Dot(y_i, y_i))
+            if inv_hessian_i > max_step:
+                inv_hessian_i = max_step
+            heat_c_c_i = cm.ScalarVectorProduct(-inv_hessian_i, dc_dc[i])
             heat_c_c.append(heat_c_c_i[0])
             heat_c_c.append(heat_c_c_i[1])
             heat_c_c.append(heat_c_c_i[2])
-            hessian_diag_c_c.append(alpha_c_c)
-            inv_hessian_diag_c_c.append(1/alpha_c_c)
+            inv_hessian_diag_c_c.append(inv_hessian_i)
 
-        WriteListToNodalVariable(hessian_diag_c_c, self.design_surface, KSO.HESSIAN_DC1DX_MAPPED, 1)
         WriteListToNodalVariable(inv_hessian_diag_c_c, self.design_surface, KSO.INV_HESSIAN_DC1DX_MAPPED, 1)
         WriteListToNodalVariable(heat_c_c, self.design_surface, KSO.HEATMAP_DC1DX_MAPPED, 3)
 
@@ -329,6 +334,25 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         # heat_norm = cm.NormInf3D(heat)
         # heat = cm.ScalarVectorProduct(1/heat_norm, heat)
         ### End: Normalize heat sens field
+
+        # Heatmap Max Relaxed
+        prev_heat_max = KM.Vector()
+        self.optimization_utilities.AssembleScalar(self.design_surface, prev_heat_max, KSO.HEATMAP_MAX)
+        heat_max_relaxed = KM.Vector()
+        self.optimization_utilities.AssembleScalar(self.design_surface, heat_max_relaxed, KSO.HEATMAP_MAX_RELAXED)
+        relax_coeff = 0.5
+        for i in range(len(self.design_surface.Nodes)):
+            heat_max_relaxed[i] = relax_coeff * heat_max[i] + (1 - relax_coeff) * prev_heat_max[i]
+        self.optimization_utilities.AssignScalarToVariable(self.design_surface, heat_max_relaxed, KSO.HEATMAP_MAX_RELAXED)
+
+        # Heatmap BB Relaxed * Max
+        heat_bb_max_relaxed = KM.Vector()
+        self.optimization_utilities.AssembleScalar(self.design_surface, heat_bb_max_relaxed, KSO.HEATMAP_BB_MAX_RELAXED)
+        relax_coeff = 0.5
+        for i in range(len(self.design_surface.Nodes)):
+            inv_hessian_relaxed = relax_coeff * inv_hessian_diag_s[i] + (1 - relax_coeff) * prev_inv_hessian_diag_s[i]
+            heat_bb_max_relaxed[i] = inv_hessian_relaxed * heat_max[i]
+        self.optimization_utilities.AssignScalarToVariable(self.design_surface, heat_bb_max_relaxed, KSO.HEATMAP_BB_MAX_RELAXED)
 
         WriteListToNodalVariable(heat_max, self.design_surface, KSO.HEATMAP_MAX, 1)
         WriteListToNodalVariable(df_dx_normalized, self.design_surface, KSO.DF1DX_NORMALIZED, 3)

@@ -84,6 +84,8 @@ class Optimizer:
 
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_S)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_MAX)
+        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_MAX_RELAXED)
+        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_BB_MAX_RELAXED)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_MAX_MAPPED)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DF1DX)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DF1DX_MAPPED)
