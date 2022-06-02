@@ -25,6 +25,31 @@ def DefineSymmetricMatrix(name, m, n):
     return sympy.Matrix(m, n, lambda i, j:
         sympy.var("{name}_{i}_{j}".format(name=name, i=min(i,j), j=max(i,j))))
 
+def DefineSymmetricFourthOrderTensor(name, m, n, o, p):
+    """
+    This method defines a symbolic symmetric 4th order tensor.
+
+    Keyword arguments:
+    - name -- Name of variables.
+    - m -- 1st dimension.
+    - n -- 2nd dimension.
+    - o -- 3rd dimension.
+    - p -- 4th dimension.
+    """
+    if m != n:
+        raise ValueError("Provided sizes do not respect first simmetry.")
+    if o != p:
+        raise ValueError("Provided sizes do not respect second simmetry.")
+
+    tensor = sympy.MutableDenseNDimArray(sympy.zeros(m**4),shape=(m,n,o,p))
+    for i in range(m):
+        for j in range(n):
+            for k in range(o):
+                for l in range(p):
+                    tensor[i,j,k,l] = sympy.var("{name}_{m}_{n}_{o}_{p}".format(name=name, m=min(i,j), n=max(i,j), o=min(k,l), p=max(k,l)))
+
+    return tensor
+
 def DefineVector( name, m):
     """
     This method defines a symbolic vector.
