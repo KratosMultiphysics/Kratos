@@ -245,15 +245,15 @@ void VariationalNonEikonalDistance::Execute()
     //************************************************************************************
     //************************************************************************************
     // Redistancing
-    /* r_redistancing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
+    r_redistancing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
 
     mpGradientCalculator->Execute(); // To provide the initial condition for DISTANCE_GRADIENT
 
-    unsigned int iteration = 0;
-    double max_grad_norm_deviation = 1.0e2;
-    double norm_grad_norm_deviation = 0.0;
+    iteration = 0;
+    max_grad_norm_deviation = 1.0e2;
+    norm_grad_norm_deviation = 0.0;
 
-    while (max_grad_norm_deviation > 2.0e-1 && iteration < 10){
+    while (max_grad_norm_deviation > 2.0e-1 && iteration < 5){
 
         KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, about to solve the LSE" << std::endl;
         mp_solving_strategy->Solve();
@@ -280,7 +280,7 @@ void VariationalNonEikonalDistance::Execute()
     }
     if (max_grad_norm_deviation > 2.0e-1){
         KRATOS_INFO("VariationalNonEikonalDistance") << "Convergence is not achieved." << std::endl;
-    } */
+    }
 
     KRATOS_CATCH("")
 }
