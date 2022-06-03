@@ -93,7 +93,7 @@ public:
      */
     double GetProperty(const std::string& rVariableName, const Properties& rProperties, const Geometry& rGeometry)
     {
-        // if it is in the list, give back the corresponding accessor, otherwise give back value
+        // If it is in the list, give back the corresponding accessor, otherwise give back value
         auto it = mListOfAccessors.find(rVariableName);
         if (it != mListOfAccessors.end()) {
             auto& r_function = *(*it).second;
@@ -175,7 +175,7 @@ private:
     ///@{
 
     double mValue;
-    std::map< std::string, AccessorType* > mListOfAccessors;
+    std::map< std::string, AccessorType*> mListOfAccessors;
 
     ///@}
     ///@name Private Operators
@@ -192,9 +192,17 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const
+    {
+        rSerializer.save("Value", mValue);
+        rSerializer.save("ListOfAccessors", mListOfAccessors);
+    }
 
-    void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer)
+    {
+        rSerializer.load("Value", mValue);
+        rSerializer.load("ListOfAccessors", mListOfAccessors);
+    }
 
     ///@}
     ///@name Private  Access
