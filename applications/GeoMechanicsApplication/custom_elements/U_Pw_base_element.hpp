@@ -170,19 +170,19 @@ protected:
                                const bool CalculateResidualVectorFlag);
 
     virtual double CalculateIntegrationCoefficient( const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                                    const IndexType& PointNumber,
-                                                    const double& detJ);
+                                                    unsigned int PointNumber,
+                                                    double detJ);
 
     void CalculateDerivativesOnInitialConfiguration(double& detJ,
                                                     Matrix& J0,
                                                     Matrix& InvJ0,
                                                     Matrix& DN_DX,
-                                                    const IndexType& PointNumber) const;
+                                                    unsigned int PointNumber) const;
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ,
                                                  Matrix& rJ,
                                                  Matrix& rInvJ,
-                                                 const IndexType& GPoint) const;
+                                                 unsigned int GPoint) const;
 
     /**
      * @brief This functions calculate the derivatives in the reference frame
@@ -197,7 +197,7 @@ protected:
                                                  Matrix& J0,
                                                  Matrix& InvJ0,
                                                  Matrix& DN_DX,
-                                                 const IndexType &PointNumber) const;
+                                                 unsigned int PointNumber) const;
 
     /**
      * @brief This functions calculate the derivatives in the current frame

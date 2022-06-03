@@ -22,11 +22,15 @@
 #include "info.hpp"
 #include "connection.hpp"
 #include "data_communicator.hpp"
+#include "communication/factory.hpp"
 
 namespace CoSimIO {
 namespace Internals {
 
-Info ConnectImpl(const Info& I_Settings, std::shared_ptr<DataCommunicator> I_DataComm);
+Info ConnectImpl(
+    const Info& I_Settings,
+    std::shared_ptr<DataCommunicator> I_DataComm,
+    const CommunicationFactory& rCommFactory);
 
 bool HasConnection(const std::string& rConnectionName);
 

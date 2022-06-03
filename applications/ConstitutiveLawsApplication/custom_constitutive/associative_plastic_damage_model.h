@@ -104,6 +104,7 @@ public:
     struct PlasticDamageParameters {
         BoundedMatrixType ComplianceMatrixIncrement{ZeroMatrix(VoigtSize, VoigtSize)};
         BoundedMatrixType ComplianceMatrix{ZeroMatrix(VoigtSize, VoigtSize)};
+        BoundedMatrixType ComplianceMatrixCompression{ZeroMatrix(VoigtSize, VoigtSize)};
         BoundedMatrixType ConstitutiveMatrix{ZeroMatrix(VoigtSize, VoigtSize)};
         BoundedMatrixType TangentTensor{ZeroMatrix(VoigtSize, VoigtSize)};
         BoundedVectorType PlasticFlow{ZeroVector(VoigtSize)};
@@ -166,7 +167,8 @@ public:
           mThreshold(rOther.mThreshold),
           mPlasticStrain(rOther.mPlasticStrain),
           mOldStrain(rOther.mOldStrain),
-          mComplianceMatrix(rOther.mComplianceMatrix)
+          mComplianceMatrix(rOther.mComplianceMatrix),
+          mComplianceMatrixCompression(rOther.mComplianceMatrixCompression)
     {
     }
 
@@ -175,7 +177,7 @@ public:
      */
     bool RequiresInitializeMaterialResponse() override
     {
-        return true;
+        return false;
     }
 
     /**
@@ -496,6 +498,7 @@ public:
         rPlasticDamageParameters.Threshold              = mThreshold;
         noalias(rPlasticDamageParameters.PlasticStrain) = mPlasticStrain;
         noalias(rPlasticDamageParameters.ComplianceMatrix) = mComplianceMatrix;
+        noalias(rPlasticDamageParameters.ComplianceMatrixCompression) = mComplianceMatrixCompression;
         noalias(rPlasticDamageParameters.StrainVector) = rStrainVector;
         rPlasticDamageParameters.CharacteristicLength  = CharateristicLength;
         rPlasticDamageParameters.PlasticDamageProportion = rMaterialProperties[PLASTIC_DAMAGE_PROPORTION];
@@ -634,6 +637,7 @@ private:
     BoundedVectorType mPlasticStrain    = ZeroVector(VoigtSize);
     BoundedVectorType mOldStrain        = ZeroVector(VoigtSize);
     BoundedMatrixType mComplianceMatrix = ZeroMatrix(VoigtSize, VoigtSize);
+    BoundedMatrixType mComplianceMatrixCompression = ZeroMatrix(VoigtSize, VoigtSize);
 
     ///@}
     ///@name Private Operators
@@ -663,6 +667,7 @@ private:
         rSerializer.save("PlasticStrain", mPlasticStrain);
         rSerializer.save("OldStrain", mOldStrain);
         rSerializer.save("ComplianceMatrix", mComplianceMatrix);
+        rSerializer.save("ComplianceMatrixCompression", mComplianceMatrixCompression);
     }
 
     void load(Serializer &rSerializer) override
@@ -674,6 +679,7 @@ private:
         rSerializer.load("PlasticStrain", mPlasticStrain);
         rSerializer.load("OldStrain", mOldStrain);
         rSerializer.load("ComplianceMatrix", mComplianceMatrix);
+        rSerializer.load("ComplianceMatrixCompression", mComplianceMatrixCompression);
     }
 
 

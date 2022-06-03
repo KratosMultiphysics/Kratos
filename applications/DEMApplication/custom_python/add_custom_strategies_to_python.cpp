@@ -176,6 +176,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("BreakAllBonds", &ContinuumExplicitSolverStrategy::BreakAllBonds)
         .def("HealAllBonds", &ContinuumExplicitSolverStrategy::HealAllBonds)
         .def("ComputeSkin", &ContinuumExplicitSolverStrategy::ComputeSkin)
+        .def("RebuildListOfContinuumSphericParticles", &ContinuumExplicitSolverStrategy::RebuildListOfContinuumSphericParticles)
         ;
 
     py::class_<IterativeSolverStrategy, IterativeSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "IterativeSolverStrategy")
@@ -186,7 +187,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
         ;
 
-    py::class_<VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>, VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>::Pointer, ExplicitSolverStrategy>(m, "ContinuumVelocityVerletSolverStrategy")
+    py::class_<VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>, VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>::Pointer, ContinuumExplicitSolverStrategy>(m, "ContinuumVelocityVerletSolverStrategy")
         .def(py::init<ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
         ;
 }

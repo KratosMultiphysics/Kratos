@@ -1,7 +1,6 @@
 #!/bin/bash
-# PYTHONS=("cp36" "cp37" "cp38" "cp39" "cp310")
-PYTHONS=("cp38")
-export KRATOS_VERSION="9.0.0"
+PYTHONS=("cp36" "cp37" "cp38" "cp39" "cp310")
+export KRATOS_VERSION="9.1.3"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 export KRATOS_ROOT="/workspace/kratos/Kratos"
@@ -27,9 +26,9 @@ build_core_wheel () {
     
     mkdir ${WHEEL_ROOT}/KratosMultiphysics
 
-    cp ${PREFIX_LOCATION}/KratosMultiphysics/*          ${WHEEL_ROOT}/KratosMultiphysics
-    cp ${KRATOS_ROOT}/kratos/KratosMultiphysics.json    ${WHEEL_ROOT}/wheel.json
-    cp ${KRATOS_ROOT}/scripts/wheels/__init__.py        ${WHEEL_ROOT}/KratosMultiphysics/__init__.py
+    cp ${PREFIX_LOCATION}/KratosMultiphysics/*       ${WHEEL_ROOT}/KratosMultiphysics
+    cp ${KRATOS_ROOT}/kratos/KratosMultiphysics.json ${WHEEL_ROOT}/wheel.json
+    cp ${KRATOS_ROOT}/scripts/wheels/__init__.py     ${WHEEL_ROOT}/KratosMultiphysics/__init__.py
     
     cd $WHEEL_ROOT
 

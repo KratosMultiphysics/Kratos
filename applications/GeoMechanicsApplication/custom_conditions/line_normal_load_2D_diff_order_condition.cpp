@@ -21,7 +21,7 @@ namespace Kratos
 
 // Default Constructor
 LineNormalLoad2DDiffOrderCondition::
-    LineNormalLoad2DDiffOrderCondition() : GeneralUPwDiffOrderCondition() {}
+    LineNormalLoad2DDiffOrderCondition() : LineLoad2DDiffOrderCondition() {}
 
 //----------------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ LineNormalLoad2DDiffOrderCondition::
 LineNormalLoad2DDiffOrderCondition::
     LineNormalLoad2DDiffOrderCondition( IndexType NewId,
                                         GeometryType::Pointer pGeometry ) :
-                                        GeneralUPwDiffOrderCondition(NewId, pGeometry) {}
+                                        LineLoad2DDiffOrderCondition(NewId, pGeometry) {}
 
 //----------------------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ LineNormalLoad2DDiffOrderCondition::
     LineNormalLoad2DDiffOrderCondition( IndexType NewId,
                                         GeometryType::Pointer pGeometry,
                                         PropertiesType::Pointer pProperties ) :
-                                        GeneralUPwDiffOrderCondition(NewId, pGeometry, pProperties) {}
+                                        LineLoad2DDiffOrderCondition(NewId, pGeometry, pProperties) {}
 
 //----------------------------------------------------------------------------------------
 
@@ -58,7 +58,6 @@ Condition::Pointer LineNormalLoad2DDiffOrderCondition::
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 void LineNormalLoad2DDiffOrderCondition::
     CalculateConditionVector(ConditionVariables& rVariables,
                              unsigned int PointNumber)
@@ -85,21 +84,20 @@ void LineNormalLoad2DDiffOrderCondition::
 }
 
 //----------------------------------------------------------------------------------------
+double LineNormalLoad2DDiffOrderCondition::
+    CalculateIntegrationCoefficient(const IndexType PointNumber,
+                                    const GeometryType::JacobiansType& JContainer,
+                                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 
-void LineNormalLoad2DDiffOrderCondition::
-    CalculateIntegrationCoefficient( ConditionVariables& rVariables,
-                                     unsigned int PointNumber,
-                                     double weight)
 {
     KRATOS_TRY
 
-    rVariables.IntegrationCoefficient = weight;
+    return IntegrationPoints[PointNumber].Weight();
 
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
-
 void LineNormalLoad2DDiffOrderCondition::
     CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
                                   ConditionVariables& rVariables)

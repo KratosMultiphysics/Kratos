@@ -51,8 +51,6 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.HDF5NodalFlagValueIO = self.patcher8.start()
         self.HDF5ConditionFlagValueIO = self.patcher9.start()
         self.HDF5ConditionDataValueIO = self.patcher10.start()
-        self.HDF5ConditionDataValueIO = self.patcher10.start()
-        self.HDF5ConditionDataValueIO = self.patcher10.start()
         self.HDF5ElementGaussPointOutput = self.patcher11.start()
         self.HDF5ConditionGaussPointOutput = self.patcher12.start()
 

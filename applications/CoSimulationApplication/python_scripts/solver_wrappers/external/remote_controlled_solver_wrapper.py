@@ -18,6 +18,14 @@ class RemoteControlledSolverWrapper(CoSimulationSolverWrapper):
     def __init__(self, settings, model, solver_name):
         super().__init__(settings, model, solver_name)
 
+        settings_defaults = KM.Parameters("""{
+            "import_meshes"    : [ ],
+            "export_data"      : [ ],
+            "import_data"      : [ ]
+        }""")
+
+        self.settings["solver_wrapper_settings"].ValidateAndAssignDefaults(settings_defaults)
+
         model_part_utilities.CreateModelPartsFromCouplingDataSettings(self.settings["data"], self.model, self.name)
         model_part_utilities.AllocateHistoricalVariablesFromCouplingDataSettings(self.settings["data"], self.model, self.name)
 

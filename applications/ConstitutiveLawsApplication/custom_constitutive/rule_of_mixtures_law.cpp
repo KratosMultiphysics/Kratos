@@ -5,8 +5,8 @@
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
 //                                                                                         |_|   |_|
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Fernando Rastellini
@@ -23,6 +23,8 @@
 #include "custom_constitutive/rule_of_mixtures_law.h"
 #include "constitutive_laws_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -943,6 +945,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
     Flags& r_flags = rValues.GetOptions();
 
     // Previous flags saved
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
@@ -956,12 +959,8 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
 
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
-        p_law->CalculateMaterialResponsePK2(rValues);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
 
     // The global strain vector, constant
@@ -969,7 +968,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
 
     if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         // Set new flags
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // Auxiliar stress vector
@@ -1003,13 +1002,14 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
         }
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
 
-        // Previous flags restored
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-
         if (flag_const_tensor) {
             this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
         }
+
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
     }
 
     KRATOS_CATCH("");
@@ -1029,6 +1029,7 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
     // Previous flags saved
     const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -1040,12 +1041,8 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
 
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
-        p_law->CalculateMaterialResponsePK2(rValues);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
 
     // The global strain vector, constant
@@ -1053,7 +1050,7 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
 
     if (r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS)) {
         // Set new flags
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // Auxiliar stress vector
@@ -1075,7 +1072,7 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
             noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
 
             rValues.SetMaterialProperties(r_prop);
-            p_law->CalculateMaterialResponseKirchhoff(rValues);
+            p_law->CalculateMaterialResponsePK2(rValues);
 
             // we return the stress and constitutive tensor to the global coordinates
             rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
@@ -1085,15 +1082,28 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
             rValues.SetMaterialProperties(r_material_properties);
             noalias(rValues.GetStrainVector()) = strain_vector;
         }
-        noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
+        Vector &r_stress_vector = rValues.GetStressVector();
+        noalias(r_stress_vector) = auxiliar_stress_vector;
+
+        if (rValues.IsSetDeterminantF()) {
+            // we push forward the stress
+            Matrix stress_matrix(Dimension, Dimension);
+            noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor(r_stress_vector);
+            ContraVariantPushForward(stress_matrix, rValues.GetDeformationGradientF()); // Kirchhoff
+            noalias(r_stress_vector) = MathUtils<double>::StressTensorToVector( stress_matrix, r_stress_vector.size() );
+        }
+
+        if (flag_const_tensor) {
+            this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
+            // push forward Constitutive tangent tensor
+            if (rValues.IsSetDeterminantF())
+                PushForwardConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rValues.GetDeformationGradientF());
+        }
 
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-
-        if (flag_const_tensor) {
-            this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_Kirchhoff);
-        }
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
     }
 
     KRATOS_CATCH("");
@@ -1125,13 +1135,25 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK1(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
         p_law->InitializeMaterialResponsePK1(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
@@ -1144,13 +1166,25 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK2(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
         p_law->InitializeMaterialResponsePK2(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
@@ -1163,14 +1197,26 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseKirchhoff(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
-        p_law->InitializeMaterialResponseKirchhoff(rValues);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+        p_law->InitializeMaterialResponsePK2(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
 }
@@ -1182,14 +1228,26 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseCauchy(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
-        p_law->InitializeMaterialResponseCauchy(rValues);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+        p_law->InitializeMaterialResponsePK2(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
 }
@@ -1201,35 +1259,76 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
         p_law->FinalizeMaterialResponsePK1(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
+    // Previous flags restored
+    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 }
 
-template<unsigned int TDim>
+
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
         p_law->FinalizeMaterialResponsePK2(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
+    // Previous flags restored
+    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 }
 
 /***********************************************************************************/
@@ -1239,16 +1338,36 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
-        p_law->FinalizeMaterialResponseKirchhoff(rValues);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+        p_law->FinalizeMaterialResponsePK2(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
+    // Previous flags restored
+    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 }
 
 /***********************************************************************************/
@@ -1258,16 +1377,36 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
-        p_law->FinalizeMaterialResponseCauchy(rValues);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+        p_law->FinalizeMaterialResponsePK2(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
+    // Previous flags restored
+    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 }
 
 /***********************************************************************************/
@@ -1348,19 +1487,15 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateRotationMatrix(
 
     if (rMaterialProperties.Has(LAYER_EULER_ANGLES)) {
         const Vector layers_euler_angles = rMaterialProperties[LAYER_EULER_ANGLES];
-        const double euler_angle_phi     = layers_euler_angles(3*Layer);
-        const double euler_angle_theta   = layers_euler_angles(3*Layer + 1);
-        const double euler_angle_hi      = layers_euler_angles(3*Layer + 2);
+        const double euler_angle_phi     = layers_euler_angles[3*Layer];
+        const double euler_angle_theta   = layers_euler_angles[3*Layer + 1];
+        const double euler_angle_hi      = layers_euler_angles[3*Layer + 2];
 
         BoundedMatrix<double, 3, 3>  rotation_matrix;
 
         if (std::abs(euler_angle_phi) + std::abs(euler_angle_theta) + std::abs(euler_angle_hi) > machine_tolerance) {
-            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(euler_angle_phi,
-                                                                           euler_angle_theta,
-                                                                           euler_angle_hi,
-                                                                           rotation_matrix);
-            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rotation_matrix,
-                                                                                rRotationMatrix);
+            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(euler_angle_phi, euler_angle_theta, euler_angle_hi, rotation_matrix);
+            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rotation_matrix, rRotationMatrix);
         } else {
             noalias(rRotationMatrix) = IdentityMatrix(VoigtSize, VoigtSize);
         }
@@ -1389,6 +1524,44 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateTangentTensor(ConstitutiveLaw::Pa
         // Calculates the Tangent Constitutive Tensor by perturbation (second order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, rStressMeasure, consider_perturbation_threshold, 2);
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::CalculateAlmansiStrain(ConstitutiveLaw::Parameters& rValues)
+{
+    // Some auxiliar values
+    const SizeType dimension = WorkingSpaceDimension();
+    Vector& r_strain_vector = rValues.GetStrainVector();
+
+    Matrix F(dimension, dimension);
+    noalias(F) = rValues.GetDeformationGradientF();
+    Matrix B_tensor;
+    B_tensor.resize(dimension, dimension, false);
+    noalias(B_tensor) = prod(F, trans(F));
+
+    AdvancedConstitutiveLawUtilities<6>::CalculateAlmansiStrain(B_tensor, r_strain_vector);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::CalculateGreenLagrangeStrain(ConstitutiveLaw::Parameters& rValues)
+{
+    // Some auxiliar values
+    const SizeType dimension = WorkingSpaceDimension();
+    Vector& r_strain_vector = rValues.GetStrainVector();
+
+    Matrix F(dimension, dimension);
+    noalias(F) = rValues.GetDeformationGradientF();
+    Matrix C_tensor;
+    C_tensor.resize(dimension, dimension, false);
+    noalias(C_tensor) = prod(trans(F),F);
+
+    ConstitutiveLawUtilities<6>::CalculateGreenLagrangianStrain(C_tensor, r_strain_vector);
 }
 
 /***********************************************************************************/

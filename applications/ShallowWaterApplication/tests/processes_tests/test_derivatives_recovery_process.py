@@ -1,29 +1,13 @@
 import KratosMultiphysics as KM
+import KratosMultiphysics.ShallowWaterApplication as SW
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.ShallowWaterApplication.derivatives_recovery_process as derivatives_recovery_process
-from unittest.mock import patch
+import os
 
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestDerivativesRecoveryProcess(KratosUnittest.TestCase):
-
-    def setUp(self):
-        self.model = KM.Model()
-        self.model_part = self.model.CreateModelPart('test_model_part')
-        self.model_part.ProcessInfo[KM.DOMAIN_SIZE] = 2
-        self.patcher1 = patch('KratosMultiphysics.ShallowWaterApplication.DerivativesRecoveryUtility2D.Check', autospec=True)
-        self.patcher2 = patch('KratosMultiphysics.ShallowWaterApplication.DerivativesRecoveryUtility2D.RecoverGradient', autospec=True)
-        self.patcher3 = patch('KratosMultiphysics.ShallowWaterApplication.DerivativesRecoveryUtility2D.RecoverDivergence', autospec=True)
-        self.patcher4 = patch('KratosMultiphysics.ShallowWaterApplication.DerivativesRecoveryUtility2D.RecoverLaplacian', autospec=True)
-        self.RecoveryCheck = self.patcher1.start()
-        self.RecoverGradient = self.patcher2.start()
-        self.RecoverDivergence = self.patcher3.start()
-        self.RecoverLaplacian = self.patcher4.start()
-
-    def tearDown(self):
-        self.patcher1.stop()
-        self.patcher2.stop()
-        self.patcher3.stop()
-        self.patcher4.stop()
 
     def test_DerivativesRecoveryProcess(self):
         settings = KM.Parameters("""
@@ -49,26 +33,41 @@ class TestDerivativesRecoveryProcess(KratosUnittest.TestCase):
                     "buffer_step"         : 0,
                     "process_step"        : "ExecuteFinalizeSolutionStep"
                 }],
-                "compute_neighbors"        : false,
+                "compute_neighbors"        : true,
                 "update_mesh_topology"     : false
             }
         }""")
+        self.model = KM.Model()
+        self.model_part = self.model.CreateModelPart('test_model_part')
+        self.model_part.AddNodalSolutionStepVariable(SW.FIRST_DERIVATIVE_WEIGHTS)
+        self.model_part.AddNodalSolutionStepVariable(SW.SECOND_DERIVATIVE_WEIGHTS)
+        self.model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
+        self.model_part.AddNodalSolutionStepVariable(KM.DISTANCE_GRADIENT)
+        self.model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+        self.model_part.AddNodalSolutionStepVariable(KM.DETERMINANT_F)
+        self.model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+        self.model_part.AddNodalSolutionStepVariable(KM.VELOCITY_LAPLACIAN)
+        self.model_part.ProcessInfo[KM.DOMAIN_SIZE] = 2
+        KM.ModelPartIO(GetFilePath("model_part")).ReadModelPart(self.model_part)
+        for node in self.model_part.Nodes:
+            node.SetSolutionStepValue(KM.DISTANCE, node.X)
+            node.SetSolutionStepValue(KM.DISPLACEMENT, [node.X, node.Y, 0])
+            node.SetSolutionStepValue(KM.VELOCITY, [node.X**2, node.Y**2, 0])
         process = derivatives_recovery_process.Factory(settings, self.model)
         process.Check()
-        self.assertEqual(self.RecoveryCheck.call_count, 1)
-        self.assertEqual(self.RecoverGradient.call_count, 0)
-        self.assertEqual(self.RecoverDivergence.call_count, 0)
-        self.assertEqual(self.RecoverLaplacian.call_count, 0)
+        process.ExecuteInitialize()
+        first_node = self.model_part.Nodes.__iter__().__next__()
+        self.assertVectorAlmostEqual(first_node.GetSolutionStepValue(KM.DISTANCE_GRADIENT), [0, 0, 0])
+        self.assertVectorAlmostEqual(first_node.GetSolutionStepValue(KM.VELOCITY_LAPLACIAN), [0, 0, 0])
+        self.assertAlmostEqual(first_node.GetSolutionStepValue(KM.DETERMINANT_F), 0)
         process.ExecuteInitializeSolutionStep()
-        self.assertEqual(self.RecoveryCheck.call_count, 1)
-        self.assertEqual(self.RecoverGradient.call_count, 1)
-        self.assertEqual(self.RecoverDivergence.call_count, 0)
-        self.assertEqual(self.RecoverLaplacian.call_count, 0)
+        self.assertVectorAlmostEqual(first_node.GetSolutionStepValue(KM.DISTANCE_GRADIENT), [1, 0, 0])
+        self.assertVectorAlmostEqual(first_node.GetSolutionStepValue(KM.VELOCITY_LAPLACIAN), [0, 0, 0])
+        self.assertAlmostEqual(first_node.GetSolutionStepValue(KM.DETERMINANT_F), 0)
         process.ExecuteFinalizeSolutionStep()
-        self.assertEqual(self.RecoveryCheck.call_count, 1)
-        self.assertEqual(self.RecoverGradient.call_count, 1)
-        self.assertEqual(self.RecoverDivergence.call_count, 1)
-        self.assertEqual(self.RecoverLaplacian.call_count, 1)
+        self.assertVectorAlmostEqual(first_node.GetSolutionStepValue(KM.DISTANCE_GRADIENT), [1, 0, 0])
+        self.assertVectorAlmostEqual(first_node.GetSolutionStepValue(KM.VELOCITY_LAPLACIAN), [2, 2, 0])
+        self.assertAlmostEqual(first_node.GetSolutionStepValue(KM.DETERMINANT_F), 2)
 
 if __name__ == "__main__":
     KratosUnittest.main()

@@ -61,7 +61,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
-    @classmethod
     def GetMainPath(self):
         return os.getcwd()
 

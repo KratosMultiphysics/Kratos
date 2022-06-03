@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -195,11 +195,7 @@ class idrs {
             {
                 std::vector<rhs_type> p(n);
 
-#ifdef MPI_VERSION
-                int pid = amgcl::mpi::communicator(MPI_COMM_WORLD).rank;
-#else
-                int pid = 0;
-#endif
+                int pid = inner_product.rank();
 
 #pragma omp parallel
                 {
