@@ -49,7 +49,7 @@
         "relative_pressure_tolerance"  : 1e-5,
         "absolute_pressure_tolerance"  : 1e-7,
         "linear_solver_settings"       : {
-            "solver_type"         : "ExternalSolversApplication.super_lu"
+            "solver_type"         : "LinearSolversApplication.sparse_lu"
         },
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Outlet3D","NoSlip3D"],

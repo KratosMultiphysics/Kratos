@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -27,16 +25,17 @@ class PointOutputProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters('''{
-            "help"              : "This process writes results from a geometrical position (point) in the model to a file. It first searches the entity containing the requested output location and then interpolates the requested variable(s). The output can be requested for elements, conditions and nodes. For nodes no geometrical interpolation is performed, the exact coordinates have to be specified. This process works in MPI as well as with restarts. It can serve as a basis for other processes (e.g. MultiplePointsOutputProcess). Furthermore it can be used for testing in MPI where the node numbers can change",
-            "model_part_name"   : "",
-            "entity_type"       : "element",
-            "interval"          : [0.0, 1e30],
-            "position"          : [],
-            "output_variables"  : [],
-            "historical_value"  : true,
-            "search_tolerance"  : 1e-6,
-            "print_format"      : "",
-            "output_file_settings": {}
+            "help"                 : "This process writes results from a geometrical position (point) in the model to a file. It first searches the entity containing the requested output location and then interpolates the requested variable(s). The output can be requested for elements, conditions and nodes. For nodes no geometrical interpolation is performed, the exact coordinates have to be specified. This process works in MPI as well as with restarts. It can serve as a basis for other processes (e.g. MultiplePointsOutputProcess). Furthermore it can be used for testing in MPI where the node numbers can change",
+            "model_part_name"      : "",
+            "entity_type"          : "element",
+            "interval"             : [0.0, 1e30],
+            "position"             : [],
+            "output_variables"     : [],
+            "historical_value"     : true,
+            "search_configuration" : "initial",
+            "search_tolerance"     : 1e-6,
+            "print_format"         : "",
+            "output_file_settings" : {}
         }''')
 
         self.model = model
@@ -58,6 +57,13 @@ class PointOutputProcess(KratosMultiphysics.Process):
         self.format = self.params["print_format"].GetString()
         self.historical_value = self.params["historical_value"].GetBool()
         self.search_tolerance = self.params["search_tolerance"].GetDouble()
+
+        if self.params["search_configuration"].GetString() == "initial":
+            self.search_configuration = KratosMultiphysics.Configuration.Initial
+        elif self.params["search_configuration"].GetString() == "current":
+            self.search_configuration = KratosMultiphysics.Configuration.Current
+        else:
+            raise Exception( "Invalid configuration: {configuration} (Expecting 'initial' or 'current')".format( configuration=self.params["search_configuration"].GetString()) )
 
     def ExecuteInitialize(self):
         # getting the ModelPart from the Model
@@ -100,9 +106,6 @@ class PointOutputProcess(KratosMultiphysics.Process):
             self.search_done = True
             self.__SearchPoint()
 
-    def ExecuteBeforeSolutionLoop(self):
-        pass
-
     def ExecuteInitializeSolutionStep(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
@@ -133,12 +136,6 @@ class PointOutputProcess(KratosMultiphysics.Process):
                 out += "\n"
                 f.write(out)
 
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        pass
-
     def ExecuteFinalize(self):
         for f in self.output_file:
             f.close()
@@ -148,19 +145,19 @@ class PointOutputProcess(KratosMultiphysics.Process):
         entity_type = self.params["entity_type"].GetString()
 
         if entity_type == "node":
-            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindNode(self.point, self.search_tolerance)
+            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindNode(self.point, self.search_configuration, self.search_tolerance)
             if found_id > -1:
                 self.entity.append(self.model_part.Nodes[found_id]) # note that this is a find!
                 self.area_coordinates.append("dummy") # needed for looping later
         elif entity_type == "element":
             self.sf_values = KratosMultiphysics.Vector()
-            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindElement(self.point, self.sf_values, self.search_tolerance)
+            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindElement(self.point, self.sf_values, self.search_configuration, self.search_tolerance)
             if found_id > -1:
                 self.entity.append(self.model_part.Elements[found_id]) # note that this is a find!
                 self.area_coordinates.append(self.sf_values)
         elif entity_type == "condition":
             self.sf_values = KratosMultiphysics.Vector()
-            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindCondition(self.point, self.sf_values, self.search_tolerance)
+            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindCondition(self.point, self.sf_values, self.search_configuration, self.search_tolerance)
             if found_id > -1:
                 self.entity.append(self.model_part.Conditions[found_id]) # note that this is a find!
                 self.area_coordinates.append(self.sf_values)
@@ -181,10 +178,15 @@ class PointOutputProcess(KratosMultiphysics.Process):
             my_rank = comm.Rank()
         writing_rank = comm.MaxAll(my_rank) # The partition with the larger rank writes
 
-        if my_rank == writing_rank:
+        if my_rank == -1:
+            warn_msg  = 'No "{}" was found for input {}, '.format(entity_type, self.point)
+            warn_msg += 'no output is written!'
+            KratosMultiphysics.Logger.PrintWarning("PointOutputProcess", warn_msg)
 
+        if my_rank == writing_rank and my_rank > -1:
             file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
-            file_header = GetFileHeader(entity_type, found_id, self.point, self.output_variables[0])
+            file_header = GetFileHeader(self.params["search_configuration"].GetString(),
+                entity_type, found_id, self.point, self.output_variables[0])
 
             self.output_file.append(TimeBasedAsciiFileWriterUtility(
                 self.model_part, file_handler_params, file_header).file)
@@ -201,13 +203,20 @@ class PointOutputProcess(KratosMultiphysics.Process):
             raise Exception(err_msg)
 
 
-def GetFileHeader(entity_type, entity_id, point, output_variables):
+def GetFileHeader(search_config, entity_type, entity_id, point, output_variables):
     header  = '# Results for "' + entity_type + '" '
-    header += 'with Id # ' + str(entity_id) + ' at position: '
-    header += 'x: ' + "{0:.12g}".format(point.X) + '; '
-    header += 'y: ' + "{0:.12g}".format(point.Y) + '; '
-    header += 'z: ' + "{0:.12g}".format(point.Z) + '\n'
+    header += 'with Id # ' + str(entity_id)
+    header += ' for search config "' + search_config + '" at position: '
+    if search_config == "initial":
+        header += 'x0: ' + "{0:.12g}".format(point.X) + '; '
+        header += 'y0: ' + "{0:.12g}".format(point.Y) + '; '
+        header += 'z0: ' + "{0:.12g}".format(point.Z) + '\n'
+    elif search_config == "current":
+        header += 'x: ' + "{0:.12g}".format(point.X) + '; '
+        header += 'y: ' + "{0:.12g}".format(point.Y) + '; '
+        header += 'z: ' + "{0:.12g}".format(point.Z) + '\n'
     header += '# time'
+
     for var in output_variables:
         # if this is a Variable< array_1d< double,3 > >
         if IsArrayVariable(var):

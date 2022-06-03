@@ -63,9 +63,9 @@ namespace Kratos {
 
         virtual void Initialize() override;
         virtual double SolveSolutionStep() override;
-        void SearchFEMOperations(ModelPart& r_model_part, bool has_mpi);
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi);
         void ComputeNewNeighboursHistoricalData() override;
+        void ComputeNewRigidFaceNeighboursHistoricalData() override;
         void CreateContactElements() override;
         void SetCoordinationNumber(ModelPart& r_model_part);
         double ComputeCoordinationNumber(double& standard_dev);
@@ -116,6 +116,7 @@ namespace Kratos {
         //bool   mDempackOption;
         std::vector<SphericContinuumParticle*> mListOfSphericContinuumParticles;
         std::vector<SphericContinuumParticle*> mListOfGhostSphericContinuumParticles;
+        DenseVector<int> mSearchControlVector;
 
     }; // Class ContinuumExplicitSolverStrategy
 

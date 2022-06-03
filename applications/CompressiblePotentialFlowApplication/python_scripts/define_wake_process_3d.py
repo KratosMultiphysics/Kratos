@@ -27,6 +27,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             "wake_stl_file_name" : "",
             "wake_normal": [0.0,0.0,1.0],
             "output_wake": false,
+            "echo_level": 1,
             "epsilon": 1e-9
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
@@ -55,6 +56,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
         self.epsilon = settings["epsilon"].GetDouble()
         self.output_wake = settings["output_wake"].GetBool()
+        self.echo_level = settings["echo_level"].GetInt()
 
         # For now plane wake surfaces are considered.
         # TODO: Generalize this to curved wake surfaces
@@ -398,4 +400,4 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         gid_output.ExecuteFinalize()
 
     def ExecuteFinalizeSolutionStep(self):
-        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, 0)
+        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, self.echo_level)

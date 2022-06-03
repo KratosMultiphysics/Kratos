@@ -5,7 +5,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
 
 # Other imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication.utilities import model_part_utilities
 
 def Create(settings, model, solver_name):
     return DummySolverWrapper(settings, model, solver_name)
@@ -24,7 +24,7 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
 
         self.model_part.ProcessInfo[KM.DOMAIN_SIZE] = self.settings["solver_wrapper_settings"]["domain_size"].GetInt()
 
-        cs_tools.AllocateHistoricalVariablesFromCouplingData(self.data_dict.values(), self.model, self.name)
+        model_part_utilities.AllocateHistoricalVariablesFromCouplingDataSettings(self.settings["data"], self.model, self.name)
 
     def Initialize(self):
         severity = KM.Logger.GetDefaultOutput().GetSeverity()
@@ -37,7 +37,3 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
 
     def AdvanceInTime(self, current_time):
         return current_time + self.time_step
-
-    def PrintInfo(self):
-        cs_tools.cs_print_info("DummySolver", self._ClassName())
-        ## TODO print additional stuff with higher echo-level

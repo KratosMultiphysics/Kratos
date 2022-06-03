@@ -57,7 +57,9 @@ LaplacianElement::~LaplacianElement()
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
+                                            VectorType& rRightHandSideVector, 
+                                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -138,7 +140,7 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+void LaplacianElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     VectorType temp(0);
     CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
@@ -146,7 +148,7 @@ void LaplacianElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pr
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void LaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     MatrixType temp(0,0);
     CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
@@ -154,7 +156,7 @@ void LaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, 
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const 
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
@@ -173,7 +175,7 @@ void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, ProcessIn
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& rCurrentProcessInfo)
+void LaplacianElement::GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo& rCurrentProcessInfo) const
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
@@ -192,7 +194,7 @@ void LaplacianElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& 
 
 //************************************************************************************
 //************************************************************************************
-int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo) const 
 {
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS)) << "No CONVECTION_DIFFUSION_SETTINGS defined in ProcessInfo." << std::endl;
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];

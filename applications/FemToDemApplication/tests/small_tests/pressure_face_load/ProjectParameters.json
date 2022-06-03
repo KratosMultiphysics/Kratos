@@ -1,0 +1,118 @@
+{
+   "AMR_data": {
+        "activate_AMR":  false,
+           "hessian_variable_parameters": {
+              "normalized_free_energy":           false,
+              "correct_with_displacements":       true,
+              "correction_factor":                1.0
+         }
+    },
+   "problem_data": {
+        "is_hexahedron":        false,
+        "problem_name":         "face_load",
+        "model_part_name":      "Structure",
+        "domain_size":          3,
+        "start_time":           0.0,
+        "end_time":             1.0,
+        "time_step":            0.25,
+        "echo_level":           0
+    },
+  "DEM_FEM_contact":                 true,
+  "create_initial_skin":             false,
+   "solver_settings": {
+            "solver_type":                       "FemDemStaticSolver",
+            "solution_type":                     "Static",
+            "time_integration_method":           "Implicit",
+            "echo_level":                         1,
+            "model_import_settings":              {
+                 "input_type":         "mdpa",
+                 "input_filename":     "face_load",
+				 "path_to_mdpa"  :     "small_tests/pressure_face_load/",
+                 "input_file_label":    0
+            },
+            "reform_dofs_at_each_step":              true,
+            "line_search":                          false,
+            "convergence_criterion":               "FemDem_Residual_criterion",
+            "displacement_relative_tolerance":      1.0E-4,
+            "displacement_absolute_tolerance":      1.0E-9,
+            "residual_relative_tolerance":          1.0E-4,
+            "residual_absolute_tolerance":          1.0E-9,
+            "max_iteration":                        15,
+            "extrapolation_required":               false,
+            "linear_solver_settings":     {
+                 "solver_type":      "skyline_lu_factorization",
+                 "scaling":           false
+            },
+        "problem_domain_sub_model_part_list": ["Body_Part-auto-1"],
+        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Surf_Load-auto-1","Pressure_Load-auto-1"]
+   },
+    "constraints_process_list": [{
+        "python_module": "assign_vector_components_to_nodes_process",
+        "kratos_module": "KratosMultiphysics.SolidMechanicsApplication",
+        "process_name":  "AssignVectorComponentsToNodesProcess",
+        "Parameters":    {
+            "model_part_name": "Solid_Displacement-auto-1",
+            "variable_name":   "DISPLACEMENT",
+            "value":           [0.0,0.0,0.0],
+            "interval":        [0.0,"End"]
+        }
+    }],
+    "loads_process_list": [{
+        "python_module": "assign_modulus_and_direction_to_conditions_process",
+        "kratos_module": "KratosMultiphysics.SolidMechanicsApplication",
+        "process_name":  "AssignModulusAndDirectionToConditionsProcess",
+        "Parameters":    {
+            "model_part_name": "Surf_Load-auto-1",
+            "variable_name":   "SURFACE_LOAD",
+            "modulus":             100000,
+            "direction":           [0.0,1.0,0.0],
+            "interval":            [0.0,"End"]
+        }
+    },{
+        "python_module": "assign_scalar_to_conditions_process",
+        "kratos_module": "KratosMultiphysics.SolidMechanicsApplication",
+        "process_name":  "AssignScalarToConditionsProcess",
+        "Parameters":    {
+            "model_part_name":      "Pressure_Load-auto-1",
+            "variable_name":        "POSITIVE_FACE_PRESSURE",
+            "value":                 100000,
+            "interval":             [0.0,"End"]
+        }
+    }],
+    "output_configuration": {
+        "result_file_configuration": {
+            "gidpost_flags":       {
+                "WriteDeformedMeshFlag": "WriteDeformed",
+                "WriteConditionsFlag":   "WriteElementsOnly",
+                "GiDPostMode":           "GiD_PostBinary",
+                "MultiFileFlag":         "MultipleFiles"
+            },
+            "file_label":          "step",
+            "output_control_type": "step",
+            "output_interval":     100,
+            "body_output":          true,
+            "node_output":          false,
+            "skin_output":          false,
+            "plane_output":         [],
+            "nodal_results":       ["DISPLACEMENT","VELOCITY","ACCELERATION"],
+            "gauss_point_results": ["CAUCHY_STRESS_TENSOR","STRESS_TENSOR_INTEGRATED","GREEN_LAGRANGE_STRAIN_TENSOR","DAMAGE_ELEMENT"]
+        },
+        "point_data_configuration":  []
+    },
+    "restart_options":     {
+        "SaveRestart":        false,
+        "RestartFrequency":   0,
+        "LoadRestart":        false,
+        "Restart_Step":       0
+    },
+    "constraints_data":     {
+        "incremental_load":                false,
+        "incremental_displacement":        false
+    },
+    "list_of_nodes_displacement":  [0],
+    "list_of_nodes_reaction":      [0],
+    "interval_of_watching"  :      0.0,
+    "watch_nodes_list"      :      [],
+    "watch_elements_list"   :      [],
+    "initial_DEM_skin_list" :      []
+}

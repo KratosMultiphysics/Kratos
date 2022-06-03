@@ -153,21 +153,24 @@ void SmallDisplacementMixedVolumetricStrainElement::Initialize(const ProcessInfo
 {
     KRATOS_TRY
 
-    // Integration method initialization
-    mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-    const auto& r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        // Integration method initialization
+        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-    // Constitutive Law Vector initialisation
-    if (mConstitutiveLawVector.size() != r_integration_points.size()) {
-        mConstitutiveLawVector.resize(r_integration_points.size());
+        // Constitutive Law Vector initialisation
+        if (mConstitutiveLawVector.size() != r_integration_points.size()) {
+            mConstitutiveLawVector.resize(r_integration_points.size());
+        }
+
+        // Initialize material
+        InitializeMaterial();
+
+        // Calculate the and save the anisotropy transformation tensor
+        CalculateAnisotropyTensor(rCurrentProcessInfo);
+        CalculateInverseAnisotropyTensor();
     }
-
-    // Initialize material
-    InitializeMaterial();
-
-    // Calculate the and save the anisotropy transformation tensor
-    CalculateAnisotropyTensor(rCurrentProcessInfo);
-    CalculateInverseAnisotropyTensor();
 
     KRATOS_CATCH( "" )
 }
@@ -175,7 +178,7 @@ void SmallDisplacementMixedVolumetricStrainElement::Initialize(const ProcessInfo
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -221,7 +224,7 @@ void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(Proce
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementMixedVolumetricStrainElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -270,7 +273,7 @@ void SmallDisplacementMixedVolumetricStrainElement::FinalizeSolutionStep(Process
 void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
@@ -449,7 +452,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
 
 void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
@@ -586,7 +589,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
 
 void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
@@ -1030,9 +1033,6 @@ int  SmallDisplacementMixedVolumetricStrainElement::Check(const ProcessInfo& rCu
 
     // Base check
     check = StructuralMechanicsElementUtilities::SolidElementCheck(*this, rCurrentProcessInfo, mConstitutiveLawVector);
-
-    // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(VOLUMETRIC_STRAIN)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     const auto& r_geometry = this->GetGeometry();

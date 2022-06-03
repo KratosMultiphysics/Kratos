@@ -161,7 +161,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::FinalizeSolu
 // Inquiry
 
 template <int Dim, int NumNodes>
-int IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -707,7 +707,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignRightH
 {
     if (rData.distances[rRow] > 0.0){
         rRightHandSideVector[rRow] = rUpper_rhs(rRow);
-        rRightHandSideVector[rRow + NumNodes] = rWake_rhs(rRow);
+        rRightHandSideVector[rRow + NumNodes] = -rWake_rhs(rRow);
     }
     else{
         rRightHandSideVector[rRow] = rWake_rhs(rRow);

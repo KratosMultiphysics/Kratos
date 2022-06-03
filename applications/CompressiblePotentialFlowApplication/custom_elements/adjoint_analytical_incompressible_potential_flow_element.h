@@ -40,7 +40,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of AdjointAnalyticalIncompressiblePotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointAnalyticalIncompressiblePotentialFlowElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointAnalyticalIncompressiblePotentialFlowElement);
 
     ///@}
     ///@name Life Cycle

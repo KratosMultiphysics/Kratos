@@ -19,6 +19,7 @@
 #include "move_mesh_utilities.h"
 #include "containers/model.h"
 #include "includes/mesh_moving_variables.h" // TODO remove after mesh-vel-comp-functions are removed
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 namespace MoveMeshUtilities {
@@ -44,18 +45,13 @@ void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
 
 //******************************************************************************
 //******************************************************************************
-void MoveMesh(const ModelPart::NodesContainerType& rNodes) {
+void MoveMesh(ModelPart::NodesContainerType& rNodes) {
     KRATOS_TRY;
 
-    const int num_nodes = rNodes.size();
-    const auto nodes_begin = rNodes.begin();
+    block_for_each(rNodes, [](Node<3>& rNode ){
+        noalias(rNode.Coordinates()) = rNode.GetInitialPosition() + rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT);
+    });
 
-    #pragma omp parallel for
-    for (int i=0; i<num_nodes; i++) {
-        const auto it_node  = nodes_begin + i;
-        noalias(it_node->Coordinates()) = it_node->GetInitialPosition()
-            + it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
-    }
     KRATOS_CATCH("");
 }
 
@@ -94,20 +90,48 @@ ModelPart* GenerateMeshPart(ModelPart &rModelPart,
   KRATOS_CATCH("");
 }
 
+void InitializeMeshPartWithElements(
+    ModelPart& rDestinationModelPart,
+    ModelPart& rOriginModelPart,
+    Properties::Pointer pProperties,
+    const std::string& rElementName)
+{
+    KRATOS_TRY
+
+    // initializing mesh nodes and variables
+    rDestinationModelPart.Nodes() = rOriginModelPart.Nodes();
+
+    auto& r_elements = rDestinationModelPart.Elements();
+
+    // clear all existing elements
+    r_elements.clear();
+
+    const Element& r_reference_element = KratosComponents<Element>::Get(rElementName);
+
+    KRATOS_ERROR_IF(rOriginModelPart.GetCommunicator().GlobalNumberOfElements() == 0)
+        << "No elements are found in " << rOriginModelPart.Name()
+        << " to initialize " << rDestinationModelPart.Name() << ".\n";
+
+    for (auto& r_origin_element : rOriginModelPart.Elements()) {
+        auto p_destination_element = r_reference_element.Create(
+            r_origin_element.Id(), r_origin_element.pGetGeometry(), pProperties);
+        r_elements.push_back(p_destination_element);
+    }
+
+    KRATOS_CATCH("");
+}
+
 void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariable,
                                                  const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
 {
-  KRATOS_TRY;
-  auto r_nodes = rModelPart.Nodes();
-  const int num_nodes = r_nodes.size();
-  const auto nodes_begin = r_nodes.begin();
+    KRATOS_TRY;
 
-  #pragma omp parallel for
-  for (int i=0; i<num_nodes; i++) {
-      const auto it_node  = nodes_begin + i;
-      if(it_node->Has(rVariableToSuperImpose))
-          it_node->GetSolutionStepValue(rVariable,0) += it_node->GetValue(rVariableToSuperImpose);
-  }
+    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        if (rNode.Has(rVariableToSuperImpose)) {
+            rNode.GetSolutionStepValue(rVariable,0) += rNode.GetValue(rVariableToSuperImpose);
+        }
+    });
+
   KRATOS_CATCH("");
 }
 

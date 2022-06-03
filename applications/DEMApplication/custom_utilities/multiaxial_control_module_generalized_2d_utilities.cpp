@@ -583,9 +583,6 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateAcceleration(const 
                                                     false);
     const double k_condition_number = GetConditionNumber(mStiffness,k_inverse);
 
-    // KRATOS_WATCH("Begin updating acceleration")
-    // KRATOS_WATCH(mAcceleration)
-
     Vector acceleration_perturbation(number_of_actuators);
     noalias(acceleration_perturbation) = GetPerturbations(mAcceleration,r_current_time);
     if (is_k_invertible == false || std::isnan(k_condition_number)) {
@@ -596,12 +593,9 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateAcceleration(const 
                                  (prod(k_inverse, delta_target_stress) - mVelocity * mCMDeltaTime);
     }
 
-    // KRATOS_WATCH("Updating acceleration")
-    // KRATOS_WATCH(mAcceleration)
-
     // TODO: possible CM enhancement
-        // Investigate more on how to limit acceleration
-    // Limit acceleration.
+    // Investigate more on how to limit acceleration
+    // Limit acceleration
     double norm_stiffness = 0.0;
     for(unsigned int i = 0; i < mStiffness.size1(); i++) {
         norm_stiffness += mStiffness(i,i)*mStiffness(i,i);
@@ -614,9 +608,6 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateAcceleration(const 
             mAcceleration[i] = max_allowed_acceleration/norm_acceleration * mAcceleration[i];
         }
     }
-    // KRATOS_WATCH("End Updating Acceleration")
-    // KRATOS_WATCH(mAcceleration)
-
 }
 
 //***************************************************************************************************************

@@ -221,7 +221,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Calculates the RHS condition contributions
@@ -231,7 +231,7 @@ public:
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override;
+                                       const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Calculates the RHS condition contributions
@@ -241,7 +241,7 @@ public:
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override;
+                                        const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -249,7 +249,7 @@ public:
     /**
      * @param rCurrentProcessInfo reference to the ProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     /// Provides the global indices for each one of this element's local rows.
@@ -257,14 +257,19 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ConditionDofList, const ProcessInfo& CurrentProcessInfo) const override;
+
+    void Calculate(
+        const Variable< array_1d<double,3> >& rVariable,
+        array_1d<double,3>& Output,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -434,6 +439,19 @@ private:
      */
     void ComputeGaussPointBehrSlipRHSContribution(  array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
                                                     const ConditionDataStruct& rDataStruct );
+
+    /**
+     * @brief Project the viscous stress
+     * Provided a viscous stress tensor (in Voigt notation) and a unit normal vector,
+     * this method calculates and returns the projection of the shear stress onto the normal
+     * @param rViscousStress The viscous stress in Voigt notation
+     * @param rNormal The unit normal vector to project onto
+     * @param rProjectedViscousStress The projected viscous stress
+     */
+    void ProjectViscousStress(
+        const Vector& rViscousStress,
+        const array_1d<double,3> rNormal,
+        array_1d<double,3> rProjectedViscousStress);
 
     ///@}
     ///@name Private  Access

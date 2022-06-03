@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
@@ -47,7 +46,7 @@ class MultigridSolver(EulerianPrimitiveVarSolver):
 
     def PrepareModelPart(self):
         if self.main_model_part.ProcessInfo[MSH.SUBSCALE_INDEX] == 0:
-            super(MultigridSolver, self).PrepareModelPart()
+            super().PrepareModelPart()
         self.multigrid.PrepareModelPart() # It creates the cpp utility instance
 
     def AdvanceInTime(self, current_time):
@@ -69,11 +68,11 @@ class MultigridSolver(EulerianPrimitiveVarSolver):
 
     def InitializeSolutionStep(self):
         if self.GetComputingModelPart().NumberOfElements() != 0:
-            super(MultigridSolver, self).InitializeSolutionStep()
+            super().InitializeSolutionStep()
 
     def Predict(self):
         if self.GetComputingModelPart().NumberOfElements() != 0:
-            super(MultigridSolver, self).Predict()
+            super().Predict()
 
     # def SolveSolutionStep(self):
     #     if self._TimeBufferIsInitialized():
@@ -83,7 +82,7 @@ class MultigridSolver(EulerianPrimitiveVarSolver):
 
     def FinalizeSolutionStep(self):
         if self.GetComputingModelPart().NumberOfElements() != 0:
-            super(MultigridSolver, self).FinalizeSolutionStep()
+            super().FinalizeSolutionStep()
 
     def Finalize(self):
         self.multigrid.ExecuteFinalize()

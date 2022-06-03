@@ -77,7 +77,7 @@ private:
 
 protected:
 
-   typedef struct
+   struct BoxNoseVariables
    {
      int    Convexity;      //1 or -1 if "in" is inside or outside respectively
 
@@ -119,7 +119,7 @@ protected:
      }
 
 
-   } BoxNoseVariables;
+   };
 
 
 public:
@@ -557,7 +557,7 @@ public:
 
       ModelPart* pMainModelPart = &rModelPart;
       if( rModelPart.IsSubModelPart() )
-         pMainModelPart = rModelPart.GetParentModelPart();
+         pMainModelPart = &rModelPart.GetParentModelPart();
 
       for(ModelPart::SubModelPartIterator i_mp= pMainModelPart->SubModelPartsBegin() ; i_mp!=pMainModelPart->SubModelPartsEnd(); i_mp++)
       {

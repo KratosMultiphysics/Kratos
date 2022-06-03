@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -160,9 +160,6 @@ struct smoothed_aggr_emin {
         auto P = interpolation(Af, dia, *P_tent, omega);
         auto R = restriction  (Af, dia, *P_tent, omega);
         AMGCL_TOC("interpolation");
-
-        if (prm.nullspace.cols > 0)
-            prm.aggr.block_size = prm.nullspace.cols;
 
         return std::make_tuple(P, R);
     }

@@ -108,7 +108,6 @@ private:
 
     std::string mModelPartName;
     double mTurbulentMixingLength;
-    double mCmu_75;
     double mMinValue;
     bool mIsConstrained;
     int mEchoLevel;

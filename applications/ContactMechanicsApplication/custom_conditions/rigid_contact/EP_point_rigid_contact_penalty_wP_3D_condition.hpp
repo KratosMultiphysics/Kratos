@@ -63,31 +63,31 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) EPPointRigidContactPenaltywP3DCo
                            NodesArrayType const& ThisNodes) const override;
 
   void GetDofList(DofsVectorType& rConditionDofList,
-                  ProcessInfo& rCurrentProcessInfo ) override;
+                  const ProcessInfo& rCurrentProcessInfo ) const override;
 
   /**
    * Sets on rResult the ID's of the element degrees of freedom
    */
   void EquationIdVector(EquationIdVectorType& rResult,
-                        ProcessInfo& rCurrentProcessInfo ) override;
+                        const ProcessInfo& rCurrentProcessInfo ) const override;
 
   /**
    * Sets on rValues the nodal displacements
    */
   void GetValuesVector(Vector& rValues,
-                       int Step = 0 ) override;
+                       int Step = 0 ) const override;
 
   /**
    * Sets on rValues the nodal velocities
    */
   void GetFirstDerivativesVector(Vector& rValues,
-                                 int Step = 0 ) override;
+                                 int Step = 0 ) const override;
 
   /**
    * Sets on rValues the nodal accelerations
    */
   void GetSecondDerivativesVector(Vector& rValues,
-                                  int Step = 0 ) override;
+                                  int Step = 0 ) const override;
 
  protected:
   ///@name Protected static Member Variables

@@ -8,7 +8,7 @@ import KratosMultiphysics.StructuralMechanicsApplication
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
 
 # Other imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication.utilities import model_part_utilities
 
 def Create(settings, model, solver_name):
     return ExternalSolverWrapper(settings, model, solver_name)
@@ -21,13 +21,15 @@ class ExternalSolverWrapper(CoSimulationSolverWrapper):
         super(ExternalSolverWrapper, self).__init__(settings, model, solver_name)
 
         settings_defaults = KM.Parameters("""{
-            "import_meshes"    : [ ]
+            "import_meshes"    : [ ],
+            "export_data"      : [ ],
+            "import_data"      : [ ]
         }""")
 
         self.settings["solver_wrapper_settings"].ValidateAndAssignDefaults(settings_defaults)
 
-        cs_tools.CreateModelPartsFromCouplingData(self.data_dict.values(), self.model, self.name)
-        cs_tools.AllocateHistoricalVariablesFromCouplingData(self.data_dict.values(), self.model, self.name)
+        model_part_utilities.CreateModelPartsFromCouplingDataSettings(self.settings["data"], self.model, self.name)
+        model_part_utilities.AllocateHistoricalVariablesFromCouplingDataSettings(self.settings["data"], self.model, self.name)
 
     def Initialize(self):
         super(ExternalSolverWrapper, self).Initialize()
@@ -39,9 +41,22 @@ class ExternalSolverWrapper(CoSimulationSolverWrapper):
     def AdvanceInTime(self, current_time):
         return 0.0 # TODO find a better solution here... maybe get time from solver through IO
 
-    def PrintInfo(self):
-        cs_tools.cs_print_info(self._ClassName(), "printing info...")
-        ## TODO print additional stuff with higher echo-level
+    def SolveSolutionStep(self):
+        for data_name in self.settings["solver_wrapper_settings"]["export_data"].GetStringArray():
+            data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : self.GetInterfaceData(data_name)
+            }
+            self.ExportData(data_config)
+
+        super().SolveSolutionStep()
+
+        for data_name in self.settings["solver_wrapper_settings"]["import_data"].GetStringArray():
+            data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : self.GetInterfaceData(data_name)
+            }
+            self.ImportData(data_config)
 
     def _GetIOType(self):
         return self.settings["io_settings"]["type"].GetString()

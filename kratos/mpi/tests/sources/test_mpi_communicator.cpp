@@ -323,6 +323,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
     r_model_part.AddNodalSolutionStepVariable(VELOCITY);              // Variable< array_1d<double,3> >
     r_model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_VECTOR);  // Variable<Vector>
     r_model_part.AddNodalSolutionStepVariable(DEFORMATION_GRADIENT);  // Variable<Matrix>
+    r_model_part.AddNodalSolutionStepVariable(ORIENTATION);           // Variable<Quaternion<double>>
 
     MPIDataCommunicator comm_world(MPI_COMM_WORLD);
     Internals::ModelPartForMPICommunicatorTests(r_model_part, comm_world);
@@ -344,6 +345,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
         r_deformation_gradient.resize(3,2,false);
         r_deformation_gradient = ZeroMatrix(3,2);
         r_deformation_gradient(2,1) = 1.0;
+        i_node->FastGetSolutionStepValue(ORIENTATION) = Quaternion<double>(4.0,1.0,2.0,3.0);
     }
 
     r_comm.SynchronizeVariable(DOMAIN_SIZE);
@@ -389,6 +391,15 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
         KRATOS_CHECK_EQUAL(r_matrix.size2(), 2);
         KRATOS_CHECK_EQUAL(r_matrix(0,0), 0.0);
         KRATOS_CHECK_EQUAL(r_matrix(2,1), 1.0);
+    }
+
+    r_comm.SynchronizeVariable(ORIENTATION);
+    for (const auto& r_node : r_model_part.Nodes()) {
+        const auto& r_quaternion = r_node.FastGetSolutionStepValue(ORIENTATION);
+        KRATOS_CHECK_EQUAL(r_quaternion.X(), 1.0);
+        KRATOS_CHECK_EQUAL(r_quaternion.Y(), 2.0);
+        KRATOS_CHECK_EQUAL(r_quaternion.Z(), 3.0);
+        KRATOS_CHECK_EQUAL(r_quaternion.W(), 4.0);
     }
 }
 
@@ -516,6 +527,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataSynchronize, Krato
         r_deformation_gradient.resize(3,2,false);
         r_deformation_gradient = ZeroMatrix(3,2);
         r_deformation_gradient(2,1) = 1.0;
+        i_node->SetValue(ORIENTATION, Quaternion<double>(4.0,1.0,2.0,3.0));
     }
 
     r_comm.SynchronizeNonHistoricalVariable(DOMAIN_SIZE);
@@ -561,6 +573,15 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataSynchronize, Krato
         KRATOS_CHECK_EQUAL(r_matrix.size2(), 2);
         KRATOS_CHECK_EQUAL(r_matrix(0,0), 0.0);
         KRATOS_CHECK_EQUAL(r_matrix(2,1), 1.0);
+    }
+
+    r_comm.SynchronizeNonHistoricalVariable(ORIENTATION);
+    for (const auto& r_node : r_model_part.Nodes()) {
+        const auto& r_quaternion = r_node.GetValue(ORIENTATION);
+        KRATOS_CHECK_EQUAL(r_quaternion.X(), 1.0);
+        KRATOS_CHECK_EQUAL(r_quaternion.Y(), 2.0);
+        KRATOS_CHECK_EQUAL(r_quaternion.Z(), 3.0);
+        KRATOS_CHECK_EQUAL(r_quaternion.W(), 4.0);
     }
 }
 

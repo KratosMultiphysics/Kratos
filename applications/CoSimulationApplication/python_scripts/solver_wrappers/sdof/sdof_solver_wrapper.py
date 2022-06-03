@@ -28,6 +28,7 @@ class SdofSolverWrapper(CoSimulationSolverWrapper):
         return SDoFSolver(input_file_name)
 
     def Initialize(self):
+        super().Initialize()
         self._sdof_solver.Initialize()
 
     def OutputSolutionStep(self):

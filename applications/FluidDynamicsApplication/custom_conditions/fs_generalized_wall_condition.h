@@ -237,7 +237,7 @@ public:
     }
 
         /// Find the condition's parent element.
-	void Initialize() override
+	void Initialize(const ProcessInfo &rCurrentProcessInfo) override
 	{
 		KRATOS_TRY;
 
@@ -289,8 +289,9 @@ public:
 		KRATOS_CATCH("");
 	}
 
-	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-			ProcessInfo& rCurrentProcessInfo) override
+	void CalculateLeftHandSide(
+		MatrixType& rLeftHandSideMatrix,
+		const ProcessInfo& rCurrentProcessInfo) override
 	{
 		VectorType RHS;
 		this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
@@ -304,13 +305,13 @@ public:
 	 */
 	void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo) override
+			const ProcessInfo& rCurrentProcessInfo) override
 	{
 		KRATOS_TRY;
 
 		if (mInitializeWasPerformed == false)
 		{
-		        Initialize();
+		        Initialize(rCurrentProcessInfo);
 		}
 
 		if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
@@ -370,7 +371,7 @@ public:
 	}
 
 	/// Check that all data required by this condition is available and reasonable.
-	int Check(const ProcessInfo& rCurrentProcessInfo) override
+	int Check(const ProcessInfo& rCurrentProcessInfo) const override
 	{
 		KRATOS_TRY;
 
@@ -382,20 +383,6 @@ public:
 		}
 		else
 		{
-			// Check that all required variables have been registered
-			if(VELOCITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-			if(PRESSURE.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
-			if(MESH_VELOCITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
-			if(DENSITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
-			if(VISCOSITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
-			if(NORMAL.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"NORMAL Key is 0. Check if the application was correctly registered.","");
-
 			// Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
 			for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
 			{
@@ -429,7 +416,7 @@ public:
 	 * @param rCurrentProcessInfo the current process info object
 	 */
 	void EquationIdVector(EquationIdVectorType& rResult,
-			ProcessInfo& rCurrentProcessInfo) override;
+			const ProcessInfo& rCurrentProcessInfo) const override;
 
 	/// Returns a list of the condition's Dofs.
 	/**
@@ -437,14 +424,14 @@ public:
 	 * @param rCurrentProcessInfo the current process info instance
 	 */
 	void GetDofList(DofsVectorType& rConditionDofList,
-			ProcessInfo& rCurrentProcessInfo) override;
+			const ProcessInfo& rCurrentProcessInfo) const override;
 
 	/// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z) for each node.
 	/**
 	 * @param Values Vector of nodal unknowns
 	 * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
 	 */
-	void GetValuesVector(Vector& Values, int Step = 0) override
+	void GetValuesVector(Vector& Values, int Step = 0) const override
 	{
 		const SizeType LocalSize = TDim * TNumNodes;
 		unsigned int LocalIndex = 0;
@@ -456,7 +443,7 @@ public:
 
 		for (unsigned int i = 0; i < TNumNodes; ++i)
 		{
-			array_1d<double,3>& rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
+			const array_1d<double,3>& rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
 			for (unsigned int d = 0; d < TDim; ++d)
 			{
 				Values[LocalIndex++] = rVelocity[d];
@@ -843,7 +830,7 @@ protected:
 	 */
 	void ApplyIACPenalty(MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo)
+			const ProcessInfo& rCurrentProcessInfo)
 	{
 		GeometryType& rGeometry = this->GetGeometry();
 		const array_1d<double,3>& rNormal = this->GetValue(NORMAL);

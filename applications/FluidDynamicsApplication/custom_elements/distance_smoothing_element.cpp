@@ -245,7 +245,7 @@ void DistanceSmoothingElement<2>::CalculateLocalSystem(
     const double dt = rCurrentProcessInfo.GetValue(DELTA_TIME);
     const auto& geometry = this->GetGeometry();
     const double he = ElementSizeCalculator<num_dim,num_nodes>::AverageElementSize(geometry);
-    const double epsilon = 1.0e2*dt*he*he;
+    const double epsilon = (rCurrentProcessInfo.GetValue(SMOOTHING_COEFFICIENT))*dt*he*he;
 
     BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix
     array_1d<double,num_nodes> N; // dimension = number of nodes . Position of the gauss point
@@ -306,12 +306,6 @@ void DistanceSmoothingElement<2>::CalculateLocalSystem(
                 auto IntegrationMethod = GeometryData::GI_GAUSS_1;
                 auto face_gauss_pts = outer_face.IntegrationPoints(IntegrationMethod);
                 const unsigned int num_int_pts = face_gauss_pts.size();
-
-                std::vector < GeometryType::CoordinatesArrayType > face_gauss_pts_gl_coords, face_gauss_pts_loc_coords;
-                face_gauss_pts_gl_coords.clear();
-                face_gauss_pts_loc_coords.clear();
-                face_gauss_pts_gl_coords.reserve(num_int_pts);
-                face_gauss_pts_loc_coords.reserve(num_int_pts);
 
                 VectorType face_jacobians;
                 outer_face.DeterminantOfJacobian(face_jacobians, IntegrationMethod);
@@ -398,7 +392,7 @@ void DistanceSmoothingElement<3>::CalculateLocalSystem(
     const double dt = rCurrentProcessInfo.GetValue(DELTA_TIME);
     const auto& geometry = this->GetGeometry();
     const double he = ElementSizeCalculator<num_dim,num_nodes>::AverageElementSize(geometry);
-    const double epsilon = 1.0e2*dt*he*he;
+    const double epsilon = (rCurrentProcessInfo.GetValue(SMOOTHING_COEFFICIENT))*dt*he*he;
 
     BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix
     array_1d<double,num_nodes> N; // dimension = number of nodes . Position of the gauss point
@@ -460,12 +454,6 @@ void DistanceSmoothingElement<3>::CalculateLocalSystem(
                 auto IntegrationMethod = GeometryData::GI_GAUSS_1;
                 auto face_gauss_pts = outer_face.IntegrationPoints(IntegrationMethod);
                 const unsigned int num_int_pts = face_gauss_pts.size();
-
-                std::vector < GeometryType::CoordinatesArrayType > face_gauss_pts_gl_coords, face_gauss_pts_loc_coords;
-                face_gauss_pts_gl_coords.clear();
-                face_gauss_pts_loc_coords.clear();
-                face_gauss_pts_gl_coords.reserve(num_int_pts);
-                face_gauss_pts_loc_coords.reserve(num_int_pts);
 
                 VectorType face_jacobians;
                 outer_face.DeterminantOfJacobian(face_jacobians, IntegrationMethod);

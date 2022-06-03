@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -61,41 +62,53 @@ public:
     /// Pointer definition of MPCContactCriteria
     KRATOS_CLASS_POINTER_DEFINITION( MPCContactCriteria );
 
-    /// The base class definition (and it subclasses)
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >                    BaseType;
-    typedef typename BaseType::TDataType                                       TDataType;
-    typedef typename BaseType::DofsArrayType                               DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType                       TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType                       TSystemVectorType;
+    /// The base class definition
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
-    /// The sparse space used
-    typedef TSparseSpace                                                 SparseSpaceType;
+    /// The definition of the current class
+    typedef MPCContactCriteria< TSparseSpace, TDenseSpace > ClassType;
 
-    /// The components containers
-    typedef ModelPart::NodesContainerType                                 NodesArrayType;
-    typedef ModelPart::ElementsContainerType                           ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
-    typedef ModelPart::MasterSlaveConstraintContainerType            ConstraintArrayType;
+    /// The dofs array type
+    typedef typename BaseType::DofsArrayType            DofsArrayType;
+
+    /// The sparse matrix type
+    typedef typename BaseType::TSystemMatrixType    TSystemMatrixType;
+
+    /// The dense vector type
+    typedef typename BaseType::TSystemVectorType    TSystemVectorType;
 
     /// The table stream definition TODO: Replace by logger
-    typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
+    typedef TableStreamUtility::Pointer       TablePrinterPointerType;
 
     /// The index type definition
-    typedef std::size_t                                                        IndexType;
+    typedef std::size_t                                     IndexType;
 
     // Geometry definition
-    typedef Node<3>                                                             NodeType;
-    typedef Geometry<NodeType>                                              GeometryType;
-    typedef CouplingGeometry<NodeType>                              CouplingGeometryType;
+    typedef Node<3>                                          NodeType;
+    typedef CouplingGeometry<NodeType>           CouplingGeometryType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructors
+    /**
+     * @brief Default constructor.
+     */
     explicit MPCContactCriteria()
         : BaseType()
     {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit MPCContactCriteria(Kratos::Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     ///Copy constructor
@@ -110,6 +123,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Criterias that need to be called before getting the solution
@@ -134,7 +160,7 @@ public:
         const array_1d<double, 3> zero_array = ZeroVector(3);
 
         // We initailize the contact force
-        NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
         const auto it_node_begin = r_nodes_array.begin();
 
         // We save the current WEIGHTED_GAP in the buffer and reset the CONTACT_FORCE
@@ -219,7 +245,7 @@ public:
             const double auxiliar_check = young_modulus > 0.0 ? -(reaction_check_stiffness_factor * young_modulus) : 0.0;
 
             // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
-            NodesArrayType& r_nodes_array = r_contact_model_part.Nodes();
+            auto& r_nodes_array = r_contact_model_part.Nodes();
             const auto it_node_begin = r_nodes_array.begin();
 
             // If frictionaless or mesh tying
@@ -309,7 +335,7 @@ public:
             }
 
             // We set the constraints active and inactive in function of the active set
-            ConditionsArrayType& r_conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
+            auto& r_conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
             auto it_cond_begin = r_conditions_array.begin();
 
             #pragma omp parallel for
@@ -371,9 +397,31 @@ public:
         BaseType::Initialize(rModelPart);
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "mpc_contact_criteria"
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "mpc_contact_criteria";
+    }
 
     ///@}
     ///@name Acces
@@ -382,6 +430,28 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "MPCContactCriteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -403,6 +473,15 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+    }
 
     ///@}
     ///@name Protected  Access
@@ -440,7 +519,7 @@ private:
      */
     void ComputeWeightedGap(ModelPart& rModelPart)
     {
-        NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
         // Set to zero the weighted gap
         if (rModelPart.Is(SLIP)) {
             // Reset

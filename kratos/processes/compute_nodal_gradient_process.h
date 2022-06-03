@@ -282,6 +282,12 @@ private:
     // TODO: Try to use enable_if!!!
 
     /**
+     * This checks the definition and correct initialization of the origin variable, for which the
+     * gradient will be computed, and the variable chosen to compute the area.
+     */
+    void CheckOriginAndAreaVariables();
+
+    /**
      * This clears the gradient
      */
     void ClearGradient();
@@ -297,9 +303,21 @@ private:
         );
 
     /**
+     * @brief This function computes the elemental gradient of the origin variable and
+     * adds it to its corresponding nodes. It also computes the contribution of the element
+     * to the nodal volume.
+     */
+    void ComputeElementalContributionsAndVolume();
+
+    /**
      * @brief This divides the gradient value by the nodal area
      */
     void PonderateGradient();
+
+    /**
+     * @brief This synchronizes the nodal contributions in parallel runs. Only needed in MPI.
+     */
+    void SynchronizeGradientAndVolume();
 
     ///@}
     ///@name Private  Access

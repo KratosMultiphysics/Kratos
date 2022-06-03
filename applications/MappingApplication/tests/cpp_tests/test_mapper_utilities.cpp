@@ -72,7 +72,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIds, KratosMapp
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBox, KratosMappingApplicationSerialTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeLocalBoundingBox, KratosMappingApplicationSerialTestSuite)
 {
     Model current_model;
     ModelPart& model_part = current_model.CreateModelPart("Generated");
@@ -83,6 +83,29 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBox, KratosMappingAppli
     model_part.CreateNewNode(4, 12.6, 5.3, -8.3);
 
     const auto bbox = MapperUtilities::ComputeLocalBoundingBox(model_part);
+
+    // std::cout << MapperUtilities::BoundingBoxStringStream(bbox) << std::endl;
+
+    KRATOS_CHECK_EQUAL(bbox.size(), 6);
+    KRATOS_CHECK_DOUBLE_EQUAL(bbox[0], 12.6);
+    KRATOS_CHECK_DOUBLE_EQUAL(bbox[1], -9.2);
+    KRATOS_CHECK_DOUBLE_EQUAL(bbox[2], 25.3);
+    KRATOS_CHECK_DOUBLE_EQUAL(bbox[3], -17.13);
+    KRATOS_CHECK_DOUBLE_EQUAL(bbox[4], 16.4);
+    KRATOS_CHECK_DOUBLE_EQUAL(bbox[5], -8.3);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeGlobalBoundingBox, KratosMappingApplicationSerialTestSuite)
+{
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Generated");
+
+    model_part.CreateNewNode(1, 0.2, 5.3, -8.3);
+    model_part.CreateNewNode(2, 8.2, 25.3, 16.4);
+    model_part.CreateNewNode(3, -9.2, -17.13, 1.5);
+    model_part.CreateNewNode(4, 12.6, 5.3, -8.3);
+
+    const auto bbox = MapperUtilities::ComputeGlobalBoundingBox(model_part);
 
     // std::cout << MapperUtilities::BoundingBoxStringStream(bbox) << std::endl;
 
@@ -133,7 +156,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBoxWithTol, KratosMappi
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_PointIsInsideBoundingBox, KratosMappingApplicationSerialTestSuite)
 {
-    const std::vector<double> bounding_box {10.5, -2.8, 3.89, -77.6, 4.64, 2.3};
+    const MapperUtilities::BoundingBoxType bounding_box {10.5, -2.8, 3.89, -77.6, 4.64, 2.3};
     // xmax, xmin,  ymax, ymin,  zmax, zmin
 
     const Point p_out_x(10.6, 1.0, 3.8);

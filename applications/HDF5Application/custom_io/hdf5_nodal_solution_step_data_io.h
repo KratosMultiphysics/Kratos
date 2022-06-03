@@ -61,10 +61,10 @@ public:
     ///@name Operations
     ///@{
 
-    void WriteNodalResults(NodesContainerType const& rNodes, unsigned Step=0);
+    void WriteNodalResults(ModelPart& rModelPart, unsigned Step=0);
 
-    void ReadNodalResults(NodesContainerType& rNodes, Communicator& rComm, unsigned Step=0);
-    
+    void ReadNodalResults(ModelPart& rModelPart, unsigned Step=0);
+
     ///@}
 
 protected:

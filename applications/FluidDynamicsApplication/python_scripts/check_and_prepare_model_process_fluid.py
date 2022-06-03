@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -9,6 +8,7 @@ def Factory(settings, Model):
 ## All the processes python should be derived from "Process"
 class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
     def __init__(self, main_model_part, Parameters ):
+        KratosMultiphysics.Process.__init__(self)
         self.main_model_part = main_model_part
 
         default_parameters = KratosMultiphysics.Parameters(r'''{

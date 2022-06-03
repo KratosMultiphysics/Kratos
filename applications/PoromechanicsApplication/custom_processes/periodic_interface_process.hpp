@@ -117,8 +117,8 @@ public:
             Condition::GeometryType& rGeom = itCond->GetGeometry();
 
             Matrix NodalStressMatrix(mDimension,mDimension);
-            noalias(NodalStressMatrix) = 0.5 * ( rGeom[0].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)
-                                                + rGeom[1].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) );
+            noalias(NodalStressMatrix) = 0.5 * ( rGeom[0].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR)
+                                                + rGeom[1].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR) );
             Vector PrincipalStresses(mDimension);
             if(mDimension == 2)
             {

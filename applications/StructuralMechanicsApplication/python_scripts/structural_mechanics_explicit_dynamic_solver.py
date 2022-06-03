@@ -26,7 +26,7 @@ class ExplicitMechanicalSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[ExplicitMechanicalSolver]:: Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "time_integration_method"    : "explicit",
             "scheme_type"                : "central_differences",
@@ -37,7 +37,7 @@ class ExplicitMechanicalSolver(MechanicalSolver):
             "rayleigh_alpha"             : 0.0,
             "rayleigh_beta"              : 0.0
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):

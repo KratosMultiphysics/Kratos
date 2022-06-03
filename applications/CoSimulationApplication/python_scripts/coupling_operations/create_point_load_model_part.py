@@ -37,13 +37,13 @@ class CreatePointLoadModelPart(CoSimulationCouplingOperation):
         struct_smp.AddNodes(node_id_list)
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver"    : "UNSPECIFIED",
             "sub_model_part_name" : "UNSPECIFIED",
             "computing_model_part_name" : "UNSPECIFIED"
         }""")
-        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
 
 

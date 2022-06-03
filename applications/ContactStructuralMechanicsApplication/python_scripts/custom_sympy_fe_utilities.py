@@ -1,4 +1,11 @@
+# Import base sympy_fe_utilities
+import KratosMultiphysics
+import KratosMultiphysics.sympy_fe_utilities as sympy_fe_utilities
+
+# Import sympy
 import sympy
+
+#TODO: Define base utilities as a class to avoid redefine mehods
 
 def GetSympyVersion():
     """ This method returns the current Sympy version
@@ -41,7 +48,7 @@ def DefineSymmetricMatrix( name, m, n = -1, mode = "Symbol"):
     for i in range(0,tmp.shape[0]):
         for j in range(i+1,tmp.shape[1]):
             tmp[j,i] = tmp[i,j]
-   
+
     return tmp
 
 def DefineVector( name, m, mode = "Symbol"):
@@ -72,21 +79,8 @@ def DefineShapeFunctions(nnodes, dim, impose_partion_of_unity = False):
     dim -- Dimension of the space
     impose_partion_of_unity -- Impose the partition of unity
     """
-    DN = DefineMatrix('DN',nnodes,dim)
-    N = DefineVector('N',nnodes)
-    
-    # Impose partition of unity
-    if(impose_partion_of_unity == True):
-        N[nnodes-1] = 1
-        for i in range(0,nnodes-1):
-            N[nnodes-1] -= N[i]
-            
-        DN[nnodes-1,:] = -DN[0,:]
-        for i in range(1,nnodes-1):
-            DN[nnodes-1,:] -= DN[i,:]
-    
-    return N,DN
-    
+    return sympy_fe_utilities.DefineShapeFunctions(nnodes, dim, impose_partion_of_unity)
+
 def DefineCustomShapeFunctions(nnodes, dim, name):
     """ This method defines shape functions and derivatives (custom version)
 
@@ -97,23 +91,16 @@ def DefineCustomShapeFunctions(nnodes, dim, name):
     """
     DN = DefineMatrix('D'+name,nnodes,dim)
     N = DefineVector(name ,nnodes)
-    
+
     return N,DN
-    
+
 def StrainToVoigt(M):
     """ This method transform the strains matrix to Voigt notation
 
     Keyword arguments:
     M -- The strain matrix
     """
-    if M.shape[0] == 2:
-        vm = sympy.Matrix( 3,1, sympy.zeros(3,1))
-        vm[0,0] = M[0,0]
-        vm[1,0] = M[1,1]
-        vm[2,0] = 2.0*M[0,1]
-    elif M.shape[0] == 3:
-        raise Exception("Not implemented yet")
-    return vm
+    return sympy_fe_utilities.StrainToVoigt(M)
 
 def MatrixB(DN):
     """ This method defines the deformation matrix B
@@ -121,35 +108,8 @@ def MatrixB(DN):
     Keyword arguments:
     DN -- The shape function derivatives
     """
-    dim = DN.shape[1] 
-    if dim == 2:
-        strain_size = 3
-        nnodes = DN.shape[0]
-        B = sympy.Matrix( sympy.zeros(strain_size, nnodes*dim) )
-        for i in range(0,nnodes):
-            for k in range(0,dim):
-                B[0,i*dim] = DN[i,0]; B[0, i*dim+1] = 0;
-                B[1,i*dim] = 0;       B[1, i*dim+1] = DN[i,1];
-                B[2,i*dim] = DN[i,1]; B[2, i*dim+1] = DN[i,0];        
-    elif dim == 3:
-        strain_size = 6
-        nnodes = DN.shape[0]
-        B = sympy.Matrix( sympy.zeros(strain_size, nnodes*dim) )
-        for i in range(0,nnodes):
-            B[ 0, i*3 ] = DN[ i, 0 ];
-            B[ 1, i*3 + 1 ] = DN[ i, 1 ];
-            B[ 2, i*3 + 2 ] = DN[ i, 2 ];
-            B[ 3, i*3 ] = DN[ i, 1 ];
-            B[ 3, i*3 + 1 ] = DN[ i, 0 ];
-            B[ 4, i*3 + 1 ] = DN[ i, 2 ];
-            B[ 4, i*3 + 2 ] = DN[ i, 1 ];
-            B[ 5, i*3 ] = DN[ i, 2 ];
-            B[ 5, i*3 + 2 ] = DN[ i, 0 ];
-    else:
-        print("Dimension askedi n Matrix B is ",dim)
-        raise Exception("Wrong dimension")
-    return B
-            
+    return sympy_fe_utilities.MatrixB(DN)
+
 def grad_sym_voigtform(DN, x):
     """ This method defines a symmetric gradient
 
@@ -157,17 +117,7 @@ def grad_sym_voigtform(DN, x):
     DN -- The shape function derivatives
     x -- The variable to compute the gradient
     """
-    [nnodes, dim] = x.shape
-
-    B = MatrixB(DN)
-    
-    # Put the x components one after the other in a vector
-    xvec = sympy.Matrix( sympy.zeros(B.shape[1], 1 ) );
-    for i in range(0,nnodes):
-        for k in range(0,dim):
-            xvec[i*dim+k] = x[i,k]
-    
-    return sympy.simplify( B*xvec )
+    return sympy_fe_utilities.grad_sym_voigtform(DN, x)
 
 def grad(DN,x):
     """ This method defines a gradient
@@ -176,7 +126,25 @@ def grad(DN,x):
     DN -- The shape function derivatives
     x -- The variable to compute the gradient
     """
-    return sympy.simplify(DN.transpose()*x)
+    return sympy_fe_utilities.grad(DN, x)
+
+def DfjDxi(DN,f):
+    """ This method defines a gradient. This returns a matrix D such that D(i,j) = D(fj)/D(xi)
+
+    Keyword arguments:
+    DN -- The shape function derivatives
+    f-- The variable to compute the gradient
+    """
+    return sympy_fe_utilities.DfjDxi(DN, f)
+
+def DfiDxj(DN,f):
+    """ This method defines a gradient This returns a matrix D such that D(i,j) = D(fi)/D(xj)
+
+    Keyword arguments:
+    DN -- The shape function derivatives
+    f -- The variable to compute the gradient
+    """
+    return sympy_fe_utilities.DfiDxj(DN, f)
 
 def div(DN,x):
     """ This method defines the divergence
@@ -185,15 +153,7 @@ def div(DN,x):
     DN -- The shape function derivatives
     x -- The variable to compute the gradient
     """
-    if DN.shape != x.shape:
-        raise Exception("Shapes are not compatible")
-    
-    div_x = 0
-    for i in range(0,DN.shape[0]):
-        for k in range(0,DN.shape[1]):
-            div_x += DN[i,k]*x[i,k]
-    
-    return sympy.Matrix( [ sympy.simplify(div_x) ])
+    return sympy_fe_utilities.div(DN, x)
 
 def DefineJacobian(J, DN, x):
     """ This method defines a Jacobian
@@ -203,10 +163,10 @@ def DefineJacobian(J, DN, x):
     DN -- The shape function derivatives
     x -- The variable to compute the gradient
     """
-    
+
     [nnodes, dim] = x.shape
     localdim = dim - 1
-    
+
     if (dim == 2):
         if (nnodes == 2):
             J[0,0] = 0.5 * (x[1,0] - x[0,0])
@@ -223,12 +183,12 @@ def DefineJacobian(J, DN, x):
             for i in range(dim):
                 for j in range(localdim):
                     J[i, j] =  0
-                    
+
             for i in range(nnodes):
                 for k in range(dim):
                     for m in range(localdim):
                         J[k,m] += x[i,k] * DN[i,m]
-    
+
     return J
 
 def DefineCalculateNormals(normal, tangent1, tangent2, J):
@@ -241,8 +201,8 @@ def DefineCalculateNormals(normal, tangent1, tangent2, J):
     J -- The Jacobian matrix
     """
 
-    [nnodes, dim] = normal.shape 
-    
+    [nnodes, dim] = normal.shape
+
     for node in range(nnodes):
         norm = sympy.sqrt((J.col(0).transpose()*J.col(0))[0,0])
         tangent1[dim*node] = (J.col(0)).transpose()/norm
@@ -253,7 +213,7 @@ def DefineCalculateNormals(normal, tangent1, tangent2, J):
             norm = sympy.sqrt((J.col(1).transpose()*J.col(1))[0,0])
             tangent2[dim*node] = (J.col(1)).transpose()/norm
             normal[dim*node] = (tangent1.row(node)).cross(tangent2.row(node))
-    
+
     return normal, tangent1, tangent2
 
 def CreateVariableMatrixList(variable_list, variable_matrix):
@@ -268,7 +228,7 @@ def CreateVariableMatrixList(variable_list, variable_matrix):
     for i in range(0,nnodes):
         for k in range(0,dim):
             variable_list.append(variable_matrix[i,k])
-            
+
 def CreateVariableVectorList(variable_list, variable_vector):
     """ This method creates a variable list from variable vector
 
@@ -279,7 +239,7 @@ def CreateVariableVectorList(variable_list, variable_vector):
     nnodes = variable_vector.shape[0]
     for i in range(0,nnodes):
         variable_list.append(variable_vector[i])
-    
+
 def DefineDofDependencyScalar(scalar, variable_list):
     """ This method injects a dependency into a scalar from a variable list
 
@@ -311,7 +271,7 @@ def DefineDofDependencyMatrix(matrix, variable_list):
         for k in range(0,matrix.shape[1]):
             matrix[i, k] = DefineDofDependencyScalar(matrix[i, k], variable_list)
     return matrix
-    
+
 def SubstituteMatrixValue( where_to_substitute, what_to_substitute, substituted_value ):
     """ This method substitutes values into a matrix
 
@@ -320,17 +280,8 @@ def SubstituteMatrixValue( where_to_substitute, what_to_substitute, substituted_
     what_to_substitute -- Components to substitute
     substituted_value -- Variable to substitute
     """
-    for lll  in range(where_to_substitute.shape[0] ) :
-        for kkk  in range(where_to_substitute.shape[1] ) :
-            tmp  = where_to_substitute[lll,kkk]
-            for i in range(what_to_substitute.shape[0]):
-                for j in range(what_to_substitute.shape[1]):
-                    tmp = tmp.subs( what_to_substitute[i,j], substituted_value[i,j] )
-                
-            where_to_substitute[lll,kkk] = tmp
-        
-    return where_to_substitute
-   
+    return sympy_fe_utilities.SubstituteMatrixValue( where_to_substitute, what_to_substitute, substituted_value )
+
 def SubstituteScalarValue( where_to_substitute, what_to_substitute, substituted_value ):
     """ This method substitutes values into a scalar
 
@@ -339,11 +290,7 @@ def SubstituteScalarValue( where_to_substitute, what_to_substitute, substituted_
     what_to_substitute -- Components to substitute
     substituted_value -- Variable to substitute
     """
-    for lll  in range(where_to_substitute.shape[0] ) :
-        tmp  = where_to_substitute[lll]
-        tmp = tmp.subs( what_to_substitute, substituted_value )
-        where_to_substitute[lll] = tmp
-    return where_to_substitute
+    return sympy_fe_utilities.SubstituteScalarValue( where_to_substitute, what_to_substitute, substituted_value )
 
 def GetShapeFunctionDefinitionLine2D2N(x,xg):
     """ This computes the shape functions on 2D line
@@ -353,9 +300,9 @@ def GetShapeFunctionDefinitionLine2D2N(x,xg):
     xg -- Gauss point
     """
     N = sympy.zeros(2)
-    N[0] = (-x[1,0]+ xg[0]-x[1,1]+xg[1]) / (x[0,0] - x[1,0] + x[0,1] - x[1,1]) 
+    N[0] = (-x[1,0]+ xg[0]-x[1,1]+xg[1]) / (x[0,0] - x[1,0] + x[0,1] - x[1,1])
     N[1] = 1-N[0]
-            
+
     return N
 
 def GetShapeFunctionDefinitionLine3D3N(x,xg):
@@ -369,7 +316,7 @@ def GetShapeFunctionDefinitionLine3D3N(x,xg):
     N[1] = -(((x[1,2]-x[2,2])*(x[2,0]+x[2,1]-xg[0]-xg[1])-(x[1,0]+x[1,1]-x[2,0]-x[2,1])*(x[2,2]-xg[2]))/(-(x[1,0]+x[1,1]-x[2,0]-x[2,1])*(x[0,2]-x[2,2])+(x[0,0]+x[0,1]-x[2,0]-x[2,1])*(x[1,2]-x[2,2])))
     N[2] = -((x[0,2]*x[2,0]+x[0,2]*x[2,1]-x[0,0]*x[2,2]-x[0,1]*x[2,2]-x[0,2]*xg[0]+x[2,2]*xg[0]-x[0,2]*xg[1]+x[2,2]*xg[1]+x[0,0]*xg[2]+x[0,1]*xg[2]-x[2,0]*xg[2]-x[2,1]*xg[2])/(x[0,2]*x[1,0]+x[0,2]*x[1,1]-x[0,0]*x[1,2]-x[0,1]*x[1,2]-x[0,2]*x[2,0]+x[1,2]*x[2,0]-x[0,2]*x[2,1]+x[1,2]*x[2,1]+x[0,0]*x[2,2]+x[0,1]*x[2,2]-x[1,0]*x[2,2]-x[1,1]*x[2,2]))
     N[0] = 1 - N[1] -N[2]
-    
+
     return N
 
 def Compute_RHS(functional, testfunc, do_simplifications = False):
@@ -380,14 +327,7 @@ def Compute_RHS(functional, testfunc, do_simplifications = False):
     testfunc -- The test functions
     do_simplifications -- If apply simplifications
     """
-    rhs = sympy.Matrix( sympy.zeros(testfunc.shape[0],1) )
-    for i in range(0,testfunc.shape[0]):
-        rhs[i] = sympy.diff(functional[0,0], testfunc[i])
-        
-        if do_simplifications:
-            rhs[i] = sympy.simplify(rhs[i])
-
-    return rhs
+    return sympy_fe_utilities.Compute_RHS(functional, testfunc, do_simplifications)
 
 def Compute_LHS(rhs, testfunc, dofs, do_simplifications = False):
     """ This computes the LHS matrix
@@ -398,15 +338,7 @@ def Compute_LHS(rhs, testfunc, dofs, do_simplifications = False):
     dofs -- The dofs vectors
     do_simplifications -- If apply simplifications
     """
-    lhs = sympy.Matrix( sympy.zeros(testfunc.shape[0],dofs.shape[0]) )
-    for i in range(0,lhs.shape[0]):
-        for j in range(0,lhs.shape[1]):
-            lhs[i,j] = -sympy.diff(rhs[i,0], dofs[j,0])
-            
-            if do_simplifications:
-                lhs[i,j] = sympy.simplify(lhs[i,j])
-
-    return lhs
+    return sympy_fe_utilities.Compute_LHS(rhs, testfunc, dofs, do_simplifications)
 
 def Compute_RHS_and_LHS(functional, testfunc, dofs, do_simplifications = False):
     """ This computes the LHS matrix and the RHS vector
@@ -417,10 +349,9 @@ def Compute_RHS_and_LHS(functional, testfunc, dofs, do_simplifications = False):
     dofs -- The dofs vectors
     do_simplifications -- If apply simplifications
     """
-    rhs = Compute_RHS(functional, testfunc, do_simplifications)
-    lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications)
-    return rhs,lhs
+    return sympy_fe_utilities.Compute_RHS_and_LHS(functional, testfunc, dofs, do_simplifications)
 
+# TODO: Unify with base utilities
 def OutputVector(rhs, name, mode="python", initial_tabs = 1,max_index=30, aux_dict={}):
     """ This method converts into text the RHS vector
 
@@ -435,10 +366,10 @@ def OutputVector(rhs, name, mode="python", initial_tabs = 1,max_index=30, aux_di
     initial_spaces = ""
     for i in range(0,initial_tabs):
         initial_spaces += str("    ")
-    
+
     outstring = ""
     for i in range(0,rhs.shape[0]):
-        
+
         if mode == "python":
             outstring += initial_spaces + name + "[" +str(i)+ "]=" +str(rhs[i,0])+"\n"
         elif mode=="c":
@@ -453,7 +384,7 @@ def OutputVector(rhs, name, mode="python", initial_tabs = 1,max_index=30, aux_di
                     outstring += initial_spaces + name +  "[" +str(i)+ "]=" + "//subsvar_" + sympy.ccode(rhs[i,0]).split("\n",2)[2]+ ";\n"
             else:
                 outstring += initial_spaces + name + "[" +str(i)+ "]=" + sympy.ccode(rhs[i,0])+ ";\n"
-            
+
     # Matrix entries (two indices)
     for i in range(0,max_index):
         for j in range(0,max_index):
@@ -465,7 +396,7 @@ def OutputVector(rhs, name, mode="python", initial_tabs = 1,max_index=30, aux_di
             if not "//subsvar_" in outstring:
                 newstring = outstring.replace(to_be_replaced, replacement_string)
                 outstring = newstring
-            
+
     # Vector entries(one index(
     for i in range(0,max_index):
         replacement_string =  "[" +str(i)+ "]"
@@ -473,9 +404,10 @@ def OutputVector(rhs, name, mode="python", initial_tabs = 1,max_index=30, aux_di
         if not "//subsvar_" in outstring:
             newstring = outstring.replace(to_be_replaced, replacement_string)
             outstring = newstring
-            
+
     return outstring
 
+# TODO: Unify with base utilities
 def OutputMatrix(lhs, name, mode, initial_tabs = 1, max_index=30, aux_dict={}):
     """ This method converts into text the LHS matrix
 
@@ -507,7 +439,7 @@ def OutputMatrix(lhs, name, mode, initial_tabs = 1, max_index=30, aux_dict={}):
                         outstring += initial_spaces + name +  "(" +str(i)+ "," + str(j) + ")=" +"//subsvar_" + sympy.ccode(lhs[i,j]).split("\n",2)[2]+ ";\n"
                 else:
                     outstring += initial_spaces + name +  "(" +str(i)+ "," + str(j) + ")=" +sympy.ccode(lhs[i,j]) + ";\n"
-    
+
     # Matrix entries (two indices)
     for i in range(0,max_index):
         for j in range(0,max_index):
@@ -519,7 +451,7 @@ def OutputMatrix(lhs, name, mode, initial_tabs = 1, max_index=30, aux_dict={}):
             if not "//subsvar_" in outstring:
                 newstring = outstring.replace(to_be_replaced, replacement_string)
                 outstring = newstring
-            
+
     # Vector entries(one index(
     for i in range(0,max_index):
         replacement_string =  "[" + str(i) + "]"
@@ -527,9 +459,10 @@ def OutputMatrix(lhs, name, mode, initial_tabs = 1, max_index=30, aux_dict={}):
         if not "//subsvar_" in outstring:
             newstring = outstring.replace(to_be_replaced, replacement_string)
             outstring = newstring
-            
+
     return outstring
 
+# TODO: Unify with base utilities
 def OutputVectorNonZero(rhs,name, mode="python", initial_tabs = 1,max_index=30,aux_dict={}):
     """ This method converts into text the RHS vector (only non-zero terms)
 
@@ -544,10 +477,10 @@ def OutputVectorNonZero(rhs,name, mode="python", initial_tabs = 1,max_index=30,a
     initial_spaces = ""
     for i in range(0,initial_tabs):
         initial_spaces += "    "
-    
+
     outstring = ""
     for i in range(0,rhs.shape[0]):
-        
+
         if mode == "python":
             outstring += initial_spaces + name + "[" + str(i) + "]+=" + str(rhs[i,0]) + "\n"
         elif mode=="c":
@@ -563,7 +496,7 @@ def OutputVectorNonZero(rhs,name, mode="python", initial_tabs = 1,max_index=30,a
                         outstring += initial_spaces + name +  "[" + str(i) + "]+=" + "//subsvar_" + sympy.ccode(rhs[i,0]).split("\n",2)[2]+ ";\n"
                 else:
                     outstring += initial_spaces + name +  "[" +str(i)+ "]+=" + sympy.ccode(rhs[i,0])+ ";\n"
-            
+
     # Matrix entries (two indices)
     for i in range(0, max_index):
         for j in range(0, max_index):
@@ -575,7 +508,7 @@ def OutputVectorNonZero(rhs,name, mode="python", initial_tabs = 1,max_index=30,a
             if not "//subsvar_" in outstring:
                 newstring = outstring.replace(to_be_replaced, replacement_string)
                 outstring = newstring
-            
+
     # Vector entries(one index)
     for i in range(0,max_index):
         replacement_string =  "[" +str(i)+ "]"
@@ -583,10 +516,10 @@ def OutputVectorNonZero(rhs,name, mode="python", initial_tabs = 1,max_index=30,a
         if not "//subsvar_" in outstring:
             newstring = outstring.replace(to_be_replaced, replacement_string)
             outstring = newstring
-            
-    return outstring
-    
 
+    return outstring
+
+# TODO: Unify with base utilities
 def OutputMatrixNonZero(lhs, name, mode, initial_tabs = 1, max_index=30,aux_dict={}):
     """ This method converts into text the LHS matrix (only non-zero terms)
 
@@ -619,7 +552,7 @@ def OutputMatrixNonZero(lhs, name, mode, initial_tabs = 1, max_index=30,aux_dict
                             outstring += initial_spaces + name + "(" +str(i)+ "," +str(j) + ")+=" + "//subsvar_" + sympy.ccode(lhs[i,j]).split("\n",2)[2]+ ";\n"
                     else:
                         outstring += initial_spaces + name + "(" +str(i)+ "," +str(j) + ")+=" + sympy.ccode(lhs[i,j])+ ";\n"
-    
+
     # Matrix entries (two indices)
     for i in range(0,max_index):
         for j in range(0,max_index):
@@ -631,7 +564,7 @@ def OutputMatrixNonZero(lhs, name, mode, initial_tabs = 1, max_index=30,aux_dict
             if not "//subsvar_" in outstring:
                 newstring = outstring.replace(to_be_replaced, replacement_string)
                 outstring = newstring
-            
+
     # Vector entries(one index(
     for i in range(0,max_index):
         replacement_string =  "[" +str(i)+ "]"
@@ -639,9 +572,10 @@ def OutputMatrixNonZero(lhs, name, mode, initial_tabs = 1, max_index=30,aux_dict
         if not "//subsvar_" in outstring:
             newstring = outstring.replace(to_be_replaced, replacement_string)
             outstring = newstring
-            
+
     return outstring
-  
+
+# TODO: Unify with base utilities
 def OutputSymbolicVariable(var, mode="python", varname = "",aux_dict={}, initial_tabs = 1,max_index=30):
     """ This method converts into text the LHS matrix (only non-zero terms)
 
@@ -656,7 +590,7 @@ def OutputSymbolicVariable(var, mode="python", varname = "",aux_dict={}, initial
     initial_spaces = ""
     for i in range(0,initial_tabs):
         initial_spaces += "    "
-    
+
     outstring = ""
 
     if mode == "python":
@@ -674,11 +608,11 @@ def OutputSymbolicVariable(var, mode="python", varname = "",aux_dict={}, initial
                 outstring += initial_spaces+ " //subsvar_" + aux_string+ "; // " + aux_string[:].upper() + "\n"
         else:
             outstring += initial_spaces + sympy.ccode(var)+ ";\n"
-            
+
     outstring = SubstituteIndex(outstring, mode, max_index)
-    
+
     return outstring
-        
+
 def SubstituteIndex(outstring, mode="python",max_index=30):
     """ This method substitutes certain indexes
 
@@ -705,7 +639,7 @@ def SubstituteIndex(outstring, mode="python",max_index=30):
         if not "//subsvar_" in outstring:
             newstring = outstring.replace(to_be_replaced, replacement_string)
             outstring = newstring
-    
+
     return outstring
 
 def DefineVariableLists(variable, name, replacement, dependency, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, typology):
@@ -755,7 +689,7 @@ def DefineVariableLists(variable, name, replacement, dependency, var_strings, va
                     der_var_strings.append(str(sympy.diff(variable[node,i], dof)))
                     der_var_list.append("Delta"+name+str(count)+"_"+str(node)+"_"+str(i))
                     count += 1
-        
+
     return var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list
 
 def Derivatives_CollectingFactors(A,name, mode, initial_tabs = 1, max_index=30, optimizations='basic', postprocess=None, order='canonical'):
@@ -781,9 +715,10 @@ def Derivatives_CollectingFactors(A,name, mode, initial_tabs = 1, max_index=30, 
         varname = factor[0]
         value = factor[1]
         Acoefficient_str += "    const double " + varname.__str__() + " = " + value
-        
+
     return [A, Acoefficient_str]
 
+# TODO: Unify with base utilities
 def OutputMatrix_CollectingFactors(A,name, mode, initial_tabs = 1, max_index=30, optimizations='basic'):
     """ This method collects the constants of the replacement for matrices
 
@@ -798,9 +733,9 @@ def OutputMatrix_CollectingFactors(A,name, mode, initial_tabs = 1, max_index=30,
     symbol_name = "c" + name
     A_factors, A_collected = sympy.cse(A,sympy.numbered_symbols(symbol_name), optimizations)
     A = A_collected[0] # Overwrite lhs with the one with the collected components
-    
+
     aux_dict = {}
-    
+
     Acoefficient_str = ""
     for factor in A_factors:
         varname = factor[0]
@@ -810,6 +745,7 @@ def OutputMatrix_CollectingFactors(A,name, mode, initial_tabs = 1, max_index=30,
     A_out = Acoefficient_str+"\n" + OutputMatrix(A, name, mode, initial_tabs, max_index, aux_dict)
     return A_out
 
+# TODO: Unify with base utilities
 def OutputVector_CollectingFactors(A,name, mode, initial_tabs = 1, max_index=30, optimizations='basic'):
     """ This method collects the constants of the replacement for vectors
 
@@ -836,6 +772,7 @@ def OutputVector_CollectingFactors(A,name, mode, initial_tabs = 1, max_index=30,
     A_out = Acoefficient_str + "\n" + OutputVector(A, name, mode, initial_tabs, max_index, aux_dict)
     return A_out
 
+# TODO: Unify with base utilities
 def OutputMatrix_CollectingFactorsNonZero(A,name, mode, initial_tabs = 1, max_index=30, optimizations='basic'):
     """ This method collects the constants of the replacement for matrices (only non-zero terms)
 
@@ -850,9 +787,9 @@ def OutputMatrix_CollectingFactorsNonZero(A,name, mode, initial_tabs = 1, max_in
     symbol_name = "c" + name
     A_factors, A_collected = sympy.cse(A,sympy.numbered_symbols(symbol_name), optimizations)
     A = A_collected[0] # Overwrite lhs with the one with the collected components
-    
+
     aux_dict = {}
-    
+
     Acoefficient_str = ""
     for factor in A_factors:
         varname = factor[0]
@@ -862,6 +799,7 @@ def OutputMatrix_CollectingFactorsNonZero(A,name, mode, initial_tabs = 1, max_in
     A_out = Acoefficient_str + "\n" + OutputMatrixNonZero(A, name, mode, initial_tabs, max_index, aux_dict)
     return A_out
 
+# TODO: Unify with base utilities
 def OutputVector_CollectingFactorsNonZero(A,name, mode, initial_tabs = 1, max_index=30, optimizations='basic'):
     """ This method collects the constants of the replacement for vectors (only non-zero terms)
 

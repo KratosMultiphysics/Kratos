@@ -3,7 +3,9 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    from KratosMultiphysics import ConstitutiveLawsApplication
 
 class TestPatchTestFormfinding(KratosUnittest.TestCase):
     def setUp(self):
@@ -22,9 +24,11 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
 
 
     def _add_constitutive_law(self,mp,elastic_flag):
-        cl = StructuralMechanicsApplication.TrussPlasticityConstitutiveLaw()
         if elastic_flag:
             cl = StructuralMechanicsApplication.TrussConstitutiveLaw()
+        else:
+            self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+            cl = ConstitutiveLawsApplication.TrussPlasticityConstitutiveLaw()
         mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
 
@@ -100,7 +104,6 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
         }""")
         strategy = StructuralMechanicsApplication.FormfindingStrategy(mp,
                                                         scheme,
-                                                        linear_solver,
                                                         convergence_criterion,
                                                         builder_and_solver,
                                                         mp,

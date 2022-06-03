@@ -62,11 +62,11 @@ class ScalingOperation(CoSimulationCouplingOperation):
             GenericCallFunction(self.scaling_factor, scope_vars, check=True) # trying to evaluate the function string, such that the check can be disabled later
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver"    : "UNSPECIFIED",
             "data_name" : "UNSPECIFIED",
             "interval"  : [0.0, 1e30]
         }""")
-        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults

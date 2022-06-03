@@ -28,7 +28,6 @@
 
 ///VARIABLES used:
 //Data:
-//StepData: NODAL_H, CONTACT_FORCE
 //Flags:    (checked) TO_ERASE, BOUNDARY, NEW_ENTITY
 //          (set)
 //          (modified)

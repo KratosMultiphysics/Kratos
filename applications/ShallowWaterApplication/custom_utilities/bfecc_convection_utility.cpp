@@ -20,6 +20,7 @@
 // Project includes
 #include "bfecc_convection_utility.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "utilities/parallel_utilities.h"
 
 
 namespace Kratos
@@ -53,66 +54,61 @@ template<class TVarType, class TType>
 void BFECCConvectionUtility<TDim>::Convect(const TVarType& rVar, const Variable<array_1d<double,3>>& rConvVar)
 {
     const double dt = mrModelPart.GetProcessInfo()[DELTA_TIME];
-
-    Vector N(TDim + 1);
-    typename BinBasedFastPointLocator<TDim>::ResultContainerType results(mMaxResults);
-
-    const int nparticles = mrModelPart.Nodes().size();
+    const int n_particles = mrModelPart.Nodes().size();
 
     PointerVector< Element > elem_backward(mrModelPart.Nodes().size());
     std::vector< Vector > Ns(mrModelPart.Nodes().size());
     std::vector< bool > found(mrModelPart.Nodes().size());
 
-    // First loop: estimate rVar(n+1)
-    #pragma omp parallel for firstprivate(results, N)
-    for (int i = 0; i < nparticles; i++)
-    {
-        typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+    struct TLS {
+        Vector N;
+        typename BinBasedFastPointLocator<TDim>::ResultContainerType results;
+    };
+    TLS tls;
+    tls.N.resize(TDim + 1);
+    tls.results.resize(mMaxResults);
 
-        ModelPart::NodesContainerType::iterator i_particle = mrModelPart.NodesBegin() + i;
-
+    IndexPartition<int>(n_particles).for_each(tls, [&](int i, TLS& rTLS){
+        auto i_particle = mrModelPart.NodesBegin() + i;
+        auto result_begin = rTLS.results.begin();
         Element::Pointer p_element;
 
         array_1d<double,3> bck_pos = i_particle->Coordinates();
         const array_1d<double,3>& vel = i_particle->FastGetSolutionStepValue(rConvVar);
-        bool is_found = RK2Convect(dt, bck_pos, vel, N, p_element, result_begin, -1, rConvVar);
+        bool is_found = RK2Convect(dt, bck_pos, vel, rTLS.N, p_element, result_begin, -1, rConvVar);
         found[i] = is_found;
 
         if(is_found) {
             //save position backwards
             elem_backward(i) = p_element;
-            Ns[i] = N;
+            Ns[i] = rTLS.N;
 
             Geometry< Node < 3 > >& geom = p_element->GetGeometry();
-            TType phi1 = N[0] * ( geom[0].FastGetSolutionStepValue(rVar,1));
+            TType phi1 = rTLS.N[0] * ( geom[0].FastGetSolutionStepValue(rVar,1));
             for (unsigned int k = 1; k < geom.size(); k++) {
-                phi1 += N[k] * ( geom[k].FastGetSolutionStepValue(rVar,1) );
+                phi1 += rTLS.N[k] * ( geom[k].FastGetSolutionStepValue(rVar,1) );
             }
 
             i_particle->FastGetSolutionStepValue(rVar) = phi1;
         }
-    }
+    });
 
     // Second loop: obtain the value at time step N by taking it from N+1
-    #pragma omp parallel for firstprivate(results, N)
-    for (int i = 0; i < nparticles; i++)
-    {
-        typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-        ModelPart::NodesContainerType::iterator i_particle = mrModelPart.NodesBegin() + i;
-
+    IndexPartition<int>(n_particles).for_each(tls, [&](int i, TLS& rTLS){
+        auto i_particle = mrModelPart.NodesBegin() + i;
+        auto result_begin = rTLS.results.begin();
         Element::Pointer p_element;
 
         array_1d<double,3> fwd_pos = i_particle->Coordinates();
         const array_1d<double,3>& vel = i_particle->FastGetSolutionStepValue(rConvVar,1);
-        bool is_found = RK2Convect(dt, fwd_pos, vel, N, p_element, result_begin, 1, rConvVar);
+        bool is_found = RK2Convect(dt, fwd_pos, vel, rTLS.N, p_element, result_begin, 1, rConvVar);
 
         if(is_found) {
             Geometry< Node < 3 > >& geom = p_element->GetGeometry();
-            TType phi_old = N[0] * ( geom[0].FastGetSolutionStepValue(rVar));
+            TType phi_old = rTLS.N[0] * ( geom[0].FastGetSolutionStepValue(rVar));
 
             for (unsigned int k = 1; k < geom.size(); k++) {
-                phi_old  += N[k] * ( geom[k].FastGetSolutionStepValue(rVar) );
+                phi_old  += rTLS.N[k] * ( geom[k].FastGetSolutionStepValue(rVar) );
             }
 
             // Store the correction
@@ -122,13 +118,11 @@ void BFECCConvectionUtility<TDim>::Convect(const TVarType& rVar, const Variable<
         {
             i_particle->SetValue(rVar, i_particle->FastGetSolutionStepValue(rVar,1));
         }
-    }
+    });
 
     // Third loop: apply the correction
-    #pragma omp parallel for
-    for (int i = 0; i < nparticles; i++)
-    {
-        ModelPart::NodesContainerType::iterator i_particle = mrModelPart.NodesBegin() + i;
+    IndexPartition<int>(n_particles).for_each([&](int i){
+        auto i_particle = mrModelPart.NodesBegin() + i;
         bool is_found = found[i];
         if(is_found) {
             Vector N = Ns[i];
@@ -140,7 +134,7 @@ void BFECCConvectionUtility<TDim>::Convect(const TVarType& rVar, const Variable<
 
             i_particle->FastGetSolutionStepValue(rVar) = phi1;
         }
-    }
+    });
 }
 
 
@@ -176,15 +170,10 @@ template<std::size_t TDim>
 template<class TVarType>
 void BFECCConvectionUtility<TDim>::ResetBoundaryConditions(const TVarType& rVar)
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = mrModelPart.NodesBegin() + i;
-        if (it_node->IsFixed(rVar))
-        {
-            it_node->FastGetSolutionStepValue(rVar) = it_node->FastGetSolutionStepValue(rVar,1);
-        }
-    }
+    block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+        if (rNode.IsFixed(rVar))
+            rNode.FastGetSolutionStepValue(rVar) = rNode.FastGetSolutionStepValue(rVar,1);
+    });
 }
 
 
@@ -192,12 +181,9 @@ template<std::size_t TDim>
 template<class TVarType>
 void BFECCConvectionUtility<TDim>::CopyVariableToPreviousTimeStep(const TVarType& rVar)
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = mrModelPart.NodesBegin() + i;
-        it_node->FastGetSolutionStepValue(rVar,1) = it_node->FastGetSolutionStepValue(rVar);
-    }
+    block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+        rNode.FastGetSolutionStepValue(rVar,1) = rNode.FastGetSolutionStepValue(rVar);
+    });
 }
 
 

@@ -42,15 +42,15 @@ void CalculateNodalAreaProcess<THistorical>::Execute()
     }
 
     // We create the N and J0
-    Vector N;
-    Matrix J0;
+    struct tls_type
+    {
+        Vector N;
+        Matrix J0;
+    };
 
-    // Iterate over the elements
-    const auto& it_element_begin = mrModelPart.GetCommunicator().LocalMesh().ElementsBegin();
-    #pragma omp parallel for firstprivate(N, J0)
-    for(int i=0; i<static_cast<int>(mrModelPart.GetCommunicator().LocalMesh().NumberOfElements()); ++i) {
-        auto it_elem = it_element_begin + i;
-        auto& r_geometry = it_elem->GetGeometry();
+    //Using Parallel Utilities
+    block_for_each(mrModelPart.GetCommunicator().LocalMesh().Elements(), tls_type(),[&](Element& rElem, tls_type& rTLS){
+        auto& r_geometry = rElem.GetGeometry();
 
         const std::size_t local_space_dimension = r_geometry.LocalSpaceDimension();
         const std::size_t number_of_nodes = r_geometry.PointsNumber();
@@ -61,30 +61,29 @@ void CalculateNodalAreaProcess<THistorical>::Execute()
         const std::size_t number_of_integration_points = integration_points.size();
 
         // Resize the N and J0
-        if (N.size() != number_of_nodes)
-            N.resize(number_of_nodes);
-        if (J0.size1() != mDomainSize || J0.size2() != local_space_dimension)
-            J0.resize(mDomainSize, local_space_dimension);
+        if ((rTLS.N).size() != number_of_nodes)
+            (rTLS.N).resize(number_of_nodes);
+        if ((rTLS.J0).size1() != mDomainSize || (rTLS.J0).size2() != local_space_dimension)
+            (rTLS.J0).resize(mDomainSize, local_space_dimension);
 
         // The containers of the shape functions
         const auto& rNcontainer = r_geometry.ShapeFunctionsValues(integration_method);
 
         for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
             // Getting the shape functions
-            noalias(N) = row(rNcontainer, point_number);
+            noalias((rTLS.N)) = row(rNcontainer, point_number);
 
             // Getting the jacobians and local gradients
-            GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], J0);
-            const double detJ0 = MathUtils<double>::GeneralizedDet(J0);
+            GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], (rTLS.J0));
+            const double detJ0 = MathUtils<double>::GeneralizedDet((rTLS.J0));
             const double gauss_point_volume = integration_points[point_number].Weight() * detJ0;
 
             for(std::size_t i_node =0; i_node < number_of_nodes; ++i_node) {
                 double& nodal_area = GetAreaValue(r_geometry[i_node]);
-                #pragma omp atomic
-                nodal_area += N[i_node] * gauss_point_volume;
+                AtomicAdd(nodal_area, ((rTLS.N)[i_node] * gauss_point_volume));
             }
         }
-    }
+    });
 
     // Synchronize data
     if (THistorical) {

@@ -26,7 +26,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/node.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "containers/data_value_container.h"
 #include "includes/process_info.h"
 #include "includes/table.h"

@@ -346,6 +346,7 @@ namespace Kratos
 			if (GetInstance().mVerbosity >= Verbosity::TESTS_LIST)
 			{
 				std::cout << pTheTestCase->Name();
+				std::cout << std::flush;
 			}
 		}
 

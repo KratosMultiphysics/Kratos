@@ -5,13 +5,13 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
-class CoSimulationPredictor(object):
+class CoSimulationPredictor:
     """Baseclass for the predictors used for CoSimulation
     It predicts the solution of the next step at the beginning of a step
     """
     def __init__(self, settings, solver_wrapper):
         self.settings = settings
-        self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
+        self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultParameters())
 
         self.interface_data = solver_wrapper.GetInterfaceData(self.settings["data_name"].GetString())
 
@@ -59,7 +59,7 @@ class CoSimulationPredictor(object):
         return cls.__name__
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         return KM.Parameters("""{
             "type"       : "UNSPECIFIED",
             "solver"     : "UNSPECIFIED",

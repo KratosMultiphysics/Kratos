@@ -52,6 +52,7 @@ from test_generate_mpm_particle             import TestGenerateMPMParticle      
 from test_generate_mpm_particle_condition   import TestGenerateMPMParticleCondition   as TTestGenerateMPMParticleCondition
 from test_particle_erase_process            import TestParticleEraseProcess           as TTestParticleEraseProcess
 from test_search_mpm_particle               import TestSearchMPMParticle              as TTestSearchMPMParticle
+from test_search_mpm_particle_condition     import TestSearchMPMParticleCondition     as TTestSearchMPMParticleCondition
 from test_static_loading_conditions_point   import TestStaticLoadingConditionsPoint   as TTestStaticLoadingConditionsPoint
 from test_static_loading_conditions_line    import TestStaticLoadingConditionsLine    as TTestStaticLoadingConditionsLine
 from test_static_loading_conditions_surface import TestStaticLoadingConditionsSurface as TTestStaticLoadingConditionsSurface
@@ -83,6 +84,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestGenerateMPMParticleCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestParticleEraseProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSearchMPMParticle]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSearchMPMParticleCondition]))
 
     # TODO: Look further into these three tests as they are still failing for AMatrix
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsPoint]))    # FIXME:

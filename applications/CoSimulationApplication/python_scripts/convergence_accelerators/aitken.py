@@ -75,12 +75,12 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             return delta_x
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "init_alpha"     :  0.1,
             "init_alpha_max" :  0.45,
             "alpha_max"      :  2.0,
             "alpha_min"      : -2.0
         }""")
-        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults

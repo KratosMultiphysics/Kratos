@@ -562,7 +562,7 @@ protected:
         const bool CalculateReactions
         )
     {
-        rDefaultSettings["max_iterations"].SetInt(MaxIterations);
+        rDefaultSettings["max_iteration"].SetInt(MaxIterations);
         rDefaultSettings["reform_dofs_at_each_step"].SetBool(ReformDofSetAtEachStep);
         rDefaultSettings["compute_reactions"].SetBool(CalculateReactions);
     }

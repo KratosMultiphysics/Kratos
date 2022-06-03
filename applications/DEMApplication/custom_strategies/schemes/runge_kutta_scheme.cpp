@@ -27,7 +27,7 @@ namespace Kratos {
             const double delta_t,
             const bool Fix_vel[3])
     {
-        KRATOS_THROW_ERROR(std::runtime_error, "This scheme (RungeKuttaScheme) should not calculate translational motion, so the function (RungeKuttaScheme::UpdateTranslationalVariables) shouldn't be accessed", 0);
+        KRATOS_ERROR << "This scheme (RungeKuttaScheme) should not calculate translational motion, so the function (RungeKuttaScheme::UpdateTranslationalVariables) shouldn't be accessed" << std::endl;
     }
 
     void RungeKuttaScheme::CalculateNewRotationalVariablesOfSpheres(

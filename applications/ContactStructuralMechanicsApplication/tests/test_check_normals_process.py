@@ -34,10 +34,11 @@ class TestCheckNormals(KratosUnittest.TestCase):
             KM.VariableUtils().SetFlag(KM.INTERFACE, True, self.main_model_part.GetSubModelPart(custom_submodel_part).Nodes)
 
         ## DEBUG
-        #KM.ComputeNodesMeanNormalModelPart(self.main_model_part, True)
+        #KM.MortarUtilities.ComputeNodesMeanNormalModelPart(self.main_model_part, True)
 
         # Check normals
-        check_process = CSMA.NormalCheckProcess(self.main_model_part)
+        normal_check_parameters = KM.Parameters("""{"length_proportion" : 0.1}""")
+        check_process = CSMA.NormalCheckProcess(self.main_model_part, normal_check_parameters)
         check_process.Execute()
 
         ## DEBUG

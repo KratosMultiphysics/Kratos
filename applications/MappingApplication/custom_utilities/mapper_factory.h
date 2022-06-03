@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -38,9 +38,8 @@ namespace Kratos
 /// Python Interface of the MappingApplication
 /** This class constructs the mappers and exposes them to Python
 * Some checks are performed to see if the Input (ModelParts and JSON-Parameters) are valid
-* For information abt the available echo_levels and the JSON default-parameters
-* look into the class description of the MapperCommunicator
 */
+template<class TSparseSpace, class TDenseSpace>
 class KRATOS_API(MAPPING_APPLICATION) MapperFactory
 {
 public:
@@ -61,7 +60,6 @@ public:
     ///@name Operations
     ///@{
 
-    template<class TSparseSpace, class TDenseSpace>
     static typename Mapper<TSparseSpace, TDenseSpace>::Pointer CreateMapper(
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
@@ -76,7 +74,7 @@ public:
 
         const std::string mapper_name = MapperSettings["mapper_type"].GetString();
 
-        const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
+        const auto& mapper_list = GetRegisteredMappersList();
 
         if (mapper_list.find(mapper_name) != mapper_list.end()) {
             // Removing Parameters that are not needed by the Mapper
@@ -101,25 +99,22 @@ public:
         }
     }
 
-    template<class TSparseSpace, class TDenseSpace>
     static void Register(const std::string& rMapperName,
                   typename Mapper<TSparseSpace, TDenseSpace>::Pointer pMapperPrototype)
     {
-        GetRegisteredMappersList<TSparseSpace, TDenseSpace>().insert(
+        GetRegisteredMappersList().insert(
             std::make_pair(rMapperName, pMapperPrototype));
     }
 
-    template<class TSparseSpace, class TDenseSpace>
     static bool HasMapper(const std::string& rMapperName)
     {
-        const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
+        const auto& mapper_list = GetRegisteredMappersList();
         return mapper_list.find(rMapperName) != mapper_list.end();
     }
 
-    template<class TSparseSpace, class TDenseSpace>
     static std::vector<std::string> GetRegisteredMapperNames()
     {
-        const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
+        const auto& mapper_list = GetRegisteredMappersList();
 
         std::vector<std::string> mapper_names;
 
@@ -162,9 +157,42 @@ private:
 
     static ModelPart& ReadInterfaceModelPart(ModelPart& rModelPart,
                                              Parameters InterfaceParameters,
-                                             const std::string& InterfaceSide);
+                                             const std::string& InterfaceSide)
+    {
+        int echo_level = 0;
+        // read the echo_level temporarily, bcs the mJsonParameters have not yet been validated and defaults assigned
+        if (InterfaceParameters.Has("echo_level"))
+        {
+            echo_level = std::max(echo_level, InterfaceParameters["echo_level"].GetInt());
+        }
 
-    template<class TSparseSpace, class TDenseSpace>
+        int comm_rank = rModelPart.GetCommunicator().MyPID();
+
+        std::string key_sub_model_part = "interface_submodel_part_";
+        key_sub_model_part.append(InterfaceSide);
+
+        if (InterfaceParameters.Has(key_sub_model_part))
+        {
+            const std::string name_interface_submodel_part = InterfaceParameters[key_sub_model_part].GetString();
+
+            if (echo_level >= 3 && comm_rank == 0)
+            {
+                std::cout << "Mapper: SubModelPart used for " << InterfaceSide << "-ModelPart" << std::endl;
+            }
+
+            return rModelPart.GetSubModelPart(name_interface_submodel_part);
+        }
+        else
+        {
+            if (echo_level >= 3 && comm_rank == 0)
+            {
+                std::cout << "Mapper: Main ModelPart used for " << InterfaceSide << "-ModelPart" << std::endl;
+            }
+
+            return rModelPart;
+        }
+    }
+
     static std::unordered_map<std::string, typename Mapper<TSparseSpace,
         TDenseSpace>::Pointer>& GetRegisteredMappersList();
 
@@ -172,26 +200,6 @@ private:
 
 }; // Class MapperFactory
 
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const MapperFactory& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 ///@}
 
 ///@} addtogroup block

@@ -325,12 +325,6 @@ public:
         rProperties.GetValue(PERIODIC_VARIABLES).Add(rVariable);
     }
 
-    void AddPeriodicVariable(Properties &rProperties,
-                             VariableComponent< VectorComponentAdaptor< array_1d<double, 3> > >&rVariable)
-    {
-        rProperties.GetValue(PERIODIC_VARIABLES).Add(rVariable);
-    }
-
     ///@}
     ///@name Access
     ///@{

@@ -60,6 +60,8 @@ void PrintInfo(std::ostream& rOStream) const override {rOStream << "ContactInfoS
 /// Print object's data.
 void PrintData(std::ostream& rOStream) const override {}
 
+virtual double GetParticleInitialCohesion();
+void   SetParticleInitialCohesionFromProperties(double* particle_initial_cohesion);
 virtual double GetAmountOfCohesionFromStress();
 void   SetAmountOfCohesionFromStressFromProperties(double* amount_of_cohesion_from_stress);
 virtual double GetParticleConicalDamageContactRadius();
@@ -71,6 +73,7 @@ void   SetParticleConicalDamageGammaFromProperties(double* particle_gamma);
 virtual double GetLevelOfFouling();
 void   SetLevelOfFoulingFromProperties(double* level_of_fouling);
 
+double SlowGetParticleInitialCohesion();
 double SlowGetAmountOfCohesionFromStress();
 double SlowGetParticleConicalDamageContactRadius();
 double SlowGetParticleConicalDamageMaxStress();
@@ -87,6 +90,8 @@ std::vector<double> mNeighbourRigidTgOfStatFriAng;
 std::vector<double> mNeighbourRigidTgOfDynFriAng;
 std::vector<double> mNeighbourContactStress;
 std::vector<double> mNeighbourRigidContactStress;
+std::vector<double> mNeighbourCohesion;
+std::vector<double> mNeighbourRigidCohesion;
 
 protected:
 

@@ -20,6 +20,7 @@
 #include "geometries/line_2d_2.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "utilities/intersection_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -177,8 +178,6 @@ void FindIntersectedGeometricalObjectsProcess::Execute()
     // Calling initialize first (initialize Octree)
     ExecuteInitialize();
 
-    OtreeCellVectorType leaves;
-
     // Iterate over elements
     if (mOptions.Is(FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS)) {
         auto& r_elements_array = mrModelPartIntersected.Elements();
@@ -186,12 +185,11 @@ void FindIntersectedGeometricalObjectsProcess::Execute()
 
         const auto it_elements_begin = r_elements_array.begin();
 
-        #pragma omp parallel for private(leaves)
-        for (int i = 0; i < static_cast<int>(number_of_elements); i++) {
-            auto it_elem = it_elements_begin + i;
-            leaves.clear();
-            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_elem.base()), leaves);
-        }
+        IndexPartition<std::size_t>(number_of_elements).for_each(OtreeCellVectorType() ,[&](std::size_t index, OtreeCellVectorType& rLocalLeaves){
+            auto it_elem = it_elements_begin + index;
+            rLocalLeaves.clear();
+            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_elem.base()), rLocalLeaves);
+        });
     }
 
     // Iterate over conditions
@@ -201,12 +199,11 @@ void FindIntersectedGeometricalObjectsProcess::Execute()
 
         const auto it_conditions_begin = r_conditions_array.begin();
 
-        #pragma omp parallel for private(leaves)
-        for (int i = 0; i < static_cast<int>(number_of_conditions); i++) {
-            auto it_cond = it_conditions_begin + i;
-            leaves.clear();
-            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), leaves);
-        }
+        IndexPartition<std::size_t>(number_of_conditions).for_each(OtreeCellVectorType(), [&](std::size_t index, OtreeCellVectorType& rLocalLeaves){
+            auto it_cond = it_conditions_begin + index;
+            rLocalLeaves.clear();
+            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), rLocalLeaves);
+        });
     }
 }
 

@@ -113,7 +113,9 @@ class BasePatchTestCrBeam3D2N(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(1e-15,1e-15)
+        convergence_criterion = KratosMultiphysics.MixedGenericCriteria(
+            [(KratosMultiphysics.DISPLACEMENT, 1e-15,1e-15),
+             (KratosMultiphysics.ROTATION,     1e-15,1e-15)])
         convergence_criterion.SetEchoLevel(0)
 
         max_iters = 1000
@@ -249,7 +251,7 @@ class DynamicPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
         mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
-        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,False)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,True)
 
         #create nodes
         dx = 1.00 / nr_elements
@@ -309,7 +311,7 @@ class DynamicPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
         mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
-        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,True)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
 
         #create nodes
         dx = 1.00 / nr_elements
@@ -370,7 +372,7 @@ class DynamicPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
             self._add_variables(mp)
             _add_explicit_variables(mp)
             self._apply_material_properties(mp,dim)
-            mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,True)
+            mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
 
             #create nodes
             dx = 1.00 / nr_elements
@@ -717,7 +719,9 @@ class BasePatchTestCrBeam2D2N(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(1e-15,1e-15)
+        convergence_criterion = KratosMultiphysics.MixedGenericCriteria(
+            [(KratosMultiphysics.DISPLACEMENT, 1e-15,1e-15),
+             (KratosMultiphysics.ROTATION,     1e-15,1e-15)])
         convergence_criterion.SetEchoLevel(0)
 
         max_iters = 1000
@@ -910,7 +914,7 @@ class DynamicPatchTestBeam2D2N(BasePatchTestCrBeam2D2N):
             self._add_variables(mp)
             _add_explicit_variables(mp)
             self._apply_material_properties(mp,dim)
-            mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,True)
+            mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
 
             #create nodes
             dx = 1.00 / nr_elements

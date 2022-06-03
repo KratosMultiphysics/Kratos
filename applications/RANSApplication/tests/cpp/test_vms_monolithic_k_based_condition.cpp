@@ -18,6 +18,7 @@
 #include "containers/global_pointers_vector.h"
 #include "containers/model.h"
 #include "testing/testing.h"
+#include "utilities/variable_utils.h"
 
 // Application includes
 #include "custom_utilities/test_utilities.h"
@@ -37,10 +38,16 @@ ModelPart& RansVMSMonolithicKBasedWall2D2NSetUp(Model& rModel)
         rModelPart.AddNodalSolutionStepVariable(PRESSURE);
         rModelPart.AddNodalSolutionStepVariable(DENSITY);
         rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(KINEMATIC_VISCOSITY);
         rModelPart.AddNodalSolutionStepVariable(ACCELERATION);
         rModelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
+    };
+
+    const auto set_properties = [](Properties& rProperties) {
+        rProperties.SetValue(DENSITY, 2.0);
+        rProperties.SetValue(DYNAMIC_VISCOSITY, 2e-2);
+        rProperties.SetValue(WALL_SMOOTHNESS_BETA, 4.2);
+        rProperties.SetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, 12.0);
     };
 
     using namespace RansApplicationTestUtilities;
@@ -53,12 +60,11 @@ ModelPart& RansVMSMonolithicKBasedWall2D2NSetUp(Model& rModel)
             rNode.AddDof(VELOCITY_Z).SetEquationId(rNode.Id() * 4 + 2);
             rNode.AddDof(PRESSURE).SetEquationId(rNode.Id() * 4 + 3);
         },
+        set_properties,
         1);
 
     // set nodal historical variables
     RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
-    RandomFillNodalHistoricalVariable(r_model_part, DENSITY, 2.0, 2.0);
-    RandomFillNodalHistoricalVariable(r_model_part, KINEMATIC_VISCOSITY, 1e-5, 1e-3);
     RandomFillNodalHistoricalVariable(r_model_part, PRESSURE, 10.0, 100.0);
     RandomFillNodalHistoricalVariable(r_model_part, MESH_VELOCITY, 1e-3, 1e-1);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 10.0, 40.0);
@@ -74,10 +80,8 @@ ModelPart& RansVMSMonolithicKBasedWall2D2NSetUp(Model& rModel)
 
     // set process info variables
     auto& r_process_info = r_model_part.GetProcessInfo();
-    r_process_info.SetValue(WALL_VON_KARMAN, 3.1);
-    r_process_info.SetValue(WALL_SMOOTHNESS_BETA, 4.2);
-    r_process_info.SetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, 12.0);
     r_process_info.SetValue(TURBULENCE_RANS_C_MU, 0.09);
+    r_process_info.SetValue(VON_KARMAN, 3.1);
 
     return r_model_part;
 }
@@ -151,7 +155,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalSystem, 
 
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateLocalSystem(LHS, RHS, r_process_info);
 
     // setting reference values
@@ -163,7 +167,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalSystem, 
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateLocalSystem(LHS, RHS, r_process_info);
 
     // setting reference values
@@ -188,7 +192,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLeftHandSide,
 
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateLeftHandSide(LHS, r_process_info);
 
     // setting reference values
@@ -198,7 +202,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLeftHandSide,
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateLeftHandSide(LHS, r_process_info);
 
     // setting reference values
@@ -221,7 +225,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateRightHandSide
 
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateRightHandSide(RHS, r_process_info);
 
     // setting reference values
@@ -231,7 +235,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateRightHandSide
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateRightHandSide(RHS, r_process_info);
 
     // setting reference values
@@ -254,7 +258,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateDampingMatrix
 
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateDampingMatrix(LHS, r_process_info);
 
     // setting reference values
@@ -264,18 +268,18 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateDampingMatrix
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateDampingMatrix(LHS, r_process_info);
 
     // setting reference values
-    ref_LHS(0, 0) = 7.5197560293399790e-01;
-    ref_LHS(0, 3) = 7.5197560293399790e-01;
-    ref_LHS(1, 1) = 7.5197560293399790e-01;
-    ref_LHS(1, 4) = 7.5197560293399790e-01;
-    ref_LHS(3, 0) = 7.5197560293399790e-01;
-    ref_LHS(3, 3) = 7.5197560293399790e-01;
-    ref_LHS(4, 1) = 7.5197560293399790e-01;
-    ref_LHS(4, 4) = 7.5197560293399790e-01;
+    ref_LHS(0, 0) = 6.2647267728420064e-01;
+    ref_LHS(0, 3) = 6.2647267728420064e-01;
+    ref_LHS(1, 1) = 6.2647267728420064e-01;
+    ref_LHS(1, 4) = 6.2647267728420064e-01;
+    ref_LHS(3, 0) = 6.2647267728420064e-01;
+    ref_LHS(3, 3) = 6.2647267728420064e-01;
+    ref_LHS(4, 1) = 6.2647267728420064e-01;
+    ref_LHS(4, 4) = 6.2647267728420064e-01;
 
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 }
@@ -296,49 +300,49 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocity
 
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
 
     // setting reference values
     ref_RHS = ZeroVector(6);
     ref_LHS = ZeroMatrix(6, 6);
-    ref_RHS[0] = -1.3614337272157539e+02;
-    ref_RHS[3] = -2.0529174563896703e+02;
+    ref_RHS[0] = -4.0637878787878788e+02;
+    ref_RHS[3] = -3.8843939393939399e+02;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
-    r_condition.Initialize();
+    r_condition.Initialize(r_process_info);
     r_condition.CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
 
     // setting reference values
-    ref_RHS[0] = -1.3560206485323209e+02;
-    ref_RHS[1] = 1.4876293019322391e+00;
-    ref_RHS[3] = -2.0475043777062373e+02;
-    ref_RHS[4] = 1.4876293019322391e+00;
+    ref_RHS[0] = -4.0268420542300925e+02;
+    ref_RHS[1] = 3.9866443099903677e+00;
+    ref_RHS[3] = -3.8474481148361536e+02;
+    ref_RHS[4] = 3.9866443099903677e+00;
 
-    ref_LHS(0, 0) = 7.5197560293399790e-01;
-    ref_LHS(0, 3) = 7.5197560293399790e-01;
-    ref_LHS(1, 1) = 7.5197560293399790e-01;
-    ref_LHS(1, 4) = 7.5197560293399790e-01;
-    ref_LHS(3, 0) = 7.5197560293399790e-01;
-    ref_LHS(3, 3) = 7.5197560293399790e-01;
-    ref_LHS(4, 1) = 7.5197560293399790e-01;
-    ref_LHS(4, 4) = 7.5197560293399790e-01;
+    ref_LHS(0, 0) = 6.2647267728420064e-01;
+    ref_LHS(0, 3) = 6.2647267728420064e-01;
+    ref_LHS(1, 1) = 6.2647267728420064e-01;
+    ref_LHS(1, 4) = 6.2647267728420064e-01;
+    ref_LHS(3, 0) = 6.2647267728420064e-01;
+    ref_LHS(3, 3) = 6.2647267728420064e-01;
+    ref_LHS(4, 1) = 6.2647267728420064e-01;
+    ref_LHS(4, 4) = 6.2647267728420064e-01;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 
     const array_1d<double, 3>& friction_velocity = r_condition.GetValue(FRICTION_VELOCITY);
     array_1d<double, 3> ref_friction_velocity;
-    ref_friction_velocity[0] = -1.9591460562647886e-01;
-    ref_friction_velocity[1] = -5.3841505924981037e-01;
-    ref_friction_velocity[2] = -2.7029201972010961e+00;
+    ref_friction_velocity[0] = -1.4662487952948189e+00;
+    ref_friction_velocity[1] = -1.5821577909702991e+00;
+    ref_friction_velocity[2] = -1.3023203585537833e+00;
     KRATOS_CHECK_VECTOR_NEAR(friction_velocity, ref_friction_velocity, 1e-12);
 
-    KRATOS_CHECK_NEAR(r_condition.GetValue(RANS_Y_PLUS), 4.12772678625194032520e+02, 1e-12);
+    KRATOS_CHECK_NEAR(r_condition.GetValue(RANS_Y_PLUS), 2.6361075494608794e+01, 1e-12);
 }
 
 } // namespace Testing

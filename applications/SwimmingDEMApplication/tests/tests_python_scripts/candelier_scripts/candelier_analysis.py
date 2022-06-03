@@ -22,7 +22,7 @@ import KratosMultiphysics.SwimmingDEMApplication.parameters_tools as PT
 
 class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, varying_parameters=Parameters("{}")):
-        super(CandelierBenchmarkAnalysis, self).__init__(model, varying_parameters)
+        super().__init__(model, varying_parameters)
         self._GetSolver().is_rotating_frame = self.project_parameters["frame_of_reference"]["frame_type"].GetInt()
         self._GetDEMAnalysis().mdpas_folder_path = os.path.join(self._GetDEMAnalysis().main_path, 'candelier_tests')
         candelier_pp.include_history_force = self.vars_man.do_include_history_force
@@ -30,7 +30,7 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
                                                                             'vorticity_induced_lift_parameters',
                                                                             condition=lambda value: not (value['name'].GetString()=='default'))
 
-        print('candelier_pp.include_lift ', candelier_pp.include_lift )
+        Kratos.Logger.PrintInfo("SwimmingDEM", 'candelier_pp.include_lift ', candelier_pp.include_lift)
         candelier.sim = candelier.AnalyticSimulator(candelier_pp)
         self.project_parameters["custom_fluid"]["fluid_already_calculated"].SetBool(True)
         self.project_parameters.AddEmptyValue("load_derivatives").SetBool(False)
@@ -81,7 +81,7 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
                                               self.vars_man)
 
     def FinalizeSolutionStep(self):
-        super(CandelierBenchmarkAnalysis, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         analytic_coors = [0., 0., 0.]
         candelier.sim.CalculatePosition(analytic_coors, self.time * candelier_pp.omega)
         node = [node for node in self.spheres_model_part.Nodes][0]

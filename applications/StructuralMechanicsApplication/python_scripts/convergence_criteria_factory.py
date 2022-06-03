@@ -34,7 +34,9 @@ class convergence_criterion:
         # Convergence criteria if there are rotation DOFs in the problem
         if(rotation_dofs):
             if(convergence_crit == "displacement_criterion"):
-                self.mechanical_convergence_criterion = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(D_RT, D_AT)
+                self.mechanical_convergence_criterion = KratosMultiphysics.MixedGenericCriteria(
+                    [(KratosMultiphysics.DISPLACEMENT, D_RT, D_AT),
+                    (KratosMultiphysics.ROTATION, D_RT, D_AT)])
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
 
             elif(convergence_crit == "residual_criterion"):
@@ -42,14 +44,18 @@ class convergence_criterion:
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
 
             elif(convergence_crit == "and_criterion"):
-                Displacement = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(D_RT, D_AT)
+                Displacement = KratosMultiphysics.MixedGenericCriteria(
+                    [(KratosMultiphysics.DISPLACEMENT, D_RT, D_AT),
+                    (KratosMultiphysics.ROTATION, D_RT, D_AT)])
                 Displacement.SetEchoLevel(echo_level)
                 Residual = StructuralMechanicsApplication.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT)
                 Residual.SetEchoLevel(echo_level)
                 self.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
 
             elif(convergence_crit == "or_criterion"):
-                Displacement = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(D_RT, D_AT)
+                Displacement = KratosMultiphysics.MixedGenericCriteria(
+                    [(KratosMultiphysics.DISPLACEMENT, D_RT, D_AT),
+                    (KratosMultiphysics.ROTATION, D_RT, D_AT)])
                 Displacement.SetEchoLevel(echo_level)
                 Residual = StructuralMechanicsApplication.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT)
                 Residual.SetEchoLevel(echo_level)
@@ -63,7 +69,9 @@ class convergence_criterion:
         elif(volumetric_strain_dofs):
             other_dof_name = "VOLUMETRIC_STRAIN"
             if(convergence_crit == "displacement_criterion"):
-                self.mechanical_convergence_criterion = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(D_RT, D_AT, other_dof_name)
+                self.mechanical_convergence_criterion = KratosMultiphysics.MixedGenericCriteria(
+                    [(KratosMultiphysics.DISPLACEMENT, D_RT, D_AT),
+                    (KratosMultiphysics.VOLUMETRIC_STRAIN, D_RT, D_AT)])
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
 
             elif(convergence_crit == "residual_criterion"):
@@ -71,14 +79,18 @@ class convergence_criterion:
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
 
             elif(convergence_crit == "and_criterion"):
-                Displacement = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(D_RT, D_AT, other_dof_name)
+                Displacement = KratosMultiphysics.MixedGenericCriteria(
+                    [(KratosMultiphysics.DISPLACEMENT, D_RT, D_AT),
+                    (KratosMultiphysics.VOLUMETRIC_STRAIN, D_RT, D_AT)])
                 Displacement.SetEchoLevel(echo_level)
                 Residual = StructuralMechanicsApplication.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
                 Residual.SetEchoLevel(echo_level)
                 self.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
 
             elif(convergence_crit == "or_criterion"):
-                Displacement = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(D_RT, D_AT, other_dof_name)
+                Displacement = KratosMultiphysics.MixedGenericCriteria(
+                    [(KratosMultiphysics.DISPLACEMENT, D_RT, D_AT),
+                    (KratosMultiphysics.VOLUMETRIC_STRAIN, D_RT, D_AT)])
                 Displacement.SetEchoLevel(echo_level)
                 Residual = StructuralMechanicsApplication.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
                 Residual.SetEchoLevel(echo_level)

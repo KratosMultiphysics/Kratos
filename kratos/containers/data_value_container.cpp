@@ -2,24 +2,23 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand, Daniel Diez
-//                   
+//
 //
 
 
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
-#include "containers/variable_component.h"
 #include "containers/data_value_container.h"
 
 
@@ -87,7 +86,7 @@ namespace Kratos
         }
     }
 
-    
+
 }  // namespace Kratos.
 
 

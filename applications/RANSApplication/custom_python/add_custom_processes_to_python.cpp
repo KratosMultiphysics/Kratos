@@ -38,6 +38,7 @@
 #include "custom_processes/rans_clip_scalar_variable_process.h"
 #include "custom_processes/rans_line_output_process.h"
 #include "custom_processes/rans_compute_reactions_process.h"
+#include "custom_processes/rans_nut_nodal_update_process.h"
 
 // Include base h
 #include "custom_python/add_custom_processes_to_python.h"
@@ -83,13 +84,17 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<RansClipScalarVariableProcess, RansClipScalarVariableProcess::Pointer, RansFormulationProcess>(m, "RansClipScalarVariableProcess")
         .def(py::init<Model&, Parameters&>());
 
+    py::class_<RansNutNodalUpdateProcess, RansNutNodalUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutNodalUpdateProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const int>());
+
     py::class_<RansNutKEpsilonUpdateProcess, RansNutKEpsilonUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutKEpsilonUpdateProcess")
         .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const double, const int>());
+        .def(py::init<Model&, const std::string&, const double, const int>());
 
     py::class_<RansNutKOmegaSSTUpdateProcess, RansNutKOmegaSSTUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutKOmegaSSTUpdateProcess")
         .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const double, const double, const int>());
+        .def(py::init<Model&, const std::string&, const double, const int>());
 
     py::class_<RansNutKOmegaUpdateProcess, RansNutKOmegaUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutKOmegaUpdateProcess")
         .def(py::init<Model&, Parameters&>())
@@ -97,11 +102,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<RansNutYPlusWallFunctionUpdateProcess, RansNutYPlusWallFunctionUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutYPlusWallFunctionUpdateProcess")
         .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const double, const int>());
+        .def(py::init<Model&, const std::string&, const double, const int>());
 
     py::class_<RansWallFunctionUpdateProcess, RansWallFunctionUpdateProcess::Pointer, RansFormulationProcess>(m, "RansWallFunctionUpdateProcess")
         .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const double, const int>());
+        .def(py::init<Model&, const std::string&, const int>());
 
     py::class_<RansWallDistanceCalculationProcess, RansWallDistanceCalculationProcess::Pointer, RansFormulationProcess>(m, "RansWallDistanceCalculationProcess")
         .def(py::init<Model&, Parameters&>());

@@ -128,13 +128,17 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         check_parameters = KratosMultiphysics.Parameters("""
         {
             "check_variables"      : ["DISTANCE"],
-            "input_file_name"      : "mmg_eulerian_test/distante_extrapolation.json",
+            "input_file_name"      : "mmg_eulerian_test/distante_extrapolation",
             "model_part_name"      : "MainModelPart",
             "time_frequency"       : 0.0
         }
         """)
 
         check_parameters["input_file_name"].SetString(file_path + "/" + check_parameters["input_file_name"].GetString())
+        if mmg_process.GetMmgVersion() == "5.5":
+            check_parameters["input_file_name"].SetString(check_parameters["input_file_name"].GetString() + "_5_5.json")
+        else:
+            check_parameters["input_file_name"].SetString(check_parameters["input_file_name"].GetString() + ".json")
         check = FromJsonCheckResultProcess(current_model, check_parameters)
         check.ExecuteInitialize()
         check.ExecuteBeforeSolutionLoop()
@@ -256,13 +260,17 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         check_parameters = KratosMultiphysics.Parameters("""
         {
             "check_variables"      : ["DISTANCE"],
-            "input_file_name"      : "mmg_eulerian_test/distante_extrapolation_skin.json",
+            "input_file_name"      : "mmg_eulerian_test/distante_extrapolation_skin",
             "model_part_name"      : "MainModelPart",
             "time_frequency"       : 0.0
         }
         """)
 
         check_parameters["input_file_name"].SetString(os.path.join(file_path, check_parameters["input_file_name"].GetString()))
+        if mmg_process.GetMmgVersion() == "5.5":
+            check_parameters["input_file_name"].SetString(check_parameters["input_file_name"].GetString() + "_5_5.json")
+        else:
+            check_parameters["input_file_name"].SetString(check_parameters["input_file_name"].GetString() + ".json")
         check = FromJsonCheckResultProcess(current_model, check_parameters)
         check.ExecuteInitialize()
         check.ExecuteBeforeSolutionLoop()

@@ -28,7 +28,7 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "custom_utilities/local_refine_geometry_mesh.hpp"
 #include "utilities/split_tetrahedra.h"
-#include "utilities/split_triangle.c"
+#include "utilities/split_triangle.h"
 
 namespace Kratos
 {

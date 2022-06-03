@@ -1,0 +1,42 @@
+{
+   "properties": [{
+      "model_part_name":         "PorousDomain.soils",
+      "properties_id":           1,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
+          },
+          "Variables": {
+              "YOUNG_MODULUS"            :  3.0e7,
+              "POISSON_RATIO"            :  0.2,
+              "DENSITY_SOLID"            :  2.0e3,
+              "DENSITY_WATER"            :  1.0e3,
+              "POROSITY"                 :  0.3,
+              "BULK_MODULUS_SOLID"       :  1.0e12,
+              "BULK_MODULUS_FLUID"       :  2.0e-30,
+              "PERMEABILITY_XX"          :  4.5e-30,
+              "PERMEABILITY_YY"          :  4.5e-30,
+              "PERMEABILITY_XY"          :  0.0,
+              "DYNAMIC_VISCOSITY"        :  1.0e-3,
+              "THICKNESS"                :  1.0
+         },
+         "Tables": {}
+      }
+   },{
+      "model_part_name":         "PorousDomain.Cable-auto-1",
+      "properties_id":           2,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "KratosMultiphysics.StructuralMechanicsApplication.TrussConstitutiveLaw" 
+          },
+          "Variables": {
+              "YOUNG_MODULUS"       :  2069.0e12,
+              "POISSON_RATIO"       :  0.29,
+              "DENSITY"             :  7850.0,
+              "CROSS_AREA"          :  1.0,
+              "TRUSS_PRESTRESS_PK2" :  0.0
+         },
+         "Tables": {}
+      }
+   }]
+}

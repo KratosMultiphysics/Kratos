@@ -11,6 +11,9 @@ if kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication"):
 else:
     has_meshing_application = False
 
+# Import adaptive remeshing utilities
+import KratosMultiphysics.ContactStructuralMechanicsApplication.adaptative_remeshing_contact_structural_mechanics_utilities as adaptative_remeshing_contact_structural_mechanics_utilities
+
 # Import base class file
 import KratosMultiphysics.ContactStructuralMechanicsApplication.contact_structural_mechanics_static_solver as contact_structural_mechanics_static_solver
 
@@ -23,14 +26,7 @@ class AdaptativeRemeshingContactStaticMechanicalSolver(contact_structural_mechan
     """
     def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings.
-        import adaptative_remeshing_contact_structural_mechanics_utilities
         self.adaptative_remeshing_utilities = adaptative_remeshing_contact_structural_mechanics_utilities.AdaptativeRemeshingContactMechanicalUtilities()
-        adaptative_remesh_parameters = self.adaptative_remeshing_utilities.GetDefaultParameters()
-
-        # Validate the remaining settings in the base class.
-        self.validate_and_transfer_matching_settings(custom_settings, adaptative_remesh_parameters)
-        self.adaptative_remesh_parameters = adaptative_remesh_parameters
-        self.adaptative_remeshing_utilities.SetDefaultParameters(self.adaptative_remesh_parameters)
 
         # Construct the base solver.
         super(AdaptativeRemeshingContactStaticMechanicalSolver, self).__init__(model, custom_settings)
@@ -51,9 +47,9 @@ class AdaptativeRemeshingContactStaticMechanicalSolver(contact_structural_mechan
 
     def _create_remeshing_process(self):
         if self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
-            remeshing_process = MA.MmgProcess2D(self.main_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
+            remeshing_process = MA.MmgProcess2D(self.main_model_part, self.settings["remeshing_parameters"])
         else:
-            remeshing_process = MA.MmgProcess3D(self.main_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
+            remeshing_process = MA.MmgProcess3D(self.main_model_part, self.settings["remeshing_parameters"])
 
         return remeshing_process
 
@@ -64,9 +60,9 @@ class AdaptativeRemeshingContactStaticMechanicalSolver(contact_structural_mechan
 
     def _create_metric_process(self):
         if self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
-            metric_process = MA.MetricErrorProcess2D(self.main_model_part, self.adaptative_remesh_parameters["metric_error_parameters"])
+            metric_process = MA.MetricErrorProcess2D(self.main_model_part, self.settings["metric_error_parameters"])
         else:
-            metric_process = MA.MetricErrorProcess3D(self.main_model_part, self.adaptative_remesh_parameters["metric_error_parameters"])
+            metric_process = MA.MetricErrorProcess3D(self.main_model_part, self.settings["metric_error_parameters"])
 
         return metric_process
 
@@ -74,3 +70,9 @@ class AdaptativeRemeshingContactStaticMechanicalSolver(contact_structural_mechan
         error_criteria = self.settings["convergence_criterion"].GetString()
         conv_settings = self._get_convergence_criterion_settings()
         return self.adaptative_remeshing_utilities.GetConvergenceCriteria(error_criteria, conv_settings)
+
+    @classmethod
+    def GetDefaultParameters(cls):
+        this_defaults = adaptative_remeshing_contact_structural_mechanics_utilities.AdaptativeRemeshingContactMechanicalUtilities().GetDefaultParameters()
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        return this_defaults

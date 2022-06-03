@@ -11,15 +11,15 @@ class WaveGeneratorProcess(KM.Process):
 
     __formulation = {
         # Json input
-        "reduced_variables" : SW.Formulation.REDUCED_VARIABLES,
-        "conserved_variables" : SW.Formulation.CONSERVED_VARIABLES
+        "primitive_variables" : SW.Formulation.PrimitiveVariables,
+        "conserved_variables" : SW.Formulation.ConservativeVariables
     }
 
     __variables = {
         # Json input
-        "free_surface" : SW.Variables.FREE_SURFACE_VARIABLE,
-        "velocity" : SW.Variables.VELOCITY_VARIABLE,
-        "free_surface_and_velocity" : SW.Variables.FREE_SURFACE_AND_VELOCITY
+        "free_surface" : SW.Variables.FreeSurfaceVariable,
+        "velocity" : SW.Variables.VelocityVariable,
+        "free_surface_and_velocity" : SW.Variables.FreeSurfaceAndVelocity
     }
 
     def __init__(self, model, settings ):
@@ -68,7 +68,7 @@ class WaveGeneratorProcess(KM.Process):
         velocity_parameters.AddEmptyValue("phase_shift").SetDouble(wave_period / 4)
         velocity_parameters.AddEmptyValue("vertical_shift").SetDouble(0.0)
 
-        if self.variables == SW.Variables.VELOCITY_VARIABLE:
+        if self.variables == SW.Variables.VelocityVariable:
             velocity_parameters.AddEmptyValue("phase_shift").SetDouble(0.0)
 
         self.free_surface_process = SW.ApplySinusoidalFunctionToScalar(self.model_part, SW.FREE_SURFACE_ELEVATION, free_surface_parameters)
@@ -79,8 +79,8 @@ class WaveGeneratorProcess(KM.Process):
 
     def ExecuteInitializeSolutionStep(self):
         if self._IsInInterval():
-            set_free_surface = self.variables == SW.Variables.FREE_SURFACE_VARIABLE or self.variables == SW.Variables.FREE_SURFACE_AND_VELOCITY
-            set_velocity = self.variables == SW.Variables.VELOCITY_VARIABLE or self.variables == SW.Variables.FREE_SURFACE_AND_VELOCITY
+            set_free_surface = self.variables == SW.Variables.FreeSurfaceVariable or self.variables == SW.Variables.FreeSurfaceAndVelocity
+            set_velocity = self.variables == SW.Variables.VelocityVariable or self.variables == SW.Variables.FreeSurfaceAndVelocity
 
             # Set the free surface if needed
             if set_free_surface:
@@ -94,7 +94,7 @@ class WaveGeneratorProcess(KM.Process):
             SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.model_part)
 
             # Compute the momentum if needed
-            if self.formulation == SW.Formulation.CONSERVED_VARIABLES and set_velocity:
+            if self.formulation == SW.Formulation.ConservativeVariables and set_velocity:
                 SW.ShallowWaterUtilities().ComputeMomentum(self.model_part)
 
             # Fix the free surface if needed
@@ -103,10 +103,10 @@ class WaveGeneratorProcess(KM.Process):
             
             # Fix the velocity or the momentum if needed
             if self.fix_dofs and self.variables == set_velocity:
-                if self.formulation == SW.Formulation.REDUCED_VARIABLES:
+                if self.formulation == SW.Formulation.PrimitiveVariables:
                     KM.VariableUtils().ApplyFixity(KM.VELOCITY_X, True, self.model_part.Nodes)
                     KM.VariableUtils().ApplyFixity(KM.VELOCITY_Y, True, self.model_part.Nodes)
-                if self.formulation == SW.Formulation.CONSERVED_VARIABLES:
+                if self.formulation == SW.Formulation.ConservativeVariables:
                     KM.VariableUtils().ApplyFixity(KM.MOMENTUM_X, True, self.model_part.Nodes)
                     KM.VariableUtils().ApplyFixity(KM.MOMENTUM_Y, True, self.model_part.Nodes)
 

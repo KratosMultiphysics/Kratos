@@ -30,8 +30,9 @@
 namespace Kratos {
 	namespace Testing {
 
-        typedef UblasSpace<double, Matrix, Vector > SpaceType;
-        typedef typename ConvergenceAccelerator<SpaceType>::UniquePointer ConvAccPointerType;
+        typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
+        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+        typedef typename ConvergenceAccelerator<SparseSpaceType, DenseSpaceType>::UniquePointer ConvAccPointerType;
 
         /**
 	     * Auxiliar function to set the system to be solved
@@ -88,7 +89,7 @@ namespace Kratos {
                 while (it < MaxIt) {
                     ++it;
                     ComputeResidual(t_val, guess, res);
-                    res_norm = SpaceType::TwoNorm(res);
+                    res_norm = SparseSpaceType::TwoNorm(res);
                     // std::cout << "\tIteration: " << it << " residual: " << res_norm << std::endl;
                     if (res_norm < Tol){
                         // std::cout << "Convergence achieved in " << it << " iterations." << std::endl;
@@ -113,7 +114,7 @@ namespace Kratos {
 		{
             // Set the convergence accelerator pointer
             const double w = 0.05;
-            ConvAccPointerType p_constant_relaxation = Kratos::make_unique<ConstantRelaxationConvergenceAccelerator<SpaceType>>(w);
+            ConvAccPointerType p_constant_relaxation = Kratos::make_unique<ConstantRelaxationConvergenceAccelerator<SparseSpaceType, DenseSpaceType>>(w);
 
             // Solve the Ax = b problem
             const double tol = 1e-9;
@@ -132,7 +133,7 @@ namespace Kratos {
 		{
             // Set the convergence accelerator pointer
             const double w = 0.05;
-            ConvAccPointerType p_aitken_relaxation = Kratos::make_unique<AitkenConvergenceAccelerator<SpaceType>>(w);
+            ConvAccPointerType p_aitken_relaxation = Kratos::make_unique<AitkenConvergenceAccelerator<SparseSpaceType, DenseSpaceType>>(w);
 
             // Solve the Ax = b problem
             const double tol = 1e-9;
@@ -151,7 +152,7 @@ namespace Kratos {
 		{
             // Set the convergence accelerator pointer
             const double w_0 = 0.825;
-            ConvAccPointerType p_MVQN = Kratos::make_unique<MVQNFullJacobianConvergenceAccelerator<SpaceType>>(w_0);
+            ConvAccPointerType p_MVQN = Kratos::make_unique<MVQNFullJacobianConvergenceAccelerator<SparseSpaceType, DenseSpaceType>>(w_0);
 
             // Solve the Ax = b problem
             const bool is_converged = SolveProblem(p_MVQN);
@@ -168,7 +169,7 @@ namespace Kratos {
             // Set the convergence accelerator
             const double w_0 = 0.825;
             const std::size_t buffer_size = 10;
-            ConvAccPointerType p_recursive_MVQN = Kratos::make_unique<MVQNRecursiveJacobianConvergenceAccelerator<SpaceType>>(w_0, buffer_size);
+            ConvAccPointerType p_recursive_MVQN = Kratos::make_unique<MVQNRecursiveJacobianConvergenceAccelerator<SparseSpaceType, DenseSpaceType>>(w_0, buffer_size);
 
             // Solve the Ax = b problem
             const bool is_converged = SolveProblem(p_recursive_MVQN);

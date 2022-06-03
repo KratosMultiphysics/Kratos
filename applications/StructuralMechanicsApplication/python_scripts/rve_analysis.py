@@ -2,6 +2,8 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
+# Importing other libraries
+import math
 
 class RVEAnalysis(StructuralMechanicsAnalysis):
     def __init__(self, model, project_parameters):
@@ -21,6 +23,9 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
         # Pseudo time to be used for output
         self.time = 0.0
+
+        self.populate_search_eps = 1e-4 ##tolerance in finding which conditions belong to the surface (will be multiplied by the lenght of the diagonal)
+        self.geometrical_search_tolerance = 1e-4 #tolerance to be used in the search of the condition it falls into
 
         super().__init__(model, project_parameters)
 
@@ -142,7 +147,9 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
     def _ConstructFaceModelParts(self, min_corner, max_corner, mp):
 
-        eps = 0.0001*(max_corner[0] - min_corner[0])/mp.NumberOfNodes()
+        diag_vect = max_corner - min_corner
+        diag_lenght = math.sqrt(diag_vect[0]**2+diag_vect[1]**2+diag_vect[2]**2 )
+        eps = self.populate_search_eps*diag_lenght
 
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLAVE, False, mp.Nodes)
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.MASTER, False, mp.Nodes)
@@ -324,9 +331,10 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         periodicity_utility = KratosMultiphysics.StructuralMechanicsApplication.RVEPeriodicityUtility(self._GetSolver().GetComputingModelPart())
 
         # assign periodicity to faces
-        periodicity_utility.AssignPeriodicity(self.min_x_face, self.max_x_face, strain, KratosMultiphysics.Vector([dx, 0.0, 0.0]))
-        periodicity_utility.AssignPeriodicity(self.min_y_face, self.max_y_face, strain, KratosMultiphysics.Vector([0.0, dy, 0.0]))
-        periodicity_utility.AssignPeriodicity(self.min_z_face, self.max_z_face, strain, KratosMultiphysics.Vector([0.0, 0.0, dz]))
+        search_tolerance = self.geometrical_search_tolerance
+        periodicity_utility.AssignPeriodicity(self.min_x_face, self.max_x_face, strain, KratosMultiphysics.Vector([dx, 0.0, 0.0]),search_tolerance)
+        periodicity_utility.AssignPeriodicity(self.min_y_face, self.max_y_face, strain, KratosMultiphysics.Vector([0.0, dy, 0.0]),search_tolerance)
+        periodicity_utility.AssignPeriodicity(self.min_z_face, self.max_z_face, strain, KratosMultiphysics.Vector([0.0, 0.0, dz]),search_tolerance)
 
         periodicity_utility.Finalize(KratosMultiphysics.DISPLACEMENT)
 

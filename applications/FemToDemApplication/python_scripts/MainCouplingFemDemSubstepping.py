@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
@@ -110,11 +109,7 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
     def BeforeSolveDEMOperations(self):
         self.DEM_Solution.time += self.DEM_Solution.solver.dt
         self.DEM_Solution.step += 1
-        self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
-                                                                   self.DEM_Solution.time,
-                                                                   self.DEM_Solution.solver.dt,
-                                                                   self.DEM_Solution.step,
-                                                                   self.DEM_Solution.IsTimeToPrintPostProcess())
+        self.DEM_Solution.UpdateTimeInModelParts()
 
 #============================================================================================================================
     def OnlyUpdateTimeAndStepInDEM(self):

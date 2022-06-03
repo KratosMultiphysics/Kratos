@@ -56,7 +56,7 @@ void AssignFreeStreamValues(ModelPart& rModelPart) {
     rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
-    rModelPart.GetProcessInfo()[MACH_SQUARED_LIMIT] = 3.0;
+    rModelPart.GetProcessInfo()[MACH_LIMIT] = 1.73205080756887729;
     rModelPart.GetProcessInfo()[CRITICAL_MACH] = 0.99;
     rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = 1.0;
 
@@ -84,17 +84,23 @@ void AssignPerturbationPotentialsToElement(Element& rElement) {
             potential[i];
 }
 
+void AssignCustomPerturbationPotentialsToElement(Element& rElement, const std::array<double, 3> rPotential)
+{
+    for (unsigned int i = 0; i < 3; i++)
+        rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
+}
+
 KRATOS_TEST_CASE_IN_SUITE(ComputePerturbedVelocity, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTestingElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
-    AssignPerturbationPotentialsToElement(*pElement);
+    AssignPerturbationPotentialsToElement(*p_element);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    array_1d<double, 2> perturbed_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<2,3>(*pElement, r_current_process_info);
+    array_1d<double, 2> perturbed_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<2,3>(*p_element, r_current_process_info);
 
     KRATOS_CHECK_RELATIVE_NEAR(perturbed_velocity[0], 303.0, 1e-15);
     KRATOS_CHECK_RELATIVE_NEAR(perturbed_velocity[1], 50.0, 1e-15);
@@ -125,11 +131,26 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeMaximumVelocitySquared, CompressiblePotentialAp
 
     const double reference_max_velocity_squared = 232356.0;
 
-    // Max local Mach number = sqrt(3.0), from MACH_SQUARED_LIMIT
+    // Max local Mach number = sqrt(3.0), from MACH_LIMIT
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<2, 3>(r_current_process_info);
 
     KRATOS_CHECK_RELATIVE_NEAR(max_velocity_squared, reference_max_velocity_squared, 1e-15);
+}
+
+// Checks the function ComputeVacuumVelocitySquared from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeVacuumVelocitySquared, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double reference_max_velocity_squared = 619616.0;
+
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    const double vacuum_velocity_squared = PotentialFlowUtilities::ComputeVacuumVelocitySquared(r_current_process_info);
+
+    KRATOS_CHECK_RELATIVE_NEAR(vacuum_velocity_squared, reference_max_velocity_squared, 1e-15);
 }
 
 // Checks the function ComputeLocalSpeedOfSound from the utilities
@@ -138,13 +159,13 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalSpeedOfSound, CompressiblePotentialApplica
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTestingElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
-    AssignPotentialsToElement(*pElement);
+    AssignPotentialsToElement(*p_element);
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     const double local_speed_of_sound =
         PotentialFlowUtilities::ComputeLocalSpeedOfSound<2, 3>(
-            *pElement, r_current_process_info);
+            *p_element, r_current_process_info);
     KRATOS_CHECK_NEAR(local_speed_of_sound, 333.801138, 1e-6);
 }
 
@@ -177,13 +198,13 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachNumber, CompressiblePotentialApplicati
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTestingElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
-    AssignPotentialsToElement(*pElement);
+    AssignPotentialsToElement(*p_element);
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     const double local_mach_number =
         PotentialFlowUtilities::ComputeLocalMachNumber<2, 3>(
-            *pElement, r_current_process_info);
+            *p_element, r_current_process_info);
     KRATOS_CHECK_NEAR(local_mach_number, 0.748948914, 1e-6);
 }
 
@@ -258,7 +279,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredSup
     const double mach_derivative = PotentialFlowUtilities::ComputeDerivativeLocalMachSquaredWRTVelocitySquared<2, 3>(velocity,
                 local_mach_squared, r_current_process_info);
 
-    const double reference_derivative = 2.0657955895264163348e-05;
+    const double reference_derivative = 2.0657955895264170124e-05;
 
     KRATOS_CHECK_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
 }
@@ -269,13 +290,13 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationIncompressiblePressureCoefficient, 
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTestingElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
-    AssignPerturbationPotentialsToElement(*pElement);
+    AssignPerturbationPotentialsToElement(*p_element);
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     const double pressure_coefficient =
         PotentialFlowUtilities::ComputePerturbationIncompressiblePressureCoefficient<2, 3>(
-            *pElement, r_current_process_info);
+            *p_element, r_current_process_info);
 
     KRATOS_CHECK_NEAR(pressure_coefficient, -1.266171664744329, 1e-15);
 }
@@ -286,15 +307,39 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationCompressiblePressureCoefficient, Co
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTestingElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
-    AssignPerturbationPotentialsToElement(*pElement);
+    AssignPerturbationPotentialsToElement(*p_element);
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     const double pressure_coefficient =
         PotentialFlowUtilities::ComputePerturbationCompressiblePressureCoefficient<2, 3>(
-            *pElement, r_current_process_info);
+            *p_element, r_current_process_info);
 
     KRATOS_CHECK_NEAR(pressure_coefficient, -1.128385779511008, 1e-15);
+}
+
+// Checks the function ComputePerturbationCompressiblePressureCoefficient from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationCompressiblePressureCoefficientClamped, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+    Element::Pointer p_element = model_part.pGetElement(1);
+
+    const std::array<double, 3>& potential{1.0, 733.13764, 929.1948};
+    AssignCustomPerturbationPotentialsToElement(*p_element, potential);
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    const double pressure_coefficient =
+        PotentialFlowUtilities::ComputePerturbationCompressiblePressureCoefficient<2, 3>(
+            *p_element, r_current_process_info);
+
+    const double reference_pressure_coefficient = -3.968253968253968;
+    const double tolerance = 1e-15;
+
+    KRATOS_ERROR_IF(!(std::abs(pressure_coefficient - reference_pressure_coefficient) < tolerance))
+        << "Check failed because pressure_coefficient  = " << pressure_coefficient <<
+        " is not near to reference_pressure_coefficient = " << reference_pressure_coefficient <<
+        " within the tolerance " << tolerance << std::endl;
 }
 
 // Checks the function ComputePerturbationLocalSpeedOfSound from the utilities
@@ -303,13 +348,13 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationLocalSpeedOfSound, CompressiblePote
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTestingElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
-    AssignPerturbationPotentialsToElement(*pElement);
+    AssignPerturbationPotentialsToElement(*p_element);
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     const double local_speed_of_sound =
         PotentialFlowUtilities::ComputePerturbationLocalSpeedOfSound<2, 3>(
-            *pElement, r_current_process_info);
+            *p_element, r_current_process_info);
 
     KRATOS_CHECK_NEAR(local_speed_of_sound, 324.1317633309022, 1e-13);
 }
@@ -320,13 +365,13 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationLocalMachNumber, CompressiblePotent
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTestingElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
-    AssignPerturbationPotentialsToElement(*pElement);
+    AssignPerturbationPotentialsToElement(*p_element);
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     const double local_mach_number =
         PotentialFlowUtilities::ComputePerturbationLocalMachNumber<2, 3>(
-            *pElement, r_current_process_info);
+            *p_element, r_current_process_info);
 
     KRATOS_CHECK_NEAR(local_mach_number, 0.9474471158469713, 1e-16);
 }
@@ -567,7 +612,9 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupe
     const double density_derivative_accel = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<2,3>(
         current_velocity, local_mach_number_squared, upwind_mach_number_squared, model_part.GetProcessInfo());
 
-    KRATOS_CHECK_RELATIVE_NEAR(density_derivative_accel, 6.3365379876068035e-07, 1e-15);
+    const double reference = 6.33653798760679499e-07;
+
+    KRATOS_CHECK_RELATIVE_NEAR(density_derivative_accel, reference, 1e-13);
 }
 
 // tests the function ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating from the utilities

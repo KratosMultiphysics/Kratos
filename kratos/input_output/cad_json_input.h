@@ -284,9 +284,14 @@ private:
         auto p_trimming_curve(ReadNurbsCurve<2, TEmbeddedNodeType>(
             rParameters["parameter_curve"], rModelPart, EchoLevel));
 
+        KRATOS_ERROR_IF_NOT(rParameters["parameter_curve"].Has("active_range"))
+            << "Missing 'active_range' in parameter_curve, in trimming curve." << std::endl;
+        Vector active_range_vector = rParameters["parameter_curve"]["active_range"].GetVector();
+        NurbsInterval brep_active_range(active_range_vector[0], active_range_vector[1]);
+
         auto p_brep_curve_on_surface
             = Kratos::make_shared<BrepCurveOnSurfaceType>(
-                pNurbsSurface, p_trimming_curve, curve_direction);
+                pNurbsSurface, p_trimming_curve, brep_active_range, curve_direction);
 
         if (rParameters.Has("trim_index")) {
             p_brep_curve_on_surface->SetId(rParameters["trim_index"].GetInt());
@@ -411,8 +416,8 @@ private:
             << rParameters["topology"][0]["trim_index"].GetInt() << std::endl;
 
         bool relative_direction = true;
-        if (rParameters["topology"][0].Has("trim_index")) {
-            relative_direction = rParameters["topology"][0]["trim_index"].GetInt();
+        if (rParameters["topology"][0].Has("relative_direction")) {
+            relative_direction = rParameters["topology"][0]["relative_direction"].GetBool();
         }
         else {
             KRATOS_INFO_IF("ReadBrepEdge", (EchoLevel > 4))
@@ -423,8 +428,9 @@ private:
 
         auto p_nurbs_curve_on_surface = p_brep_curve_on_surface->pGetCurveOnSurface();
 
+        auto brep_nurbs_interval = p_brep_curve_on_surface->DomainInterval();
         auto p_bre_edge_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
-            p_nurbs_curve_on_surface, relative_direction);
+            p_nurbs_curve_on_surface, brep_nurbs_interval, relative_direction);
 
         SetIdOrName<BrepCurveOnSurfaceType>(rParameters, p_bre_edge_brep_curve_on_surface);
 
@@ -645,7 +651,7 @@ private:
 
         for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
         {
-            rControlPoints.push_back(ReadNode(rParameters[cp_idx], rModelPart));
+            rControlPoints.push_back(ReadAndCreateNode(rParameters[cp_idx], rModelPart));
         }
     }
 
@@ -676,7 +682,7 @@ private:
     * Input needs to be a Parameter object:
     * [id, [x, y, z, weight]]
     */
-    static Node<3>::Pointer ReadNode(
+    static Node<3>::Pointer ReadAndCreateNode(
         const Parameters rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)

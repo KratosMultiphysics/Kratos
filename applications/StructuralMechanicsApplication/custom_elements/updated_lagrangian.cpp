@@ -70,23 +70,26 @@ void UpdatedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseSolidElement::Initialize(rCurrentProcessInfo);
 
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-    const SizeType integration_points_number = integration_points.size();
+        const SizeType integration_points_number = integration_points.size();
 
-    if ( mDetF0.size() !=  integration_points_number)
-        mDetF0.resize( integration_points_number );
-    if ( mF0.size() !=  integration_points_number)
-        mF0.resize( integration_points_number );
+        if ( mDetF0.size() !=  integration_points_number)
+            mDetF0.resize( integration_points_number );
+        if ( mF0.size() !=  integration_points_number)
+            mF0.resize( integration_points_number );
 
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
-    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
-        mDetF0[point_number] = 1.0;
-        mF0[point_number] = IdentityMatrix(dimension);
+        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+            mDetF0[point_number] = 1.0;
+            mF0[point_number] = IdentityMatrix(dimension);
+        }
+
+        mF0Computed = false;
     }
-
-    mF0Computed = false;
 }
 
 /***********************************************************************************/
@@ -105,15 +108,18 @@ void UpdatedLagrangian::InitializeSolutionStep(const ProcessInfo& rCurrentProces
 void UpdatedLagrangian::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
     // Create and initialize element variables:
-    const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    // Reading integration points
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
 
     // Create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters Values(r_geometry,GetProperties(),rCurrentProcessInfo);
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=Values.GetOptions();
@@ -132,15 +138,11 @@ void UpdatedLagrangian::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessI
         // Compute element kinematics B, F, DN_DX ...
         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
+        // Setting the variables for the CL
+        SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
+
         // Call the constitutive law to update material variables
         mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
-
-        mConstitutiveLawVector[point_number]->FinalizeSolutionStep(
-        GetProperties(),
-        GetGeometry(),
-        row( GetGeometry().ShapeFunctionsValues(  ), point_number ),
-        rCurrentProcessInfo
-        );
 
         // Update the element internal variables
         this->UpdateHistoricalDatabase(this_kinematic_variables, point_number);
@@ -493,7 +495,7 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(
 
 void UpdatedLagrangian::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
-    std::vector<double>& rValues,
+    const std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -513,7 +515,7 @@ void UpdatedLagrangian::SetValuesOnIntegrationPoints(
 
 void UpdatedLagrangian::SetValuesOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues,
+    const std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {

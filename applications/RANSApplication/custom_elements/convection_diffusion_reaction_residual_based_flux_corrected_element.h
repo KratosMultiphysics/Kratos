@@ -77,7 +77,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ConvectionDiffusionReactionResidualBasedFluxCorrectedElement
-    KRATOS_CLASS_POINTER_DEFINITION(ConvectionDiffusionReactionResidualBasedFluxCorrectedElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ConvectionDiffusionReactionResidualBasedFluxCorrectedElement);
 
     ///@}
     ///@name Life Cycle

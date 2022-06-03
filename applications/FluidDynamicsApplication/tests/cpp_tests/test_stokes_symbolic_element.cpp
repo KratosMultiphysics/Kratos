@@ -91,8 +91,9 @@ namespace Kratos {
 			Vector RHS = ZeroVector(9);
 			Matrix LHS = ZeroMatrix(9,9);
 
-			p_element->Initialize(); // Initialize the element to initialize the constitutive law
-			p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+            const auto& r_process_info = r_model_part.GetProcessInfo();
+			p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
 			// Check values
 			std::vector<double> RHS_expected({224.531,273.906,-0.0944375,-138.125,98.75,-0.0351875,61.7187,-76.4063,-0.020375});
@@ -157,8 +158,9 @@ namespace Kratos {
 			Vector RHS = ZeroVector(9);
 			Matrix LHS = ZeroMatrix(9,9);
 
-			p_element->Initialize(); // Initialize the element to initialize the constitutive law
-			p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+            const auto& r_process_info = r_model_part.GetProcessInfo();
+			p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
 			// Check obtained RHS
 			double sum_RHS = 0.0;
@@ -260,8 +262,9 @@ namespace Kratos {
             Vector RHS = ZeroVector(12);
             Matrix LHS = ZeroMatrix(12, 12);
 
-            p_element->Initialize(); // Initialize the element to initialize the constitutive law
-            p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+            const auto& r_process_info = r_model_part.GetProcessInfo();
+			p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
             // Check values
             std::vector<double> RHS_expected({161.2500018, 213.6458374, -0.1151145824, 36.25000067, 201.0416671, -0.05894791639, 116.8749998, 169.2708304, 0.05245833223, 204.0624977, 156.6666651, -0.02839583341});
@@ -327,8 +330,9 @@ namespace Kratos {
             Vector RHS = ZeroVector(12);
             Matrix LHS = ZeroMatrix(12, 12);
 
-            p_element->Initialize(); // Initialize the element to initialize the constitutive law
-            p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+            const auto& r_process_info = r_model_part.GetProcessInfo();
+			p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
             // Check obtained RHS
             double sum_RHS = 0.0;
@@ -433,8 +437,9 @@ namespace Kratos {
 			Vector RHS = ZeroVector(16);
 			Matrix LHS = ZeroMatrix(16,16);
 
-			p_element->Initialize(); // Initialize the element to initialize the constitutive law
-			p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+            const auto& r_process_info = r_model_part.GetProcessInfo();
+			p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
 			// Check values
 			std::vector<double> RHS_expected({98.1458,110.49,122.833,-0.0620312,-66.0521,29.625,41.9687,-0.0175938,19.75,-51.2396,44.4375,-0.0126563,22.2187,34.5625,-36.4271,-0.00771875});
@@ -498,8 +503,9 @@ namespace Kratos {
 			Vector RHS = ZeroVector(16);
 			Matrix LHS = ZeroMatrix(16,16);
 
-			p_element->Initialize(); // Initialize the element to initialize the constitutive law
-			p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+            const auto& r_process_info = r_model_part.GetProcessInfo();
+			p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
 			// Check obtained RHS
 			double sum_RHS = 0.0;
@@ -629,8 +635,9 @@ namespace Kratos {
             Vector RHS = ZeroVector(24);
             Matrix LHS = ZeroMatrix(24, 24);
 
-            p_element->Initialize(); // Initialize the element to initialize the constitutive law
-            p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+            const auto& r_process_info = r_model_part.GetProcessInfo();
+			p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
             // Check values
             std::vector<double> RHS_expected({230.7031274, 255.3906281, 217.5781286, -0.1080156245, -138.1250003, 74.06250008, 223.7500003, -0.05740624994, 55.54687492, -107.2656257, 229.9218751, -0.05123437499, 255.3906261, 280.0781264, -7.734374083, -0.08085937475, -113.4375017, 98.74999842, -1.562502333, -0.005562500355, 80.23437358, -82.57812733, 4.609372417, 0.003078124575});
@@ -697,8 +704,9 @@ namespace Kratos {
             Vector RHS = ZeroVector(24);
             Matrix LHS = ZeroMatrix(24, 24);
 
-            p_element->Initialize(); // Initialize the element to initialize the constitutive law
-            p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+            const auto& r_process_info = r_model_part.GetProcessInfo();
+			p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
             // Check obtained RHS
             double sum_RHS = 0.0;
@@ -855,8 +863,9 @@ namespace Kratos {
             Vector RHS = ZeroVector(32);
             Matrix LHS = ZeroMatrix(32, 32);
 
-            p_element->Initialize(); // Initialize the element to initialize the constitutive law
-            p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+            const auto& r_process_info = r_model_part.GetProcessInfo();
+			p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
             // Check values
             std::vector<double> RHS_expected({312.2168837, 190.8386773, 389.472495, -0.1311111106, -67.20285686, 280.1368874, 383.5463436, -0.1183055552, -7.053952332, -142.4946575, 419.4204074, -0.08101736106, 386.3828838, -226.9384326, 468.0936225, -0.1025659719, 255.1268689, 410.6717412, -101.4516571, -0.08564583323, -117.4846442, 397.8839468, -42.03592709, -0.04259722243, -157.8939673, 11.7134052, -90.25374564, 0.03069444374, 144.7629509, 49.23009891, -233.562372, -0.0194513892});
@@ -925,8 +934,9 @@ namespace Kratos {
             Vector RHS = ZeroVector(32);
             Matrix LHS = ZeroMatrix(32, 32);
 
-            p_element->Initialize(); // Initialize the element to initialize the constitutive law
-            p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+            const auto& r_process_info = r_model_part.GetProcessInfo();
+			p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
             // Check obtained RHS
             double sum_RHS = 0.0;

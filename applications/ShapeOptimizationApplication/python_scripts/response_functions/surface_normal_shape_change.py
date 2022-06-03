@@ -30,7 +30,7 @@ class SurfaceNormalShapeChange(ResponseFunctionInterface):
     def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
 
-        response_settings.ValidateAndAssignDefaults(self.GetDefaultSettings())
+        response_settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.response_settings = response_settings
         self.model = model
@@ -59,7 +59,7 @@ class SurfaceNormalShapeChange(ResponseFunctionInterface):
         self.flip_normal_direction = self.response_settings["flip_normal_direction"].GetBool()
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "response_type"         : "surface_normal_shape_change",
             "model_part_name"       : "UNKNOWN_NAME",

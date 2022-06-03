@@ -62,6 +62,8 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef Node<3> NodeType;
+
     KRATOS_CLASS_POINTER_DEFINITION(BFECCConvectionUtility<TDim>);
 
     ///@}

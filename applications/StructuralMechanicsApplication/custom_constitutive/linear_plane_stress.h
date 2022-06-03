@@ -177,7 +177,7 @@ protected:
     * @param C: The constitutive matrix
     * @param rValues Parameters of the constitutive law
     */
-    void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateElasticMatrix(VoigtSizeMatrixType& C, ConstitutiveLaw::Parameters& rValues) override;
 
     /**
     * It calculates the stress vector
@@ -186,8 +186,8 @@ protected:
     * @param rValues Parameters of the constitutive law
     */
     void CalculatePK2Stress(
-        const Vector& rStrainVector,
-        Vector& rStressVector,
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        ConstitutiveLaw::StressVectorType& rStressVector,
         ConstitutiveLaw::Parameters& rValues
         ) override;
 
@@ -198,7 +198,7 @@ protected:
     */
     void CalculateCauchyGreenStrain(
         ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
+        ConstitutiveLaw::StrainVectorType& rStrainVector
         ) override;
 
     ///@}

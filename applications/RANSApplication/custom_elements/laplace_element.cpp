@@ -195,7 +195,7 @@ void LaplaceElement<TDim, TNumNodes>::CalculateRightHandSide(
 
 template <unsigned int TDim, unsigned int TNumNodes>
 int LaplaceElement<TDim, TNumNodes>::Check(
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

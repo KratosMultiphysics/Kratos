@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_conditions/line_load_condition.h"
+#include "includes/variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/beam_math_utilities.hpp"
 #include "utilities/integration_utilities.h"

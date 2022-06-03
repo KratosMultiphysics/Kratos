@@ -116,7 +116,7 @@ public:
             std::vector< array_1d<double,3> >& rValues,
             const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValuesVector(Vector& rValues, int Step=0) override;
+    void GetValuesVector(Vector& rValues, int Step=0) const override;
 
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                             Matrix& rOutput,
@@ -130,7 +130,7 @@ public:
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     std::string Info() const override;
 
@@ -144,7 +144,7 @@ protected:
 
     Element::Pointer mpPrimalElement;
 
-    void GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances);
+    void GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances) const;
 
 private:
 

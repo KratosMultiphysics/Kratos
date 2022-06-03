@@ -1,0 +1,105 @@
+{
+    "problem_data" : {
+        "problem_name"    : "one_element",
+        "start_step"      : 2.0,
+        "nsteps"          : 1,
+        "echo_level"      : 0,
+        "parallel_type"   : "OpenMP"
+    },
+    "solver_settings" : {
+        "solver_type"                   : "Monolithic",
+        "scheme_settings" : {
+            "scheme_type"               : "steady",
+            "alpha_bossak"              :-0.3
+        },
+        "response_function_settings" : {
+            "response_type"            : "drag",
+            "custom_settings" : {
+                "structure_model_part_name" : "Structure",
+                "drag_direction"            : [1.0, 0.0, 0.0]
+            }
+        },
+        "sensitivity_settings" : {
+            "sensitivity_model_part_name": "Boundary",
+            "nodal_solution_step_sensitivity_variables": ["SHAPE_SENSITIVITY"],
+            "build_mode": "integrate",
+            "nodal_solution_step_sensitivity_calculation_is_thread_safe" : true
+        },
+        "domain_size"                   : 2,
+        "dynamic_tau"                   : 1.0,
+        "oss_switch"                    : 0,
+        "echo_level"                    : 0,
+        "model_part_name"               : "MainModelPart",
+        "volume_model_part_name"        : "Parts_Fluid",
+        "skin_parts"                    : ["Inlet", "Outlet", "Boundary", "Structure"],
+        "linear_solver_settings" : {
+            "solver_type"         : "LinearSolversApplication.sparse_lu",
+            "verbosity"           : 0
+        },
+        "model_import_settings" : {
+            "input_type"     : "mdpa",
+            "input_filename" : "AdjointVMSSensitivity2DTest/two_elements_test"
+        },
+        "material_import_settings": {
+            "materials_filename": "AdjointVMSSensitivity2DTest/two_elements_test_materials.json"
+        },
+        "time_stepping"                : {
+            "automatic_time_step" : false,
+            "time_step"           : -1.0
+        }
+    },
+    "processes": {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.Inlet",
+                "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
+                "value"           : [0.0, 0.0, 0.0]
+            }
+        },{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignScalarVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.Outlet",
+                "variable_name"   : "ADJOINT_FLUID_SCALAR_1",
+                "value"           : 0
+            }
+        },{
+            "python_module" : "apply_slip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.Boundary"
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.Outlet",
+                "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
+                "constrained"     : [false,true,true],
+                "value"           : [0.0, 0.0, 0.0]
+            }
+        }],
+        "gravity" : [],
+        "auxiliar_process_list" :[{
+            "kratos_module" : "KratosMultiphysics.HDF5Application",
+            "python_module" : "single_mesh_temporal_input_process",
+            "help"          : "",
+            "process_name"  : "",
+            "Parameters" : {
+                "model_part_name" : "MainModelPart",
+                "file_settings" : {
+                    "file_access_mode" : "read_only"
+                },
+                "nodal_solution_step_data_settings" : {
+                    "list_of_variables": ["VELOCITY", "PRESSURE"]
+                }
+            }
+        }]
+    }
+}

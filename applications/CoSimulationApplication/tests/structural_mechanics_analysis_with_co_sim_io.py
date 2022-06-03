@@ -9,7 +9,7 @@ class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
     '''Main script for structural mechanics with CoSimIO'''
 
     def __init__(self, model, parameters):
-        super(StructuralMechanicsAnalysisWithCoSimIO,self).__init__(model, parameters)
+        super().__init__(model, parameters)
 
         # To avoid many prints
         if (self.echo_level == 0):
@@ -18,15 +18,14 @@ class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
 
     def Initialize(self):
-        super(StructuralMechanicsAnalysisWithCoSimIO, self).Initialize()
+        super().Initialize()
         self.co_sim_settings = self.project_parameters["co_sim_settings"]
-        self.connection_name = self.co_sim_settings["connection_name"].GetString()
         self.is_strong_coupling = self.co_sim_settings["is_strong_coupling"].GetBool()
 
         connection_settings = CoSimIO.InfoFromParameters(self.project_parameters["co_sim_settings"]["io_settings"])
-        connection_settings.SetString("connection_name", self.connection_name)
 
         info = CoSimIO.Connect(connection_settings)
+        self.connection_name = info.GetString("connection_name")
         if info.GetInt("connection_status") != CoSimIO.ConnectionStatus.Connected:
             raise Exception("Connecting failed!")
 
@@ -36,7 +35,7 @@ class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
         for model_part_name in self.communication_settings["export_meshes"].GetStringArray():
             info = CoSimIO.Info()
             info.SetString("connection_name", self.connection_name)
-            info.SetString("identifier", model_part_name)
+            info.SetString("identifier", model_part_name.replace(".", "-"))
 
             CoSimIO.ExportMesh(info, self.model[model_part_name])
 
@@ -80,13 +79,14 @@ class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
             self._GetSolver().Predict()
 
             if self.is_strong_coupling:
-                is_converged = False
-                while not is_converged:
+                repeat_time_step = True
+                while repeat_time_step:
                     self.__InnerLoop()
                     info = CoSimIO.Info()
                     info.SetString("connection_name", self.connection_name)
-                    is_converged_info = CoSimIO.IsConverged(info)
-                    is_converged = is_converged_info.GetBool("is_converged")
+                    info.SetString("identifier", "repeat_time_step_info")
+                    repeat_time_step_info = CoSimIO.ImportInfo(info)
+                    repeat_time_step = repeat_time_step_info.GetBool("repeat_time_step")
             else:
                 self.__InnerLoop()
 
@@ -94,7 +94,7 @@ class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
             self.OutputSolutionStep()
 
     def Finalize(self):
-        super(StructuralMechanicsAnalysisWithCoSimIO, self).Finalize()
+        super().Finalize()
 
         disconnect_settings = CoSimIO.Info()
         disconnect_settings.SetString("connection_name", self.connection_name)

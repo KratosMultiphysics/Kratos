@@ -10,8 +10,8 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#ifndef CO_SIM_IO_MACROS_H_INCLUDED
-#define CO_SIM_IO_MACROS_H_INCLUDED
+#ifndef CO_SIM_IO_MACROS_INCLUDED
+#define CO_SIM_IO_MACROS_INCLUDED
 
 /* This file defines macros that are used inside the CoSimIO
 Note that they are only defined here if they haven't been defined before.
@@ -21,11 +21,59 @@ the code where the CoSimIO is included
 
 #ifndef CO_SIM_IO_ERROR
     #include <iostream>
+    #include <string>
     #include <stdexcept>
-    struct err { // helper struct to mimic behavior of KRATOS_ERROR
-    ~err() noexcept(false) { throw std::runtime_error("Error: "); } // destructors are noexcept by default
+    #include <sstream>
+
+    namespace CoSimIO {
+
+    // Simplified version of kratos/includes/exception.h
+    class Exception : public std::exception
+    {
+        public:
+        explicit Exception(const std::string& rWhat) : std::exception(), mMessage(rWhat) { }
+
+        const char* what() const noexcept override
+        {
+            return mMessage.c_str();
+        }
+
+        /// string stream function
+        template<class StreamValueType>
+        Exception& operator << (StreamValueType const& rValue)
+        {
+            std::stringstream buffer;
+            buffer << rValue;
+
+            mMessage.append(buffer.str());
+
+            return *this;
+        }
+
+        Exception& operator << (std::ostream& (*pf)(std::ostream&))
+        {
+            std::stringstream buffer;
+            pf(buffer);
+
+            mMessage.append(buffer.str());
+
+            return *this;
+        }
+
+        Exception& operator << (const char* pString)
+        {
+            mMessage.append(pString);
+            return *this;
+        }
+
+        private:
+        std::string mMessage;
+
     };
-    #define CO_SIM_IO_ERROR (err(), std::cout)
+
+    } // namespace CoSimIO
+
+    #define CO_SIM_IO_ERROR throw CoSimIO::Exception("Error: ")
 #endif
 
 #ifndef CO_SIM_IO_ERROR_IF
@@ -33,7 +81,7 @@ the code where the CoSimIO is included
 #endif
 
 #ifndef CO_SIM_IO_ERROR_IF_NOT
-    #define CO_SIM_IO_ERROR_IF_NOT(conditional) if (!conditional) CO_SIM_IO_ERROR
+    #define CO_SIM_IO_ERROR_IF_NOT(conditional) if (!(conditional)) CO_SIM_IO_ERROR
 #endif
 
 #ifndef CO_SIM_IO_INFO
@@ -45,4 +93,4 @@ the code where the CoSimIO is included
     #define CO_SIM_IO_INFO_IF(label, conditional) if (conditional) CO_SIM_IO_INFO(label)
 #endif
 
-#endif // CO_SIM_IO_MACROS_H_INCLUDED
+#endif // CO_SIM_IO_MACROS_INCLUDED

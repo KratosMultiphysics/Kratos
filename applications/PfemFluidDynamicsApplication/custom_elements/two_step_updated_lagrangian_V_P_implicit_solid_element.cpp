@@ -68,7 +68,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::Initialize()
+  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -114,7 +114,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -131,12 +131,12 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo)
   {
   }
 
   template <unsigned int TDim>
-  int TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+  int TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;
 
@@ -212,7 +212,10 @@ namespace Kratos
     const auto &r_properties = this->GetProperties();
     const auto &r_geometry = this->GetGeometry();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
-    mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+
+    //WARNING THIS MUST BE REMOVED ASAP
+    const_cast<TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim> *>(this)->mpConstitutiveLaw = const_cast<TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim> *>(this)->GetProperties().GetValue(CONSTITUTIVE_LAW);
+    // mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
 
     // Verify that the constitutive law exists
     KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
@@ -301,20 +304,6 @@ namespace Kratos
     }
   }
 
-  // template< unsigned int TDim>
-  // bool TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
-  // 									const ProcessInfo& rCurrentProcessInfo,
-  // 									const ShapeFunctionDerivativesType& rDN_DX,
-  // 									unsigned int g)
-  // {
-
-  //   double theta=this->GetThetaMomentum();
-  //   bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-  //   const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
-  //   this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
-  //   return computeElement;
-  // }
-
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeElementalVariables(ElementalVariables &rElementalVariables)
   {
@@ -383,6 +372,8 @@ namespace Kratos
     rElementalVariables.UpdatedDeviatoricCauchyStress[1] = rElementalVariables.CurrentDeviatoricCauchyStress[1];
     rElementalVariables.UpdatedDeviatoricCauchyStress[2] = rElementalVariables.CurrentDeviatoricCauchyStress[2];
 
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
+
     this->mUpdatedTotalCauchyStress[g] = rElementalVariables.UpdatedTotalCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g] = rElementalVariables.UpdatedDeviatoricCauchyStress;
 
@@ -442,6 +433,8 @@ namespace Kratos
     rElementalVariables.UpdatedTotalCauchyStress[4] = rElementalVariables.CurrentDeviatoricCauchyStress[4];
     rElementalVariables.UpdatedTotalCauchyStress[5] = rElementalVariables.CurrentDeviatoricCauchyStress[5];
 
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
+
     rElementalVariables.UpdatedDeviatoricCauchyStress[0] = rElementalVariables.CurrentDeviatoricCauchyStress[0];
     rElementalVariables.UpdatedDeviatoricCauchyStress[1] = rElementalVariables.CurrentDeviatoricCauchyStress[1];
     rElementalVariables.UpdatedDeviatoricCauchyStress[2] = rElementalVariables.CurrentDeviatoricCauchyStress[2];
@@ -469,7 +462,7 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::UpdateCauchyStress(unsigned int g,
-                                                                                ProcessInfo &rCurrentProcessInfo)
+                                                                                const ProcessInfo &rCurrentProcessInfo)
   {
     double theta = this->GetThetaContinuity();
     ElementalVariables rElementalVariables;
@@ -497,7 +490,9 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
+                                                                                                   VectorType &rRightHandSideVector,
+                                                                                                   const ProcessInfo &rCurrentProcessInfo)
   {
     GeometryType &rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();

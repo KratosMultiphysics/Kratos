@@ -24,6 +24,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -341,20 +342,14 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF(GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
+        KRATOS_ERROR_IF_NOT(GetModelPart().HasNodalSolutionStepVariable(DISPLACEMENT_X)) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
 
-        NodesArrayType& NodesArray = GetModelPart().Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
+        block_for_each(GetModelPart().Nodes(), [](Node<3>& rNode){
+            noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
+            noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
+        });
 
-        #pragma omp parallel for
-        for(int i = 0; i < numNodes; ++i) {
-            auto it_node = NodesArray.begin() + i;
-
-            noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
-            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
-        }
-
-        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0) <<" MESH MOVED "<<std::endl;
+        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0) << " MESH MOVED " << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -419,7 +414,7 @@ public:
         })");
         return default_parameters;
     }
-  
+
     /**
      * @brief This method returns the LHS matrix
      * @return The LHS matrix

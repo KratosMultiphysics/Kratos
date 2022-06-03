@@ -30,7 +30,7 @@ namespace Testing
     ///@name Operations
     ///@{
 
-    typename Shell3pElement::Pointer GetShell3pElement(
+    typename Element::Pointer GetShell3pElement(
         ModelPart& rModelPart, SizeType PolynomialDegree, IntegrationPoint<3> IntegrationPoint)
     {
         // Set the element properties
@@ -54,6 +54,8 @@ namespace Testing
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
 
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
         IntegrationPoint<3> integration_point(0.0694318442029737, 0.211324865405187, 0.0, 0.086963711284364);
@@ -61,11 +63,11 @@ namespace Testing
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
 
-        p_shell_3p_element->Initialize();
+        p_shell_3p_element->Initialize(r_process_info);
 
         Matrix left_hand_side_matrix;
         Vector right_hand_side_vector;
-        p_shell_3p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_model_part.GetProcessInfo());
+        p_shell_3p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_process_info);
 
         //Check RHS and LHS results
         const double tolerance = 1.0e-8;
@@ -74,7 +76,7 @@ namespace Testing
         const std::array<double, 24> expected_LHS_row_1{143581.472497936,1165930.89336990,0,32138.8380855513,221748.126394209,0,2397.95310522888,13618.0788490058,0,59.6389440046576,265.893834107322,0,-143581.472497936,-1119642.56781196,0,-32138.8380855513,-261129.093713988,0,-2397.95310522888,-20267.7500934376,0,-59.6389440046576,-523.580827831607,0};
         const std::array<double, 24> expected_LHS_row_2{0,0,198.447972994059,0,0,-171.85483448436,0,0,-25.7137222612275,0,0,-0.879416248471314,0,0,-194.884414941405,0,0,164.99360369436,0,0,28.7455096832649,0,0,1.14530156377983};
         const std::array<double, 24> expected_RHS{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-        
+
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
           KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
@@ -96,6 +98,8 @@ namespace Testing
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
 
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
         IntegrationPoint<3> integration_point(0.0469100770306680, 0.211324865405187, 0, 0.0592317212640473);
@@ -103,11 +107,11 @@ namespace Testing
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
 
-        p_shell_3p_element->Initialize();
+        p_shell_3p_element->Initialize(r_process_info);
 
         Matrix left_hand_side_matrix;
         Vector right_hand_side_vector;
-        p_shell_3p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_model_part.GetProcessInfo());
+        p_shell_3p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_process_info);
 
         //Check RHS and LHS results
         const double tolerance = 1.0e-8;
@@ -116,7 +120,7 @@ namespace Testing
         const std::array<double, 30> expected_LHS_row_1{133490.278045005,850779.615701094,0,26281.0006695998,121138.251571485,0,1940.28454630975,5520.78640580566,0,63.6658342060302,68.8450946538420,0,0.783391240126120,-0.534780027131337,0,-133490.278045005,-794755.404416132,0,-26281.0006695998,-168890.105746305,0,-1940.28454630975,-13385.9868564238,0,-63.6658342060302,-469.321814260949,0,-0.783391240126120,-6.14515988952213,0};
         const std::array<double, 30> expected_LHS_row_2{0,0,244.082389493276,0,0,-215.697282151207,0,0,-27.3648093072877,0,0,-1.00974038916239,0,0,-0.0105576456187532,0,0,-234.831164256541,0,0,198.105502702631,0,0,34.8171036261213,0,0,1.87558915028264,0,0,0.0329687775055955};
         const std::array<double, 30> expected_RHS{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-        
+
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
           KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
@@ -138,6 +142,8 @@ namespace Testing
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
 
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
         IntegrationPoint<3> integration_point(0.0337652428984240, 0.211324865405187, 0, 0.0428311230947926);
@@ -145,11 +151,11 @@ namespace Testing
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
 
-        p_shell_3p_element->Initialize();
+        p_shell_3p_element->Initialize(r_process_info);
 
         Matrix left_hand_side_matrix;
         Vector right_hand_side_vector;
-        p_shell_3p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_model_part.GetProcessInfo());
+        p_shell_3p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_process_info);
 
         //Check RHS and LHS results
         const double tolerance = 1.0e-8;
@@ -158,7 +164,7 @@ namespace Testing
         const std::array<double, 36> expected_LHS_row_1{123985.676772767,658198.309034111,0,21663.5060030130,62635.2668903357,0,1514.07002666186,717.512338770064,0,52.9094423893578,-102.828836610041,0,0.924464867759373,-4.03147228891258,0,0.00646111735922022,-0.0437951018053564,0,-123985.676772767,-594039.120047427,0,-21663.5060030130,-117826.239470483,0,-1514.07002666186,-9215.63490459227,0,-52.9094423893578,-356.313329680350,0,-0.924464867759373,-6.82452509060719,0,-0.00646111735922022,-0.0518819436501911,0};
         const std::array<double, 36> expected_LHS_row_2{0,0,285.621720485676,0,0,-260.655462589834,0,0,-24.4416550804041,0,0,-0.530647626131597,0,0,0.00583242108537799,0,0,0.00021238960772272,0,0,-267.295948175435,0,0,225.925109943067,0,0,38.9921798333809,0,0,2.31834885048427,0,0,0.0597399071372794,0,0,0.000569641365150261};
         const std::array<double, 36> expected_RHS{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0};
-        
+
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
           KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
@@ -180,6 +186,8 @@ namespace Testing
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
 
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
         IntegrationPoint<3> integration_point(0.0694318442029737, 0.211324865405187, 0.0, 0.086963711284364);
@@ -187,7 +195,7 @@ namespace Testing
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
 
-        p_shell_3p_element->Initialize();
+        p_shell_3p_element->Initialize(r_process_info);
 
         array_1d<double, 3> delta = ZeroVector(3);
         delta[2] = 0.002;
@@ -208,7 +216,7 @@ namespace Testing
 
         Matrix left_hand_side_matrix;
         Vector right_hand_side_vector;
-        p_shell_3p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_model_part.GetProcessInfo());
+        p_shell_3p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_process_info);
 
         //Check RHS and LHS results
         const double tolerance = 1.0e-8;
@@ -217,7 +225,7 @@ namespace Testing
         const std::array<double, 24> expected_LHS_row_1{143581.472486388,1165930.89927327,57.7669503941626,32138.8380829665,221748.121371769,12.9303776672213,2397.95310503603,13618.0780009421,0.964765409264601,59.638943999861,265.89380124329,0.0239944601482397,-143581.472486388,-1119642.56623016,-57.7669503941626,-32138.8380829665,-261129.095059747,-12.9303776672213,-2397.95310503603,-20267.7503206756,-0.964765409264601,-59.638943999861,-523.580836637498,-0.0239944601482397};
         const std::array<double, 24> expected_LHS_row_2{256.375088968514,57.7669503941626,198.556668578815,25.9062481999077,-49.1775574947303,-171.84949946493,-0.408741818457946,-8.27010688205126,-25.7147352128392,-0.0682275509998648,-0.319286017381139,-0.879476378663411,-219.139533876989,15.4786077073247,-194.97066475203,-57.5937498405551,-13.1770868164481,164.969164981308,-4.93264876465877,-2.2159684603647,28.7433049591622,-0.138435316760606,-0.0855524305118256,1.14523728917786};
         const std::array<double, 24> expected_RHS{0.00288270349253658,-5.01616466158904E-019,-0.00356240255755486,-0.00245407306041304,4.27030896326048E-019,0.0068602471039795,-0.000412697326582426,7.16876543642762E-020,-0.00303195284468141,-0.000015933105541118,2.77054484483851E-021,-0.000265891701743228,0.000772418072843557,-1.34407727017432E-019,-0.000954542888411407,-0.000657566894704647,1.14422583813703E-019,0.00183819767138927,-0.000110581915376244,1.93676639663235E-020,-0.000812409316221627,-0.0000042692627626624,7.44849861145786E-022,-0.0000712454667562347};
-        
+
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
           KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
@@ -239,6 +247,8 @@ namespace Testing
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
 
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
         IntegrationPoint<3> integration_point(0.0469100770306680, 0.211324865405187, 0, 0.0592317212640473);
@@ -246,7 +256,7 @@ namespace Testing
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
 
-        p_shell_3p_element->Initialize();
+        p_shell_3p_element->Initialize(r_process_info);
 
         array_1d<double, 3> delta = ZeroVector(3);
         delta[2] = 0.002;
@@ -274,7 +284,7 @@ namespace Testing
 
         Matrix left_hand_side_matrix;
         Vector right_hand_side_vector;
-        p_shell_3p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_model_part.GetProcessInfo());
+        p_shell_3p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_process_info);
 
         //Check RHS and LHS results
         const double tolerance = 1.0e-8;
@@ -283,7 +293,7 @@ namespace Testing
         const std::array<double, 30> expected_LHS_row_1{133490.278033997,850779.619039147,36.7310242286304,26281.0006674328,121138.248726319,7.23144851059694,1940.28454614976,5520.78593717874,0.533886360300434,63.6658342007804,68.8450707925089,0.0175182143074813,0.783391240061524,-0.534780425137672,0.000215556990688626,-133490.278033997,-794755.403521703,-36.7310242286304,-26281.0006674328,-168890.106508665,-7.23144851059695,-1940.28454614976,-13385.986981992,-0.533886360300435,-63.6658342007804,-469.321820654574,-0.0175182143074813,-0.783391240061524,-6.1451599961676,-0.000215556990688627};
         const std::array<double, 30> expected_LHS_row_2{135.085211471484,36.7310242286304,244.122623944223,1.15497519158943,-31.3494560009719,-215.699845750257,-1.78054225167203,-5.11876122575071,-27.3657652340317,-0.119240096491757,-0.258529237487944,-1.0097966684669,-0.00221054014070989,-0.00427776441967927,-0.0105586416727839,-104.273452434095,9.8420482792294,-234.858714019245,-27.4321343067783,-8.40006141861546,198.09724563353,-2.53160610118308,-1.37156793668765,34.8162868368328,-0.0995739481236837,-0.0692727004047286,1.87555561625438,-0.00142698458892938,-0.00114622352166365,0.0329682828323349};
         const std::array<double, 30> expected_RHS{0.00122350899926589,4.38914350736193E-019,-0.00485294650587845,-0.00104424916932567,-3.68996506433975E-019,0.00922852914943032,-0.00017050573885069,-6.03670529118336E-020,-0.00390959070272845,-0.00000861159892182329,-3.0489111467248E-021,-0.000454234809910648,-0.0000001424921677044,-5.04270550557E-023,-0.0000117571309127747,0.000327838248285506,1.10335557272313E-019,-0.00130034309716154,-0.000279805721617685,-9.97812144781241E-020,0.0024727769329169,-0.0000456868750299144,-1.61753030771727E-020,-0.00104757167153232,-0.00000230747097664328,-8.16953279559158E-022,-0.000121711850489663,-0.0000000381806612641542,-1.35177502776037E-023,-0.00000315031373338496};
-        
+
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
           KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
@@ -305,6 +315,8 @@ namespace Testing
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
 
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
         IntegrationPoint<3> integration_point(0.0337652428984240, 0.211324865405187, 0, 0.0428311230947926);
@@ -312,7 +324,7 @@ namespace Testing
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
 
-        p_shell_3p_element->Initialize();
+        p_shell_3p_element->Initialize(r_process_info);
 
         array_1d<double, 3> delta = ZeroVector(3);
         delta[2] = 0.002;
@@ -343,7 +355,7 @@ namespace Testing
 
         Matrix left_hand_side_matrix;
         Vector right_hand_side_vector;
-        p_shell_3p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_model_part.GetProcessInfo());
+        p_shell_3p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_process_info);
 
         //Check RHS and LHS results
         const double tolerance = 1.0e-8;

@@ -322,21 +322,13 @@ namespace Kratos
   //***********************************************************************************
 
 
-  int LineElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int LineElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 
     // Perform base condition checks
     int ErrorCode = 0;
     ErrorCode = ElasticCondition::Check(rCurrentProcessInfo);
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(BALLAST_COEFFICIENT);
-    KRATOS_CHECK_VARIABLE_KEY(BALLAST_COEFFICIENT_VECTOR);
-
-
-    KRATOS_CHECK_VARIABLE_KEY(ELASTIC_LOAD);
-    KRATOS_CHECK_VARIABLE_KEY(ELASTIC_LOAD_VECTOR);
 
     return ErrorCode;
 

@@ -22,6 +22,9 @@
         "time_stepping"                      : {
             "time_step" : 1.1
         },
+        "linear_solver_settings"             : {
+            "solver_type" : "LinearSolversApplication.sparse_qr"
+        },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,

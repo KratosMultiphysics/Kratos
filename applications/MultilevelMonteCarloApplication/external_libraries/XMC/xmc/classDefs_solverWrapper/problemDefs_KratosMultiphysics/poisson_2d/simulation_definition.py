@@ -63,7 +63,7 @@ class SimulationScenario(ConvectionDiffusionAnalysis):
         time_power_sum_1 = [[10*Q],[10*Q**2],[10*Q**3],[10*Q**4],[10*Q**5],[10*Q**6],[10*Q**7],[10*Q**8],[10*Q**9],[10*Q**10],number_time_steps]
         # time_power_sum_2 = [[10*2*Q],[10*2*Q*2*Q],number_time_steps]
         time_power_sum_2 = [[10*Q],[(10*Q)**2],[(10*Q)**3],[(10*Q)**4],[(10*Q)**5],[(10*Q)**6],[(10*Q)**7],[(10*Q)**8],[(10*Q)**9],[(10*Q)**10],number_time_steps]
-        qoi_list = [Q,2*Q,time_power_sum_1,time_power_sum_2]
+        qoi_list = [Q,2*Q,time_power_sum_1,time_power_sum_2,[Q,2*Q],[time_power_sum_1,time_power_sum_2]]
         return qoi_list
 
     """

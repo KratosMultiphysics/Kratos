@@ -26,17 +26,17 @@ Condition::Pointer UPwCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArr
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<2,1>::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<2,1>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    
-    GeometryType& rGeom = GetGeometry();
+
+    const GeometryType& rGeom = GetGeometry();
     const unsigned int condition_size = 2 + 1;
     unsigned int index = 0;
-    
+
     if (rConditionDofList.size() != condition_size)
       rConditionDofList.resize( condition_size );
-    
+
     rConditionDofList[index++] = rGeom[0].pGetDof(DISPLACEMENT_X);
     rConditionDofList[index++] = rGeom[0].pGetDof(DISPLACEMENT_Y);
     rConditionDofList[index++] = rGeom[0].pGetDof(WATER_PRESSURE);
@@ -47,17 +47,17 @@ void UPwCondition<2,1>::GetDofList(DofsVectorType& rConditionDofList, ProcessInf
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<2,2>::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<2,2>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    
-    GeometryType& rGeom = GetGeometry();
+
+    const GeometryType& rGeom = GetGeometry();
     const unsigned int condition_size = 2 * (2 + 1);
     unsigned int index = 0;
-    
+
     if (rConditionDofList.size() != condition_size)
       rConditionDofList.resize( condition_size );
-    
+
     for (unsigned int i = 0; i < 2; i++)
     {
         rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
@@ -71,17 +71,17 @@ void UPwCondition<2,2>::GetDofList(DofsVectorType& rConditionDofList, ProcessInf
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<3,1>::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<3,1>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    
-    GeometryType& rGeom = GetGeometry();
+
+    const GeometryType& rGeom = GetGeometry();
     const unsigned int condition_size = 3 + 1;
     unsigned int index = 0;
-    
+
     if (rConditionDofList.size() != condition_size)
       rConditionDofList.resize( condition_size );
-    
+
     rConditionDofList[index++] = rGeom[0].pGetDof(DISPLACEMENT_X);
     rConditionDofList[index++] = rGeom[0].pGetDof(DISPLACEMENT_Y);
     rConditionDofList[index++] = rGeom[0].pGetDof(DISPLACEMENT_Z);
@@ -93,17 +93,17 @@ void UPwCondition<3,1>::GetDofList(DofsVectorType& rConditionDofList, ProcessInf
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<3,3>::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<3,3>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    
-    GeometryType& rGeom = GetGeometry();
+
+    const GeometryType& rGeom = GetGeometry();
     unsigned int condition_size = 3 * (3 + 1);
     unsigned int index = 0;
-    
+
     if (rConditionDofList.size() != condition_size)
       rConditionDofList.resize( condition_size );
-    
+
     for (unsigned int i = 0; i < 3; i++)
     {
         rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
@@ -118,17 +118,17 @@ void UPwCondition<3,3>::GetDofList(DofsVectorType& rConditionDofList, ProcessInf
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<3,4>::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<3,4>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    
-    GeometryType& rGeom = GetGeometry();
+
+    const GeometryType& rGeom = GetGeometry();
     unsigned int condition_size = 4 * (3 + 1);
     unsigned int index = 0;
-    
+
     if (rConditionDofList.size() != condition_size)
       rConditionDofList.resize( condition_size );
-    
+
     for (unsigned int i = 0; i < 4; i++)
     {
         rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
@@ -143,69 +143,69 @@ void UPwCondition<3,4>::GetDofList(DofsVectorType& rConditionDofList, ProcessInf
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwCondition<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void UPwCondition<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
     unsigned int condition_size = TNumNodes * (TDim + 1);
-    
+
     //Resetting the LHS
     if ( rLeftHandSideMatrix.size1() != condition_size )
         rLeftHandSideMatrix.resize( condition_size, condition_size, false );
     noalias( rLeftHandSideMatrix ) = ZeroMatrix( condition_size, condition_size );
-    
+
     //Resetting the RHS
     if ( rRightHandSideVector.size() != condition_size )
         rRightHandSideVector.resize( condition_size, false );
     noalias( rRightHandSideVector ) = ZeroVector( condition_size );
-    
+
     this->CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-        
+
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwCondition<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void UPwCondition<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
-    
+
     KRATOS_THROW_ERROR(std::logic_error,"UPwCondition::CalculateLeftHandSide not implemented","");
-    
+
     KRATOS_CATCH("");
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwCondition<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void UPwCondition<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    
+
     unsigned int condition_size = TNumNodes * (TDim + 1);
-        
+
     //Resetting the RHS
     if ( rRightHandSideVector.size() != condition_size )
         rRightHandSideVector.resize( condition_size, false );
     noalias( rRightHandSideVector ) = ZeroVector( condition_size );
-    
+
     this->CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
-    
+
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<2,1>::EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<2,1>::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    
-    GeometryType& rGeom = GetGeometry();
+
+    const GeometryType& rGeom = GetGeometry();
     unsigned int condition_size = 2 + 1;
     unsigned int index = 0;
-    
+
     if (rResult.size() != condition_size)
       rResult.resize( condition_size, false );
 
@@ -219,14 +219,14 @@ void UPwCondition<2,1>::EquationIdVector(EquationIdVectorType& rResult,ProcessIn
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    
-    GeometryType& rGeom = GetGeometry();
+
+    const GeometryType& rGeom = GetGeometry();
     unsigned int condition_size = 2 * (2 + 1);
     unsigned int index = 0;
-    
+
     if (rResult.size() != condition_size)
       rResult.resize( condition_size, false );
 
@@ -243,14 +243,14 @@ void UPwCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,ProcessIn
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<3,1>::EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<3,1>::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    
-    GeometryType& rGeom = GetGeometry();
+
+    const GeometryType& rGeom = GetGeometry();
     unsigned int condition_size = 3 + 1;
     unsigned int index = 0;
-    
+
     if (rResult.size() != condition_size)
       rResult.resize( condition_size, false );
 
@@ -265,14 +265,14 @@ void UPwCondition<3,1>::EquationIdVector(EquationIdVectorType& rResult,ProcessIn
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    
-    GeometryType& rGeom = GetGeometry();
+
+    const GeometryType& rGeom = GetGeometry();
     unsigned int condition_size = 3 * (3 + 1);
     unsigned int index = 0;
-    
+
     if (rResult.size() != condition_size)
       rResult.resize( condition_size, false );
 
@@ -290,14 +290,14 @@ void UPwCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,ProcessIn
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwCondition<3,4>::EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo)
+void UPwCondition<3,4>::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    
-    GeometryType& rGeom = GetGeometry();
+
+    const GeometryType& rGeom = GetGeometry();
     unsigned int condition_size = 4 * (3 + 1);
     unsigned int index = 0;
-    
+
     if (rResult.size() != condition_size)
       rResult.resize( condition_size, false );
 
@@ -316,7 +316,7 @@ void UPwCondition<3,4>::EquationIdVector(EquationIdVectorType& rResult,ProcessIn
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
-{    
+{
     this->CalculateRHS(rRightHandSideVector,CurrentProcessInfo);
 }
 
@@ -324,7 +324,7 @@ void UPwCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
-{    
+{
     KRATOS_TRY
 
     KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateRHS method for a particular condition ... illegal operation!!", "" )

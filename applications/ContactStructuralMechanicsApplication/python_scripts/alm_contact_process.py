@@ -76,6 +76,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
             "consider_tessellation"         : false,
+            "normal_check_proportion"       : 0.1,
             "clear_inactive_for_post"       : true,
             "slip_step_reset_frequency"     : 1,
             "search_parameters"             : {
@@ -141,6 +142,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         base_process_settings.AddValue("zero_tolerance_factor", self.contact_settings["zero_tolerance_factor"])
         base_process_settings.AddValue("integration_order", self.contact_settings["integration_order"])
         base_process_settings.AddValue("consider_tessellation", self.contact_settings["consider_tessellation"])
+        base_process_settings.AddValue("normal_check_proportion", self.contact_settings["normal_check_proportion"])
         base_process_settings.AddValue("search_parameters", self.contact_settings["search_parameters"])
 
         # Construct the base process.

@@ -30,7 +30,7 @@
 #include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
 #include "custom_utilities/local_refine_geometry_mesh.hpp"
-#include "utilities/split_triangle.c"
+#include "utilities/split_triangle.h"
 
 namespace Kratos
 {
@@ -181,7 +181,7 @@ public:
         int nint = 0;
         std::vector<int> aux;
 
-        ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+        const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 
 	std::cout << "****************** REFINING MESH ******************" << std::endl;
         std::cout << "OLD NUMBER ELEMENTS: " << rElements.size() << std::endl;

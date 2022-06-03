@@ -76,7 +76,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ConvectionDiffusionReactionCrossWindStabilizedElement
-    KRATOS_CLASS_POINTER_DEFINITION(ConvectionDiffusionReactionCrossWindStabilizedElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ConvectionDiffusionReactionCrossWindStabilizedElement);
 
     ///@}
     ///@name Life Cycle

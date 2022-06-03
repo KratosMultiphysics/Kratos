@@ -1,12 +1,10 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
 # Other imports
-import os
+from pathlib import Path
 
-class TimeBasedAsciiFileWriterUtility(object):
+class TimeBasedAsciiFileWriterUtility:
     """This utility handles a file to which results are to be written.
     It internally handles restarts and the closing/opening of files.
 
@@ -16,7 +14,7 @@ class TimeBasedAsciiFileWriterUtility(object):
 
         default_settings = KratosMultiphysics.Parameters('''{
             "file_name"  : "",
-            "folder_name": "",
+            "output_path": "",
             "write_buffer_size" : -1
         }''')
         # write_buffer_size: -1 means we use the system default
@@ -26,18 +24,22 @@ class TimeBasedAsciiFileWriterUtility(object):
         self.model_part = model_part
         has_initial_write_buffer_size = params.Has("write_buffer_size")
 
+        if params.Has("folder_name"):
+            params.AddValue("output_path",params["folder_name"])
+            params.RemoveValue("folder_name")
+            KratosMultiphysics.Logger.PrintWarning('TimeBasedAsciiFileWriterUtility', '"folder_name" key is deprecated. Use "output_path" instead.')
         params.ValidateAndAssignDefaults(default_settings)
 
         # file name and folder path specifications and check
-        self.file_name = params["file_name"].GetString()
-        self.folder_name = params["folder_name"].GetString()
+        self.file_name = Path(params["file_name"].GetString())
+        self.output_path = Path(params["output_path"].GetString())
         self.__ValidateAndAssignOutputFolderPath()
 
         # size of the buffer in bytes. Set to "0" for flushing always
         is_mpi_execution = (model_part.GetCommunicator().TotalProcesses() > 1)
         if not is_mpi_execution and not has_initial_write_buffer_size:
             info_msg  = "File output buffer size set to 1 \n"
-            info_msg += "for TimeBasedAsciiFileWriterUtility output file "+ self.file_name
+            info_msg += "for TimeBasedAsciiFileWriterUtility output file "+ str(self.file_name)
             KratosMultiphysics.Logger.PrintInfo("TimeBasedAsciiFileWriterUtility", info_msg)
             self.write_buffer_size = 1
         else:
@@ -62,7 +64,7 @@ class TimeBasedAsciiFileWriterUtility(object):
                 self.file = self.__InitializeOutputFile(file_header)
 
     def __OpenOutputFile(self):
-        return open(self.file_name,"w", buffering=self.write_buffer_size)
+        return open(str(self.file_name),"w", buffering=self.write_buffer_size)
 
     def __InitializeOutputFile(self, file_header):
         output_file = self.__OpenOutputFile()
@@ -70,11 +72,11 @@ class TimeBasedAsciiFileWriterUtility(object):
         return output_file
 
     def __AddToExistingOutputFile(self, file_header, restart_time):
-        if not os.path.isfile(self.file_name):
+        if not self.file_name.is_file():
             return None
 
         try: # We try to open the file and transfer the info
-            with open(self.file_name,'r') as out_file:
+            with open(str(self.file_name),'r') as out_file:
                 lines_existing_file = out_file.readlines()
 
             # search for time, return false if it was not found
@@ -105,7 +107,7 @@ class TimeBasedAsciiFileWriterUtility(object):
                 info_msg = 'Restart for file "{}" successful'.format(self.file_name)
                 KratosMultiphysics.Logger.PrintInfo("TimeBasedAsciiFileWriterUtility", info_msg)
             else:
-                warn_msg  = "No line was found in " + self.file_name + " after restarting containing indicated restart time, \n"
+                warn_msg  = "No line was found in " + str(self.file_name) + " after restarting containing indicated restart time, \n"
                 warn_msg += "appending results after restart from time " + str(restart_time) + " not possible.\n"
                 warn_msg += "To avoid loss of data continuing writing from the end of file\n"
                 KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriterUtility", warn_msg)
@@ -125,44 +127,17 @@ class TimeBasedAsciiFileWriterUtility(object):
         # a file name must be specified
         if self.file_name == "":
             raise Exception('No "file_name" was specified!')
+
         # check and correct file extension
-        if not self.file_name.endswith(".dat"):
-            self.file_name += ".dat"
+        if self.file_name.suffix != ".dat":
+            self.file_name = self.file_name.with_suffix(".dat")
 
-        # check if relative path was erroneously specified in file name
-        raw_path, raw_file_name = os.path.split(self.file_name)
+        if self.file_name.parent != Path(): # check if folder was specified in "file_name"
+            warn_msg  = 'Path contained wrongly in "file_name" "{}", this will be ignored in the future\n'.format(self.file_name)
+            warn_msg += 'Use parameter "output_path" to specify it correctly.'
+            KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriterUtility", warn_msg)
 
-        if self.folder_name != "":
-            if raw_path != "":
-                # assign the default value
-                self.folder_name = "TimeBasedAsciiResults"
+        self.file_name = self.output_path / self.file_name
 
-                warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "file_name": "'+ self.file_name +'"\n'
-                warn_msg += 'Use parameter "folder_name" to specify correctly\n'
-                warn_msg += 'Using the default relative path "' + self.folder_name + '" instead'
-                KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
-
-            subfolders = os.path.normpath(self.folder_name).split(os.sep)
-
-            absolute_folder_path = os.getcwd()
-            relative_folder_path = ""
-            for folder in subfolders:
-                absolute_folder_path = os.path.join(absolute_folder_path, folder)
-                relative_folder_path = os.path.join(relative_folder_path, folder)
-
-            self.file_name = os.path.join(relative_folder_path, raw_file_name)
-
-        else:
-            if raw_path != "":
-                warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "file_name": "'+ self.file_name +'"\n'
-                warn_msg += 'Use the parameter "folder_name" to specify correctly\n'
-                warn_msg += 'Using the current directory instead'
-                KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
-
-            absolute_folder_path = os.getcwd()
-            self.file_name = raw_file_name
-
-        # make sure that the absolute path to the desired output folder exists
-        if not os.path.isdir(absolute_folder_path):
-            os.makedirs(absolute_folder_path)
-
+        # make sure that the path to the desired output folder exists
+        self.output_path.mkdir(parents=True, exist_ok=True)

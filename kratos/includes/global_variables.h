@@ -37,6 +37,23 @@ namespace Globals
 
     static constexpr int MaxAllowedThreads = 128; //we assume that no more than MaxAllowedThreads is used in SMP
 
+    ///@name Kratos Globals
+    ///@{
+    ///@name Enums
+    ///@{
+
+    /**
+     * @brief Enum for Initial and Current configurations
+     */
+    enum class Configuration
+    {
+        Initial = 0,
+        Current = 1
+    };
+
+    ///@}
+    ///@}
+
 /*		class VariableData;
 		class Element;
 		class Condition;

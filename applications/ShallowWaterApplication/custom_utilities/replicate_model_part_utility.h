@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "utilities/parallel_utilities.h"
 
 
 namespace Kratos
@@ -48,7 +49,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @ingroup ShallowWaterApplication
  * @class ReplicateModelPartUtility
  * @brief This utility replicates a model part to print the topography in the post-process
@@ -60,7 +61,10 @@ public:
     ///@{
 
     typedef std::size_t IndexType;
-    typedef Geometry<Node<3>>::PointsArrayType NodesArrayType;
+
+    typedef Node<3> NodeType;
+
+    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
 
     /// Pointer definition of ReplicateModelPartUtility
     KRATOS_CLASS_POINTER_DEFINITION(ReplicateModelPartUtility);
@@ -93,51 +97,25 @@ public:
      * @brief This method copies a variable from the origin model part to the destination model part for post-process purpose.
      */
     template<class TVarType>
-    void TransferVariable(TVarType& rVariable)
+    void TransferVariable(const TVarType& rVariable)
     {
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
-        {
-            const auto it_node = mrOriginModelPart.NodesBegin() + i;
-            const auto dest_node = mReplicatedNodesMap[it_node->Id()];
-            dest_node->FastGetSolutionStepValue(rVariable) = it_node->FastGetSolutionStepValue(rVariable);
-        }
+        block_for_each(mrOriginModelPart.Nodes(), [&](NodeType& rNode){
+            const auto dest_node = mReplicatedNodesMap[rNode.Id()];
+            dest_node->FastGetSolutionStepValue(rVariable) = rNode.FastGetSolutionStepValue(rVariable);
+        });
     }
 
     /**
      * @brief This method copies a variable from the origin model part to the destination model part for post-process purpose.
      */
     template<class TVarType>
-    void TransferNonHistoricalVariable(TVarType& rVariable)
+    void TransferNonHistoricalVariable(const TVarType& rVariable)
     {
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
-        {
-            const auto it_node = mrOriginModelPart.NodesBegin() + i;
-            const auto dest_node = mReplicatedNodesMap[it_node->Id()];
-            dest_node->SetValue(rVariable, it_node->GetValue(rVariable));
-        }
+        block_for_each(mrOriginModelPart.Nodes(), [&](NodeType& rNode){
+            const auto dest_node = mReplicatedNodesMap[rNode.Id()];
+            dest_node->SetValue(rVariable, rNode.GetValue(rVariable));
+        });
     }
-
-    /**
-     * @brief This method sets the origin mesh Z-coordinate to zero.
-     */
-    void SetOriginMeshZCoordinate();
-
-    /**
-     * @brief This method sets the origin mesh Z-coordinate to a given scalar variable.
-     */
-    void SetOriginMeshZCoordinate(Variable<double>& rVariable);
-
-    /**
-     * @brief This method sets the destination mesh Z-coordinate to zero.
-     */
-    void SetDestinationMeshZCoordinate();
-
-    /**
-     * @brief This method sets the destination mesh Z-coordinate to a given scalar variable.
-     */
-    void SetDestinationMeshZCoordinate(Variable<double>& rVariable);
 
     ///@}
     ///@name Access
@@ -198,10 +176,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    void SetMeshZCoordinate(ModelPart& rModelPart);
-
-    void SetMeshZCoordinate(ModelPart& rModelPart, Variable<double>& rVariable);
 
     void GetMaximumIds(IndexType& rUniqueNodeId, IndexType& rUniqueElemId, IndexType& rUniqueCondId, IndexType& rUniquePropId);
 

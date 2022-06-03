@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -412,6 +412,17 @@ struct vmul_impl<
             z = a * x * y;
     }
 };
+
+template <class T, class V>
+struct reinterpret_impl<T, vex::vector<V>>
+{
+    typedef vex::vector<typename std::decay<T>::type> return_type;
+
+    static return_type get(const vex::vector<V> &x) {
+        return x.template reinterpret<typename std::decay<T>::type>();
+    }
+};
+
 
 } // namespace backend
 } // namespace amgcl

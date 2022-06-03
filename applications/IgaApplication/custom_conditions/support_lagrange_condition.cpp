@@ -1,0 +1,223 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ricky Aristio
+//
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "custom_conditions/support_lagrange_condition.h"
+
+
+namespace Kratos
+{
+    void SupportLagrangeCondition::CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
+    )
+    {
+        KRATOS_TRY
+
+        const auto& r_geometry = GetGeometry();
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType number_of_non_zero_nodes = GetNumberOfNonZeroNodes();
+        const SizeType mat_size = number_of_non_zero_nodes * 6;
+
+        Matrix LHS = ZeroMatrix(mat_size, mat_size);
+        Vector u(mat_size);
+
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+
+        // Integration
+        const typename GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+
+        // Determinant of jacobian 
+        Vector determinant_jacobian_vector(integration_points.size());
+        r_geometry.DeterminantOfJacobian(determinant_jacobian_vector);
+
+        // non zero node counter for Lagrange Multipliers.
+        IndexType counter_n = 0;
+        for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
+        {
+            // Differential area, being 1 for points.
+            const double integration = (r_geometry.Dimension() == 0)
+                ? 1
+                : integration_points[point_number].Weight()* determinant_jacobian_vector[point_number];
+
+            // loop over Lagrange Multipliers
+            for (IndexType i = 0; i < number_of_nodes; i++) {
+                // non zero node counter for for displacements.
+                IndexType counter_m = 0;
+                if (r_N(point_number, i) > shape_function_tolerance) {
+                    // loop over shape functions of displacements
+                    for (IndexType j = 0; j < number_of_nodes; j++) {
+                        if (r_N(point_number, j) > shape_function_tolerance) {
+                            const double NN = r_N(point_number, j) * r_N(point_number, i) * integration;
+
+                            // indices in local stiffness matrix.
+                            const IndexType ibase = counter_n * 3 + 3 * (number_of_non_zero_nodes);
+                            const IndexType jbase = counter_m * 3;
+
+                            // Matrix in following shape:
+                            // |0 H^T|
+                            // |H 0  |
+
+                            LHS(ibase, jbase)         = NN;
+                            LHS(ibase + 1, jbase + 1) = NN;
+                            LHS(ibase + 2, jbase + 2) = NN;
+
+                            LHS(jbase, ibase)         = NN;
+                            LHS(jbase + 1, ibase + 1) = NN;
+                            LHS(jbase + 2, ibase + 2) = NN;
+
+                            counter_m++;
+                        }
+                    }
+                    counter_n++;
+                }
+                if (CalculateStiffnessMatrixFlag) {
+                    noalias(rLeftHandSideMatrix) += LHS;
+                }
+
+                if (CalculateResidualVectorFlag) {
+                    const array_1d<double, 3>& displacement = (Has(DISPLACEMENT))
+                        ? this->GetValue(DISPLACEMENT)
+                        : ZeroVector(3);
+
+                    IndexType counter = 0;
+                    for (IndexType i = 0; i < number_of_nodes; i++) {
+                        for (IndexType n = 0; n < r_N.size1(); ++n) {
+                            if (r_N(n, i) > shape_function_tolerance) {
+                                const array_1d<double, 3>& disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+
+                                IndexType index = 3 * counter;
+                                u[index]     = (disp[0] - displacement[0]);
+                                u[index + 1] = (disp[1] - displacement[1]);
+                                u[index + 2] = (disp[2] - displacement[2]);
+                                counter++;
+                            }
+                        }
+                    }
+                    for (IndexType i = 0; i < number_of_nodes; i++) {
+                        for (IndexType n = 0; n < r_N.size1(); ++n) {
+                            if (r_N(n, i) > shape_function_tolerance) {
+                                const array_1d<double, 3>& l_m = r_geometry[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                                IndexType index = 3 * (counter);
+                                u[index]     = l_m[0] - displacement[0];
+                                u[index + 1] = l_m[1] - displacement[1];
+                                u[index + 2] = l_m[2] - displacement[2];
+                                counter++;
+                            }
+                        }
+                    }
+
+                    noalias(rRightHandSideVector) -= prod(LHS, u);
+                }
+            }
+        }
+        KRATOS_CATCH("")
+    }
+
+    void SupportLagrangeCondition::EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
+    {
+        const auto& r_geometry = GetGeometry();
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType number_of_non_zero_nodes = GetNumberOfNonZeroNodes();
+
+        if (rResult.size() != 6 * number_of_non_zero_nodes)
+            rResult.resize(6 * number_of_non_zero_nodes, false);
+
+        IndexType counter = 0;
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            for (IndexType n = 0; n < r_N.size1(); ++n) {
+                if (r_N(n, i) > shape_function_tolerance) {
+                    const IndexType index = counter * 3;
+                    const auto& r_node = r_geometry[i];
+                    rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
+                    rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
+                    rResult[index + 2] = r_node.GetDof(DISPLACEMENT_Z).EquationId();
+                    counter++;
+                }
+            }
+        }
+
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            for (IndexType n = 0; n < r_N.size1(); ++n) {
+                if (r_N(n, i) > shape_function_tolerance) {
+                    const IndexType index = 3 * (counter);
+                    const auto& r_node = r_geometry[i];
+                    rResult[index]     = r_node.GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
+                    rResult[index + 1] = r_node.GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
+                    rResult[index + 2] = r_node.GetDof(VECTOR_LAGRANGE_MULTIPLIER_Z).EquationId();
+                    counter++;
+                }
+            }
+        }
+    }
+
+    void SupportLagrangeCondition::GetDofList(
+        DofsVectorType& rElementalDofList,
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
+    {
+        const auto& r_geometry = GetGeometry();
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+        const SizeType number_of_nodes = r_geometry.size();
+
+        rElementalDofList.resize(0);
+        rElementalDofList.reserve(6 * GetNumberOfNonZeroNodes());
+
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            for (IndexType n = 0; n < r_N.size1(); ++n) {
+                if (r_N(n, i) > shape_function_tolerance) {
+                    const auto& r_node = r_geometry[i];
+                    rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_X));
+                    rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Y));
+                    rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Z));
+                }
+            }
+        }
+
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            for (IndexType n = 0; n < r_N.size1(); ++n) {
+                if (r_N(n, i) > shape_function_tolerance) {
+                    const auto& r_node = r_geometry.GetPoint(i);
+                    rElementalDofList.push_back(r_node.pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+                    rElementalDofList.push_back(r_node.pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
+                    rElementalDofList.push_back(r_node.pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
+                }
+            }
+        }
+    }
+
+    std::size_t SupportLagrangeCondition::GetNumberOfNonZeroNodes() const {
+        const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+
+        SizeType counter = 0;
+        for (IndexType n = 0; n < r_N.size1(); ++n) {
+            for (IndexType m = 0; m < r_N.size2(); ++m) {
+                if (r_N(n, m) > shape_function_tolerance) {
+                    counter++;
+                }
+            }
+        }
+        return counter;
+    }
+
+} // Namespace Kratos

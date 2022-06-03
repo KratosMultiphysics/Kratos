@@ -45,11 +45,13 @@ ContactInfoSphericParticle& ContactInfoSphericParticle::operator=(const ContactI
     mNeighbourTgOfStatFriAng = rOther.mNeighbourTgOfStatFriAng;
     mNeighbourTgOfDynFriAng = rOther.mNeighbourTgOfDynFriAng;
     mNeighbourContactStress = rOther.mNeighbourContactStress;
+    mNeighbourCohesion = rOther.mNeighbourCohesion;
     mNeighbourRigidContactRadius = rOther.mNeighbourRigidContactRadius;
     mNeighbourRigidIndentation = rOther.mNeighbourRigidIndentation;
     mNeighbourRigidTgOfStatFriAng = rOther.mNeighbourRigidTgOfStatFriAng;
     mNeighbourRigidTgOfDynFriAng = rOther.mNeighbourRigidTgOfDynFriAng;
     mNeighbourRigidContactStress = rOther.mNeighbourRigidContactStress;
+    mNeighbourRigidCohesion = rOther.mNeighbourRigidCohesion;
 
     return *this;
 }
@@ -70,6 +72,7 @@ void ContactInfoSphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<
     std::vector<double> temp_neighbour_tg_of_stat_fri_ang;
     std::vector<double> temp_neighbour_tg_of_dyn_fri_ang;
     std::vector<double> temp_neighbour_contact_stress;
+    std::vector<double> temp_neighbour_cohesion;
     unsigned int new_size = mNeighbourElements.size();
     array_1d<double, 3> vector_of_zeros = ZeroVector(3);
     temp_neighbours_ids.resize(new_size, false);
@@ -80,6 +83,7 @@ void ContactInfoSphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<
     temp_neighbour_tg_of_stat_fri_ang.resize(new_size);
     temp_neighbour_tg_of_dyn_fri_ang.resize(new_size);
     temp_neighbour_contact_stress.resize(new_size);
+    temp_neighbour_cohesion.resize(new_size);
 
     DenseVector<int>& vector_of_ids_of_neighbours = GetValue(NEIGHBOUR_IDS);
 
@@ -91,6 +95,7 @@ void ContactInfoSphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<
         temp_neighbour_tg_of_stat_fri_ang[i] = 1.0e20;
         temp_neighbour_tg_of_dyn_fri_ang[i] = 1.0e20;
         temp_neighbour_contact_stress[i] = 0.0;
+        temp_neighbour_cohesion[i] = 0.0;
 
         if (mNeighbourElements[i] == NULL) { // This is required by the continuum sphere which reorders the neighbors
             temp_neighbours_ids[i] = -1;
@@ -108,6 +113,7 @@ void ContactInfoSphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<
                 temp_neighbour_tg_of_stat_fri_ang[i] = mNeighbourTgOfStatFriAng[j];
                 temp_neighbour_tg_of_dyn_fri_ang[i] = mNeighbourTgOfDynFriAng[j];
                 temp_neighbour_contact_stress[i] = mNeighbourContactStress[j];
+                temp_neighbour_cohesion[i] = mNeighbourCohesion[j];
                 break;
             }
         }
@@ -121,6 +127,7 @@ void ContactInfoSphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<
     mNeighbourTgOfStatFriAng.swap(temp_neighbour_tg_of_stat_fri_ang);
     mNeighbourTgOfDynFriAng.swap(temp_neighbour_tg_of_dyn_fri_ang);
     mNeighbourContactStress.swap(temp_neighbour_contact_stress);
+    mNeighbourCohesion.swap(temp_neighbour_cohesion);
 }
 
 void ContactInfoSphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
@@ -136,6 +143,7 @@ void ContactInfoSphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     std::vector<double> temp_tg_of_stat_fri_ang(new_size);
     std::vector<double> temp_tg_of_dyn_fri_ang(new_size);
     std::vector<double> temp_contact_stress(new_size);
+    std::vector<double> temp_cohesion(new_size);
 
     for (unsigned int i = 0; i<rNeighbours.size(); i++){
 
@@ -146,6 +154,7 @@ void ContactInfoSphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
         temp_tg_of_stat_fri_ang[i] = 1.0e20;
         temp_tg_of_dyn_fri_ang[i] = 1.0e20;
         temp_contact_stress[i] = 0.0;
+        temp_cohesion[i] = 0.0;
 
         if (rNeighbours[i] == NULL) { // This is required by the continuum sphere which reorders the neighbors
             temp_neighbours_ids[i] = -1;
@@ -163,6 +172,7 @@ void ContactInfoSphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
                 temp_tg_of_stat_fri_ang[i] = mNeighbourRigidTgOfStatFriAng[j];
                 temp_tg_of_dyn_fri_ang[i] = mNeighbourRigidTgOfDynFriAng[j];
                 temp_contact_stress[i] = mNeighbourRigidContactStress[j];
+                temp_cohesion[i] =  mNeighbourRigidCohesion[j];
                 break;
             }
         }
@@ -176,20 +186,24 @@ void ContactInfoSphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     mNeighbourRigidTgOfStatFriAng.swap(temp_tg_of_stat_fri_ang);
     mNeighbourRigidTgOfDynFriAng.swap(temp_tg_of_dyn_fri_ang);
     mNeighbourRigidContactStress.swap(temp_contact_stress);
+    mNeighbourRigidCohesion.swap(temp_cohesion);
 }
 
+double ContactInfoSphericParticle::GetParticleInitialCohesion()            { return SphericParticle::GetFastProperties()->GetParticleInitialCohesion();            }
 double ContactInfoSphericParticle::GetAmountOfCohesionFromStress()         { return SphericParticle::GetFastProperties()->GetAmountOfCohesionFromStress();         }
 double ContactInfoSphericParticle::GetParticleConicalDamageContactRadius() { return SphericParticle::GetFastProperties()->GetParticleConicalDamageContactRadius(); }
 double ContactInfoSphericParticle::GetParticleConicalDamageMaxStress()     { return SphericParticle::GetFastProperties()->GetParticleConicalDamageMaxStress();     }
 double ContactInfoSphericParticle::GetParticleConicalDamageGamma()         { return SphericParticle::GetFastProperties()->GetParticleConicalDamageGamma();         }
 double ContactInfoSphericParticle::GetLevelOfFouling()                     { return SphericParticle::GetFastProperties()->GetLevelOfFouling();                     }
 
+void   ContactInfoSphericParticle::SetParticleInitialCohesionFromProperties(double* particle_initial_cohesion)          { SphericParticle::GetFastProperties()->SetParticleInitialCohesionFromProperties( particle_initial_cohesion);  }
 void   ContactInfoSphericParticle::SetAmountOfCohesionFromStressFromProperties(double* amount_of_cohesion_from_stress)  { SphericParticle::GetFastProperties()->SetAmountOfCohesionFromStressFromProperties( amount_of_cohesion_from_stress);  }
 void   ContactInfoSphericParticle::SetParticleConicalDamageContactRadiusFromProperties(double* particle_contact_radius) { SphericParticle::GetFastProperties()->SetParticleConicalDamageContactRadiusFromProperties( particle_contact_radius); }
 void   ContactInfoSphericParticle::SetParticleConicalDamageMaxStressFromProperties(double* particle_max_stress)         { SphericParticle::GetFastProperties()->SetParticleConicalDamageMaxStressFromProperties( particle_max_stress);         }
 void   ContactInfoSphericParticle::SetParticleConicalDamageGammaFromProperties(double* particle_gamma)                  { SphericParticle::GetFastProperties()->SetParticleConicalDamageGammaFromProperties( particle_gamma);                  }
 void   ContactInfoSphericParticle::SetLevelOfFoulingFromProperties(double* level_of_fouling)                            { SphericParticle::GetFastProperties()->SetLevelOfFoulingFromProperties( level_of_fouling);                            }
 
+double ContactInfoSphericParticle::SlowGetParticleInitialCohesion()            { return GetProperties()[PARTICLE_INITIAL_COHESION]; }
 double ContactInfoSphericParticle::SlowGetAmountOfCohesionFromStress()         { return GetProperties()[AMOUNT_OF_COHESION_FROM_STRESS]; }
 double ContactInfoSphericParticle::SlowGetParticleConicalDamageContactRadius() { return GetProperties()[CONICAL_DAMAGE_CONTACT_RADIUS];  }
 double ContactInfoSphericParticle::SlowGetParticleConicalDamageMaxStress()     { return GetProperties()[CONICAL_DAMAGE_MAX_STRESS];      }

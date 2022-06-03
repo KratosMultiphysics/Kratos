@@ -30,7 +30,8 @@ GenerateDemProcess::GenerateDemProcess(
 
 void GenerateDemProcess::Execute() 
 {
-    FindNodalNeighboursProcess nodal_neigh_process (mrModelPart);
+    auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
+    FindGlobalNodalNeighboursProcess nodal_neigh_process(r_comm, mrModelPart);
     nodal_neigh_process.Execute();
 
     const auto it_element_begin = mrModelPart.ElementsBegin();

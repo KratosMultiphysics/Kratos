@@ -31,7 +31,7 @@
 #include "includes/define.h"
 #include "containers/pointer_vector_set.h"
 #include "containers/pointer_vector_map.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "geometries/geometry.h"
 #include "containers/flags.h"
 #include "containers/data_value_container.h"

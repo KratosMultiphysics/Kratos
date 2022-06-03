@@ -57,7 +57,7 @@ namespace Kratos
  * @author Pooyan Dadvand
  */
 template<class TAdaptorType>
-class VariableComponent : public VariableData
+class KRATOS_DEPRECATED_MESSAGE("This class is no longer used and can be removed") VariableComponent : public VariableData
 {
 public:
     ///@name Type Definitions

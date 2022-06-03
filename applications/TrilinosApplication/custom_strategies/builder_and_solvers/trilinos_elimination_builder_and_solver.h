@@ -232,9 +232,6 @@ public:
             //assemble the elemental contribution
             TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
             TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);
-
-            // clean local elemental memory
-            pScheme->CleanMemory(**it);
         }
 
         LHS_Contribution.resize(0,0,false);
@@ -249,8 +246,6 @@ public:
             //assemble the elemental contribution
             TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
             TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);
-
-            // TODO CleanMemory is missing
         }
 
         //finalizing the assembly
@@ -301,9 +296,6 @@ public:
 
             //assemble the elemental contribution
             TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
-
-            // clean local elemental memory
-            pScheme->CleanMemory(**it);
         }
 
         LHS_Contribution.resize(0,0,false);
@@ -316,8 +308,6 @@ public:
 
             //assemble the elemental contribution
             TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
-
-            // TODO CleanMemory is missing
         }
 
         //finalizing the assembly

@@ -130,10 +130,10 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Bingham2DLaw : public PfemFlui
     double GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const override;
 
     /// Get the effective yield shear for the fluid.
-    double GetEffectiveYieldShear(ConstitutiveLaw::Parameters& rParameters) const;
+    virtual double GetEffectiveYieldShear(ConstitutiveLaw::Parameters& rParameters) const;
 
     /// Get the effective dynamic viscosity for the fluid.
-    double GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters& rParameters) const;
+    virtual double GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters& rParameters) const;
 
     ///@}
 

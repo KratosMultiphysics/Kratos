@@ -17,7 +17,7 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
 
         self.root_model_part.CreateNewProperties(0)
 
-        data_comm = KM.DataCommunicator.GetDefault()
+        data_comm = KM.Testing.GetDefaultDataCommunicator()
         my_pid = data_comm.Rank()
         self.num_nodes = my_pid % 5 + 4 # num_nodes in range (4 ... 8)
         if my_pid == 4:
@@ -161,7 +161,7 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
         props = self.root_model_part.GetProperties(0, 0)
 
         num_local_nodes = self.root_model_part.NumberOfNodes()
-        scan_sum_num_nodes = KM.DataCommunicator.GetDefault().ScanSum(num_local_nodes)
+        scan_sum_num_nodes = KM.Testing.GetDefaultDataCommunicator().ScanSum(num_local_nodes)
         for i_node, node in enumerate(self.root_model_part.Nodes):
             self.root_model_part.CreateNewCondition("PointCondition3D1N", i_node+scan_sum_num_nodes-num_local_nodes+1, [node.Id], props)
 
@@ -196,7 +196,7 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
 
     def __CheckCreatedEntitiesIdAreCorrectlyNumbered(self, entities, id_offset=0):
         num_local_entites = len(entities)
-        scan_sum_num_entities = KM.DataCommunicator.GetDefault().ScanSum(num_local_entites)
+        scan_sum_num_entities = KM.Testing.GetDefaultDataCommunicator().ScanSum(num_local_entites)
 
         for exp_id, entity in zip(range(scan_sum_num_entities-num_local_entites, scan_sum_num_entities), entities):
             self.assertEqual(exp_id+1+id_offset, entity.Id)

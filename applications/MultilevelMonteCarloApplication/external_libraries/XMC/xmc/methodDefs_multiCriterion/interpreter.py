@@ -1,5 +1,19 @@
-from xmc.multiCriterion import MultiCriterion
-interpretationStructure =  MultiCriterion.flagStructure
+def interpretationStructure():
+    """
+    This function returns the typical output of a MultiCriterion's interpreter,
+    with default values. Such output is meant to be created by first calling
+    this function, then changing specific values according the interpreter.
+    The point is to always have the same data structure.
+    """
+    structure = {
+        "stop": False,  # stop algorithm
+        "updateHierarchy": True,
+        "updateTolerance": True,  # for continuation-type algorithms
+        "updateIndexSpace": False,
+        "updateSampleNumberSpace": False,
+    }
+    return structure
+
 
 def interpretAsStoppingFlag(flag):
     """
@@ -7,8 +21,9 @@ def interpretAsStoppingFlag(flag):
     the question `Must I stop the algorithm now'?
     """
     interpretation = interpretationStructure()
-    interpretation['stop'] = flag[0]
+    interpretation["stop"] = flag[0]
     return interpretation
+
 
 def interpretAsConvergenceAndIterationBounds(flags):
     """
@@ -21,6 +36,7 @@ def interpretAsConvergenceAndIterationBounds(flags):
     interpretation = interpretAsStoppingFlag([flag])
     return interpretation
 
+
 def interpretAsMultipleRequiredConvergencesAndIterationBounds(flags):
     """
     This is the common interpreter which expects N booleans as input:
@@ -32,6 +48,7 @@ def interpretAsMultipleRequiredConvergencesAndIterationBounds(flags):
     interpretation = interpretAsConvergenceAndIterationBounds([flag])
     return interpretation
 
+
 def interpretAsMultipleAlternativeConvergencesAndIterationBounds(flags):
     """
     This is the common interpreter which expects N booleans as input:
@@ -42,4 +59,3 @@ def interpretAsMultipleAlternativeConvergencesAndIterationBounds(flags):
     flag = [any(flags[0:-2]), flags[-2], flags[-1]]
     interpretation = interpretAsConvergenceAndIterationBounds([flag])
     return interpretation
-

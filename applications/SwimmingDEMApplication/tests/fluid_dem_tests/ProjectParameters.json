@@ -11,7 +11,7 @@
     "parallel_type" : "OpenMP",
     "echo_level" : 1,
     "start_time" : 0.0,
-    "end_time" : 0.3
+    "end_time" : 0.024
 },
 
 "do_print_results_option" : false,
@@ -23,6 +23,7 @@
     "coupling_weighing_type" : 1,
     "coupling_weighing_type_comment" : "{fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)",
     "interaction_start_time" : 0.01,
+    "min_fluid_fraction_projected" : 0.0,
     "forward_coupling" : {
         "time_averaging_type" : 0
     },
@@ -100,7 +101,7 @@
         "parallel_type" : "OpenMP",
         "echo_level" : 0,
         "start_time" : 0.0,
-        "end_time" : 1.0
+        "end_time" : 0.012
     },
 
     "solver_settings" : {
@@ -121,7 +122,7 @@
         "linear_solver_settings" : {
             "solver_type" : "amgcl",
             "max_iteration" : 200,
-            "tolerance" : 1e-7,
+            "tolerance" : 0.1,
             "provide_coordinates" : false,
             "smoother_type" : "ilu0",
             "krylov_type" : "gmres",

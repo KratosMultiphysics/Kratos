@@ -36,7 +36,7 @@ namespace Kratos
  * @tparam TDataType        Data type of the variable
  */
 template <typename TDataType>
-class RansVariableDifferenceNormsCalculationUtility
+class KRATOS_API(RANS_APPLICATION) RansVariableDifferenceNormsCalculationUtility
 {
 public:
     ///@name Pointer Definitions
