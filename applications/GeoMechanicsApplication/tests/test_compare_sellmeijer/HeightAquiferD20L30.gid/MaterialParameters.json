@@ -84,7 +84,6 @@
                     "THICKNESS": 1.0,
                     "MINIMUM_JOINT_WIDTH": 0.001,
                     "BIOT_COEFFICIENT": 1.0,
-                    "PIPE_D_70": 0.0003,
                     "PIPE_ETA": 0.25,
                     "PIPE_THETA": 37,
                     "RETENTION_LAW": "SaturatedLaw",
@@ -93,8 +92,9 @@
                     "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.561,
                     "VAN_GENUCHTEN_GN": 1.377,
                     "VAN_GENUCHTEN_GL": 1.25,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 0.0001,
-                    "PIPE_START_ELEMENT": 605,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 0.000000001,
+                    "PIPE_D_70": 0.0003,
+                    "PIPE_START_ELEMENT": 624,
                     "PIPE_MODIFIED_D": false
                 },
                 "Tables": {}
