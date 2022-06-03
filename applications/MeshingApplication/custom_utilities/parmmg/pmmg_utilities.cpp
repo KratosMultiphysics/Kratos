@@ -633,7 +633,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::PMMGLibCallMetric(Parameters Configur
 
     // Set the value for angle detection (default 45°)
     if (ConfigurationParameters["advanced_parameters"]["force_angle_detection_value"].GetBool()) {
-        if ( PMMG_Set_dparameter(mParMmgMesh,PMMG_DPARAM_angleDetection, ConfigurationParameters["advanced_parameters"]["angle_detection_value"].GetDouble()) != 1 )
+        if ( PMMG_Set_dparameter(mMmgMesh,mMmgMet,PMMG_DPARAM_angleDetection, ConfigurationParameters["advanced_parameters"]["angle_detection_value"].GetDouble()) != 1 )
             KRATOS_ERROR << "Unable to set the angle detection value" << std::endl;
     }
 
