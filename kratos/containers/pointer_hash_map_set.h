@@ -99,10 +99,16 @@ public:
 private:
 	///@name Nested clases
 	///@{
-	class iterator_adaptor : public std::iterator<std::forward_iterator_tag, data_type>
+	class iterator_adaptor
 	{
 		ptr_iterator map_iterator;
 	public:
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = data_type;
+        using pointer           = data_type*;
+        using reference         = data_type&;
+        
 		iterator_adaptor(ptr_iterator it) :map_iterator(it) {}
 		iterator_adaptor(const iterator_adaptor& it) : map_iterator(it.map_iterator) {}
 		iterator_adaptor& operator++() { map_iterator++; return *this; }
@@ -115,10 +121,16 @@ private:
 		ptr_iterator const& base() const { return map_iterator; }
 	};
 
-	class const_iterator_adaptor : public std::iterator<std::forward_iterator_tag, data_type>
+	class const_iterator_adaptor
 	{
 		ptr_const_iterator map_iterator;
 	public:
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = data_type;
+        using pointer           = data_type*;
+        using reference         = data_type&;
+
 		const_iterator_adaptor(ptr_const_iterator it) :map_iterator(it) {}
 		const_iterator_adaptor(const const_iterator_adaptor& it) : map_iterator(it.map_iterator) {}
 		const_iterator_adaptor& operator++() { map_iterator++; return *this; }
