@@ -1,8 +1,10 @@
 ---
-keywords: Kratos Main Overview Readme
+keywords: Summary
 tags: []
 sidebar: kratos_for_users
 permalink: index.html
+title: Summary
+summary:
 ---
 
 <p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>
@@ -27,7 +29,7 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 **Kratos** is **free** under BSD-4 [license](pages/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
 
 
-# Main Features
+## Main Features
 **Kratos** is __multiplatform__ and available for __Windows, Linux__ (several distros) and __macOS__.
 
 **Kratos** is __OpenMP__ and __MPI__ parallel and scalable up to thousands of cores.
@@ -47,30 +49,7 @@ Some main modules are:
 - [Metis](applications/MetisApplication/README.md)
 - [Meshing](applications/MeshingApplication/README.md)
 
-<!-- We are alreayd on the doc page! -->
-<!-- # Documentation
-Here you can find the basic documentation of the project:
-## Getting Started
-* Getting Kratos (Last compiled Release)
-    * [Kratos for Linux](Getting-Kratos-Binaries-for-Linux)
-    * [Kratos for Windows](Getting-Kratos-Binaries-for-Windows)
-    // * [Kratos for Mac](MacOS-install)
-    * [Kratos for GiD](Getting-Kratos-binaries-(via-GiD))
-* Compiling Kratos
-    * [See INSTALL.md](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md)
-
-## Tutorials
-* [Running an example from GiD](Running-an-example-from-GiD)
-* [Kratos input files and I/O](Kratos-input-files-and-IO)
-* [Data management](Data-management)
-* [Solving strategies](Solving-strategies)
-* [Manipulating solution values](Manipulating-solution-values)
-* [Multiphysics](Multiphysics-example)
-
-## More documentation
-[Wiki](https://github.com/KratosMultiphysics/Kratos/wiki) -->
-
-# Examples of use
+## Examples of use
 Kratos has been used for simulation of many different problems in a wide variety of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)
 
 <div class="row">
@@ -80,7 +59,7 @@ Kratos has been used for simulation of many different problems in a wide variety
     </div>
 </div>
 
-# Contributors
+## Contributors
 Organizations contributing to Kratos:
 
 <div class="row">
@@ -102,7 +81,7 @@ Organizations contributing to Kratos:
     </div>
 </div>
 
-# Our Users
+## Our Users
 Some users of the technologies developed in Kratos are:
 
 <div class="row">
@@ -121,7 +100,7 @@ Some users of the technologies developed in Kratos are:
     </div>
 </div>
 
-# Special Thanks To
+## Special Thanks To
 In Kratos Core:
 - [Boost](http://www.boost.org/) for ublas
 - [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
@@ -136,7 +115,7 @@ In applications:
 - [Trilinos](https://trilinos.org/) for MPI linear algebra and solvers used in [TrilinosApplication](applications/TrilinosApplication)
 - [METIS](http://glaros.dtc.umn.edu/gkhome/views/metis) for partitioning in [MetisApplication](applications/MetisApplication/README.md)
 
-# How to cite Kratos?
+## How to cite Kratos?
 Please, use the following references when citing Kratos in your work.
 - Dadvand, P., Rossi, R. & Oñate, E. An Object-oriented Environment for Developing Finite Element Codes for Multi-disciplinary Applications. Arch Computat Methods Eng 17, 253–297 (2010). https://doi.org/10.1007/s11831-010-9045-2
 - Dadvand, P., Rossi, R., Gil, M., Martorell, X., Cotela, J., Juanpere, E., Idelsohn, S., Oñate, E. (2013). Migration of a generic multi-physics framework to HPC environments. Computers & Fluids. 80. 301–309. 10.1016/j.compfluid.2012.02.004.

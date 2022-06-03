@@ -1,7 +1,7 @@
 ---
 title: Overview
 keywords: 
-tags: [1_Overview.md]
+tags: [Overview.md]
 sidebar: kratos_for_users
 summary: 
 ---

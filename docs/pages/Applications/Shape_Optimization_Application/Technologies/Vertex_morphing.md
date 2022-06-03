@@ -11,7 +11,7 @@ summary:
 Vertex morphing is a filtering method to filter out noise present in a sensitivity field or design field. Noisy sensitivity field is a common challenge in optimization problems which makes updated designs non-intuitive. They also make the updated meshes based on updated design space with bad elements which eventually result in failure in primal and adjoint solution computation. Therefore it is crucial to apply a filtering technique to obtain a smooth sensitivity field. An example of a noisy field is shown in figure 1.
 
 <p align="center">
-    <img src="images/sensitivity_field_noise.png?raw=true" alt="Noisy design field"/>
+    <img src="images/sensitivity_field_noise.png" alt="Noisy design field"/>
 </p>
 <p align="center">Figure 1: Noisy design field</p>
 
@@ -20,7 +20,7 @@ Vertex morphing is a filtering method to filter out noise present in a sensitivi
 Figure 2 illustrates the filtering methodology applied in vertex morphing. Design control field (i.e. sensitivity field) is demonstrated by $$S\left(\xi\right)$$. Filtering domain is identified by the used $$r$$ filter radii for each mesh coordinate. Then a filtering function of $$A\left(\xi-\xi_0\right)$$ is applied on the filtering domain to obtain smoothened and filtered design control field of $$z\left(\xi_o\right)$$ as illustrated in the figure.
 
 <p align="center">
-    <img src="images/vertex_morphing_filtering.png?raw=true" alt="Vertex morphing filtering"/>
+    <img src="images/vertex_morphing_filtering.png" alt="Vertex morphing filtering"/>
 </p>
 <p align="center">Figure 2: Vertex morphing filtering</p>
 
@@ -31,7 +31,7 @@ Following equation is used to obtain the final filtered design control field.
 Figure 2 illustrates obtained filtered and smoothened design field of the noist design field illustrated in figure 1.
 
 <p align="center">
-    <img src="images/sensitivity_field_filtered.png?raw=true" alt="Filtered design field"/>
+    <img src="images/sensitivity_field_filtered.png" alt="Filtered design field"/>
 </p>
 <p align="center">Figure 2: Filtered design field</p>
 
@@ -78,22 +78,7 @@ Example set of options are shown below
     "matrix_free_filtering"      : false,
     "consistent_mapping"         : false,
     "improved_integration"       : false,
-    "integration_method"         : "gauss_integration",
-    "number_of_gauss_points"     : 5,
-    "in_plane_morphing"          : false,
-    "in_plane_morphing_settings" : {},
-    "sliding_morphing"           : false,
-    "sliding_morphing_settings"  : {},
-    "plane_symmetry"             : false,
-    "plane_symmetry_settings"    : {
-        "point" : [0.0, 0.0, 0.0],
-        "normal": [0.0, 0.0, 0.0]
-    },
-    "revolution"                 : false,
-    "revolution_settings"        : {
-        "point" : [0.0, 0.0, 0.0],
-        "normal": [0.0, 0.0, 0.0]
-    }
+    "integration_method"         : "area_weighted_sum"
 }
 ```
 
@@ -105,7 +90,7 @@ Following table illustrates allowed values for each option.
 | filter_radius  | [See](#effect-of-filter-radii) |
 | max_nodes_in_filter_radius  | Number of maximum nodes to be considered within the filter radii. If the filter radii is large, then this number of closest neighbour points are used as the filter domain and rest of the nodes in the filter radius is ignored. |
 | improved_integration  | true or false |
-| integration_method  | ["area_weighted_sum"](#area-weighted-sum-integration-method), ["gauss_integration"](#gauss-integration-method). [Only works with "improved_integration": true, otherwise ignored.] |
+| integration_method  | ["area_weighted_sum"](#area-weighted-sum-integration-method), [Only works with "improved_integration": true, otherwise ignored.] |
 
 
 #### Gaussian filter function
@@ -127,4 +112,6 @@ Following table illustrates allowed values for each option.
 
 #### Area weighted sum integration method
 
-#### Gauss integration method
+This method modifies chosen ``filter_function_type`` based on the nodal area averaging methodology. $$S\left(x, x_0, r\right)$$ is the nodal area of the neighbour node at $$x$$ position, $$N$$ is the number of neighbour nodes.
+
+<p align="center">$$ A\left(x,x_0,r\right)   = A\left(x,x_0,r\right)\times \frac{S\left(x, x_0, r\right)}{\sum_{n=1}^{N}\left[S\left(x, x_0, r\right)\right]}$$</p>

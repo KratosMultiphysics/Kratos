@@ -6,6 +6,9 @@ entries:
   - title: General
     output: web
     folderitems:
+    - title: Summary
+      url: /pages/Kratos/For_Users/General/../../../../index.html
+      output: web
     - title: Overview
       url: /pages/Kratos/For_Users/General/Overview.html
       output: web

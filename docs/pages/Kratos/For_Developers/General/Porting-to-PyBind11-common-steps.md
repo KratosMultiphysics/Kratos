@@ -27,7 +27,7 @@ the first change is that the python interfaces should be modified as in
 
 [Link](https://github.com/KratosMultiphysics/Kratos/blob/eb4f48418e9b28e4a920fd1c524842ac42a84b44/applications/FluidDynamicsApplication/custom_python/add_custom_constitutive_laws_to_python.h)
 
-and 
+and
 
 ![Change 2](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Porting-to-PyBind11---common-steps/change2.png)
 
@@ -56,7 +56,7 @@ becomes
 
 One last important remark is to update the CMakeLists.txt
 
-![Change 3](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Porting-to-PyBind11---common-steps/change_3.png?raw=true)
+![Change 3](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Porting-to-PyBind11---common-steps/change_3.png)
 
 ## Internal references in python
 When references are to be used
@@ -86,13 +86,13 @@ Becomes
 
 ## self_ns::str
 
-This construct no longer exists in pybind11. Its previous use was to print a stringified version of your class. In pybind you must provide it yourself by defining the __str__ function 
+This construct no longer exists in pybind11. Its previous use was to print a stringified version of your class. In pybind you must provide it yourself by defining the __str__ function
 
 ```cpp
 .def(self_ns::str(self))
 ```
 
-becomes 
+becomes
 
 ```cpp
 .def("__str__", &Class::ToStrFunction)
