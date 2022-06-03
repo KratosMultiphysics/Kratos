@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    KratosAppGenerator
+//  Main authors:    Mohammad R. Hashemi
 //
 
 #if !defined(KRATOS_VARIATIONAL_NON_EIKONAL_ELEMENT_H_INCLUDED )

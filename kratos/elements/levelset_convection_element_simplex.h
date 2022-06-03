@@ -171,6 +171,10 @@ public:
 
         //here we use a term beta which takes into account a reaction term of the type "beta*div_v"
 
+//         unsigned int nneg=0;
+//         for(unsigned int i=0; i<TNumNodes; i++) if(phi[i] < 0.0) nneg++;
+//         if(nneg > 0) beta = 1.0; //beta = 0.1;
+
         //compute the divergence of v
         double div_v = 0.0;
         for (unsigned int i = 0; i < TNumNodes; i++)
@@ -178,10 +182,6 @@ public:
                 div_v += 0.5*DN_DX(i,k)*(v[i][k] + vold[i][k]);
 
         double beta = 0.0; //1.0;
-
-//         unsigned int nneg=0;
-//         for(unsigned int i=0; i<TNumNodes; i++) if(phi[i] < 0.0) nneg++;
-//         if(nneg > 0) beta = 1.0; //beta = 0.1;
 
         BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
         BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
@@ -213,15 +213,16 @@ public:
             array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
-                const double coefficient = N[i]*std::abs(phi[i])*inner_prod( normal_vector,
+                const double coefficient_i = N[i]*std::abs(phi[i])*inner_prod( normal_vector,
                     GetGeometry()[i].GetValue(NORMAL_VELOCITY_GRADIENT) ); //*normal_velocity_normal_gradient;//inner_prod(grad_normal_velocity, normal_vector);//
 
                 for(unsigned int k=0; k<TDim; k++){
                     vel_gauss[k] += 0.5*N[i]*(v[i][k]+vold[i][k]);
 
-                    if (avg_phi > -3.0*h && avg_phi < 3*h){ //(normal_velocity_normal_gradient > 1.0e-6){//(std::abs(phi[i]) < 0.2){ //
-                        vel_gauss[k] -= 0.0*coefficient*normal_vector[k];
-                    }
+                    //if (avg_phi > -3.0*h && avg_phi < 3*h){ //(normal_velocity_normal_gradient > 1.0e-6){//(std::abs(phi[i]) < 0.2){ //
+                        vel_gauss[k] -= 0.2*coefficient_i*normal_vector[k];
+                        //div_v -= 1.0*DN_DX(i,k)*(coefficient_i*normal_vector[k]);
+                    //}
                 }
             }
             //vel_gauss = inner_prod( normal_vector, vel_gauss)*normal_vector;
@@ -258,8 +259,8 @@ public:
         }
 
         //adding the second and third term in the formulation
-        noalias(rLeftHandSideMatrix)  = (dt_inv + 0.5*beta*div_v)*aux1; //the 0.5 comes from the use of Crank Nichlson
-        noalias(rRightHandSideVector) = (dt_inv - 0.5*beta*div_v)*prod(aux1,phi_old); //the 0.5 comes from the use of Crank Nichlson
+        noalias(rLeftHandSideMatrix)  = (dt_inv /* + 0.5*div_v */ + 0.5*beta*div_v)*aux1; //the 0.5 comes from the use of Crank Nichlson
+        noalias(rRightHandSideVector) = (dt_inv /* - 0.5*div_v */ - 0.5*beta*div_v)*prod(aux1,phi_old); //the 0.5 comes from the use of Crank Nichlson
 
         //terms in aux2
         noalias(rLeftHandSideMatrix) += 0.5*aux2; //the 0.5 comes from the use of Crank Nichlson
