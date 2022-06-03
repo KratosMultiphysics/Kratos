@@ -77,6 +77,7 @@
 
 /* Adding the mixed solid elements */
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
+#include "custom_elements/total_lagrangian_mixed_detJ_element.h"
 #include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
 
 /* CONDITIONS */
@@ -326,6 +327,9 @@ private:
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D8N;
+
+    const TotalLagrangianMixedDetJElement mTotalLagrangianMixedDetJElement2D3N;
+    const TotalLagrangianMixedDetJElement mTotalLagrangianMixedDetJElement3D4N;
 
     const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement2D3N;
     const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement2D4N;
