@@ -22,7 +22,8 @@ from KratosMultiphysics.ShapeOptimizationApplication.algorithms.algorithm_base i
 from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
-from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable, WriteListToNodalVariable, ReadNodalVariableToList
+from KratosMultiphysics.ShapeOptimizationApplication.utilities import custom_math as cm
 
 import math
 
@@ -114,11 +115,17 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
             timer.StartNewLap()
 
+            if self.optimization_iteration > 1:
+                self.__savePreviousGradientAndUpdate()
+
             self.__initializeNewShape()
 
             self.__analyzeShape()
 
             self.__computeShapeUpdate()
+
+            if self.optimization_iteration > 1:
+                self.__computeSensitivityHeatmap()
 
             self.__logCurrentOptimizationStep()
 
@@ -130,6 +137,214 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 break
             else:
                 self.__determineAbsoluteChanges()
+
+    # --------------------------------------------------------------------------
+    def __savePreviousGradientAndUpdate(self):
+        # save previous search direction and objective gradient
+
+        # previous control update
+        self.d_prev_c = []
+        # previous shape update
+        self.d_prev_x = []
+        # previous search direction
+        self.prev_s = []
+        # previous DF1DX in design space
+        self.df_prev_x = []
+        # previous DF1DX in control space
+        self.df_prev_c = []
+        # previous DC1DX in design space
+        self.dc1_prev_x = []
+        # previous DC1DX in control space
+        self.dc1_prev_c = []
+        # previous DC2DX in design space
+        self.dc2_prev_x = []
+        # previous DC2DX in control space
+        self.dc2_prev_c = []
+        # previous DC3DX in design space
+        self.dc3_prev_x = []
+        # previous DC3DX in control space
+        self.dc3_prev_c = []
+
+
+        for node in self.design_surface.Nodes:
+            # The following variables are not yet updated and therefore contain the information from the previos step
+            self.d_prev_x.append(node.GetSolutionStepValue(KSO.SHAPE_UPDATE))
+            self.d_prev_c.append(node.GetSolutionStepValue(KSO.CONTROL_POINT_UPDATE))
+            self.prev_s.append(node.GetSolutionStepValue(KSO.SEARCH_DIRECTION))
+            self.df_prev_x.append(node.GetSolutionStepValue(KSO.DF1DX))
+            self.df_prev_c.append(node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
+            self.dc1_prev_x.append(node.GetSolutionStepValue(KSO.DC1DX))
+            self.dc1_prev_c.append(node.GetSolutionStepValue(KSO.DC1DX_MAPPED))
+            self.dc2_prev_x.append(node.GetSolutionStepValue(KSO.DC2DX))
+            self.dc2_prev_c.append(node.GetSolutionStepValue(KSO.DC2DX_MAPPED))
+            self.dc3_prev_x.append(node.GetSolutionStepValue(KSO.DC3DX))
+            self.dc3_prev_c.append(node.GetSolutionStepValue(KSO.DC3DX_MAPPED))
+
+    # --------------------------------------------------------------------------
+    def __computeSensitivityHeatmap(self):
+        s = []
+        # df_dx = []
+        # df_dc = []
+        # dc1_dx = []
+        # dc1_dc = []
+        # dc2_dx = []
+        # dc2_dc = []
+        # dc3_dx = []
+        # dc3_dc = []
+        for node in self.design_surface.Nodes:
+            s.append(node.GetSolutionStepValue(KSO.SEARCH_DIRECTION))
+            # df_dx.append(node.GetSolutionStepValue(KSO.DF1DX))
+            # df_dc.append(node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
+            # dc1_dx.append(node.GetSolutionStepValue(KSO.DC1DX))
+            # dc1_dc.append(node.GetSolutionStepValue(KSO.DC1DX_MAPPED))
+            # dc2_dx.append(node.GetSolutionStepValue(KSO.DC2DX))
+            # dc2_dc.append(node.GetSolutionStepValue(KSO.DC2DX_MAPPED))
+            # dc3_dx.append(node.GetSolutionStepValue(KSO.DC3DX))
+            # dc3_dc.append(node.GetSolutionStepValue(KSO.DC3DX_MAPPED))
+
+        # Heatmap from search direction
+        d_s = []
+        hessian_diag_s = []
+        max_step = 10000 * self.step_size
+        min_step = 0.0001 * self.step_size
+        inv_hessian_diag_s = []
+        for i in range(len(self.design_surface.Nodes)):
+            y_i = cm.Minus(self.prev_s[i], s[i])
+            d_i = self.d_prev_c[i]
+            if cm.Dot(y_i, y_i) < 1e-9:
+                inv_hessian_i = max_step
+            else:
+                inv_hessian_i = abs(cm.Dot(d_i, y_i) / cm.Dot(y_i, y_i))
+
+            if inv_hessian_i > max_step:
+                inv_hessian_i = max_step
+            if inv_hessian_i < min_step:
+                inv_hessian_i = min_step
+            d_s_temp = cm.ScalarVectorProduct(-inv_hessian_i, s[i])
+            d_s.append(d_s_temp[0])
+            d_s.append(d_s_temp[1])
+            d_s.append(d_s_temp[2])
+            inv_hessian_diag_s.append(inv_hessian_i)
+            hessian_diag_s.append(1/inv_hessian_i)
+
+        prev_inv_hessian_diag_s = KM.Vector()
+        self.optimization_utilities.AssembleScalar(self.design_surface, prev_inv_hessian_diag_s, KSO.INV_HESSIAN_S)
+        WriteListToNodalVariable(hessian_diag_s, self.design_surface, KSO.HESSIAN_S, 1)
+        WriteListToNodalVariable(inv_hessian_diag_s, self.design_surface, KSO.INV_HESSIAN_S, 1)
+        WriteListToNodalVariable(d_s, self.design_surface, KSO.HEATMAP_S, 3)
+
+        # Heatmap Max
+        heat_max = []
+        df_dx = ReadNodalVariableToList(self.design_surface, KSO.DF1DX)
+
+        df_dx_norm = cm.NormInf3D(df_dx)
+        if df_dx_norm != 0.0:
+            df_dx_normalized = cm.ScalarVectorProduct(1/df_dx_norm, df_dx)
+        else:
+            df_dx_normalized = [0] * len(df_dx)
+
+        dc1_dx = ReadNodalVariableToList(self.design_surface, KSO.DC1DX)
+        dc1_dx_norm = cm.NormInf3D(dc1_dx)
+        if dc1_dx_norm != 0.0:
+            dc1_dx_normalized = cm.ScalarVectorProduct(1/dc1_dx_norm, dc1_dx)
+        else:
+            dc1_dx_normalized = [0] * len(dc1_dx)
+
+        dc2_dx = ReadNodalVariableToList(self.design_surface, KSO.DC2DX)
+        dc2_dx_norm = cm.NormInf3D(dc2_dx)
+        if dc2_dx_norm != 0.0:
+            dc2_dx_normalized = cm.ScalarVectorProduct(1/dc2_dx_norm, dc2_dx)
+        else:
+            dc2_dx_normalized = [0] * len(dc2_dx)
+
+        dc3_dx = ReadNodalVariableToList(self.design_surface, KSO.DC3DX)
+        dc3_dx_norm = cm.NormInf3D(dc3_dx)
+        if dc3_dx_norm != 0.0:
+            dc3_dx_normalized = cm.ScalarVectorProduct(1/dc3_dx_norm, dc3_dx)
+        else:
+            dc3_dx_normalized = [0] * len(dc3_dx)
+
+        for i in range(len(self.design_surface.Nodes)):
+            df_dx_i = df_dx_normalized[3*i:3*i+3]
+            df_dx_i_norm = cm.Norm2(df_dx_i)
+            dc1_dx_i = dc1_dx_normalized[3*i:3*i+3]
+            dc1_dx_i_norm = cm.Norm2(dc1_dx_i)
+            dc2_dx_i = dc2_dx_normalized[3*i:3*i+3]
+            dc2_dx_i_norm = cm.Norm2(dc2_dx_i)
+            dc3_dx_i = dc3_dx_normalized[3*i:3*i+3]
+            dc3_dx_i_norm = cm.Norm2(dc3_dx_i)
+
+            heat_max_i = max(df_dx_i_norm, dc1_dx_i_norm, dc2_dx_i_norm, dc3_dx_i_norm)
+            heat_max.append(heat_max_i)
+
+        # Heatmap Max Relaxed
+        prev_heat_max = KM.Vector()
+        self.optimization_utilities.AssembleScalar(self.design_surface, prev_heat_max, KSO.HEATMAP_MAX)
+        heat_max_relaxed = KM.Vector()
+        self.optimization_utilities.AssembleScalar(self.design_surface, heat_max_relaxed, KSO.HEATMAP_MAX_RELAXED)
+        relax_coeff = 0.5
+        for i in range(len(self.design_surface.Nodes)):
+            heat_max_relaxed[i] = relax_coeff * heat_max[i] + (1 - relax_coeff) * prev_heat_max[i]
+
+        self.optimization_utilities.AssignScalarToVariable(self.design_surface, heat_max_relaxed, KSO.HEATMAP_MAX_RELAXED)
+        WriteListToNodalVariable(heat_max, self.design_surface, KSO.HEATMAP_MAX, 1)
+
+        # Heatmap Max Mapped
+        heat_max_mapped = []
+        df_dc = ReadNodalVariableToList(self.design_surface, KSO.DF1DX_MAPPED)
+
+        df_dc_norm = cm.NormInf3D(df_dc)
+        if df_dc_norm != 0.0:
+            df_dc_normalized = cm.ScalarVectorProduct(1/df_dc_norm, df_dc)
+        else:
+            df_dc_normalized = [0] * len(df_dc)
+
+        dc1_dc = ReadNodalVariableToList(self.design_surface, KSO.DC1DX_MAPPED)
+        dc1_dc_norm = cm.NormInf3D(dc1_dc)
+        if dc1_dc_norm != 0.0:
+            dc1_dc_normalized = cm.ScalarVectorProduct(1/dc1_dc_norm, dc1_dc)
+        else:
+            dc1_dc_normalized = [0] * len(dc1_dc)
+
+        dc2_dc = ReadNodalVariableToList(self.design_surface, KSO.DC2DX_MAPPED)
+        dc2_dc_norm = cm.NormInf3D(dc2_dc)
+        if dc2_dc_norm != 0.0:
+            dc2_dc_normalized = cm.ScalarVectorProduct(1/dc2_dc_norm, dc2_dc)
+        else:
+            dc2_dc_normalized = [0] * len(dc2_dc)
+
+        dc3_dc = ReadNodalVariableToList(self.design_surface, KSO.DC3DX_MAPPED)
+        dc3_dc_norm = cm.NormInf3D(dc3_dc)
+        if dc3_dc_norm != 0.0:
+            dc3_dc_normalized = cm.ScalarVectorProduct(1/dc3_dc_norm, dc3_dc)
+        else:
+            dc3_dc_normalized = [0] * len(dc3_dc)
+
+        for i in range(len(self.design_surface.Nodes)):
+            df_dc_i = df_dc_normalized[3*i:3*i+3]
+            df_dc_i_norm = cm.Norm2(df_dc_i)
+            dc1_dc_i = dc1_dc_normalized[3*i:3*i+3]
+            dc1_dc_i_norm = cm.Norm2(dc1_dc_i)
+            dc2_dc_i = dc2_dc_normalized[3*i:3*i+3]
+            dc2_dc_i_norm = cm.Norm2(dc2_dc_i)
+            dc3_dc_i = dc3_dc_normalized[3*i:3*i+3]
+            dc3_dc_i_norm = cm.Norm2(dc3_dc_i)
+
+            heat_max_mapped_i = max(df_dc_i_norm, dc1_dc_i_norm, dc2_dc_i_norm, dc3_dc_i_norm)
+            heat_max_mapped.append(heat_max_mapped_i)
+
+        # Heatmap Max Mapped Relaxed
+        prev_heat_max_mapped = KM.Vector()
+        self.optimization_utilities.AssembleScalar(self.design_surface, prev_heat_max_mapped, KSO.HEATMAP_MAX_MAPPED)
+        heat_max_mapped_relaxed = KM.Vector()
+        self.optimization_utilities.AssembleScalar(self.design_surface, heat_max_mapped_relaxed, KSO.HEATMAP_MAX_MAPPED_RELAXED)
+        relax_coeff = 0.5
+        for i in range(len(self.design_surface.Nodes)):
+            heat_max_mapped_relaxed[i] = relax_coeff * heat_max_mapped[i] + (1 - relax_coeff) * prev_heat_max_mapped[i]
+
+        self.optimization_utilities.AssignScalarToVariable(self.design_surface, heat_max_mapped_relaxed, KSO.HEATMAP_MAX_MAPPED_RELAXED)
+        WriteListToNodalVariable(heat_max_mapped, self.design_surface, KSO.HEATMAP_MAX_MAPPED, 1)
+
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):
