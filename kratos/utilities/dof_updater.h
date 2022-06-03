@@ -46,12 +46,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(DofUpdater);
 
 	using DofType = Dof<typename TSparseSpace::DataType>;
-	using DofsArrayType = PointerVectorSet<
-		DofType,
-		IndexedObject,
-		std::less<decltype(std::declval<IndexedObject>()(std::declval<DofType>()))>,
-		std::equal_to<decltype(std::declval<IndexedObject>()(std::declval<DofType>()))>,
-		DofType* >;
+	using DofsArrayType = PointerVectorSet<DofType>;
 
     using SystemVectorType = typename TSparseSpace::VectorType;
 

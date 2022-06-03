@@ -78,7 +78,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(PointerVectorSet);
 
     /// Key type for searching in this container.
-    typedef decltype(std::declval<TGetKeyType>()(std::declval<TDataType>())) key_type;
+    typedef typename std::remove_reference<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>::type key_type;
 
     /// data type stores in this container.
     typedef TDataType data_type;
@@ -549,7 +549,7 @@ public:
 
     ///@}
 protected:
-    ///@name Protected static Member Variables
+    ///@name Protected static Member Variableskey_type
     ///@{
 
     ///@}
