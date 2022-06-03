@@ -17,6 +17,8 @@
 #define KRATOS_PROPERTY_ACCESSOR_H_INCLUDED
 
 // System includes
+#include "includes/properties.h"
+#include "geometries/geometry.h"
 
 // External includes
 
@@ -55,7 +57,7 @@ public:
     ///@name Type Definitions
     ///@{
     
-    typedef std::function<double(const std::string&, Properties&) > AccessorType;
+    typedef std::function<double(const std::string&, Properties&, const Geometry&) > AccessorType;
 
     /// Pointer definition of ProcessInfo
     KRATOS_CLASS_POINTER_DEFINITION(PropertyAccessor);
