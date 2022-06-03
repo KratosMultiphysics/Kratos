@@ -433,7 +433,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 print(time.time())
                 print("Parallel Redistancing Finished")
 
-            if (TimeStep % 1000 == 0):
+            if (TimeStep % 10 == 0):
                 print("Elliptic Redistancing Started")
                 print(time.time())
 
