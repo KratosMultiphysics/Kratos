@@ -162,8 +162,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         df_c = []
         df_x = []
         for node in self.design_surface.Nodes:
-            df_x.append(-1.0*node.GetSolutionStepValue(KSO.DF1DX))
-            df_c.append(-1.0*node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
+            df_x.append(node.GetSolutionStepValue(KSO.DF1DX))
+            df_c.append(node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
 
         d_c = []
         inv_hessian_diag_c = []
@@ -171,8 +171,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         d_x = []
         inv_hessian_diag_x = []
         hessian_diag_x = []
-        # max_step = 3000 * self.step_size
-        max_step = 1e9
+        max_step = 10000 * self.step_size
+        min_step = 0.0001 * self.step_size
         for i in range(len(self.design_surface.Nodes)):
             y_i = cm.Minus(self.df_prev_c[i], df_c[i])
             d_i = self.d_prev_c[i]
@@ -180,20 +180,18 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
                 inv_hessian_i = max_step
             else:
                 inv_hessian_i = abs(cm.Dot(d_i, y_i) / cm.Dot(y_i, y_i))
+
             if inv_hessian_i > max_step:
                 inv_hessian_i = max_step
+            if inv_hessian_i < min_step:
+                inv_hessian_i = min_step
             s_c = cm.ScalarVectorProduct(-inv_hessian_i, df_c[i])
             d_c.append(s_c[0])
             d_c.append(s_c[1])
             d_c.append(s_c[2])
             inv_hessian_diag_c.append(inv_hessian_i)
 
-            if inv_hessian_i > 1e-9:
-                hessian_diag_c_i = 1/inv_hessian_i
-            else:
-                hessian_diag_c_i = max_step
-            if hessian_diag_c_i > max_step:
-                hessian_diag_c_i = max_step
+            hessian_diag_c_i = 1/inv_hessian_i
             hessian_diag_c.append(hessian_diag_c_i)
 
 
@@ -203,20 +201,18 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
                 inv_hessian_i = max_step
             else:
                 inv_hessian_i = abs(cm.Dot(d_i, y_i) / cm.Dot(y_i, y_i))
+
             if inv_hessian_i > max_step:
                 inv_hessian_i = max_step
+            if inv_hessian_i < min_step:
+                inv_hessian_i = min_step
             s_x = cm.ScalarVectorProduct(-inv_hessian_i, df_x[i])
             d_x.append(s_x[0])
             d_x.append(s_x[1])
             d_x.append(s_x[2])
             inv_hessian_diag_x.append(inv_hessian_i)
 
-            if inv_hessian_i > 1e-9:
-                hessian_diag_x_i = 1/inv_hessian_i
-            else:
-                hessian_diag_x_i = max_step
-            if hessian_diag_x_i > max_step:
-                hessian_diag_x_i = max_step
+            hessian_diag_x_i = 1/inv_hessian_i
             hessian_diag_x.append(hessian_diag_x_i)
 
         WriteListToNodalVariable(inv_hessian_diag_c, self.design_surface, KSO.INV_HESSIAN_DF1DX_MAPPED, 1)

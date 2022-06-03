@@ -176,27 +176,27 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         # Heatmap from search direction
         d_s = []
         hessian_diag_s = []
-        max_step = 4 * self.step_size
+        max_step = 10000 * self.step_size
+        min_step = 0.0001 * self.step_size
         inv_hessian_diag_s = []
         for i in range(len(self.design_surface.Nodes)):
             y_i = cm.Minus(self.prev_s[i], s[i])
             d_i = self.d_prev_c[i]
             if cm.Dot(y_i, y_i) < 1e-9:
-                # inv_hessian_i = max_step
-                inv_hessian_i = 1e6
+                inv_hessian_i = max_step
             else:
                 inv_hessian_i = abs(cm.Dot(d_i, y_i) / cm.Dot(y_i, y_i))
-            # if inv_hessian_i > max_step:
-            #     inv_hessian_i = max_step
+
+            if inv_hessian_i > max_step:
+                inv_hessian_i = max_step
+            if inv_hessian_i < min_step:
+                inv_hessian_i = min_step
             d_s_temp = cm.ScalarVectorProduct(-inv_hessian_i, s[i])
             d_s.append(d_s_temp[0])
             d_s.append(d_s_temp[1])
             d_s.append(d_s_temp[2])
             inv_hessian_diag_s.append(inv_hessian_i)
-            if inv_hessian_i > 1e-6:
-                hessian_diag_s.append(1/inv_hessian_i)
-            else:
-                hessian_diag_s.append(1e6)
+            hessian_diag_s.append(1/inv_hessian_i)
 
         prev_inv_hessian_diag_s = KM.Vector()
         self.optimization_utilities.AssembleScalar(self.design_surface, prev_inv_hessian_diag_s, KSO.INV_HESSIAN_S)
@@ -214,8 +214,11 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
                 inv_hessian_i = max_step
             else:
                 inv_hessian_i = abs(cm.Dot(d_i, y_i) / cm.Dot(y_i, y_i))
+
             if inv_hessian_i > max_step:
                 inv_hessian_i = max_step
+            if inv_hessian_i < min_step:
+                inv_hessian_i = min_step
             heat_f_x_i = cm.ScalarVectorProduct(-inv_hessian_i, df_dx[i])
             heat_f_x.append(heat_f_x_i[0])
             heat_f_x.append(heat_f_x_i[1])
@@ -235,8 +238,12 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
                 inv_hessian_i = max_step
             else:
                 inv_hessian_i = abs(cm.Dot(d_i, y_i) / cm.Dot(y_i, y_i))
+
             if inv_hessian_i > max_step:
                 inv_hessian_i = max_step
+            if inv_hessian_i < min_step:
+                inv_hessian_i = min_step
+
             heat_f_c_i = cm.ScalarVectorProduct(-inv_hessian_i, df_dc[i])
             heat_f_c.append(heat_f_c_i[0])
             heat_f_c.append(heat_f_c_i[1])
@@ -256,8 +263,12 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
                 inv_hessian_i = max_step
             else:
                 inv_hessian_i = abs(cm.Dot(d_i, y_i) / cm.Dot(y_i, y_i))
+
             if inv_hessian_i > max_step:
                 inv_hessian_i = max_step
+            if inv_hessian_i < min_step:
+                inv_hessian_i = min_step
+
             heat_c_x_i = cm.ScalarVectorProduct(inv_hessian_i, dc_dx[i])
             heat_c_x.append(heat_c_x_i[0])
             heat_c_x.append(heat_c_x_i[1])
@@ -277,8 +288,12 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
                 inv_hessian_i = max_step
             else:
                 inv_hessian_i = abs(cm.Dot(d_i, y_i) / cm.Dot(y_i, y_i))
+
             if inv_hessian_i > max_step:
                 inv_hessian_i = max_step
+            if inv_hessian_i < min_step:
+                inv_hessian_i = min_step
+
             heat_c_c_i = cm.ScalarVectorProduct(-inv_hessian_i, dc_dc[i])
             heat_c_c.append(heat_c_c_i[0])
             heat_c_c.append(heat_c_c_i[1])
