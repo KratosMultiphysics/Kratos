@@ -460,7 +460,7 @@ private:
         IndexType counter = 0;
         for (auto& dof : BaseType::mDofSet) {
             if (dof.EquationId() < BaseType::mEquationSystemSize) {
-                auto it = BaseType::mDoFSlaveSet.find(dof.Id());
+                auto it = BaseType::mDoFSlaveSet.find(dof);
                 if (it == BaseType::mDoFSlaveSet.end()) {
                     ++counter;
                 }

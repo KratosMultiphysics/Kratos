@@ -68,9 +68,6 @@ public:
     /// Pointer definition of Table
     KRATOS_CLASS_POINTER_DEFINITION(Table);
 
-    // typedef TArgumentType argument_type; // To be STL conformance. Probably not needed as for C++17
-    // typedef TResultType result_type; // To be STL conformance. Probably not needed as for C++17
-
     typedef std::array<TResultType, TResultsColumns>  result_array_type;
 
     typedef std::pair<TArgumentType, result_array_type> RecordType;

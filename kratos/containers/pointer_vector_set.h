@@ -549,7 +549,7 @@ public:
 
     ///@}
 protected:
-    ///@name Protected static Member Variableskey_type
+    ///@name Protected static Member Variables
     ///@{
 
     ///@}
