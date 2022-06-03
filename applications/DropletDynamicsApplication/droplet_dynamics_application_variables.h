@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
+//  Main authors:    Mohammad R. Hashemi
 //
 
 #if !defined(KRATOS_DROPLET_DYNAMICS_APPLICATION_VARIABLES_H_INCLUDED )

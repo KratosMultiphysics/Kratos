@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
+//  Main authors:    Mohammad R. Hashemi
 //
 
 #if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )

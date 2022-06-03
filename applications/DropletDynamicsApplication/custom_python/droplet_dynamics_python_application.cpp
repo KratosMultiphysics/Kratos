@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
+//  Main authors:    Mohammad R. Hashemi
 //
 
 
@@ -22,7 +22,6 @@
 #include "includes/define_python.h"
 #include "droplet_dynamics_application.h"
 #include "droplet_dynamics_application_variables.h"
-#include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
 
@@ -39,7 +38,6 @@ PYBIND11_MODULE(KratosDropletDynamicsApplication,m)
         .def(py::init<>())
         ;
 
-    AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
 
     //registering variables in python
