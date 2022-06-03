@@ -70,3 +70,6 @@ bin/*
 
 # Most used editor files
 *.vscode
+
+.vs
+external_libraries/boost/
