@@ -1,9 +1,9 @@
 ---
 title: Kratos Core
-keywords:
+keywords: 
 tags: [Kratos_Core.md]
 sidebar: documentation_guide
-summary:
+summary: 
 ---
 
 *Kratos* core documentation has vast set of tools to aid numerical calculations using different methodologies. These tools either can be processes, utilities or data structures. Therefore there are separate folders created for each **Processes** and **Utilities** under the top navigation bar to have all of the processes and utilities listed in once place.
