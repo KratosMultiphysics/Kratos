@@ -62,11 +62,9 @@ public:
     /// Pointer definition of ProcessInfo
     KRATOS_CLASS_POINTER_DEFINITION(PropertyAccessor);
 
-
     ///@}
     ///@name Life Cycle
     ///@{
-
 
 
     ///@}
@@ -196,13 +194,13 @@ private:
     void save(Serializer& rSerializer) const
     {
         rSerializer.save("Value", mValue);
-        rSerializer.save("ListOfAccessors", mListOfAccessors);
+        // rSerializer.save("ListOfAccessors", mListOfAccessors);
     }
 
     void load(Serializer& rSerializer)
     {
         rSerializer.load("Value", mValue);
-        rSerializer.load("ListOfAccessors", mListOfAccessors);
+        // rSerializer.load("ListOfAccessors", mListOfAccessors);
     }
 
     ///@}
