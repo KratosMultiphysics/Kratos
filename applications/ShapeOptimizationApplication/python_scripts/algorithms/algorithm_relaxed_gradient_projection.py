@@ -277,7 +277,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         KM.Logger.PrintInfo("Check Convergence of the inner loop:")
         if self.inner_iter == 1:
             return False
-        elif self.direction_has_changed and self.inner_iter < 100:
+        elif self.direction_has_changed and self.inner_iter < 2:
             return False
         else:
             return True
@@ -298,10 +298,10 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                 KM.Logger.PrintInfo("Constraint ", identifier, "Linearized new value = ", new_constraint_value)
                 if new_constraint_value > 0.0:
                     if self.relaxation_coefficients[index] < 1.0:
-                        self.relaxation_coefficients[index] = min(self.relaxation_coefficients[index] + 0.02, 1.0)
+                        self.relaxation_coefficients[index] = min(self.relaxation_coefficients[index] + 0.1, 1.0)
                         self.direction_has_changed = True
                     elif self.correction_coefficients[index] < 2.0:
-                        self.correction_coefficients[index] = min (self.correction_coefficients[index] + 0.02, 2.0)
+                        self.correction_coefficients[index] = min (self.correction_coefficients[index] + 0.1, 2.0)
                         self.direction_has_changed = True
                 KM.Logger.PrintInfo("Constraint ", identifier, "W_R, W_C = ", self.relaxation_coefficients[index], self.correction_coefficients[index])
 
