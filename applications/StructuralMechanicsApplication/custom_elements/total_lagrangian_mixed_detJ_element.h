@@ -57,9 +57,15 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Guglielmo Scovazzi
  */
+template<std::size_t TDim>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangianMixedDetJElement
     : public Element
 {
+
+    static constexpr std::size_t NumNodes = TDim + 1;
+    static constexpr std::size_t StrainSize = TDim == 2 ? 3 : 6;
+    static constexpr std::size_t BlockSize = TDim +1;
+    static constexpr std::size_t LocalSize = NumNodes*BlockSize;
 
 protected:
 
@@ -68,40 +74,28 @@ protected:
      */
     struct KinematicVariables
     {
-        Vector N;
-        Matrix B;
         double detF;
         Matrix F;
         double detJ0;
         Matrix J0;
         Matrix InvJ0;
+        Vector N;
         Matrix DN_DX;
-        Vector Displacements;
-        Vector VolumetricNodalStrains;
+        BoundedMatrix<double,NumNodes, TDim> Displacements;
+        BoundedVector<double,NumNodes> JacobianDeterminant;
         Vector EquivalentStrain;
 
-        /**
-         * The default constructor
-         * @param StrainSize The size of the strain vector in Voigt notation
-         * @param Dimension The problem dimension: 2D or 3D
-         * @param NumberOfNodes The number of nodes in the element
-         */
-        KinematicVariables(
-            const SizeType StrainSize,
-            const SizeType Dimension,
-            const SizeType NumberOfNodes
-            )
+        KinematicVariables()
         {
             detF = 1.0;
             detJ0 = 1.0;
-            N = ZeroVector(NumberOfNodes);
-            B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
-            F = IdentityMatrix(Dimension);
-            DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
-            J0 = ZeroMatrix(Dimension, Dimension);
-            InvJ0 = ZeroMatrix(Dimension, Dimension);
-            Displacements = ZeroVector(Dimension * NumberOfNodes);
-            VolumetricNodalStrains = ZeroVector(NumberOfNodes);
+            F = IdentityMatrix(TDim);
+            J0 = ZeroMatrix(TDim, TDim);
+            InvJ0 = ZeroMatrix(TDim, TDim);
+            N = ZeroVector(NumNodes);
+            DN_DX = ZeroMatrix(NumNodes, TDim);
+            Displacements = ZeroMatrix(NumNodes, TDim);
+            JacobianDeterminant = ZeroVector(NumNodes);
             EquivalentStrain = ZeroVector(StrainSize);
         }
     };
@@ -132,12 +126,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// The definition of the index type
-    typedef std::size_t IndexType;
-
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
-
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
 
@@ -155,6 +143,18 @@ public:
 
     /// The base element type
     typedef Element BaseType;
+
+    /// The definition of nodes container
+    using NodesArrayType = BaseType::NodesArrayType;
+
+    /// The definition of the properties pointer
+    using PropertiesType = BaseType::PropertiesType;
+
+    /// The definition of the index type
+    using IndexType = BaseType::IndexType;
+
+    /// The definition of the sizetype
+    using SizeType = BaseType::SizeType;
 
     // Counted pointer of TotalLagrangianMixedDetJElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( TotalLagrangianMixedDetJElement );
@@ -524,22 +524,6 @@ private:
     void CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const;
 
     /**
-     * @brief Calculate the isotropic bulk modulus
-     * Calculates the bulk modulus for the transformation to the closest isotropic tensor
-     * @param rC Input constitutive matrx
-     * @return double Isotropic bulk modulus
-     */
-    double CalculateBulkModulus(const Matrix &rC) const;
-
-    /**
-     * @brief Calculate the isotropic shear modulus
-     * Calculates the shear modulus for the transformation to the closest isotropic tensor
-     * @param rC Input constitutive matrx
-     * @return double Isotropic shear modulus
-     */
-    double CalculateShearModulus(const Matrix &rC) const;
-
-    /**
      * @brief Calculation of the deformation gradient F
      * @param rF The deformation gradient
      * @param rStrainTensor The strain tensor in Voigt notation
@@ -590,13 +574,13 @@ private:
         const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
         // Create the kinematics container and fill the nodal data
-        KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+        KinematicVariables kinematic_variables;
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
             for (IndexType d = 0; d < dim; ++d) {
-                kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
+                kinematic_variables.Displacements(i_node, d) = r_disp[d];
             }
-            kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+            kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
         }
 
         // Create the constitutive variables and values containers

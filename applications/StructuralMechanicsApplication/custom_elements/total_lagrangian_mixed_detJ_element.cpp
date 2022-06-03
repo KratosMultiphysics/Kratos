@@ -28,29 +28,32 @@
 namespace Kratos
 {
 
-Element::Pointer TotalLagrangianMixedDetJElement::Create(
+template<std::size_t TDim>
+Element::Pointer TotalLagrangianMixedDetJElement<TDim>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<TotalLagrangianMixedDetJElement>(NewId, GetGeometry().Create(ThisNodes), pProperties );
+    return Kratos::make_intrusive<TotalLagrangianMixedDetJElement<TDim>>(NewId, GetGeometry().Create(ThisNodes), pProperties );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer TotalLagrangianMixedDetJElement::Create(
+template<std::size_t TDim>
+Element::Pointer TotalLagrangianMixedDetJElement<TDim>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<TotalLagrangianMixedDetJElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<TotalLagrangianMixedDetJElement<TDim>>(NewId, pGeom, pProperties);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer TotalLagrangianMixedDetJElement::Clone(
+template<std::size_t TDim>
+Element::Pointer TotalLagrangianMixedDetJElement<TDim>::Clone(
     IndexType NewId,
     NodesArrayType const& rThisNodes) const
 {
@@ -74,38 +77,26 @@ Element::Pointer TotalLagrangianMixedDetJElement::Clone(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::EquationIdVector(
+template<>
+void TotalLagrangianMixedDetJElement<2>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    const auto& r_geometry = GetGeometry();
-    const IndexType n_nodes = r_geometry.PointsNumber();
-    const IndexType dim = r_geometry.WorkingSpaceDimension();
-    const IndexType dof_size = n_nodes*(dim+1);
-
-    if (rResult.size() != dof_size){
-        rResult.resize(dof_size);
+    if (rResult.size() != LocalSize){
+        rResult.resize(LocalSize);
     }
 
+    const auto& r_geometry = GetGeometry();
     const IndexType disp_pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
     const IndexType det_F_pos = r_geometry[0].GetDofPosition(DETERMINANT_F);
 
     IndexType aux_index = 0;
-    if (dim == 2) {
-        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X, disp_pos).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, disp_pos + 1).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(DETERMINANT_F, det_F_pos).EquationId();
-        }
-    } else {
-        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X, disp_pos).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, disp_pos + 1).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Z, disp_pos + 2).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(DETERMINANT_F, det_F_pos).EquationId();
-        }
+    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
+        rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X, disp_pos).EquationId();
+        rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, disp_pos + 1).EquationId();
+        rResult[aux_index++] = r_geometry[i_node].GetDof(DETERMINANT_F, det_F_pos).EquationId();
     }
 
     KRATOS_CATCH("");
@@ -114,34 +105,51 @@ void TotalLagrangianMixedDetJElement::EquationIdVector(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::GetDofList(
+template<>
+void TotalLagrangianMixedDetJElement<3>::EquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY
+
+    if (rResult.size() != LocalSize){
+        rResult.resize(LocalSize);
+    }
+
+    const auto& r_geometry = GetGeometry();
+    const IndexType disp_pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType det_F_pos = r_geometry[0].GetDofPosition(DETERMINANT_F);
+
+    IndexType aux_index = 0;
+    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
+        rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X, disp_pos).EquationId();
+        rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, disp_pos + 1).EquationId();
+        rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Z, disp_pos + 2).EquationId();
+        rResult[aux_index++] = r_geometry[i_node].GetDof(DETERMINANT_F, det_F_pos).EquationId();
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void TotalLagrangianMixedDetJElement<2>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    const auto& r_geometry = GetGeometry();
-    const IndexType n_nodes = r_geometry.PointsNumber();
-    const IndexType dim = r_geometry.WorkingSpaceDimension();
-    const IndexType dof_size  = n_nodes*(dim+1);
-
-    if (rElementalDofList.size() != dof_size){
-        rElementalDofList.resize(dof_size);
+    if (rElementalDofList.size() != LocalSize){
+        rElementalDofList.resize(LocalSize);
     }
 
-    if (dim == 2) {
-        for(IndexType i = 0; i < n_nodes; ++i) {
-            rElementalDofList[i * (dim + 1)] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-            rElementalDofList[i * (dim + 1) + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-            rElementalDofList[i * (dim + 1) + 2] = this->GetGeometry()[i].pGetDof(DETERMINANT_F);
-        }
-    } else if (dim == 3) {
-        for(IndexType i = 0; i < n_nodes; ++i){
-            rElementalDofList[i * (dim + 1)] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-            rElementalDofList[i * (dim + 1) + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-            rElementalDofList[i * (dim + 1) + 2] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
-            rElementalDofList[i * (dim + 1) + 3] = this->GetGeometry()[i].pGetDof(DETERMINANT_F);
-        }
+    const auto& r_geometry = GetGeometry();
+    for(IndexType i = 0; i < NumNodes; ++i) {
+        rElementalDofList[i * BlockSize] = r_geometry[i].pGetDof(DISPLACEMENT_X);
+        rElementalDofList[i * BlockSize + 1] = r_geometry[i].pGetDof(DISPLACEMENT_Y);
+        rElementalDofList[i * BlockSize + 2] = r_geometry[i].pGetDof(DETERMINANT_F);
     }
 
     KRATOS_CATCH("");
@@ -150,7 +158,33 @@ void TotalLagrangianMixedDetJElement::GetDofList(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::Initialize(const ProcessInfo &rCurrentProcessInfo)
+template<>
+void TotalLagrangianMixedDetJElement<3>::GetDofList(
+    DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY
+
+    if (rElementalDofList.size() != LocalSize){
+        rElementalDofList.resize(LocalSize);
+    }
+
+    const auto& r_geometry = GetGeometry();
+    for(IndexType i = 0; i < NumNodes; ++i){
+        rElementalDofList[i * BlockSize] = r_geometry[i].pGetDof(DISPLACEMENT_X);
+        rElementalDofList[i * BlockSize + 1] = r_geometry[i].pGetDof(DISPLACEMENT_Y);
+        rElementalDofList[i * BlockSize + 2] = r_geometry[i].pGetDof(DISPLACEMENT_Z);
+        rElementalDofList[i * BlockSize + 3] = r_geometry[i].pGetDof(DETERMINANT_F);
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<std::size_t TDim>
+void TotalLagrangianMixedDetJElement<TDim>::Initialize(const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -175,7 +209,8 @@ void TotalLagrangianMixedDetJElement::Initialize(const ProcessInfo &rCurrentProc
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+template<std::size_t TDim>
+void TotalLagrangianMixedDetJElement<TDim>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -186,13 +221,13 @@ void TotalLagrangianMixedDetJElement::InitializeSolutionStep(const ProcessInfo& 
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
     // Create the kinematics container and fill the nodal data
-    KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+    KinematicVariables kinematic_variables;
     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
         for (IndexType d = 0; d < dim; ++d) {
-            kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
+            kinematic_variables.Displacements(i_node, d) = r_disp[d];
         }
-        kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
     }
 
     // Set te constitutive law values
@@ -221,7 +256,8 @@ void TotalLagrangianMixedDetJElement::InitializeSolutionStep(const ProcessInfo& 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+template<std::size_t TDim>
+void TotalLagrangianMixedDetJElement<TDim>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -232,13 +268,13 @@ void TotalLagrangianMixedDetJElement::FinalizeSolutionStep(const ProcessInfo& rC
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
     // Create the kinematics container and fill the nodal data
-    KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+    KinematicVariables kinematic_variables;
     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
         for (IndexType d = 0; d < dim; ++d) {
-            kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
+            kinematic_variables.Displacements(i_node, d) = r_disp[d];
         }
-        kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
     }
 
     // Set te constitutive law values
@@ -267,7 +303,8 @@ void TotalLagrangianMixedDetJElement::FinalizeSolutionStep(const ProcessInfo& rC
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::CalculateLocalSystem(
+template<std::size_t TDim>
+void TotalLagrangianMixedDetJElement<TDim>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -290,13 +327,13 @@ void TotalLagrangianMixedDetJElement::CalculateLocalSystem(
     }
 
     // Create the kinematics container and fill the nodal data
-    KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+    KinematicVariables kinematic_variables;
     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
         for (IndexType d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
         }
-        kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
     }
 
     // Create the constitutive variables and values containers
@@ -443,7 +480,8 @@ void TotalLagrangianMixedDetJElement::CalculateLocalSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::CalculateLeftHandSide(
+template<std::size_t TDim>
+void TotalLagrangianMixedDetJElement<TDim>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -460,13 +498,13 @@ void TotalLagrangianMixedDetJElement::CalculateLeftHandSide(
     }
 
     // Create the kinematics container and fill the nodal data
-    KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+    KinematicVariables kinematic_variables;
     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
         for (IndexType d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
         }
-        kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
     }
 
     // Create the constitutive variables and values containers
@@ -577,7 +615,8 @@ void TotalLagrangianMixedDetJElement::CalculateLeftHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::CalculateRightHandSide(
+template<std::size_t TDim>
+void TotalLagrangianMixedDetJElement<TDim>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -594,13 +633,13 @@ void TotalLagrangianMixedDetJElement::CalculateRightHandSide(
     }
 
     // Create the kinematics container and fill the nodal data
-    KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+    KinematicVariables kinematic_variables;
     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
         for (IndexType d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
         }
-        kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
     }
 
     // Create the constitutive variables and values containers
@@ -720,7 +759,8 @@ void TotalLagrangianMixedDetJElement::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::InitializeMaterial()
+template<std::size_t TDim>
+void TotalLagrangianMixedDetJElement<TDim>::InitializeMaterial()
 {
     KRATOS_TRY
 
@@ -744,7 +784,8 @@ void TotalLagrangianMixedDetJElement::InitializeMaterial()
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool TotalLagrangianMixedDetJElement::UseElementProvidedStrain() const
+template<std::size_t TDim>
+bool TotalLagrangianMixedDetJElement<TDim>::UseElementProvidedStrain() const
 {
     return true;
 }
@@ -752,7 +793,8 @@ bool TotalLagrangianMixedDetJElement::UseElementProvidedStrain() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::SetConstitutiveVariables(
+template<std::size_t TDim>
+void TotalLagrangianMixedDetJElement<TDim>::SetConstitutiveVariables(
     KinematicVariables& rThisKinematicVariables,
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
@@ -774,7 +816,8 @@ void TotalLagrangianMixedDetJElement::SetConstitutiveVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::CalculateConstitutiveVariables(
+template<std::size_t TDim>
+void TotalLagrangianMixedDetJElement<TDim>::CalculateConstitutiveVariables(
     KinematicVariables& rThisKinematicVariables,
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
@@ -793,7 +836,8 @@ void TotalLagrangianMixedDetJElement::CalculateConstitutiveVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector TotalLagrangianMixedDetJElement::GetBodyForce(
+template<std::size_t TDim>
+Vector TotalLagrangianMixedDetJElement<TDim>::GetBodyForce(
     const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
     const IndexType PointNumber) const
 {
@@ -809,7 +853,8 @@ Vector TotalLagrangianMixedDetJElement::GetBodyForce(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::CalculateKinematicVariables(
+template<std::size_t TDim>
+void TotalLagrangianMixedDetJElement<TDim>::CalculateKinematicVariables(
     KinematicVariables& rThisKinematicVariables,
     const IndexType PointNumber,
     const GeometryType::IntegrationMethod& rIntegrationMethod) const
@@ -852,7 +897,8 @@ void TotalLagrangianMixedDetJElement::CalculateKinematicVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const
+template<std::size_t TDim>
+void TotalLagrangianMixedDetJElement<TDim>::CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const
 {
     const auto& r_geom = GetGeometry();
     const SizeType n_nodes = r_geom.PointsNumber();
@@ -886,33 +932,8 @@ void TotalLagrangianMixedDetJElement::CalculateEquivalentStrain(KinematicVariabl
 /***********************************************************************************/
 /***********************************************************************************/
 
-double TotalLagrangianMixedDetJElement::CalculateBulkModulus(const Matrix &rC) const
-{
-    const SizeType dim = GetGeometry().WorkingSpaceDimension();
-    double bulk_modulus = 0.0;
-    for (SizeType i = 0; i < dim; ++i) {
-        for (SizeType j = 0; j < dim; ++j) {
-            bulk_modulus += rC(i,j);
-        }
-    }
-    return bulk_modulus / std::pow(dim, 2);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-double TotalLagrangianMixedDetJElement::CalculateShearModulus(const Matrix &rC) const
-{
-    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-    return (strain_size == 3) ?
-        0.2 * (rC(0,0) - 2.0*rC(0,1) + rC(1,1) + rC(2,2)) :
-        (4.0 / 33.0)*(rC(0,0) - rC(0,1) - rC(0,2) + rC(1,1) - rC(1,2) + rC(2,2) + (3.0/4.0)*(rC(3,3) + rC(4,4) + rC(5,5)));
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TotalLagrangianMixedDetJElement::ComputeEquivalentF(
+template<std::size_t TDim>
+void TotalLagrangianMixedDetJElement<TDim>::ComputeEquivalentF(
     Matrix& rF,
     const Vector& rStrainTensor) const
 {
@@ -922,7 +943,8 @@ void TotalLagrangianMixedDetJElement::ComputeEquivalentF(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  TotalLagrangianMixedDetJElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+template<std::size_t TDim>
+int  TotalLagrangianMixedDetJElement<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -947,7 +969,8 @@ int  TotalLagrangianMixedDetJElement::Check(const ProcessInfo& rCurrentProcessIn
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::CalculateOnIntegrationPoints(
+template<std::size_t TDim>
+void TotalLagrangianMixedDetJElement<TDim>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
@@ -971,7 +994,8 @@ void TotalLagrangianMixedDetJElement::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::CalculateOnIntegrationPoints(
+template<std::size_t TDim>
+void TotalLagrangianMixedDetJElement<TDim>::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
@@ -994,13 +1018,13 @@ void TotalLagrangianMixedDetJElement::CalculateOnIntegrationPoints(
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
         // Create the kinematics container and fill the nodal data
-        KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+        KinematicVariables kinematic_variables;
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
             for (IndexType d = 0; d < dim; ++d) {
-                kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
+                kinematic_variables.Displacements(i_node, d) = r_disp[d];
             }
-            kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+            kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
         }
 
         // Create the constitutive variables and values containers
@@ -1039,7 +1063,8 @@ void TotalLagrangianMixedDetJElement::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters TotalLagrangianMixedDetJElement::GetSpecifications() const
+template<std::size_t TDim>
+const Parameters TotalLagrangianMixedDetJElement<TDim>::GetSpecifications() const
 {
     const Parameters specifications = Parameters(R"({
         "time_integration"           : ["static"],
@@ -1068,7 +1093,7 @@ const Parameters TotalLagrangianMixedDetJElement::GetSpecifications() const
     })");
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    if (dimension == 2) {
+    if (TDim == 2) {
         std::vector<std::string> dofs_2d({"DISPLACEMENT_X","DISPLACEMENT_Y","DETERMINANT_F"});
         specifications["required_dofs"].SetStringArray(dofs_2d);
     } else {
@@ -1082,7 +1107,8 @@ const Parameters TotalLagrangianMixedDetJElement::GetSpecifications() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::save(Serializer& rSerializer) const
+template<std::size_t TDim>
+void TotalLagrangianMixedDetJElement<TDim>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TotalLagrangianMixedDetJElement::BaseType);
     int IntMethod = int(this->GetIntegrationMethod());
@@ -1093,7 +1119,8 @@ void TotalLagrangianMixedDetJElement::save(Serializer& rSerializer) const
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianMixedDetJElement::load(Serializer& rSerializer)
+template<std::size_t TDim>
+void TotalLagrangianMixedDetJElement<TDim>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TotalLagrangianMixedDetJElement::BaseType);
     int IntMethod;
@@ -1101,5 +1128,12 @@ void TotalLagrangianMixedDetJElement::load(Serializer& rSerializer)
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+// Explicit template instantiations
+template class TotalLagrangianMixedDetJElement<2>;
+template class TotalLagrangianMixedDetJElement<3>;
 
 } // Namespace Kratos
