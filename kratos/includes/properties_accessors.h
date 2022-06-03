@@ -24,7 +24,6 @@
 
 // Project includes
 
-
 namespace Kratos
 {
 
@@ -73,12 +72,36 @@ public:
     ///@name Operators
     ///@{
 
+    /**
+     * @brief default constructor
+     */
     PropertyAccessor(double Value)
     {
         mValue = Value;
     }
 
+    /**
+     * @brief This method add a new acessor to a certain variable name
+     */
+    void AddAccessor(const std::string& rVariableName, AccessorType* pAccessor )
+    {
+        mListOfAccessors[VariableName] = pAccessor;
+    }
 
+    /**
+     * @brief This method return the value of the required variable
+     */
+    double GetProperty(const std::string& rVariableName, const Properties& rProperties, const Geometry& rGeometry)
+    {
+        // if it is in the list, give back the corresponding accessor, otherwise give back value
+        auto it = mListOfAccessors.find(rVariableName);
+        if (it != mListOfAccessors.end()) {
+            auto& r_function = *(*it).second;
+            return r_function(rVariableName, rProperties, rGeometry);
+        } else {
+            return mValue;
+        }
+    }
 
     ///@}
     ///@name Operations
