@@ -2,7 +2,7 @@
 title: How to configure clang‐format
 keywords: 
 tags: [How-to-configure-clang‐format.md]
-sidebar: kratos_for_users
+sidebar: kratos_for_developers
 summary: 
 ---
 

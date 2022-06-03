@@ -22,11 +22,17 @@ topnav_dropdowns:
     - title: For Developers
       url: /pages/Kratos/For_Developers/General/Application-Cases.html
       output: web
+    - title: Processes
+      url: /pages/Kratos/Processes/General/Overview.html
+      output: web
+    - title: Utilities
+      url: /pages/Kratos/Utilities/General/Overview.html
+      output: web
     - title: Debugging
       url: /pages/Kratos/Debugging/General/Checking-memory-usage-with-Valgrind.html
       output: web
     - title: Documentation Guide
-      url: /pages/Kratos/Documentation_Guide/1_General/initial.html
+      url: /pages/Kratos/Documentation_Guide/General/Overview.html
       output: web
   - title: Applications
     output: web

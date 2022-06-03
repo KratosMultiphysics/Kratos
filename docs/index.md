@@ -4,7 +4,7 @@ tags: []
 sidebar: kratos_for_users
 permalink: index.html
 title: Summary
-summary:
+summary: 
 ---
 
 <p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>

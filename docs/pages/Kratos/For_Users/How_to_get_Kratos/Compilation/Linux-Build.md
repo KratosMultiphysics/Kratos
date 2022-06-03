@@ -6,11 +6,11 @@ sidebar: kratos_for_users
 summary: 
 ---
 
-# How to compile Kratos:
+## How to compile Kratos:
 
 You can find latest Kratos compilation instructions in [Install.md](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md)
 
-# Test and Usage
+## Test and Usage
 
 * Objectives:
  * Tests kratos
@@ -30,18 +30,18 @@ We strongly recommend you to run kratos scripts with the "runkratos" binary that
 If everething was ok you will see this message:
 
 ```
-     |  /           |             
+     |  /           |
      ' /   __| _` | __|  _ \   __|
-     . \  |   (   | |   (   |\__ \ 
+     . \  |   (   | |   (   |\__ \
     _|\_\_|  \__,_|\__|\___/ ____/
                Multi-Physics 3.3.11016
 ```
 
-# Common problems
+## Common problems
 
 In this section we provide will try to provide solutions to the most common problems and issues that may appear during the compilation process
 
-## Cannot find KratosMultiphysics
+### Cannot find KratosMultiphysics
 
 Make sure that ```LD_LIBRARY_PATH``` and ```PYTHONPATH``` are pointing to your kratos folder.
 To make sure that the variables are set correctly, you can always print their value from the terminal by typing:
@@ -68,17 +68,17 @@ echo $PYTHONPATH
 path/to/kratos
 ```
 
-## I am getting Python link errors
+### I am getting Python link errors
 
 This errors appear if the version of python used to compile boost is not the same as the one
 used by Kratos.
 
 There are several causes that may be causing this. Pleas try the following:
 
-### Python version mismatch
+#### Python version mismatch
 The most provable reason for this error to happend is a missmatch between the python versions used by Kratos and Boost. Please, double check you have the same version of python in the projet-config.jam (boost) and configure.sh (Kratos) files.
 
-### Old version of CMake
+#### Old version of CMake
 Please check that CMake version is 3.14 or newer. In general newer versions of Python will need newer versions of CMake to work.
 
 It has been observed that compiling with IDE's ( QTCreator, Netbeans, ...) sometimes causes this error as well.
@@ -105,7 +105,7 @@ SET(_PYTHON2_VERSIONS 2.7 2.6 2.5 2.4 2.3 2.2 2.1 2.0)
 SET(_PYTHON3_VERSIONS 3.4 3.3 3.2 3.1 3.0)
 ```
 
-## I am getting lots of warnings when I compile Kratos
+### I am getting lots of warnings when I compile Kratos
 
 It is known that in some cases warnings appear while including boost files due to the fact that the flag **"-Wunused-local-typedefs"** is set by default in gcc.
 
@@ -116,7 +116,7 @@ This does not have any impact on the final code, but if you want a cleaner outpu
 -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 -Wno-unused-local-typedefs"          \
 ```
 
-# Compiling with MPI
+## Compiling with MPI
 If you want to compile the MPI-version of Kratos, you need to at least to
 * Have a MPI installation (e.g. [OpenMPI](http://www.open-mpi.de/) or [Intel MPI](https://software.intel.com/en-us/intel-mpi-library)). There are no known restrictions on which version to use.
 * Set the flag `MPI_NEEDED` to `ON` in the configure-script
@@ -244,7 +244,7 @@ cmake \
 ```
 Build Trilinos with:
 ```
-sh do-configure.sh 
+sh do-configure.sh
 make
 make install
 ```
@@ -277,7 +277,7 @@ _Please notice that this guide is introductory and many of the steps and softwar
 
 ## Git
 
-* Objectives: 
+* Objectives:
  * Install git
  * Get Kratos Multiphysics source code
 
@@ -293,13 +293,13 @@ Once git is installed you can fetch the code by using these commands:
 git clone https://github.com/KratosMultiphysics/Kratos Kratos
 ```
 
-## Dev Packages 
+## Dev Packages
 
 * Objectives:
  * Get Python3-dev
  * Get G++
  * Get Fortran compiler
- * Get LIBBLAS and LIBLAPACK 
+ * Get LIBBLAS and LIBLAPACK
 
 You will need a series of packages with some kratos dependencies. The command below will install all the packages needed. It will allow you to compile with python2 or python3 so you will be able to chose later ( we recommend python3 )
 
@@ -311,9 +311,9 @@ sudo apt-get install python-dev python3-dev gcc g++ gfortran libblas-dev liblapa
 * Objectives:
  * Download Boost
 
-The next step will consist in downloading Boost. Kratos Multiphysics needs Boost libraries to support some of its functions ans you can found them here: http://www.boost.org/users/download/. 
+The next step will consist in downloading Boost. Kratos Multiphysics needs Boost libraries to support some of its functions ans you can found them here: http://www.boost.org/users/download/.
 
-We recommend you to use boost 1.67 or newer, earlier versions may cause compiling errors. 
+We recommend you to use boost 1.67 or newer, earlier versions may cause compiling errors.
 
 It's very important to add the correct path to the boost library in the configure.sh by setting the variable -DBOOST_ROOT. You will see an example in the configure section.
 
@@ -360,7 +360,7 @@ cmake ..                                                                      \
 -DPYTHON_EXECUTABLE="/usr/bin/python3"                                        \
 -DMESHING_APPLICATION=ON                                                      \
 -DEXTERNAL_SOLVERS_APPLICATION=ON                                             \
-    
+
 // More options ( do not include this line )
 ```
 
@@ -369,12 +369,12 @@ Note that the ```\``` must be the last character in the line. Even an space afte
 Notice that you can also turn ON/OFF parts of the code according to your necessities:
 
 ```CMake
--DSTRUCTURAL_MECHANICS_APPLICATION=ON/OFF                           
+-DSTRUCTURAL_MECHANICS_APPLICATION=ON/OFF
 ```
 
 :warning: Cmake requires all definitions in a single line! The line concatenation character ```\``` therefore MUST NOT be followed by any whitespace in the same line as this would prevent the cmake from running the lines below
 
-## Compile 
+## Compile
 
 * Objectives:
  * Compile kratos.
@@ -408,7 +408,7 @@ echo "export PATH=$PATH:/path/to/my/kratos/installation" >> $HOME/.bashrc
 
 In order to have the "runkratos" available as a regular command.
 
-Now each time you open a terminal these commands will be executed and the paths set automatically. 
+Now each time you open a terminal these commands will be executed and the paths set automatically.
 If you don't want to reset your terminal the first time, just execute:
 
 ```Shell
@@ -435,9 +435,9 @@ We strongly recommend you to run kratos scripts with the "runkratos" binary that
 If everething was ok you will see this message:
 
 ```
-     |  /           |             
+     |  /           |
      ' /   __| _` | __|  _ \   __|
-     . \  |   (   | |   (   |\__ \ 
+     . \  |   (   | |   (   |\__ \
     _|\_\_|  \__,_|\__|\___/ ____/
                Multi-Physics 3.3.11016
 ```
@@ -650,7 +650,7 @@ cmake \
 ```
 Build Trilinos with:
 ```
-sh do-configure.sh 
+sh do-configure.sh
 make
 make install
 ```

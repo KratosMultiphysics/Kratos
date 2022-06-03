@@ -66,6 +66,9 @@ entries:
     - title: How to apply a function to a list of variables
       url: /pages/Kratos/For_Developers/General/How-to-apply-a-function-to-a-list-of-variables.html
       output: web
+    - title: How to configure clang‐format
+      url: /pages/Kratos/For_Developers/General/How-to-configure-clang‐format.html
+      output: web
     - title: How to create unitary tests
       url: /pages/Kratos/For_Developers/General/How-to-create-unitary-tests.html
       output: web

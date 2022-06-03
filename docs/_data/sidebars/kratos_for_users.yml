@@ -21,39 +21,6 @@ entries:
     - title: Copyright and Licence
       url: /pages/Kratos/For_Users/General/Copyright_and_Licence.html
       output: web
-    - title: How to configure clang‐format
-      url: /pages/Kratos/For_Users/General/How-to-configure-clang‐format.html
-      output: web
-  - title: How to get Kratos
-    output: web
-    folderitems:
-    - title: 
-      output: web
-      subfolders:
-      - title: Binaries
-        output: web
-        subfolderitems:
-        - title: Getting Kratos binaries (via GiD)
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/Binaries/Getting-Kratos-binaries-with-gid.html
-          output: web
-        - title: Getting Kratos Binaries for Windows
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/Binaries/Getting-Kratos-Binaries-for-Windows.html
-          output: web
-        - title: Getting Kratos Binaries for Linux
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/Binaries/Getting-Kratos-Binaries-for-Linux.html
-          output: web
-      - title: Compilation
-        output: web
-        subfolderitems:
-        - title: Compilation options
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/Compilation/Compilation-options.html
-          output: web
-        - title: How to Compile Kratos in Debug mode
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/Compilation/How-to-Compile-Kratos-in-Debug-mode.html
-          output: web
-        - title: Linux Build
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/Compilation/Linux-Build.html
-          output: web
   - title: Getting started
     output: web
     folderitems:
@@ -129,4 +96,34 @@ entries:
         subfolderitems:
         - title: Python Script  Reading ModelPart From Input File
           url: /pages/Kratos/For_Users/Getting_started/1_File_structure/reading-input.html
+          output: web
+  - title: How to get Kratos
+    output: web
+    folderitems:
+    - title: 
+      output: web
+      subfolders:
+      - title: Binaries
+        output: web
+        subfolderitems:
+        - title: Getting Kratos binaries (via GiD)
+          url: /pages/Kratos/For_Users/How_to_get_Kratos/Binaries/Getting-Kratos-binaries-with-gid.html
+          output: web
+        - title: Getting Kratos Binaries for Windows
+          url: /pages/Kratos/For_Users/How_to_get_Kratos/Binaries/Getting-Kratos-Binaries-for-Windows.html
+          output: web
+        - title: Getting Kratos Binaries for Linux
+          url: /pages/Kratos/For_Users/How_to_get_Kratos/Binaries/Getting-Kratos-Binaries-for-Linux.html
+          output: web
+      - title: Compilation
+        output: web
+        subfolderitems:
+        - title: Compilation options
+          url: /pages/Kratos/For_Users/How_to_get_Kratos/Compilation/Compilation-options.html
+          output: web
+        - title: How to Compile Kratos in Debug mode
+          url: /pages/Kratos/For_Users/How_to_get_Kratos/Compilation/How-to-Compile-Kratos-in-Debug-mode.html
+          output: web
+        - title: Linux Build
+          url: /pages/Kratos/For_Users/How_to_get_Kratos/Compilation/Linux-Build.html
           output: web

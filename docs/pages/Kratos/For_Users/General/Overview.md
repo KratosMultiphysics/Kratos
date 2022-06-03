@@ -6,7 +6,7 @@ sidebar: kratos_for_users
 summary: 
 ---
 
-# What is Kratos?
+## What is Kratos?
 
 _Kratos_ is a framework for building multi-disciplinary finite element programs. It provides several tools for easy implementation of finite element applications and a common platform providing effortless interaction between them. _Kratos_ has an innovative variable base interface designed to be used at different levels of abstraction and implemented to be very clear and extendible. It also provides an efficient yet flexible data structure which can be used to store any type of data in a type-safe manner. The [Python](http://www.python.org/) scripting language is used to define the main procedure of _Kratos_ which significantly improves the flexibility of the framework in time of use.
 
@@ -18,7 +18,7 @@ If you have not visited the general [CIMNE _Kratos_ Website](http://www.cimne.co
 
 Follow Kratos on [Twitter](https://twitter.com/KratosMultiPhys)!
 
-# Who may use _Kratos_?
+## Who may use _Kratos_?
 
 Some potential users of _Kratos_ are:
 
@@ -28,11 +28,11 @@ Some potential users of _Kratos_ are:
 
 * _Package Users Engineers_: and designers are other users of _Kratos_. They use the complete package of _Kratos_ and its applications to model and solve their problem without getting involved in internal programming of this package. For these users _Kratos_ has to provide a flexible external interface to enable them use different features of _Kratos_ without changing its implementation.
 
-# Who is _Kratos_?
+## Who is _Kratos_?
 
 The _Kratos_ structure, due to its multi disciplinary nature, has to support the wide variety of algorithms involved in different areas. That's the principal reason that explain the variety of people, mostly engineers, composing the _Kratos_ Community.
 
-# Keywords
+## Keywords
 
 **Free Multi-physic Finite Element Method C++ Open Source Code**
 
