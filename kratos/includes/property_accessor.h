@@ -55,8 +55,9 @@ class KRATOS_API(KRATOS_CORE) PropertyAccessor
 public:
     ///@name Type Definitions
     ///@{
-    
-    typedef std::function<double(const std::string&, Properties&, const Geometry&) > AccessorType;
+    typedef Geometry<Node<3>> GeometryType;
+
+    typedef std::function<double(const std::string&, Properties&, const GeometryType&) > AccessorType;
 
     /// Pointer definition of ProcessInfo
     KRATOS_CLASS_POINTER_DEFINITION(PropertyAccessor);
@@ -83,15 +84,15 @@ public:
     /**
      * @brief This method add a new acessor to a certain variable name
      */
-    void AddAccessor(const std::string& rVariableName, AccessorType* pAccessor )
+    void AddAccessor(const std::string& rVariableName, AccessorType* pAccessor)
     {
-        mListOfAccessors[VariableName] = pAccessor;
+        mListOfAccessors[rVariableName] = pAccessor;
     }
 
     /**
      * @brief This method return the value of the required variable
      */
-    double GetProperty(const std::string& rVariableName, const Properties& rProperties, const Geometry& rGeometry)
+    double GetProperty(const std::string& rVariableName, const Properties& rProperties, const GeometryType& rGeometry)
     {
         // If it is in the list, give back the corresponding accessor, otherwise give back value
         auto it = mListOfAccessors.find(rVariableName);
