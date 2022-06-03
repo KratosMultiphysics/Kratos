@@ -208,6 +208,15 @@ class ConvectionDiffusionSolver(PythonSolver):
         reaction_gradient_variable = self.settings["convection_diffusion_variables"]["reaction_gradient_variable"].GetString()
         if (reaction_gradient_variable != ""):
             convention_diffusion_settings.SetReactionGradientVariable(KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable))
+        first_stabilization_variable = self.settings["convection_diffusion_variables"]["first_stabilization_variable"].GetString()
+        if (first_stabilization_variable != ""):
+            convention_diffusion_settings.SetFirstStabilizationVariable(KratosMultiphysics.KratosGlobals.GetVariable(first_stabilization_variable))
+        second_stabilization_variable = self.settings["convection_diffusion_variables"]["second_stabilization_variable"].GetString()
+        if (second_stabilization_variable != ""):
+            convention_diffusion_settings.SetSecondStabilizationVariable(KratosMultiphysics.KratosGlobals.GetVariable(second_stabilization_variable))
+        dynamic_stabilization_variable = self.settings["convection_diffusion_variables"]["dynamic_stabilization_variable"].GetString()
+        if (dynamic_stabilization_variable != ""):
+            convention_diffusion_settings.SetDynamicStabilizationVariable(KratosMultiphysics.KratosGlobals.GetVariable(dynamic_stabilization_variable))
 
         target_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convention_diffusion_settings)
 
@@ -240,6 +249,12 @@ class ConvectionDiffusionSolver(PythonSolver):
                 target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetReactionVariable())
             if convention_diffusion_settings.IsDefinedReactionGradientVariable():
                 target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetReactionGradientVariable())
+            if convention_diffusion_settings.IsDefinedFirstStabilizationVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetFirstStabilizationVariable())
+            if convention_diffusion_settings.IsDefinedSecondStabilizationVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetSecondStabilizationVariable())
+            if convention_diffusion_settings.IsDefinedDynamicStabilizationVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetDynamicStabilizationVariable())
         else:
             raise Exception("The provided target_model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
 
