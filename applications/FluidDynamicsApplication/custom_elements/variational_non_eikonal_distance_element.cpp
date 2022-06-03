@@ -614,15 +614,15 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
                         // Working with averaged DISTANE_GRADIENT (accessed in the process) for the 0th-step?
                         VectorType grad_phi_avg_i = GetGeometry()[i_node].GetValue(DISTANCE_GRADIENT);
-                        //const double norm_grad_phi_avg_i = norm_2( grad_phi_avg_i );
+                        const double norm_grad_phi_avg_i = norm_2( grad_phi_avg_i );
                         //grad_phi_avg_i /= norm_2(grad_phi_avg_i); // It is not a good idea!
 
-                        /* if (contact_angle_weight > 0.0){
+                        if (contact_angle_weight > 0.0){
                             minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
                             minus_cos_contact_angle = minus_cos_contact_angle*norm_grad_phi_avg_i;
-                        } else{ */
+                        } else{
                             minus_cos_contact_angle = Kratos::inner_prod(solid_normal,grad_phi_avg_i);
-                        // }
+                        }
 
                         if (step == 0){
                             rhs(i_node) += scale * minus_cos_contact_angle * face_weight * face_shape_func(i_node);
