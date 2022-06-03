@@ -119,7 +119,10 @@ class ConvectionDiffusionSolver(PythonSolver):
                 "velocity_variable"             : "VELOCITY",
                 "specific_heat_variable"        : "SPECIFIC_HEAT",
                 "reaction_variable"             : "REACTION_FLUX",
-                "reaction_gradient_variable"    : "REACTION"
+                "reaction_gradient_variable"    : "REACTION",
+                "first_stabilization_variable"  : "STABILIZATION_FACTOR_1",
+                "second_stabilization_variable" : "STABILIZATION_FACTOR_2",
+                "dynamic_stabilization_variable": "STABILIZATION_FACTOR_DYNAMIC"
             },
             "time_stepping" : {
                 "time_step": 1.0
