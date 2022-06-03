@@ -57,7 +57,7 @@ public:
     ///@{
     typedef Geometry<Node<3>> GeometryType;
 
-    typedef std::function<double(const std::string&, Properties&, const GeometryType&) > AccessorType;
+    typedef std::function<double(const std::string&, const Properties&, const GeometryType&) > AccessorType;
 
     /// Pointer definition of ProcessInfo
     KRATOS_CLASS_POINTER_DEFINITION(PropertyAccessor);
@@ -176,7 +176,7 @@ private:
     ///@{
 
     double mValue;
-    std::map< std::string, AccessorType*> mListOfAccessors;
+    std::map<std::string, AccessorType*> mListOfAccessors;
 
     ///@}
     ///@name Private Operators
