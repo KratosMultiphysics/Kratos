@@ -430,5 +430,7 @@ if __name__ == "__main__":
     analysis_stage_class = FluidDynamicsAnalysisWithFlush
 
     global_model = KratosMultiphysics.Model()
-    simulation = CreateRomAnalysisInstance(analysis_stage_class, global_model, parameters)
+    # simulation = CreateRomAnalysisInstance(analysis_stage_class, global_model, parameters)
+    
+    simulation = analysis_stage_class(global_model, parameters)
     simulation.Run()

@@ -70,5 +70,4 @@ def CreateSolver(solver_class, model, custom_settings, parallelism):
             # Return the validated ROM parameters
             return self.settings["rom_settings"]
 
-    print("=====",type(solver_class).__name__)
     return ROMSolver(model, custom_settings, "OpenMP")
