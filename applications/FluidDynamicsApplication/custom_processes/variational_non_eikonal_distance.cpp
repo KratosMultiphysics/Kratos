@@ -144,9 +144,10 @@ void VariationalNonEikonalDistance::Execute()
 
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
 
+        it_node->FastGetSolutionStepValue(DISTANCE_AUX2) = distance;
+
         if ( std::abs(distance) < 1.0e-12 || (it_node->IsFixed(DISTANCE) && !it_node->Is(INLET)) ){
             it_node->Fix(DISTANCE_AUX2);
-            it_node->FastGetSolutionStepValue(DISTANCE_AUX2) = distance;
         } else {
             it_node->Free(DISTANCE_AUX2);
         }
@@ -154,20 +155,10 @@ void VariationalNonEikonalDistance::Execute()
 
     #pragma omp parallel for
     for (unsigned int k = 0; k < NumNodes; ++k) {
+
         auto it_node = mrModelPart.NodesBegin() + k;
+
         it_node->SetValue(NODAL_AREA, 0.0);
-
-        const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
-
-        auto it_node_redistancing = r_redistancing_model_part.NodesBegin() + k;
-
-        if (!it_node->IsFixed(DISTANCE_AUX2)){
-            if (distance > 0.0){
-                it_node->FastGetSolutionStepValue(DISTANCE_AUX2) = 1.0*h_min;
-            } else{
-                it_node->FastGetSolutionStepValue(DISTANCE_AUX2) = -1.0*h_min;
-            }
-        }
 
         it_node->Set(BOUNDARY,false);
     }
@@ -183,7 +174,7 @@ void VariationalNonEikonalDistance::Execute()
     //************************************************************************************
     //************************************************************************************
     // Doing redistancing for a few iterations: better DISTANCE_GRADIENT for BC in reinitialization step
-    r_redistancing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
+    /* r_redistancing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
 
     mpGradientCalculator->Execute(); // To provide the initial condition for DISTANCE_GRADIENT
 
@@ -214,13 +205,30 @@ void VariationalNonEikonalDistance::Execute()
         iteration++;
         KRATOS_INFO("Deviation in the norm of distance gradient") <<
             norm_grad_norm_deviation/static_cast<double>(NumNodes) << std::endl;
-    }
+    } */
 
     //************************************************************************************
     //************************************************************************************
     // Reinitialization
     r_redistancing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,0);
     mpGradientCalculator->Execute(); // To provide the initial condition for DISTANCE_GRADIENT
+
+    #pragma omp parallel for
+    for (unsigned int k = 0; k < NumNodes; ++k) {
+
+        auto it_node = mrModelPart.NodesBegin() + k;
+
+        const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
+
+        if (!it_node->IsFixed(DISTANCE_AUX2)){
+            if (distance > 0.0){
+                it_node->FastGetSolutionStepValue(DISTANCE_AUX2) = 1.0*h_min;
+            } else{
+                it_node->FastGetSolutionStepValue(DISTANCE_AUX2) = -1.0*h_min;
+            }
+        }
+    }
+
     KRATOS_INFO("VariationalNonEikonalDistance") << "Reconstruction of levelset, about to solve the LSE" << std::endl;
     mp_solving_strategy->Solve();
     KRATOS_INFO("VariationalNonEikonalDistance") << "Reconstruction of levelset, LSE is solved" << std::endl;
@@ -237,13 +245,13 @@ void VariationalNonEikonalDistance::Execute()
     //************************************************************************************
     //************************************************************************************
     // Redistancing
-    r_redistancing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
+    /* r_redistancing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
 
     mpGradientCalculator->Execute(); // To provide the initial condition for DISTANCE_GRADIENT
 
-    iteration = 0;
-    max_grad_norm_deviation = 1.0e2;
-    norm_grad_norm_deviation = 0.0;
+    unsigned int iteration = 0;
+    double max_grad_norm_deviation = 1.0e2;
+    double norm_grad_norm_deviation = 0.0;
 
     while (max_grad_norm_deviation > 2.0e-1 && iteration < 10){
 
@@ -272,7 +280,7 @@ void VariationalNonEikonalDistance::Execute()
     }
     if (max_grad_norm_deviation > 2.0e-1){
         KRATOS_INFO("VariationalNonEikonalDistance") << "Convergence is not achieved." << std::endl;
-    }
+    } */
 
     KRATOS_CATCH("")
 }

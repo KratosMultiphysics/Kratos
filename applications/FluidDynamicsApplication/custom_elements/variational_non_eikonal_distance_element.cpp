@@ -374,7 +374,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                 } */
             }
             if (step <= 1){ // For cases that source_coeff is the same for both the positive and negative domains.
-                rhs[i_node] += source_coeff * weights(gp) * N(gp, i_node);
+                rhs[i_node] -= source_coeff * weights(gp) * N(gp, i_node);
             }
         }
     }
