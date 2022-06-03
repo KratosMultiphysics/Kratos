@@ -132,10 +132,13 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
 
     def test_sellmeijers_rule_height(self):
         for counter, test_name in enumerate(self.test_lists["name"]):
-            test_name_gid = self.gid_files[self.test_lists["D"][counter]][self.test_lists["L"][counter]]
-            file_path = test_helper.get_file_path(os.path.join('./', test_name_gid))
-            os.chdir(file_path)
-            self.critical_head_loop(file_path, counter, 'linear')
+            with self.subTest(i=counter):
+                test_name_gid = self.gid_files[self.test_lists["D"][counter]][self.test_lists["L"][counter]]
+                file_path = test_helper.get_file_path(os.path.join('./', test_name_gid))
+                os.chdir(file_path)
+                self.critical_head_loop(file_path, counter, 'linear')
+                self.assertEqual(self.test_lists['Hn'][counter], self.test_lists['Hc_kratos'][counter])
+                self.assertEqual(self.test_lists['Length_n'][counter], self.test_lists['Pipe_length_kratos'][counter])
         all_results = []
         for counter, test_n in enumerate(self.test_lists['name']):
             index_test = self.test_lists['name'].index(test_n)
