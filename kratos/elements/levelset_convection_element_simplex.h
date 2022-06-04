@@ -128,6 +128,7 @@ public:
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
         const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
         const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
+        // KRATOS_WATCH(dyn_st_beta);
 
 
         //getting data for the given geometry
@@ -200,6 +201,8 @@ public:
             //terms which multiply the gradient of phi
             noalias(aux2) += (1.0+tau*beta*div_v)*outer_prod(N, a_dot_grad);
             noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
+
+            // KRATOS_WATCH("Inside levelset convection element simplex");
 
             //cross-wind term
             if(norm_grad > 1e-3 && norm_vel > 1e-9)
