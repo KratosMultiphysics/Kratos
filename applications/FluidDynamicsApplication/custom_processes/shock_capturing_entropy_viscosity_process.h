@@ -174,8 +174,6 @@ public:
 
     void ExecuteInitializeSolutionStep() override;
 
-    void ExecuteFinalizeSolutionStep() override;
-
     int Check() override;
 
     const Parameters GetDefaultParameters() const override;

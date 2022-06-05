@@ -190,6 +190,86 @@ namespace Testing {
         KRATOS_CHECK_NEAR(centre_local_coords(2), 0.0, TOLERANCE);
     }
 
+    /** Checks the point local coordinates for a given point respect to the line.
+    * A point outside but aligned with the line is selected. In this case the distance from second node is smaller than the length
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2PointLocalCoordinatesOutsidePoint1, KratosCoreGeometriesFastSuite)
+    {
+        // Create the test line
+        auto geom = GeneratePointsDiagonalLine2D2();
+
+        // Set the point to be checked
+        Point test_point(1.5,1.5,0.0);
+
+        // Compute the centre local coordinates
+        array_1d<double, 3> test_point_local_coords;
+        geom->PointLocalCoordinates(test_point_local_coords, test_point);
+
+        KRATOS_CHECK_NEAR(test_point_local_coords(0), 2.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(test_point_local_coords(1), 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(test_point_local_coords(2), 0.0, TOLERANCE);
+    }
+
+    /** Checks the point local coordinates for a given point respect to the line.
+    * A point outside but aligned with the line is selected. In this case the distance from second node is larger than the length
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2PointLocalCoordinatesOutsidePoint2, KratosCoreGeometriesFastSuite)
+    {
+        // Create the test line
+        auto geom = GeneratePointsDiagonalLine2D2();
+
+        // Set the point to be checked
+        Point test_point(2.5,2.5,0.0);
+
+        // Compute the centre local coordinates
+        array_1d<double, 3> test_point_local_coords;
+        geom->PointLocalCoordinates(test_point_local_coords, test_point);
+
+        KRATOS_CHECK_NEAR(test_point_local_coords(0), 4.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(test_point_local_coords(1), 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(test_point_local_coords(2), 0.0, TOLERANCE);
+    }
+
+    /** Checks the point local coordinates for a given point respect to the line.
+    * A point outside but aligned with the line is selected. In this case the distance from first node is smaller than the length
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2PointLocalCoordinatesOutsidePoint3, KratosCoreGeometriesFastSuite)
+    {
+        // Create the test line
+        auto geom = GeneratePointsDiagonalLine2D2();
+
+        // Set the point to be checked
+        Point test_point(-0.25,-0.25,0.0);
+
+        // Compute the centre local coordinates
+        array_1d<double, 3> test_point_local_coords;
+        geom->PointLocalCoordinates(test_point_local_coords, test_point);
+
+        KRATOS_CHECK_NEAR(test_point_local_coords(0), -1.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(test_point_local_coords(1), 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(test_point_local_coords(2), 0.0, TOLERANCE);
+    }
+
+    /** Checks the point local coordinates for a given point respect to the line.
+    * A point outside but aligned with the line is selected. In this case the distance from first node is larger than the length
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2PointLocalCoordinatesOutsidePoint4, KratosCoreGeometriesFastSuite)
+    {
+        // Create the test line
+        auto geom = GeneratePointsDiagonalLine2D2();
+
+        // Set the point to be checked
+        Point test_point(-1.5,-1.5,0.0);
+
+        // Compute the centre local coordinates
+        array_1d<double, 3> test_point_local_coords;
+        geom->PointLocalCoordinates(test_point_local_coords, test_point);
+
+        KRATOS_CHECK_NEAR(test_point_local_coords(0), -4.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(test_point_local_coords(1), 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(test_point_local_coords(2), 0.0, TOLERANCE);
+    }
+
     /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
     * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
     */
