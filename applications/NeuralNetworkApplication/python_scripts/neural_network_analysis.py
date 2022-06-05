@@ -53,7 +53,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
                 super().__init__(self.kratos_model, self.project_parameters)
                 if self.mesh_moving:
                     self._GetNeuralNetworkSolver().AddVariables()
-                KratosMultiphysics.ModelPartIO(self.model_geometry_file).ReadModelPart(self.model_geometry)
+                # KratosMultiphysics.ModelPartIO(self.model_geometry_file).ReadModelPart(self.model_geometry)
                 try:
                     self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["solver_settings"]["solver_settings"]["domain_size"].GetInt()
                 except RuntimeError:
