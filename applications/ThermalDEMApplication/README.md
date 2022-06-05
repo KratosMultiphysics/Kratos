@@ -11,6 +11,19 @@ Theoretical information on thermal DEM analysis can be found [here](./ThermalDEM
 
 A [Matlab version](https://gitlab.com/rafaelrangel/demlab) of this application is also available.
 
+## Table of Contents
+- [Authorship](#authorship)
+- [License](#license)
+- [Getting Started](#getting-started)
+- [Instructions](#instructions)
+    - [MainKratos](#mainkratos)
+    - [Project Parameters](#project-parameters)
+    - [Materials](#materials)
+    - [DEM Model Parts](#dem-model-parts)
+    - [DEM-FEM Boundary Model Parts](#dem-fem-boundary-model-parts)
+- [Input Explanations](#input-explanations)
+- [Testing](#testing)
+
 ## Authorship
 
 - **Rafael Rangel** - (<rrangel@cimne.upc.edu>)
@@ -19,12 +32,16 @@ International Center for Numerical Methods in Engineering ([CIMNE](https://www.c
 
 ## License
 
-The Thermal DEM application is OPEN SOURCE. The main code and program structure is available and aimed to grow with the need of any users willing to expand it. The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
+The Thermal DEM application is OPEN SOURCE.
+The main code and program structure is available and aimed to grow with the need of any users willing to expand it.
+The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction,
+but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
 
-## Getting started
+## Getting Started
 
 This application is part of the ***Kratos Multiphysics*** framework.
-Instructions on how to get a copy of the project and run on your local machine for development and testing purposes are available for both [Linux](http://kratos-wiki.cimne.upc.edu/index.php/LinuxInstall) and [Windows](http://kratos-wiki.cimne.upc.edu/index.php/Windows_7_Download_and_Installation) systems.
+Instructions on how to get a copy of the project and run on your local machine for development and testing purposes are available for both
+[Linux](http://kratos-wiki.cimne.upc.edu/index.php/LinuxInstall) and [Windows](http://kratos-wiki.cimne.upc.edu/index.php/Windows_7_Download_and_Installation) systems.
 
 Before building *Kratos Multiphysics*, make sure to add the following applications to your configure file: 
 
@@ -428,4 +445,4 @@ Add **SubModelPartData** to sub model parts with desired options:
 
 ## Testing
 
-To test if the application is working correctly, run the test_ThermalDEMApplication.py file, located in the *tests* folder.
+To test if the application is working correctly, run the *test_ThermalDEMApplication.py* file, located in the *tests* folder.
