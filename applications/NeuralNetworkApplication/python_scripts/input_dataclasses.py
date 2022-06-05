@@ -13,7 +13,12 @@ class NeuralNetworkData:
             self.data = new_data
     
     def ExportAsArray(self):
-        return self.data
+        try:
+            '''for converting pytorch predictions to numpy'''
+            self.data = self.data.detach().numpy()
+            return self.data
+        except:
+            return self.data
     
     def ExportElementAsArray(self, id):
         return self.ExportAsArray()
