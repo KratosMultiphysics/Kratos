@@ -35,6 +35,14 @@ Before building *Kratos Multiphysics*, make sure to add the following applicatio
 
 To create a model for the Thermal DEM Application, the following adaptations must be done to the input files of the DEM Application.
 
+### MainKratos (python file)
+
+Replace the import of the *AnalysisStage* of the DEM Application with the *AnalysisStage* of the Thermal DEM Application, which is imported as follows:
+
+	from KratosMultiphysics.ThermalDEMApplication.thermal_dem_analysis import ThermalDEMAnalysis
+
+You can check the template of the *MainKratos* file [here](https://github.com/KratosMultiphysics/Kratos/blob/4c8a07592cf4056557be0e5dff1c19839a5e3b98/applications/ThermalDEMApplication/python_scripts/MainKratosThermalDEMAnalysis.py).
+
 ### Project Parameters (json file)
 
 Change **solver strategy**.\
