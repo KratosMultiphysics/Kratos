@@ -77,7 +77,6 @@ class NeuralNetworkSolver(PythonSolver):
         self.output_sources = [ output_sources_names[i].GetString() for i in range( output_sources_names.size() ) ]
         self.output_variables = [ KratosMultiphysics.KratosGlobals.GetVariable( var ) for var in output_variable_names ]
 
-
     def Initialize(self):
         self.LoadGeometry()
         self.input_data_structure = InputDataclasses.NeuralNetworkData()
@@ -110,10 +109,10 @@ class NeuralNetworkSolver(PythonSolver):
         if self.time >= self.time_buffer: # TODO: Check for consistency with timesteps nad time
             output_value_index = 0
 
-        for variable in self.output_variables:
-            for node, node_id in zip(self.model_geometry.Nodes, range(self.model_geometry.NumberOfNodes())):
-                node.SetSolutionStepValue(variable,0, output_value_list[node_id])
-                output_value_index += 1
+            for i, variable in enumerate(self.output_variables):
+                for node, node_id in zip(self.model_geometry.Nodes, range(self.model_geometry.NumberOfNodes())):
+                    node.SetSolutionStepValue(variable, 0, output_value_list[node_id,i])
+                    output_value_index += node_id
 
 
     def PredictNeuralNetwork(self, data_structure_in = None):

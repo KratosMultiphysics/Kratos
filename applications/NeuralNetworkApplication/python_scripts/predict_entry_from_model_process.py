@@ -42,7 +42,9 @@ class PredictEntryFromModelProcess(NeuralNetworkProcess):
         try:
             predictions = model.predict(data_in.ExportElementAsArray(0))
         except:
-            predictions = model(torch.tensor(data_in.ExportElementAsArray(0)))
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
+            predictions = model(torch.tensor(data_in.ExportElementAsArray(0)).to(device))
+
 
         if self.write_output:
 
