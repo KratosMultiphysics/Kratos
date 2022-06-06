@@ -351,26 +351,6 @@ namespace Kratos
                 temp += a_i[k_comp] * Ni_DNj[k_comp];
             for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
                 stab_high[l_comp] = -temp * (pi_j[l_comp] - pi_i[l_comp]); // check if the minus sign is correct
-
-                //                                double temp_i = 0.0;
-                //                                double temp_j = 0.0;
-                //				for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
-                //                                {
-                //                                        temp_j += a_i[k_comp] * Ni_DNj[k_comp];
-                //					temp_i += a_i[k_comp] * DNi_Nj[k_comp];
-                //                                }
-                //                                for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-                //					stab_high[l_comp] = +(temp_j*pi_j[l_comp] - temp_i*pi_i[l_comp]); //check if the minus sign is correct
-
-                //                                double temp_i = 0.0;
-                //                                double temp_j = 0.0;
-                //				for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
-                //                                {
-                //                                        temp_i += a_i[k_comp] * Ni_DNj[k_comp];
-                //					temp_j += a_i[k_comp] * DNi_Nj[k_comp];
-                //                                }
-                //                                for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-                //					stab_high[l_comp] = (temp_j*pi_j[l_comp] + temp_i*pi_i[l_comp]); //check if the minus sign is correct
 #else
             double aux_i = a_i[0] * Ni_DNj[0];
             double aux_j = a_j[0] * Ni_DNj[0];
@@ -595,26 +575,25 @@ namespace Kratos
 #pragma omp parallel
                 if (OpenMPUtils::ThisThread() == k)
                 {
+                    // main loop over all nodes
                     for (unsigned int aux_i = static_cast<unsigned int>(row_partition[k]); aux_i < static_cast<unsigned int>(row_partition[k + 1]); aux_i++)
                     {
                         typename ModelPart::NodesContainerType::iterator node_it = model_part.NodesBegin() + aux_i;
-                        // main loop over all nodes
-                        //  					for (typename ModelPart::NodesContainerType::iterator node_it=model_part.NodesBegin(); node_it!=model_part.NodesEnd(); node_it++)
-                        //  					{
+
                         // getting the global index of the node
                         i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
+
                         // determining its neighbours
                         GlobalPointersVector<Node<3>> &neighb_nodes = node_it->GetValue(NEIGHBOUR_NODES);
+
                         // number of neighbours of node i determines row start index for the following node
                         unsigned int n_neighbours = neighb_nodes.size();
                         // DIAGONAL TERMS
-                        // n_neighbours++;
 
                         // reserving memory for work array
                         std::vector<unsigned int> work_array;
                         work_array.reserve(n_neighbours);
                         // DIAGONAL TERMS
-                        // work_array.push_back(i_node);
 
                         // nested loop over the neighbouring nodes
                         for (GlobalPointersVector<Node<3>>::iterator neighb_it = neighb_nodes.begin(); neighb_it != neighb_nodes.end(); neighb_it++)
@@ -632,17 +611,19 @@ namespace Kratos
                         {
                             // getting global index of the neighbouring node
                             unsigned int j_neighbour = work_array[counter];
+
                             // calculating CSR index
                             unsigned int csr_index = mRowStartIndex[i_node] + counter;
 
                             // saving column index j of the original matrix
                             mColumnIndex[csr_index] = j_neighbour;
+
                             // initializing the CSR vector entries with zero
                             mNonzeroEdgeValues[csr_index].Mass = 0.0;
 
-                            // mNonzeroEdgeValues[csr_index].Laplacian = 0.0;
                             noalias(mNonzeroEdgeValues[csr_index].LaplacianIJ) = ZeroMatrix(TDim, TDim);
                             noalias(mNonzeroEdgeValues[csr_index].Ni_DNj) = ZeroVector(TDim);
+
                             // TRANSPOSED GRADIENT
                             noalias(mNonzeroEdgeValues[csr_index].DNi_Nj) = ZeroVector(TDim);
                         }
@@ -655,21 +636,10 @@ namespace Kratos
             mRowStartIndex[n_nodes] = mNumberEdges;
 
             // INITIALIZING NODE BASED VALUES
-
-            // lumped mass matrix (elements Mi)
-            /*				#pragma omp parallel for
-                                            for (int i_node=0; i_node<n_nodes; i_node++)
-                                                    mLumpedMassMatrix[i_node] = 0.0;*/
-
 #pragma omp parallel for
             // set the heights to a huge number
             for (int i_node = 0; i_node < n_nodes; i_node++)
                 mHmin[i_node] = 1e10;
-
-            // diagonal of gradient matrix (elements Gii)
-            //  				#pragma omp parallel for
-            //  				for (int i_node=0; i_node<n_nodes; i_node++)
-            //  					noalias(mDiagGradientMatrix[i_node]) = ZeroVector(TDim);
 
             KRATOS_CATCH("")
         }
@@ -718,7 +688,6 @@ namespace Kratos
                         heights[ie_node] += dN_dx(ie_node, comp) * dN_dx(ie_node, comp);
                     }
                     heights[ie_node] = 1.0 / sqrt(heights[ie_node]);
-                    // KRATOS_WATCH(heights);
                 }
 
                 // setting up elemental mass matrices
@@ -733,23 +702,7 @@ namespace Kratos
                     }
                     // mass_lumped[ie_node] = volume * N[ie_node];
                 }
-                /*OLD DATA STRUCTURE
-                //calculating elemental laplacian matrix
-                noalias(laplacian) = ZeroMatrix(TDim+1,TDim+1);
-                for (unsigned int ie_node=0; ie_node<=TDim; ie_node++)
-                        for (unsigned int je_node=ie_node+1; je_node<=TDim; je_node++)
-                                //componentwise multiplication
-                                for (unsigned int component=0; component<TDim; component++)
-                                {
-                                        //taking advantage of symmetry
-                                        double temp = dN_dx(ie_node,component) * dN_dx(je_node,component) * volume;
-                                        laplacian(ie_node,je_node) += temp;
-                                        laplacian(je_node,ie_node) += temp;
-                                }
 
-                //multiply gradient with volume referring to each gauss point
-                dN_dx *= (volume / double(TDim+1));*/
-                //(corresponding to Ni * dOmega respectively Nj * dOmega)
                 double weighted_volume = volume * weighting_factor;
 
                 // ASSEMBLING GLOBAL DATA STRUCTURE
@@ -779,8 +732,6 @@ namespace Kratos
                             mNonzeroEdgeValues[csr_index].Mass += mass_consistent(ie_node, je_node);
 
                             // contribution to edge laplacian
-                            /*OLD DATA STRUCTURE
-                            mNonzeroEdgeValues[csr_index].Laplacian = laplacian(ie_node,je_node);*/
                             boost::numeric::ublas::bounded_matrix<double, TDim, TDim> &laplacian = mNonzeroEdgeValues[csr_index].LaplacianIJ;
                             for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
                                 for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
@@ -795,7 +746,6 @@ namespace Kratos
                             // contribution to transposed edge gradient
                             array_1d<double, TDim> &transp_gradient = mNonzeroEdgeValues[csr_index].DNi_Nj;
                             for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-                                // transp_gradient[l_comp] += dN_dx(ie_node,l_comp);
                                 transp_gradient[l_comp] += dN_dx(ie_node, l_comp) * weighted_volume;
                         }
                     }
@@ -810,7 +760,6 @@ namespace Kratos
                     // diagonal of the global gradient matrix
                     array_1d<double, TDim> &gradient = mDiagGradientMatrix[nodal_indices[ie_node]];
                     for (unsigned int component = 0; component < TDim; component++)
-                        // gradient[component] += dN_dx(ie_node,component);
                         gradient[component] += dN_dx(ie_node, component) * weighted_volume;
                 }
             }
@@ -909,7 +858,6 @@ namespace Kratos
                 ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 
                 // get the global index of node i
-                //  // 					unsigned int i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
                 unsigned int i_node = i;
 
                 // save value in the destination vector
@@ -944,7 +892,6 @@ namespace Kratos
                 ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 
                 // get the global index of node i
-                //  // 					unsigned int i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
                 unsigned int i_node = i;
 
                 // get the requested value in vector form
@@ -975,7 +922,6 @@ namespace Kratos
                 ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 
                 // get the global index of node i
-                //  // 					unsigned int i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
                 unsigned int i_node = i;
 
                 // get the requested value in vector form
@@ -1089,7 +1035,6 @@ namespace Kratos
                 ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 
                 // get the global index of node i
-                //  // 					unsigned int i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
                 int i_node = i;
 
                 // get reference of destination
@@ -1102,7 +1047,6 @@ namespace Kratos
         }
 
         //*********************************************************************
-        // destination = origin1 + value * Minv*origin
 
         void Add_Minv_value(
             CalcVectorType &destination,

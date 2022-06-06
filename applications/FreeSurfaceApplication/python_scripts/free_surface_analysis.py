@@ -27,6 +27,8 @@ class FreeSurfaceAnalysis(AnalysisStage):
         small_value = 1e-4
         active_node_count = 0
         for node in self.model.GetModelPart(model_part_name).Nodes:
+            body_force = KratosMultiphysics.Vector(3)
+            body_force = node.GetSolutionStepValue(KratosMultiphysics.BODY_FORCE, 0)
             # Initialize DISTANCE
             if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
                 active_node_count += 1
@@ -41,6 +43,7 @@ class FreeSurfaceAnalysis(AnalysisStage):
                 node.SetSolutionStepValue(KratosMultiphysics.DIAMETER, 1.0)
 
             porosity = node.GetSolutionStepValue(KratosMultiphysics.POROSITY)
+            node.SetSolutionStepValue(KratosMultiphysics.PRESS_PROJ, density * body_force * porosity)
 
         if not active_node_count:
             raise RuntimeError("At least 1 node must be initialized with a negative DISTANCE")

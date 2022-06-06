@@ -240,10 +240,7 @@ namespace Kratos
             mr_matrix_container.WriteVectorToDatabase(NORMAL, mSlipNormal, mr_model_part.Nodes());
             if (TDim == 3)
                 DetectEdges3D(mr_model_part.Conditions());
-            // print number of nodes corresponding to the different types of boundary conditions
-            //				KRATOS_WATCH(mFixedVelocities.size())
-            //				KRATOS_WATCH(mPressureOutletList.size())
-            //				KRATOS_WATCH(mSlipBoundaryList.size())
+
             // determine number of edges and entries
             unsigned int n_nonzero_entries = 2 * n_edges + n_nodes;
             // allocate memory for variables
@@ -259,7 +256,6 @@ namespace Kratos
                     for (int i_node = static_cast<int>(row_partition[k]); i_node < static_cast<int>(row_partition[k + 1]); i_node++)
                     {
                         // loop over all nodes
-                        // 	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++) {
                         // flag for considering diagonal matrix elements
                         bool flag = 0;
                         // loop over all neighbours
@@ -434,22 +430,17 @@ namespace Kratos
             }
 
             delta_t_avg_novisc *= CFLNumber;
-            //
+
             mnumsubsteps = ceil(delta_t_avg_novisc / delta_t);
-            //         mnumsubsteps += 1; //this is for security
-            //            delta_t *= CFLNumber;
+
             if (mnumsubsteps <= 1)
             {
                 mnumsubsteps = 1;
                 delta_t_avg_novisc = delta_t;
             }
-            // std::cout << "mdelta_t_avg ="  << mdelta_t_avg <<std::endl;
-            // std::cout << "delta_t ="  << delta_t <<std::endl;
-            // std::cout << "mnumsubsteps ="  << mnumsubsteps <<std::endl;
+
             delta_t = delta_t_avg_novisc;
-            //            delta_t *= CFLNumber;
-            //*******************
-            // perform MPI syncronization of the dt (minimum should be kept)
+
             return delta_t;
             KRATOS_CATCH("")
         }
@@ -469,8 +460,6 @@ namespace Kratos
         {
             KRATOS_TRY
             // read velocity and pressure data from Kratos
-            // ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
-            //         mr_matrix_container.FillVectorFromDatabase (VELOCITY, mvel_n1, rNodes);
             int fixed_size = mFixedVelocities.size();
 #pragma omp parallel for firstprivate(fixed_size)
             for (int i_velocity = 0; i_velocity < fixed_size; i_velocity++)
@@ -483,6 +472,7 @@ namespace Kratos
             }
             KRATOS_CATCH("");
         }
+
         //**********************************************************************************
         // function to solve fluid equations - fractional step 1: compute fractional momentum
         void SolveStep1()
@@ -500,13 +490,14 @@ namespace Kratos
             mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
             mr_matrix_container.FillScalarFromDatabase(LIN_DARCY_COEF, mA, mr_model_part.Nodes());
             mr_matrix_container.FillScalarFromDatabase(NONLIN_DARCY_COEF, mB, mr_model_part.Nodes());
+
             // read time step size from Kratos
             ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
             double delta_t = CurrentProcessInfo[DELTA_TIME];
+
             // compute intrinsic time
             double time_inv_avg = 1.0 / mdelta_t_avg;
-            // 	if(mmax_dt < mdelta_t_avg) mmax_dt = mdelta_t_avg;
-            // 	double time_inv_avg = 1.0/mmax_dt;
+
             double stabdt_pressure_factor = mstabdt_pressure_factor;
             double stabdt_convection_factor = mstabdt_convection_factor;
 
@@ -514,7 +505,6 @@ namespace Kratos
 #pragma omp parallel for firstprivate(time_inv_avg, stabdt_pressure_factor, stabdt_convection_factor)
             for (int i_node = 0; i_node < n_nodes; i_node++)
             {
-                // 					double& h_i = mHavg[i_node];
                 double &h_avg_i = mHavg[i_node];
                 double &h_min_i = mHmin[i_node];
 
@@ -536,7 +526,7 @@ namespace Kratos
 #pragma omp parallel for
             for (int i_node = 0; i_node < n_nodes; i_node++)
             {
-                array_1d<double, TDim> &pi_i = mPi[i_node]; //******************
+                array_1d<double, TDim> &pi_i = mPi[i_node];
                 // setting to zero
                 for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
                     pi_i[l_comp] = 0.0;
@@ -544,7 +534,7 @@ namespace Kratos
                 const array_1d<double, TDim> &U_i = mvel_n1[i_node];
                 const double &eps_i = mEps[i_node];
                 a_i /= eps_i;
-                // const double& p_i = pressure[i_node];
+
                 for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
                 {
                     unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
@@ -558,17 +548,13 @@ namespace Kratos
             }
 
             int inout_size = mInOutBoundaryList.size();
-            //#pragma omp parallel for firstprivate(slip_size)
+
             for (int i = 0; i < inout_size; i++)
             {
                 unsigned int i_node = mInOutBoundaryList[i];
-                //             double dist = mdistances[i_node];
-                //             if (dist <= 0.0)
-                //             {
                 const array_1d<double, TDim> &U_i = mvel_n1[i_node];
                 const array_1d<double, TDim> &an_i = mInOutNormal[i_node];
                 double projection_length = 0.0;
-                // double Ain = 0.0;
                 for (unsigned int comp = 0; comp < TDim; comp++)
                 {
                     projection_length += U_i[comp] * an_i[comp];
@@ -578,7 +564,6 @@ namespace Kratos
 
                 for (unsigned int comp = 0; comp < TDim; comp++)
                     pi_i[comp] += projection_length * U_i[comp];
-                //             }
             }
 
 #pragma omp parallel for
@@ -626,9 +611,6 @@ namespace Kratos
             for (int i_node = 0; i_node < n_nodes; i_node++)
                 if (mdistances[i_node] <= 0.0)
                     energy_initial += mr_matrix_container.GetLumpedMass()[i_node] * inner_prod(mvel_n[i_node], mvel_n[i_node]);
-
-            // KRATOS_WATCH(energy_initial)
-            //  KRATOS_WATCH(n_substeps)
 
             while (reduced_it++ < 2)
             {
@@ -765,40 +747,21 @@ namespace Kratos
                         a_j /= eps_j;
                         CSR_Tuple &edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
                         edge_ij.Sub_ConvectiveContribution(rhs_i, a_i, U_i, a_j, U_j);
-                        // std::cout << i_node << "rhs =" << rhs_i << "after convective contrib" << std::endl;
-                        // take care! we miss including a B.C.  for the external pressure
-                        // edge_ij.Add_Gp (rhs_i,p_i*inverse_rho,p_j*inverse_rho);
                         edge_ij.Sub_grad_p(rhs_i, p_i * inverse_rho * eps_i, p_j * inverse_rho * eps_i);
-                        //                        edge_ij.Add_grad_p(rhs_i, p_i*inverse_rho, p_j * inverse_rho);
-                        // std::cout << i_node << "rhs =" << rhs_i << "after Gp" << std::endl;
                         edge_ij.Sub_ViscousContribution(rhs_i, U_i, nu_i, U_j, nu_j);
-                        // 		    edge_ij.Add_ViscousContribution(rhs_i, U_i, nu_i, U_j, nu_j);
-                        // std::cout << i_node << "rhs =" << rhs_i << "after viscous" << std::endl;
+
                         // add stabilization
                         edge_ij.CalculateConvectionStabilization_LOW(stab_low, a_i, U_i, a_j, U_j);
-                        //                            edge_ij.CalculateConvectionStabilization_LOW(stab_low, a_i, U_i,p_i, a_j, U_j,p_j);
                         edge_ij.CalculateConvectionStabilization_HIGH(stab_high, a_i, pi_i, a_j, pi_j);
-                        //                            double beta = 1.0;
-                        //                             double beta = beta_i;
-                        //                             if(beta_j > beta)
-                        //                                 beta = beta_j;
-                        //                            beta = 1.0;
-                        //                            edge_ij.Sub_StabContribution(rhs_i, edge_tau*beta, 1.0, stab_low, stab_high);
-                        //                             edge_ij.Sub_StabContribution(rhs_i, edge_tau, (1.0-beta), stab_low, stab_high);
                         edge_ij.Sub_StabContribution(rhs_i, edge_tau, 1.0, stab_low, stab_high);
                     }
-                    //                                                std::cout << i_node << "rhs =" << rhs_i << std::endl;
                 }
             }
 
             int inout_size = mInOutBoundaryList.size();
-            //#pragma omp parallel for firstprivate(slip_size)
             for (int i = 0; i < inout_size; i++)
             {
                 unsigned int i_node = mInOutBoundaryList[i];
-                //             double dist = mdistances[i_node];
-                //             if (dist <= 0.0)
-                //             {
                 const array_1d<double, TDim> &U_i = mvel_n1[i_node];
                 const array_1d<double, TDim> &an_i = mInOutNormal[i_node];
                 double projection_length = 0.0;
@@ -813,128 +776,12 @@ namespace Kratos
 
                 for (unsigned int comp = 0; comp < TDim; comp++)
                     rhs_i[comp] += projection_length * U_i[comp];
-                //             }
             }
-
-            /*        		for (int i = 0; i < mSlipBoundaryList.size(); i++)
-                    {
-                        int i_node = mSlipBoundaryList[i];
-                        double dist = mdistances[i_node];
-                        if (dist <= 0.0) //node is inside domain ---- if outside do nothing
-                        {
-                            const double& p_i = pressure[i_node];
-                            const array_1d<double,3>& Ani = mSlipNormal[i_node];
-                            array_1d<double, TDim>& rhs_i = rhs[i_node];
-                            array_1d<double, TDim> temp;
-                            for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-                                temp[l_comp] = 0.0;
-                             for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
-                            {
-                                unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-                                if(mdistances[j_neighbour] <= 0.0 && mis_slip[j_neighbour] == true)
-                                {
-                                    //const double& p_j = pressure[j_neighbour];
-                                    array_1d<double,3> Anj = mSlipNormal[j_neighbour];
-                                    Anj /= norm_2(Anj);
-                                    for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-                                        temp[l_comp] += p_i*Anj[l_comp];
-                                }
-                            }
-                            //take out part in the direction of Ani
-                            double Ai = norm_2(Ani);
-                            double aux = 0.0;
-                            for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-                                aux += temp[l_comp]*Ani[l_comp];
-                            for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-                                temp[l_comp] -= aux *Ani[l_comp] / (Ai*Ai);
-                            for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-                                rhs_i[l_comp] -= 0.25*Ai*temp[l_comp];
-                        }
-                    }*/
-            //       KRATOS_WATCH("finished**************************************************")		*/
-
-            /*
-        //correction to the pressure graient
-                        //loop over all faces
-            CalcVectorType press_correction(vel.size());
-          mr_matrix_container.SetToZero(press_correction);
-            //        mr_matrix_container.SetToZero(slip_area);
-        for (ModelPart::ConditionsContainerType::iterator cond_it = mr_model_part.ConditionsBegin(); cond_it != mr_model_part.ConditionsEnd(); cond_it++)
-        {
-            //get geometry data of the face
-            Geometry<Node < 3 > >& face_geometry = cond_it->GetGeometry();
-
-            //reference for area normal of the face
-            array_1d<double, 3 > & face_normal = cond_it->GetValue(NORMAL);
-            double A = norm_2(face_normal);
-
-            unsigned int i_node0 = static_cast<unsigned int> (face_geometry[0].FastGetSolutionStepValue(AUX_INDEX));
-            unsigned int i_node1 = static_cast<unsigned int> (face_geometry[1].FastGetSolutionStepValue(AUX_INDEX));
-            unsigned int i_node2 = static_cast<unsigned int> (face_geometry[2].FastGetSolutionStepValue(AUX_INDEX));
-
-            if (static_cast<bool>(cond_it->GetValue(IS_STRUCTURE)) == true)
-            {
-
-            const double& p_0 = pressure[i_node0];
-            const double& p_1 = pressure[i_node1];
-                    const double& p_2 = pressure[i_node2];
-
-            //TODO: we should only keep the part orthogonal to the external normal on each node!!!!
-            press_correction[i_node0] -= ((2.0*p_0+p_1+p_2)*0.5*0.333333333333333333333333333333*0.5*inverse_rho)*face_normal;
-            press_correction[i_node1] -= ((p_0+2.0*p_1+p_2)*0.5*0.333333333333333333333333333333*0.5*inverse_rho)*face_normal;
-            press_correction[i_node2] -= ((p_0+p_1+2.0*p_2)*0.5*0.333333333333333333333333333333*0.5*inverse_rho)*face_normal;
-
-            }
-            else
-            {
-
-            const array_1d<double,TDim>& v_0 = vel[i_node0];
-            const array_1d<double,TDim>& v_1 = vel[i_node1];
-                    const array_1d<double,TDim>& v_2 = vel[i_node2];
-            double An0 = inner_prod(v_0,face_normal) / (A*A);
-            double An1 = inner_prod(v_1,face_normal) / (A*A);
-            double An2 = inner_prod(v_2,face_normal) / (A*A);
-
-            rhs[i_node0] -= ((2.0*An0+An1+An2)*0.5*0.333333333333333333333333333333*0.5)*face_normal;
-            rhs[i_node1] -= ((An0+2.0*An1+An2)*0.5*0.333333333333333333333333333333*0.5)*face_normal;
-            rhs[i_node2] -= ((An0+An1+2.0*An2)*0.5*0.333333333333333333333333333333*0.5)*face_normal;
-
-            }
-        }
-
-        //slip condition
-        int slip_size = mSlipBoundaryList.size();
-        #pragma omp parallel for firstprivate(slip_size)
-        for (int i_slip = 0; i_slip < slip_size; i_slip++)
-        {
-            unsigned int i_node = mSlipBoundaryList[i_slip];
-            double dist = mdistances[i_node];
-            if (dist <= 0.0 && mis_slip[i_node] == true)
-            {
-            array_1d<double, TDim>& rhs_i = rhs[i_node];
-            // 		array_1d<double, TDim>& an_i = mSlipNormal[i_node];
-            // 		double normalization = 0.0;
-            // 		for (unsigned int comp = 0; comp < TDim; comp++)
-            // 		{
-            // 		    normalization += an_i[comp] * an_i[comp];
-            // 		}
-            // 		normalization = sqrt(normalization);
-            array_1d<double,TDim>& press_corr_i = press_correction[i_node];
-            for (unsigned int comp = 0; comp < TDim; comp++)
-                rhs_i[comp] +=  press_corr_i[comp];
-
-            //we should remove here the normal component!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            }
-        }
-
-
-            */
 
             // apply wall resistance
             if (mWallLawIsActive == true)
                 ComputeWallResistance(vel, diag_stiffness);
-            //         ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
-            //         mr_matrix_container.WriteVectorToDatabase (VELOCITY, mvel_n1, rNodes);
+
             KRATOS_CATCH("")
         }
         //*************************************************************************
@@ -942,9 +789,7 @@ namespace Kratos
         int SolveStep2(typename TLinearSolver::Pointer pLinearSolver)
         {
             KRATOS_TRY
-            //         typedef Node < 3 > PointType;
-            //         typedef PointerVector<PointType > PointVector;
-            //         typedef PointVector::iterator PointIterator;
+
 #pragma omp parallel for
             for (int i_node = 0; i_node < static_cast<int>(mr_model_part.Nodes().size()); i_node++)
                 mis_visited[i_node] = 0;
@@ -1065,16 +910,7 @@ namespace Kratos
                     mPn1[i_node] = pavg / avg_number;
                 }
             }
-            // if a node is very close to the free surface (relatively to the element size) fix the pressure on it
-            //            for(ModelPart::NodesContainerType::iterator iii = mr_model_part.NodesBegin(); iii!=mr_model_part.NodesEnd(); iii++)
-            //            {
-            //                unsigned int i_node = iii->FastGetSolutionStepValue(AUX_INDEX);
-            //
-            //                double dist = mdistances[i_node];
-            //                if(dist > 0.0 && dist < 0.01*mHavg[i_node])
-            //                    iii->FastGetSolutionStepValue(PRESSURE) = 0.0;
-            //
-            //            }
+
             // PREREQUISITES
             // allocate memory for variables
             ModelPart::NodesContainerType &rNodes = mr_model_part.Nodes();
@@ -1096,10 +932,9 @@ namespace Kratos
                 const double &p_i = mPn1[i_node];
                 const double &p_old_i = mPn[i_node];
                 const array_1d<double, TDim> &U_i_curr = mvel_n1[i_node];
-                //                const double& eps_i = mEps[i_node];
                 array_1d<double, TDim> &xi_i = mXi[i_node];
                 double l_ii = 0.0;
-                //                double div_i = 0.0;
+
                 // loop over all neighbours
                 for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
                 {
@@ -1119,33 +954,31 @@ namespace Kratos
 
                     if (edge_tau < delta_t)
                         edge_tau = delta_t;
+
                     // compute laplacian operator
                     double sum_l_ikjk;
                     edge_ij.CalculateScalarLaplacian(sum_l_ikjk);
-                    //                    double sum_l_ikjk_onlystab = sum_l_ikjk * (edge_tau);
                     double sum_l_ikjk_onlydt = sum_l_ikjk * (delta_t);
                     sum_l_ikjk *= (delta_t + edge_tau);
+
                     // assemble right-hand side
                     // pressure contribution
-                    //                    rhs_i -= sum_l_ikjk_onlystab * (p_j - p_i);
                     rhs_i -= sum_l_ikjk * (p_j - p_i);
                     rhs_i += sum_l_ikjk_onlydt * (p_old_j - p_old_i);
+
                     // calculating the divergence of the fract vel
-                    //                    edge_ij.Sub_D_v(div_i, U_i_curr*mRho*eps_i, U_j_curr * mRho*eps_j);
                     edge_ij.Sub_D_v(rhs_i, U_i_curr * mRho, U_j_curr * mRho);
-                    //       						edge_ij.Sub_D_v(rhs_i,a_i*rho_i,a_j*rho_i);
+
                     // high order stabilizing term
                     double temp = 0.0;
-                    // 						edge_ij.Add_div_v(temp,mTauPressure[i_node]*xi_i,mTauPressure[j_neighbour]*xi_j);
+
                     edge_ij.Add_div_v(temp, xi_i, xi_j);
                     rhs_i += edge_tau * temp;
                     // assemble laplacian matrix
                     mL(i_node, j_neighbour) = sum_l_ikjk;
                     l_ii -= sum_l_ikjk;
                 }
-                //                //area correction to prevent mass loss
-                //                rhs_i -= mdiv_error[i_node];
-                //                rhs_i += div_i * eps_i;
+
                 mL(i_node, i_node) = l_ii;
             }
             if (muse_mass_correction == true)
@@ -1166,14 +999,7 @@ namespace Kratos
                     max_diag = L_diag;
             }
             max_diag *= 1e10;
-            //         if (max_diag < 1e20) max_diag=1e20;
-            // respect pressure boundary conditions by penalization
-            //            double huge = max_diag * 1e6;
-            //            for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++) {
-            //                unsigned int i_node = mPressureOutletList[i_pressure];
-            //                mL(i_node, i_node) = huge;
-            //                rhs[i_node] = 0.0;
-            //            }
+
             for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++)
             {
                 unsigned int i_node = mPressureOutletList[i_pressure];
@@ -1185,16 +1011,7 @@ namespace Kratos
                     mL(i_node, j_neighbour) = 0.0;
                 }
             }
-// modification for level_set
-//				mr_matrix_container.FillScalarFromDatabase(DISTANCE, mdistances, mr_model_part.Nodes());
-//				for (unsigned int i_dist = 0; i_dist < mdistances.size(); i_dist++)
-//				{
-//					if(mdistances[i_dist] >= 0)
-//					{
-//						mL(i_dist, i_dist) = huge;
-//						rhs[i_dist] = 0.0;
-//					}
-//				}
+
 #pragma omp parallel for
             for (int i_node = 0; i_node < n_nodes; i_node++)
             {
@@ -1218,15 +1035,7 @@ namespace Kratos
                     }
                 }
             }
-            //	    for (int i_node = 0; i_node < n_nodes; i_node++)
-            //	    {
-            //	      if(  fabs(mL(i_node, i_node)) < 1e-20)
-            //	      {
-            //		mL(i_node, i_node)=max_diag;
-            //		rhs[i_node] = 0.0;
-            //		KRATOS_WATCH("arghhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-            //	      }
-            //	    }
+
             // compute row scaling factors
             TSystemVectorType scaling_factors(n_nodes);
             double *Lvalues = mL.value_data().begin();
@@ -1238,14 +1047,13 @@ namespace Kratos
                 double t = 0.0;
                 SizeType col_begin = Lrow_indices[k];
                 SizeType col_end = Lrow_indices[k + 1];
-                for (SizeType j = col_begin; j < col_end; j++)
+                for (SizeType j = col_begin; j < col_end; j++){
                     if (static_cast<int>(Lcol_indices[j]) == k)
                     {
                         t = fabs(Lvalues[j]);
                         break;
                     }
-                //                        t += Lvalues[j]*Lvalues[j];
-                //                t = sqrt(t);
+                }
                 scaling_factors[k] = 1.0 / sqrt(t);
             }
 #pragma omp parallel for
@@ -1260,25 +1068,22 @@ namespace Kratos
                     Lvalues[j] *= scaling_factors[Lcol_indices[j]] * k_factor;
                 }
             }
+
 // set starting vector for iterative solvers
 #pragma omp parallel for
             for (int i_node = 0; i_node < n_nodes; i_node++)
                 dp[i_node] = 0.0;
-            // KRATOS_WATCH(rhs);
+
             // solve linear equation system L dp = rhs
             pLinearSolver->Solve(mL, dp, rhs);
-// KRATOS_WATCH(*pLinearSolver)
 // update pressure
 #pragma omp parallel for
             for (int i_node = 0; i_node < n_nodes; i_node++)
                 mPn1[i_node] += dp[i_node] * scaling_factors[i_node];
-            //				for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++)
-            //				{
-            //					unsigned int i_node = mPressureOutletList[i_pressure];
-            //					mPn1[i_node] = mPressureOutlet[i_pressure];
-            //				}
+
             // write pressure and density to Kratos
             mr_matrix_container.WriteScalarToDatabase(PRESSURE, mPn1, rNodes);
+
 // compute pressure proj for the next step
 #pragma omp parallel for private(work_array)
             for (int i_node = 0; i_node < n_nodes; i_node++)
@@ -1324,6 +1129,7 @@ namespace Kratos
             return return_value;
             KRATOS_CATCH("")
         }
+
         //**********************************************************************************
         // function to solve fluid equations - fractional step 3: correct fractional momentum
         void SolveStep3()
@@ -1360,14 +1166,10 @@ namespace Kratos
                         unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
                         double delta_p_j = (mPn1[j_neighbour] - mPn[j_neighbour]) * rho_inv * factor;
                         CSR_Tuple &edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
-                        // 							edge_ij.Sub_grad_p(correction,delta_p_i,delta_p_j);
                         edge_ij.Sub_grad_p(correction, delta_p_i, delta_p_j);
-                        //                        edge_ij.Add_grad_p(correction, delta_p_i, delta_p_j);
-                        // edge_ij.Add_Gp (correction,delta_p_i,delta_p_j);
-                        // 							edge_ij.Sub_Gp(correction,delta_p_i,delta_p_j);
                     }
+
                     // compute prefactor
-                    //                 double coefficient = delta_t * m_inv;
                     const double m = mr_matrix_container.GetLumpedMass()[i_node];
                     const double &d = mdiag_stiffness[i_node];
 
@@ -1378,30 +1180,6 @@ namespace Kratos
                     }
                 }
             }
-
-            //         //imit acceleration
-            // 	#pragma omp parallel for
-            //         for(int i_node = 0; i_node < n_nodes; i_node++)
-            // 	{
-            // 	      array_1d<double,TDim>& acc = macc[i_node];
-            // 	      array_1d<double,TDim>& v1  = mvel_n1[i_node];
-            // 	      array_1d<double,TDim>& v   = mvel_n[i_node];
-            //
-            // 	      for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-            // 		  acc[l_comp] = (v1[l_comp] - v[l_comp])/delta_t;
-            //
-            // 	      //limit accelerations to a maximum=100m/s/2
-            // 	      const double max_acc = 200;
-            // 	      double acc_norm = norm_2(acc);
-            // 	      if(acc_norm > max_acc)
-            // 	      {
-            // 		std::cout << "########################### acc norm " << acc_norm <<std::endl;
-            //
-            // 		  acc *= max_acc/acc_norm;
-            // 		  v1 = v;
-            // 		  v1 += delta_t*acc;
-            // 	      }
-            // 	}
 
             ApplyVelocityBC(mvel_n1);
 
@@ -1469,72 +1247,14 @@ namespace Kratos
                 double &dist = mdistances[i_node];
                 dist = mDistanceValuesList[i_dist];
             }
-            // fix the distance if velocity goes inwards
-            //         int slip_size = mSlipBoundaryList.size();
-            //         #pragma omp parallel for firstprivate(slip_size)
-            //         for (int i_slip = 0; i_slip < slip_size; i_slip++)
-            //             {
-            //             unsigned int i_node = mSlipBoundaryList[i_slip];
-            //             double dist = mphi_n[i_node];
-            // //             if(dist > 0.0)
-            // //             {
-            //             array_1d<double, TDim>& U_i = mvel_n1[i_node];
-            //             array_1d<double, TDim>& an_i = mSlipNormal[i_node];
-            //             double projection_length = 0.0;
-            //             double normalization = 0.0;
-            //             for (unsigned int comp = 0; comp < TDim; comp++)
-            //             {
-            //                 projection_length += U_i[comp] * an_i[comp];
-            //              }
-            //             if(projection_length > 0.0)
-            //                 dist = mphi_n[i_node];
-            // //              }
-            //         }
+
             KRATOS_CATCH("")
         }
         //************************************
         void ApplyVelocityBC(CalcVectorType &VelArray)
         {
             KRATOS_TRY
-            //         if(mWallLawIsActive == false)
-            //         {
-            // 			std::cout << "applying corners condition" << std::endl;
-            //             apply conditions on corner edges
-            //             int edge_size = medge_nodes_direction.size();
-            //             #pragma omp parallel for firstprivate(edge_size)
-            //             for (int i = 0; i < edge_size; i++)
-            //             {
-            //                 int i_node = medge_nodes[i];
-            //                 const array_1d<double, TDim>& direction = medge_nodes_direction[i];
-            //                 double dist = mdistances[i_node];
-            //
-            //                 if(dist <= 0.0)
-            //                 {
-            //                      array_1d<double, TDim>& U_i = VelArray[i_node];
-            // // 		     for (unsigned int comp = 0; comp < TDim; comp++)
-            // //                         U_i[comp] = 0.0;
-            //
-            //                     double temp=0.0;
-            //                     for (unsigned int comp = 0; comp < TDim; comp++)
-            //                         temp += U_i[comp] * direction[comp];
-            //
-            //                     for (unsigned int comp = 0; comp < TDim; comp++)
-            //                         U_i[comp] = direction[comp]*temp;
-            //         }
-            //             }
-            // // //
-            //             //apply conditions on corners
-            //             int corner_size = mcorner_nodes.size();
-            //             for (int i = 0; i < corner_size; i++)
-            //             {
-            //                 int i_node = mcorner_nodes[i];
-            //
-            //                 array_1d<double, TDim>& U_i = VelArray[i_node];
-            //                 for (unsigned int comp = 0; comp < TDim; comp++)
-            //                     U_i[comp] = 0.0;
-            //             }
 
-            //             //apply conditions on corners
             int corner_size = mcorner_nodes.size();
             for (int i = 0; i < corner_size; i++)
             {
@@ -1542,8 +1262,6 @@ namespace Kratos
 
                 array_1d<double, TDim> &U_i = VelArray[i_node];
 
-                // 		 if(mdistances[i_node] <= 0.0)
-                // 		  {
                 array_1d<double, TDim> aux;
                 for (unsigned int comp = 0; comp < TDim; comp++)
                     aux[comp] = 0.0;
@@ -1567,10 +1285,8 @@ namespace Kratos
                 if (counter != 0.0)
                     for (unsigned int comp = 0; comp < TDim; comp++)
                         U_i[comp] = aux[comp] / counter;
-                // 		  }
             }
 
-            //         }
             // slip condition
             int slip_size = mSlipBoundaryList.size();
 #pragma omp parallel for firstprivate(slip_size)
@@ -1596,79 +1312,6 @@ namespace Kratos
                 }
             }
 
-            //                 //loop over all faces
-            //         ValuesVectorType vel_correction(VelArray.size());
-            // //        CalcVectorType slip_area(VelArray.size());
-            //         int iterations = 10;
-            //         for(unsigned int i=0;i<iterations; i++)
-            //         {
-            //             mr_matrix_container.SetToZero(vel_correction);
-            //     //        mr_matrix_container.SetToZero(slip_area);
-            //             for (ModelPart::ConditionsContainerType::iterator cond_it = mr_model_part.ConditionsBegin(); cond_it != mr_model_part.ConditionsEnd(); cond_it++)
-            //             {
-            //                 if (static_cast<bool>(cond_it->GetValue(IS_STRUCTURE)) == true)
-            //                 {
-            //                     //get geometry data of the face
-            //                     Geometry<Node < 3 > >& face_geometry = cond_it->GetGeometry();
-            //
-            //                     //reference for area normal of the face
-            //                     array_1d<double, 3 > & face_normal = cond_it->GetValue(NORMAL);
-            //                     double n_area = norm_2(face_normal) / static_cast<double>(TDim);
-            //
-            //                     unsigned int i_node0 = static_cast<unsigned int> (face_geometry[0].FastGetSolutionStepValue(AUX_INDEX));
-            //                     unsigned int i_node1 = static_cast<unsigned int> (face_geometry[1].FastGetSolutionStepValue(AUX_INDEX));
-            //                     unsigned int i_node2 = static_cast<unsigned int> (face_geometry[2].FastGetSolutionStepValue(AUX_INDEX));
-            //
-            //                     const array_1d<double, TDim>& U_0 = VelArray[i_node0];
-            //                     const array_1d<double, TDim>& U_1 = VelArray[i_node1];
-            //                     const array_1d<double, TDim>& U_2 = VelArray[i_node2];
-            //
-            // 		    double vn0=0.0;
-            // 		    double vn1=0.0;
-            // 		    double vn2=0.0;
-            //                     if(mdistances[i_node0] <= 0 && face_geometry[0].IsFixed(VELOCITY_X) == false) vn0 = inner_prod(U_0,face_normal);
-            //                     if(mdistances[i_node1] <= 0 && face_geometry[1].IsFixed(VELOCITY_X) == false) vn1 = inner_prod(U_1,face_normal);
-            //                     if(mdistances[i_node2] <= 0 && face_geometry[2].IsFixed(VELOCITY_X) == false) vn2 = inner_prod(U_2,face_normal);
-            //
-            //                     double edge01 = 0.5*(vn0+vn1)*0.333333333333333333333333333333*0.5;
-            //                     double edge02 = 0.5*(vn0+vn2)*0.333333333333333333333333333333*0.5;
-            //                     double edge12 = 0.5*(vn2+vn2)*0.333333333333333333333333333333*0.5;
-            //
-            //                     vel_correction[i_node0] += edge01 + edge02;
-            //                     vel_correction[i_node1] += edge01  + edge12;
-            //                     vel_correction[i_node2] += edge02 + edge12;
-            //
-            // /*		     double tmp = 0.333333333333333333333333333333333*0.333333333333333333333333333333333*(vn0+vn1+vn2);
-            //                      vel_correction[i_node0] += tmp;
-            //                     vel_correction[i_node1] += tmp;
-            //                     vel_correction[i_node2] += tmp;       */
-            //                 }
-            //             }
-            //
-            //            //slip condition
-            //             int slip_size = mSlipBoundaryList.size();
-            //             #pragma omp parallel for firstprivate(slip_size)
-            //             for (int i_slip = 0; i_slip < slip_size; i_slip++)
-            //             {
-            //                 unsigned int i_node = mSlipBoundaryList[i_slip];
-            //                 double dist = mdistances[i_node];
-            //                 if (dist <= 0.0)
-            //                 {
-            //                     array_1d<double, TDim>& U_i = VelArray[i_node];
-            //                     array_1d<double, TDim>& an_i = mSlipNormal[i_node];
-            //                     double normalization = 0.0;
-            //                     for (unsigned int comp = 0; comp < TDim; comp++)
-            //                     {
-            //                         normalization += an_i[comp] * an_i[comp];
-            //                     }
-            //                      //tangential momentum as difference between original and normal momentum
-            //                     double coeff = vel_correction[i_node] / normalization;
-            //                     for (unsigned int comp = 0; comp < TDim; comp++)
-            //                         U_i[comp] +=  coeff * an_i[comp];
-            //                 }
-            //             }
-            //         }
-
             // fixed condition
             int fixed_size = mFixedVelocities.size();
 #pragma omp parallel for firstprivate(fixed_size)
@@ -1686,15 +1329,13 @@ namespace Kratos
             }
             KRATOS_CATCH("")
         }
+
         //********************************
         // function to compute coefficients
         void ExtrapolateValues(unsigned int extrapolation_layers)
         {
             KRATOS_TRY
             // ensure that corner nodes are wet if all of the nodes around them have a negative distance
-            //         typedef Node < 3 > PointType;
-            //         typedef PointerVector<PointType > PointVector;
-            //         typedef PointVector::iterator PointIterator;
             mr_matrix_container.FillScalarFromDatabase(DISTANCE, mdistances, mr_model_part.Nodes());
 
 #pragma omp parallel for
@@ -1795,29 +1436,6 @@ namespace Kratos
                 }
             }
 
-            // perform extrapolation layer by layer by making an average
-            // of the neighbours of lower order
-            /*        KRATOS_WATCH(extrapolation_layers)
-                    for (unsigned int il = 0; il < extrapolation_layers; il++)
-                        std::cout << layer_limits[il] << " ";
-                    std::cout << std::endl;
-                std::cout << std::endl;
-
-                for (unsigned int il = 0; il < extrapolation_layers; il++)
-                {
-                  std::cout << "level = " << il << " nneighb = " << layer_limits[il+1] - layer_limits[il] << " -- ";
-                    for(unsigned int iii = layer_limits[il]; iii<layer_limits[il+1]; iii++)
-                      std::cout << layers[iii] << " ";
-
-                    std::cout << std::endl;
-                }
-                std::cout << std::endl;
-
-                    std::cout << " printing is visited " << std::endl;
-                  for (unsigned int i_node = 0; i_node < mr_model_part.Nodes().size(); i_node++)
-                    std::cout << mis_visited[i_node] << std::endl;
-                 std::cout << std::endl;*/
-
             for (int il = 1; il < static_cast<int>(extrapolation_layers); il++)
             {
                 // parallelization of this loop not trivial
@@ -1851,21 +1469,14 @@ namespace Kratos
                         aux /= avg_number;
                         pavg /= avg_number;
                         aux_proj /= avg_number;
-
-                        // 		    KRATOS_WATCH(avg_number);
-                        // 		    KRATOS_WATCH(aux);
-                        // 		    KRATOS_WATCH(pavg);
-                        // 		    KRATOS_WATCH(aux_proj);
                     }
                     else
                     {
                         KRATOS_THROW_ERROR(std::runtime_error, "error in extrapolation:: no neighbours find on a extrapolation layer -- impossible", "");
-                        //                                                    KRATOS_THROW_ERROR(std:logic_error,"error in extrapolation:: no neighbours find on a extrapolation layer -- impossible","");
                     }
                     mvel_n1[i_node] = aux;
                     mvel_n[i_node] = aux;
                     mPn[i_node] = pavg;
-                    //  		mPn1[i_node] = pavg;
                     mXi[i_node] = aux_proj;
                 }
             }
@@ -2028,7 +1639,7 @@ namespace Kratos
                 for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
                     CalculateNormal3D(cond_it, area_normal, v1, v2);
             }
-            // area_normal *= -1; //CHAPUZA: REMOVE!!!s
+
             //(re)initialize normals
             unsigned int n_nodes = mNodalFlag.size();
             mInOutNormal.resize(n_nodes);
@@ -2112,9 +1723,6 @@ namespace Kratos
                     }
             }
 
-            //        KRATOS_WATCH( mInOutNormal[7-1] );
-            //        KRATOS_THROW_ERROR(std::logic_error,"remove line 2318 " ,"");
-
             std::vector<unsigned int> tempmInOutBoundaryList;
             for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
             {
@@ -2153,7 +1761,6 @@ namespace Kratos
             mFixedVelocities.clear();
             mFixedVelocitiesValues.clear();
             mPressureOutletList.clear();
-            //	    mPressureOutlet.clear();
             mSlipBoundaryList.clear();
             mL.clear();
             mTauPressure.clear();
@@ -2164,7 +1771,6 @@ namespace Kratos
             mphi_n.clear();
             mphi_n1.clear();
             mEps.clear();
-            //         mD.clear();
             mA.clear();
             mB.clear();
             mdiv_error.clear();
@@ -2188,47 +1794,32 @@ namespace Kratos
             WorkConvection.resize(n_nodes);
             ValuesVectorType active_nodes;
             active_nodes.resize(n_nodes);
-            //         mr_matrix_container.FillScalarFromDatabase (POROSITY, mEps, mr_model_part.Nodes() );
-            // read variables from Kratos
-            //         mr_matrix_container.FillVectorFromDatabase (VELOCITY, mvel_n1, mr_model_part.Nodes() );
-            //         mr_matrix_container.FillOldVectorFromDatabase (VELOCITY, mvel_n, mr_model_part.Nodes() );
+
             mr_matrix_container.FillScalarFromDatabase(DISTANCE, mphi_n1, mr_model_part.Nodes());
             mr_matrix_container.FillOldScalarFromDatabase(DISTANCE, mphi_n, mr_model_part.Nodes());
+
             // get the "fresh" values to be fixed_size
             for (unsigned int i = 0; i < mDistanceValuesList.size(); i++)
             {
                 mDistanceValuesList[i] = mphi_n1[mDistanceBoundaryList[i]];
             }
-            // mr_matrix_container.AssignVectorToVector(mphi_n1, mphi_n); //mWork = mphi_n
-            //             //chapuza
-            //             //set the distance to zero when it tries to go out of the pressure boundary
-            //             int pressure_size = mPressureOutletList.size();
-            //             #pragma omp parallel for firstprivate(pressure_size)
-            //             for (int iii = 0; iii < pressure_size; iii++)
-            //             {
-            //                 unsigned int i_node = mPressureOutletList[iii];
-            //                 mphi_n1[i_node] = fabs(mphi_n1[i_node]);
-            //                 mphi_n[i_node] = fabs(mphi_n[i_node]);
-            //             }
+
             // create and fill a vector of nodes for which we want to convect the velocity
             for (int i_node = 0; i_node < n_nodes; i_node++)
             {
                 active_nodes[i_node] = mis_visited[i_node];
             }
-            //         ComputeConvectiveProjection(mPiConvection,mphi_n1,mEps,mvel_n1);
-            // 	ComputeLimitor(mPiConvection,mphi_n1,mBeta,mvel_n1,mEdgeDimensions);
-            //            mr_matrix_container.WriteScalarToDatabase(TEMPERATURE, active_nodes, rNodes);
+
             // read time step size from Kratos
             ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
             double delta_t = CurrentProcessInfo[DELTA_TIME];
             double n_substeps = mnumsubsteps;
-            //            del
+
             double delta_t_substep = delta_t / n_substeps;
             for (unsigned int substep = 0; substep < n_substeps; substep++)
             {
                 mr_matrix_container.AssignVectorToVector(mphi_n, WorkConvection); // mWork = mphi_n
                 // first step of Runge Kutta
-                //  				mr_matrix_container.AssignVectorToVector(mphi_n,mphi_n1); //mphi_n1 = mphi_n
                 mr_matrix_container.SetToZero(rhs);
                 ComputeConvectiveProjection(mPiConvection, mphi_n1, mEps, mvel_n1);
                 ComputeLimitor(mPiConvection, mphi_n1, mBeta, mvel_n1, mEdgeDimensions);
@@ -2263,44 +1854,7 @@ namespace Kratos
                 mr_matrix_container.AssignVectorToVector(WorkConvection, mphi_n1);
                 mr_matrix_container.AssignVectorToVector(mphi_n1, mphi_n);
             }
-            //            // make sure that boundary nodes that are very close to the free surface get wet
-            //            int slip_size = mSlipBoundaryList.size();
-            //            #pragma omp parallel for firstprivate(slip_size)
-            //            for (int i_slip = 0; i_slip < slip_size; i_slip++) {
-            //                unsigned int i_node = mSlipBoundaryList[i_slip];
-            //                const double& h_i = mHmin[i_node];
-            //                double& dist_i = mphi_n1[i_node];
-            //
-            //                if(dist_i > 0.0 && dist_i < 0.5*h_i)
-            //                {
-            //                    //loop to all the edges surrounding node I
-            //                    for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
-            //                    {
-            //                        unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-            //                        if(mphi_n1[j_neighbour] <= 0.0)
-            //                            dist_i = -0.01 * h_i;
-            //                    }
-            //                }
-            //
-            //            }
-            //            int fixed_size = mFixedVelocities.size();
-            //            #pragma omp parallel for firstprivate(fixed_size)
-            //            for (int i_velocity = 0; i_velocity < fixed_size; i_velocity++) {
-            //                unsigned int i_node = mFixedVelocities[i_velocity];
-            //                const double& h_i = mHmin[i_node];
-            //                double& dist_i = mphi_n1[i_node];
-            //
-            //                if(dist_i > 0.0 && dist_i < 0.5*h_i)
-            //                {
-            //                    //loop to all the edges surrounding node I
-            //                    for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
-            //                    {
-            //                        unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-            //                        if(mphi_n1[j_neighbour] <= 0.0)
-            //                            dist_i = -0.01 * h_i;
-            //                    }
-            //                }
-            //            }
+
             // wetten corner nodes if needed
             int corner_size = mcorner_nodes.size();
             for (int i = 0; i < corner_size; i++)
@@ -2328,23 +1882,10 @@ namespace Kratos
         void ReduceTimeStep(ModelPart &rModelPart, double NewTime)
         {
             KRATOS_TRY
-            /*
-                double current_time = rModelPart.GetProcessInfo()[TIME];
-                double current_delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-                double old_time = current_time - current_delta_time;
-                double new_reduced_time = NewTtime;
-                double new_delta_time = new_reduced_time - old_time;
-                rModelPart.GetProcessInfo()[TIME] = new_reduced_time;
-                rModelPart.GetProcessInfo()[DELTA_TIME] = new_delta_time;
-                //now copy the database from the old step on the top of the current step
-                int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
-                double* current_data = (pnode)->SolutionStepData().Data(0);
-                double* old_data     = (pnode)->SolutionStepData().Data(1);
-                for (int j = 0; j < step_data_size; j++)
-                    current_data[j] = old_data[j];
-             */
+
             rModelPart.OverwriteSolutionStepData(1, 0);
             rModelPart.GetProcessInfo().SetCurrentTime(NewTime);
+
             KRATOS_CATCH("error in reducing the time step")
         }
         bool CheckDistanceConvection()
@@ -2402,44 +1943,11 @@ namespace Kratos
             for (int i_slip = 0; i_slip < slip_size; i_slip++)
             {
                 unsigned int i_node = mSlipBoundaryList[i_slip];
-                /*            const array_1d<double, TDim>& an_i = mSlipNormal[i_node];
-                double AI = norm_2(an_i);
-                            array_1d<double,TDim> nI = an_i/AI;
-                            double min_dot_prod = 1.0;
-                            for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
-                {
-                                unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-                                const array_1d<double, TDim>& an_j = mSlipNormal[j_neighbour];
-                    double AJ = norm_2(an_j);
-                                if(AJ > 1e-20) //...a slip node!
-                                {
-                                    double tmp = 0.0;
-                                    for (unsigned int comp = 0; comp < TDim; comp++)
-                                        tmp += nI[comp] * an_j[comp];
-                                    tmp /= AJ;
-                        tmp = fabs(tmp);
-                                    if(tmp < min_dot_prod) min_dot_prod = tmp;
-                                }
-                            }
-                            double max_angle = acos(min_dot_prod);
-                // 	    max_angle *= 2.0;
-                // 	    if(max_angle > 3.1415926*0.5) max_angle = 3.1415926*0.5;
-                            if(max_angle > max_angle_overall) max_angle_overall = max_angle;*/
                 mWallReductionFactor[i_node] = 1.0; // sin(max_angle) + 0.1; // pow(sin(max_angle),6) * 10.0 /** 100.0*/ ;
             }
+
             std::cout << "max angle between normals found in the model = " << max_angle_overall << std::endl;
-            // 	mr_matrix_container.WriteScalarToDatabase(YOUNG_MODULUS, mWallReductionFactor, mr_model_part.Nodes());
-            // slip condition
-            //         int slip_size = mSlipBoundaryList.size();
-            //         #pragma omp parallel for firstprivate(slip_size)
-            //         for (int i_slip = 0; i_slip < slip_size; i_slip++)
-            //         {
-            // 	    unsigned int i_node = mSlipBoundaryList[i_slip];
-            // 	    double h = mHavg[i_node];
-            // 	    if(mY_wall < h)
-            // 	      mWallReductionFactor[i_node] = mY_wall/h;
-            // 	}
-            //
+
             int edge_size = medge_nodes.size();
 #pragma omp parallel for firstprivate(edge_size)
             for (int i = 0; i < edge_size; i++)
@@ -2556,10 +2064,6 @@ namespace Kratos
                             }
                         }
                     }
-                }
-                //				std::cout << ", layer_volume: " << layer_volume  << std::endl;
-                //              if (measured_volume + layer_volume <= expected_volume)
-                {
                     // mark the nodes in the outside layer with a small negative distance
                     for (unsigned int i = 0; i < first_outside.size(); i++)
                     {
@@ -2569,40 +2073,6 @@ namespace Kratos
                 }
             }
             mr_matrix_container.WriteScalarToDatabase(DISTANCE, mdistances, mr_model_part.Nodes());
-            // if (measured_volume < expected_volume)
-            //          {
-            //              double layer_volume = 0.0;
-            //              std::vector<unsigned int> first_outside;
-            //              int n_nodes = mdistances.size();
-            //              //find list of the first nodes outside of the fluid and compute their volume
-            //              for (int i_node = 0; i_node < n_nodes; i_node++)
-            //              {
-            //                  double dist = mdistances[i_node];
-            //                  if (dist > 0.0) //node is outside domain
-            //                  {
-            //                      for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
-            //                      {
-            //                          unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-            //                          if(mdistances[j_neighbour] <= 0.0)
-            //                          {
-            //                              first_outside.push_back(i_node);
-            //                              const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
-            //                              layer_volume += 1.0/m_inv;
-            //                          }
-            //                      }
-            //                  }
-            //              }
-            //              if (measured_volume + layer_volume <= expected_volume)
-            //              {
-            //                  //mark the nodes in the outside layer with a small negative distance
-            //                  for(unsigned int i=0; i<first_outside.size(); i++)
-            //                  {
-            //                      unsigned int i_node = first_outside[i];
-            //                      mdistances[i_node] = -mHavg[i_node];
-            //                  }
-            //              }
-            //          }
-            //          mr_matrix_container.WriteScalarToDatabase(DISTANCE, mdistances, mr_model_part.Nodes());
         }
         void SetWallReductionCoefficients(double corner_coefficient, double edge_coefficient)
         {
@@ -2643,19 +2113,13 @@ namespace Kratos
                         const double nodal_mass = 1.0 / mr_matrix_container.GetInvertedMass()[i_node];
                         first_outside.push_back(i_node);
                         layer_volume += nodal_mass;
-                        //                     if(nodal_mass > volume_error - layer_volume)
-                        //                     {
-                        //                         extra_volume += nodal_mass;
-                        //                     }
                     }
                 }
-                //				std::cout << ", layer_volume: " << layer_volume  << std::endl;
                 if (layer_volume == 0.00)
                     return;
                 double ratio = volume_error / layer_volume;
                 if (ratio > 1.0)
                     ratio = 1.0;
-                //             KRATOS_WATCH (ratio);
                 if (ratio < 0.1) // NO correction for less than 10% error
                     return;
                 double average_layer_h = 0.0;
@@ -2667,158 +2131,11 @@ namespace Kratos
                 average_layer_h /= static_cast<double>(first_outside.size());
                 for (int i_node = 0; i_node < n_nodes; i_node++)
                     mdistances[i_node] -= average_layer_h * ratio;
-                //             if((ratio < 1.00))
-                //             {
-                //                 // mark the nodes in the outside layer with a small negative distance
-                //                 for(unsigned int i=0; i<first_outside.size(); i++)
-                //                 {
-                //                     unsigned int i_node = first_outside[i];
-                //                     mdistances[i_node] -= mHavg[i_node] * ratio;
-                //                 }
-                //             }
-                //             else
-                //             {
-                //                 // mark the nodes in the outside layer with a small negative distance
-                //                 for(unsigned int i=0; i<first_outside.size(); i++)
-                //                 {
-                //                     unsigned int i_node = first_outside[i];
-                //                     mdistances[i_node] = -mHavg[i_node];
-                //                 }
-                //             }
             }
             mr_matrix_container.WriteScalarToDatabase(DISTANCE, mdistances, mr_model_part.Nodes());
 
             return;
         }
-        //        void FindBubbles()
-        //         {
-        // 			int n_nodes = mdistances.size();
-        //         ValuesVectorType last_air (n_nodes);
-        //         mr_matrix_container.SetToZero (last_air);
-        //         mr_matrix_container.FillScalarFromDatabase (LAST_AIR, last_air, mr_model_part.Nodes() );
-        // 			const int max_bubble_nodes = 12;
-        // 			const int min_bubble_nodes = 2;
-        //         #pragma omp parallel for
-        //         for ( int i_node = 0; i_node < static_cast<int>(mr_model_part.Nodes().size()); i_node++)
-        //             mis_visited[i_node] = 0;
-        //
-        // 			// loop over the nodes to find a outside node.
-        // 			for (int i_node = 0; i_node < n_nodes; i_node++)
-        // 			{
-        // 				double dist = mdistances[i_node];
-        //             if ( (mis_visited[i_node] == 0) && (dist > 0.0) ) // node is outside the domain and has not visited yet
-        // 				{
-        //                 std::vector<int> outside_nodes (n_nodes,0);
-        // 					outside_nodes[0] = i_node;
-        //                 mis_visited[i_node] = 1;
-        // 					int n_outside = 1;
-        //                 for (int i = 0 ; i < n_outside ; i++) // loop over founded outside nodes. NOTE: n_outside is increasing inside the loop
-        // 					{
-        // 						int this_node = outside_nodes[i];
-        // 						// loop over neighbours of this node
-        //                     for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex() [this_node]; csr_index != mr_matrix_container.GetRowStartIndex() [this_node + 1]; csr_index++)
-        // 						{
-        //                         unsigned int j_neighbour = mr_matrix_container.GetColumnIndex() [csr_index];
-        //                         if ( (mis_visited[j_neighbour] == 0) && (mdistances[j_neighbour] >= 0.0) ) // the neighbour node is outside the fluid and not visited yet
-        // 							{
-        // 									outside_nodes[n_outside] = j_neighbour;
-        // 									n_outside++;
-        // 							}
-        //                         mis_visited[j_neighbour] = 1;
-        // 						}
-        // 					}
-        // 					//KRATOS_WATCH(i_node);
-        // 					//KRATOS_WATCH(n_outside);
-        // 					//KRATOS_WATCH(is_first_outside);
-        //                 if ( (n_outside <= max_bubble_nodes) && (n_outside >= min_bubble_nodes) )
-        // 					{
-        // 						//KRATOS_WATCH(i_node);
-        // 						//KRATOS_WATCH(n_outside);
-        //                     for (int i = 0 ; i < n_outside ; i++)
-        // 							last_air[outside_nodes[i]] = 1.00;
-        // 					}
-        // 				}
-        // 			}
-        //         mr_matrix_container.WriteScalarToDatabase (LAST_AIR, last_air, mr_model_part.Nodes() );
-        //         }
-        //
-        //        void FindColdShots()
-        //         {
-        // 			int n_nodes = mdistances.size();
-        // 			ValuesVectorType cold_shots(n_nodes);
-        //
-        // 			mr_matrix_container.SetToZero(cold_shots);
-        //
-        // 			mr_matrix_container.FillScalarFromDatabase(LAST_AIR, cold_shots, mr_model_part.Nodes());
-        //
-        // 			std::vector<bool> is_first_outside(n_nodes, 0);
-        //
-        //             std::vector<unsigned int> first_outside;
-        //
-        // 			// find list of the first nodes outside of the fluid
-        // 			for (int i_node = 0; i_node < n_nodes; i_node++)
-        // 			{
-        // 				double dist = mdistances[i_node];
-        // 				if (dist > 0.0) //node is outside domain
-        // 				{
-        // 					for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
-        // 					{
-        // 						unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-        // 						if(mdistances[j_neighbour] <= 0.0)
-        // 						{
-        // 							is_first_outside[i_node] = true;
-        // 							first_outside.push_back(i_node);
-        // 							break;
-        // 						}
-        // 					}
-        // 				}
-        // 			}
-        //
-        //
-        // 			std::vector<bool> is_cold_shot(is_first_outside);
-        //
-        // 			// Now we check if all the neighbours of the first_outside nodes are first outside or inside and mark it as a possible cold shot
-        // 			for(unsigned int i=0; i<first_outside.size(); i++)
-        // 			{
-        // 				unsigned int i_node = first_outside[i];
-        // 				for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
-        // 				{
-        // 					unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-        // 					if(!is_first_outside[j_neighbour])
-        // 					{
-        // 						is_cold_shot[i_node] = false;
-        // 						break;
-        // 					}
-        // 				}
-        // 			}
-        //
-        //
-        // 			//Now we have the possible cold shots and is time to check the gradient of convection
-        // 			for(unsigned int i=0; i<first_outside.size(); i++)
-        // 			{
-        // 				unsigned int i_node = first_outside[i];
-        // 				if(is_cold_shot[i_node])
-        // 				{
-        // 					for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
-        // 					{
-        // 						unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-        // 						if(mdistances[j_neighbour] <= 0.0)
-        // 						{
-        //
-        // 						}
-        // 					}
-        // 				}
-        // 			}
-        //
-        //
-        //
-        // 			// Adding the founded cold shots to the previous ones.
-        // 			for(int i_node = 0; i_node < n_nodes; i_node++)
-        // 				if(is_cold_shot[i_node])
-        // 					cold_shots[i_node]=1.00;
-        //
-        //             mr_matrix_container.WriteScalarToDatabase(LAST_AIR, cold_shots, mr_model_part.Nodes());
-        //         }
 
         void CalculatePorousResistanceLaw(unsigned int res_law)
         {
@@ -2986,8 +2303,6 @@ namespace Kratos
                 unsigned int i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
                 // save its coordinates locally
                 noalias(position[i_node]) = node_it->Coordinates();
-                // initialize minimum edge length with relatively big values
-                //             mHmin[i_node] = 1e10;
             }
             ValuesVectorType &aaa = mr_matrix_container.GetHmin();
             for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
@@ -3003,7 +2318,6 @@ namespace Kratos
                 {
                     double &h_i = mHavg[i_node];
                     double &m_i = mr_matrix_container.GetLumpedMass()[i_node];
-                    // 						double& rho_i = mRho[i_node];
                     h_i = sqrt(2.0 * m_i);
                 }
             }
@@ -3013,7 +2327,6 @@ namespace Kratos
                 {
                     double &h_i = mHavg[i_node];
                     double &m_i = mr_matrix_container.GetLumpedMass()[i_node];
-                    // 						double& rho_i = mRho[i_node];
                     h_i = pow(6.0 * m_i, 1.0 / 3.0);
                 }
             }
@@ -3042,50 +2355,7 @@ namespace Kratos
         {
             KRATOS_TRY
             int n_nodes = mphi.size();
-            //            //calculating the convective projection
-            //#pragma omp parallel for
-            //            for (int i_node = 0; i_node < n_nodes; i_node++)
-            //            {
-            //
-            //                double& pi_i = mPiConvection[i_node];
-            //                const double& phi_i = mphi[i_node];
-            //
-            //                //set to zero the projection
-            //                pi_i = 0;
-            //                if (active_nodes[i_node] != 0.0)
-            //                {
-            //
-            //                    const array_1d<double, TDim>& a_i = convective_velocity[i_node];
-            //
-            //                    //loop to all the edges surrounding node I
-            //                    for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
-            //                    {
-            //                        unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-            //
-            //                        if (active_nodes[j_neighbour] != 0.0)
-            //                        {
-            //                            const array_1d<double, TDim>& a_j = convective_velocity[j_neighbour];
-            //                            const double& phi_j = mphi[j_neighbour];
-            //
-            //                            CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
-            //
-            //                            edge_ij.Add_ConvectiveContribution(pi_i, a_i, phi_i, a_j, phi_j);
-            //                        }
-            //                    }
-            //
-            //                    //apply inverted mass matrix
-            //                    const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
-            //                    pi_i *= m_inv;
-            //                }
-            //                // KRATOS_WATCH(pi_i);
-            //                //                                num = fabs(num);
-            //                //                                if(num > norm_vI*0.0001)
-            //                //                                    mBeta[i_node] = 1.0 - num/denom;
-            //                //                                else
-            //                //                                    mBeta[i_node] = 1.0;
-            //
-            //            }
-            // perform MPI syncronization
+
             // calculating the RHS
             double stab_low;
             double stab_high;
@@ -3100,11 +2370,9 @@ namespace Kratos
                 noalias(a_i) = convective_velocity[i_node];
                 a_i /= mEps[i_node];
                 const array_1d<double, TDim> &proj_i = mPiConvection[i_node];
-                //                 const double& pi_i = mPiConvection[i_node];
                 double pi_i = proj_i[0] * a_i[0];
                 for (unsigned int l_comp = 1; l_comp < TDim; l_comp++)
                     pi_i += proj_i[l_comp] * a_i[l_comp];
-                //                double beta = mBeta[i_node];
                 rhs_i = 0.0;
                 if (active_nodes[i_node] != 0.0)
                 {
@@ -3123,15 +2391,13 @@ namespace Kratos
                             const double &phi_j = mphi[j_neighbour];
                             noalias(a_j) = convective_velocity[j_neighbour];
                             a_j /= mEps[j_neighbour];
-                            //                             const double& pi_j = mPiConvection[j_neighbour];
                             const array_1d<double, TDim> &proj_j = mPiConvection[j_neighbour];
                             double pi_j = proj_j[0] * a_i[0];
                             for (unsigned int l_comp = 1; l_comp < TDim; l_comp++)
                                 pi_j += proj_j[l_comp] * a_i[l_comp];
                             CSR_Tuple &edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
                             // convection operator
-                            edge_ij.Sub_ConvectiveContribution(rhs_i, a_i, phi_i, a_j, phi_j); // esto funciona
-                            //			    edge_ij.Sub_D_v(rhs_i, a_i*phi_i, a_i*phi_j);
+                            edge_ij.Sub_ConvectiveContribution(rhs_i, a_i, phi_i, a_j, phi_j);
                             // calculate stabilization part
                             edge_ij.CalculateConvectionStabilization_LOW(stab_low, a_i, phi_i, a_j, phi_j);
                             double edge_tau = mTauConvection[i_node];
@@ -3141,7 +2407,6 @@ namespace Kratos
                             double laplacian_ij = 0.0;
                             edge_ij.CalculateScalarLaplacian(laplacian_ij);
                             double capturing = laplacian_ij * (phi_j - phi_i);
-                            //    			    rhs_i-= coeff*capturing*beta*norm_a*h_i;
                             double aaa = 0.0;
                             for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
                                 for (unsigned int m_comp = 0; m_comp < TDim; m_comp++)
@@ -3156,59 +2421,8 @@ namespace Kratos
                         }
                     }
                 }
-                // KRATOS_WATCH(rhs_i);
             }
 
-            //                 int inout_size = mInOutBoundaryList.size();
-            //         //#pragma omp parallel for firstprivate(slip_size)
-            //         for (int i = 0; i < inout_size; i++)
-            //         {
-            //             unsigned int i_node = mInOutBoundaryList[i];
-            //             double dist = mdistances[i_node];
-            //             if (dist <= 0.0)
-            //             {
-            //                 const array_1d<double, TDim>& U_i = mvel_n1[i_node];
-            //                 const array_1d<double, TDim>& an_i = mInOutNormal[i_node];
-            //                 double projection_length = 0.0;
-            // 		double Ain = 0.0;
-            //                 for (unsigned int comp = 0; comp < TDim; comp++)
-            //                 {
-            //                     projection_length += U_i[comp] * an_i[comp];
-            // 		    Ain += an_i[comp]*an_i[comp];
-            //                 }
-            //
-            // 		double& rhs_i = rhs[i_node];
-            //
-            //                rhs_i += projection_length * mphi[i_node];
-            //             }
-            //         }
-            //         int inout_size = mInOutBoundaryList.size();
-            //         double vol_var = 0.0;
-            //         //#pragma omp parallel for firstprivate(slip_size)
-            //         for (int i = 0; i < inout_size; i++)
-            //         {
-            //             unsigned int i_node = mInOutBoundaryList[i];
-            //             double dist = mdistances[i_node];
-            // //             if (dist <= 0.0)
-            // //             {
-            //                 const array_1d<double, TDim>& U_i = mvel_n1[i_node];
-            //                 const array_1d<double, TDim>& an_i = mInOutNormal[i_node];
-            // 		 double A = norm_2(an_i);
-            //
-            // 		double projection_length = 0.0;
-            //                 for (unsigned int comp = 0; comp < TDim; comp++)
-            //                 {
-            //                     projection_length += U_i[comp] * an_i[comp];
-            //                 }
-            //
-            //                 double& rhs_i = rhs[i_node];
-            // //                 if(projection_length > 0) //outlet
-            // // 		  rhs_i += A;
-            // // 		else
-            // 		  rhs_i -= A;
-            //
-            // // 	    }
-            // 	}
             KRATOS_CATCH("")
         }
         //**************************************
@@ -3287,7 +2501,6 @@ namespace Kratos
                 noalias(temp_cornern_list[i_node]) = ZeroVector(TDim);
             }
             // loop over all faces
-            //             const double node_factor = 1.0 / TDim;
             for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
             {
                 // get geometry data of the face
@@ -3311,8 +2524,7 @@ namespace Kratos
                         CornerDectectionHelper(face_geometry, face_normal, An, neighb, 0, 1, 2, temp_edge_nodes, temp_cornern_list);
                 }
             }
-            //            ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
-            //            mr_matrix_container.WriteVectorToDatabase(ACCELERATION, temp_cornern_list, rNodes);
+
             // fill the list of edge_nodes
             std::vector<unsigned int> tempmedge_nodes;
             std::vector<array_1d<double, TDim>> tempmedge_nodes_direction;
@@ -3349,26 +2561,7 @@ namespace Kratos
             }
             KRATOS_CATCH("")
         }
-        //     double ComputePorosityCoefficient(const double& viscosity, const double& vel_norm, const double& eps, const double& d)
-        //     {
-        //         //             const double d = 0.01; //to be changed
-        //         double linear;
-        //         double non_linear;
-        //         if (eps < 1.0)
-        //         {
-        //             double k_inv = 150.0 * (1.0 - eps)*(1.0 - eps) / (eps * eps * eps * d * d);
-        //             linear = eps * viscosity * k_inv;
-        //             non_linear = (1.75 * vel_norm) * sqrt(k_inv / (150.0 * eps));
-        //             //             double linear = viscosity * k_inv;
-        //             //             double non_linear = (1.75 * vel_norm / eps) * sqrt(k_inv / (150.0 * eps));
-        //         }
-        //         else
-        //         {
-        //             linear = 0.0;
-        //             non_linear = 0.0;
-        //         }
-        //         return linear + non_linear;
-        //     }
+
         double ComputePorosityCoefficient(const double &vel_norm, const double &eps, const double &a, const double &b)
         {
             double linear;
@@ -3425,10 +2618,10 @@ namespace Kratos
                 double dist = mdistances[i_node];
                 if (dist <= 0.0)
                 {
-                    double nu = mMolecularViscosity; // mViscosity[i_node];
-                    // array_1d<double, TDim>& rhs_i = rhs[i_node];
+                    double nu = mMolecularViscosity;
                     const array_1d<double, TDim> &U_i = vel[i_node];
                     const array_1d<double, TDim> &an_i = mSlipNormal[i_node];
+
                     // compute the modulus of the velocity
                     double mod_vel = 0.0;
                     double area = 0.0;
@@ -3439,6 +2632,7 @@ namespace Kratos
                     }
                     mod_vel = sqrt(mod_vel);
                     area = sqrt(area);
+
                     // the 0.1 is such that the dissipation is as for the linear case for a velocity of 10m/s
                     diag_stiffness[i_node] = area * nu * mod_vel / (ym)*mWallReductionFactor[i_node];
                 }
@@ -3579,30 +2773,11 @@ namespace Kratos
                     const double &phi_j = mphi_n1[j_neighbour];
                     CSR_Tuple &edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
                     edge_ij.Add_grad_p(pi_i, phi_i, phi_j);
-                    // 		if(i_node == 3255)
-                    // 		{
-                    // 		    KRATOS_WATCH(j_neighbour)
-                    // 		    KRATOS_WATCH(pi_i)
-                    // 		    KRATOS_WATCH(mEps[i_node])
-                    // 		    KRATOS_WATCH(mEps[j_neighbour])
-                    // 		    KRATOS_WATCH(phi_i)
-                    // 		    KRATOS_WATCH(phi_j)
-                    // 		    KRATOS_WATCH(a_i)
-                    // 		    KRATOS_WATCH(a_j)
-                    // 		    KRATOS_WATCH(mr_matrix_container.GetInvertedMass()[i_node])
-                    // 		    KRATOS_WATCH(edge_ij.Ni_DNj)
-                    //
-                    // 		}
                 }
                 // 			  apply inverted mass matrix
                 const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
                 for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
                     pi_i[l_comp] *= m_inv;
-                // 	    std::cout << i_node << " " << pi_i << " " << mvel_n1[i_node] << " " << phi_i <<std::endl;
-                //             for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-                //                 if(std::isnan(pi_i[l_comp]))
-                // 		  KRATOS_WATCH(m_inv);
-                // 		    }
             }
         }
 
@@ -3628,10 +2803,6 @@ namespace Kratos
                     const double &p_j = mphi_n1[j_neighbour];
                     const array_1d<double, TDim> &l_k = mEdgeDimensions[csr_index];
                     const array_1d<double, TDim> &pi_j = mPiConvection[j_neighbour];
-                    //                                 double proj = 0.0;
-                    //                                 for (unsigned int comp = 0; comp < TDim; comp++)
-                    //                                      proj += 0.5*l_k[comp]*(pi_i[comp]+pi_j[comp]);
-                    //                                 double beta = fabs((p_i - p_j - proj)/(fabs(p_i-p_j)+fabs(proj)+1e-4));
                     double proj = 0.0;
                     for (unsigned int comp = 0; comp < TDim; comp++)
                         proj += 0.5 * l_k[comp] * (pi_i[comp] + pi_j[comp]);
