@@ -50,7 +50,7 @@ namespace Kratos
  * PropertyAccessor sets a proper way of returning a value from the properties
  * It is used to properly interpolate material properties according to temperature, tables, etc...
 */
-class KRATOS_API(KRATOS_CORE) PropertyAccessor
+class PropertyAccessor
 {
 public:
     ///@name Type Definitions
