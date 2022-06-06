@@ -23,7 +23,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         {
             "model_part_name"                       : "",
             "domain_size"                           : 3,
-            "body_force"                            : [0.0, 0.0, 0.0],
             "density"                               : 0.0,
             "viscosity"                             : 0.0,
             "wall_law_y"                            : 0.0,
@@ -60,7 +59,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
         # Parse numeric parameters
         self.domain_size = self.settings["domain_size"].GetInt()
-        self.body_force = self.settings["body_force"].GetVector()
         self.density = self.settings["density"].GetDouble()
         self.viscosity = self.settings["viscosity"].GetDouble()
         self.wall_law_y = self.settings["wall_law_y"].GetDouble()
@@ -108,7 +106,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         return KratosMultiphysics.Parameters("""{
             "model_part_name"                       : "",
             "domain_size"                           : 3,
-            "body_force"                            : [0.0, 0.0, 0.0],
             "density"                               : 0.0,
             "viscosity"                             : 0.0,
             "wall_law_y"                            : 0.0,
@@ -142,6 +139,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.AUX_INDEX)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESS_PROJ)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POROSITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
@@ -165,8 +163,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.model_part.SetBufferSize(self.GetMinimumBufferSize())
 
     def Check(self) -> None:
-        if all(not component for component in self.body_force):
-            raise ValueError("Body force cannot be a zero vector")
+        pass
 
     def Initialize(self) -> None:
         # Get rid of isolated nodes
@@ -339,7 +336,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             self.model_part,
             self.viscosity,
             self.density,
-            self.body_force,
             self.use_mass_correction,
             self.edge_detection_angle,
             self.stabdt_pressure_factor,

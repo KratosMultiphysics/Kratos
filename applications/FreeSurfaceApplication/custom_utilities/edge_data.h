@@ -162,6 +162,7 @@ namespace Kratos
                                                const array_1d<double, TDim> &a_i, const array_1d<double, TDim> &U_i,
                                                const array_1d<double, TDim> &a_j, const array_1d<double, TDim> &U_j)
         {
+
 #ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
             double temp = a_i[0] * Ni_DNj[0];
             for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
@@ -185,6 +186,7 @@ namespace Kratos
                                                const array_1d<double, TDim> &a_i, const array_1d<double, TDim> &U_i,
                                                const array_1d<double, TDim> &a_j, const array_1d<double, TDim> &U_j)
         {
+
 #ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
             double temp = a_i[0] * Ni_DNj[0];
             for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
@@ -208,6 +210,7 @@ namespace Kratos
                                                const array_1d<double, TDim> &a_i, const double &phi_i,
                                                const array_1d<double, TDim> &a_j, const double &phi_j)
         {
+
 #ifdef USE_CONSERVATIVE_FORM_FOR_SCALAR_CONVECTION
             double temp = a_i[0] * Ni_DNj[0];
             for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
@@ -230,6 +233,7 @@ namespace Kratos
                                                const array_1d<double, TDim> &a_i, const double &phi_i,
                                                const array_1d<double, TDim> &a_j, const double &phi_j)
         {
+
 #ifdef USE_CONSERVATIVE_FORM_FOR_SCALAR_CONVECTION
             double temp = a_i[0] * Ni_DNj[0];
             for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
@@ -314,32 +318,13 @@ namespace Kratos
                                                           const array_1d<double, TDim> &a_i, const array_1d<double, TDim> &pi_i,
                                                           const array_1d<double, TDim> &a_j, const array_1d<double, TDim> &pi_j)
         {
+
 #ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
             double temp = 0.0;
             for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
                 temp += a_i[k_comp] * Ni_DNj[k_comp];
             for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
                 stab_high[l_comp] = -temp * (pi_j[l_comp] - pi_i[l_comp]); // check if the minus sign is correct
-
-                //                                double temp_i = 0.0;
-                //                                double temp_j = 0.0;
-                //				for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
-                //                                {
-                //                                        temp_j += a_i[k_comp] * Ni_DNj[k_comp];
-                //					temp_i += a_i[k_comp] * DNi_Nj[k_comp];
-                //                                }
-                //                                for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-                //					stab_high[l_comp] = +(temp_j*pi_j[l_comp] - temp_i*pi_i[l_comp]); //check if the minus sign is correct
-
-                //                                double temp_i = 0.0;
-                //                                double temp_j = 0.0;
-                //				for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
-                //                                {
-                //                                        temp_i += a_i[k_comp] * Ni_DNj[k_comp];
-                //					temp_j += a_i[k_comp] * DNi_Nj[k_comp];
-                //                                }
-                //                                for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-                //					stab_high[l_comp] = (temp_j*pi_j[l_comp] + temp_i*pi_i[l_comp]); //check if the minus sign is correct
 #else
             double aux_i = a_i[0] * Ni_DNj[0];
             double aux_j = a_j[0] * Ni_DNj[0];
@@ -357,6 +342,7 @@ namespace Kratos
                                                           const array_1d<double, TDim> &a_i, const double &pi_i,
                                                           const array_1d<double, TDim> &a_j, const double &pi_j)
         {
+
 #ifdef USE_CONSERVATIVE_FORM_FOR_SCALAR_CONVECTION
             double temp = 0.0;
             for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)

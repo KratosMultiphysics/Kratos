@@ -15,11 +15,6 @@
         "max_time_step_size": 1e-2,
         "density": 1e3,
         "viscosity": 1e-6,
-        "body_force": [
-            0.0,
-            -9.81,
-            0.0
-        ],
         "wall_law_y": 0.0,
         "use_mass_correction": true,
         "redistance_frequency": 5,
@@ -40,8 +35,7 @@
         }
     },
     "processes": {
-        "initial_conditions_process_list": [
-            {
+        "initial_conditions_process_list": [{
                 "python_module": "assign_scalar_variable_process",
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "AssignScalarVariableProcess",
@@ -50,15 +44,10 @@
                     "variable_name": "DISTANCE",
                     "constrained": false,
                     "value": -1.0,
-                    "interval": [
-                        0.0,
-                        0.0
-                    ]
+                    "interval" : [0.0,0.0]
                 }
-            }
-        ],
-        "boundary_conditions_process_list": [
-            {
+            }],
+        "boundary_conditions_process_list": [{
                 "python_module": "apply_inlet_process",
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
                 "process_name": "ApplyInletProcess",
@@ -68,13 +57,9 @@
                     "constrained": true,
                     "modulus": 1.0,
                     "direction": "automatic_inwards_normal",
-                    "interval": [
-                        0.0,
-                        "End"
-                    ]
+                    "interval": [0.0,"End"]
                 }
-            },
-            {
+            },{
                 "python_module": "apply_outlet_process",
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
                 "process_name": "ApplyOutletProcess",
@@ -86,17 +71,26 @@
                     "hydrostatic_outlet": false,
                     "h_top": 0.0
                 }
-            },
-            {
+            },{
                 "python_module": "apply_slip_process",
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
                 "process_name": "ApplySlipProcess",
                 "Parameters": {
                     "model_part_name": "Reservoir2D.SubModelPart_Auto4"
                 }
-            }
-        ],
-        "gravity": [],
+            }],
+        "gravity": [{
+                "python_module": "assign_vector_by_direction_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorByDirectionProcess",
+                "Parameters": {
+                    "model_part_name": "Reservoir2D",
+                    "variable_name": "BODY_FORCE",
+                    "modulus": 9.81,
+                    "constrained": false,
+                    "direction": [0.0, -1.0, 0.0]
+                }
+            }],
         "auxiliar_process_list": []
     }
 }

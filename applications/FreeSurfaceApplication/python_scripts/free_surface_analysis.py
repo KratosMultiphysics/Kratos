@@ -24,7 +24,6 @@ class FreeSurfaceAnalysis(AnalysisStage):
 
         # Initialize remaining nodes
         density = self.project_parameters["solver_settings"]["density"].GetDouble()
-        body_force = self.project_parameters["solver_settings"]["body_force"].GetVector()
         small_value = 1e-4
         active_node_count = 0
         for node in self.model.GetModelPart(model_part_name).Nodes:
@@ -42,12 +41,26 @@ class FreeSurfaceAnalysis(AnalysisStage):
                 node.SetSolutionStepValue(KratosMultiphysics.DIAMETER, 1.0)
 
             porosity = node.GetSolutionStepValue(KratosMultiphysics.POROSITY)
-            node.SetSolutionStepValue(KratosMultiphysics.PRESS_PROJ, density * body_force * porosity)
 
         if not active_node_count:
             raise RuntimeError("At least 1 node must be initialized with a negative DISTANCE")
 
         self._GetSolver()._Redistance()
+
+    def InitializeSolutionStep(self):
+        super(FreeSurfaceAnalysis,self).InitializeSolutionStep()
+
+        model_part_name = self.project_parameters["problem_data"]["problem_name"].GetString()
+
+        # Make sure that at least one node has negative distance
+        active_node_count = False
+        for node in self.model.GetModelPart(model_part_name).Nodes:
+            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
+                active_node_count = True
+                break
+
+        if not active_node_count:
+            raise RuntimeError("At least 1 node must have negative DISTANCE")
 
     def _CreateSolver(self) -> EdgeBasedLevelSetSolver:
         return EdgeBasedLevelSetSolver(self.model, self.project_parameters["solver_settings"])

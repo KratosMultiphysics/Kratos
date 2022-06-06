@@ -13,7 +13,6 @@
         "domain_size": 3,
         "max_safety_factor": 5e-1,
         "max_time_step_size": 1e-2,
-        "body_force"                    : [0.0, 0.0,-9.81],
         "density": 1e3,
         "viscosity": 1e-6,
         "wall_law_y": 0.0,
@@ -36,7 +35,7 @@
         }
     },
     "processes": {
-        "initial_conditions_process_list"  : [{
+        "initial_conditions_process_list" : [{
                 "python_module": "assign_scalar_variable_process",
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "AssignScalarVariableProcess",
@@ -44,8 +43,8 @@
                     "model_part_name": "Reservoir3D.Distance_Auto1",
                     "variable_name": "DISTANCE",
                     "constrained": false,
-                    "value"           : -1.0,
-                    "interval"        : [0.0,0.0]
+                    "value" : -1.0,
+                    "interval" : [0.0,0.0]
                 }
         }],
         "boundary_conditions_process_list" : [{
@@ -57,8 +56,8 @@
                     "variable_name": "VELOCITY",
                     "constrained": true,
                     "modulus": 6.66667e-01,
-                "direction"       : "automatic_inwards_normal",
-                "interval"        : [0.0,"End"]
+                    "direction" : "automatic_inwards_normal",
+                    "interval" : [0.0,"End"]
                 }
         },{
                 "python_module": "apply_outlet_process",
@@ -70,8 +69,7 @@
                     "constrained": true,
                     "value": 0.0,
                     "hydrostatic_outlet": false,
-                "h_top"              : 0.0,
-                    "interval": [0.0, "End"]
+                    "h_top" : 0.0
                 }
         },{
                 "python_module": "apply_slip_process",
@@ -80,9 +78,19 @@
                 "Parameters": {
                     "model_part_name": "Reservoir3D.Slip3D"
                 }
-            }
-        ],
-        "gravity": [],
+            }],
+        "gravity": [{
+                "python_module": "assign_vector_by_direction_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorByDirectionProcess",
+                "Parameters": {
+                    "model_part_name": "Reservoir3D",
+                    "variable_name": "BODY_FORCE",
+                    "modulus": 9.81,
+                    "constrained": false,
+                    "direction": [0.0, 0.0, -1.0]
+                }
+            }],
         "auxiliar_process_list": []
     }
 }
