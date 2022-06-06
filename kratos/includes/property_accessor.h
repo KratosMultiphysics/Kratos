@@ -74,7 +74,7 @@ public:
     /**
      * @brief default constructor
      */
-    PropertyAccessor(double Value)
+    PropertyAccessor(const double Value)
     {
         mValue = Value;
     }
@@ -95,7 +95,7 @@ public:
         // If it is in the list, give back the corresponding accessor, otherwise give back value
         auto it = mListOfAccessors.find(rVariableName);
         if (it != mListOfAccessors.end()) {
-            auto& r_function = *(*it).second;
+            const auto& r_function = *(*it).second;
             return r_function(rVariableName, rProperties, rGeometry);
         } else {
             return mValue;
@@ -174,7 +174,7 @@ private:
     ///@{
 
     double mValue;
-    std::map<std::string, AccessorType*> mListOfAccessors;
+    std::unordered_map<std::string, AccessorType*> mListOfAccessors;
 
     ///@}
     ///@name Private Operators
