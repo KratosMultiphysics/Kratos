@@ -191,6 +191,16 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         if 1e-10 < self.wall_law_y:
             self.fluid_solver.ActivateWallResistance(self.wall_law_y)
 
+    def InitializeSolutionStep(self) -> None:
+        # Transfer density and viscosity to the nodes
+        for node in self.model_part.Nodes:
+            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) <= 0.0:
+                node.SetSolutionStepValue(KratosMultiphysics.DENSITY, self.density)
+                node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY, self.viscosity)
+            else:
+                node.SetSolutionStepValue(KratosMultiphysics.DENSITY, 0.0)
+                node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY, 0.0)
+
     def AdvanceInTime(self, current_time: float) -> float:
         """
         Compute a bounded variable time step and create new step data.
