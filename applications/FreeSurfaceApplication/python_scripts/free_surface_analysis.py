@@ -26,9 +26,22 @@ class FreeSurfaceAnalysis(AnalysisStage):
         density = self.project_parameters["solver_settings"]["density"].GetDouble()
         small_value = 1e-4
         active_node_count = 0
+
+        # Initialize body force value
+        body_force = KratosMultiphysics.Vector(3)
+        body_force[0] = 0.0
+        body_force[1] = 0.0
+        body_force[2] = 0.0
+
+        # Get the body force value
         for node in self.model.GetModelPart(model_part_name).Nodes:
-            body_force = KratosMultiphysics.Vector(3)
             body_force = node.GetSolutionStepValue(KratosMultiphysics.BODY_FORCE, 0)
+            break
+
+        for node in self.model.GetModelPart(model_part_name).Nodes:
+            # Initialize DENSITY
+            node.SetSolutionStepValue(KratosMultiphysics.DENSITY, density)
+
             # Initialize DISTANCE
             if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
                 active_node_count += 1
