@@ -29,7 +29,7 @@
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
-#include "processes/find_global_nodal_neighbours_process.h"
+#include "processes/generic_find_elements_neighbours_process.h"
 #include "utilities/variable_utils.h"
 #include "spatial_containers/spatial_containers.h" 
 #include "modeler/connectivity_preserve_modeler.h"
@@ -157,6 +157,13 @@ public:
 	virtual void PrintInfo(std::ostream &rOStream) const
 	{
 		rOStream << "FluxBasedRedistanceProcess";
+	}
+
+	void ExecuteInitialize() override
+	{
+		//finding neigh elems to see if elems have other elems in the upwind direction
+		auto neigh_proc = GenericFindElementalNeighboursProcess(*mpModelPart);
+		neigh_proc.ExecuteInitialize();
 	}
 
 	/**
