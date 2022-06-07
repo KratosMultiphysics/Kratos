@@ -467,6 +467,10 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PARAMETER_2D_COORDINATES)
 KRATOS_CREATE_VARIABLE(double, VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST)
 KRATOS_CREATE_VARIABLE(double, VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND)
 
+//Flux-Based Redistance
+KRATOS_CREATE_VARIABLE(double, CHARACTERISTIC_LENGTH)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(POTENTIAL_GRADIENT)
+
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
@@ -936,5 +940,10 @@ void KratosApplication::RegisterVariables() {
     // Variational redistance
     KRATOS_REGISTER_VARIABLE(VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST)
     KRATOS_REGISTER_VARIABLE(VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND)
+
+    //Flux-Based Redistance
+    KRATOS_REGISTER_VARIABLE(CHARACTERISTIC_LENGTH)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POTENTIAL_GRADIENT)
+
 }
 }  // namespace Kratos.
