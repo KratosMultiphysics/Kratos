@@ -776,28 +776,10 @@ namespace Kratos
     const double col_time_max = ComputeMaxCollisionTime();
     const double Rc_max       = ComputeMaxContactRadius();
 
-    // Compute particle Fourier number
-    double Fo_particle;
     if (Rc_max > 0.0)
-      Fo_particle = GetParticleConductivity() * col_time_max / (GetParticleDensity() * GetParticleHeatCapacity() * Rc_max * Rc_max);
+      return GetParticleConductivity() * col_time_max / (GetParticleDensity() * GetParticleHeatCapacity() * Rc_max * Rc_max);
     else
-      Fo_particle = 0.0;
-
-    // Compute neighbor Fourier number
-    double Fo_neighbor;
-
-    if (mNeighborType & PARTICLE_NEIGHBOR) {
-      if (Rc_max > 0.0)
-        Fo_neighbor = GetNeighborConductivity() * col_time_max / (GetNeighborDensity() * GetNeighborHeatCapacity() * Rc_max * Rc_max);
-      else
-        Fo_neighbor = 0.0;
-    }
-    else {
-      Fo_neighbor = Fo_particle;
-    }
-
-    // Assumption: average of both particles (only particle if neighbor is a wall)
-    return (Fo_particle + Fo_neighbor) / 2.0;
+      return 0.0;
 
     KRATOS_CATCH("")
   }
