@@ -3,7 +3,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.ShallowWaterApplication.benchmarks.base_benchmark_process import BaseBenchmarkProcess
 
 # Other imports
-import numpy as np
+from math import sqrt
 
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
@@ -63,7 +63,7 @@ class DryDamBreakBenchmark(BaseBenchmarkProcess):
         if x < xa:
             return self.hl
         elif x < xb:
-            return 4 / 9 / self.g * (np.sqrt(self.g * self.hl) - 0.5*(x - self.dam) / time)**2
+            return 4 / 9 / self.g * (sqrt(self.g * self.hl) - 0.5*(x - self.dam) / time)**2
         else:
             return 0.0
 
@@ -77,14 +77,14 @@ class DryDamBreakBenchmark(BaseBenchmarkProcess):
         if x < xa:
             return [0.0, 0.0, 0.0]
         elif x < xb:
-            return [2 / 3 * ((x - self.dam) / time + np.sqrt(self.g * self.hl)), 0.0, 0.0]
+            return [2 / 3 * ((x - self.dam) / time + sqrt(self.g * self.hl)), 0.0, 0.0]
         else:
             return [0.0, 0.0, 0.0]
 
 
     def __xa(self, t):
-        return self.dam - t * np.sqrt(self.g * self.hl)
+        return self.dam - t * sqrt(self.g * self.hl)
 
 
     def __xb(self, t):
-        return self.dam + 2 * t * np.sqrt(self.g * self.hl)
+        return self.dam + 2 * t * sqrt(self.g * self.hl)
