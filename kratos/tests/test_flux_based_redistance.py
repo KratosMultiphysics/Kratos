@@ -10,14 +10,8 @@ def GetFilePath(fileName):
 class TestRedistance(KratosUnittest.TestCase):
 
     def _ExpectedDistance(self,x,y,z):
-        d = x
-        if( d > 0.2):
-            d = 0.2
-        if( d < -0.2):
-            d = -0.2
         return x
-        #return -(math.sqrt(x**2+y**2+z**2) - 0.4)
-
+        
     def test_model_part_sub_model_parts(self):
         current_model = KratosMultiphysics.Model()
 
