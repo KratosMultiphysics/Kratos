@@ -173,8 +173,6 @@ namespace Kratos
             mdiag_stiffness.resize(n_nodes);
             mr_matrix_container.SetToZero(mdiag_stiffness);
             mis_slip.resize(n_nodes);
-            //	    ValuesVectorType external_pressure;
-            //	    external_pressure.resize(n_nodes);
 
             // read velocity and pressure data from Kratos
             mr_matrix_container.FillVectorFromDatabase(BODY_FORCE, mBodyForce, mr_model_part.Nodes());
@@ -184,6 +182,7 @@ namespace Kratos
             mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, mr_model_part.Nodes());
             mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mvel_n, mr_model_part.Nodes());
             mr_matrix_container.FillCoordinatesFromDatabase(mx, mr_model_part.Nodes());
+
             // set flag for first time step
             mFirstStep = true;
 
@@ -204,10 +203,7 @@ namespace Kratos
                 }
 
                 if (inode->Is(OUTLET))
-                {
                     tempPressureOutletList.push_back(index);
-                    //		    mPressureOutlet.push_back(external_pressure[index]);
-                }
             }
             mFixedVelocities.resize(tempFixedVelocities.size(), false);
             mFixedVelocitiesValues.resize(tempFixedVelocitiesValues.size(), false);
@@ -232,8 +228,6 @@ namespace Kratos
             if (TDim == 3)
                 DetectEdges3D(mr_model_part.Conditions());
 
-            // determine number of edges and entries
-            // unsigned int n_nonzero_entries = 2 * n_edges + n_nodes;
             // allocate memory for variables
             mL.resize(n_nodes, n_nodes, false);
 
@@ -504,7 +498,7 @@ namespace Kratos
 #pragma omp parallel for
             for (int i_node = 0; i_node < n_nodes; i_node++)
             {
-                array_1d<double, TDim> &pi_i = mPi[i_node]; //******************
+                array_1d<double, TDim> &pi_i = mPi[i_node];
 
                 // setting to zero
                 for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
@@ -528,8 +522,6 @@ namespace Kratos
                     CSR_Tuple &edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
 
                     edge_ij.Add_ConvectiveContribution(pi_i, a_i, U_i, a_j, U_j);
-
-                    //                    edge_ij.Add_grad_p(pi_i, p_i, p_j);
                 }
 
                 const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
@@ -777,7 +769,6 @@ namespace Kratos
 
                     grad_d *= dist_i; // this is the vector with the distance of node_i from the closest point on the free surface
 
-                    // array_1d<double, TDim> press_grad;
                     double pestimate = 0.0;
 
                     const array_1d<double, 3> &r_press_proj = iii->FastGetSolutionStepValue(PRESS_PROJ);

@@ -159,8 +159,6 @@ namespace Kratos
             mr_matrix_container.SetToZero(mphi_n1);
             mEps.resize(n_nodes);
             mr_matrix_container.SetToZero(mEps);
-            //         mD.resize(n_nodes);
-            // 	mr_matrix_container.SetToZero(mD);
             mA.resize(n_nodes);
             mr_matrix_container.SetToZero(mA);
             mB.resize(n_nodes);
@@ -175,8 +173,7 @@ namespace Kratos
             mis_visited.resize(n_nodes);
             macc.resize(n_nodes);
             mr_matrix_container.SetToZero(macc);
-            //	    ValuesVectorType external_pressure;
-            //	    external_pressure.resize(n_nodes);
+
             // read velocity and pressure data from Kratos
             mr_matrix_container.FillVectorFromDatabase(BODY_FORCE, mBodyForce, mr_model_part.Nodes());
             mr_matrix_container.FillScalarFromDatabase(VISCOSITY, mViscosity, mr_model_part.Nodes());
@@ -208,10 +205,7 @@ namespace Kratos
                     tempDistanceList.push_back(index);
 
                 if (inode->Is(OUTLET))
-                {
                     tempPressureOutletList.push_back(index);
-                    //		    mPressureOutlet.push_back(external_pressure[index]);
-                }
             }
             mFixedVelocities.resize(tempFixedVelocities.size(), false);
             mFixedVelocitiesValues.resize(tempFixedVelocitiesValues.size(), false);
@@ -1341,7 +1335,6 @@ namespace Kratos
                 mis_visited[i_node] = 0.0;
 
             boost::numeric::ublas::vector<int> layers(mr_model_part.Nodes().size(), -1);
-            // 	std::vector<int> layer_color(mr_model_part.Nodes().size(),-1000);
             boost::numeric::ublas::vector<int> layer_limits(extrapolation_layers + 1);
 
             layer_limits[0] = 0;
@@ -2756,8 +2749,7 @@ namespace Kratos
                 // 		    setting to zero the projection
                 for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
                     pi_i[l_comp] = 0.0;
-                /*		    if (active_nodes[i_node] != 0.0)
-                                    {*/
+
                 const double &phi_i = mphi_n1[i_node];
                 noalias(a_i) = mvel_n1[i_node];
                 a_i /= mEps[i_node];

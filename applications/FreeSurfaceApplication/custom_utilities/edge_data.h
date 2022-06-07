@@ -813,7 +813,6 @@ namespace Kratos
                 ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 
                 // get the global index of node i
-                //  // 					unsigned int i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
                 unsigned int i_node = i;
 
                 // get the requested value in vector form
@@ -844,7 +843,6 @@ namespace Kratos
                 ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 
                 // get the global index of node i
-                //  // 					unsigned int i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
                 unsigned int i_node = i;
 
                 // get the requested value in vector form

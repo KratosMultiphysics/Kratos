@@ -74,21 +74,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    // 	template<unsigned int TDim>
-    // 	class EdgeConstructionScratch
-    // 	{
-    // 		public:
-    // 			array_1d<double, TDim+1> N;
-    // 			boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim> dN_dx;
-    // 			double volume;
-    // 			double weighting_factor = 1.0 / static_cast<double>(TDim+1);
-    // 			boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim+1> mass_consistent;
-    // 			array_1d<double, TDim+1> mass_lumped;
-    // 			array_1d<unsigned int, TDim+1> nodal_indices;
-    // 			array_1d<double, TDim+1> heights;
-    //
-    // 	}
-
     // structure definition for fast access to edge data using CSR format
 
     template <unsigned int TDim>
@@ -268,14 +253,6 @@ namespace Kratos
             }
             destination += aux_j * phi_j - aux_i * phi_i;
 #endif
-            //         double second = a_i[0] * DNi_Nj[0];
-            //         double first = a_j[0] * Ni_DNj[0];
-            //         for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
-            //         {
-            //             second += a_i[k_comp] * DNi_Nj[k_comp];
-            //             first += a_j[k_comp] * Ni_DNj[k_comp];
-            //         }
-            //         destination += first * phi_j - second * phi_i;
         }
 
         //*************************************************************************************
@@ -292,40 +269,7 @@ namespace Kratos
             for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
                 stab_low[l_comp] = conv_stab * (U_j[l_comp] - U_i[l_comp]);
 
-            //				double temp = 0.0;
-            //                                double lij = 0.0;
-            //				for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
-            //                                {
-            //                                    lij += LaplacianIJ(k_comp,k_comp);
-            //                                    temp = a_i[k_comp] * a_i[k_comp];
-            //                                }
-            //
-            //				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-            //					stab_low[l_comp] = temp * lij * (U_j[l_comp] - U_i[l_comp]);
         }
-
-        //			inline void CalculateConvectionStabilization_LOW( array_1d<double,TDim>& stab_low,
-        //					const array_1d<double,TDim>& a_i, const array_1d<double,TDim>& U_i, const double& p_i,
-        //     					const array_1d<double,TDim>& a_j, const array_1d<double,TDim>& U_j, const double& p_j
-        //					)
-        //			{
-        // 				double conv_stab = 0.0;
-        //				for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
-        //					for (unsigned int m_comp = 0; m_comp < TDim; m_comp++)
-        //						conv_stab += a_i[k_comp] * a_i[m_comp] * LaplacianIJ(k_comp,m_comp);
-        //				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-        //					stab_low[l_comp] = conv_stab * (U_j[l_comp] - U_i[l_comp]);
-        //
-        ////  				adding pressure
-        //				double press_diff = p_j-p_i;
-        //				for (unsigned int j_comp = 0; j_comp < TDim; j_comp++)
-        //				{
-        //					for (unsigned int i_comp = 0; i_comp < TDim; i_comp++)
-        //						stab_low[j_comp] -= a_i[i_comp] * LaplacianIJ(i_comp,j_comp) * press_diff ;
-        //				}
-        //
-        //
-        //			}
 
         inline void CalculateConvectionStabilization_LOW(double &stab_low,
                                                          const array_1d<double, TDim> &a_i, const double &phi_i,
@@ -538,8 +482,6 @@ namespace Kratos
             {
                 // counting neighbours of each node
                 mNumberEdges += (node_it->GetValue(NEIGHBOUR_NODES)).size();
-                // DIAGONAL TERMS
-                // mNumberEdges++;
 
                 // assigning global index to each node
                 node_it->FastGetSolutionStepValue(AUX_INDEX) = static_cast<double>(i_node++);
@@ -951,7 +893,6 @@ namespace Kratos
                 ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 
                 // get the global index of node i
-                //  // 					unsigned int i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
                 unsigned int i_node = i;
 
                 // get the requested scalar value
@@ -1006,7 +947,6 @@ namespace Kratos
                 ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 
                 // get the global index of node i
-                //  // 					unsigned int i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
                 unsigned int i_node = i;
 
                 // get reference of destination
