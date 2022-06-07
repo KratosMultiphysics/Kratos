@@ -1,7 +1,9 @@
-from numpy import roots
+from numpy import roots, cosh, errstate
 from math import pi, sqrt, tanh
-from mpmath import sech
 
+@errstate(over='ignore')
+def sech(x):
+    return 1/cosh(x)
 
 class SolitaryWaveSolution:
     """Base class for analytical solutions of a solitary wave."""
