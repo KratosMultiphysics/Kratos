@@ -107,17 +107,16 @@ protected:
     {
         Vector StrainVector;
         Vector StressVector;
-        Matrix D;
+        Matrix ConstitutiveMatrix;
 
         /**
          * The default constructor
-         * @param StrainSize The size of the strain vector in Voigt notation
          */
-        ConstitutiveVariables(const SizeType StrainSize)
+        ConstitutiveVariables()
         {
             StrainVector = ZeroVector(StrainSize);
             StressVector = ZeroVector(StrainSize);
-            D = ZeroMatrix(StrainSize, StrainSize);
+            ConstitutiveMatrix = ZeroMatrix(StrainSize, StrainSize);
         }
     };
 
@@ -463,16 +462,6 @@ protected:
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2) const;
 
-    /**
-     * @brief This function computes the body force
-     * @param IntegrationPoints The array containing the integration points
-     * @param PointNumber The id of the integration point considered
-     * @return The vector of body forces
-     */
-    virtual Vector GetBodyForce(
-        const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
-        const IndexType PointNumber) const;
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -523,14 +512,14 @@ private:
      */
     void CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const;
 
-    /**
-     * @brief Calculation of the deformation gradient F
-     * @param rF The deformation gradient
-     * @param rStrainTensor The strain tensor in Voigt notation
-     */
-    void ComputeEquivalentF(
-        Matrix& rF,
-        const Vector& rStrainTensor) const;
+    // /**
+    //  * @brief Calculation of the deformation gradient F
+    //  * @param rF The deformation gradient
+    //  * @param rStrainTensor The strain tensor in Voigt notation
+    //  */
+    // void ComputeEquivalentF(
+    //     Matrix& rF,
+    //     const Vector& rStrainTensor) const;
 
     /**
      * @brief This method gets a value directly in the CL
@@ -584,7 +573,7 @@ private:
         }
 
         // Create the constitutive variables and values containers
-        ConstitutiveVariables constitutive_variables(strain_size);
+        ConstitutiveVariables constitutive_variables;
         ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
         auto& r_cons_law_options = cons_law_values.GetOptions();
         r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
