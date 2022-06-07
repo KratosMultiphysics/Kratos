@@ -284,6 +284,16 @@ class EdgeBasedLevelSetSolver(PythonSolver):
                 KratosMultiphysics.DISTANCE,
                 self.distance_size)
 
+        # Make sure that at least one node has negative distance
+        active_node_count = False
+        for node in self.model_part.Nodes:
+            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
+                active_node_count = True
+                break
+
+        if not active_node_count:
+            raise RuntimeError("At least 1 node must have negative DISTANCE")
+
     def __MakeMatrixContainer(self) -> FreeSurface.MatrixContainer3D:
         if self.domain_size == 2:
             return FreeSurface.MatrixContainer2D()

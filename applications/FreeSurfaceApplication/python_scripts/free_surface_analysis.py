@@ -50,21 +50,6 @@ class FreeSurfaceAnalysis(AnalysisStage):
 
         self._GetSolver()._Redistance()
 
-    def InitializeSolutionStep(self):
-        super(FreeSurfaceAnalysis,self).InitializeSolutionStep()
-
-        model_part_name = self.project_parameters["problem_data"]["problem_name"].GetString()
-
-        # Make sure that at least one node has negative distance
-        active_node_count = False
-        for node in self.model.GetModelPart(model_part_name).Nodes:
-            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
-                active_node_count = True
-                break
-
-        if not active_node_count:
-            raise RuntimeError("At least 1 node must have negative DISTANCE")
-
     def _CreateSolver(self) -> EdgeBasedLevelSetSolver:
         return EdgeBasedLevelSetSolver(self.model, self.project_parameters["solver_settings"])
 
