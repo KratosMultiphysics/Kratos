@@ -107,9 +107,8 @@ public:
 		//by default we compute the pseudofilltime
 		Parameters default_parameters(R"(
 			{
-				"echo_level"        : 0,
-				"max_iterations" = 3,
-
+				"echo_level"     : 0,
+				"max_iterations" : 3
 			}  )");
 		Settings.ValidateAndAssignDefaults(default_parameters);
 
@@ -271,12 +270,6 @@ public:
 		//step 2: compute distance
 		mpModelPart->pGetProcessInfo()->SetValue(FRACTIONAL_STEP, 2);
         KRATOS_INFO("FluxBasedRedistanceProcess") << "Solving second redistance step\n";
-		mpSolvingStrategy->Solve();
-
-        mpModelPart->pGetProcessInfo()->SetValue(FRACTIONAL_STEP, 3);
-
-        KRATOS_INFO("FluxBasedRedistanceProcess") << "Solving third redistance step\n";
-
 		mpSolvingStrategy->Solve();
 
         VariableUtils().ApplyFixity(DISTANCE, false, mpModelPart->Nodes());
