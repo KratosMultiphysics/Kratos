@@ -581,7 +581,7 @@ FromJSONCheckResultProcess::SizeType FromJSONCheckResultProcess::SizeDatabase(
     }
 
     // GP
-    auto size_parameters =[](const Parameters& rParameters){return std::distance(rParameters.begin(), rParameters.end());};
+    auto size_parameters =[](const Parameters& rParameters){std::ptrdiff_t n = 0; auto first = rParameters.begin(); while (first != rParameters.end()) { ++first; ++n; } return n;};
     const SizeType number_of_gp_variables = mThisParameters["gauss_points_check_variables"].size();
     std::vector<IndexType> gp_variables_ids(number_of_gp_variables);
     std::vector<IndexType> gp_values_sizes(number_of_gp_variables, 1);
