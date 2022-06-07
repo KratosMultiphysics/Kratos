@@ -74,7 +74,6 @@ namespace Kratos
                                  const double viscosity,
                                  const double density,
                                  bool use_mass_correction,
-                                 double edge_detection_angle,
                                  double stabdt_pressure_factor,
                                  double stabdt_convection_factor,
                                  double tau2_factor,
@@ -83,7 +82,6 @@ namespace Kratos
               mr_model_part(mr_model_part),
               mstabdt_pressure_factor(stabdt_pressure_factor),
               mstabdt_convection_factor(stabdt_convection_factor),
-              medge_detection_angle(edge_detection_angle),
               mtau2_factor(tau2_factor),
               massume_constant_dp(assume_constant_dp)
         {
@@ -2199,7 +2197,6 @@ namespace Kratos
         // parameters for controlling the usage of the delta time in the stabilization
         double mstabdt_pressure_factor;
         double mstabdt_convection_factor;
-        double medge_detection_angle;
         double mtau2_factor;
         bool massume_constant_dp;
         // nodal values

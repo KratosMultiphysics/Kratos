@@ -32,7 +32,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             "redistance_frequency"                  : 5,
             "extrapolation_layers"                  : 5,
             "tau2_factor"                           : 0.0,
-            "edge_detection_angle"                  : 45.0,
             "max_safety_factor"                     : 0.5,
             "max_time_step_size"                    : 1e-2,
             "initial_time_step_size"                : 1e-5,
@@ -67,7 +66,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.redistance_frequency = self.settings["redistance_frequency"].GetInt()
         self.extrapolation_layers = self.settings["extrapolation_layers"].GetInt()
         self.tau2_factor = self.settings["tau2_factor"].GetDouble()
-        self.edge_detection_angle = self.settings["edge_detection_angle"].GetDouble()
         self.max_safety_factor = self.settings["max_safety_factor"].GetDouble()
         self.max_time_step_size = self.settings["max_time_step_size"].GetDouble()
         self.initial_time_step_size = self.settings["initial_time_step_size"].GetDouble()
@@ -81,10 +79,11 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.compute_porous_resistance_law = EdgeBasedLevelSetSolver.PorousResistanceComputation[self.settings["compute_porous_resistance_law"].GetString()]
 
         # Other linear solvers considered in the original script:
-        # - CGSolver(1e3, 5000)
-        # - CGSolver(1e3, 500, DiagonalPreconditioner())
-        # - BICGSTabSolver(1e3, 5000, DiagonalPreconditioner())
-        self.pressure_linear_solver = KratosMultiphysics.BICGSTABSolver(1e-3, 5000)
+        # - KratosMultiphysics.CGSolver(1e3, 5000)
+        # - KratosMultiphysics.CGSolver(1e3, 500, KratosMultiphysics.DiagonalPreconditioner())
+        # - KratosMultiphysics.BICGSTabSolver(1e3, 5000, KratosMultiphysics.DiagonalPreconditioner())
+        pDiagPrecond = KratosMultiphysics.DiagonalPreconditioner()
+        self.pressure_linear_solver = KratosMultiphysics.BICGSTABSolver(1e-3, 5000, pDiagPrecond)
 
         # Preparations before the model part is read
         # (apart from adding variables)
@@ -95,7 +94,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.distance_utils = self.__MakeDistanceUtilities()
 
         # Declare other members
-        self.fluid_solver          = None # initialized by __MakeEdgeBasedLevelSet after reading the ModelPart
+        self.fluid_solver = None # initialized by __MakeEdgeBasedLevelSet after reading the ModelPart
         self.safety_factor = self.max_safety_factor
         self.current_step_size = self.initial_time_step_size
         self.current_max_step_size = self.max_time_step_size
@@ -115,7 +114,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             "redistance_frequency"                  : 5,
             "extrapolation_layers"                  : 5,
             "tau2_factor"                           : 0.0,
-            "edge_detection_angle"                  : 45.0,
             "max_safety_factor"                     : 0.5,
             "max_time_step_size"                    : 1e-2,
             "initial_time_step_size"                : 1e-5,
@@ -143,6 +141,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESS_PROJ)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POROSITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIAMETER)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LIN_DARCY_COEF)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NONLIN_DARCY_COEF)
@@ -347,10 +346,9 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             self.viscosity,
             self.density,
             self.use_mass_correction,
-            self.edge_detection_angle,
             self.stabdt_pressure_factor,
             self.stabdt_convection_factor,
-            self.edge_detection_angle,
+            self.tau2_factor,
             self.assume_constant_pressure)
 
     def __EstimateTimeStep(self, safety_factor: float, max_time_step_size: float) -> float:

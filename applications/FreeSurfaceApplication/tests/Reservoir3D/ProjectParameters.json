@@ -25,7 +25,6 @@
         "stabdt_pressure_factor": 1e0,
         "stabdt_convection_factor": 1e-2,
         "tau2_factor": 1e0,
-        "edge_detection_angle": 4.5e1,
         "assume_constant_pressure": false,
         "compute_porous_resistance_law": "NONE",
         "echo_level": 0,

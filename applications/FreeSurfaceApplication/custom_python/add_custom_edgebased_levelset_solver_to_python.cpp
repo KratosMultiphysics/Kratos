@@ -40,7 +40,7 @@ namespace Kratos
             typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
             py::class_<EdgeBasedLevelSet<2, MatrixContainer<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>>(pymodule, "EdgeBasedLevelSet2D")
-                .def(py::init<MatrixContainer<2, SparseSpaceType> &, ModelPart &, const double, const double, bool, double, double, double, double, bool>())
+                .def(py::init<MatrixContainer<2, SparseSpaceType> &, ModelPart &, const double, const double, bool, double, double, double, bool>())
                 .def("Initialize", &EdgeBasedLevelSet<2, MatrixContainer<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::Initialize)
                 .def("ComputeTimeStep", &EdgeBasedLevelSet<2, MatrixContainer<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::ComputeTimeStep)
                 .def("SolveStep1", &EdgeBasedLevelSet<2, MatrixContainer<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::SolveStep1)
@@ -67,7 +67,7 @@ namespace Kratos
                 .def("Clear", &EdgeBasedLevelSet<2, MatrixContainer<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::Clear);
 
             py::class_<EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>>(pymodule, "EdgeBasedLevelSet3D")
-                .def(py::init<MatrixContainer<3, SparseSpaceType> &, ModelPart &, const double, const double, bool, double, double, double, double, bool>())
+                .def(py::init<MatrixContainer<3, SparseSpaceType> &, ModelPart &, const double, const double, bool, double, double, double, bool>())
                 .def("Initialize", &EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::Initialize)
                 .def("ComputeTimeStep", &EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::ComputeTimeStep)
                 .def("SolveStep1", &EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::SolveStep1)
@@ -107,7 +107,7 @@ namespace Kratos
                 .def("Clear", &MatrixContainerC2C<3, SparseSpaceType>::Clear);
 
             py::class_<EdgeBasedLevelSetSubstep<2, MatrixContainerC2C<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>>(pymodule, "EdgeBasedLevelSetSubstep2D")
-                .def(py::init<MatrixContainerC2C<2, SparseSpaceType> &, ModelPart &, const double, const double, bool, double, double, double, double, bool>())
+                .def(py::init<MatrixContainerC2C<2, SparseSpaceType> &, ModelPart &, const double, const double, bool, double, double, double, bool>())
                 .def("Initialize", &EdgeBasedLevelSetSubstep<2, MatrixContainerC2C<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::Initialize)
                 .def("GatherValues", &EdgeBasedLevelSetSubstep<2, MatrixContainerC2C<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::GatherValues)
                 .def("ComputeTimeStep", &EdgeBasedLevelSetSubstep<2, MatrixContainerC2C<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::ComputeTimeStep)
@@ -135,11 +135,10 @@ namespace Kratos
                 .def("ContinuousVolumeCorrection", &EdgeBasedLevelSetSubstep<2, MatrixContainerC2C<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::ContinuousVolumeCorrection)
                 .def("SetWallReductionCoefficients", &EdgeBasedLevelSetSubstep<2, MatrixContainerC2C<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::SetWallReductionCoefficients)
                 .def("ComputeTotalVolume", &EdgeBasedLevelSetSubstep<2, MatrixContainerC2C<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::ComputeTotalVolume)
-                // .def("CalculatePorousResistanceLaw"   ,&EdgeBasedLevelSet< 2, MatrixContainerC2C< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculatePorousResistanceLaw)
                 .def("Clear", &EdgeBasedLevelSetSubstep<2, MatrixContainerC2C<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::Clear);
 
             py::class_<EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>>(pymodule, "EdgeBasedLevelSetSubstep3D")
-                .def(py::init<MatrixContainerC2C<3, SparseSpaceType> &, ModelPart &, const double, const double, bool, double, double, double, double, bool>())
+                .def(py::init<MatrixContainerC2C<3, SparseSpaceType> &, ModelPart &, const double, const double, bool, double, double, double, bool>())
                 .def("Initialize", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::Initialize)
                 .def("GatherValues", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::GatherValues)
                 .def("ComputeTimeStep", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::ComputeTimeStep)
@@ -165,10 +164,8 @@ namespace Kratos
                 .def("DiscreteVolumeCorrection", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::DiscreteVolumeCorrection)
                 .def("ApplySmagorinsky", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::ApplySmagorinsky)
                 .def("ContinuousVolumeCorrection", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::ContinuousVolumeCorrection)
-                // .def("FindBubbles"   ,&EdgeBasedLevelSetSubstep< 3, MatrixContainerC2C< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::FindBubbles)
                 .def("SetWallReductionCoefficients", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::SetWallReductionCoefficients)
                 .def("ComputeTotalVolume", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::ComputeTotalVolume)
-                // .def("CalculatePorousResistanceLaw"   ,&EdgeBasedLevelSet< 3, MatrixContainerC2C< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculatePorousResistanceLaw)
                 .def("Clear", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::Clear);
         }
 
