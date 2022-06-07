@@ -9,7 +9,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return MultiplePointsOutputProcess(Model, settings["Parameters"])
 
-class MultiplePointsOutputProcess(KratosMultiphysics.Process):
+class MultiplePointsOutputProcess(KratosMultiphysics.OutputProcess):
     """This process writes several points to a file
     Internally it holds objects of type "PointOutputProcess"
     Usage:
@@ -18,7 +18,7 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
           (e.g. LinePointsOutputProcess)
     """
     def __init__(self, model, params):
-        KratosMultiphysics.Process.__init__(self)
+        super().__init__()
 
         default_settings = KratosMultiphysics.Parameters('''{
             "help"              : "This process writes several points to a file. Internally it holds objects of type PointOutputProcess",
@@ -82,6 +82,14 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
     def ExecuteBeforeOutputStep(self):
         for proc in self.point_output_processes:
             proc.ExecuteBeforeOutputStep()
+
+    def IsOutputStep(self):
+        # We check only the first process as the interval is the same in all of them
+        return self.point_output_processes[0].IsOutputStep()
+
+    def PrintOutput(self):
+        for proc in self.point_output_processes:
+            proc.PrintOutput()
 
     def ExecuteAfterOutputStep(self):
         for proc in self.point_output_processes:

@@ -141,7 +141,7 @@ public:
         return *this;
     }
 
-    bool operator==(const Point &rOther)
+    bool operator==(const Point &rOther) const
     {
         return std::equal(this->begin(), this->end(), rOther.begin());
     }

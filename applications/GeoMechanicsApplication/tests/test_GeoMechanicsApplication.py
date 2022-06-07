@@ -3,8 +3,6 @@
 import os
 import sys
 
-sys.path.append(os.path.join('..', '..', '..'))
-
 from KratosMultiphysics import *
 from KratosMultiphysics.GeoMechanicsApplication import *
 
@@ -23,8 +21,9 @@ from test_water_pressure import KratosGeoMechanicsWaterPressureTests
 from test_dynamics import KratosGeoMechanicsDynamicsTests
 from test_elements import KratosGeoMechanicsElementTypeTests
 from test_steady_state_groundwater_flow import KratosGeoMechanicsSteadyStateGroundWaterFlowTests
+from test_transient_groundwater_flow import KratosGeoMechanicsTransientGroundWaterFlowTests
 from test_soil_weight import KratosGeoMechanicsSoilWeightTests
-
+from test_curved_beam_elements import KratosGeoMechanicsCurvedBeamElementTests
 
 def AssambleTestSuites(is_team_city):
     ''' Populates the test suites to run.
@@ -54,7 +53,9 @@ def AssambleTestSuites(is_team_city):
         KratosGeoMechanicsBenchmarkSet2,
         KratosGeoMechanicsElementTypeTests,
         KratosGeoMechanicsSteadyStateGroundWaterFlowTests,
-        KratosGeoMechanicsSoilWeightTests
+        KratosGeoMechanicsTransientGroundWaterFlowTests,
+        KratosGeoMechanicsSoilWeightTests,
+        KratosGeoMechanicsCurvedBeamElementTests
         ]
 
     # Create an array with the selected tests

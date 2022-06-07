@@ -305,38 +305,19 @@ public:
     }
 
     ///@}
-    ///@name Inquiry
+    ///@name Spans
     ///@{
 
-    /// Provides the default integration per geometry.
-    IntegrationInfo GetDefaultIntegrationInfo() const override
-    {
-        const SizeType local_space_dimension = this->LocalSpaceDimension();
-
-        std::vector<SizeType> number_of_points_per_span_per_direction(local_space_dimension);
-        std::vector<IntegrationInfo::QuadratureMethod> quadrature_method_per_direction(local_space_dimension);
-        for (IndexType i = 0; i < local_space_dimension; ++i) {
-            SizeType max_p = 0;
-            for (IndexType j = 0; j < NumberOfGeometryParts(); ++j) {
-                max_p = std::max(mpGeometries[j]->PolynomialDegree(i) + 1, max_p);
-            }
-            number_of_points_per_span_per_direction[i] = max_p;
-            quadrature_method_per_direction[i] = IntegrationInfo::QuadratureMethod::GAUSS;
-        }
-
-        return IntegrationInfo(number_of_points_per_span_per_direction, quadrature_method_per_direction);
-    }
-
-    ///@}
-    ///@name Integration Points
-    ///@{
-
-    /* Creates integration points on the master considering all slave intersections.
-     * @return integration points.
+    /* @brief Provides the combined spans of all geometry parts of this geometry
+     *        in local paramater coordinates of the geometry
+     *        according to its direction from LocalDirectionIndex.
+     *
+     * @param resulting vector of span intervals.
+     * @param LocalDirectionIndex of chosen direction, for curves always 0.
      */
-    void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints,
-        IntegrationInfo& rIntegrationInfo) const override
+    virtual void SpansLocalSpace(
+        std::vector<double>& rSpans,
+        IndexType LocalDirectionIndex = 0) const override
     {
         const double model_tolerance = 1e-2;
 
@@ -345,7 +326,7 @@ public:
             std::vector<double> slave_span_intersections_in_master_local_space;
 
             mpGeometries[0]->SpansLocalSpace(master_span_intersections_in_master_local_space);
-            
+
             // Create tessellation for estimation of initial guesses.
             CurveTessellation<PointerVector<TPointType>> curve_tessellation_master;
             curve_tessellation_master.Tessellate(
@@ -387,11 +368,51 @@ public:
                     slave_span_intersections_in_master_local_space.push_back(local_coords_master[0]);
                 }
             }
-            std::vector<double> all_intersections_in_master_local_space;
-            MergeSpans(all_intersections_in_master_local_space, master_span_intersections_in_master_local_space, slave_span_intersections_in_master_local_space);
+
+            MergeSpans(rSpans, master_span_intersections_in_master_local_space, slave_span_intersections_in_master_local_space);
+        }
+    }
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    /// Provides the default integration per geometry.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+
+        std::vector<SizeType> number_of_points_per_span_per_direction(local_space_dimension);
+        std::vector<IntegrationInfo::QuadratureMethod> quadrature_method_per_direction(local_space_dimension);
+        for (IndexType i = 0; i < local_space_dimension; ++i) {
+            SizeType max_p = 0;
+            for (IndexType j = 0; j < NumberOfGeometryParts(); ++j) {
+                max_p = std::max(mpGeometries[j]->PolynomialDegree(i) + 1, max_p);
+            }
+            number_of_points_per_span_per_direction[i] = max_p;
+            quadrature_method_per_direction[i] = IntegrationInfo::QuadratureMethod::GAUSS;
+        }
+
+        return IntegrationInfo(number_of_points_per_span_per_direction, quadrature_method_per_direction);
+    }
+
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /* Creates integration points on the master considering all slave intersections.
+     * @return integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
+    {
+        if (this->Dimension() == 1) {
+            std::vector<double> spans;
+            this->SpansLocalSpace(spans, 0);
 
             IntegrationPointUtilities::CreateIntegrationPoints1D(
-                rIntegrationPoints, all_intersections_in_master_local_space, rIntegrationInfo);
+                rIntegrationPoints, spans, rIntegrationInfo);
         }
     }
 
@@ -502,6 +523,60 @@ public:
             << mpGeometries.size() << " are given." << std::endl;
     }
 
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        IntegrationInfo& rIntegrationInfo) override
+    {
+        const double model_tolerance = 1e-3;
+
+        if (this->Dimension() != 0) {
+            BaseType::CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationInfo);
+        }
+        else {
+            rResultGeometries.resize(1);
+
+            GeometriesArrayType master_quadrature_points(1);
+            mpGeometries[0]->CreateQuadraturePointGeometries(
+                master_quadrature_points,
+                NumberOfShapeFunctionDerivatives,
+                rIntegrationInfo);
+
+            GeometriesArrayType slave_quadrature_points(1);
+            mpGeometries[1]->CreateQuadraturePointGeometries(
+                slave_quadrature_points,
+                NumberOfShapeFunctionDerivatives,
+                rIntegrationInfo);
+
+            KRATOS_DEBUG_ERROR_IF(norm_2(master_quadrature_points(0)->Center() - slave_quadrature_points(0)->Center()) > model_tolerance)
+                << "Difference between master and slave coordinates above model tolerance of " << model_tolerance
+                << ". Location of master: " << master_quadrature_points(0)->Center() << ", location of slave: "
+                << slave_quadrature_points(0)->Center() << ". Distance: "
+                << norm_2(master_quadrature_points(0)->Center() - slave_quadrature_points(0)->Center()) << std::endl;
+
+            rResultGeometries(0) = Kratos::make_shared<CouplingGeometry<PointType>>(
+                master_quadrature_points(0), slave_quadrature_points(0));
+
+            if (mpGeometries.size() > 2) {
+                for (IndexType i = 2; i < mpGeometries.size(); ++i) {
+                    GeometriesArrayType more_slave_quadrature_points(1);
+                    mpGeometries[i]->CreateQuadraturePointGeometries(
+                        more_slave_quadrature_points,
+                        NumberOfShapeFunctionDerivatives,
+                        rIntegrationInfo);
+
+                    KRATOS_DEBUG_ERROR_IF(norm_2(master_quadrature_points(0)->Center() - more_slave_quadrature_points(0)->Center()) > model_tolerance)
+                        << "Difference between master and slave coordinates above model tolerance of " << model_tolerance
+                        << ". Location of master: " << master_quadrature_points(0)->Center() << ", location of slave: "
+                        << more_slave_quadrature_points(0)->Center() << ". Distance: "
+                        << norm_2(master_quadrature_points(0)->Center() - more_slave_quadrature_points(0)->Center()) << std::endl;
+
+                    rResultGeometries(0)->AddGeometryPart(more_slave_quadrature_points(0));
+                }
+            }
+        }
+    }
+
     ///@}
     ///@name Span Utilities
     ///@{
@@ -541,6 +616,20 @@ public:
         auto nb_unique = std::distance(std::begin(rResultSpans), last);
 
         rResultSpans.resize(nb_unique);
+    }
+
+    ///@}
+    ///@name Geometry Family
+    ///@{
+
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Composite;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::Kratos_Coupling_Geometry;
     }
 
     ///@}

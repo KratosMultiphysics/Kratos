@@ -607,7 +607,7 @@ protected:
      * It returns theintegration method considered
      */
 
-    IntegrationMethod GetIntegrationMethod() override
+    IntegrationMethod GetIntegrationMethod() const override
     {
         // Setting the auxiliar integration points
         const IndexType integration_order = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;

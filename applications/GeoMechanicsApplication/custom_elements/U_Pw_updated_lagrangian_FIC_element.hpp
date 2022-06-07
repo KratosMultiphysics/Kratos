@@ -24,7 +24,7 @@
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
-#include "custom_utilities/comparison_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 

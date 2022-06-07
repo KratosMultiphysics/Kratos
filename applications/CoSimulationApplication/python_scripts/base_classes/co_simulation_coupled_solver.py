@@ -124,11 +124,13 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             self.settings["coupling_operations"],
             self.solver_wrappers,
             self.process_info,
+            self.data_communicator,
             self.echo_level)
 
         ### Creating the data transfer operators
         self.data_transfer_operators_dict = factories_helper.CreateDataTransferOperators(
             self.settings["data_transfer_operators"],
+            self.data_communicator,
             self.echo_level)
 
         for predictor in self.predictors_list:

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ THE SOFTWARE.
  * \brief  Distributed CPR preconditioner.
  */
 
+#include <cassert>
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/util.hpp>
 #include <amgcl/mpi/inner_product.hpp>
@@ -53,6 +54,7 @@ class cpr {
         typedef typename PPrecond::backend_type backend_type;
 
         typedef typename backend_type::value_type value_type;
+        typedef typename math::scalar_of<value_type>::type scalar_type;
         typedef typename backend_type::matrix     bmatrix;
         typedef typename backend_type::vector     vector;
         typedef typename backend_type::params     backend_params;
@@ -112,13 +114,16 @@ class cpr {
 
         template <class Vec1, class Vec2>
         void apply(const Vec1 &rhs, Vec2 &&x) const {
+            const auto one = math::identity<scalar_type>();
+            const auto zero = math::zero<scalar_type>();
+
             S->apply(rhs, x);
             backend::residual(rhs, S->system_matrix(), x, *rs);
 
-            backend::spmv(1, *Fpp, *rs, 0, *rp);
+            backend::spmv(one, *Fpp, *rs, zero, *rp);
             P->apply(*rp, *xp);
 
-            backend::spmv(1, *Scatter, *xp, 1, x);
+            backend::spmv(one, *Scatter, *xp, one, x);
         }
 
         std::shared_ptr<matrix> system_matrix_ptr() const {

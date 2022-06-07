@@ -62,49 +62,53 @@ public:
     /// this function will be executed at every time step BEFORE performing the solve phase
     void ExecuteInitializeSolutionStep() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        if (mrModelPart.NumberOfNodes() > 0) {
+            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+            const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
+            const double deltaH = mpTable->GetValue(Time);
 
-        const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
-        double deltaH = mpTable->GetValue(Time);
-
-        const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
-
-        if (nNodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
-
-            Vector3 Coordinates;
             Vector3 direction=ZeroVector(3);
             direction[mGravityDirection] = 1.0;
 
-            #pragma omp parallel for private(Coordinates)
-            for (int i = 0; i<nNodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
+            if (mIsSeepage) {
+                block_for_each(mrModelPart.Nodes(), [&var, &direction, &deltaH, this](Node<3>& rNode) {
+                    double distance = 0.0;
+                    double d = 0.0;
+                    for (unsigned int j=0; j < rNode.Coordinates().size(); ++j) {
+                        distance += mNormalVector[j]*rNode.Coordinates()[j];
+                        d += mNormalVector[j]*direction[j];
+                    }
+                    distance = -(distance - mEqRHS) / d;
+                    distance += deltaH;
+                    const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance ;
 
-                noalias(Coordinates) = it->Coordinates();
+                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0) {
+                        rNode.FastGetSolutionStepValue(var) = pressure;
+                        if (mIsFixed) rNode.Fix(var);
+                    } else {
+                        rNode.Free(var);
+                    }
+                });
+            } else {
+                block_for_each(mrModelPart.Nodes(), [&var, &direction, &deltaH, this](Node<3>& rNode) {
+                    double distance = 0.0;
+                    double d = 0.0;
+                    for (unsigned int j=0; j < rNode.Coordinates().size(); ++j) {
+                        distance += mNormalVector[j]*rNode.Coordinates()[j];
+                        d += mNormalVector[j]*direction[j];
+                    }
+                    distance = -(distance - mEqRHS) / d;
+                    distance += deltaH;
+                    const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance ;
 
-                double distance = 0.0;
-                double d = 0.0;
-                for (unsigned int j=0; j < Coordinates.size(); ++j)
-                {
-                    distance += mNormalVector[j]*Coordinates[j];
-                    d += mNormalVector[j]*direction[j];
-                }
-                distance = -(distance - mEqRHS) / d;
-                distance += deltaH;
-                const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance ;
-
-                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff)
-                {
-                    it->FastGetSolutionStepValue(var) = pressure;
-                }
-                else
-                {
-                    it->FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                }
+                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
+                        rNode.FastGetSolutionStepValue(var) = pressure;
+                    } else {
+                        rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
+                    }
+                });
             }
         }
 

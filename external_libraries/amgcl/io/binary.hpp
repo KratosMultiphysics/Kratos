@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -96,7 +96,7 @@ void read_crs(
     f.seekg(ptr_beg + row_beg * sizeof(Ptr));
     precondition(read(f, ptr), "File I/O error");
 
-    size_t nnz;
+    Ptr nnz;
     f.seekg(ptr_beg + n * sizeof(Ptr));
     precondition(read(f, nnz), "File I/O error");
 

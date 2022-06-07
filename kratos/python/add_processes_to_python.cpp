@@ -23,11 +23,11 @@
 #include "processes/output_process.h"
 #include "python/add_processes_to_python.h"
 #include "processes/calculate_embedded_nodal_variable_from_skin_process.h"
+#include "processes/edge_based_gradient_recovery_process.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 #include "processes/find_nodal_h_process.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "processes/find_conditions_neighbours_process.h"
-#include "processes/find_elements_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_for_entities_process.h"
 #include "processes/find_global_nodal_elemental_neighbours_process.h"
@@ -39,8 +39,6 @@
 #include "processes/calculate_signed_distance_to_3d_skin_process.h"
 #include "processes/calculate_embedded_signed_distance_to_3d_skin_process.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
-#include "processes/translation_operation.h"
-#include "processes/rotation_operation.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/tetrahedral_mesh_orientation_check.h"
 #include "processes/variational_distance_calculation_process.h"
@@ -68,6 +66,9 @@
 #include "processes/from_json_check_result_process.h"
 #include "processes/set_initial_state_process.h"
 #include "processes/split_internal_interfaces_process.h"
+#include "processes/parallel_distance_calculation_process.h"
+#include "processes/generic_find_elements_neighbours_process.h"
+
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -213,11 +214,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ClearNeighbours",&FindConditionsNeighboursProcess::ClearNeighbours)
     ;
 
-    py::class_<FindElementalNeighboursProcess, FindElementalNeighboursProcess::Pointer, Process>(m,"FindElementalNeighboursProcess")
-            .def(py::init<ModelPart&, int, unsigned int>())
-    .def("ClearNeighbours",&FindElementalNeighboursProcess::ClearNeighbours)
-    ;
-
     py::class_<CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>, CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"CalculateNodalAreaProcess")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, std::size_t>())
@@ -264,14 +260,6 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, ModelPart&>())
     ;
 
-    py::class_<TranslationOperation, TranslationOperation::Pointer, Process>(m,"TranslationOperation")
-            .def(py::init<ModelPart&, DenseVector<int> ,DenseVector<int> ,unsigned int>())
-    ;
-
-    py::class_<RotationOperation, RotationOperation::Pointer, Process>(m,"RotationOperation")
-            .def(py::init<ModelPart&, DenseVector<int> ,DenseVector<int> ,unsigned int>())
-    ;
-
     py::class_<StructuredMeshGeneratorProcess, StructuredMeshGeneratorProcess::Pointer, Process>(m,"StructuredMeshGeneratorProcess")
             .def(py::init<const Geometry< Node<3> >&, ModelPart&, Parameters&>()) //TODO: VERIFY IF THE NEXT IS NEEDED: [with_custodian_and_ward<1, 2>()])
     ;
@@ -295,6 +283,8 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string>())
+            .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string, double>())
+            .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string, double, double>())
             .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
     ;
     py::class_<VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"VariationalDistanceCalculationProcess3D")
@@ -302,7 +292,21 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string>())
+            .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string, double>())
+            .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string, double, double>())
             .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
+    ;
+
+    py::class_<ParallelDistanceCalculationProcess<2>, ParallelDistanceCalculationProcess<2>::Pointer, Process>(m,"ParallelDistanceCalculationProcess2D")
+        .def(py::init<ModelPart&, Parameters>())
+        .def(py::init<Model&, Parameters>())
+        .def("FindMaximumEdgeSize", &ParallelDistanceCalculationProcess<2>::FindMaximumEdgeSize)
+    ;
+
+    py::class_<ParallelDistanceCalculationProcess<3>, ParallelDistanceCalculationProcess<3>::Pointer, Process>(m,"ParallelDistanceCalculationProcess3D")
+        .def(py::init<ModelPart&, Parameters>())
+        .def(py::init<Model&, Parameters>())
+        .def("FindMaximumEdgeSize", &ParallelDistanceCalculationProcess<3>::FindMaximumEdgeSize)
     ;
 
     py::class_<LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess2D")
@@ -399,6 +403,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<2>, CalculateDiscontinuousDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, const Flags>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<2>)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)
@@ -409,6 +414,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<3>, CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, const Flags>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinArray<3>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<3>)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)
@@ -420,6 +426,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateDistanceToSkinProcess<2>, CalculateDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDistanceToSkinProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
@@ -427,6 +434,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateDistanceToSkinProcess<3>, CalculateDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDistanceToSkinProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
@@ -694,6 +702,21 @@ void  AddProcessesToPython(pybind11::module& m)
     from_json_check_result_process_interface.attr("CORRECT_RESULT")                 = &FromJSONCheckResultProcess::CORRECT_RESULT;
     from_json_check_result_process_interface.attr("HISTORICAL_VALUE")               = &FromJSONCheckResultProcess::HISTORICAL_VALUE;
     from_json_check_result_process_interface.attr("CHECK_ONLY_LOCAL_ENTITIES")      = &FromJSONCheckResultProcess::CHECK_ONLY_LOCAL_ENTITIES;
+
+    using ScalarEdgeBasedGradientRecoveryProcessType = EdgeBasedGradientRecoveryProcess<double,SparseSpaceType,LocalSpaceType,LinearSolverType>;
+    py::class_<ScalarEdgeBasedGradientRecoveryProcessType, ScalarEdgeBasedGradientRecoveryProcessType::Pointer, Process>(m, "EdgeBasedGradientRecoveryProcessScalar")
+        .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
+    ;
+
+    using ArrayEdgeBasedGradientRecoveryProcessType = EdgeBasedGradientRecoveryProcess<array_1d<double,3>,SparseSpaceType,LocalSpaceType,LinearSolverType>;
+    py::class_<ArrayEdgeBasedGradientRecoveryProcessType, ArrayEdgeBasedGradientRecoveryProcessType::Pointer, Process>(m, "EdgeBasedGradientRecoveryProcessArray")
+        .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
+    ;
+
+    py::class_<GenericFindElementalNeighboursProcess, GenericFindElementalNeighboursProcess::Pointer, Process> (m, "GenericFindElementalNeighboursProcess")
+    .def(py::init<ModelPart&>())
+    .def("HasNeighboursInFaces", &GenericFindElementalNeighboursProcess::HasNeighboursInFaces)
+    ;
 }
 
 }  // namespace Python.

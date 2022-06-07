@@ -14,17 +14,11 @@
 #define  KRATOS_GEO_STRUCTURAL_BASE_ELEMENT_H_INCLUDED
 
 // Project includes
-#include "containers/array_1d.h"
-#include "includes/define.h"
 #include "includes/element.h"
-#include "includes/serializer.h"
-#include "geometries/geometry.h"
-#include "utilities/math_utils.h"
-#include "includes/constitutive_law.h"
+#include "includes/define.h"
+#include "includes/variables.h"
 
 // Application includes
-#include "custom_utilities/element_utilities.hpp"
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -118,6 +112,10 @@ public:
 
 protected:
 
+    static constexpr SizeType N_DOF_NODE = (TDim == 2 ? 3 : 6 );
+    static constexpr SizeType N_DOF_ELEMENT = N_DOF_NODE * TNumNodes;
+    static constexpr SizeType VoigtSize = (TDim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRESS);
+
     /// Member Variables
     struct ElementVariables
     {
@@ -128,30 +126,30 @@ protected:
         ///Nodal variables
         array_1d<double,TNumNodes*TDim> DisplacementVector;
         array_1d<double,TNumNodes*TDim> VelocityVector;
-        array_1d<double,TNumNodes*TDim> VolumeAcceleration;
+        array_1d<double,TNumNodes*TDim> NodalVolumeAcceleration;
         array_1d<double,TNumNodes*TDim> UVector;
 
         Vector DofValuesVector;
 
         ///General elemental variables
-        Matrix CrossDirection;
+        Matrix NodalCrossDirection;
 
         ///Variables computed at each GP
         Matrix B;
-        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu;
+        BoundedMatrix<double,TDim, TNumNodes*TDim> NuTot;
 
         Matrix TransformationMatrix;
-        array_1d<double, TDim> BodyAcceleration;
+        array_1d<double, TDim> GaussVolumeAcceleration;
         double IntegrationCoefficient;
         ///Constitutive Law parameters
         Vector StrainVector;
         Vector StressVector;
         Matrix ConstitutiveMatrix;
-        Vector Np;
-        Matrix GradNpT;
+        Vector Nu;
+        Matrix GradNe;
         Matrix F;
         double detF;
-        double thickness;
+        double HalfThickness;
 
         ///Auxiliary Variables
         Matrix UVoigtMatrix;
@@ -161,24 +159,17 @@ protected:
     GeometryData::IntegrationMethod mThisIntegrationMethod;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-    std::vector<std::vector<double>> mStressVector;
+    std::vector<Vector> mStressVector;
 
-    virtual SizeType GetIntegrationPointsNumber() const;
-
-    virtual SizeType GetNumberOfDOF() const;
-    virtual SizeType GetVoigtSize() const;
+    virtual SizeType GetTotalNumberIntegrationPoints() const;
+    virtual SizeType GetCrossNumberIntegrationPoints() const;
+    virtual SizeType GetAlongNumberIntegrationPoints() const;
 
     virtual void InitializeElementVariables( ElementVariables& rVariables,
                                              ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                              const GeometryType& Geom,
                                              const PropertiesType& Prop,
-                                             const ProcessInfo& CurrentProcessInfo ) const;
-
-
-    virtual void UpdateElementalVariableStressVector(ElementVariables &rVariables, unsigned int PointNumber);
-    virtual void UpdateElementalVariableStressVector(Vector &StressVector, unsigned int PointNumber);
-    virtual void UpdateStressVector(const ElementVariables &rVariables, unsigned int PointNumber);
-    virtual void UpdateStressVector(const Vector &StressVector, unsigned int PointNumber);
+                                             const ProcessInfo& rCurrentProcessInfo ) const;
 
     virtual void GetNodalDofValuesVector(Vector &rNodalVariableVector,
                                          const GeometryType &Geom,
@@ -187,16 +178,18 @@ protected:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     virtual void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix,
-                                           const ProcessInfo& CurrentProcessInfo );
+                                           const ProcessInfo& rCurrentProcessInfo );
 
     virtual void CalculateAll( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               const ProcessInfo& CurrentProcessInfo );
+                               const ProcessInfo& rCurrentProcessInfo,
+                               const bool CalculateStiffnessMatrixFlag,
+                               const bool CalculateResidualVectorFlag );
 
     virtual void CalculateRHS( VectorType& rRightHandSideVector,
-                               const ProcessInfo& CurrentProcessInfo );
+                               const ProcessInfo& rCurrentProcessInfo );
 
-    virtual void CalculateCrossDirection( Matrix &CrossDirection ) const;
+    virtual void CalculateNodalCrossDirection( Matrix &NodalCrossDirection ) const;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
