@@ -373,9 +373,9 @@ public:
 	public:
         using iterator_category = std::forward_iterator_tag;
         using difference_type   = std::ptrdiff_t;
-        using value_type        = GraphType::value_type;
-        using pointer           = GraphType::value_type*;
-        using reference         = GraphType::value_type&;
+        using value_type        = typename GraphType::value_type;
+        using pointer           = typename GraphType::value_type*;
+        using reference         = typename GraphType::value_type&;
 
 		const_iterator_adaptor(const_row_iterator it) :map_iterator(it),mbegin(it) {}
 		const_iterator_adaptor(const const_iterator_adaptor& it)
