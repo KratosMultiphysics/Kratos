@@ -96,12 +96,11 @@ class TestDryDamBreakBenchmark(ShallowWaterTestFactory):
 class TestPlanarSurfaceInParabolaBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "planar_surface_in_parabola_benchmark"
-    need_scipy = True
 
 class TestSolitaryWaveBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "solitary_wave_benchmark"
-    need_scipy = True
+    need_numpy = True
     need_mpmath = True
 
 class TestMeshMovingStrategy(ShallowWaterTestFactory):
