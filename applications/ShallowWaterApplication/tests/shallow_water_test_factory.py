@@ -75,11 +75,13 @@ class TestMacDonaldShockBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "mac_donald_shock_benchmark"
     need_scipy = True
+    need_numpy = True
 
 class TestMacDonaldTransitionBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "mac_donald_transition_benchmark"
     need_scipy = True
+    need_numpy = True
 
 class TestDamBreakBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
@@ -105,4 +107,3 @@ class TestSolitaryWaveBenchmark(ShallowWaterTestFactory):
 class TestMeshMovingStrategy(ShallowWaterTestFactory):
     execution_directory = "nightly_tests"
     execution_file = "mesh_moving_strategy"
-    need_numpy = True
