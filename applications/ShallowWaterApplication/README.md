@@ -15,8 +15,7 @@ This is a research application that provides a set of tools for oceanographic an
 This application does not have other application dependencies at compile time.
 The following Python libraries may be required:
 - `scipy` is used by the wave generator and by the benchmarks
-- `numpy` is used to generate solitary waves and by the benchmarks
-- `mpmath` is used to generate solitary waves
+- `numpy` is used to generate solitary waves and analytical solutions by the benchmarks
 
 If the coupling with a Navier-Stokes is required, add the following applications to compilation:
 - [HDF5Application](../HDF5Application/README.md)
