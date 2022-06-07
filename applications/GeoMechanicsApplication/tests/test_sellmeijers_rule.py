@@ -192,5 +192,5 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
         critical_head_found, length = self.critical_head_loop(file_path, kappa, d70, Hc, 'linear')
         self.results = {"value_name": name, "test_result_h": Hc, "kratos_results_h": critical_head_found,
                         "equivalent_software_h": Hn, "kratos_results_l": length, "equivalent_software_l": length_n}
-        self.assertEqual(Hn, critical_head_found, 1e-05)
-        self.assertEqual(length_n, length, 1e-05)
+        self.assertTrue(abs(Hn - critical_head_found) < 1e-05)
+        self.assertEqual(abs(length_n - length) < 1e-05)
