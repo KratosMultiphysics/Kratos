@@ -72,13 +72,13 @@ private:
         ///@name Type Definitions
         ///@{
 
-        using value_iterator = nlohmann::detail::iter_impl<nlohmann::json>; /// Iterator definition
-        
         using iterator_category = std::forward_iterator_tag;
         using difference_type   = std::ptrdiff_t;
         using value_type        = Parameters;
         using pointer           = Parameters*;
         using reference         = Parameters&;
+        
+        using value_iterator = nlohmann::detail::iter_impl<nlohmann::json>; /// Iterator definition
 
         ///@}
         ///@name Member Variables
@@ -183,13 +183,13 @@ private:
         ///@name Type Definitions
         ///@{
 
-        using value_iterator = nlohmann::detail::iter_impl<const nlohmann::json>; /// Iterator definition
-
         using iterator_category = std::forward_iterator_tag;
         using difference_type   = std::ptrdiff_t;
         using value_type        = Parameters;
         using pointer           = Parameters*;
         using reference         = Parameters&;
+
+        using value_iterator = nlohmann::detail::iter_impl<const nlohmann::json>; /// Iterator definition
 
         ///@}
         ///@name Member Variables
