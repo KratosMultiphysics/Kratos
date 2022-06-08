@@ -42,8 +42,7 @@ class ConvergenceOutputProcess(KM.Process):
         else:
             self.integrate_over_all_the_domain = False
 
-        self.file = self._InitializeOutputFile()
-        self.file.flush() # Since this process will reuse the existing files, we need to ensure the file construction is finished. Otherwise problems may arise if the first analysis didn't finish.
+        self._InitializeOutputFile()
 
 
     def ExecuteInitialize(self):
@@ -66,11 +65,6 @@ class ConvergenceOutputProcess(KM.Process):
     def PrintOutput(self):
         """Write the values into the file."""
         self._WriteAverageError()
-
-
-    def ExecuteFinalize(self):
-        """Close the file."""
-        self.file.close()
 
 
     def Check(self):
@@ -96,12 +90,25 @@ class ConvergenceOutputProcess(KM.Process):
 
 
     def _InitializeOutputFile(self):
-        path = Path(self.settings["file_name"].GetString()).with_suffix('.dat')
-        file = open(path, "a+")
-        if path.stat().st_size == 0:
-            header = self._GetHeader()
-            file.write(header)
-        return file
+        file_path = Path(self.settings["file_name"].GetString()).with_suffix('.dat')
+        file_path.touch(exist_ok=True)
+        header = self._GetHeader()
+        if file_path.stat().st_size == 0:
+            with open(file_path, 'w') as file:
+                file.write(header)
+        else:
+            existing_header = ''
+            with open(file_path, 'r') as file:
+                for i in range(2):
+                    existing_header += file.readline()
+            if existing_header != header:
+                msg = self.__class__.__name__ + ": "
+                msg += "The specified fields mismatch\n"
+                msg += "Existing header:\n"
+                msg += existing_header
+                msg += "Specified header:\n"
+                msg += header
+                raise Exception(msg)
 
 
     def _GetHeader(self):
@@ -140,5 +147,6 @@ class ConvergenceOutputProcess(KM.Process):
             data += '\t{}'.format(value)
         data += '\n'
 
-        self.file.write(data)
-        self.file.flush()
+        file_path = Path(self.settings["file_name"].GetString()).with_suffix('.dat')
+        with open(file_path, 'a') as file:
+            file.write(data)
