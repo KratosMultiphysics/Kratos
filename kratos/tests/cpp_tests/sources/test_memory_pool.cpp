@@ -97,7 +97,7 @@ namespace Kratos {
 			}
 		}
 
-		KRATOS_TEST_CASE_IN_SUITE(FixedSizeMemoryPoolStressTest, KratosCoreStressSuite)
+		KRATOS_DISABLED_TEST_CASE_IN_SUITE(FixedSizeMemoryPoolStressTest, KratosCoreStressSuite)
 		{
 			std::size_t block_size = 64;
 			std::size_t default_chunk_size = 128 ;// 1M
@@ -183,7 +183,7 @@ namespace{
 			// std::cout << MemoryPool::Info() << std::endl;
 		}
 
-		KRATOS_TEST_CASE_IN_SUITE(NewDeleteComparison, KratosCoreStressSuite)
+		KRATOS_DISABLED_TEST_CASE_IN_SUITE(NewDeleteComparison, KratosCoreStressSuite)
 		{
 			auto repeat_number = 256;
 			Timer::Start("Pool");
@@ -237,7 +237,7 @@ namespace{
 
 		}
 
-		KRATOS_TEST_CASE_IN_SUITE(ChunkNewDeleteComparison, KratosCoreStressSuite)
+		KRATOS_DISABLED_TEST_CASE_IN_SUITE(ChunkNewDeleteComparison, KratosCoreStressSuite)
 		{
 			auto repeat_number = 128;
 			std::size_t block_size_in_bytes = 230;
