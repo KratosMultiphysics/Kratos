@@ -69,6 +69,7 @@ private:
      */
     class KRATOS_API(KRATOS_CORE) iterator_adaptor
     {
+    public:
         ///@name Type Definitions
         ///@{
 
@@ -77,7 +78,7 @@ private:
         using value_type        = Parameters;
         using pointer           = Parameters*;
         using reference         = Parameters&;
-        
+
         using value_iterator = nlohmann::detail::iter_impl<nlohmann::json>; /// Iterator definition
 
         ///@}
@@ -89,7 +90,6 @@ private:
         std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
 
         ///@}
-    public:
         ///@name Life Cycle
         ///@{
 
@@ -180,6 +180,7 @@ private:
      */
     class KRATOS_API(KRATOS_CORE) const_iterator_adaptor
     {
+    public:
         ///@name Type Definitions
         ///@{
 
@@ -200,7 +201,6 @@ private:
         std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
 
         ///@}
-    public:
         ///@name Life Cycle
         ///@{
 
