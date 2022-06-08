@@ -54,7 +54,7 @@ class ApplyAbsorbingBoundaryProcess(KM.Process):
 
         wave = WaveTheoryFactory(self.boundary_part, self.settings["wave_specifications"])
         absorbing_distance = wave.wavelength * self.settings["relative_distance"].GetDouble()
-        dissipation_factor = wave.frequency * self.settings["relative_damping"].GetDouble()
+        dissipation_factor = wave.horizontal_velocity * self.settings["relative_damping"].GetDouble()
 
         self.model_part.ProcessInfo.SetValue(SW.ABSORBING_DISTANCE, absorbing_distance)
         self.model_part.ProcessInfo.SetValue(SW.DISSIPATION, dissipation_factor)
