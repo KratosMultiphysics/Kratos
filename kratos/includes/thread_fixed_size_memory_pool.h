@@ -110,7 +110,6 @@ namespace Kratos
 			if (!mAvailableChunks.try_dequeue(mpCurrentChunk))
 				AddChunk();
 
-		// lock();
 
 		if (mpCurrentChunk->IsReleased())
 			mpCurrentChunk->Initialize();
@@ -118,10 +117,7 @@ namespace Kratos
 		p_result = mpCurrentChunk->Allocate();
 		KRATOS_DEBUG_CHECK_NOT_EQUAL(p_result, nullptr);
 
-		// unlock();
 
-		// KRATOS_DEBUG_CHECK_EQUAL((std::size_t(p_result) - std::size_t(r_available_chunk.GetData())) % r_available_chunk.GetBlockSize(mBlockSizeInBytes), 0);
-		//   std::cout << "Creating pointer " << p_result << " in " << r_available_chunk << std::endl;
 		return p_result;
 	}
 
@@ -131,39 +127,24 @@ namespace Kratos
 			  return true;
 		  }
 
-		//   lock();
-		//   if (!mAvailableChunks.empty()) {
-		// 	  auto i_chunk = mAvailableChunks.begin();
-			//   if ((*i_chunk)->Has(pPointerToRelease)) {
-			// 	//   std::cout << "deleting pointer " << pPointerToRelease << " from " << **i_chunk << std::endl;
-			// 	  DeallocateFromAvailableChunk(pPointerToRelease, i_chunk);
-			// 	  unlock();
-			// 	  return true;
-			//   }
-		//   }
 
 			  if (mpCurrentChunk->Has(pPointerToRelease)) {
-				//   std::cout << "deleting pointer " << pPointerToRelease << " from " << **i_chunk << std::endl;
 				  DeallocateFromAvailableChunk(pPointerToRelease, mpCurrentChunk);
-				//   unlock();
 				  return true;
 			  }
 
 		  for (auto i_chunk = mChunks.begin(); i_chunk != mChunks.end(); i_chunk++)
 		  {
 			  if (i_chunk->Has(pPointerToRelease)) {
-				//   std::cout << "deleting pointer " << pPointerToRelease << " from " << *i_chunk << std::endl;
 				  if (i_chunk->IsFull())
 					DeallocateFromFullChunk(pPointerToRelease, &(*i_chunk));
 				  else {
 					  DeallocateFromAvailableChunk(pPointerToRelease, &(*i_chunk));
 				  }
-				//   unlock();
 				  return true;
 			  }
 		  }
 
-		//   unlock();
 
 		  return false;
 	  }
@@ -173,8 +154,6 @@ namespace Kratos
 		  mNumberOfReleasedChunks += mChunks.size();
 		  Chunk* p_dummy;
 		  while(mAvailableChunks.try_dequeue(p_dummy));
-		//   for (auto i_chunk = mChunks.begin(); i_chunk != mChunks.end(); i_chunk++)
-		// 	  mAvailableChunks.enqueue(&(*i_chunk));
 	  }
 
 	  SizeType ChunkSize() const {
