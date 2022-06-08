@@ -18,6 +18,9 @@
 // System includes
 #include <atomic>
 
+// External includes
+
+// Project includes
 #include "includes/lock_object.h"
 #include "utilities/openmp_utils.h"
 
