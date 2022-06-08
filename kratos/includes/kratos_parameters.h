@@ -82,14 +82,6 @@ private:
         using value_iterator = nlohmann::detail::iter_impl<nlohmann::json>; /// Iterator definition
 
         ///@}
-        ///@name Member Variables
-        ///@{
-
-        std::size_t mDistance = 0;                       /// The iterator distance
-        nlohmann::json& mrValue;                         /// The original container
-        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
-
-        ///@}
         ///@name Life Cycle
         ///@{
 
@@ -170,6 +162,16 @@ private:
         const std::string name();
 
         ///@}
+
+    private:
+        ///@name Member Variables
+        ///@{
+
+        std::size_t mDistance = 0;                       /// The iterator distance
+        nlohmann::json& mrValue;                         /// The original container
+        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
+
+        ///@}
     };
 
     /**
@@ -191,14 +193,6 @@ private:
         using reference         = const Parameters&;
 
         using value_iterator = nlohmann::detail::iter_impl<const nlohmann::json>; /// Iterator definition
-
-        ///@}
-        ///@name Member Variables
-        ///@{
-
-        std::size_t mDistance = 0;                       /// The iterator distance
-        nlohmann::json& mrValue;                         /// The original container
-        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
 
         ///@}
         ///@name Life Cycle
@@ -280,6 +274,15 @@ private:
          * @return The key (name) of the Parameter iterator
          */
         const std::string name();
+
+        ///@}
+    private:
+        ///@name Member Variables
+        ///@{
+
+        std::size_t mDistance = 0;                       /// The iterator distance
+        nlohmann::json& mrValue;                         /// The original container
+        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
 
         ///@}
     };
