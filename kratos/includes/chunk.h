@@ -15,6 +15,7 @@
 #if !defined(KRATOS_CHUNK_H_INCLUDED )
 #define  KRATOS_CHUNK_H_INCLUDED
 
+// System includes
 #include <atomic>
 
 #include "includes/lock_object.h"
