@@ -140,8 +140,9 @@ void Timer::Stop(std::string const& rFullIntervalName)
     std::vector<std::string> all_interval_names;
     std::string token;
     std::stringstream ss(rFullIntervalName);
+    auto it_begin = all_interval_names.begin();
     while (getline(ss, token, '/')){
-        all_interval_names.push_back(token);
+        it_begin = all_interval_names.insert(it_begin, token);
     }
     for (auto& interval_name : all_interval_names) {
         StopInterval(interval_name);
