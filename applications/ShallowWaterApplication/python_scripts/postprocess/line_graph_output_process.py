@@ -196,7 +196,7 @@ class LineGraphOutputProcess(KM.OutputProcess):
             start = "'NOT FOUND'"
             end = "'NOT FOUND'"
         time = self.model_part.ProcessInfo[KM.TIME]
-        header = "# Results for '{}s' over line {}-{} at time {}\n# ".format(self.entity_type, start, end, time)
+        header = "# Results for '{}s' over line {}-{} at time {}\n#".format(self.entity_type, start, end, time)
         coordinates = ["X", "Y", "Z"]
         for c in coordinates:
             header += c + "\t\t"

@@ -269,10 +269,7 @@ double ComputeVelocityMagnitude(
 template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement)
 {
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+    ElementalData<NumNodes, Dim> data{rElement.GetGeometry()};
 
     data.potentials = GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
 
@@ -282,10 +279,7 @@ array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement)
 template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocityUpperWakeElement(const Element& rElement)
 {
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+    ElementalData<NumNodes, Dim> data{rElement.GetGeometry()};
 
     const auto& r_distances = GetWakeDistances<Dim,NumNodes>(rElement);
 
@@ -297,10 +291,7 @@ array_1d<double, Dim> ComputeVelocityUpperWakeElement(const Element& rElement)
 template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocityLowerWakeElement(const Element& rElement)
 {
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+    ElementalData<NumNodes, Dim> data{rElement.GetGeometry()};
 
     const auto& r_distances = GetWakeDistances<Dim,NumNodes>(rElement);
 
@@ -1024,10 +1015,9 @@ void AddKuttaConditionPenaltyTerm(const Element& rElement,
 {
     const int wake = rElement.GetValue(WAKE);
 
-    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{rElement.GetGeometry()};
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
     data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
 
     const double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
@@ -1073,10 +1063,9 @@ void AddKuttaConditionPenaltyPerturbationLHS(const Element& rElement,
 {
     const int wake = rElement.GetValue(WAKE);
 
-    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{rElement.GetGeometry()};
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
     data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
 
     const double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
@@ -1118,11 +1107,10 @@ void AddKuttaConditionPenaltyPerturbationRHS(const Element& rElement,
     const int wake = rElement.GetValue(WAKE);
     const double penalty = rCurrentProcessInfo[PENALTY_COEFFICIENT];
 
-    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{rElement.GetGeometry()};
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
 
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
     data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
 
     const double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
@@ -1194,10 +1182,10 @@ void AddPotentialGradientStabilizationTerm(
                     const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
                     const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
                     Vector detJ0;
-                    PotentialFlowUtilities::ElementalData<NumNodes,Dim> neighbour_data;
-
-                    GeometryUtils::CalculateGeometryData(r_geometry, neighbour_data.DN_DX, neighbour_data.N, neighbour_data.vol);
+                    
+                    PotentialFlowUtilities::ElementalData<NumNodes,Dim> neighbour_data{r_geometry};
                     neighbour_data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(r_elem);
+
                     r_geometry.DeterminantOfJacobian(detJ0, r_integration_method);
 
                     const int is_neighbour_wake = r_elem.GetValue(WAKE);
@@ -1246,8 +1234,7 @@ void AddPotentialGradientStabilizationTerm(
     }
     averaged_nodal_gradient = averaged_nodal_gradient/number_of_positive_nodes;
 
-    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{rElement.GetGeometry()};
 
     auto stabilization_term_nodal_gradient = data.vol*prod(data.DN_DX, averaged_nodal_gradient);
     auto stabilization_term_potential = data.vol*prod(data.DN_DX,trans(data.DN_DX));

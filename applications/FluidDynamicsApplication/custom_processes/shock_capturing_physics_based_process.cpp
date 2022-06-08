@@ -34,7 +34,7 @@ namespace Kratos
     {
         Check();
         ExecuteInitialize();
-        ExecuteFinalizeSolutionStep();
+        ExecuteInitializeSolutionStep();
     }
 
     void ShockCapturingPhysicsBasedProcess::ExecuteInitialize()
@@ -73,7 +73,7 @@ namespace Kratos
         nodal_area_process.Execute();
     }
 
-    void ShockCapturingPhysicsBasedProcess::ExecuteFinalizeSolutionStep()
+    void ShockCapturingPhysicsBasedProcess::ExecuteInitializeSolutionStep()
     {
         CalculatePhysicsBasedShockCapturing();
     }

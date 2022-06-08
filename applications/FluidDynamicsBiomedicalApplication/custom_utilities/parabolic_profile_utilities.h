@@ -70,6 +70,8 @@ public:
     ///@name Operations
     ///@{
 
+    static double CalculateInletArea(const ModelPart& rModelPart);
+
     static void CalculateWallParallelDistance(
         ModelPart& rWallModelPart,
         ModelPart& rFluidModelPart,
@@ -77,11 +79,13 @@ public:
 
     static void ImposeParabolicInlet(
         ModelPart &rModelPart,
-        const double rMaxParabolaValue);
+        const double MaxParabolaValue,
+        const double MaxValueFactor = 1.0);
 
     static void ImposeParabolicInlet(
         ModelPart &rModelPart,
-        const GenericFunctionUtility::Pointer rMaxParabolaValue);
+        const GenericFunctionUtility::Pointer rMaxParabolaValue,
+        const double MaxValueFactor = 1.0);
 
     static void FreeParabolicInlet(ModelPart& rModelPart);
 
@@ -93,7 +97,8 @@ private:
     template<class TInputType>
     static void ImposeParabolicProfile(
         ModelPart &rModelPart,
-        const TInputType& rMaxParabolaValue);
+        const TInputType& rMaxParabolaValue,
+        const double MaxValueFactor);
 
     template<class TInputType>
     static double GetMaxParabolaValue(

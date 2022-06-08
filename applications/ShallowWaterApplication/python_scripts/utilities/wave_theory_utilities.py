@@ -1,4 +1,4 @@
-from numpy import pi, sqrt, tanh
+from math import pi, sqrt, tanh
 from scipy.optimize import root
 
 
