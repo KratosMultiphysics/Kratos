@@ -63,44 +63,40 @@ public:
     /// this function will be executed at every time step BEFORE performing the solve phase
     void ExecuteInitializeSolutionStep() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        if (mrModelPart.NumberOfNodes() > 0) {
+            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+            const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
+            const double deltaH = mpTable->GetValue(Time);
 
-        const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
-        double deltaH = mpTable->GetValue(Time);
+            if (mIsSeepage) {
+                block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
+                    const double distance = mReferenceCoordinate - rNode.Coordinates()[mGravityDirection];
+                    const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * (distance + deltaH);
 
-        const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
+                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0.0) {
+                        rNode.FastGetSolutionStepValue(var) = pressure;
+                        if (mIsFixed) rNode.Fix(var);
+                    } else {
+                        rNode.Free(var);
+                    }
+                });
+            } else {
+                block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
+                    const double distance = mReferenceCoordinate - rNode.Coordinates()[mGravityDirection];
+                    const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * (distance + deltaH);
 
-        if (nNodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
-
-            Vector3 Coordinates;
-
-            #pragma omp parallel for private(Coordinates)
-            for (int i = 0; i<nNodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                noalias(Coordinates) = it->Coordinates();
-                double distance = mreference_coordinate - Coordinates[mgravity_direction];
-                distance += deltaH;
-
-                const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance;
-
-                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff)
-                {
-                    it->FastGetSolutionStepValue(var) = pressure;
-                }
-                else
-                {
-                    it->FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                }
+                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
+                        rNode.FastGetSolutionStepValue(var) = pressure;
+                    } else {
+                        rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
+                    }
+                });
             }
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.

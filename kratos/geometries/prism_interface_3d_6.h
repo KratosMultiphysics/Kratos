@@ -1556,7 +1556,7 @@ GeometryData PrismInterface3D6<TPointType>::msGeometryData(
 
 template<class TPointType> const
 GeometryDimension PrismInterface3D6<TPointType>::msGeometryDimension(
-    3, 3, 2);
+    3, 3, 3);
 
 }// namespace Kratos.
 

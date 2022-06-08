@@ -24,7 +24,7 @@
 #include "includes/variables.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/line_search_strategy.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 #include "utilities/atomic_utilities.h"
 

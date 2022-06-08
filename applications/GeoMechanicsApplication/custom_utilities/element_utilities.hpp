@@ -41,7 +41,7 @@ public:
     template< unsigned int TDim, unsigned int TNumNodes >
     static inline void CalculateNuMatrix(BoundedMatrix<double,TDim,TDim*TNumNodes>& rNu,
                                          const Matrix& NContainer,
-                                         const unsigned int& GPoint)
+                                         unsigned int GPoint)
     {
         for (unsigned int i=0; i < TDim; ++i) {
             unsigned int index = i - TDim;
@@ -56,7 +56,7 @@ public:
     template< unsigned int TDim, unsigned int TNumNodes >
     static inline void CalculateNuElementMatrix(BoundedMatrix<double, (TDim+1), TNumNodes*(TDim+1)>& rNut,
                                                 const Matrix& NContainer,
-                                                const unsigned int& GPoint)
+                                                unsigned int GPoint)
     {
         const unsigned int offset = (TDim+1);
 
@@ -74,7 +74,7 @@ public:
     static inline void InterpolateVariableWithComponents(array_1d<double, TDim>& rVector,
                                                          const Matrix& NContainer,
                                                          const array_1d<double, TDim*TNumNodes>& VariableWithComponents,
-                                                         const unsigned int& GPoint)
+                                                         unsigned int GPoint)
     {
         noalias(rVector) = ZeroVector(TDim);
 
@@ -91,7 +91,7 @@ public:
     static inline void InterpolateVariableWithComponents(Vector& rVector,
                                                          const Matrix& NContainer,
                                                          const Vector& VariableWithComponents,
-                                                         const unsigned int& GPoint)
+                                                         unsigned int GPoint)
     {
         if ( rVector.size() != TDof ) rVector.resize( TDof, false );
         KRATOS_ERROR_IF(VariableWithComponents.size() != TDof*TNumNodes) << "Wrong size in InterpolateVariableWithComponents" << std::endl;
@@ -229,7 +229,7 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template< unsigned int TDim>
     static inline void AssembleDensityMatrix(BoundedMatrix<double,TDim+1, TDim+1> &DensityMatrix,
-                                             const double &Density)
+                                             double Density)
     {
         for (unsigned int idim = 0; idim < TDim; ++idim) {
             for (unsigned int jdim = 0; jdim < TDim; ++jdim) {
@@ -240,7 +240,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void AssembleDensityMatrix(Matrix &DensityMatrix,
-                                             const double &Density)
+                                             double Density)
     {
         for (unsigned int idim = 0; idim < DensityMatrix.size1(); ++idim) {
             for (unsigned int jdim = 0; jdim < DensityMatrix.size2(); ++jdim) {
@@ -275,8 +275,8 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void AssembleUBlockMatrix(Matrix &rLeftHandSideMatrix,
                                             const Matrix &UBlockMatrix,
-                                            const double &TNumNodes,
-                                            const double &TDim)
+                                            unsigned int TNumNodes,
+                                            unsigned int TDim)
     {
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             const unsigned int Global_i = i * (TDim + 1);
@@ -353,7 +353,7 @@ public:
     template< unsigned int TDim, unsigned int TNumNodes >
     static inline void AssembleUBlockVector(Vector& rRightHandSideVector,
                                             const array_1d<double,TDim*TNumNodes>& UBlockVector,
-                                            int unsigned OffsetDof = 1)
+                                            unsigned int OffsetDof = 1)
     {
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             const unsigned int Global_i = i * (TDim + OffsetDof);
@@ -476,11 +476,11 @@ public:
      * @return Radius: The radius of axisymmetry
      */
 
-    static inline double CalculateRadius(const Vector N, const GeometryType& Geom)
+    static inline double CalculateRadius(const Vector& N, const GeometryType& Geom)
     {
         double Radius = 0.0;
 
-        for (unsigned int iNode = 0; iNode < Geom.size(); iNode++) {
+        for (unsigned int iNode = 0; iNode < Geom.size(); ++iNode) {
             // Displacement from the reference to the current configuration
             const array_1d<double, 3 >& CurrentPosition = Geom[iNode].Coordinates();
             Radius += CurrentPosition[0] * N[iNode];
@@ -489,6 +489,12 @@ public:
         return Radius;
     }
 
+    static inline double CalculateAxisymmetricCircumference(const Vector& N, const GeometryType& Geom)
+    {
+        const double Radius = CalculateRadius(N, Geom);
+        const double Circumference = 2.0 * Globals::Pi * Radius;
+        return Circumference;
+    }
 
 }; /* Class GeoElementUtilities*/
 } /* namespace Kratos.*/

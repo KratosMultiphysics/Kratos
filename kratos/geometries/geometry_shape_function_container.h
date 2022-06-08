@@ -171,10 +171,7 @@ public:
     {
     }
 
-    /*
-    * Copy constructor.
-    * Construct this geometry shape function container as a copy of given geometry data.
-    */
+    /// Copy constructor.
     GeometryShapeFunctionContainer( const GeometryShapeFunctionContainer& rOther )
         : mDefaultMethod(rOther.mDefaultMethod)
         , mIntegrationPoints(rOther.mIntegrationPoints)

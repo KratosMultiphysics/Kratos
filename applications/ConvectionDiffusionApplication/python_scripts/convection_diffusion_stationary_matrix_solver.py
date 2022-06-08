@@ -46,7 +46,7 @@ class ConvectionDiffusionStationaryMatrixSolver(convection_diffusion_stationary_
     def _SystemComputation(self):
         """Assembles the system matrix and vector and returns them as scipy.sparse.csr_matrix and np.ndarray respectively."""
         space = KratosMultiphysics.UblasSparseSpace()
-        strategy = self.get_convection_diffusion_solution_strategy()
+        strategy = self._GetSolutionStrategy()
         scheme = strategy.GetScheme()
 
         A = strategy.GetSystemMatrix()
@@ -61,7 +61,7 @@ class ConvectionDiffusionStationaryMatrixSolver(convection_diffusion_stationary_
         space.SetToZeroVector(xD)
 
         # Build matrix
-        builder_and_solver = self.get_builder_and_solver()
+        builder_and_solver = self._GetBuilderAndSolver()
         builder_and_solver.Build(scheme, self.GetComputingModelPart(), A, b)
         # Apply constraints
         builder_and_solver.ApplyConstraints(scheme, self.GetComputingModelPart(), A, b)

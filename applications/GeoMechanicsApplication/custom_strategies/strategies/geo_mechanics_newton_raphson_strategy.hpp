@@ -119,8 +119,7 @@ public:
                     KRATOS_ERROR << "For each SubModelPart there must be a corresponding nodal Variable"
                                  << std::endl;
 
-                for (unsigned int i = 0; i < mVariableNames.size(); i++)
-                {
+                for (unsigned int i = 0; i < mVariableNames.size(); ++i) {
                     mSubModelPartList[i] = &( model_part.GetSubModelPart(rParameters["loads_sub_model_part_list"][i].GetString()) );
                     mVariableNames[i] = rParameters["loads_variable_list"][i].GetString();
                 }

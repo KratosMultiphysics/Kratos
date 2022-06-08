@@ -15,8 +15,12 @@
 #if !defined(KRATOS_CHUNK_H_INCLUDED )
 #define  KRATOS_CHUNK_H_INCLUDED
 
+// System includes
 #include <atomic>
 
+// External includes
+
+// Project includes
 #include "includes/lock_object.h"
 #include "utilities/openmp_utils.h"
 

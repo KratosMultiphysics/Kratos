@@ -39,7 +39,7 @@ class TestScalingOperation(KratosUnittest.TestCase):
             "echo_level"     : 0
         }""")
 
-        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info)
+        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info, KM.Testing.GetDefaultDataCommunicator())
 
         factors = [1.5] * 3
 
@@ -54,7 +54,7 @@ class TestScalingOperation(KratosUnittest.TestCase):
             "echo_level"     : 0
         }""")
 
-        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info)
+        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info, KM.Testing.GetDefaultDataCommunicator())
 
         factors = [1.5] * 3
 
@@ -69,7 +69,7 @@ class TestScalingOperation(KratosUnittest.TestCase):
             "echo_level"     : 0
         }""")
 
-        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info)
+        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info, KM.Testing.GetDefaultDataCommunicator())
 
         factors = [1.5*0.25, 1.5*0.5, 1.5*0.75]
 
@@ -84,7 +84,7 @@ class TestScalingOperation(KratosUnittest.TestCase):
             "echo_level"     : 0
         }""")
 
-        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info)
+        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info, KM.Testing.GetDefaultDataCommunicator())
 
         factors = [1.5*pi*sqrt(1), 1.5*pi*sqrt(2), 1.5*pi*sqrt(3), 1.5*pi*sqrt(4), 1.5*pi*sqrt(5)]
 
@@ -99,7 +99,7 @@ class TestScalingOperation(KratosUnittest.TestCase):
             "interval"       : [0.0, 0.3]
         }""")
 
-        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info)
+        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info, KM.Testing.GetDefaultDataCommunicator())
 
         factors = [1.0] * 5
         factors[0] = 1.22
@@ -115,7 +115,7 @@ class TestScalingOperation(KratosUnittest.TestCase):
             "interval"       : [0.8, "End"]
         }""")
 
-        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info)
+        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info, KM.Testing.GetDefaultDataCommunicator())
 
         factors = [1.0] * 3
         factors.extend([1.22] * 3)
@@ -183,7 +183,7 @@ class TestConversionOperation(KratosUnittest.TestCase):
             "echo_level"     : 0
         }""")
 
-        conversion_operation = coupling_operation_factory.CreateCouplingOperation(conversion_op_settings, self.solver_wrappers, self.solver_process_info)
+        conversion_operation = coupling_operation_factory.CreateCouplingOperation(conversion_op_settings, self.solver_wrappers, self.solver_process_info, KM.Testing.GetDefaultDataCommunicator())
 
         conversion_operation.Check()
 

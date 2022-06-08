@@ -53,8 +53,7 @@ double VanGenuchtenLaw::
     const double &p = rParameters.GetFluidPressure();
     const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
 
-    if (p > 0.0)
-    {
+    if (p > 0.0) {
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
         const double &pb     = rMaterialProperties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE];
@@ -63,9 +62,7 @@ double VanGenuchtenLaw::
 
         double sat = satMin + (satMax - satMin) * pow(1.0 + pow(p/pb, gn), gc);
         return sat;
-    }
-    else
-    {
+    } else {
         return rMaterialProperties[SATURATED_SATURATION];
     }
 
@@ -98,8 +95,7 @@ double VanGenuchtenLaw::
     KRATOS_TRY;
     const double &p = rParameters.GetFluidPressure();
 
-    if (p > 0.0)
-    {
+    if (p > 0.0) {
         const auto &rMaterialProperties = rParameters.GetMaterialProperties();
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
@@ -110,9 +106,7 @@ double VanGenuchtenLaw::
         double dSdp = (satMax - satMin) * gc * pow((1.0 + pow(p/pb, gn)), gc-1.0)
                                         * gn * pow(pb,-gn) * pow(p, gn-1.0);
         return dSdp;
-    }
-    else
-    {
+    } else {
         return 0.0;
     }
 
@@ -164,7 +158,7 @@ double& VanGenuchtenLaw::CalculateValue(RetentionLaw::Parameters& rParameterValu
     } else if (rThisVariable == EFFECTIVE_SATURATION) {
         rValue = this->CalculateEffectiveSaturation(rParameterValues);
         return rValue;
-    } else if (rThisVariable == BISHOP_COEFICIENT) {
+    } else if (rThisVariable == BISHOP_COEFFICIENT) {
         rValue = this->CalculateBishopCoefficient(rParameterValues);
         return rValue;
     } else if (rThisVariable == DERIVATIVE_OF_SATURATION) {
@@ -220,14 +214,14 @@ void VanGenuchtenLaw::
 int VanGenuchtenLaw::Check(const Properties& rMaterialProperties,
                            const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(SATURATED_SATURATION))
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SATURATED_SATURATION))
                     << "SATURATED_SATURATION is not availabe in material parameters" << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[SATURATED_SATURATION] < 0.0)
                     << "SATURATED_SATURATION cannot be less than 0 " << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[SATURATED_SATURATION] > 1.0)
                     << "SATURATED_SATURATION cannot be greater than 1.0 " << std::endl;
 
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(RESIDUAL_SATURATION))
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(RESIDUAL_SATURATION))
                     << "RESIDUAL_SATURATION is not availabe in material parameters" << std::endl;
     KRATOS_DEBUG_ERROR_IF_NOT(rMaterialProperties[RESIDUAL_SATURATION] > 0.0)
                             << "RESIDUAL_SATURATION must be greater than 0 " << std::endl;
@@ -237,14 +231,14 @@ int VanGenuchtenLaw::Check(const Properties& rMaterialProperties,
     KRATOS_ERROR_IF(rMaterialProperties[SATURATED_SATURATION] < rMaterialProperties[RESIDUAL_SATURATION])
                     << "RESIDUAL_SATURATION cannot be greater than SATURATED_SATURATION " << std::endl;
 
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE))
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE))
                     << "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE is not availabe in material parameters" << std::endl;
-    KRATOS_ERROR_IF(!(rMaterialProperties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE] > 0.0))
+    KRATOS_ERROR_IF_NOT((rMaterialProperties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE] > 0.0))
                     << "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE must be greater than 0 " << std::endl;
 
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(MINIMUM_RELATIVE_PERMEABILITY))
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MINIMUM_RELATIVE_PERMEABILITY))
                     << "MINIMUM_RELATIVE_PERMEABILITY is not availabe in material parameters" << std::endl;
-    KRATOS_ERROR_IF(!(rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY] > 0.0))
+    KRATOS_ERROR_IF_NOT((rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY] > 0.0))
                     << "MINIMUM_RELATIVE_PERMEABILITY must be greater than 0 " << std::endl;
 
     return 0;
