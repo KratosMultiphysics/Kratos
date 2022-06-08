@@ -558,7 +558,6 @@ private:
         const auto& r_geometry = GetGeometry();
         const SizeType n_nodes = r_geometry.size();
         const SizeType dim = r_geometry.WorkingSpaceDimension();
-        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
         const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
         const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 

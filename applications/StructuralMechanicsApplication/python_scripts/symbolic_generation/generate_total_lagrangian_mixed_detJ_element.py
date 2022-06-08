@@ -29,7 +29,6 @@ th = DefineVector('th',n_nodes) # tetha variable representing the nodal det(J)
 w = DefineMatrix('w',n_nodes,dim) # Displacement test function
 q = DefineVector('q',n_nodes) # tetha test function
 tau = sympy.Symbol("tau",positive=True) # Stabilization constant
-rho0 = sympy.Symbol("rho0",positive=True) # Density in the initial configuration
 
 S = DefineVector('S',strain_size) # Stress in Voigt notation (this will be returned by the constitutive law)
 if dim == 2:
@@ -52,7 +51,7 @@ for n in range(n_nodes):
 grad_th_gauss = DN.transpose()*th
 
 # Define the body force interpolation at the Gauss point
-b_gauss = b.transpose()*N
+b_gauss = DefineVector('b_gauss',dim)
 
 # Shape functions evaluation at the Gauss point
 grad_w_gauss = w.transpose()*DN
@@ -89,13 +88,13 @@ Emod_gauss = 0.5*(Cmod_gauss - sympy.eye(dim,dim)) # Equivalent (enriched) Green
 
 # Variational form
 mom_first = DoubleContraction(grad_w_gauss, F_gauss* S)
-mom_second = (w_gauss.transpose() * rho0 * b_gauss)[0]
+mom_second = (w_gauss.transpose() * b_gauss)[0]
 
 mass_first = q_gauss[0] * (j_gauss - th_gauss)
 tmp = (DoubleContraction(C, F_gauss.transpose()*F_gauss)).tomatrix()
 aux_scalar = (tau / dim) * ((j_gauss / th_gauss)**(1.0/dim))
 mass_stab_1 = (aux_scalar * grad_q_gauss * tmp * grad_th_gauss)[0]
-mass_stab_2 = (tau * rho0 * grad_q_gauss * cofF_gauss.transpose() * b_gauss)[0]
+mass_stab_2 = (tau * grad_q_gauss * cofF_gauss.transpose() * b_gauss)[0]
 
 functional = mom_first - mom_second + mass_first - (mass_stab_1 + mass_stab_2)
 functional_array = sympy.Matrix([functional])

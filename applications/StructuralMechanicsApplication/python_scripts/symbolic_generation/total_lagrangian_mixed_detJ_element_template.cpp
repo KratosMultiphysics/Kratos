@@ -354,17 +354,8 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
     const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
     const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
 
-    // Set data for the body force calculation
-    BoundedMatrix<double, NumNodes, 2> b;
-    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-        const array_1d<double,3>& r_b_i = r_geometry[i_node].FastGetSolutionStepValue(BODY_FORCE);
-        for (IndexType d = 0; d < 2; ++d) {
-            b(i_node, d) = r_b_i[d];
-        }
-    }
-    const double rho0 = GetProperties().GetValue(DENSITY);
-
     // Set the auxiliary references matching the automatic differentiation symbols
+    array_1d<double,3> b_gauss;
     const auto& N = kinematic_variables.N;
     const auto& DN = kinematic_variables.DN_DX;
     const auto& u = kinematic_variables.Displacements;
@@ -386,6 +377,10 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+
+        // Calculate body force
+        // Note that this already includes the density computed in the reference configuration
+        b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate and add the LHS Gauss point contributions
         //substitute_lhs_2D_3N
@@ -451,17 +446,8 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
     const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
     const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
 
-    // Set data for the body force calculation
-    BoundedMatrix<double, NumNodes, 3> b;
-    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-        const array_1d<double,3>& r_b_i = r_geometry[i_node].FastGetSolutionStepValue(BODY_FORCE);
-        for (IndexType d = 0; d < 3; ++d) {
-            b(i_node, d) = r_b_i[d];
-        }
-    }
-    const double rho0 = GetProperties().GetValue(DENSITY);
-
     // Set the auxiliary references matching the automatic differentiation symbols
+    array_1d<double,3> b_gauss;
     const auto& N = kinematic_variables.N;
     const auto& DN = kinematic_variables.DN_DX;
     const auto& u = kinematic_variables.Displacements;
@@ -483,6 +469,10 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+
+        // Calculate body force
+        // Note that this already includes the density computed in the reference configuration
+        b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate and add the LHS Gauss point contributions
         //substitute_lhs_3D_4N
@@ -541,17 +531,8 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
     const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
     const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
 
-    // Set data for the body force calculation
-    BoundedMatrix<double, NumNodes, 2> b;
-    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-        const array_1d<double,3>& r_b_i = r_geometry[i_node].FastGetSolutionStepValue(BODY_FORCE);
-        for (IndexType d = 0; d < 2; ++d) {
-            b(i_node, d) = r_b_i[d];
-        }
-    }
-    const double rho0 = GetProperties().GetValue(DENSITY);
-
     // Set the auxiliary references matching the automatic differentiation symbols
+    array_1d<double,3> b_gauss;
     const auto& N = kinematic_variables.N;
     const auto& DN = kinematic_variables.DN_DX;
     const auto& u = kinematic_variables.Displacements;
@@ -572,6 +553,10 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+
+        // Calculate body force
+        // Note that this already includes the density computed in the reference configuration
+        b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate and add the LHS Gauss point contributions
         //substitute_lhs_2D_3N
@@ -627,17 +612,8 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
     const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
     const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
 
-    // Set data for the body force calculation
-    BoundedMatrix<double, NumNodes, 3> b;
-    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-        const array_1d<double,3>& r_b_i = r_geometry[i_node].FastGetSolutionStepValue(BODY_FORCE);
-        for (IndexType d = 0; d < 3; ++d) {
-            b(i_node, d) = r_b_i[d];
-        }
-    }
-    const double rho0 = GetProperties().GetValue(DENSITY);
-
     // Set the auxiliary references matching the automatic differentiation symbols
+    array_1d<double,3> b_gauss;
     const auto& N = kinematic_variables.N;
     const auto& DN = kinematic_variables.DN_DX;
     const auto& u = kinematic_variables.Displacements;
@@ -658,6 +634,10 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+
+        // Calculate body force
+        // Note that this already includes the density computed in the reference configuration
+        b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate and add the LHS Gauss point contributions
         //substitute_lhs_3D_4N
@@ -713,17 +693,8 @@ void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
     const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
     const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
 
-    // Set data for the body force calculation
-    BoundedMatrix<double, NumNodes, 2> b;
-    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-        const array_1d<double,3>& r_b_i = r_geometry[i_node].FastGetSolutionStepValue(BODY_FORCE);
-        for (IndexType d = 0; d < 2; ++d) {
-            b(i_node, d) = r_b_i[d];
-        }
-    }
-    const double rho0 = GetProperties().GetValue(DENSITY);
-
     // Set the auxiliary references matching the automatic differentiation symbols
+    array_1d<double,3> b_gauss;
     const auto& N = kinematic_variables.N;
     const auto& DN = kinematic_variables.DN_DX;
     const auto& u = kinematic_variables.Displacements;
@@ -744,6 +715,10 @@ void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+
+        // Calculate body force
+        // Note that this already includes the density computed in the reference configuration
+        b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate and add the RHS Gauss point contribution
         //substitute_rhs_2D_3N
@@ -799,17 +774,8 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
     const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
     const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
 
-    // Set data for the body force calculation
-    BoundedMatrix<double, NumNodes, 3> b;
-    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-        const array_1d<double,3>& r_b_i = r_geometry[i_node].FastGetSolutionStepValue(BODY_FORCE);
-        for (IndexType d = 0; d < 3; ++d) {
-            b(i_node, d) = r_b_i[d];
-        }
-    }
-    const double rho0 = GetProperties().GetValue(DENSITY);
-
     // Set the auxiliary references matching the automatic differentiation symbols
+    array_1d<double,3> b_gauss;
     const auto& N = kinematic_variables.N;
     const auto& DN = kinematic_variables.DN_DX;
     const auto& u = kinematic_variables.Displacements;
@@ -831,6 +797,10 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+
+        // Calculate body force
+        // Note that this already includes the density computed in the reference configuration
+        b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate and add the RHS Gauss point contribution
         //substitute_rhs_3D_4N
@@ -1014,9 +984,6 @@ int  TotalLagrangianMixedDetJElement<TDim>::Check(const ProcessInfo& rCurrentPro
 
     // Base check
     check = StructuralMechanicsElementUtilities::SolidElementCheck(*this, rCurrentProcessInfo, mConstitutiveLawVector);
-
-    // Checking density
-    KRATOS_ERROR_IF_NOT(GetProperties().Has(DENSITY)) << "DENSITY has to be provided for the calculation of body force." << std::endl;
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     const auto& r_geometry = this->GetGeometry();

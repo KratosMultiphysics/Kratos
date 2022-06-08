@@ -354,17 +354,8 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
     const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
     const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
 
-    // Set data for the body force calculation
-    BoundedMatrix<double, NumNodes, 2> b;
-    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-        const array_1d<double,3>& r_b_i = r_geometry[i_node].FastGetSolutionStepValue(BODY_FORCE);
-        for (IndexType d = 0; d < 2; ++d) {
-            b(i_node, d) = r_b_i[d];
-        }
-    }
-    const double rho0 = GetProperties().GetValue(DENSITY);
-
     // Set the auxiliary references matching the automatic differentiation symbols
+    array_1d<double,3> b_gauss;
     const auto& N = kinematic_variables.N;
     const auto& DN = kinematic_variables.DN_DX;
     const auto& u = kinematic_variables.Displacements;
@@ -386,6 +377,10 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+
+        // Calculate body force
+        // Note that this already includes the density computed in the reference configuration
+        b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate and add the LHS Gauss point contributions
         const double clhs0 = DN(0,1)*u(0,0);
@@ -582,75 +577,72 @@ const double clhs190 = 0.25*clhs168;
 const double clhs191 = N[0]*clhs190;
 const double clhs192 = clhs171*clhs185;
 const double clhs193 = clhs177*clhs188;
-const double clhs194 = N[0]*b(0,1) + N[1]*b(1,1) + N[2]*b(2,1);
-const double clhs195 = rho0*tau;
-const double clhs196 = clhs195*(DN(0,0)*DN(1,1) - DN(0,1)*DN(1,0));
-const double clhs197 = clhs194*clhs196;
-const double clhs198 = DN(1,1)*clhs3;
-const double clhs199 = DN(1,0)*clhs13;
-const double clhs200 = clhs87 + clhs88;
-const double clhs201 = C(0,0)*clhs199 + C(0,1)*clhs198 + C(0,2)*clhs200;
-const double clhs202 = C(0,2)*clhs199 + C(1,2)*clhs198 + C(2,2)*clhs200;
-const double clhs203 = clhs163*clhs82;
-const double clhs204 = C(0,1)*clhs199 + C(1,1)*clhs198 + C(1,2)*clhs200;
-const double clhs205 = N[0]*b(0,0) + N[1]*b(1,0) + N[2]*b(2,0);
-const double clhs206 = clhs196*clhs205;
-const double clhs207 = DN(1,0)*clhs25;
-const double clhs208 = DN(1,1)*clhs22;
-const double clhs209 = clhs102 + clhs103;
-const double clhs210 = C(0,0)*clhs207 + C(0,1)*clhs208 + C(0,2)*clhs209;
-const double clhs211 = C(0,2)*clhs207 + C(1,2)*clhs208 + C(2,2)*clhs209;
-const double clhs212 = clhs163*clhs97;
-const double clhs213 = C(0,1)*clhs207 + C(1,1)*clhs208 + C(1,2)*clhs209;
-const double clhs214 = N[0]*N[1];
-const double clhs215 = N[1]*clhs190;
-const double clhs216 = clhs195*(DN(0,0)*DN(2,1) - DN(0,1)*DN(2,0));
-const double clhs217 = clhs194*clhs216;
-const double clhs218 = DN(2,1)*clhs3;
-const double clhs219 = DN(2,0)*clhs13;
-const double clhs220 = clhs115 + clhs116;
-const double clhs221 = C(0,0)*clhs219 + C(0,1)*clhs218 + C(0,2)*clhs220;
-const double clhs222 = C(0,2)*clhs219 + C(1,2)*clhs218 + C(2,2)*clhs220;
-const double clhs223 = clhs110*clhs163;
-const double clhs224 = C(0,1)*clhs219 + C(1,1)*clhs218 + C(1,2)*clhs220;
-const double clhs225 = clhs205*clhs216;
-const double clhs226 = DN(2,0)*clhs25;
-const double clhs227 = DN(2,1)*clhs22;
-const double clhs228 = clhs130 + clhs131;
-const double clhs229 = C(0,0)*clhs226 + C(0,1)*clhs227 + C(0,2)*clhs228;
-const double clhs230 = C(0,2)*clhs226 + C(1,2)*clhs227 + C(2,2)*clhs228;
-const double clhs231 = clhs125*clhs163;
-const double clhs232 = C(0,1)*clhs226 + C(1,1)*clhs227 + C(1,2)*clhs228;
-const double clhs233 = N[0]*N[2];
-const double clhs234 = N[2]*clhs190;
-const double clhs235 = clhs80*(DN(1,0)*clhs75 + DN(1,1)*clhs79);
-const double clhs236 = clhs80*(DN(1,0)*clhs144 + DN(1,1)*clhs145);
-const double clhs237 = DN(1,0)*clhs161;
-const double clhs238 = DN(1,1)*clhs165;
-const double clhs239 = DN(1,0)*clhs165;
-const double clhs240 = DN(1,1)*clhs174;
-const double clhs241 = clhs237 + clhs238;
-const double clhs242 = clhs186*clhs241;
-const double clhs243 = clhs239 + clhs240;
-const double clhs244 = clhs186*clhs243;
-const double clhs245 = clhs171*clhs241;
-const double clhs246 = clhs177*clhs243;
-const double clhs247 = clhs195*(DN(1,0)*DN(2,1) - DN(1,1)*DN(2,0));
-const double clhs248 = clhs194*clhs247;
-const double clhs249 = clhs205*clhs247;
-const double clhs250 = N[1]*N[2];
-const double clhs251 = clhs80*(DN(2,0)*clhs75 + DN(2,1)*clhs79);
-const double clhs252 = clhs80*(DN(2,0)*clhs144 + DN(2,1)*clhs145);
-const double clhs253 = DN(2,0)*clhs161;
-const double clhs254 = DN(2,1)*clhs165;
-const double clhs255 = DN(2,0)*clhs165;
-const double clhs256 = DN(2,1)*clhs174;
-const double clhs257 = clhs253 + clhs254;
-const double clhs258 = clhs186*clhs257;
-const double clhs259 = clhs255 + clhs256;
-const double clhs260 = clhs186*clhs259;
-const double clhs261 = clhs171*clhs257;
-const double clhs262 = clhs177*clhs259;
+const double clhs194 = tau*(DN(0,0)*DN(1,1) - DN(0,1)*DN(1,0));
+const double clhs195 = b_gauss[1]*clhs194;
+const double clhs196 = DN(1,1)*clhs3;
+const double clhs197 = DN(1,0)*clhs13;
+const double clhs198 = clhs87 + clhs88;
+const double clhs199 = C(0,0)*clhs197 + C(0,1)*clhs196 + C(0,2)*clhs198;
+const double clhs200 = C(0,2)*clhs197 + C(1,2)*clhs196 + C(2,2)*clhs198;
+const double clhs201 = clhs163*clhs82;
+const double clhs202 = C(0,1)*clhs197 + C(1,1)*clhs196 + C(1,2)*clhs198;
+const double clhs203 = b_gauss[0]*clhs194;
+const double clhs204 = DN(1,0)*clhs25;
+const double clhs205 = DN(1,1)*clhs22;
+const double clhs206 = clhs102 + clhs103;
+const double clhs207 = C(0,0)*clhs204 + C(0,1)*clhs205 + C(0,2)*clhs206;
+const double clhs208 = C(0,2)*clhs204 + C(1,2)*clhs205 + C(2,2)*clhs206;
+const double clhs209 = clhs163*clhs97;
+const double clhs210 = C(0,1)*clhs204 + C(1,1)*clhs205 + C(1,2)*clhs206;
+const double clhs211 = N[0]*N[1];
+const double clhs212 = N[1]*clhs190;
+const double clhs213 = tau*(DN(0,0)*DN(2,1) - DN(0,1)*DN(2,0));
+const double clhs214 = b_gauss[1]*clhs213;
+const double clhs215 = DN(2,1)*clhs3;
+const double clhs216 = DN(2,0)*clhs13;
+const double clhs217 = clhs115 + clhs116;
+const double clhs218 = C(0,0)*clhs216 + C(0,1)*clhs215 + C(0,2)*clhs217;
+const double clhs219 = C(0,2)*clhs216 + C(1,2)*clhs215 + C(2,2)*clhs217;
+const double clhs220 = clhs110*clhs163;
+const double clhs221 = C(0,1)*clhs216 + C(1,1)*clhs215 + C(1,2)*clhs217;
+const double clhs222 = b_gauss[0]*clhs213;
+const double clhs223 = DN(2,0)*clhs25;
+const double clhs224 = DN(2,1)*clhs22;
+const double clhs225 = clhs130 + clhs131;
+const double clhs226 = C(0,0)*clhs223 + C(0,1)*clhs224 + C(0,2)*clhs225;
+const double clhs227 = C(0,2)*clhs223 + C(1,2)*clhs224 + C(2,2)*clhs225;
+const double clhs228 = clhs125*clhs163;
+const double clhs229 = C(0,1)*clhs223 + C(1,1)*clhs224 + C(1,2)*clhs225;
+const double clhs230 = N[0]*N[2];
+const double clhs231 = N[2]*clhs190;
+const double clhs232 = clhs80*(DN(1,0)*clhs75 + DN(1,1)*clhs79);
+const double clhs233 = clhs80*(DN(1,0)*clhs144 + DN(1,1)*clhs145);
+const double clhs234 = DN(1,0)*clhs161;
+const double clhs235 = DN(1,1)*clhs165;
+const double clhs236 = DN(1,0)*clhs165;
+const double clhs237 = DN(1,1)*clhs174;
+const double clhs238 = clhs234 + clhs235;
+const double clhs239 = clhs186*clhs238;
+const double clhs240 = clhs236 + clhs237;
+const double clhs241 = clhs186*clhs240;
+const double clhs242 = clhs171*clhs238;
+const double clhs243 = clhs177*clhs240;
+const double clhs244 = tau*(DN(1,0)*DN(2,1) - DN(1,1)*DN(2,0));
+const double clhs245 = b_gauss[1]*clhs244;
+const double clhs246 = b_gauss[0]*clhs244;
+const double clhs247 = N[1]*N[2];
+const double clhs248 = clhs80*(DN(2,0)*clhs75 + DN(2,1)*clhs79);
+const double clhs249 = clhs80*(DN(2,0)*clhs144 + DN(2,1)*clhs145);
+const double clhs250 = DN(2,0)*clhs161;
+const double clhs251 = DN(2,1)*clhs165;
+const double clhs252 = DN(2,0)*clhs165;
+const double clhs253 = DN(2,1)*clhs174;
+const double clhs254 = clhs250 + clhs251;
+const double clhs255 = clhs186*clhs254;
+const double clhs256 = clhs252 + clhs253;
+const double clhs257 = clhs186*clhs256;
+const double clhs258 = clhs171*clhs254;
+const double clhs259 = clhs177*clhs256;
 lhs(0,0)=-DN(0,0)*clhs48 - DN(0,1)*clhs52;
 lhs(0,1)=-clhs36*(DN(0,0)*clhs63 + DN(0,1)*clhs65);
 lhs(0,2)=-N[0]*clhs81;
@@ -672,120 +664,114 @@ lhs(1,8)=-N[2]*clhs146;
 lhs(2,0)=-N[0]*clhs18 + clhs171*(DN(0,0)*clhs158 + DN(0,1)*clhs159 + clhs162*clhs164 + clhs164*clhs166) + clhs177*(DN(0,0)*clhs159 + DN(0,1)*clhs172 + clhs164*clhs173 + clhs164*clhs175);
 lhs(2,1)=-N[0]*clhs53 + clhs171*(DN(0,0)*clhs181 + DN(0,1)*clhs182 + clhs162*clhs183 + clhs166*clhs183) + clhs177*(DN(0,0)*clhs182 + DN(0,1)*clhs184 + clhs173*clhs183 + clhs175*clhs183);
 lhs(2,2)=DN(0,0)*clhs187 + DN(0,1)*clhs189 + pow(N[0], 2) - clhs191*clhs192 - clhs191*clhs193;
-lhs(2,3)=-N[0]*clhs82 + clhs167*clhs169*tau*(DN(0,0)*clhs201 + DN(0,1)*clhs202 + clhs162*clhs203 + clhs166*clhs203) + clhs169*clhs176*tau*(DN(0,0)*clhs202 + DN(0,1)*clhs204 + clhs173*clhs203 + clhs175*clhs203) - clhs197;
-lhs(2,4)=-N[0]*clhs97 + clhs171*(DN(0,0)*clhs210 + DN(0,1)*clhs211 + clhs162*clhs212 + clhs166*clhs212) + clhs177*(DN(0,0)*clhs211 + DN(0,1)*clhs213 + clhs173*clhs212 + clhs175*clhs212) + clhs206;
-lhs(2,5)=DN(1,0)*clhs187 + DN(1,1)*clhs189 - clhs192*clhs215 - clhs193*clhs215 + clhs214;
-lhs(2,6)=-N[0]*clhs110 + clhs167*clhs169*tau*(DN(0,0)*clhs221 + DN(0,1)*clhs222 + clhs162*clhs223 + clhs166*clhs223) + clhs169*clhs176*tau*(DN(0,0)*clhs222 + DN(0,1)*clhs224 + clhs173*clhs223 + clhs175*clhs223) - clhs217;
-lhs(2,7)=-N[0]*clhs125 + clhs171*(DN(0,0)*clhs229 + DN(0,1)*clhs230 + clhs162*clhs231 + clhs166*clhs231) + clhs177*(DN(0,0)*clhs230 + DN(0,1)*clhs232 + clhs173*clhs231 + clhs175*clhs231) + clhs225;
-lhs(2,8)=DN(2,0)*clhs187 + DN(2,1)*clhs189 - clhs192*clhs234 - clhs193*clhs234 + clhs233;
+lhs(2,3)=-N[0]*clhs82 + clhs167*clhs169*tau*(DN(0,0)*clhs199 + DN(0,1)*clhs200 + clhs162*clhs201 + clhs166*clhs201) + clhs169*clhs176*tau*(DN(0,0)*clhs200 + DN(0,1)*clhs202 + clhs173*clhs201 + clhs175*clhs201) - clhs195;
+lhs(2,4)=-N[0]*clhs97 + clhs171*(DN(0,0)*clhs207 + DN(0,1)*clhs208 + clhs162*clhs209 + clhs166*clhs209) + clhs177*(DN(0,0)*clhs208 + DN(0,1)*clhs210 + clhs173*clhs209 + clhs175*clhs209) + clhs203;
+lhs(2,5)=DN(1,0)*clhs187 + DN(1,1)*clhs189 - clhs192*clhs212 - clhs193*clhs212 + clhs211;
+lhs(2,6)=-N[0]*clhs110 + clhs167*clhs169*tau*(DN(0,0)*clhs218 + DN(0,1)*clhs219 + clhs162*clhs220 + clhs166*clhs220) + clhs169*clhs176*tau*(DN(0,0)*clhs219 + DN(0,1)*clhs221 + clhs173*clhs220 + clhs175*clhs220) - clhs214;
+lhs(2,7)=-N[0]*clhs125 + clhs171*(DN(0,0)*clhs226 + DN(0,1)*clhs227 + clhs162*clhs228 + clhs166*clhs228) + clhs177*(DN(0,0)*clhs227 + DN(0,1)*clhs229 + clhs173*clhs228 + clhs175*clhs228) + clhs222;
+lhs(2,8)=DN(2,0)*clhs187 + DN(2,1)*clhs189 - clhs192*clhs231 - clhs193*clhs231 + clhs230;
 lhs(3,0)=-DN(1,0)*clhs48 - DN(1,1)*clhs52;
 lhs(3,1)=-clhs36*(DN(1,0)*clhs63 + DN(1,1)*clhs65);
-lhs(3,2)=-N[0]*clhs235;
+lhs(3,2)=-N[0]*clhs232;
 lhs(3,3)=-DN(1,0)*clhs93 - DN(1,1)*clhs96;
 lhs(3,4)=-clhs36*(DN(1,0)*clhs107 + DN(1,1)*clhs109);
-lhs(3,5)=-N[1]*clhs235;
+lhs(3,5)=-N[1]*clhs232;
 lhs(3,6)=-DN(1,0)*clhs121 - DN(1,1)*clhs124;
 lhs(3,7)=-clhs36*(DN(1,0)*clhs135 + DN(1,1)*clhs137);
-lhs(3,8)=-N[2]*clhs235;
+lhs(3,8)=-N[2]*clhs232;
 lhs(4,0)=-clhs36*(DN(1,0)*clhs138 + DN(1,1)*clhs139);
 lhs(4,1)=-DN(1,0)*clhs142 - DN(1,1)*clhs143;
-lhs(4,2)=-N[0]*clhs236;
+lhs(4,2)=-N[0]*clhs233;
 lhs(4,3)=-clhs36*(DN(1,0)*clhs147 + DN(1,1)*clhs148);
 lhs(4,4)=-DN(1,0)*clhs149 - DN(1,1)*clhs150;
-lhs(4,5)=-N[1]*clhs236;
+lhs(4,5)=-N[1]*clhs233;
 lhs(4,6)=-clhs36*(DN(1,0)*clhs151 + DN(1,1)*clhs152);
 lhs(4,7)=-DN(1,0)*clhs153 - DN(1,1)*clhs154;
-lhs(4,8)=-N[2]*clhs236;
-lhs(5,0)=-N[1]*clhs18 + clhs171*(DN(1,0)*clhs158 + DN(1,1)*clhs159 + clhs164*clhs237 + clhs164*clhs238) + clhs177*(DN(1,0)*clhs159 + DN(1,1)*clhs172 + clhs164*clhs239 + clhs164*clhs240) + clhs197;
-lhs(5,1)=-N[1]*clhs53 + clhs167*clhs169*tau*(DN(1,0)*clhs181 + DN(1,1)*clhs182 + clhs183*clhs237 + clhs183*clhs238) + clhs169*clhs176*tau*(DN(1,0)*clhs182 + DN(1,1)*clhs184 + clhs183*clhs239 + clhs183*clhs240) - clhs206;
-lhs(5,2)=DN(0,0)*clhs242 + DN(0,1)*clhs244 - clhs191*clhs245 - clhs191*clhs246 + clhs214;
-lhs(5,3)=-N[1]*clhs82 + clhs171*(DN(1,0)*clhs201 + DN(1,1)*clhs202 + clhs203*clhs237 + clhs203*clhs238) + clhs177*(DN(1,0)*clhs202 + DN(1,1)*clhs204 + clhs203*clhs239 + clhs203*clhs240);
-lhs(5,4)=-N[1]*clhs97 + clhs171*(DN(1,0)*clhs210 + DN(1,1)*clhs211 + clhs212*clhs237 + clhs212*clhs238) + clhs177*(DN(1,0)*clhs211 + DN(1,1)*clhs213 + clhs212*clhs239 + clhs212*clhs240);
-lhs(5,5)=DN(1,0)*clhs242 + DN(1,1)*clhs244 + pow(N[1], 2) - clhs215*clhs245 - clhs215*clhs246;
-lhs(5,6)=-N[1]*clhs110 + clhs167*clhs169*tau*(DN(1,0)*clhs221 + DN(1,1)*clhs222 + clhs223*clhs237 + clhs223*clhs238) + clhs169*clhs176*tau*(DN(1,0)*clhs222 + DN(1,1)*clhs224 + clhs223*clhs239 + clhs223*clhs240) - clhs248;
-lhs(5,7)=-N[1]*clhs125 + clhs171*(DN(1,0)*clhs229 + DN(1,1)*clhs230 + clhs231*clhs237 + clhs231*clhs238) + clhs177*(DN(1,0)*clhs230 + DN(1,1)*clhs232 + clhs231*clhs239 + clhs231*clhs240) + clhs249;
-lhs(5,8)=DN(2,0)*clhs242 + DN(2,1)*clhs244 - clhs234*clhs245 - clhs234*clhs246 + clhs250;
+lhs(4,8)=-N[2]*clhs233;
+lhs(5,0)=-N[1]*clhs18 + clhs171*(DN(1,0)*clhs158 + DN(1,1)*clhs159 + clhs164*clhs234 + clhs164*clhs235) + clhs177*(DN(1,0)*clhs159 + DN(1,1)*clhs172 + clhs164*clhs236 + clhs164*clhs237) + clhs195;
+lhs(5,1)=-N[1]*clhs53 + clhs167*clhs169*tau*(DN(1,0)*clhs181 + DN(1,1)*clhs182 + clhs183*clhs234 + clhs183*clhs235) + clhs169*clhs176*tau*(DN(1,0)*clhs182 + DN(1,1)*clhs184 + clhs183*clhs236 + clhs183*clhs237) - clhs203;
+lhs(5,2)=DN(0,0)*clhs239 + DN(0,1)*clhs241 - clhs191*clhs242 - clhs191*clhs243 + clhs211;
+lhs(5,3)=-N[1]*clhs82 + clhs171*(DN(1,0)*clhs199 + DN(1,1)*clhs200 + clhs201*clhs234 + clhs201*clhs235) + clhs177*(DN(1,0)*clhs200 + DN(1,1)*clhs202 + clhs201*clhs236 + clhs201*clhs237);
+lhs(5,4)=-N[1]*clhs97 + clhs171*(DN(1,0)*clhs207 + DN(1,1)*clhs208 + clhs209*clhs234 + clhs209*clhs235) + clhs177*(DN(1,0)*clhs208 + DN(1,1)*clhs210 + clhs209*clhs236 + clhs209*clhs237);
+lhs(5,5)=DN(1,0)*clhs239 + DN(1,1)*clhs241 + pow(N[1], 2) - clhs212*clhs242 - clhs212*clhs243;
+lhs(5,6)=-N[1]*clhs110 + clhs167*clhs169*tau*(DN(1,0)*clhs218 + DN(1,1)*clhs219 + clhs220*clhs234 + clhs220*clhs235) + clhs169*clhs176*tau*(DN(1,0)*clhs219 + DN(1,1)*clhs221 + clhs220*clhs236 + clhs220*clhs237) - clhs245;
+lhs(5,7)=-N[1]*clhs125 + clhs171*(DN(1,0)*clhs226 + DN(1,1)*clhs227 + clhs228*clhs234 + clhs228*clhs235) + clhs177*(DN(1,0)*clhs227 + DN(1,1)*clhs229 + clhs228*clhs236 + clhs228*clhs237) + clhs246;
+lhs(5,8)=DN(2,0)*clhs239 + DN(2,1)*clhs241 - clhs231*clhs242 - clhs231*clhs243 + clhs247;
 lhs(6,0)=-DN(2,0)*clhs48 - DN(2,1)*clhs52;
 lhs(6,1)=-clhs36*(DN(2,0)*clhs63 + DN(2,1)*clhs65);
-lhs(6,2)=-N[0]*clhs251;
+lhs(6,2)=-N[0]*clhs248;
 lhs(6,3)=-DN(2,0)*clhs93 - DN(2,1)*clhs96;
 lhs(6,4)=-clhs36*(DN(2,0)*clhs107 + DN(2,1)*clhs109);
-lhs(6,5)=-N[1]*clhs251;
+lhs(6,5)=-N[1]*clhs248;
 lhs(6,6)=-DN(2,0)*clhs121 - DN(2,1)*clhs124;
 lhs(6,7)=-clhs36*(DN(2,0)*clhs135 + DN(2,1)*clhs137);
-lhs(6,8)=-N[2]*clhs251;
+lhs(6,8)=-N[2]*clhs248;
 lhs(7,0)=-clhs36*(DN(2,0)*clhs138 + DN(2,1)*clhs139);
 lhs(7,1)=-DN(2,0)*clhs142 - DN(2,1)*clhs143;
-lhs(7,2)=-N[0]*clhs252;
+lhs(7,2)=-N[0]*clhs249;
 lhs(7,3)=-clhs36*(DN(2,0)*clhs147 + DN(2,1)*clhs148);
 lhs(7,4)=-DN(2,0)*clhs149 - DN(2,1)*clhs150;
-lhs(7,5)=-N[1]*clhs252;
+lhs(7,5)=-N[1]*clhs249;
 lhs(7,6)=-clhs36*(DN(2,0)*clhs151 + DN(2,1)*clhs152);
 lhs(7,7)=-DN(2,0)*clhs153 - DN(2,1)*clhs154;
-lhs(7,8)=-N[2]*clhs252;
-lhs(8,0)=-N[2]*clhs18 + clhs171*(DN(2,0)*clhs158 + DN(2,1)*clhs159 + clhs164*clhs253 + clhs164*clhs254) + clhs177*(DN(2,0)*clhs159 + DN(2,1)*clhs172 + clhs164*clhs255 + clhs164*clhs256) + clhs217;
-lhs(8,1)=-N[2]*clhs53 + clhs167*clhs169*tau*(DN(2,0)*clhs181 + DN(2,1)*clhs182 + clhs183*clhs253 + clhs183*clhs254) + clhs169*clhs176*tau*(DN(2,0)*clhs182 + DN(2,1)*clhs184 + clhs183*clhs255 + clhs183*clhs256) - clhs225;
-lhs(8,2)=DN(0,0)*clhs258 + DN(0,1)*clhs260 - clhs191*clhs261 - clhs191*clhs262 + clhs233;
-lhs(8,3)=-N[2]*clhs82 + clhs171*(DN(2,0)*clhs201 + DN(2,1)*clhs202 + clhs203*clhs253 + clhs203*clhs254) + clhs177*(DN(2,0)*clhs202 + DN(2,1)*clhs204 + clhs203*clhs255 + clhs203*clhs256) + clhs248;
-lhs(8,4)=-N[2]*clhs97 + clhs167*clhs169*tau*(DN(2,0)*clhs210 + DN(2,1)*clhs211 + clhs212*clhs253 + clhs212*clhs254) + clhs169*clhs176*tau*(DN(2,0)*clhs211 + DN(2,1)*clhs213 + clhs212*clhs255 + clhs212*clhs256) - clhs249;
-lhs(8,5)=DN(1,0)*clhs258 + DN(1,1)*clhs260 - clhs215*clhs261 - clhs215*clhs262 + clhs250;
-lhs(8,6)=-N[2]*clhs110 + clhs171*(DN(2,0)*clhs221 + DN(2,1)*clhs222 + clhs223*clhs253 + clhs223*clhs254) + clhs177*(DN(2,0)*clhs222 + DN(2,1)*clhs224 + clhs223*clhs255 + clhs223*clhs256);
-lhs(8,7)=-N[2]*clhs125 + clhs171*(DN(2,0)*clhs229 + DN(2,1)*clhs230 + clhs231*clhs253 + clhs231*clhs254) + clhs177*(DN(2,0)*clhs230 + DN(2,1)*clhs232 + clhs231*clhs255 + clhs231*clhs256);
-lhs(8,8)=DN(2,0)*clhs258 + DN(2,1)*clhs260 + pow(N[2], 2) - clhs234*clhs261 - clhs234*clhs262;
+lhs(7,8)=-N[2]*clhs249;
+lhs(8,0)=-N[2]*clhs18 + clhs171*(DN(2,0)*clhs158 + DN(2,1)*clhs159 + clhs164*clhs250 + clhs164*clhs251) + clhs177*(DN(2,0)*clhs159 + DN(2,1)*clhs172 + clhs164*clhs252 + clhs164*clhs253) + clhs214;
+lhs(8,1)=-N[2]*clhs53 + clhs167*clhs169*tau*(DN(2,0)*clhs181 + DN(2,1)*clhs182 + clhs183*clhs250 + clhs183*clhs251) + clhs169*clhs176*tau*(DN(2,0)*clhs182 + DN(2,1)*clhs184 + clhs183*clhs252 + clhs183*clhs253) - clhs222;
+lhs(8,2)=DN(0,0)*clhs255 + DN(0,1)*clhs257 - clhs191*clhs258 - clhs191*clhs259 + clhs230;
+lhs(8,3)=-N[2]*clhs82 + clhs171*(DN(2,0)*clhs199 + DN(2,1)*clhs200 + clhs201*clhs250 + clhs201*clhs251) + clhs177*(DN(2,0)*clhs200 + DN(2,1)*clhs202 + clhs201*clhs252 + clhs201*clhs253) + clhs245;
+lhs(8,4)=-N[2]*clhs97 + clhs167*clhs169*tau*(DN(2,0)*clhs207 + DN(2,1)*clhs208 + clhs209*clhs250 + clhs209*clhs251) + clhs169*clhs176*tau*(DN(2,0)*clhs208 + DN(2,1)*clhs210 + clhs209*clhs252 + clhs209*clhs253) - clhs246;
+lhs(8,5)=DN(1,0)*clhs255 + DN(1,1)*clhs257 - clhs212*clhs258 - clhs212*clhs259 + clhs247;
+lhs(8,6)=-N[2]*clhs110 + clhs171*(DN(2,0)*clhs218 + DN(2,1)*clhs219 + clhs220*clhs250 + clhs220*clhs251) + clhs177*(DN(2,0)*clhs219 + DN(2,1)*clhs221 + clhs220*clhs252 + clhs220*clhs253);
+lhs(8,7)=-N[2]*clhs125 + clhs171*(DN(2,0)*clhs226 + DN(2,1)*clhs227 + clhs228*clhs250 + clhs228*clhs251) + clhs177*(DN(2,0)*clhs227 + DN(2,1)*clhs229 + clhs228*clhs252 + clhs228*clhs253);
+lhs(8,8)=DN(2,0)*clhs255 + DN(2,1)*clhs257 + pow(N[2], 2) - clhs231*clhs258 - clhs231*clhs259;
 
         // Calculate and add the RHS Gauss point contribution
-        const double crhs0 = N[0]*b(0,0) + N[1]*b(1,0) + N[2]*b(2,0);
-const double crhs1 = N[0]*rho0;
-const double crhs2 = DN(0,1)*u(0,0);
-const double crhs3 = DN(1,1)*u(1,0);
-const double crhs4 = DN(2,1)*u(2,0);
-const double crhs5 = crhs2 + crhs3 + crhs4;
-const double crhs6 = DN(0,0)*u(0,0);
-const double crhs7 = DN(1,0)*u(1,0);
-const double crhs8 = DN(2,0)*u(2,0);
-const double crhs9 = crhs6 + crhs7 + crhs8 + 1;
-const double crhs10 = S[0]*crhs9 + S[2]*crhs5;
-const double crhs11 = S[1]*crhs5 + S[2]*crhs9;
-const double crhs12 = N[0]*b(0,1) + N[1]*b(1,1) + N[2]*b(2,1);
-const double crhs13 = DN(0,0)*u(0,1);
-const double crhs14 = DN(1,0)*u(1,1);
-const double crhs15 = DN(2,0)*u(2,1);
-const double crhs16 = crhs13 + crhs14 + crhs15;
-const double crhs17 = DN(0,1)*u(0,1);
-const double crhs18 = DN(1,1)*u(1,1);
-const double crhs19 = DN(2,1)*u(2,1);
-const double crhs20 = crhs17 + crhs18 + crhs19;
-const double crhs21 = crhs20 + 1;
-const double crhs22 = S[0]*crhs16 + S[2]*crhs21;
-const double crhs23 = S[1]*crhs21 + S[2]*crhs16;
-const double crhs24 = rho0*tau;
-const double crhs25 = crhs12*crhs24;
-const double crhs26 = crhs0*crhs24;
-const double crhs27 = N[0]*th[0];
-const double crhs28 = N[1]*th[1];
-const double crhs29 = N[2]*th[2];
-const double crhs30 = -crhs13*crhs3 - crhs13*crhs4 - crhs14*crhs2 - crhs14*crhs4 - crhs15*crhs2 - crhs15*crhs3 + crhs17*crhs7 + crhs17*crhs8 + crhs18*crhs6 + crhs18*crhs8 + crhs19*crhs6 + crhs19*crhs7 + crhs20 + crhs9;
-const double crhs31 = -crhs27 - crhs28 - crhs29 + crhs30;
-const double crhs32 = pow(crhs16, 2) + pow(crhs9, 2);
-const double crhs33 = pow(crhs21, 2) + pow(crhs5, 2);
-const double crhs34 = 2*crhs16*crhs21 + 2*crhs5*crhs9;
-const double crhs35 = C(0,0)*crhs32 + C(0,1)*crhs33 + C(0,2)*crhs34;
-const double crhs36 = C(0,2)*crhs32 + C(1,2)*crhs33 + C(2,2)*crhs34;
-const double crhs37 = (1.0/2.0)*tau*sqrt(crhs30/(crhs27 + crhs28 + crhs29));
-const double crhs38 = crhs37*(DN(0,0)*th[0] + DN(1,0)*th[1] + DN(2,0)*th[2]);
-const double crhs39 = C(0,1)*crhs32 + C(1,1)*crhs33 + C(1,2)*crhs34;
-const double crhs40 = crhs37*(DN(0,1)*th[0] + DN(1,1)*th[1] + DN(2,1)*th[2]);
-const double crhs41 = N[1]*rho0;
-const double crhs42 = N[2]*rho0;
-rhs[0]=DN(0,0)*crhs10 + DN(0,1)*crhs11 - crhs0*crhs1;
-rhs[1]=DN(0,0)*crhs22 + DN(0,1)*crhs23 - crhs1*crhs12;
-rhs[2]=N[0]*crhs31 - crhs25*(-DN(0,0)*crhs5 + DN(0,1)*crhs9) - crhs26*(DN(0,0)*crhs21 - DN(0,1)*crhs16) - crhs38*(DN(0,0)*crhs35 + DN(0,1)*crhs36) - crhs40*(DN(0,0)*crhs36 + DN(0,1)*crhs39);
-rhs[3]=DN(1,0)*crhs10 + DN(1,1)*crhs11 - crhs0*crhs41;
-rhs[4]=DN(1,0)*crhs22 + DN(1,1)*crhs23 - crhs12*crhs41;
-rhs[5]=N[1]*crhs31 - crhs25*(-DN(1,0)*crhs5 + DN(1,1)*crhs9) - crhs26*(DN(1,0)*crhs21 - DN(1,1)*crhs16) - crhs38*(DN(1,0)*crhs35 + DN(1,1)*crhs36) - crhs40*(DN(1,0)*crhs36 + DN(1,1)*crhs39);
-rhs[6]=DN(2,0)*crhs10 + DN(2,1)*crhs11 - crhs0*crhs42;
-rhs[7]=DN(2,0)*crhs22 + DN(2,1)*crhs23 - crhs12*crhs42;
-rhs[8]=N[2]*crhs31 - crhs25*(-DN(2,0)*crhs5 + DN(2,1)*crhs9) - crhs26*(DN(2,0)*crhs21 - DN(2,1)*crhs16) - crhs38*(DN(2,0)*crhs35 + DN(2,1)*crhs36) - crhs40*(DN(2,0)*crhs36 + DN(2,1)*crhs39);
+        const double crhs0 = DN(0,1)*u(0,0);
+const double crhs1 = DN(1,1)*u(1,0);
+const double crhs2 = DN(2,1)*u(2,0);
+const double crhs3 = crhs0 + crhs1 + crhs2;
+const double crhs4 = DN(0,0)*u(0,0);
+const double crhs5 = DN(1,0)*u(1,0);
+const double crhs6 = DN(2,0)*u(2,0);
+const double crhs7 = crhs4 + crhs5 + crhs6 + 1;
+const double crhs8 = S[0]*crhs7 + S[2]*crhs3;
+const double crhs9 = S[1]*crhs3 + S[2]*crhs7;
+const double crhs10 = DN(0,0)*u(0,1);
+const double crhs11 = DN(1,0)*u(1,1);
+const double crhs12 = DN(2,0)*u(2,1);
+const double crhs13 = crhs10 + crhs11 + crhs12;
+const double crhs14 = DN(0,1)*u(0,1);
+const double crhs15 = DN(1,1)*u(1,1);
+const double crhs16 = DN(2,1)*u(2,1);
+const double crhs17 = crhs14 + crhs15 + crhs16;
+const double crhs18 = crhs17 + 1;
+const double crhs19 = S[0]*crhs13 + S[2]*crhs18;
+const double crhs20 = S[1]*crhs18 + S[2]*crhs13;
+const double crhs21 = b_gauss[0]*tau;
+const double crhs22 = b_gauss[1]*tau;
+const double crhs23 = N[0]*th[0];
+const double crhs24 = N[1]*th[1];
+const double crhs25 = N[2]*th[2];
+const double crhs26 = -crhs0*crhs11 - crhs0*crhs12 - crhs1*crhs10 - crhs1*crhs12 - crhs10*crhs2 - crhs11*crhs2 + crhs14*crhs5 + crhs14*crhs6 + crhs15*crhs4 + crhs15*crhs6 + crhs16*crhs4 + crhs16*crhs5 + crhs17 + crhs7;
+const double crhs27 = -crhs23 - crhs24 - crhs25 + crhs26;
+const double crhs28 = pow(crhs13, 2) + pow(crhs7, 2);
+const double crhs29 = pow(crhs18, 2) + pow(crhs3, 2);
+const double crhs30 = 2*crhs13*crhs18 + 2*crhs3*crhs7;
+const double crhs31 = C(0,0)*crhs28 + C(0,1)*crhs29 + C(0,2)*crhs30;
+const double crhs32 = C(0,2)*crhs28 + C(1,2)*crhs29 + C(2,2)*crhs30;
+const double crhs33 = (1.0/2.0)*tau*sqrt(crhs26/(crhs23 + crhs24 + crhs25));
+const double crhs34 = crhs33*(DN(0,0)*th[0] + DN(1,0)*th[1] + DN(2,0)*th[2]);
+const double crhs35 = C(0,1)*crhs28 + C(1,1)*crhs29 + C(1,2)*crhs30;
+const double crhs36 = crhs33*(DN(0,1)*th[0] + DN(1,1)*th[1] + DN(2,1)*th[2]);
+rhs[0]=DN(0,0)*crhs8 + DN(0,1)*crhs9 - N[0]*b_gauss[0];
+rhs[1]=DN(0,0)*crhs19 + DN(0,1)*crhs20 - N[0]*b_gauss[1];
+rhs[2]=N[0]*crhs27 - crhs21*(DN(0,0)*crhs18 - DN(0,1)*crhs13) - crhs22*(-DN(0,0)*crhs3 + DN(0,1)*crhs7) - crhs34*(DN(0,0)*crhs31 + DN(0,1)*crhs32) - crhs36*(DN(0,0)*crhs32 + DN(0,1)*crhs35);
+rhs[3]=DN(1,0)*crhs8 + DN(1,1)*crhs9 - N[1]*b_gauss[0];
+rhs[4]=DN(1,0)*crhs19 + DN(1,1)*crhs20 - N[1]*b_gauss[1];
+rhs[5]=N[1]*crhs27 - crhs21*(DN(1,0)*crhs18 - DN(1,1)*crhs13) - crhs22*(-DN(1,0)*crhs3 + DN(1,1)*crhs7) - crhs34*(DN(1,0)*crhs31 + DN(1,1)*crhs32) - crhs36*(DN(1,0)*crhs32 + DN(1,1)*crhs35);
+rhs[6]=DN(2,0)*crhs8 + DN(2,1)*crhs9 - N[2]*b_gauss[0];
+rhs[7]=DN(2,0)*crhs19 + DN(2,1)*crhs20 - N[2]*b_gauss[1];
+rhs[8]=N[2]*crhs27 - crhs21*(DN(2,0)*crhs18 - DN(2,1)*crhs13) - crhs22*(-DN(2,0)*crhs3 + DN(2,1)*crhs7) - crhs34*(DN(2,0)*crhs31 + DN(2,1)*crhs32) - crhs36*(DN(2,0)*crhs32 + DN(2,1)*crhs35);
 
         //TODO: Amend this once the assembly is done in the input arrays
         rLeftHandSideMatrix += w_gauss * lhs;
@@ -847,17 +833,8 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
     const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
     const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
 
-    // Set data for the body force calculation
-    BoundedMatrix<double, NumNodes, 3> b;
-    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-        const array_1d<double,3>& r_b_i = r_geometry[i_node].FastGetSolutionStepValue(BODY_FORCE);
-        for (IndexType d = 0; d < 3; ++d) {
-            b(i_node, d) = r_b_i[d];
-        }
-    }
-    const double rho0 = GetProperties().GetValue(DENSITY);
-
     // Set the auxiliary references matching the automatic differentiation symbols
+    array_1d<double,3> b_gauss;
     const auto& N = kinematic_variables.N;
     const auto& DN = kinematic_variables.DN_DX;
     const auto& u = kinematic_variables.Displacements;
@@ -879,6 +856,10 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+
+        // Calculate body force
+        // Note that this already includes the density computed in the reference configuration
+        b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate and add the LHS Gauss point contributions
         //substitute_lhs_3D_4N
@@ -937,17 +918,8 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
     const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
     const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
 
-    // Set data for the body force calculation
-    BoundedMatrix<double, NumNodes, 2> b;
-    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-        const array_1d<double,3>& r_b_i = r_geometry[i_node].FastGetSolutionStepValue(BODY_FORCE);
-        for (IndexType d = 0; d < 2; ++d) {
-            b(i_node, d) = r_b_i[d];
-        }
-    }
-    const double rho0 = GetProperties().GetValue(DENSITY);
-
     // Set the auxiliary references matching the automatic differentiation symbols
+    array_1d<double,3> b_gauss;
     const auto& N = kinematic_variables.N;
     const auto& DN = kinematic_variables.DN_DX;
     const auto& u = kinematic_variables.Displacements;
@@ -968,6 +940,10 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+
+        // Calculate body force
+        // Note that this already includes the density computed in the reference configuration
+        b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate and add the LHS Gauss point contributions
         const double clhs0 = DN(0,1)*u(0,0);
@@ -1164,75 +1140,72 @@ const double clhs190 = 0.25*clhs168;
 const double clhs191 = N[0]*clhs190;
 const double clhs192 = clhs171*clhs185;
 const double clhs193 = clhs177*clhs188;
-const double clhs194 = N[0]*b(0,1) + N[1]*b(1,1) + N[2]*b(2,1);
-const double clhs195 = rho0*tau;
-const double clhs196 = clhs195*(DN(0,0)*DN(1,1) - DN(0,1)*DN(1,0));
-const double clhs197 = clhs194*clhs196;
-const double clhs198 = DN(1,1)*clhs3;
-const double clhs199 = DN(1,0)*clhs13;
-const double clhs200 = clhs87 + clhs88;
-const double clhs201 = C(0,0)*clhs199 + C(0,1)*clhs198 + C(0,2)*clhs200;
-const double clhs202 = C(0,2)*clhs199 + C(1,2)*clhs198 + C(2,2)*clhs200;
-const double clhs203 = clhs163*clhs82;
-const double clhs204 = C(0,1)*clhs199 + C(1,1)*clhs198 + C(1,2)*clhs200;
-const double clhs205 = N[0]*b(0,0) + N[1]*b(1,0) + N[2]*b(2,0);
-const double clhs206 = clhs196*clhs205;
-const double clhs207 = DN(1,0)*clhs25;
-const double clhs208 = DN(1,1)*clhs22;
-const double clhs209 = clhs102 + clhs103;
-const double clhs210 = C(0,0)*clhs207 + C(0,1)*clhs208 + C(0,2)*clhs209;
-const double clhs211 = C(0,2)*clhs207 + C(1,2)*clhs208 + C(2,2)*clhs209;
-const double clhs212 = clhs163*clhs97;
-const double clhs213 = C(0,1)*clhs207 + C(1,1)*clhs208 + C(1,2)*clhs209;
-const double clhs214 = N[0]*N[1];
-const double clhs215 = N[1]*clhs190;
-const double clhs216 = clhs195*(DN(0,0)*DN(2,1) - DN(0,1)*DN(2,0));
-const double clhs217 = clhs194*clhs216;
-const double clhs218 = DN(2,1)*clhs3;
-const double clhs219 = DN(2,0)*clhs13;
-const double clhs220 = clhs115 + clhs116;
-const double clhs221 = C(0,0)*clhs219 + C(0,1)*clhs218 + C(0,2)*clhs220;
-const double clhs222 = C(0,2)*clhs219 + C(1,2)*clhs218 + C(2,2)*clhs220;
-const double clhs223 = clhs110*clhs163;
-const double clhs224 = C(0,1)*clhs219 + C(1,1)*clhs218 + C(1,2)*clhs220;
-const double clhs225 = clhs205*clhs216;
-const double clhs226 = DN(2,0)*clhs25;
-const double clhs227 = DN(2,1)*clhs22;
-const double clhs228 = clhs130 + clhs131;
-const double clhs229 = C(0,0)*clhs226 + C(0,1)*clhs227 + C(0,2)*clhs228;
-const double clhs230 = C(0,2)*clhs226 + C(1,2)*clhs227 + C(2,2)*clhs228;
-const double clhs231 = clhs125*clhs163;
-const double clhs232 = C(0,1)*clhs226 + C(1,1)*clhs227 + C(1,2)*clhs228;
-const double clhs233 = N[0]*N[2];
-const double clhs234 = N[2]*clhs190;
-const double clhs235 = clhs80*(DN(1,0)*clhs75 + DN(1,1)*clhs79);
-const double clhs236 = clhs80*(DN(1,0)*clhs144 + DN(1,1)*clhs145);
-const double clhs237 = DN(1,0)*clhs161;
-const double clhs238 = DN(1,1)*clhs165;
-const double clhs239 = DN(1,0)*clhs165;
-const double clhs240 = DN(1,1)*clhs174;
-const double clhs241 = clhs237 + clhs238;
-const double clhs242 = clhs186*clhs241;
-const double clhs243 = clhs239 + clhs240;
-const double clhs244 = clhs186*clhs243;
-const double clhs245 = clhs171*clhs241;
-const double clhs246 = clhs177*clhs243;
-const double clhs247 = clhs195*(DN(1,0)*DN(2,1) - DN(1,1)*DN(2,0));
-const double clhs248 = clhs194*clhs247;
-const double clhs249 = clhs205*clhs247;
-const double clhs250 = N[1]*N[2];
-const double clhs251 = clhs80*(DN(2,0)*clhs75 + DN(2,1)*clhs79);
-const double clhs252 = clhs80*(DN(2,0)*clhs144 + DN(2,1)*clhs145);
-const double clhs253 = DN(2,0)*clhs161;
-const double clhs254 = DN(2,1)*clhs165;
-const double clhs255 = DN(2,0)*clhs165;
-const double clhs256 = DN(2,1)*clhs174;
-const double clhs257 = clhs253 + clhs254;
-const double clhs258 = clhs186*clhs257;
-const double clhs259 = clhs255 + clhs256;
-const double clhs260 = clhs186*clhs259;
-const double clhs261 = clhs171*clhs257;
-const double clhs262 = clhs177*clhs259;
+const double clhs194 = tau*(DN(0,0)*DN(1,1) - DN(0,1)*DN(1,0));
+const double clhs195 = b_gauss[1]*clhs194;
+const double clhs196 = DN(1,1)*clhs3;
+const double clhs197 = DN(1,0)*clhs13;
+const double clhs198 = clhs87 + clhs88;
+const double clhs199 = C(0,0)*clhs197 + C(0,1)*clhs196 + C(0,2)*clhs198;
+const double clhs200 = C(0,2)*clhs197 + C(1,2)*clhs196 + C(2,2)*clhs198;
+const double clhs201 = clhs163*clhs82;
+const double clhs202 = C(0,1)*clhs197 + C(1,1)*clhs196 + C(1,2)*clhs198;
+const double clhs203 = b_gauss[0]*clhs194;
+const double clhs204 = DN(1,0)*clhs25;
+const double clhs205 = DN(1,1)*clhs22;
+const double clhs206 = clhs102 + clhs103;
+const double clhs207 = C(0,0)*clhs204 + C(0,1)*clhs205 + C(0,2)*clhs206;
+const double clhs208 = C(0,2)*clhs204 + C(1,2)*clhs205 + C(2,2)*clhs206;
+const double clhs209 = clhs163*clhs97;
+const double clhs210 = C(0,1)*clhs204 + C(1,1)*clhs205 + C(1,2)*clhs206;
+const double clhs211 = N[0]*N[1];
+const double clhs212 = N[1]*clhs190;
+const double clhs213 = tau*(DN(0,0)*DN(2,1) - DN(0,1)*DN(2,0));
+const double clhs214 = b_gauss[1]*clhs213;
+const double clhs215 = DN(2,1)*clhs3;
+const double clhs216 = DN(2,0)*clhs13;
+const double clhs217 = clhs115 + clhs116;
+const double clhs218 = C(0,0)*clhs216 + C(0,1)*clhs215 + C(0,2)*clhs217;
+const double clhs219 = C(0,2)*clhs216 + C(1,2)*clhs215 + C(2,2)*clhs217;
+const double clhs220 = clhs110*clhs163;
+const double clhs221 = C(0,1)*clhs216 + C(1,1)*clhs215 + C(1,2)*clhs217;
+const double clhs222 = b_gauss[0]*clhs213;
+const double clhs223 = DN(2,0)*clhs25;
+const double clhs224 = DN(2,1)*clhs22;
+const double clhs225 = clhs130 + clhs131;
+const double clhs226 = C(0,0)*clhs223 + C(0,1)*clhs224 + C(0,2)*clhs225;
+const double clhs227 = C(0,2)*clhs223 + C(1,2)*clhs224 + C(2,2)*clhs225;
+const double clhs228 = clhs125*clhs163;
+const double clhs229 = C(0,1)*clhs223 + C(1,1)*clhs224 + C(1,2)*clhs225;
+const double clhs230 = N[0]*N[2];
+const double clhs231 = N[2]*clhs190;
+const double clhs232 = clhs80*(DN(1,0)*clhs75 + DN(1,1)*clhs79);
+const double clhs233 = clhs80*(DN(1,0)*clhs144 + DN(1,1)*clhs145);
+const double clhs234 = DN(1,0)*clhs161;
+const double clhs235 = DN(1,1)*clhs165;
+const double clhs236 = DN(1,0)*clhs165;
+const double clhs237 = DN(1,1)*clhs174;
+const double clhs238 = clhs234 + clhs235;
+const double clhs239 = clhs186*clhs238;
+const double clhs240 = clhs236 + clhs237;
+const double clhs241 = clhs186*clhs240;
+const double clhs242 = clhs171*clhs238;
+const double clhs243 = clhs177*clhs240;
+const double clhs244 = tau*(DN(1,0)*DN(2,1) - DN(1,1)*DN(2,0));
+const double clhs245 = b_gauss[1]*clhs244;
+const double clhs246 = b_gauss[0]*clhs244;
+const double clhs247 = N[1]*N[2];
+const double clhs248 = clhs80*(DN(2,0)*clhs75 + DN(2,1)*clhs79);
+const double clhs249 = clhs80*(DN(2,0)*clhs144 + DN(2,1)*clhs145);
+const double clhs250 = DN(2,0)*clhs161;
+const double clhs251 = DN(2,1)*clhs165;
+const double clhs252 = DN(2,0)*clhs165;
+const double clhs253 = DN(2,1)*clhs174;
+const double clhs254 = clhs250 + clhs251;
+const double clhs255 = clhs186*clhs254;
+const double clhs256 = clhs252 + clhs253;
+const double clhs257 = clhs186*clhs256;
+const double clhs258 = clhs171*clhs254;
+const double clhs259 = clhs177*clhs256;
 lhs(0,0)=-DN(0,0)*clhs48 - DN(0,1)*clhs52;
 lhs(0,1)=-clhs36*(DN(0,0)*clhs63 + DN(0,1)*clhs65);
 lhs(0,2)=-N[0]*clhs81;
@@ -1254,66 +1227,66 @@ lhs(1,8)=-N[2]*clhs146;
 lhs(2,0)=-N[0]*clhs18 + clhs171*(DN(0,0)*clhs158 + DN(0,1)*clhs159 + clhs162*clhs164 + clhs164*clhs166) + clhs177*(DN(0,0)*clhs159 + DN(0,1)*clhs172 + clhs164*clhs173 + clhs164*clhs175);
 lhs(2,1)=-N[0]*clhs53 + clhs171*(DN(0,0)*clhs181 + DN(0,1)*clhs182 + clhs162*clhs183 + clhs166*clhs183) + clhs177*(DN(0,0)*clhs182 + DN(0,1)*clhs184 + clhs173*clhs183 + clhs175*clhs183);
 lhs(2,2)=DN(0,0)*clhs187 + DN(0,1)*clhs189 + pow(N[0], 2) - clhs191*clhs192 - clhs191*clhs193;
-lhs(2,3)=-N[0]*clhs82 + clhs167*clhs169*tau*(DN(0,0)*clhs201 + DN(0,1)*clhs202 + clhs162*clhs203 + clhs166*clhs203) + clhs169*clhs176*tau*(DN(0,0)*clhs202 + DN(0,1)*clhs204 + clhs173*clhs203 + clhs175*clhs203) - clhs197;
-lhs(2,4)=-N[0]*clhs97 + clhs171*(DN(0,0)*clhs210 + DN(0,1)*clhs211 + clhs162*clhs212 + clhs166*clhs212) + clhs177*(DN(0,0)*clhs211 + DN(0,1)*clhs213 + clhs173*clhs212 + clhs175*clhs212) + clhs206;
-lhs(2,5)=DN(1,0)*clhs187 + DN(1,1)*clhs189 - clhs192*clhs215 - clhs193*clhs215 + clhs214;
-lhs(2,6)=-N[0]*clhs110 + clhs167*clhs169*tau*(DN(0,0)*clhs221 + DN(0,1)*clhs222 + clhs162*clhs223 + clhs166*clhs223) + clhs169*clhs176*tau*(DN(0,0)*clhs222 + DN(0,1)*clhs224 + clhs173*clhs223 + clhs175*clhs223) - clhs217;
-lhs(2,7)=-N[0]*clhs125 + clhs171*(DN(0,0)*clhs229 + DN(0,1)*clhs230 + clhs162*clhs231 + clhs166*clhs231) + clhs177*(DN(0,0)*clhs230 + DN(0,1)*clhs232 + clhs173*clhs231 + clhs175*clhs231) + clhs225;
-lhs(2,8)=DN(2,0)*clhs187 + DN(2,1)*clhs189 - clhs192*clhs234 - clhs193*clhs234 + clhs233;
+lhs(2,3)=-N[0]*clhs82 + clhs167*clhs169*tau*(DN(0,0)*clhs199 + DN(0,1)*clhs200 + clhs162*clhs201 + clhs166*clhs201) + clhs169*clhs176*tau*(DN(0,0)*clhs200 + DN(0,1)*clhs202 + clhs173*clhs201 + clhs175*clhs201) - clhs195;
+lhs(2,4)=-N[0]*clhs97 + clhs171*(DN(0,0)*clhs207 + DN(0,1)*clhs208 + clhs162*clhs209 + clhs166*clhs209) + clhs177*(DN(0,0)*clhs208 + DN(0,1)*clhs210 + clhs173*clhs209 + clhs175*clhs209) + clhs203;
+lhs(2,5)=DN(1,0)*clhs187 + DN(1,1)*clhs189 - clhs192*clhs212 - clhs193*clhs212 + clhs211;
+lhs(2,6)=-N[0]*clhs110 + clhs167*clhs169*tau*(DN(0,0)*clhs218 + DN(0,1)*clhs219 + clhs162*clhs220 + clhs166*clhs220) + clhs169*clhs176*tau*(DN(0,0)*clhs219 + DN(0,1)*clhs221 + clhs173*clhs220 + clhs175*clhs220) - clhs214;
+lhs(2,7)=-N[0]*clhs125 + clhs171*(DN(0,0)*clhs226 + DN(0,1)*clhs227 + clhs162*clhs228 + clhs166*clhs228) + clhs177*(DN(0,0)*clhs227 + DN(0,1)*clhs229 + clhs173*clhs228 + clhs175*clhs228) + clhs222;
+lhs(2,8)=DN(2,0)*clhs187 + DN(2,1)*clhs189 - clhs192*clhs231 - clhs193*clhs231 + clhs230;
 lhs(3,0)=-DN(1,0)*clhs48 - DN(1,1)*clhs52;
 lhs(3,1)=-clhs36*(DN(1,0)*clhs63 + DN(1,1)*clhs65);
-lhs(3,2)=-N[0]*clhs235;
+lhs(3,2)=-N[0]*clhs232;
 lhs(3,3)=-DN(1,0)*clhs93 - DN(1,1)*clhs96;
 lhs(3,4)=-clhs36*(DN(1,0)*clhs107 + DN(1,1)*clhs109);
-lhs(3,5)=-N[1]*clhs235;
+lhs(3,5)=-N[1]*clhs232;
 lhs(3,6)=-DN(1,0)*clhs121 - DN(1,1)*clhs124;
 lhs(3,7)=-clhs36*(DN(1,0)*clhs135 + DN(1,1)*clhs137);
-lhs(3,8)=-N[2]*clhs235;
+lhs(3,8)=-N[2]*clhs232;
 lhs(4,0)=-clhs36*(DN(1,0)*clhs138 + DN(1,1)*clhs139);
 lhs(4,1)=-DN(1,0)*clhs142 - DN(1,1)*clhs143;
-lhs(4,2)=-N[0]*clhs236;
+lhs(4,2)=-N[0]*clhs233;
 lhs(4,3)=-clhs36*(DN(1,0)*clhs147 + DN(1,1)*clhs148);
 lhs(4,4)=-DN(1,0)*clhs149 - DN(1,1)*clhs150;
-lhs(4,5)=-N[1]*clhs236;
+lhs(4,5)=-N[1]*clhs233;
 lhs(4,6)=-clhs36*(DN(1,0)*clhs151 + DN(1,1)*clhs152);
 lhs(4,7)=-DN(1,0)*clhs153 - DN(1,1)*clhs154;
-lhs(4,8)=-N[2]*clhs236;
-lhs(5,0)=-N[1]*clhs18 + clhs171*(DN(1,0)*clhs158 + DN(1,1)*clhs159 + clhs164*clhs237 + clhs164*clhs238) + clhs177*(DN(1,0)*clhs159 + DN(1,1)*clhs172 + clhs164*clhs239 + clhs164*clhs240) + clhs197;
-lhs(5,1)=-N[1]*clhs53 + clhs167*clhs169*tau*(DN(1,0)*clhs181 + DN(1,1)*clhs182 + clhs183*clhs237 + clhs183*clhs238) + clhs169*clhs176*tau*(DN(1,0)*clhs182 + DN(1,1)*clhs184 + clhs183*clhs239 + clhs183*clhs240) - clhs206;
-lhs(5,2)=DN(0,0)*clhs242 + DN(0,1)*clhs244 - clhs191*clhs245 - clhs191*clhs246 + clhs214;
-lhs(5,3)=-N[1]*clhs82 + clhs171*(DN(1,0)*clhs201 + DN(1,1)*clhs202 + clhs203*clhs237 + clhs203*clhs238) + clhs177*(DN(1,0)*clhs202 + DN(1,1)*clhs204 + clhs203*clhs239 + clhs203*clhs240);
-lhs(5,4)=-N[1]*clhs97 + clhs171*(DN(1,0)*clhs210 + DN(1,1)*clhs211 + clhs212*clhs237 + clhs212*clhs238) + clhs177*(DN(1,0)*clhs211 + DN(1,1)*clhs213 + clhs212*clhs239 + clhs212*clhs240);
-lhs(5,5)=DN(1,0)*clhs242 + DN(1,1)*clhs244 + pow(N[1], 2) - clhs215*clhs245 - clhs215*clhs246;
-lhs(5,6)=-N[1]*clhs110 + clhs167*clhs169*tau*(DN(1,0)*clhs221 + DN(1,1)*clhs222 + clhs223*clhs237 + clhs223*clhs238) + clhs169*clhs176*tau*(DN(1,0)*clhs222 + DN(1,1)*clhs224 + clhs223*clhs239 + clhs223*clhs240) - clhs248;
-lhs(5,7)=-N[1]*clhs125 + clhs171*(DN(1,0)*clhs229 + DN(1,1)*clhs230 + clhs231*clhs237 + clhs231*clhs238) + clhs177*(DN(1,0)*clhs230 + DN(1,1)*clhs232 + clhs231*clhs239 + clhs231*clhs240) + clhs249;
-lhs(5,8)=DN(2,0)*clhs242 + DN(2,1)*clhs244 - clhs234*clhs245 - clhs234*clhs246 + clhs250;
+lhs(4,8)=-N[2]*clhs233;
+lhs(5,0)=-N[1]*clhs18 + clhs171*(DN(1,0)*clhs158 + DN(1,1)*clhs159 + clhs164*clhs234 + clhs164*clhs235) + clhs177*(DN(1,0)*clhs159 + DN(1,1)*clhs172 + clhs164*clhs236 + clhs164*clhs237) + clhs195;
+lhs(5,1)=-N[1]*clhs53 + clhs167*clhs169*tau*(DN(1,0)*clhs181 + DN(1,1)*clhs182 + clhs183*clhs234 + clhs183*clhs235) + clhs169*clhs176*tau*(DN(1,0)*clhs182 + DN(1,1)*clhs184 + clhs183*clhs236 + clhs183*clhs237) - clhs203;
+lhs(5,2)=DN(0,0)*clhs239 + DN(0,1)*clhs241 - clhs191*clhs242 - clhs191*clhs243 + clhs211;
+lhs(5,3)=-N[1]*clhs82 + clhs171*(DN(1,0)*clhs199 + DN(1,1)*clhs200 + clhs201*clhs234 + clhs201*clhs235) + clhs177*(DN(1,0)*clhs200 + DN(1,1)*clhs202 + clhs201*clhs236 + clhs201*clhs237);
+lhs(5,4)=-N[1]*clhs97 + clhs171*(DN(1,0)*clhs207 + DN(1,1)*clhs208 + clhs209*clhs234 + clhs209*clhs235) + clhs177*(DN(1,0)*clhs208 + DN(1,1)*clhs210 + clhs209*clhs236 + clhs209*clhs237);
+lhs(5,5)=DN(1,0)*clhs239 + DN(1,1)*clhs241 + pow(N[1], 2) - clhs212*clhs242 - clhs212*clhs243;
+lhs(5,6)=-N[1]*clhs110 + clhs167*clhs169*tau*(DN(1,0)*clhs218 + DN(1,1)*clhs219 + clhs220*clhs234 + clhs220*clhs235) + clhs169*clhs176*tau*(DN(1,0)*clhs219 + DN(1,1)*clhs221 + clhs220*clhs236 + clhs220*clhs237) - clhs245;
+lhs(5,7)=-N[1]*clhs125 + clhs171*(DN(1,0)*clhs226 + DN(1,1)*clhs227 + clhs228*clhs234 + clhs228*clhs235) + clhs177*(DN(1,0)*clhs227 + DN(1,1)*clhs229 + clhs228*clhs236 + clhs228*clhs237) + clhs246;
+lhs(5,8)=DN(2,0)*clhs239 + DN(2,1)*clhs241 - clhs231*clhs242 - clhs231*clhs243 + clhs247;
 lhs(6,0)=-DN(2,0)*clhs48 - DN(2,1)*clhs52;
 lhs(6,1)=-clhs36*(DN(2,0)*clhs63 + DN(2,1)*clhs65);
-lhs(6,2)=-N[0]*clhs251;
+lhs(6,2)=-N[0]*clhs248;
 lhs(6,3)=-DN(2,0)*clhs93 - DN(2,1)*clhs96;
 lhs(6,4)=-clhs36*(DN(2,0)*clhs107 + DN(2,1)*clhs109);
-lhs(6,5)=-N[1]*clhs251;
+lhs(6,5)=-N[1]*clhs248;
 lhs(6,6)=-DN(2,0)*clhs121 - DN(2,1)*clhs124;
 lhs(6,7)=-clhs36*(DN(2,0)*clhs135 + DN(2,1)*clhs137);
-lhs(6,8)=-N[2]*clhs251;
+lhs(6,8)=-N[2]*clhs248;
 lhs(7,0)=-clhs36*(DN(2,0)*clhs138 + DN(2,1)*clhs139);
 lhs(7,1)=-DN(2,0)*clhs142 - DN(2,1)*clhs143;
-lhs(7,2)=-N[0]*clhs252;
+lhs(7,2)=-N[0]*clhs249;
 lhs(7,3)=-clhs36*(DN(2,0)*clhs147 + DN(2,1)*clhs148);
 lhs(7,4)=-DN(2,0)*clhs149 - DN(2,1)*clhs150;
-lhs(7,5)=-N[1]*clhs252;
+lhs(7,5)=-N[1]*clhs249;
 lhs(7,6)=-clhs36*(DN(2,0)*clhs151 + DN(2,1)*clhs152);
 lhs(7,7)=-DN(2,0)*clhs153 - DN(2,1)*clhs154;
-lhs(7,8)=-N[2]*clhs252;
-lhs(8,0)=-N[2]*clhs18 + clhs171*(DN(2,0)*clhs158 + DN(2,1)*clhs159 + clhs164*clhs253 + clhs164*clhs254) + clhs177*(DN(2,0)*clhs159 + DN(2,1)*clhs172 + clhs164*clhs255 + clhs164*clhs256) + clhs217;
-lhs(8,1)=-N[2]*clhs53 + clhs167*clhs169*tau*(DN(2,0)*clhs181 + DN(2,1)*clhs182 + clhs183*clhs253 + clhs183*clhs254) + clhs169*clhs176*tau*(DN(2,0)*clhs182 + DN(2,1)*clhs184 + clhs183*clhs255 + clhs183*clhs256) - clhs225;
-lhs(8,2)=DN(0,0)*clhs258 + DN(0,1)*clhs260 - clhs191*clhs261 - clhs191*clhs262 + clhs233;
-lhs(8,3)=-N[2]*clhs82 + clhs171*(DN(2,0)*clhs201 + DN(2,1)*clhs202 + clhs203*clhs253 + clhs203*clhs254) + clhs177*(DN(2,0)*clhs202 + DN(2,1)*clhs204 + clhs203*clhs255 + clhs203*clhs256) + clhs248;
-lhs(8,4)=-N[2]*clhs97 + clhs167*clhs169*tau*(DN(2,0)*clhs210 + DN(2,1)*clhs211 + clhs212*clhs253 + clhs212*clhs254) + clhs169*clhs176*tau*(DN(2,0)*clhs211 + DN(2,1)*clhs213 + clhs212*clhs255 + clhs212*clhs256) - clhs249;
-lhs(8,5)=DN(1,0)*clhs258 + DN(1,1)*clhs260 - clhs215*clhs261 - clhs215*clhs262 + clhs250;
-lhs(8,6)=-N[2]*clhs110 + clhs171*(DN(2,0)*clhs221 + DN(2,1)*clhs222 + clhs223*clhs253 + clhs223*clhs254) + clhs177*(DN(2,0)*clhs222 + DN(2,1)*clhs224 + clhs223*clhs255 + clhs223*clhs256);
-lhs(8,7)=-N[2]*clhs125 + clhs171*(DN(2,0)*clhs229 + DN(2,1)*clhs230 + clhs231*clhs253 + clhs231*clhs254) + clhs177*(DN(2,0)*clhs230 + DN(2,1)*clhs232 + clhs231*clhs255 + clhs231*clhs256);
-lhs(8,8)=DN(2,0)*clhs258 + DN(2,1)*clhs260 + pow(N[2], 2) - clhs234*clhs261 - clhs234*clhs262;
+lhs(7,8)=-N[2]*clhs249;
+lhs(8,0)=-N[2]*clhs18 + clhs171*(DN(2,0)*clhs158 + DN(2,1)*clhs159 + clhs164*clhs250 + clhs164*clhs251) + clhs177*(DN(2,0)*clhs159 + DN(2,1)*clhs172 + clhs164*clhs252 + clhs164*clhs253) + clhs214;
+lhs(8,1)=-N[2]*clhs53 + clhs167*clhs169*tau*(DN(2,0)*clhs181 + DN(2,1)*clhs182 + clhs183*clhs250 + clhs183*clhs251) + clhs169*clhs176*tau*(DN(2,0)*clhs182 + DN(2,1)*clhs184 + clhs183*clhs252 + clhs183*clhs253) - clhs222;
+lhs(8,2)=DN(0,0)*clhs255 + DN(0,1)*clhs257 - clhs191*clhs258 - clhs191*clhs259 + clhs230;
+lhs(8,3)=-N[2]*clhs82 + clhs171*(DN(2,0)*clhs199 + DN(2,1)*clhs200 + clhs201*clhs250 + clhs201*clhs251) + clhs177*(DN(2,0)*clhs200 + DN(2,1)*clhs202 + clhs201*clhs252 + clhs201*clhs253) + clhs245;
+lhs(8,4)=-N[2]*clhs97 + clhs167*clhs169*tau*(DN(2,0)*clhs207 + DN(2,1)*clhs208 + clhs209*clhs250 + clhs209*clhs251) + clhs169*clhs176*tau*(DN(2,0)*clhs208 + DN(2,1)*clhs210 + clhs209*clhs252 + clhs209*clhs253) - clhs246;
+lhs(8,5)=DN(1,0)*clhs255 + DN(1,1)*clhs257 - clhs212*clhs258 - clhs212*clhs259 + clhs247;
+lhs(8,6)=-N[2]*clhs110 + clhs171*(DN(2,0)*clhs218 + DN(2,1)*clhs219 + clhs220*clhs250 + clhs220*clhs251) + clhs177*(DN(2,0)*clhs219 + DN(2,1)*clhs221 + clhs220*clhs252 + clhs220*clhs253);
+lhs(8,7)=-N[2]*clhs125 + clhs171*(DN(2,0)*clhs226 + DN(2,1)*clhs227 + clhs228*clhs250 + clhs228*clhs251) + clhs177*(DN(2,0)*clhs227 + DN(2,1)*clhs229 + clhs228*clhs252 + clhs228*clhs253);
+lhs(8,8)=DN(2,0)*clhs255 + DN(2,1)*clhs257 + pow(N[2], 2) - clhs231*clhs258 - clhs231*clhs259;
 
         //TODO: Amend this once the assembly is done in the input arrays
         rLeftHandSideMatrix += w_gauss * lhs;
@@ -1367,17 +1340,8 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
     const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
     const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
 
-    // Set data for the body force calculation
-    BoundedMatrix<double, NumNodes, 3> b;
-    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-        const array_1d<double,3>& r_b_i = r_geometry[i_node].FastGetSolutionStepValue(BODY_FORCE);
-        for (IndexType d = 0; d < 3; ++d) {
-            b(i_node, d) = r_b_i[d];
-        }
-    }
-    const double rho0 = GetProperties().GetValue(DENSITY);
-
     // Set the auxiliary references matching the automatic differentiation symbols
+    array_1d<double,3> b_gauss;
     const auto& N = kinematic_variables.N;
     const auto& DN = kinematic_variables.DN_DX;
     const auto& u = kinematic_variables.Displacements;
@@ -1398,6 +1362,10 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+
+        // Calculate body force
+        // Note that this already includes the density computed in the reference configuration
+        b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate and add the LHS Gauss point contributions
         //substitute_lhs_3D_4N
@@ -1453,17 +1421,8 @@ void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
     const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
     const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
 
-    // Set data for the body force calculation
-    BoundedMatrix<double, NumNodes, 2> b;
-    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-        const array_1d<double,3>& r_b_i = r_geometry[i_node].FastGetSolutionStepValue(BODY_FORCE);
-        for (IndexType d = 0; d < 2; ++d) {
-            b(i_node, d) = r_b_i[d];
-        }
-    }
-    const double rho0 = GetProperties().GetValue(DENSITY);
-
     // Set the auxiliary references matching the automatic differentiation symbols
+    array_1d<double,3> b_gauss;
     const auto& N = kinematic_variables.N;
     const auto& DN = kinematic_variables.DN_DX;
     const auto& u = kinematic_variables.Displacements;
@@ -1485,59 +1444,57 @@ void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
 
+        // Calculate body force
+        // Note that this already includes the density computed in the reference configuration
+        b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
+
         // Calculate and add the RHS Gauss point contribution
-        const double crhs0 = N[0]*b(0,0) + N[1]*b(1,0) + N[2]*b(2,0);
-const double crhs1 = N[0]*rho0;
-const double crhs2 = DN(0,1)*u(0,0);
-const double crhs3 = DN(1,1)*u(1,0);
-const double crhs4 = DN(2,1)*u(2,0);
-const double crhs5 = crhs2 + crhs3 + crhs4;
-const double crhs6 = DN(0,0)*u(0,0);
-const double crhs7 = DN(1,0)*u(1,0);
-const double crhs8 = DN(2,0)*u(2,0);
-const double crhs9 = crhs6 + crhs7 + crhs8 + 1;
-const double crhs10 = S[0]*crhs9 + S[2]*crhs5;
-const double crhs11 = S[1]*crhs5 + S[2]*crhs9;
-const double crhs12 = N[0]*b(0,1) + N[1]*b(1,1) + N[2]*b(2,1);
-const double crhs13 = DN(0,0)*u(0,1);
-const double crhs14 = DN(1,0)*u(1,1);
-const double crhs15 = DN(2,0)*u(2,1);
-const double crhs16 = crhs13 + crhs14 + crhs15;
-const double crhs17 = DN(0,1)*u(0,1);
-const double crhs18 = DN(1,1)*u(1,1);
-const double crhs19 = DN(2,1)*u(2,1);
-const double crhs20 = crhs17 + crhs18 + crhs19;
-const double crhs21 = crhs20 + 1;
-const double crhs22 = S[0]*crhs16 + S[2]*crhs21;
-const double crhs23 = S[1]*crhs21 + S[2]*crhs16;
-const double crhs24 = rho0*tau;
-const double crhs25 = crhs12*crhs24;
-const double crhs26 = crhs0*crhs24;
-const double crhs27 = N[0]*th[0];
-const double crhs28 = N[1]*th[1];
-const double crhs29 = N[2]*th[2];
-const double crhs30 = -crhs13*crhs3 - crhs13*crhs4 - crhs14*crhs2 - crhs14*crhs4 - crhs15*crhs2 - crhs15*crhs3 + crhs17*crhs7 + crhs17*crhs8 + crhs18*crhs6 + crhs18*crhs8 + crhs19*crhs6 + crhs19*crhs7 + crhs20 + crhs9;
-const double crhs31 = -crhs27 - crhs28 - crhs29 + crhs30;
-const double crhs32 = pow(crhs16, 2) + pow(crhs9, 2);
-const double crhs33 = pow(crhs21, 2) + pow(crhs5, 2);
-const double crhs34 = 2*crhs16*crhs21 + 2*crhs5*crhs9;
-const double crhs35 = C(0,0)*crhs32 + C(0,1)*crhs33 + C(0,2)*crhs34;
-const double crhs36 = C(0,2)*crhs32 + C(1,2)*crhs33 + C(2,2)*crhs34;
-const double crhs37 = (1.0/2.0)*tau*sqrt(crhs30/(crhs27 + crhs28 + crhs29));
-const double crhs38 = crhs37*(DN(0,0)*th[0] + DN(1,0)*th[1] + DN(2,0)*th[2]);
-const double crhs39 = C(0,1)*crhs32 + C(1,1)*crhs33 + C(1,2)*crhs34;
-const double crhs40 = crhs37*(DN(0,1)*th[0] + DN(1,1)*th[1] + DN(2,1)*th[2]);
-const double crhs41 = N[1]*rho0;
-const double crhs42 = N[2]*rho0;
-rhs[0]=DN(0,0)*crhs10 + DN(0,1)*crhs11 - crhs0*crhs1;
-rhs[1]=DN(0,0)*crhs22 + DN(0,1)*crhs23 - crhs1*crhs12;
-rhs[2]=N[0]*crhs31 - crhs25*(-DN(0,0)*crhs5 + DN(0,1)*crhs9) - crhs26*(DN(0,0)*crhs21 - DN(0,1)*crhs16) - crhs38*(DN(0,0)*crhs35 + DN(0,1)*crhs36) - crhs40*(DN(0,0)*crhs36 + DN(0,1)*crhs39);
-rhs[3]=DN(1,0)*crhs10 + DN(1,1)*crhs11 - crhs0*crhs41;
-rhs[4]=DN(1,0)*crhs22 + DN(1,1)*crhs23 - crhs12*crhs41;
-rhs[5]=N[1]*crhs31 - crhs25*(-DN(1,0)*crhs5 + DN(1,1)*crhs9) - crhs26*(DN(1,0)*crhs21 - DN(1,1)*crhs16) - crhs38*(DN(1,0)*crhs35 + DN(1,1)*crhs36) - crhs40*(DN(1,0)*crhs36 + DN(1,1)*crhs39);
-rhs[6]=DN(2,0)*crhs10 + DN(2,1)*crhs11 - crhs0*crhs42;
-rhs[7]=DN(2,0)*crhs22 + DN(2,1)*crhs23 - crhs12*crhs42;
-rhs[8]=N[2]*crhs31 - crhs25*(-DN(2,0)*crhs5 + DN(2,1)*crhs9) - crhs26*(DN(2,0)*crhs21 - DN(2,1)*crhs16) - crhs38*(DN(2,0)*crhs35 + DN(2,1)*crhs36) - crhs40*(DN(2,0)*crhs36 + DN(2,1)*crhs39);
+        const double crhs0 = DN(0,1)*u(0,0);
+const double crhs1 = DN(1,1)*u(1,0);
+const double crhs2 = DN(2,1)*u(2,0);
+const double crhs3 = crhs0 + crhs1 + crhs2;
+const double crhs4 = DN(0,0)*u(0,0);
+const double crhs5 = DN(1,0)*u(1,0);
+const double crhs6 = DN(2,0)*u(2,0);
+const double crhs7 = crhs4 + crhs5 + crhs6 + 1;
+const double crhs8 = S[0]*crhs7 + S[2]*crhs3;
+const double crhs9 = S[1]*crhs3 + S[2]*crhs7;
+const double crhs10 = DN(0,0)*u(0,1);
+const double crhs11 = DN(1,0)*u(1,1);
+const double crhs12 = DN(2,0)*u(2,1);
+const double crhs13 = crhs10 + crhs11 + crhs12;
+const double crhs14 = DN(0,1)*u(0,1);
+const double crhs15 = DN(1,1)*u(1,1);
+const double crhs16 = DN(2,1)*u(2,1);
+const double crhs17 = crhs14 + crhs15 + crhs16;
+const double crhs18 = crhs17 + 1;
+const double crhs19 = S[0]*crhs13 + S[2]*crhs18;
+const double crhs20 = S[1]*crhs18 + S[2]*crhs13;
+const double crhs21 = b_gauss[0]*tau;
+const double crhs22 = b_gauss[1]*tau;
+const double crhs23 = N[0]*th[0];
+const double crhs24 = N[1]*th[1];
+const double crhs25 = N[2]*th[2];
+const double crhs26 = -crhs0*crhs11 - crhs0*crhs12 - crhs1*crhs10 - crhs1*crhs12 - crhs10*crhs2 - crhs11*crhs2 + crhs14*crhs5 + crhs14*crhs6 + crhs15*crhs4 + crhs15*crhs6 + crhs16*crhs4 + crhs16*crhs5 + crhs17 + crhs7;
+const double crhs27 = -crhs23 - crhs24 - crhs25 + crhs26;
+const double crhs28 = pow(crhs13, 2) + pow(crhs7, 2);
+const double crhs29 = pow(crhs18, 2) + pow(crhs3, 2);
+const double crhs30 = 2*crhs13*crhs18 + 2*crhs3*crhs7;
+const double crhs31 = C(0,0)*crhs28 + C(0,1)*crhs29 + C(0,2)*crhs30;
+const double crhs32 = C(0,2)*crhs28 + C(1,2)*crhs29 + C(2,2)*crhs30;
+const double crhs33 = (1.0/2.0)*tau*sqrt(crhs26/(crhs23 + crhs24 + crhs25));
+const double crhs34 = crhs33*(DN(0,0)*th[0] + DN(1,0)*th[1] + DN(2,0)*th[2]);
+const double crhs35 = C(0,1)*crhs28 + C(1,1)*crhs29 + C(1,2)*crhs30;
+const double crhs36 = crhs33*(DN(0,1)*th[0] + DN(1,1)*th[1] + DN(2,1)*th[2]);
+rhs[0]=DN(0,0)*crhs8 + DN(0,1)*crhs9 - N[0]*b_gauss[0];
+rhs[1]=DN(0,0)*crhs19 + DN(0,1)*crhs20 - N[0]*b_gauss[1];
+rhs[2]=N[0]*crhs27 - crhs21*(DN(0,0)*crhs18 - DN(0,1)*crhs13) - crhs22*(-DN(0,0)*crhs3 + DN(0,1)*crhs7) - crhs34*(DN(0,0)*crhs31 + DN(0,1)*crhs32) - crhs36*(DN(0,0)*crhs32 + DN(0,1)*crhs35);
+rhs[3]=DN(1,0)*crhs8 + DN(1,1)*crhs9 - N[1]*b_gauss[0];
+rhs[4]=DN(1,0)*crhs19 + DN(1,1)*crhs20 - N[1]*b_gauss[1];
+rhs[5]=N[1]*crhs27 - crhs21*(DN(1,0)*crhs18 - DN(1,1)*crhs13) - crhs22*(-DN(1,0)*crhs3 + DN(1,1)*crhs7) - crhs34*(DN(1,0)*crhs31 + DN(1,1)*crhs32) - crhs36*(DN(1,0)*crhs32 + DN(1,1)*crhs35);
+rhs[6]=DN(2,0)*crhs8 + DN(2,1)*crhs9 - N[2]*b_gauss[0];
+rhs[7]=DN(2,0)*crhs19 + DN(2,1)*crhs20 - N[2]*b_gauss[1];
+rhs[8]=N[2]*crhs27 - crhs21*(DN(2,0)*crhs18 - DN(2,1)*crhs13) - crhs22*(-DN(2,0)*crhs3 + DN(2,1)*crhs7) - crhs34*(DN(2,0)*crhs31 + DN(2,1)*crhs32) - crhs36*(DN(2,0)*crhs32 + DN(2,1)*crhs35);
 
         //TODO: Amend this once the assembly is done in the input arrays
         rRightHandSideVector += w_gauss * rhs;
@@ -1591,17 +1548,8 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
     const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
     const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
 
-    // Set data for the body force calculation
-    BoundedMatrix<double, NumNodes, 3> b;
-    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-        const array_1d<double,3>& r_b_i = r_geometry[i_node].FastGetSolutionStepValue(BODY_FORCE);
-        for (IndexType d = 0; d < 3; ++d) {
-            b(i_node, d) = r_b_i[d];
-        }
-    }
-    const double rho0 = GetProperties().GetValue(DENSITY);
-
     // Set the auxiliary references matching the automatic differentiation symbols
+    array_1d<double,3> b_gauss;
     const auto& N = kinematic_variables.N;
     const auto& DN = kinematic_variables.DN_DX;
     const auto& u = kinematic_variables.Displacements;
@@ -1623,6 +1571,10 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+
+        // Calculate body force
+        // Note that this already includes the density computed in the reference configuration
+        b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate and add the RHS Gauss point contribution
         //substitute_rhs_3D_4N
@@ -1827,9 +1779,6 @@ int  TotalLagrangianMixedDetJElement<TDim>::Check(const ProcessInfo& rCurrentPro
 
     // Base check
     check = StructuralMechanicsElementUtilities::SolidElementCheck(*this, rCurrentProcessInfo, mConstitutiveLawVector);
-
-    // Checking density
-    KRATOS_ERROR_IF_NOT(GetProperties().Has(DENSITY)) << "DENSITY has to be provided for the calculation of body force." << std::endl;
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     const auto& r_geometry = this->GetGeometry();
