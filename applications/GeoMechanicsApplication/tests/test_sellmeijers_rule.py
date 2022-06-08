@@ -97,6 +97,12 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
             counter_head = counter_head + 1
         return None, None
 
+    def drange(self, start, stop, step):
+        r = start
+        while r < stop:
+            yield r
+            r += step
+
     def critical_head_loop(self, file_path, kappa, d70, Hc, search_type='linear'):
         self.change_material_parameters(file_path, kappa, d70)
         heads = [x * 0.1 for x in
@@ -189,8 +195,9 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
     def test_sellmeijers_rule_height(self, name, d70, kappa, Hc, Hn, length_n, test_name_gid):
         file_path = test_helper.get_file_path(os.path.join('./', test_name_gid))
         os.chdir(file_path)
-        critical_head_found, length = self.critical_head_loop(file_path, kappa, d70, Hc, 'linear')
+        critical_head_found, length = self.critical_head_loop(file_path, kappa, d70, Hn, 'linear')
         self.results = {"value_name": name, "test_result_h": Hc, "kratos_results_h": critical_head_found,
                         "equivalent_software_h": Hn, "kratos_results_l": length, "equivalent_software_l": length_n}
-        self.assertTrue(abs(Hn - critical_head_found) < 1e-05)
-        self.assertTrue(abs(length_n - length) < 1e-05)
+        self.assertAlmostEqual(Hn, critical_head_found, 2,
+                               f"Critical head kratos: {critical_head_found}, old geo flow {Hn}")
+        self.assertAlmostEqual(length_n, length, 2, f"Pipe length kratos: {length}, old geo flow {length_n}")
