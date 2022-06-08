@@ -162,17 +162,20 @@ public:
 
         opt_itr++;
 
+        if (opt_itr % 10 == 0 && beta <25.0)
+            beta *=1.5;
+        if(beta>25.0)
+            beta = 25.0;
+        
+        std::cout<<"++++++++++++++++++++++ beta : "<<beta<<" ++++++++++++++++++++++"<<std::endl;
+
         ComputeFilteredDensity();
         ComputePhyiscalDensity();
         ComputeYoungModulus();
 
-        if(opt_itr==1)
-            beta = 5;
-
-        if (opt_itr % 10 == 0 && beta <35.0)
-            beta *=1.5;
-
-        std::cout<<"++++++++++++++++++++++ beta : "<<beta<<" ++++++++++++++++++++++"<<std::endl;
+        // if(opt_itr==1)
+        //     beta = 5;
+        
 
     };  
     // --------------------------------------------------------------------------
