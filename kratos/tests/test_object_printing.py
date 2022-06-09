@@ -22,7 +22,7 @@ model_part_str = '''-Main- model part
     Number of sub model parts : 2
     Current solution step index : 0
 
-    Number of Geometries  : 0
+    Number of Geometries  : 9
     Mesh 0 :
         Number of Nodes       : 6
         Number of Properties  : 1

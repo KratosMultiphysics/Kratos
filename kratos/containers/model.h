@@ -254,6 +254,13 @@ private:
      */
     std::vector<std::string> SplitSubModelPartHierarchy(const std::string& rFullModelPartName) const;
 
+    /**
+     * @brief This method creates a new model part contained in the current Model with a given name and buffer size
+     * @param ModelPartName The name of the new model part to be created
+     * @param NewBufferSize The size of the buffer of the new model part created
+     */
+    void CreateRootModelPart(const std::string ModelPartName, ModelPart::IndexType NewBufferSize);
+
     ///@}
     ///@name Private  Access
     ///@{

@@ -25,7 +25,7 @@ namespace Kratos
 
 class ApplyWriteScalarProcess : public Process
 {
-    
+
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ApplyWriteScalarProcess);
@@ -83,43 +83,37 @@ public:
     /// right after reading the model and the groups
     void ExecuteInitialize() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
-        const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
+        const std::size_t nNodes = mrModelPart.NumberOfNodes();
 
-        const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
+        if (nNodes > 0) {
+            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+            const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
 
-        if (nNodes > 0)
-        {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
             mOutFile.resize(nNodes);
 
-            //#pragma omp parallel for
-            for (int i = 0; i<nNodes; i++)
-            {
+            for (std::size_t i = 0; i<nNodes; ++i) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                int nodeId = it->Id();
+                const int nodeId = it->Id();
                 std::string fileName = mModelPartName + "_" + std::to_string(nodeId) + "_" + mVariableName + ".res";
 
-                if (mAppendFile)
-                {
+                if (mAppendFile) {
                     // append instead of overwrite
                     mOutFile[i].open(fileName, std::ios::app);
-                }
-                else
-                {
+                } else {
                     // open a new file and overwrite
                     mOutFile[i].open(fileName, std::ios::trunc); // overwrite
-                    mOutFile[i] << "Time" << "   " << mVariableName << std::endl;
-                    double value = it->FastGetSolutionStepValue(var);
-                    mOutFile[i] << Time << "   " << value << std::endl;
+                    mOutFile[i] << "Time" << "   " << mVariableName << "\n";
+                    const double value = it->FastGetSolutionStepValue(var);
+                    mOutFile[i] << Time << "   " << value << "\n";
                 }
             }
         }
         
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /**
@@ -127,29 +121,24 @@ public:
      */
     void ExecuteFinalizeSolutionStep() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const std::size_t nNodes = mrModelPart.NumberOfNodes();
 
-        const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
-
-        const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
-
-        if (nNodes > 0)
-        {
+        if (nNodes > 0) {
+            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+            const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
-            //#pragma omp parallel for
-            for (int i = 0; i<nNodes; i++)
-            {
+            for (std::size_t i = 0; i<nNodes; ++i) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double value = it->FastGetSolutionStepValue(var);
-                mOutFile[i] << Time << "   " << value << std::endl;
+                const double value = it->FastGetSolutionStepValue(var);
+                mOutFile[i] << Time << "   " << value << "\n";
             }
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /**
@@ -157,15 +146,13 @@ public:
      */
     void ExecuteFinalize() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        //#pragma omp parallel for
-        for (unsigned int i = 0; i < mOutFile.size(); i++)
-        {
+        for (std::size_t i = 0; i < mOutFile.size(); ++i) {
             mOutFile[i].close();
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.
@@ -199,7 +186,7 @@ protected:
     std::vector<std::ofstream> mOutFile;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
 private:
 
     /// Assignment operator.

@@ -19,6 +19,7 @@
 #include "includes/define_python.h"
 #include "custom_mappers/nearest_neighbor_mapper.h"
 #include "custom_mappers/nearest_element_mapper.h"
+#include "custom_mappers/barycentric_mapper.h"
 #include "custom_utilities/mapper_mpi_define.h"
 #include "custom_utilities/mapper_mpi_backend.h"
 #include "factories/mapper_factory.h"
@@ -46,6 +47,7 @@ PYBIND11_MODULE(KratosMappingMPIExtension,m)
 
     KRATOS_REGISTER_MAPPER(NearestNeighborMapper, "nearest_neighbor");
     KRATOS_REGISTER_MAPPER(NearestElementMapper,  "nearest_element");
+    KRATOS_REGISTER_MAPPER(BarycentricMapper,     "barycentric");
 }
 
 }

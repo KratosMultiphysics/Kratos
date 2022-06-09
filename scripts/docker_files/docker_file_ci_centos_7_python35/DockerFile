@@ -16,7 +16,7 @@ RUN ls /usr/src/Python-3.5.4
 RUN sh /usr/src/Python-3.5.4/configure --enable-optimizations --with-lto --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
 RUN make altinstall
 RUN rm Python-3.5.4.tgz
-RUN python3.5 -m pip install 'cx_Freeze==6.1'
+RUN python3.5 -m pip install 'cx_Freeze==6.1' numpy sympy
 
 # Setting the needed environment variables for being able to run/compile
 ENV PYTHON_EXECUTABLE /usr/local/bin/python3.5

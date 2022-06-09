@@ -331,7 +331,7 @@ public:
      */
     bool RequiresInitializeMaterialResponse() override
     {
-        return true;
+        return false;
     }
 
     /**

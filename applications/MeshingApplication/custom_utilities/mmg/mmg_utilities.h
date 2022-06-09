@@ -668,6 +668,13 @@ public:
     virtual void GenerateSolDataFromModelPart(ModelPart& rModelPart);
 
     /**
+     * @brief This method generates solution (metric) data from an existing model part
+     * for the isosurface algorithm
+     * @param[in,out] rModelPart The model part of interest to study
+     */
+    virtual void GenerateIsosurfaceMetricDataFromModelPart(ModelPart& rModelPart);
+
+    /**
      * @brief This method generates displacement data from an existing model part
      * @param[in,out] rModelPart The model part of interest to study
      */

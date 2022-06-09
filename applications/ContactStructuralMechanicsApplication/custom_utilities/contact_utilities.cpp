@@ -16,6 +16,7 @@
 
 // Project includes
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/contact_utilities.h"

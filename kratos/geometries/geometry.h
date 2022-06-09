@@ -21,6 +21,7 @@
 #define  KRATOS_GEOMETRY_H_INCLUDED
 
 // System includes
+#include <typeinfo>
 
 // External includes
 
@@ -732,6 +733,69 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    /**
+     * @brief Checks if two GeometryType have the same type
+     * @return True if the objects are the same type, false otherwise
+     */
+    inline static bool HasSameType(
+        const GeometryType& rLHS,
+        const GeometryType& rRHS)
+    {
+        return (typeid(rLHS) == typeid(rRHS));
+    }
+
+    /**
+     * @brief Checks if two GeometryType have the same type (pointer version)
+     * @return True if the objects are the same type, false otherwise
+     */
+    inline static bool HasSameType(
+        const GeometryType * rLHS,
+        const GeometryType* rRHS)
+    {
+        return GeometryType::HasSameType(*rLHS, *rRHS);
+    }
+
+    /**
+     * @brief Checks if two GeometryType have the same geometry type
+     * @return True if the geometries are the same type, false otherwise
+     */
+    inline static bool HasSameGeometryType(const GeometryType& rLHS, const GeometryType& rRHS) {
+        return (rLHS.GetGeometryType() == rRHS.GetGeometryType());
+    }
+
+    /**
+     * @brief Checks if two GeometryType have the same geometry type (pointer version)
+     * @return True if the geometries are the same type, false otherwise
+     */
+    inline static bool HasSameGeometryType(
+        const GeometryType* rLHS,
+        const GeometryType* rRHS)
+    {
+        return GeometryType::HasSameGeometryType(*rLHS, *rRHS);
+    }
+
+    /**
+     * @brief Checks if two GeometryType are the same
+     * @return True if the object is the same, false otherwise
+     */
+    inline static bool IsSame(
+        const GeometryType& rLHS,
+        const GeometryType& rRHS)
+    {
+        return GeometryType::HasSameType(rLHS, rRHS) && GeometryType::HasSameGeometryType(rLHS, rRHS);
+    }
+
+    /**
+     * @brief Checks if two GeometryType are the same (pointer version)
+     * @return True if the object is the same, false otherwise
+     */
+    inline static bool IsSame(
+        const GeometryType* rLHS,
+        const GeometryType* rRHS)
+    {
+        return GeometryType::HasSameType(*rLHS, *rRHS) && GeometryType::HasSameGeometryType(*rLHS, *rRHS);
+    }
 
     bool empty() const
     {

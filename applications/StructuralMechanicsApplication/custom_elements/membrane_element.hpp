@@ -154,6 +154,8 @@ namespace Kratos
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
       const ProcessInfo& rCurrentProcessInfo) override;
 
+    const Parameters GetSpecifications() const override;
+
   private:
      /**
      * @brief Calculates the covariant base vectors

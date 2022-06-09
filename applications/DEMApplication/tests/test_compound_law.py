@@ -14,7 +14,6 @@ def GetFilePath(fileName):
 
 class CompoundLawTestSolution(DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "compound_law_tests_files")
 
@@ -23,9 +22,8 @@ class CompoundLawTestSolution(DEM_analysis_stage.DEMAnalysisStage, KratosUnittes
 
     def Finalize(self):
         tolerance = 1e-8
-        for node in self.spheres_model_part.Nodes:
-            if node.Id == 1:
-                self.assertAlmostEqual(node.Z, -0.30304679046603883, delta=tolerance)
+        node = self.spheres_model_part.GetNode(1)
+        self.assertAlmostEqual(node.Z, -0.30304679046603883, delta=tolerance)
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
 
@@ -34,7 +32,6 @@ class TestCompoundLaw(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
     def test_compound_cl(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "compound_law_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")

@@ -35,7 +35,6 @@
 #include "includes/define.h"
 #include "includes/global_variables.h"
 #include "includes/lock_object.h"
-#include "utilities/reduction_utilities.h"
 
 #define KRATOS_PREPARE_CATCH_THREAD_EXCEPTION std::stringstream err_stream;
 

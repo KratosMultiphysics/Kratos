@@ -62,7 +62,8 @@ class BaseCouplingInterfaceData:
             "model_part_name" : "",
             "variable_name"   : "",
             "location"        : "node_historical",
-            "dimension"       : -1
+            "dimension"       : -1,
+            "additional_info" : { }
         }""")
 
     def IsDefinedOnThisRank(self):
@@ -191,6 +192,11 @@ class CouplingInterfaceData(BaseCouplingInterfaceData):
                     self.GetModelPart()[self.variable] = vec_value
                 else:
                     self.GetModelPart()[self.variable] = new_data
+
+        if self.location == "node_historical":
+            self.GetModelPart().GetCommunicator().SynchronizeVariable(self.variable)
+        elif self.location in "node_non_historical":
+            self.GetModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(self.variable)
 
     def __GetDataFromContainer(self, container, fct_ptr, *args):
         if self.is_scalar_variable:

@@ -50,7 +50,9 @@ public:
     {
         Set(Min_,Max_,MaxSize_,Block_);
     }
+
     ~SubBinAxisPeriodic() {}
+
     void Set(IndexType const& iCell, IndexType const& MaxSize_, IndexType const& Block_)
     {
         Set(iCell,iCell,MaxSize_,Block_);
@@ -88,7 +90,7 @@ public:
             return static_cast<SizeType>(Max-Min);
         }
         else {
-            return static_cast<SizeType>(MaxSize - 1 + (Max - Min));
+            return static_cast<SizeType>(MaxSize + 1 + Max - Min);
         }
     }
     SubBinAxisPeriodic const& operator++()
@@ -144,17 +146,22 @@ public:
 
     SearchStructurePeriodic() {}
 
-    SearchStructurePeriodic( IndexVector const& Min_, IndexVector const& Max_, SizeVector const& MaxSize_, IteratorIteratorType const& IteratorBegin )
+    SearchStructurePeriodic(IndexVector const& Min_,
+                            IndexVector const& Max_,
+                            SizeVector const& MaxSize_,
+                            IteratorIteratorType const& IteratorBegin)
     {
         Set(Min_,Max_,MaxSize_,IteratorBegin);
     }
 
-    SearchStructurePeriodic( IndexVector const& IndexCell, SizeVector const& MaxSize_, IteratorIteratorType const& IteratorBegin )
+    SearchStructurePeriodic(IndexVector const& IndexCell,
+                            SizeVector const& MaxSize_,
+                            IteratorIteratorType const& IteratorBegin)
     {
         Set(IndexCell,IndexCell,MaxSize_,IteratorBegin);
     }
 
-    SearchStructurePeriodic( IndexVector const& Min_, IndexVector const& Max_, SizeVector const& MaxSize_ )
+    SearchStructurePeriodic(IndexVector const& Min_, IndexVector const& Max_, SizeVector const& MaxSize_ )
     {
         Set(Min_,Max_,MaxSize_);
     }
@@ -166,24 +173,26 @@ public:
 
     ~SearchStructurePeriodic() {}
 
-    void Set( IndexVector const& IndexCell, SizeVector const& _MaxSize, IteratorIteratorType const& IteratorBegin )
+    void Set(IndexVector const& IndexCell, SizeVector const& _MaxSize, IteratorIteratorType const& IteratorBegin )
     {
-        Set( IndexCell, IndexCell, _MaxSize, IteratorBegin );
+        Set(IndexCell, IndexCell, _MaxSize, IteratorBegin );
     }
 
-    void Set( IndexVector const& Min_, IndexVector const& Max_, SizeVector const& MaxSize_, IteratorIteratorType const& IteratorBegin )
+    void Set(IndexVector const& Min_,
+             IndexVector const& Max_,
+             SizeVector const& MaxSize_,
+             IteratorIteratorType const& IteratorBegin )
     {
         IndexType Block = 1;
-        Axis[0].Set(Min_[0],Max_[0],MaxSize_[0],Block);
+        Axis[0].Set(Min_[0], Max_[0], MaxSize_[0], Block);
 
-        for(SizeType i = 1; i < Dimension; i++)
-        {
+        for (SizeType i = 1; i < Dimension; ++i){
             Block *= MaxSize_[i-1];
             Axis[i].Set(Min_[i],Max_[i],MaxSize_[i],Block);
         }
-        
+
         DataBegin = IteratorBegin;
-        
+
         RowBegin = DataBegin + Axis[0].Min;
         RowEnd   = DataBegin + Axis[0].Max + 1;
     }
@@ -196,10 +205,9 @@ public:
     void Set( IndexVector const& Min_, IndexVector const& Max_, SizeVector const& MaxSize_ )
     {
         IndexType Block = 1;
-        Axis[0].Set(Min_[0],Max_[0],MaxSize_[0],Block);
+        Axis[0].Set(Min_[0], Max_[0], MaxSize_[0], Block);
 
-        for(SizeType i = 1; i < Dimension; i++)
-        {
+        for (SizeType i = 1; i < Dimension; ++i){
             Block *= MaxSize_[i-1];
             Axis[i].Set(Min_[i],Max_[i],MaxSize_[i],Block);
         }
@@ -209,6 +217,7 @@ public:
     {
         return Idx + Axis[0].Min;
     }
+
     IndexType EndRow(IndexType const& Idx)
     {
         return Idx + Axis[0].Max+1;
@@ -216,23 +225,25 @@ public:
 
     SearchStructurePeriodic const& operator++()
     {
-        for(SizeType i = 0; i < Dimension; i++)
-            ++(Axis[i]);
-        
+        for (SizeType i = 0; i < Dimension; ++i){
+            (Axis[i])++;
+        }
+
         RowBegin = DataBegin + Axis[0].Min;
         RowEnd   = DataBegin + Axis[0].Max + 1;
-        
+
         return *this;
     }
 
     SearchStructurePeriodic const& operator--()
     {
-        for(SizeType i = 0; i < Dimension; i++)
+        for (SizeType i = 0; i < Dimension; ++i){
             (Axis[i])--;
-        
+        }
+
         RowBegin = DataBegin + Axis[0].Min;
         RowEnd   = DataBegin + Axis[0].Max + 1;
-        
+
         return *this;
     }
 };

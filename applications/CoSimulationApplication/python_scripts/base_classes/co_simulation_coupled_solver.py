@@ -124,11 +124,13 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             self.settings["coupling_operations"],
             self.solver_wrappers,
             self.process_info,
+            self.data_communicator,
             self.echo_level)
 
         ### Creating the data transfer operators
         self.data_transfer_operators_dict = factories_helper.CreateDataTransferOperators(
             self.settings["data_transfer_operators"],
+            self.data_communicator,
             self.echo_level)
 
         for predictor in self.predictors_list:
@@ -156,8 +158,8 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
         self.time = 0.0
         for solver in self.solver_wrappers.values():
-            # TODO here we should sync the times across ranks, otherwise different ranks might advance at different times!
-            solver_time = solver.AdvanceInTime(current_time)
+            # TODO maybe do a check to make sure all ranks have the same time?
+            solver_time = self.data_communicator.MaxAll(solver.AdvanceInTime(current_time))
             if solver_time != 0.0: # solver provides time
                 if self.time == 0.0: # first time a solver returns a time different from 0.0
                     self.time = solver_time
