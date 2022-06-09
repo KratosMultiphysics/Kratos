@@ -58,13 +58,21 @@ Initialize(const ProcessInfo& rCurrentProcessInfo)
     const PropertiesType& Prop = this->GetProperties();
 
     this->CalculateLength(this->GetGeometry());
-    this->SetValue(PIPE_EROSION, false);
 
-    // initialise pipe height with a small value
-    this->SetValue(PIPE_HEIGHT, 1e-10);
-    this->SetValue(PREV_PIPE_HEIGHT, 1e-10);
+    double smallPipeHeight = 1e-10;
 
-    this->SetValue(PIPE_ACTIVE, false);
+    // initialse pipe parameters if not initalised, (important for staged analysis. 
+    if (this->GetValue(PIPE_HEIGHT) < smallPipeHeight/10)
+    {
+        this->SetValue(PIPE_EROSION, false);
+
+        // initialise pipe height with a small value
+        this->SetValue(PIPE_HEIGHT, smallPipeHeight);
+        this->SetValue(PREV_PIPE_HEIGHT, smallPipeHeight);
+        this->SetValue(DIFF_PIPE_HEIGHT, 0);
+
+        this->SetValue(PIPE_ACTIVE, false);
+    }
 
     KRATOS_CATCH("");
 }

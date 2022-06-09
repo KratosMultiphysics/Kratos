@@ -98,12 +98,14 @@ public:
     {
     	KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "Max Piping Iterations: " << mPipingIterations << std::endl;
 
-        int openPipeElements = 0;
         bool grow = true;
 
         // get piping elements
         std::vector<Element*> PipeElements = GetPipingElements();
         unsigned int n_el = PipeElements.size(); // number of piping elements
+
+        // get initially open pipe elements
+        int openPipeElements = this->InitialiseNumActivePipeElements(PipeElements);
 
         if (PipeElements.size()==0)
         {
@@ -115,7 +117,7 @@ public:
         double amax = CalculateMaxPipeHeight(PipeElements);
         
         // continue this loop, while the pipe is growing in length
-        while (grow)
+        while (grow && (openPipeElements < n_el))
         {
             bool Equilibrium = false;
             bool converged = true;
@@ -183,10 +185,6 @@ public:
         {
             if (element.GetProperties().Has(PIPE_START_ELEMENT))
             {
-                element.SetValue(PIPE_ACTIVE, false);
-                element.SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
-                element.SetValue(DIFF_PIPE_HEIGHT, 0);
-
                 PipeElements.push_back(&element);
 
                 auto startElement = element.GetProperties()[PIPE_START_ELEMENT];
@@ -265,6 +263,25 @@ protected:
 
 private:
 
+
+    /// <summary>
+    /// Initialises the number of open pipe elements. This value can be greater than 0 in a multi staged analysis.
+    /// </summary>
+    /// <param name="PipeElements"></param>
+    /// <returns></returns>
+    int InitialiseNumActivePipeElements(std::vector<Element*> PipeElements)
+    {
+        int nOpenElements = 0;
+
+        for (Element* pipe_element : PipeElements)
+        {
+            if (pipe_element->GetValue(PIPE_ACTIVE))
+            {
+                nOpenElements += 1;
+            }
+        }
+        return nOpenElements;
+    }
 
     /// <summary>
     /// Calculates the pipe particle diamter according to the modified sellmeijer rule if selected. Else the pipe particle diameter is

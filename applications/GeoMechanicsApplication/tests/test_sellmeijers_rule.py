@@ -78,19 +78,22 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
         with open(parameter_file_name, 'w') as parameter_file:
             json.dump(parameters, parameter_file, indent=4)
 
-    def model_kratos_run(self, file_path, head):
+    def model_kratos_run(self, file_path, head, model=None):
         self.change_head_level_polder_side(file_path, head)
-        simulation = test_helper.run_kratos(file_path)
+        simulation = test_helper.run_kratos(file_path, model)
         pipe_active = test_helper.get_pipe_active_in_elements(simulation)
         length = test_helper.get_pipe_length(simulation)
-        return all(pipe_active), length
+
+        model = simulation.model
+        return all(pipe_active), length, model
 
     def linear_search(self, file_path, search_array):
         counter_head = 0
         pipe_length_total = []
+        model = None
         while counter_head < len(search_array):
             # check if pipe elements become active
-            pipe_active, pipe_length = self.model_kratos_run(file_path, search_array[counter_head])
+            pipe_active, pipe_length, model = self.model_kratos_run(file_path, search_array[counter_head], model)
             pipe_length_total.append(pipe_length)
             if pipe_active:
                 return search_array[counter_head - 1], pipe_length_total[counter_head - 1]

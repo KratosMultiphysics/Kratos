@@ -29,7 +29,7 @@ def get_file_path(fileName):
     return os.path.dirname(__file__) + "/" + fileName
 
 
-def run_kratos(file_path):
+def run_kratos(file_path, model=None):
     """
     Runs 1 stage in kratos
     :param file_path:
@@ -43,7 +43,8 @@ def run_kratos(file_path):
     with open(parameter_file_name, 'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
 
-    model = Kratos.Model()
+    if model is None:
+        model = Kratos.Model()
     simulation = analysis.GeoMechanicsAnalysis(model, parameters)
     simulation.Run()
 
@@ -233,7 +234,7 @@ def get_pipe_active_in_elements(simulation):
     :return: pipe_active : list of booleans determine whether pipe element is active or not
     """
     model_part = simulation._list_of_output_processes[0].model_part
-    pipe_elements = [element for element in model_part.Elements if element.Has(KratosGeo.PIPE_ACTIVE)]
+    pipe_elements = [element for element in model_part.Elements if element.Has(KratosGeo.PIPE_ELEMENT_LENGTH)]
     return [element.GetValue(KratosGeo.PIPE_ACTIVE) for element in pipe_elements]
 
 def get_pipe_length(simulation):
