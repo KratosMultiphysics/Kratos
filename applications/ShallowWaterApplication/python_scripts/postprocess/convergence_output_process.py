@@ -76,7 +76,7 @@ class ConvergenceOutputProcess(KM.Process):
         low_corner = self.settings["low_corner"].GetVector()
         high_corner = self.settings["high_corner"].GetVector()
         if not low_corner.Size() == high_corner.Size():
-            raise Exception("The low and high corners does not have the same dimension")
+            raise Exception("The low and high corners do not have the same dimension")
 
         if low_corner.Size() == 0:
             pass
@@ -120,19 +120,19 @@ class ConvergenceOutputProcess(KM.Process):
             high_corner = KM.Point(self.settings["high_corner"].GetVector())
             header += "over rectangle {} x {}\n".format(list(low_corner), list(high_corner))
 
-        header += "# label \t num_nodes \t num_elems \t time_step \t time \t computational_time"
+        header += "label num_nodes num_elems time_step time computational_time"
         for variable in self.variables:
-            header += '\t' + variable.Name()
+            header += ' ' + variable.Name()
         header += '\n'
         return header
 
 
     def _WriteAverageError(self):
-        data  = self.settings["analysis_label"].GetString() + '\t'
-        data += str(self.model_part.NumberOfNodes()) + '\t'
-        data += str(self.model_part.NumberOfElements()) + '\t'
-        data += str(self.model_part.ProcessInfo[KM.DELTA_TIME]) + '\t'
-        data += str(self.model_part.ProcessInfo[KM.TIME]) + '\t'
+        data  = self.settings["analysis_label"].GetString() + ' '
+        data += str(self.model_part.NumberOfNodes()) + ' '
+        data += str(self.model_part.NumberOfElements()) + ' '
+        data += str(self.model_part.ProcessInfo[KM.DELTA_TIME]) + ' '
+        data += str(self.model_part.ProcessInfo[KM.TIME]) + ' '
         data += str(time.time() - self.start_time)
 
         if not self.integrate_over_all_the_domain:
@@ -144,7 +144,7 @@ class ConvergenceOutputProcess(KM.Process):
                 value = SW.ShallowWaterUtilities().ComputeL2NormNonHistorical(self.model_part, variable)
             else:
                 value = SW.ShallowWaterUtilities().ComputeL2NormNonHistorical(self.model_part, variable, low_corner, high_corner)
-            data += '\t{}'.format(value)
+            data += ' {}'.format(value)
         data += '\n'
 
         file_path = Path(self.settings["file_name"].GetString()).with_suffix('.dat')
