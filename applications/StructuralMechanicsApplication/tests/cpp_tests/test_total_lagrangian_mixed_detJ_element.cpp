@@ -45,7 +45,7 @@ namespace
             aux_disp[1] = c_2 * r_node.Y0();
             aux_disp[2] = c_3 * r_node.Z0();
             r_node.FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
-            r_node.FastGetSolutionStepValue(DETERMINANT_F) = c_1 + c_2 + c_3;
+            r_node.FastGetSolutionStepValue(DETERMINANT_F) = (1.0+c_1)*(1+c_2)*(1+c_3);
 
             r_node.X() = (1 + c_1) * r_node.X0();
             r_node.Y() = (1 + c_2) * r_node.Y0();
@@ -72,7 +72,7 @@ namespace
         auto p_elem_prop = r_model_part.CreateNewProperties(0);
         p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
         p_elem_prop->SetValue(POISSON_RATIO, 0.3);
-        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
+        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw"); //FIXME: Use kirchoff in here
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
         // Create the test element
@@ -88,9 +88,9 @@ namespace
         p_node_2->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
         aux_disp[1] = 0.1;
         p_node_3->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
-        p_node_1->FastGetSolutionStepValue(DETERMINANT_F) = 0.01;
-        p_node_2->FastGetSolutionStepValue(DETERMINANT_F) = 0.01;
-        p_node_3->FastGetSolutionStepValue(DETERMINANT_F) = 0.02;
+        p_node_1->FastGetSolutionStepValue(DETERMINANT_F) = 1.01;
+        p_node_2->FastGetSolutionStepValue(DETERMINANT_F) = 1.01;
+        p_node_3->FastGetSolutionStepValue(DETERMINANT_F) = 1.02;
 
         // Compute RHS and LHS
         Vector RHS = ZeroVector(9);
@@ -101,8 +101,8 @@ namespace
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
-        const std::vector<double> expected_RHS({51153.8, 51153.8, -1822.18, -12692.3, -38461.5, 10548.1, -38461.5, -12692.3, 3966.35});
-        const std::vector<double> expected_LHS_row_0({778846, 9615.38, -317308, -394231, -384615, -317308, -384615, 375000, -317308});
+        const std::vector<double> expected_RHS({72223, 75495.9, -0.00441724, -32728.8, -42767.1, 0.00875222, -39494.2, -32728.8, 0.00233168});
+        const std::vector<double> expected_LHS_row_0({987352,131318,-679543,-420760,-533172,-681221,-566592,401854,-679543});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
     }
@@ -145,7 +145,7 @@ namespace
         auto p_elem_prop = r_model_part.CreateNewProperties(0);
         p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
         p_elem_prop->SetValue(POISSON_RATIO, 0.3);
-        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
+        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw"); //FIXME: use kirchoff here
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
         // Create the test element
@@ -166,9 +166,6 @@ namespace
         Vector RHS = ZeroVector(9);
         Matrix LHS = ZeroMatrix(9,9);
         p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
-
-        KRATOS_WATCH(RHS)
-        KRATOS_WATCH(LHS)
 
         // Perturb the previous displacement and volumetric strain field to compute the residual
         const double alpha_perturbed = 1.25e-5;

@@ -1,4 +1,3 @@
-from numpy import block
 import sympy
 from KratosMultiphysics import *
 from KratosMultiphysics.sympy_fe_utilities import *
@@ -66,7 +65,7 @@ F_gauss = sympy.Matrix(sympy.eye(dim,dim))
 for i in range(dim):
   for j in range(dim):
     for n in range(n_nodes):
-        F_gauss[i,j] += DN[n,j]*u[n,i] #TODO: check that we are not using the transpose
+        F_gauss[i,j] += DN[n,j]*u[n,i]
 
 # Define the Jacobian determinant at the Gauss point
 j_gauss = sympy.det(F_gauss)
@@ -90,13 +89,22 @@ Emod_gauss = 0.5*(Cmod_gauss - sympy.eye(dim,dim)) # Equivalent (enriched) Green
 mom_first = DoubleContraction(grad_w_gauss, F_gauss* S)
 mom_second = (w_gauss.transpose() * b_gauss)[0]
 
-mass_first = q_gauss[0] * (j_gauss - th_gauss)
+#TODO: FORM IN THE PAPER
+# mass_first = q_gauss[0] * (j_gauss - th_gauss)
+# tmp = (DoubleContraction(C, F_gauss.transpose()*F_gauss)).tomatrix()
+# aux_scalar = (tau / dim) * ((j_gauss / th_gauss)**(1.0/dim))
+# mass_stab_1 = (aux_scalar * grad_q_gauss * tmp * grad_th_gauss)[0]
+# mass_stab_2 = (tau * grad_q_gauss * cofF_gauss.transpose() * b_gauss)[0]
+# functional = mom_first - mom_second + mass_first - (mass_stab_1 + mass_stab_2)
+# functional_array = sympy.Matrix([functional])
+
+#TODO: WHAT WE USE TO DO. WE MUST USE THIS AS OUR CONDITIONS ARE WRITTEN LIKE THIS (OTHERWISE THE LOAD IS APPLIED IN THE OPPOSITE DIRECTION)
+mass_first = q_gauss[0] * (th_gauss - j_gauss)
 tmp = (DoubleContraction(C, F_gauss.transpose()*F_gauss)).tomatrix()
 aux_scalar = (tau / dim) * ((j_gauss / th_gauss)**(1.0/dim))
 mass_stab_1 = (aux_scalar * grad_q_gauss * tmp * grad_th_gauss)[0]
 mass_stab_2 = (tau * grad_q_gauss * cofF_gauss.transpose() * b_gauss)[0]
-
-functional = mom_first - mom_second + mass_first - (mass_stab_1 + mass_stab_2)
+functional = mom_second - mom_first + mass_first + mass_stab_1 + mass_stab_2
 functional_array = sympy.Matrix([functional])
 
 # Define DOFs and test function vectors
