@@ -23,7 +23,7 @@ namespace Kratos{
 
         DEM_parallel_bond() {}
 
-        void TransferParametersToProperties(const Parameters& Parameters, Properties::Pointer pProp) override;
+        void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp) override;
         void Check(Properties::Pointer pProp) const override;
 
         ~DEM_parallel_bond() {}
@@ -169,7 +169,7 @@ namespace Kratos{
 
     protected:
 
-        // TODO: check whether it is necessary
+        // TODO: check whether they are necessary
         virtual double GetTauZero(SphericContinuumParticle* element1);
         virtual double GetInternalFricc(SphericContinuumParticle* element1);
 
