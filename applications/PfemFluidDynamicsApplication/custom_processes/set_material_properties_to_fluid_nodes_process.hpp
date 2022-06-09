@@ -25,13 +25,13 @@
 #include "utilities/math_utils.h"
 #include "custom_processes/mesher_process.hpp"
 
-///VARIABLES used:
-//Data:
-//StepData:
-//Flags:    (checked)
-//          (set)
-//          (modified)
-//          (reset)
+/// VARIABLES used:
+// Data:
+// StepData:
+// Flags:    (checked)
+//           (set)
+//           (modified)
+//           (reset)
 
 namespace Kratos
 {
@@ -127,21 +127,21 @@ namespace Kratos
       double density = elemProperties[DENSITY];
       double bulk_modulus = elemProperties[BULK_MODULUS];
       double viscosity = elemProperties[DYNAMIC_VISCOSITY];
-      unsigned int node_property_id = elemProperties.Id();
-
-      if (elemProperties.Has(YIELD_SHEAR)) //Bingham model
+      unsigned int elem_property_id = elemProperties.Id();
+      
+      if (elemProperties.Has(YIELD_SHEAR)) // Bingham model
       {
         flow_index = elemProperties[FLOW_INDEX];
         yield_shear = elemProperties[YIELD_SHEAR];
         adaptive_exponent = elemProperties[ADAPTIVE_EXPONENT];
       }
-      else if (elemProperties.Has(INTERNAL_FRICTION_ANGLE)) //Frictional Viscoplastic model
+      else if (elemProperties.Has(INTERNAL_FRICTION_ANGLE)) // Frictional Viscoplastic model
       {
         friction_angle = elemProperties[INTERNAL_FRICTION_ANGLE];
         cohesion = elemProperties[COHESION];
         adaptive_exponent = elemProperties[ADAPTIVE_EXPONENT];
       }
-      else if (elemProperties.Has(STATIC_FRICTION)) //Mu(I)-rheology
+      else if (elemProperties.Has(STATIC_FRICTION)) // Mu(I)-rheology
       {
         static_friction = elemProperties[STATIC_FRICTION];
         dynamic_friction = elemProperties[DYNAMIC_FRICTION];
@@ -168,7 +168,9 @@ namespace Kratos
       {
 
         if (mrModelPart.GetNodalSolutionStepVariablesList().Has(PROPERTY_ID))
-          rGeom[i].FastGetSolutionStepValue(PROPERTY_ID) = node_property_id;
+        {
+          rGeom[i].FastGetSolutionStepValue(PROPERTY_ID) = elem_property_id;
+        }
 
         if (mrModelPart.GetNodalSolutionStepVariablesList().Has(BULK_MODULUS))
           rGeom[i].FastGetSolutionStepValue(BULK_MODULUS) = bulk_modulus;
@@ -227,7 +229,7 @@ namespace Kratos
         // rGeom[i].FastGetSolutionStepValue(BULK_MODULUS) = bulk_modulus;
         // rGeom[i].FastGetSolutionStepValue(DENSITY) = density;
         // rGeom[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = viscosity;
-        // rGeom[i].FastGetSolutionStepValue(PROPERTY_ID) = node_property_id;
+        // rGeom[i].FastGetSolutionStepValue(PROPERTY_ID) = elem_property_id;
 
         // if (elemProperties.Has(YIELD_SHEAR)) //Bingham model
         // {
@@ -353,7 +355,7 @@ private:
 SetMaterialPropertiesToFluidNodesProcess &operator=(SetMaterialPropertiesToFluidNodesProcess const &rOther);
 
 /// Copy constructor.
-//SetMaterialPropertiesToFluidNodesProcess(SetMaterialPropertiesToFluidNodesProcess const& rOther);
+// SetMaterialPropertiesToFluidNodesProcess(SetMaterialPropertiesToFluidNodesProcess const& rOther);
 
 ///@}
 }

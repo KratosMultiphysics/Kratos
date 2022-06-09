@@ -19,7 +19,6 @@
 // Project includes
 #include "nodal_manning_law.h"
 #include "shallow_water_application_variables.h"
-#include "custom_utilities/shallow_water_utilities.h"
 
 
 namespace Kratos

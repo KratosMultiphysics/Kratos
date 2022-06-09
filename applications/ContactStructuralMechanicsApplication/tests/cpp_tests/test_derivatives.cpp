@@ -1,7 +1,7 @@
 // KRATOS    ______            __             __  _____ __                  __                   __
 //          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
-//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
-//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
@@ -166,7 +166,7 @@ namespace Kratos
                 const bool is_inside0 = integration_utility.GetExactIntegration(r_slave_geometry_0, r_normal_slave_0, r_master_geometry_0, r_normal_master_0, conditions_points_slave0);
                 const bool is_inside = integration_utility.GetExactIntegration(r_slave_geometry_1, r_normal_slave_1, r_master_geometry_1, r_normal_master_1, conditions_points_slave);
 
-                IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_2;
+                IntegrationMethod this_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
                 if (is_inside && is_inside0) {
                     // Initialize general variables for the current master element

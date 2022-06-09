@@ -305,10 +305,10 @@ private:
 
         // Check if any partition has incorrect elements
         if(TDim == 2){
-            bool has_incorrect_elems = r_base_model_part.NumberOfElements() ? r_base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle : false;
+            bool has_incorrect_elems = r_base_model_part.NumberOfElements() ? r_base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle : false;
             KRATOS_ERROR_IF(has_incorrect_elems) << "In 2D the element type is expected to be a triangle" << std::endl;
         } else if(TDim == 3) {
-            bool has_incorrect_elems = r_base_model_part.NumberOfElements() ? r_base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra : false;
+            bool has_incorrect_elems = r_base_model_part.NumberOfElements() ? r_base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra : false;
             KRATOS_ERROR_IF(has_incorrect_elems) << "In 3D the element type is expected to be a tetrahedra" << std::endl;
         }
 

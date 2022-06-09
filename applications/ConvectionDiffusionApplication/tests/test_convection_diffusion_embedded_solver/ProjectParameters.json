@@ -1,0 +1,64 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "square",
+        "parallel_type" : "OpenMP",
+        "time_step"     : 1.0,
+        "start_time"    : 0.0,
+        "end_time"      : 0.99,
+        "echo_level"    : 0
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "stationary_embedded",
+        "analysis_type"                      : "linear",
+        "model_part_name"                    : "ThermalModelPart",
+        "domain_size"                        : 2,
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "square"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "ConvectionDiffusionMaterials.json"
+        },
+        "line_search"                        : false,
+        "echo_level"                         : 1,
+        "compute_reactions"                  : false,
+        "max_iteration"                      : 10,
+        "reform_dofs_at_each_step"           : true,
+        "convergence_criterion"              : "solution_criterion",
+        "solution_relative_tolerance"        : 1e-5,
+        "solution_absolute_tolerance"        : 1e-7,
+        "residual_relative_tolerance"        : 1e-5,
+        "residual_absolute_tolerance"        : 1e-7,
+        "problem_domain_sub_model_part_list" : ["Parts_Domain"],
+        "processes_sub_model_part_list"      : [],
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        },
+        "element_replace_settings" : {
+            "element_name" : "EmbeddedLaplacianElement",
+            "condition_name" : ""
+        },
+	"linear_solver_settings" : {
+	    "solver_type" : "LinearSolversApplication.sparse_lu"
+	}
+    },
+    "processes"        : {
+        "initial_conditions_process_list" : [],
+        "constraints_process_list"        : [],
+        "list_other_processes"            : [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignScalarVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "ThermalModelPart.Parts_Domain",
+                "variable_name"   : "HEAT_FLUX",
+                "value"           : 1.0,
+                "constrained"     : false
+            }
+        }],
+        "json_check_process_list" : []
+    },
+    "output_processes" : {
+        "gid_output" : []
+    }
+}

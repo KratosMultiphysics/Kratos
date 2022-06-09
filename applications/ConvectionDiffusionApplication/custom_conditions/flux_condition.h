@@ -52,16 +52,16 @@ public:
         mGaussPoint(0),
         mNodalFluxes(TNodeNumber,0.0)
     {
-        NumGauss = rGeometry.IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
+        NumGauss = rGeometry.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2);
         Vector DetJ = ZeroVector(NumGauss);
-        rGeometry.DeterminantOfJacobian(DetJ,GeometryData::GI_GAUSS_2);
+        rGeometry.DeterminantOfJacobian(DetJ,GeometryData::IntegrationMethod::GI_GAUSS_2);
 
         mShapeFunctionValues.resize(NumGauss,TNodeNumber);
         mIntegrationWeights.resize(NumGauss);
 
-        noalias(mShapeFunctionValues) = rGeometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+        noalias(mShapeFunctionValues) = rGeometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-        const auto& IntegrationPoints = rGeometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const auto& IntegrationPoints = rGeometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
         for (unsigned int g = 0; g < NumGauss; g++)
         {
@@ -190,7 +190,7 @@ public:
         DofsVectorType& ConditionalDofList,
         const ProcessInfo& CurrentProcessInfo) const override;
 
-    GeometryData::IntegrationMethod GetIntegrationMethod() override;
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,

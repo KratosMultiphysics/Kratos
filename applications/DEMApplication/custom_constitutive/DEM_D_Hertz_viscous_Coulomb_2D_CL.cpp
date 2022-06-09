@@ -15,11 +15,6 @@ namespace Kratos {
         return Kratos::make_unique<DEM_D_Hertz_viscous_Coulomb2D>();
     }
 
-    void DEM_D_Hertz_viscous_Coulomb2D::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Hertz_viscous_Coulomb2D to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }
-
     void DEM_D_Hertz_viscous_Coulomb2D::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
 
         const double my_young      = element1->GetYoung();

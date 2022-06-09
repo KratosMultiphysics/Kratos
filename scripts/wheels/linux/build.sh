@@ -1,7 +1,6 @@
 #!/bin/bash
-# PYTHONS=("cp36" "cp37" "cp38" "cp39" "cp310")
-PYTHONS=("cp310")
-export KRATOS_VERSION="9.0.0"
+PYTHONS=("cp36" "cp37" "cp38" "cp39" "cp310")
+export KRATOS_VERSION="9.1.3"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 export KRATOS_ROOT="/workspace/kratos/Kratos"
@@ -27,9 +26,9 @@ build_core_wheel () {
     
     mkdir ${WHEEL_ROOT}/KratosMultiphysics
 
-    cp ${PREFIX_LOCATION}/KratosMultiphysics/*          ${WHEEL_ROOT}/KratosMultiphysics
-    cp ${KRATOS_ROOT}/kratos/KratosMultiphysics.json    ${WHEEL_ROOT}/wheel.json
-    cp ${KRATOS_ROOT}/scripts/wheels/__init__.py        ${WHEEL_ROOT}/KratosMultiphysics/__init__.py
+    cp ${PREFIX_LOCATION}/KratosMultiphysics/*       ${WHEEL_ROOT}/KratosMultiphysics
+    cp ${KRATOS_ROOT}/kratos/KratosMultiphysics.json ${WHEEL_ROOT}/wheel.json
+    cp ${KRATOS_ROOT}/scripts/wheels/__init__.py     ${WHEEL_ROOT}/KratosMultiphysics/__init__.py
     
     cd $WHEEL_ROOT
 
@@ -40,7 +39,7 @@ build_core_wheel () {
     auditwheel repair *.whl
     
     mkdir $CORE_LIB_DIR
-    unzip -j wheelhouse/KratosMultiphysics* 'KratosMultiphysics/.libs/*' -d $CORE_LIB_DIR
+    unzip -j wheelhouse/KratosMultiphysics* 'KratosMultiphysics.libs/*' -d $CORE_LIB_DIR
     
     cp wheelhouse/* ${WHEEL_OUT}/
     cd
@@ -88,15 +87,27 @@ optimize_wheel(){
     unzip ${ARCHIVE_NAME} -d tmp
     rm $ARCHIVE_NAME
     
-    for LIBRARY in $(ls tmp/KratosMultiphysics/.libs)
+    echo "Begin exclude list for ${APPNAME}"
+    echo "List of core libs to be excluded:"
+    echo "$(ls ${CORE_LIB_DIR})"
+
+    # Clean excluded libraries
+    for LIBRARY in $(ls tmp/Kratos${APPNAME}.libs)
     do
-        if [ -f "${CORE_LIB_DIR}/${LIBRARY}" ] || grep -Fxq $(echo $LIBRARY | cut -f1 -d"-") "${WHEEL_ROOT}/excluded.txt" ; then
-            echo "removing ${LIBRARY} - already present in dependent wheel."
-            rm tmp/KratosMultiphysics/.libs/${LIBRARY}
+        if [ -f "${CORE_LIB_DIR}/${LIBRARY}" ] || grep $(echo $LIBRARY | cut -f1 -d"-") "${WHEEL_ROOT}/excluded.txt" ; then
+            echo "-- Removing ${LIBRARY} - already present in dependent wheel."
+
+            rm tmp/Kratos${APPNAME}.libs/${LIBRARY}     # Try to remove from app dir
+
             sed -i "/${LIBRARY}/d" tmp/*.dist-info/RECORD
+        else
+            echo "-- Keeping ${LIBRARY}"
         fi
     done
     
+    # Alson clean the possible copies done in the setup.py
+    rm tmp/KratosMultiphysics/.libs/libKratos* 
+
     cd tmp
     zip -r ../${ARCHIVE_NAME} ./*
     cd ..

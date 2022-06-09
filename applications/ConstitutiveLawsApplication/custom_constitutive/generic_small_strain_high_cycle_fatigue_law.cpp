@@ -247,7 +247,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
         const double F = uniaxial_stress - threshold;
 
-        if (F <= tolerance) { // Elastic case
+        if (F <= threshold_tolerance) { // Elastic case
             noalias(r_integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
@@ -374,7 +374,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
 
         const double F = uniaxial_stress - threshold;
 
-        if (F > tolerance) {
+        if (F > threshold_tolerance) {
                 const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
                 // This routine updates the PredictiveStress to verify the yield surface
                 TConstLawIntegratorType::IntegrateStressVector(

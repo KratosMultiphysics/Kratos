@@ -8,6 +8,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //
+
 // System includes
 #include <iostream>
 
@@ -215,23 +216,18 @@ Vector& ElasticIsotropic3D::CalculateValue(
 
         Flags& r_flags = rParameterValues.GetOptions();
 
-        // Previous flags saved
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+        ConstitutiveLaw::StrainVectorType& r_strain_vector = rParameterValues.GetStrainVector();
 
-        // Set flags to only compute the strain
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        if( r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+            //Since we are in small strains, any strain measure works, e.g. CAUCHY_GREEN
+            CalculateCauchyGreenStrain(rParameterValues, r_strain_vector);
+        }
+        AddInitialStrainVectorContribution<StrainVectorType>(r_strain_vector);
 
-        ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
         if (rValue.size() != GetStrainSize()) {
             rValue.resize(GetStrainSize());
         }
-        noalias(rValue) = rParameterValues.GetStrainVector();
-
-        // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        noalias(rValue) = r_strain_vector;
 
     } else if (rThisVariable == STRESSES ||
         rThisVariable == CAUCHY_STRESS_VECTOR ||
@@ -248,7 +244,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
-        ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
+        this->CalculateMaterialResponsePK2(rParameterValues);
         if (rValue.size() != GetStrainSize()) {
             rValue.resize(GetStrainSize());
         }

@@ -95,7 +95,7 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["WATER_PRESSURE", "VOLUME_ACCELERATION"],
+                        "nodal_results":       ["WATER_PRESSURE", "VOLUME_ACCELERATION", "HYDRAULIC_DISCHARGE"],
                         "gauss_point_results": ["FLUID_FLUX_VECTOR","PERMEABILITY_MATRIX", "HYDRAULIC_HEAD", "DEGREE_OF_SATURATION","DERIVATIVE_OF_SATURATION", "RELATIVE_PERMEABILITY"]
                     },
                     "point_data_configuration":  []

@@ -1326,22 +1326,22 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::G
     // Setting the auxiliar integration points
     switch (mIntegrationOrder) {
         case 1:
-            mAuxIntegrationMethod = GeometryData::GI_GAUSS_1;
+            mAuxIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
             break;
         case 2:
-            mAuxIntegrationMethod = GeometryData::GI_GAUSS_2;
+            mAuxIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
             break;
         case 3:
-            mAuxIntegrationMethod = GeometryData::GI_GAUSS_3;
+            mAuxIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
             break;
         case 4:
-            mAuxIntegrationMethod = GeometryData::GI_GAUSS_4;
+            mAuxIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
             break;
         case 5:
-            mAuxIntegrationMethod = GeometryData::GI_GAUSS_5;
+            mAuxIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
             break;
         default:
-            mAuxIntegrationMethod = GeometryData::GI_GAUSS_2;
+            mAuxIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
             break;
     }
 }

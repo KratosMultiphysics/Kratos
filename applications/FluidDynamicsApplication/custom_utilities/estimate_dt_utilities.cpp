@@ -24,6 +24,7 @@
 #include "utilities/element_size_calculator.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
 #include "estimate_dt_utilities.h"
@@ -99,10 +100,10 @@ namespace Kratos
         const auto& r_geom = mrModelPart.ElementsBegin()->GetGeometry();
         ElementSizeFunctionType minimum_h_func = FluidCharacteristicNumbersUtilities::GetMinimumElementSizeFunction(r_geom);
 
-        
+
         // Deciding what CFL calculator to use
         auto cfl_calculator = GetCFLCalculatorUtility();
-        
+
         // Obtain the maximum CFL
         const double current_dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
 

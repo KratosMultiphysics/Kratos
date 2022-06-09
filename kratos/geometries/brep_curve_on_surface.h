@@ -591,12 +591,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Brep;
+        return GeometryData::KratosGeometryFamily::Kratos_Brep;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Brep_Curve_On_Surface;
+        return GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface;
     }
 
     ///@}
@@ -696,7 +696,7 @@ template<class TContainerPointType, class TContainerPointEmbeddedType = TContain
 template<class TContainerPointType, class TContainerPointEmbeddedType> const
 GeometryData BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
 
 template<class TContainerPointType, class TContainerPointEmbeddedType>

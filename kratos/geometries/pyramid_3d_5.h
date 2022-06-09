@@ -255,6 +255,40 @@ public:
     }
 
     ///@}
+    ///@name Create Methods
+    ///@{
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+        ) const override
+    {
+        return typename BaseType::Pointer( new Pyramid3D5( NewGeometryId, rThisPoints ) );
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        const BaseType& rGeometry
+    ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Pyramid3D5( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
+
+    ///@}
     ///@name Informations
     ///@{
 
@@ -305,6 +339,22 @@ public:
         }
 
         return vol;
+    }
+
+    /**
+     * This method calculate and return length, area or volume of
+     * this geometry depending to it's dimension. For one dimensional
+     * geometry it returns its length, for two dimensional it gives area
+     * and for three dimensional geometries it gives its volume.
+     *
+     * @return double value contains length, area or volume.
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     */
+    double DomainSize() const override
+    {
+        return Volume();
     }
 
     /**
@@ -423,7 +473,7 @@ public:
     static Matrix CalculateShapeFunctionsIntegrationPointsValues(typename BaseType::IntegrationMethod ThisMethod)
     {
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const std::size_t integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -512,7 +562,7 @@ public:
     static ShapeFunctionsGradientsType CalculateShapeFunctionsIntegrationPointsLocalGradients(typename BaseType::IntegrationMethod ThisMethod)
     {
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod]; //number of integration points
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)]; //number of integration points
 
         const std::size_t integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values(integration_points_number); //initialising container
@@ -648,11 +698,11 @@ private:
         ShapeFunctionsValuesContainerType shape_functions_values =
         {
             {
-                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_1),
-                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_2),
-                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_3),
-                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_4),
-                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_5)
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_1),
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_2),
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_3),
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_4),
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_5)
             }
         };
         return shape_functions_values;
@@ -663,11 +713,11 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_1),
-                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_2),
-                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_3),
-                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_4),
-                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_5)
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_1),
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_2),
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_3),
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_4),
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_5)
             }
         };
         return shape_functions_local_gradients;
@@ -724,7 +774,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 template<class TPointType> const
 GeometryData Pyramid3D5<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_2,
+    GeometryData::IntegrationMethod::GI_GAUSS_2,
     Pyramid3D5<TPointType>::AllIntegrationPoints(),
     Pyramid3D5<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()

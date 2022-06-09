@@ -145,9 +145,9 @@ namespace Kratos
             prism_neighbours_process.Execute();
 
             // We compute the normal
-            NormalCalculationUtils().CalculateUnitNormals<Condition>(this_model_part.GetSubModelPart("Upper_"), true);
-            NormalCalculationUtils().CalculateUnitNormals<Condition>(this_model_part.GetSubModelPart("Lower_"), true);
-            
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(this_model_part.GetSubModelPart("Upper_"), true);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(this_model_part.GetSubModelPart("Lower_"), true);
+
 //             // DEBUG
 //             ShellToSolidShellProcessGiDIODebug(this_model_part);
 

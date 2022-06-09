@@ -534,7 +534,7 @@ If you want to add support for those libraries, we provide switches to enable th
 Please note that **Kratos will NEVER DISTRIBUTE, RELEASE or COMPILE** with these libraries unless explicitly specified, and the use of these libraries may add additional restrictions on top of BSD.
 
 #### Tetgen
-(Tetgen)[http://wias-berlin.de/software/tetgen/] is a library to generate tetrahedral meshes. We provide some utilities that can make use of tetgen. The flags related with Tetgen are the following:
+[Tetgen](http://wias-berlin.de/software/tetgen/) is a library to generate tetrahedral meshes. We provide some utilities that can make use of tetgen. The flags related with Tetgen are the following:
 
 `-DUSE_TETGEN_NONFREE_TPL=ON`
 Enables/Disables the use of tetgen and its related utilities in the code. If no other options provided Kratos will try to find tetgen installed on your system.

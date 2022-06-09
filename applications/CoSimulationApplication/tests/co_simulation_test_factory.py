@@ -18,6 +18,7 @@ have_potential_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("Com
 have_mpm_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("ParticleMechanicsApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "ConstitutiveLawsApplication")
 have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication")
 have_fem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("StructuralMechanicsApplication", "MappingApplication")
+have_pfem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("PfemFluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "ConstitutiveLawsApplication")
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -74,17 +75,6 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''This class contains "small" CoSimulation-Cases, small enough to run in the nightly suite
     '''
 
-    def test_MPM_FEM_beam_penalty(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
-        if not have_mpm_fem_dependencies:
-            self.skipTest("MPM-FEM dependencies are not available!")
-
-        self.name = "penalty_beam"
-        with KratosUnittest.WorkFolderScope(".", __file__):
-            self._createTest("mpm_fem_beam", "cosim_mpm_fem_beam")
-            self._runTest()
-
     def test_FEM_FEM_small_2d_plate_dual_mortar(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
@@ -105,6 +95,17 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
         self.name = "test_FEM_FEM_small_2d_plate_full_mortar"
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fem_fem/small_2d_plate", "cosim_fem_fem_small_2d_plate_full_mortar")
+            self._runTest()
+
+    def test_FEM_FEM_Neumann_Neumann_Jacobi_Solver(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_fem_fem_dependencies:
+            self.skipTest("FEM-FEM dependencies are not available!")
+
+        self.name = "test_FEM_FEM_neumann_neumann_jacobi_solver"
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fem_fem/static_2d_cantilever", "cosim_fem_fem_neumann_neumann_jacobi_solver")
             self._runTest()
 
     #def test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit(self):
@@ -166,6 +167,18 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''This class contains "full" CoSimulation-Cases, too large for the nightly suite and therefore
     have to be in the validation-suite
     '''
+
+    def test_MPM_FEM_beam_penalty(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_mpm_fem_dependencies:
+            self.skipTest("MPM-FEM dependencies are not available!")
+
+        self.name = "penalty_beam"
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("mpm_fem_beam", "cosim_mpm_fem_beam")
+            self._runTest()
+
     def test_WallFSI(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
@@ -186,6 +199,13 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._createTest("dem_fem_cable_net","cosim_dem_fem_cable_net")
             self._runTest()
 
+        # removing superfluous dem files after test
+        self.addCleanup(kratos_utils.DeleteFileIfExisting, GetFilePath("dem_fem_cable_net/cableNet.post.lst"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("dem_fem_cable_net/cableNet_Graphs"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("dem_fem_cable_net/cableNet_MPI_results"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("dem_fem_cable_net/cableNet_Post_Files"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("dem_fem_cable_net/cableNet_Results_and_Data"))
+
     def test_sdof_fsi(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
@@ -205,16 +225,17 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
 
             self._runTest()
 
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
+    @KratosUnittest.skipUnless(False, "this test result is not evaluated")
+    def test_PFEM_FEM_water_slide_2d(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_pfem_fem_dependencies:
+            self.skipTest("PFEM FEM dependencies are not available!")
 
-        # delete superfluous dem files
-        kratos_utils.DeleteFileIfExisting(GetFilePath("dem_fem_cable_net/cableNet.post.lst"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_Graphs"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_MPI_results"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_Post_Files"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_Results_and_Data"))
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("pfem_fem_waterslide2d","cosim_pfem_fem_waterslide2d")
+            self._runTest()
+
 
 if __name__ == '__main__':
     KratosUnittest.main()

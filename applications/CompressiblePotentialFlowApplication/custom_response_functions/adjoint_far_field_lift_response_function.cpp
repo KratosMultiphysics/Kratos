@@ -20,6 +20,7 @@
 #include "adjoint_far_field_lift_response_function.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {

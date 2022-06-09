@@ -24,6 +24,7 @@
 #include "includes/element.h"
 #include "elements/mesh_element.h"
 #include "elements/distance_calculation_element_simplex.h"
+#include "elements/edge_based_gradient_recovery_element.h"
 #include "elements/levelset_convection_element_simplex.h"
 #include "elements/levelset_convection_element_simplex_algebraic_stabilization.h"
 #include "includes/condition.h"
@@ -401,17 +402,17 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Hexahedra3D27<NodeType> mHexahedra3D27Prototype = Hexahedra3D27<NodeType>( GeometryType::PointsArrayType(27));
     //QuadraturePointGeometries:
     const QuadraturePointGeometry<Node<3>,1> mQuadraturePointGeometryPoint1D = QuadraturePointGeometry<Node<3>,1>(GeometryType::PointsArrayType(),
-        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
     const QuadraturePointGeometry<Node<3>,2,1> mQuadraturePointGeometryPoint2D = QuadraturePointGeometry<Node<3>,2,1>(GeometryType::PointsArrayType(),
-        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
     const QuadraturePointGeometry<Node<3>,3,1> mQuadraturePointGeometryPoint3D = QuadraturePointGeometry<Node<3>,3,1>(GeometryType::PointsArrayType(),
-        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
     const QuadraturePointGeometry<Node<3>,2> mQuadraturePointGeometrySurface2D = QuadraturePointGeometry<Node<3>,2>(GeometryType::PointsArrayType(),
-        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
     const QuadraturePointGeometry<Node<3>,3,2> mQuadraturePointGeometrySurface3D = QuadraturePointGeometry<Node<3>,3,2>(GeometryType::PointsArrayType(),
-        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
     const QuadraturePointGeometry<Node<3>,3> mQuadraturePointGeometryVolume3D = QuadraturePointGeometry<Node<3>,3>(GeometryType::PointsArrayType(),
-        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
 
     // General conditions must be defined
 
@@ -468,6 +469,9 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const DistanceCalculationElementSimplex<2> mDistanceCalculationElementSimplex2D3N;
     const DistanceCalculationElementSimplex<3> mDistanceCalculationElementSimplex3D4N;
 
+    const EdgeBasedGradientRecoveryElement<2> mEdgeBasedGradientRecoveryElement2D2N;
+    const EdgeBasedGradientRecoveryElement<3> mEdgeBasedGradientRecoveryElement3D2N;
+
     const LevelSetConvectionElementSimplex<2,3> mLevelSetConvectionElementSimplex2D3N;
     const LevelSetConvectionElementSimplex<3,4> mLevelSetConvectionElementSimplex3D4N;
     const LevelSetConvectionElementSimplexAlgebraicStabilization<2,3> mLevelSetConvectionElementSimplexAlgebraicStabilization2D3N;
@@ -476,7 +480,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     // Modeler
     const Modeler mModeler;
     const CadIoModeler mCadIoModeler;
-#ifdef USE_TRIANGLE_NONFREE_TPL
+#if USE_TRIANGLE_NONFREE_TPL
     const CadTessellationModeler mCadTessellationModeler;
 #endif
     const SerialModelPartCombinatorModeler mSerialModelPartCombinatorModeler;

@@ -57,11 +57,11 @@ namespace Kratos
         void SetOriginAndDestinationDomainsWithInterfaceModelParts(ModelPart& rInterfaceOrigin,
             ModelPart& rInterFaceDestination);
 
-        void SetEffectiveStiffnessMatrixImplicit(SparseMatrixType& rK, const SolverIndex SolverIndex);
+        void SetEffectiveStiffnessMatrixImplicit(SparseMatrixType& rK, const SolverIndex iSolverIndex);
 
-        void SetEffectiveStiffnessMatrixExplicit(const SolverIndex SolverIndex)
+        void SetEffectiveStiffnessMatrixExplicit(const SolverIndex iSolverIndex)
         {
-            if (SolverIndex == SolverIndex::Origin) mSubTimestepIndex = 1;
+            if (iSolverIndex == SolverIndex::Origin) mSubTimestepIndex = 1;
         };
 
         void SetMappingMatrix(SparseMatrixType& rMappingMatrix)

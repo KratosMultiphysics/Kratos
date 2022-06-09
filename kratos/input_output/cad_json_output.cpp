@@ -31,7 +31,7 @@ namespace Kratos
         breps_parameters.AddEmptyArray("edges");
         breps_parameters.AddEmptyArray("vertices");
         for (auto geometry_itr = rModelPart.GeometriesBegin(); geometry_itr != rModelPart.GeometriesEnd(); ++geometry_itr) {
-            if (geometry_itr->GetGeometryType() == GeometryData::Kratos_Brep_Surface) {
+            if (geometry_itr->GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Brep_Surface) {
                 GetBrepSurfaceParameters(geometry_itr, breps_parameters, EchoLevel);
             }
         }

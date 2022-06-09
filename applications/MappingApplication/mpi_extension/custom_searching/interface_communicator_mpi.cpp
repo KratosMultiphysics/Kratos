@@ -165,6 +165,13 @@ void InterfaceCommunicatorMPI::ComputeGlobalBoundingBoxes()
             const double z_max = mGlobalBoundingBoxes[(i*6)+4];
             const double z_min = mGlobalBoundingBoxes[(i*6)+5];
 
+            if (x_max < x_min) {
+                // the bounding boxes are initialized inverted
+                // hence if this condition is true then it means that
+                // this partition does not have part of the interface
+                continue;
+            }
+
             // create vertices
             r_bbox_model_part.CreateNewNode((i*8),   x_min, y_min, z_min);
             r_bbox_model_part.CreateNewNode((i*8)+1, x_max, y_min, z_min);

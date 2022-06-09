@@ -18,8 +18,8 @@
 
 // Project includes
 #include "manning_law.h"
+#include "custom_utilities/phase_function.h"
 #include "shallow_water_application_variables.h"
-#include "custom_utilities/shallow_water_utilities.h"
 
 
 namespace Kratos
@@ -45,7 +45,7 @@ void ManningLaw::Initialize(
 
 double ManningLaw::CalculateLHS(const double& rHeight, const array_1d<double,3>& rVelocity)
 {
-    const double inv_height = ShallowWaterUtilities().InverseHeight(rHeight, mEpsilon);
+    const double inv_height = PhaseFunction::InverseHeight(rHeight, mEpsilon);
     return mManning2 * norm_2(rVelocity) * std::pow(inv_height, 4.0 / 3.0);
 }
 

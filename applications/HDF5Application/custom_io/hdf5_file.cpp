@@ -8,6 +8,7 @@
 #include "includes/kratos_parameters.h"
 #include "utilities/builtin_timer.h"
 #include "input_output/logger.h"
+#include "utilities/string_utilities.h"
 
 namespace Kratos
 {
@@ -23,18 +24,6 @@ bool IsPath(const std::string& rPath)
 #else
     return regex_match(rPath, std::regex("(/[\\w\\(\\)]+)+"));
 #endif
-}
-
-std::vector<std::string> Split(const std::string& rPath, char Delimiter)
-{
-    std::vector<std::string> splitted;
-    splitted.reserve(10);
-    std::stringstream ss(rPath);
-    std::string sub_string;
-    while (std::getline(ss, sub_string, Delimiter))
-        if (sub_string.size() > 0)
-            splitted.push_back(sub_string);
-    return splitted;
 }
 
 hid_t GetScalarDataType(const Vector<int>&)
@@ -209,9 +198,10 @@ bool File::HasPath(const std::string& rPath) const
 {
     KRATOS_TRY;
     // Expects a valid path.
-    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: \"" << rPath << '"' << std::endl;
+    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: \"" << rPath << "\". Path should start with \"/\" and should only have characters A-Z, a-z, 0-9, \"/\", and \"_\"." << std::endl;
 
-    std::vector<std::string> splitted_path = Internals::Split(rPath, '/');
+    std::vector<std::string> splitted_path = StringUtilities::SplitStringByDelimiter(rPath, '/');
+    splitted_path.erase(std::remove_if(splitted_path.begin(), splitted_path.end(), [](const std::string& s) {return (s.size() == 0);}));
     std::string sub_path;
     for (const auto& r_link: splitted_path)
     {
@@ -379,9 +369,10 @@ std::vector<std::string> File::GetDataSetNames(const std::string& rGroupPath) co
 
 void File::AddPath(const std::string& rPath)
 {
-    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: " << rPath << std::endl;
+    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: \"" << rPath << "\". Path should start with \"/\" and should only have characters A-Z, a-z, 0-9, \"/\", and \"_\"." << std::endl;
 
-    std::vector<std::string> splitted_path = Internals::Split(rPath, '/');
+    std::vector<std::string> splitted_path = StringUtilities::SplitStringByDelimiter(rPath, '/');
+    splitted_path.erase(std::remove_if(splitted_path.begin(), splitted_path.end(), [](const std::string& s) {return (s.size() == 0);}));
     std::string sub_path;
     for (const auto& r_link: splitted_path)
     {

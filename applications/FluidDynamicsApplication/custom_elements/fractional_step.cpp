@@ -293,7 +293,7 @@ void FractionalStep<TDim>::GetDofList(DofsVectorType& rElementalDofList,
 template< unsigned int TDim >
 GeometryData::IntegrationMethod FractionalStep<TDim>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 template< unsigned int TDim >
@@ -839,6 +839,40 @@ int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
     KRATOS_CATCH("");
 }
 
+template< unsigned int TDim >
+const Parameters FractionalStep<TDim>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["implicit"],
+        "framework"                  : "ale",
+        "symmetric_lhs"              : false,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : ["CONV_PROJ","PRES_PROJ","VORTICITY_MAGNITUDE","VORTICITY","MU","TAU","Q_VALUE","EQ_STRAIN_RATE"],
+            "nodal_historical"       : ["VELOCITY","PRESSURE"],
+            "nodal_non_historical"   : [],
+            "entity"                 : ["C_SMAGORINSKY"]
+        },
+        "required_variables"         : ["VELOCITY","MESH_VELOCITY","PRESSURE","BODY_FORCE","NODAL_AREA","FRACT_VEL","ADVPROJ","DIVPROJ","PRES_PROJ","CONV_PROJ"]
+        "required_dofs"              : [],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
+        "element_integrates_in_time" : false,
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   : "This implements a fractional-step Navier-Stokes formulation with quasi-static Variational MultiScales (VMS) stabilization."
+    })");
+
+    if (TDim == 2) {
+        std::vector<std::string> dofs_2d({"VELOCITY_X","VELOCITY_Y","PRESSURE"});
+        specifications["required_dofs"].SetStringArray(dofs_2d);
+    } else {
+        std::vector<std::string> dofs_3d({"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"});
+        specifications["required_dofs"].SetStringArray(dofs_3d);
+    }
+
+    return specifications;
+}
+
 template<>
 void FractionalStep<2>::VelocityEquationIdVector(EquationIdVectorType& rResult,
                                                  const ProcessInfo& rCurrentProcessInfo) const
@@ -1023,32 +1057,32 @@ void FractionalStep<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayTy
 {
     const GeometryType& rGeom = this->GetGeometry();
     Vector DetJ;
-    rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX,DetJ,GeometryData::GI_GAUSS_2);
-    NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+    rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX,DetJ,GeometryData::IntegrationMethod::GI_GAUSS_2);
+    NContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-    rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2),false);
+    rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2),false);
 
-    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
+    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2); g++)
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
 
 
     /*
     const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
-    const unsigned int NumGauss = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
+    const unsigned int NumGauss = rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Initialize arrays to proper size
     rDN_DX.resize(NumGauss);
     rDetJ.resize(NumGauss);
 
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients( GeometryData::GI_GAUSS_2 );
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 );
 
     // Temporary container for inverse of J
     Matrix InvJ;
 
     GeometryType::JacobiansType J;
-    rGeom.Jacobian( J, GeometryData::GI_GAUSS_2 );
+    rGeom.Jacobian( J, GeometryData::IntegrationMethod::GI_GAUSS_2 );
 
     for (unsigned int g = 0; g < NumGauss; g++)
     {

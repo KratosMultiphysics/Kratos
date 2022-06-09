@@ -13,13 +13,9 @@ namespace Kratos {
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Linear_viscous_Coulomb2D);
 
-        DEM_D_Linear_viscous_Coulomb2D() {
-        }
+        DEM_D_Linear_viscous_Coulomb2D() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
-        ~DEM_D_Linear_viscous_Coulomb2D() {
-        }
+        ~DEM_D_Linear_viscous_Coulomb2D() {}
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 

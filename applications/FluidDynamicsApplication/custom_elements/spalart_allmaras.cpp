@@ -550,7 +550,7 @@ double SpalartAllmaras::CalculateTau(double ElementSize, const ProcessInfo &rCur
     const SizeType Dim = rGeom.WorkingSpaceDimension();
 
     // Shape functions at the element center
-    const Matrix NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+    const Matrix NContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
     const Vector& N = row(NContainer,0);
 
     // Time Term

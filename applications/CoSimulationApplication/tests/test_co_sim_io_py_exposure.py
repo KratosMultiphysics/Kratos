@@ -287,7 +287,7 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
         import_info = CoSimIO.Info()
         import_info.SetString("connection_name", connection_name)
         import_info.SetString("identifier", "mesh_exchange_2")
-        CoSimIO.ImportMesh(import_info, model_part_returned)
+        CoSimIO.ImportMesh(import_info, model_part_returned, KM.Testing.GetDefaultDataCommunicator())
 
         disconnect_settings = CoSimIO.Info()
         disconnect_settings.SetString("connection_name", connection_name)

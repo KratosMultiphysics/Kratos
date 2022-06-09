@@ -199,8 +199,8 @@ typedef Node<3> NodeType;
 
         KRATOS_CHECK_NEAR(derivatives[4][1], 0.0, TOLERANCE);
 
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
         KRATOS_CHECK_EQUAL(curve.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(curve.GetGeometryType(), geometry_type);
     }
@@ -384,8 +384,8 @@ typedef Node<3> NodeType;
             KRATOS_CHECK_NEAR(derivatives[3][2], -0.00265, TOLERANCE);
         }
 
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
         KRATOS_CHECK_EQUAL(curve.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(curve.GetGeometryType(), geometry_type);
     }
@@ -406,8 +406,8 @@ typedef Node<3> NodeType;
         }
         KRATOS_CHECK_NEAR(length, 11.180339887498949, TOLERANCE);
 
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
         KRATOS_CHECK_EQUAL(curve.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(curve.GetGeometryType(), geometry_type);
     }
@@ -430,8 +430,8 @@ typedef Node<3> NodeType;
         }
         KRATOS_CHECK_NEAR(length, 11.180339887498949, TOLERANCE);
 
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
         KRATOS_CHECK_EQUAL(curve.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(curve.GetGeometryType(), geometry_type);
     }
@@ -486,8 +486,8 @@ typedef Node<3> NodeType;
 
         KRATOS_CHECK_VECTOR_NEAR(quadrature_points[10].Center(), global_coords, TOLERANCE);
 
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
         KRATOS_CHECK_EQUAL(curve.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(curve.GetGeometryType(), geometry_type);
     }

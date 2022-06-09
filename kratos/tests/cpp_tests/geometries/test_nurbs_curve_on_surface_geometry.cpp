@@ -338,8 +338,8 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_VECTOR_NEAR(derivatives[2], gradient2, TOLERANCE);
 
         // Check kratos geometry family
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
         KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryType(), geometry_type);
 
@@ -352,8 +352,8 @@ typedef Node<3> NodeType;
 
         // Check kratos geometry family
         {
-            const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-            const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
+            const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+            const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
             KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryFamily(), geometry_family);
             KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryType(), geometry_type);
         }
@@ -435,8 +435,8 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_NEAR(spans[3], 19.2881, 1e-4);
         KRATOS_CHECK_NEAR(spans[4], 23.3137, 1e-4);
 
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
         KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryType(), geometry_type);
     }
@@ -463,8 +463,8 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_NEAR(spans[3], 19.2881 / scaling_factor, 1e-4);
         KRATOS_CHECK_NEAR(spans[4], 23.3137 / scaling_factor, 1e-4);
 
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
         KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryType(), geometry_type);
     }
@@ -529,8 +529,8 @@ typedef Node<3> NodeType;
         quadrature_points[2].Calculate(LOCAL_TANGENT, local_tangent);
         KRATOS_CHECK_VECTOR_NEAR(local_tangent, local_reference, TOLERANCE);
 
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry;
 
         for (IndexType i = 0; i < quadrature_points.size(); ++i) {
             KRATOS_CHECK_EQUAL(quadrature_points[i].GetGeometryFamily(), geometry_family);

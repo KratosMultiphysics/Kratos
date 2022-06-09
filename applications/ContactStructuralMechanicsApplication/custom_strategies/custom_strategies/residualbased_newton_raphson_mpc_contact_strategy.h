@@ -809,7 +809,6 @@ private:
 
         // We set the constraints active and inactive in function of the active set
         auto& r_conditions_array = r_contact_model_part.Conditions();
-        auto it_cond_begin = r_conditions_array.begin();
 
         // If enforcing NTN
         const bool enforce_ntn = false;
@@ -817,14 +816,11 @@ private:
 //         if (enforce_ntn) {
 //             VariableUtils().SetNonHistoricalVariable(NODAL_PAUX, 1.0, r_nodes_array);
 //         }
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-
+        
+        block_for_each(r_conditions_array, [&](Condition& rCond) {
             // Only slave conditions
-            if (it_cond->Is(SLAVE)) {
-                auto& r_geometry = it_cond->GetGeometry();
+            if (rCond.Is(SLAVE)) {
+                auto& r_geometry = rCond.GetGeometry();
                 Vector lumping_factor;
                 lumping_factor = r_geometry.LumpingFactors(lumping_factor);
                 const double domain_size = r_geometry.DomainSize();
@@ -836,7 +832,7 @@ private:
                     AtomicAdd(r_node.GetValue(NODAL_MAUX), lumping_factor[i_node] * domain_size);
                 }
             }
-        }
+        });
     }
 
     ///@}

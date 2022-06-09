@@ -234,7 +234,7 @@ public:
      * @param rBigMatrix The total global rotation matrix
      */
     void AssembleSmallInBigMatrix(
-        const Matrix& rSmallMatrix, 
+        const Matrix& rSmallMatrix,
         BoundedMatrix<double,msElementSize,msElementSize>& rBigMatrix
         ) const;
 
@@ -311,6 +311,8 @@ public:
 
     void UpdateQuaternionParameters(double& rScalNodeA,double& rScalNodeB,
          Vector& rVecNodeA,Vector& rVecNodeB) const;
+
+    const Parameters GetSpecifications() const override;
 
 private:
 

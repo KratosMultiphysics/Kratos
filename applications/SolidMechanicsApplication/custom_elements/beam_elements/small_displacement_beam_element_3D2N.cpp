@@ -47,7 +47,7 @@ SmallDisplacementBeamElement3D2N::SmallDisplacementBeamElement3D2N(IndexType New
 {
     KRATOS_TRY
 
-    mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
 
     //DO NOT ADD DOFS HERE!!!
 
@@ -87,7 +87,7 @@ SmallDisplacementBeamElement3D2N::~SmallDisplacementBeamElement3D2N()
 SmallDisplacementBeamElement3D2N::IntegrationMethod  SmallDisplacementBeamElement3D2N::GetIntegrationMethod() const
 {
   //return mThisIntegrationMethod;
-  return GeometryData::GI_GAUSS_3; //writing results with 3 integration points....
+  return GeometryData::IntegrationMethod::GI_GAUSS_3; //writing results with 3 integration points....
 }
 
 //************************************************************************************
