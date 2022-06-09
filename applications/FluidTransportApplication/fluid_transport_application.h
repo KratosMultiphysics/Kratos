@@ -57,7 +57,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosFluidTransportApplication : public KratosApplication
+class KRATOS_API(FLUID_TRANSPORT_APPLICATION) KratosFluidTransportApplication : public KratosApplication
 {
 
 public:
