@@ -32,20 +32,24 @@ class TestMeshDependencyPiping(KratosUnittest.TestCase):
         with open(parameter_file_name, 'w') as parameter_file:
             json.dump(parameters, parameter_file, indent=4)
 
-    def model_kratos_run(self, file_path, head):
+    def model_kratos_run(self, file_path, head, model=None):
         self.change_head_level_polder_side(file_path, head)
-        simulation = test_helper.run_kratos(file_path)
+        simulation = test_helper.run_kratos(file_path, model)
         pipe_active = test_helper.get_pipe_active_in_elements(simulation)
-        return all(pipe_active)
+
+        model = simulation.model
+        return all(pipe_active), model
 
     def linear_search(self, file_path, search_array):
         counter_head = 0
+        model = None
         while counter_head < len(search_array):
             # check if pipe elements become active
-            if self.model_kratos_run(file_path, search_array[counter_head]):
+            pipe_active, model = self.model_kratos_run(file_path, search_array[counter_head], model)
+            if pipe_active:
                 return search_array[counter_head - 1]
             counter_head = counter_head + 1
-        return math.nan
+        return None
 
     def test_piping_mesh_dependency(self):
         test_files = {"PipeRefinementD10L30M1.gid":6,
