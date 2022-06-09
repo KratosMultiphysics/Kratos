@@ -128,8 +128,14 @@ outstring = open(template_filename).read()
 outstring = outstring.replace(f"//substitute_rhs_{dim}D_{n_nodes}N", rhs_out)
 outstring = outstring.replace(f"//substitute_lhs_{dim}D_{n_nodes}N", lhs_out)
 
+# Replace the equivalent deformation gradient in the template outstring
+Fmod_gauss_out = OutputMatrix_CollectingFactors(Fmod_gauss, "r_eq_def_gradient", mode)
+det_Fmod_gauss_out = OutputScalar_CollectingFactors(Fmod_gauss.det(), "r_det_eq_def_gradient", mode)
+outstring = outstring.replace(f"//substitute_def_gradient_{dim}D_{n_nodes}N", Fmod_gauss_out)
+outstring = outstring.replace(f"//substitute_det_def_gradient_{dim}D_{n_nodes}N", det_Fmod_gauss_out)
+
 # Replace the equivalent strain in the template outstring
-Emod_gauss_out = OutputVector_CollectingFactors(StrainToVoigt(Emod_gauss), "eq_green_strain", mode)
+Emod_gauss_out = OutputVector_CollectingFactors(StrainToVoigt(Emod_gauss), "r_eq_green_strain", mode)
 outstring = outstring.replace(f"//substitute_green_strain_{dim}D_{n_nodes}N", Emod_gauss_out)
 
 # Write the modified template

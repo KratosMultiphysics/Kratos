@@ -167,6 +167,9 @@ namespace
         Matrix LHS = ZeroMatrix(9,9);
         p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
+        KRATOS_WATCH(RHS)
+        KRATOS_WATCH(LHS)
+
         // Perturb the previous displacement and volumetric strain field to compute the residual
         const double alpha_perturbed = 1.25e-5;
         const double beta_perturbed = 0.25e-5;
@@ -174,6 +177,8 @@ namespace
 
         Vector RHS_perturbed = ZeroVector(9);
         p_element->CalculateRightHandSide(RHS_perturbed, r_process_info);
+
+        KRATOS_WATCH(RHS_perturbed)
 
         // Calculate the perturbation RHS
         const double delta_alpha = alpha_perturbed - alpha;
@@ -185,6 +190,7 @@ namespace
 
         // Check the error
         const Vector RHS_error = RHS_perturbed - (RHS + RHS_delta);
+        KRATOS_WATCH(RHS_delta)
 
         // Check the LHS
         array_1d<double, 9> perturbation_vector = ZeroVector(9);

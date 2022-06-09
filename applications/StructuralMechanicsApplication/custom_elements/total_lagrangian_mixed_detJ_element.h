@@ -505,21 +505,23 @@ private:
     /**
      * @brief Calculate the equivalent strain
      * This function computes the equivalent strain vector.
-     * The equivalent strain is defined as the deviatoric part of the displacement
-     * symmetric gradient plus a volumetric strain coming from the interpolation
-     * of the nodal volumetric strain.
+     * The equivalent strain is defined from a multiplicative decomposition of
+     * the strain. The deviatoric part comes from the nodal interpolation of the
+     * displacements while the volumetric part comes from the nodal interpolation
+     * of the nodal Jacobian determinant.
      * @param rThisKinematicVariables Kinematic variables container
      */
     void CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const;
 
-    // /**
-    //  * @brief Calculation of the deformation gradient F
-    //  * @param rF The deformation gradient
-    //  * @param rStrainTensor The strain tensor in Voigt notation
-    //  */
-    // void ComputeEquivalentF(
-    //     Matrix& rF,
-    //     const Vector& rStrainTensor) const;
+    /**
+     * @brief Calculation of the deformation gradient F
+     * The equivalent deformation gradient is defined from a multiplicative decomposition of
+     * the strain. The deviatoric part comes from the nodal interpolation of the
+     * displacements while the volumetric part comes from the nodal interpolation
+     * of the nodal Jacobian determinant.
+     * @param rThisKinematicVariables Kinematic variables container
+     */
+    void CalculateEquivalentF(KinematicVariables& rThisKinematicVariables) const;
 
     /**
      * @brief This method gets a value directly in the CL

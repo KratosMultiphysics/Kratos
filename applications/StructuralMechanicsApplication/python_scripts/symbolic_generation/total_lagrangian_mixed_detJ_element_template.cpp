@@ -311,24 +311,20 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
 {
     const auto& r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
-    const SizeType n_nodes = r_geometry.PointsNumber();
-    const SizeType block_size = dim + 1;
-    const SizeType matrix_size = block_size * n_nodes;
-    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 
     // Check RHS size
-    if (rRightHandSideVector.size() != matrix_size) {
-        rRightHandSideVector.resize(matrix_size, false);
+    if (rRightHandSideVector.size() != LocalSize) {
+        rRightHandSideVector.resize(LocalSize, false);
     }
 
     // Check LHS size
-    if (rLeftHandSideMatrix.size1() != matrix_size || rLeftHandSideMatrix.size2() != matrix_size) {
-        rLeftHandSideMatrix.resize(matrix_size, matrix_size, false);
+    if (rLeftHandSideMatrix.size1() != LocalSize || rLeftHandSideMatrix.size2() != LocalSize) {
+        rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
     }
 
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables;
-    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
         for (IndexType d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
@@ -351,8 +347,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
     // Calculate stabilization constant
     const double c_tau = 2.0;
     const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
-    const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
-    const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
+    const double aux_tau = c_tau * std::pow(h,2) / 2.0;
 
     // Set the auxiliary references matching the automatic differentiation symbols
     array_1d<double,3> b_gauss;
@@ -376,11 +371,23 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
         const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
-        CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+        CalculateConstitutiveVariables(
+            kinematic_variables,
+            constitutive_variables,
+            cons_law_values,
+            i_gauss,
+            r_geometry.IntegrationPoints(this->GetIntegrationMethod()),
+            ConstitutiveLaw::StressMeasure_PK2);
 
         // Calculate body force
         // Note that this already includes the density computed in the reference configuration
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
+
+        // Calculate the stabilization constant
+        // TODO: THIS MUST BE COMPUTED BY THE CONSTITUTIVE LAW, ASSUMING LINEAR ELASTIC MATERIAL SO FAR
+        const auto& r_prop = GetProperties();
+        double mu = r_prop[YOUNG_MODULUS]/(2*(1.0+r_prop[POISSON_RATIO])); // 2nd Lame constant (shear modulus)
+        const double tau = aux_tau / mu;
 
         // Calculate and add the LHS Gauss point contributions
         //substitute_lhs_2D_3N
@@ -442,9 +449,8 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
 
     // Calculate stabilization constant
     const double c_tau = 2.0;
-    const double h = ElementSizeCalculator<3,NumNodes>::AverageElementSize(r_geometry);
-    const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
-    const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
+    const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
+    const double aux_tau = c_tau * std::pow(h,2) / 2.0;
 
     // Set the auxiliary references matching the automatic differentiation symbols
     array_1d<double,3> b_gauss;
@@ -468,11 +474,23 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
         const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
-        CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+        CalculateConstitutiveVariables(
+            kinematic_variables,
+            constitutive_variables,
+            cons_law_values,
+            i_gauss,
+            r_geometry.IntegrationPoints(this->GetIntegrationMethod()),
+            ConstitutiveLaw::StressMeasure_PK2);
 
         // Calculate body force
         // Note that this already includes the density computed in the reference configuration
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
+
+        // Calculate the stabilization constant
+        // TODO: THIS MUST BE COMPUTED BY THE CONSTITUTIVE LAW, ASSUMING LINEAR ELASTIC MATERIAL SO FAR
+        const auto& r_prop = GetProperties();
+        double mu = r_prop[YOUNG_MODULUS]/(2*(1.0+r_prop[POISSON_RATIO])); // 2nd Lame constant (shear modulus)
+        const double tau = aux_tau / mu;
 
         // Calculate and add the LHS Gauss point contributions
         //substitute_lhs_3D_4N
@@ -528,8 +546,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
     // Calculate stabilization constant
     const double c_tau = 2.0;
     const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
-    const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
-    const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
+    const double aux_tau = c_tau * std::pow(h,2) / 2.0;
 
     // Set the auxiliary references matching the automatic differentiation symbols
     array_1d<double,3> b_gauss;
@@ -552,11 +569,23 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
         const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
-        CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+        CalculateConstitutiveVariables(
+            kinematic_variables,
+            constitutive_variables,
+            cons_law_values,
+            i_gauss,
+            r_geometry.IntegrationPoints(this->GetIntegrationMethod()),
+            ConstitutiveLaw::StressMeasure_PK2);
 
         // Calculate body force
         // Note that this already includes the density computed in the reference configuration
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
+
+        // Calculate the stabilization constant
+        // TODO: THIS MUST BE COMPUTED BY THE CONSTITUTIVE LAW, ASSUMING LINEAR ELASTIC MATERIAL SO FAR
+        const auto& r_prop = GetProperties();
+        double mu = r_prop[YOUNG_MODULUS]/(2*(1.0+r_prop[POISSON_RATIO])); // 2nd Lame constant (shear modulus)
+        const double tau = aux_tau / mu;
 
         // Calculate and add the LHS Gauss point contributions
         //substitute_lhs_2D_3N
@@ -608,9 +637,8 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
 
     // Calculate stabilization constant
     const double c_tau = 2.0;
-    const double h = ElementSizeCalculator<3,NumNodes>::AverageElementSize(r_geometry);
-    const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
-    const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
+    const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
+    const double aux_tau = c_tau * std::pow(h,2) / 2.0;
 
     // Set the auxiliary references matching the automatic differentiation symbols
     array_1d<double,3> b_gauss;
@@ -633,11 +661,23 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
         const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
-        CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+        CalculateConstitutiveVariables(
+            kinematic_variables,
+            constitutive_variables,
+            cons_law_values,
+            i_gauss,
+            r_geometry.IntegrationPoints(this->GetIntegrationMethod()),
+            ConstitutiveLaw::StressMeasure_PK2);
 
         // Calculate body force
         // Note that this already includes the density computed in the reference configuration
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
+
+        // Calculate the stabilization constant
+        // TODO: THIS MUST BE COMPUTED BY THE CONSTITUTIVE LAW, ASSUMING LINEAR ELASTIC MATERIAL SO FAR
+        const auto& r_prop = GetProperties();
+        double mu = r_prop[YOUNG_MODULUS]/(2*(1.0+r_prop[POISSON_RATIO])); // 2nd Lame constant (shear modulus)
+        const double tau = aux_tau / mu;
 
         // Calculate and add the LHS Gauss point contributions
         //substitute_lhs_3D_4N
@@ -690,8 +730,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
     // Calculate stabilization constant
     const double c_tau = 2.0;
     const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
-    const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
-    const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
+    const double aux_tau = c_tau * std::pow(h,2) / 2.0;
 
     // Set the auxiliary references matching the automatic differentiation symbols
     array_1d<double,3> b_gauss;
@@ -714,11 +753,23 @@ void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
         const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
-        CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+        CalculateConstitutiveVariables(
+            kinematic_variables,
+            constitutive_variables,
+            cons_law_values,
+            i_gauss,
+            r_geometry.IntegrationPoints(this->GetIntegrationMethod()),
+            ConstitutiveLaw::StressMeasure_PK2);
 
         // Calculate body force
         // Note that this already includes the density computed in the reference configuration
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
+
+        // Calculate the stabilization constant
+        // TODO: THIS MUST BE COMPUTED BY THE CONSTITUTIVE LAW, ASSUMING LINEAR ELASTIC MATERIAL SO FAR
+        const auto& r_prop = GetProperties();
+        double mu = r_prop[YOUNG_MODULUS]/(2*(1.0+r_prop[POISSON_RATIO])); // 2nd Lame constant (shear modulus)
+        const double tau = aux_tau / mu;
 
         // Calculate and add the RHS Gauss point contribution
         //substitute_rhs_2D_3N
@@ -770,9 +821,8 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
 
     // Calculate stabilization constant
     const double c_tau = 2.0;
-    const double h = ElementSizeCalculator<3,NumNodes>::AverageElementSize(r_geometry);
-    const double mu = 1.0; //FIXME: This is the Lame constant. Compute it.
-    const double tau = c_tau * std::pow(h,2) / (2.0 * mu);
+    const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
+    const double aux_tau = c_tau * std::pow(h,2) / 2.0;
 
     // Set the auxiliary references matching the automatic differentiation symbols
     array_1d<double,3> b_gauss;
@@ -796,11 +846,23 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
         const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
-        CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+        CalculateConstitutiveVariables(
+            kinematic_variables,
+            constitutive_variables,
+            cons_law_values,
+            i_gauss,
+            r_geometry.IntegrationPoints(this->GetIntegrationMethod()),
+            ConstitutiveLaw::StressMeasure_PK2);
 
         // Calculate body force
         // Note that this already includes the density computed in the reference configuration
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
+
+        // Calculate the stabilization constant
+        // TODO: THIS MUST BE COMPUTED BY THE CONSTITUTIVE LAW, ASSUMING LINEAR ELASTIC MATERIAL SO FAR
+        const auto& r_prop = GetProperties();
+        double mu = r_prop[YOUNG_MODULUS]/(2*(1.0+r_prop[POISSON_RATIO])); // 2nd Lame constant (shear modulus)
+        const double tau = aux_tau / mu;
 
         // Calculate and add the RHS Gauss point contribution
         //substitute_rhs_3D_4N
@@ -857,9 +919,8 @@ void TotalLagrangianMixedDetJElement<TDim>::SetConstitutiveVariables(
     // Here we essentially set the input parameters
     rValues.SetShapeFunctionsValues(rThisKinematicVariables.N); // shape functions
     rValues.SetStrainVector(rThisKinematicVariables.EquivalentStrain); // equivalent total strain
-    //TODO: Check if these are really required. I think they shouldn't as we're computing the strain in the element
-    // rValues.SetDeterminantF(rThisKinematicVariables.detF); // assuming that det(F) is computed somewhere else
-    // rValues.SetDeformationGradientF(rThisKinematicVariables.F); // assuming that F is computed somewhere else
+    rValues.SetDeterminantF(rThisKinematicVariables.detF); // assuming that det(F) is computed somewhere else
+    rValues.SetDeformationGradientF(rThisKinematicVariables.F); // assuming that F is computed somewhere else
 
     // Here we set the space on which the results shall be written
     rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //F computed somewhere else
@@ -922,9 +983,7 @@ void TotalLagrangianMixedDetJElement<TDim>::CalculateKinematicVariables(
     CalculateEquivalentStrain(rThisKinematicVariables);
 
     // Compute equivalent F
-    //TODO: Check if these are really required. I think they shouldn't as we're computing the strain in the element
-    // ComputeEquivalentF(rThisKinematicVariables.F, rThisKinematicVariables.EquivalentStrain);
-    // rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
+    CalculateEquivalentF(rThisKinematicVariables);
 }
 
 /***********************************************************************************/
@@ -938,7 +997,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateEquivalentStrain(KinematicVari
     const auto& DN = rThisKinematicVariables.DN_DX;
     const auto& u = rThisKinematicVariables.Displacements;
     const auto& th = rThisKinematicVariables.JacobianDeterminant;
-    auto& eq_green_strain = rThisKinematicVariables.EquivalentStrain;
+    auto& r_eq_green_strain = rThisKinematicVariables.EquivalentStrain;
 
     // Fill the equivalent Green strain values
     //substitute_green_strain_2D_3N
@@ -955,22 +1014,49 @@ void TotalLagrangianMixedDetJElement<3>::CalculateEquivalentStrain(KinematicVari
     const auto& DN = rThisKinematicVariables.DN_DX;
     const auto& u = rThisKinematicVariables.Displacements;
     const auto& th = rThisKinematicVariables.JacobianDeterminant;
-    auto& eq_green_strain = rThisKinematicVariables.EquivalentStrain;
+    auto& r_eq_green_strain = rThisKinematicVariables.EquivalentStrain;
 
     // Fill the equivalent Green strain values
     //substitute_green_strain_3D_4N
 }
 
-// /***********************************************************************************/
-// /***********************************************************************************/
+/***********************************************************************************/
+/***********************************************************************************/
 
-// template<std::size_t TDim>
-// void TotalLagrangianMixedDetJElement<TDim>::ComputeEquivalentF(
-//     Matrix& rF,
-//     const Vector& rStrainTensor) const
-// {
-//     StructuralMechanicsElementUtilities::ComputeEquivalentF(*this, rStrainTensor, rF);
-// }
+template<>
+void TotalLagrangianMixedDetJElement<2>::CalculateEquivalentF(KinematicVariables& rThisKinematicVariables) const
+{
+    // Define references to the auxiliary symbols
+    const auto& N = rThisKinematicVariables.N;
+    const auto& DN = rThisKinematicVariables.DN_DX;
+    const auto& u = rThisKinematicVariables.Displacements;
+    const auto& th = rThisKinematicVariables.JacobianDeterminant;
+    auto& r_eq_def_gradient = rThisKinematicVariables.F;
+    double& r_det_eq_def_gradient = rThisKinematicVariables.detF;
+
+    // Fill the equivalent deformation gradient values
+    //substitute_def_gradient_2D_3N
+    //substitute_det_def_gradient_2D_3N
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void TotalLagrangianMixedDetJElement<3>::CalculateEquivalentF(KinematicVariables& rThisKinematicVariables) const
+{
+    // Define references to the auxiliary symbols
+    const auto& N = rThisKinematicVariables.N;
+    const auto& DN = rThisKinematicVariables.DN_DX;
+    const auto& u = rThisKinematicVariables.Displacements;
+    const auto& th = rThisKinematicVariables.JacobianDeterminant;
+    auto& r_eq_def_gradient = rThisKinematicVariables.F;
+    double& r_det_eq_def_gradient = rThisKinematicVariables.detF;
+
+    // Fill the equivalent deformation gradient values
+    //substitute_def_gradient_3D_4N
+    //substitute_det_def_gradient_3D_4N
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
