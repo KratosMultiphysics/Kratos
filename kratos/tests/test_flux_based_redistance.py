@@ -1,6 +1,7 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+import KratosMultiphysics.vtk_output_process as vtk_output_process
 import math
 import os
 
@@ -10,8 +11,14 @@ def GetFilePath(fileName):
 class TestRedistance(KratosUnittest.TestCase):
 
     def _ExpectedDistance(self,x,y,z):
+        d = x
+        if( d > 0.2):
+            d = 0.2
+        if( d < -0.2):
+            d = -0.2
         return x
-        
+        #return -(math.sqrt(x**2+y**2+z**2) - 0.4)
+
     def test_model_part_sub_model_parts(self):
         current_model = KratosMultiphysics.Model()
 
@@ -41,8 +48,35 @@ class TestRedistance(KratosUnittest.TestCase):
             max_distance = max(max_distance, d)
             min_distance = min(min_distance, d)
 
-        self.assertAlmostEqual(max_distance, 0.44556526310761013)
-        self.assertAlmostEqual(min_distance,-0.504972246827639)
+
+        vtk_output_parameters = KratosMultiphysics.Parameters("""{
+            "Parameters" : {
+                "model_part_name"                    : "Main",
+                "file_format"                        : "ascii",
+                "output_precision"                   : 8,
+                "output_interval"                    : 2,
+                "output_sub_model_parts"             : true,
+                "output_path"                        : "test_vtk_output",
+                "nodal_solution_step_data_variables" : ["DISTANCE"],
+                "nodal_data_value_variables"         : ["POTENTIAL_GRADIENT","ADJOINT_SCALAR_1"],
+                "nodal_flags"                        : [],
+                "element_data_value_variables"       : [],
+                "condition_data_value_variables"     : [],
+                "condition_flags"                    : []
+            }
+        }""")
+
+        vtk_output_parameters["Parameters"]["model_part_name"].SetString("Main")
+        vtk_output_parameters["Parameters"]["file_format"].SetString("ascii")
+        process = vtk_output_process.Factory(vtk_output_parameters, current_model)
+        process.ExecuteInitialize()
+        process.ExecuteInitializeSolutionStep()
+        process.ExecuteFinalizeSolutionStep()
+        process.PrintOutput()
+
+
+        self.assertAlmostEqual(max_distance, 0.49554221316850783)
+        self.assertAlmostEqual(min_distance, -0.4950998362886954)
 
     # def test_variational_redistance_maintain_plane_2d(self):
     #     current_model = KratosMultiphysics.Model()

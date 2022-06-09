@@ -21,13 +21,6 @@ namespace Kratos
 // Public Operations
 
 template <unsigned int TDim , unsigned int TNumNodes >
-void DistanceCalculationFluxBasedElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    mCorrectionCoefficient=1.0; //in each iteration, we start with no corrections.
-}
-
-
-template <unsigned int TDim , unsigned int TNumNodes >
 void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculateLocalSystem(
     MatrixType &rLeftHandSideMatrix,
     VectorType &rRightHandSideVector,
@@ -94,7 +87,7 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculatePotentialFl
         noalias(rLeftHandSideMatrix) += gauss_weights[igauss]*prod(DN_DX_container[igauss],trans(DN_DX_container[igauss]));
         const double mass_factor = density*gauss_weights[igauss];
         const double d_gauss = inner_prod(N,nodal_values);
-        const double initial_value = d_gauss > 0.0 ? 1.0 : -1.0;
+        const double initial_value = d_gauss > 0.0 ? domain_length*10.0 : -domain_length*10.0 ;
         for(unsigned int j=0; j<NumNodes; j++){
             rLeftHandSideMatrix(j,j)+= mass_factor*N[j];
             rRightHandSideVector[j] += mass_factor*N[j]*initial_value;
@@ -141,12 +134,18 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculateDistanceSys
         avg_DN_DX += DN_DX_container[i] /static_cast<double>(TNumNodes);
     }
     
-    const array_1d<double, TDim> avg_grad = prod(trans(avg_DN_DX), nodal_values);
-    const double grad_modulus = norm_2(avg_grad);
+    //adjusting RHS to get |grad|=1
+    if(rCurrentProcessInfo[NL_ITERATION_NUMBER] > 1) {
+        const array_1d<double, TDim> avg_grad = prod(trans(avg_DN_DX), nodal_values);
+        const double grad_modulus = norm_2(avg_grad);
 
-    const double new_correction_coeff = 1.0/grad_modulus;
-    const double relaxation_factor = 0.5;
-    mCorrectionCoefficient = mCorrectionCoefficient *(1.0-relaxation_factor) + new_correction_coeff*relaxation_factor;
+        const double new_correction_coeff = 1.0/grad_modulus;
+        const double relaxation_factor = 0.5;
+        mCorrectionCoefficient = mCorrectionCoefficient *(1.0-relaxation_factor) + new_correction_coeff*relaxation_factor;
+    }
+    else {
+        mCorrectionCoefficient = 1.0;
+    }
 
     //computing element size(for Tau)
     const double h = ComputeH(avg_DN_DX);

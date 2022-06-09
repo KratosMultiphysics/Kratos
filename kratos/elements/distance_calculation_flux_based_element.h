@@ -165,11 +165,6 @@ public:
         return Element::Pointer(new DistanceCalculationFluxBasedElement(NewId, pGeom, pProperties));
     }
 
-     /**
-     * this is called in the beginning of each solution step
-     */
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
     /// Computes the elemental LHS and RHS elemental contributions
     /**
      * Computes the Left Hand Side (LHS)

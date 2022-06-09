@@ -26,9 +26,10 @@
 #include "elements/distance_calculation_flux_based_element.h"
 #include "geometries/geometry_data.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "solving_strategies/schemes/residualbased_incremental_aitken_static_scheme.h"
+#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-#include "solving_strategies/convergencecriterias/residual_criteria.h"
+#include "solving_strategies/convergencecriterias/displacement_criteria.h"
 #include "processes/generic_find_elements_neighbours_process.h"
 #include "utilities/variable_utils.h"
 #include "spatial_containers/spatial_containers.h" 
@@ -70,7 +71,7 @@ public:
 	///@{
 
 	typedef Scheme<TSparseSpace, TDenseSpace> SchemeType;
-	typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
+	typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace,TLinearSolver> SolvingStrategyType;
 	typedef typename Geometry<Node<3>>::Pointer GeometryPointer;
 	typedef std::vector<GeometryPointer> GeometryPointerVector;
 
@@ -108,7 +109,7 @@ public:
 		Parameters default_parameters(R"(
 			{
 				"echo_level"     : 0,
-				"max_iterations" : 3
+				"max_iterations" : 5
 			}  )");
 		Settings.ValidateAndAssignDefaults(default_parameters);
 
@@ -257,6 +258,7 @@ public:
 		mpModelPart->pGetProcessInfo()->SetValue(FRACTIONAL_STEP, 1);
 
         KRATOS_INFO("FluxBasedRedistanceProcess") << "Solving first redistance step\n";
+		mpSolvingStrategy->SetMaxIterationNumber(1);
 		mpSolvingStrategy->Solve();
 
 		//FOR DEBUGGING results of step 1)
@@ -270,6 +272,7 @@ public:
 		//step 2: compute distance
 		mpModelPart->pGetProcessInfo()->SetValue(FRACTIONAL_STEP, 2);
         KRATOS_INFO("FluxBasedRedistanceProcess") << "Solving second redistance step\n";
+		mpSolvingStrategy->SetMaxIterationNumber(mMaxIterations);
 		mpSolvingStrategy->Solve();
 
         VariableUtils().ApplyFixity(DISTANCE, false, mpModelPart->Nodes());
@@ -416,23 +419,29 @@ protected:
 
 	void CreateSolvingStrategy(typename TLinearSolver::Pointer pLinearSolver, Parameters &Settings)
 	{
+		//typename SchemeType::Pointer pscheme = Kratos::make_shared<ResidualBasedIncrementalAitkenStaticScheme<TSparseSpace, TDenseSpace>>(1.0);
 		typename SchemeType::Pointer pscheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>>();
-		//typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
+
+		typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
 
 		// Convergence criteria
         const double NearlyZero = 1.0e-20;
 		const double NonLinearTol = 1e-3;
-        ConvergenceCriteriaPointerType pConvCriteria = ConvergenceCriteriaPointerType( new ResidualCriteria<TSparseSpace,TDenseSpace>(NonLinearTol,NearlyZero) );
+        ConvergenceCriteriaPointerType pConvCriteria = ConvergenceCriteriaPointerType( new DisplacementCriteria<TSparseSpace,TDenseSpace>(NonLinearTol,NearlyZero) );
+		pConvCriteria->SetEchoLevel(Settings["echo_level"].GetInt());
+        BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> (pLinearSolver));
+
 
 		// Strategy
         bool CalculateReactions = false;
         bool MoveMesh = false;
         bool ReformDofSet = false;
+
 		mpSolvingStrategy = Kratos::make_unique<ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(
 			*mpModelPart,
 			pscheme,
-			pLinearSolver,
 			pConvCriteria,
+			pBuildAndSolver,
 			mMaxIterations,
 			CalculateReactions,
 			ReformDofSet,
