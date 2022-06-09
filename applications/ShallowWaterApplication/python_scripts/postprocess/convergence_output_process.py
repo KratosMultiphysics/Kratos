@@ -120,7 +120,7 @@ class ConvergenceOutputProcess(KM.Process):
             high_corner = KM.Point(self.settings["high_corner"].GetVector())
             header += "over rectangle {} x {}\n".format(list(low_corner), list(high_corner))
 
-        header += "#label \t num_nodes \t num_elems \t time_step \t time \t computational_time"
+        header += "# label \t num_nodes \t num_elems \t time_step \t time \t computational_time"
         for variable in self.variables:
             header += '\t' + variable.Name()
         header += '\n'
