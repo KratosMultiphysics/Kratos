@@ -524,6 +524,15 @@ private:
     void CalculateEquivalentF(KinematicVariables& rThisKinematicVariables) const;
 
     /**
+     * @brief Returns the shear modulus from the given C matrix
+     * This method calculates the shear modulus (2nd Lame parameter) for the given constitutive
+     * matrix in Voigt notation.
+     * @param rC The constitutive matrix in Voigt notation
+     * @return double The shear modulus
+     */
+    double CalculateShearModulus(const Matrix &rC) const;
+
+    /**
      * @brief This method gets a value directly in the CL
      * @details Avoids code repetition
      * @param rVariable The variable we want to get
@@ -570,7 +579,7 @@ private:
             for (IndexType d = 0; d < dim; ++d) {
                 kinematic_variables.Displacements(i_node, d) = r_disp[d];
             }
-            kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
+            kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
         }
 
         // Create the constitutive variables and values containers

@@ -81,7 +81,7 @@ Cbar_gauss = Fbar_gauss.transpose() * Fbar_gauss # Deviatoric right Cauchy-Green
 Ebar_gauss = 0.5*(Cbar_gauss - sympy.eye(dim,dim)) # Deviatoric Green strain tensor
 
 # Calculate the equivalent strain tensors
-Fmod_gauss = th_gauss*Fbar_gauss # Equivalent (enriched) deformation gradient tensor
+Fmod_gauss = ((1.0 + th_gauss)**(1/dim))*Fbar_gauss # Equivalent (enriched) deformation gradient tensor
 Cmod_gauss = Fmod_gauss.transpose() * Fmod_gauss # Equivalent (enriched) right Cauchy-Green strain tensor
 Emod_gauss = 0.5*(Cmod_gauss - sympy.eye(dim,dim)) # Equivalent (enriched) Green strain tensor
 
@@ -99,9 +99,10 @@ mom_second = (w_gauss.transpose() * b_gauss)[0]
 # functional_array = sympy.Matrix([functional])
 
 #TODO: WHAT WE USE TO DO. WE MUST USE THIS AS OUR CONDITIONS ARE WRITTEN LIKE THIS (OTHERWISE THE LOAD IS APPLIED IN THE OPPOSITE DIRECTION)
-mass_first = q_gauss[0] * (th_gauss - j_gauss)
+#TODO: BESIDES WE SOLVE IT IN INCREMENTAL FORM
+mass_first = q_gauss[0] * (1.0+th_gauss - j_gauss)
 tmp = (DoubleContraction(C, F_gauss.transpose()*F_gauss)).tomatrix()
-aux_scalar = (tau / dim) * ((j_gauss / th_gauss)**(1.0/dim))
+aux_scalar = (tau / dim) * ((j_gauss / (1.0+th_gauss))**((dim-2.0)/dim))
 mass_stab_1 = (aux_scalar * grad_q_gauss * tmp * grad_th_gauss)[0]
 mass_stab_2 = (tau * grad_q_gauss * cofF_gauss.transpose() * b_gauss)[0]
 functional = mom_second - mom_first + mass_first + mass_stab_1 + mass_stab_2

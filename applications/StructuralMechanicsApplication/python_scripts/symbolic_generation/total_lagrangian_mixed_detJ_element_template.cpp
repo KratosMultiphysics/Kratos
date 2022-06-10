@@ -28,6 +28,24 @@
 namespace Kratos
 {
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+double TotalLagrangianMixedDetJElement<2>::CalculateShearModulus(const Matrix &rC) const
+{
+    return 0.2*(rC(0,0) - 2.0*rC(0,1) + rC(1,1) + rC(2,2));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+double TotalLagrangianMixedDetJElement<3>::CalculateShearModulus(const Matrix &rC) const
+{
+    return (4.0 / 33.0)*(rC(0,0) - rC(0,1) - rC(0,2) + rC(1,1) - rC(1,2) + rC(2,2) + (3.0/4.0)*(rC(3,3) + rC(4,4) + rC(5,5)));
+}
+
 template<std::size_t TDim>
 Element::Pointer TotalLagrangianMixedDetJElement<TDim>::Create(
     IndexType NewId,
@@ -90,13 +108,13 @@ void TotalLagrangianMixedDetJElement<2>::EquationIdVector(
 
     const auto& r_geometry = GetGeometry();
     const IndexType disp_pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
-    const IndexType det_F_pos = r_geometry[0].GetDofPosition(DETERMINANT_F);
+    const IndexType det_F_pos = r_geometry[0].GetDofPosition(VOLUMETRIC_STRAIN);
 
     IndexType aux_index = 0;
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X, disp_pos).EquationId();
         rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, disp_pos + 1).EquationId();
-        rResult[aux_index++] = r_geometry[i_node].GetDof(DETERMINANT_F, det_F_pos).EquationId();
+        rResult[aux_index++] = r_geometry[i_node].GetDof(VOLUMETRIC_STRAIN, det_F_pos).EquationId();
     }
 
     KRATOS_CATCH("");
@@ -118,14 +136,14 @@ void TotalLagrangianMixedDetJElement<3>::EquationIdVector(
 
     const auto& r_geometry = GetGeometry();
     const IndexType disp_pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
-    const IndexType det_F_pos = r_geometry[0].GetDofPosition(DETERMINANT_F);
+    const IndexType det_F_pos = r_geometry[0].GetDofPosition(VOLUMETRIC_STRAIN);
 
     IndexType aux_index = 0;
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X, disp_pos).EquationId();
         rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, disp_pos + 1).EquationId();
         rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Z, disp_pos + 2).EquationId();
-        rResult[aux_index++] = r_geometry[i_node].GetDof(DETERMINANT_F, det_F_pos).EquationId();
+        rResult[aux_index++] = r_geometry[i_node].GetDof(VOLUMETRIC_STRAIN, det_F_pos).EquationId();
     }
 
     KRATOS_CATCH("");
@@ -149,7 +167,7 @@ void TotalLagrangianMixedDetJElement<2>::GetDofList(
     for(IndexType i = 0; i < NumNodes; ++i) {
         rElementalDofList[i * BlockSize] = r_geometry[i].pGetDof(DISPLACEMENT_X);
         rElementalDofList[i * BlockSize + 1] = r_geometry[i].pGetDof(DISPLACEMENT_Y);
-        rElementalDofList[i * BlockSize + 2] = r_geometry[i].pGetDof(DETERMINANT_F);
+        rElementalDofList[i * BlockSize + 2] = r_geometry[i].pGetDof(VOLUMETRIC_STRAIN);
     }
 
     KRATOS_CATCH("");
@@ -174,7 +192,7 @@ void TotalLagrangianMixedDetJElement<3>::GetDofList(
         rElementalDofList[i * BlockSize] = r_geometry[i].pGetDof(DISPLACEMENT_X);
         rElementalDofList[i * BlockSize + 1] = r_geometry[i].pGetDof(DISPLACEMENT_Y);
         rElementalDofList[i * BlockSize + 2] = r_geometry[i].pGetDof(DISPLACEMENT_Z);
-        rElementalDofList[i * BlockSize + 3] = r_geometry[i].pGetDof(DETERMINANT_F);
+        rElementalDofList[i * BlockSize + 3] = r_geometry[i].pGetDof(VOLUMETRIC_STRAIN);
     }
 
     KRATOS_CATCH("");
@@ -227,7 +245,7 @@ void TotalLagrangianMixedDetJElement<TDim>::InitializeSolutionStep(const Process
         for (IndexType d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node, d) = r_disp[d];
         }
-        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
+        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
 
     // Set te constitutive law values
@@ -274,7 +292,7 @@ void TotalLagrangianMixedDetJElement<TDim>::FinalizeSolutionStep(const ProcessIn
         for (IndexType d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node, d) = r_disp[d];
         }
-        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
+        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
 
     // Set te constitutive law values
@@ -329,7 +347,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
         for (IndexType d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
         }
-        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
+        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
 
     // Create the constitutive variables and values containers
@@ -384,9 +402,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate the stabilization constant
-        // TODO: THIS MUST BE COMPUTED BY THE CONSTITUTIVE LAW, ASSUMING LINEAR ELASTIC MATERIAL SO FAR
-        const auto& r_prop = GetProperties();
-        double mu = r_prop[YOUNG_MODULUS]/(2*(1.0+r_prop[POISSON_RATIO])); // 2nd Lame constant (shear modulus)
+        double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
         const double tau = aux_tau / mu;
 
         // Calculate and add the LHS Gauss point contributions
@@ -432,7 +448,7 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
         for (IndexType d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
         }
-        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
+        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
 
     // Create the constitutive variables and values containers
@@ -487,9 +503,7 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate the stabilization constant
-        // TODO: THIS MUST BE COMPUTED BY THE CONSTITUTIVE LAW, ASSUMING LINEAR ELASTIC MATERIAL SO FAR
-        const auto& r_prop = GetProperties();
-        double mu = r_prop[YOUNG_MODULUS]/(2*(1.0+r_prop[POISSON_RATIO])); // 2nd Lame constant (shear modulus)
+        double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
         const double tau = aux_tau / mu;
 
         // Calculate and add the LHS Gauss point contributions
@@ -529,7 +543,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
         for (IndexType d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
         }
-        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
+        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
 
     // Create the constitutive variables and values containers
@@ -582,9 +596,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate the stabilization constant
-        // TODO: THIS MUST BE COMPUTED BY THE CONSTITUTIVE LAW, ASSUMING LINEAR ELASTIC MATERIAL SO FAR
-        const auto& r_prop = GetProperties();
-        double mu = r_prop[YOUNG_MODULUS]/(2*(1.0+r_prop[POISSON_RATIO])); // 2nd Lame constant (shear modulus)
+        double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
         const double tau = aux_tau / mu;
 
         // Calculate and add the LHS Gauss point contributions
@@ -621,7 +633,7 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
         for (IndexType d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
         }
-        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
+        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
 
     // Create the constitutive variables and values containers
@@ -674,9 +686,7 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate the stabilization constant
-        // TODO: THIS MUST BE COMPUTED BY THE CONSTITUTIVE LAW, ASSUMING LINEAR ELASTIC MATERIAL SO FAR
-        const auto& r_prop = GetProperties();
-        double mu = r_prop[YOUNG_MODULUS]/(2*(1.0+r_prop[POISSON_RATIO])); // 2nd Lame constant (shear modulus)
+        double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
         const double tau = aux_tau / mu;
 
         // Calculate and add the LHS Gauss point contributions
@@ -713,7 +723,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
         for (IndexType d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
         }
-        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
+        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
 
     // Create the constitutive variables and values containers
@@ -766,9 +776,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate the stabilization constant
-        // TODO: THIS MUST BE COMPUTED BY THE CONSTITUTIVE LAW, ASSUMING LINEAR ELASTIC MATERIAL SO FAR
-        const auto& r_prop = GetProperties();
-        double mu = r_prop[YOUNG_MODULUS]/(2*(1.0+r_prop[POISSON_RATIO])); // 2nd Lame constant (shear modulus)
+        double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
         const double tau = aux_tau / mu;
 
         // Calculate and add the RHS Gauss point contribution
@@ -805,7 +813,7 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
         for (IndexType d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
         }
-        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
+        kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
 
     // Create the constitutive variables and values containers
@@ -859,9 +867,7 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate the stabilization constant
-        // TODO: THIS MUST BE COMPUTED BY THE CONSTITUTIVE LAW, ASSUMING LINEAR ELASTIC MATERIAL SO FAR
-        const auto& r_prop = GetProperties();
-        double mu = r_prop[YOUNG_MODULUS]/(2*(1.0+r_prop[POISSON_RATIO])); // 2nd Lame constant (shear modulus)
+        double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
         const double tau = aux_tau / mu;
 
         // Calculate and add the RHS Gauss point contribution
@@ -1075,8 +1081,8 @@ int  TotalLagrangianMixedDetJElement<TDim>::Check(const ProcessInfo& rCurrentPro
     const auto& r_geometry = this->GetGeometry();
     for ( IndexType i = 0; i < r_geometry.size(); i++ ) {
         const NodeType& r_node = r_geometry[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DETERMINANT_F,r_node)
-        KRATOS_CHECK_DOF_IN_NODE(DETERMINANT_F, r_node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUMETRIC_STRAIN,r_node)
+        KRATOS_CHECK_DOF_IN_NODE(VOLUMETRIC_STRAIN, r_node)
     }
 
     return check;
@@ -1142,7 +1148,7 @@ void TotalLagrangianMixedDetJElement<TDim>::CalculateOnIntegrationPoints(
             for (IndexType d = 0; d < dim; ++d) {
                 kinematic_variables.Displacements(i_node, d) = r_disp[d];
             }
-            kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(DETERMINANT_F);
+            kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
         }
 
         // Create the constitutive variables and values containers
@@ -1173,6 +1179,30 @@ void TotalLagrangianMixedDetJElement<TDim>::CalculateOnIntegrationPoints(
             }
             rOutput[i_gauss] = constitutive_variables.StressVector;
         }
+    } else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+        // Create the kinematics container and fill the nodal data
+        KinematicVariables kinematic_variables;
+        for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
+            const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+            for (IndexType d = 0; d < TDim; ++d) {
+                kinematic_variables.Displacements(i_node, d) = r_disp[d];
+            }
+            kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+        }
+
+        for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+            // Calculate kinematics
+            CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+
+            // Calculate Green-Lagrange strain
+            TotalLagrangianMixedDetJElement<TDim>::CalculateEquivalentStrain(kinematic_variables);
+
+            // Check sizes and save the output stress
+            if (rOutput[i_gauss].size() != StrainSize) {
+                rOutput[i_gauss].resize(StrainSize, false);
+            }
+            rOutput[i_gauss] = kinematic_variables.EquivalentStrain;
+        }
     } else {
         CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
     }
@@ -1191,11 +1221,11 @@ const Parameters TotalLagrangianMixedDetJElement<TDim>::GetSpecifications() cons
         "positive_definite_lhs"      : true,
         "output"                     : {
             "gauss_point"            : ["CAUCHY_STRESS_VECTOR"],
-            "nodal_historical"       : ["DISPLACEMENT","DETERMINANT_F"],
+            "nodal_historical"       : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
             "nodal_non_historical"   : [],
             "entity"                 : []
         },
-        "required_variables"         : ["DISPLACEMENT","DETERMINANT_F"],
+        "required_variables"         : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
         "required_dofs"              : [],
         "flags_used"                 : [],
         "compatible_geometries"      : ["Triangle2D3", "Tetrahedra3D4"],
@@ -1212,10 +1242,10 @@ const Parameters TotalLagrangianMixedDetJElement<TDim>::GetSpecifications() cons
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     if (TDim == 2) {
-        std::vector<std::string> dofs_2d({"DISPLACEMENT_X","DISPLACEMENT_Y","DETERMINANT_F"});
+        std::vector<std::string> dofs_2d({"DISPLACEMENT_X","DISPLACEMENT_Y","VOLUMETRIC_STRAIN"});
         specifications["required_dofs"].SetStringArray(dofs_2d);
     } else {
-        std::vector<std::string> dofs_3d({"DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z","DETERMINANT_F"});
+        std::vector<std::string> dofs_3d({"DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z","VOLUMETRIC_STRAIN"});
         specifications["required_dofs"].SetStringArray(dofs_3d);
     }
 

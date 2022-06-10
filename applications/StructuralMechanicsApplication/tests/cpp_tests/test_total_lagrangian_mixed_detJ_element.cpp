@@ -31,28 +31,27 @@ namespace Kratos
 namespace Testing
 {
 
-namespace
-{
-    void LinearPerturbationField(
-        ModelPart &rModelPart,
-        const double c_1,
-        const double c_2,
-        const double c_3 = 0.0)
-    {
-        array_1d<double, 3> aux_disp;
-        for (auto &r_node : rModelPart.Nodes()) {
-            aux_disp[0] = c_1 * r_node.X0();
-            aux_disp[1] = c_2 * r_node.Y0();
-            aux_disp[2] = c_3 * r_node.Z0();
-            r_node.FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
-            r_node.FastGetSolutionStepValue(DETERMINANT_F) = (1.0+c_1)*(1+c_2)*(1+c_3);
-
-            r_node.X() = (1 + c_1) * r_node.X0();
-            r_node.Y() = (1 + c_2) * r_node.Y0();
-            r_node.Z() = (1 + c_3) * r_node.Z0();
-        }
-    }
-}
+// namespace
+// {
+//     void LinearPerturbationField(
+//         ModelPart &rModelPart,
+//         const double c_1,
+//         const double c_2,
+//         const double c_3 = 0.0)
+//     {
+//         array_1d<double, 3> aux_disp;
+//         for (auto &r_node : rModelPart.Nodes()) {
+//             aux_disp[0] = c_1 * r_node.X0();
+//             aux_disp[1] = c_2 * r_node.Y0();
+//             aux_disp[2] = c_3 * r_node.Z0();
+//             r_node.FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
+//             r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = (1.0+c_1)*(1+c_2)*(1+c_3);
+//             r_node.X() = (1 + c_1) * r_node.X0();
+//             r_node.Y() = (1 + c_2) * r_node.Y0();
+//             r_node.Z() = (1 + c_3) * r_node.Z0();
+//         }
+//     }
+// }
 
     /**
     * Checks the Total Lagrangian mixed Jacobian determinant element
@@ -66,7 +65,7 @@ namespace
         const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        r_model_part.AddNodalSolutionStepVariable(DETERMINANT_F);
+        r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
 
         // Set the element properties
         auto p_elem_prop = r_model_part.CreateNewProperties(0);
@@ -88,9 +87,9 @@ namespace
         p_node_2->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
         aux_disp[1] = 0.1;
         p_node_3->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
-        p_node_1->FastGetSolutionStepValue(DETERMINANT_F) = 1.01;
-        p_node_2->FastGetSolutionStepValue(DETERMINANT_F) = 1.01;
-        p_node_3->FastGetSolutionStepValue(DETERMINANT_F) = 1.02;
+        p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
+        p_node_2->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
+        p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.02;
 
         // Compute RHS and LHS
         Vector RHS = ZeroVector(9);
@@ -101,8 +100,8 @@ namespace
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
-        const std::vector<double> expected_RHS({72223, 75495.9, -0.00441724, -32728.8, -42767.1, 0.00875222, -39494.2, -32728.8, 0.00233168});
-        const std::vector<double> expected_LHS_row_0({987352,131318,-679543,-420760,-533172,-681221,-566592,401854,-679543});
+        const std::vector<double> expected_RHS({58615.4,60579.5,-0.00446042,-19641,-40938.5,0.00879375,-38974.4,-19641,0.00233333});
+        const std::vector<double> expected_LHS_row_0({949041,129590,-335577,-402564,-526154,-335577,-546477,396564,-335577});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
     }
@@ -119,7 +118,7 @@ namespace
     //         aux_disp[1] = c_2 * r_node.Y0();
     //         aux_disp[2] = c_3 * r_node.Z0();
     //         r_node.FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
-    //         r_node.FastGetSolutionStepValue(DETERMINANT_F) = c_1 + c_2 + c_3;
+    //         r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = c_1 + c_2 + c_3;
 
     //         r_node.X() = (1 + c_1) * r_node.X0();
     //         r_node.Y() = (1 + c_2) * r_node.Y0();
@@ -127,83 +126,80 @@ namespace
     //     }
     // }
 
-    /**
-    * Checks the Small Displacement Mixed Strain Element
-    * LHS and RHS triangle element test
-    */
-    KRATOS_TEST_CASE_IN_SUITE(TotalLagrangianMixedDetJElement2D3NResidual, KratosStructuralMechanicsFastSuite)
-    {
-        Model current_model;
-        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+    // /**
+    // * Checks the Small Displacement Mixed Strain Element
+    // * LHS and RHS triangle element test
+    // */
+    // KRATOS_TEST_CASE_IN_SUITE(TotalLagrangianMixedDetJElement2D3NResidual, KratosStructuralMechanicsFastSuite)
+    // {
+    //     Model current_model;
+    //     auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
 
-        const auto& r_process_info = r_model_part.GetProcessInfo();
+    //     const auto& r_process_info = r_model_part.GetProcessInfo();
 
-        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        r_model_part.AddNodalSolutionStepVariable(DETERMINANT_F);
+    //     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    //     r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
 
-        // Set the element properties
-        auto p_elem_prop = r_model_part.CreateNewProperties(0);
-        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
-        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
-        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw"); //FIXME: use kirchoff here
-        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+    //     // Set the element properties
+    //     auto p_elem_prop = r_model_part.CreateNewProperties(0);
+    //     p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+    //     p_elem_prop->SetValue(POISSON_RATIO, 0.3);
+    //     const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw"); //FIXME: use kirchoff here
+    //     p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
-        // Create the test element
-        auto p_node_1 = r_model_part.CreateNewNode(1, 0.1 , 0.1 , 0.0);
-        auto p_node_2 = r_model_part.CreateNewNode(2, 0.5 , 0.2 , 0.0);
-        auto p_node_3 = r_model_part.CreateNewNode(3, 0.9 , 0.4 , 0.0);
-        std::vector<ModelPart::IndexType> element_nodes {1,2,3};
-        auto p_element = r_model_part.CreateNewElement("TotalLagrangianMixedDetJElement2D3N", 1, element_nodes, p_elem_prop);
+    //     // Create the test element
+    //     auto p_node_1 = r_model_part.CreateNewNode(1, 0.1 , 0.1 , 0.0);
+    //     auto p_node_2 = r_model_part.CreateNewNode(2, 0.5 , 0.2 , 0.0);
+    //     auto p_node_3 = r_model_part.CreateNewNode(3, 0.9 , 0.4 , 0.0);
+    //     std::vector<ModelPart::IndexType> element_nodes {1,2,3};
+    //     auto p_element = r_model_part.CreateNewElement("TotalLagrangianMixedDetJElement2D3N", 1, element_nodes, p_elem_prop);
 
-        // Initialize the element to initialize the constitutive law
-        p_element->Initialize(r_process_info);
+    //     // Initialize the element to initialize the constitutive law
+    //     p_element->Initialize(r_process_info);
 
-        // Set a fake displacement and volumetric strain field to compute the residual
-        const double alpha = -2.0e-5;
-        const double beta = 1.0e-5;
-        LinearPerturbationField(r_model_part, alpha, beta);
+    //     // Set a fake displacement and volumetric strain field to compute the residual
+    //     const double alpha = -2.0e-5;
+    //     const double beta = 1.0e-5;
+    //     LinearPerturbationField(r_model_part, alpha, beta);
 
-        Vector RHS = ZeroVector(9);
-        Matrix LHS = ZeroMatrix(9,9);
-        p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
+    //     Vector RHS = ZeroVector(9);
+    //     Matrix LHS = ZeroMatrix(9,9);
+    //     p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
-        // Perturb the previous displacement and volumetric strain field to compute the residual
-        const double alpha_perturbed = 1.25e-5;
-        const double beta_perturbed = 0.25e-5;
-        LinearPerturbationField(r_model_part, alpha_perturbed, beta_perturbed);
+    //     // Perturb the previous displacement and volumetric strain field to compute the residual
+    //     const double alpha_perturbed = 1.25e-5;
+    //     const double beta_perturbed = 0.25e-5;
+    //     LinearPerturbationField(r_model_part, alpha_perturbed, beta_perturbed);
 
-        Vector RHS_perturbed = ZeroVector(9);
-        p_element->CalculateRightHandSide(RHS_perturbed, r_process_info);
+    //     Vector RHS_perturbed = ZeroVector(9);
+    //     p_element->CalculateRightHandSide(RHS_perturbed, r_process_info);
 
-        KRATOS_WATCH(RHS_perturbed)
+    //     // Calculate the perturbation RHS
+    //     const double delta_alpha = alpha_perturbed - alpha;
+    //     const double delta_beta = beta_perturbed - beta;
+    //     LinearPerturbationField(r_model_part, delta_alpha, delta_beta);
 
-        // Calculate the perturbation RHS
-        const double delta_alpha = alpha_perturbed - alpha;
-        const double delta_beta = beta_perturbed - beta;
-        LinearPerturbationField(r_model_part, delta_alpha, delta_beta);
+    //     Vector RHS_delta = ZeroVector(9);
+    //     p_element->CalculateRightHandSide(RHS_delta, r_process_info);
 
-        Vector RHS_delta = ZeroVector(9);
-        p_element->CalculateRightHandSide(RHS_delta, r_process_info);
+    //     // Check the error
+    //     const Vector RHS_error = RHS_perturbed - (RHS + RHS_delta);
 
-        // Check the error
-        const Vector RHS_error = RHS_perturbed - (RHS + RHS_delta);
-        KRATOS_WATCH(RHS_delta)
+    //     // Check the LHS
+    //     array_1d<double, 9> perturbation_vector = ZeroVector(9);
+    //     for (auto &r_node : r_model_part.Nodes()) {
+    //         perturbation_vector[(r_node.Id() - 1) * 3] = delta_alpha * r_node.X0();
+    //         perturbation_vector[(r_node.Id() - 1) * 3 + 1] = delta_beta * r_node.Y0();
+    //         perturbation_vector[(r_node.Id() - 1) * 3 + 2] = delta_alpha + delta_beta;
+    //     }
+    //     const Vector RHS_from_LHS = RHS - prod(LHS, perturbation_vector);
+    //     const Vector RHS_from_LHS_error = RHS_perturbed - RHS_from_LHS;
 
-        // Check the LHS
-        array_1d<double, 9> perturbation_vector = ZeroVector(9);
-        for (auto &r_node : r_model_part.Nodes()) {
-            perturbation_vector[(r_node.Id() - 1) * 3] = delta_alpha * r_node.X0();
-            perturbation_vector[(r_node.Id() - 1) * 3 + 1] = delta_beta * r_node.Y0();
-            perturbation_vector[(r_node.Id() - 1) * 3 + 2] = delta_alpha + delta_beta;
-        }
-        const Vector RHS_from_LHS = RHS - prod(LHS, perturbation_vector);
-        const Vector RHS_from_LHS_error = RHS_perturbed - RHS_from_LHS;
-
-        // Check RHS and LHS results
-        const double tolerance = 1.0e-12;
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS_error, ZeroVector(r_model_part.NumberOfNodes() * 3), tolerance);
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS_from_LHS_error, ZeroVector(r_model_part.NumberOfNodes() * 3), tolerance);
-    }
+    //     // Check RHS and LHS results
+    //     const double tolerance = 1.0e-12;
+    //     KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS_error, ZeroVector(r_model_part.NumberOfNodes() * 3), tolerance);
+    //     KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS_from_LHS_error, ZeroVector(r_model_part.NumberOfNodes() * 3), tolerance);
+    // }
 
     // /**
     // * Checks the Small Displacement Mixed Strain Element
@@ -217,7 +213,7 @@ namespace
     //     const auto& r_process_info = r_model_part.GetProcessInfo();
 
     //     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-    //     r_model_part.AddNodalSolutionStepVariable(DETERMINANT_F);
+    //     r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
 
     //     // Set the element properties
     //     auto p_elem_prop = r_model_part.CreateNewProperties(0);
@@ -299,7 +295,7 @@ namespace
     //     r_model_part.AddNodalSolutionStepVariable(REACTION);
     //     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     //     r_model_part.AddNodalSolutionStepVariable(REACTION_STRAIN);
-    //     r_model_part.AddNodalSolutionStepVariable(DETERMINANT_F);
+    //     r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
 
     //     // Set the element properties
     //     auto p_elem_prop = r_model_part.CreateNewProperties(1);
@@ -331,7 +327,7 @@ namespace
     //         r_node.AddDof(DISPLACEMENT_X, REACTION_X);
     //         r_node.AddDof(DISPLACEMENT_Y, REACTION_Y);
     //         r_node.AddDof(DISPLACEMENT_Z, REACTION_Z);
-    //         r_node.AddDof(DETERMINANT_F, REACTION_STRAIN);
+    //         r_node.AddDof(VOLUMETRIC_STRAIN, REACTION_STRAIN);
     //     }
 
     //     // Initialize the elements to initialize the constitutive law
@@ -383,16 +379,16 @@ namespace
     //     const double expected_vol_strain = 1.4965e-05;
     //     const std::vector<double> expected_disp = {-0.000318007, 0.000347937, 0};
     //     KRATOS_CHECK_VECTOR_NEAR(p_node_3->FastGetSolutionStepValue(DISPLACEMENT), expected_disp, tolerance);
-    //     KRATOS_CHECK_NEAR(p_node_3->FastGetSolutionStepValue(DETERMINANT_F), expected_vol_strain, tolerance);
+    //     KRATOS_CHECK_NEAR(p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN), expected_vol_strain, tolerance);
 
     //     // // GiD output
-    //     // GidIO<> gid_io_fluid("/home/rzorrilla/Desktop/test_small_displacement_mixed_DETERMINANT_F_element_zienkiewicz_patch", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    //     // GidIO<> gid_io_fluid("/home/rzorrilla/Desktop/test_small_displacement_mixed_VOLUMETRIC_STRAIN_element_zienkiewicz_patch", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
 	// 	// gid_io_fluid.InitializeMesh(0.0);
 	// 	// gid_io_fluid.WriteMesh(r_model_part.GetMesh());
 	// 	// gid_io_fluid.FinalizeMesh();
 	// 	// gid_io_fluid.InitializeResults(0, r_model_part.GetMesh());
 	// 	// gid_io_fluid.WriteNodalResults(DISPLACEMENT, r_model_part.Nodes(), 0, 0);
-	// 	// gid_io_fluid.WriteNodalResults(DETERMINANT_F, r_model_part.Nodes(), 0, 0);
+	// 	// gid_io_fluid.WriteNodalResults(VOLUMETRIC_STRAIN, r_model_part.Nodes(), 0, 0);
 	// 	// gid_io_fluid.FinalizeResults();
 
     // }
