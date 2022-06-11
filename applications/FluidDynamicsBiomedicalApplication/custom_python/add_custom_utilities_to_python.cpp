@@ -42,11 +42,16 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     // Parabolic profile utilities
     py::class_<ParabolicProfileUtilities>(m,"ParabolicProfileUtilities")
+        .def_static("CalculateInletArea", &ParabolicProfileUtilities::CalculateInletArea)
         .def_static("CalculateWallParallelDistance", &ParabolicProfileUtilities::CalculateWallParallelDistance)
-        .def_static("ImposeParabolicInlet", [](ModelPart& rModelPart, const double rMaxParabolaValue){
-            ParabolicProfileUtilities::ImposeParabolicInlet(rModelPart, rMaxParabolaValue);})
+        .def_static("ImposeParabolicInlet", [](ModelPart& rModelPart, const double MaxParabolaValue){
+            ParabolicProfileUtilities::ImposeParabolicInlet(rModelPart, MaxParabolaValue);})
+        .def_static("ImposeParabolicInlet", [](ModelPart& rModelPart, const double MaxParabolaValue, const double MaxValueFactor){
+            ParabolicProfileUtilities::ImposeParabolicInlet(rModelPart, MaxParabolaValue, MaxValueFactor);})
         .def_static("ImposeParabolicInlet", [](ModelPart& rModelPart, const GenericFunctionUtility::Pointer rMaxParabolaValue){
             ParabolicProfileUtilities::ImposeParabolicInlet(rModelPart, rMaxParabolaValue);})
+        .def_static("ImposeParabolicInlet", [](ModelPart& rModelPart, const GenericFunctionUtility::Pointer rMaxParabolaValue, const double MaxValueFactor){
+            ParabolicProfileUtilities::ImposeParabolicInlet(rModelPart, rMaxParabolaValue, MaxValueFactor);})
         .def_static("FreeParabolicInlet", &ParabolicProfileUtilities::FreeParabolicInlet)
         ;
 }
