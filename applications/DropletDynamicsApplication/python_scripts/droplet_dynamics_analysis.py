@@ -4,7 +4,7 @@ from importlib import import_module
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
 
-from KratosMultiphysics.FluidDynamicsApplication import FluidDynamicsAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 class DropletDynamicsAnalysis(FluidDynamicsAnalysis):
 
