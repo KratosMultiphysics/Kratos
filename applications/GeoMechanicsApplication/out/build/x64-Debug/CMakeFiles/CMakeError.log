@@ -1,0 +1,65 @@
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.30.30705/bin/Hostx64/x64/cl.exe 
+Build flags: 
+Id flags:  
+
+The output was:
+2
+Microsoft (R) C/C++ Optimizing Compiler Version 19.30.30709 for x64
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+CMakeCCompilerId.c
+Microsoft (R) Incremental Linker Version 14.30.30709.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+/out:CMakeCCompilerId.exe 
+CMakeCCompilerId.obj 
+LINK : fatal error LNK1104: cannot open file 'kernel32.lib'
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.30.30705/bin/Hostx64/x64/cl.exe 
+Build flags: 
+Id flags:  
+
+The output was:
+2
+Microsoft (R) C/C++ Optimizing Compiler Version 19.30.30709 for x64
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+CMakeCXXCompilerId.cpp
+Microsoft (R) Incremental Linker Version 14.30.30709.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+/out:CMakeCXXCompilerId.exe 
+CMakeCXXCompilerId.obj 
+LINK : fatal error LNK1104: cannot open file 'kernel32.lib'
+
+
+Detecting C compiler ABI info failed to compile with the following output:
+Change Dir: C:/Users/sfazlighiyasabadi/Kratos/applications/GeoMechanicsApplication/out/build/x64-Debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe cmTC_be4f7 && [1/2] Building C object CMakeFiles\cmTC_be4f7.dir\CMakeCCompilerABI.c.obj
+[2/2] Linking C executable cmTC_be4f7.exe
+FAILED: cmTC_be4f7.exe 
+cmd.exe /C "cd . && "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\cmTC_be4f7.dir --rc=rc --mt=CMAKE_MT-NOTFOUND --manifests  -- C:\PROGRA~1\MIB055~1\2022\COMMUN~1\VC\Tools\MSVC\1430~1.307\bin\Hostx64\x64\link.exe /nologo CMakeFiles\cmTC_be4f7.dir\CMakeCCompilerABI.c.obj  /out:cmTC_be4f7.exe /implib:cmTC_be4f7.lib /pdb:cmTC_be4f7.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+RC Pass 1: command "rc /fo CMakeFiles\cmTC_be4f7.dir/manifest.res CMakeFiles\cmTC_be4f7.dir/manifest.rc" failed (exit code 0) with the following output:
+The system cannot find the file specified
+ninja: build stopped: subcommand failed.
+
+
+
+
+Determining if the C compiler works failed with the following output:
+Change Dir: C:/Users/sfazlighiyasabadi/Kratos/applications/GeoMechanicsApplication/out/build/x64-Debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe cmTC_c767c && [1/2] Building C object CMakeFiles\cmTC_c767c.dir\testCCompiler.c.obj
+[2/2] Linking C executable cmTC_c767c.exe
+FAILED: cmTC_c767c.exe 
+cmd.exe /C "cd . && "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\cmTC_c767c.dir --rc=rc --mt=CMAKE_MT-NOTFOUND --manifests  -- C:\PROGRA~1\MIB055~1\2022\COMMUN~1\VC\Tools\MSVC\1430~1.307\bin\Hostx64\x64\link.exe /nologo CMakeFiles\cmTC_c767c.dir\testCCompiler.c.obj  /out:cmTC_c767c.exe /implib:cmTC_c767c.lib /pdb:cmTC_c767c.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+RC Pass 1: command "rc /fo CMakeFiles\cmTC_c767c.dir/manifest.res CMakeFiles\cmTC_c767c.dir/manifest.rc" failed (exit code 0) with the following output:
+The system cannot find the file specified
+ninja: build stopped: subcommand failed.
+
+
+
