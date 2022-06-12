@@ -38,7 +38,7 @@
 #include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
-//#include "geometries/line_gauss_lobatto_3d_2.h"
+#include "geometries/line_gauss_lobatto_3d_2.h"
 
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
@@ -319,9 +319,9 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication()
       mLargeDisplacementBeamEMCElement3D3N(
           0, Kratos::make_shared< Line3D3<Node<3> > >(
                  Element::GeometryType::PointsArrayType(3))),
-      /*mLargeDisplacementBeamSEMCElement3D2N(
+      mLargeDisplacementBeamSEMCElement3D2N(
           0, Kratos::make_shared< LineGaussLobatto3D2<Node<3> > >(
-                 Element::GeometryType::PointsArrayType(2))), */
+                 Element::GeometryType::PointsArrayType(2))), 
       mGeometricallyExactRodElement3D2N(
           0, Kratos::make_shared< Line3D2<Node<3> > >(
                  Element::GeometryType::PointsArrayType(2))),
@@ -852,8 +852,8 @@ void KratosSolidMechanicsApplication::Register() {
         mLargeDisplacementBeamEMCElement3D2N)
     KRATOS_REGISTER_ELEMENT("LargeDisplacementBeamEMCElement3D3N",
         mLargeDisplacementBeamEMCElement3D3N)
-    //KRATOS_REGISTER_ELEMENT("LargeDisplacementBeamSEMCElement3D2N",
-    //    mLargeDisplacementBeamSEMCElement3D2N)
+    KRATOS_REGISTER_ELEMENT("LargeDisplacementBeamSEMCElement3D2N",
+        mLargeDisplacementBeamSEMCElement3D2N)
     KRATOS_REGISTER_ELEMENT(
         "GeometricallyExactRodElement3D2N", mGeometricallyExactRodElement3D2N)
     KRATOS_REGISTER_ELEMENT(
