@@ -169,7 +169,7 @@ void ContactAngleEvaluator::Execute()
         if (weight >= 1.0){
             const double contact_angle = avg_contact_angle/weight;
             it_node->FastGetSolutionStepValue(CONTACT_ANGLE) = contact_angle;
-            const Vector normal = (1.0/weight) * normal_avg;
+            const Vector normal = (1.0/norm_2(normal_avg)) * normal_avg;
             it_node->FastGetSolutionStepValue(NORMAL_VECTOR) = normal;
 
             //Vector velocity = it_node->FastGetSolutionStepValue(VELOCITY);
@@ -202,6 +202,43 @@ void ContactAngleEvaluator::Execute()
             }
 
         }
+    }
+
+    #pragma omp parallel for
+    for (unsigned int i = 0; i < num_nodes; ++i) {
+
+        auto it_node_i = it_node_begin + i;
+        if (it_node_i->GetValue(IS_STRUCTURE) == 1.0 && it_node_i->Coordinates()[2] == 0.0){
+
+            auto& node_i_contact_angle = it_node_i->FastGetSolutionStepValue(CONTACT_ANGLE);
+
+            if (node_i_contact_angle == 0.0){
+
+                double min_dist = 1.0e6;
+                double min_dist_contact_angle;
+
+                for (unsigned int j = 0; j < num_nodes; ++j) {
+
+                    auto it_node_j = it_node_begin + j;
+                    const double node_j_contact_angle = it_node_j->FastGetSolutionStepValue(CONTACT_ANGLE);
+
+                    if (node_j_contact_angle > 1.0e-12){
+
+                        const double nodal_dist = norm_2(it_node_i->Coordinates() - it_node_j->Coordinates());
+                        if (nodal_dist < min_dist){
+                            min_dist = nodal_dist;
+                            min_dist_contact_angle = node_j_contact_angle;
+                        }
+
+                    }
+
+                }
+
+                node_i_contact_angle = min_dist_contact_angle;
+
+            }
+        }
+
     }
 
     KRATOS_CATCH("");
