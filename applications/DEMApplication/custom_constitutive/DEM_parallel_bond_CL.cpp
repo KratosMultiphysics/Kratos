@@ -198,34 +198,154 @@ void DEM_parallel_bond::GetcontactArea(const double radius, const double other_r
     KRATOS_CATCH("")
 }
 
-// TODO: In this function, kn_el should be kn_bond, so as kt_el.
+// TODO: In this function, it is better to replace 'kn_el' with 'kn_bond' and 'kt_el' with 'kt_bond'.
 void DEM_parallel_bond::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
                                 double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) {
 
-KRATOS_TRY
+    KRATOS_TRY
 
+    //for unbonded part
     //TODO: check whether the unbonded elastic parameters should be calculated here
+    //maybe they should not be here.
 
     //for bonded part
     const double bond_equiv_young = (*mpProperties)[BOND_YOUNG_MODULUS];
-    
     kn_el = bond_equiv_young * calculation_area / initial_dist;
     kt_el = kn_el / (*mpProperties)[BOND_KNKS_RATIO];
 
-KRATOS_CATCH("")
+    KRATOS_CATCH("")
 
 }
 
+double DEM_parallel_bond::LocalMaxSearchDistance(const int i,
+                            SphericContinuumParticle* element1,
+                            SphericContinuumParticle* element2) {
+    KRATOS_TRY
 
+    // TODO: maybe this function is unnecessary
 
+    KRATOS_CATCH("")
+}
 
+double DEM_parallel_bond::GetContactSigmaMax(){
+
+    KRATOS_TRY
+
+    // TODO: maybe this function is unnecessary
+
+    KRATOS_CATCH("")    
+}
 
 
 
 //*************************************
 // Bonded force calculation
 //*************************************
+void DEM_parallel_bond::CalculateForces(const ProcessInfo& r_process_info,
+                            double OldLocalElasticContactForce[3],
+                            double LocalElasticContactForce[3],
+                            double LocalElasticExtraContactForce[3],
+                            double LocalCoordSystem[3][3],
+                            double LocalDeltDisp[3],
+                            const double kn_el,
+                            const double kt_el,
+                            double& contact_sigma,
+                            double& contact_tau,
+                            double& failure_criterion_state,
+                            double equiv_young,
+                            double equiv_shear,
+                            double indentation,
+                            double calculation_area,
+                            double& acumulated_damage,
+                            SphericContinuumParticle* element1,
+                            SphericContinuumParticle* element2,
+                            int i_neighbour_count,
+                            int time_steps,
+                            bool& sliding,
+                            double &equiv_visco_damp_coeff_normal,
+                            double &equiv_visco_damp_coeff_tangential,
+                            double LocalRelVel[3],
+                            double ViscoDampingLocalContactForce[3]) {
+                           
+    KRATOS_TRY
 
+    CalculateNormalForces(LocalElasticContactForce,
+                        kn_el,
+                        equiv_young,
+                        indentation,
+                        calculation_area,
+                        acumulated_damage,
+                        element1,
+                        element2,
+                        i_neighbour_count,
+                        time_steps,
+                        r_process_info);
+            
+    CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
+                            equiv_visco_damp_coeff_tangential,
+                            element1,
+                            element2,
+                            kn_el,
+                            kt_el);
+
+    CalculateViscoDamping(LocalRelVel,
+                        ViscoDampingLocalContactForce,
+                        indentation,
+                        equiv_visco_damp_coeff_normal,
+                        equiv_visco_damp_coeff_tangential,
+                        sliding,
+                        element1->mIniNeighbourFailureId[i_neighbour_count]);
+
+    // Tangential forces are calculated after the viscodamping because the frictional limit bounds the sum of elastic plus viscous forces
+    CalculateTangentialForces(OldLocalElasticContactForce,
+                            LocalElasticContactForce,
+                            LocalElasticExtraContactForce,
+                            ViscoDampingLocalContactForce,
+                            LocalCoordSystem,
+                            LocalDeltDisp,
+                            LocalRelVel,
+                            kt_el,
+                            equiv_shear,
+                            contact_sigma,
+                            contact_tau,
+                            indentation,
+                            calculation_area,
+                            failure_criterion_state,
+                            element1,
+                            element2,
+                            i_neighbour_count,
+                            sliding,
+                            r_process_info);
+
+    KRATOS_CATCH("") 
+}
+
+void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3],
+                const double kn_el,
+                double equiv_young,
+                double indentation,
+                double calculation_area,
+                double& acumulated_damage,
+                SphericContinuumParticle* element1,
+                SphericContinuumParticle* element2,
+                int i_neighbour_count,
+                int time_steps,
+            const ProcessInfo& r_process_info) {
+
+    KRATOS_TRY
+
+    int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
+    double BondedLocalElasticContactForce2 = 0.0;
+    const double bonded_indentation = indentation - mInitialIndentationForBondedPart;                                                                                                          
+    
+    
+
+    double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
+    ComputeNormalUnbondedForce(unbonded_indentation);
+
+    KRATOS_CATCH("")  
+
+}
 
 
 

@@ -36,10 +36,15 @@ namespace Kratos{
         void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
                                     double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) override;
 
-        // TODO: why we use this? 
+        // TODO: check whether it is necessary 
         double LocalMaxSearchDistance(const int i,
                                     SphericContinuumParticle* element1,
                                     SphericContinuumParticle* element2) override;
+        double GetContactSigmaMax();
+        
+        //TODO:CHECK
+        virtual double GetYoungModulusForComputingRotationalMoments(const double& equiv_young);
+
 
         void CalculateForces(const ProcessInfo& r_process_info,
                             double OldLocalElasticContactForce[3],
@@ -78,10 +83,21 @@ namespace Kratos{
                 int i_neighbour_count,
                 int time_steps,
             const ProcessInfo& r_process_info) override;
+            
+        void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
+                                double &equiv_visco_damp_coeff_tangential,
+                                SphericContinuumParticle* element1,
+                                SphericContinuumParticle* element2,
+                                const double kn_el,
+                                const double kt_el) override;
 
-        double GetContactSigmaMax();
-
-        virtual double GetYoungModulusForComputingRotationalMoments(const double& equiv_young);
+        void CalculateViscoDamping(double LocalRelVel[3],
+                                double ViscoDampingLocalContactForce[3],
+                                double indentation,
+                                double equiv_visco_damp_coeff_normal,
+                                double equiv_visco_damp_coeff_tangential,
+                                bool& sliding,
+                                int failure_id) override;
 
         void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
@@ -102,21 +118,6 @@ namespace Kratos{
                 int i_neighbour_count,
                 bool& sliding,
                 const ProcessInfo& r_process_info) override;
-
-        void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
-                                        double &equiv_visco_damp_coeff_tangential,
-                                        SphericContinuumParticle* element1,
-                                        SphericContinuumParticle* element2,
-                                        const double kn_el,
-                                        const double kt_el) override;
-
-        void CalculateViscoDamping(double LocalRelVel[3],
-                                double ViscoDampingLocalContactForce[3],
-                                double indentation,
-                                double equiv_visco_damp_coeff_normal,
-                                double equiv_visco_damp_coeff_tangential,
-                                bool& sliding,
-                                int failure_id) override;
 
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                     SphericContinuumParticle* neighbor,
@@ -148,9 +149,6 @@ namespace Kratos{
                                                     const double calculation_area,
                                                     SphericContinuumParticle* element1,
                                                     SphericContinuumParticle* element2);
-        
-        // TODO: check whether it is necessary
-        virtual double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
         virtual void ComputeNormalUnbondedForce(double indentation);
 
