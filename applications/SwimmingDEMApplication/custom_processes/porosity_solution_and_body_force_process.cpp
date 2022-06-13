@@ -159,7 +159,7 @@ void PorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosityField()
 
         double& r_pressure = it_node->FastGetSolutionStepValue(EXACT_PRESSURE);
 
-        Matrix& permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
+        Matrix& sigma = it_node->FastGetSolutionStepValue(PERMEABILITY);
 
         r_u1 = u_char*std::pow(x1,2)*std::pow((1 - x1),2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))/alpha;
 
@@ -203,17 +203,10 @@ void PorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosityField()
 
         du222 = 2*u_char*std::pow(x2,2)*(-u_char*std::pow(x1,2)*(2*x1 - 2) - 2*u_char*x1*std::pow((1 - x1),2))/alpha + 4*u_char*x2*(2*x2 - 2)*(-u_char*std::pow(x1,2)*(2*x1 - 2) - 2*u_char*x1*std::pow((1 - x1),2))/alpha + 2*u_char*std::pow((1 - x2),2)*(-u_char*std::pow(x1,2)*(2*x1 - 2) - 2*u_char*x1*std::pow((1 - x1),2))/alpha;
 
-        for (unsigned int d = 0; d < dim; ++d){
-            permeability(d,d) = 1.0e+30;
-        }
-
-        double det_permeability = MathUtils<double>::Det(permeability);
-        MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
-
         double velocity_norm = std::sqrt(r_u1 * r_u1 + r_u2 * r_u2);
         double kappa = 1.0;
 
-        Matrix sigma = 0.0 * I;
+        sigma = ZeroMatrix(dim,dim);
 
         const double convective1 = r_u1 * du11 + r_u2 * du12;
         const double convective2 = r_u1 * du21 + r_u2 * du22;
