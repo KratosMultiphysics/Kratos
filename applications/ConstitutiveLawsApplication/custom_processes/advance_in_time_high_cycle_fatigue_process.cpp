@@ -58,19 +58,22 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
             KRATOS_WATCH("HERE")
             double increment = 0.0;
             if (!process_info[NO_LINEARITY_ACTIVATION]) { //Stable conditions + No damage/plasticity -> Big jump prior no-linearities initiation
-                this->TimeIncrement(increment);
+                this->TimeIncrementBlock1(increment);
+                this->TimeIncrementBlock2(increment);
                 if (increment > 0.0) {
                     this->TimeAndCyclesUpdate(increment);
                 }
             } else {
                 if (std::abs(maximum_damage_increment) + std::abs(maximum_plastic_dissipation_increment) < tolerance) { //Stable conditions + Damage/Plastic dissipation but not accumulated in the last cycle -> Big jump after no-linearities initiation
-                    this->TimeIncrement(increment);
+                    this->TimeIncrementBlock1(increment);
+                    this->TimeIncrementBlock2(increment);
                     if (increment > 0.0) {
                         this->TimeAndCyclesUpdate(increment);
                         process_info[ADVANCE_STRATEGY_APPLIED] = true;
                     }
                 } else if (std::abs(maximum_plastic_dissipation_increment) < tolerance) { //Stable conditions + Plastic dissipation but not accumulated in the last cycle -> Small jump after no-linearities initiation
-                    increment = mThisParameters["fatigue"]["advancing_strategy_damage"].GetDouble();
+                    this->TimeIncrementBlock1(increment);
+                    increment = std::min(increment, mThisParameters["fatigue"]["advancing_strategy_damage"].GetDouble());
                     this->TimeAndCyclesUpdate(increment);
                     process_info[ADVANCE_STRATEGY_APPLIED] = true;
                 }
@@ -287,20 +290,13 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
+void AdvanceInTimeHighCycleFatigueProcess::TimeIncrementBlock1(double& rIncrement)
 {
     auto& process_info = mrModelPart.GetProcessInfo();
-    std::vector<double>  cycles_to_failure_element;
-    std::vector<int>  local_number_of_cycles;
-    std::vector<double> period;
-    std::vector<double> s_th;
-    std::vector<double> max_stress;
-    double min_time_increment;
     double time = process_info[TIME];
     bool current_constraints_process_list_detected = false;
 
     double user_avancing_time = mThisParameters["fatigue"]["advancing_strategy_time"].GetDouble();
-    double user_avancing_cycles = mThisParameters["fatigue"]["advancing_strategy_cycles"].GetDouble();
 
     const bool has_cyclic_constraints_list = mThisParameters["fatigue"].Has("cyclic_constraints_process_list");
     std::vector<std::string> constraints_list = has_cyclic_constraints_list ? mThisParameters["fatigue"]["cyclic_constraints_process_list"].GetStringArray() : mThisParameters["fatigue"]["constraints_process_list"].GetStringArray();
@@ -322,9 +318,23 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
     }
 
     double model_part_advancing_time = model_part_final_time - time;
-    min_time_increment = std::min(user_avancing_time, model_part_advancing_time);
 
-    // KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
+	rIncrement = std::min(user_avancing_time, model_part_advancing_time);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AdvanceInTimeHighCycleFatigueProcess::TimeIncrementBlock2(double& rIncrement)
+{
+    auto& process_info = mrModelPart.GetProcessInfo();
+    std::vector<double>  cycles_to_failure_element;
+    std::vector<int>  local_number_of_cycles;
+    std::vector<double> period;
+    std::vector<double> s_th;
+    std::vector<double> max_stress;
+
+    double user_avancing_cycles = mThisParameters["fatigue"]["advancing_strategy_cycles"].GetDouble();
 
     for (auto& r_elem : mrModelPart.Elements()) {
         unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
@@ -337,18 +347,17 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
             if (max_stress[i] > s_th[i]) {  //This is used to guarantee that only IP in fatigue conditions are taken into account
                 double Nf_conversion_to_time = (cycles_to_failure_element[i] + 1.0 - local_number_of_cycles[i]) * period[i]; //One cycle is added to guarantee that no-linearity starts in the current cycle
                 double user_avancing_cycles_conversion_to_time = user_avancing_cycles * period[i];
-                if (Nf_conversion_to_time < min_time_increment && Nf_conversion_to_time > tolerance) {  //The positive condition for Nf-Nlocal is added for those cases where some points have already been
+                if (Nf_conversion_to_time < rIncrement && Nf_conversion_to_time > tolerance) {  //The positive condition for Nf-Nlocal is added for those cases where some points have already been
                                                                                                         //completely degradated through fatigue but there are other regions with scope for fatigue degradation
-                    min_time_increment = Nf_conversion_to_time;
+                    rIncrement = Nf_conversion_to_time;
                 }
-                if (user_avancing_cycles_conversion_to_time < min_time_increment) {
-                    min_time_increment = user_avancing_cycles_conversion_to_time;
+                if (user_avancing_cycles_conversion_to_time < rIncrement) {
+                    rIncrement = user_avancing_cycles_conversion_to_time;
 
                 }
             }
         }
     }
-	rIncrement = min_time_increment;
 }
 
 /***********************************************************************************/

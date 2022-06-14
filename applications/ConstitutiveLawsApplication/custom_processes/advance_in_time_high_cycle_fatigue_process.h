@@ -103,7 +103,13 @@ public:
      * @brief This method computes the time increment to be applied as an output of the advancing strategy
      * @param rIncrement Double variable corresponding to the time increment to apply
      */
-    void TimeIncrement(double& rIncrement);
+    void TimeIncrementBlock1(double& rIncrement);
+
+    /**
+     * @brief This method computes the time increment to be applied as an output of the advancing strategy
+     * @param rIncrement Double variable corresponding to the time increment to apply
+     */
+    void TimeIncrementBlock2(double& rIncrement);
 
     /**
      * @brief This method properly applies the time increment in terms of cycle increment to all the integration points of the model
