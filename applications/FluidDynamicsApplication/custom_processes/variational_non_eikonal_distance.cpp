@@ -174,7 +174,7 @@ void VariationalNonEikonalDistance::Execute()
     //************************************************************************************
     //************************************************************************************
     // Doing redistancing for a few iterations: better DISTANCE_GRADIENT for BC in reinitialization step
-    r_redistancing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
+    /* r_redistancing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
 
     mpGradientCalculator->Execute(); // To provide the initial condition for DISTANCE_GRADIENT
 
@@ -205,7 +205,7 @@ void VariationalNonEikonalDistance::Execute()
         iteration++;
         KRATOS_INFO("Deviation in the norm of distance gradient") <<
             norm_grad_norm_deviation/static_cast<double>(NumNodes) << std::endl;
-    }
+    } */
 
     //************************************************************************************
     //************************************************************************************
@@ -249,11 +249,11 @@ void VariationalNonEikonalDistance::Execute()
 
     mpGradientCalculator->Execute(); // To provide the initial condition for DISTANCE_GRADIENT
 
-    iteration = 0;
-    max_grad_norm_deviation = 1.0e2;
-    norm_grad_norm_deviation = 0.0;
+    unsigned int iteration = 0;
+    double max_grad_norm_deviation = 1.0e2;
+    double norm_grad_norm_deviation = 0.0;
 
-    while (max_grad_norm_deviation > 2.0e-1 && iteration < 5){
+    while (max_grad_norm_deviation > 2.0e-1 && iteration < 10){
 
         KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, about to solve the LSE" << std::endl;
         mp_solving_strategy->Solve();

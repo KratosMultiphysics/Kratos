@@ -291,7 +291,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
     const double element_size = ElementSizeCalculator<3,4>::MinimumElementSize(this->GetGeometry());
 
-    const double penalty_phi0 = scale*1.0e10/element_size; // For Nitsche's method we need 1/h
+    const double penalty_phi0 = scale*1.0e6/element_size; // For Nitsche's method we need 1/h
 
     if(mean_curvature > 0.5/element_size)   // Sharp corners
         mean_curvature = 0.5/element_size;
@@ -617,9 +617,12 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                         const double norm_grad_phi_avg_i = norm_2( grad_phi_avg_i );
                         //grad_phi_avg_i /= norm_2(grad_phi_avg_i); // It is not a good idea!
 
+                        const double theta = 0.0;
                         if (contact_angle_weight > 0.0){
-                            minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
-                            minus_cos_contact_angle = minus_cos_contact_angle*norm_grad_phi_avg_i;
+                            minus_cos_contact_angle = -theta*norm_grad_phi_avg_i*std::cos(contact_angle/contact_angle_weight) +
+                            (1.0-theta)*Kratos::inner_prod(solid_normal,grad_phi_avg_i);
+                            /* minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
+                            minus_cos_contact_angle = minus_cos_contact_angle*norm_grad_phi_avg_i; */
                         } else{
                             minus_cos_contact_angle = Kratos::inner_prod(solid_normal,grad_phi_avg_i);
                         }
