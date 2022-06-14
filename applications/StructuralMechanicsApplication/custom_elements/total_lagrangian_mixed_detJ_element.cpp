@@ -233,16 +233,13 @@ void TotalLagrangianMixedDetJElement<TDim>::InitializeSolutionStep(const Process
     KRATOS_TRY
 
     const auto& r_geometry = GetGeometry();
-    const SizeType n_nodes = r_geometry.PointsNumber();
-    const SizeType dim = r_geometry.WorkingSpaceDimension();
-    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables;
-    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        for (IndexType d = 0; d < dim; ++d) {
+        for (IndexType d = 0; d < TDim; ++d) {
             kinematic_variables.Displacements(i_node, d) = r_disp[d];
         }
         kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
@@ -328,7 +325,6 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
     const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
-    const SizeType dim = r_geometry.WorkingSpaceDimension();
 
     // Check RHS size
     if (rRightHandSideVector.size() != LocalSize) {
@@ -344,8 +340,8 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
     KinematicVariables kinematic_variables;
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        for (IndexType d = 0; d < dim; ++d) {
-            kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
+        for (IndexType d = 0; d < 2; ++d) {
+            kinematic_variables.Displacements(i_node * 2 + d) = r_disp[d];
         }
         kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
@@ -768,28 +764,23 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
     const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
-    const SizeType dim = r_geometry.WorkingSpaceDimension();
-    const SizeType n_nodes = r_geometry.PointsNumber();
-    const SizeType block_size = dim + 1;
-    const SizeType matrix_size = block_size * n_nodes;
-    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 
     // Check RHS size
-    if (rRightHandSideVector.size() != matrix_size) {
-        rRightHandSideVector.resize(matrix_size, false);
+    if (rRightHandSideVector.size() != LocalSize) {
+        rRightHandSideVector.resize(LocalSize, false);
     }
 
     // Check LHS size
-    if (rLeftHandSideMatrix.size1() != matrix_size || rLeftHandSideMatrix.size2() != matrix_size) {
-        rLeftHandSideMatrix.resize(matrix_size, matrix_size, false);
+    if (rLeftHandSideMatrix.size1() != LocalSize || rLeftHandSideMatrix.size2() != LocalSize) {
+        rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
     }
 
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables;
-    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        for (IndexType d = 0; d < dim; ++d) {
-            kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
+        for (IndexType d = 0; d < 3; ++d) {
+            kinematic_variables.Displacements(i_node * 3 + d) = r_disp[d];
         }
         kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
@@ -868,23 +859,18 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
     const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
-    const SizeType dim = r_geometry.WorkingSpaceDimension();
-    const SizeType n_nodes = r_geometry.PointsNumber();
-    const SizeType block_size = dim + 1;
-    const SizeType matrix_size = block_size * n_nodes;
-    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 
     // Check LHS size
-    if (rLeftHandSideMatrix.size1() != matrix_size || rLeftHandSideMatrix.size2() != matrix_size) {
-        rLeftHandSideMatrix.resize(matrix_size, matrix_size, false);
+    if (rLeftHandSideMatrix.size1() != LocalSize || rLeftHandSideMatrix.size2() != LocalSize) {
+        rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
     }
 
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables;
-    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        for (IndexType d = 0; d < dim; ++d) {
-            kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
+        for (IndexType d = 0; d < 2; ++d) {
+            kinematic_variables.Displacements(i_node * 2 + d) = r_disp[d];
         }
         kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
@@ -1258,23 +1244,18 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
     const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
-    const SizeType dim = r_geometry.WorkingSpaceDimension();
-    const SizeType n_nodes = r_geometry.PointsNumber();
-    const SizeType block_size = dim + 1;
-    const SizeType matrix_size = block_size * n_nodes;
-    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 
     // Check LHS size
-    if (rLeftHandSideMatrix.size1() != matrix_size || rLeftHandSideMatrix.size2() != matrix_size) {
-        rLeftHandSideMatrix.resize(matrix_size, matrix_size, false);
+    if (rLeftHandSideMatrix.size1() != LocalSize || rLeftHandSideMatrix.size2() != LocalSize) {
+        rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
     }
 
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables;
-    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        for (IndexType d = 0; d < dim; ++d) {
-            kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
+        for (IndexType d = 0; d < 3; ++d) {
+            kinematic_variables.Displacements(i_node * 3 + d) = r_disp[d];
         }
         kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
@@ -1348,23 +1329,18 @@ void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
     const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
-    const SizeType dim = r_geometry.WorkingSpaceDimension();
-    const SizeType n_nodes = r_geometry.PointsNumber();
-    const SizeType block_size = dim + 1;
-    const SizeType matrix_size = block_size * n_nodes;
-    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 
     // Check RHS size
-    if (rRightHandSideVector.size() != matrix_size) {
-        rRightHandSideVector.resize(matrix_size, false);
+    if (rRightHandSideVector.size() != LocalSize) {
+        rRightHandSideVector.resize(LocalSize, false);
     }
 
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables;
-    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        for (IndexType d = 0; d < dim; ++d) {
-            kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
+        for (IndexType d = 0; d < 2; ++d) {
+            kinematic_variables.Displacements(i_node * 2 + d) = r_disp[d];
         }
         kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
@@ -1481,23 +1457,18 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
     const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
-    const SizeType dim = r_geometry.WorkingSpaceDimension();
-    const SizeType n_nodes = r_geometry.PointsNumber();
-    const SizeType block_size = dim + 1;
-    const SizeType matrix_size = block_size * n_nodes;
-    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 
     // Check RHS size
-    if (rRightHandSideVector.size() != matrix_size) {
-        rRightHandSideVector.resize(matrix_size, false);
+    if (rRightHandSideVector.size() != LocalSize) {
+        rRightHandSideVector.resize(LocalSize, false);
     }
 
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables;
-    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        for (IndexType d = 0; d < dim; ++d) {
-            kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
+        for (IndexType d = 0; d < 3; ++d) {
+            kinematic_variables.Displacements(i_node * 3 + d) = r_disp[d];
         }
         kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
@@ -1863,16 +1834,11 @@ void TotalLagrangianMixedDetJElement<TDim>::CalculateOnIntegrationPoints(
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
     } else if (rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR) {
-        // Create and initialize element variables:
-        const SizeType n_nodes = r_geometry.PointsNumber();
-        const SizeType dim = r_geometry.WorkingSpaceDimension();
-        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
         // Create the kinematics container and fill the nodal data
         KinematicVariables kinematic_variables;
-        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+        for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
             const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-            for (IndexType d = 0; d < dim; ++d) {
+            for (IndexType d = 0; d < TDim; ++d) {
                 kinematic_variables.Displacements(i_node, d) = r_disp[d];
             }
             kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
@@ -1901,8 +1867,8 @@ void TotalLagrangianMixedDetJElement<TDim>::CalculateOnIntegrationPoints(
             }
 
             // Check sizes and save the output stress
-            if (rOutput[i_gauss].size() != strain_size) {
-                rOutput[i_gauss].resize(strain_size, false);
+            if (rOutput[i_gauss].size() != StrainSize) {
+                rOutput[i_gauss].resize(StrainSize, false);
             }
             rOutput[i_gauss] = constitutive_variables.StressVector;
         }
