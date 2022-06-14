@@ -85,6 +85,10 @@ def __Bisect(data):
         [upper_bound, upper_value]
     ]
 
+    for i, data_item in enumerate(data[1:]):
+        if data_item[0] == data[i-1][0]:
+            data[i][1] = data[i-1][1]
+
     data = sorted(data, key=lambda x: x[0])
     return data
 
