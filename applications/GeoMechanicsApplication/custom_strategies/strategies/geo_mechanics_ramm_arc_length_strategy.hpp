@@ -351,9 +351,6 @@ public:
         //Cleaning memory after the solution
         mpScheme->Clean();
 
-        //reset flags for next step
-        mSolutionStepIsInitialized = false;
-
         if (mReformDofSetAtEachStep) //deallocate the systemvectors
         {
             this->ClearStep();
