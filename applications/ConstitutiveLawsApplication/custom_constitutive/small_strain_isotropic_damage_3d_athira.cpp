@@ -69,34 +69,6 @@ int SmallStrainIsotropicDamageAthira3D::Check(
     KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO));
     KRATOS_CHECK(rMaterialProperties.Has(YIELD_STRESS_TENSION));
     KRATOS_CHECK(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION));
-    // KRATOS_CHECK(rMaterialProperties.Has(HARDENING_CURVE));
-    // KRATOS_CHECK(rMaterialProperties.Has(STRESS_LIMITS));
-    // KRATOS_CHECK(rMaterialProperties.Has(HARDENING_PARAMETERS));
-
-    // // current supported hardening models:
-    // KRATOS_CHECK(rMaterialProperties[HARDENING_CURVE] == 0 || rMaterialProperties[HARDENING_CURVE] == 1);
-
-    // // checks specific for exponential hardening
-    // if (rMaterialProperties[HARDENING_CURVE] == 0){
-    //     KRATOS_CHECK_GREATER_EQUAL(rMaterialProperties[STRESS_LIMITS].size(), 2);
-    //     KRATOS_CHECK_GREATER(rMaterialProperties[STRESS_LIMITS](0), tolerance);
-    //     KRATOS_CHECK_GREATER(rMaterialProperties[STRESS_LIMITS](1), rMaterialProperties[STRESS_LIMITS](0));
-    //     KRATOS_CHECK_GREATER_EQUAL(rMaterialProperties[HARDENING_PARAMETERS](0), 0.);
-    // }
-
-    // // checks specific for multilinear hardening
-    // if (rMaterialProperties[HARDENING_CURVE] == 1){
-    //     KRATOS_CHECK_EQUAL(rMaterialProperties[HARDENING_PARAMETERS].size(),
-    //                        rMaterialProperties[STRESS_LIMITS].size());
-    //     for (const auto& h : rMaterialProperties[HARDENING_PARAMETERS]){
-    //         KRATOS_CHECK_GREATER_EQUAL(h, 0.);
-    //         KRATOS_CHECK_LESS_EQUAL(h, 1.);
-    //     }
-    //     for (const auto& h : rMaterialProperties[STRESS_LIMITS]){
-    //         KRATOS_CHECK_GREATER(h, tolerance);
-    //     }
-    // }
-
     return 0;
 }
 
@@ -366,33 +338,7 @@ double& SmallStrainIsotropicDamageAthira3D::CalculateValue(
     double& rValue
     )
 {
-    // if (rThisVariable == STRAIN_ENERGY){
-    //     Vector& r_strain_vector = rParametersValues.GetStrainVector();
-    //     this->CalculateValue(rParametersValues, STRAIN, r_strain_vector);
-    //     const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
-    //     Matrix constitutive_matrix;
-    //     CalculateElasticMatrix(constitutive_matrix, rParametersValues);
-    //     const double stress_like_variable = EvaluateHardeningLaw(
-    //                                             mStrainVariable,
-    //                                             r_material_properties);
-    //     const double damage_variable = 1. - stress_like_variable / mStrainVariable;
-
-    //     rValue = 0.5 * ((1. - damage_variable) * inner_prod(r_strain_vector,
-    //                                     prod(constitutive_matrix, r_strain_vector)));
-
-    // } else if (rThisVariable == DAMAGE_VARIABLE){
-    //     const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
-    //     const double stress_like_variable = EvaluateHardeningLaw(
-    //                                             mStrainVariable,
-    //                                             r_material_properties);
-
-    //     rValue = 1. - stress_like_variable / mStrainVariable;
-
-    // } else {
         ElasticIsotropic3D::CalculateValue(rParametersValues, rThisVariable, rValue);
-
-    // }
-
     return(rValue);
 }
 

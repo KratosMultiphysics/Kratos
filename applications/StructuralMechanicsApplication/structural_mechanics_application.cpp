@@ -448,6 +448,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(IMPOSED_Z_STRAIN_VALUE)
     KRATOS_REGISTER_VARIABLE(IMPOSED_Z_STRAIN_OPTION)
 
+    // damage variable
+    KRATOS_REGISTER_VARIABLE( DAMAGE_VARIABLE );     
+    
     //Register the truss element
     KRATOS_REGISTER_ELEMENT("TrussElement3D2N", mTrussElement3D2N)
     KRATOS_REGISTER_ELEMENT("TrussLinearElement3D2N", mTrussLinearElement3D2N)

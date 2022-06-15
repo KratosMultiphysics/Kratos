@@ -432,6 +432,7 @@ void BaseSolidElement::GetSecondDerivativesVector(
         rValues.resize(mat_size, false);
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         const array_1d<double, 3 >& acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
+        //const array_1d<double, 3 >& acceleration = GetGeometry()[i].FastGetSolutionStepValue(DAMAGE_VARIABLE, Step);
         const SizeType index = i * dimension;
         for(unsigned int k = 0; k < dimension; ++k)
             rValues[index + k] = acceleration[k];
