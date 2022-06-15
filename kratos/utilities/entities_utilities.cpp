@@ -41,7 +41,6 @@ void InitializeAllEntities(ModelPart& rModelPart)
 void InitializeSolutionStepAllEntities(ModelPart& rModelPart)
 {
     KRATOS_TRY
-    KRATOS_INFO("InitializeSolutionStepAllEntities") << std::endl;
 
     InitializeSolutionStepEntities<Element>(rModelPart);
     InitializeSolutionStepEntities<Condition>(rModelPart);
