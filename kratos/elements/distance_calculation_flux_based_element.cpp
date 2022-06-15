@@ -17,6 +17,107 @@
 namespace Kratos
 {
 
+/////specifications must be on top
+
+//gauss points for the 3D4N Tetra
+template <>
+void DistanceCalculationFluxBasedElement<3,4>::GetSimplexShapeFunctionsOnGauss(BoundedMatrix<double,4, 4>& Ncontainer)
+{
+    Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
+    Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;
+    Ncontainer(2,0) = 0.13819660; Ncontainer(2,1) = 0.13819660; Ncontainer(2,2) = 0.58541020; Ncontainer(2,3) = 0.13819660;
+    Ncontainer(3,0) = 0.13819660; Ncontainer(3,1) = 0.13819660; Ncontainer(3,2) = 0.13819660; Ncontainer(3,3) = 0.58541020;
+}
+
+//gauss points for the 2D3N triangle
+template <>
+void DistanceCalculationFluxBasedElement<2,3>::GetSimplexShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer)
+{
+    const double one_sixt = 1.0/6.0;
+    const double two_third = 2.0/3.0;
+    Ncontainer(0,0) = one_sixt; Ncontainer(0,1) = one_sixt; Ncontainer(0,2) = two_third;
+    Ncontainer(1,0) = one_sixt; Ncontainer(1,1) = two_third; Ncontainer(1,2) = one_sixt;
+    Ncontainer(2,0) = two_third; Ncontainer(2,1) = one_sixt; Ncontainer(2,2) = one_sixt;
+}
+
+//unused, but needed for compilation
+template <unsigned int TDim , unsigned int TNumNodes >
+void DistanceCalculationFluxBasedElement<TDim,TNumNodes>::GetSimplexShapeFunctionsOnGauss(BoundedMatrix<double,TNumNodes,TNumNodes>& Ncontainer)
+{
+    KRATOS_ERROR << "CALLING TEMPLATED GetSimplexShapeFunctionsOnGauss" << std::endl;
+}
+
+
+//2d3n triangles
+template<>
+void DistanceCalculationFluxBasedElement<2,3>::CalculateGaussPointsData(
+    const GeometryType& rGeometry,
+    BoundedVector<double,3> &rGaussWeights,
+    BoundedMatrix<double,3,3> &rNContainer,
+    array_1d<BoundedMatrix<double, 3, 2>, 3>& rDN_DXContainer 
+    )
+{
+    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
+    array_1d<double,3> N;            // Position of the gauss point
+    double area;
+    GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, area);
+    GetSimplexShapeFunctionsOnGauss(rNContainer);
+    for (unsigned int i = 0; i < 3; ++i) {
+        rGaussWeights[i] = area/3.0;
+        rDN_DXContainer[i] = DN_DX;
+    }
+}
+
+//3d4n tetras
+template<>
+void DistanceCalculationFluxBasedElement<3,4>::CalculateGaussPointsData(
+    const GeometryType& rGeometry,
+    BoundedVector<double,4> &rGaussWeights,
+    BoundedMatrix<double,4,4> &rNContainer,
+    array_1d<BoundedMatrix<double, 4, 3>, 4>& rDN_DXContainer 
+    )
+{
+    BoundedMatrix<double,4,3> DN_DX; // Gradients matrix
+    array_1d<double,4> N;            // Position of the gauss point
+    double volume;
+    GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, volume);
+    GetSimplexShapeFunctionsOnGauss(rNContainer);
+    for (unsigned int i = 0; i < 4; ++i) {
+        rGaussWeights[i] = volume/4.0;
+        rDN_DXContainer[i] = DN_DX;
+    }
+
+    
+}
+
+//generic. lower performance but valid for all geoms.
+template <unsigned int TDim , unsigned int TNumNodes >
+void DistanceCalculationFluxBasedElement<TDim,TNumNodes>::CalculateGaussPointsData(
+    const GeometryType& rGeometry,
+    BoundedVector<double,TNumNodes> &rGaussWeights,
+    BoundedMatrix<double,TNumNodes,TNumNodes> &rNContainer,
+    array_1d<BoundedMatrix<double, TNumNodes, TDim>, TNumNodes>& rDN_DXContainer 
+    )
+{
+    Vector det_j_vector(TNumNodes);
+    // const auto& r_geom = this->GetGeometry();
+    const auto integration_method = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2;
+    rNContainer = rGeometry.ShapeFunctionsValues(integration_method);
+    ShapeFunctionsGradientsType DN_DXContainer_unbounded;
+    //getting information from geometry in DenseVector<Matrix> format
+    rGeometry.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer_unbounded, det_j_vector, integration_method);
+
+
+    const unsigned int number_of_gauss_points = rGeometry.IntegrationPointsNumber(integration_method);
+    const GeometryType::IntegrationPointsArrayType& integration_points = rGeometry.IntegrationPoints(integration_method);
+
+    for (unsigned int g = 0; g < number_of_gauss_points; ++g){
+        rGaussWeights[g] = det_j_vector[g] * integration_points[g].Weight();
+        rDN_DXContainer[g] = DN_DXContainer_unbounded[g];
+    }
+}
+
+
 //////////////////////////////////////////////////////////////////////////////
 // Public Operations
 
@@ -391,102 +492,6 @@ void DistanceCalculationFluxBasedElement< TDim, TNumNodes >::AddExplicitContribu
 	}
 }
 
-//2d3n triangles
-template<>
-void DistanceCalculationFluxBasedElement<2,3>::CalculateGaussPointsData(
-    const GeometryType& rGeometry,
-    BoundedVector<double,3> &rGaussWeights,
-    BoundedMatrix<double,3,3> &rNContainer,
-    array_1d<BoundedMatrix<double, 3, 2>, 3>& rDN_DXContainer 
-    )
-{
-    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
-    array_1d<double,3> N;            // Position of the gauss point
-    double area;
-    GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, area);
-    GetSimplexShapeFunctionsOnGauss(rNContainer);
-    for (unsigned int i = 0; i < 3; ++i) {
-        rGaussWeights[i] = area/3.0;
-        rDN_DXContainer[i] = DN_DX;
-    }
-}
-
-//3d4n tetras
-template<>
-void DistanceCalculationFluxBasedElement<3,4>::CalculateGaussPointsData(
-    const GeometryType& rGeometry,
-    BoundedVector<double,4> &rGaussWeights,
-    BoundedMatrix<double,4,4> &rNContainer,
-    array_1d<BoundedMatrix<double, 4, 3>, 4>& rDN_DXContainer 
-    )
-{
-    BoundedMatrix<double,4,3> DN_DX; // Gradients matrix
-    array_1d<double,4> N;            // Position of the gauss point
-    double volume;
-    GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, volume);
-    GetSimplexShapeFunctionsOnGauss(rNContainer);
-    for (unsigned int i = 0; i < 4; ++i) {
-        rGaussWeights[i] = volume/4.0;
-        rDN_DXContainer[i] = DN_DX;
-    }
-
-    
-}
-
-//generic. lower performance but valid for all geoms.
-template <unsigned int TDim , unsigned int TNumNodes >
-void DistanceCalculationFluxBasedElement<TDim,TNumNodes>::CalculateGaussPointsData(
-    const GeometryType& rGeometry,
-    BoundedVector<double,TNumNodes> &rGaussWeights,
-    BoundedMatrix<double,TNumNodes,TNumNodes> &rNContainer,
-    array_1d<BoundedMatrix<double, TNumNodes, TDim>, TNumNodes>& rDN_DXContainer 
-    )
-{
-    Vector det_j_vector(TNumNodes);
-    // const auto& r_geom = this->GetGeometry();
-    const auto integration_method = rGeometry.GetDefaultIntegrationMethod();
-    rNContainer = rGeometry.ShapeFunctionsValues(integration_method);
-    ShapeFunctionsGradientsType DN_DXContainer_unbounded;
-    //getting information from geometry in DenseVector<Matrix> format
-    rGeometry.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer_unbounded, det_j_vector, integration_method);
-
-
-    const unsigned int number_of_gauss_points = rGeometry.IntegrationPointsNumber(integration_method);
-    const GeometryType::IntegrationPointsArrayType& integration_points = rGeometry.IntegrationPoints(integration_method);
-
-    for (unsigned int g = 0; g < number_of_gauss_points; ++g){
-        rGaussWeights[g] = det_j_vector[g] * integration_points[g].Weight();
-        rDN_DXContainer[g] = DN_DXContainer_unbounded[g];
-    }
-}
-
-//gauss points for the 3D4N Tetra
-template <>
-void DistanceCalculationFluxBasedElement<3,4>::GetSimplexShapeFunctionsOnGauss(BoundedMatrix<double,4, 4>& Ncontainer)
-{
-    Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
-    Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;
-    Ncontainer(2,0) = 0.13819660; Ncontainer(2,1) = 0.13819660; Ncontainer(2,2) = 0.58541020; Ncontainer(2,3) = 0.13819660;
-    Ncontainer(3,0) = 0.13819660; Ncontainer(3,1) = 0.13819660; Ncontainer(3,2) = 0.13819660; Ncontainer(3,3) = 0.58541020;
-}
-
-//gauss points for the 2D3N triangle
-template <>
-void DistanceCalculationFluxBasedElement<2,3>::GetSimplexShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer)
-{
-    const double one_sixt = 1.0/6.0;
-    const double two_third = 2.0/3.0;
-    Ncontainer(0,0) = one_sixt; Ncontainer(0,1) = one_sixt; Ncontainer(0,2) = two_third;
-    Ncontainer(1,0) = one_sixt; Ncontainer(1,1) = two_third; Ncontainer(1,2) = one_sixt;
-    Ncontainer(2,0) = two_third; Ncontainer(2,1) = one_sixt; Ncontainer(2,2) = one_sixt;
-}
-
-//unused, but needed for compilation
-template <unsigned int TDim , unsigned int TNumNodes >
-void DistanceCalculationFluxBasedElement<TDim,TNumNodes>::GetSimplexShapeFunctionsOnGauss(BoundedMatrix<double,TNumNodes,TNumNodes>& Ncontainer)
-{
-    KRATOS_ERROR << "CALLING TEMPLATED GetSimplexShapeFunctionsOnGauss" << std::endl;
-}
 
 // Class template instantiation
 template class  KRATOS_API(KRATOS_CORE) DistanceCalculationFluxBasedElement<2,3>;
