@@ -28,13 +28,13 @@ export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 # Set basic configuration
 export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"Release"}
 export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
-export BOOST_ROOT=${BOOST_ROOT:-"/home/vahid/Dropbox/Libraries/C++/boost/boost_1_72_0"}
+export BOOST_ROOT=${BOOST_ROOT}
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
-add_app ${KRATOS_APP_DIR}/LinearSolversApplication
-add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
-add_app ${KRATOS_APP_DIR}/GeoMechanicsApplication
+add_app "${KRATOS_APP_DIR}/LinearSolversApplication"
+add_app "${KRATOS_APP_DIR}/StructuralMechanicsApplication"
+add_app "${KRATOS_APP_DIR}/GeoMechanicsApplication"
 
 # Clean
 clear
