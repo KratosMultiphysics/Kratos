@@ -31,7 +31,8 @@ class ConvectionDiffusionStationaryEmbeddedSolver(convection_diffusion_stationar
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters(r"""{
             "mls_extension_operator_order" : 1,
-            "use_mls_constraints" : true,
+            "use_local_constraint" : true,
+            "use_mls_constraints" : false,
             "use_distance_modification" : false
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
@@ -46,7 +47,22 @@ class ConvectionDiffusionStationaryEmbeddedSolver(convection_diffusion_stationar
 
     def Initialize(self):
 
-        if self.settings["use_mls_constraints"].GetBool():
+        if self.settings["use_local_constraint"].GetBool():
+            if self.settings["use_mls_constraints"].GetBool() or self.settings["use_distance_modification"].GetBool():
+                KratosMultiphysics.Logger.PrintWarning("ConvectionDiffusionStationaryEmbeddedSolver", "Giving precedence to single constraints over MLS constraints and distance modification")
+
+            # Create a single point constraint for all negative nodes of intersected elements
+            # NOTE: the nodal distances will still be modified slightly to avoid levelset zeros (tol=1e-12)
+            # NOTE: elements in the negative distance region will be deactivated
+            settings = KratosMultiphysics.Parameters("""{}""")
+            settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
+            settings.AddEmptyValue("avoid_zero_distances").SetBool(True)
+            settings.AddEmptyValue("deactivate_negative_elements").SetBool(True)
+            settings.AddEmptyValue("deactivate_intersected_elements").SetBool(False)
+            constraint_process = ConvectionDiffusionApplication.EmbeddedLocalConstraintProcess(self.model, settings)
+            constraint_process.Execute()
+
+        elif self.settings["use_mls_constraints"].GetBool():
             if self.settings["use_distance_modification"].GetBool():
                 KratosMultiphysics.Logger.PrintWarning("ConvectionDiffusionStationaryEmbeddedSolver", "Giving precedence to MLS constraints over distance modification")
 
@@ -59,7 +75,7 @@ class ConvectionDiffusionStationaryEmbeddedSolver(convection_diffusion_stationar
             elemental_neighbours_process.Execute()
 
             # Create the MLS basis and add multi point constraints for all negative nodes of intersected elements
-            # NOTE: the nodal distances will still be modified slightly to avoid levelset zeros (tol=1e-12) 
+            # NOTE: the nodal distances will still be modified slightly to avoid levelset zeros (tol=1e-12)
             # NOTE: elements in the negative distance region will be deactivated
             settings = KratosMultiphysics.Parameters("""{}""")
             settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)

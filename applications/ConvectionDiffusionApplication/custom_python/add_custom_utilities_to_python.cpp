@@ -27,6 +27,7 @@
 // #include "custom_utilities/bfecc_elemental_convection.h"
 #include "custom_utilities/bfecc_elemental_limiter_convection.h"
 #include "custom_utilities/embedded_mls_constraint_process.h"
+#include "custom_utilities/embedded_local_constraint_process.h"
 #include "custom_utilities/gauss_point_error_utility.h"
 
 #include "spaces/ublas_space.h"
@@ -161,6 +162,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     ;
 
     py::class_<EmbeddedMLSConstraintProcess, EmbeddedMLSConstraintProcess::Pointer, Process>(m,"EmbeddedMLSConstraintProcess")
+    .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<EmbeddedLocalConstraintProcess, EmbeddedLocalConstraintProcess::Pointer, Process>(m,"EmbeddedLocalConstraintProcess")
     .def(py::init<Model&, Parameters>())
     ;
 
