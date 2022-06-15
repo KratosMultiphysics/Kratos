@@ -2765,6 +2765,21 @@ void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallMetric(Parameters ConfigurationP
         }
     }
 
+
+    /* Set the number of tags references on which you will impose local parameters*/
+    if ( MMG3D_Set_iparameter(mMmgMesh,mMmgMet,MMG3D_IPARAM_numberOfLocalParam, 5) != 1)
+    exit(EXIT_FAILURE);
+
+    /* For each local parameter, set the type of the entity on wich the parameter will
+    apply (triangle or tetra), the reference of these entities and the hmin, hmax and
+    hausdorff values to apply */
+    for (int i=2; i<=6; i++)
+    {
+        std::cout << "Setting local parameter: " << i << std::endl;
+        if ( MMG3D_Set_localParameter(mMmgMesh,mMmgMet,MMG5_Triangle, i, 50.0,100.0, 1000.0) != 1)
+        exit(EXIT_FAILURE);
+    }
+
     // Actually computing remesh
     int ier;
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
