@@ -37,11 +37,11 @@ from test_piping_element_unit import TestUnitPipingElements
 from test_normal_flux_condition import TestNormalFluxCondition
 
 
-def AssambleTestSuites(is_team_city):
+def AssembleTestSuites(is_team_city):
     ''' Populates the test suites to run.
 
-    Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
+    Populates the test suites to run. At least, it should populate the suites:
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -131,7 +131,7 @@ def get_level_argument():
     """
     This function is used only when the unit tests are run under teamcity.
     In this case the level the KratosUnittest class is not directly used to determine the level of unit tests
-    Therefore we impliment a simple function that enables this functionality
+    Therefore we implement a simple function that enables this functionality
 
     :return: level: str
     """
@@ -155,11 +155,9 @@ if __name__ == '__main__':
         import unittest
 
         level = get_level_argument()
-        test_suite_dictionary = AssambleTestSuites(is_team_city)
+        test_suite_dictionary = AssembleTestSuites(is_team_city)
         tests_to_run = test_suite_dictionary[level]
         runner = TeamcityTestRunner()
         runner.run(tests_to_run)
-        # Tester.RunTestSuite("KratosGeoMechanicsFastSuite")
     else:
-        KratosUnittest.runTests(AssambleTestSuites(is_team_city))
-        # Tester.RunTestSuite("KratosGeoMechanicsFastSuite")
+        KratosUnittest.runTests(AssembleTestSuites(is_team_city))

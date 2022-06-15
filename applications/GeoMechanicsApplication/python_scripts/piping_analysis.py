@@ -1,4 +1,3 @@
-import time as timer
 import os
 import sys
 
@@ -13,8 +12,6 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.GeoMechanicsApplication import geomechanics_solvers_wrapper
 from geomechanics_analysis import GeoMechanicsAnalysis
-
-from importlib import import_module
 
 class PipingAnalysis(GeoMechanicsAnalysis):
     '''Main script for geomechanics simulations.'''
@@ -160,7 +157,6 @@ class PipingAnalysis(GeoMechanicsAnalysis):
 
 if __name__ == '__main__':
     from sys import argv
-    import os
 
     # change the current directory
     # to specified directory
