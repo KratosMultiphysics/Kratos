@@ -1,6 +1,14 @@
 import subprocess
 import os.path
 
+
+try:
+    import sympy
+    sympy_available = True
+except:
+    sympy_available = False
+    print("Skipping tests that require sympy")
+
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
@@ -39,7 +47,12 @@ from test_navier_stokes_compressible_explicit_solver import NavierStokesCompress
 from two_fluid_mass_conservation_source_test import TwoFluidMassConservationTest
 from apply_compressible_navier_stokes_boundary_conditions_process_test import ApplyMachDependentBoundaryConditionsTest
 from initialize_with_compressible_potential_flow_process_test import InitializeWithCompressiblePotentialSolutionProcessTest
-from compressible_navier_stokes_symbolic_generator_test import CompressibleNavierStokesSymbolicGeneratorTest
+if sympy_available:
+    from compressible_navier_stokes_symbolic_generator_formulation_test import CompressibleNavierStokesSymbolicGeneratorFormulationTest
+from compressible_slip_wall_process_test import TestCompressibleSlipWallProcess
+from compute_pressure_coefficient_process_test import ComputePressureCoefficientProcessTest
+from compute_drag_process_test import ComputeDragProcessTest
+
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -75,6 +88,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyMachDependentBoundaryConditionsTest]))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([InitializeWithCompressiblePotentialSolutionProcessTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCompressibleSlipWallProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputePressureCoefficientProcessTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputeDragProcessTest]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -99,8 +115,6 @@ def AssembleTestSuites():
     nightSuite.addTest(FluidElementTest('testTimeIntegratedQSVMS'))
     nightSuite.addTest(FluidElementTest('testSymbolic'))
     nightSuite.addTest(FluidAnalysisTest('testFluidDynamicsAnalysis'))
-    nightSuite.addTest(AdjointFluidTest('testCylinder'))
-    nightSuite.addTest(AdjointFluidTest('testSlipCylinder'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSecondDerivativesLHS'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS1'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS2'))
@@ -118,8 +132,6 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidAuxiliaryUtilitiesTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
-    nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorTest('testGeneratorTriangle'))
-    nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorTest('testGeneratorQuad'))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
@@ -130,15 +142,20 @@ def AssembleTestSuites():
     validationSuite.addTest(AdjointVMSSensitivity2D('testSlipSteadyNormCylinder'))
     validationSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
     #FIXME: MOVE BACK THE SOD TO NIGHT ONCE WE FIX THE NIGHTLY BUILD ISSUE
+    validationSuite.addTest(AdjointFluidTest('testCylinder'))
+    validationSuite.addTest(AdjointFluidTest('testSlipCylinder'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGS'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
-    validationSuite.addTest(CompressibleNavierStokesSymbolicGeneratorTest('testGeneratorTetra')) # Takes too long
+    if sympy_available:
+        validationSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicTriangle'))
+        validationSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicTetrahedron'))
+        validationSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicQuadrilateral'))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(nightSuite)
+    allSuite.addTests(validationSuite)
 
     return suites
 

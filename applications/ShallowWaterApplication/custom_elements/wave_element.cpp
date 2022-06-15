@@ -29,6 +29,19 @@ namespace Kratos
 {
 
 template<std::size_t TNumNodes>
+const Parameters WaveElement<TNumNodes>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "required_variables"         : ["VELOCITY","HEIGHT","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY"],
+        "required_dofs"              : ["VELOCITY_X","VELOCITY_Y","HEIGHT"],
+        "compatible_geometries"      : ["Triangle2D3","Quadrilateral2D4","Triangle2D6","Quadrilateral2D8","Quadrilateral2D9"],
+        "element_integrates_in_time" : false
+    })");
+    return specifications;
+}
+
+
+template<std::size_t TNumNodes>
 int WaveElement<TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
@@ -152,41 +165,6 @@ void WaveElement<TNumNodes>::CalculateOnIntegrationPoints(
 
 
 template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::Calculate(
-    const Variable<array_1d<double,3>>& rVariable,
-    array_1d<double,3>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rVariable == FORCE)
-    {
-        rOutput = ZeroVector();
-        const array_1d<double,3>& gravity = -rCurrentProcessInfo[GRAVITY];
-        const double density = this->GetProperties()[DENSITY];
-        const auto& r_geometry = this->GetGeometry();
-
-        // The nodal data
-        array_1d<double,TNumNodes> nodal_h;
-        for (std::size_t i = 0; i < TNumNodes; ++i) {
-            nodal_h[i] = r_geometry[i].FastGetSolutionStepValue(HEIGHT);
-        }
-
-        // The geometry data
-        Vector weights;
-        Matrix N_container;
-        ShapeFunctionsGradientsType DN_DX_container;
-        CalculateGeometryData(r_geometry, weights, N_container, DN_DX_container);
-
-        // Integration over the geometry
-        for (std::size_t g = 0; g < weights.size(); ++g) {
-            const array_1d<double,TNumNodes> N = row(N_container, g);
-            const double h = inner_prod(nodal_h, N);
-            rOutput += density * gravity * h * weights[g];
-        }
-    }
-}
-
-
-template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
 }
@@ -228,6 +206,8 @@ void WaveElement<TNumNodes>::InitializeData(ElementData& rData, const ProcessInf
     rData.gravity = rCurrentProcessInfo[GRAVITY_Z];
     auto& r_geometry = this->GetGeometry();
     rData.length = r_geometry.Length();
+    rData.absorbing_distance = rCurrentProcessInfo[ABSORBING_DISTANCE];
+    rData.absorbing_damping = rCurrentProcessInfo[DISSIPATION];
     rData.p_bottom_friction = FrictionLawsFactory().CreateBottomFrictionLaw(
         r_geometry, this->GetProperties(), rCurrentProcessInfo);
 }
@@ -362,7 +342,7 @@ double WaveElement<TNumNodes>::ShapeFunctionProduct(
 
 
 template<std::size_t TNumNodes>
-const array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
+array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
     const array_1d<array_1d<double,3>,TNumNodes>& rV,
     const array_1d<double,TNumNodes>& rN)
 {
@@ -376,7 +356,22 @@ const array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
 
 
 template<std::size_t TNumNodes>
-const double WaveElement<TNumNodes>::VectorProduct(
+array_1d<double,3> WaveElement<TNumNodes>::ScalarGradient(
+    const array_1d<double,TNumNodes>& rS,
+    const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
+{
+    array_1d<double,3> result = ZeroVector(3);
+    for (std::size_t i = 0; i < TNumNodes; ++i)
+    {
+        result[0] += rS[i] * rDN_DX(i,0);
+        result[1] += rS[i] * rDN_DX(i,1);
+    }
+    return result;
+}
+
+
+template<std::size_t TNumNodes>
+double WaveElement<TNumNodes>::VectorDivergence(
     const array_1d<array_1d<double,3>,TNumNodes>& rV,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
 {
@@ -385,6 +380,23 @@ const double WaveElement<TNumNodes>::VectorProduct(
     {
         result += rV[i][0] * rDN_DX(i,0);
         result += rV[i][1] * rDN_DX(i,1);
+    }
+    return result;
+}
+
+
+template<std::size_t TNumNodes>
+BoundedMatrix<double,3,3> WaveElement<TNumNodes>::VectorGradient(
+    const array_1d<array_1d<double,3>,TNumNodes>& rV,
+    const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
+{
+    BoundedMatrix<double,3,3> result = ZeroMatrix(3,3);
+    for (std::size_t i = 0; i < TNumNodes; ++i)
+    {
+        result(0,0) += rV[i][0] * rDN_DX(i,0);
+        result(0,1) += rV[i][1] * rDN_DX(i,0);
+        result(1,0) += rV[i][0] * rDN_DX(i,1);
+        result(1,1) += rV[i][1] * rDN_DX(i,1);
     }
     return result;
 }
@@ -419,9 +431,23 @@ void WaveElement<TNumNodes>::CalculateArtificialViscosity(
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::CalculateArtificialDamping(
-    BoundedMatrix<double,3,3>& rFriction,
+    BoundedMatrix<double,3,3>& rDamping,
     const ElementData& rData)
 {
+    if (rData.absorbing_distance > 0.0) {
+        double distance = 0.0;
+        for (auto& r_node : GetGeometry()) {
+            distance += r_node.FastGetSolutionStepValue(DISTANCE);
+        }
+        distance /= GetGeometry().size();
+
+        if (distance < rData.absorbing_distance) {
+            const double pow_coeff = 3.0;
+            const double smooth_function = std::expm1(std::pow((rData.absorbing_distance - distance) / rData.absorbing_distance, pow_coeff)) / std::expm1(1.0);
+            rDamping(0,0) += rData.absorbing_damping * smooth_function;
+            rDamping(1,1) += rData.absorbing_damping * smooth_function;
+        }
+    }
 }
 
 
@@ -544,6 +570,7 @@ void WaveElement<TNumNodes>::AddDispersiveTerms(
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
     LocalMatrixType& rMatrix,
+    LocalVectorType& rVector,
     const ElementData& rData,
     const array_1d<double,TNumNodes>& rN,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
@@ -582,6 +609,7 @@ void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
             tmp = prod(D, trans(bjq));
             MathUtils<double>::AddMatrix(rMatrix, Weight*prod(biq, tmp), 3*i, 3*j);
             rMatrix(3*i + 2, 3*j + 2) += inner_prod(bih, Weight*prod(C, bjh));
+            // rVector[3*i + 2]          -= inner_prod(bih, Weight*prod(C, bjh)) * rData.nodal_z[j];
         }
     }
 }
@@ -661,7 +689,7 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
         AddWaveTerms(lhs, rhs, data, N, DN_DX, weight);
         AddFrictionTerms(lhs, rhs, data, N, DN_DX, weight);
         AddDispersiveTerms(rhs, data, N, DN_DX, weight);
-        AddArtificialViscosityTerms(lhs, data, N, DN_DX, weight);
+        AddArtificialViscosityTerms(lhs, rhs, data, N, DN_DX, weight);
     }
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
@@ -709,6 +737,41 @@ void WaveElement<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
+}
+
+
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::Calculate(
+    const Variable<array_1d<double,3>>& rVariable,
+    array_1d<double,3>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == FORCE)
+    {
+        rOutput = ZeroVector(3);
+        const array_1d<double,3>& gravity = -rCurrentProcessInfo[GRAVITY];
+        const double density = this->GetProperties()[DENSITY];
+        const auto& r_geometry = this->GetGeometry();
+
+        // The nodal data
+        array_1d<double,TNumNodes> nodal_h;
+        for (std::size_t i = 0; i < TNumNodes; ++i) {
+            nodal_h[i] = r_geometry[i].FastGetSolutionStepValue(HEIGHT);
+        }
+
+        // The geometry data
+        Vector weights;
+        Matrix N_container;
+        ShapeFunctionsGradientsType DN_DX_container;
+        CalculateGeometryData(r_geometry, weights, N_container, DN_DX_container);
+
+        // Integration over the geometry
+        for (std::size_t g = 0; g < weights.size(); ++g) {
+            const array_1d<double,TNumNodes> N = row(N_container, g);
+            const double h = inner_prod(nodal_h, N);
+            rOutput += density * gravity * h * weights[g];
+        }
+    }
 }
 
 

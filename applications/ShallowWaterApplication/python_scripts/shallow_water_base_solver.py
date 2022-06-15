@@ -21,10 +21,7 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
-        if self.model.HasModelPart(model_part_name):
-            self.main_model_part = self.model.GetModelPart(model_part_name)
-        else:
-            self.main_model_part = self.model.CreateModelPart(model_part_name)
+        self.main_model_part = self.model.CreateModelPart(model_part_name)
 
         self._SetProcessInfo()
 
@@ -38,8 +35,7 @@ class ShallowWaterBaseSolver(PythonSolver):
             "gravity"                  : 9.81,
             "density"                  : 1000,
             "model_import_settings"    : {
-                "input_type"               : "mdpa",
-                "input_filename"           : "unknown_name"
+                "input_type"               : "use_input_model_part"
             },
             "material_import_settings" :{
                 "materials_filename": ""
@@ -73,6 +69,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(SW.MANNING)
         self.main_model_part.AddNodalSolutionStepVariable(SW.RAIN)
         self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
 
     def AddDofs(self):
         raise Exception("Calling the base class instead of the derived one")
@@ -194,15 +191,11 @@ class ShallowWaterBaseSolver(PythonSolver):
         #verify the orientation of the skin in case of triangles mesh
         elem_num_nodes = self.__get_geometry_num_nodes(self.GetComputingModelPart().Elements)
         if elem_num_nodes == 3:
-            self.assign_neighbour_elements_to_conditions = True
             mesh_orientation = KM.TetrahedralMeshOrientationCheck
             throw_errors = False
             flags  = mesh_orientation.COMPUTE_NODAL_NORMALS.AsFalse()
             flags |= mesh_orientation.COMPUTE_CONDITION_NORMALS.AsFalse()
-            if self.assign_neighbour_elements_to_conditions:
-                flags |= mesh_orientation.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
-            else:
-                flags |= mesh_orientation.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse()
+            flags |= mesh_orientation.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
             KM.TetrahedralMeshOrientationCheck(self.GetComputingModelPart(), throw_errors, flags).Execute()
         else:
             KM.Logger.PrintWarning(self.__class__.__name__, "Orientation check not performed for quadrilateral or higher order geometries.")

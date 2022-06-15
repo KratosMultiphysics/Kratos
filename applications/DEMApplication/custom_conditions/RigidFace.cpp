@@ -343,7 +343,8 @@ void RigidFace3D::ComputeConditionRelativeData(int rigid_neighbour_index,
     if (points == 3 || points == 4)
     {
         unsigned int dummy_current_edge_index;
-        contact_exists = GeometryFunctions::FacetCheck(this->GetGeometry(), node_coordinates, radius, LocalCoordSystem, DistPToB, TempWeight, dummy_current_edge_index);
+        bool is_inside;
+        contact_exists = GeometryFunctions::FacetCheck(this->GetGeometry(), node_coordinates, radius, LocalCoordSystem, DistPToB, TempWeight, dummy_current_edge_index, is_inside);
         ContactType = 1;
         Weight[0]=TempWeight[0];
         Weight[1]=TempWeight[1];

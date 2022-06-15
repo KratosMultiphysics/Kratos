@@ -559,7 +559,7 @@ public:
         return *mpVariablesList;
     }
 
-    VariablesList::Pointer pGetNodalSolutionStepVariablesList()
+    VariablesList::Pointer pGetNodalSolutionStepVariablesList() const
     {
         return mpVariablesList;
     }
@@ -862,7 +862,7 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (pointer)
      */
-    PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
+    const PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
 
     /**
      * @brief Returns the Properties::Pointer  corresponding to it's identifier
@@ -880,7 +880,7 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (reference)
      */
-    PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
+    const PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
 
     /**
      * @brief Returns if the sub Properties corresponding to it's address exists

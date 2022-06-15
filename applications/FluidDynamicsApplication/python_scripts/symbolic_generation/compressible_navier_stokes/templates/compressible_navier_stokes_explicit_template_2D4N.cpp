@@ -243,7 +243,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMomentumProjection(const Pr
 
         BoundedVector<double, vector_size> mom_proj_gauss(DofSize);
 
-//substitute_mom_proj_2D
+        //substitute_mom_proj_2D
 
         mom_proj += w * detJ * mom_proj_gauss;
     }
@@ -296,7 +296,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateDensityProjection(const Pro
 
         BoundedVector<double, DofSize> rho_proj_gauss(DofSize);
 
-//substitute_rho_proj_2D
+        //substitute_rho_proj_2D
 
         rho_proj += w * detJ * rho_proj_gauss;
     }
@@ -345,7 +345,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateTotalEnergyProjection(const
 
         BoundedVector<double, DofSize> tot_ener_proj_gauss(DofSize);
 
-//substitute_tot_ener_proj_2D
+        //substitute_tot_ener_proj_2D
 
         tot_ener_proj += w * detJ * tot_ener_proj_gauss;
     }
@@ -403,7 +403,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
 
             BoundedVector<double, DofSize> rhs_gauss(DofSize);
 
-//substitute_rhs_2D_OSS
+            //substitute_rhs_2D_OSS
 
             rRightHandSideBoundedVector += w * detJ * rhs_gauss;
         }
@@ -425,7 +425,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
 
             BoundedVector<double, DofSize> rhs_gauss(DofSize);
 
-//substitute_rhs_2D_ASGS
+            //substitute_rhs_2D_ASGS
 
             rRightHandSideBoundedVector += w * detJ * rhs_gauss;
         }

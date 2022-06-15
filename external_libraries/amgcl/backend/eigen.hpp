@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -50,9 +50,11 @@ template <typename real>
 struct eigen {
     typedef real      value_type;
     typedef ptrdiff_t index_type;
+    typedef ptrdiff_t col_type;
+    typedef ptrdiff_t ptr_type;
 
     typedef
-        Eigen::MappedSparseMatrix<value_type, Eigen::RowMajor, index_type>
+        Eigen::Map<Eigen::SparseMatrix<value_type, Eigen::RowMajor, index_type>>
         matrix;
 
     typedef Eigen::Matrix<value_type, Eigen::Dynamic, 1> vector;

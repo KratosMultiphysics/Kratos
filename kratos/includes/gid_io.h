@@ -147,7 +147,8 @@ public:
         const GiD_PostMode Mode,
         const MultiFileFlag UseMultipleFilesFlag,
         const WriteDeformedMeshFlag WriteDeformedFlag,
-        const WriteConditionsFlag WriteConditions
+        const WriteConditionsFlag WriteConditions,
+        const bool InitializeGaussPointContainers=true
          ) : mResultFileName(rDatafilename),
         mMeshFileName(rDatafilename),
         mWriteDeformed(WriteDeformedFlag),
@@ -160,7 +161,9 @@ public:
 
         InitializeResultFile(mResultFileName);
         SetUpMeshContainers();
-        SetUpGaussPointContainers();
+        if (InitializeGaussPointContainers) {
+            SetUpGaussPointContainers();
+        }
 
         GidIOBase& r_gid_io_base = GidIOBase::GetInstance();
 
@@ -173,8 +176,6 @@ public:
     ///Destructor.
     ~GidIO() override
     {
-        Timer::PrintTimingInformation();
-
         if ( mResultFileOpen ) {
             GiD_fClosePostResultFile( mResultFile );
             mResultFileOpen = false;
@@ -300,7 +301,7 @@ public:
     {
         //elements with 1 gauss point
         std::vector<int> gp_indices(1, 0);
-        
+
         //case Triangle with 1 gauss point
         mGidGaussPointContainers.push_back( TGaussPointContainer( "tri1_element_gp",
                                             GeometryData::KratosGeometryFamily::Kratos_Triangle, GiD_Triangle, 1, gp_indices ) );

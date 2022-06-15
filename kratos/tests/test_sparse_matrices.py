@@ -2,7 +2,11 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-import numpy as np 
+try:
+    import numpy as np 
+    numpy_availabe = True
+except ImportError:
+    numpy_availabe = False
 
 try:
     import scipy
@@ -11,6 +15,9 @@ try:
     scipy_available = True
 except ImportError:
     scipy_available = False
+
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestSparseMatrixInterface(KratosUnittest.TestCase):
 
@@ -47,6 +54,7 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
         self.assertEqual(y[1],0.0)
         self.assertEqual(y[2],13.0)
 
+    @KratosUnittest.skipIf(not numpy_availabe, "This test requires numpy")
     def test_matrix_assembly(self):
         #data to be assembled
         values = np.array([[1.0,-1.0],[-1.0,1.0]])
@@ -86,6 +94,14 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
         for i in range(len(validation_index1)):
             self.assertEqual(B.index1_data()[i], validation_index1[i])
 
+        B = A@A
+        for i in range(len(validation_data)):
+            self.assertEqual(B.value_data()[i], validation_data[i])
+            self.assertEqual(B.index2_data()[i], validation_index2[i])
+
+        for i in range(len(validation_index1)):
+            self.assertEqual(B.index1_data()[i], validation_index1[i])
+
         # the following should be added back in case scipy support is enabled in testing
         if scipy_available:
              #test conversion to scipy matrix
@@ -108,6 +124,28 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
 
             for i in range(len(validation_index1)):
                 self.assertEqual(B_scipy.indptr[i], validation_index1[i])
+
+        #test transpose and TransposeSpMV
+        x.SetValue(1.0)
+        y.SetValue(0.0)
+        A.TransposeSpMV(x,y) 
+
+        At = A.Transpose()
+        y2 =  KratosMultiphysics.SystemVector(y.size())
+        y2.SetValue(0.0)  
+        At.SpMV(x,y2)
+        for i in range(y.Size()):
+            self.assertEqual(y[i], y2[i], 1e-14)
+
+        #test @ operators
+        y = A@x
+
+        #test operations
+        x.SetValue(1.0)
+        y.SetValue(2.0)
+        c = 2.0*x+y*2.0 - x
+        for i in range(y.Size()):
+            self.assertEqual(c[i], 5.0)
 
 
 if __name__ == '__main__':

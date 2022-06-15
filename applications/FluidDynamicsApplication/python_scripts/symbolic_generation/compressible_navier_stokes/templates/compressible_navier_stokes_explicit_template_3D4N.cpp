@@ -229,7 +229,7 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateMomentumProjection(const Pr
     BoundedVector<double, Dim*NumNodes> mom_proj;
     const auto& DN_DX = data.DN_DX;
 
-//substitute_mom_proj_3D
+    //substitute_mom_proj_3D
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
     mom_proj *= data.volume / static_cast<double>(NumNodes);
@@ -260,7 +260,7 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateDensityProjection(const Pro
     BoundedVector<double, 4> rho_proj;
     const auto& DN_DX = data.DN_DX;
 
-//substitute_rho_proj_3D
+    //substitute_rho_proj_3D
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
     rho_proj *= data.volume / static_cast<double>(NumNodes);
@@ -287,7 +287,7 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateTotalEnergyProjection(const
     BoundedVector<double, 4> tot_ener_proj;
     const auto& DN_DX = data.DN_DX;
 
-//substitute_tot_ener_proj_3D
+    //substitute_tot_ener_proj_3D
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
     tot_ener_proj *= data.volume / static_cast<double>(NumNodes);
@@ -320,11 +320,11 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateRightHandSideInternal(
 
     if (data.UseOSS)
     {
-//substitute_rhs_3D_OSS
+        //substitute_rhs_3D_OSS
     }
     else
     {
-//substitute_rhs_3D_ASGS
+        //substitute_rhs_3D_ASGS
     }
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes

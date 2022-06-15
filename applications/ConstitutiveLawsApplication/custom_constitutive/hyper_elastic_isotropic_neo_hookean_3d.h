@@ -299,6 +299,26 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
 
+    /**
+     * @brief It calculates the strain vector
+     * @param rValues The Internalvalues of the law
+     * @param rStrainVector The strain vector in Voigt notation
+     */
+    virtual void CalculateGreenLagrangianStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        Vector& rStrainVector
+        );
+
+    /**
+     * @brief Calculates the Almansi strains
+     * @param rValues The Internalvalues of the law
+     * @param rStrainVector The strain vector in Voigt notation
+     */
+    virtual void CalculateAlmansiStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        Vector& rStrainVector
+        );
+
 protected:
 
     ///@name Protected static Member Variables
@@ -391,26 +411,6 @@ private:
         const double DeterminantF,
         const double LameLambda,
         const double LameMu
-        );
-
-    /**
-     * @brief It calculates the strain vector
-     * @param rValues The Internalvalues of the law
-     * @param rStrainVector The strain vector in Voigt notation
-     */
-    virtual void CalculateGreenLagrangianStrain(
-        ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
-        );
-
-    /**
-     * @brief Calculates the Almansi strains
-     * @param rValues The Internalvalues of the law
-     * @param rStrainVector The strain vector in Voigt notation
-     */
-    virtual void CalculateAlmansiStrain(
-        ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
         );
 
     ///@}

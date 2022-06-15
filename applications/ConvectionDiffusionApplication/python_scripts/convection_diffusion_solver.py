@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -31,6 +29,7 @@ else:
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
+from KratosMultiphysics import auxiliary_solver_utilities
 
 def CreateSolver(model, custom_settings):
     return ConvectionDiffusionSolver(model, custom_settings)
@@ -253,6 +252,8 @@ class ConvectionDiffusionSolver(PythonSolver):
         # If MPI distributed, add the PARTITION_INDEX
         if _CheckIsDistributed():
             target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+
+        auxiliary_solver_utilities.AddVariables(self.main_model_part, self.settings["auxiliary_variables_list"])
 
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Variables ADDED")
 
