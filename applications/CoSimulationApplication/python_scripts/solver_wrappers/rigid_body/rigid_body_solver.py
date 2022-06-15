@@ -427,6 +427,11 @@ class RigidBodySolver:
         # This is a very big TODO!
         reaction = self.C.dot(v - v_root) + self.K.dot(x - x_root)
 
+        # Inactive dofs should have a zero reaction, in case they were coupled by mistake
+        for index, dof in enumerate(self.available_dofs):
+            if dof not in self.active_dofs:
+                reaction[index] = 0
+
         return reaction
 
 
