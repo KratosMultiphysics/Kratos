@@ -20,6 +20,7 @@ scripts/*.sh
 scripts/*.bat
 build/*
 bin/*
+!scripts/standard_configure_core.bat
 
 # Times files
 *.time
