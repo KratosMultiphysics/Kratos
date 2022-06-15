@@ -5,8 +5,8 @@
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
 //                                                                                         |_|   |_|
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Fernando Rastellini
@@ -23,6 +23,8 @@
 #include "custom_constitutive/rule_of_mixtures_law.h"
 #include "constitutive_laws_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -302,10 +304,8 @@ bool& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     rValue = false;
 
     for (auto& p_law : mConstitutiveLaws) {
-        if (p_law->Has(rThisVariable)) {
-            p_law->GetValue(rThisVariable, rValue);
+        if (p_law->GetValue(rThisVariable, rValue))
             break;
-        }
     }
 
     return rValue;
@@ -344,32 +344,13 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
 {
     // We combine the values of the layers
     rValue = 0.0;
-    // KRATOS_WATCH(DAMAGE)
-    // KRATOS_WATCH(UNIAXIAL_STRESS)
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        // this->VolumetricParticipationTransition(rThisVariable, i_layer, p_law);
         const double factor = mCombinationFactors[i_layer];
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 
-        // KRATOS_WATCH(p_law)
-        // KRATOS_WATCH(i_layer)
-        // double damage_saved;
-        // if (rThisVariable == DAMAGE) {
-        //     p_law->GetValue(rThisVariable, damage_saved);
-        //     KRATOS_WATCH(damage_saved)
-        // }
-
-        //This change allows to correctly compute the variables that come from just one law, i.e. damage, plastic dissipation
         double aux_value;
-        if (rThisVariable == UNIAXIAL_STRESS) {
-            p_law->GetValue(rThisVariable, aux_value);
-            rValue += factor * aux_value;
-        } else {
-            if (p_law->Has(rThisVariable)) {
-                p_law->GetValue(rThisVariable, aux_value);
-                rValue += aux_value;
-            }
-        }
+        p_law->GetValue(rThisVariable, aux_value);
+        rValue += aux_value * factor;
     }
 
     return rValue;
@@ -480,8 +461,7 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     // We set the value in all layers
 
     for (auto& p_law : mConstitutiveLaws) {
-        if (p_law->Has(rThisVariable))
-            p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+        p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
 
@@ -498,8 +478,7 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     // We set the value in all layers
 
     for (auto& p_law : mConstitutiveLaws) {
-        if (p_law->Has(rThisVariable))
-            p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+        p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
 
@@ -515,10 +494,10 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
 {
     // We set the propotional value in all layers
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+        const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 
-        if (p_law->Has(rThisVariable))
-            p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+        p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
     }
 }
 
@@ -534,10 +513,10 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
 {
     // We set the propotional value in all layers
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+        const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 
-        if (p_law->Has(rThisVariable))
-            p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+        p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
     }
 }
 
@@ -553,10 +532,10 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
 {
     // We set the propotional value in all layers
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+        const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 
-        if (p_law->Has(rThisVariable))
-            p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+        p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
     }
 }
 
@@ -572,10 +551,10 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
 {
     // We set the propotional value in all layers
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+        const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 
-        if (p_law->Has(rThisVariable))
-            p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+        p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
     }
 }
 
@@ -591,10 +570,10 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
 {
     // We set the propotional value in all layers
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+        const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 
-        if (p_law->Has(rThisVariable))
-            p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+        p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
     }
 }
 
@@ -614,38 +593,17 @@ double& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     // We combine the value of each layer
     rValue = 0.0;
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
         const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         Properties& r_prop = *(it_prop_begin + i_layer);
-        // KRATOS_WATCH(factor)
 
         rParameterValues.SetMaterialProperties(r_prop);
         double aux_value;
-
-        //This change allows to correctly compute the variables that come from just one law, i.e. damage, plastic dissipation
-        if (rThisVariable == FATIGUE_REDUCTION_FACTOR){
-                if (i_layer == 0){
-                    p_law->CalculateValue(rParameterValues,UNIAXIAL_STRESS, aux_value);
-                    rValue = aux_value;
-                }
-        } else if (rThisVariable == WOHLER_STRESS){
-                if (i_layer == 1){
-                    p_law->CalculateValue(rParameterValues,UNIAXIAL_STRESS, aux_value);
-                    rValue = aux_value;
-                }
-        } else if (rThisVariable == UNIAXIAL_STRESS) {
-                p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
-                // KRATOS_WATCH(aux_value)
-                rValue += factor * aux_value;
-        } else {
-                if (p_law->Has(rThisVariable)) {
-                    p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
-                    rValue += aux_value;
-                }
-            }
+        p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
+        rValue += factor * aux_value;
     }
+
     // Reset properties
     rParameterValues.SetMaterialProperties(r_material_properties);
 
@@ -987,6 +945,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
     Flags& r_flags = rValues.GetOptions();
 
     // Previous flags saved
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
@@ -1000,12 +959,8 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
 
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
-        p_law->CalculateMaterialResponsePK2(rValues);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
 
     // The global strain vector, constant
@@ -1047,13 +1002,14 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
         }
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
 
-        // Previous flags restored
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-
         if (flag_const_tensor) {
             this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
         }
+
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
     }
 
     KRATOS_CATCH("");
@@ -1073,6 +1029,7 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
     // Previous flags saved
     const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -1084,12 +1041,8 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
 
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
-        p_law->CalculateMaterialResponsePK2(rValues);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
 
     // The global strain vector, constant
@@ -1119,7 +1072,7 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
             noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
 
             rValues.SetMaterialProperties(r_prop);
-            p_law->CalculateMaterialResponseKirchhoff(rValues);
+            p_law->CalculateMaterialResponsePK2(rValues);
 
             // we return the stress and constitutive tensor to the global coordinates
             rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
@@ -1129,15 +1082,28 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
             rValues.SetMaterialProperties(r_material_properties);
             noalias(rValues.GetStrainVector()) = strain_vector;
         }
-        noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
+        Vector &r_stress_vector = rValues.GetStressVector();
+        noalias(r_stress_vector) = auxiliar_stress_vector;
+
+        if (rValues.IsSetDeterminantF()) {
+            // we push forward the stress
+            Matrix stress_matrix(Dimension, Dimension);
+            noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor(r_stress_vector);
+            ContraVariantPushForward(stress_matrix, rValues.GetDeformationGradientF()); // Kirchhoff
+            noalias(r_stress_vector) = MathUtils<double>::StressTensorToVector( stress_matrix, r_stress_vector.size() );
+        }
+
+        if (flag_const_tensor) {
+            this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
+            // push forward Constitutive tangent tensor
+            if (rValues.IsSetDeterminantF())
+                PushForwardConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rValues.GetDeformationGradientF());
+        }
 
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-
-        if (flag_const_tensor) {
-            this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_Kirchhoff);
-        }
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
     }
 
     KRATOS_CATCH("");
@@ -1169,20 +1135,26 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK1(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
         p_law->InitializeMaterialResponsePK1(rValues);
-        if (i_layer == 0){
-            // Variable<double>& current_damage;
-            // double DAMAGE;
-            // p_law->GetValue(DAMAGE,current_damage);
-            this->VolumetricParticipationTransition(DAMAGE, i_layer, p_law);
-        }
     }
     rValues.SetMaterialProperties(r_material_properties);
 }
@@ -1194,20 +1166,26 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK2(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
         p_law->InitializeMaterialResponsePK2(rValues);
-        if (i_layer == 0){
-            // Variable<double>& current_damage;
-            // double DAMAGE;
-            // p_law->GetValue(DAMAGE,current_damage);
-            this->VolumetricParticipationTransition(DAMAGE, i_layer, p_law);
-        }
     }
     rValues.SetMaterialProperties(r_material_properties);
 }
@@ -1219,20 +1197,26 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseKirchhoff(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
-        p_law->InitializeMaterialResponseKirchhoff(rValues);
-        if (i_layer == 0){
-            // Variable<double>& current_damage;
-            // double DAMAGE;
-            // p_law->GetValue(DAMAGE,current_damage);
-            this->VolumetricParticipationTransition(DAMAGE, i_layer, p_law);
-        }
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+        p_law->InitializeMaterialResponsePK2(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
 }
@@ -1244,20 +1228,26 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseCauchy(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
-        p_law->InitializeMaterialResponseCauchy(rValues);
-        if (i_layer == 0){
-            // Variable<double>& current_damage;
-            // double DAMAGE;
-            // p_law->GetValue(DAMAGE,current_damage);
-            this->VolumetricParticipationTransition(DAMAGE, i_layer, p_law);
-        }
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+        p_law->InitializeMaterialResponsePK2(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
 }
@@ -1269,35 +1259,76 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
         p_law->FinalizeMaterialResponsePK1(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
+    // Previous flags restored
+    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 }
 
-template<unsigned int TDim>
+
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
         p_law->FinalizeMaterialResponsePK2(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
+    // Previous flags restored
+    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 }
 
 /***********************************************************************************/
@@ -1307,16 +1338,36 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
-        p_law->FinalizeMaterialResponseKirchhoff(rValues);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+        p_law->FinalizeMaterialResponsePK2(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
+    // Previous flags restored
+    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 }
 
 /***********************************************************************************/
@@ -1326,16 +1377,36 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
-        p_law->FinalizeMaterialResponseCauchy(rValues);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+        p_law->FinalizeMaterialResponsePK2(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
+    // Previous flags restored
+    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 }
 
 /***********************************************************************************/
@@ -1416,19 +1487,15 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateRotationMatrix(
 
     if (rMaterialProperties.Has(LAYER_EULER_ANGLES)) {
         const Vector layers_euler_angles = rMaterialProperties[LAYER_EULER_ANGLES];
-        const double euler_angle_phi     = layers_euler_angles(3*Layer);
-        const double euler_angle_theta   = layers_euler_angles(3*Layer + 1);
-        const double euler_angle_hi      = layers_euler_angles(3*Layer + 2);
+        const double euler_angle_phi     = layers_euler_angles[3*Layer];
+        const double euler_angle_theta   = layers_euler_angles[3*Layer + 1];
+        const double euler_angle_hi      = layers_euler_angles[3*Layer + 2];
 
         BoundedMatrix<double, 3, 3>  rotation_matrix;
 
         if (std::abs(euler_angle_phi) + std::abs(euler_angle_theta) + std::abs(euler_angle_hi) > machine_tolerance) {
-            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(euler_angle_phi,
-                                                                           euler_angle_theta,
-                                                                           euler_angle_hi,
-                                                                           rotation_matrix);
-            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rotation_matrix,
-                                                                                rRotationMatrix);
+            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(euler_angle_phi, euler_angle_theta, euler_angle_hi, rotation_matrix);
+            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rotation_matrix, rRotationMatrix);
         } else {
             noalias(rRotationMatrix) = IdentityMatrix(VoigtSize, VoigtSize);
         }
@@ -1463,123 +1530,40 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateTangentTensor(ConstitutiveLaw::Pa
 /***********************************************************************************/
 
 template<unsigned int TDim>
-void ParallelRuleOfMixturesLaw<TDim>::VolumetricParticipationTransition
-(
-        const Variable<double>& rThisVariable,
-        const IndexType Layer,
-        const ConstitutiveLaw::Pointer PLaw
-)
+void ParallelRuleOfMixturesLaw<TDim>::CalculateAlmansiStrain(ConstitutiveLaw::Parameters& rValues)
 {
-    // // KRATOS_WATCH(Layer)
-    // double damage_saved;
-    // double initial_combination_factor = mInitialCombinationFactor;
-    // double final_combination_factor = 1.0;
+    // Some auxiliar values
+    const SizeType dimension = WorkingSpaceDimension();
+    Vector& r_strain_vector = rValues.GetStrainVector();
 
-    // double previous_damage = mPreviousDamage;
-    // double previous_plastic_dissipation = mPreviousPlasticDissipation;
+    Matrix F(dimension, dimension);
+    noalias(F) = rValues.GetDeformationGradientF();
+    Matrix B_tensor;
+    B_tensor.resize(dimension, dimension, false);
+    noalias(B_tensor) = prod(F, trans(F));
 
-    // double plastic_dissipation_now;
-    // double damage_now;
-
-    // ConstitutiveLaw::Pointer p_law_plas = mConstitutiveLaws[1];
-    // p_law_plas->GetValue(PLASTIC_DISSIPATION, plastic_dissipation_now);
-
-    // if (rThisVariable == DAMAGE) {
-    //     PLaw->GetValue(rThisVariable, damage_now);
-    // }
-    // // if (rThisVariable == PLASTIC_DISSIPATION) {
-    // //     PLaw->GetValue(rThisVariable, plastic_dissipation_now);
-    // // }
-
-    // if (Layer == 0){
-    //     if (rThisVariable == DAMAGE) {
-    //         // KRATOS_WATCH("HERE")
-    //         PLaw->GetValue(rThisVariable, damage_saved);
-    //     // if (rThisVariable == DAMAGE_DISSIPATION) {
-    //     //     PLaw->GetValue(rThisVariable, damage_saved);
-    //         // KRATOS_WATCH(damage_saved)
-    //         // //exp transition
-    //         // mCombinationFactors[0] = initial_combination_factor * std::exp(damage_saved * std::log(final_combination_factor/initial_combination_factor));
-    //         // mCombinationFactors[1] = 1.0 - mCombinationFactors[0];
-    //         // //linear transition
-    //         // mCombinationFactors[0] = initial_combination_factor * (1.0 - damage_saved) + final_combination_factor * damage_saved;
-    //         // mCombinationFactors[1] = 1.0 - mCombinationFactors[0];
-    //         // mCombinationFactors[1] = (1.0 - initial_combination_factor) * (1.0 - damage_saved) + (1.0 - final_combination_factor) * damage_saved;
-    //         // //Potencial transition
-    //         // const double order = 5.0;
-    //         // mCombinationFactors[0] = (final_combination_factor - initial_combination_factor) * std::pow(damage_saved, order) + initial_combination_factor;
-    //         // mCombinationFactors[1] = (initial_combination_factor - final_combination_factor) * std::pow(damage_saved, order) + (1.0 - initial_combination_factor);
-    //         // INVERSE Potencial transition
-    //         // const double order = 11.0; //los casos del paper se hacen con orden 3
-    //         // mCombinationFactors[0] = (final_combination_factor - initial_combination_factor) * std::pow(damage_saved - 1.0, order) + final_combination_factor;
-    //         // mCombinationFactors[1] = (initial_combination_factor - final_combination_factor)  * std::pow(damage_saved - 1.0, order) + (1.0 - final_combination_factor);
-
-    //         // if (damage_now > 0.55){
-    //         //     mCombinationFactors[0] = 0.5;
-    //         //     mCombinationFactors[1] = 0.5;
-    //         // }
-
-    //         // //Esta parte corresponde a una prueba que se hizo combrobando si se podía conseguir el no volver hacia atrás mirando la evolución en las variables energeticas de dam y plas
-    //         // KRATOS_WATCH("FIRST")
-    //         // KRATOS_WATCH(plastic_dissipation_now)
-    //         // double plastic_dissipation_now_NEW = 2.0 * 0.43 / (3.48e6) * (1.0 - std::sqrt(1.0 - plastic_dissipation_now));
-    //         // KRATOS_WATCH("SECOND")
-    //         // KRATOS_WATCH(plastic_dissipation_now_NEW)
-    //         // if (damage_now > 0.55){
-    //         //     mCombinationFactors[0] = 0.5;
-    //         //     mCombinationFactors[1] = 0.5;
-    //         //     if(mCombinationFactors[0] * damage_now <= mPreviousDamage){
-    //         //         mCombinationFactors[0] = mPreviousDamage / damage_now;
-    //         //         mCombinationFactors[1] = 1.0 - mCombinationFactors[0];
-    //         //     } else if(mCombinationFactors[1] * plastic_dissipation_now_NEW <= mPreviousPlasticDissipation){
-    //         //         mCombinationFactors[1] = mPreviousPlasticDissipation / plastic_dissipation_now_NEW;
-    //         //         mCombinationFactors[0] = 1.0 - mCombinationFactors[1];
-    //         //     }
-    //         // }
-    //         // KRATOS_WATCH(mCombinationFactors[0])
-    //         // KRATOS_WATCH(mCombinationFactors[1])
-    //         KRATOS_WATCH(damage_now)
-    //         // KRATOS_WATCH(plastic_dissipation_now)
-    //         // KRATOS_WATCH(mCombinationFactors[0] * damage_now)
-    //         // KRATOS_WATCH(mCombinationFactors[1] * plastic_dissipation_now_NEW)
-    //         // KRATOS_WATCH(previous_damage)
-    //         // KRATOS_WATCH(previous_plastic_dissipation)
-    //         // KRATOS_WATCH(mPreviousDamage)
-    //         // KRATOS_WATCH(mPreviousPlasticDissipation)
-    //         // KRATOS_WATCH(mCombinationFactors[0])
-    //         // KRATOS_WATCH(mCombinationFactors[1])
-
-    //         // mPreviousDamage = mCombinationFactors[0] * damage_now ;
-    //         // mPreviousPlasticDissipation = mCombinationFactors[1] * plastic
-
-    //         //CONDICION PARA NO MORE DAM OR NO MORE PLAS
-    //         double damage_threshold = 0.4;
-
-    //         if (damage_now < damage_threshold){
-    //             mInitialPlasticDissipation = plastic_dissipation_now;
-    //             KRATOS_WATCH("update Initial kp")
-    //             KRATOS_WATCH(plastic_dissipation_now)
-    //         }
-    //         if (damage_now > damage_threshold){
-    //             //const damage
-    //             // mCombinationFactors[0] = damage_threshold / damage_now * mInitialCombinationFactor;
-    //             // mCombinationFactors[1] = 1.0 - damage_threshold / damage_now * mInitialCombinationFactor;
-    //             //const plast
-    //             //estos valores son la conversion a kp de la ep pero sin eu porque se tacha
-    //             double ep_1 = 1.0 - std::sqrt(1.0 - mInitialPlasticDissipation);
-    //             double ep_2 = 1.0 - std::sqrt(1.0 - plastic_dissipation_now);
-    //             mCombinationFactors[0] = ((1.0 - mInitialCombinationFactor) * ep_1 - (1.0 - mInitialCombinationFactor * damage_threshold) * ep_2) / (damage_now * (1.0 - mInitialCombinationFactor) * ep_1 - (1.0 - mInitialCombinationFactor * damage_threshold) * ep_2);
-    //             mCombinationFactors[1] = 1.0 - (((1.0 - mInitialCombinationFactor) * ep_1 - (1.0 - mInitialCombinationFactor * damage_threshold) * ep_2) / (damage_now * (1.0 - mInitialCombinationFactor) * ep_1 - (1.0 - mInitialCombinationFactor * damage_threshold) * ep_2));
-    //             KRATOS_WATCH(plastic_dissipation_now)
-    //             KRATOS_WATCH(mCombinationFactors[0])
-    //             KRATOS_WATCH(mCombinationFactors[1])
-    //             //CASO LINEAL ep = (1-sqrt(1-kp))*ef
-    //         }
-
-
-    //     }
-    // }
+    AdvancedConstitutiveLawUtilities<6>::CalculateAlmansiStrain(B_tensor, r_strain_vector);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::CalculateGreenLagrangeStrain(ConstitutiveLaw::Parameters& rValues)
+{
+    // Some auxiliar values
+    const SizeType dimension = WorkingSpaceDimension();
+    Vector& r_strain_vector = rValues.GetStrainVector();
+
+    Matrix F(dimension, dimension);
+    noalias(F) = rValues.GetDeformationGradientF();
+    Matrix C_tensor;
+    C_tensor.resize(dimension, dimension, false);
+    noalias(C_tensor) = prod(trans(F),F);
+
+    ConstitutiveLawUtilities<6>::CalculateGreenLagrangianStrain(C_tensor, r_strain_vector);
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
