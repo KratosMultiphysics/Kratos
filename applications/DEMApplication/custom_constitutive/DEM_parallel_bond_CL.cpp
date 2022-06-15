@@ -337,15 +337,29 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
     int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
     double BondedLocalElasticContactForce2 = 0.0;
     const double bonded_indentation = indentation - mInitialIndentationForBondedPart;                                                                                                          
-    
-    
-
     double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
+    const double& bond_sigma_max = (*mpProperties)[BOND_SIGMA_MAX];
+    double bond_current_sigma = 0.0;
+    const double& bond_rotational_moment_coefficient =(*mpProperties)[BOND_ROTATIONAL_MOMENT_COEFFICIENT];
+
+    if (!failure_type){ //if the bond is not broken
+        BondedLocalElasticContactForce2 = kn_el * bonded_indentation;
+    } else { //else the bond is broken
+        BondedLocalElasticContactForce2 = 0.0;
+    }
+
+    
     ComputeNormalUnbondedForce(unbonded_indentation);
 
     KRATOS_CATCH("")  
 
-}
+} // CalculateNormalForces
+
+
+//Moment calculation
+
+
+//Bond Failure check
 
 
 

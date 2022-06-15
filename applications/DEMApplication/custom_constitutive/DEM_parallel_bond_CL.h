@@ -164,6 +164,8 @@ namespace Kratos{
         double mUnbondedEquivViscoDampCoeffNormal = 0.0;
         double mInitialIndentationForBondedPart = 0.0;
         double mAccumulatedBondedTangentialLocalDisplacement[2] = {0.0};
+        double mBondedLocalContactNormalTorque[3] = {0.0};
+        double mBondedLocalContactTangentTorque[3] = {0.0};
 
     protected:
 
