@@ -13,8 +13,8 @@
 //                   Alfredo Huespe
 //  Collaborator:    Vicente Mataix Ferrandiz
 
-#if !defined(KRATOS_SMALL_STRAIN_J2_PLASTIC_3D_H_INCLUDED)
-#define KRATOS_SMALL_STRAIN_J2_PLASTIC_3D_H_INCLUDED
+#if !defined(KRATOS_SMALL_STRAIN_PLASTIC_3D_ATH_H_INCLUDED)
+#define KRATOS_SMALL_STRAIN_PLASTIC_3D_ATH_H_INCLUDED
 
 // System includes
 
@@ -45,7 +45,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class LinearJ2Plasticity3D
+ * @class LinearPlasticity3DAth
  * @ingroup StructuralMechanicsApplication
  * @brief Defines a Simo J2 plasticity constitutive law in 3D
  * @details This material law is defined by the parameters:
@@ -61,7 +61,7 @@ namespace Kratos
  * @author Manuel Caicedo
  * @author Alfredo Huespe
  */
-class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SmallStrainJ2Plasticity3D
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SmallStrainPlasticity3DAth
     : public ConstitutiveLaw
 {
 public:
@@ -73,8 +73,8 @@ public:
     typedef ConstitutiveLaw BaseType;
     typedef std::size_t SizeType;
 
-    // Counted pointer of SmallStrainJ2Plasticity3D
-    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainJ2Plasticity3D);
+    // Counted pointer of SmallStrainPlasticity3DAth
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainPlasticity3DAth);
 
     ///@}
     ///@name Lyfe Cycle
@@ -83,17 +83,17 @@ public:
     /**
      * @brief Default constructor.
      */
-    SmallStrainJ2Plasticity3D();
+    SmallStrainPlasticity3DAth();
 
     /**
      * @brief Copy constructor.
      */
-    SmallStrainJ2Plasticity3D(const SmallStrainJ2Plasticity3D& rOther);
+    SmallStrainPlasticity3DAth(const SmallStrainPlasticity3DAth& rOther);
 
     /**
      * @brief Destructor.
      */
-    ~SmallStrainJ2Plasticity3D() override;
+    ~SmallStrainPlasticity3DAth() override;
 
     /**
      * @brief Clone function
@@ -315,6 +315,8 @@ protected:
 
     Vector mPlasticStrain; /// The previous plastic strain (one for each of the strain components)
     double mAccumulatedPlasticStrain; /// The previous accumulated plastic strain
+    double mhmax; //previous value of hardening variable hmax
+    double mhmin; //previous value of hardening variable hmin
 
     ///@}
     ///@name Protected Operators
@@ -333,7 +335,9 @@ protected:
     using ConstitutiveLaw::CalculateStressResponse;
     virtual void CalculateStressResponse(ConstitutiveLaw::Parameters& rValues,
                                  Vector& rPlasticStrain,
-                                 double& rAccumulatedPlasticStrain );
+                                 double& rAccumulatedPlasticStrain,
+                                 double& rhmax,
+                                 double& rhmin);
 
     /**
      * @brief This method computes the yield function
@@ -341,56 +345,111 @@ protected:
      * @param rMaterialProperties The properties of the current material considered
      * @return The trial yield function (after update)
      */
-    double YieldFunction(
-        const double NormDeviationStress,
-        const Properties& rMaterialProperties,
-        const double AccumulatedPlasticStrain
-        );
+    double YieldFunction(const Vector StressVector,
+                         const Properties& rMaterialProperties,
+                         const double hmax,
+                         const double hmin);
 
-    /**
-     * @brief This method computes the increment of Gamma
-     * @param NormStressTrial The norm of the stress trial
-     * @param rMaterialProperties The properties of the material
-     * @return The increment of Gamma computed
-     */
-    double GetAccumPlasticStrainRate(const double NormStressTrial, const Properties &rMaterialProperties,
-                                     const double AccumulatedPlasticStrainOld);
 
-    /**
-     * @brief This method gets the saturation hardening parameter
-     * @param rMaterialProperties The properties of the material
-     * @return The saturation hardening parameter
-     */
-    double GetSaturationHardening(const Properties& rMaterialProperties, const double);
 
-    /**
-     * @brief This method computes the plastic potential
-     * @param rMaterialProperties The properties of the material
-     * @return The plastic potential
-     */
-    double GetPlasticPotential(const Properties& rMaterialProperties,
-            const double accumulated_plastic_strain);
-
-    /**
-     * @brief This method computes the constitutive tensor
-     * @param DeltaGamma The increment on the Gamma parameter
-     * @param NormStressTrial The norm of the stress trial
-     * @param rYFNormalVector The yield function normal vector
-     * @param rMaterialProperties The properties of the material
-     * @param rTMatrix The elastic tensor/matrix to be computed
-     */
-    virtual void CalculateTangentMatrix(const double DeltaGamma, const double NormStressTrial,
-                                        const Vector &rYFNormalVector,
-                                        const Properties &rMaterialProperties,
-                                        const double AccumulatedPlasticStrain, Matrix &rTMatrix);
-
+    
     /**
      * @brief This method computes the elastic tensor
      * @param rElasticMatrix The elastic tensor/matrix to be computed
      * @param rMaterialProperties The properties of the material
      */
     virtual void CalculateElasticMatrix(const Properties &rMaterialProperties, Matrix &rElasticMatrix);
+    
+    /**
+     * @brief This method computes the invariants of stress matrix
+     * @param StressVector Stresses in vector form
+     * @param I1 first invariant of stress
+     * @param J2 second invariant of deviator stress
+     */
+    void GetInvariants(const Vector& StressVector,
+                       double& I1,
+                       double& J2);
 
+     /**
+     * @brief This method computes principal values of stresses/strains
+     * @param StressVector Stresses in vector form
+     * @param Pri_Values principal values in vector form
+     * @param MaxValue maximum of the principal values
+     * @param MinValue minimum of the principal values
+     */
+    void GetEigenValues(const Vector& StressVector,
+                        Vector& Pri_Values,
+                        double& MaxValue,
+                        double& MinValue); 
+
+    /**
+     * @brief This method computes dSprdS
+     * @param StressVector Stresses in vector form
+     * @param Spr principal values
+     */
+    void ComputedSprdS(const Vector StressVector,
+                       const Vector Spr,
+                       Matrix& dSprdS);    
+
+    /**
+     * @brief This method assemble a submatrix to a matrix
+     * @param rOutput assembeled matrix
+     * @param rInput
+     * @param StartRow
+     * @param StartCol
+     */
+    void AssembleSubMatrixToMatrix(Matrix& rOutput, 
+                                   const Matrix& rInput, 
+                                   const int StartRowIndex, 
+                                   const int StartColIndex);
+
+    /**
+     * @brief This method assemble a vector segment to a vector
+     */
+    Vector& AddSegmentToVector(Vector& rOutput, 
+                               const Vector& rInput, 
+                               const size_t StartRowIndex);
+
+    /**
+    * @brief This method assemble a submatrix to a matrix
+    * @param rOutput assembeled matrix
+    * @param rInput
+    * @param StartRow
+    * @param StartCol
+    */
+    void GetDerivatives(const Vector StressVector, 
+                        const Properties &rMaterialProperties,
+                        Vector& PlasticStrain,
+                        const double& DelLamda,
+                        Vector& dQdS, 
+                        Matrix& dQ2ddS,
+                        Vector& dFdS, 
+                        double& dFdlam,
+                        double& hmax,
+                        double& hmin);
+    /**
+    * @brief This method calculates the stess weight factor
+    * @param w stess weight factor
+    * @param s_pr vectpr of principal stresses
+    */
+    void GetStressWeightFactor(double &w, 
+                               const Vector &s_pr) const ; 
+
+    /**
+    * @brief This method a column to a matrix
+    */
+    void AddColumnToMatrix(Matrix& rOutput, 
+                           const Vector& rInput, 
+                           const int StartRowIndex, 
+                           const int StartColIndex);
+    
+    /**
+    * @brief This method a row to a matrix
+    */
+    void AddRowToMatrix(Matrix& rOutput, 
+                        const Vector& rInput, 
+                        const int StartRowIndex, 
+                        const int StartColIndex);
     ///@}
     ///@name Protected  Access
     ///@{
@@ -438,6 +497,6 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-}; // Class SmallStrainJ2Plasticity3D
+}; // Class SmallStrainPlasticity3DAth
 } // namespace Kratos.
 #endif
