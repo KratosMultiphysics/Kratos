@@ -473,6 +473,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     const DistanceCalculationFluxBasedElement<2,3> mDistanceCalculationFluxBasedElement2D3N;
     const DistanceCalculationFluxBasedElement<3,4> mDistanceCalculationFluxBasedElement3D4N;
+    const DistanceCalculationFluxBasedElement<3,8> mDistanceCalculationFluxBasedElement3D8N;
 
     const EdgeBasedGradientRecoveryElement<2> mEdgeBasedGradientRecoveryElement2D2N;
     const EdgeBasedGradientRecoveryElement<3> mEdgeBasedGradientRecoveryElement3D2N;
