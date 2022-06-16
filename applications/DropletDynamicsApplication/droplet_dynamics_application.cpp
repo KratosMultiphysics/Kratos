@@ -32,5 +32,7 @@ void KratosDropletDynamicsApplication::Register()
 {
      KRATOS_INFO("") << "Initializing KratosDropletDynamicsApplication..." << std::endl;
 
+    // External interfacial force, e.g. for including the electromagentic coupling
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(EXT_INT_FORCE)
 }
 }  // namespace Kratos.
