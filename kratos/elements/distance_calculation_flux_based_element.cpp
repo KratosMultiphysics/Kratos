@@ -494,9 +494,9 @@ void DistanceCalculationFluxBasedElement< TDim, TNumNodes >::AddExplicitContribu
 
 
 // Class template instantiation
-template class  KRATOS_API(KRATOS_CORE) DistanceCalculationFluxBasedElement<2,3>;
-template class  KRATOS_API(KRATOS_CORE) DistanceCalculationFluxBasedElement<3,4>;
-template class  KRATOS_API(KRATOS_CORE) DistanceCalculationFluxBasedElement<3,8>;
+template class  DistanceCalculationFluxBasedElement<2,3>;
+template class  DistanceCalculationFluxBasedElement<3,4>;
+template class  DistanceCalculationFluxBasedElement<3,8>;
 
 
 } // namespace Kratos
