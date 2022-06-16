@@ -46,6 +46,24 @@ double TotalLagrangianMixedDetJElement<3>::CalculateShearModulus(const Matrix &r
     return (4.0 / 33.0)*(rC(0,0) - rC(0,1) - rC(0,2) + rC(1,1) - rC(1,2) + rC(2,2) + (3.0/4.0)*(rC(3,3) + rC(4,4) + rC(5,5)));
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<std::size_t TDim>
+double TotalLagrangianMixedDetJElement<TDim>::CalculateBulkModulus(const Matrix &rC) const
+{
+    double bulk_modulus = 0.0;
+    for (SizeType i = 0; i < TDim; ++i) {
+        for (SizeType j = 0; j < TDim; ++j) {
+            bulk_modulus += rC(i,j);
+        }
+    }
+    return bulk_modulus / std::pow(TDim, 2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<std::size_t TDim>
 Element::Pointer TotalLagrangianMixedDetJElement<TDim>::Create(
     IndexType NewId,
@@ -359,9 +377,10 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
     rRightHandSideVector.clear();
 
     // Calculate stabilization constant
-    const double c_tau = 2.0;
+    const double c_tau_u = 2.0;
+    const double c_tau_th = 4.0;
     const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
-    const double aux_tau = c_tau * std::pow(h,2) / 2.0;
+    const double aux_tau = c_tau_u * std::pow(h,2) / 2.0;
 
     // Set the auxiliary references matching the automatic differentiation symbols
     array_1d<double,3> b_gauss;
@@ -397,9 +416,11 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
         // Note that this already includes the density computed in the reference configuration
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
-        // Calculate the stabilization constant
+        // Calculate the stabilization constants
         double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
-        const double tau = aux_tau / mu;
+        double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        const double tau_u = aux_tau / mu;
+        const double tau_th = (c_tau_th * mu) / (mu + kappa);
 
         // Calculate and add the LHS Gauss point contributions
         //substitute_lhs_2D_3N
@@ -455,9 +476,10 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
     rRightHandSideVector.clear();
 
     // Calculate stabilization constant
-    const double c_tau = 2.0;
+    const double c_tau_u = 2.0;
+    const double c_tau_th = 4.0;
     const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
-    const double aux_tau = c_tau * std::pow(h,2) / 2.0;
+    const double aux_tau = c_tau_u * std::pow(h,2) / 2.0;
 
     // Set the auxiliary references matching the automatic differentiation symbols
     array_1d<double,3> b_gauss;
@@ -495,7 +517,9 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
 
         // Calculate the stabilization constant
         double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
-        const double tau = aux_tau / mu;
+        double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        const double tau_u = aux_tau / mu;
+        const double tau_th = (c_tau_th * mu) / (mu + kappa);
 
         // Calculate and add the LHS Gauss point contributions
         //substitute_lhs_3D_4N
@@ -544,9 +568,10 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
     rLeftHandSideMatrix.clear();
 
     // Calculate stabilization constant
-    const double c_tau = 2.0;
+    const double c_tau_u = 2.0;
+    const double c_tau_th = 4.0;
     const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
-    const double aux_tau = c_tau * std::pow(h,2) / 2.0;
+    const double aux_tau = c_tau_u * std::pow(h,2) / 2.0;
 
     // Set the auxiliary references matching the automatic differentiation symbols
     array_1d<double,3> b_gauss;
@@ -583,7 +608,9 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
 
         // Calculate the stabilization constant
         double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
-        const double tau = aux_tau / mu;
+        double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        const double tau_u = aux_tau / mu;
+        const double tau_th = (c_tau_th * mu) / (mu + kappa);
 
         // Calculate and add the LHS Gauss point contributions
         //substitute_lhs_2D_3N
@@ -629,9 +656,10 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
     rLeftHandSideMatrix.clear();
 
     // Calculate stabilization constant
-    const double c_tau = 2.0;
+    const double c_tau_u = 2.0;
+    const double c_tau_th = 4.0;
     const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
-    const double aux_tau = c_tau * std::pow(h,2) / 2.0;
+    const double aux_tau = c_tau_u * std::pow(h,2) / 2.0;
 
     // Set the auxiliary references matching the automatic differentiation symbols
     array_1d<double,3> b_gauss;
@@ -668,7 +696,9 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
 
         // Calculate the stabilization constant
         double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
-        const double tau = aux_tau / mu;
+        double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        const double tau_u = aux_tau / mu;
+        const double tau_th = (c_tau_th * mu) / (mu + kappa);
 
         // Calculate and add the LHS Gauss point contributions
         //substitute_lhs_3D_4N
@@ -714,9 +744,10 @@ void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
     rRightHandSideVector.clear();
 
     // Calculate stabilization constant
-    const double c_tau = 2.0;
+    const double c_tau_u = 2.0;
+    const double c_tau_th = 4.0;
     const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
-    const double aux_tau = c_tau * std::pow(h,2) / 2.0;
+    const double aux_tau = c_tau_u * std::pow(h,2) / 2.0;
 
     // Set the auxiliary references matching the automatic differentiation symbols
     array_1d<double,3> b_gauss;
@@ -753,7 +784,9 @@ void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
 
         // Calculate the stabilization constant
         double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
-        const double tau = aux_tau / mu;
+        double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        const double tau_u = aux_tau / mu;
+        const double tau_th = (c_tau_th * mu) / (mu + kappa);
 
         // Calculate and add the RHS Gauss point contribution
         //substitute_rhs_2D_3N
@@ -799,9 +832,10 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
     rRightHandSideVector.clear();
 
     // Calculate stabilization constant
-    const double c_tau = 2.0;
+    const double c_tau_u = 2.0;
+    const double c_tau_th = 4.0;
     const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
-    const double aux_tau = c_tau * std::pow(h,2) / 2.0;
+    const double aux_tau = c_tau_u * std::pow(h,2) / 2.0;
 
     // Set the auxiliary references matching the automatic differentiation symbols
     array_1d<double,3> b_gauss;
@@ -839,7 +873,9 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
 
         // Calculate the stabilization constant
         double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
-        const double tau = aux_tau / mu;
+        double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        const double tau_u = aux_tau / mu;
+        const double tau_th = (c_tau_th * mu) / (mu + kappa);
 
         // Calculate and add the RHS Gauss point contribution
         //substitute_rhs_3D_4N

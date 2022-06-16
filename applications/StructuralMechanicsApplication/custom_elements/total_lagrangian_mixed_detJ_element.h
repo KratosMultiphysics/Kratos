@@ -533,6 +533,14 @@ private:
     double CalculateShearModulus(const Matrix &rC) const;
 
     /**
+     * @brief Returns the bulk modulus from the given C matrix
+     * This method calculates the bulk modulus for the given constitutive matrix in Voigt notation.
+     * @param rC The constitutive matrix in Voigt notation
+     * @return double The bulk modulus
+     */
+    double CalculateBulkModulus(const Matrix &rC) const;
+
+    /**
      * @brief This method gets a value directly in the CL
      * @details Avoids code repetition
      * @param rVariable The variable we want to get
