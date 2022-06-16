@@ -45,6 +45,7 @@ namespace Kratos{
         //TODO:CHECK
         virtual double GetYoungModulusForComputingRotationalMoments(const double& equiv_young);
 
+        virtual void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
         void CalculateForces(const ProcessInfo& r_process_info,
                             double OldLocalElasticContactForce[3],
@@ -84,12 +85,13 @@ namespace Kratos{
                 int time_steps,
             const ProcessInfo& r_process_info) override;
             
-        void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
+        virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
                                 double &equiv_visco_damp_coeff_tangential,
                                 SphericContinuumParticle* element1,
                                 SphericContinuumParticle* element2,
                                 const double kn_el,
-                                const double kt_el) override;
+                                const double kt_el,
+                                int i_neighbour_count);
 
         void CalculateViscoDamping(double LocalRelVel[3],
                                 double ViscoDampingLocalContactForce[3],
@@ -150,7 +152,7 @@ namespace Kratos{
                                                     SphericContinuumParticle* element1,
                                                     SphericContinuumParticle* element2);
 
-        virtual void ComputeNormalUnbondedForce(double indentation);
+        virtual void ComputeNormalUnbondedForce(double unbonded_indentation);
 
         //TODO: remove the usefulless parameters
         double mUnbondedLocalElasticContactForce2 = 0.0;

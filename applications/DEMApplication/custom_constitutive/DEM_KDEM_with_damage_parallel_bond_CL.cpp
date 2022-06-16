@@ -401,7 +401,7 @@ namespace Kratos {
             }
         }
 
-        ComputeNormalUnbondedForce(indentation - element1->GetInitialDelta(i_neighbour_count));
+        ComputeNormalUnbondedForce(indentation);
 
         LocalElasticContactForce[2] = BondedLocalElasticContactForce2 + mUnbondedLocalElasticContactForce2;
 
