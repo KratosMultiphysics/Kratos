@@ -12,6 +12,9 @@ concurrency:
   cancel-in-progress: true
 
 
+permissions:
+  contents: read
+
 jobs:
   ubuntu-nightly:
     runs-on: ubuntu-latest
