@@ -226,7 +226,7 @@ void DistanceCalculationFluxBasedElement<TDim, TNumNodes >::CalculateDistanceSys
         }
         v_unit[i] =  v[i]/norm_2(v[i]); // |v_unit| = 1
         avg_v_unit += v_unit[i];
-        has_fixed_node += GetGeometry()[i].IsFixed(DISTANCE);
+        has_fixed_node = has_fixed_node || GetGeometry()[i].IsFixed(DISTANCE);
     }
     avg_v_unit/=static_cast<double>(NumNodes);
 

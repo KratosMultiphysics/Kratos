@@ -101,7 +101,7 @@ public:
 	FluxBasedRedistanceProcess(
 		ModelPart &rBaseModelPart,
 		typename TLinearSolver::Pointer pLinearSolver,
-		Parameters &Settings) : mrBaseModelPart(rBaseModelPart)
+		Parameters Settings) : mrBaseModelPart(rBaseModelPart)
 	{
 		KRATOS_TRY
 
