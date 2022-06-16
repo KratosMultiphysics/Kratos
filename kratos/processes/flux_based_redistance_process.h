@@ -114,7 +114,7 @@ public:
 		Settings.ValidateAndAssignDefaults(default_parameters);
 
 		//checking model part is correct;
-		Check(rBaseModelPart, Settings);
+		CheckBaseModelPart(rBaseModelPart);
 
 		// Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
 		mPartIsInitialized = false;
@@ -148,13 +148,13 @@ public:
 
 	//TODO Charlie: This has to gone if you derive from process.
 	/// Turn back information as a string.
-	virtual std::string Info() const
+	virtual std::string Info() const override
 	{
 		return "FluxBasedRedistanceProcess";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const
+	virtual void PrintInfo(std::ostream &rOStream) const override
 	{
 		rOStream << "FluxBasedRedistanceProcess";
 	}
@@ -174,8 +174,6 @@ public:
 	void Execute() override
 	{
 		KRATOS_TRY;
-
-        const int nnodes = static_cast<int>(mpModelPart->NumberOfNodes());
 
         block_for_each(mpModelPart->Nodes(), [](Node<3>& rNode){
             double& d = rNode.FastGetSolutionStepValue(DISTANCE);
@@ -282,7 +280,7 @@ public:
 
 
 
-	void Clear()
+	void Clear() override
 	{
 		mpModelPart->Nodes().clear();
 		mpModelPart->Conditions().clear();
@@ -395,7 +393,7 @@ protected:
 
 	//MISC FUNCTIONS
 
-	void Check(ModelPart &rBaseModelPart, Parameters &Settings)
+	void CheckBaseModelPart(ModelPart &rBaseModelPart)
 	{
 		// Check that there is at least one element and node in the model
 		const auto n_nodes = rBaseModelPart.NumberOfNodes();
