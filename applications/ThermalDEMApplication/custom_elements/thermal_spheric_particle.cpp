@@ -670,15 +670,14 @@ namespace Kratos
   double ThermalSphericParticle::ComputeDistanceToNeighbor(void) {
     KRATOS_TRY
 
-    double distance = 0.0;
-
     if (mNeighborType & PARTICLE_NEIGHBOR) {
       array_1d<double, 3> direction;
       noalias(direction) = GetParticleCoordinates() - GetNeighborCoordinates();
-      distance = DEM_MODULUS_3(direction);
+      return DEM_MODULUS_3(direction);
     }
     else if (mNeighborType & WALL_NEIGHBOR_CONTACT) {
       // Computing the distance again, as it is done in SphericParticle::ComputeBallToRigidFaceContactForce
+      double distance = 0.0;
       array_1d<double, 4>& weight = this->mContactConditionWeights[mNeighborIndex];
 
       // Dummy variables: not used now
@@ -689,9 +688,12 @@ namespace Kratos
       int dummy4 = 0;
 
       mNeighbor_w->ComputeConditionRelativeData(mNeighborIndex, this, dummy1, distance, weight, dummy2, dummy3, dummy4);
+
+      return distance;
     }
     else if (mNeighborType & WALL_NEIGHBOR_NONCONTACT) {
       // Computing the distance again, as it is done in SphericParticle::ComputeBallToRigidFaceContactForce
+      double distance = 0.0;
 
       // ATTENTION:
       // Weight vector defines the indexes of the wall nodes in RigidEdge2D::ComputeConditionRelativeData.
@@ -713,14 +715,12 @@ namespace Kratos
       int dummy4 = 0;
 
       mNeighbor_w->ComputeConditionRelativeData(mNeighborIndex, this, dummy1, distance, weight, dummy2, dummy3, dummy4);
-    }
 
-    // ATTENTION:
-    // If for any reason the distance remain null (some rare cases in particle-wall contact),
-    // set it to the summ of the radii of the elements (as if there is no overlap)
-    // to avoid numerical issues of using a zero distance in some formulas.
-    if (distance == 0.0)
-      distance = GetRadius() + GetNeighborRadius(); // GetNeighborRadius should return 0.0 for walls!
+      return distance;
+    }
+    else {
+      return 0.0;
+    }
 
     KRATOS_CATCH("")
   }
