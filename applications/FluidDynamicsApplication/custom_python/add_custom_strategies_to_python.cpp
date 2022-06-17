@@ -47,6 +47,9 @@
 #include "custom_strategies/schemes/simple_steady_sensitivity_builder_scheme.h"
 #include "custom_strategies/schemes/velocity_bossak_sensitivity_builder_scheme.h"
 
+// lss schemes
+#include "custom_strategies/schemes/least_squares_shadowing_bossak_forward_scheme.h"
+
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -154,6 +157,12 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     py::class_<VelocityBossakSensitivityBuilderSchemeType, typename VelocityBossakSensitivityBuilderSchemeType::Pointer, SensitivityBuilderScheme>
         (m, "VelocityBossakSensitivityBuilderScheme")
         .def(py::init<const double, const std::size_t, const std::size_t>())
+        ;
+
+    using  LeastSquaresShadowingBossakForwardSchemeType = LeastSquaresShadowingBossakForwardScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<LeastSquaresShadowingBossakForwardSchemeType, typename LeastSquaresShadowingBossakForwardSchemeType::Pointer, BaseSchemeType>
+        (m, "LeastSquaresShadowingBossakForwardScheme")
+        .def(py::init<const double, const double, const std::size_t, const std::size_t, const FluidLeastSquaresShadowingUtilities&, const Variable<double>&, const std::size_t>())
         ;
 
 }
