@@ -2,6 +2,7 @@
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+import KratosMultiphysics.ConstitutiveLawsApplication as CLA
 
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
@@ -148,6 +149,14 @@ class AnalysisStage(object):
         for process in self._GetListOfProcesses():
             process.ExecuteFinalizeSolutionStep()
 
+        self.main_model_part = self.model.GetModelPart(self.project_parameters["solver_settings"]["model_part_name"].GetString())
+        for element in self._GetSolver().GetComputingModelPart().Elements:
+            damage = element.CalculateOnIntegrationPoints(CLA.DAMAGE,self.main_model_part.ProcessInfo)
+            for i in damage:
+                if i > 2.0:
+                    element.Set(KratosMultiphysics.ACTIVE, False)
+                    break
+        
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
         """
