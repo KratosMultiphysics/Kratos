@@ -322,6 +322,7 @@ const Parameters DropletDynamicsElement<TElementData>::GetSpecifications() const
             "This element implements Navier-Stokes biphasic fluid-air formulation with a levelset-based interface representation with Variational MultiScales (VMS) stabilization. Note that any viscous behavior can be used for the fluid phase through a constitutive law. The air phase is assumed to be Newtonian. Surface tension contribution can be accounted for by setting the SURFACE_TENSION variable to true in the ProcessInfo container.
     })");
 
+
     if (Dim == 2) {
         std::vector<std::string> dofs_2d({"VELOCITY_X","VELOCITY_Y","PRESSURE"});
         specifications["required_dofs"].SetStringArray(dofs_2d);
@@ -2017,6 +2018,7 @@ void DropletDynamicsElement<TElementData>::SurfaceTension(
     // At the moment, it can be constant for the cut element
     const Vector external_int_force = this->GetValue(EXT_INT_FORCE);
 
+
     for (unsigned int intgp = 0; intgp < rInterfaceWeights.size(); ++intgp){
         const double intgp_curv = rCurvature(intgp);
         const double intgp_w = rInterfaceWeights(intgp);
@@ -2025,6 +2027,9 @@ void DropletDynamicsElement<TElementData>::SurfaceTension(
             for (unsigned int dim = 0; dim < NumNodes-1; ++dim){
                 rRHS[ i*(NumNodes) + dim ] += ( -SurfaceTensionCoefficient*intgp_curv*intgp_normal[dim]
                     + external_int_force[dim] )*intgp_w*rInterfaceShapeFunctions(intgp,i);
+
+                KRATOS_WATCH(SurfaceTensionCoefficient*intgp_curv*intgp_normal[dim])
+                KRATOS_WATCH(external_int_force[dim])
             }
         }
     }

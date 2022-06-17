@@ -150,14 +150,42 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
         #    self.settings["distance_reading_settings"]["distance_file_name"].SetString(self.settings["model_import_settings"]["input_filename"].GetString()+".post.res")
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesTwoFluidsSolver finished.")
+    def AddVariables(self):
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
+        # adding the electric properties
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.EXT_INT_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.EPOTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.EFIELD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.SCHARGE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.EFORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.EFIELDNEG)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.EFIELDPOS)
+        ### enrich 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.INV_K_ENRICH)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.BIJ_ENRICH_ROW)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.BJI_ENRICH_ROW) 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.POS_GRAD_ENRICH) 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.NEG_GRAD_ENRICH) 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.RHS_ENRICH) 
 
     def Initialize(self):
         super(DropletDynamicsSolver,self).Initialize() # Might need change
-
-        # The external interfacial force (per unit area) should be set in case of the presence of electromagnetic forces, etc.
-        # This loop is kept in the python solver for more clarity
-        for element in self.main_model_part.Elements:
-            element.SetValue(KratosDroplet.EXT_INT_FORCE, [0.0,0.0,0.0])
 
     def InitializeSolutionStep(self):
 
@@ -203,7 +231,19 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
             # We set this value at every time step as other processes/solvers also use them
             dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
+                      
+            # calculating the electric force 
+            self._GetCalculateElectricForceProcess().Execute()
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Calculate electric force process is finished.")
 
+            # The external interfacial force (per unit area) should be set in case of the presence of electromagnetic forces, etc.
+            # This loop is kept in the python solver for more clarity
+            for element in self.main_model_part.Elements:
+                int_force = element.GetValue(KratosDroplet.EFORCE)
+                element.SetValue(KratosDroplet.EXT_INT_FORCE, int_force)
+                
+            
+            
 
     def FinalizeSolutionStep(self):
 
@@ -230,6 +270,25 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
 
     def _SetNodalProperties(self):
         super(DropletDynamicsSolver,self)._SetNodalProperties() # Keep it for now, this function might need more parameters for EHD
+
+    def _GetCalculateElectricForceProcess(self):
+        if not hasattr(self, '_calculate_electric_force_process'):
+            self._calculate_electric_force_process = self._CreateCalculateElectricForceProcess()
+        return self._calculate_electric_force_process
+
+    def _CreateCalculateElectricForceProcess(self):
+        # construct the distance smoothing process
+        linear_solver = self._GetSmoothingLinearSolver()
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+            calculate_electric_force_process = KratosDroplet.CalculateElectricForceProcess2D(
+            self.main_model_part,
+            linear_solver)
+        else:
+            calculate_electric_force_process = KratosDroplet.CalculateElectricForceProcess3D(
+            self.main_model_part,
+            linear_solver)
+
+        return calculate_electric_force_process
 
     #def __SetDistanceFunction(self):
     #    ## Set the nodal distance function
