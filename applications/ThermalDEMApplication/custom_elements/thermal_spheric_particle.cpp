@@ -721,7 +721,9 @@ namespace Kratos
     // to avoid numerical issues of using a zero distance or separation in some formulas.
     if (distance == 0.0)
       distance = 1.001 * (GetRadius() + GetNeighborRadius()); // GetNeighborRadius should return 0.0 for walls!
-
+    
+    return distance;
+    
     KRATOS_CATCH("")
   }
 
