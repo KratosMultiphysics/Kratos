@@ -243,6 +243,9 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2_EXTREMUM )
     KRATOS_REGISTER_VARIABLE( COMPUTE_RESPONSE_FUNCTION_INTERPOLATION_ERROR )
 
+    // Variables required only for LSS
+    KRATOS_REGISTER_VARIABLE( TIME_STEP_SENSITIVITY )
+
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_ELEMENT("VMS3D4N",mVMS3D); //this is the name the element should have according to the naming convention
