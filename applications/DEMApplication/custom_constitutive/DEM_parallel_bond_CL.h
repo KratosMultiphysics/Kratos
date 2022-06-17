@@ -73,6 +73,8 @@ namespace Kratos{
                             double LocalRelVel[3],
                             double ViscoDampingLocalContactForce[3]) override;
 
+        virtual void ComputeNormalUnbondedForce(double unbonded_indentation);
+
         void CalculateNormalForces(double LocalElasticContactForce[3],
                 const double kn_el,
                 double equiv_young,
@@ -121,16 +123,16 @@ namespace Kratos{
                 bool& sliding,
                 const ProcessInfo& r_process_info) override;
 
-        virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
-                                                    SphericContinuumParticle* neighbor,
-                                                    double equiv_young,
-                                                    double distance,
-                                                    double calculation_area,
-                                                    double LocalCoordSystem[3][3],
-                                                    double ElasticLocalRotationalMoment[3],
-                                                    double ViscoLocalRotationalMoment[3],
-                                                    double equiv_poisson,
-                                                    double indentation) override;
+        void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+                                                SphericContinuumParticle* neighbor,
+                                                double equiv_young,
+                                                double distance,
+                                                double calculation_area,
+                                                double LocalCoordSystem[3][3],
+                                                double ElasticLocalRotationalMoment[3],
+                                                double ViscoLocalRotationalMoment[3],
+                                                double equiv_poisson,
+                                                double indentation) override;
 
         void AddPoissonContribution(const double equiv_poisson,
                                     double LocalCoordSystem[3][3],
@@ -152,7 +154,6 @@ namespace Kratos{
                                                     SphericContinuumParticle* element1,
                                                     SphericContinuumParticle* element2);
 
-        virtual void ComputeNormalUnbondedForce(double unbonded_indentation);
 
         //TODO: remove the usefulless parameters
         double mUnbondedLocalElasticContactForce2 = 0.0;
@@ -160,8 +161,8 @@ namespace Kratos{
         double mUnbondedTangentialElasticConstant = 0.0;
         double mUnbondedViscoDampingLocalContactForce[3] = {0.0};
         double mBondedViscoDampingLocalContactForce[3] = {0.0};
-        double mBondedScalingFactor = 0.0;  //TODO: check
-        double mUnbondedScalingFactor = 0.0; //TODO: check
+        double mBondedScalingFactor[2] = {0.0};
+        //double mUnbondedScalingFactor[2] = {0.0};
         double mUnbondedEquivViscoDampCoeffTangential = 0.0;
         double mUnbondedEquivViscoDampCoeffNormal = 0.0;
         double mInitialIndentationForBondedPart = 0.0;

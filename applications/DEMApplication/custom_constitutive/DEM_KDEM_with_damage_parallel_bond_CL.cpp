@@ -642,6 +642,7 @@ namespace Kratos {
         double local_elastic_force_modulus = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] +
                                                   LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
+        // TODO: check whether [mBondedScalingFactor] and [mUnbondedScalingFactor] is right?
         if (local_elastic_force_modulus) {
             mBondedScalingFactor = (BondedLocalElasticContactForce[0] * LocalElasticContactForce[0] +
                                     BondedLocalElasticContactForce[1] * LocalElasticContactForce[1]) / (local_elastic_force_modulus * local_elastic_force_modulus);
