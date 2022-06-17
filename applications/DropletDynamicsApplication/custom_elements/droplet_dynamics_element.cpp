@@ -2027,7 +2027,6 @@ void DropletDynamicsElement<TElementData>::SurfaceTension(
                     + external_int_force[dim] )*intgp_w*rInterfaceShapeFunctions(intgp,i);
             }
         }
-        KRATOS_WATCH(external_int_force)
     }
 }
 
