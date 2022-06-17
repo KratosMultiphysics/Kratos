@@ -3,6 +3,7 @@ import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+import KratosMultiphysics.DropletDynamicsApplication as KratosDroplet
 
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
@@ -152,6 +153,11 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
 
     def Initialize(self):
         super(DropletDynamicsSolver,self).Initialize() # Might need change
+
+        # The external interfacial force (per unit area) should be set in case of the presence of electromagnetic forces, etc.
+        # This loop is kept in the python solver for more clarity
+        for element in self.main_model_part.Elements:
+            element.SetValue(KratosDroplet.EXT_INT_FORCE, [0.0,0.0,0.0])
 
     def InitializeSolutionStep(self):
 
