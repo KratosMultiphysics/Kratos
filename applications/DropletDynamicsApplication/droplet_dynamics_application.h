@@ -24,6 +24,10 @@
 // Project includes
 #include "includes/kratos_application.h"
 
+// Application includes
+#include "custom_elements/droplet_dynamics_element.h"
+#include "../FluidDynamicsApplication/custom_utilities/two_fluid_navier_stokes_data.h"
+
 
 namespace Kratos {
 
@@ -175,8 +179,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    // const Elem2D   mElem2D;
-    // const Elem3D   mElem3D;
+    const DropletDynamicsElement< TwoFluidNavierStokesData<2, 3> > mDropletDynamics2D3N;
+    const DropletDynamicsElement< TwoFluidNavierStokesData<3, 4> > mDropletDynamics3D4N;
 
     ///@}
     ///@name Private Operators

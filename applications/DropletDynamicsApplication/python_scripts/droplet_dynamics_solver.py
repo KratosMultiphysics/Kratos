@@ -3,6 +3,7 @@ import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+import KratosMultiphysics.DropletDynamicsApplication as KratosDroplet
 
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
@@ -106,7 +107,7 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
 
         FluidSolver.__init__(self,model,custom_settings)
 
-        self.element_name = "TwoFluidNavierStokes"
+        self.element_name = "DropletDynamics"
         self.condition_name = "TwoFluidNavierStokesWallCondition"
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
@@ -153,6 +154,9 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
     def Initialize(self):
         super(DropletDynamicsSolver,self).Initialize() # Might need change
 
+        # The external interfacial force (per unit area) should be set in case of the presence of electromagnetic forces, etc.
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosDroplet.EXT_INT_FORCE, self.main_model_part.Elements)
+
     def InitializeSolutionStep(self):
 
         #super(DropletDynamicsSolver,self).InitializeSolutionStep() # Keep it for now, this function should be reformulated
@@ -191,8 +195,6 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
 
             # Initialize the solver current step
             self._GetSolutionStrategy().InitializeSolutionStep()
-
-            self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, 0.0) # TO be removed from the specialized element
 
             # We set this value at every time step as other processes/solvers also use them
             dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
