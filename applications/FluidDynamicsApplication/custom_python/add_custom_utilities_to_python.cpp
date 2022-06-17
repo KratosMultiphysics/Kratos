@@ -42,6 +42,7 @@
 #include "custom_utilities/fluid_test_utilities.h"
 #include "custom_utilities/fluid_adjoint_utilities.h"
 #include "custom_utilities/fluid_fft_utilities.h"
+#include "custom_utilities/fluid_least_squares_shadowing_utilities.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -211,6 +212,17 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetMaximumFrequency",&FluidFFTUtilities::GetMaximumFrequency)
         .def("GetTotalNumberOfSteps",&FluidFFTUtilities::GetTotalNumberOfSteps)
         .def("GetNumberOfWindowingSteps",&FluidFFTUtilities::GetNumberOfWindowingSteps)
+        ;
+
+    py::class_<FluidLeastSquaresShadowingUtilities>(m, "FluidLeastSquaresShadowingUtilities")
+        .def(py::init<const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&>())
+        .def("CheckVariables", &FluidLeastSquaresShadowingUtilities::CheckVariables)
+        .def("GetPrimalValues", &FluidLeastSquaresShadowingUtilities::GetPrimalValues)
+        .def("GetPrimalFirstDerivativeValues", &FluidLeastSquaresShadowingUtilities::GetPrimalFirstDerivativeValues)
+        .def("GetAdjointValues", &FluidLeastSquaresShadowingUtilities::GetAdjointValues)
+        .def("GetAdjointFirstDerivativeValues", &FluidLeastSquaresShadowingUtilities::GetAdjointFirstDerivativeValues)
+        .def("GetLSSValues", &FluidLeastSquaresShadowingUtilities::GetLSSValues)
+        .def("GetLSSFirstDerivativeValues", &FluidLeastSquaresShadowingUtilities::GetLSSFirstDerivativeValues)
         ;
 
 }
