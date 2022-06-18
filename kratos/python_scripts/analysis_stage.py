@@ -151,11 +151,16 @@ class AnalysisStage(object):
 
         self.main_model_part = self.model.GetModelPart(self.project_parameters["solver_settings"]["model_part_name"].GetString())
         for element in self._GetSolver().GetComputingModelPart().Elements:
-            damage = element.CalculateOnIntegrationPoints(CLA.DAMAGE,self.main_model_part.ProcessInfo)
-            for i in damage:
-                if i > 2.0:
-                    element.Set(KratosMultiphysics.ACTIVE, False)
-                    break
+            damage = element.CalculateOnIntegrationPoints(CLA.DELAMINATION_DAMAGE_VECTOR,self.main_model_part.ProcessInfo)
+            NUM_OF_FAILED_INTEGRATION_POINTS = 0
+            for x in damage:
+                for y in x:
+                    if y > 0.97:
+                        NUM_OF_FAILED_INTEGRATION_POINTS = NUM_OF_FAILED_INTEGRATION_POINTS + 1
+                        break
+
+            if NUM_OF_FAILED_INTEGRATION_POINTS == 8:
+                element.Set(KratosMultiphysics.ACTIVE, False)
         
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
