@@ -162,9 +162,10 @@ void MPMParticleLagrangeDirichletCondition::MPMShapeFunctionPointValues( Vector&
     // Additional check to modify zero shape function values
     // Lagrange Condition is more sensitive for small cut then Penalty condition
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const GeometryType& r_geometry = GetGeometry();
 
     double denominator = 1.0;
-    const double small_cut_instability_tolerance = 0.02;
+    const double small_cut_instability_tolerance = 0.01;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         if (rResult[i] < small_cut_instability_tolerance){
@@ -175,7 +176,13 @@ void MPMParticleLagrangeDirichletCondition::MPMShapeFunctionPointValues( Vector&
 
     rResult = rResult / denominator;
 
-    
+    // Nodes with zero mass are not connected to the body--> zero shape function result in zero line and columns in stiffness matrix
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
+            rResult[i]=0.0;
+        }
+    }
 
     
 
@@ -255,19 +262,19 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     }
     
-    int counter = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
-            counter +=1;
-        }
-    }
+    // int counter = 0;
+    // for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    // {
+    //     if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
+    //         counter +=1;
+    //     }
+    // }
 
-    // avoid singular matrices if BC is in an empty background element
-    // at least 1 node has to be connected to the body
+    // // avoid singular matrices if BC is in an empty background element
+    // // at least 1 node has to be connected to the body
     
-    if (counter >= (number_of_nodes-1))
-        apply_constraints = false;
+    // if (counter >= (number_of_nodes-1))
+    //     apply_constraints = false;
     
 
     if (apply_constraints)
