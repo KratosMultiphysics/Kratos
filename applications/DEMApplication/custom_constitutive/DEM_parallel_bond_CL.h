@@ -9,6 +9,7 @@
 
 // Project includes
 #include "DEM_continuum_constitutive_law.h"
+#include "DEM_discontinuum_constitutive_law.h"
 
 namespace Kratos{
 
@@ -183,7 +184,7 @@ namespace Kratos{
     
     //This definition is done here to avoid recursive inclusion of header files 
     //TODO: check the name of pointer // the function?
-    KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, DEMContinuumConstitutiveLaw::Pointer, DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
+    //KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, DEMContinuumConstitutiveLaw::Pointer, DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
 
 } // namespace Kratos
 
