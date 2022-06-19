@@ -387,7 +387,7 @@ namespace Kratos {
                 total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
                 total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
                 total_local_elastic_contact_force[2] = LocalElasticContactForce[2] + LocalElasticExtraContactForce[2];
-                CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps);
+                CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, ElasticLocalRotationalMoment, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps);
             }
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) /*&& (i < mContinuumInitialNeighborsSize)*/) {
@@ -813,7 +813,7 @@ namespace Kratos {
         else return 0.0;
     }
 
-    void SphericContinuumParticle::CalculateOnContinuumContactElements(size_t i, double LocalElasticContactForce[3], double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps) {
+    void SphericContinuumParticle::CalculateOnContinuumContactElements(size_t i, double LocalElasticContactForce[3], double ElasticLocalRotationalMoment[3], double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps) {
 
         KRATOS_TRY
         if (!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
@@ -823,6 +823,9 @@ namespace Kratos {
         bond->mLocalContactForce[0] = LocalElasticContactForce[0];
         bond->mLocalContactForce[1] = LocalElasticContactForce[1];
         bond->mLocalContactForce[2] = LocalElasticContactForce[2];
+        bond->mElasticLocalRotationalMoment[0] = ElasticLocalRotationalMoment[0];
+        bond->mElasticLocalRotationalMoment[1] = ElasticLocalRotationalMoment[1];
+        bond->mElasticLocalRotationalMoment[2] = ElasticLocalRotationalMoment[2];
         bond->mContactSigma = contact_sigma;
         bond->mContactTau = contact_tau;
         bond->mContactFailure = mIniNeighbourFailureId[i];

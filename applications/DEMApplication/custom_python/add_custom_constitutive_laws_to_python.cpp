@@ -52,6 +52,7 @@
 #include "custom_constitutive/DEM_D_Conical_damage_CL.h"
 #include "custom_constitutive/dem_kdem_2d_cl.h"
 #include "custom_constitutive/dem_kdem_fabric_2d_cl.h"
+#include "custom_constitutive/DEM_parallel_bond_CL.h"
 
 namespace Kratos {
 namespace Python {
@@ -241,6 +242,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_ExponentialHC, DEM_ExponentialHC::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_ExponentialHC")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_parallel_bond, DEM_parallel_bond::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_parallel_bond")
         .def(py::init<>())
         ;
 

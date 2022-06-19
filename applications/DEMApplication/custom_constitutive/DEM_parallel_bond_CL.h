@@ -75,7 +75,7 @@ namespace Kratos{
 
         virtual void ComputeNormalUnbondedForce(double unbonded_indentation);
 
-        void CalculateNormalForces(double LocalElasticContactForce[3],
+        virtual void CalculateNormalForces(double LocalElasticContactForce[3],
                 const double kn_el,
                 double equiv_young,
                 double indentation,
@@ -85,7 +85,8 @@ namespace Kratos{
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
                 int time_steps,
-            const ProcessInfo& r_process_info) override;
+                const ProcessInfo& r_process_info,
+                double& contact_sigma);
             
         virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
                                 double &equiv_visco_damp_coeff_tangential,
@@ -103,7 +104,7 @@ namespace Kratos{
                                 bool& sliding,
                                 int failure_id) override;
 
-        void CalculateTangentialForces(double OldLocalElasticContactForce[3],
+        virtual void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
                 double LocalElasticExtraContactForce[3],
                 double ViscoDampingLocalContactForce[3],
@@ -112,7 +113,6 @@ namespace Kratos{
                 double LocalRelVel[3],
                 const double kt_el,
                 const double equiv_shear,
-                double& contact_sigma,
                 double& contact_tau,
                 double indentation,
                 double calculation_area,
@@ -121,7 +121,7 @@ namespace Kratos{
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
                 bool& sliding,
-                const ProcessInfo& r_process_info) override;
+                const ProcessInfo& r_process_info);
 
         void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                 SphericContinuumParticle* neighbor,
