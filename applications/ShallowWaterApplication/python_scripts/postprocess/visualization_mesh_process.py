@@ -24,12 +24,12 @@ class VisualizationMeshProcess(KM.Process):
         return KM.Parameters("""
             {
                 "model_part_name"                : "model_part_name",
-                "topographic_model_part_name"    : "topographic_model_part",
-                "create_topographic_model_part"  : true,
+                "topographic_model_part_name"    : "",
                 "free_surface_deformation_mode"  : "nodal_displacement",
                 "topography_deformation_mode"    : "z_coordinate",
+                "nodal_historical_displacement"  : false,
                 "mean_water_level"               : 0.0,
-                "nodal_variables_to_transfer"    : ["TOPOGRAPHY"],
+                "nodal_variables_to_transfer"    : [],
                 "nonhistorical_variables_to_transfer" : []
             }
             """)
@@ -51,26 +51,28 @@ class VisualizationMeshProcess(KM.Process):
         # Get the deformation mode options
         self.deform_free_surface = self._GetDeformMeshFlag(settings["free_surface_deformation_mode"])
         self.deform_topography = self._GetDeformMeshFlag(settings["topography_deformation_mode"])
+        self.nodal_historical_displacement = settings["nodal_historical_displacement"].GetBool()
         self.mean_water_level = settings["mean_water_level"].GetDouble()
 
         # Creating the topographic model part if specified
         self.topographic_model_part = None
-        if settings["create_topographic_model_part"].GetBool():
-            self.topographic_model_part = self.model.CreateModelPart(settings["topographic_model_part_name"].GetString())
-        else:
-            if self.model.HasModelPart(settings["topographic_model_part_name"].GetString()):
-                self.topographic_model_part = self.model.GetModelPart(settings["topographic_model_part_name"].GetString())
+        self.duplicate_model_part = False
+        topographic_model_part_name = settings["topographic_model_part_name"].GetString()
+        if topographic_model_part_name:
+            self.topographic_model_part = self.model.CreateModelPart(topographic_model_part_name)
+            if self._IsEmpty(self.topographic_model_part):
+                self.duplicate_model_part = True
 
-        # Creating the variables list
-        self.nodal_variables = GenerateVariableListFromInput(settings["nodal_variables_to_transfer"])
-        self.nonhistorical_variables = GenerateVariableListFromInput(settings["nonhistorical_variables_to_transfer"])
+                # Creating the variables list if the topographic model part has to be duplicated
+                self.nodal_variables = GenerateVariableListFromInput(settings["nodal_variables_to_transfer"])
+                self.nonhistorical_variables = GenerateVariableListFromInput(settings["nonhistorical_variables_to_transfer"])
 
 
     def ExecuteInitialize(self):
         """Generate the topographic model part if specified or it already exists."""
         if self.topographic_model_part is not None:
-            self._DuplicateModelPart()
-        KM.VariableUtils().SetNonHistoricalVariable(KM.TEMPERATURE, 2, self.computing_model_part.Nodes)
+            if self.duplicate_model_part:
+                self._DuplicateModelPart()
 
 
     def ExecuteBeforeSolutionLoop(self):
@@ -103,7 +105,8 @@ class VisualizationMeshProcess(KM.Process):
 
         # Deform the topography and transfer the nodal variables
         if self.topographic_model_part is not None:
-            self._TransferVariables()
+            if self.duplicate_model_part:
+                self._TransferVariables()
 
             if self.deform_topography:
                 self._DeformMesh(self.topographic_model_part, SW.TOPOGRAPHY)
@@ -124,6 +127,17 @@ class VisualizationMeshProcess(KM.Process):
     def _StoreNonHistoricalVariablesGiDNoDataIfDry(self):
         SW.ShallowWaterUtilities().StoreNonHistoricalGiDNoDataIfDry(self.computing_model_part, SW.HEIGHT)
         SW.ShallowWaterUtilities().StoreNonHistoricalGiDNoDataIfDry(self.computing_model_part, SW.FREE_SURFACE_ELEVATION)
+
+
+    @staticmethod
+    def _IsEmpty(model_part):
+        if model_part.NumberOfNodes() > 0:
+            return False
+        if model_part.NumberOfElements() > 0:
+            return False
+        if model_part.NumberOfConditions() > 0:
+            return False
+        return True
 
 
     def _DuplicateModelPart(self):
@@ -177,10 +191,13 @@ class VisualizationMeshProcess(KM.Process):
         KM.VariableUtils().SetNonHistoricalVariableToZero(KM.DISPLACEMENT, model_part.Nodes)
 
 
-    @staticmethod
-    def _UpdateDisplacement(model_part, variable):
-        KM.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(variable, KM.DISPLACEMENT_Z,
-                                                                   model_part, model_part, 0)
+    def _UpdateDisplacement(self, model_part, variable):
+        if self.nodal_historical_displacement:
+            KM.VariableUtils().CopyModelPartNodalVar(variable, KM.DISPLACEMENT_Z,
+                                                     model_part, model_part, 0)
+        else:
+            KM.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(variable, KM.DISPLACEMENT_Z,
+                                                                       model_part, model_part, 0)
 
 
     def _GetDeformMeshFlag(self, mesh_deformation_mode):
