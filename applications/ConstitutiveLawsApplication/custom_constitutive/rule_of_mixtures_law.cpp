@@ -1091,11 +1091,11 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
 
             // Damage calculation
 
-            const double T0n = 16000000; // Interfacial Normal Strength
-            const double T0s = 27000000; // Interfacial Shear Strength
-            const double T0t = 27000000; // Interfacial Shear Strength
-            const double GIc = 102; // Mode I Energy Release Rate
-            const double GIIc = 194; // Mode II Energy Release Rate
+            const double T0n = 51700000; // Interfacial Normal Strength
+            const double T0s = 115700000; // Interfacial Shear Strength
+            const double T0t = 115700000; // Interfacial Shear Strength
+            const double GIc = 270; // Mode I Energy Release Rate
+            const double GIIc = 687; // Mode II Energy Release Rate
             const double Eta = 2; // Benzeggagh-Kenane (B-K) Law Coefficient
             const double characteristic_length = 0.0001; // Characteristic Length of the Cohesive Part
             const double tolerance = std::numeric_limits<double>::epsilon();
@@ -1113,7 +1113,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
                 double mode_mix_factor = T_shear / T_eq;
                 Gc[i] = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
                 // AParameter = -std::pow(initial_threshold, 2) / (2.0 * 800000000 * Gc / characteristic_length); // Linear
-                AParameter[i] = 1.00 / (Gc[i] * 800000000 / (characteristic_length * std::pow(initial_threshold[i], 2)) - 0.5); // Exponential
+                AParameter[i] = 1.00 / (Gc[i] * 144000000000 / (characteristic_length * std::pow(initial_threshold[i], 2)) - 0.5); // Exponential
             }
             const double Fp = T_eq - threshold[i];
             if (Fp > tolerance) {
@@ -1121,7 +1121,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
                 delamination_damage[i+1] = 1.0 - (initial_threshold[i] / T_eq) * std::exp(AParameter[i] *
                     (1.0 - T_eq / initial_threshold[i])); // Exponential
                 
-                delamination_damage[i+1] = (delamination_damage[i+1] >= 0.99999999) ? 0.99999999 : delamination_damage[i+1];
+                delamination_damage[i+1] = (delamination_damage[i+1] >= 0.98) ? 0.98 : delamination_damage[i+1];
                 delamination_damage[i+1] = (delamination_damage[i+1] < 0.0) ? 0.0 : delamination_damage[i+1];
             }
 
@@ -1158,10 +1158,10 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
             damage_coeff *= (1-delamination_damage[i]);
         }
 
-        auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
-        auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
+        auxiliar_stress_vector[0] = damage_coeff * undamaged_auxiliar_stress_vector[0];
+        auxiliar_stress_vector[1] = damage_coeff * undamaged_auxiliar_stress_vector[1];
         auxiliar_stress_vector[2] = damage_coeff * undamaged_auxiliar_stress_vector[2];
-        auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
+        auxiliar_stress_vector[3] = damage_coeff * undamaged_auxiliar_stress_vector[3];
         auxiliar_stress_vector[4] = damage_coeff * undamaged_auxiliar_stress_vector[4];
         auxiliar_stress_vector[5] = damage_coeff * undamaged_auxiliar_stress_vector[5];
 
@@ -1818,11 +1818,11 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
 
             // Damage calculation
 
-            const double T0n = 16000000; // Interfacial Normal Strength
-            const double T0s = 27000000; // Interfacial Shear Strength
-            const double T0t = 27000000; // Interfacial Shear Strength
-            const double GIc = 102; // Mode I Energy Release Rate
-            const double GIIc = 194; // Mode II Energy Release Rate
+            const double T0n = 51700000; // Interfacial Normal Strength
+            const double T0s = 115700000; // Interfacial Shear Strength
+            const double T0t = 115700000; // Interfacial Shear Strength
+            const double GIc = 270; // Mode I Energy Release Rate
+            const double GIIc = 687; // Mode II Energy Release Rate
             const double Eta = 2; // Benzeggagh-Kenane (B-K) Law Coefficient
             const double characteristic_length = 0.0001; // Characteristic Length of the Cohesive Part
             const double tolerance = std::numeric_limits<double>::epsilon();
@@ -1840,7 +1840,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
                 double mode_mix_factor = T_shear / T_eq;
                 Gc[i] = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
                 // AParameter = -std::pow(initial_threshold, 2) / (2.0 * 800000000 * Gc / characteristic_length); // Linear
-                AParameter[i] = 1.00 / (Gc[i] * 800000000 / (characteristic_length * std::pow(initial_threshold[i], 2)) - 0.5); // Exponential
+                AParameter[i] = 1.00 / (Gc[i] * 144000000000 / (characteristic_length * std::pow(initial_threshold[i], 2)) - 0.5); // Exponential
                 minitial_threshold[i] = initial_threshold[i];
                 mthreshold[i] = threshold[i];
                 mGc[i] = Gc[i];
@@ -1853,7 +1853,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
                 delamination_damage[i+1] = 1.0 - (initial_threshold[i] / T_eq) * std::exp(AParameter[i] *
                     (1.0 - T_eq / initial_threshold[i])); // Exponential
 
-                delamination_damage[i+1] = (delamination_damage[i+1] >= 0.99999999) ? 0.99999999 : delamination_damage[i+1];
+                delamination_damage[i+1] = (delamination_damage[i+1] >= 0.98) ? 0.98 : delamination_damage[i+1];
                 delamination_damage[i+1] = (delamination_damage[i+1] < 0.0) ? 0.0 : delamination_damage[i+1];
 
                 mdelamination_damage[i+1] = delamination_damage[i+1];
@@ -1893,16 +1893,16 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
             damage_coeff *= (1-delamination_damage[i]);
         }
 
-        auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
-        auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
+        auxiliar_stress_vector[0] = damage_coeff * undamaged_auxiliar_stress_vector[0];
+        auxiliar_stress_vector[1] = damage_coeff * undamaged_auxiliar_stress_vector[1];
         auxiliar_stress_vector[2] = damage_coeff * undamaged_auxiliar_stress_vector[2];
-        auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
+        auxiliar_stress_vector[3] = damage_coeff * undamaged_auxiliar_stress_vector[3];
         auxiliar_stress_vector[4] = damage_coeff * undamaged_auxiliar_stress_vector[4];
         auxiliar_stress_vector[5] = damage_coeff * undamaged_auxiliar_stress_vector[5];
     
         // End calculating output stress
 
-        KRATOS_WATCH(delamination_damage);
+        // KRATOS_WATCH(delamination_damage);
         
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
 
