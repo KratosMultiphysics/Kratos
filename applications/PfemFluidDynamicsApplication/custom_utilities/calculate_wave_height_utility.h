@@ -70,7 +70,7 @@ public:
     /**
      * @brief Calculate the wave height.
      */
-    double Calculate(const array_1d<double,3>& rCoordinates) const;
+    double Calculate(const array_1d<double,3>& rCoordinates, const double& rMeshSize) const;
 
     ///@}
     ///@name Input and output
@@ -124,7 +124,9 @@ private:
     array_1d<double,3> mDirection;
     array_1d<double,3> mCoordinates;
     double mMeanWaterLevel;
-    double mSearchRadius;
+    double mMeanElementSize;
+    double mRelativeSearchRadius;
+    double mSearchRadiusTolerance;
 
     ///@}
     ///@name Private Operations

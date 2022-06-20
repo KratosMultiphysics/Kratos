@@ -15,6 +15,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
     If no node is found, Nan will be printed.
     Possible specifications of the Parameters:
      - coordinates: it can be a single coordinate or a list of coordinates for each gauge.
+     - mesh_size: it indicates the mesh size around a gauge. If not defined, then the average size of all elements is used
      - output_file_settings: a parameters encapsulating the 'file_name', 'output_path' and
                              other settings according to 'TimeBasedAsciiFileWritterUtility'.
                              Some replacements can be specified to 'file_name', e.g.:
@@ -30,6 +31,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
         default_parameters = KM.Parameters("""{
             "model_part_name"           : "",
             "coordinates"               : [[0.0, 0.0, 0.0]],
+            "mesh_size"                 : [0.0],
             "wave_calculation_settings" : {},
             "output_file_settings"      : {},
             "time_between_outputs"      : 0.01,
@@ -47,6 +49,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
         self.model_part = model.GetModelPart(self.settings["model_part_name"].GetString())
 
         self.coordinates_list = self._GetCoordinatesList(self.settings["coordinates"])
+        self.mesh_size_list = self._GetMeshSizeList(self.settings["mesh_size"])
         self.next_output = self.model_part.ProcessInfo[KM.TIME]
 
     def Check(self):
@@ -84,8 +87,8 @@ class WaveHeightOutputProcess(KM.OutputProcess):
         print_format = self.settings["print_format"].GetString()
         row = print_format + "\t" + print_format + "\n"
         time = self.model_part.ProcessInfo[KM.TIME]
-        for file, coordinates in zip(self.files, self.coordinates_list):
-            height = self.wave_height_utility.Calculate(coordinates)
+        for file, coordinates, mesh_size in zip(self.files, self.coordinates_list, self.mesh_size_list):
+            height = self.wave_height_utility.Calculate(coordinates,mesh_size)
             value = row.format(time, height)
             file.write(value)
             file.flush()
@@ -106,6 +109,16 @@ class WaveHeightOutputProcess(KM.OutputProcess):
             for coordinate in param: # There is a list of coordinates
                 coordinates_list.append(coordinate.GetVector())
         return coordinates_list
+
+    @staticmethod
+    def _GetMeshSizeList(param):
+        mesh_size_list = []
+        if param.IsDouble(): # There is a single mesh_size
+            mesh_size_list.append(param.GetDouble())
+        else:
+            for mesh_size in param: # There is a list of mesh sizes
+                mesh_size_list.append(mesh_size.GetDouble())
+        return mesh_size_list
 
     @staticmethod
     def _ExecuteReplacement(i, coord, param):

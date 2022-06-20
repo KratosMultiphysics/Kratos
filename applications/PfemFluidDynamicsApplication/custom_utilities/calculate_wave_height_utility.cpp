@@ -46,17 +46,25 @@ CalculateWaveHeightUtility::CalculateWaveHeightUtility(
     mMeanWaterLevel = ThisParameters["mean_water_level"].GetDouble();
     double search_tolerance = ThisParameters["search_tolerance"].GetDouble();
     double relative_search_radius = ThisParameters["relative_search_radius"].GetDouble();
-    double mean_elem_size = block_for_each<SumReduction<double>>(
+    mMeanElementSize = block_for_each<SumReduction<double>>(
         mrModelPart.Elements(), [](Element& rElement) {
         return rElement.GetGeometry().Length();
     });
-    mean_elem_size /= mrModelPart.NumberOfElements();
-    mSearchRadius = relative_search_radius * mean_elem_size + search_tolerance;
+    mMeanElementSize /= mrModelPart.NumberOfElements();
+    mRelativeSearchRadius = relative_search_radius;
+    mSearchRadiusTolerance = search_tolerance;
 }
 
-double CalculateWaveHeightUtility::Calculate(const array_1d<double,3>& rCoordinates) const
+double CalculateWaveHeightUtility::Calculate(const array_1d<double,3>& rCoordinates, const double& rMeshSize) const
 {
     KRATOS_TRY
+
+    double search_radius = 0.0;
+    if (rMeshSize < std::numeric_limits<double>::epsilon()) {
+        search_radius = mRelativeSearchRadius * mMeanElementSize + mSearchRadiusTolerance;
+    } else {
+        search_radius = mRelativeSearchRadius * rMeshSize + mSearchRadiusTolerance;
+    }
 
     using MultipleReduction = CombinedReduction<SumReduction<double>, SumReduction<double>>; 
 
@@ -75,7 +83,7 @@ double CalculateWaveHeightUtility::Calculate(const array_1d<double,3>& rCoordina
             const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(mDirection, relative_position);
             const double distance = norm_2(horizontal_position);
 
-            if (distance < mSearchRadius)
+            if (distance < search_radius)
             {
                 local_count = 1.0;
                 local_wave_height = inner_prod(mDirection, rNode) - mMeanWaterLevel;
