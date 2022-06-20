@@ -2405,6 +2405,7 @@ namespace Kratos
                         }
                     }
                 }
+                // KRATOS_WATCH(rhs_i);
             }
 
             KRATOS_CATCH("")
