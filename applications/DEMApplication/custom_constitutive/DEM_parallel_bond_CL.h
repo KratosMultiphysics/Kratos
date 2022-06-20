@@ -41,7 +41,7 @@ namespace Kratos{
         double LocalMaxSearchDistance(const int i,
                                     SphericContinuumParticle* element1,
                                     SphericContinuumParticle* element2) override;
-        double GetContactSigmaMax();
+        //double GetContactSigmaMax();
         
         //TODO:CHECK
         virtual double GetYoungModulusForComputingRotationalMoments(const double& equiv_young);

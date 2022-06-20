@@ -243,11 +243,44 @@ double DEM_parallel_bond::LocalMaxSearchDistance(const int i,
                             SphericContinuumParticle* element2) {
     KRATOS_TRY
 
-    // TODO: maybe this function is unnecessary. Try to understand it
+    double tension_limit;
+
+    // calculation of equivalent Young modulus
+    const double& equiv_young = (*mpProperties)[BOND_YOUNG_MODULUS];
+
+    const double my_radius = element1->GetRadius();
+    const double other_radius = element2->GetRadius();
+    double calculation_area = 0.0;
+
+    Vector& vector_of_contact_areas = element1->GetValue(NEIGHBOURS_CONTACT_AREAS);
+    GetContactArea(my_radius, other_radius, vector_of_contact_areas, i, calculation_area);
+
+    double radius_sum = my_radius + other_radius;
+    double initial_delta = element1->GetInitialDelta(i);
+    double initial_dist = radius_sum - initial_delta;
+
+    // calculation of elastic constants
+    double kn_el = equiv_young * calculation_area / initial_dist;
+
+    //tension_limit = GetContactSigmaMax();
+    tension_limit = (*mpProperties)[BOND_SIGMA_MAX]; //TODO: BOND_SIGMA_MAX_DEVIATION
+
+    const double max_normal_bond_force = tension_limit * calculation_area;
+    double u_max = max_normal_bond_force / kn_el;
+
+    //TODO: need to choose whether the [if] below is necessary
+    
+    if (u_max > 2.0 * radius_sum) {
+        u_max = 2.0 * radius_sum;
+    } // avoid error in special cases with too high tensile
+    
+
+    return u_max;
 
     KRATOS_CATCH("")
 }
 
+/*
 double DEM_parallel_bond::GetContactSigmaMax(){
 
     KRATOS_TRY
@@ -255,7 +288,7 @@ double DEM_parallel_bond::GetContactSigmaMax(){
     // TODO: maybe this function is unnecessary
 
     KRATOS_CATCH("")    
-}
+}*/
 
 //check bond state
 void DEM_parallel_bond::CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2){

@@ -331,6 +331,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     py::class_<ParallelBondUtilities, ParallelBondUtilities::Pointer>(m, "ParallelBondUtilities")
         .def(py::init<>())
         .def("SetCurrentIndentationAsAReferenceInParallelBonds", &ParallelBondUtilities::SetCurrentIndentationAsAReferenceInParallelBonds)
+        .def("SetCurrentIndentationAsAReferenceInParallelBondsForPBM", &ParallelBondUtilities::SetCurrentIndentationAsAReferenceInParallelBondsForPBM)
         ;
 
     py::class_<DEMFEMUtilities, DEMFEMUtilities::Pointer>(m, "DEMFEMUtilities")
