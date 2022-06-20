@@ -204,7 +204,8 @@ namespace Kratos
                 if (inode->IsFixed(DISTANCE))
                     tempDistanceList.push_back(index);
 
-                if (inode->Is(OUTLET))
+                if (inode->IsFixed(PRESSURE))
+                {
                     tempPressureOutletList.push_back(index);
             }
             mFixedVelocities.resize(tempFixedVelocities.size(), false);
@@ -286,31 +287,22 @@ namespace Kratos
             // verify that neither h_min nor havg are 0
             for (unsigned int i_node = 0; i_node < mHmin.size(); i_node++)
             {
-                if (mHmin[i_node] < 1e-20)
-                    KRATOS_THROW_ERROR(std::logic_error, "hmin too small on node ", i_node + 1)
-                if (mHavg[i_node] < 1e-20)
-                    KRATOS_THROW_ERROR(std::logic_error, "havg too small on node ", i_node + 1)
-                if (mHmin[i_node] > 1e20)
-                    KRATOS_THROW_ERROR(std::logic_error, "hmin too big on node ", i_node + 1)
-                if (mHavg[i_node] > 1e20)
-                    KRATOS_THROW_ERROR(std::logic_error, "havg too big on node ", i_node + 1)
+                KRATOS_ERROR_IF(mHmin[i_node] < 1.0e-15) << "hmin too small on node " << i_node + 1 << std::endl;
+                KRATOS_ERROR_IF(mHmin[i_node] < 1.0e-15) << "hmin too small on node " << i_node + 1 << std::endl;
+                KRATOS_ERROR_IF(mHmin[i_node] > 1.0e15) << "hmin too big on node " << i_node + 1 << std::endl;
+                KRATOS_ERROR_IF(mHmin[i_node] > 1.0e15) << "havg too big on node " << i_node + 1 << std::endl;
             }
             for (ModelPart::ElementsContainerType::iterator it = mr_model_part.ElementsBegin(); it != mr_model_part.ElementsEnd(); it++)
             {
-                if (it->Id() < 1)
-                {
-                    KRATOS_THROW_ERROR(std::logic_error, "Element found with Id 0 or negative", "")
-                }
+                KRATOS_ERROR_IF(it->Id() < 1) << "Element found with Id 0 or negative" << std::endl;
+
                 double elem_vol = 0.0;
                 if (TDim == 2)
                     elem_vol = it->GetGeometry().Area();
                 else
                     elem_vol = it->GetGeometry().Volume();
-                if (elem_vol <= 0)
-                {
-                    std::cout << "error on element -> " << it->Id() << std::endl;
-                    KRATOS_THROW_ERROR(std::logic_error, "Area can not be lesser than 0", "")
-                }
+
+                KRATOS_ERROR_IF(elem_vol <= 0) << "error on element -> " << it->Id() << ". Area can not be lesser than 0" << std::endl;
             }
             KRATOS_CATCH("")
         }
@@ -897,8 +889,9 @@ namespace Kratos
                             avg_number += 1.0;
                         }
                     }
-                    if (avg_number == 0)
-                        KRATOS_THROW_ERROR(std::logic_error, "can not happen that the extrapolation node has no neighbours", "");
+
+                    KRATOS_ERROR_IF(avg_number == 0) << "can not happen that the extrapolation node has no neighbours" << std::endl;
+
                     mPn1[i_node] = pavg / avg_number;
                 }
             }
@@ -987,7 +980,7 @@ namespace Kratos
             for (int i_node = 0; i_node < n_nodes; i_node++)
             {
                 double L_diag = mL(i_node, i_node);
-                if (fabs(L_diag) > fabs(max_diag))
+                if (std::abs(L_diag) > std::abs(max_diag))
                     max_diag = L_diag;
             }
             max_diag *= 1e10;
@@ -1680,8 +1673,8 @@ namespace Kratos
             {
                 unsigned int i_node = mSlipBoundaryList[i];
                 double tmp = norm_2(mSlipNormal[i_node]);
-                if (tmp < 1e-20)
-                    KRATOS_THROW_ERROR(std::logic_error, "found a slip node with zero normal on node with id", i_node + 1)
+
+                KRATOS_ERROR_IF(tmp < 1.0e-15) << "found a slip node with zero normal on node with id " << i_node + 1 << std::endl;
             }
 
             // loop over all faces to fill inlet outlet
@@ -1697,7 +1690,7 @@ namespace Kratos
                 else
                 {
                     for (unsigned int if_node = 0; if_node < TDim; if_node++)
-                        if (face_geometry[if_node].Is(INLET) || face_geometry[if_node].Is(OUTLET))
+                        if (face_geometry[if_node].Is(INLET) || face_geometry[if_node].IsFixed(PRESSURE))
                             is_inlet_or_outlet = true;
                 }
                 // slip condition
@@ -2298,8 +2291,8 @@ namespace Kratos
             for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
             {
                 mHmin[i_node] = aaa[i_node];
-                if (aaa[i_node] == 0.0)
-                    KRATOS_THROW_ERROR(std::logic_error, "found a 0 hmin on node", i_node);
+
+                KRATOS_ERROR_IF(aaa[i_node] == 0.0) << "found a 0 hmin on node " << i_node << std::endl;
             }
             // take unstructured meshes into account
             if (TDim == 2)

@@ -15,10 +15,10 @@ class FreeSurfaceAnalysis(AnalysisStage):
         # - self.project_parameters
         # - self.echo_level
         # - self.parallel_type
-        super(FreeSurfaceAnalysis,self).__init__(model,parameters)
+        super().__init__(model,parameters)
 
     def Initialize(self):
-        super(FreeSurfaceAnalysis,self).Initialize()
+        super().Initialize()
 
         model_part_name = self.project_parameters["problem_data"]["problem_name"].GetString()
 
