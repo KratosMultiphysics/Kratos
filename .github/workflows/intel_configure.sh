@@ -24,6 +24,7 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 # add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 # add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
 # add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
+# add_app ${KRATOS_APP_DIR}/FluidDynamicsBiomedicalApplication;
 # add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
 # add_app ${KRATOS_APP_DIR}/DEMApplication;
 # add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
@@ -61,7 +62,7 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DINSTALL_RUNKRATOS=OFF \
 -DUSE_MPI=ON \
 -DPYBIND11_PYTHON_VERSION="3.8" \
--DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O0 -Wall -Werror-all -diag-disable 1478" \
+-DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O3 -Wall -Werror-all -diag-disable 1478" \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \

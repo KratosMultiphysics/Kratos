@@ -82,8 +82,6 @@ class DEM3D_ContinuumTestVsWallSolution(KratosMultiphysics.DEMApplication.DEM_an
             self.assertAlmostEqual(node.GetSolutionStepValue(DEM.CONTACT_FORCES_X), 0.0)
             self.assertAlmostEqual(node.GetSolutionStepValue(DEM.CONTACT_FORCES_Z), 0.0)
 
-
-    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_continuum_vs_wall_tests_files")
 
@@ -95,7 +93,6 @@ class TestDEM3DContinuumVsWall(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
     def test_DEM3D_continuum_vs_wall(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_continuum_vs_wall_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
