@@ -2589,8 +2589,7 @@ namespace Kratos
         {
 
             double ym = mY_wall;
-            if (mViscosity[0] == 0)
-                KRATOS_THROW_ERROR(std::logic_error, "it is not possible to use the wall law with 0 viscosity", "");
+            KRATOS_ERROR_IF(mViscosity[0] == 0) << "it is not possible to use the wall law with 0 viscosity" << std::endl;
 
             // slip condition
             int slip_size = mSlipBoundaryList.size();
