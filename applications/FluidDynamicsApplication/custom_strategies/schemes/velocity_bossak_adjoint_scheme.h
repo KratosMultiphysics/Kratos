@@ -418,7 +418,7 @@ private:
         this->mpResponseFunction->CalculateGradient(
             rCurrentEntity, aux_matrix, rRHS_Contribution, rCurrentProcessInfo);
 
-        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
             rLHS_Contribution, aux_matrix, rCurrentEntity.GetGeometry());
 
         noalias(rRHS_Contribution) = -rRHS_Contribution;
@@ -464,7 +464,7 @@ private:
         this->mpResponseFunction->CalculateSecondDerivativesGradient(
             rCurrentEntity, aux_matrix, response_second_derivatives, rCurrentProcessInfo);
 
-        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
             rotated_matrix, aux_matrix, rCurrentEntity.GetGeometry());
 
         noalias(rLHS_Contribution) += this->mBossak.C7 * rotated_matrix;
@@ -505,7 +505,7 @@ private:
         this->mpResponseFunction->CalculateSecondDerivativesGradient(
             rCurrentEntity, aux_matrix, response_second_derivatives, rProcessInfo);
 
-        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
             entity_second_derivatives, aux_matrix, rCurrentEntity.GetGeometry());
 
         if (rAdjointTimeSchemeValues2.size() != response_first_derivatives.size()) {
@@ -548,7 +548,7 @@ private:
         this->mpResponseFunction->CalculateSecondDerivativesGradient(
             rCurrentEntity, aux_matrix, response_second_derivatives, rProcessInfo);
 
-        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
             entity_second_derivatives, aux_matrix, rCurrentEntity.GetGeometry());
 
         if (rAdjointAuxiliaryValues.size() != entity_second_derivatives.size1()) {
@@ -723,7 +723,7 @@ private:
         rRefinedEntity.CalculateSecondDerivativesLHS(rSecondDerivatives, rProcessInfo);
         rSecondDerivatives *= (1.0 - mBossak.Alpha);
 
-        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
             rRotatedSecondDerivatives, rSecondDerivatives, rRefinedEntity.GetGeometry());
 
         noalias(rAuxiliaryValues2) = prod(rRotatedSecondDerivatives, rValues);
@@ -847,7 +847,7 @@ private:
         // calculate \frac{\partial R^n}{\partial \dot{w}^n}
         rRefinedEntity.CalculateSecondDerivativesLHS(rSecondDerivsLHS, rProcessInfo);
 
-        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
             rRotatedSecondDerivsLHS, rSecondDerivsLHS, rRefinedEntity.GetGeometry());
 
         if (rAuxiliaryMatrix.size1() != rSecondDerivsLHS.size1() || rAuxiliaryMatrix.size2() != rSecondDerivsLHS.size2()) {

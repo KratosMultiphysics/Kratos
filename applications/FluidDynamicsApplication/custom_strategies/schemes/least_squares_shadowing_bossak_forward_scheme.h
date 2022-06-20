@@ -146,7 +146,7 @@ public:
             mFluidLeastSquaresShadowingUtilities.GetAdjointValues(rTLS.mAdjointSolution, rElement, 0);
             rElement.CalculateSensitivityMatrix(TIME_STEP_SENSITIVITY, rTLS.mResidualPartialTimeDerivative, r_process_info);
 
-            mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+            mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
                 rTLS.mRotatedResidualPartialTimeDerivative, rTLS.mResidualPartialTimeDerivative, rElement.GetGeometry());
 
             return inner_prod(rTLS.mAdjointSolution, row(rTLS.mRotatedResidualPartialTimeDerivative, 0));
@@ -395,7 +395,7 @@ private:
 
         rEntity.CalculateSecondDerivativesLHS(rEntityResidualSecondDerivatives, rCurrentProcessInfo);
         rEntityResidualSecondDerivatives *= (1.0 - this->mBossak.GetAlphaM());
-        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
             rEntityRotatedResidualSecondDerivatives, rEntityResidualSecondDerivatives, rEntity.GetGeometry());
 
         if (rLHS.size1() != rEntityRotatedResidualFirstDerivatives.size1() || rLHS.size2() != rEntityRotatedResidualFirstDerivatives.size2()) {
