@@ -67,10 +67,12 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         #self.settings["fluid_solver_settings"].AddEmptyValue("alpha")
         #self.settings["fluid_solver_settings"]["alpha"].SetDouble(0.0)
         self.settings["fluid_solver_settings"].AddEmptyValue("move_mesh_strategy")
-        self.settings["fluid_solver_settings"]["move_mesh_strategy"].SetInt(2) 
+        self.settings["fluid_solver_settings"]["move_mesh_strategy"].SetInt(3) 
+        
         # To take into account
         #0 NS equations including convective terms
         #2 NS equations without convective terms
+        #3 NS equations without convective terms Strang Splitting
         print("PfemCoupledFluidThermalSolver(PythonSolver) in pfem2_solver.py has been constructed3")
          
         self.settings["fluid_solver_settings"].AddEmptyValue("reform_dofs_at_each_step")
@@ -80,6 +82,11 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
         ## Get domain size
         self.domain_size = 2#self.settings["domain_size"].GetInt()
+        
+        ## Get time-step size
+        self.timestep=self.settings["fluid_solver_settings"]["time_stepping"]["time_step"].GetDouble()
+        print(self.timestep)
+        
 
         from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
         self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
@@ -419,6 +426,152 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
     def SolveSolutionStep(self):
 
+        if self.settings["fluid_solver_settings"]["move_mesh_strategy"].GetInt()==3: 
+        # add here the function to evaluate the convective terms  
+
+         self.ReduceTimeStep()
+         #KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.fluid_solver.main_model_part).Execute()
+         for node in self.fluid_solver.main_model_part.Nodes:
+          vel_x=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0);  
+          vel_y=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0);    
+          vel_z=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0); 
+          node.SetSolutionStepValue(PfemM.SCALARVELOCITY_X,0,vel_x);    
+          node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0,vel_y);  
+          node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0,vel_z);  
+         from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+         linear_solver = linear_solver_factory.ConstructSolver(
+              KratosMultiphysics.Parameters("""{"solver_type" : "skyline_lu_factorization"}"""))
+         levelset_convection_settings = KratosMultiphysics.Parameters("""{
+             "levelset_variable_name" : "SCALARVELOCITY_X",
+             "levelset_convection_variable_name" : "VELOCITY",
+             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+             "eulerian_error_compensation" : true,
+             "element_type" : "levelset_convection_supg"
+         }""")
+         print("Before the first execute")
+         KratosMultiphysics.LevelSetConvectionProcess2D(
+             self.fluid_solver.main_model_part,
+             linear_solver,
+             levelset_convection_settings).Execute()
+         print("After the first execute")    
+         levelset_convection_settings = KratosMultiphysics.Parameters("""{
+             "levelset_variable_name" : "SCALARVELOCITY_Y",
+             "levelset_convection_variable_name" : "VELOCITY",
+             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+             "eulerian_error_compensation" : true,
+             "element_type" : "levelset_convection_supg"
+         }""")
+         print("Before the second execute")
+         KratosMultiphysics.LevelSetConvectionProcess2D(
+             self.fluid_solver.main_model_part,
+             linear_solver,
+             levelset_convection_settings).Execute()    
+         print("After the second execute")
+         for node in self.fluid_solver.main_model_part.Nodes:              
+            if(node.Y>5.49999):
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_X,0,1.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0,0.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0,0.0)
+                    
+            if(node.Y<-5.49999):
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_X,0,1.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0,0.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0,0.0)
+                    
+            if(node.X<-5.4999999):
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_X,0,1.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0,0.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0,0.0)
+                    
+            if(node.X>15.499999):
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0,0.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0,0.0)
+                    
+            if(node.GetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE)==1):
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_X,0,0.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0,0.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0,0.0)
+
+            scalar_vel_x=node.GetSolutionStepValue(PfemM.SCALARVELOCITY_X,0);    
+            scalar_vel_y=node.GetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0);    
+            scalar_vel_z=node.GetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0);    
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,1,scalar_vel_x)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,1,scalar_vel_y)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,1,scalar_vel_z)
+
+         self.IncreaseTimeStep()  
+         fluid_is_converged = self.fluid_solver.SolveSolutionStep()
+         self.ReduceTimeStep()
+         #KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.fluid_solver.main_model_part).Execute()
+         for node in self.fluid_solver.main_model_part.Nodes:
+          vel_x=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0);  
+          vel_y=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0);    
+          vel_z=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0); 
+          node.SetSolutionStepValue(PfemM.SCALARVELOCITY_X,0,vel_x);    
+          node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0,vel_y);  
+          node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0,vel_z);  
+         from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+         linear_solver = linear_solver_factory.ConstructSolver(
+              KratosMultiphysics.Parameters("""{"solver_type" : "skyline_lu_factorization"}"""))
+         levelset_convection_settings = KratosMultiphysics.Parameters("""{
+             "levelset_variable_name" : "SCALARVELOCITY_X",
+             "levelset_convection_variable_name" : "VELOCITY",
+             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+             "eulerian_error_compensation" : true,
+             "element_type" : "levelset_convection_supg"
+         }""")
+         print("Before the first execute")
+         KratosMultiphysics.LevelSetConvectionProcess2D(
+             self.fluid_solver.main_model_part,
+             linear_solver,
+             levelset_convection_settings).Execute()
+         print("After the first execute")    
+         levelset_convection_settings = KratosMultiphysics.Parameters("""{
+             "levelset_variable_name" : "SCALARVELOCITY_Y",
+             "levelset_convection_variable_name" : "VELOCITY",
+             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+             "eulerian_error_compensation" : true,
+             "element_type" : "levelset_convection_supg"
+         }""")
+         print("Before the second execute")
+         KratosMultiphysics.LevelSetConvectionProcess2D(
+             self.fluid_solver.main_model_part,
+             linear_solver,
+             levelset_convection_settings).Execute()    
+         print("After the second execute")
+         for node in self.fluid_solver.main_model_part.Nodes:              
+            if(node.Y>5.49999):
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_X,0,1.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0,0.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0,0.0)
+                    
+            if(node.Y<-5.49999):
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_X,0,1.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0,0.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0,0.0)
+                    
+            if(node.X<-5.4999999):
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_X,0,1.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0,0.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0,0.0)
+                    
+            if(node.X>15.499999):
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0,0.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0,0.0)
+                    
+            if(node.GetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE)==1):
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_X,0,0.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0,0.0)
+                    node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0,0.0)
+
+            scalar_vel_x=node.GetSolutionStepValue(PfemM.SCALARVELOCITY_X,0);    
+            scalar_vel_y=node.GetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0);    
+            scalar_vel_z=node.GetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0);    
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,1,scalar_vel_x)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,1,scalar_vel_y)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,1,scalar_vel_z)
+         self.IncreaseTimeStep()
+
         if self.settings["fluid_solver_settings"]["move_mesh_strategy"].GetInt()==2: 
         # add here the function to evaluate the convective terms  
 
@@ -431,10 +584,10 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
           node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0,vel_y);  
           node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0,vel_z);  
          from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
-        #  linear_solver = linear_solver_factory.ConstructSolver(
-        #      KratosMultiphysics.Parameters("""{"solver_type" : "skyline_lu_factorization"}"""))
          linear_solver = linear_solver_factory.ConstructSolver(
-             KratosMultiphysics.Parameters("""{"solver_type" : "amgcl", "max_iteration": 1000}"""))    
+              KratosMultiphysics.Parameters("""{"solver_type" : "skyline_lu_factorization"}"""))
+         #linear_solver = linear_solver_factory.ConstructSolver(
+         #    KratosMultiphysics.Parameters("""{"solver_type" : "amgcl", "max_iteration": 1000}"""))    
 
         # def test_bicgstab_iluk(self):
         # self._RunParametrized("""
@@ -519,8 +672,12 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
 
 
-        fluid_is_converged = self.fluid_solver.SolveSolutionStep()
-        time=self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+         fluid_is_converged = self.fluid_solver.SolveSolutionStep()
+
+        if self.settings["fluid_solver_settings"]["move_mesh_strategy"].GetInt()==0:  
+         fluid_is_converged = self.fluid_solver.SolveSolutionStep()
+         
+        time=self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME]    
 
         fx = 0.0
         fy = 0.0
@@ -532,11 +689,20 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         self.outputfile6=open(self.outstring5, 'a')
         self.outputfile6.write(str(time)+" "+ str(fx) +" "+  str(fy) +" "+ str(0.0) +"\n")
         self.outputfile6.close()
+        
+        
         return (fluid_is_converged) 
 
     
     def FinalizeSolutionStep(self):
         self.fluid_solver.FinalizeSolutionStep()
+
+    def ReduceTimeStep(self):
+        newdt=0.5*self.timestep
+        self.fluid_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, newdt)
+    def IncreaseTimeStep(self):
+        olddt=self.timestep
+        self.fluid_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, olddt)    
 
     def Solve(self):
 

@@ -128,6 +128,7 @@ public:
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
         const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
         const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
+        // const double dyn_st_beta = 1.0;
         // KRATOS_WATCH(dyn_st_beta);
 
 
@@ -192,6 +193,7 @@ public:
             array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, vel_gauss);
 
             const double tau_denom = std::max(dyn_st_beta *dt_inv + 2.0 * norm_vel / h + std::abs(/*beta**/div_v),  1e-2); //the term std::abs(div_v) is added following Pablo Becker's suggestion
+            // std::cout<<"tau_denom = "<<tau_denom<<std::endl;
             const double tau = 1.0 / (tau_denom);
 
             //terms multiplying dphi/dt (aux1)
