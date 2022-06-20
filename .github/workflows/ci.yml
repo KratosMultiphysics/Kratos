@@ -204,7 +204,7 @@ jobs:
 
     - name: Cache Build
       id: cache-build
-      uses: actions/cache@v1
+      uses: actions/cache@v3
       with:
         path: ~/.ccache
         key: ${{ runner.os }}-no-unity-ccache-${{ github.sha }}
