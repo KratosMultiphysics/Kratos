@@ -161,7 +161,7 @@ void DEM_parallel_bond::CalculateContactArea(double radius, double other_radius,
     KRATOS_TRY
 
     const double bond_radius_factor = (*mpProperties)[BOND_RADIUS_FACTOR];
-    double bond_radius = min(radius, other_radius) * bond_radius_factor;
+    double bond_radius = std::min(radius, other_radius) * bond_radius_factor;
     calculation_area = Globals::Pi * bond_radius * bond_radius;
 
     KRATOS_CATCH("")
@@ -185,7 +185,7 @@ double DEM_parallel_bond::CalculateContactArea(double radius, double other_radiu
     KRATOS_CATCH("")
 }
 
-void DEM_parallel_bond::GetcontactArea(const double radius, const double other_radius, const Vecotr& vector_of_initial_areas, const int neighbour_position, double& calculation_area) {
+void DEM_parallel_bond::GetcontactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) {
     
     KRATOS_TRY
 
@@ -227,7 +227,7 @@ void DEM_parallel_bond::CalculateElasticConstants(double& kn_el, double& kt_el, 
     const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
     //Normal and Tangent elastic constants
-    mUnbondedNormalElasticConstant = equiv_young * Globals::Pi * min(my_radius, other_radius) / radius_sum;
+    mUnbondedNormalElasticConstant = equiv_young * Globals::Pi * std::min(my_radius, other_radius) / radius_sum;
 
     //for bonded part
     const double bond_equiv_young = (*mpProperties)[BOND_YOUNG_MODULUS];
@@ -258,7 +258,7 @@ double DEM_parallel_bond::GetContactSigmaMax(){
 }
 
 //check bond state
-void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2){
+void DEM_parallel_bond::CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2){
     
     KRATOS_TRY
 
@@ -274,15 +274,16 @@ void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element
         const double& bond_interanl_friction = (*mpProperties)[BOND_INTERNAL_FRICC];
         const double& bond_rotational_moment_coefficient =(*mpProperties)[BOND_ROTATIONAL_MOMENT_COEFFICIENT];
 
-        if (!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
-        ParticleContactElement* this_bond = mBondElements[i];
+        if (!element1->mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
+        ParticleContactElement* this_bond = element1->mBondElements[i_neighbour_count];
         if (this_bond == NULL) return; 
 
         const double& bond_current_contact_sigma = this_bond->mContactSigma;
         const double& bond_current_contact_tau   = this_bond->mContactTau;
-        const double& bond_rotational_moment[0]  = this_bond->mElasticLocalRotationalMoment[0];
-        const double& bond_rotational_moment[1]  = this_bond->mElasticLocalRotationalMoment[1];
-        const double& bond_rotational_moment[2]  = this_bond->mElasticLocalRotationalMoment[2];
+        double bond_rotational_moment[3] = {0.0};
+        bond_rotational_moment[0]  = this_bond->mElasticLocalRotationalMoment[0];
+        bond_rotational_moment[1]  = this_bond->mElasticLocalRotationalMoment[1];
+        bond_rotational_moment[2]  = this_bond->mElasticLocalRotationalMoment[2];
         double bond_rotational_moment_normal_modulus = 0.0;
         double bond_rotational_moment_tangential_modulus = 0.0;
 
@@ -293,7 +294,7 @@ void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element
         const double my_radius         = element1->GetRadius();
         const double other_radius      = element2->GetRadius();
         const double bond_radius_factor = (*mpProperties)[BOND_RADIUS_FACTOR];
-        double bond_radius = min(my_radius, other_radius) * bond_radius_factor;
+        double bond_radius = std::min(my_radius, other_radius) * bond_radius_factor;
 
         const double I = 0.25 * Globals::Pi * bond_radius * bond_radius * bond_radius * bond_radius;
         const double J = 2.0 * I; // This is the polar inertia
@@ -377,7 +378,9 @@ void DEM_parallel_bond::CalculateForces(const ProcessInfo& r_process_info,
                         equiv_visco_damp_coeff_normal,
                         equiv_visco_damp_coeff_tangential,
                         sliding,
-                        element1->mIniNeighbourFailureId[i_neighbour_count]);
+                        element1->mIniNeighbourFailureId[i_neighbour_count],
+                        i_neighbour_count,
+                        element1);
 
     // Tangential forces are calculated after the viscodamping because the frictional limit bounds the sum of elastic plus viscous forces
     CalculateTangentialForces(OldLocalElasticContactForce,
@@ -485,7 +488,8 @@ void DEM_parallel_bond::CalculateViscoDamping(double LocalRelVel[3],
                         double equiv_visco_damp_coeff_tangential,
                         bool& sliding,
                         int failure_id,
-                        int i_neighbour_count) {
+                        int i_neighbour_count,
+                        SphericContinuumParticle* element1) {
     KRATOS_TRY
 
     mUnbondedViscoDampingLocalContactForce[0] = 0.0;
@@ -552,8 +556,9 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
 
     // The [mBondedScalingFactor] is divided into two direction [0] and [1]. June, 2022
     double OldBondedLocalElasticContactForce[2] = {0.0};
-    double OldBondedLocalElasticContactForce[0] = mBondedScalingFactor[0] * OldLocalElasticContactForce[0];
-    double OldBondedLocalElasticContactForce[1] = mBondedScalingFactor[1] * OldLocalElasticContactForce[1];
+    double BondedLocalElasticContactForce[2] = {0.0};
+    OldBondedLocalElasticContactForce[0] = mBondedScalingFactor[0] * OldLocalElasticContactForce[0];
+    OldBondedLocalElasticContactForce[1] = mBondedScalingFactor[1] * OldLocalElasticContactForce[1];
 
     // bond force
     if (!failure_type) {
@@ -677,11 +682,11 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
 // Moment calculation
 //*************************************
 
-double DEM_KDEM::GetYoungModulusForComputingRotationalMoments(const double& equiv_young){
+double DEM_parallel_bond::GetYoungModulusForComputingRotationalMoments(const double& equiv_young){
         return equiv_young;
     }
 
-void DEM_KDEM::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                 SphericContinuumParticle* neighbor,
                                                 double equiv_young,
                                                 double distance,
