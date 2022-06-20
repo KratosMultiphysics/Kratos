@@ -206,7 +206,7 @@ namespace Kratos
                     tempFixedVelocitiesValues.push_back(mvel_n1[index]);
                 }
 
-                if (inode->Is(OUTLET))
+                if (inode->IsFixed(PRESSURE))
                 {
                     tempPressureOutletList.push_back(index);
                     //		    mPressureOutlet.push_back(external_pressure[index]);
@@ -960,8 +960,7 @@ namespace Kratos
                         }
                     }
 
-                    if (avg_number == 0)
-                        KRATOS_THROW_ERROR(std::logic_error, "can not happen that the extrapolation node has no neighbours", "");
+                    KRATOS_ERROR_IF(avg_number == 0) << "can not happen that the extrapolation node has no neighbours" << std::endl;
 
                     iii->FastGetSolutionStepValue(PRESSURE) = pavg / avg_number;
                 }
@@ -1096,11 +1095,11 @@ namespace Kratos
             for (int i_node = 0; i_node < n_nodes; i_node++)
             {
                 double L_diag = mL(i_node, i_node);
-                if (fabs(L_diag) > fabs(max_diag))
+                if (std::abs(L_diag) > std::abs(max_diag))
                     max_diag = L_diag;
             }
-            if (max_diag < 1e20)
-                max_diag = 1e20;
+            if (max_diag < 1e15)
+                max_diag = 1e15;
 
             // respect pressure boundary conditions by penalization
             //            double huge = max_diag * 1e6;
@@ -1157,7 +1156,7 @@ namespace Kratos
 
             //	    for (int i_node = 0; i_node < n_nodes; i_node++)
             //	    {
-            //	      if(  fabs(mL(i_node, i_node)) < 1e-20)
+            //	      if(  fabs(mL(i_node, i_node)) < 1e-15)
             //	      {
             //		mL(i_node, i_node)=max_diag;
             //		rhs[i_node] = 0.0;
@@ -1974,7 +1973,7 @@ namespace Kratos
                 else
                 {
                     for (unsigned int if_node = 0; if_node < TDim; if_node++)
-                        if (face_geometry[if_node].Is(INLET) || face_geometry[if_node].Is(OUTLET))
+                        if (face_geometry[if_node].Is(INLET) || face_geometry[if_node].IsFixed(PRESSURE))
                             is_inlet_or_outlet = true;
                 }
                 // slip condition
@@ -3328,8 +3327,7 @@ namespace Kratos
             double y_plus_incercept = 10.9931899;
             unsigned int itmax = 100;
 
-            if (mViscosity[0] == 0)
-                KRATOS_THROW_ERROR(std::logic_error, "it is not possible to use the wall law with 0 viscosity", "");
+            KRATOS_ERROR_IF(mViscosity[0] == 0) << "it is not possible to use the wall law with 0 viscosity" << std::endl;
 
             // slip condition
             int slip_size = mSlipBoundaryList.size();
