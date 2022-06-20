@@ -205,6 +205,7 @@ namespace Kratos
                 if (inode->IsFixed(PRESSURE))
                 {
                     tempPressureOutletList.push_back(index);
+                }
             }
             mFixedVelocities.resize(tempFixedVelocities.size(), false);
             mFixedVelocitiesValues.resize(tempFixedVelocitiesValues.size(), false);

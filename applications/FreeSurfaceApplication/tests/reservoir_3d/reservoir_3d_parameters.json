@@ -1,17 +1,17 @@
 {
     "analysis_stage": "KratosMultiphysics.FreeSurfaceApplication.free_surface_analysis",
     "problem_data": {
-        "problem_name": "Reservoir2D",
+        "problem_name": "reservoir_3d",
         "parallel_type": "OpenMP",
         "echo_level": 0,
-        "start_time": 0.0,
-        "end_time": 5.0
+        "start_time": 0,
+        "end_time": 5
     },
     "output_processes": {},
     "solver_settings": {
-        "model_part_name": "Reservoir2D",
-        "domain_size": 2,
-        "max_safety_factor": 1e-1,
+        "model_part_name": "reservoir_3d",
+        "domain_size": 3,
+        "max_safety_factor": 5e-1,
         "max_time_step_size": 1e-2,
         "density": 1e3,
         "viscosity": 1e-6,
@@ -22,15 +22,15 @@
         "number_of_initial_time_steps": 10,
         "initial_time_step_size": 1e-5,
         "reduction_on_failure": 3e-1,
-        "stabdt_pressure_factor": 1e0,
+        "stabdt_pressure_factor": 1.0,
         "stabdt_convection_factor": 1e-2,
-        "tau2_factor": 1e0,
+        "tau2_factor": 1.0,
         "assume_constant_pressure": false,
         "compute_porous_resistance_law": "NONE",
         "echo_level": 0,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "Reservoir2D"
+            "input_filename": "reservoir_3d/reservoir_3d"
         }
     },
     "processes": {
@@ -39,7 +39,7 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "AssignScalarVariableProcess",
                 "Parameters": {
-                    "model_part_name": "Reservoir2D.SubModelPart_Auto1",
+                    "model_part_name": "reservoir_3d.Distance",
                     "variable_name": "DISTANCE",
                     "constrained": false,
                     "value": -1.0,
@@ -51,10 +51,10 @@
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
                 "process_name": "ApplyInletProcess",
                 "Parameters": {
-                    "model_part_name": "Reservoir2D.SubModelPart_Auto2",
+                    "model_part_name": "reservoir_3d.Inlet",
                     "variable_name": "VELOCITY",
                     "constrained": true,
-                    "modulus": 1.0,
+                    "modulus": 0.666667,
                     "direction": "automatic_inwards_normal",
                     "interval": [0.0,"End"]
                 }
@@ -63,7 +63,7 @@
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
                 "process_name": "ApplyOutletProcess",
                 "Parameters": {
-                    "model_part_name": "Reservoir2D.SubModelPart_Auto3",
+                    "model_part_name": "reservoir_3d.Outlet",
                     "variable_name": "PRESSURE",
                     "constrained": true,
                     "value": 0.0,
@@ -75,7 +75,7 @@
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
                 "process_name": "ApplySlipProcess",
                 "Parameters": {
-                    "model_part_name": "Reservoir2D.SubModelPart_Auto4"
+                    "model_part_name": "reservoir_3d.Slip"
                 }
             }],
         "gravity": [{
@@ -83,13 +83,12 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "AssignVectorByDirectionProcess",
                 "Parameters": {
-                    "model_part_name": "Reservoir2D",
+                    "model_part_name": "reservoir_3d",
                     "variable_name": "BODY_FORCE",
                     "modulus": 9.81,
                     "constrained": false,
-                    "direction": [0.0, -1.0, 0.0]
+                    "direction": [0.0, 0.0, -1.0]
                 }
-            }],
-        "auxiliar_process_list": []
+            }]
     }
 }
