@@ -27,18 +27,22 @@ namespace Kratos
 {
 
 FluidLeastSquaresShadowingUtilities::FluidLeastSquaresShadowingUtilities(
+    const Variable<double>& rDeltaTimeShapeTotalDerivativeVariable,
     const std::vector<const Variable<double>*>& rPrimalVariablePointersList,
     const std::vector<const Variable<double>*>& rPrimalFirstDerivativeVariablePointersList,
     const std::vector<const Variable<double>*>& rAdjointVariablePointersList,
     const std::vector<const Variable<double>*>& rAdjointFirstDerivativeVariablePointersList,
     const std::vector<const Variable<double>*>& rLSSVariablePointersList,
-    const std::vector<const Variable<double>*>& rLSSFirstDerivativeVariablePointersList)
-    : mPrimalVariablePointersList(rPrimalVariablePointersList),
+    const std::vector<const Variable<double>*>& rLSSFirstDerivativeVariablePointersList,
+    const Variable<Vector>& rAuxVariable)
+    : mrDeltaTimeShapeTotalDerivativeVariable(rDeltaTimeShapeTotalDerivativeVariable),
+      mPrimalVariablePointersList(rPrimalVariablePointersList),
       mPrimalFirstDerivativeVariablePointersList(rPrimalFirstDerivativeVariablePointersList),
       mAdjointVariablePointersList(rAdjointVariablePointersList),
       mAdjointFirstDerivativeVariablePointersList(rAdjointFirstDerivativeVariablePointersList),
       mLSSVariablePointersList(rLSSVariablePointersList),
-      mLSSFirstDerivativeVariablePointersList(rLSSFirstDerivativeVariablePointersList)
+      mLSSFirstDerivativeVariablePointersList(rLSSFirstDerivativeVariablePointersList),
+      mrAuxVariable(rAuxVariable)
 {
     KRATOS_TRY
 
@@ -210,6 +214,16 @@ const std::vector<const Variable<double>*>& FluidLeastSquaresShadowingUtilities:
 const std::vector<const Variable<double>*>& FluidLeastSquaresShadowingUtilities::GetLSSFirstDerivativeVariablePointersList() const
 {
     return mLSSFirstDerivativeVariablePointersList;
+}
+
+const Variable<double>& FluidLeastSquaresShadowingUtilities::GetDeltaTimeShapeTotalDerivativeVariable() const
+{
+    return mrDeltaTimeShapeTotalDerivativeVariable;
+}
+
+const Variable<Vector>& FluidLeastSquaresShadowingUtilities::GetAuxVariable() const
+{
+    return mrAuxVariable;
 }
 
 // template instantiations

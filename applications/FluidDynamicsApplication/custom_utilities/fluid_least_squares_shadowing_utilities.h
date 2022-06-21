@@ -52,12 +52,14 @@ public:
     ///@{
 
     FluidLeastSquaresShadowingUtilities(
+        const Variable<double>& rDeltaTimeShapeTotalDerivativeVariable,
         const std::vector<const Variable<double>*>& rPrimalVariablePointersList,
         const std::vector<const Variable<double>*>& rPrimalFirstDerivativeVariablePointersList,
         const std::vector<const Variable<double>*>& rAdjointVariablePointersList,
         const std::vector<const Variable<double>*>& rAdjointFirstDerivativeVariablePointersList,
         const std::vector<const Variable<double>*>& rLSSVariablePointersList,
-        const std::vector<const Variable<double>*>& rLSSFirstDerivativeVariablePointersList);
+        const std::vector<const Variable<double>*>& rLSSFirstDerivativeVariablePointersList,
+        const Variable<Vector>& rAuxVariable);
 
     ///@}
     ///@name Operations
@@ -96,17 +98,23 @@ public:
 
     const std::vector<const Variable<double>*>& GetLSSFirstDerivativeVariablePointersList() const;
 
+    const Variable<double>& GetDeltaTimeShapeTotalDerivativeVariable() const;
+
+    const Variable<Vector>& GetAuxVariable() const;
+
     ///@}
 private:
     ///@name Private Members
     ///@{
 
+    const Variable<double>& mrDeltaTimeShapeTotalDerivativeVariable;
     const std::vector<const Variable<double>*> mPrimalVariablePointersList;
     const std::vector<const Variable<double>*> mPrimalFirstDerivativeVariablePointersList;
     const std::vector<const Variable<double>*> mAdjointVariablePointersList;
     const std::vector<const Variable<double>*> mAdjointFirstDerivativeVariablePointersList;
     const std::vector<const Variable<double>*> mLSSVariablePointersList;
     const std::vector<const Variable<double>*> mLSSFirstDerivativeVariablePointersList;
+    const Variable<Vector>& mrAuxVariable;
 
     ///@}
     ///@name Private Static Operations
