@@ -555,11 +555,10 @@ namespace Kratos
             mRowStartIndex[n_nodes] = mNumberEdges;
 
             // INITIALIZING NODE BASED VALUES
-
-#pragma omp parallel for
             // set the heights to a huge number
-            for (int i_node = 0; i_node < n_nodes; i_node++)
+            IndexPartition<unsigned int>(n_nodes).for_each([&](unsigned int i_node){
                 mHmin[i_node] = 1e10;
+            });
 
             KRATOS_CATCH("")
         }
@@ -977,9 +976,8 @@ namespace Kratos
             KRATOS_TRY
 
             int loop_size = destination.size();
-#pragma omp parallel for
-            for (int i_node = 0; i_node < loop_size; i_node++)
-            {
+
+            IndexPartition<unsigned int>(loop_size).for_each([&](unsigned int i_node){
                 array_1d<double, TDim> &dest = destination[i_node];
                 const double m_inv = Minv_vec[i_node];
                 const array_1d<double, TDim> &origin_vec1 = origin1[i_node];
@@ -988,7 +986,7 @@ namespace Kratos
                 double temp = value * m_inv;
                 for (unsigned int comp = 0; comp < TDim; comp++)
                     dest[comp] = origin_vec1[comp] + temp * origin_value[comp];
-            }
+            });
 
             KRATOS_CATCH("")
         }
@@ -1003,9 +1001,8 @@ namespace Kratos
             KRATOS_TRY
 
             int loop_size = destination.size();
-#pragma omp parallel for
-            for (int i_node = 0; i_node < loop_size; i_node++)
-            {
+
+            IndexPartition<unsigned int>(loop_size).for_each([&](unsigned int i_node){
                 double &dest = destination[i_node];
                 const double m_inv = Minv_vec[i_node];
                 const double &origin_vec1 = origin1[i_node];
@@ -1013,7 +1010,7 @@ namespace Kratos
 
                 double temp = value * m_inv;
                 dest = origin_vec1 + temp * origin_value;
-            }
+            });
 
             KRATOS_CATCH("")
         }
@@ -1024,25 +1021,22 @@ namespace Kratos
         {
             data_vector.resize(size);
             int loop_size = size;
-#pragma omp parallel for
-            for (int i_node = 0; i_node < loop_size; i_node++)
-            {
+
+            IndexPartition<unsigned int>(loop_size).for_each([&](unsigned int i_node){
                 array_1d<double, TDim> &aaa = data_vector[i_node];
                 for (unsigned int comp = 0; comp < TDim; comp++)
                     aaa[comp] = 0.0;
-            }
+            });
         }
 
         void AllocateAndSetToZero(ValuesVectorType &data_vector, int size)
         {
             data_vector.resize(size);
             int loop_size = size;
-#pragma omp parallel for
-            for (int i_node = 0; i_node < loop_size; i_node++)
-            {
+
+            IndexPartition<unsigned int>(loop_size).for_each([&](unsigned int i_node){
                 data_vector[i_node] = 0.0;
-                ;
-            }
+            });
         }
 
         //**********************************************************************
@@ -1050,24 +1044,21 @@ namespace Kratos
         void SetToZero(CalcVectorType &data_vector)
         {
             int loop_size = data_vector.size();
-#pragma omp parallel for
-            for (int i_node = 0; i_node < loop_size; i_node++)
-            {
+
+            IndexPartition<unsigned int>(loop_size).for_each([&](unsigned int i_node){
                 array_1d<double, TDim> &aaa = data_vector[i_node];
                 for (unsigned int comp = 0; comp < TDim; comp++)
                     aaa[comp] = 0.0;
-            }
+            });
         }
 
         void SetToZero(ValuesVectorType &data_vector)
         {
             int loop_size = data_vector.size();
-#pragma omp parallel for
-            for (int i_node = 0; i_node < loop_size; i_node++)
-            {
+
+            IndexPartition<unsigned int>(loop_size).for_each([&](unsigned int i_node){
                 data_vector[i_node] = 0.0;
-                ;
-            }
+            });
         }
 
         //**********************************************************************
@@ -1076,25 +1067,23 @@ namespace Kratos
                                   CalcVectorType &destination)
         {
             int loop_size = origin.size();
-#pragma omp parallel for
-            for (int i_node = 0; i_node < loop_size; i_node++)
-            {
+
+            IndexPartition<unsigned int>(loop_size).for_each([&](unsigned int i_node){
                 const array_1d<double, TDim> &orig = origin[i_node];
                 array_1d<double, TDim> &dest = destination[i_node];
                 for (unsigned int comp = 0; comp < TDim; comp++)
                     dest[comp] = orig[comp];
-            }
+            });
         }
 
         void AssignVectorToVector(const ValuesVectorType &origin,
                                   ValuesVectorType &destination)
         {
             int loop_size = origin.size();
-#pragma omp parallel for
-            for (int i_node = 0; i_node < loop_size; i_node++)
-            {
+
+            IndexPartition<unsigned int>(loop_size).for_each([&](unsigned int i_node){
                 destination[i_node] = origin[i_node];
-            }
+            });
         }
 
     private:
