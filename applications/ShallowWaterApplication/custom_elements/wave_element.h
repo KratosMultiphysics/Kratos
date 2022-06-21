@@ -336,7 +336,7 @@ protected:
 
     virtual void UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
 
-    static void CalculateGeometryData(
+    virtual void CalculateGeometryData(
         const GeometryType& rGeometry,
         Vector &rGaussWeights,
         Matrix &rNContainer,

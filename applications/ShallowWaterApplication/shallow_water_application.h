@@ -38,6 +38,7 @@
 #include "custom_elements/conservative_element.h"
 #include "custom_elements/conservative_element_rv.h"
 #include "custom_elements/conservative_element_fc.h"
+#include "custom_elements/embedded_primitive_element.h"
 #include "custom_elements/shallow_water_2d_3.h"
 #include "custom_conditions/wave_condition.h"
 #include "custom_conditions/boussinesq_condition.h"
@@ -178,6 +179,10 @@ namespace Kratos
         const ConservativeElementRV<3> mConservativeElementRV2D3N;
         const ConservativeElementFC<3> mConservativeElementFC2D3N;
         const ShallowWater2D3 mShallowWater2D3N;
+
+        // Embedded elements
+        const EmbeddedPrimitiveElement<3> mEmbeddedPrimitiveElement2D3N;
+
         // Conditions
         const WaveCondition<2> mWaveCondition2D2N;
         const WaveCondition<3> mWaveCondition2D3N;

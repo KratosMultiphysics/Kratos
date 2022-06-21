@@ -51,6 +51,8 @@ namespace Kratos
 
         mShallowWater2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
 
+        mEmbeddedPrimitiveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+
         mWaveCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
         mWaveCondition2D3N(0, Element::GeometryType::Pointer(new Line2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
         mBoussinesqCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
@@ -143,6 +145,8 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("ConservativeElementFC2D3N", mConservativeElementFC2D3N)
 
         KRATOS_REGISTER_ELEMENT("ShallowWater2D3N", mShallowWater2D3N) // TODO: move to ConservativeElement
+
+        KRATOS_REGISTER_ELEMENT("EmbeddedPrimitiveElement2D3N", mEmbeddedPrimitiveElement2D3N)
 
         KRATOS_REGISTER_CONDITION("WaveCondition2D2N", mWaveCondition2D2N)
         KRATOS_REGISTER_CONDITION("WaveCondition2D3N", mWaveCondition2D3N)
