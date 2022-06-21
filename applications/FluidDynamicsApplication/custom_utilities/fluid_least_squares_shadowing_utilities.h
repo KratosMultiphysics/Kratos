@@ -20,6 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/condition.h"
 #include "includes/element.h"
 
 // Application includes
@@ -39,6 +40,8 @@ public:
     ///@{
 
     using IndexType = std::size_t;
+
+    using ConditionType = Condition;
 
     using ElementType = Element;
 
@@ -60,19 +63,26 @@ public:
     ///@name Operations
     ///@{
 
-    void CheckVariables(const ElementType& rElement) const;
+    template<class TEntityType>
+    void CheckVariables(const TEntityType& rEntity) const;
 
-    void GetPrimalValues(Vector& rOutput, const ElementType& rElement, const IndexType Step = 0) const;
+    template<class TEntityType>
+    void GetPrimalValues(Vector& rOutput, const TEntityType& rEntity, const IndexType Step = 0) const;
 
-    void GetPrimalFirstDerivativeValues(Vector& rOutput, const ElementType& rElement, const IndexType Step = 0) const;
+    template<class TEntityType>
+    void GetPrimalFirstDerivativeValues(Vector& rOutput, const TEntityType& rEntity, const IndexType Step = 0) const;
 
-    void GetAdjointValues(Vector& rOutput, const ElementType& rElement, const IndexType Step = 0) const;
+    template<class TEntityType>
+    void GetAdjointValues(Vector& rOutput, const TEntityType& rEntity, const IndexType Step = 0) const;
 
-    void GetAdjointFirstDerivativeValues(Vector& rOutput, const ElementType& rElement, const IndexType Step = 0) const;
+    template<class TEntityType>
+    void GetAdjointFirstDerivativeValues(Vector& rOutput, const TEntityType& rEntity, const IndexType Step = 0) const;
 
-    void GetLSSValues(Vector& rOutput, const ElementType& rElement, const IndexType Step = 0) const;
+    template<class TEntityType>
+    void GetLSSValues(Vector& rOutput, const TEntityType& rEntity, const IndexType Step = 0) const;
 
-    void GetLSSFirstDerivativeValues(Vector& rOutput, const ElementType& rElement, const IndexType Step = 0) const;
+    template<class TEntityType>
+    void GetLSSFirstDerivativeValues(Vector& rOutput, const TEntityType& rEntity, const IndexType Step = 0) const;
 
     const std::vector<const Variable<double>*>& GetPrimalVariablePointersList() const;
 
@@ -102,7 +112,8 @@ private:
     ///@name Private Static Operations
     ///@{
 
-    static void GetValues(Vector& rOutput, const ElementType& rElement, const IndexType Step, const std::vector<const Variable<double>*>& rVariablePointersList);
+    template<class TEntityType>
+    static void GetValues(Vector& rOutput, const TEntityType& rEntity, const IndexType Step, const std::vector<const Variable<double>*>& rVariablePointersList);
 
     ///@}
 };
