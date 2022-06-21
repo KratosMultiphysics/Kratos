@@ -70,7 +70,7 @@ public:
     /**
      * @brief Calculate the wave height.
      */
-    double Calculate(const array_1d<double,3>& rCoordinates, const double& rMeshSize) const;
+    double Calculate(const array_1d<double,3>& rCoordinates, const double& rMeshSize = 0.0) const;
 
     ///@}
     ///@name Input and output
