@@ -207,13 +207,13 @@ if __name__ == "__main__":
     # generate top navigation bar
     with open("_data/topnav.yml.orig", "r") as file_input:
         lines = file_input.readlines()
-    list_of_strings = CreateNavigatonBar("pages", 2, default_header_dict)
+    list_of_strings = CreateNavigatonBar("Kratos/pages", 2, default_header_dict)
     lines.extend(list_of_strings)
     with open("_data/topnav.yml", "w") as file_output:
         file_output.writelines(lines)
 
     # generate Shape optimization application side bar
-    for iter_dir in Path("pages").iterdir():
+    for iter_dir in Path("Kratos/pages").iterdir():
         if iter_dir.is_dir():
             for sub_itr_dir in iter_dir.iterdir():
                 if sub_itr_dir.is_dir():

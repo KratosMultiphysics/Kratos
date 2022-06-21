@@ -7,19 +7,19 @@ entries:
     output: web
     folderitems:
     - title: Summary
-      url: /pages/Kratos/For_Users/General/../../../../index.html
+      url: /Kratos/pages/Kratos/For_Users/General/../../../../../index.html
       output: web
     - title: Overview
-      url: /pages/Kratos/For_Users/General/Overview.html
+      url: /Kratos/pages/Kratos/For_Users/General/Overview.html
       output: web
     - title: Management Structure
-      url: /pages/Kratos/For_Users/General/Management_Structure.html
+      url: /Kratos/pages/Kratos/For_Users/General/Management_Structure.html
       output: web
     - title: General Structure
-      url: /pages/Kratos/For_Users/General/General_Structure.html
+      url: /Kratos/pages/Kratos/For_Users/General/General_Structure.html
       output: web
     - title: Copyright and Licence
-      url: /pages/Kratos/For_Users/General/Copyright_and_Licence.html
+      url: /Kratos/pages/Kratos/For_Users/General/Copyright_and_Licence.html
       output: web
   - title: How to get Kratos
     output: web
@@ -31,99 +31,99 @@ entries:
         output: web
         subfolderitems:
         - title: Getting Kratos binaries (via GiD)
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/Binaries/Getting-Kratos-binaries-with-gid.html
+          url: /Kratos/pages/Kratos/For_Users/How_to_get_Kratos/Binaries/Getting-Kratos-binaries-with-gid.html
           output: web
         - title: Getting Kratos Binaries for Windows
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/Binaries/Getting-Kratos-Binaries-for-Windows.html
+          url: /Kratos/pages/Kratos/For_Users/How_to_get_Kratos/Binaries/Getting-Kratos-Binaries-for-Windows.html
           output: web
         - title: Getting Kratos Binaries for Linux
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/Binaries/Getting-Kratos-Binaries-for-Linux.html
+          url: /Kratos/pages/Kratos/For_Users/How_to_get_Kratos/Binaries/Getting-Kratos-Binaries-for-Linux.html
           output: web
       - title: Compilation
         output: web
         subfolderitems:
         - title: Compilation options
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/Compilation/Compilation-options.html
+          url: /Kratos/pages/Kratos/For_Users/How_to_get_Kratos/Compilation/Compilation-options.html
           output: web
         - title: How to Compile Kratos in Debug mode
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/Compilation/How-to-Compile-Kratos-in-Debug-mode.html
+          url: /Kratos/pages/Kratos/For_Users/How_to_get_Kratos/Compilation/How-to-Compile-Kratos-in-Debug-mode.html
           output: web
         - title: Linux Build
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/Compilation/Linux-Build.html
+          url: /Kratos/pages/Kratos/For_Users/How_to_get_Kratos/Compilation/Linux-Build.html
           output: web
   - title: Getting started
     output: web
     folderitems:
     - title: Creating a base application
-      url: /pages/Kratos/For_Users/Getting_started/Creating-a-base-application.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/Creating-a-base-application.html
       output: web
     - title: Entities creation from scratch
-      url: /pages/Kratos/For_Users/Getting_started/Entities-creation-from-scratch.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/Entities-creation-from-scratch.html
       output: web
     - title: Example A simple Fluid   Thermal coupled solver
-      url: /pages/Kratos/For_Users/Getting_started/Example-A-simple-Fluid---Thermal-coupled-solver.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/Example-A-simple-Fluid---Thermal-coupled-solver.html
       output: web
     - title: How to Create a New Application using cmake
-      url: /pages/Kratos/For_Users/Getting_started/How-to-Create-a-New-Application-using-cmake.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/How-to-Create-a-New-Application-using-cmake.html
       output: web
     - title: How to interact with a simulation to visualize real time results
-      url: /pages/Kratos/For_Users/Getting_started/How-to-interact-with-a-simulation-to-visualize-real-time-results.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/How-to-interact-with-a-simulation-to-visualize-real-time-results.html
       output: web
     - title: How to write a JSON configuration file
-      url: /pages/Kratos/For_Users/Getting_started/How-to-write-a-JSON-configuration-file.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/How-to-write-a-JSON-configuration-file.html
       output: web
     - title: Implementing thermal solver
-      url: /pages/Kratos/For_Users/Getting_started/Implementing-thermal-solver.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/Implementing-thermal-solver.html
       output: web
     - title: Input data
-      url: /pages/Kratos/For_Users/Getting_started/Input-data.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/Input-data.html
       output: web
     - title: Kernel and Applications
-      url: /pages/Kratos/For_Users/Getting_started/Editing-kratos-kernel-and-application-approach.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/Editing-kratos-kernel-and-application-approach.html
       output: web
     - title: Kratos For Dummies Stationary heat transfer
-      url: /pages/Kratos/For_Users/Getting_started/Kratos-For-Dummies-Stationary-heat-transfer.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/Kratos-For-Dummies-Stationary-heat-transfer.html
       output: web
     - title: Kratos For Dummies Transient non linear heat transfer
-      url: /pages/Kratos/For_Users/Getting_started/Kratos-For-Dummies-Transient-non-linear-heat-transfer.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/Kratos-For-Dummies-Transient-non-linear-heat-transfer.html
       output: web
     - title: Multiphysics example
-      url: /pages/Kratos/For_Users/Getting_started/Multiphysics-example.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/Multiphysics-example.html
       output: web
     - title: Python Script  Generating New Modelparts
-      url: /pages/Kratos/For_Users/Getting_started/generate-new-modelpart.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/generate-new-modelpart.html
       output: web
     - title: Python Script  Getting Started
-      url: /pages/Kratos/For_Users/Getting_started/getting-started.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/getting-started.html
       output: web
     - title: Python Script  Hello Kratos
-      url: /pages/Kratos/For_Users/Getting_started/hello-world.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/hello-world.html
       output: web
     - title: Python Script  ModelPart Elements and Conditions
-      url: /pages/Kratos/For_Users/Getting_started/elems-and-conds.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/elems-and-conds.html
       output: web
     - title: Python Script  ModelPart and SubModelPart
-      url: /pages/Kratos/For_Users/Getting_started/modelpart-and-submodelpart.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/modelpart-and-submodelpart.html
       output: web
     - title: Python Script  Nodes and Nodal Data
-      url: /pages/Kratos/For_Users/Getting_started/nodes-and-data.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/nodes-and-data.html
       output: web
     - title: Python Script  Reading ProjectParameters
-      url: /pages/Kratos/For_Users/Getting_started/project-parameters.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/project-parameters.html
       output: web
     - title: Python Script  Writing Output File
-      url: /pages/Kratos/For_Users/Getting_started/writing-output.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/writing-output.html
       output: web
     - title: Python Tutorials
-      url: /pages/Kratos/For_Users/Getting_started/tutorials.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/tutorials.html
       output: web
     - title: Running an example from GiD
-      url: /pages/Kratos/For_Users/Getting_started/Running-an-example-from-GiD.html
+      url: /Kratos/pages/Kratos/For_Users/Getting_started/Running-an-example-from-GiD.html
       output: web
       subfolders:
       - title: File structure
         output: web
         subfolderitems:
         - title: Python Script  Reading ModelPart From Input File
-          url: /pages/Kratos/For_Users/Getting_started/File_structure/reading-input.html
+          url: /Kratos/pages/Kratos/For_Users/Getting_started/File_structure/reading-input.html
           output: web

@@ -7,5 +7,5 @@ entries:
     output: web
     folderitems:
     - title: How to do Mapping between nonmatching meshes
-      url: /pages/Applications/Mapping_Application/General/How-to-do-Mapping-between-nonmatching-meshes.html
+      url: /Kratos/pages/Applications/Mapping_Application/General/How-to-do-Mapping-between-nonmatching-meshes.html
       output: web
