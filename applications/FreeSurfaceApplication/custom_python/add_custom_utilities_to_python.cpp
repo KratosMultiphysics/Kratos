@@ -41,17 +41,27 @@ namespace Kratos
 				.def("BuildCSRData", &MatrixContainer<3, SparseSpaceType>::BuildCSRData)
 				.def("Clear", &MatrixContainer<3, SparseSpaceType>::Clear);
 
+            py::class_<MatrixContainerC2C<2, SparseSpaceType>>(pymodule, "MatrixContainerC2C2D")
+                .def(py::init<>())
+                .def("ConstructCSRVector", &MatrixContainerC2C<2, SparseSpaceType>::ConstructCSRVector)
+                .def("BuildCSRData", &MatrixContainerC2C<2, SparseSpaceType>::BuildCSRData)
+                .def("Clear", &MatrixContainerC2C<2, SparseSpaceType>::Clear);
+
+            py::class_<MatrixContainerC2C<3, SparseSpaceType>>(pymodule, "MatrixContainerC2C3D")
+                .def(py::init<>())
+                .def("ConstructCSRVector", &MatrixContainerC2C<3, SparseSpaceType>::ConstructCSRVector)
+                .def("BuildCSRData", &MatrixContainerC2C<3, SparseSpaceType>::BuildCSRData)
+                .def("Clear", &MatrixContainerC2C<3, SparseSpaceType>::Clear);
+
 			py::class_<EdgebasedLevelsetAuxiliaryUtils <2>>(pymodule, "EdgebasedLevelsetAuxiliaryUtils2D")
 				.def(py::init<>())
 				.def("CalculateDistances", &EdgebasedLevelsetAuxiliaryUtils <2> ::CalculateDistances)
-				.def("FindMaximumEdgeSize", &EdgebasedLevelsetAuxiliaryUtils <2> ::FindMaximumEdgeSize)
-				;
+				.def("FindMaximumEdgeSize", &EdgebasedLevelsetAuxiliaryUtils <2> ::FindMaximumEdgeSize);
 
 			py::class_<EdgebasedLevelsetAuxiliaryUtils <3>>(pymodule,"EdgebasedLevelsetAuxiliaryUtils3D")
 				.def(py::init<>())
 				.def("CalculateDistances", &EdgebasedLevelsetAuxiliaryUtils <3> ::CalculateDistances)
-				.def("FindMaximumEdgeSize", &EdgebasedLevelsetAuxiliaryUtils <3> ::FindMaximumEdgeSize)
-				;
+				.def("FindMaximumEdgeSize", &EdgebasedLevelsetAuxiliaryUtils <3> ::FindMaximumEdgeSize);
 		}
 
 	} // namespace Python

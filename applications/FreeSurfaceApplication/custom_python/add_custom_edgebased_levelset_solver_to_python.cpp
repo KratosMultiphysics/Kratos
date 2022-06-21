@@ -15,16 +15,7 @@
 // External includes
 
 // Project includes
-#include "includes/define_python.h"
-#include "processes/process.h"
-#include "custom_python/add_custom_edgebased_levelset_solver_to_python.h"
-#include "custom_utilities/edge_data.h"
-#include "custom_utilities/edgebased_levelset.h"
-#include "custom_utilities/edgebased_levelset_substep.h"
-
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-#include "custom_utilities/edge_data_c2c.h"
+#include "add_custom_edgebased_levelset_solver_to_python.h"
 
 namespace Kratos
 {
@@ -93,18 +84,6 @@ namespace Kratos
                 .def("PushFreeSurface", &EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::PushFreeSurface)
                 .def("ComputeBoundedTimeStep", &EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::ComputeBoundedTimeStep)
                 .def("Clear", &EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::Clear);
-
-            py::class_<MatrixContainerC2C<2, SparseSpaceType>>(pymodule, "MatrixContainerC2C2D")
-                .def(py::init<>())
-                .def("ConstructCSRVector", &MatrixContainerC2C<2, SparseSpaceType>::ConstructCSRVector)
-                .def("BuildCSRData", &MatrixContainerC2C<2, SparseSpaceType>::BuildCSRData)
-                .def("Clear", &MatrixContainerC2C<2, SparseSpaceType>::Clear);
-
-            py::class_<MatrixContainerC2C<3, SparseSpaceType>>(pymodule, "MatrixContainerC2C3D")
-                .def(py::init<>())
-                .def("ConstructCSRVector", &MatrixContainerC2C<3, SparseSpaceType>::ConstructCSRVector)
-                .def("BuildCSRData", &MatrixContainerC2C<3, SparseSpaceType>::BuildCSRData)
-                .def("Clear", &MatrixContainerC2C<3, SparseSpaceType>::Clear);
 
             py::class_<EdgeBasedLevelSetSubstep<2, MatrixContainerC2C<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>>(pymodule, "EdgeBasedLevelSetSubstep2D")
                 .def(py::init<MatrixContainerC2C<2, SparseSpaceType> &, ModelPart &, const double, const double, bool, double, double, double, bool>())
