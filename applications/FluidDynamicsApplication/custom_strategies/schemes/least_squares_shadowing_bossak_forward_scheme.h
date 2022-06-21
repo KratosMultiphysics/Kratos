@@ -28,6 +28,7 @@
 // Application includes
 #include "custom_utilities/fluid_adjoint_slip_utilities.h"
 #include "custom_utilities/fluid_least_squares_shadowing_utilities.h"
+#include "custom_utilities/fluid_least_squares_shadowing_sensitivity.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
@@ -72,8 +73,7 @@ public:
         const double FinalResponseValue,
         const IndexType Dimension,
         const IndexType BlockSize,
-        const IndexType ShapeDerivativeNodeId,
-        const IndexType ShapeDerivativeDirection,
+        FluidLeastSquaresShadowingSensitivity& rFluidLeastSquaresShadowingSensitivity,
         const Variable<double>& rResponseShapeTotalDerivative,
         const FluidLeastSquaresShadowingUtilities& rFluidLeastSquaresShadowingUtilities,
         const IndexType EchoLevel)
@@ -82,10 +82,9 @@ public:
           mDeltaTimeDialationAlpha(DeltaTimeDialationAlpha),
           mFinalResponseValue(FinalResponseValue),
           mDimension(Dimension),
-          mShapeDerivativeNodeId(ShapeDerivativeNodeId),
-          mShapeDerivativeDirection(ShapeDerivativeDirection),
           mBossak(BossakAlpha),
           mBossakConstants(mBossak),
+          mrFluidLeastSquaresShadowingSensitivity(rFluidLeastSquaresShadowingSensitivity),
           mrResponseShapeTotalDerivative(rResponseShapeTotalDerivative),
           mFluidLeastSquaresShadowingUtilities(rFluidLeastSquaresShadowingUtilities),
           mEchoLevel(EchoLevel),
@@ -100,10 +99,6 @@ public:
         KRATOS_ERROR_IF_NOT(mFluidLeastSquaresShadowingUtilities.GetPrimalVariablePointersList().size() == BlockSize)
                 << "Provided block size does not match with the number of primal variables provided in least squares shadowing utilities. [ block size = "
                 << BlockSize << ", number of primal variables in least squares shadowing utilities = " << mFluidLeastSquaresShadowingUtilities.GetPrimalVariablePointersList().size() << " ].\n";
-
-        KRATOS_ERROR_IF(mShapeDerivativeDirection >= Dimension)
-            << "Requested shape derivative direction index is larger than the problem dimension. [ shape derivative direction index = "
-            << mShapeDerivativeDirection << ", problem dimension = " << Dimension << " ].\n";
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Created [ Dimensionality = " << Dimension << ", BlockSize = " << BlockSize << " ].\n";
 
@@ -296,11 +291,9 @@ public:
 
         struct TLS
         {
-            Matrix mResidualShapeDerivatives;
             Matrix mResidualFirstDerivatives;
             Matrix mResidualSecondDerivatives;
             Matrix mResidualTimeStepDerivatives;
-            Vector mResponseShapeDerivatives;
             Vector mResponseFirstDerivatives;
             Vector mResponseSecondDerivatives;
             Vector mResponseTimeStepDerivatives;
@@ -312,11 +305,9 @@ public:
         const double elemental_shape_deriv_contribution = block_for_each<SumReduction<double>>(rModelPart.Elements(), TLS(), [&](ModelPart::ElementType& rElement, TLS& rTLS) -> double {
             return this->CalculateEntityResponseFunctionTotalDerivativeContributions(
                             rElement,
-                            rTLS.mResidualShapeDerivatives,
                             rTLS.mResidualFirstDerivatives,
                             rTLS.mResidualSecondDerivatives,
                             rTLS.mResidualTimeStepDerivatives,
-                            rTLS.mResponseShapeDerivatives,
                             rTLS.mResponseFirstDerivatives,
                             rTLS.mResponseSecondDerivatives,
                             rTLS.mResponseTimeStepDerivatives,
@@ -329,11 +320,9 @@ public:
         const double condition_shape_deriv_contribution = block_for_each<SumReduction<double>>(rModelPart.Conditions(), TLS(), [&](ModelPart::ConditionType& rCondition, TLS& rTLS) -> double {
             return this->CalculateEntityResponseFunctionTotalDerivativeContributions(
                             rCondition,
-                            rTLS.mResidualShapeDerivatives,
                             rTLS.mResidualFirstDerivatives,
                             rTLS.mResidualSecondDerivatives,
                             rTLS.mResidualTimeStepDerivatives,
-                            rTLS.mResponseShapeDerivatives,
                             rTLS.mResponseFirstDerivatives,
                             rTLS.mResponseSecondDerivatives,
                             rTLS.mResponseTimeStepDerivatives,
@@ -418,13 +407,9 @@ private:
         Vector mPreviousPrimalSolution;
         Vector mPreviousLSSSolution;
         Vector mPreviousLSSSecondDerivativeSolution;
-        Vector mResiduals;
-        Matrix mAuxMatrix;
         Matrix mResidualTimeStepDerivatives;
         Matrix mRotatedResidualTimeStepDerivatives;
-        Matrix mResidualShapeDerivatives;
-        Matrix mRotatedResidualShapeDerivatives;
-        std::vector<IndexType> mDerivativeNodeIds;
+        Vector mRotatedResidualDesignDerivatives;
     };
 
     ///@}
@@ -439,13 +424,11 @@ private:
 
     const IndexType mDimension;
 
-    const IndexType mShapeDerivativeNodeId;
-
-    const IndexType mShapeDerivativeDirection;
-
     const TimeDiscretization::Bossak mBossak;
 
     BossakConstants mBossakConstants;
+
+    FluidLeastSquaresShadowingSensitivity& mrFluidLeastSquaresShadowingSensitivity;
 
     const Variable<double>& mrResponseShapeTotalDerivative;
 
@@ -482,9 +465,9 @@ private:
 
         CalculateEntityRHSContribution<TEntityType>(
             rRHS, rEntity, r_tls.mCurrentPrimalSolution, r_tls.mPreviousPrimalSolution, r_tls.mPreviousLSSSolution,
-            r_tls.mPreviousLSSSecondDerivativeSolution, r_tls.mResiduals, r_tls.mAuxMatrix, r_tls.mResidualTimeStepDerivatives,
-            r_tls.mRotatedResidualTimeStepDerivatives, r_tls.mResidualShapeDerivatives, r_tls.mRotatedResidualShapeDerivatives,
-            r_tls.mDerivativeNodeIds, r_tls.mRotatedResidualSecondDerivatives, rCurrentProcessInfo);
+            r_tls.mPreviousLSSSecondDerivativeSolution, r_tls.mResidualTimeStepDerivatives,
+            r_tls.mRotatedResidualTimeStepDerivatives, r_tls.mRotatedResidualDesignDerivatives,
+            r_tls.mRotatedResidualSecondDerivatives, rCurrentProcessInfo);
 
         // Calculate system contributions in residual form.
         if (rLHS.size1() != 0) {
@@ -538,27 +521,15 @@ private:
         Vector& rPreviousPrimalSolution,
         Vector& rPreviousLSSSolution,
         Vector& rPreviousLSSSecondDerivativeSolution,
-        Vector& rResiduals,
-        Matrix& rAuxMatrix,
         Matrix& rResidualTimeStepDerivatives,
         Matrix& rRotatedResidualTimeStepDerivatives,
-        Matrix& rResidualShapeDerivatives,
-        Matrix& rRotatedResidualShapeDerivatives,
-        std::vector<IndexType>& rDerivativeNodeIds,
+        Vector& rRotatedResidualDesignDerivatives,
         const Matrix& rRotatedResidualSecondDerivatives,
         const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
         const double eta = rCurrentProcessInfo[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeShapeTotalDerivativeVariable()];
-
-        // Calculates primal residual
-        rEntity.CalculateLocalSystem(rAuxMatrix, rResiduals, rCurrentProcessInfo);
-        rEntity.CalculateLocalVelocityContribution(rAuxMatrix, rResiduals, rCurrentProcessInfo);
-
-        rEntity.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rResidualShapeDerivatives, rCurrentProcessInfo);
-        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedShapeVariableDerivatives(
-            rRotatedResidualShapeDerivatives, rDerivativeNodeIds, rResiduals, rResidualShapeDerivatives, rEntity, rCurrentProcessInfo);
 
         rEntity.CalculateSensitivityMatrix(TIME_STEP_SENSITIVITY, rResidualTimeStepDerivatives, rCurrentProcessInfo);
         mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
@@ -568,6 +539,9 @@ private:
         rEntity.GetSecondDerivativesVector(rPreviousLSSSecondDerivativeSolution, 1);
         mFluidLeastSquaresShadowingUtilities.GetPrimalValues(rCurrentPrimalSolution, rEntity, 0);
         mFluidLeastSquaresShadowingUtilities.GetPrimalValues(rPreviousPrimalSolution, rEntity, 1);
+
+        mrFluidLeastSquaresShadowingSensitivity.CalculateResidualSensitivity(rRotatedResidualDesignDerivatives,
+            rEntity, mAdjointSlipUtilities, rCurrentProcessInfo);
 
         if (rRHS.size() != rCurrentPrimalSolution.size()) {
             rRHS.resize(rCurrentPrimalSolution.size());
@@ -579,11 +553,7 @@ private:
                             + mBossakConstants.mPreviousStepSecondDerivativeCoefficient);
         noalias(rRHS) += prod(rRotatedResidualSecondDerivatives, rCurrentPrimalSolution - rPreviousPrimalSolution) * (mBossakConstants.mC3 * mBossakConstants.mCurrentStepSecondDerivativeCoefficient * eta);
         noalias(rRHS) -= row(rRotatedResidualTimeStepDerivatives, 0) * eta;
-
-        const auto& p_itr = find(rDerivativeNodeIds.begin(), rDerivativeNodeIds.end(), mShapeDerivativeNodeId);
-        if (p_itr != rDerivativeNodeIds.end()) {
-            noalias(rRHS) -= row(rRotatedResidualShapeDerivatives, std::distance(rDerivativeNodeIds.begin(),  p_itr) * mDimension + mShapeDerivativeDirection);
-        }
+        noalias(rRHS) -= rRotatedResidualDesignDerivatives;
 
         KRATOS_CATCH("");
     }
@@ -591,11 +561,9 @@ private:
     template<class TEntityType>
     double CalculateEntityResponseFunctionTotalDerivativeContributions(
         TEntityType& rEntity,
-        Matrix& rResidualShapeDerivatives,
         Matrix& rResidualFirstDerivatives,
         Matrix& rResidualSecondDerivatives,
         Matrix& rResidualTimeStepDerivatives,
-        Vector& rResponseShapeDerivatives,
         Vector& rResponseFirstDerivatives,
         Vector& rResponseSecondDerivatives,
         Vector& rResponseTimeStepDerivatives,
@@ -607,14 +575,6 @@ private:
         KRATOS_TRY
 
         const double eta = rProcessInfo[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeShapeTotalDerivativeVariable()];
-
-        const auto& r_geometry = rEntity.GetGeometry();
-        IndexType local_shape_derivative_index;
-        for (local_shape_derivative_index = 0; local_shape_derivative_index < r_geometry.PointsNumber(); ++local_shape_derivative_index) {
-            if (r_geometry[local_shape_derivative_index].Id() == mShapeDerivativeNodeId) {
-                break;
-            }
-        }
 
         double value = 0.0;
 
@@ -634,11 +594,7 @@ private:
         mpResponseFunction->CalculatePartialSensitivity(rEntity, SHAPE_SENSITIVITY, rResidualTimeStepDerivatives, rResponseTimeStepDerivatives, rProcessInfo);
         value += rResponseTimeStepDerivatives[0] * eta;
 
-        if (local_shape_derivative_index < r_geometry.PointsNumber()) {
-            rEntity.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rResidualShapeDerivatives, rProcessInfo);
-            mpResponseFunction->CalculatePartialSensitivity(rEntity, SHAPE_SENSITIVITY, rResidualShapeDerivatives, rResponseShapeDerivatives, rProcessInfo);
-            value += rResponseShapeDerivatives[local_shape_derivative_index * mDimension + mShapeDerivativeDirection];
-        }
+        value += mrFluidLeastSquaresShadowingSensitivity.CalculateResponseSensitivity(rEntity, *mpResponseFunction, mAdjointSlipUtilities, rProcessInfo);
 
         return value * rProcessInfo[DELTA_TIME];
 

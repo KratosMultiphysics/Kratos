@@ -43,6 +43,7 @@
 #include "custom_utilities/fluid_adjoint_utilities.h"
 #include "custom_utilities/fluid_fft_utilities.h"
 #include "custom_utilities/fluid_least_squares_shadowing_utilities.h"
+#include "custom_utilities/fluid_least_squares_shadowing_sensitivity.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -230,6 +231,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetAdjointFirstDerivativeValues", &FluidLeastSquaresShadowingUtilities::GetAdjointFirstDerivativeValues<ModelPart::ElementType>)
         .def("GetLSSValues", &FluidLeastSquaresShadowingUtilities::GetLSSValues<ModelPart::ElementType>)
         .def("GetLSSFirstDerivativeValues", &FluidLeastSquaresShadowingUtilities::GetLSSFirstDerivativeValues<ModelPart::ElementType>)
+        ;
+
+    py::class_<FluidLeastSquaresShadowingSensitivity>(m, "FluidLeastSquaresShadowingSensitivity")
+        .def(py::init<>())
         ;
 
 }

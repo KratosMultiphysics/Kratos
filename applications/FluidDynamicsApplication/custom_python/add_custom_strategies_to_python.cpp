@@ -163,7 +163,7 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     using  LeastSquaresShadowingBossakForwardSchemeType = LeastSquaresShadowingBossakForwardScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<LeastSquaresShadowingBossakForwardSchemeType, typename LeastSquaresShadowingBossakForwardSchemeType::Pointer, BaseSchemeType>
         (m, "LeastSquaresShadowingBossakForwardScheme")
-        .def(py::init<AdjointResponseFunction::Pointer, const double, const double, const double, const std::size_t, const std::size_t, const std::size_t, const std::size_t, const Variable<double>&, const FluidLeastSquaresShadowingUtilities&, const std::size_t>())
+        .def(py::init<AdjointResponseFunction::Pointer, const double, const double, const double, const std::size_t, const std::size_t, FluidLeastSquaresShadowingSensitivity&, const Variable<double>&, const FluidLeastSquaresShadowingUtilities&, const std::size_t>())
         ;
 
     using  LeastSquaresShadowingBossakBackwardSchemeType = LeastSquaresShadowingBossakBackwardScheme<SparseSpaceType, LocalSpaceType>;
