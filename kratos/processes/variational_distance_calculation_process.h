@@ -344,6 +344,8 @@ public:
 
         // Unfix the distances
         VariableUtils().ApplyFixity(DISTANCE, false, r_distance_model_part.Nodes());
+        VariableUtils().SetFlag(BOUNDARY, false, r_distance_model_part.Nodes());
+        VariableUtils().SetFlag(BLOCKED, false, r_distance_model_part.Nodes());
 
         KRATOS_CATCH("")
     }

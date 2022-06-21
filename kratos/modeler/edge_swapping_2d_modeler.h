@@ -27,7 +27,6 @@
 #include "utilities/geometry_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/timer.h"
-#include "processes/find_elements_neighbours_process.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos

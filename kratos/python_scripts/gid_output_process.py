@@ -275,6 +275,8 @@ class GiDOutputProcess(KM.OutputProcess):
     def PrintOutput(self):
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeOutputStep()
+            if self.point_output_process.IsOutputStep():
+                self.point_output_process.PrintOutput()
 
         # Print the output
         time = self.__get_pretty_time(self.model_part.ProcessInfo[KM.TIME])
