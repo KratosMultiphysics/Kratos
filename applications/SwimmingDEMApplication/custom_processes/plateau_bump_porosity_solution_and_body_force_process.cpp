@@ -69,13 +69,14 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::CheckDefaultsAndProcessSett
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mDensity     = rParameters["benchmark_parameters"]["density"].GetDouble();
-    mViscosity   = rParameters["benchmark_parameters"]["viscosity"].GetDouble();
-    mAlphaMin    = rParameters["benchmark_parameters"]["alpha_min"].GetDouble();
-    mUchar       = rParameters["benchmark_parameters"]["u_char"].GetDouble();
-    mX1Origin    = rParameters["benchmark_parameters"]["x1_origin"].GetDouble();
-    mX2Origin    = rParameters["benchmark_parameters"]["x2_origin"].GetDouble();
-    mBumpRadius  = rParameters["benchmark_parameters"]["bump_radius"].GetDouble();
+    mDensity       = rParameters["benchmark_parameters"]["density"].GetDouble();
+    mViscosity     = rParameters["benchmark_parameters"]["viscosity"].GetDouble();
+    mAlphaMin      = rParameters["benchmark_parameters"]["alpha_min"].GetDouble();
+    mSigma         = rParameters["benchmark_parameters"]["sigma"].GetDouble();
+    mUchar         = rParameters["benchmark_parameters"]["u_char"].GetDouble();
+    mX1Origin      = rParameters["benchmark_parameters"]["x1_origin"].GetDouble();
+    mX2Origin      = rParameters["benchmark_parameters"]["x2_origin"].GetDouble();
+    mBumpRadius    = rParameters["benchmark_parameters"]["bump_radius"].GetDouble();
     mPlateauRadius = rParameters["benchmark_parameters"]["plateau_radius"].GetDouble();
     mInitialConditions = rParameters["benchmark_parameters"]["use_initial_conditions"].GetBool();
     mAlternativeFormulation = rParameters["benchmark_parameters"]["use_alternative_formulation"].GetBool();
@@ -94,6 +95,7 @@ const Parameters PlateauBumpPorositySolutionAndBodyForceProcess::GetDefaultParam
                                                 "viscosity"   : 0.1,
                                                 "density"     : 1.0,
                                                 "alpha_min"   : 1e-9,
+                                                "sigma"       : 0.0,
                                                 "u_char"      : 100.0,
                                                 "x1_origin"   : 0.5,
                                                 "x2_origin"   : 0.5,
@@ -265,10 +267,7 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPoros
 
         r_pressure = 0.0;
 
-        double velocity_norm = std::sqrt(r_u1 * r_u1 + r_u2 * r_u2);
-        double kappa = (1 - r_alpha)/r_alpha;
-
-        r_sigma = (nu * 150.0 * std::pow(kappa,2) + 1.75 * kappa * velocity_norm) * I;
+        r_sigma = mSigma * I;
 
         const double convective1 = r_u1 * du11 + r_u2 * du12;
         const double convective2 = r_u1 * du21 + r_u2 * du22;

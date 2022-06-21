@@ -134,6 +134,7 @@ public:
     double                                              mDensity;
     double                                            mViscosity;
     double                                             mAlphaMin;
+    double                                                mSigma;
     double                                                mUchar;
     double                                             mX1Origin;
     double                                             mX2Origin;
