@@ -29,7 +29,7 @@ class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
 
         self.h0 = self.settings["benchmark_settings"]["depth"].GetDouble()
         self.a = self.settings["benchmark_settings"]["amplitude"].GetDouble()
-    
+
     def ExecuteInitialize(self):
         self.g = self.model_part.ProcessInfo[KM.GRAVITY_Z]
         self.B = self.__B()
@@ -55,10 +55,10 @@ class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
         x = coordinates.X
         x0 = self.__x0(time)
         x1 = self.__x1(time)
-        if x0 < x < x1:
-            return -self.h0*(((x - 0.5*self.L)/self.a + 0.5/self.a*cos(self.C*time/self.a))**2 - 1)
-        else:
-            return 0.0
+        # if x0 < x < x1:
+        return -self.h0*(((x - 0.5*self.L)/self.a + 0.5/self.a*cos(self.C*time/self.a))**2 - 1)
+        # else:
+        #     return 0.0
 
     def _Velocity(self, coordinates, time):
         x = coordinates.X
