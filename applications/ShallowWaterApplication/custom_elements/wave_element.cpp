@@ -321,14 +321,14 @@ void WaveElement<TNumNodes>::CalculateGeometryData(
 }
 
 
-template<>
-double WaveElement<3>::ShapeFunctionProduct(
-    const array_1d<double,3>& rN,
-    const std::size_t I,
-    const std::size_t J)
-{
-    return (I == J) ? 1.0/6.0 : 1.0/12.0;
-}
+// template<>
+// double WaveElement<3>::ShapeFunctionProduct(
+//     const array_1d<double,3>& rN,
+//     const std::size_t I,
+//     const std::size_t J)
+// {
+//     return (I == J) ? 1.0/6.0 : 1.0/12.0;
+// }
 
 
 template<std::size_t TNumNodes>
