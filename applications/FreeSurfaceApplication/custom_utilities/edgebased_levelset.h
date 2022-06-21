@@ -202,7 +202,7 @@ namespace Kratos
                     tempFixedVelocitiesValues.push_back(mvel_n1[index]);
                 }
 
-                if (inode->IsFixed(PRESSURE))
+                if (inode->Is(OUTLET))
                 {
                     tempPressureOutletList.push_back(index);
                 }
@@ -1632,7 +1632,7 @@ namespace Kratos
                 else
                 {
                     for (unsigned int if_node = 0; if_node < TDim; if_node++)
-                        if (face_geometry[if_node].Is(INLET) || face_geometry[if_node].IsFixed(PRESSURE))
+                        if (face_geometry[if_node].Is(INLET) || face_geometry[if_node].Is(OUTLET))
                             is_inlet_or_outlet = true;
                 }
                 // slip condition
