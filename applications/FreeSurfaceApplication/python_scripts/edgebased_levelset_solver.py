@@ -333,9 +333,9 @@ class EdgeBasedLevelSetSolver(PythonSolver):
                 raise ValueError("Invalid domain size: {}".format(self.domain_size))
         else:
             if self.domain_size == 2:
-                return KratosMultiphysics.SignedDistanceCalculationUtils2D()
+                return FreeSurface.EdgebasedLevelsetAuxiliaryUtils2D()
             elif self.domain_size == 3:
-                return KratosMultiphysics.SignedDistanceCalculationUtils3D()
+                return FreeSurface.EdgebasedLevelsetAuxiliaryUtils3D()
             else:
                 raise ValueError("Invalid domain size: {}".format(self.domain_size))
 

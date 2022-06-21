@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "includes/define_python.h"
 #include "custom_utilities/edge_data.h"
+#include "custom_utilities/edgebased_levelset_auxiliary_utils.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 

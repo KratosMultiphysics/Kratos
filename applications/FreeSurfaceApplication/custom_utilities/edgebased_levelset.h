@@ -13,15 +13,10 @@
 #if !defined(KRATOS_EDGEBASED_LEVELSET_FLUID_SOLVER_H_INCLUDED)
 #define KRATOS_EDGEBASED_LEVELSET_FLUID_SOLVER_H_INCLUDED
 
-//#define SPLIT_OSS
-// #define SYMM_PRESS
-
 // System includes
 #include <string>
 #include <iostream>
 #include <algorithm>
-
-// #include <omp.h>
 
 // External includes
 
@@ -944,12 +939,13 @@ namespace Kratos
                 SizeType col_begin = Lrow_indices[k];
                 SizeType col_end = Lrow_indices[k + 1];
 
-                for (SizeType j = col_begin; j < col_end; j++)
+                for (SizeType j = col_begin; j < col_end; j++){
                     if (static_cast<unsigned int>(Lcol_indices[j]) == k)
                     {
                         t = fabs(Lvalues[j]);
                         break;
                     }
+                }
                 scaling_factors[k] = 1.0 / sqrt(t);
             });
 

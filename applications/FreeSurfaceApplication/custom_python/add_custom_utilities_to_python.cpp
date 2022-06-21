@@ -40,6 +40,18 @@ namespace Kratos
 				.def("ConstructCSRVector", &MatrixContainer<3, SparseSpaceType>::ConstructCSRVector)
 				.def("BuildCSRData", &MatrixContainer<3, SparseSpaceType>::BuildCSRData)
 				.def("Clear", &MatrixContainer<3, SparseSpaceType>::Clear);
+
+			py::class_<EdgebasedLevelsetAuxiliaryUtils <2>>(pymodule, "EdgebasedLevelsetAuxiliaryUtils2D")
+				.def(py::init<>())
+				.def("CalculateDistances", &EdgebasedLevelsetAuxiliaryUtils <2> ::CalculateDistances)
+				.def("FindMaximumEdgeSize", &EdgebasedLevelsetAuxiliaryUtils <2> ::FindMaximumEdgeSize)
+				;
+
+			py::class_<EdgebasedLevelsetAuxiliaryUtils <3>>(pymodule,"EdgebasedLevelsetAuxiliaryUtils3D")
+				.def(py::init<>())
+				.def("CalculateDistances", &EdgebasedLevelsetAuxiliaryUtils <3> ::CalculateDistances)
+				.def("FindMaximumEdgeSize", &EdgebasedLevelsetAuxiliaryUtils <3> ::FindMaximumEdgeSize)
+				;
 		}
 
 	} // namespace Python

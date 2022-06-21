@@ -29,15 +29,11 @@
 #if !defined(KRATOS_EDGEBASED_LEVELSET_SUBSTEP_FLUID_SOLVER_H_INCLUDED)
 #define KRATOS_EDGEBASED_LEVELSET_SUBSTEP_FLUID_SOLVER_H_INCLUDED
 
-// #define DEBUG_OUTPUT
-
-//#define SPLIT_OSS
-// #define SYMM_PRESS
 // System includes
 #include <string>
 #include <iostream>
 #include <algorithm>
-// #include <omp.h>
+
 // External includes
 // Project includes
 #include "includes/define.h"
