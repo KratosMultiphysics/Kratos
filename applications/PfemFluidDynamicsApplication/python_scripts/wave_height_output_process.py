@@ -15,7 +15,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
     If no node is found, Nan will be printed.
     Possible specifications of the Parameters:
      - coordinates: it can be a single coordinate or a list of coordinates for each gauge.
-     - mesh_size: it indicates the mesh size around a gauge. If not defined, then the average size of all elements is used
+     - mesh_size: list with the mesh size around each gauge. If not defined, then the average size of all elements is used
      - output_file_settings: a parameters encapsulating the 'file_name', 'output_path' and
                              other settings according to 'TimeBasedAsciiFileWritterUtility'.
                              Some replacements can be specified to 'file_name', e.g.:
@@ -50,6 +50,11 @@ class WaveHeightOutputProcess(KM.OutputProcess):
 
         self.coordinates_list = self._GetCoordinatesList(self.settings["coordinates"])
         self.mesh_size_list = self._GetMeshSizeList(self.settings["mesh_size"])
+        # The list of the mesh size must have the same length as the list of coordinates for each gauge. Otherwise, the average mesh size is used
+        if len(self.coordinates_list) != len(self.mesh_size_list):
+            self.mesh_size_list = []
+            for item in self.coordinates_list:
+                self.mesh_size_list.append(0.0)
         self.next_output = self.model_part.ProcessInfo[KM.TIME]
 
     def Check(self):
