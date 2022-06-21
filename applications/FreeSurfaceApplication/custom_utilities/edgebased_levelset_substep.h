@@ -202,7 +202,9 @@ namespace Kratos
                 }
 
                 if (inode->IsFixed(DISTANCE))
+                {
                     tempDistanceList.push_back(index);
+                }
 
                 if (inode->IsFixed(PRESSURE))
                 {
