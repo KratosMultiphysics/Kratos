@@ -32,7 +32,7 @@ template<std::size_t TNumNodes>
 const Parameters WaveElement<TNumNodes>::GetSpecifications() const
 {
     const Parameters specifications = Parameters(R"({
-        "required_variables"         : ["VELOCITY","HEIGHT","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY"],
+        "required_variables"         : ["VELOCITY","HEIGHT","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY","DISTANCE"],
         "required_dofs"              : ["VELOCITY_X","VELOCITY_Y","HEIGHT"],
         "compatible_geometries"      : ["Triangle2D3","Quadrilateral2D4","Triangle2D6","Quadrilateral2D8","Quadrilateral2D9"],
         "element_integrates_in_time" : false

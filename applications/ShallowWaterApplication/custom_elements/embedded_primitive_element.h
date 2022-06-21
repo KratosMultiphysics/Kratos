@@ -61,19 +61,23 @@ public:
 
     typedef Geometry<NodeType> GeometryType;
 
-    typedef WaveElement<TNumNodes> WaveElementType;
+    typedef WaveElement<TNumNodes> BaseType;
 
-    typedef typename WaveElementType::NodesArrayType NodesArrayType;
+    using MatrixType = typename BaseType::MatrixType;
 
-    typedef typename WaveElementType::PropertiesType PropertiesType;
+    using VectorType = typename BaseType::VectorType;
 
-    typedef typename WaveElementType::ElementData ElementData;
+    typedef typename BaseType::NodesArrayType NodesArrayType;
 
-    typedef typename WaveElementType::LocalMatrixType LocalMatrixType;
+    typedef typename BaseType::PropertiesType PropertiesType;
 
-    typedef typename WaveElementType::LocalVectorType LocalVectorType;
+    typedef typename BaseType::ElementData ElementData;
 
-    typedef typename WaveElementType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+    typedef typename BaseType::LocalMatrixType LocalMatrixType;
+
+    typedef typename BaseType::LocalVectorType LocalVectorType;
+
+    typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
     ///@}
     ///@name Pointer definition
@@ -88,22 +92,22 @@ public:
     /**
      * @brief Default constructor
      */
-    EmbeddedPrimitiveElement() : WaveElementType(){}
+    EmbeddedPrimitiveElement() : BaseType(){}
 
     /**
      * @brief Constructor using an array of nodes
      */
-    EmbeddedPrimitiveElement(IndexType NewId, const NodesArrayType& ThisNodes) : WaveElementType(NewId, ThisNodes){}
+    EmbeddedPrimitiveElement(IndexType NewId, const NodesArrayType& ThisNodes) : BaseType(NewId, ThisNodes){}
 
     /**
      * @brief Constructor using Geometry
      */
-    EmbeddedPrimitiveElement(IndexType NewId, GeometryType::Pointer pGeometry) : WaveElementType(NewId, pGeometry){}
+    EmbeddedPrimitiveElement(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry){}
 
     /**
      * @brief Constructor using Geometry and Properties
      */
-    EmbeddedPrimitiveElement(IndexType NewId, GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties) : WaveElementType(NewId, pGeometry, pProperties){}
+    EmbeddedPrimitiveElement(IndexType NewId, GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties) : BaseType(NewId, pGeometry, pProperties){}
 
     /**
      * @brief Destructor
@@ -152,6 +156,17 @@ public:
         return p_new_elem;
     }
 
+    /**
+     * @brief Calculate the elemental contribution to the problem
+     * @param rLeftHandSideMatrix Elemental left hand side matrix
+     * @param rRightHandSideVector Elemental right hand side vector
+     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the element
+     */
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -175,7 +190,7 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-    static constexpr IndexType mLocalSize = WaveElementType::mLocalSize;
+    static constexpr IndexType mLocalSize = BaseType::mLocalSize;
 
     ///@}
     ///@name Protected Operations

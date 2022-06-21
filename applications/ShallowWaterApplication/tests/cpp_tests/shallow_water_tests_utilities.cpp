@@ -51,6 +51,7 @@ void ShallowWaterTestsUtilities::AddVariables(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(ATMOSPHERIC_PRESSURE);
     rModelPart.AddNodalSolutionStepVariable(ACCELERATION);
     rModelPart.AddNodalSolutionStepVariable(VERTICAL_VELOCITY);
+    rModelPart.AddNodalSolutionStepVariable(DISTANCE);
 }
 
 void ShallowWaterTestsUtilities::CreateGeometry(
