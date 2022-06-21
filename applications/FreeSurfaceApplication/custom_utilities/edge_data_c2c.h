@@ -67,7 +67,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
-//#include "geometries/geometry.h"
 #include "utilities/geometry_utilities.h"
 #include "free_surface_application.h"
 #include "utilities/openmp_utils.h"
@@ -491,9 +490,12 @@ namespace Kratos
                 KRATOS_WATCH("ERROR - Highest nodal index doesn't coincide with number of nodes!");
 
             // allocating memory for block of CSR data - setting to zero for first-touch OpenMP allocation
-            mNonzeroEdgeValues.resize(mNumberEdges); // SetToZero(mNonzeroEdgeValues);
-            mColumnIndex.resize(mNumberEdges);       // SetToZero(mColumnIndex);
-            mRowStartIndex.resize(n_nodes + 1);      // SetToZero(mRowStartIndex);
+            mNonzeroEdgeValues.resize(mNumberEdges);
+            SetToZero(mNonzeroEdgeValues);
+            mColumnIndex.resize(mNumberEdges);
+            SetToZero(mColumnIndex);
+            mRowStartIndex.resize(n_nodes + 1);
+            SetToZero(mRowStartIndex);
             mLumpedMassMatrix.resize(n_nodes);
             SetToZero(mLumpedMassMatrix);
             mInvertedMassMatrix.resize(n_nodes);
@@ -559,15 +561,6 @@ namespace Kratos
 
                             // saving column index j of the original matrix
                             mColumnIndex[csr_index] = j_neighbour;
-
-                            // initializing the CSR vector entries with zero
-                            mNonzeroEdgeValues[csr_index].Mass = 0.0;
-
-                            noalias(mNonzeroEdgeValues[csr_index].LaplacianIJ) = ZeroMatrix(TDim, TDim);
-                            noalias(mNonzeroEdgeValues[csr_index].Ni_DNj) = ZeroVector(TDim);
-
-                            // TRANSPOSED GRADIENT
-                            noalias(mNonzeroEdgeValues[csr_index].DNi_Nj) = ZeroVector(TDim);
                         }
                         // preparing row start index for next node
                         row_start_temp += n_neighbours;
@@ -1062,6 +1055,28 @@ namespace Kratos
         }
 
         //**********************************************************************
+
+        void SetToZero(EdgesVectorType &data_vector)
+        {
+            int loop_size = data_vector.size();
+
+            IndexPartition<unsigned int>(loop_size).for_each([&](unsigned int i_node){
+                // initializing the CSR vector entries with zero
+                data_vector[i_node].Mass = 0.0;
+                noalias(data_vector[i_node].LaplacianIJ) = ZeroMatrix(TDim, TDim);
+                noalias(data_vector[i_node].Ni_DNj) = ZeroVector(TDim);
+                noalias(data_vector[i_node].DNi_Nj) = ZeroVector(TDim);
+            });
+        }
+
+        void SetToZero(IndicesVectorType &data_vector)
+        {
+            int loop_size = data_vector.size();
+
+            IndexPartition<unsigned int>(loop_size).for_each([&](unsigned int i_node){
+                data_vector[i_node] = 0.0;
+            });
+        }
 
         void SetToZero(CalcVectorType &data_vector)
         {
