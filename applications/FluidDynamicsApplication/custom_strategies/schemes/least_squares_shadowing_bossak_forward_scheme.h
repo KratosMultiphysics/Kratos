@@ -72,14 +72,12 @@ public:
         const IndexType ShapeDerivativeNodeId,
         const IndexType ShapeDerivativeDirection,
         const FluidLeastSquaresShadowingUtilities& rFluidLeastSquaresShadowingUtilities,
-        const Variable<double>& rDeltaTimeTotalShapeDerivativeVariable,
         const IndexType EchoLevel)
         : BaseType(),
           mDeltaTimeDialationAlpha(DeltaTimeDialationAlpha),
           mDimension(Dimension),
           mShapeDerivativeNodeId(ShapeDerivativeNodeId),
           mShapeDerivativeDirection(ShapeDerivativeDirection),
-          mrDeltaTimeTotalShapeDerivativeVariable(rDeltaTimeTotalShapeDerivativeVariable),
           mBossak(BossakAlpha),
           mBossakConstants(mBossak),
           mFluidLeastSquaresShadowingUtilities(rFluidLeastSquaresShadowingUtilities),
@@ -187,13 +185,13 @@ public:
         });
 
         const double eta = elemental_eta + nodal_eta / coeff;
-        r_process_info[mrDeltaTimeTotalShapeDerivativeVariable] = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(eta) / (-2.0 * mDeltaTimeDialationAlpha * mDeltaTimeDialationAlpha);
+        r_process_info[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeShapeTotalDerivativeVariable()] = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(eta) / (-2.0 * mDeltaTimeDialationAlpha * mDeltaTimeDialationAlpha);
 
         // set bossak constants
         mBossakConstants.SetConstants(delta_time);
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Computed time dialation total shape derivative in " << rModelPart.FullName()
-            << " and stored in " << mrDeltaTimeTotalShapeDerivativeVariable.Name() << ".\n";
+            << " and stored in " << mFluidLeastSquaresShadowingUtilities.GetDeltaTimeShapeTotalDerivativeVariable().Name() << ".\n";
 
         KRATOS_CATCH("")
     }
@@ -264,7 +262,7 @@ public:
         const double delta_time = r_process_info[DELTA_TIME];
         const double coeff_1 = 1 / (delta_time * mBossak.GetGamma());
         const double coeff_2 = (mBossak.GetGamma() - 1) / mBossak.GetGamma();
-        const double coeff_3 = r_process_info[mrDeltaTimeTotalShapeDerivativeVariable] / (delta_time * delta_time * mBossak.GetGamma());
+        const double coeff_3 = r_process_info[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeShapeTotalDerivativeVariable()] / (delta_time * delta_time * mBossak.GetGamma());
 
         const auto& r_primal_variable_pointers_list = mFluidLeastSquaresShadowingUtilities.GetPrimalVariablePointersList();
         const auto& r_lss_variable_pointers_list = mFluidLeastSquaresShadowingUtilities.GetLSSVariablePointersList();
@@ -320,19 +318,21 @@ private:
         double mC1;
         double mC2;
         double mC3;
-        double mC4;
+        double mCurrentStepSecondDerivativeCoefficient;
+        double mPreviousStepSecondDerivativeCoefficient;
         const TimeDiscretization::Bossak& mrBossak;
 
         explicit BossakConstants(const TimeDiscretization::Bossak& rBossak) : mrBossak(rBossak)
         {
+            mCurrentStepSecondDerivativeCoefficient = 1 - mrBossak.GetAlphaM();
+            mPreviousStepSecondDerivativeCoefficient = mrBossak.GetAlphaM();
         }
 
         void SetConstants(const double DeltaTime)
         {
             mC1 = 1 / (DeltaTime * mrBossak.GetGamma());
-            mC2 = (mrBossak.GetGamma() - 1 + mrBossak.GetAlphaM()) / mrBossak.GetGamma();
-            mC3 = (1 - mrBossak.GetAlphaM()) / (DeltaTime * mrBossak.GetGamma());
-            mC4 = (1 - mrBossak.GetAlphaM()) / (DeltaTime * DeltaTime * mrBossak.GetGamma());
+            mC2 = (mrBossak.GetGamma() - 1) / mrBossak.GetGamma();
+            mC3 = 1 / (DeltaTime * DeltaTime * mrBossak.GetGamma());
         }
     };
 
@@ -353,8 +353,6 @@ private:
         Vector mPreviousLSSSecondDerivativeSolution;
         Vector mResiduals;
         Matrix mAuxMatrix;
-        Matrix mMassMatrix;
-        Matrix mRotatedMassMatrix;
         Matrix mResidualTimeStepDerivatives;
         Matrix mRotatedResidualTimeStepDerivatives;
         Matrix mResidualShapeDerivatives;
@@ -373,8 +371,6 @@ private:
     const IndexType mShapeDerivativeNodeId;
 
     const IndexType mShapeDerivativeDirection;
-
-    const Variable<double>& mrDeltaTimeTotalShapeDerivativeVariable;
 
     const TimeDiscretization::Bossak mBossak;
 
@@ -411,9 +407,9 @@ private:
 
         CalculateEntityRHSContribution<TEntityType>(
             rRHS, rEntity, r_tls.mCurrentPrimalSolution, r_tls.mPreviousPrimalSolution, r_tls.mPreviousLSSSolution,
-            r_tls.mPreviousLSSSecondDerivativeSolution, r_tls.mResiduals, r_tls.mAuxMatrix, r_tls.mMassMatrix,
-            r_tls.mRotatedMassMatrix, r_tls.mResidualTimeStepDerivatives, r_tls.mRotatedResidualTimeStepDerivatives,
-            r_tls.mResidualShapeDerivatives, r_tls.mRotatedResidualShapeDerivatives, r_tls.mDerivativeNodeIds, rCurrentProcessInfo);
+            r_tls.mPreviousLSSSecondDerivativeSolution, r_tls.mResiduals, r_tls.mAuxMatrix, r_tls.mResidualTimeStepDerivatives,
+            r_tls.mRotatedResidualTimeStepDerivatives, r_tls.mResidualShapeDerivatives, r_tls.mRotatedResidualShapeDerivatives,
+            r_tls.mDerivativeNodeIds, r_tls.mRotatedResidualSecondDerivatives, rCurrentProcessInfo);
 
         // Calculate system contributions in residual form.
         if (rLHS.size1() != 0) {
@@ -443,16 +439,18 @@ private:
         mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
             rEntityRotatedResidualFirstDerivatives, rEntityResidualFirstDerivatives, rEntity.GetGeometry());
 
+        rEntityRotatedResidualFirstDerivatives = trans(rEntityRotatedResidualFirstDerivatives);
+
         rEntity.CalculateSecondDerivativesLHS(rEntityResidualSecondDerivatives, rCurrentProcessInfo);
-        rEntityResidualSecondDerivatives *= (1.0 - this->mBossak.GetAlphaM());
         mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
             rEntityRotatedResidualSecondDerivatives, rEntityResidualSecondDerivatives, rEntity.GetGeometry());
+        rEntityRotatedResidualSecondDerivatives = trans(rEntityRotatedResidualSecondDerivatives);
 
         if (rLHS.size1() != rEntityRotatedResidualFirstDerivatives.size1() || rLHS.size2() != rEntityRotatedResidualFirstDerivatives.size2()) {
             rLHS.resize(rEntityRotatedResidualFirstDerivatives.size1(), rEntityRotatedResidualFirstDerivatives.size2(), false);
         }
 
-        noalias(rLHS) = trans(rEntityRotatedResidualFirstDerivatives + mBossakConstants.mC1 * rEntityRotatedResidualSecondDerivatives);
+        noalias(rLHS) = rEntityRotatedResidualFirstDerivatives + rEntityRotatedResidualSecondDerivatives * mBossakConstants.mC1 * mBossakConstants.mCurrentStepSecondDerivativeCoefficient;
 
         KRATOS_CATCH("");
     }
@@ -467,24 +465,17 @@ private:
         Vector& rPreviousLSSSecondDerivativeSolution,
         Vector& rResiduals,
         Matrix& rAuxMatrix,
-        Matrix& rMassMatrix,
-        Matrix& rRotatedMassMatrix,
         Matrix& rResidualTimeStepDerivatives,
         Matrix& rRotatedResidualTimeStepDerivatives,
         Matrix& rResidualShapeDerivatives,
         Matrix& rRotatedResidualShapeDerivatives,
         std::vector<IndexType>& rDerivativeNodeIds,
+        const Matrix& rRotatedResidualSecondDerivatives,
         const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
-        const double eta = rCurrentProcessInfo[mrDeltaTimeTotalShapeDerivativeVariable];
-
-        // In LSS methods, adjoint elements needs to implement their Mass matrices.
-        // They cannot be zero.
-        rEntity.CalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
-        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
-            rRotatedMassMatrix, rMassMatrix, rEntity.GetGeometry());
+        const double eta = rCurrentProcessInfo[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeShapeTotalDerivativeVariable()];
 
         // Calculates primal residual
         rEntity.CalculateLocalSystem(rAuxMatrix, rResiduals, rCurrentProcessInfo);
@@ -503,14 +494,16 @@ private:
         mFluidLeastSquaresShadowingUtilities.GetPrimalValues(rCurrentPrimalSolution, rEntity, 0);
         mFluidLeastSquaresShadowingUtilities.GetPrimalValues(rPreviousPrimalSolution, rEntity, 1);
 
-        if (rRHS.size() != rMassMatrix.size1()) {
-            rRHS.resize(rMassMatrix.size1());
+        if (rRHS.size() != rCurrentPrimalSolution.size()) {
+            rRHS.resize(rCurrentPrimalSolution.size());
         }
 
-        noalias(rRHS) = prod(rRotatedMassMatrix, rPreviousLSSSecondDerivativeSolution) * mBossakConstants.mC2;
-        noalias(rRHS) -= rPreviousLSSSolution * mBossakConstants.mC3;
-        noalias(rRHS) -= prod(rRotatedMassMatrix, rCurrentPrimalSolution - rPreviousPrimalSolution) * mBossakConstants.mC4 * eta;
-        noalias(rRHS) -= row(rResidualTimeStepDerivatives, 0) * eta;
+        noalias(rRHS)  = prod(rRotatedResidualSecondDerivatives, rPreviousLSSSolution) * (mBossakConstants.mC1 * mBossakConstants.mCurrentStepSecondDerivativeCoefficient);
+        noalias(rRHS) -= prod(rRotatedResidualSecondDerivatives, rPreviousLSSSecondDerivativeSolution) * (
+                             mBossakConstants.mC2 * mBossakConstants.mCurrentStepSecondDerivativeCoefficient
+                            + mBossakConstants.mPreviousStepSecondDerivativeCoefficient);
+        noalias(rRHS) += prod(rRotatedResidualSecondDerivatives, rCurrentPrimalSolution - rPreviousPrimalSolution) * (mBossakConstants.mC3 * mBossakConstants.mCurrentStepSecondDerivativeCoefficient * eta);
+        noalias(rRHS) -= row(rRotatedResidualTimeStepDerivatives, 0) * eta;
 
         const auto& p_itr = find(rDerivativeNodeIds.begin(), rDerivativeNodeIds.end(), mShapeDerivativeNodeId);
         if (p_itr != rDerivativeNodeIds.end()) {
