@@ -103,17 +103,30 @@ void EmbeddedPrimitiveElement<TNumNodes>::CalculateGeometryData(
     // Set the modified shape functions pointer
     const std::size_t n_nodes = rGeometry.PointsNumber();
     Vector distances(n_nodes);
+    std::size_t n_pos = 0;
+    std::size_t n_neg = 0;
     for (std::size_t i = 0; i < n_nodes; ++i) {
-        distances[i] = rGeometry[i].FastGetSolutionStepValue(DISTANCE);
+        const double d = rGeometry[i].FastGetSolutionStepValue(DISTANCE);
+        distances[i] = d;
+        if (d > 0.0) {
+            n_pos++;
+        } else {
+            n_neg++;
+        }
     }
-    auto p_mod_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(), distances);
 
-    // Fluid side
-    p_mod_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(
-        rNContainer,
-        rDN_DX,
-        rGaussWeights,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
+    if (n_pos == n_nodes) {
+        BaseType::CalculateGeometryData(rGeometry, rGaussWeights, rNContainer, rDN_DX);
+    } else if (n_pos != 0 && n_neg != 0) {
+        auto p_mod_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(), distances);
+
+        // Fluid side
+        p_mod_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(
+            rNContainer,
+            rDN_DX,
+            rGaussWeights,
+            GeometryData::IntegrationMethod::GI_GAUSS_2);
+    }
 }
 
 template<std::size_t TNumNodes>
@@ -126,56 +139,68 @@ void EmbeddedPrimitiveElement<TNumNodes>::CalculateLocalSystem(
     BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
     // Add the weak BC imposition over the interface
+    //TODO: We're temporarily doing the splitting twice
     // Set the modified shape functions pointer
     const auto& r_geom = this->GetGeometry();
     const std::size_t n_nodes = r_geom.PointsNumber();
     Vector distances(n_nodes);
+    std::size_t n_pos = 0;
+    std::size_t n_neg = 0;
     for (std::size_t i = 0; i < n_nodes; ++i) {
-        distances[i] = r_geom[i].FastGetSolutionStepValue(DISTANCE);
+        const double d = r_geom[i].FastGetSolutionStepValue(DISTANCE);
+        distances[i] = d;
+        if (d > 0.0) {
+            n_pos++;
+        } else {
+            n_neg++;
+        }
     }
-    auto p_mod_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(), distances);
 
-    // Fluid side interface
-    Vector interface_w;
-    Matrix interface_N;
-    ShapeFunctionsGradientsType interface_DN_DX;
-    p_mod_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
-        interface_N,
-        interface_DN_DX,
-        interface_w,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
+    if (n_pos != 0 && n_neg != 0) {
+        auto p_mod_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(), distances);
 
-    // // Fluid side interface normals
-    // ModifiedShapeFunctions::AreaNormalsContainerType interface_unit_n;
-    // p_mod_sh_func->ComputePositiveSideInterfaceAreaNormals(
-    //     interface_unit_n,
-    //     GeometryData::IntegrationMethod::GI_GAUSS_2);
+        // Fluid side interface
+        Vector interface_w;
+        Matrix interface_N;
+        ShapeFunctionsGradientsType interface_DN_DX;
+        p_mod_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+            interface_N,
+            interface_DN_DX,
+            interface_w,
+            GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-    // // Normalize the normals
-    // double h = ElementSizeCalculator<2,TNumNodes>::MinimumElementSize(this->GetGeometry());
-    // const double tolerance = 1.0e-3 * h;
-    // for (unsigned int i = 0; i < interface_unit_n.size(); ++i) {
-    //     double norm = norm_2(interface_unit_n[i]);
-    //     interface_unit_n[i] /= std::max(norm,tolerance);
-    // }
+        // // Fluid side interface normals
+        // ModifiedShapeFunctions::AreaNormalsContainerType interface_unit_n;
+        // p_mod_sh_func->ComputePositiveSideInterfaceAreaNormals(
+        //     interface_unit_n,
+        //     GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-    // Penalty height imposition
-    const double kappa = 1.0;
-    const double h_imposed = 1.0e-12;
-    array_1d<double,TNumNodes> aux_N;
-    BoundedMatrix<double, TNumNodes, 2> aux_DN_DX;
-    std::size_t n_gauss_int = interface_w.size();
-    for (std::size_t g = 0; g < n_gauss_int; ++g) {
-        const double w_g = interface_w[g];
-        noalias(aux_N) = row(interface_N, g);
-        noalias(aux_DN_DX) = interface_DN_DX[g];
-        for (std::size_t i = 0; i < n_nodes; ++i) {
-            std::size_t i_block = 3*i;
-            for (std::size_t j = 0; j < n_nodes; ++j) {
-                std::size_t j_block = 3*j;
-                const double h_j = r_geom[j].FastGetSolutionStepValue(HEIGHT);
-                rRightHandSideVector(i_block + 2) += w_g * kappa * aux_N(i) * (aux_N(j) * h_j - h_imposed);
-                rLeftHandSideMatrix(i_block + 2, j_block + 2) -= w_g * kappa * aux_N(i) * aux_N(j);
+        // // Normalize the normals
+        // double h = ElementSizeCalculator<2,TNumNodes>::MinimumElementSize(this->GetGeometry());
+        // const double tolerance = 1.0e-3 * h;
+        // for (unsigned int i = 0; i < interface_unit_n.size(); ++i) {
+        //     double norm = norm_2(interface_unit_n[i]);
+        //     interface_unit_n[i] /= std::max(norm,tolerance);
+        // }
+
+        // Penalty height imposition
+        const double kappa = 1.0e-1;
+        const double h_imposed = 1.0e-12;
+        array_1d<double,TNumNodes> aux_N;
+        BoundedMatrix<double, TNumNodes, 2> aux_DN_DX;
+        std::size_t n_gauss_int = interface_w.size();
+        for (std::size_t g = 0; g < n_gauss_int; ++g) {
+            const double w_g = interface_w[g];
+            noalias(aux_N) = row(interface_N, g);
+            noalias(aux_DN_DX) = interface_DN_DX[g];
+            for (std::size_t i = 0; i < n_nodes; ++i) {
+                std::size_t i_block = 3*i;
+                for (std::size_t j = 0; j < n_nodes; ++j) {
+                    std::size_t j_block = 3*j;
+                    const double h_j = r_geom[j].FastGetSolutionStepValue(HEIGHT);
+                    rRightHandSideVector(i_block + 2) += w_g * kappa * aux_N(i) * (aux_N(j) * h_j - h_imposed);
+                    rLeftHandSideMatrix(i_block + 2, j_block + 2) -= w_g * kappa * aux_N(i) * aux_N(j);
+                }
             }
         }
     }
