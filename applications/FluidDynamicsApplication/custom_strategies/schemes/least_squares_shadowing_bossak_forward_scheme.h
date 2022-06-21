@@ -508,13 +508,13 @@ private:
         }
 
         noalias(rRHS) = prod(rRotatedMassMatrix, rPreviousLSSSecondDerivativeSolution) * mBossakConstants.mC2;
-        noalias(rRHS) = rRHS - rPreviousLSSSolution * mBossakConstants.mC3;
-        noalias(rRHS) = rRHS - prod(rRotatedMassMatrix, rCurrentPrimalSolution - rPreviousPrimalSolution) * mBossakConstants.mC4 * eta;
-        noalias(rRHS) = rRHS - row(rResidualTimeStepDerivatives, 0) * eta;
+        noalias(rRHS) -= rPreviousLSSSolution * mBossakConstants.mC3;
+        noalias(rRHS) -= prod(rRotatedMassMatrix, rCurrentPrimalSolution - rPreviousPrimalSolution) * mBossakConstants.mC4 * eta;
+        noalias(rRHS) -= row(rResidualTimeStepDerivatives, 0) * eta;
 
         const auto& p_itr = find(rDerivativeNodeIds.begin(), rDerivativeNodeIds.end(), mShapeDerivativeNodeId);
         if (p_itr != rDerivativeNodeIds.end()) {
-            noalias(rRHS) = rRHS - row(rRotatedResidualShapeDerivatives, std::distance(rDerivativeNodeIds.begin(),  p_itr) * mDimension + mShapeDerivativeDirection);
+            noalias(rRHS) -= row(rRotatedResidualShapeDerivatives, std::distance(rDerivativeNodeIds.begin(),  p_itr) * mDimension + mShapeDerivativeDirection);
         }
 
         KRATOS_CATCH("");
