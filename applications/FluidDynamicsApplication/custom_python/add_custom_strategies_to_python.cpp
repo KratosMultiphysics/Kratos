@@ -49,6 +49,7 @@
 
 // lss schemes
 #include "custom_strategies/schemes/least_squares_shadowing_bossak_forward_scheme.h"
+#include "custom_strategies/schemes/least_squares_shadowing_bossak_backward_scheme.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -162,7 +163,13 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     using  LeastSquaresShadowingBossakForwardSchemeType = LeastSquaresShadowingBossakForwardScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<LeastSquaresShadowingBossakForwardSchemeType, typename LeastSquaresShadowingBossakForwardSchemeType::Pointer, BaseSchemeType>
         (m, "LeastSquaresShadowingBossakForwardScheme")
-        .def(py::init<const double, const double, const std::size_t, const std::size_t, const std::size_t, const std::size_t, const FluidLeastSquaresShadowingUtilities&, const Variable<double>&, const std::size_t>())
+        .def(py::init<AdjointResponseFunction::Pointer, const double, const double, const double, const std::size_t, const std::size_t, const std::size_t, const std::size_t, const Variable<double>&, const FluidLeastSquaresShadowingUtilities&, const std::size_t>())
+        ;
+
+    using  LeastSquaresShadowingBossakBackwardSchemeType = LeastSquaresShadowingBossakBackwardScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<LeastSquaresShadowingBossakBackwardSchemeType, typename LeastSquaresShadowingBossakBackwardSchemeType::Pointer, BaseSchemeType>
+        (m, "LeastSquaresShadowingBossakBackwardScheme")
+        .def(py::init<const double, const std::size_t, const std::size_t, const FluidLeastSquaresShadowingUtilities&, const std::size_t>())
         ;
 
 }

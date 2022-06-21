@@ -1,0 +1,458 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Suneth Warnakulasuriya
+//
+
+#if !defined(KRATOS_LSS_BOSSAK_BACKWARD_SCHEME_H_INCLUDED)
+#define KRATOS_LSS_BOSSAK_BACKWARD_SCHEME_H_INCLUDED
+
+// System includes
+#include <string>
+
+// External includes
+
+// Project includes
+#include "includes/define.h"
+#include "solving_strategies/schemes/scheme.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/time_discretization.h"
+
+// Application includes
+#include "custom_utilities/fluid_adjoint_slip_utilities.h"
+#include "custom_utilities/fluid_least_squares_shadowing_utilities.h"
+#include "fluid_dynamics_application_variables.h"
+
+namespace Kratos
+{
+///@name Kratos Classes
+///@{
+
+template <class TSparseSpace, class TDenseSpace>
+class LeastSquaresShadowingBossakBackwardScheme : public Scheme<TSparseSpace, TDenseSpace>
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    KRATOS_CLASS_POINTER_DEFINITION(LeastSquaresShadowingBossakBackwardScheme);
+
+    using IndexType = std::size_t;
+
+    using BaseType = Scheme<TSparseSpace, TDenseSpace>;
+
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
+
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
+
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
+
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
+
+    using EquationIdVectorType = std::vector<IndexType>;
+
+    using AssembledVectorType = std::unordered_map<IndexType, double>;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor.
+    explicit LeastSquaresShadowingBossakBackwardScheme(
+        const double BossakAlpha,
+        const IndexType Dimension,
+        const IndexType BlockSize,
+        const FluidLeastSquaresShadowingUtilities& rFluidLeastSquaresShadowingUtilities,
+        const IndexType EchoLevel)
+        : BaseType(),
+          mDimension(Dimension),
+          mBossak(BossakAlpha),
+          mBossakConstants(mBossak),
+          mFluidLeastSquaresShadowingUtilities(rFluidLeastSquaresShadowingUtilities),
+          mEchoLevel(EchoLevel),
+          mAdjointSlipUtilities(Dimension, BlockSize)
+    {
+        KRATOS_TRY
+
+        // Allocate auxiliary memory.
+        const int number_of_threads = ParallelUtilities::GetNumThreads();
+        mTLS.resize(number_of_threads);
+
+        KRATOS_ERROR_IF_NOT(mFluidLeastSquaresShadowingUtilities.GetPrimalVariablePointersList().size() == BlockSize)
+                << "Provided block size does not match with the number of primal variables provided in least squares shadowing utilities. [ block size = "
+                << BlockSize << ", number of primal variables in least squares shadowing utilities = " << mFluidLeastSquaresShadowingUtilities.GetPrimalVariablePointersList().size() << " ].\n";
+
+        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Created [ Dimensionality = " << Dimension << ", BlockSize = " << BlockSize << " ].\n";
+
+        KRATOS_CATCH("");
+    }
+
+    /// Destructor.
+    ~LeastSquaresShadowingBossakBackwardScheme() override = default;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    int Check(const ModelPart& rModelPart) const override
+    {
+        KRATOS_TRY
+
+        IndexPartition<IndexType>(rModelPart.NumberOfElements()).for_each([&](const IndexType iElement) {
+            const auto& r_element = *(rModelPart.ElementsBegin() + iElement);
+            mFluidLeastSquaresShadowingUtilities.CheckVariables(r_element);
+        });
+
+        const IndexType buffer_size = rModelPart.GetBufferSize();
+        KRATOS_ERROR_IF(buffer_size < 2) << "Buffer size needs to be greater than 1 in " << rModelPart.FullName() << " [ buffer size = " << buffer_size << " ].\n";
+
+        const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
+        KRATOS_ERROR_IF(delta_time > 0.0) << "LeastSquaresShadowingBossakBackwardScheme should be run in backward time with negative delta time. [ delta_time = " << delta_time << " ].\n";
+
+        return BaseType::Check(rModelPart);
+
+        KRATOS_CATCH("");
+    }
+
+    void Initialize(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        BaseType::Initialize(rModelPart);
+
+        block_for_each(rModelPart.Elements(), Vector(), [&](ModelPart::ElementType& rElement, Vector& rTLS) {
+            rElement.GetValuesVector(rTLS);
+            noalias(rTLS) = ZeroVector(rTLS.size());
+            rElement.SetValue(mFluidLeastSquaresShadowingUtilities.GetAuxVariable(), rTLS);
+        });
+
+        KRATOS_CATCH("");
+    }
+
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        BaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
+
+        auto& r_process_info = rModelPart.GetProcessInfo();
+
+        // set bossak constants
+        mBossakConstants.SetConstants(-r_process_info[DELTA_TIME]);
+
+        KRATOS_CATCH("")
+    }
+
+    void CalculateSystemContributions(
+        Element& rCurrentElement,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        CalculateEntitySystemContributions(rCurrentElement, rLHS_Contribution, rRHS_Contribution,
+                                           rEquationId, rCurrentProcessInfo);
+    }
+
+    void CalculateLHSContribution(
+        Element& rCurrentElement,
+        LocalSystemMatrixType& rLHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        const int thread_id = OpenMPUtils::ThisThread();
+        TLS& r_tls = mTLS[thread_id];
+
+        CalculateEntityLHSContribution(
+            rLHS_Contribution, rEquationId, rCurrentElement, r_tls.mResidualFirstDerivatives, r_tls.mRotatedResidualFirstDerivatives,
+            r_tls.mResidualSecondDerivatives, r_tls.mRotatedResidualSecondDerivatives, rCurrentProcessInfo);
+    }
+
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        Condition::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        CalculateEntitySystemContributions(rCurrentCondition, rLHS_Contribution, rRHS_Contribution,
+                                           rEquationId, rCurrentProcessInfo);
+    }
+
+    void CalculateLHSContribution(
+        Condition& rCurrentCondition,
+        LocalSystemMatrixType& rLHS_Contribution,
+        Condition::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        const int thread_id = OpenMPUtils::ThisThread();
+        TLS& r_tls = mTLS[thread_id];
+
+        CalculateEntityLHSContribution(
+            rLHS_Contribution, rEquationId, rCurrentCondition, r_tls.mResidualFirstDerivatives, r_tls.mRotatedResidualFirstDerivatives,
+            r_tls.mResidualSecondDerivatives, r_tls.mRotatedResidualSecondDerivatives, rCurrentProcessInfo);
+
+    }
+
+    void FinalizeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        BaseType::FinalizeSolutionStep(rModelPart, A, Dx, b);
+
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+        const double coeff_1 = (mBossak.GetGamma() - 1) / mBossak.GetGamma();
+
+        // update mu
+        const auto& r_adjoint_variable_pointers_list = mFluidLeastSquaresShadowingUtilities.GetAdjointVariablePointersList();
+        const auto& r_adjoint_first_derivative_variable_pointers_list = mFluidLeastSquaresShadowingUtilities.GetAdjointFirstDerivativeVariablePointersList();
+        const auto& r_aux_variable = mFluidLeastSquaresShadowingUtilities.GetAuxVariable();
+        const IndexType number_of_variables = r_adjoint_variable_pointers_list.size();
+
+        // clear current first derivative variables
+        block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+            for (IndexType i = 0; i < number_of_variables; ++i) {
+                rNode.FastGetSolutionStepValue(*r_adjoint_first_derivative_variable_pointers_list[i]) = 0.0;
+            }
+        });
+
+        struct TLS
+        {
+            Vector mAdjointValues;
+            Vector mCurrentAux;
+            Vector mPreviousAux;
+            Matrix mResidualSecondDerivatives;
+            Matrix mRotatedResidualSecondDerivatives;
+        };
+
+        // add the elemental contributions first
+        block_for_each(rModelPart.Elements(), TLS(), [&](ModelPart::ElementType& rElement, TLS& rTLS) {
+            auto& r_geometry = rElement.GetGeometry();
+
+            rElement.GetValuesVector(rTLS.mAdjointValues, r_process_info);
+            rElement.CalculateSecondDerivativesLHS(rTLS.mResidualSecondDerivatives, r_process_info);
+            mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(rTLS.mRotatedResidualSecondDerivatives, rTLS.mResidualSecondDerivatives, r_geometry);
+
+            if (rTLS.mPreviousAux.size() != rTLS.mAdjointValues.size()) {
+                rTLS.mCurrentAux.resize(rTLS.mAdjointValues.size());
+                rTLS.mPreviousAux.resize(rTLS.mAdjointValues.size());
+            }
+
+            noalias(rTLS.mPreviousAux) = rElement.GetValue(r_aux_variable);
+            noalias(rTLS.mCurrentAux) = prod(rTLS.mRotatedResidualSecondDerivatives, rTLS.mAdjointValues);
+            noalias(rElement.GetValue(r_aux_variable)) = rTLS.mCurrentAux * this->mBossakConstants.mPreviousStepSecondDerivativeCoefficient;
+            noalias(rTLS.mCurrentAux) = rTLS.mCurrentAux * this->mBossakConstants.mCurrentStepSecondDerivativeCoefficient +  rTLS.mPreviousAux;
+
+            IndexType local_index = 0;
+            for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+                auto& r_node = r_geometry[i];
+
+                r_node.SetLock();
+                for (IndexType j = 0; j < number_of_variables; ++j) {
+                    r_node.FastGetSolutionStepValue(*r_adjoint_first_derivative_variable_pointers_list[j]) -= rTLS.mCurrentAux[local_index++];
+                }
+                r_node.UnSetLock();
+            }
+        });
+
+        for (IndexType i = 0; i < number_of_variables; ++i) {
+            rModelPart.GetCommunicator().AssembleCurrentData(*r_adjoint_first_derivative_variable_pointers_list[i]);
+        }
+
+        // add nodal contributions
+        block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+            for (IndexType i = 0; i < number_of_variables; ++i){
+                rNode.FastGetSolutionStepValue(*r_adjoint_first_derivative_variable_pointers_list[i]) += coeff_1 * rNode.FastGetSolutionStepValue(*r_adjoint_first_derivative_variable_pointers_list[i], 1);
+            }
+        });
+
+
+        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Computed adjoint first derivatives in " << rModelPart.FullName() << ".\n";
+
+        KRATOS_CATCH("")
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "LeastSquaresShadowingBossakBackwardScheme";
+    }
+
+    ///@}
+
+protected:
+    ///@name Protected Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+private:
+    ///@name Private Classes
+    ///@{
+
+    struct BossakConstants
+    {
+        double mC1;
+        double mC2;
+        const TimeDiscretization::Bossak& mrBossak;
+        double mCurrentStepSecondDerivativeCoefficient;
+        double mPreviousStepSecondDerivativeCoefficient;
+
+        explicit BossakConstants(const TimeDiscretization::Bossak& rBossak) : mrBossak(rBossak)
+        {
+            mCurrentStepSecondDerivativeCoefficient = 1 - mrBossak.GetAlphaM();
+            mPreviousStepSecondDerivativeCoefficient = mrBossak.GetAlphaM();
+        }
+
+        void SetConstants(const double DeltaTime)
+        {
+            mC1 = 1 / (DeltaTime * mrBossak.GetGamma());
+            mC2 = 1 / (DeltaTime * mrBossak.GetGamma() * mrBossak.GetGamma());
+        }
+    };
+
+    struct TLS
+    {
+        Vector mAdjointValues;
+
+        // LHS TLS
+        Matrix mResidualFirstDerivatives;
+        Matrix mRotatedResidualFirstDerivatives;
+        Matrix mResidualSecondDerivatives;
+        Matrix mRotatedResidualSecondDerivatives;
+
+        // RHS TLS
+        Vector rPreviousSecondDerivativesValues;
+    };
+
+    ///@}
+    ///@name Private Member Variables
+    ///@{
+
+    const IndexType mDimension;
+
+    const TimeDiscretization::Bossak mBossak;
+
+    BossakConstants mBossakConstants;
+
+    const FluidLeastSquaresShadowingUtilities mFluidLeastSquaresShadowingUtilities;
+
+    const IndexType mEchoLevel;
+
+    const FluidAdjointSlipUtilities mAdjointSlipUtilities;
+
+    std::vector<TLS> mTLS;
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    template<class TEntityType>
+    void CalculateEntitySystemContributions(
+        TEntityType& rEntity,
+        LocalSystemMatrixType& rLHS,
+        LocalSystemVectorType& rRHS,
+        typename TEntityType::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        const int thread_id = OpenMPUtils::ThisThread();
+        TLS& r_tls = mTLS[thread_id];
+
+        CalculateEntityLHSContribution<TEntityType>(
+            rLHS, rEquationId, rEntity, r_tls.mResidualFirstDerivatives, r_tls.mRotatedResidualFirstDerivatives,
+            r_tls.mResidualSecondDerivatives, r_tls.mRotatedResidualSecondDerivatives, rCurrentProcessInfo);
+
+        CalculateEntityRHSContribution<TEntityType>(
+            rRHS, rEntity, r_tls.rPreviousSecondDerivativesValues);
+
+        // Calculate system contributions in residual form.
+        if (rLHS.size1() != 0) {
+            rEntity.GetValuesVector(r_tls.mAdjointValues);
+            noalias(rRHS) -= prod(rLHS, r_tls.mAdjointValues);
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    template<class TEntityType>
+    void CalculateEntityLHSContribution(
+        Matrix& rLHS,
+        typename TEntityType::EquationIdVectorType& rEquationId,
+        TEntityType& rEntity,
+        Matrix& rEntityResidualFirstDerivatives,
+        Matrix& rEntityRotatedResidualFirstDerivatives,
+        Matrix& rEntityResidualSecondDerivatives,
+        Matrix& rEntityRotatedResidualSecondDerivatives,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        rEntity.EquationIdVector(rEquationId, rCurrentProcessInfo);
+
+        rEntity.CalculateFirstDerivativesLHS(rEntityResidualFirstDerivatives, rCurrentProcessInfo);
+        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
+            rEntityRotatedResidualFirstDerivatives, rEntityResidualFirstDerivatives, rEntity.GetGeometry());
+
+        rEntity.CalculateSecondDerivativesLHS(rEntityResidualSecondDerivatives, rCurrentProcessInfo);
+        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
+            rEntityRotatedResidualSecondDerivatives, rEntityResidualSecondDerivatives, rEntity.GetGeometry());
+
+        if (rLHS.size1() != rEntityRotatedResidualFirstDerivatives.size1() || rLHS.size2() != rEntityRotatedResidualFirstDerivatives.size2()) {
+            rLHS.resize(rEntityRotatedResidualFirstDerivatives.size1(), rEntityRotatedResidualFirstDerivatives.size2(), false);
+        }
+
+        noalias(rLHS) = rEntityRotatedResidualFirstDerivatives + rEntityRotatedResidualSecondDerivatives * (mBossakConstants.mC1 * mBossakConstants.mCurrentStepSecondDerivativeCoefficient);
+
+        KRATOS_CATCH("");
+    }
+
+    template<class TEntityType>
+    void CalculateEntityRHSContribution(
+        Vector& rRHS,
+        TEntityType& rEntity,
+        Vector& rPreviousSecondDerivativesValues)
+    {
+        KRATOS_TRY
+
+        rEntity.GetSecondDerivativesVector(rPreviousSecondDerivativesValues, 1);
+
+        mFluidLeastSquaresShadowingUtilities.GetLSSValues(rRHS, rEntity);
+        rRHS *= -2.0;
+        noalias(rRHS) -= rEntity.GetValue(mFluidLeastSquaresShadowingUtilities.GetAuxVariable()) * mBossakConstants.mC1;
+        noalias(rRHS) -= rPreviousSecondDerivativesValues * mBossakConstants.mC2;
+
+        KRATOS_CATCH("");
+    }
+
+    ///@}
+
+}; /* Class LeastSquaresShadowingBossakBackwardScheme */
+
+///@}
+
+} /* namespace Kratos.*/
+
+#endif /* KRATOS_LSS_BOSSAK_BACKWARD_SCHEME_H_INCLUDED defined */

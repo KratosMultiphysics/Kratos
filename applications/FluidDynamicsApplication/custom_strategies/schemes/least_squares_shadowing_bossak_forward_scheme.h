@@ -23,6 +23,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/time_discretization.h"
+#include "response_functions/adjoint_response_function.h"
 
 // Application includes
 #include "custom_utilities/fluid_adjoint_slip_utilities.h"
@@ -65,21 +66,27 @@ public:
 
     /// Constructor.
     explicit LeastSquaresShadowingBossakForwardScheme(
+        AdjointResponseFunction::Pointer pResponseFunction,
         const double BossakAlpha,
         const double DeltaTimeDialationAlpha,
+        const double FinalResponseValue,
         const IndexType Dimension,
         const IndexType BlockSize,
         const IndexType ShapeDerivativeNodeId,
         const IndexType ShapeDerivativeDirection,
+        const Variable<double>& rResponseShapeTotalDerivative,
         const FluidLeastSquaresShadowingUtilities& rFluidLeastSquaresShadowingUtilities,
         const IndexType EchoLevel)
         : BaseType(),
+          mpResponseFunction(pResponseFunction),
           mDeltaTimeDialationAlpha(DeltaTimeDialationAlpha),
+          mFinalResponseValue(FinalResponseValue),
           mDimension(Dimension),
           mShapeDerivativeNodeId(ShapeDerivativeNodeId),
           mShapeDerivativeDirection(ShapeDerivativeDirection),
           mBossak(BossakAlpha),
           mBossakConstants(mBossak),
+          mrResponseShapeTotalDerivative(rResponseShapeTotalDerivative),
           mFluidLeastSquaresShadowingUtilities(rFluidLeastSquaresShadowingUtilities),
           mEchoLevel(EchoLevel),
           mAdjointSlipUtilities(Dimension, BlockSize)
@@ -190,6 +197,8 @@ public:
         // set bossak constants
         mBossakConstants.SetConstants(delta_time);
 
+        mCurrentResponseValue = mpResponseFunction->CalculateValue(rModelPart);
+
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Computed time dialation total shape derivative in " << rModelPart.FullName()
             << " and stored in " << mFluidLeastSquaresShadowingUtilities.GetDeltaTimeShapeTotalDerivativeVariable().Name() << ".\n";
 
@@ -285,6 +294,64 @@ public:
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Computed primal first derivative total shape derivatives in " << rModelPart.FullName() << ".\n";
 
+        struct TLS
+        {
+            Matrix mResidualShapeDerivatives;
+            Matrix mResidualFirstDerivatives;
+            Matrix mResidualSecondDerivatives;
+            Matrix mResidualTimeStepDerivatives;
+            Vector mResponseShapeDerivatives;
+            Vector mResponseFirstDerivatives;
+            Vector mResponseSecondDerivatives;
+            Vector mResponseTimeStepDerivatives;
+            Vector mCurrentLSSSolution;
+            Vector mCurrentLSSSecondDerivativeSolution;
+            Vector mPreviousLSSSecondDerivativeSolution;
+        };
+
+        const double elemental_shape_deriv_contribution = block_for_each<SumReduction<double>>(rModelPart.Elements(), TLS(), [&](ModelPart::ElementType& rElement, TLS& rTLS) -> double {
+            return this->CalculateEntityResponseFunctionTotalDerivativeContributions(
+                            rElement,
+                            rTLS.mResidualShapeDerivatives,
+                            rTLS.mResidualFirstDerivatives,
+                            rTLS.mResidualSecondDerivatives,
+                            rTLS.mResidualTimeStepDerivatives,
+                            rTLS.mResponseShapeDerivatives,
+                            rTLS.mResponseFirstDerivatives,
+                            rTLS.mResponseSecondDerivatives,
+                            rTLS.mResponseTimeStepDerivatives,
+                            rTLS.mCurrentLSSSolution,
+                            rTLS.mCurrentLSSSecondDerivativeSolution,
+                            rTLS.mPreviousLSSSecondDerivativeSolution,
+                            r_process_info);
+        });
+
+        const double condition_shape_deriv_contribution = block_for_each<SumReduction<double>>(rModelPart.Conditions(), TLS(), [&](ModelPart::ConditionType& rCondition, TLS& rTLS) -> double {
+            return this->CalculateEntityResponseFunctionTotalDerivativeContributions(
+                            rCondition,
+                            rTLS.mResidualShapeDerivatives,
+                            rTLS.mResidualFirstDerivatives,
+                            rTLS.mResidualSecondDerivatives,
+                            rTLS.mResidualTimeStepDerivatives,
+                            rTLS.mResponseShapeDerivatives,
+                            rTLS.mResponseFirstDerivatives,
+                            rTLS.mResponseSecondDerivatives,
+                            rTLS.mResponseTimeStepDerivatives,
+                            rTLS.mCurrentLSSSolution,
+                            rTLS.mCurrentLSSSecondDerivativeSolution,
+                            rTLS.mPreviousLSSSecondDerivativeSolution,
+                            r_process_info);
+        });
+
+        const double current_response_shape_total_derivative = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(elemental_shape_deriv_contribution + condition_shape_deriv_contribution)
+                                                          + r_process_info[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeShapeTotalDerivativeVariable()] * (mCurrentResponseValue - mFinalResponseValue);
+
+        auto& response_shape_total_derivative = r_process_info[mrResponseShapeTotalDerivative];
+        const double time = r_process_info[TIME];
+        response_shape_total_derivative = (response_shape_total_derivative * (time - delta_time) + current_response_shape_total_derivative) / time;
+
+        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Computed response function total shape derivatives in " << rModelPart.FullName() << ".\n";
+
         KRATOS_CATCH("")
     }
 
@@ -364,7 +431,11 @@ private:
     ///@name Private Member Variables
     ///@{
 
+    AdjointResponseFunction::Pointer mpResponseFunction;
+
     const double mDeltaTimeDialationAlpha;
+
+    const double mFinalResponseValue;
 
     const IndexType mDimension;
 
@@ -376,6 +447,8 @@ private:
 
     BossakConstants mBossakConstants;
 
+    const Variable<double>& mrResponseShapeTotalDerivative;
+
     const FluidLeastSquaresShadowingUtilities mFluidLeastSquaresShadowingUtilities;
 
     const IndexType mEchoLevel;
@@ -383,6 +456,8 @@ private:
     FluidAdjointSlipUtilities mAdjointSlipUtilities;
 
     std::vector<TLS> mTLS;
+
+    double mCurrentResponseValue;
 
     ///@}
     ///@name Private Operations
@@ -509,6 +584,63 @@ private:
         if (p_itr != rDerivativeNodeIds.end()) {
             noalias(rRHS) -= row(rRotatedResidualShapeDerivatives, std::distance(rDerivativeNodeIds.begin(),  p_itr) * mDimension + mShapeDerivativeDirection);
         }
+
+        KRATOS_CATCH("");
+    }
+
+    template<class TEntityType>
+    double CalculateEntityResponseFunctionTotalDerivativeContributions(
+        TEntityType& rEntity,
+        Matrix& rResidualShapeDerivatives,
+        Matrix& rResidualFirstDerivatives,
+        Matrix& rResidualSecondDerivatives,
+        Matrix& rResidualTimeStepDerivatives,
+        Vector& rResponseShapeDerivatives,
+        Vector& rResponseFirstDerivatives,
+        Vector& rResponseSecondDerivatives,
+        Vector& rResponseTimeStepDerivatives,
+        Vector& rCurrentLSSSolution,
+        Vector& rCurrentLSSSecondDerivativeSolution,
+        Vector& rPreviousLSSSecondDerivativeSolution,
+        const ProcessInfo& rProcessInfo)
+    {
+        KRATOS_TRY
+
+        const double eta = rProcessInfo[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeShapeTotalDerivativeVariable()];
+
+        const auto& r_geometry = rEntity.GetGeometry();
+        IndexType local_shape_derivative_index;
+        for (local_shape_derivative_index = 0; local_shape_derivative_index < r_geometry.PointsNumber(); ++local_shape_derivative_index) {
+            if (r_geometry[local_shape_derivative_index].Id() == mShapeDerivativeNodeId) {
+                break;
+            }
+        }
+
+        double value = 0.0;
+
+        rEntity.CalculateFirstDerivativesLHS(rResidualFirstDerivatives, rProcessInfo);
+        mpResponseFunction->CalculateFirstDerivativesGradient(rEntity, rResidualFirstDerivatives, rResponseFirstDerivatives, rProcessInfo);
+        mFluidLeastSquaresShadowingUtilities.GetLSSValues(rCurrentLSSSolution, rEntity);
+        value += inner_prod(rResponseFirstDerivatives, rCurrentLSSSolution);
+
+        rEntity.CalculateSecondDerivativesLHS(rResidualSecondDerivatives, rProcessInfo);
+        mpResponseFunction->CalculateSecondDerivativesGradient(rEntity, rResidualSecondDerivatives, rResponseSecondDerivatives, rProcessInfo);
+        mFluidLeastSquaresShadowingUtilities.GetLSSFirstDerivativeValues(rCurrentLSSSecondDerivativeSolution, rEntity);
+        mFluidLeastSquaresShadowingUtilities.GetLSSFirstDerivativeValues(rPreviousLSSSecondDerivativeSolution, rEntity, 1);
+        value += inner_prod(rResponseSecondDerivatives, rCurrentLSSSecondDerivativeSolution) * mBossakConstants.mCurrentStepSecondDerivativeCoefficient;
+        value += inner_prod(rResponseSecondDerivatives, rPreviousLSSSecondDerivativeSolution) * mBossakConstants.mPreviousStepSecondDerivativeCoefficient;
+
+        rEntity.CalculateSensitivityMatrix(TIME_STEP_SENSITIVITY, rResidualTimeStepDerivatives, rProcessInfo);
+        mpResponseFunction->CalculatePartialSensitivity(rEntity, SHAPE_SENSITIVITY, rResidualTimeStepDerivatives, rResponseTimeStepDerivatives, rProcessInfo);
+        value += rResponseTimeStepDerivatives[0] * eta;
+
+        if (local_shape_derivative_index < r_geometry.PointsNumber()) {
+            rEntity.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rResidualShapeDerivatives, rProcessInfo);
+            mpResponseFunction->CalculatePartialSensitivity(rEntity, SHAPE_SENSITIVITY, rResidualShapeDerivatives, rResponseShapeDerivatives, rProcessInfo);
+            value += rResponseShapeDerivatives[local_shape_derivative_index * mDimension + mShapeDerivativeDirection];
+        }
+
+        return value * rProcessInfo[DELTA_TIME];
 
         KRATOS_CATCH("");
     }
