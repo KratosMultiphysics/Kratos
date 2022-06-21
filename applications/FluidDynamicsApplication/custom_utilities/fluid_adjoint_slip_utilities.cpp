@@ -246,6 +246,40 @@ void FluidAdjointSlipUtilities::CalculateRotatedSlipConditionAppliedShapeVariabl
         KRATOS_CATCH("");
 }
 
+template<class TEntityType>
+void FluidAdjointSlipUtilities::CalculateRotatedSlipConditionAppliedShapeVariableDerivatives(
+    Matrix& rOutput,
+    std::vector<IndexType>& rNodeIds,
+    const Vector& rResiduals,
+    const Matrix& rResidualDerivatives,
+    const TEntityType& rEntity,
+    const ProcessInfo& rProcessInfo) const
+{
+    KRATOS_TRY
+
+    GlobalPointersVector<NodeType> r_gp_vector;
+    CalculateRotatedSlipConditionAppliedShapeVariableDerivatives<TEntityType>(rOutput, r_gp_vector, rResiduals, rResidualDerivatives, rEntity, rProcessInfo);
+
+    if (rNodeIds.size() != r_gp_vector.size()) {
+        rNodeIds.resize(r_gp_vector.size());
+    }
+
+    for (IndexType i = 0; i < r_gp_vector.size(); ++i) {
+        // This map needs to be changed to a map which includes nodal condition neighbours as well.
+        auto it = std::find_if(mGlobalPointerNodalMap.begin(), mGlobalPointerNodalMap.end(), [&](const std::pair<int, GlobalPointer<ModelPart::NodeType>>& p) {
+            return GlobalPointerComparor<ModelPart::NodeType>()(p.second, r_gp_vector(i));
+        });
+
+        if (it != mGlobalPointerNodalMap.end()) {
+            rNodeIds[i] = it->first;
+        } else {
+            KRATOS_ERROR << "Un-identified node global pointer.\n";
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
 void FluidAdjointSlipUtilities::CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
     Matrix& rOutput,
     const Matrix& rResidualDerivatives,
@@ -344,5 +378,8 @@ void FluidAdjointSlipUtilities::ClearNodalResidualDerivatives(
 // template instantiations
 template void FluidAdjointSlipUtilities::CalculateRotatedSlipConditionAppliedShapeVariableDerivatives(Matrix&, GlobalPointersVector<NodeType>&, const Vector&, const Matrix&, const ElementType&, const ProcessInfo&) const;
 template void FluidAdjointSlipUtilities::CalculateRotatedSlipConditionAppliedShapeVariableDerivatives(Matrix&, GlobalPointersVector<NodeType>&, const Vector&, const Matrix&, const ConditionType&, const ProcessInfo&) const;
+
+template void FluidAdjointSlipUtilities::CalculateRotatedSlipConditionAppliedShapeVariableDerivatives(Matrix&, std::vector<IndexType>&, const Vector&, const Matrix&, const ElementType&, const ProcessInfo&) const;
+template void FluidAdjointSlipUtilities::CalculateRotatedSlipConditionAppliedShapeVariableDerivatives(Matrix&, std::vector<IndexType>&, const Vector&, const Matrix&, const ConditionType&, const ProcessInfo&) const;
 
 } // namespace Kratos

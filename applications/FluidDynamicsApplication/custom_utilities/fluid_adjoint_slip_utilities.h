@@ -15,6 +15,7 @@
 
 // System includes
 #include <unordered_map>
+#include <vector>
 
 // External includes
 
@@ -112,6 +113,31 @@ public:
     void CalculateRotatedSlipConditionAppliedShapeVariableDerivatives(
         Matrix& rOutput,
         GlobalPointersVector<NodeType>& rGPSensitivityVector,
+        const Vector& rResiduals,
+        const Matrix& rResidualDerivatives,
+        const TEntityType& rEntity,
+        const ProcessInfo& rProcessInfo) const;
+
+    /**
+     * @brief Calculates rotated slip applied shape derivatives
+     *
+     * This method calculates rotated slip applied shape derivatives
+     * when non-rotated residuals and its derivatives are given. Nodal rotations
+     * are determined by SLIP flag. If SLIP flag is true, then it is assumed
+     * to be rotated as well as slip condition applied.
+     *
+     * This method assumes first dofs to be VELOCITY
+     *
+     * @param rOutput                   Rotated and slip applied shape derivatives
+     * @param rNodeIds                  Node ids vector order of the derivatives given in rOutput
+     * @param rResiduals                Non-rotated and non-slip applied residuals
+     * @param rResidualDerivatives      Non-rotated and non-slip applied shape derivatives
+     * @param TEntityType               Entity of which rResidualDerivatives are computed on
+     */
+    template<class TEntityType>
+    void CalculateRotatedSlipConditionAppliedShapeVariableDerivatives(
+        Matrix& rOutput,
+        std::vector<IndexType>& rNodeIds,
         const Vector& rResiduals,
         const Matrix& rResidualDerivatives,
         const TEntityType& rEntity,
