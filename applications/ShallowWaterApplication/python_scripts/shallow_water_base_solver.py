@@ -259,11 +259,16 @@ class ShallowWaterBaseSolver(PythonSolver):
             convergence_criterion = KM.ResidualCriteria(
                 self.settings["relative_tolerance"].GetDouble(),
                 self.settings["absolute_tolerance"].GetDouble())
+        elif convergence_criterion_type == "mixed":
+            convergence_criterion = KM.MixedGenericCriteria(
+                [(KM.VELOCITY, self.settings["relative_tolerance"].GetDouble(), self.settings["absolute_tolerance"].GetDouble()),
+                 (SW.HEIGHT, self.settings["relative_tolerance"].GetDouble(), self.settings["absolute_tolerance"].GetDouble())])
         else:
             msg = "The displacement criterion specified is '{}'\n".format(convergence_criterion_type)
             msg += "The following options are available:\n"
             msg += "    - 'displacement'"
             msg += "    - 'residual'"
+            msg += "    - 'mixed'"
             raise Exception(msg)
         convergence_criterion.SetEchoLevel(self.echo_level)
         return convergence_criterion

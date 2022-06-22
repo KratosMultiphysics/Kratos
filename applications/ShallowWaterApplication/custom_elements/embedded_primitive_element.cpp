@@ -157,6 +157,11 @@ void EmbeddedPrimitiveElement<TNumNodes>::CalculateLocalSystem(
     }
 
     if (n_pos != 0 && n_neg != 0) {
+        // Set element data container
+        ElementData data;
+        BaseType::InitializeData(data, rCurrentProcessInfo);
+        BaseType::GetNodalData(data, r_geom);
+
         auto p_mod_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(), distances);
 
         // Fluid side interface
@@ -169,75 +174,60 @@ void EmbeddedPrimitiveElement<TNumNodes>::CalculateLocalSystem(
             interface_w,
             GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-        // // Fluid side interface normals
-        // ModifiedShapeFunctions::AreaNormalsContainerType interface_unit_n;
-        // p_mod_sh_func->ComputePositiveSideInterfaceAreaNormals(
-        //     interface_unit_n,
-        //     GeometryData::IntegrationMethod::GI_GAUSS_2);
+        // Fluid side interface normals
+        ModifiedShapeFunctions::AreaNormalsContainerType interface_unit_n;
+        p_mod_sh_func->ComputePositiveSideInterfaceAreaNormals(
+            interface_unit_n,
+            GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-        // // Normalize the normals
-        // double h = ElementSizeCalculator<2,TNumNodes>::MinimumElementSize(this->GetGeometry());
-        // const double tolerance = 1.0e-3 * h;
-        // for (unsigned int i = 0; i < interface_unit_n.size(); ++i) {
-        //     double norm = norm_2(interface_unit_n[i]);
-        //     interface_unit_n[i] /= std::max(norm,tolerance);
-        // }
+        // Normalize the normals
+        double h = ElementSizeCalculator<2,TNumNodes>::MinimumElementSize(this->GetGeometry());
+        const double tolerance = 1.0e-3 * h;
+        for (unsigned int i = 0; i < interface_unit_n.size(); ++i) {
+            double norm = norm_2(interface_unit_n[i]);
+            interface_unit_n[i] /= std::max(norm,tolerance);
+        }
 
-        // Penalty height imposition
-        const double kappa = 1.0e-1;
+        // Nitsche penalty term imposition
+        const double kappa = 1.0;
+        const double aux_pen = kappa / data.length;
         const double h_imposed = 1.0e-12;
+        array_1d<double,3> aux_v;
+        array_1d<double,3> aux_normal;
         array_1d<double,TNumNodes> aux_N;
         BoundedMatrix<double, TNumNodes, 2> aux_DN_DX;
         std::size_t n_gauss_int = interface_w.size();
         for (std::size_t g = 0; g < n_gauss_int; ++g) {
+            // Get Gauss pt. data
             const double w_g = interface_w[g];
             noalias(aux_N) = row(interface_N, g);
             noalias(aux_DN_DX) = interface_DN_DX[g];
+            noalias(aux_normal) = interface_unit_n[g];
+
+            // Compute velocity norm
+            noalias(aux_v) = ZeroVector(3);
+            for (std::size_t j = 0; j < TNumNodes; ++j) {
+                aux_v += aux_N(j) * r_geom[j].FastGetSolutionStepValue(VELOCITY);
+            }
+
+            // Assemble Nitsche terms
+            const double penalty = aux_pen * norm_2(aux_v);
             for (std::size_t i = 0; i < n_nodes; ++i) {
                 std::size_t i_block = 3*i;
                 for (std::size_t j = 0; j < n_nodes; ++j) {
                     std::size_t j_block = 3*j;
                     const double h_j = r_geom[j].FastGetSolutionStepValue(HEIGHT);
-                    rRightHandSideVector(i_block + 2) += w_g * kappa * aux_N(i) * (aux_N(j) * h_j - h_imposed);
-                    rLeftHandSideMatrix(i_block + 2, j_block + 2) -= w_g * kappa * aux_N(i) * aux_N(j);
+                    // Height equation penalty term
+                    rRightHandSideVector(i_block + 2) += w_g * penalty * aux_N(i) * (aux_N(j) * h_j - h_imposed);
+                    rLeftHandSideMatrix(i_block + 2, j_block + 2) -= w_g * penalty * aux_N(i) * aux_N(j);
+                    // Velocity equation stabilization term
+                    rRightHandSideVector(i_block) += w_g * aux_N(i) * aux_normal[0] * (aux_N(j) * h_j - h_imposed);
+                    rRightHandSideVector(i_block + 1) += w_g * aux_N(i) * aux_normal[1] * (aux_N(j) * h_j - h_imposed);
+                    rLeftHandSideMatrix(i_block, j_block + 2) -= w_g * aux_N(i) * aux_normal[0] * aux_N(j);
+                    rLeftHandSideMatrix(i_block + 1, j_block + 2) -= w_g * aux_N(i) * aux_normal[1] * aux_N(j);
                 }
             }
         }
-
-
-        // Boundary term at the interface
-        ElementData data;
-        BaseType::InitializeData(data, rCurrentProcessInfo);
-        BaseType::GetNodalData(data, r_geom);
-
-        for (std::size_t g = 0; g < n_gauss_int; ++g)
-        {
-            const double w_g = interface_w[g];
-            noalias(aux_N) = row(interface_N, g);
-            noalias(aux_DN_DX) = interface_DN_DX[g];
-
-            UpdateGaussPointData(data, aux_N);
-
-            for (std::size_t i = 0; i < n_nodes; ++i) {
-                for (std::size_t j = 0; j < n_nodes; ++j) {
-
-                    double n_ij;
-                    n_ij = aux_N[i] * aux_N[j];
-
-                    // /// First component
-                    // MathUtils<double>::AddMatrix(rMatrix,  w_g*n_ij*rData.A1*n[0], 3*i, 3*j);
-                    // MathUtils<double>::AddVector(rVector, -w_g*n_ij*rData.b1*n[0]*z[j], 3*i);
-
-                    // /// Second component
-                    // MathUtils<double>::AddMatrix(rMatrix,  w_g*n_ij*rData.A2*n[1], 3*i, 3*j);
-                    // MathUtils<double>::AddVector(rVector, -w_g*n_ij*rData.b2*n[1]*z[j], 3*i);
-                }
-            }
-        }
-
-        // Substracting the Dirichlet term (since we use a residualbased approach)
-        // noalias(rhs) -= prod(lhs, this->GetUnknownVector(data));
-
     }
 }
 

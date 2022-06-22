@@ -19,12 +19,13 @@ class EmbeddedPrimitiveSolver(WaveSolver):
     def AddVariables(self):
         super().AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA) # We need this for the parallel redistance
 
     def Initialize(self):
         super().Initialize()
 
         # Initialize the distance field. NOTE: the initial condition must be set at Process.ExecuteInitialize
-        KM.VariableUtils().CopyVariable(SW.HEIGHT, KM.DISTANCE, self.main_model_part)
+        KM.VariableUtils().CopyVariable(SW.HEIGHT, KM.DISTANCE, self.main_model_part.Nodes)
 
         # Instantiate the distance convection process
         self.GetDistanceConvectionProcess()
@@ -38,6 +39,12 @@ class EmbeddedPrimitiveSolver(WaveSolver):
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
 
+        # velocity = self.GetComputingModelPart().GetNode(88).GetSolutionStepValue(KM.VELOCITY)
+        # KM.VariableUtils().SetVariable(KM.VELOCITY_X, velocity[0], self.GetComputingModelPart().Nodes)
+        # KM.VariableUtils().SetVariable(KM.VELOCITY_Y, 0.0, self.GetComputingModelPart().Nodes)
+        for node in self.GetComputingModelPart().Nodes:
+            node.Fix(KM.VELOCITY_Y)
+
         # Perform distance convection
         self.GetDistanceConvectionProcess().Execute()
 
@@ -46,6 +53,8 @@ class EmbeddedPrimitiveSolver(WaveSolver):
 
         # Do the distance correction and set the fixity in the "internal" nodes
         self.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+
+        # TODO: Here we must implement the FM-ALE (or similar) type operations
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -142,14 +151,11 @@ class EmbeddedPrimitiveSolver(WaveSolver):
                 KM.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
         elif reinitialization_type == "parallel":
-            #TODO: move all this to solver settings
-            layers = self.settings["parallel_redistance_max_layers"].GetInt()
             parallel_distance_settings = KM.Parameters("""{
                 "max_levels" : 25,
                 "max_distance" : 1.0,
                 "calculate_exact_distances_to_plane" : true
             }""")
-            parallel_distance_settings["max_levels"].SetInt(layers)
             distance_reinitialization_process = KM.ParallelDistanceCalculationProcess2D(
                 self.main_model_part,
                 parallel_distance_settings)
