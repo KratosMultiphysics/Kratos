@@ -52,7 +52,6 @@ public:
     ///@{
 
     FluidLeastSquaresShadowingUtilities(
-        const Variable<double>& rDeltaTimeShapeTotalDerivativeVariable,
         const std::vector<const Variable<double>*>& rPrimalVariablePointersList,
         const std::vector<const Variable<double>*>& rPrimalFirstDerivativeVariablePointersList,
         const std::vector<const Variable<double>*>& rAdjointVariablePointersList,
@@ -98,8 +97,6 @@ public:
 
     const std::vector<const Variable<double>*>& GetLSSFirstDerivativeVariablePointersList() const;
 
-    const Variable<double>& GetDeltaTimeDesignTotalDerivativeVariable() const;
-
     const Variable<Vector>& GetAuxVariable() const;
 
     ///@}
@@ -107,7 +104,6 @@ private:
     ///@name Private Members
     ///@{
 
-    const Variable<double>& mrDeltaTimeShapeTotalDerivativeVariable;
     const std::vector<const Variable<double>*> mPrimalVariablePointersList;
     const std::vector<const Variable<double>*> mPrimalFirstDerivativeVariablePointersList;
     const std::vector<const Variable<double>*> mAdjointVariablePointersList;
