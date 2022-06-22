@@ -304,9 +304,6 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPoros
 
         r_mass_source = r_dalphat + r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22);
 
-        it_node->FastGetSolutionStepValue(ACCELERATION_X) = r_u1;
-        it_node->FastGetSolutionStepValue(ACCELERATION_Y) = r_u2;
-        // it_node->FastGetSolutionStepValue(PRESSURE) = r_pressure;
         it_node->FastGetSolutionStepValue(FLUID_FRACTION_OLD) = r_alpha;
     }
 
