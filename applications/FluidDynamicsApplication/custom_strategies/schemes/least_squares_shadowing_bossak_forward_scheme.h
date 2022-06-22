@@ -28,7 +28,7 @@
 
 // Application includes
 #include "custom_utilities/fluid_adjoint_slip_utilities.h"
-#include "custom_utilities/fluid_least_squares_shadowing_utilities.h"
+#include "custom_utilities/fluid_lss_variable_utilities.h"
 #include "custom_utilities/fluid_least_squares_shadowing_sensitivity.h"
 #include "fluid_dynamics_application_variables.h"
 
@@ -70,7 +70,7 @@ public:
     explicit LeastSquaresShadowingBossakForwardScheme(
         AdjointResponseFunction::Pointer pResponseFunction,
         FluidLeastSquaresShadowingSensitivity::Pointer pFluidLeastSquaresShadowingSensitivity,
-        FluidLeastSquaresShadowingUtilities::Pointer pFluidLeastSquaresShadowingUtilities,
+        FluidLSSVariableUtilities::Pointer pFluidLeastSquaresShadowingUtilities,
         const Variable<double>& rResponseDesignTotalDerivativeVariable,
         const Variable<double>& rDeltaTimeDesignTotalDerivativeVariable,
         const double BossakAlpha,
@@ -420,7 +420,7 @@ private:
 
     FluidLeastSquaresShadowingSensitivity::Pointer mpFluidLeastSquaresShadowingSensitivity;
 
-    FluidLeastSquaresShadowingUtilities::Pointer mpFluidLeastSquaresShadowingUtilities;
+    FluidLSSVariableUtilities::Pointer mpFluidLeastSquaresShadowingUtilities;
 
     const Variable<double>& mrResponseDesignTotalDerivativeVariable;
 

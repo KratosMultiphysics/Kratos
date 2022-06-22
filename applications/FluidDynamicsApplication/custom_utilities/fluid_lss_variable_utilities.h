@@ -33,7 +33,7 @@ namespace Kratos
 ///@name Kratos classes
 ///@{
 
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FluidLeastSquaresShadowingUtilities
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FluidLSSVariableUtilities
 {
 public:
     ///@name Type Definitions
@@ -45,13 +45,13 @@ public:
 
     using ElementType = Element;
 
-    KRATOS_CLASS_POINTER_DEFINITION(FluidLeastSquaresShadowingUtilities);
+    KRATOS_CLASS_POINTER_DEFINITION(FluidLSSVariableUtilities);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    FluidLeastSquaresShadowingUtilities(
+    FluidLSSVariableUtilities(
         const std::vector<const Variable<double>*>& rPrimalVariablePointersList,
         const std::vector<const Variable<double>*>& rPrimalFirstDerivativeVariablePointersList,
         const std::vector<const Variable<double>*>& rAdjointVariablePointersList,

@@ -21,12 +21,12 @@
 // Application includes
 
 // Include h
-#include "fluid_least_squares_shadowing_utilities.h"
+#include "fluid_lss_variable_utilities.h"
 
 namespace Kratos
 {
 
-FluidLeastSquaresShadowingUtilities::FluidLeastSquaresShadowingUtilities(
+FluidLSSVariableUtilities::FluidLSSVariableUtilities(
     const std::vector<const Variable<double>*>& rPrimalVariablePointersList,
     const std::vector<const Variable<double>*>& rPrimalFirstDerivativeVariablePointersList,
     const std::vector<const Variable<double>*>& rAdjointVariablePointersList,
@@ -84,7 +84,7 @@ FluidLeastSquaresShadowingUtilities::FluidLeastSquaresShadowingUtilities(
 }
 
 template<class TEntityType>
-void FluidLeastSquaresShadowingUtilities::CheckVariables(const TEntityType& rEntity) const
+void FluidLSSVariableUtilities::CheckVariables(const TEntityType& rEntity) const
 {
     KRATOS_TRY
 
@@ -119,7 +119,7 @@ void FluidLeastSquaresShadowingUtilities::CheckVariables(const TEntityType& rEnt
 }
 
 template<class TEntityType>
-void FluidLeastSquaresShadowingUtilities::GetValues(
+void FluidLSSVariableUtilities::GetValues(
     Vector& rOutput,
     const TEntityType& rEntity,
     const IndexType Step,
@@ -147,107 +147,107 @@ void FluidLeastSquaresShadowingUtilities::GetValues(
 }
 
 template<class TEntityType>
-void FluidLeastSquaresShadowingUtilities::GetPrimalValues(
+void FluidLSSVariableUtilities::GetPrimalValues(
     Vector& rOutput,
     const TEntityType& rEntity,
     const IndexType Step) const
 {
-    FluidLeastSquaresShadowingUtilities::GetValues(rOutput, rEntity, Step, mPrimalVariablePointersList);
+    FluidLSSVariableUtilities::GetValues(rOutput, rEntity, Step, mPrimalVariablePointersList);
 }
 
 template<class TEntityType>
-void FluidLeastSquaresShadowingUtilities::GetPrimalFirstDerivativeValues(
+void FluidLSSVariableUtilities::GetPrimalFirstDerivativeValues(
     Vector& rOutput,
     const TEntityType& rEntity,
     const IndexType Step) const
 {
-    FluidLeastSquaresShadowingUtilities::GetValues(rOutput, rEntity, Step, mPrimalFirstDerivativeVariablePointersList);
+    FluidLSSVariableUtilities::GetValues(rOutput, rEntity, Step, mPrimalFirstDerivativeVariablePointersList);
 }
 
 template<class TEntityType>
-void FluidLeastSquaresShadowingUtilities::GetAdjointValues(
+void FluidLSSVariableUtilities::GetAdjointValues(
     Vector& rOutput,
     const TEntityType& rEntity,
     const IndexType Step) const
 {
-    FluidLeastSquaresShadowingUtilities::GetValues(rOutput, rEntity, Step, mAdjointVariablePointersList);
+    FluidLSSVariableUtilities::GetValues(rOutput, rEntity, Step, mAdjointVariablePointersList);
 }
 
 template<class TEntityType>
-void FluidLeastSquaresShadowingUtilities::GetAdjointFirstDerivativeValues(
+void FluidLSSVariableUtilities::GetAdjointFirstDerivativeValues(
     Vector& rOutput,
     const TEntityType& rEntity,
     const IndexType Step) const
 {
-    FluidLeastSquaresShadowingUtilities::GetValues(rOutput, rEntity, Step, mAdjointFirstDerivativeVariablePointersList);
+    FluidLSSVariableUtilities::GetValues(rOutput, rEntity, Step, mAdjointFirstDerivativeVariablePointersList);
 }
 
 template<class TEntityType>
-void FluidLeastSquaresShadowingUtilities::GetLSSValues(
+void FluidLSSVariableUtilities::GetLSSValues(
     Vector& rOutput,
     const TEntityType& rEntity,
     const IndexType Step) const
 {
-    FluidLeastSquaresShadowingUtilities::GetValues(rOutput, rEntity, Step, mLSSVariablePointersList);
+    FluidLSSVariableUtilities::GetValues(rOutput, rEntity, Step, mLSSVariablePointersList);
 }
 
 template<class TEntityType>
-void FluidLeastSquaresShadowingUtilities::GetLSSFirstDerivativeValues(
+void FluidLSSVariableUtilities::GetLSSFirstDerivativeValues(
     Vector& rOutput,
     const TEntityType& rEntity,
     const IndexType Step) const
 {
-    FluidLeastSquaresShadowingUtilities::GetValues(rOutput, rEntity, Step, mLSSFirstDerivativeVariablePointersList);
+    FluidLSSVariableUtilities::GetValues(rOutput, rEntity, Step, mLSSFirstDerivativeVariablePointersList);
 }
 
-const std::vector<const Variable<double>*>& FluidLeastSquaresShadowingUtilities::GetPrimalVariablePointersList() const
+const std::vector<const Variable<double>*>& FluidLSSVariableUtilities::GetPrimalVariablePointersList() const
 {
     return mPrimalVariablePointersList;
 }
 
-const std::vector<const Variable<double>*>& FluidLeastSquaresShadowingUtilities::GetPrimalFirstDerivativeVariablePointersList() const
+const std::vector<const Variable<double>*>& FluidLSSVariableUtilities::GetPrimalFirstDerivativeVariablePointersList() const
 {
     return mPrimalFirstDerivativeVariablePointersList;
 }
 
-const std::vector<const Variable<double>*>& FluidLeastSquaresShadowingUtilities::GetAdjointVariablePointersList() const
+const std::vector<const Variable<double>*>& FluidLSSVariableUtilities::GetAdjointVariablePointersList() const
 {
     return mAdjointVariablePointersList;
 }
 
-const std::vector<const Variable<double>*>& FluidLeastSquaresShadowingUtilities::GetAdjointFirstDerivativeVariablePointersList() const
+const std::vector<const Variable<double>*>& FluidLSSVariableUtilities::GetAdjointFirstDerivativeVariablePointersList() const
 {
     return mAdjointFirstDerivativeVariablePointersList;
 }
 
-const std::vector<const Variable<double>*>& FluidLeastSquaresShadowingUtilities::GetLSSVariablePointersList() const
+const std::vector<const Variable<double>*>& FluidLSSVariableUtilities::GetLSSVariablePointersList() const
 {
     return mLSSVariablePointersList;
 }
 
-const std::vector<const Variable<double>*>& FluidLeastSquaresShadowingUtilities::GetLSSFirstDerivativeVariablePointersList() const
+const std::vector<const Variable<double>*>& FluidLSSVariableUtilities::GetLSSFirstDerivativeVariablePointersList() const
 {
     return mLSSFirstDerivativeVariablePointersList;
 }
 
 // template instantiations
-template void FluidLeastSquaresShadowingUtilities::GetValues(Vector&, const ConditionType&, const IndexType, const std::vector<const Variable<double>*>&);
-template void FluidLeastSquaresShadowingUtilities::CheckVariables(const ConditionType&) const;
-template void FluidLeastSquaresShadowingUtilities::GetPrimalValues(Vector&, const ConditionType&, const IndexType) const;
-template void FluidLeastSquaresShadowingUtilities::GetPrimalFirstDerivativeValues(Vector&, const ConditionType&, const IndexType) const;
-template void FluidLeastSquaresShadowingUtilities::GetAdjointValues(Vector&, const ConditionType&, const IndexType) const;
-template void FluidLeastSquaresShadowingUtilities::GetAdjointFirstDerivativeValues(Vector&, const ConditionType&, const IndexType) const;
-template void FluidLeastSquaresShadowingUtilities::GetLSSValues(Vector&, const ConditionType&, const IndexType) const;
-template void FluidLeastSquaresShadowingUtilities::GetLSSFirstDerivativeValues(Vector&, const ConditionType&, const IndexType) const;
+template void FluidLSSVariableUtilities::GetValues(Vector&, const ConditionType&, const IndexType, const std::vector<const Variable<double>*>&);
+template void FluidLSSVariableUtilities::CheckVariables(const ConditionType&) const;
+template void FluidLSSVariableUtilities::GetPrimalValues(Vector&, const ConditionType&, const IndexType) const;
+template void FluidLSSVariableUtilities::GetPrimalFirstDerivativeValues(Vector&, const ConditionType&, const IndexType) const;
+template void FluidLSSVariableUtilities::GetAdjointValues(Vector&, const ConditionType&, const IndexType) const;
+template void FluidLSSVariableUtilities::GetAdjointFirstDerivativeValues(Vector&, const ConditionType&, const IndexType) const;
+template void FluidLSSVariableUtilities::GetLSSValues(Vector&, const ConditionType&, const IndexType) const;
+template void FluidLSSVariableUtilities::GetLSSFirstDerivativeValues(Vector&, const ConditionType&, const IndexType) const;
 
-template void FluidLeastSquaresShadowingUtilities::GetValues(Vector&, const ElementType&, const IndexType, const std::vector<const Variable<double>*>&);
-template void FluidLeastSquaresShadowingUtilities::CheckVariables(const ElementType&) const;
-template void FluidLeastSquaresShadowingUtilities::GetPrimalValues(Vector&, const ElementType&, const IndexType) const;
-template void FluidLeastSquaresShadowingUtilities::GetPrimalFirstDerivativeValues(Vector&, const ElementType&, const IndexType) const;
-template void FluidLeastSquaresShadowingUtilities::GetAdjointValues(Vector&, const ElementType&, const IndexType) const;
-template void FluidLeastSquaresShadowingUtilities::GetAdjointFirstDerivativeValues(Vector&, const ElementType&, const IndexType) const;
-template void FluidLeastSquaresShadowingUtilities::GetLSSValues(Vector&, const ElementType&, const IndexType) const;
-template void FluidLeastSquaresShadowingUtilities::GetLSSFirstDerivativeValues(Vector&, const ElementType&, const IndexType) const;
+template void FluidLSSVariableUtilities::GetValues(Vector&, const ElementType&, const IndexType, const std::vector<const Variable<double>*>&);
+template void FluidLSSVariableUtilities::CheckVariables(const ElementType&) const;
+template void FluidLSSVariableUtilities::GetPrimalValues(Vector&, const ElementType&, const IndexType) const;
+template void FluidLSSVariableUtilities::GetPrimalFirstDerivativeValues(Vector&, const ElementType&, const IndexType) const;
+template void FluidLSSVariableUtilities::GetAdjointValues(Vector&, const ElementType&, const IndexType) const;
+template void FluidLSSVariableUtilities::GetAdjointFirstDerivativeValues(Vector&, const ElementType&, const IndexType) const;
+template void FluidLSSVariableUtilities::GetLSSValues(Vector&, const ElementType&, const IndexType) const;
+template void FluidLSSVariableUtilities::GetLSSFirstDerivativeValues(Vector&, const ElementType&, const IndexType) const;
 
 } // namespace Kratos
 

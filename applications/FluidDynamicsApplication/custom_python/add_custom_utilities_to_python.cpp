@@ -42,7 +42,7 @@
 #include "custom_utilities/fluid_test_utilities.h"
 #include "custom_utilities/fluid_adjoint_utilities.h"
 #include "custom_utilities/fluid_fft_utilities.h"
-#include "custom_utilities/fluid_least_squares_shadowing_utilities.h"
+#include "custom_utilities/fluid_lss_variable_utilities.h"
 #include "custom_utilities/fluid_least_squares_shadowing_sensitivity.h"
 
 #include "utilities/split_tetrahedra.h"
@@ -215,22 +215,22 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetNumberOfWindowingSteps",&FluidFFTUtilities::GetNumberOfWindowingSteps)
         ;
 
-    py::class_<FluidLeastSquaresShadowingUtilities>(m, "FluidLeastSquaresShadowingUtilities")
+    py::class_<FluidLSSVariableUtilities>(m, "FluidLSSVariableUtilities")
         .def(py::init<const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&>())
-        .def("CheckVariables", &FluidLeastSquaresShadowingUtilities::CheckVariables<ModelPart::ConditionType>)
-        .def("GetPrimalValues", &FluidLeastSquaresShadowingUtilities::GetPrimalValues<ModelPart::ConditionType>)
-        .def("GetPrimalFirstDerivativeValues", &FluidLeastSquaresShadowingUtilities::GetPrimalFirstDerivativeValues<ModelPart::ConditionType>)
-        .def("GetAdjointValues", &FluidLeastSquaresShadowingUtilities::GetAdjointValues<ModelPart::ConditionType>)
-        .def("GetAdjointFirstDerivativeValues", &FluidLeastSquaresShadowingUtilities::GetAdjointFirstDerivativeValues<ModelPart::ConditionType>)
-        .def("GetLSSValues", &FluidLeastSquaresShadowingUtilities::GetLSSValues<ModelPart::ConditionType>)
-        .def("GetLSSFirstDerivativeValues", &FluidLeastSquaresShadowingUtilities::GetLSSFirstDerivativeValues<ModelPart::ConditionType>)
-        .def("CheckVariables", &FluidLeastSquaresShadowingUtilities::CheckVariables<ModelPart::ElementType>)
-        .def("GetPrimalValues", &FluidLeastSquaresShadowingUtilities::GetPrimalValues<ModelPart::ElementType>)
-        .def("GetPrimalFirstDerivativeValues", &FluidLeastSquaresShadowingUtilities::GetPrimalFirstDerivativeValues<ModelPart::ElementType>)
-        .def("GetAdjointValues", &FluidLeastSquaresShadowingUtilities::GetAdjointValues<ModelPart::ElementType>)
-        .def("GetAdjointFirstDerivativeValues", &FluidLeastSquaresShadowingUtilities::GetAdjointFirstDerivativeValues<ModelPart::ElementType>)
-        .def("GetLSSValues", &FluidLeastSquaresShadowingUtilities::GetLSSValues<ModelPart::ElementType>)
-        .def("GetLSSFirstDerivativeValues", &FluidLeastSquaresShadowingUtilities::GetLSSFirstDerivativeValues<ModelPart::ElementType>)
+        .def("CheckVariables", &FluidLSSVariableUtilities::CheckVariables<ModelPart::ConditionType>)
+        .def("GetPrimalValues", &FluidLSSVariableUtilities::GetPrimalValues<ModelPart::ConditionType>)
+        .def("GetPrimalFirstDerivativeValues", &FluidLSSVariableUtilities::GetPrimalFirstDerivativeValues<ModelPart::ConditionType>)
+        .def("GetAdjointValues", &FluidLSSVariableUtilities::GetAdjointValues<ModelPart::ConditionType>)
+        .def("GetAdjointFirstDerivativeValues", &FluidLSSVariableUtilities::GetAdjointFirstDerivativeValues<ModelPart::ConditionType>)
+        .def("GetLSSValues", &FluidLSSVariableUtilities::GetLSSValues<ModelPart::ConditionType>)
+        .def("GetLSSFirstDerivativeValues", &FluidLSSVariableUtilities::GetLSSFirstDerivativeValues<ModelPart::ConditionType>)
+        .def("CheckVariables", &FluidLSSVariableUtilities::CheckVariables<ModelPart::ElementType>)
+        .def("GetPrimalValues", &FluidLSSVariableUtilities::GetPrimalValues<ModelPart::ElementType>)
+        .def("GetPrimalFirstDerivativeValues", &FluidLSSVariableUtilities::GetPrimalFirstDerivativeValues<ModelPart::ElementType>)
+        .def("GetAdjointValues", &FluidLSSVariableUtilities::GetAdjointValues<ModelPart::ElementType>)
+        .def("GetAdjointFirstDerivativeValues", &FluidLSSVariableUtilities::GetAdjointFirstDerivativeValues<ModelPart::ElementType>)
+        .def("GetLSSValues", &FluidLSSVariableUtilities::GetLSSValues<ModelPart::ElementType>)
+        .def("GetLSSFirstDerivativeValues", &FluidLSSVariableUtilities::GetLSSFirstDerivativeValues<ModelPart::ElementType>)
         ;
 
     py::class_<FluidLeastSquaresShadowingSensitivity>(m, "FluidLeastSquaresShadowingSensitivity")

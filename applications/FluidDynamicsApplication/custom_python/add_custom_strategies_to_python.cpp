@@ -163,13 +163,13 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     using  LeastSquaresShadowingBossakForwardSchemeType = LeastSquaresShadowingBossakForwardScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<LeastSquaresShadowingBossakForwardSchemeType, typename LeastSquaresShadowingBossakForwardSchemeType::Pointer, BaseSchemeType>
         (m, "LeastSquaresShadowingBossakForwardScheme")
-        .def(py::init<AdjointResponseFunction::Pointer, FluidLeastSquaresShadowingSensitivity::Pointer, FluidLeastSquaresShadowingUtilities::Pointer, const Variable<double>&, const Variable<double>&, const double, const double, const double, const IndexType, const IndexType, const IndexType>())
+        .def(py::init<AdjointResponseFunction::Pointer, FluidLeastSquaresShadowingSensitivity::Pointer, FluidLSSVariableUtilities::Pointer, const Variable<double>&, const Variable<double>&, const double, const double, const double, const IndexType, const IndexType, const IndexType>())
         ;
 
     using  LeastSquaresShadowingBossakBackwardSchemeType = LeastSquaresShadowingBossakBackwardScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<LeastSquaresShadowingBossakBackwardSchemeType, typename LeastSquaresShadowingBossakBackwardSchemeType::Pointer, BaseSchemeType>
         (m, "LeastSquaresShadowingBossakBackwardScheme")
-        .def(py::init<FluidLeastSquaresShadowingUtilities::Pointer, const Variable<Vector>&, const double, const std::size_t, const std::size_t, const std::size_t>())
+        .def(py::init<FluidLSSVariableUtilities::Pointer, const Variable<Vector>&, const double, const std::size_t, const std::size_t, const std::size_t>())
         ;
 
 }

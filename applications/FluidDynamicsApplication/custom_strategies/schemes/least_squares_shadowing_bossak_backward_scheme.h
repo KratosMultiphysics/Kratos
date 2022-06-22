@@ -26,7 +26,7 @@
 
 // Application includes
 #include "custom_utilities/fluid_adjoint_slip_utilities.h"
-#include "custom_utilities/fluid_least_squares_shadowing_utilities.h"
+#include "custom_utilities/fluid_lss_variable_utilities.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
@@ -65,7 +65,7 @@ public:
 
     /// Constructor.
     explicit LeastSquaresShadowingBossakBackwardScheme(
-        FluidLeastSquaresShadowingUtilities::Pointer pFluidLeastSquaresShadowingUtilities,
+        FluidLSSVariableUtilities::Pointer pFluidLeastSquaresShadowingUtilities,
         const Variable<Vector>& rAuxVariable,
         const double BossakAlpha,
         const IndexType Dimension,
@@ -341,7 +341,7 @@ private:
     ///@name Private Member Variables
     ///@{
 
-    FluidLeastSquaresShadowingUtilities::Pointer mpFluidLeastSquaresShadowingUtilities;
+    FluidLSSVariableUtilities::Pointer mpFluidLeastSquaresShadowingUtilities;
 
     const Variable<Vector>& mrAuxVariable;
 
