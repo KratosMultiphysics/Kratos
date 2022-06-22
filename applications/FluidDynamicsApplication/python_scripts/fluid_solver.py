@@ -129,7 +129,31 @@ class FluidSolver(PythonSolver):
 
     def Predict(self):
         if self._TimeBufferIsInitialized():
-            self._GetSolutionStrategy().Predict()
+            #self._GetSolutionStrategy().Predict()
+
+            #######################
+            # implementing idea from predictor inspired by
+            #https://biblio.ugent.be/publication/533365/file/533369.pdf#cite.Vierendeels2007
+            nodes = self.main_model_part.Nodes
+            k = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] - 2
+            print(f"****")
+            print(f"**** PREDICT k={k}")
+            print(f"****")
+            if k == 0:  # Initialization
+                nnode = 0
+                for node in nodes:
+                    nnode += 1
+                self.nnode = nnode
+                t = np.zeros((self.nnode, 3))
+                for i, node in enumerate(nodes):
+                    t[i, :] = np.array(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY))
+                self.v = t.reshape((-1, 1))
+            else:
+                t = self.v.reshape((-1, 3))
+                for i, node in enumerate(nodes):
+                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, list(t[i, :]))
+                    #pass
+            #######################
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
@@ -145,6 +169,36 @@ class FluidSolver(PythonSolver):
     def FinalizeSolutionStep(self):
         if self._TimeBufferIsInitialized():
             self._GetSolutionStrategy().FinalizeSolutionStep()
+
+            #######################
+            nodes = self.main_model_part.Nodes
+            k = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] - 2
+
+            print(f"****")
+            print(f"**** FINALIZE k={k}")
+            print(f"****")
+
+            t = np.zeros((self.nnode, 3))
+            for i, node in enumerate(nodes):
+                t[i, :] = np.array(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY))
+            vh = t.reshape((-1, 1))
+            R = vh - self.v
+
+            if k == 0:  # Initialization
+                self.V = R  # We store Ri values in V, for later -Rk
+                self.W = vh  # We store vi values in W, for later -vh
+                return
+
+            self.V[:, [0]] -= R
+            self.W[:, [0]] -= vh
+
+            alpha = np.linalg.lstsq(self.V, -R, rcond=None)[0]
+            print("alpha:", alpha)
+            self.v += self.W @ alpha + R
+
+            self.V = np.hstack((R, self.V))  # We store Ri values in V, for later -Rk
+            self.W = np.hstack((vh, self.W))  # We store vi values in W, for later -vh
+            #######################
 
     def Check(self):
         self._GetSolutionStrategy().Check()
