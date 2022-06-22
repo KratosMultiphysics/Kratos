@@ -29,7 +29,7 @@
 // Application includes
 #include "custom_utilities/fluid_adjoint_slip_utilities.h"
 #include "custom_utilities/fluid_lss_variable_utilities.h"
-#include "custom_utilities/fluid_least_squares_shadowing_sensitivity.h"
+#include "custom_utilities/fluid_lss_sensitivity.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
@@ -69,7 +69,7 @@ public:
     /// Constructor.
     explicit LSSBossakForwardScheme(
         AdjointResponseFunction::Pointer pResponseFunction,
-        FluidLeastSquaresShadowingSensitivity::Pointer pFluidLeastSquaresShadowingSensitivity,
+        FluidLSSSensitivity::Pointer pFluidLeastSquaresShadowingSensitivity,
         FluidLSSVariableUtilities::Pointer pFluidLeastSquaresShadowingUtilities,
         const Variable<double>& rResponseDesignTotalDerivativeVariable,
         const Variable<double>& rDeltaTimeDesignTotalDerivativeVariable,
@@ -418,7 +418,7 @@ private:
 
     AdjointResponseFunction::Pointer mpResponseFunction;
 
-    FluidLeastSquaresShadowingSensitivity::Pointer mpFluidLeastSquaresShadowingSensitivity;
+    FluidLSSSensitivity::Pointer mpFluidLeastSquaresShadowingSensitivity;
 
     FluidLSSVariableUtilities::Pointer mpFluidLeastSquaresShadowingUtilities;
 

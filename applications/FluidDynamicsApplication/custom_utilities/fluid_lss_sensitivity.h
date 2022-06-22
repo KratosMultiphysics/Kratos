@@ -38,7 +38,7 @@ namespace Kratos
 ///@name Kratos classes
 ///@{
 
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FluidLeastSquaresShadowingSensitivity
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FluidLSSSensitivity
 {
 public:
     ///@name Type Definitions
@@ -46,13 +46,13 @@ public:
 
     using IndexType = std::size_t;
 
-    KRATOS_CLASS_POINTER_DEFINITION(FluidLeastSquaresShadowingSensitivity);
+    KRATOS_CLASS_POINTER_DEFINITION(FluidLSSSensitivity);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    FluidLeastSquaresShadowingSensitivity()
+    FluidLSSSensitivity()
     {
         KRATOS_TRY
 
