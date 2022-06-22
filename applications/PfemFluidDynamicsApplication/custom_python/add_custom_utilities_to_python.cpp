@@ -24,6 +24,7 @@
 #include "custom_utilities/pfem_fluid_gid_io.h"
 #include "custom_utilities/move_mesh_utility.h"
 #include "custom_utilities/calculate_wave_height_utility.h"
+#include "custom_utilities/calculate_closest_wave_height_utility.h"
 
 namespace Kratos
 {
@@ -51,6 +52,11 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
     py::class_<CalculateWaveHeightUtility, CalculateWaveHeightUtility::Pointer>(m, "CalculateWaveHeightUtility")
         .def(py::init<ModelPart&, Parameters>())
         .def("Calculate", &CalculateWaveHeightUtility::Calculate)
+        ;
+
+    py::class_<CalculateClosestWaveHeightUtility, CalculateClosestWaveHeightUtility::Pointer>(m, "CalculateClosestWaveHeightUtility")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Calculate", &CalculateClosestWaveHeightUtility::Calculate)
         ;
 }
 

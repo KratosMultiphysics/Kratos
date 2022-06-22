@@ -48,6 +48,7 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/fix_free_velocity_on_nodes_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/move_mesh_utility.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/calculate_wave_height_utility.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/calculate_closest_wave_height_utility.cpp
 
 
     # Fluid constitutive laws

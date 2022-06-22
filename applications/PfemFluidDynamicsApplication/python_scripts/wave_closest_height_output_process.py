@@ -1,14 +1,15 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.PfemFluidDynamicsApplication as PFEM
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
+from KratosMultiphysics.PfemFluidDynamicsApplication.wave_height_output_process import WaveHeightOutputProcess
 
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return WaveHeightOutputProcess(model, settings["Parameters"])
+    return ClosestWaveHeightOutputProcess(model, settings["Parameters"])
 
-class WaveHeightOutputProcess(KM.OutputProcess):
-    """WaveHeightOutputProcess
+class ClosestWaveHeightOutputProcess(WaveHeightOutputProcess):
+    """ClosestWaveHeightOutputProcess
 
     This process records the wave height at several points.
     The direction used to calculate the water weight is defined as the opposite of the gravity direction.
@@ -22,16 +23,14 @@ class WaveHeightOutputProcess(KM.OutputProcess):
                               - 'file_name' : 'gauge_<x>' or
                               - 'file_name' : 'gauge_<Y>' or
                               - 'file_name' : 'gauge_<i>'
-     - wave_calculation_settings: a parameters according to 'CalculateWaveHeightOutputProcess'
+     - wave_calculation_settings: a parameters according to 'CalculateClosestWaveHeightOutputProcess'
                               - 'mean_water_level'
-                              - 'relative_search_tolerance'
     """
 
     def GetDefaultParameters(self):
         default_parameters = KM.Parameters("""{
             "model_part_name"           : "",
             "coordinates"               : [[0.0, 0.0, 0.0]],
-            "mesh_size"                 : [0.0],
             "wave_calculation_settings" : {},
             "output_file_settings"      : {},
             "time_between_outputs"      : 0.01,
@@ -40,28 +39,20 @@ class WaveHeightOutputProcess(KM.OutputProcess):
         return default_parameters
 
     def __init__(self, model, settings):
-        """The constructor of the WaveHeightOutputProcess"""
+        """The constructor of the ClosestWaveHeightOutputProcess"""
 
         KM.OutputProcess.__init__(self)
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
-
         self.model_part = model.GetModelPart(self.settings["model_part_name"].GetString())
-
         self.coordinates_list = self._GetCoordinatesList(self.settings["coordinates"])
-        self.mesh_size_list = self._GetMeshSizeList(self.settings["mesh_size"])
-        # The list of the mesh size must have the same length as the list of coordinates for each gauge. Otherwise, the average mesh size is used
-        if len(self.coordinates_list) != len(self.mesh_size_list):
-            self.mesh_size_list = []
-            for item in self.coordinates_list:
-                self.mesh_size_list.append(0.0)
         self.next_output = self.model_part.ProcessInfo[KM.TIME]
 
     def Check(self):
         """Check all the variables have the right size"""
         for coordinate in self.coordinates_list:
             if not len(coordinate) == 3:
-                raise Exception("WaveHeightOutputProcess. The coordinates must be given with a 3-dimensional array")
+                raise Exception("ClosestWaveHeightOutputProcess. The coordinates must be given with a 3-dimensional array")
 
         if len(self.coordinates_list) > 1:
             # Check 'file_name' exists and there is a possible replacement for the multiple output locations
@@ -80,60 +71,19 @@ class WaveHeightOutputProcess(KM.OutputProcess):
             header += "#Time \t\tHeight\n"
             self.files.append(TimeBasedAsciiFileWriterUtility(self.model_part, file_settings, header).file)
 
-        # this gives the average height of the closest nodes to the gauge over a user-provided tolerance distance
-        self.wave_height_utility = PFEM.CalculateWaveHeightUtility(self.model_part, self.settings["wave_calculation_settings"])
-
-    def IsOutputStep(self):
-        """The output control is time based"""
-        time = self.model_part.ProcessInfo[KM.TIME]
-        return time >= self.next_output
+        ## this gives the height of the closest node to the gauge
+        self.wave_height_utility = PFEM.CalculateClosestWaveHeightUtility(self.model_part, self.settings["wave_calculation_settings"])
 
     def PrintOutput(self):
         """Print the wave height corresponding to each gauge and schedule the next output"""
         print_format = self.settings["print_format"].GetString()
         row = print_format + "\t" + print_format + "\n"
         time = self.model_part.ProcessInfo[KM.TIME]
-        for file, coordinates, mesh_size in zip(self.files, self.coordinates_list, self.mesh_size_list):
-            height = self.wave_height_utility.Calculate(coordinates,mesh_size)
+        for file, coordinates in zip(self.files, self.coordinates_list):
+            height = self.wave_height_utility.Calculate(coordinates)
             value = row.format(time, height)
             file.write(value)
             file.flush()
 
         self.next_output += self.settings["time_between_outputs"].GetDouble()
 
-    def ExecuteFinalize(self):
-        """Close all the files"""
-        for file in self.files:
-            file.close()
-
-    @staticmethod
-    def _GetCoordinatesList(param):
-        coordinates_list = []
-        if param.IsVector(): # There is a single coordinate
-            coordinates_list.append(param.GetVector())
-        else:
-            for coordinate in param: # There is a list of coordinates
-                coordinates_list.append(coordinate.GetVector())
-        return coordinates_list
-
-    @staticmethod
-    def _GetMeshSizeList(param):
-        mesh_size_list = []
-        if param.IsDouble(): # There is a single mesh_size
-            mesh_size_list.append(param.GetDouble())
-        else:
-            for mesh_size in param: # There is a list of mesh sizes
-                mesh_size_list.append(mesh_size.GetDouble())
-        return mesh_size_list
-
-    @staticmethod
-    def _ExecuteReplacement(i, coord, param):
-        name = param.GetString()
-        name = name.replace("<x>", str(coord[0]))
-        name = name.replace("<X>", str(coord[0]))
-        name = name.replace("<y>", str(coord[1]))
-        name = name.replace("<Y>", str(coord[1]))
-        name = name.replace("<z>", str(coord[2]))
-        name = name.replace("<Z>", str(coord[2]))
-        name = name.replace("<i>", str(i))
-        param.SetString(name)

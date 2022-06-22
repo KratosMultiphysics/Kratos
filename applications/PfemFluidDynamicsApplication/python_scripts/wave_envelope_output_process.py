@@ -6,10 +6,10 @@ from numpy import linspace
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return WaveHeightOutputProcess(model, settings["Parameters"])
+    return WaveEnvelopeOutputProcess(model, settings["Parameters"])
 
-class WaveHeightOutputProcess(KM.OutputProcess):
-    """WaveHeightOutputProcess
+class WaveEnvelopeOutputProcess(KM.OutputProcess):
+    """WaveEnvelopeOutputProcess
 
     This process records the wave height along a path.
     If a sampling point is not found, Nan will be printed.
@@ -34,7 +34,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
 
 
     def __init__(self, model, settings):
-        """The constructor of the WaveHeightOutputProcess"""
+        """The constructor of the WaveEnvelopeOutputProcess"""
 
         KM.OutputProcess.__init__(self)
         self.settings = settings
