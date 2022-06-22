@@ -231,6 +231,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetAdjointFirstDerivativeValues", &FluidLeastSquaresShadowingUtilities::GetAdjointFirstDerivativeValues<ModelPart::ElementType>)
         .def("GetLSSValues", &FluidLeastSquaresShadowingUtilities::GetLSSValues<ModelPart::ElementType>)
         .def("GetLSSFirstDerivativeValues", &FluidLeastSquaresShadowingUtilities::GetLSSFirstDerivativeValues<ModelPart::ElementType>)
+        .def("GetDeltaTimeDesignTotalDerivativeVariable", &FluidLeastSquaresShadowingUtilities::GetDeltaTimeDesignTotalDerivativeVariable)
+        .def("GetAuxVariable", &FluidLeastSquaresShadowingUtilities::GetAuxVariable)
+
         ;
 
     py::class_<FluidLeastSquaresShadowingSensitivity>(m, "FluidLeastSquaresShadowingSensitivity")

@@ -187,7 +187,7 @@ public:
         });
 
         const double eta = elemental_eta + nodal_eta / coeff;
-        r_process_info[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeShapeTotalDerivativeVariable()] = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(eta) / (-2.0 * mDeltaTimeDialationAlpha * mDeltaTimeDialationAlpha);
+        r_process_info[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeDesignTotalDerivativeVariable()] = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(eta) / (-2.0 * mDeltaTimeDialationAlpha * mDeltaTimeDialationAlpha);
 
         // set bossak constants
         mBossakConstants.SetConstants(delta_time);
@@ -195,7 +195,7 @@ public:
         mCurrentResponseValue = mpResponseFunction->CalculateValue(rModelPart);
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Computed time dialation total shape derivative in " << rModelPart.FullName()
-            << " and stored in " << mFluidLeastSquaresShadowingUtilities.GetDeltaTimeShapeTotalDerivativeVariable().Name() << ".\n";
+            << " and stored in " << mFluidLeastSquaresShadowingUtilities.GetDeltaTimeDesignTotalDerivativeVariable().Name() << ".\n";
 
         KRATOS_CATCH("")
     }
@@ -266,7 +266,7 @@ public:
         const double delta_time = r_process_info[DELTA_TIME];
         const double coeff_1 = 1 / (delta_time * mBossak.GetGamma());
         const double coeff_2 = (mBossak.GetGamma() - 1) / mBossak.GetGamma();
-        const double coeff_3 = r_process_info[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeShapeTotalDerivativeVariable()] / (delta_time * delta_time * mBossak.GetGamma());
+        const double coeff_3 = r_process_info[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeDesignTotalDerivativeVariable()] / (delta_time * delta_time * mBossak.GetGamma());
 
         const auto& r_primal_variable_pointers_list = mFluidLeastSquaresShadowingUtilities.GetPrimalVariablePointersList();
         const auto& r_lss_variable_pointers_list = mFluidLeastSquaresShadowingUtilities.GetLSSVariablePointersList();
@@ -333,7 +333,7 @@ public:
         });
 
         const double current_response_shape_total_derivative = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(elemental_shape_deriv_contribution + condition_shape_deriv_contribution)
-                                                          + r_process_info[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeShapeTotalDerivativeVariable()] * (mCurrentResponseValue - mFinalResponseValue);
+                                                          + r_process_info[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeDesignTotalDerivativeVariable()] * (mCurrentResponseValue - mFinalResponseValue);
 
         auto& response_shape_total_derivative = r_process_info[mrResponseShapeTotalDerivative];
         const double time = r_process_info[TIME];
@@ -529,7 +529,7 @@ private:
     {
         KRATOS_TRY
 
-        const double eta = rCurrentProcessInfo[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeShapeTotalDerivativeVariable()];
+        const double eta = rCurrentProcessInfo[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeDesignTotalDerivativeVariable()];
 
         rEntity.CalculateSensitivityMatrix(TIME_STEP_SENSITIVITY, rResidualTimeStepDerivatives, rCurrentProcessInfo);
         mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
@@ -574,7 +574,7 @@ private:
     {
         KRATOS_TRY
 
-        const double eta = rProcessInfo[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeShapeTotalDerivativeVariable()];
+        const double eta = rProcessInfo[mFluidLeastSquaresShadowingUtilities.GetDeltaTimeDesignTotalDerivativeVariable()];
 
         double value = 0.0;
 

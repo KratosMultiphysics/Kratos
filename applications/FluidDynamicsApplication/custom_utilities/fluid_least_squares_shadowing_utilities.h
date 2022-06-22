@@ -98,7 +98,7 @@ public:
 
     const std::vector<const Variable<double>*>& GetLSSFirstDerivativeVariablePointersList() const;
 
-    const Variable<double>& GetDeltaTimeShapeTotalDerivativeVariable() const;
+    const Variable<double>& GetDeltaTimeDesignTotalDerivativeVariable() const;
 
     const Variable<Vector>& GetAuxVariable() const;
 

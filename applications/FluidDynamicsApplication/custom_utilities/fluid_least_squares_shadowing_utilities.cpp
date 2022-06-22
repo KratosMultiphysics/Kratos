@@ -66,6 +66,24 @@ FluidLeastSquaresShadowingUtilities::FluidLeastSquaresShadowingUtilities(
         << "LSS first derivative variables list size is not matching with primal variables list size [ lss first derivative variables list size = "
         << mLSSFirstDerivativeVariablePointersList.size() << ", primal variables list size = " << mPrimalVariablePointersList.size() << " ].\n";
 
+    // check for common variables
+    std::vector<const Variable<double>*> temp;
+    const auto& variable_adder = [&](const std::vector<const Variable<double>*>& rInput) {
+        for (const auto& r_variable : rInput) {
+            for (const auto& r_temp_var : temp) {
+                KRATOS_ERROR_IF(*r_temp_var == *r_variable) << r_variable->Name() << " is already used in this utilities. Please use unique list of variables.\n";
+            }
+            temp.push_back(r_variable);
+        }
+    };
+
+    variable_adder(mPrimalVariablePointersList);
+    variable_adder(mPrimalFirstDerivativeVariablePointersList);
+    variable_adder(mAdjointVariablePointersList);
+    variable_adder(mAdjointFirstDerivativeVariablePointersList);
+    variable_adder(mLSSVariablePointersList);
+    variable_adder(mLSSFirstDerivativeVariablePointersList);
+
     KRATOS_CATCH("");
 }
 
@@ -216,7 +234,7 @@ const std::vector<const Variable<double>*>& FluidLeastSquaresShadowingUtilities:
     return mLSSFirstDerivativeVariablePointersList;
 }
 
-const Variable<double>& FluidLeastSquaresShadowingUtilities::GetDeltaTimeShapeTotalDerivativeVariable() const
+const Variable<double>& FluidLeastSquaresShadowingUtilities::GetDeltaTimeDesignTotalDerivativeVariable() const
 {
     return mrDeltaTimeShapeTotalDerivativeVariable;
 }
