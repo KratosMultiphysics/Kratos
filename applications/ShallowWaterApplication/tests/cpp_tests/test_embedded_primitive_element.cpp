@@ -29,8 +29,7 @@ namespace Testing {
 
 typedef ModelPart::IndexType IndexType;
 
-//TODO: Fix this multiple definition
-void SetNodalValues2(
+void SetEmbeddedNodalValues(
     ModelPart& rModelPart,
     const double& rManning,
     const double& rHeight,
@@ -43,11 +42,13 @@ void SetNodalValues2(
         const array_1d<double,3> coords = r_node.Coordinates();
         const auto height = rHeight + inner_prod(coords, rHeightGradient);
         const auto topography = inner_prod(coords, rTopographySlope);
+        const auto distance = height;
 
         r_node.FastGetSolutionStepValue(VELOCITY) = rVelocity;
         r_node.FastGetSolutionStepValue(HEIGHT) = height;
         r_node.FastGetSolutionStepValue(MANNING) = rManning;
         r_node.FastGetSolutionStepValue(TOPOGRAPHY) = topography;
+        r_node.FastGetSolutionStepValue(DISTANCE) = distance;
     }
 }
 
@@ -75,14 +76,14 @@ void EmbeddedPrimitiveElementSteadyStateTest(
     ShallowWaterTestsUtilities::CreateGeometry(model_part, "EmbeddedPrimitiveElement2D3N", "WaveCondition2D2N");
 
     // Set the nodal values
-    SetNodalValues2(model_part, rManning, rHeight, rVelocity, rTopographySlope, rHeightGradient);
+    SetEmbeddedNodalValues(model_part, rManning, rHeight, rVelocity, rTopographySlope, rHeightGradient);
 
-    // Set distance field
+    // // Set distance field
     auto& r_elem = model_part.GetElement(1);
-    auto& r_geom = r_elem.GetGeometry();
-    r_geom[0].FastGetSolutionStepValue(DISTANCE) = 1.0;
-    r_geom[1].FastGetSolutionStepValue(DISTANCE) = -1.0;
-    r_geom[2].FastGetSolutionStepValue(DISTANCE) = 1.0;
+    // auto& r_geom = r_elem.GetGeometry();
+    // r_geom[0].FastGetSolutionStepValue(DISTANCE) = 1.0;
+    // r_geom[1].FastGetSolutionStepValue(DISTANCE) = -1.0;
+    // r_geom[2].FastGetSolutionStepValue(DISTANCE) = 1.0;
 
     // Compute RHS
     Vector rhs = ZeroVector(9);
@@ -92,8 +93,8 @@ void EmbeddedPrimitiveElementSteadyStateTest(
     KRATOS_WATCH(rhs)
     KRATOS_WATCH(lhs)
 
-    // // Check the RHS values. Since it is a steady solution the RHS must be zero
-    // KRATOS_CHECK_VECTOR_RELATIVE_NEAR(rhs, ZeroVector(9), rTolerance);
+    // Check the RHS values. Since it is a steady solution the RHS must be zero
+    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(rhs, ZeroVector(9), rTolerance);
 }
 
 /**
@@ -108,6 +109,72 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedPrimitiveElement2D3N_SteadyStillSurface, Shall
     array_1d<double,3> height_gradient = ZeroVector(3);
     slope[0] = 1.0e-3;
     height_gradient[0] = -1.0e-3;
+
+    EmbeddedPrimitiveElementSteadyStateTest(manning, height, velocity, slope, height_gradient);
+}
+
+/**
+ * @brief Check the EmbeddedPrimitiveElement2D3N element with still free surface
+ */
+KRATOS_TEST_CASE_IN_SUITE(EmbeddedPrimitiveElement2D3N_SteadyStillSurface_OuterTriangle, ShallowWaterApplicationFastSuite)
+{
+    const double manning = 0.0;
+    const double height = -5.0e-4;
+    const array_1d<double,3> velocity = ZeroVector(3);
+    array_1d<double,3> slope = ZeroVector(3);
+    array_1d<double,3> height_gradient = ZeroVector(3);
+    slope[0] = -1.0e-3;
+    height_gradient[0] = 1.0e-3;
+
+    EmbeddedPrimitiveElementSteadyStateTest(manning, height, velocity, slope, height_gradient);
+}
+
+/**
+ * @brief Check the EmbeddedPrimitiveElement2D3N element with still free surface
+ */
+KRATOS_TEST_CASE_IN_SUITE(EmbeddedPrimitiveElement2D3N_SteadyStillSurface_UpperTriangle, ShallowWaterApplicationFastSuite)
+{
+    const double manning = 0.0;
+    const double height = 5.0e-4;
+    const array_1d<double,3> velocity = ZeroVector(3);
+    array_1d<double,3> slope = ZeroVector(3);
+    array_1d<double,3> height_gradient = ZeroVector(3);
+    slope[1] = 1.0e-3;
+    height_gradient[1] = -1.0e-3;
+
+    EmbeddedPrimitiveElementSteadyStateTest(manning, height, velocity, slope, height_gradient);
+}
+
+/**
+ * @brief Check the EmbeddedPrimitiveElement2D3N element with still free surface
+ */
+KRATOS_TEST_CASE_IN_SUITE(EmbeddedPrimitiveElement2D3N_SteadySurfaceVelocity_Y, ShallowWaterApplicationFastSuite)
+{
+    const double manning = 0.0;
+    const double height = 5.0e-4;
+    array_1d<double,3> velocity = ZeroVector(3);
+    array_1d<double,3> slope = ZeroVector(3);
+    array_1d<double,3> height_gradient = ZeroVector(3);
+    velocity[1] = 0.1;
+    slope[0] = 1.0e-3;
+    height_gradient[0] = -1.0e-3;
+
+    EmbeddedPrimitiveElementSteadyStateTest(manning, height, velocity, slope, height_gradient);
+}
+
+/**
+ * @brief Check the EmbeddedPrimitiveElement2D3N element with still free surface
+ */
+KRATOS_TEST_CASE_IN_SUITE(EmbeddedPrimitiveElement2D3N_SteadySurfaceVelocity_X, ShallowWaterApplicationFastSuite)
+{
+    const double manning = 0.0;
+    const double height = 5.0e-4;
+    array_1d<double,3> velocity = ZeroVector(3);
+    array_1d<double,3> slope = ZeroVector(3);
+    array_1d<double,3> height_gradient = ZeroVector(3);
+    velocity[0] = 0.1;
+    slope[1] = 1.0e-3;
+    height_gradient[1] = -1.0e-3;
 
     EmbeddedPrimitiveElementSteadyStateTest(manning, height, velocity, slope, height_gradient);
 }
