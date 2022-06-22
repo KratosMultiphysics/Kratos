@@ -57,8 +57,7 @@ public:
         const std::vector<const Variable<double>*>& rAdjointVariablePointersList,
         const std::vector<const Variable<double>*>& rAdjointFirstDerivativeVariablePointersList,
         const std::vector<const Variable<double>*>& rLSSVariablePointersList,
-        const std::vector<const Variable<double>*>& rLSSFirstDerivativeVariablePointersList,
-        const Variable<Vector>& rAuxVariable);
+        const std::vector<const Variable<double>*>& rLSSFirstDerivativeVariablePointersList);
 
     ///@}
     ///@name Operations
@@ -97,8 +96,6 @@ public:
 
     const std::vector<const Variable<double>*>& GetLSSFirstDerivativeVariablePointersList() const;
 
-    const Variable<Vector>& GetAuxVariable() const;
-
     ///@}
 private:
     ///@name Private Members
@@ -110,7 +107,6 @@ private:
     const std::vector<const Variable<double>*> mAdjointFirstDerivativeVariablePointersList;
     const std::vector<const Variable<double>*> mLSSVariablePointersList;
     const std::vector<const Variable<double>*> mLSSFirstDerivativeVariablePointersList;
-    const Variable<Vector>& mrAuxVariable;
 
     ///@}
     ///@name Private Static Operations

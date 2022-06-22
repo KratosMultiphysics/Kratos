@@ -65,17 +65,19 @@ public:
 
     /// Constructor.
     explicit LeastSquaresShadowingBossakBackwardScheme(
+        FluidLeastSquaresShadowingUtilities::Pointer pFluidLeastSquaresShadowingUtilities,
+        const Variable<Vector>& rAuxVariable,
         const double BossakAlpha,
         const IndexType Dimension,
         const IndexType BlockSize,
-        const FluidLeastSquaresShadowingUtilities& rFluidLeastSquaresShadowingUtilities,
         const IndexType EchoLevel)
         : BaseType(),
+          mpFluidLeastSquaresShadowingUtilities(pFluidLeastSquaresShadowingUtilities),
+          mrAuxVariable(rAuxVariable),
           mDimension(Dimension),
+          mEchoLevel(EchoLevel),
           mBossak(BossakAlpha),
           mBossakConstants(mBossak),
-          mFluidLeastSquaresShadowingUtilities(rFluidLeastSquaresShadowingUtilities),
-          mEchoLevel(EchoLevel),
           mAdjointSlipUtilities(Dimension, BlockSize)
     {
         KRATOS_TRY
@@ -84,9 +86,9 @@ public:
         const int number_of_threads = ParallelUtilities::GetNumThreads();
         mTLS.resize(number_of_threads);
 
-        KRATOS_ERROR_IF_NOT(mFluidLeastSquaresShadowingUtilities.GetPrimalVariablePointersList().size() == BlockSize)
+        KRATOS_ERROR_IF_NOT(mpFluidLeastSquaresShadowingUtilities->GetPrimalVariablePointersList().size() == BlockSize)
                 << "Provided block size does not match with the number of primal variables provided in least squares shadowing utilities. [ block size = "
-                << BlockSize << ", number of primal variables in least squares shadowing utilities = " << mFluidLeastSquaresShadowingUtilities.GetPrimalVariablePointersList().size() << " ].\n";
+                << BlockSize << ", number of primal variables in least squares shadowing utilities = " << mpFluidLeastSquaresShadowingUtilities->GetPrimalVariablePointersList().size() << " ].\n";
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Created [ Dimensionality = " << Dimension << ", BlockSize = " << BlockSize << " ].\n";
 
@@ -106,7 +108,7 @@ public:
 
         IndexPartition<IndexType>(rModelPart.NumberOfElements()).for_each([&](const IndexType iElement) {
             const auto& r_element = *(rModelPart.ElementsBegin() + iElement);
-            mFluidLeastSquaresShadowingUtilities.CheckVariables(r_element);
+            mpFluidLeastSquaresShadowingUtilities->CheckVariables(r_element);
         });
 
         const IndexType buffer_size = rModelPart.GetBufferSize();
@@ -129,7 +131,7 @@ public:
         block_for_each(rModelPart.Elements(), Vector(), [&](ModelPart::ElementType& rElement, Vector& rTLS) {
             rElement.GetValuesVector(rTLS);
             noalias(rTLS) = ZeroVector(rTLS.size());
-            rElement.SetValue(mFluidLeastSquaresShadowingUtilities.GetAuxVariable(), rTLS);
+            rElement.SetValue(mrAuxVariable, rTLS);
         });
 
         KRATOS_CATCH("");
@@ -218,9 +220,8 @@ public:
         const double coeff_1 = (mBossak.GetGamma() - 1) / mBossak.GetGamma();
 
         // update mu
-        const auto& r_adjoint_variable_pointers_list = mFluidLeastSquaresShadowingUtilities.GetAdjointVariablePointersList();
-        const auto& r_adjoint_first_derivative_variable_pointers_list = mFluidLeastSquaresShadowingUtilities.GetAdjointFirstDerivativeVariablePointersList();
-        const auto& r_aux_variable = mFluidLeastSquaresShadowingUtilities.GetAuxVariable();
+        const auto& r_adjoint_variable_pointers_list = mpFluidLeastSquaresShadowingUtilities->GetAdjointVariablePointersList();
+        const auto& r_adjoint_first_derivative_variable_pointers_list = mpFluidLeastSquaresShadowingUtilities->GetAdjointFirstDerivativeVariablePointersList();
         const IndexType number_of_variables = r_adjoint_variable_pointers_list.size();
 
         // clear current first derivative variables
@@ -252,9 +253,9 @@ public:
                 rTLS.mPreviousAux.resize(rTLS.mAdjointValues.size());
             }
 
-            noalias(rTLS.mPreviousAux) = rElement.GetValue(r_aux_variable);
+            noalias(rTLS.mPreviousAux) = rElement.GetValue(mrAuxVariable);
             noalias(rTLS.mCurrentAux) = prod(rTLS.mRotatedResidualSecondDerivatives, rTLS.mAdjointValues);
-            noalias(rElement.GetValue(r_aux_variable)) = rTLS.mCurrentAux * this->mBossakConstants.mPreviousStepSecondDerivativeCoefficient;
+            noalias(rElement.GetValue(mrAuxVariable)) = rTLS.mCurrentAux * this->mBossakConstants.mPreviousStepSecondDerivativeCoefficient;
             noalias(rTLS.mCurrentAux) = rTLS.mCurrentAux * this->mBossakConstants.mCurrentStepSecondDerivativeCoefficient +  rTLS.mPreviousAux;
 
             IndexType local_index = 0;
@@ -280,7 +281,6 @@ public:
             }
         });
 
-
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Computed adjoint first derivatives in " << rModelPart.FullName() << ".\n";
 
         KRATOS_CATCH("")
@@ -298,15 +298,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
 private:
     ///@name Private Classes
     ///@{
@@ -350,15 +341,17 @@ private:
     ///@name Private Member Variables
     ///@{
 
+    FluidLeastSquaresShadowingUtilities::Pointer mpFluidLeastSquaresShadowingUtilities;
+
+    const Variable<Vector>& mrAuxVariable;
+
     const IndexType mDimension;
+
+    const IndexType mEchoLevel;
 
     const TimeDiscretization::Bossak mBossak;
 
     BossakConstants mBossakConstants;
-
-    const FluidLeastSquaresShadowingUtilities mFluidLeastSquaresShadowingUtilities;
-
-    const IndexType mEchoLevel;
 
     const FluidAdjointSlipUtilities mAdjointSlipUtilities;
 
@@ -439,9 +432,9 @@ private:
 
         rEntity.GetSecondDerivativesVector(rPreviousSecondDerivativesValues, 1);
 
-        mFluidLeastSquaresShadowingUtilities.GetLSSValues(rRHS, rEntity);
+        mpFluidLeastSquaresShadowingUtilities->GetLSSValues(rRHS, rEntity);
         rRHS *= -2.0;
-        noalias(rRHS) -= rEntity.GetValue(mFluidLeastSquaresShadowingUtilities.GetAuxVariable()) * mBossakConstants.mC1;
+        noalias(rRHS) -= rEntity.GetValue(mrAuxVariable) * mBossakConstants.mC1;
         noalias(rRHS) -= rPreviousSecondDerivativesValues * mBossakConstants.mC2;
 
         KRATOS_CATCH("");

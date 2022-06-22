@@ -216,7 +216,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<FluidLeastSquaresShadowingUtilities>(m, "FluidLeastSquaresShadowingUtilities")
-        .def(py::init<const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const Variable<Vector>&>())
+        .def(py::init<const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&>())
         .def("CheckVariables", &FluidLeastSquaresShadowingUtilities::CheckVariables<ModelPart::ConditionType>)
         .def("GetPrimalValues", &FluidLeastSquaresShadowingUtilities::GetPrimalValues<ModelPart::ConditionType>)
         .def("GetPrimalFirstDerivativeValues", &FluidLeastSquaresShadowingUtilities::GetPrimalFirstDerivativeValues<ModelPart::ConditionType>)
@@ -231,8 +231,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetAdjointFirstDerivativeValues", &FluidLeastSquaresShadowingUtilities::GetAdjointFirstDerivativeValues<ModelPart::ElementType>)
         .def("GetLSSValues", &FluidLeastSquaresShadowingUtilities::GetLSSValues<ModelPart::ElementType>)
         .def("GetLSSFirstDerivativeValues", &FluidLeastSquaresShadowingUtilities::GetLSSFirstDerivativeValues<ModelPart::ElementType>)
-        .def("GetAuxVariable", &FluidLeastSquaresShadowingUtilities::GetAuxVariable)
-
         ;
 
     py::class_<FluidLeastSquaresShadowingSensitivity>(m, "FluidLeastSquaresShadowingSensitivity")

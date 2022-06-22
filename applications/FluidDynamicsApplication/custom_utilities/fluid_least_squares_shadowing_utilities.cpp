@@ -32,15 +32,13 @@ FluidLeastSquaresShadowingUtilities::FluidLeastSquaresShadowingUtilities(
     const std::vector<const Variable<double>*>& rAdjointVariablePointersList,
     const std::vector<const Variable<double>*>& rAdjointFirstDerivativeVariablePointersList,
     const std::vector<const Variable<double>*>& rLSSVariablePointersList,
-    const std::vector<const Variable<double>*>& rLSSFirstDerivativeVariablePointersList,
-    const Variable<Vector>& rAuxVariable)
+    const std::vector<const Variable<double>*>& rLSSFirstDerivativeVariablePointersList)
     : mPrimalVariablePointersList(rPrimalVariablePointersList),
       mPrimalFirstDerivativeVariablePointersList(rPrimalFirstDerivativeVariablePointersList),
       mAdjointVariablePointersList(rAdjointVariablePointersList),
       mAdjointFirstDerivativeVariablePointersList(rAdjointFirstDerivativeVariablePointersList),
       mLSSVariablePointersList(rLSSVariablePointersList),
-      mLSSFirstDerivativeVariablePointersList(rLSSFirstDerivativeVariablePointersList),
-      mrAuxVariable(rAuxVariable)
+      mLSSFirstDerivativeVariablePointersList(rLSSFirstDerivativeVariablePointersList)
 {
     KRATOS_TRY
 
@@ -230,11 +228,6 @@ const std::vector<const Variable<double>*>& FluidLeastSquaresShadowingUtilities:
 const std::vector<const Variable<double>*>& FluidLeastSquaresShadowingUtilities::GetLSSFirstDerivativeVariablePointersList() const
 {
     return mLSSFirstDerivativeVariablePointersList;
-}
-
-const Variable<Vector>& FluidLeastSquaresShadowingUtilities::GetAuxVariable() const
-{
-    return mrAuxVariable;
 }
 
 // template instantiations
