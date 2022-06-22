@@ -203,6 +203,41 @@ void EmbeddedPrimitiveElement<TNumNodes>::CalculateLocalSystem(
                 }
             }
         }
+
+
+        // Boundary term at the interface
+        ElementData data;
+        BaseType::InitializeData(data, rCurrentProcessInfo);
+        BaseType::GetNodalData(data, r_geom);
+
+        for (std::size_t g = 0; g < n_gauss_int; ++g)
+        {
+            const double w_g = interface_w[g];
+            noalias(aux_N) = row(interface_N, g);
+            noalias(aux_DN_DX) = interface_DN_DX[g];
+
+            UpdateGaussPointData(data, aux_N);
+
+            for (std::size_t i = 0; i < n_nodes; ++i) {
+                for (std::size_t j = 0; j < n_nodes; ++j) {
+
+                    double n_ij;
+                    n_ij = aux_N[i] * aux_N[j];
+
+                    // /// First component
+                    // MathUtils<double>::AddMatrix(rMatrix,  w_g*n_ij*rData.A1*n[0], 3*i, 3*j);
+                    // MathUtils<double>::AddVector(rVector, -w_g*n_ij*rData.b1*n[0]*z[j], 3*i);
+
+                    // /// Second component
+                    // MathUtils<double>::AddMatrix(rMatrix,  w_g*n_ij*rData.A2*n[1], 3*i, 3*j);
+                    // MathUtils<double>::AddVector(rVector, -w_g*n_ij*rData.b2*n[1]*z[j], 3*i);
+                }
+            }
+        }
+
+        // Substracting the Dirichlet term (since we use a residualbased approach)
+        // noalias(rhs) -= prod(lhs, this->GetUnknownVector(data));
+
     }
 }
 
