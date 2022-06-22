@@ -243,7 +243,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<FluidLSSShapeSensitivity, FluidLSSShapeSensitivity::Pointer, FluidLSSSensitivity>(m, "FluidLSSShapeSensitivity")
-        .def(py::init<Parameters>())
+        .def(py::init<Parameters, const std::size_t>())
         ;
 }
 

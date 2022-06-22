@@ -35,11 +35,29 @@ namespace Kratos
 {
 
 FluidLSSShapeSensitivity::FluidLSSShapeSensitivity(
-    Parameters Settings
-)
-    : BaseType()
+    Parameters Settings,
+    const IndexType Dimension)
+    : BaseType(),
+      mDimension(Dimension)
 {
     KRATOS_TRY
+
+    Parameters default_parameters = Parameters(R"(
+    {
+       "derivative_node_id"        : -1,
+       "derivative_direction_index": -1
+    })" );
+
+    Settings.ValidateAndAssignDefaults(default_parameters);
+
+    const int derivative_node_id = Settings["derivative_node_id"].GetInt();
+    KRATOS_ERROR_IF(derivative_node_id <= 0) << "Derivative node id should be positive. [ derivative_node_id = " << derivative_node_id << " ].\n";
+    mShapeDerivativeNodeId = derivative_node_id;
+
+    const int derivative_direction_index = Settings["derivative_direction_index"].GetInt();
+    KRATOS_ERROR_IF(derivative_direction_index < 0) << "Derivative direction should be positive. [ derivative_direction_index = " << derivative_direction_index << " ].\n";
+    mShapeDerivativeDirection = derivative_direction_index;
+    KRATOS_ERROR_IF(mShapeDerivativeDirection >= mDimension) << "Derivative direction should be less than the dimension. [ derivative_direction_index = " << mShapeDerivativeDirection << ", dimension = " << mDimension << " ].\n";
 
     const int number_of_threads = ParallelUtilities::GetNumThreads();
     mTLS.resize(number_of_threads);

@@ -43,9 +43,9 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using IndexType = std::size_t;
-
     using BaseType = FluidLSSSensitivity;
+
+    using IndexType = std::size_t;
 
     KRATOS_CLASS_POINTER_DEFINITION(FluidLSSShapeSensitivity);
 
@@ -54,7 +54,8 @@ public:
     ///@{
 
     FluidLSSShapeSensitivity(
-        Parameters Settings
+        Parameters Settings,
+        const IndexType Dimension
     );
 
     ~FluidLSSShapeSensitivity() = default;
@@ -106,11 +107,11 @@ private:
     ///@name Private Members
     ///@{
 
+    const IndexType mDimension;
+
     IndexType mShapeDerivativeNodeId;
 
     IndexType mShapeDerivativeDirection;
-
-    IndexType mDimension;
 
     std::vector<TLS> mTLS;
 
