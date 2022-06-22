@@ -72,7 +72,6 @@ public:
         FluidLSSSensitivity::Pointer pFluidLeastSquaresShadowingSensitivity,
         FluidLSSVariableUtilities::Pointer pFluidLeastSquaresShadowingUtilities,
         const Variable<double>& rResponseDesignTotalDerivativeVariable,
-        const Variable<double>& rDeltaTimeDesignTotalDerivativeVariable,
         const double BossakAlpha,
         const double DeltaTimeDialationAlpha,
         const double FinalResponseValue,
@@ -84,7 +83,6 @@ public:
           mpFluidLeastSquaresShadowingSensitivity(pFluidLeastSquaresShadowingSensitivity),
           mpFluidLeastSquaresShadowingUtilities(pFluidLeastSquaresShadowingUtilities),
           mrResponseDesignTotalDerivativeVariable(rResponseDesignTotalDerivativeVariable),
-          mrDeltaTimeDesignTotalDerivativeVariable(rDeltaTimeDesignTotalDerivativeVariable),
           mDeltaTimeDialationAlpha(DeltaTimeDialationAlpha),
           mFinalResponseValue(FinalResponseValue),
           mDimension(Dimension),
@@ -102,9 +100,6 @@ public:
         KRATOS_ERROR_IF_NOT(mpFluidLeastSquaresShadowingUtilities->GetPrimalVariablePointersList().size() == BlockSize)
                 << "Provided block size does not match with the number of primal variables provided in least squares shadowing utilities. [ block size = "
                 << BlockSize << ", number of primal variables in least squares shadowing utilities = " << mpFluidLeastSquaresShadowingUtilities->GetPrimalVariablePointersList().size() << " ].\n";
-
-        KRATOS_ERROR_IF(mrResponseDesignTotalDerivativeVariable == mrDeltaTimeDesignTotalDerivativeVariable)
-                << "Response design total derivative variable is same as the delta time design total derivative variable. [ variable = " << mrDeltaTimeDesignTotalDerivativeVariable.Name() << " ].\n";
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Created [ Dimensionality = " << Dimension << ", BlockSize = " << BlockSize << " ].\n";
 
@@ -195,13 +190,13 @@ public:
         });
 
         const double eta = elemental_eta + nodal_eta / coeff;
-        r_process_info[mrDeltaTimeDesignTotalDerivativeVariable] = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(eta) / (-2.0 * mDeltaTimeDialationAlpha * mDeltaTimeDialationAlpha);
+        r_process_info[TIME_STEP_SENSITIVITY] = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(eta) / (-2.0 * mDeltaTimeDialationAlpha * mDeltaTimeDialationAlpha);
 
         // set bossak constants
         mBossakConstants.SetConstants(delta_time);
 
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Computed time dialation total design derivative is " << r_process_info[mrDeltaTimeDesignTotalDerivativeVariable] << " in " << rModelPart.FullName()
-            << " and stored in " << mrDeltaTimeDesignTotalDerivativeVariable.Name() << ".\n";
+        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Computed time dialation total design derivative is " << r_process_info[TIME_STEP_SENSITIVITY] << " in " << rModelPart.FullName()
+            << " and stored in TIME_STEP_SENSITIVITY.\n";
 
         mCurrentResponseValue = mpResponseFunction->CalculateValue(rModelPart);
 
@@ -274,7 +269,7 @@ public:
         const double delta_time = r_process_info[DELTA_TIME];
         const double coeff_1 = 1 / (delta_time * mBossak.GetGamma());
         const double coeff_2 = (mBossak.GetGamma() - 1) / mBossak.GetGamma();
-        const double coeff_3 = r_process_info[mrDeltaTimeDesignTotalDerivativeVariable] / (delta_time * delta_time * mBossak.GetGamma());
+        const double coeff_3 = r_process_info[TIME_STEP_SENSITIVITY] / (delta_time * delta_time * mBossak.GetGamma());
 
         const auto& r_primal_variable_pointers_list = mpFluidLeastSquaresShadowingUtilities->GetPrimalVariablePointersList();
         const auto& r_lss_variable_pointers_list = mpFluidLeastSquaresShadowingUtilities->GetLSSVariablePointersList();
@@ -341,7 +336,7 @@ public:
         });
 
         const double current_response_design_total_derivative = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(elemental_design_deriv_contribution + condition_design_deriv_contribution)
-                                                          + r_process_info[mrDeltaTimeDesignTotalDerivativeVariable] * (mCurrentResponseValue - mFinalResponseValue);
+                                                          + r_process_info[TIME_STEP_SENSITIVITY] * (mCurrentResponseValue - mFinalResponseValue);
 
         auto& response_design_total_derivative = r_process_info[mrResponseDesignTotalDerivativeVariable];
         const double time = r_process_info[TIME];
@@ -423,8 +418,6 @@ private:
     FluidLSSVariableUtilities::Pointer mpFluidLeastSquaresShadowingUtilities;
 
     const Variable<double>& mrResponseDesignTotalDerivativeVariable;
-
-    const Variable<double>& mrDeltaTimeDesignTotalDerivativeVariable;
 
     const double mDeltaTimeDialationAlpha;
 
@@ -531,7 +524,7 @@ private:
     {
         KRATOS_TRY
 
-        const double eta = rCurrentProcessInfo[mrDeltaTimeDesignTotalDerivativeVariable];
+        const double eta = rCurrentProcessInfo[TIME_STEP_SENSITIVITY];
 
         rEntity.CalculateSensitivityMatrix(TIME_STEP_SENSITIVITY, rResidualTimeStepDerivatives, rCurrentProcessInfo);
         mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
@@ -576,7 +569,7 @@ private:
     {
         KRATOS_TRY
 
-        const double eta = rProcessInfo[mrDeltaTimeDesignTotalDerivativeVariable];
+        const double eta = rProcessInfo[TIME_STEP_SENSITIVITY];
 
         double value = 0.0;
 
@@ -593,7 +586,7 @@ private:
         value += inner_prod(rResponseSecondDerivatives, rPreviousLSSSecondDerivativeSolution) * mBossakConstants.mPreviousStepSecondDerivativeCoefficient;
 
         rEntity.CalculateSensitivityMatrix(TIME_STEP_SENSITIVITY, rResidualTimeStepDerivatives, rProcessInfo);
-        mpResponseFunction->CalculatePartialSensitivity(rEntity, SHAPE_SENSITIVITY, rResidualTimeStepDerivatives, rResponseTimeStepDerivatives, rProcessInfo);
+        mpResponseFunction->CalculatePartialSensitivity(rEntity, TIME_STEP_SENSITIVITY, rResidualTimeStepDerivatives, rResponseTimeStepDerivatives, rProcessInfo);
         value += rResponseTimeStepDerivatives[0] * eta;
 
         value += mpFluidLeastSquaresShadowingSensitivity->CalculateResponseSensitivity(rEntity, *mpResponseFunction, mAdjointSlipUtilities, rProcessInfo);
