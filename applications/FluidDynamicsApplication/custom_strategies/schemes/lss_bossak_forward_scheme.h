@@ -38,13 +38,13 @@ namespace Kratos
 ///@{
 
 template <class TSparseSpace, class TDenseSpace>
-class LeastSquaresShadowingBossakForwardScheme : public Scheme<TSparseSpace, TDenseSpace>
+class LSSBossakForwardScheme : public Scheme<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(LeastSquaresShadowingBossakForwardScheme);
+    KRATOS_CLASS_POINTER_DEFINITION(LSSBossakForwardScheme);
 
     using IndexType = std::size_t;
 
@@ -67,7 +67,7 @@ public:
     ///@{
 
     /// Constructor.
-    explicit LeastSquaresShadowingBossakForwardScheme(
+    explicit LSSBossakForwardScheme(
         AdjointResponseFunction::Pointer pResponseFunction,
         FluidLeastSquaresShadowingSensitivity::Pointer pFluidLeastSquaresShadowingSensitivity,
         FluidLSSVariableUtilities::Pointer pFluidLeastSquaresShadowingUtilities,
@@ -112,7 +112,7 @@ public:
     }
 
     /// Destructor.
-    ~LeastSquaresShadowingBossakForwardScheme() override = default;
+    ~LSSBossakForwardScheme() override = default;
 
     ///@}
     ///@name Operations
@@ -131,7 +131,7 @@ public:
         KRATOS_ERROR_IF(buffer_size < 2) << "Buffer size needs to be greater than 1 in " << rModelPart.FullName() << " [ buffer size = " << buffer_size << " ].\n";
 
         const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-        KRATOS_ERROR_IF(delta_time < 0.0) << "LeastSquaresShadowingBossakForwardScheme should be run in forward time with positive delta time. [ delta_time = " << delta_time << " ].\n";
+        KRATOS_ERROR_IF(delta_time < 0.0) << "LSSBossakForwardScheme should be run in forward time with positive delta time. [ delta_time = " << delta_time << " ].\n";
 
         return BaseType::Check(rModelPart);
 
@@ -360,7 +360,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "LeastSquaresShadowingBossakForwardScheme";
+        return "LSSBossakForwardScheme";
     }
 
     ///@}
@@ -605,7 +605,7 @@ private:
 
     ///@}
 
-}; /* Class LeastSquaresShadowingBossakForwardScheme */
+}; /* Class LSSBossakForwardScheme */
 
 ///@}
 
