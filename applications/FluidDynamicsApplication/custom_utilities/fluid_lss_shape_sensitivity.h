@@ -58,7 +58,7 @@ public:
         const IndexType Dimension
     );
 
-    ~FluidLSSShapeSensitivity() = default;
+    ~FluidLSSShapeSensitivity() override = default;
 
     ///@}
     ///@name Operations
