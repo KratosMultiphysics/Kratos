@@ -203,4 +203,3 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
                         "equivalent_software_h": Hn, "kratos_results_l": length, "equivalent_software_l": length_n}
         self.assertAlmostEqual(Hn, critical_head_found, 1,
                                f"Critical head kratos: {critical_head_found}, old geo flow {Hn}")
-        self.assertAlmostEqual(length_n, length, 1, f"Pipe length kratos: {length}, old geo flow {length_n}")
