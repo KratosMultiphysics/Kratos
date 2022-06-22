@@ -42,26 +42,26 @@ void EmbeddedPrimitiveElement<TNumNodes>::UpdateGaussPointData(ElementData& rDat
     rData.velocity = v;
 
     /**
-     * A_1 = {{ u_0  0     g},
-     *        { 0    u_1   0},
+     * A_0 = {{ u_0  0     g},
+     *        { 0    u_0   0},
      *        { h    0     u_0}}
      */
     rData.A1(0,0) = v[0];
     rData.A1(0,1) = 0;
     rData.A1(0,2) = g;
     rData.A1(1,0) = 0;
-    rData.A1(1,1) = v[1];
+    rData.A1(1,1) = v[0];
     rData.A1(1,2) = 0;
     rData.A1(2,0) = h;
     rData.A1(2,1) = 0;
     rData.A1(2,2) = v[0];
 
     /*
-     * A_2 = {{u_0    0      0},
+     * A_1 = {{u_1    0      0},
      *        { 0    u_1     g},
      *        { 0     h      u_1}}
      */
-    rData.A2(0,0) = v[0];
+    rData.A2(0,0) = v[1];
     rData.A2(0,1) = 0;
     rData.A2(0,2) = 0;
     rData.A2(1,0) = 0;
