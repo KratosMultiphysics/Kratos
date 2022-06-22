@@ -186,7 +186,7 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
          (
                  '7.31', 3.00E-04, 1.157E-10, 1.94, 2.1, 9,
                  'test_compare_sellmeijer/HeightAquiferD20L30.gid'),
-         ('7.32', 3.00E-04, 1.157E-10, 3.52, 3.9, 13.5,
+         ('7.32', 3.00E-04, 1.157E-10, 3.52, 4, 13.5,
           'test_compare_sellmeijer/HeightAquiferD20L60.gid'),
          ('7.33', 3.00E-04, 1.157E-10, 5.05, 5.9, 21,
           'test_compare_sellmeijer/HeightAquiferD20L90.gid'),
