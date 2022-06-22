@@ -23,6 +23,9 @@ class EmbeddedPrimitiveSolver(WaveSolver):
     def Initialize(self):
         super().Initialize()
 
+        # Initialize the distance field. NOTE: the initial condition must be set at Process.ExecuteInitialize
+        KM.VariableUtils().CopyVariable(SW.HEIGHT, KM.DISTANCE, self.main_model_part)
+
         # Instantiate the distance convection process
         self.GetDistanceConvectionProcess()
 
