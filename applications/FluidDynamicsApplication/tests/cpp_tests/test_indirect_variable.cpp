@@ -23,7 +23,7 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(IndirectScalarVariableValidVariable, FluidDynamicsApplicationFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(IndirectVariable, FluidDynamicsApplicationFastSuite) {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestPart");
     r_model_part.SetBufferSize(2);
