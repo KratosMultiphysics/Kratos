@@ -44,6 +44,7 @@
 #include "custom_utilities/fluid_fft_utilities.h"
 #include "custom_utilities/fluid_lss_variable_utilities.h"
 #include "custom_utilities/fluid_lss_sensitivity.h"
+#include "custom_utilities/fluid_lss_shape_sensitivity.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -215,7 +216,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetNumberOfWindowingSteps",&FluidFFTUtilities::GetNumberOfWindowingSteps)
         ;
 
-    py::class_<FluidLSSVariableUtilities>(m, "FluidLSSVariableUtilities")
+    py::class_<FluidLSSVariableUtilities, FluidLSSVariableUtilities::Pointer>(m, "FluidLSSVariableUtilities")
         .def(py::init<const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&, const std::vector<const Variable<double>*>&>())
         .def("CheckVariables", &FluidLSSVariableUtilities::CheckVariables<ModelPart::ConditionType>)
         .def("GetPrimalValues", &FluidLSSVariableUtilities::GetPrimalValues<ModelPart::ConditionType>)
@@ -233,10 +234,17 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetLSSFirstDerivativeValues", &FluidLSSVariableUtilities::GetLSSFirstDerivativeValues<ModelPart::ElementType>)
         ;
 
-    py::class_<FluidLSSSensitivity>(m, "FluidLSSSensitivity")
+    py::class_<FluidLSSSensitivity, FluidLSSSensitivity::Pointer>(m, "FluidLSSSensitivity")
         .def(py::init<>())
+        .def("CalculateResidualSensitivity", (void(FluidLSSSensitivity::*)(Vector&, ModelPart::ConditionType&, const FluidAdjointSlipUtilities&, const ProcessInfo&))(&FluidLSSSensitivity::CalculateResidualSensitivity))
+        .def("CalculateResidualSensitivity", (void(FluidLSSSensitivity::*)(Vector&, ModelPart::ElementType&, const FluidAdjointSlipUtilities&, const ProcessInfo&))(&FluidLSSSensitivity::CalculateResidualSensitivity))
+        .def("CalculateResponseSensitivity", (double(FluidLSSSensitivity::*)(ModelPart::ConditionType&, AdjointResponseFunction&,const FluidAdjointSlipUtilities&, const ProcessInfo&))(&FluidLSSSensitivity::CalculateResponseSensitivity))
+        .def("CalculateResponseSensitivity", (double(FluidLSSSensitivity::*)(ModelPart::ElementType&, AdjointResponseFunction&, const FluidAdjointSlipUtilities&, const ProcessInfo&))(&FluidLSSSensitivity::CalculateResponseSensitivity))
         ;
 
+    py::class_<FluidLSSShapeSensitivity, FluidLSSShapeSensitivity::Pointer, FluidLSSSensitivity>(m, "FluidLSSShapeSensitivity")
+        .def(py::init<Parameters>())
+        ;
 }
 
 }  // namespace Python.
