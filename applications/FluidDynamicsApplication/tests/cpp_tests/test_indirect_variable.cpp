@@ -49,33 +49,31 @@ KRATOS_TEST_CASE_IN_SUITE(IndirectVariable, FluidDynamicsApplicationFastSuite1) 
     indirect_none(r_node_1, 0) += 10;
     indirect_none(r_node_1, 1) += 10;
 
-    KRATOS_CHECK_EQUAL(indirect_step(r_node_1, 0), 11);
-    KRATOS_CHECK_EQUAL(indirect_step(r_node_1, 1), 9);
+    indirect_step(r_node_1, 0) += indirect_none(r_node_1, 0);
+    indirect_step(r_node_1, 1) += indirect_none(r_node_1, 0);
+    indirect_none(r_node_1, 0) += indirect_none(r_node_1, 0);
+    indirect_none(r_node_1, 1) += indirect_none(r_node_1, 0);
+
+    indirect_step(r_node_1, 0) += indirect_step(r_node_1, 0);
+    indirect_step(r_node_1, 1) += indirect_step(r_node_1, 0);
+    indirect_none(r_node_1, 0) += indirect_step(r_node_1, 0);
+    indirect_none(r_node_1, 1) += indirect_step(r_node_1, 0);
+
+    KRATOS_CHECK_EQUAL(indirect_step(r_node_1, 0), 22);
+    KRATOS_CHECK_EQUAL(indirect_step(r_node_1, 1), 31);
     KRATOS_CHECK_EQUAL(indirect_none(r_node_1, 0), 0);
     KRATOS_CHECK_EQUAL(indirect_none(r_node_1, 1), 0);
 
-    KRATOS_CHECK_EQUAL(indirect_step(r_const_node_1, 0), 11);
-    KRATOS_CHECK_EQUAL(indirect_step(r_const_node_1, 1), 9);
-    KRATOS_CHECK_EQUAL(indirect_none(r_const_node_1, 0), 0);
-    KRATOS_CHECK_EQUAL(indirect_none(r_const_node_1, 1), 0);
-
-    indirect_step(r_node_1) += 10;
-    indirect_none(r_node_1) += 10;
-
-    KRATOS_CHECK_EQUAL(indirect_step(r_node_1), 21);
-    KRATOS_CHECK_EQUAL(indirect_step(r_node_1, 1), 9);
-    KRATOS_CHECK_EQUAL(indirect_none(r_node_1), 0);
-    KRATOS_CHECK_EQUAL(indirect_none(r_node_1, 1), 0);
-
-    KRATOS_CHECK_EQUAL(indirect_step(r_const_node_1), 21);
-    KRATOS_CHECK_EQUAL(indirect_step(r_const_node_1, 1), 9);
+    KRATOS_CHECK_EQUAL(indirect_step(r_const_node_1), 22);
+    KRATOS_CHECK_EQUAL(indirect_step(r_const_node_1, 1), 31);
     KRATOS_CHECK_EQUAL(indirect_none(r_const_node_1), 0);
     KRATOS_CHECK_EQUAL(indirect_none(r_const_node_1, 1), 0);
 
     KRATOS_CHECK_EQUAL(indirect_none(r_node_1, 1) * indirect_step(r_node_1), 0);
+    KRATOS_CHECK_EQUAL(indirect_step(r_node_1, 1) * indirect_step(r_node_1), 682);
 
-    KRATOS_CHECK_EQUAL(r_node_1.FastGetSolutionStepValue(STEP), 21);
-    KRATOS_CHECK_EQUAL(r_node_1.FastGetSolutionStepValue(STEP, 1), 9);
+    KRATOS_CHECK_EQUAL(r_node_1.FastGetSolutionStepValue(STEP), 22);
+    KRATOS_CHECK_EQUAL(r_node_1.FastGetSolutionStepValue(STEP, 1), 31);
 
     // vector check
     std::vector<IndirectVariable<int>> variables_list;
@@ -87,8 +85,8 @@ KRATOS_TEST_CASE_IN_SUITE(IndirectVariable, FluidDynamicsApplicationFastSuite1) 
     }
     variables_list[0](r_node_1, 1) += 4;
     variables_list[1](r_node_1, 1) += 4;
-    KRATOS_CHECK_EQUAL(r_node_1.FastGetSolutionStepValue(STEP, 1), 13);
-    KRATOS_CHECK_EQUAL( variables_list[1](r_node_1, 1), 0);
+    KRATOS_CHECK_EQUAL(r_node_1.FastGetSolutionStepValue(STEP, 1), 35);
+    KRATOS_CHECK_EQUAL(variables_list[1](r_node_1, 1), 0);
 }
 
 }

@@ -24,6 +24,7 @@
 #include "includes/element.h"
 
 // Application includes
+#include "custom_utilities/indirect_variable.h"
 
 namespace Kratos
 {
@@ -45,6 +46,8 @@ public:
 
     using ElementType = Element;
 
+    using IndirectVariableType = IndirectVariable<double>;
+
     KRATOS_CLASS_POINTER_DEFINITION(FluidLSSVariableUtilities);
 
     ///@}
@@ -64,56 +67,83 @@ public:
     ///@{
 
     template<class TEntityType>
-    void CheckVariables(const TEntityType& rEntity) const;
+    void GetPrimalValues(
+        Vector& rOutput,
+        const TEntityType& rEntity,
+        const IndexType Step = 0) const;
 
     template<class TEntityType>
-    void GetPrimalValues(Vector& rOutput, const TEntityType& rEntity, const IndexType Step = 0) const;
+    void GetPrimalFirstDerivativeValues(
+        Vector& rOutput,
+        const TEntityType& rEntity,
+        const IndexType Step = 0) const;
 
     template<class TEntityType>
-    void GetPrimalFirstDerivativeValues(Vector& rOutput, const TEntityType& rEntity, const IndexType Step = 0) const;
+    void GetAdjointValues(
+        Vector& rOutput,
+        const TEntityType& rEntity,
+        const IndexType Step = 0) const;
 
     template<class TEntityType>
-    void GetAdjointValues(Vector& rOutput, const TEntityType& rEntity, const IndexType Step = 0) const;
+    void GetAdjointFirstDerivativeValues(
+        Vector& rOutput,
+        const TEntityType& rEntity,
+        const IndexType Step = 0) const;
 
     template<class TEntityType>
-    void GetAdjointFirstDerivativeValues(Vector& rOutput, const TEntityType& rEntity, const IndexType Step = 0) const;
+    void GetLSSValues(
+        Vector& rOutput,
+        const TEntityType& rEntity,
+        const IndexType Step = 0) const;
 
     template<class TEntityType>
-    void GetLSSValues(Vector& rOutput, const TEntityType& rEntity, const IndexType Step = 0) const;
+    void GetLSSFirstDerivativeValues(
+        Vector& rOutput,
+        const TEntityType& rEntity,
+        const IndexType Step = 0) const;
 
-    template<class TEntityType>
-    void GetLSSFirstDerivativeValues(Vector& rOutput, const TEntityType& rEntity, const IndexType Step = 0) const;
+    const std::vector<IndirectVariableType>& GetPrimalIndirectVariablesList() const;
 
-    const std::vector<const Variable<double>*>& GetPrimalVariablePointersList() const;
+    const std::vector<IndirectVariableType>& GetPrimalFirstDerivativeIndirectVariablesList() const;
 
-    const std::vector<const Variable<double>*>& GetPrimalFirstDerivativeVariablePointersList() const;
+    const std::vector<IndirectVariableType>& GetAdjointIndirectVariablesList() const;
 
-    const std::vector<const Variable<double>*>& GetAdjointVariablePointersList() const;
+    const std::vector<IndirectVariableType>& GetAdjointFirstDerivativeIndirectVariablesList() const;
 
-    const std::vector<const Variable<double>*>& GetAdjointFirstDerivativeVariablePointersList() const;
+    const std::vector<IndirectVariableType>& GetLSSIndirectVariablesList() const;
 
-    const std::vector<const Variable<double>*>& GetLSSVariablePointersList() const;
-
-    const std::vector<const Variable<double>*>& GetLSSFirstDerivativeVariablePointersList() const;
+    const std::vector<IndirectVariableType>& GetLSSFirstDerivativeIndirectVariablesList() const;
 
     ///@}
 private:
     ///@name Private Members
     ///@{
 
-    const std::vector<const Variable<double>*> mPrimalVariablePointersList;
-    const std::vector<const Variable<double>*> mPrimalFirstDerivativeVariablePointersList;
-    const std::vector<const Variable<double>*> mAdjointVariablePointersList;
-    const std::vector<const Variable<double>*> mAdjointFirstDerivativeVariablePointersList;
-    const std::vector<const Variable<double>*> mLSSVariablePointersList;
-    const std::vector<const Variable<double>*> mLSSFirstDerivativeVariablePointersList;
+    std::vector<IndirectVariableType> mPrimalIndirectVariablesList;
+    std::vector<IndirectVariableType> mPrimalFirstDerivativeIndirectVariablesList;
+    std::vector<IndirectVariableType> mAdjointIndirectVariablesList;
+    std::vector<IndirectVariableType> mAdjointFirstDerivativeIndirectVariablesList;
+    std::vector<IndirectVariableType> mLSSIndirectVariablesList;
+    std::vector<IndirectVariableType> mLSSFirstDerivativeIndirectVariablesList;
 
     ///@}
     ///@name Private Static Operations
     ///@{
 
     template<class TEntityType>
-    static void GetValues(Vector& rOutput, const TEntityType& rEntity, const IndexType Step, const std::vector<const Variable<double>*>& rVariablePointersList);
+    static void GetValues(
+        Vector& rOutput,
+        const TEntityType& rEntity,
+        const IndexType Step,
+        const std::vector<IndirectVariableType>& rIndirectVariablesList);
+
+    static void CheckVariables(
+        std::vector<const Variable<double>*>& rAllVariablesList,
+        const std::vector<const Variable<double>*>& rCurrentVariablesList);
+
+    static void AddIndirectVariables(
+        std::vector<IndirectVariableType>& rIndirectVariablesList,
+        const std::vector<const Variable<double>*>& rVariablesList);
 
     ///@}
 };
