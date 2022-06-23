@@ -48,7 +48,7 @@
 #include "custom_strategies/schemes/velocity_bossak_sensitivity_builder_scheme.h"
 
 // lss schemes
-// #include "custom_strategies/schemes/lss_bossak_forward_scheme.h"
+#include "custom_strategies/schemes/lss_bossak_forward_scheme.h"
 // #include "custom_strategies/schemes/lss_bossak_backward_scheme.h"
 
 //linear solvers
@@ -160,11 +160,11 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         .def(py::init<const double, const std::size_t, const std::size_t>())
         ;
 
-    // using  LeastSquaresShadowingBossakForwardSchemeType = LSSBossakForwardScheme<SparseSpaceType, LocalSpaceType>;
-    // py::class_<LeastSquaresShadowingBossakForwardSchemeType, typename LeastSquaresShadowingBossakForwardSchemeType::Pointer, BaseSchemeType>
-    //     (m, "LSSBossakForwardScheme")
-    //     .def(py::init<AdjointResponseFunction::Pointer, FluidLSSSensitivity::Pointer, FluidLSSVariableUtilities::Pointer, const Variable<double>&, const double, const double, const double, const IndexType, const IndexType, const IndexType>())
-    //     ;
+    using  LeastSquaresShadowingBossakForwardSchemeType = LSSBossakForwardScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<LeastSquaresShadowingBossakForwardSchemeType, typename LeastSquaresShadowingBossakForwardSchemeType::Pointer, BaseSchemeType>
+        (m, "LSSBossakForwardScheme")
+        .def(py::init<AdjointResponseFunction::Pointer, FluidLSSSensitivity::Pointer, FluidLSSVariableUtilities::Pointer, const Variable<double>&, const double, const double, const double, const IndexType, const IndexType, const IndexType>())
+        ;
 
     // using  LeastSquaresShadowingBossakBackwardSchemeType = LSSBossakBackwardScheme<SparseSpaceType, LocalSpaceType>;
     // py::class_<LeastSquaresShadowingBossakBackwardSchemeType, typename LeastSquaresShadowingBossakBackwardSchemeType::Pointer, BaseSchemeType>

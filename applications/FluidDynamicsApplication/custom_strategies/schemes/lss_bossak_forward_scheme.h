@@ -70,7 +70,7 @@ public:
     explicit LSSBossakForwardScheme(
         AdjointResponseFunction::Pointer pResponseFunction,
         FluidLSSSensitivity::Pointer pFluidLeastSquaresShadowingSensitivity,
-        FluidLSSVariableUtilities::Pointer pFluidLeastSquaresShadowingUtilities,
+        FluidLSSVariableUtilities::Pointer pFluidLeastSquaresShadowingVariableUtilities,
         const Variable<double>& rResponseDesignTotalDerivativeVariable,
         const double BossakAlpha,
         const double DeltaTimeDialationAlpha,
@@ -81,7 +81,7 @@ public:
         : BaseType(),
           mpResponseFunction(pResponseFunction),
           mpFluidLeastSquaresShadowingSensitivity(pFluidLeastSquaresShadowingSensitivity),
-          mpFluidLeastSquaresShadowingUtilities(pFluidLeastSquaresShadowingUtilities),
+          mpFluidLeastSquaresShadowingVariableUtilities(pFluidLeastSquaresShadowingVariableUtilities),
           mrResponseDesignTotalDerivativeVariable(rResponseDesignTotalDerivativeVariable),
           mDeltaTimeDialationAlpha(DeltaTimeDialationAlpha),
           mFinalResponseValue(FinalResponseValue),
@@ -97,9 +97,9 @@ public:
         const int number_of_threads = ParallelUtilities::GetNumThreads();
         mTLS.resize(number_of_threads);
 
-        KRATOS_ERROR_IF_NOT(mpFluidLeastSquaresShadowingUtilities->GetPrimalVariablePointersList().size() == BlockSize)
+        KRATOS_ERROR_IF_NOT(mpFluidLeastSquaresShadowingVariableUtilities->GetPrimalIndirectVariablesList().size() == BlockSize)
                 << "Provided block size does not match with the number of primal variables provided in least squares shadowing utilities. [ block size = "
-                << BlockSize << ", number of primal variables in least squares shadowing utilities = " << mpFluidLeastSquaresShadowingUtilities->GetPrimalVariablePointersList().size() << " ].\n";
+                << BlockSize << ", number of primal variables in least squares shadowing utilities = " << mpFluidLeastSquaresShadowingVariableUtilities->GetPrimalIndirectVariablesList().size() << " ].\n";
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Created [ Dimensionality = " << Dimension << ", BlockSize = " << BlockSize << " ].\n";
 
@@ -116,11 +116,6 @@ public:
     int Check(const ModelPart& rModelPart) const override
     {
         KRATOS_TRY
-
-        IndexPartition<IndexType>(rModelPart.NumberOfElements()).for_each([&](const IndexType iElement) {
-            const auto& r_element = *(rModelPart.ElementsBegin() + iElement);
-            mpFluidLeastSquaresShadowingUtilities->CheckVariables(r_element);
-        });
 
         const IndexType buffer_size = rModelPart.GetBufferSize();
         KRATOS_ERROR_IF(buffer_size < 2) << "Buffer size needs to be greater than 1 in " << rModelPart.FullName() << " [ buffer size = " << buffer_size << " ].\n";
@@ -166,7 +161,7 @@ public:
         auto& r_process_info = rModelPart.GetProcessInfo();
 
         const double elemental_eta = block_for_each<SumReduction<double>>(rModelPart.Elements(), TLS(), [&](ModelPart::ElementType& rElement, TLS& rTLS) -> double {
-            mpFluidLeastSquaresShadowingUtilities->GetAdjointValues(rTLS.mAdjointSolution, rElement, 0);
+            mpFluidLeastSquaresShadowingVariableUtilities->GetAdjointValues(rTLS.mAdjointSolution, rElement, 0);
             rElement.CalculateSensitivityMatrix(TIME_STEP_SENSITIVITY, rTLS.mResidualPartialTimeDerivative, r_process_info);
 
             mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
@@ -177,14 +172,14 @@ public:
 
         const double delta_time = r_process_info[DELTA_TIME];
         const double coeff = delta_time * delta_time * mBossak.GetGamma();
-        const auto& r_primal_variable_pointers_list = mpFluidLeastSquaresShadowingUtilities->GetPrimalVariablePointersList();
-        const auto& r_adjoint_first_derivative_variable_pointers_list = mpFluidLeastSquaresShadowingUtilities->GetAdjointFirstDerivativeVariablePointersList();
+        const auto& r_primal_variable_pointers_list = mpFluidLeastSquaresShadowingVariableUtilities->GetPrimalIndirectVariablesList();
+        const auto& r_adjoint_first_derivative_variable_pointers_list = mpFluidLeastSquaresShadowingVariableUtilities->GetAdjointFirstDerivativeIndirectVariablesList();
         const IndexType number_of_variables = r_primal_variable_pointers_list.size();
 
-        const double nodal_eta = block_for_each<SumReduction<double>>(rModelPart.GetCommunicator().LocalMesh().Nodes(), [&](ModelPart::NodeType& rNode) -> double {
+        const double nodal_eta = block_for_each<SumReduction<double>>(rModelPart.GetCommunicator().LocalMesh().Nodes(), [&](const ModelPart::NodeType& rNode) -> double {
             double value = 0.0;
             for (IndexType i = 0; i < number_of_variables; ++i) {
-                value += (rNode.FastGetSolutionStepValue(*r_primal_variable_pointers_list[i], 0) - rNode.FastGetSolutionStepValue(*r_primal_variable_pointers_list[i], 1)) * rNode.FastGetSolutionStepValue(*r_adjoint_first_derivative_variable_pointers_list[i]);
+                value += r_adjoint_first_derivative_variable_pointers_list[i](rNode) * (r_primal_variable_pointers_list[i](rNode, 0) - r_primal_variable_pointers_list[i](rNode, 1));
             }
             return value;
         });
@@ -271,22 +266,22 @@ public:
         const double coeff_2 = (mBossak.GetGamma() - 1) / mBossak.GetGamma();
         const double coeff_3 = r_process_info[TIME_STEP_SENSITIVITY] / (delta_time * delta_time * mBossak.GetGamma());
 
-        const auto& r_primal_variable_pointers_list = mpFluidLeastSquaresShadowingUtilities->GetPrimalVariablePointersList();
-        const auto& r_lss_variable_pointers_list = mpFluidLeastSquaresShadowingUtilities->GetLSSVariablePointersList();
-        const auto& r_lss_first_derivative_variable_pointers_list = mpFluidLeastSquaresShadowingUtilities->GetLSSFirstDerivativeVariablePointersList();
+        const auto& r_primal_variable_pointers_list = mpFluidLeastSquaresShadowingVariableUtilities->GetPrimalIndirectVariablesList();
+        const auto& r_lss_variable_pointers_list = mpFluidLeastSquaresShadowingVariableUtilities->GetLSSIndirectVariablesList();
+        const auto& r_lss_first_derivative_variable_pointers_list = mpFluidLeastSquaresShadowingVariableUtilities->GetLSSFirstDerivativeIndirectVariablesList();
         const IndexType number_of_variables = r_primal_variable_pointers_list.size();
 
         block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
             for (IndexType i = 0; i < number_of_variables; ++i){
                 double value = 0.0;
 
-                value += coeff_1 * rNode.FastGetSolutionStepValue(*r_lss_variable_pointers_list[i]);
-                value -= coeff_1 * rNode.FastGetSolutionStepValue(*r_lss_variable_pointers_list[i], 1);
-                value += coeff_2 * rNode.FastGetSolutionStepValue(*r_lss_first_derivative_variable_pointers_list[i], 1);
-                value -= coeff_3 * rNode.FastGetSolutionStepValue(*r_primal_variable_pointers_list[i]);
-                value += coeff_3 * rNode.FastGetSolutionStepValue(*r_primal_variable_pointers_list[i], 1);
+                value += r_lss_variable_pointers_list[i](rNode) * coeff_1;
+                value -= r_lss_variable_pointers_list[i](rNode, 1) * coeff_1;
+                value += r_lss_first_derivative_variable_pointers_list[i](rNode, 1) * coeff_2;
+                value -= r_primal_variable_pointers_list[i](rNode) * coeff_3;
+                value += r_primal_variable_pointers_list[i](rNode, 1) * coeff_3;
 
-                rNode.FastGetSolutionStepValue(*r_lss_first_derivative_variable_pointers_list[i]) = value;
+                r_lss_first_derivative_variable_pointers_list[i](rNode) = value;
             }
         });
 
@@ -415,7 +410,7 @@ private:
 
     FluidLSSSensitivity::Pointer mpFluidLeastSquaresShadowingSensitivity;
 
-    FluidLSSVariableUtilities::Pointer mpFluidLeastSquaresShadowingUtilities;
+    FluidLSSVariableUtilities::Pointer mpFluidLeastSquaresShadowingVariableUtilities;
 
     const Variable<double>& mrResponseDesignTotalDerivativeVariable;
 
@@ -532,8 +527,8 @@ private:
 
         rEntity.GetValuesVector(rPreviousLSSSolution, 1);
         rEntity.GetSecondDerivativesVector(rPreviousLSSSecondDerivativeSolution, 1);
-        mpFluidLeastSquaresShadowingUtilities->GetPrimalValues(rCurrentPrimalSolution, rEntity, 0);
-        mpFluidLeastSquaresShadowingUtilities->GetPrimalValues(rPreviousPrimalSolution, rEntity, 1);
+        mpFluidLeastSquaresShadowingVariableUtilities->GetPrimalValues(rCurrentPrimalSolution, rEntity, 0);
+        mpFluidLeastSquaresShadowingVariableUtilities->GetPrimalValues(rPreviousPrimalSolution, rEntity, 1);
 
         mpFluidLeastSquaresShadowingSensitivity->CalculateResidualSensitivity(rRotatedResidualDesignDerivatives,
             rEntity, mAdjointSlipUtilities, rCurrentProcessInfo);
@@ -575,13 +570,13 @@ private:
 
         rEntity.CalculateFirstDerivativesLHS(rResidualFirstDerivatives, rProcessInfo);
         mpResponseFunction->CalculateFirstDerivativesGradient(rEntity, rResidualFirstDerivatives, rResponseFirstDerivatives, rProcessInfo);
-        mpFluidLeastSquaresShadowingUtilities->GetLSSValues(rCurrentLSSSolution, rEntity);
+        mpFluidLeastSquaresShadowingVariableUtilities->GetLSSValues(rCurrentLSSSolution, rEntity);
         value += inner_prod(rResponseFirstDerivatives, rCurrentLSSSolution);
 
         rEntity.CalculateSecondDerivativesLHS(rResidualSecondDerivatives, rProcessInfo);
         mpResponseFunction->CalculateSecondDerivativesGradient(rEntity, rResidualSecondDerivatives, rResponseSecondDerivatives, rProcessInfo);
-        mpFluidLeastSquaresShadowingUtilities->GetLSSFirstDerivativeValues(rCurrentLSSSecondDerivativeSolution, rEntity);
-        mpFluidLeastSquaresShadowingUtilities->GetLSSFirstDerivativeValues(rPreviousLSSSecondDerivativeSolution, rEntity, 1);
+        mpFluidLeastSquaresShadowingVariableUtilities->GetLSSFirstDerivativeValues(rCurrentLSSSecondDerivativeSolution, rEntity);
+        mpFluidLeastSquaresShadowingVariableUtilities->GetLSSFirstDerivativeValues(rPreviousLSSSecondDerivativeSolution, rEntity, 1);
         value += inner_prod(rResponseSecondDerivatives, rCurrentLSSSecondDerivativeSolution) * mBossakConstants.mCurrentStepSecondDerivativeCoefficient;
         value += inner_prod(rResponseSecondDerivatives, rPreviousLSSSecondDerivativeSolution) * mBossakConstants.mPreviousStepSecondDerivativeCoefficient;
 
