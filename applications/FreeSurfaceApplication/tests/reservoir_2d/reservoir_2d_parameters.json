@@ -28,6 +28,10 @@
         "assume_constant_pressure": false,
         "compute_porous_resistance_law": "NONE",
         "echo_level": 0,
+        "solver_type" : "EdgebasedLevelset",
+        "linear_solver_settings"      : {
+            "solver_type"         : "amgcl"
+        },
         "model_import_settings": {
             "input_type": "mdpa",
             "input_filename": "reservoir_2d/reservoir_2d"

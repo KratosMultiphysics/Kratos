@@ -273,13 +273,16 @@ namespace Kratos
             }
             // compute minimum length of the surrounding edges
             CalculateEdgeLengths(mr_model_part.Nodes());
+
+            array_1d<double, 3> temp_body_force;
+
             // set the pressure projection to the body force value
             for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
                  inode != mr_model_part.NodesEnd();
                  inode++)
             {
-                array_1d<double, 3> temp = mRho * inode->FastGetSolutionStepValue(BODY_FORCE);
-                inode->FastGetSolutionStepValue(PRESS_PROJ) = temp;
+                temp_body_force = mRho * inode->FastGetSolutionStepValue(BODY_FORCE);
+                inode->FastGetSolutionStepValue(PRESS_PROJ) = temp_body_force;
             }
 
             mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
@@ -364,7 +367,7 @@ namespace Kratos
 
                 // use CFL condition to compute time step size
                 double delta_t_i = 1.0 / (vel_norm / hmin_i + nu / (hmin_i * hmin_i));
-                double delta_t_i_avg = 1.0 / (vel_norm / havg_i + nu / (havg_i * havg_i));
+                const double delta_t_i_avg = 1.0 / (vel_norm / havg_i + nu / (havg_i * havg_i));
                 double delta_t_i_avg_novisc = 1.0 / (2.0 * vel_norm / havg_i);
 
                 // considering the most restrictive case of neighbor's velocities with similar direction but opposite sense.

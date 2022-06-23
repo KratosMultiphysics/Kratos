@@ -1,6 +1,8 @@
 # Kratos imports
 import KratosMultiphysics
 from KratosMultiphysics.python_solver import PythonSolver
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+
 import KratosMultiphysics.FreeSurfaceApplication as FreeSurface
 
 # STL imports
@@ -41,6 +43,10 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             "use_parallel_distance_calculation"     : false,
             "compute_porous_resistance_law"         : "NONE",    ["NONE", "ERGUN", "CUSTOM"]
             "echo_level"                            : 0,
+            "solver_type"                           : "EdgebasedLevelset",
+            "linear_solver_settings"      : {
+                "solver_type"                       : "amgcl"
+            },
             "model_import_settings"                 : { }
         }
         """
@@ -77,13 +83,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.assume_constant_pressure = self.settings["assume_constant_pressure"].GetBool()
         self.use_parallel_distance_calculation = self.settings["use_parallel_distance_calculation"].GetBool()
         self.compute_porous_resistance_law = EdgeBasedLevelSetSolver.PorousResistanceComputation[self.settings["compute_porous_resistance_law"].GetString()]
-
-        # Other linear solvers considered in the original script:
-        # - KratosMultiphysics.CGSolver(1e3, 5000)
-        # - KratosMultiphysics.CGSolver(1e3, 500, KratosMultiphysics.DiagonalPreconditioner())
-        # - KratosMultiphysics.BICGSTabSolver(1e3, 5000, KratosMultiphysics.DiagonalPreconditioner())
-        pDiagPrecond = KratosMultiphysics.DiagonalPreconditioner()
-        self.pressure_linear_solver = KratosMultiphysics.BICGSTABSolver(1e-3, 5000, pDiagPrecond)
+        self.pressure_linear_solver = self._CreateLinearSolver()
 
         # Preparations before the model part is read
         # (apart from adding variables)
@@ -123,6 +123,10 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             "use_parallel_distance_calculation"     : false,
             "compute_porous_resistance_law"         : "NONE",
             "echo_level"                            : 0,
+            "solver_type"                           : "EdgebasedLevelset",
+            "linear_solver_settings"      : {
+                "solver_type"                       : "amgcl"
+            },
             "model_import_settings"                 : { }
         }""")
 
@@ -162,7 +166,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.model_part.SetBufferSize(self.GetMinimumBufferSize())
 
     def Check(self) -> None:
-        pass
+        super().Check()
 
     def Initialize(self) -> None:
         # Get rid of isolated nodes
@@ -302,6 +306,12 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
         if not active_node_count:
             raise RuntimeError("At least 1 node must have negative DISTANCE")
+
+    def _CreateLinearSolver(self):
+        # Create the pressure linear solver
+        linear_solver_configuration = self.settings["linear_solver_settings"]
+        linear_solver = linear_solver_factory.ConstructSolver(linear_solver_configuration)
+        return linear_solver
 
     def __MakeMatrixContainer(self) -> FreeSurface.MatrixContainer3D:
         if self.domain_size == 2:
