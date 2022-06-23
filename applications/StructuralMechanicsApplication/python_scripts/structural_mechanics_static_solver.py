@@ -21,3 +21,6 @@ class StaticMechanicalSolver(MechanicalSolver):
 
     def _CreateScheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+
+    def _CreatePhysicalSolvers(self):
+        super()._CreatePhysicalSolvers()

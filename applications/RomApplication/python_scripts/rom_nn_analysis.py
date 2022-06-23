@@ -192,23 +192,27 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             sc = []
             computing_model_part = self._GetSolver().GetComputingModelPart().GetRootModelPart()
             for node in computing_model_part.Nodes:
-                sc.append(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))
-                sc.append(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))
-                sc.append(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE))
+                sc.append(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X))
+                sc.append(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y))
+                # sc.append(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE))
             sc = self.U.T @ np.array([sc]).T
 
-            # nsc = self.kratos_network.normalize_data(sc)
-            nsc = sc
-            NSPredict_e = self.kratos_network.predict_snapshot(self.autoencoder, nsc)
-            NSPredict_d = self.kratos_network.predict_snapshot(self.kratos_network.encoder_model, nsc)
+            nsc = self.kratos_network.normalize_data(sc)
+            # nsc = sc
+
+            NSPredict_d = self.kratos_network.predict_snapshot(self.autoencoder, nsc)
+
+            print("Printing prediction diff:", NSPredict_d - nsc)
+
+            NSPredict_e = self.kratos_network.predict_snapshot(self.kratos_network.encoder_model, nsc)
 
             grad_enc_input = np.array([nsc.T[0]], dtype="float32")
-            grad_dec_input = np.array([NSPredict_d.T[0]])
+            grad_dec_input = np.array([NSPredict_e.T[0]])
 
             nn_nodal_modes_enc = self.kratos_network.get_gradients(
                 self.kratos_network.encoder_model, 
                 [self.kratos_network.encoder_model],
-                grad_enc_input,
+                nsc,
                 None
             )
 
@@ -226,12 +230,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             # Set the nodal ROM basis
             nodal_modes_e = self.U @ nn_nodal_modes_enc.T 
             nodal_modes_d = self.U @ nn_nodal_modes_dec    # This is the same as (nn_nodal_modes_dec.T @ self.U.T).T
-            # nodal_modes_d = nodal_modes_d.T
 
-            # print("nodal_modes shapes:", nodal_modes.shape)
+            print("nodal_modes shapes:", nodal_modes.shape)
 
-            nodal_dofs = 3
-            rom_dofs = 5
+            nodal_dofs = 2
+            rom_dofs = 2
 
             aux_e = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
             aux_d = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
@@ -242,7 +245,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                         aux_e[j,i] = nodal_modes_e[node_id*nodal_dofs+j][i]
                         aux_d[j,i] = nodal_modes_d[node_id*nodal_dofs+j][i]
                 node.SetValue(KratosROM.ROM_BASIS,     aux_e)
-                node.SetValue(KratosROM.ROM_BASIS_DEC, aux_e)
+                node.SetValue(KratosROM.ROM_BASIS_DEC, aux_d)
 
             super().InitializeSolutionStep()
 

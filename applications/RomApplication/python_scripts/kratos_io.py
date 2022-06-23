@@ -63,6 +63,8 @@ def read_snapshot_from_h5py_as_tensor(file_path, variables):
                     row = np.concatenate((row, np.array(nodal_solution_dataset[variable]).reshape((nodal_size,1))), axis=1)
                 if variable == "VELOCITY":
                     row = np.concatenate((row, np.array(nodal_solution_dataset[variable][:,:2])), axis=1)
+                if variable == "DISPLACEMENT":
+                    row = np.concatenate((row, np.array(nodal_solution_dataset[variable][:,:2])), axis=1)
 
             row = np.reshape(row, (row.shape[0] * row.shape[1]))
             data.append(row)

@@ -42,7 +42,7 @@ class Network(abc.ABC):
         self.data_max = np.max(input_data)
 
         self.data_min = 0
-        # self.data_max = 1
+        self.data_max = 1
 
     def normalize_data(self, input_data):
         return (input_data - self.data_min) / (self.data_max - self.data_min)

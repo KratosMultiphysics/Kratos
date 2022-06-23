@@ -5,7 +5,7 @@ from KratosMultiphysics.python_solver import PythonSolver, PhysicalSolver
 
 # Import applications
 import KratosMultiphysics.RomApplication as KratosROM
-from KratosMultiphysics.RomApplication.navier_stokes_solver_vmsmonolithic_rom import CreateSolver as CreateNavierStokesVsMonolithicSolverRom
+from KratosMultiphysics.RomApplication.structural_mechanics_static_rom_solver import CreateSolver as CreateStructureSolver
 
 def CreateSolver(solver_class, model, custom_settings, parallelism):
     class ROMSolver(solver_class):
@@ -17,14 +17,14 @@ def CreateSolver(solver_class, model, custom_settings, parallelism):
 
         def _RegisterPhysicalSolvers(self):
             super()._RegisterPhysicalSolvers()
-            self.AddPhysicalSolver("Fluid", PhysicalSolver(
-                self.rom_solver_settings["fluid_solver_settings"],
-                CreateNavierStokesVsMonolithicSolverRom,
-                [self.model, self.rom_solver_settings["fluid_solver_settings"]]
+            self.AddPhysicalSolver("Structural", PhysicalSolver(
+                self.rom_solver_settings,
+                CreateStructureSolver,
+                [self.model, self.rom_solver_settings]
             ))
 
         def __init__(self, model, custom_settings, parallelism):
-            super().__init__(model, custom_settings, parallelism)
+            super().__init__(model, custom_settings)
 
             self.rom_solver_settings = custom_settings
             self.rom_solver_model = model

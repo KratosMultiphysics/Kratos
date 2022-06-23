@@ -6,6 +6,15 @@ from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wra
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class StructuralMechanicsAnalysis(AnalysisStage):
+
+    def _RegisterPhysicalSolvers(self):
+        super()._RegisterPhysicalSolvers()
+        self.AddPhysicalSolver("Structural", PhysicalSolver(
+            self.settings["solver_settings"],
+            self._CreateStructuralSolver,
+            [self.settings["solver_settings"], "OpenMP"]
+        ))
+
     """
     This class is the main-script of the StructuralMechanicsApplication put in a class
 
@@ -43,7 +52,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         # In case of contact problem
         if self.contact_problem:
-            self._GetSolver().SetEchoLevel(self.echo_level)
+            self.GetPhysicalSolver("Structure")().SetEchoLevel(self.echo_level)
             # To avoid many prints
             if self.echo_level == 0:
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
@@ -63,7 +72,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
             if is_output_step:
                 # Informing the output will be created
-                KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
+                KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "STEP: ", self.GetPhysicalSolver("Structure")().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
                 KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "TIME: ", self.time)
 
         # Creating output
