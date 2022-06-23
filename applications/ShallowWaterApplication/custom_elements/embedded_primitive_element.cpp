@@ -85,11 +85,38 @@ void EmbeddedPrimitiveElement<TNumNodes>::UpdateGaussPointData(ElementData& rDat
 template<std::size_t TNumNodes>
 double EmbeddedPrimitiveElement<TNumNodes>::StabilizationParameter(const ElementData& rData) const
 {
-    const double lambda = std::sqrt(rData.gravity * std::abs(rData.height)) + norm_2(rData.velocity);
-    const double epsilon = 1e-6;
-    const double threshold = rData.relative_dry_height * rData.length;
-    const double w = PhaseFunction::WetFraction(rData.height, threshold);
-    return w * rData.length * rData.stab_factor / (lambda + epsilon);
+    // const double threshold = rData.relative_dry_height * rData.length;
+    const double threshold = 1e-6 * rData.length;
+    const double height = std::max(rData.height, threshold);
+    const double lambda = std::sqrt(rData.gravity * height) + norm_2(rData.velocity);
+    return rData.length * rData.stab_factor / lambda;
+}
+
+template<std::size_t TNumNodes>
+int EmbeddedPrimitiveElement<TNumNodes>::CalculateDistances(Vector& rDistances) const
+{
+    if (rDistances.size() != TNumNodes) {
+        rDistances.resize(TNumNodes, false);
+    }
+    std::size_t n_pos = 0;
+    std::size_t n_neg = 0;
+    auto& r_geom = this->GetGeometry();
+    for (std::size_t i = 0; i < TNumNodes; ++i) {
+        const double d = r_geom[i].FastGetSolutionStepValue(DISTANCE);
+        rDistances[i] = d;
+        if (d > 0.0) {
+            n_pos++;
+        } else {
+            n_neg++;
+        }
+    }
+    if (n_pos == TNumNodes) {
+        return 0;
+    } else if (n_pos > 0 && n_neg > 0) {
+        return 1;
+    } else {
+        return 2;
+    }
 }
 
 //TODO: Remove the rGeometry argument (before it was static but now it's no longer required)
@@ -100,27 +127,15 @@ void EmbeddedPrimitiveElement<TNumNodes>::CalculateGeometryData(
     Matrix &rNContainer,
     ShapeFunctionsGradientsType &rDN_DX)
 {
-    // Set the modified shape functions pointer
-    const std::size_t n_nodes = rGeometry.PointsNumber();
-    Vector distances(n_nodes);
-    std::size_t n_pos = 0;
-    std::size_t n_neg = 0;
-    for (std::size_t i = 0; i < n_nodes; ++i) {
-        const double d = rGeometry[i].FastGetSolutionStepValue(DISTANCE);
-        distances[i] = d;
-        if (d > 0.0) {
-            n_pos++;
-        } else {
-            n_neg++;
-        }
-    }
+    Vector distances(TNumNodes);
+    int is_cut = CalculateDistances(distances);
 
-    if (n_pos == n_nodes) {
+    if (is_cut == 0) {
         BaseType::CalculateGeometryData(rGeometry, rGaussWeights, rNContainer, rDN_DX);
-    } else if (n_pos != 0 && n_neg != 0) {
+    }
+    else if (is_cut == 1) {
         auto p_mod_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(), distances);
 
-        // Fluid side
         p_mod_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(
             rNContainer,
             rDN_DX,
@@ -189,7 +204,7 @@ void EmbeddedPrimitiveElement<TNumNodes>::CalculateLocalSystem(
         }
 
         // Nitsche penalty term imposition
-        const double kappa = 1.0;
+        const double kappa = 1.0e-4;
         const double aux_pen = kappa / data.length;
         const double h_imposed = 1.0e-12;
         array_1d<double,3> aux_v;

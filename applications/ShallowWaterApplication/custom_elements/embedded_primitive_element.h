@@ -206,6 +206,8 @@ protected:
         Matrix &rNContainer,
         ShapeFunctionsGradientsType &rDN_DX) override;
 
+    int CalculateDistances(Vector& rDistances) const;
+
     ///@}
 
 private:
