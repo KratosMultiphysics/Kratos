@@ -32,7 +32,7 @@ template<std::size_t TNumNodes>
 const Parameters WaveElement<TNumNodes>::GetSpecifications() const
 {
     const Parameters specifications = Parameters(R"({
-        "required_variables"         : ["VELOCITY","HEIGHT","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY","DISTANCE"],
+        "required_variables"         : ["VELOCITY","HEIGHT","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY"],
         "required_dofs"              : ["VELOCITY_X","VELOCITY_Y","HEIGHT"],
         "compatible_geometries"      : ["Triangle2D3","Quadrilateral2D4","Triangle2D6","Quadrilateral2D8","Quadrilateral2D9"],
         "element_integrates_in_time" : false
@@ -266,35 +266,35 @@ void WaveElement<TNumNodes>::UpdateGaussPointData(
 }
 
 
-template<>
-void WaveElement<3>::CalculateGeometryData(
-    const GeometryType& rGeometry,
-    Vector &rGaussWeights,
-    Matrix &rNContainer,
-    ShapeFunctionsGradientsType &rDN_DXContainer)
-{
-    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
-    array_1d<double,3> N;            // Position of the gauss point
-    double area;
-    GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, area);
+// template<>
+// void WaveElement<3>::CalculateGeometryData(
+//     const GeometryType& rGeometry,
+//     Vector &rGaussWeights,
+//     Matrix &rNContainer,
+//     ShapeFunctionsGradientsType &rDN_DXContainer)
+// {
+//     BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
+//     array_1d<double,3> N;            // Position of the gauss point
+//     double area;
+//     GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, area);
 
-    if (rGaussWeights.size() != 1) {
-        rGaussWeights.resize(1, false);
-    }
-    rGaussWeights[0] = area;
+//     if (rGaussWeights.size() != 1) {
+//         rGaussWeights.resize(1, false);
+//     }
+//     rGaussWeights[0] = area;
 
-    if (rNContainer.size1() != 1 && rNContainer.size2() != 3) {
-        rNContainer.resize(1, 3, false);
-    }
-    for (std::size_t i = 0; i < 3; ++i) {
-        rNContainer(0, i) = N[i];
-    }
+//     if (rNContainer.size1() != 1 && rNContainer.size2() != 3) {
+//         rNContainer.resize(1, 3, false);
+//     }
+//     for (std::size_t i = 0; i < 3; ++i) {
+//         rNContainer(0, i) = N[i];
+//     }
 
-    if (rDN_DXContainer.size() != 1) {
-        rDN_DXContainer.resize(1, false);
-    }
-    rDN_DXContainer[0] = DN_DX;
-}
+//     if (rDN_DXContainer.size() != 1) {
+//         rDN_DXContainer.resize(1, false);
+//     }
+//     rDN_DXContainer[0] = DN_DX;
+// }
 
 
 template<std::size_t TNumNodes>
