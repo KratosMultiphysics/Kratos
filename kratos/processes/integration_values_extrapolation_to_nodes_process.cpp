@@ -267,7 +267,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters IntegrationValuesExtrapolationToNodesProcess::GetDefaultParameters() const
+Parameters IntegrationValuesExtrapolationToNodesProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

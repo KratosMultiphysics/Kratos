@@ -74,7 +74,7 @@ void OutputEigenValuesProcess::ExecuteFinalize()
     file.close();
 }
 
-const Parameters OutputEigenValuesProcess::GetDefaultParameters() const
+Parameters OutputEigenValuesProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

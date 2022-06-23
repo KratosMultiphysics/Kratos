@@ -121,7 +121,7 @@ public:
 
     void ExecuteInitialize() override;
 
-    const Parameters GetDefaultParameters() const override
+    Parameters GetDefaultParameters() const override
     {
         const Parameters default_parameters( R"(
         {

@@ -358,7 +358,7 @@ void ContactSPRErrorProcess<3>::ComputeNormalTangentMatrices(
 /***********************************************************************************/
 
 template<SizeType TDim>
-const Parameters ContactSPRErrorProcess<TDim>::GetDefaultParameters() const
+Parameters ContactSPRErrorProcess<TDim>::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

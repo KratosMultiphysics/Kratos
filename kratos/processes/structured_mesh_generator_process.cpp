@@ -87,7 +87,7 @@ void StructuredMeshGeneratorProcess::Execute()
 
 }
 
-const Parameters StructuredMeshGeneratorProcess::GetDefaultParameters() const
+Parameters StructuredMeshGeneratorProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters(R"(
     {

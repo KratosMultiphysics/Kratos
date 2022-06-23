@@ -123,7 +123,7 @@ public:
 
     void CheckDefaultsAndProcessSettings(Parameters &rParameters);
 
-    const Parameters GetDefaultParameters() const override;
+    Parameters GetDefaultParameters() const override;
 
     void CalculateKinematicViscosity();
 

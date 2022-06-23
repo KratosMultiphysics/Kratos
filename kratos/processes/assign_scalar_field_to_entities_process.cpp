@@ -69,7 +69,7 @@ void AssignScalarFieldToEntitiesProcess<TEntity>::Execute()
 /***********************************************************************************/
 
 template<class TEntity>
-const Parameters AssignScalarFieldToEntitiesProcess<TEntity>::GetDefaultParameters() const
+Parameters AssignScalarFieldToEntitiesProcess<TEntity>::GetDefaultParameters() const
 {
     const Parameters default_parameters( R"(
     {

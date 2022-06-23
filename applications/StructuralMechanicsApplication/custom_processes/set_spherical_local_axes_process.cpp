@@ -81,7 +81,7 @@ void SetSphericalLocalAxesProcess::ExecuteInitializeSolutionStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters SetSphericalLocalAxesProcess::GetDefaultParameters() const
+Parameters SetSphericalLocalAxesProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

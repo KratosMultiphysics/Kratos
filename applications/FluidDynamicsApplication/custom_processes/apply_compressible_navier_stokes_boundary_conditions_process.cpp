@@ -237,7 +237,7 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ReadBoundaryConditi
 }
 
 
-const Parameters ApplyCompressibleNavierStokesBoundaryConditionsProcess::GetDefaultParameters() const
+Parameters ApplyCompressibleNavierStokesBoundaryConditionsProcess::GetDefaultParameters() const
 {
     return Parameters(R"(
     {

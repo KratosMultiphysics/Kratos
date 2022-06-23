@@ -121,7 +121,7 @@ void RansKTurbulentIntensityInletProcess::PrintData(std::ostream& rOStream) cons
 {
 }
 
-const Parameters RansKTurbulentIntensityInletProcess::GetDefaultParameters() const
+Parameters RansKTurbulentIntensityInletProcess::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
         {

@@ -185,7 +185,7 @@ void RansWallFunctionUpdateProcess::PrintData(std::ostream& rOStream) const
 {
 }
 
-const Parameters RansWallFunctionUpdateProcess::GetDefaultParameters() const
+Parameters RansWallFunctionUpdateProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
         {

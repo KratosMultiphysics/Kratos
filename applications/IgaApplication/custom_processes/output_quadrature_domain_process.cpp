@@ -97,7 +97,7 @@ void OutputQuadratureDomainProcess::ExecuteBeforeSolutionLoop()
     file.close();
 }
 
-const Parameters OutputQuadratureDomainProcess::GetDefaultParameters() const
+Parameters OutputQuadratureDomainProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

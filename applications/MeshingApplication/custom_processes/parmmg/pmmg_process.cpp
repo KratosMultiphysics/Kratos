@@ -570,7 +570,7 @@ void ParMmgProcess<TPMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOld
 /***********************************************************************************/
 
 template<PMMGLibrary TPMMGLibrary>
-const Parameters ParMmgProcess<TPMMGLibrary>::GetDefaultParameters() const
+Parameters ParMmgProcess<TPMMGLibrary>::GetDefaultParameters() const
 {
     KRATOS_TRY;
 

@@ -118,7 +118,7 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ExecuteInitialize
 /***********************************************************************************/
 
 template<class TEntity, bool THistorical>
-const Parameters AssignScalarInputToEntitiesProcess<TEntity, THistorical>::GetDefaultParameters() const
+Parameters AssignScalarInputToEntitiesProcess<TEntity, THistorical>::GetDefaultParameters() const
 {
     const Parameters default_parameters( R"(
     {

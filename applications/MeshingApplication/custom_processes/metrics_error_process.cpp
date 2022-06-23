@@ -175,7 +175,7 @@ void MetricErrorProcess<TDim>::CalculateMetric()
 /***********************************************************************************/
 
 template<SizeType TDim>
-const Parameters MetricErrorProcess<TDim>::GetDefaultParameters() const
+Parameters MetricErrorProcess<TDim>::GetDefaultParameters() const
 {
     /**
      * We configure using the following parameters:

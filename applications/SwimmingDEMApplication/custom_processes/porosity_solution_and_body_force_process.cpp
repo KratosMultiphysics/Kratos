@@ -101,7 +101,7 @@ void PorositySolutionAndBodyForceProcess::CalculatePermeability(double &dynamic_
     mPermeability = dynamic_viscosity * mUchar / (mDamKohlerNumber * (2 * mViscosity * (mUchar/std::pow(mLength,2))));
 }
 
-const Parameters PorositySolutionAndBodyForceProcess::GetDefaultParameters() const
+Parameters PorositySolutionAndBodyForceProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters( R"(
     {

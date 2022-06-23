@@ -98,7 +98,7 @@ ContactSearchWrapperProcess::ContactSearchWrapperProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters ContactSearchWrapperProcess::GetDefaultParameters() const
+Parameters ContactSearchWrapperProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

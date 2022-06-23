@@ -265,7 +265,7 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
     KRATOS_CATCH("");
 }
 
-const Parameters RansWallDistanceCalculationProcess::GetDefaultParameters() const
+Parameters RansWallDistanceCalculationProcess::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
         {

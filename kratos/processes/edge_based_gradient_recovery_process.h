@@ -347,7 +347,7 @@ public:
         mpSolvingStrategy->Clear();
     }
 
-    const Parameters GetDefaultParameters() const override
+    Parameters GetDefaultParameters() const override
     {
         Parameters default_parameters = Parameters(R"({
             "echo_level" : 0,

@@ -74,7 +74,7 @@ void PorositySolutionTransientBodyForceProcess::CheckDefaultsAndProcessSettings(
     mInitialConditions = rParameters["benchmark_parameters"]["use_initial_conditions"].GetBool();
 }
 
-const Parameters PorositySolutionTransientBodyForceProcess::GetDefaultParameters() const
+Parameters PorositySolutionTransientBodyForceProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters( R"(
     {

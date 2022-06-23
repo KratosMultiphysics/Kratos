@@ -48,7 +48,7 @@ Modeler::Pointer CopyPropertiesModeler::Create(Model& rModel,
     return Kratos::make_shared<CopyPropertiesModeler>(rModel, ModelParameters);
 }
 
-const Parameters CopyPropertiesModeler::GetDefaultParameters() const
+Parameters CopyPropertiesModeler::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"({
         "echo_level"                  : 0,

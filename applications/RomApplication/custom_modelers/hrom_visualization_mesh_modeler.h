@@ -120,7 +120,7 @@ public:
 
     void SetupModelPart() override;
 
-    const Parameters GetDefaultParameters() const override;
+    Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access

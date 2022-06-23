@@ -129,7 +129,7 @@ void RansOmegaTurbulentMixingLengthInletProcess::PrintData(std::ostream& rOStrea
 {
 }
 
-const Parameters RansOmegaTurbulentMixingLengthInletProcess::GetDefaultParameters() const
+Parameters RansOmegaTurbulentMixingLengthInletProcess::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
     {

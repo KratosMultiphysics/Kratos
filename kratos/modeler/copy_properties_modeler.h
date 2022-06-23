@@ -105,7 +105,7 @@ public:
      * @brief Get the Default Parameters object
      * @return * This const 
      */
-    const Parameters GetDefaultParameters() const override;
+    Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Stages

@@ -113,7 +113,7 @@ void ApplyPeriodicConditionProcess::ExecuteInitializeSolutionStep()
 {
 }
 
-const Parameters ApplyPeriodicConditionProcess::GetDefaultParameters() const
+Parameters ApplyPeriodicConditionProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters(R"(
     {

@@ -273,7 +273,7 @@ void ModelPartCombinationUtilities::RecursiveAddEntities(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters ModelPartCombinationUtilities::GetDefaultParameters() const
+Parameters ModelPartCombinationUtilities::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

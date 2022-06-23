@@ -105,7 +105,7 @@ bool CalulateLevelsetConsistentNodalGradientProcess::IsSplit(const Vector& rDist
     return is_split;
 }
 
-const Parameters CalulateLevelsetConsistentNodalGradientProcess::GetDefaultParameters() const
+Parameters CalulateLevelsetConsistentNodalGradientProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

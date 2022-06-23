@@ -63,7 +63,7 @@ public:
     /// Called once before the solution loop and is writing the quadrature domain.
     void ExecuteFinalize() override;
 
-    const Parameters GetDefaultParameters() const override;
+    Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Input and output

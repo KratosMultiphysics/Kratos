@@ -74,7 +74,7 @@ void SetCylindricalLocalAxesProcess::ExecuteInitializeSolutionStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters SetCylindricalLocalAxesProcess::GetDefaultParameters() const
+Parameters SetCylindricalLocalAxesProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

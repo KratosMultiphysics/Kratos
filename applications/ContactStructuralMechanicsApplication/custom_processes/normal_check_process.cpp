@@ -259,7 +259,7 @@ void NormalCheckProcess::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters NormalCheckProcess::GetDefaultParameters() const
+Parameters NormalCheckProcess::GetDefaultParameters() const
 {
     KRATOS_TRY
 

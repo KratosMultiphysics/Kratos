@@ -604,7 +604,7 @@ std::string RansLineOutputProcess::GetOutputFileName() const
     KRATOS_CATCH("");
 }
 
-const Parameters RansLineOutputProcess::GetDefaultParameters() const
+Parameters RansLineOutputProcess::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
         {

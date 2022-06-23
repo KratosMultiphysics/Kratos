@@ -305,7 +305,7 @@ inline void SPRErrorProcess<TDim>::FindNodalNeighbours(ModelPart& rModelPart)
 /***********************************************************************************/
 
 template<SizeType TDim>
-const Parameters SPRErrorProcess<TDim>::GetDefaultParameters() const
+Parameters SPRErrorProcess<TDim>::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

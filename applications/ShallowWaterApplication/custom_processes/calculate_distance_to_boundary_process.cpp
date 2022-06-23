@@ -137,7 +137,7 @@ void CalculateDistanceToBoundaryProcess::ExecuteBeforeSolutionLoop()
 }
 
 
-const Parameters CalculateDistanceToBoundaryProcess::GetDefaultParameters() const
+Parameters CalculateDistanceToBoundaryProcess::GetDefaultParameters() const
 {
     auto default_parameters = Parameters(R"(
     {

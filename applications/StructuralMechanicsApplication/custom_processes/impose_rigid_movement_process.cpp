@@ -152,7 +152,7 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters ImposeRigidMovementProcess::GetDefaultParameters() const
+Parameters ImposeRigidMovementProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

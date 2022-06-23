@@ -271,7 +271,7 @@ void TimeAveragingProcess::ExecuteFinalizeSolutionStep()
     KRATOS_CATCH("");
 }
 
-const Parameters TimeAveragingProcess::GetDefaultParameters() const
+Parameters TimeAveragingProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

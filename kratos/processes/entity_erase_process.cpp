@@ -153,7 +153,7 @@ void EntitiesEraseProcess<MasterSlaveConstraint>::Execute()
 /***********************************************************************************/
 
 template<class TEntity>
-const Parameters EntitiesEraseProcess<TEntity>::GetDefaultParameters() const
+Parameters EntitiesEraseProcess<TEntity>::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {
