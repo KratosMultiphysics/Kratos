@@ -104,7 +104,8 @@ namespace Kratos{
                                 bool& sliding,
                                 int failure_id,
                                 int i_neighbour_count,
-                                SphericContinuumParticle* element1);
+                                SphericContinuumParticle* element1,
+                                SphericContinuumParticle* element2);
 
         virtual void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],

@@ -219,15 +219,16 @@ void DEM_parallel_bond::CalculateElasticConstants(double& kn_el, double& kt_el, 
     const double other_young     = element2->GetYoung();
     const double my_poisson      = element1->GetPoisson();
     const double other_poisson   = element2->GetPoisson();
-    const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
+    const double equiv_young     = 2.0 * my_young * other_young / (my_young + other_young);
 
-    //Get equivalent Shear Modulus
+    //Get equivalent Shear Modulus //TODO: check
     const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
     const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
     const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
     //Normal and Tangent elastic constants
-    mUnbondedNormalElasticConstant = equiv_young * Globals::Pi * std::min(my_radius, other_radius) / radius_sum;
+    const double aim_radius = std::min(my_radius, other_radius);
+    mUnbondedNormalElasticConstant = equiv_young * Globals::Pi * aim_radius * aim_radius / radius_sum;
 
     //for bonded part
     const double bond_equiv_young = (*mpProperties)[BOND_YOUNG_MODULUS];
@@ -413,7 +414,8 @@ void DEM_parallel_bond::CalculateForces(const ProcessInfo& r_process_info,
                         sliding,
                         element1->mIniNeighbourFailureId[i_neighbour_count],
                         i_neighbour_count,
-                        element1);
+                        element1,
+                        element2);
 
     // Tangential forces are calculated after the viscodamping because the frictional limit bounds the sum of elastic plus viscous forces
     CalculateTangentialForces(OldLocalElasticContactForce,
@@ -469,7 +471,15 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
 
     int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
     const double bonded_indentation = indentation - mInitialIndentationForBondedPart; //TODO: update function SetCurrentIndentationAsAReferenceInParallelBonds()                                                                                                         
-    double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
+    
+    
+    array_1d<double, 3> other_to_me_vect;
+    noalias(other_to_me_vect) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
+    double distance = DEM_MODULUS_3(other_to_me_vect);
+    double radius_sum = element1->GetRadius() + element2->GetRadius();
+    double unbonded_indentation = 0.0;
+    unbonded_indentation = radius_sum - distance;
+    //double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
     double BondedLocalElasticContactForce2 = 0.0;
 
     if (!failure_type){ //if the bond is not broken
@@ -477,6 +487,13 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
     } else { //else the bond is broken
         BondedLocalElasticContactForce2 = 0.0;
     }
+
+    /* For debug
+    if (element1->Id() == 798){
+        KRATOS_WATCH(element2->Id())
+        KRATOS_WATCH(BondedLocalElasticContactForce2)
+    }
+    */
 
     ComputeNormalUnbondedForce(unbonded_indentation);
 
@@ -522,7 +539,8 @@ void DEM_parallel_bond::CalculateViscoDamping(double LocalRelVel[3],
                         bool& sliding,
                         int failure_id,
                         int i_neighbour_count,
-                        SphericContinuumParticle* element1) {
+                        SphericContinuumParticle* element1,
+                        SphericContinuumParticle* element2) {
     KRATOS_TRY
 
     mUnbondedViscoDampingLocalContactForce[0] = 0.0;
@@ -532,7 +550,13 @@ void DEM_parallel_bond::CalculateViscoDamping(double LocalRelVel[3],
     mBondedViscoDampingLocalContactForce[1] = 0.0;
     mBondedViscoDampingLocalContactForce[2] = 0.0;
 
-    double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
+    //double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
+    array_1d<double, 3> other_to_me_vect;
+    noalias(other_to_me_vect) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
+    double distance = DEM_MODULUS_3(other_to_me_vect);
+    double radius_sum = element1->GetRadius() + element2->GetRadius();
+    double unbonded_indentation = 0.0;
+    unbonded_indentation = radius_sum - distance;
 
     if (unbonded_indentation > 0) {
         mUnbondedViscoDampingLocalContactForce[0] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[0];
@@ -616,7 +640,13 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
     double ActualTotalShearForce = 0.0;
     double max_admissible_shear_force = 0.0;
     double fraction = 0.0;
-    double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
+    //double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
+    array_1d<double, 3> other_to_me_vect;
+    noalias(other_to_me_vect) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
+    double distance = DEM_MODULUS_3(other_to_me_vect);
+    double radius_sum = element1->GetRadius() + element2->GetRadius();
+    double unbonded_indentation = 0.0;
+    unbonded_indentation = radius_sum - distance;
 
     if (unbonded_indentation <= 0.0) {
         UnbondedLocalElasticContactForce[0] = 0.0;
@@ -701,7 +731,7 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
                                                 LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
     // Here, we only calculate the BondedScalingFactor and [unBondedScalingFactor = 1 - BondedScalingFactor].
-    if (local_elastic_force_modulus) {
+    if (LocalElasticContactForce[0] && LocalElasticContactForce[1]) {
         mBondedScalingFactor[0] = BondedLocalElasticContactForce[0] / LocalElasticContactForce[0]; 
         mBondedScalingFactor[1] = BondedLocalElasticContactForce[1] / LocalElasticContactForce[1];
     } else {
