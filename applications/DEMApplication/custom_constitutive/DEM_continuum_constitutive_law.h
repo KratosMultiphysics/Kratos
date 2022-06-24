@@ -98,7 +98,19 @@ namespace Kratos {
 
         virtual void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
 
-        }
+        };
+
+        virtual void CheckBondFailure(const int i_neighbour_count, 
+                                    SphericContinuumParticle* element1, 
+                                    SphericContinuumParticle* element2,
+                                    double& contact_sigma,
+                                    double& contact_tau, 
+                                    double LocalElasticContactForce[3],
+                                    double ViscoDampingLocalContactForce[3],
+                                    double ElasticLocalRotationalMoment[3],
+                                    double ViscoLocalRotationalMoment[3]) {
+
+        };
 
         virtual void CalculateForces(const ProcessInfo& r_process_info,
                                      double OldLocalElasticContactForce[3],

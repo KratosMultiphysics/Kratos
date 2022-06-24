@@ -46,7 +46,15 @@ namespace Kratos{
         //TODO:CHECK
         virtual double GetYoungModulusForComputingRotationalMoments(const double& equiv_young);
 
-        void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
+        virtual void CheckBondFailure(const int i_neighbour_count, 
+                            SphericContinuumParticle* element1, 
+                            SphericContinuumParticle* element2,
+                            double& contact_sigma,
+                            double& contact_tau, 
+                            double LocalElasticContactForce[3],
+                            double ViscoDampingLocalContactForce[3],
+                            double ElasticLocalRotationalMoment[3],
+                            double ViscoLocalRotationalMoment[3]) override;
 
         void CalculateForces(const ProcessInfo& r_process_info,
                             double OldLocalElasticContactForce[3],

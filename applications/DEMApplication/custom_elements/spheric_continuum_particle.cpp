@@ -318,6 +318,7 @@ namespace Kratos {
 
             if (i < (int)mContinuumInitialNeighborsSize) {
 
+                // A check bond failure function for Parallel bond model is in below
                 mContinuumConstitutiveLawArray[i]->CheckFailure(i, this, neighbour_iterator);
 
                 mContinuumConstitutiveLawArray[i]->CalculateForces(r_process_info,
@@ -358,8 +359,30 @@ namespace Kratos {
                 cohesive_force= 0.0;
             }
 
-            // Transforming to global forces and adding up
             double LocalContactForce[3] = {0.0};
+
+            // Moment need to be calculated here for failure check
+            if (this->Is(DEMFlags::HAS_ROTATION)) {
+                ComputeMoments(LocalContactForce[2], TotalGlobalElasticContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, indentation, i);
+                if (i < (int)mContinuumInitialNeighborsSize && mIniNeighbourFailureId[i] == 0) {
+                    mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, data_buffer.mDistance, calculation_area,
+                                                                                        data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, equiv_poisson, indentation);
+                }
+            }
+
+            if (i < (int)mContinuumInitialNeighborsSize) {
+                mContinuumConstitutiveLawArray[i]->CheckBondFailure(i, 
+                                                                    this, 
+                                                                    neighbour_iterator, 
+                                                                    contact_sigma, 
+                                                                    contact_tau, 
+                                                                    LocalElasticContactForce,
+                                                                    ViscoDampingLocalContactForce,
+                                                                    ElasticLocalRotationalMoment,
+                                                                    ViscoLocalRotationalMoment);
+            }
+
+            // Transforming to global forces and adding up
             double GlobalContactForce[3] = {0.0};
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < (int)mContinuumInitialNeighborsSize)) { // We leave apart the discontinuum neighbors (the same for the walls). The neighbor would not be able to do the same if we activate it.
@@ -373,12 +396,6 @@ namespace Kratos {
                                   GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce, ViscoDampingLocalContactForce, 0.0, other_ball_to_ball_forces, rElasticForce, rContactForce, i, r_process_info); //TODO: replace the 0.0 with an actual cohesive force for discontinuum neighbours
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                ComputeMoments(LocalContactForce[2], TotalGlobalElasticContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, indentation, i);
-                if (i < (int)mContinuumInitialNeighborsSize && mIniNeighbourFailureId[i] == 0) {
-                    mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, data_buffer.mDistance, calculation_area,
-                                                                                        data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, equiv_poisson, indentation);
-                }
-
                 AddUpMomentsAndProject(data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
             }
 
