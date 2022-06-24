@@ -1,6 +1,6 @@
 ---
 title: Overview
-keywords: 
+keywords: norm, statistics
 tags: [Overview.md]
 sidebar: statistics_application
 summary: 
@@ -10,18 +10,18 @@ summary:
 
 Few different norms are predefined in this application. Following table summarize supported variable types for each norm.
 
-|                               | Double | Array 3D | Vector | Matrix |
-|-------------------------------|--------|----------|--------|--------|
-| [Value](#value)               | [x]    |          |        |        |
-| [Magnitude](#magnitude)       | [x]    | [x]      | [x]    | [x]    |
-| [Euclidean](#euclidean)       |        | [x]      | [x]    |        |
-| [Infinity](#infinity)         |        | [x]      | [x]    | [x]    |
-| [P-Norm](#p-norm)             |        | [x]      | [x]    | [x]    |
-| [Lpq-Norm](#lpq-norm)         |        |          |        | [x]    |
-| [Frobenius](#frobenius)       |        |          |        | [x]    |
-| [Trace](#trace)               |        |          |        | [x]    |
-| [Index](#index-based)         |        |          | [x]    | [x]    |
-| [Component](#component-based) |        | [x]      |        |        |
+|                                   | Double | Array 3D | Vector | Matrix |
+|-----------------------------------|--------|----------|--------|--------|
+| [Value](value.html)               | [x]    |          |        |        |
+| [Magnitude](magnitude.html)       | [x]    | [x]      | [x]    | [x]    |
+| [Euclidean](euclidean.html)       |        | [x]      | [x]    |        |
+| [Infinity](infinity.html)         |        | [x]      | [x]    | [x]    |
+| [P-Norm](p_norm.html)             |        | [x]      | [x]    | [x]    |
+| [Lpq-Norm](lpq_norm.html)         |        |          |        | [x]    |
+| [Frobenius](frobenius.html)       |        |          |        | [x]    |
+| [Trace](trace.html)               |        |          |        | [x]    |
+| [Index](index_based.html)         |        |          | [x]    | [x]    |
+| [Component](component_based.html) |        | [x]      |        |        |
 
 ## Supported methods summary
 

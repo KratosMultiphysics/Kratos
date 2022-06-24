@@ -4,5 +4,12 @@
     "additional_menu_options": {
         "product": "Statistics Application",
         "title": "sidebar"
-    }
+    },
+    "custom_entries": [
+        "General",
+        "Norm_Methods",
+        "Statistical_Methods",
+        "Domains",
+        "Examples"
+    ]
 }
