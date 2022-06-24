@@ -21,10 +21,10 @@
 // Project includes
 #include "includes/define.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "utilities/parallel_utilities.h"
-#include "utilities/time_discretization.h"
 #include "response_functions/adjoint_response_function.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/smp_storage.h"
+#include "utilities/time_discretization.h"
 
 // Application includes
 #include "custom_utilities/fluid_adjoint_slip_utilities.h"
@@ -92,10 +92,6 @@ public:
           mAdjointSlipUtilities(Dimension, BlockSize)
     {
         KRATOS_TRY
-
-        // Allocate auxiliary memory.
-        const int number_of_threads = ParallelUtilities::GetNumThreads();
-        mTLS.resize(number_of_threads);
 
         KRATOS_ERROR_IF_NOT(mpFluidLeastSquaresShadowingVariableUtilities->GetPrimalIndirectVariablesList().size() == BlockSize)
                 << "Provided block size does not match with the number of primal variables provided in least squares shadowing utilities. [ block size = "
@@ -215,8 +211,7 @@ public:
         Element::EquationIdVectorType& rEquationId,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        const int thread_id = OpenMPUtils::ThisThread();
-        TLS& r_tls = mTLS[thread_id];
+        TLS& r_tls = mSMPStorage.GetThreadLocalStorage();
 
         CalculateEntityLHSContribution(
             rLHS_Contribution, rEquationId, rCurrentElement, r_tls.mResidualFirstDerivatives, r_tls.mRotatedResidualFirstDerivatives,
@@ -240,8 +235,7 @@ public:
         Condition::EquationIdVectorType& rEquationId,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        const int thread_id = OpenMPUtils::ThisThread();
-        TLS& r_tls = mTLS[thread_id];
+        TLS& r_tls = mSMPStorage.GetThreadLocalStorage();
 
         CalculateEntityLHSContribution(
             rLHS_Contribution, rEquationId, rCurrentCondition, r_tls.mResidualFirstDerivatives, r_tls.mRotatedResidualFirstDerivatives,
@@ -430,7 +424,7 @@ private:
 
     FluidAdjointSlipUtilities mAdjointSlipUtilities;
 
-    std::vector<TLS> mTLS;
+    SMPStorage<TLS> mSMPStorage;
 
     ///@}
     ///@name Private Operations
@@ -446,8 +440,7 @@ private:
     {
         KRATOS_TRY;
 
-        const int thread_id = OpenMPUtils::ThisThread();
-        TLS& r_tls = mTLS[thread_id];
+        TLS& r_tls = mSMPStorage.GetThreadLocalStorage();
 
         CalculateEntityLHSContribution<TEntityType>(
             rLHS, rEquationId, rEntity, r_tls.mResidualFirstDerivatives, r_tls.mRotatedResidualFirstDerivatives,
