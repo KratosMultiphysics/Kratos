@@ -122,8 +122,8 @@ class DruckerPragerPlasticPotential
 
         array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
 
         const double dilatancy = r_material_properties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
         const double sin_dil = std::sin(dilatancy);

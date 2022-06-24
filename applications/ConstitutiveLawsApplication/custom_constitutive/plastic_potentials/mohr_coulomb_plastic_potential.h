@@ -123,13 +123,13 @@ public:
 		const Properties& r_material_properties = rValues.GetMaterialProperties();
         const double dilatancy = r_material_properties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
 
-        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
         double J3, lode_angle;
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
 
         double c1, c3, c2;
 		double checker = std::abs(lode_angle * 180.0 / Globals::Pi);

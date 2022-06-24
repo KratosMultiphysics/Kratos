@@ -38,6 +38,7 @@ private:
     bool m_computed;
 
     // Adapted from Eigen/src/Eigenvaleus/SelfAdjointEigenSolver.h
+    // Francis implicit QR step.
     static void tridiagonal_qr_step(RealScalar* diag,
                                     RealScalar* subdiag, Index start,
                                     Index end, Scalar* matrixQ,
@@ -45,6 +46,7 @@ private:
     {
         using std::abs;
 
+        // Wilkinson Shift.
         RealScalar td = (diag[end - 1] - diag[end]) * RealScalar(0.5);
         RealScalar e = subdiag[end - 1];
         // Note that thanks to scaling, e^2 or td^2 cannot overflow, however they can still
@@ -53,14 +55,14 @@ private:
         //   RealScalar mu = diag[end] - e2 / (td + (td>0 ? 1 : -1) * sqrt(td*td + e2));
         // This explain the following, somewhat more complicated, version:
         RealScalar mu = diag[end];
-        if (td == Scalar(0))
+        if (td == RealScalar(0))
             mu -= abs(e);
-        else
+        else if (e != RealScalar(0))
         {
-            RealScalar e2 = Eigen::numext::abs2(subdiag[end - 1]);
-            RealScalar h = Eigen::numext::hypot(td, e);
+            const RealScalar e2 = Eigen::numext::abs2(e);
+            const RealScalar h = Eigen::numext::hypot(td, e);
             if (e2 == RealScalar(0))
-                mu -= (e / (td + (td > RealScalar(0) ? RealScalar(1) : RealScalar(-1)))) * (e / h);
+                mu -= e / ((td + (td > RealScalar(0) ? h : -h)) / e);
             else
                 mu -= e2 / (td + (td > RealScalar(0) ? h : -h));
         }
@@ -68,7 +70,9 @@ private:
         RealScalar x = diag[start] - mu;
         RealScalar z = subdiag[start];
         Eigen::Map<Matrix> q(matrixQ, n, n);
-        for (Index k = start; k < end; ++k)
+        // If z ever becomes zero, the Givens rotation will be the identity and
+        // z will stay zero for all future iterations.
+        for (Index k = start; k < end && z != RealScalar(0); ++k)
         {
             Eigen::JacobiRotation<RealScalar> rot;
             rot.makeGivens(x, z);
@@ -87,8 +91,8 @@ private:
             if (k > start)
                 subdiag[k - 1] = c * subdiag[k - 1] - s * z;
 
+            // "Chasing the bulge" to return to triangular form.
             x = subdiag[k];
-
             if (k < end - 1)
             {
                 z = -s * subdiag[k + 1];
@@ -154,16 +158,25 @@ public:
         int info = 0;    // 0 for success, 1 for failure
 
         const Scalar considerAsZero = TypeTraits<Scalar>::min();
-        const Scalar precision = Scalar(2) * Eigen::NumTraits<Scalar>::epsilon();
+        const Scalar precision_inv = Scalar(1) / Eigen::NumTraits<Scalar>::epsilon();
 
         while (end > 0)
         {
             for (Index i = start; i < end; i++)
-                if (abs(subdiag[i]) <= considerAsZero ||
-                    abs(subdiag[i]) <= (abs(diag[i]) + abs(diag[i + 1])) * precision)
-                    subdiag[i] = 0;
+            {
+                if (abs(subdiag[i]) <= considerAsZero)
+                    subdiag[i] = Scalar(0);
+                else
+                {
+                    // abs(subdiag[i]) <= epsilon * sqrt(abs(diag[i]) + abs(diag[i+1]))
+                    // Scaled to prevent underflows.
+                    const Scalar scaled_subdiag = precision_inv * subdiag[i];
+                    if (scaled_subdiag * scaled_subdiag <= (abs(diag[i]) + abs(diag[i + 1])))
+                        subdiag[i] = Scalar(0);
+                }
+            }
 
-            // find the largest unreduced block
+            // find the largest unreduced block at the end of the matrix.
             while (end > 0 && subdiag[end - 1] == Scalar(0))
                 end--;
 

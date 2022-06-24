@@ -16,14 +16,22 @@ class UnfolderManager(object):
     A method managing multiple contributions is present as well.
 
     Attributes:
-    - number: number of values of original list
-    - group: desired length of sublists of output list.
-    - groups: number of sublists of output list.
+
+    number: integer.
+        Number of values of original list
+    group: integer.
+        Desired length of sublists of output list.
+    groups: integer.
+        Number of sublists of output list.
 
     Methods:
-    - UnfoldNValues_Task: task method calling UnfoldNValues.
-    - UnfoldNValues: method creating the list of sublists.
-    - PostprocessContributionsPerInstance: task method summing together multiple contributions, if any. After summing all contributions, it calls UnfoldNValues to create the list of sublists.
+
+    UnfoldNValues_Task:
+        Task method calling UnfoldNValues.
+    UnfoldNValues:
+        Method creating the list of sublists.
+    PostprocessContributionsPerInstance:
+        Task method summing together multiple contributions, if any. After summing all contributions, it calls UnfoldNValues to create the list of sublists.
     """
 
     def __init__(self, number, group):
@@ -36,10 +44,13 @@ class UnfolderManager(object):
         Method creating list of sublists.
 
         Inputs:
-        - self: an instance of the class.
-        - number: number of values of original list
-        - group: desired length of sublists of output list.
-        - values: original list of values.
+
+        number: integer.
+            Number of values of original list
+        group: integer.
+            Desired length of sublists of output list.
+        values: list.
+            Original list of values.
         """
 
         partial_vals = []
@@ -55,8 +66,9 @@ class UnfolderManager(object):
         Task method calling UnfoldNValues.
 
         Inputs:
-        - self: an instance of the class.
-        - values: original list of values.
+
+        values: list.
+            Original list of values.
         """
 
         list_unfolded = list(self.UnfoldNValues(self.number, self.group, values))
@@ -70,9 +82,11 @@ class UnfolderManager(object):
         Task method summing multiple contribution of a specific realization and calling UnfoldNValues.
 
         Inputs:
-        - self: an instance of the class.
-        - aux_qoi_array_contributions: original list of values with multiple contributions.
-        - qoi_estimators: list of strings. Each string is the corresponding moment estimator of each quantity of interest.
+
+        aux_qoi_array_contributions: list.
+            Original list of values with multiple contributions.
+        qoi_estimators: list.
+            List of strings. Each string is the corresponding moment estimator of each quantity of interest.
         """
 
         aux_qoi_array = [[] for _ in range (0,len(qoi_estimators))] # to store each qoi

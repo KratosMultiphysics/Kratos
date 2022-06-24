@@ -18,7 +18,7 @@
 // Project includes
 #include "coupling_geometry_mapper.h"
 #include "mapping_application_variables.h"
-#include "custom_utilities/mapper_define.h"
+#include "mappers/mapper_define.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "utilities/variable_utils.h"
@@ -103,25 +103,6 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     for (IndexType i=0; i< sf_values_slave.size2(); ++i) {
         rDestinationIds[i] = r_geometry_slave[i].GetValue(INTERFACE_EQUATION_ID);
     }
-}
-
-std::string CouplingGeometryLocalSystem::PairingInfo(const int EchoLevel) const
-{
-    //std::cout << "   >>> XXX : IS_PROJECTED_LOCAL_SYSTEM: " << mIsProjection << std::endl;
-    // KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
-
-    // std::stringstream buffer;
-    // buffer << "CouplingGeometryLocalSystem based on " << mpNode->Info();
-    // if (EchoLevel > 1) { // TODO leave here?
-    //     buffer << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
-    //     if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
-    //         mpNode->SetValue(PAIRING_STATUS, 0);
-    //     } else {
-    //         mpNode->SetValue(PAIRING_STATUS, -1);
-    //     }
-    // }
-    // return buffer.str();
-    return "";
 }
 
 template<class TSparseSpace, class TDenseSpace>

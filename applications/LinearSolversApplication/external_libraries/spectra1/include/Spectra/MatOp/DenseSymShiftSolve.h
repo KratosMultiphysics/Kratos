@@ -22,6 +22,13 @@ namespace Spectra {
 /// i.e., calculating \f$y=(A-\sigma I)^{-1}x\f$ for any real \f$\sigma\f$ and
 /// vector \f$x\f$. It is mainly used in the SymEigsShiftSolver eigen solver.
 ///
+/// \tparam Scalar_ The element type of the matrix, for example,
+///                 `float`, `double`, and `long double`.
+/// \tparam Uplo    Either `Eigen::Lower` or `Eigen::Upper`, indicating which
+///                 triangular part of the matrix is used.
+/// \tparam Flags   Either `Eigen::ColMajor` or `Eigen::RowMajor`, indicating
+///                 the storage format of the input matrix.
+///
 template <typename Scalar_, int Uplo = Eigen::Lower, int Flags = Eigen::ColMajor>
 class DenseSymShiftSolve
 {
@@ -52,9 +59,14 @@ public:
     /// `Eigen::MatrixXf`), or its mapped version
     /// (e.g. `Eigen::Map<Eigen::MatrixXd>`).
     ///
-    DenseSymShiftSolve(ConstGenericMatrix& mat) :
+    template <typename Derived>
+    DenseSymShiftSolve(const Eigen::MatrixBase<Derived>& mat) :
         m_mat(mat), m_n(mat.rows())
     {
+        static_assert(
+            static_cast<int>(Derived::PlainObject::IsRowMajor) == static_cast<int>(Matrix::IsRowMajor),
+            "DenseSymShiftSolve: the \"Flags\" template parameter does not match the input matrix (Eigen::ColMajor/Eigen::RowMajor)");
+
         if (m_n != mat.cols())
             throw std::invalid_argument("DenseSymShiftSolve: matrix must be square");
     }

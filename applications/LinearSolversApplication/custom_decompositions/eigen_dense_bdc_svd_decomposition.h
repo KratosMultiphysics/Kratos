@@ -170,6 +170,11 @@ public:
         return mBDCSVD.nonzeroSingularValues();
     }
 
+    void SetThreshold(const double RelTolerance) override
+    {
+        mBDCSVD.setThreshold(RelTolerance);
+    }
+
     std::size_t Rank() override
     {
         return mBDCSVD.rank();

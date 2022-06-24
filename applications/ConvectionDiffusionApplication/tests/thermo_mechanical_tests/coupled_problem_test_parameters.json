@@ -185,7 +185,7 @@
             "process_name"  : "VtkOutputProcess",
             "help"          : "This process writes postprocessing files for Paraview",
             "Parameters"    : {
-                "model_part_name"                    : "ThermalModelPart.thermal_computing_domain",
+                "model_part_name"                    : "ThermalModelPart",
                 "output_control_type"                : "step",
                 "output_interval"                   : 1,
                 "file_format"                        : "ascii",

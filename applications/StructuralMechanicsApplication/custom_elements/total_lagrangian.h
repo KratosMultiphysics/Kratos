@@ -227,6 +227,11 @@ protected:
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
 
+    /**
+     * @brief This method returns the size of the strain vector
+     */
+    std::size_t GetStrainSize() const;
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -301,7 +306,6 @@ private:
                                Matrix const& rF_Deriv,
                                Matrix& rB_Deriv);
 
-    std::size_t GetStrainSize() const;
 
     bool IsAxissymmetric() const;
 

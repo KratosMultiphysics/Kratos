@@ -84,43 +84,19 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.cpp
 )
 
-if(${USE_PORO_MPI} MATCHES ON)
+## Define python interface sources
+set( KRATOS_POROMECHANICS_APPLICATION_PYTHON_INTERFACE_SOURCES
 
-    include_directories( ${KRATOS_SOURCE_DIR}/applications/TrilinosApplication )
-    include_directories(${TRILINOS_INCLUDE_DIR})
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/poromechanics_python_application.cpp
+)
 
-    ## Define python interface sources
-    set( KRATOS_POROMECHANICS_APPLICATION_PYTHON_INTERFACE_SOURCES
-
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_mpi_strategies_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/poromechanics_mpi_python_application.cpp
-    )
-
-    ## PoromechanicsApplication core library (C++ parts)
-    add_library( KratosPoromechanicsCore SHARED ${KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES})
-    target_link_libraries( KratosPoromechanicsCore PUBLIC KratosCore KratosTrilinosApplication KratosStructuralMechanicsCore)
-
-else()
-
-    ## Define python interface sources
-    set( KRATOS_POROMECHANICS_APPLICATION_PYTHON_INTERFACE_SOURCES
-
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/poromechanics_python_application.cpp
-    )
-
-    ## PoromechanicsApplication core library (C++ parts)
-    add_library( KratosPoromechanicsCore SHARED ${KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES})
-    target_link_libraries( KratosPoromechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore)
-
-endif()
+## PoromechanicsApplication core library (C++ parts)
+add_library( KratosPoromechanicsCore SHARED ${KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES})
+target_link_libraries( KratosPoromechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
@@ -175,3 +151,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosPoromechanicsCore DESTINATION libs )
 install(TARGETS KratosPoromechanicsApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosPoromechanicsCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosPoromechanicsApplication" PARENT_SCOPE)

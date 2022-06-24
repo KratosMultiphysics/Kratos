@@ -27,7 +27,7 @@ namespace Testing {
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorDuplicate, KratosMPICoreFastSuite)
 {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const DataCommunicator& r_duplicate = DataCommunicatorFactory::DuplicateAndRegister(r_comm, "Duplicate");
 
     KRATOS_CHECK_EQUAL(r_comm.Rank(), r_duplicate.Rank());
@@ -39,7 +39,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorDuplicate, Kratos
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorSplit, KratosMPICoreFastSuite)
 {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int global_rank = r_comm.Rank();
     const int global_size = r_comm.Size();
 
@@ -65,7 +65,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorSplit, KratosMPIC
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorFromRanks, KratosMPICoreFastSuite)
 {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int global_size = r_comm.Size();
 
     if (global_size > 1) // This test assumes at least two processes
@@ -102,7 +102,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorFromRanks, Kratos
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorUnion, KratosMPICoreFastSuite)
 {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int global_size = r_comm.Size();
 
     if (global_size > 2) // This test assumes at least three processes
@@ -140,7 +140,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorUnion, KratosMPIC
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, KratosMPICoreFastSuite)
 {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int global_size = r_comm.Size();
 
     if (global_size > 2) // This test assumes at least three processes

@@ -99,7 +99,7 @@ public:
 
     typedef Line2D2<Point>                                                                                           DecompositionType;
 
-    typedef DerivativeDataFrictional<2, TNumNodes, TNormalVariation>                                                DerivativeDataType;
+    typedef DerivativeDataFrictional<2, TNumNodes>                                                                  DerivativeDataType;
 
     static constexpr IndexType MatrixSize = 2 * (TNumNodes + TNumNodes) + TNumNodes;
 

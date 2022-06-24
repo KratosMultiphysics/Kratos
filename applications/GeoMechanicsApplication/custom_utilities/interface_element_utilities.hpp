@@ -137,7 +137,7 @@ public:
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculatePermeabilityMatrix(BoundedMatrix<double,2,2>& rPermeabilityMatrix,
+    static inline void FillPermeabilityMatrix(BoundedMatrix<double,2,2>& rPermeabilityMatrix,
                                                    const double& JointWidth,
                                                    const double& Transversal_Permeability)
     {
@@ -147,7 +147,7 @@ public:
     }
 
     //----------------------------------------------------------------------------------------
-    static inline void CalculatePermeabilityMatrix(BoundedMatrix<double,3,3>& rPermeabilityMatrix,
+    static inline void FillPermeabilityMatrix(BoundedMatrix<double,3,3>& rPermeabilityMatrix,
                                                    const double& JointWidth,
                                                    const double& Transversal_Permeability)
     {

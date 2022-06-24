@@ -202,44 +202,26 @@ void SmallStrainUDSM3DLaw::GetLawFeatures(Features &rFeatures)
 //----------------------------------------------------------------------------------------
 int SmallStrainUDSM3DLaw::Check(const Properties &rMaterialProperties,
                                 const GeometryType &rElementGeometry,
-                                const ProcessInfo &rCurrentProcessInfo)
+                                const ProcessInfo &rCurrentProcessInfo) const
 {
    KRATOS_TRY;
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::Check()") << std::endl;
 
    // Verify Properties variables
    if (rMaterialProperties.Has(UDSM_NAME) == false || rMaterialProperties[UDSM_NAME] == "")
-      KRATOS_THROW_ERROR(std::invalid_argument, 
-                         "UDSM_NAME has Key zero, is not defined or has an invalid value for property",
-                         rMaterialProperties.Id())
+      KRATOS_ERROR << "UDSM_NAME has Key zero, is not defined or has an invalid value for property"
+                   << rMaterialProperties.Id()
+                   << std::endl;
 
    if (rMaterialProperties.Has(UDSM_NUMBER) == false || rMaterialProperties[UDSM_NUMBER] <= 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,
-                         "UDSM_NUMBER has Key zero, is not defined or has an invalid value for property",
-                         rMaterialProperties.Id())
+      KRATOS_ERROR << "UDSM_NUMBER has Key zero, is not defined or has an invalid value for property"
+                   << rMaterialProperties.Id()
+                   << std::endl;
+
    if (rMaterialProperties.Has(IS_FORTRAN_UDSM) == false)
-      KRATOS_THROW_ERROR(std::invalid_argument,
-                         "IS_FORTRAN_UDSM has Key zero, is not defined or has an invalid value for property",
-                         rMaterialProperties.Id())
-
-   // load UDSM model
-   if (!mIsUDSMLoaded) mIsUDSMLoaded = loadUDSM(rMaterialProperties);
-
-   if (!mIsUDSMLoaded)
-   {
-      KRATOS_THROW_ERROR(std::runtime_error, "cannot load the specified UDSM ", rMaterialProperties[UDSM_NAME]);
-   }
-
-   const int nUmatParametersSize = rMaterialProperties[UMAT_PARAMETERS].size();
-   const int nParametersUDSM = GetNumberOfMaterialParametersFromUDSM(rMaterialProperties);
-   if ( nUmatParametersSize != nParametersUDSM)
-   {
-      KRATOS_THROW_ERROR(std::runtime_error, "Number of parameters is wrong."
-                                             " The UDSM gives " + std::to_string(nParametersUDSM)
-                                             + " while size of UMAT_PARAMETERS is " + std::to_string(nUmatParametersSize),
-                                             rMaterialProperties[UDSM_NAME]);
-   }
-
+      KRATOS_ERROR << "IS_FORTRAN_UDSM has Key zero, is not defined or has an invalid value for property"
+                   << rMaterialProperties.Id()
+                   << std::endl;
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::Check()") << std::endl;
    return 0;
@@ -257,6 +239,20 @@ void SmallStrainUDSM3DLaw::InitializeMaterial(const Properties &rMaterialPropert
 
    // loading the model
    mIsUDSMLoaded = loadUDSM(rMaterialProperties);
+
+   KRATOS_ERROR_IF_NOT(mIsUDSMLoaded) << "cannot load the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
+
+   const int nUmatParametersSize = rMaterialProperties[UMAT_PARAMETERS].size();
+   const int nParametersUDSM = GetNumberOfMaterialParametersFromUDSM(rMaterialProperties);
+   if ( nUmatParametersSize != nParametersUDSM) {
+      KRATOS_ERROR << "Number of parameters is wrong."
+                   << " The UDSM gives " 
+                   << std::to_string(nParametersUDSM)
+                   << " while size of UMAT_PARAMETERS is "
+                   << std::to_string(nUmatParametersSize)
+                   << rMaterialProperties[UDSM_NAME]
+                   << std::endl;
+   }
 
    ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
@@ -373,10 +369,11 @@ void SmallStrainUDSM3DLaw::SetAttributes(const Properties& rMaterialProperties)
 
    if (iAbort != 0)
    {
-      // KRATOS_INFO("GetNumberOfStateVariablesFromUDSM, iAbort !=0")<< std::endl;
-      KRATOS_THROW_ERROR(std::runtime_error, 
-                         "the specified UDSM returns an error while call UDSM with IDTASK" + std::to_string(IDTask) + ". UDSM",
-                         rMaterialProperties[UDSM_NAME]);
+      KRATOS_ERROR << "The specified UDSM returns an error while call UDSM with IDTASK"
+                   << std::to_string(IDTask) 
+                   << ". UDSM"
+                   << rMaterialProperties[UDSM_NAME]
+                   << std::endl;
    }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::SetAttributes()") << std::endl;
@@ -437,10 +434,11 @@ int SmallStrainUDSM3DLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rM
 
    if (iAbort != 0)
    {
-      // KRATOS_INFO("GetNumberOfStateVariablesFromUDSM, iAbort !=0")<< std::endl;
-      KRATOS_THROW_ERROR(std::runtime_error, 
-                         "the specified UDSM returns an error while call UDSM with IDTASK" + std::to_string(IDTask) + ". UDSM",
-                         rMaterialProperties[UDSM_NAME]);
+      KRATOS_ERROR << "The specified UDSM returns an error while call UDSM with IDTASK"
+                   << std::to_string(IDTask)
+                   << ". UDSM"
+                   << rMaterialProperties[UDSM_NAME]
+                   << std::endl;
    }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::GetNumberOfStateVariablesFromUDSM()") << std::endl;
@@ -489,7 +487,7 @@ bool SmallStrainUDSM3DLaw::loadUDSM(const Properties &rMaterialProperties)
    return isLoaded;
 #endif
 
-   KRATOS_THROW_ERROR(std::logic_error, "loadUDSM is not supported yet for Mac OS applications", "");
+   KRATOS_ERROR << "loadUDSM is not supported yet for Mac OS applications" << std::endl;
 
    return isLoaded;
 
@@ -519,7 +517,7 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties &rMaterialProperties)
    if (!lib_handle)
    {
       KRATOS_INFO("Error in loadUDSMLinux") << "cannot load the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
-      KRATOS_THROW_ERROR(std::runtime_error, "cannot load the specified UDSM ", rMaterialProperties[UDSM_NAME]);
+      KRATOS_ERROR << "Cannot load the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
       return false;
    }
    
@@ -531,7 +529,7 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties &rMaterialProperties)
       if (!pGetParamCount)
       {
          KRATOS_INFO("Error in loadUDSMLinux") << "cannot load function GetParamCount in the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
-         KRATOS_THROW_ERROR(std::runtime_error, "cannot load function GetParamCount in the specified UDSM ", rMaterialProperties[UDSM_NAME]);
+         KRATOS_ERROR << "Cannot load function GetParamCount in the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
          return false;
       }
    }
@@ -546,7 +544,7 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties &rMaterialProperties)
       if (!pUserMod)
       {
          KRATOS_INFO("Error in loadUDSMLinux") << "cannot load function User_Mod in the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
-         KRATOS_THROW_ERROR(std::runtime_error, "cannot load function User_Mod in the specified UDSM ", rMaterialProperties[UDSM_NAME]);
+         KRATOS_ERROR << "cannot load function User_Mod in the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
          return false;
       }
    }
@@ -554,7 +552,7 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties &rMaterialProperties)
    return true;
 
 #else
-   KRATOS_THROW_ERROR(std::logic_error, "loadUDSMLinux should be called in Linux applications", "");
+   KRATOS_ERROR << "loadUDSMLinux should be called in Linux applications" << rMaterialProperties[UDSM_NAME] << std::endl;
    return false;
 #endif
 }
@@ -585,7 +583,7 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties &rMaterialProperties
    if (!hGetProcIDDLL)
    {
       KRATOS_INFO("Error in loadUDSMWindows") << "cannot load the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
-      KRATOS_THROW_ERROR(std::runtime_error, "cannot load the specified UDSM ", rMaterialProperties[UDSM_NAME]);
+      KRATOS_ERROR << "cannot load the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
       return false;
    }
 
@@ -598,7 +596,7 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties &rMaterialProperties
       if (!pGetParamCount)
       {
          KRATOS_INFO("Error in loadUDSMWindows") << "cannot load function GetParamCount in the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
-         KRATOS_THROW_ERROR(std::runtime_error, "cannot load function GetParamCount in the specified UDSM ", rMaterialProperties[UDSM_NAME]);
+         KRATOS_ERROR << "cannot load function GetParamCount in the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
          return false;
       }
    }
@@ -614,7 +612,7 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties &rMaterialProperties
       if (!pUserMod)
       {
          KRATOS_INFO("Error in loadUDSMWindows") << "cannot load function User_Mod in the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
-         KRATOS_THROW_ERROR(std::runtime_error, "cannot load function User_Mod in the specified UDSM ", rMaterialProperties[UDSM_NAME]);
+         KRATOS_ERROR << "cannot load function User_Mod in the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
          return false;
       }
    }
@@ -623,7 +621,7 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties &rMaterialProperties
 
    return true;
 #else
-   KRATOS_THROW_ERROR(std::logic_error, "loadUDSMWindows should be called in Windows applications", "");
+   KRATOS_ERROR << "loadUDSMWindows should be called in Windows applications" << rMaterialProperties[UDSM_NAME] << std::endl;
    return false;
 #endif
 
@@ -681,12 +679,6 @@ void SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
       CalculateCauchyGreenStrain( rValues, rStrainVector);
    }
 
-   if (rOptions.Is( ConstitutiveLaw::COMPUTE_STRESS ))
-   {
-      Vector& rStressVector = rValues.GetStressVector();
-      CalculateStress(rValues, rStressVector);
-   }
-
    if (rOptions.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) 
    {
       // Constitutive matrix (D matrix)
@@ -694,12 +686,19 @@ void SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
       CalculateConstitutiveMatrix(rValues, rConstitutiveMatrix);
    }
 
+   if (rOptions.Is( ConstitutiveLaw::COMPUTE_STRESS ))
+   {
+      Vector& rStressVector = rValues.GetStressVector();
+      CalculateStress(rValues, rStressVector);
+   }
+
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy()") << std::endl;
    KRATOS_CATCH("");
 }
 
 //----------------------------------------------------------------------------------------
-void SmallStrainUDSM3DLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues)
+void SmallStrainUDSM3DLaw::
+   UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues)
 {
    KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::UpdateInternalDeltaStrainVector()") << std::endl;
@@ -742,21 +741,6 @@ void SmallStrainUDSM3DLaw::SetInternalStressVector(const Vector& rStressVector)
    }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::SetInternalStressVector()") << std::endl;
-   KRATOS_CATCH("");
-}
-
-//----------------------------------------------------------------------------------------
-void SmallStrainUDSM3DLaw::SetInternalStrainVector(const Vector& rStrainVector)
-{
-   KRATOS_TRY
-   // KRATOS_INFO("0-SmallStrainUDSM3DLaw::SetInternalStrainVector()") << std::endl;
-
-   for (unsigned int i=0; i < mStrainVectorFinalized.size(); ++i)
-   {
-      mStrainVectorFinalized[i] = rStrainVector(i);
-   }
-
-   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::SetInternalStrainVector()") << std::endl;
    KRATOS_CATCH("");
 }
 
@@ -821,7 +805,6 @@ void SmallStrainUDSM3DLaw::CalculateStress( ConstitutiveLaw::Parameters &rValues
 
    int IDTask = STRESS_CALCULATION;
 
-
    CallUDSM(&IDTask, rValues);
 
    SetExternalStressVector(rStressVector);
@@ -831,7 +814,7 @@ void SmallStrainUDSM3DLaw::CalculateStress( ConstitutiveLaw::Parameters &rValues
 }
 
 //----------------------------------------------------------------------------------------
-void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, ConstitutiveLaw::Parameters &rValues)
+void SmallStrainUDSM3DLaw::CallUDSM(int *pIDTask, ConstitutiveLaw::Parameters &rValues)
 {
    KRATOS_TRY;
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::CallUDSM()") << std::endl;
@@ -864,7 +847,7 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, ConstitutiveLaw::Parameters &rV
    int nSizeProjectDirectory = mProjectDirectory.size();
 
    const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
-   pUserMod(IDTask, &modelNumber, &isUndr,
+   pUserMod(pIDTask, &modelNumber, &isUndr,
             &iStep, &iteration, &iElement, &integrationNumber,
             &X, &Y, &Z,
             &time, &deltaTime,
@@ -877,90 +860,24 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, ConstitutiveLaw::Parameters &rV
             &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
             mProjectDirectory.data(), &nSizeProjectDirectory, 
             &iAbort);
-   if (iAbort != 0)
-   {
+
+   if (iAbort != 0) {
       KRATOS_INFO("CallUDSM, iAbort !=0")
                   << " iAbort: " << iAbort
                   << " the specified UDSM returns an error while call UDSM with IDTASK: " 
-                  << std::to_string(*IDTask) << "." 
+                  << std::to_string(*pIDTask) << "." 
                   << " UDSM: " << rMaterialProperties[UDSM_NAME] 
                   << " UDSM_NUMBER: " << rMaterialProperties[UDSM_NUMBER]
                   << " Parameters: " << MaterialParameters
                   << std::endl;
-      KRATOS_THROW_ERROR(std::runtime_error, 
-                        "the specified UDSM returns an error while call UDSM with IDTASK: " 
-                        + std::to_string(*IDTask) + ". UDSM: ",
-                        rMaterialProperties[UDSM_NAME]);
+      KRATOS_ERROR << "the specified UDSM returns an error while call UDSM with IDTASK: " 
+                   << std::to_string(*pIDTask)
+                   << ". UDSM: "
+                   << rMaterialProperties[UDSM_NAME]
+                   << std::endl;
    }
-
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::CallUDSM()") << std::endl;
-   KRATOS_CATCH("");
-}
-
-//----------------------------------------------------------------------------------------
-void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, const Properties& rMaterialProperties)
-{
-   KRATOS_TRY;
-   // KRATOS_INFO("01-SmallStrainUDSM3DLaw::CallUDSM()") << std::endl;
-
-   // process data
-   double deltaTime = 0.0;
-   double time      = 0.0;
-   int    iStep     = 0;
-   int    iteration = 0;
-
-   // number of the model in the shared libaray (DLL)
-   int modelNumber = rMaterialProperties[UDSM_NUMBER];
-
-   // number of state variables
-   int nStateVariables = mStateVariablesFinalized.size();
-
-   // not needed:
-   double bulkWater = 0.0;
-   double excessPorePressurePrevious = 0.0;
-   double excessPorePressureCurrent = 0.0;
-   double X(0.0), Y(0.0), Z(0.0);
-   int iElement = 0;
-   int integrationNumber = 0;
-   int iPlastic = 0;
-   int isUndr = 0;
-
-   // variable to check if an error happend in the model:
-   int iAbort = 0;
-   int nSizeProjectDirectory = mProjectDirectory.size();
-   
-   const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
-   pUserMod(IDTask, &modelNumber, &isUndr,
-            &iStep, &iteration, &iElement, &integrationNumber,
-            &X, &Y, &Z,
-            &time, &deltaTime,
-            &(MaterialParameters.data()[0]), &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious, 
-            &(mStateVariablesFinalized.data()[0]),
-            &(mDeltaStrainVector.data()[0]), (double **)mMatrixD, &bulkWater,
-            &(mStressVector.data()[0]), &excessPorePressureCurrent, &(mStateVariables.data()[0]), &iPlastic,
-            &nStateVariables,
-            &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
-            &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
-            mProjectDirectory.data(), &nSizeProjectDirectory, 
-            &iAbort);
-
-   if (iAbort != 0)
-   {
-      KRATOS_INFO("CallUDSM, iAbort !=0")
-                  << " iAbort: " << iAbort
-                  << " the specified UDSM returns an error while call UDSM with IDTASK: "
-                  << std::to_string(*IDTask) << "." 
-                  << " UDSM: " << rMaterialProperties[UDSM_NAME] 
-                  << " UDSM_NUMBER: " << rMaterialProperties[UDSM_NUMBER]
-                  << " Parameters: " << MaterialParameters
-                  << std::endl;
-      KRATOS_THROW_ERROR(std::runtime_error, 
-                        "the specified UDSM returns an error while call UDSM with IDTASK" + std::to_string(*IDTask) + ". UDSM",
-                        rMaterialProperties[UDSM_NAME]);
-   }
-
-   // KRATOS_INFO("11-SmallStrainUDSM3DLaw::CallUDSM()") << std::endl;
    KRATOS_CATCH("");
 }
 
@@ -997,14 +914,12 @@ void SmallStrainUDSM3DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Par
    {
       // stress and strain vectors must be initialized:
       const Vector& rStressVector = rValues.GetStressVector();
-      const Vector& rStrainVector = rValues.GetStrainVector();
-
       SetInternalStressVector(rStressVector);
 
+      const Vector& rStrainVector = rValues.GetStrainVector();
       SetInternalStrainVector(rStrainVector);
 
       int IDTask = INITIALISATION;
-
       CallUDSM(&IDTask, rValues);
 
       mIsModelInitialized = true;
@@ -1049,18 +964,29 @@ void SmallStrainUDSM3DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Param
 }
 
 //----------------------------------------------------------------------------------------
-void SmallStrainUDSM3DLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues)
+void SmallStrainUDSM3DLaw::SetInternalStrainVector(const Vector& rStrainVector)
 {
-   // KRATOS_INFO("0-SmallStrainUDSM3DLaw::UpdateInternalStrainVectorFinalized()") << std::endl;
-   const Vector& rStrainVector = rValues.GetStrainVector();
+   KRATOS_TRY
+   // KRATOS_INFO("0-SmallStrainUDSM3DLaw::SetInternalStrainVector()") << std::endl;
 
    for (unsigned int i=0; i < mStrainVectorFinalized.size(); ++i)
    {
       mStrainVectorFinalized[i] = rStrainVector(i);
    }
 
-   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::UpdateInternalStrainVectorFinalized()") << std::endl;
+   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::SetInternalStrainVector()") << std::endl;
+   KRATOS_CATCH("");
+}
 
+//----------------------------------------------------------------------------------------
+void SmallStrainUDSM3DLaw::
+   UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues)
+{
+   // KRATOS_INFO("0-SmallStrainUDSM3DLaw::UpdateInternalStrainVectorFinalized()") << std::endl;
+   const Vector& rStrainVector = rValues.GetStrainVector();
+   this->SetInternalStrainVector(rStrainVector);
+
+   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::UpdateInternalStrainVectorFinalized()") << std::endl;
 }
 
 //----------------------------------------------------------------------------------------
@@ -1324,7 +1250,9 @@ double& SmallStrainUDSM3DLaw::GetValue( const Variable<double>& rThisVariable, d
    const int index = GetStateVariableIndex(rThisVariable);
 
    KRATOS_DEBUG_ERROR_IF( index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1) )
-                        << "GetValue: State variable does not exist in UDSM. Requested index: " << index << std::endl;
+                        << "GetValue: Variable: "
+                        << rThisVariable
+                        << " does not exist in UDSM. Requested index: " << index << std::endl;
 
    rValue = mStateVariablesFinalized[index];
 
@@ -1358,7 +1286,9 @@ void SmallStrainUDSM3DLaw::SetValue( const Variable<double>& rThisVariable,
    const int index = GetStateVariableIndex(rThisVariable);
 
    KRATOS_DEBUG_ERROR_IF( index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1) )
-                        << "SetValue: State variable does not exist in UDSM. Requested index: " << index << std::endl;
+                        << "GetValue: Variable: "
+                        << rThisVariable
+                        << " does not exist in UDSM. Requested index: " << index << std::endl;
 
    mStateVariablesFinalized[index] = rValue;
 

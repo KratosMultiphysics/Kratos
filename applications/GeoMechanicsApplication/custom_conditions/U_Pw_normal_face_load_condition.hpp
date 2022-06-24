@@ -87,7 +87,8 @@ protected:
                                  const NormalFaceLoadVariables& Variables,
                                  const unsigned int& GPoint);
 
-    void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& Weight);
+    virtual double CalculateIntegrationCoefficient(const IndexType PointNumber,
+                                                   const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

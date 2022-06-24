@@ -12,7 +12,7 @@
 //
 
 // System includes
-
+#include <sstream>
 
 // External includes
 
@@ -20,9 +20,11 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/exception.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
+
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 1);
 
@@ -58,14 +60,55 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
 /// Destructor.
 ModelPart::~ModelPart()
 {
+    Clear();
+}
+
+void ModelPart::Clear()
+{
+    KRATOS_TRY
+
+    // Call recursively clear of all submodel parts
+    for (auto& r_sub_model_part : mSubModelParts) {
+        r_sub_model_part.Clear();
+    }
+
+    // Clear sub model parts list
+    mSubModelParts.clear();
+
+    // Clear meshes
+    for(auto& r_mesh : mMeshes) {
+        r_mesh.Clear();
+    }
+
+    // Clear meshes list
+    mMeshes.clear();
+
+    // Clear geometries
+    mGeometries.Clear();
+
+    mTables.clear();
+
     mpCommunicator->Clear();
 
-    for(auto i_mesh = mMeshes.begin() ; i_mesh != mMeshes.end() ; i_mesh++)
-      i_mesh->Clear();
+    this->AssignFlags(Flags());
 
+    KRATOS_CATCH("");
+}
 
-//     if (!IsSubModelPart())
-//       delete mpVariablesList;
+void ModelPart::Reset()
+{
+    KRATOS_TRY
+
+    // Clears the model part
+    Clear();
+
+    // construct a new variable list and process info. Old data ptrs is not destroyed
+    // since, same data may be shared with some other model parts as well.
+    mpVariablesList = Kratos::make_intrusive<VariablesList>();
+    mpProcessInfo = Kratos::make_shared<ProcessInfo>();
+    mBufferSize = 0;
+
+    KRATOS_CATCH("");
 }
 
 ModelPart::IndexType ModelPart::CreateSolutionStep()
@@ -485,8 +528,11 @@ void ModelPart::SetNodalSolutionStepVariablesList()
         << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
-    for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); ++i_node)
-        i_node->SetSolutionStepVariablesList(mpVariablesList);
+    // Iterate over nodes
+    auto& r_nodes_array = this->Nodes();
+    block_for_each(r_nodes_array,[&](NodeType& rNode) {
+        rNode.SetSolutionStepVariablesList(mpVariablesList);
+    });
 }
 
 /** Inserts a Table
@@ -639,7 +685,7 @@ ModelPart::PropertiesType::Pointer ModelPart::pGetProperties(
 /***********************************************************************************/
 /***********************************************************************************/
 
-ModelPart::PropertiesType::Pointer ModelPart::pGetProperties(
+const ModelPart::PropertiesType::Pointer ModelPart::pGetProperties(
     IndexType PropertiesId,
     IndexType MeshIndex
     ) const
@@ -685,7 +731,7 @@ ModelPart::PropertiesType& ModelPart::GetProperties(
 /***********************************************************************************/
 /***********************************************************************************/
 
-ModelPart::PropertiesType& ModelPart::GetProperties(
+const ModelPart::PropertiesType& ModelPart::GetProperties(
     IndexType PropertiesId,
     IndexType MeshIndex
     ) const
@@ -1729,7 +1775,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     )
 {
     KRATOS_TRY
-    
+
     if (IsSubModelPart()) {
         GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, GeometryId, pGeometryNodes);
         this->AddGeometry(p_new_geometry);
@@ -1746,7 +1792,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     this->AddGeometry(p_geometry);
 
     return p_geometry;
-    
+
     KRATOS_CATCH("")
 }
 
@@ -1757,7 +1803,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     )
 {
     KRATOS_TRY
-    
+
     if (IsSubModelPart()) {
         GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, GeometryId, pGeometry);
         this->AddGeometry(p_new_geometry);
@@ -1774,7 +1820,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     this->AddGeometry(p_geometry);
 
     return p_geometry;
-    
+
     KRATOS_CATCH("")
 }
 
@@ -1858,14 +1904,45 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 void ModelPart::AddGeometry(
     typename GeometryType::Pointer pNewGeometry)
 {
-    if (IsSubModelPart())
-    {
-        mpParentModelPart->AddGeometry(pNewGeometry);
+    if (IsSubModelPart()) {
+        if (!mpParentModelPart->HasGeometry(pNewGeometry->Id())) {
+            mpParentModelPart->AddGeometry(pNewGeometry);
+        }
     }
     /// Check if geometry id already used, is done within the geometry container.
     mGeometries.AddGeometry(pNewGeometry);
 }
 
+/** Inserts a list of geometries to a submodelpart provided their Id. Does nothing if applied to the top model part
+ */
+void ModelPart::AddGeometries(std::vector<IndexType> const& GeometriesIds)
+{
+    KRATOS_TRY
+    if(IsSubModelPart()) { // Does nothing if we are on the top model part
+        // Obtain from the root model part the corresponding list of geomnetries
+        ModelPart* p_root_model_part = &this->GetRootModelPart();
+        std::vector<GeometryType::Pointer> aux;
+        aux.reserve(GeometriesIds.size());
+        for(auto& r_id : GeometriesIds) {
+            auto it_found = p_root_model_part->Geometries().find(r_id);
+            if(it_found != p_root_model_part->GeometriesEnd()) {
+                aux.push_back( it_found.operator->() );
+            } else {
+                KRATOS_ERROR << "The geometry with Id " << r_id << " does not exist in the root model part" << std::endl;
+            }
+        }
+
+        ModelPart* p_current_part = this;
+        while(p_current_part->IsSubModelPart()) {
+            for(auto& p_geom : aux) {
+                p_current_part->AddGeometry(p_geom);
+            }
+
+            p_current_part = &(p_current_part->GetParentModelPart());
+        }
+    }
+    KRATOS_CATCH("");
+}
 
 /// Removes a geometry by id.
 void ModelPart::RemoveGeometry(
@@ -1919,50 +1996,118 @@ void ModelPart::RemoveGeometryFromAllLevels(std::string GeometryName)
 ///@name Sub Model Parts
 ///@{
 
-ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
+ModelPart& ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
-    // Here a warning would be enough. To be disscussed. Pooyan.
-    KRATOS_ERROR_IF(mSubModelParts.find(NewSubModelPartName) != mSubModelParts.end())
-        << "There is an already existing sub model part with name \"" << NewSubModelPartName
-        << "\" in model part: \"" << Name() << "\"" << std::endl;
+    const auto delim_pos = NewSubModelPartName.find('.');
+    const std::string& sub_model_part_name = NewSubModelPartName.substr(0, delim_pos);
 
-    ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetModel());
-    Kratos::shared_ptr<ModelPart>  p_model_part(praw); //we need to construct first a raw pointer
-    p_model_part->SetParentModelPart(this);
-    p_model_part->mBufferSize = this->mBufferSize;
-    p_model_part->mpProcessInfo = this->mpProcessInfo;
-    mSubModelParts.insert(p_model_part);
-    return *p_model_part;
+    if (delim_pos == std::string::npos) {
+        KRATOS_ERROR_IF(mSubModelParts.find(NewSubModelPartName) != mSubModelParts.end())
+            << "There is an already existing sub model part with name \"" << NewSubModelPartName
+            << "\" in model part: \"" << FullName() << "\"" << std::endl;
+
+        ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetModel());
+        Kratos::shared_ptr<ModelPart> p_model_part(praw); //we need to construct first a raw pointer
+        p_model_part->SetParentModelPart(this);
+        p_model_part->mBufferSize = this->mBufferSize;
+        p_model_part->mpProcessInfo = this->mpProcessInfo;
+        mSubModelParts.insert(p_model_part);
+        return *p_model_part;
+    } else {
+        ModelPart *p;
+        SubModelPartIterator i = mSubModelParts.find(sub_model_part_name);
+        if (i == mSubModelParts.end()) {
+            p = &CreateSubModelPart(sub_model_part_name);
+        } else {
+            p = &(*i);
+        }
+        return p->CreateSubModelPart(NewSubModelPartName.substr(delim_pos + 1));
+    }
 }
 
 ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
 {
-    SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
+    const auto delim_pos = SubModelPartName.find('.');
+    const std::string& sub_model_part_name = SubModelPartName.substr(0, delim_pos);
 
-    return *i;
+    SubModelPartIterator i = mSubModelParts.find(sub_model_part_name);
+    if (i == mSubModelParts.end()) {
+        std::stringstream err_msg;
+        err_msg << "There is no sub model part with name \"" << SubModelPartName
+                << "\" in model part \"" << FullName() << "\"\n"
+                << "The the following sub model parts are available:";
+        for (const auto& r_avail_smp_name : GetSubModelPartNames()) {
+            err_msg << "\n\t" << r_avail_smp_name;
+        }
+        KRATOS_ERROR << err_msg.str() << std::endl;
+    }
+
+    if (delim_pos == std::string::npos) {
+        return *i;
+    } else {
+        return i->GetSubModelPart(SubModelPartName.substr(delim_pos + 1));
+    }
 }
 
 ModelPart* ModelPart::pGetSubModelPart(std::string const& SubModelPartName)
 {
-    SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
+    const auto delim_pos = SubModelPartName.find('.');
+    const std::string& sub_model_part_name = SubModelPartName.substr(0, delim_pos);
 
-    return (i.base()->second).get();
+    SubModelPartIterator i = mSubModelParts.find(sub_model_part_name);
+    if (i == mSubModelParts.end()) {
+        std::stringstream err_msg;
+        err_msg << "There is no sub model part with name \"" << SubModelPartName
+                << "\" in model part \"" << FullName() << "\"\n"
+                << "The the following sub model parts are available:";
+        for (const auto& r_avail_smp_name : GetSubModelPartNames()) {
+            err_msg << "\n\t" << r_avail_smp_name;
+        }
+        KRATOS_ERROR << err_msg.str() << std::endl;
+    }
+
+    if (delim_pos == std::string::npos) {
+        return  (i.base()->second).get();
+    } else {
+        return i->pGetSubModelPart(SubModelPartName.substr(delim_pos + 1));
+    }
 }
 
 /** Remove a sub modelpart with given name.
 */
 void ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
 {
-    // finding the sub model part
-    SubModelPartIterator i_sub_model_part = mSubModelParts.find(ThisSubModelPartName);
+    const auto delim_pos = ThisSubModelPartName.find('.');
+    const std::string& sub_model_part_name = ThisSubModelPartName.substr(0, delim_pos);
 
-    if (i_sub_model_part == mSubModelParts.end())
-        return; // TODO: send a warning here. Pooyan.
+    SubModelPartIterator i = mSubModelParts.find(sub_model_part_name);
+    if (delim_pos == std::string::npos) {
+        if (i == mSubModelParts.end()) {
+            std::stringstream warning_msg;
+            warning_msg << "Trying to remove sub model part with name \"" << ThisSubModelPartName
+                    << "\" in model part \"" << FullName() << "\" which does not exist.\n"
+                    << "The the following sub model parts are available:";
+            for (const auto& r_avail_smp_name : GetSubModelPartNames()) {
+                warning_msg << "\n\t" << r_avail_smp_name;
+            }
+            KRATOS_WARNING("ModelPart") << warning_msg.str() << std::endl;
+        } else {
+            mSubModelParts.erase(ThisSubModelPartName);
+        }
+    } else {
+        if (i == mSubModelParts.end()) {
+            std::stringstream err_msg;
+            err_msg << "There is no sub model part with name \"" << sub_model_part_name
+                    << "\" in model part \"" << FullName() << "\"\n"
+                    << "The the following sub model parts are available:";
+            for (const auto& r_avail_smp_name : GetSubModelPartNames()) {
+                err_msg << "\n\t" << r_avail_smp_name;
+            }
+            KRATOS_ERROR << err_msg.str() << std::endl;
+        }
 
-    // now erase the pointer from the list
-    mSubModelParts.erase(ThisSubModelPartName);
+        return i->RemoveSubModelPart(ThisSubModelPartName.substr(delim_pos + 1));
+    }
 }
 
 /** Remove given sub model part.
@@ -1999,7 +2144,19 @@ const ModelPart& ModelPart::GetParentModelPart() const
 
 bool ModelPart::HasSubModelPart(std::string const& ThisSubModelPartName) const
 {
-    return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
+    const auto delim_pos = ThisSubModelPartName.find('.');
+    const std::string& sub_model_part_name = ThisSubModelPartName.substr(0, delim_pos);
+
+    auto i = mSubModelParts.find(sub_model_part_name);
+    if (i == mSubModelParts.end()) {
+        return false;
+    } else {
+        if (delim_pos != std::string::npos) {
+            return i->HasSubModelPart(ThisSubModelPartName.substr(delim_pos + 1));
+        } else {
+            return true;
+        }
+    }
 }
 
 std::vector<std::string> ModelPart::GetSubModelPartNames()
@@ -2046,27 +2203,30 @@ void ModelPart::SetBufferSizeSubModelParts(ModelPart::IndexType NewBufferSize)
 }
 
 /// run input validation
-int ModelPart::Check(const ProcessInfo& rCurrentProcessInfo) const
+int ModelPart::Check() const
 {
     KRATOS_TRY
-    int err = 0;
-    for (ElementConstantIterator elem_iterator = ElementsBegin(); elem_iterator != ElementsEnd(); elem_iterator++)
-    {
-        const auto& r_elem = *elem_iterator;
-        err = r_elem.Check(rCurrentProcessInfo);
-    }
-    for (ConditionConstantIterator condition_iterator = ConditionsBegin(); condition_iterator != ConditionsEnd(); condition_iterator++)
-    {
-        const auto& r_cond = *condition_iterator;
-        err = r_cond.Check(rCurrentProcessInfo);
-    }
-    for (MasterSlaveConstraintConstantIteratorType constraint_iterator = MasterSlaveConstraintsBegin();
-            constraint_iterator != MasterSlaveConstraintsEnd(); constraint_iterator++)
-    {
-        const auto& r_constraint = *constraint_iterator;
-        err = r_constraint.Check(rCurrentProcessInfo);
-    }
-    return err;
+
+    const ProcessInfo& r_current_process_info = this->GetProcessInfo();
+
+    // Checks for all of the elements
+    block_for_each(this->Elements(), [&r_current_process_info](const Element& rElement){
+        rElement.Check(r_current_process_info);
+    });
+
+    // Checks for all of the conditions
+    block_for_each(this->Conditions(), [&r_current_process_info](const Condition& rCondition){
+        rCondition.Check(r_current_process_info);
+    });
+
+    // Checks for all of the constraints
+    block_for_each(this->MasterSlaveConstraints(), [&r_current_process_info](const MasterSlaveConstraint& rConstraint){
+        rConstraint.Check(r_current_process_info);
+    });
+
+    return 0;
+
+
     KRATOS_CATCH("");
 }
 

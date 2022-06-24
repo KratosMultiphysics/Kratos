@@ -149,37 +149,47 @@ static double ncr(double n, double r) {
     return result;
 }
 static double npr(double n, double r) {return ncr(n, r) * fac(r);}
+static double IsEqual(const double a, const double b) {return a == b ? 1.0 : 0.0;}
+static double IsGreater(const double a, const double b) {return a > b ? 1.0 : 0.0;}
+static double IsGreaterEqual(const double a, const double b) {return a >= b ? 1.0 : 0.0;}
+static double IsLess(const double a, const double b) {return a < b ? 1.0 : 0.0;}
+static double IsLessEqual(const double a, const double b) {return a <= b ? 1.0 : 0.0;}
 
 static const te_variable functions[] = {
     /* must be in alphabetical order */
-    {"abs", fabs,     TE_FUNCTION1 | TE_FLAG_PURE, 0},
-    {"acos", acos,    TE_FUNCTION1 | TE_FLAG_PURE, 0},
-    {"asin", asin,    TE_FUNCTION1 | TE_FLAG_PURE, 0},
-    {"atan", atan,    TE_FUNCTION1 | TE_FLAG_PURE, 0},
-    {"atan2", atan2,  TE_FUNCTION2 | TE_FLAG_PURE, 0},
-// {"ceil", ceil, TE_FUNCTION1 | TE_FLAG_PURE, 0}, // NOTE: Fail in Windows
-    {"cos", cos,      TE_FUNCTION1 | TE_FLAG_PURE, 0},
-    {"cosh", cosh,    TE_FUNCTION1 | TE_FLAG_PURE, 0},
-    {"e", e,          TE_FUNCTION0 | TE_FLAG_PURE, 0},
-    {"exp", exp,      TE_FUNCTION1 | TE_FLAG_PURE, 0},
-    {"fac", fac,      TE_FUNCTION1 | TE_FLAG_PURE, 0},
-// {"floor", floor, TE_FUNCTION1 | TE_FLAG_PURE, 0}, // NOTE: Fail in Windows
-    {"ln", log,       TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"abs", fabs,                       TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"acos", acos,                      TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"asin", asin,                      TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"atan", atan,                      TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"atan2", atan2,                    TE_FUNCTION2 | TE_FLAG_PURE, 0},
+// {"ceil", ceil,                   TE_FUNCTION1 | TE_FLAG_PURE, 0}, // NOTE: Fail in Windows
+    {"cos", cos,                        TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"cosh", cosh,                      TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"e", e,                            TE_FUNCTION0 | TE_FLAG_PURE, 0},
+    {"exp", exp,                        TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"fac", fac,                        TE_FUNCTION1 | TE_FLAG_PURE, 0},
+// {"floor", floor,                   TE_FUNCTION1 | TE_FLAG_PURE, 0}, // NOTE: Fail in Windows
+    {"ln", log,                         TE_FUNCTION1 | TE_FLAG_PURE, 0},
 #ifdef TE_NAT_LOG
-    {"log", log,      TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"log", log,                        TE_FUNCTION1 | TE_FLAG_PURE, 0},
 #else
-    {"log", log10,    TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"log", log10,                      TE_FUNCTION1 | TE_FLAG_PURE, 0},
 #endif
-    {"log10", log10,  TE_FUNCTION1 | TE_FLAG_PURE, 0},
-    {"ncr", ncr,      TE_FUNCTION2 | TE_FLAG_PURE, 0},
-    {"npr", npr,      TE_FUNCTION2 | TE_FLAG_PURE, 0},
-    {"pi", pi,        TE_FUNCTION0 | TE_FLAG_PURE, 0},
-    {"pow", pow,      TE_FUNCTION2 | TE_FLAG_PURE, 0},
-    {"sin", sin,      TE_FUNCTION1 | TE_FLAG_PURE, 0},
-    {"sinh", sinh,    TE_FUNCTION1 | TE_FLAG_PURE, 0},
-    {"sqrt", sqrt,    TE_FUNCTION1 | TE_FLAG_PURE, 0},
-    {"tan", tan,      TE_FUNCTION1 | TE_FLAG_PURE, 0},
-    {"tanh", tanh,    TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"log10", log10,                    TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"ncr", ncr,                        TE_FUNCTION2 | TE_FLAG_PURE, 0},
+    {"npr", npr,                        TE_FUNCTION2 | TE_FLAG_PURE, 0},
+    {"pi", pi,                          TE_FUNCTION0 | TE_FLAG_PURE, 0},
+    {"pow", pow,                        TE_FUNCTION2 | TE_FLAG_PURE, 0},
+    {"sin", sin,                        TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"sinh", sinh,                      TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"sqrt", sqrt,                      TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"tan", tan,                        TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"tanh", tanh,                      TE_FUNCTION1 | TE_FLAG_PURE, 0},
+    {"zIsEqual", IsEqual,               TE_FUNCTION2 | TE_FLAG_PURE, 0},
+    {"zIsGreater", IsGreater,           TE_FUNCTION2 | TE_FLAG_PURE, 0},
+    {"zIsGreaterEqual", IsGreaterEqual, TE_FUNCTION2 | TE_FLAG_PURE, 0},
+    {"zIsLess", IsLess,                 TE_FUNCTION2 | TE_FLAG_PURE, 0},
+    {"zIsLessEqual", IsLessEqual,       TE_FUNCTION2 | TE_FLAG_PURE, 0},
     {0, 0, 0, 0}
 };
 
@@ -219,12 +229,12 @@ static const te_variable *find_lookup(const state *s, const char *name, int len)
 
 
 
-static double add(double a, double b) {return a + b;}
-static double sub(double a, double b) {return a - b;}
-static double mul(double a, double b) {return a * b;}
-static double divide(double a, double b) {return a / b;}
+static double add(const double a, const double b) {return a + b;}
+static double sub(const double a, const double b) {return a - b;}
+static double mul(const double a, const double b) {return a * b;}
+static double divide(const double a, const double b) {return a / b;}
 static double negate(double a) {return -a;}
-static double comma(double a, double b) {(void)a; return b;}
+static double comma(const double a, const double b) {(void)a; return b;}
 
 
 void next_token(state *s) {
@@ -247,7 +257,7 @@ void next_token(state *s) {
                 const char *start;
                 start = s->next;
                 while (isalpha(s->next[0]) || isdigit(s->next[0]) || (s->next[0] == '_')) s->next++;
-                
+
                 const te_variable *var = find_lookup(s, start, s->next - start);
                 if (!var) var = find_builtin(start, s->next - start);
 

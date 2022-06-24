@@ -1,12 +1,14 @@
 import time as timer
 import os
 import sys
+import pathlib
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.DEMApplication.DEM_restart_utility import DEMRestartUtility
 import KratosMultiphysics.DEMApplication.dem_default_input_parameters
 from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
+from KratosMultiphysics.DEMApplication.materials_assignation_utility import MaterialsAssignationUtility
 
 from importlib import import_module
 
@@ -50,15 +52,12 @@ class DEMAnalysisStage(AnalysisStage):
         self.project_parameters["problem_data"]["end_time"].SetDouble(final_time)
         self.project_parameters["problem_data"]["problem_name"].SetString(problem_name)
 
-    @classmethod
     def GetDefaultInputParameters(self):
         return KratosMultiphysics.DEMApplication.dem_default_input_parameters.GetDefaultInputParameters()
 
-    @classmethod
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid, IO.SKIP_TIMER)
 
-    @classmethod
     def GetMainPath(self):
         return os.getcwd()
 
@@ -78,11 +77,10 @@ class DEMAnalysisStage(AnalysisStage):
             self.write_mdpa_from_results = False
         else:
             self.write_mdpa_from_results = self.DEM_parameters["WriteMdpaFromResults"].GetBool()
-        self.creator_destructor = self.SetParticleCreatorDestructor()
+        self.creator_destructor = self.SetParticleCreatorDestructor(DEM_parameters["creator_destructor_settings"])
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
         self.PreUtilities = PreUtilities()
-        self.aux = AuxiliaryUtilities()
 
         # Set the print function TO_DO: do this better...
         self.KratosPrintInfo = self.procedures.KratosPrintInfo
@@ -111,6 +109,7 @@ class DEMAnalysisStage(AnalysisStage):
         #self._solver = self._GetSolver()
         self.SetFinalTime()
         self.AddVariables()
+
         super().__init__(model, self.DEM_parameters)
 
     def CreateModelParts(self):
@@ -158,21 +157,19 @@ class DEMAnalysisStage(AnalysisStage):
     def SetProcedures(self):
         return DEM_procedures.Procedures(self.DEM_parameters)
 
-    @classmethod
     def SetDemFemSearch(self):
         return DEM_FEM_Search()
 
-    @classmethod
     def GetParticleHistoryWatcher(self):
         return None
 
-    def SetParticleCreatorDestructor(self):
+    def SetParticleCreatorDestructor(self, creator_destructor_settings):
 
         self.watcher = self.GetParticleHistoryWatcher()
 
         if self.watcher is None:
-            return ParticleCreatorDestructor()
-        return ParticleCreatorDestructor(self.watcher)
+            return ParticleCreatorDestructor(creator_destructor_settings)
+        return ParticleCreatorDestructor(self.watcher, creator_destructor_settings)
 
     def SelectTranslationalScheme(self):
         if self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler':
@@ -200,16 +197,16 @@ class DEMAnalysisStage(AnalysisStage):
         translational_scheme = self.SelectTranslationalScheme()
 
         if translational_scheme is None:
-            self.KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
-            sys.exit("\nExecution was aborted.\n")
+            raise Exception('Error: selected translational integration scheme not defined. Please select a different scheme')
+
         return translational_scheme
 
     def SetRotationalScheme(self):
         rotational_scheme = self.SelectRotationalScheme()
 
         if rotational_scheme is None:
-            self.KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
-            sys.exit("\nExecution was aborted.\n")
+            raise Exception('Error: selected rotational integration scheme not defined. Please select a different scheme')
+
         return rotational_scheme
 
     def SetSolver(self):        # TODO why is this still here. -> main_script calls retrocompatibility
@@ -236,6 +233,8 @@ class DEMAnalysisStage(AnalysisStage):
         self.analytic_model_part = self.spheres_model_part.GetSubModelPart('AnalyticParticlesPart')
         analytic_particle_ids = [elem.Id for elem in self.spheres_model_part.Elements]
         self.analytic_model_part.AddElements(analytic_particle_ids)
+        analytic_node_ids = [node.Id for node in self.spheres_model_part.Nodes]
+        self.analytic_model_part.AddNodes(analytic_node_ids)
 
     def FillAnalyticSubModelPartsWithNewParticles(self):
         self.analytic_model_part = self.spheres_model_part.GetSubModelPart('AnalyticParticlesPart')
@@ -248,6 +247,8 @@ class DEMAnalysisStage(AnalysisStage):
         self.time_old_print = 0.0
 
         self.ReadModelParts()
+
+        self.SetMaterials()
 
         self.post_normal_impact_velocity_option = False
         if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
@@ -275,10 +276,7 @@ class DEMAnalysisStage(AnalysisStage):
         #Setting up the BoundingBox
         self.bounding_box_time_limits = self.procedures.SetBoundingBoxLimits(self.all_model_parts, self.creator_destructor)
 
-        #Finding the max id of the nodes... (it is necessary for anything that will add spheres to the self.spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.z
-        #max_Id = self.procedures.FindMaxNodeIdAccrossModelParts(self.creator_destructor, self.all_model_parts)   # TODO this seems not be longer required
-        #self.creator_destructor.SetMaxNodeId(max_Id)
-        self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)  #TODO check functionalities
+        self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)
 
         self.DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(self.DEM_parameters, self.graphs_path, self.spheres_model_part, self.rigid_face_model_part)
 
@@ -309,6 +307,25 @@ class DEMAnalysisStage(AnalysisStage):
 
         if self.DEM_parameters["output_configuration"]["print_number_of_neighbours_histogram"].GetBool():
             self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
+
+    def SetMaterials(self):
+
+        self.ReadMaterialsFile()
+
+        model_part_import_settings = self.DEM_parameters["solver_settings"]["model_import_settings"]
+        input_type = model_part_import_settings["input_type"].GetString()
+        if input_type == "rest":
+            return
+
+        materials_setter = MaterialsAssignationUtility(self.model, self.spheres_model_part, self.DEM_material_parameters)
+        materials_setter.AssignMaterialParametersToProperties()
+        materials_setter.AssignPropertiesToEntities()
+
+    def ReadMaterialsFile(self):
+        adapted_to_current_os_relative_path = pathlib.Path(self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString())
+        materials_file_abs_path = os.path.join(self.main_path, str(adapted_to_current_os_relative_path))
+        with open(materials_file_abs_path, 'r') as materials_file:
+            self.DEM_material_parameters = Parameters(materials_file.read())
 
     def SetSearchStrategy(self):
         self._GetSolver().search_strategy = self.parallelutils.GetSearchStrategy(self._GetSolver(), self.spheres_model_part)
@@ -438,6 +455,24 @@ class DEMAnalysisStage(AnalysisStage):
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
         self.ConvertClusterFileNamesFromRelativePathToAbsolutePath()
+        self.CheckConsistencyOfElementsAndNodesInEverySubModelPart()
+
+    def CheckConsistencyOfElementsAndNodesInEverySubModelPart(self):
+        def ErrorMessage(name):
+            raise Exception(" ModelPart (or SubModelPart) "+ name + " has a different number of nodes and elements (particles)! \n")
+
+        if self.spheres_model_part.NumberOfNodes(0) != self.spheres_model_part.NumberOfElements(0):
+            ErrorMessage(self.spheres_model_part.Name)
+        if self.cluster_model_part.NumberOfNodes(0) != self.cluster_model_part.NumberOfElements(0):
+            ErrorMessage(self.cluster_model_part.Name)
+
+        for submp in self.spheres_model_part.SubModelParts:
+            if submp.NumberOfNodes(0) != submp.NumberOfElements(0):
+                ErrorMessage(submp.Name)
+
+        for submp in self.cluster_model_part.SubModelParts:
+            if submp.NumberOfNodes(0) != submp.NumberOfElements(0):
+                ErrorMessage(submp.Name)
 
     def ConvertClusterFileNamesFromRelativePathToAbsolutePath(self):
         for properties in self.cluster_model_part.Properties:
@@ -475,7 +510,7 @@ class DEMAnalysisStage(AnalysisStage):
     def SetInlet(self):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             #Constructing the inlet and initializing it (must be done AFTER the self.spheres_model_part Initialize)
-            self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part, self.seed)
+            self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part, self.DEM_parameters["dem_inlets_settings"], self.seed)
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor, self._GetSolver().continuum_type)
 
     def SetInitialNodalValues(self):
@@ -496,14 +531,12 @@ class DEMAnalysisStage(AnalysisStage):
                     t = self.time
                     self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, eval(self.DEM_parameters["ZStrainValue"].GetString()))
 
-
     def UpdateIsTimeToPrintInModelParts(self, is_time_to_print):
         self.UpdateIsTimeToPrintInOneModelPart(self.spheres_model_part, is_time_to_print)
         self.UpdateIsTimeToPrintInOneModelPart(self.cluster_model_part, is_time_to_print)
         self.UpdateIsTimeToPrintInOneModelPart(self.dem_inlet_model_part, is_time_to_print)
         self.UpdateIsTimeToPrintInOneModelPart(self.rigid_face_model_part, is_time_to_print)
 
-    @classmethod
     def UpdateIsTimeToPrintInOneModelPart(self, model_part, is_time_to_print):
         model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
@@ -531,6 +564,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time, self.graphs_path)
         self.materialTest.MeasureForcesAndPressure()
         self.materialTest.PrintGraph(self.time)
+        self.materialTest.PrintCoordinationNumberGraph(self.time, self._GetSolver())
         self.DEMFEMProcedures.PrintGraph(self.time)
         self.DEMFEMProcedures.PrintBallsGraph(self.time)
         self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
@@ -586,7 +620,8 @@ class DEMAnalysisStage(AnalysisStage):
 
         del self.KratosPrintInfo
         del self.all_model_parts
-        del self.demio
+        if self.do_print_results_option:
+            del self.demio
         del self.procedures
         del self.creator_destructor
         del self.dem_fem_search

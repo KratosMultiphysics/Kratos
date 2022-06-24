@@ -18,6 +18,13 @@ namespace Spectra {
 /// symmetric real matrix \f$A\f$, i.e., calculating \f$y=Ax\f$ for any vector
 /// \f$x\f$. It is mainly used in the SymEigsSolver eigen solver.
 ///
+/// \tparam Scalar_ The element type of the matrix, for example,
+///                 `float`, `double`, and `long double`.
+/// \tparam Uplo    Either `Eigen::Lower` or `Eigen::Upper`, indicating which
+///                 triangular part of the matrix is used.
+/// \tparam Flags   Either `Eigen::ColMajor` or `Eigen::RowMajor`, indicating
+///                 the storage format of the input matrix.
+///
 template <typename Scalar_, int Uplo = Eigen::Lower, int Flags = Eigen::ColMajor>
 class DenseSymMatProd
 {
@@ -46,9 +53,14 @@ public:
     /// `Eigen::MatrixXf`), or its mapped version
     /// (e.g. `Eigen::Map<Eigen::MatrixXd>`).
     ///
-    DenseSymMatProd(ConstGenericMatrix& mat) :
+    template <typename Derived>
+    DenseSymMatProd(const Eigen::MatrixBase<Derived>& mat) :
         m_mat(mat)
-    {}
+    {
+        static_assert(
+            static_cast<int>(Derived::PlainObject::IsRowMajor) == static_cast<int>(Matrix::IsRowMajor),
+            "DenseSymMatProd: the \"Flags\" template parameter does not match the input matrix (Eigen::ColMajor/Eigen::RowMajor)");
+    }
 
     ///
     /// Return the number of rows of the underlying matrix.

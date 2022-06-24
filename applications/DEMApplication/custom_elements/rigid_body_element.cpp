@@ -60,18 +60,20 @@ namespace Kratos {
 
     void RigidBodyElement3D::Initialize(const ProcessInfo& r_process_info) {
 
-        if (GetGeometry()[0].GetDof(VELOCITY_X).IsFixed())          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
-        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
-        if (GetGeometry()[0].GetDof(VELOCITY_Y).IsFixed())          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
-        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
-        if (GetGeometry()[0].GetDof(VELOCITY_Z).IsFixed())          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
-        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
-        if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_X).IsFixed())  GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
-        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
-        if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Y).IsFixed())  GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
-        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
-        if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Z).IsFixed())  GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
-        else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+        auto& central_node = GetGeometry()[0];
+
+        if (central_node.GetDof(VELOCITY_X).IsFixed())          central_node.Set(DEMFlags::FIXED_VEL_X, true);
+        else                                                        central_node.Set(DEMFlags::FIXED_VEL_X, false);
+        if (central_node.GetDof(VELOCITY_Y).IsFixed())          central_node.Set(DEMFlags::FIXED_VEL_Y, true);
+        else                                                        central_node.Set(DEMFlags::FIXED_VEL_Y, false);
+        if (central_node.GetDof(VELOCITY_Z).IsFixed())          central_node.Set(DEMFlags::FIXED_VEL_Z, true);
+        else                                                        central_node.Set(DEMFlags::FIXED_VEL_Z, false);
+        if (central_node.GetDof(ANGULAR_VELOCITY_X).IsFixed())  central_node.Set(DEMFlags::FIXED_ANG_VEL_X, true);
+        else                                                        central_node.Set(DEMFlags::FIXED_ANG_VEL_X, false);
+        if (central_node.GetDof(ANGULAR_VELOCITY_Y).IsFixed())  central_node.Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+        else                                                        central_node.Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+        if (central_node.GetDof(ANGULAR_VELOCITY_Z).IsFixed())  central_node.Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+        else                                                        central_node.Set(DEMFlags::FIXED_ANG_VEL_Z, false);
 
         DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
         DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
@@ -142,11 +144,11 @@ namespace Kratos {
             GeometryFunctions::ConstructLocalTensor(base_principal_moments_of_inertia, LocalTensor);
             GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensor, GlobalTensor);
             GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensor, angular_velocity, angular_momentum);
-            noalias(this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_MOMENTUM)) = angular_momentum;
+            noalias(central_node.FastGetSolutionStepValue(ANGULAR_MOMENTUM)) = angular_momentum;
 
             array_1d<double, 3> local_angular_velocity;
             GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
-            noalias(this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
+            noalias(central_node.FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
         }
     }
 

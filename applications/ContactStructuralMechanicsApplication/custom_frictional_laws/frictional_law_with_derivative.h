@@ -75,10 +75,10 @@ public:
     typedef std::size_t SizeType;
 
     /// Definition of the derivative data
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster> DerivativeDataType;
 
     /// The definition of the mortar operators
-    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, true, TNormalVariation, TNumNodesMaster> MortarConditionMatrices;
+    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, true, TNumNodesMaster> MortarConditionMatrices;
 
     /// Zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();

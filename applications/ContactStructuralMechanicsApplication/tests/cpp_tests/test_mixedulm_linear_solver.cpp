@@ -92,7 +92,7 @@ namespace Kratos
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
 //             Parameters empty_parameters =  Parameters(R"({})");
 //             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
-            LinearSolverType::Pointer pmixed_solver = LinearSolverType::Pointer( new MixedULMLinearSolverType(psolver) );
+            MixedULMLinearSolverType::Pointer pmixed_solver = Kratos::make_shared<MixedULMLinearSolverType>(psolver);
 
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
@@ -156,11 +156,16 @@ namespace Kratos
 
             // We solve the block system
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+            std::size_t counter = 0;
+            for (auto& r_dof : pmixed_solver->GetDisplacementDofs()) {
+                KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
+                KRATOS_CHECK_EQUAL(r_dof.Id(), counter + 1);
+                KRATOS_CHECK_EQUAL(r_dof.GetVariable(), DISPLACEMENT_X);
+                ++counter;
+            }
             pmixed_solver->Solve(A, Dx, b);
 
-            for (std::size_t i = 0; i < system_size; ++i) {
-                KRATOS_CHECK_NEAR(ref_Dx[i], Dx[i], tolerance);
-            }
+            KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
         }
 
         /**
@@ -176,7 +181,7 @@ namespace Kratos
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
 //             Parameters empty_parameters =  Parameters(R"({})");
 //             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
-            LinearSolverType::Pointer pmixed_solver = LinearSolverType::Pointer( new MixedULMLinearSolverType(psolver) );
+            MixedULMLinearSolverType::Pointer pmixed_solver = Kratos::make_shared<MixedULMLinearSolverType>(psolver);
 
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
@@ -248,11 +253,16 @@ namespace Kratos
 
             // We solve the block system
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+            std::size_t counter = 0;
+            for (auto& r_dof : pmixed_solver->GetDisplacementDofs()) {
+                KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
+                KRATOS_CHECK_EQUAL(r_dof.Id(), counter + 1);
+                KRATOS_CHECK_EQUAL(r_dof.GetVariable(), DISPLACEMENT_X);
+                ++counter;
+            }
             pmixed_solver->Solve(A, Dx, b);
 
-            for (std::size_t i = 0; i < system_size; ++i) {
-                KRATOS_CHECK_NEAR(ref_Dx[i], Dx[i], tolerance);
-            }
+            KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
         }
 
         /**
@@ -268,7 +278,7 @@ namespace Kratos
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
 //             Parameters empty_parameters =  Parameters(R"({})");
 //             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
-            LinearSolverType::Pointer pmixed_solver = LinearSolverType::Pointer( new MixedULMLinearSolverType(psolver) );
+            MixedULMLinearSolverType::Pointer pmixed_solver = Kratos::make_shared<MixedULMLinearSolverType>(psolver);
 
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
@@ -360,11 +370,15 @@ namespace Kratos
 
             // We solve the block system
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+            std::size_t counter = 0;
+            for (auto& r_dof : pmixed_solver->GetDisplacementDofs()) {
+                KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
+                KRATOS_CHECK_EQUAL(r_dof.GetVariable(), DISPLACEMENT_X);
+                ++counter;
+            }
             pmixed_solver->Solve(A, Dx, b);
 
-            for (std::size_t i = 0; i < system_size; ++i) {
-                KRATOS_CHECK_NEAR(ref_Dx[i], Dx[i], tolerance);
-            }
+            KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
         }
 
         /**
@@ -381,7 +395,7 @@ namespace Kratos
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
 //             Parameters empty_parameters =  Parameters(R"({})");
 //             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
-            LinearSolverType::Pointer pmixed_solver = LinearSolverType::Pointer( new MixedULMLinearSolverType(psolver) );
+            MixedULMLinearSolverType::Pointer pmixed_solver = Kratos::make_shared<MixedULMLinearSolverType>(psolver);
 
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
@@ -454,11 +468,15 @@ namespace Kratos
 
             // We solve the block system
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+            std::size_t counter = 0;
+            for (auto& r_dof : pmixed_solver->GetDisplacementDofs()) {
+                KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
+                KRATOS_CHECK(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y);
+                ++counter;
+            }
             pmixed_solver->Solve(A, Dx, b);
 
-            for (std::size_t i = 0; i < system_size; ++i) {
-                KRATOS_CHECK_NEAR(ref_Dx[i], Dx[i], tolerance);
-            }
+            KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
         }
 
         /**
@@ -474,7 +492,7 @@ namespace Kratos
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
 //             Parameters empty_parameters =  Parameters(R"({})");
 //             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
-            LinearSolverType::Pointer pmixed_solver = LinearSolverType::Pointer( new MixedULMLinearSolverType(psolver) );
+            MixedULMLinearSolverType::Pointer pmixed_solver = Kratos::make_shared<MixedULMLinearSolverType>(psolver);
 
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
@@ -590,11 +608,15 @@ namespace Kratos
 
             // We solve the block system
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+            std::size_t counter = 0;
+            for (auto& r_dof : pmixed_solver->GetDisplacementDofs()) {
+                KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
+                KRATOS_CHECK(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y);
+                ++counter;
+            }
             pmixed_solver->Solve(A, Dx, b);
 
-            for (std::size_t i = 0; i < system_size; ++i) {
-                KRATOS_CHECK_NEAR(ref_Dx[i], Dx[i], tolerance);
-            }
+            KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
         }
 
         /**
@@ -611,7 +633,7 @@ namespace Kratos
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
 //             Parameters empty_parameters =  Parameters(R"({})");
 //             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
-            LinearSolverType::Pointer pmixed_solver = LinearSolverType::Pointer( new MixedULMLinearSolverType(psolver) );
+            MixedULMLinearSolverType::Pointer pmixed_solver = Kratos::make_shared<MixedULMLinearSolverType>(psolver);
 
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
@@ -693,11 +715,15 @@ namespace Kratos
 
             // We solve the block system
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+            std::size_t counter = 0;
+            for (auto& r_dof : pmixed_solver->GetDisplacementDofs()) {
+                KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
+                KRATOS_CHECK(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y || r_dof.GetVariable() == DISPLACEMENT_Z);
+                ++counter;
+            }
             pmixed_solver->Solve(A, Dx, b);
 
-            for (std::size_t i = 0; i < system_size; ++i) {
-                KRATOS_CHECK_NEAR(std::abs(ref_Dx[i] - Dx[i])/std::abs(ref_Dx[i]), 0.0, tolerance);
-            }
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(Dx, ref_Dx, tolerance);
         }
 
         /**
@@ -713,7 +739,7 @@ namespace Kratos
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
 //             Parameters empty_parameters =  Parameters(R"({})");
 //             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
-            LinearSolverType::Pointer pmixed_solver = LinearSolverType::Pointer( new MixedULMLinearSolverType(psolver) );
+            MixedULMLinearSolverType::Pointer pmixed_solver = Kratos::make_shared<MixedULMLinearSolverType>(psolver);
 
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
@@ -853,11 +879,15 @@ namespace Kratos
 
             // We solve the block system
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+            std::size_t counter = 0;
+            for (auto& r_dof : pmixed_solver->GetDisplacementDofs()) {
+                KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
+                KRATOS_CHECK(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y || r_dof.GetVariable() == DISPLACEMENT_Z);
+                ++counter;
+            }
             pmixed_solver->Solve(A, Dx, b);
 
-            for (std::size_t i = 0; i < system_size; ++i) {
-                KRATOS_CHECK_NEAR(std::abs(ref_Dx[i] - Dx[i])/std::abs(ref_Dx[i]), 0.0, tolerance);
-            }
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(Dx, ref_Dx, tolerance);
         }
 
         /**
@@ -873,7 +903,7 @@ namespace Kratos
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
 //             Parameters empty_parameters =  Parameters(R"({})");
 //             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
-            LinearSolverType::Pointer pmixed_solver = LinearSolverType::Pointer( new MixedULMLinearSolverType(psolver) );
+            MixedULMLinearSolverType::Pointer pmixed_solver = Kratos::make_shared<MixedULMLinearSolverType>(psolver);
 
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
@@ -971,11 +1001,15 @@ namespace Kratos
 
                 // We solve the block system
                 pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+                std::size_t counter = 0;
+                for (auto& r_dof : pmixed_solver->GetDisplacementDofs()) {
+                    KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
+                    KRATOS_CHECK(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y);
+                    ++counter;
+                }
                 pmixed_solver->Solve(A, Dx, b);
 
-                for (std::size_t i = 0; i < system_size; ++i) {
-                    KRATOS_CHECK_NEAR(std::abs(ref_Dx[i] - Dx[i])/std::abs(ref_Dx[i]), 0.0, tolerance);
-                }
+                KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
             }
         }
     } // namespace Testing

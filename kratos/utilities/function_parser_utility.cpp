@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <regex>
 
 // External includes
 #include "tinyexpr/tinyexpr/tinyexpr.h"
@@ -22,6 +23,30 @@
 
 namespace Kratos
 {
+
+// A check only to check that the x is not part of exp
+inline bool CheckThereIsNotx(const std::string& rString)
+{
+    const auto first_x = rString.find(std::string("x"));
+    if (first_x != std::string::npos) {
+        const std::string exp_string = "exp";
+        const char e_char = exp_string[0];
+        const char x_char = exp_string[1];
+        const char p_char = exp_string[2];
+        for(std::size_t i = first_x; i < rString.size(); ++i) {
+            if(rString[i] == x_char) {
+                if (!(rString[i - 1] == e_char && rString[i + 1] == p_char)) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFunctionBody)
     : mFunctionBody(rFunctionBody)
@@ -36,7 +61,11 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFun
     InitializeParser();
 
     // Check if it depends on space
-    if (mFunctionBody.find(std::string("x")) == std::string::npos &&
+#if !(defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 9))))
+    const std::regex space_regex("\\b[xyz]\\b", std::regex_constants::icase);
+    mDependsOnSpace = std::regex_search(mFunctionBody, space_regex);
+#else
+    if (CheckThereIsNotx(mFunctionBody)                           &&
         mFunctionBody.find(std::string("y")) == std::string::npos &&
         mFunctionBody.find(std::string("z")) == std::string::npos &&
         mFunctionBody.find(std::string("X")) == std::string::npos &&
@@ -44,6 +73,7 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFun
         mFunctionBody.find(std::string("Z")) == std::string::npos) {
         mDependsOnSpace = false;
     }
+#endif
 }
 
 /***********************************************************************************/
@@ -63,7 +93,10 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(BasicGenericFunctionUti
 
 BasicGenericFunctionUtility::~BasicGenericFunctionUtility()
 {
-    te_free(mpTinyExpr);
+    for (std::size_t i = 0; i < mpTinyExpr.size(); ++i) {
+        te_free(mpTinyExpr[i]);
+        mpTinyExpr[i] =  nullptr;
+    }
 }
 
 /***********************************************************************************/
@@ -116,7 +149,16 @@ double BasicGenericFunctionUtility::CallFunction(
     mValues[5] = Y;
     mValues[6] = Z;
 
-    return te_eval(mpTinyExpr);
+    // Default function
+    if (mpTinyExpr.size() == 1) {
+      return te_eval(mpTinyExpr[0]);
+    } else { // Ternary expression
+      if (te_eval(mpTinyExpr[0]) > 0.0) {
+          return te_eval(mpTinyExpr[1]);
+      } else {
+          return te_eval(mpTinyExpr[2]);
+      }
+    }
 }
 
 /***********************************************************************************/
@@ -125,7 +167,7 @@ double BasicGenericFunctionUtility::CallFunction(
 void BasicGenericFunctionUtility::InitializeParser()
 {
     // Initialize
-    if (mpTinyExpr == nullptr) {
+    if (mpTinyExpr[0] == nullptr) {
         int err;
 
         /* Defining table */
@@ -140,9 +182,81 @@ void BasicGenericFunctionUtility::InitializeParser()
         /* Store variable names and pointers. */
         const te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"X", &X}, {"Y", &Y}, {"Z", &Z}};
 
+        auto fct_checker = [](const bool IsValid, const std::string& rFunction, const int ErrPos){
+            if (IsValid) return;
+
+            std::stringstream ss;
+            ss << "\nParsing error in function: " << rFunction << '\n';
+            ss <<   "Error occurred near here : ";
+            for(int i=0; i<ErrPos-1; ++i) ss << ' ';
+            ss << "^ (char ["<< ErrPos-1 << "])\n";
+            ss << "Check your locale (e.g. if \".\" or \",\" is used as decimal point)";
+
+            KRATOS_ERROR << ss.str() << std::endl;
+        };
+
         /* Compile the expression with variables. */
-        mpTinyExpr = te_compile(mFunctionBody.c_str(), vars, 7, &err);
-        KRATOS_ERROR_IF_NOT(mpTinyExpr) << "Parsing error in function: " << mFunctionBody << std::endl;
+        const bool python_like_ternary = StringUtilities::ContainsPartialString(mFunctionBody, "if") ? true : false;
+        if (!python_like_ternary) {
+            mpTinyExpr[0] = te_compile(mFunctionBody.c_str(), vars, 7, &err);
+            fct_checker(mpTinyExpr[0], mFunctionBody, err);
+        } else { // Ternary operator
+            mpTinyExpr.resize(3, nullptr);
+            std::string condition, first_function, second_function;
+
+            // C like ternary operator
+            std::vector<std::string> splitted_string;
+            KRATOS_ERROR_IF_NOT(StringUtilities::ContainsPartialString(mFunctionBody, "else")) << "Parsing error in function: " << mFunctionBody << " if defined, but not else" << std::endl;
+            std::string aux_string = StringUtilities::ReplaceAllSubstrings(mFunctionBody, "if", "$");
+            KRATOS_ERROR_IF(splitted_string.size() > 2) << "Nested ternary functions not supported" << std::endl;
+            splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '$');
+            first_function = splitted_string[0];
+            aux_string = StringUtilities::ReplaceAllSubstrings(splitted_string[1], "else", "$");
+            splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '$');
+            condition = splitted_string[0];
+            second_function = splitted_string[1];
+
+            // Parsing the functions
+            mpTinyExpr[1] = te_compile(first_function.c_str(), vars, 7, &err);
+            fct_checker(mpTinyExpr[1], first_function, err);
+
+            mpTinyExpr[2] = te_compile(second_function.c_str(), vars, 7, &err);
+            fct_checker(mpTinyExpr[2], second_function, err);
+
+            // Parsing the condition
+            if (StringUtilities::ContainsPartialString(condition, "==")) {
+                // Auxiliar string function
+                const std::string aux_string = StringUtilities::ReplaceAllSubstrings(condition, "==", "=");
+                splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '=');
+                const std::string aux_function = "zIsEqual(" + splitted_string[0] + ", " + splitted_string[1] + ")";
+                mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
+            } else if (StringUtilities::ContainsPartialString(condition, "<=")) {
+                // Auxiliar string function
+                const std::string aux_string = StringUtilities::ReplaceAllSubstrings(condition, "<=", "<");
+                splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '<');
+                const std::string aux_function = "zIsLessEqual(" + splitted_string[0] + ", " + splitted_string[1] + ")";
+                mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
+            } else if (StringUtilities::ContainsPartialString(condition, ">=")) {
+                // Auxiliar string function
+                const std::string aux_string = StringUtilities::ReplaceAllSubstrings(condition, ">=", ">");
+                splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '>');
+                const std::string aux_function = "zIsGreaterEqual(" + splitted_string[0] + ", " + splitted_string[1] + ")";
+                mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
+            } else if (StringUtilities::ContainsPartialString(condition, "<")) {
+                // Auxiliar string function
+                splitted_string = StringUtilities::SplitStringByDelimiter(condition, '<');
+                const std::string aux_function = "zIsLess(" + splitted_string[0] + ", " + splitted_string[1] + ")";
+                mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
+            } else if (StringUtilities::ContainsPartialString(condition, ">")) {
+                // Auxiliar string function
+                splitted_string = StringUtilities::SplitStringByDelimiter(condition, '>');
+                const std::string aux_function = "zIsGreater(" + splitted_string[0] + ", " + splitted_string[1] + ")";
+                mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
+            } else {
+                KRATOS_ERROR << "Cannot identify condition: " << condition << std::endl;
+            }
+            fct_checker(mpTinyExpr[0], condition, err);
+        }
     }
 }
 

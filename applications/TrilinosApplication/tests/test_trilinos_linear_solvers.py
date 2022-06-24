@@ -629,7 +629,6 @@ class TestAMGCLMPILinearSolvers(TestLinearSolvers):
             self._RunParametrized(params_string)
 
         with self.subTest('SubComm'):
-            self.skipTest("AMGCL does not yet support SubCommunicators")
             self._RunParametrizedWithSubComm(params_string)
 
     def test_amgcl_mpi_solver_bicgstab(self):
@@ -651,7 +650,6 @@ class TestAMGCLMPILinearSolvers(TestLinearSolvers):
             self._RunParametrized(params_string)
 
         with self.subTest('SubComm'):
-            self.skipTest("AMGCL does not yet support SubCommunicators")
             self._RunParametrizedWithSubComm(params_string)
 
     def test_amgcl_mpi_solver_bicgstabl(self):
@@ -673,7 +671,6 @@ class TestAMGCLMPILinearSolvers(TestLinearSolvers):
             self._RunParametrized(params_string)
 
         with self.subTest('SubComm'):
-            self.skipTest("AMGCL does not yet support SubCommunicators")
             self._RunParametrizedWithSubComm(params_string)
 
     def test_amgcl_mpi_solver_gmres(self):
@@ -695,7 +692,6 @@ class TestAMGCLMPILinearSolvers(TestLinearSolvers):
             self._RunParametrized(params_string)
 
         with self.subTest('SubComm'):
-            self.skipTest("AMGCL does not yet support SubCommunicators")
             self._RunParametrizedWithSubComm(params_string)
 
 

@@ -23,7 +23,6 @@
     "coupling_weighing_type" : 1,
     "coupling_weighing_type_comment" : "{fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)",
     "interaction_start_time" : 0.01,
-    "min_fluid_fraction_projected" : 0.0,
     "forward_coupling" : {
         "time_averaging_type" : 0
     },
@@ -112,6 +111,11 @@
             "input_type" : "mdpa",
             "input_filename" : "fluid_dem_tests/settling_cubeFluid"
         },
+
+        "material_import_settings"    : {
+            "materials_filename" : "fluid_dem_tests/FluidMaterials.json"
+        },
+
         "echo_level" : 0,
         "compute_reactions" : false,
         "maximum_iterations" : 10,
@@ -188,7 +192,10 @@
     "CleanIndentationsOption" : false,
     "solver_settings" : {
         "strategy" : "swimming_sphere_strategy",
-        "RemoveBallsInitiallyTouchingWalls" : false
+        "RemoveBallsInitiallyTouchingWalls" : false,
+        "material_import_settings"           : {
+            "materials_filename" : "fluid_dem_tests/MaterialsDEM.json"
+        }
     },
     "VirtualMassCoefficient" : 1.0,
     "RollingFrictionOption" : false,

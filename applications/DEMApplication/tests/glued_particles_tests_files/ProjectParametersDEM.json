@@ -24,7 +24,10 @@
 "CleanIndentationsOption"          : true,
 "solver_settings" : {
     "strategy"                 : "sphere_strategy",
-    "RemoveBallsInitiallyTouchingWalls"          : false
+    "RemoveBallsInitiallyTouchingWalls"          : false,
+    "material_import_settings"           : {
+        "materials_filename" : "MaterialsDEM.json"
+    }
 },
 
 "RemoveBallsInEmbeddedOption"      : true,
@@ -46,13 +49,13 @@
 "AutomaticTimestep"                : false,
 "DeltaTimeSafetyFactor"            : 1.0,
 "MaxTimeStep"                      : 1e-3,
-"FinalTime"                        : 1.0,
+"FinalTime"                        : 0.1,
 "ControlTime"                      : 4.0,
 "NeighbourSearchFrequency"         : 50,
 
-"GraphExportFreq"                  : 1e-3,
-"VelTrapGraphExportFreq"           : 1e-3,
-"OutputTimeStep"                   : 1e-2,
+"GraphExportFreq"                  : 1e-0,
+"VelTrapGraphExportFreq"           : 1e-0,
+"OutputTimeStep"                   : 1e-3,
 "PostBoundingBox"                  : true,
 "PostDisplacement"                 : false,
 "PostVelocity"                     : true,

@@ -10,18 +10,18 @@
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEM_Rankine : public DEM_KDEM {
+
+        typedef DEM_KDEM BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_Rankine);
 
-        DEM_KDEM_Rankine() {
-        }
+        DEM_KDEM_Rankine() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
         void Check(Properties::Pointer pProp) const override;
 
-        ~DEM_KDEM_Rankine() {
-        }
+        ~DEM_KDEM_Rankine() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 

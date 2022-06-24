@@ -27675,11 +27675,24 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, 
 /****************************** END AD REPLACEMENT *********************************/
 /***********************************************************************************/
 
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
+void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::CalculateLocalRHS(
+    Vector& rLocalRHS,
+    const MortarConditionMatrices& rMortarConditionMatrices,
+    const DerivativeDataType& rDerivativeData,
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    StaticCalculateLocalRHS(this, rLocalRHS, rMortarConditionMatrices, rDerivativeData, rActiveInactive, rCurrentProcessInfo);
+}
+
 /***************************** BEGIN AD REPLACEMENT ********************************/
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2,2, false, 2>::CalculateLocalRHS(
+void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2,2, false, 2>::StaticCalculateLocalRHS(
+    PairedCondition* pCondition,
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -27692,7 +27705,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2,2, 
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetParentGeometry();
+    const GeometryType& r_geometry = pCondition->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 2, 2>& u1 = rDerivativeData.u1;
@@ -27700,12 +27713,12 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2,2, 
     const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
 
-    const BoundedMatrix<double, 2, 2> LM = MortarUtilities::GetVariableMatrix<2, 2>(this->GetParentGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0);
+    const BoundedMatrix<double, 2, 2> LM = MortarUtilities::GetVariableMatrix<2, 2>(r_geometry, VECTOR_LAGRANGE_MULTIPLIER, 0);
 
     const BoundedMatrix<double, 2, 2>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(r_geometry, DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -27794,7 +27807,8 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2,2, 
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, false, 3>::CalculateLocalRHS(
+void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, false, 3>::StaticCalculateLocalRHS(
+    PairedCondition* pCondition,
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -27807,7 +27821,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, 
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetParentGeometry();
+    const GeometryType& r_geometry = pCondition->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
@@ -27815,12 +27829,12 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, 
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
 
-    const BoundedMatrix<double, 3, 3> LM = MortarUtilities::GetVariableMatrix<3, 3>(this->GetParentGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0);
+    const BoundedMatrix<double, 3, 3> LM = MortarUtilities::GetVariableMatrix<3, 3>(r_geometry, VECTOR_LAGRANGE_MULTIPLIER, 0);
 
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(r_geometry, DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -28006,7 +28020,8 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, 
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, false, 4>::CalculateLocalRHS(
+void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, false, 4>::StaticCalculateLocalRHS(
+    PairedCondition* pCondition,
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -28019,7 +28034,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, 
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetParentGeometry();
+    const GeometryType& r_geometry = pCondition->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
@@ -28027,12 +28042,12 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, 
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
 
-    const BoundedMatrix<double, 4, 3> LM = MortarUtilities::GetVariableMatrix<3, 4>(this->GetParentGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0);
+    const BoundedMatrix<double, 4, 3> LM = MortarUtilities::GetVariableMatrix<3, 4>(r_geometry, VECTOR_LAGRANGE_MULTIPLIER, 0);
 
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(r_geometry, DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -28315,7 +28330,8 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, 
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, false, 4>::CalculateLocalRHS(
+void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, false, 4>::StaticCalculateLocalRHS(
+    PairedCondition* pCondition,
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -28328,7 +28344,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, 
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetParentGeometry();
+    const GeometryType& r_geometry = pCondition->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
@@ -28336,12 +28352,12 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, 
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
 
-    const BoundedMatrix<double, 3, 3> LM = MortarUtilities::GetVariableMatrix<3, 3>(this->GetParentGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0);
+    const BoundedMatrix<double, 3, 3> LM = MortarUtilities::GetVariableMatrix<3, 3>(r_geometry, VECTOR_LAGRANGE_MULTIPLIER, 0);
 
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(r_geometry, DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -28599,7 +28615,8 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, 
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, false, 3>::CalculateLocalRHS(
+void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, false, 3>::StaticCalculateLocalRHS(
+    PairedCondition* pCondition,
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -28612,7 +28629,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, 
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetParentGeometry();
+    const GeometryType& r_geometry = pCondition->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
@@ -28620,12 +28637,12 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, 
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
 
-    const BoundedMatrix<double, 4, 3> LM = MortarUtilities::GetVariableMatrix<3, 4>(this->GetParentGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0);
+    const BoundedMatrix<double, 4, 3> LM = MortarUtilities::GetVariableMatrix<3, 4>(r_geometry, VECTOR_LAGRANGE_MULTIPLIER, 0);
 
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(r_geometry, DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -28888,7 +28905,8 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, 
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2,2, true, 2>::CalculateLocalRHS(
+void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2,2, true, 2>::StaticCalculateLocalRHS(
+    PairedCondition* pCondition,
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -28896,116 +28914,22 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2,2, 
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // Initialize
-    for (std::size_t i = 0; i < 12; ++i)
-        rLocalRHS[i] = 0.0;
-
-    // The geometry of the condition
-    const GeometryType& r_geometry = this->GetParentGeometry();
-
-    // Initialize values
-    const BoundedMatrix<double, 2, 2>& u1 = rDerivativeData.u1;
-    const BoundedMatrix<double, 2, 2>& u2 = rDerivativeData.u2;
-    const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
-    const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
-
-    const BoundedMatrix<double, 2, 2> LM = MortarUtilities::GetVariableMatrix<2, 2>(this->GetParentGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0);
-
-    const BoundedMatrix<double, 2, 2>& NormalSlave = rDerivativeData.NormalSlave;
-
-    // The ALM parameters
-    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), DYNAMIC_FACTOR);
-    const double ScaleFactor = rDerivativeData.ScaleFactor;
-    const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-
-    // Mortar operators
-    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
-
-
-    // NODE 0
-    if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-        const double crhs0 =     std::pow(ScaleFactor, 2)/PenaltyParameter[0];
-
-        rLocalRHS[8]+=-LM(0,0)*crhs0;
-        rLocalRHS[9]+=-LM(0,1)*crhs0;
-    } else { // ACTIVE
-        const double crhs0 =      NormalSlave(0,0); // NORMALSLAVE(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
-        const double crhs1 =      DOperator(0,0); // DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
-        const double crhs2 =      DOperator(0,1); // DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
-        const double crhs3 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
-        const double crhs4 =      MOperator(0,1); // MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
-        const double crhs5 =      NormalSlave(0,1); // NORMALSLAVE(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
-        const double crhs6 =     crhs0*(crhs1*(X1(0,0) + u1(0,0)) + crhs2*(X1(1,0) + u1(1,0)) - crhs3*(X2(0,0) + u2(0,0)) - crhs4*(X2(1,0) + u2(1,0))) + crhs5*(crhs1*(X1(0,1) + u1(0,1)) + crhs2*(X1(1,1) + u1(1,1)) - crhs3*(X2(0,1) + u2(0,1)) - crhs4*(X2(1,1) + u2(1,1)));
-        const double crhs7 =     PenaltyParameter[0]*crhs6;
-        const double crhs8 =     LM(0,0)*ScaleFactor - crhs0*crhs7;
-        const double crhs9 =     DynamicFactor[0]*crhs3;
-        const double crhs10 =     LM(0,1)*ScaleFactor - crhs5*crhs7;
-        const double crhs11 =     DynamicFactor[0]*crhs4;
-        const double crhs12 =     DynamicFactor[0]*crhs1;
-        const double crhs13 =     DynamicFactor[0]*crhs2;
-        const double crhs14 =     LM(0,0)*NormalSlave(0,0) + LM(0,1)*NormalSlave(0,1);
-        const double crhs15 =     LM(0,1) - NormalSlave(0,1)*crhs14;
-        const double crhs16 =     NormalSlave(0,0)*NormalSlave(0,1);
-        const double crhs17 =     LM(0,0) - NormalSlave(0,0)*crhs14;
-        const double crhs18 =     ScaleFactor/PenaltyParameter[0];
-
-        rLocalRHS[0]+=-crhs8*crhs9;
-        rLocalRHS[1]+=-crhs10*crhs9;
-        rLocalRHS[2]+=-crhs11*crhs8;
-        rLocalRHS[3]+=-crhs10*crhs11;
-        rLocalRHS[4]+=crhs12*crhs8;
-        rLocalRHS[5]+=crhs10*crhs12;
-        rLocalRHS[6]+=crhs13*crhs8;
-        rLocalRHS[7]+=crhs10*crhs13;
-        rLocalRHS[8]+=ScaleFactor*(-NormalSlave(0,0)*crhs6 + crhs18*(crhs15*crhs16 - crhs17*(-std::pow(NormalSlave(0,0), 2) + 1)));
-        rLocalRHS[9]+=ScaleFactor*(-NormalSlave(0,1)*crhs6 + crhs18*(-crhs15*(-std::pow(NormalSlave(0,1), 2) + 1) + crhs16*crhs17));
-    }
-    // NODE 1
-    if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-        const double crhs0 =     std::pow(ScaleFactor, 2)/PenaltyParameter[1];
-
-        rLocalRHS[10]+=-LM(1,0)*crhs0;
-        rLocalRHS[11]+=-LM(1,1)*crhs0;
-    } else { // ACTIVE
-        const double crhs0 =      NormalSlave(1,0); // NORMALSLAVE(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
-        const double crhs1 =      DOperator(1,0); // DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
-        const double crhs2 =      DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
-        const double crhs3 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
-        const double crhs4 =      MOperator(1,1); // MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
-        const double crhs5 =      NormalSlave(1,1); // NORMALSLAVE(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
-        const double crhs6 =     crhs0*(crhs1*(X1(0,0) + u1(0,0)) + crhs2*(X1(1,0) + u1(1,0)) - crhs3*(X2(0,0) + u2(0,0)) - crhs4*(X2(1,0) + u2(1,0))) + crhs5*(crhs1*(X1(0,1) + u1(0,1)) + crhs2*(X1(1,1) + u1(1,1)) - crhs3*(X2(0,1) + u2(0,1)) - crhs4*(X2(1,1) + u2(1,1)));
-        const double crhs7 =     PenaltyParameter[1]*crhs6;
-        const double crhs8 =     LM(1,0)*ScaleFactor - crhs0*crhs7;
-        const double crhs9 =     DynamicFactor[1]*crhs3;
-        const double crhs10 =     LM(1,1)*ScaleFactor - crhs5*crhs7;
-        const double crhs11 =     DynamicFactor[1]*crhs4;
-        const double crhs12 =     DynamicFactor[1]*crhs1;
-        const double crhs13 =     DynamicFactor[1]*crhs2;
-        const double crhs14 =     LM(1,0)*NormalSlave(1,0) + LM(1,1)*NormalSlave(1,1);
-        const double crhs15 =     LM(1,1) - NormalSlave(1,1)*crhs14;
-        const double crhs16 =     NormalSlave(1,0)*NormalSlave(1,1);
-        const double crhs17 =     LM(1,0) - NormalSlave(1,0)*crhs14;
-        const double crhs18 =     ScaleFactor/PenaltyParameter[1];
-
-        rLocalRHS[0]+=-crhs8*crhs9;
-        rLocalRHS[1]+=-crhs10*crhs9;
-        rLocalRHS[2]+=-crhs11*crhs8;
-        rLocalRHS[3]+=-crhs10*crhs11;
-        rLocalRHS[4]+=crhs12*crhs8;
-        rLocalRHS[5]+=crhs10*crhs12;
-        rLocalRHS[6]+=crhs13*crhs8;
-        rLocalRHS[7]+=crhs10*crhs13;
-        rLocalRHS[10]+=ScaleFactor*(-NormalSlave(1,0)*crhs6 + crhs18*(crhs15*crhs16 - crhs17*(-std::pow(NormalSlave(1,0), 2) + 1)));
-        rLocalRHS[11]+=ScaleFactor*(-NormalSlave(1,1)*crhs6 + crhs18*(-crhs15*(-std::pow(NormalSlave(1,1), 2) + 1) + crhs16*crhs17));
-    }
+    AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2,2, false, 2>::StaticCalculateLocalRHS(
+      pCondition,
+      rLocalRHS,
+      rMortarConditionMatrices,
+      rDerivativeData,
+      rActiveInactive,
+      rCurrentProcessInfo
+      );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, true, 3>::CalculateLocalRHS(
+void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, true, 3>::StaticCalculateLocalRHS(
+    PairedCondition* pCondition,
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -29013,214 +28937,22 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, 
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // Initialize
-    for (std::size_t i = 0; i < 27; ++i)
-        rLocalRHS[i] = 0.0;
-
-    // The geometry of the condition
-    const GeometryType& r_geometry = this->GetParentGeometry();
-
-    // Initialize values
-    const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
-    const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
-    const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
-    const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
-
-    const BoundedMatrix<double, 3, 3> LM = MortarUtilities::GetVariableMatrix<3, 3>(this->GetParentGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0);
-
-    const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
-
-    // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
-    const double ScaleFactor = rDerivativeData.ScaleFactor;
-    const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-
-    // Mortar operators
-    const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
-    const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
-
-
-    // NODE 0
-    if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-        const double crhs0 =     std::pow(ScaleFactor, 2)/PenaltyParameter[0];
-
-        rLocalRHS[18]+=-LM(0,0)*crhs0;
-        rLocalRHS[19]+=-LM(0,1)*crhs0;
-        rLocalRHS[20]+=-LM(0,2)*crhs0;
-    } else { // ACTIVE
-        const double crhs0 =      NormalSlave(0,0); // NORMALSLAVE(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs1 =      DOperator(0,0); // DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs2 =      DOperator(0,1); // DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs3 =      DOperator(0,2); // DOPERATOR(0,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs4 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs5 =      MOperator(0,1); // MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs6 =      MOperator(0,2); // MOPERATOR(0,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs7 =      NormalSlave(0,1); // NORMALSLAVE(0,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs8 =      NormalSlave(0,2); // NORMALSLAVE(0,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs9 =     crhs0*(crhs1*(X1(0,0) + u1(0,0)) + crhs2*(X1(1,0) + u1(1,0)) + crhs3*(X1(2,0) + u1(2,0)) - crhs4*(X2(0,0) + u2(0,0)) - crhs5*(X2(1,0) + u2(1,0)) - crhs6*(X2(2,0) + u2(2,0))) + crhs7*(crhs1*(X1(0,1) + u1(0,1)) + crhs2*(X1(1,1) + u1(1,1)) + crhs3*(X1(2,1) + u1(2,1)) - crhs4*(X2(0,1) + u2(0,1)) - crhs5*(X2(1,1) + u2(1,1)) - crhs6*(X2(2,1) + u2(2,1))) + crhs8*(crhs1*(X1(0,2) + u1(0,2)) + crhs2*(X1(1,2) + u1(1,2)) + crhs3*(X1(2,2) + u1(2,2)) - crhs4*(X2(0,2) + u2(0,2)) - crhs5*(X2(1,2) + u2(1,2)) - crhs6*(X2(2,2) + u2(2,2)));
-        const double crhs10 =     PenaltyParameter[0]*crhs9;
-        const double crhs11 =     LM(0,0)*ScaleFactor - crhs0*crhs10;
-        const double crhs12 =     DynamicFactor[0]*crhs4;
-        const double crhs13 =     LM(0,1)*ScaleFactor - crhs10*crhs7;
-        const double crhs14 =     LM(0,2)*ScaleFactor - crhs10*crhs8;
-        const double crhs15 =     DynamicFactor[0]*crhs5;
-        const double crhs16 =     DynamicFactor[0]*crhs6;
-        const double crhs17 =     DynamicFactor[0]*crhs1;
-        const double crhs18 =     DynamicFactor[0]*crhs2;
-        const double crhs19 =     DynamicFactor[0]*crhs3;
-        const double crhs20 =     LM(0,0)*NormalSlave(0,0) + LM(0,1)*NormalSlave(0,1) + LM(0,2)*NormalSlave(0,2);
-        const double crhs21 =     LM(0,1) - NormalSlave(0,1)*crhs20;
-        const double crhs22 =     NormalSlave(0,0)*NormalSlave(0,1);
-        const double crhs23 =     LM(0,2) - NormalSlave(0,2)*crhs20;
-        const double crhs24 =     NormalSlave(0,2)*crhs23;
-        const double crhs25 =     LM(0,0) - NormalSlave(0,0)*crhs20;
-        const double crhs26 =     ScaleFactor/PenaltyParameter[0];
-
-        rLocalRHS[0]+=-crhs11*crhs12;
-        rLocalRHS[1]+=-crhs12*crhs13;
-        rLocalRHS[2]+=-crhs12*crhs14;
-        rLocalRHS[3]+=-crhs11*crhs15;
-        rLocalRHS[4]+=-crhs13*crhs15;
-        rLocalRHS[5]+=-crhs14*crhs15;
-        rLocalRHS[6]+=-crhs11*crhs16;
-        rLocalRHS[7]+=-crhs13*crhs16;
-        rLocalRHS[8]+=-crhs14*crhs16;
-        rLocalRHS[9]+=crhs11*crhs17;
-        rLocalRHS[10]+=crhs13*crhs17;
-        rLocalRHS[11]+=crhs14*crhs17;
-        rLocalRHS[12]+=crhs11*crhs18;
-        rLocalRHS[13]+=crhs13*crhs18;
-        rLocalRHS[14]+=crhs14*crhs18;
-        rLocalRHS[15]+=crhs11*crhs19;
-        rLocalRHS[16]+=crhs13*crhs19;
-        rLocalRHS[17]+=crhs14*crhs19;
-        rLocalRHS[18]+=ScaleFactor*(-NormalSlave(0,0)*crhs9 + crhs26*(NormalSlave(0,0)*crhs24 + crhs21*crhs22 - crhs25*(-std::pow(NormalSlave(0,0), 2) + 1)));
-        rLocalRHS[19]+=ScaleFactor*(-NormalSlave(0,1)*crhs9 + crhs26*(NormalSlave(0,1)*crhs24 - crhs21*(-std::pow(NormalSlave(0,1), 2) + 1) + crhs22*crhs25));
-        rLocalRHS[20]+=ScaleFactor*(-NormalSlave(0,2)*crhs9 + crhs26*(NormalSlave(0,0)*NormalSlave(0,2)*crhs25 + NormalSlave(0,1)*NormalSlave(0,2)*crhs21 - crhs23*(-std::pow(NormalSlave(0,2), 2) + 1)));
-    }
-    // NODE 1
-    if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-        const double crhs0 =     std::pow(ScaleFactor, 2)/PenaltyParameter[1];
-
-        rLocalRHS[21]+=-LM(1,0)*crhs0;
-        rLocalRHS[22]+=-LM(1,1)*crhs0;
-        rLocalRHS[23]+=-LM(1,2)*crhs0;
-    } else { // ACTIVE
-        const double crhs0 =      NormalSlave(1,0); // NORMALSLAVE(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs1 =      DOperator(1,0); // DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs2 =      DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs3 =      DOperator(1,2); // DOPERATOR(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs4 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs5 =      MOperator(1,1); // MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs6 =      MOperator(1,2); // MOPERATOR(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs7 =      NormalSlave(1,1); // NORMALSLAVE(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs8 =      NormalSlave(1,2); // NORMALSLAVE(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs9 =     crhs0*(crhs1*(X1(0,0) + u1(0,0)) + crhs2*(X1(1,0) + u1(1,0)) + crhs3*(X1(2,0) + u1(2,0)) - crhs4*(X2(0,0) + u2(0,0)) - crhs5*(X2(1,0) + u2(1,0)) - crhs6*(X2(2,0) + u2(2,0))) + crhs7*(crhs1*(X1(0,1) + u1(0,1)) + crhs2*(X1(1,1) + u1(1,1)) + crhs3*(X1(2,1) + u1(2,1)) - crhs4*(X2(0,1) + u2(0,1)) - crhs5*(X2(1,1) + u2(1,1)) - crhs6*(X2(2,1) + u2(2,1))) + crhs8*(crhs1*(X1(0,2) + u1(0,2)) + crhs2*(X1(1,2) + u1(1,2)) + crhs3*(X1(2,2) + u1(2,2)) - crhs4*(X2(0,2) + u2(0,2)) - crhs5*(X2(1,2) + u2(1,2)) - crhs6*(X2(2,2) + u2(2,2)));
-        const double crhs10 =     PenaltyParameter[1]*crhs9;
-        const double crhs11 =     LM(1,0)*ScaleFactor - crhs0*crhs10;
-        const double crhs12 =     DynamicFactor[1]*crhs4;
-        const double crhs13 =     LM(1,1)*ScaleFactor - crhs10*crhs7;
-        const double crhs14 =     LM(1,2)*ScaleFactor - crhs10*crhs8;
-        const double crhs15 =     DynamicFactor[1]*crhs5;
-        const double crhs16 =     DynamicFactor[1]*crhs6;
-        const double crhs17 =     DynamicFactor[1]*crhs1;
-        const double crhs18 =     DynamicFactor[1]*crhs2;
-        const double crhs19 =     DynamicFactor[1]*crhs3;
-        const double crhs20 =     LM(1,0)*NormalSlave(1,0) + LM(1,1)*NormalSlave(1,1) + LM(1,2)*NormalSlave(1,2);
-        const double crhs21 =     LM(1,1) - NormalSlave(1,1)*crhs20;
-        const double crhs22 =     NormalSlave(1,0)*NormalSlave(1,1);
-        const double crhs23 =     LM(1,2) - NormalSlave(1,2)*crhs20;
-        const double crhs24 =     NormalSlave(1,2)*crhs23;
-        const double crhs25 =     LM(1,0) - NormalSlave(1,0)*crhs20;
-        const double crhs26 =     ScaleFactor/PenaltyParameter[1];
-
-        rLocalRHS[0]+=-crhs11*crhs12;
-        rLocalRHS[1]+=-crhs12*crhs13;
-        rLocalRHS[2]+=-crhs12*crhs14;
-        rLocalRHS[3]+=-crhs11*crhs15;
-        rLocalRHS[4]+=-crhs13*crhs15;
-        rLocalRHS[5]+=-crhs14*crhs15;
-        rLocalRHS[6]+=-crhs11*crhs16;
-        rLocalRHS[7]+=-crhs13*crhs16;
-        rLocalRHS[8]+=-crhs14*crhs16;
-        rLocalRHS[9]+=crhs11*crhs17;
-        rLocalRHS[10]+=crhs13*crhs17;
-        rLocalRHS[11]+=crhs14*crhs17;
-        rLocalRHS[12]+=crhs11*crhs18;
-        rLocalRHS[13]+=crhs13*crhs18;
-        rLocalRHS[14]+=crhs14*crhs18;
-        rLocalRHS[15]+=crhs11*crhs19;
-        rLocalRHS[16]+=crhs13*crhs19;
-        rLocalRHS[17]+=crhs14*crhs19;
-        rLocalRHS[21]+=ScaleFactor*(-NormalSlave(1,0)*crhs9 + crhs26*(NormalSlave(1,0)*crhs24 + crhs21*crhs22 - crhs25*(-std::pow(NormalSlave(1,0), 2) + 1)));
-        rLocalRHS[22]+=ScaleFactor*(-NormalSlave(1,1)*crhs9 + crhs26*(NormalSlave(1,1)*crhs24 - crhs21*(-std::pow(NormalSlave(1,1), 2) + 1) + crhs22*crhs25));
-        rLocalRHS[23]+=ScaleFactor*(-NormalSlave(1,2)*crhs9 + crhs26*(NormalSlave(1,0)*NormalSlave(1,2)*crhs25 + NormalSlave(1,1)*NormalSlave(1,2)*crhs21 - crhs23*(-std::pow(NormalSlave(1,2), 2) + 1)));
-    }
-    // NODE 2
-    if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-        const double crhs0 =     std::pow(ScaleFactor, 2)/PenaltyParameter[2];
-
-        rLocalRHS[24]+=-LM(2,0)*crhs0;
-        rLocalRHS[25]+=-LM(2,1)*crhs0;
-        rLocalRHS[26]+=-LM(2,2)*crhs0;
-    } else { // ACTIVE
-        const double crhs0 =      NormalSlave(2,0); // NORMALSLAVE(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs1 =      DOperator(2,0); // DOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs2 =      DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs3 =      DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs4 =      MOperator(2,0); // MOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs5 =      MOperator(2,1); // MOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs6 =      MOperator(2,2); // MOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs7 =      NormalSlave(2,1); // NORMALSLAVE(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs8 =      NormalSlave(2,2); // NORMALSLAVE(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs9 =     crhs0*(crhs1*(X1(0,0) + u1(0,0)) + crhs2*(X1(1,0) + u1(1,0)) + crhs3*(X1(2,0) + u1(2,0)) - crhs4*(X2(0,0) + u2(0,0)) - crhs5*(X2(1,0) + u2(1,0)) - crhs6*(X2(2,0) + u2(2,0))) + crhs7*(crhs1*(X1(0,1) + u1(0,1)) + crhs2*(X1(1,1) + u1(1,1)) + crhs3*(X1(2,1) + u1(2,1)) - crhs4*(X2(0,1) + u2(0,1)) - crhs5*(X2(1,1) + u2(1,1)) - crhs6*(X2(2,1) + u2(2,1))) + crhs8*(crhs1*(X1(0,2) + u1(0,2)) + crhs2*(X1(1,2) + u1(1,2)) + crhs3*(X1(2,2) + u1(2,2)) - crhs4*(X2(0,2) + u2(0,2)) - crhs5*(X2(1,2) + u2(1,2)) - crhs6*(X2(2,2) + u2(2,2)));
-        const double crhs10 =     PenaltyParameter[2]*crhs9;
-        const double crhs11 =     LM(2,0)*ScaleFactor - crhs0*crhs10;
-        const double crhs12 =     DynamicFactor[2]*crhs4;
-        const double crhs13 =     LM(2,1)*ScaleFactor - crhs10*crhs7;
-        const double crhs14 =     LM(2,2)*ScaleFactor - crhs10*crhs8;
-        const double crhs15 =     DynamicFactor[2]*crhs5;
-        const double crhs16 =     DynamicFactor[2]*crhs6;
-        const double crhs17 =     DynamicFactor[2]*crhs1;
-        const double crhs18 =     DynamicFactor[2]*crhs2;
-        const double crhs19 =     DynamicFactor[2]*crhs3;
-        const double crhs20 =     LM(2,0)*NormalSlave(2,0) + LM(2,1)*NormalSlave(2,1) + LM(2,2)*NormalSlave(2,2);
-        const double crhs21 =     LM(2,1) - NormalSlave(2,1)*crhs20;
-        const double crhs22 =     NormalSlave(2,0)*NormalSlave(2,1);
-        const double crhs23 =     LM(2,2) - NormalSlave(2,2)*crhs20;
-        const double crhs24 =     NormalSlave(2,2)*crhs23;
-        const double crhs25 =     LM(2,0) - NormalSlave(2,0)*crhs20;
-        const double crhs26 =     ScaleFactor/PenaltyParameter[2];
-
-        rLocalRHS[0]+=-crhs11*crhs12;
-        rLocalRHS[1]+=-crhs12*crhs13;
-        rLocalRHS[2]+=-crhs12*crhs14;
-        rLocalRHS[3]+=-crhs11*crhs15;
-        rLocalRHS[4]+=-crhs13*crhs15;
-        rLocalRHS[5]+=-crhs14*crhs15;
-        rLocalRHS[6]+=-crhs11*crhs16;
-        rLocalRHS[7]+=-crhs13*crhs16;
-        rLocalRHS[8]+=-crhs14*crhs16;
-        rLocalRHS[9]+=crhs11*crhs17;
-        rLocalRHS[10]+=crhs13*crhs17;
-        rLocalRHS[11]+=crhs14*crhs17;
-        rLocalRHS[12]+=crhs11*crhs18;
-        rLocalRHS[13]+=crhs13*crhs18;
-        rLocalRHS[14]+=crhs14*crhs18;
-        rLocalRHS[15]+=crhs11*crhs19;
-        rLocalRHS[16]+=crhs13*crhs19;
-        rLocalRHS[17]+=crhs14*crhs19;
-        rLocalRHS[24]+=ScaleFactor*(-NormalSlave(2,0)*crhs9 + crhs26*(NormalSlave(2,0)*crhs24 + crhs21*crhs22 - crhs25*(-std::pow(NormalSlave(2,0), 2) + 1)));
-        rLocalRHS[25]+=ScaleFactor*(-NormalSlave(2,1)*crhs9 + crhs26*(NormalSlave(2,1)*crhs24 - crhs21*(-std::pow(NormalSlave(2,1), 2) + 1) + crhs22*crhs25));
-        rLocalRHS[26]+=ScaleFactor*(-NormalSlave(2,2)*crhs9 + crhs26*(NormalSlave(2,0)*NormalSlave(2,2)*crhs25 + NormalSlave(2,1)*NormalSlave(2,2)*crhs21 - crhs23*(-std::pow(NormalSlave(2,2), 2) + 1)));
-    }
+    AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, false, 3>::StaticCalculateLocalRHS(
+      pCondition,
+      rLocalRHS,
+      rMortarConditionMatrices,
+      rDerivativeData,
+      rActiveInactive,
+      rCurrentProcessInfo
+      );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, true, 4>::CalculateLocalRHS(
+void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, true, 4>::StaticCalculateLocalRHS(
+    PairedCondition* pCondition,
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -29228,312 +28960,22 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, 
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // Initialize
-    for (std::size_t i = 0; i < 36; ++i)
-        rLocalRHS[i] = 0.0;
-
-    // The geometry of the condition
-    const GeometryType& r_geometry = this->GetParentGeometry();
-
-    // Initialize values
-    const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
-    const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
-    const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
-    const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
-
-    const BoundedMatrix<double, 4, 3> LM = MortarUtilities::GetVariableMatrix<3, 4>(this->GetParentGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0);
-
-    const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
-
-    // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
-    const double ScaleFactor = rDerivativeData.ScaleFactor;
-    const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-
-    // Mortar operators
-    const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
-    const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
-
-
-    // NODE 0
-    if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-        const double crhs0 =     std::pow(ScaleFactor, 2)/PenaltyParameter[0];
-
-        rLocalRHS[24]+=-LM(0,0)*crhs0;
-        rLocalRHS[25]+=-LM(0,1)*crhs0;
-        rLocalRHS[26]+=-LM(0,2)*crhs0;
-    } else { // ACTIVE
-        const double crhs0 =      NormalSlave(0,0); // NORMALSLAVE(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs1 =      DOperator(0,0); // DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs2 =      DOperator(0,1); // DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs3 =      DOperator(0,2); // DOPERATOR(0,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs4 =      DOperator(0,3); // DOPERATOR(0,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs5 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs6 =      MOperator(0,1); // MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs7 =      MOperator(0,2); // MOPERATOR(0,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs8 =      MOperator(0,3); // MOPERATOR(0,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs9 =      NormalSlave(0,1); // NORMALSLAVE(0,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs10 =      NormalSlave(0,2); // NORMALSLAVE(0,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs11 =     crhs0*(crhs1*(X1(0,0) + u1(0,0)) + crhs2*(X1(1,0) + u1(1,0)) + crhs3*(X1(2,0) + u1(2,0)) + crhs4*(X1(3,0) + u1(3,0)) - crhs5*(X2(0,0) + u2(0,0)) - crhs6*(X2(1,0) + u2(1,0)) - crhs7*(X2(2,0) + u2(2,0)) - crhs8*(X2(3,0) + u2(3,0))) + crhs10*(crhs1*(X1(0,2) + u1(0,2)) + crhs2*(X1(1,2) + u1(1,2)) + crhs3*(X1(2,2) + u1(2,2)) + crhs4*(X1(3,2) + u1(3,2)) - crhs5*(X2(0,2) + u2(0,2)) - crhs6*(X2(1,2) + u2(1,2)) - crhs7*(X2(2,2) + u2(2,2)) - crhs8*(X2(3,2) + u2(3,2))) + crhs9*(crhs1*(X1(0,1) + u1(0,1)) + crhs2*(X1(1,1) + u1(1,1)) + crhs3*(X1(2,1) + u1(2,1)) + crhs4*(X1(3,1) + u1(3,1)) - crhs5*(X2(0,1) + u2(0,1)) - crhs6*(X2(1,1) + u2(1,1)) - crhs7*(X2(2,1) + u2(2,1)) - crhs8*(X2(3,1) + u2(3,1)));
-        const double crhs12 =     PenaltyParameter[0]*crhs11;
-        const double crhs13 =     LM(0,0)*ScaleFactor - crhs0*crhs12;
-        const double crhs14 =     DynamicFactor[0]*crhs5;
-        const double crhs15 =     LM(0,1)*ScaleFactor - crhs12*crhs9;
-        const double crhs16 =     LM(0,2)*ScaleFactor - crhs10*crhs12;
-        const double crhs17 =     DynamicFactor[0]*crhs6;
-        const double crhs18 =     DynamicFactor[0]*crhs7;
-        const double crhs19 =     DynamicFactor[0]*crhs8;
-        const double crhs20 =     DynamicFactor[0]*crhs1;
-        const double crhs21 =     DynamicFactor[0]*crhs2;
-        const double crhs22 =     DynamicFactor[0]*crhs3;
-        const double crhs23 =     DynamicFactor[0]*crhs4;
-        const double crhs24 =     LM(0,0)*NormalSlave(0,0) + LM(0,1)*NormalSlave(0,1) + LM(0,2)*NormalSlave(0,2);
-        const double crhs25 =     LM(0,1) - NormalSlave(0,1)*crhs24;
-        const double crhs26 =     NormalSlave(0,0)*NormalSlave(0,1);
-        const double crhs27 =     LM(0,2) - NormalSlave(0,2)*crhs24;
-        const double crhs28 =     NormalSlave(0,2)*crhs27;
-        const double crhs29 =     LM(0,0) - NormalSlave(0,0)*crhs24;
-        const double crhs30 =     ScaleFactor/PenaltyParameter[0];
-
-        rLocalRHS[0]+=-crhs13*crhs14;
-        rLocalRHS[1]+=-crhs14*crhs15;
-        rLocalRHS[2]+=-crhs14*crhs16;
-        rLocalRHS[3]+=-crhs13*crhs17;
-        rLocalRHS[4]+=-crhs15*crhs17;
-        rLocalRHS[5]+=-crhs16*crhs17;
-        rLocalRHS[6]+=-crhs13*crhs18;
-        rLocalRHS[7]+=-crhs15*crhs18;
-        rLocalRHS[8]+=-crhs16*crhs18;
-        rLocalRHS[9]+=-crhs13*crhs19;
-        rLocalRHS[10]+=-crhs15*crhs19;
-        rLocalRHS[11]+=-crhs16*crhs19;
-        rLocalRHS[12]+=crhs13*crhs20;
-        rLocalRHS[13]+=crhs15*crhs20;
-        rLocalRHS[14]+=crhs16*crhs20;
-        rLocalRHS[15]+=crhs13*crhs21;
-        rLocalRHS[16]+=crhs15*crhs21;
-        rLocalRHS[17]+=crhs16*crhs21;
-        rLocalRHS[18]+=crhs13*crhs22;
-        rLocalRHS[19]+=crhs15*crhs22;
-        rLocalRHS[20]+=crhs16*crhs22;
-        rLocalRHS[21]+=crhs13*crhs23;
-        rLocalRHS[22]+=crhs15*crhs23;
-        rLocalRHS[23]+=crhs16*crhs23;
-        rLocalRHS[24]+=ScaleFactor*(-NormalSlave(0,0)*crhs11 + crhs30*(NormalSlave(0,0)*crhs28 + crhs25*crhs26 - crhs29*(-std::pow(NormalSlave(0,0), 2) + 1)));
-        rLocalRHS[25]+=ScaleFactor*(-NormalSlave(0,1)*crhs11 + crhs30*(NormalSlave(0,1)*crhs28 - crhs25*(-std::pow(NormalSlave(0,1), 2) + 1) + crhs26*crhs29));
-        rLocalRHS[26]+=ScaleFactor*(-NormalSlave(0,2)*crhs11 + crhs30*(NormalSlave(0,0)*NormalSlave(0,2)*crhs29 + NormalSlave(0,1)*NormalSlave(0,2)*crhs25 - crhs27*(-std::pow(NormalSlave(0,2), 2) + 1)));
-    }
-    // NODE 1
-    if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-        const double crhs0 =     std::pow(ScaleFactor, 2)/PenaltyParameter[1];
-
-        rLocalRHS[27]+=-LM(1,0)*crhs0;
-        rLocalRHS[28]+=-LM(1,1)*crhs0;
-        rLocalRHS[29]+=-LM(1,2)*crhs0;
-    } else { // ACTIVE
-        const double crhs0 =      NormalSlave(1,0); // NORMALSLAVE(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs1 =      DOperator(1,0); // DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs2 =      DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs3 =      DOperator(1,2); // DOPERATOR(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs4 =      DOperator(1,3); // DOPERATOR(1,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs5 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs6 =      MOperator(1,1); // MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs7 =      MOperator(1,2); // MOPERATOR(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs8 =      MOperator(1,3); // MOPERATOR(1,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs9 =      NormalSlave(1,1); // NORMALSLAVE(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs10 =      NormalSlave(1,2); // NORMALSLAVE(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs11 =     crhs0*(crhs1*(X1(0,0) + u1(0,0)) + crhs2*(X1(1,0) + u1(1,0)) + crhs3*(X1(2,0) + u1(2,0)) + crhs4*(X1(3,0) + u1(3,0)) - crhs5*(X2(0,0) + u2(0,0)) - crhs6*(X2(1,0) + u2(1,0)) - crhs7*(X2(2,0) + u2(2,0)) - crhs8*(X2(3,0) + u2(3,0))) + crhs10*(crhs1*(X1(0,2) + u1(0,2)) + crhs2*(X1(1,2) + u1(1,2)) + crhs3*(X1(2,2) + u1(2,2)) + crhs4*(X1(3,2) + u1(3,2)) - crhs5*(X2(0,2) + u2(0,2)) - crhs6*(X2(1,2) + u2(1,2)) - crhs7*(X2(2,2) + u2(2,2)) - crhs8*(X2(3,2) + u2(3,2))) + crhs9*(crhs1*(X1(0,1) + u1(0,1)) + crhs2*(X1(1,1) + u1(1,1)) + crhs3*(X1(2,1) + u1(2,1)) + crhs4*(X1(3,1) + u1(3,1)) - crhs5*(X2(0,1) + u2(0,1)) - crhs6*(X2(1,1) + u2(1,1)) - crhs7*(X2(2,1) + u2(2,1)) - crhs8*(X2(3,1) + u2(3,1)));
-        const double crhs12 =     PenaltyParameter[1]*crhs11;
-        const double crhs13 =     LM(1,0)*ScaleFactor - crhs0*crhs12;
-        const double crhs14 =     DynamicFactor[1]*crhs5;
-        const double crhs15 =     LM(1,1)*ScaleFactor - crhs12*crhs9;
-        const double crhs16 =     LM(1,2)*ScaleFactor - crhs10*crhs12;
-        const double crhs17 =     DynamicFactor[1]*crhs6;
-        const double crhs18 =     DynamicFactor[1]*crhs7;
-        const double crhs19 =     DynamicFactor[1]*crhs8;
-        const double crhs20 =     DynamicFactor[1]*crhs1;
-        const double crhs21 =     DynamicFactor[1]*crhs2;
-        const double crhs22 =     DynamicFactor[1]*crhs3;
-        const double crhs23 =     DynamicFactor[1]*crhs4;
-        const double crhs24 =     LM(1,0)*NormalSlave(1,0) + LM(1,1)*NormalSlave(1,1) + LM(1,2)*NormalSlave(1,2);
-        const double crhs25 =     LM(1,1) - NormalSlave(1,1)*crhs24;
-        const double crhs26 =     NormalSlave(1,0)*NormalSlave(1,1);
-        const double crhs27 =     LM(1,2) - NormalSlave(1,2)*crhs24;
-        const double crhs28 =     NormalSlave(1,2)*crhs27;
-        const double crhs29 =     LM(1,0) - NormalSlave(1,0)*crhs24;
-        const double crhs30 =     ScaleFactor/PenaltyParameter[1];
-
-        rLocalRHS[0]+=-crhs13*crhs14;
-        rLocalRHS[1]+=-crhs14*crhs15;
-        rLocalRHS[2]+=-crhs14*crhs16;
-        rLocalRHS[3]+=-crhs13*crhs17;
-        rLocalRHS[4]+=-crhs15*crhs17;
-        rLocalRHS[5]+=-crhs16*crhs17;
-        rLocalRHS[6]+=-crhs13*crhs18;
-        rLocalRHS[7]+=-crhs15*crhs18;
-        rLocalRHS[8]+=-crhs16*crhs18;
-        rLocalRHS[9]+=-crhs13*crhs19;
-        rLocalRHS[10]+=-crhs15*crhs19;
-        rLocalRHS[11]+=-crhs16*crhs19;
-        rLocalRHS[12]+=crhs13*crhs20;
-        rLocalRHS[13]+=crhs15*crhs20;
-        rLocalRHS[14]+=crhs16*crhs20;
-        rLocalRHS[15]+=crhs13*crhs21;
-        rLocalRHS[16]+=crhs15*crhs21;
-        rLocalRHS[17]+=crhs16*crhs21;
-        rLocalRHS[18]+=crhs13*crhs22;
-        rLocalRHS[19]+=crhs15*crhs22;
-        rLocalRHS[20]+=crhs16*crhs22;
-        rLocalRHS[21]+=crhs13*crhs23;
-        rLocalRHS[22]+=crhs15*crhs23;
-        rLocalRHS[23]+=crhs16*crhs23;
-        rLocalRHS[27]+=ScaleFactor*(-NormalSlave(1,0)*crhs11 + crhs30*(NormalSlave(1,0)*crhs28 + crhs25*crhs26 - crhs29*(-std::pow(NormalSlave(1,0), 2) + 1)));
-        rLocalRHS[28]+=ScaleFactor*(-NormalSlave(1,1)*crhs11 + crhs30*(NormalSlave(1,1)*crhs28 - crhs25*(-std::pow(NormalSlave(1,1), 2) + 1) + crhs26*crhs29));
-        rLocalRHS[29]+=ScaleFactor*(-NormalSlave(1,2)*crhs11 + crhs30*(NormalSlave(1,0)*NormalSlave(1,2)*crhs29 + NormalSlave(1,1)*NormalSlave(1,2)*crhs25 - crhs27*(-std::pow(NormalSlave(1,2), 2) + 1)));
-    }
-    // NODE 2
-    if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-        const double crhs0 =     std::pow(ScaleFactor, 2)/PenaltyParameter[2];
-
-        rLocalRHS[30]+=-LM(2,0)*crhs0;
-        rLocalRHS[31]+=-LM(2,1)*crhs0;
-        rLocalRHS[32]+=-LM(2,2)*crhs0;
-    } else { // ACTIVE
-        const double crhs0 =      NormalSlave(2,0); // NORMALSLAVE(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs1 =      DOperator(2,0); // DOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs2 =      DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs3 =      DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs4 =      DOperator(2,3); // DOPERATOR(2,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs5 =      MOperator(2,0); // MOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs6 =      MOperator(2,1); // MOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs7 =      MOperator(2,2); // MOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs8 =      MOperator(2,3); // MOPERATOR(2,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs9 =      NormalSlave(2,1); // NORMALSLAVE(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs10 =      NormalSlave(2,2); // NORMALSLAVE(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs11 =     crhs0*(crhs1*(X1(0,0) + u1(0,0)) + crhs2*(X1(1,0) + u1(1,0)) + crhs3*(X1(2,0) + u1(2,0)) + crhs4*(X1(3,0) + u1(3,0)) - crhs5*(X2(0,0) + u2(0,0)) - crhs6*(X2(1,0) + u2(1,0)) - crhs7*(X2(2,0) + u2(2,0)) - crhs8*(X2(3,0) + u2(3,0))) + crhs10*(crhs1*(X1(0,2) + u1(0,2)) + crhs2*(X1(1,2) + u1(1,2)) + crhs3*(X1(2,2) + u1(2,2)) + crhs4*(X1(3,2) + u1(3,2)) - crhs5*(X2(0,2) + u2(0,2)) - crhs6*(X2(1,2) + u2(1,2)) - crhs7*(X2(2,2) + u2(2,2)) - crhs8*(X2(3,2) + u2(3,2))) + crhs9*(crhs1*(X1(0,1) + u1(0,1)) + crhs2*(X1(1,1) + u1(1,1)) + crhs3*(X1(2,1) + u1(2,1)) + crhs4*(X1(3,1) + u1(3,1)) - crhs5*(X2(0,1) + u2(0,1)) - crhs6*(X2(1,1) + u2(1,1)) - crhs7*(X2(2,1) + u2(2,1)) - crhs8*(X2(3,1) + u2(3,1)));
-        const double crhs12 =     PenaltyParameter[2]*crhs11;
-        const double crhs13 =     LM(2,0)*ScaleFactor - crhs0*crhs12;
-        const double crhs14 =     DynamicFactor[2]*crhs5;
-        const double crhs15 =     LM(2,1)*ScaleFactor - crhs12*crhs9;
-        const double crhs16 =     LM(2,2)*ScaleFactor - crhs10*crhs12;
-        const double crhs17 =     DynamicFactor[2]*crhs6;
-        const double crhs18 =     DynamicFactor[2]*crhs7;
-        const double crhs19 =     DynamicFactor[2]*crhs8;
-        const double crhs20 =     DynamicFactor[2]*crhs1;
-        const double crhs21 =     DynamicFactor[2]*crhs2;
-        const double crhs22 =     DynamicFactor[2]*crhs3;
-        const double crhs23 =     DynamicFactor[2]*crhs4;
-        const double crhs24 =     LM(2,0)*NormalSlave(2,0) + LM(2,1)*NormalSlave(2,1) + LM(2,2)*NormalSlave(2,2);
-        const double crhs25 =     LM(2,1) - NormalSlave(2,1)*crhs24;
-        const double crhs26 =     NormalSlave(2,0)*NormalSlave(2,1);
-        const double crhs27 =     LM(2,2) - NormalSlave(2,2)*crhs24;
-        const double crhs28 =     NormalSlave(2,2)*crhs27;
-        const double crhs29 =     LM(2,0) - NormalSlave(2,0)*crhs24;
-        const double crhs30 =     ScaleFactor/PenaltyParameter[2];
-
-        rLocalRHS[0]+=-crhs13*crhs14;
-        rLocalRHS[1]+=-crhs14*crhs15;
-        rLocalRHS[2]+=-crhs14*crhs16;
-        rLocalRHS[3]+=-crhs13*crhs17;
-        rLocalRHS[4]+=-crhs15*crhs17;
-        rLocalRHS[5]+=-crhs16*crhs17;
-        rLocalRHS[6]+=-crhs13*crhs18;
-        rLocalRHS[7]+=-crhs15*crhs18;
-        rLocalRHS[8]+=-crhs16*crhs18;
-        rLocalRHS[9]+=-crhs13*crhs19;
-        rLocalRHS[10]+=-crhs15*crhs19;
-        rLocalRHS[11]+=-crhs16*crhs19;
-        rLocalRHS[12]+=crhs13*crhs20;
-        rLocalRHS[13]+=crhs15*crhs20;
-        rLocalRHS[14]+=crhs16*crhs20;
-        rLocalRHS[15]+=crhs13*crhs21;
-        rLocalRHS[16]+=crhs15*crhs21;
-        rLocalRHS[17]+=crhs16*crhs21;
-        rLocalRHS[18]+=crhs13*crhs22;
-        rLocalRHS[19]+=crhs15*crhs22;
-        rLocalRHS[20]+=crhs16*crhs22;
-        rLocalRHS[21]+=crhs13*crhs23;
-        rLocalRHS[22]+=crhs15*crhs23;
-        rLocalRHS[23]+=crhs16*crhs23;
-        rLocalRHS[30]+=ScaleFactor*(-NormalSlave(2,0)*crhs11 + crhs30*(NormalSlave(2,0)*crhs28 + crhs25*crhs26 - crhs29*(-std::pow(NormalSlave(2,0), 2) + 1)));
-        rLocalRHS[31]+=ScaleFactor*(-NormalSlave(2,1)*crhs11 + crhs30*(NormalSlave(2,1)*crhs28 - crhs25*(-std::pow(NormalSlave(2,1), 2) + 1) + crhs26*crhs29));
-        rLocalRHS[32]+=ScaleFactor*(-NormalSlave(2,2)*crhs11 + crhs30*(NormalSlave(2,0)*NormalSlave(2,2)*crhs29 + NormalSlave(2,1)*NormalSlave(2,2)*crhs25 - crhs27*(-std::pow(NormalSlave(2,2), 2) + 1)));
-    }
-    // NODE 3
-    if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
-        const double crhs0 =     std::pow(ScaleFactor, 2)/PenaltyParameter[3];
-
-        rLocalRHS[33]+=-LM(3,0)*crhs0;
-        rLocalRHS[34]+=-LM(3,1)*crhs0;
-        rLocalRHS[35]+=-LM(3,2)*crhs0;
-    } else { // ACTIVE
-        const double crhs0 =      NormalSlave(3,0); // NORMALSLAVE(3,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs1 =      DOperator(3,0); // DOPERATOR(3,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs2 =      DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs3 =      DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs4 =      DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs5 =      MOperator(3,0); // MOPERATOR(3,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs6 =      MOperator(3,1); // MOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs7 =      MOperator(3,2); // MOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs8 =      MOperator(3,3); // MOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs9 =      NormalSlave(3,1); // NORMALSLAVE(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs10 =      NormalSlave(3,2); // NORMALSLAVE(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs11 =     crhs0*(crhs1*(X1(0,0) + u1(0,0)) + crhs2*(X1(1,0) + u1(1,0)) + crhs3*(X1(2,0) + u1(2,0)) + crhs4*(X1(3,0) + u1(3,0)) - crhs5*(X2(0,0) + u2(0,0)) - crhs6*(X2(1,0) + u2(1,0)) - crhs7*(X2(2,0) + u2(2,0)) - crhs8*(X2(3,0) + u2(3,0))) + crhs10*(crhs1*(X1(0,2) + u1(0,2)) + crhs2*(X1(1,2) + u1(1,2)) + crhs3*(X1(2,2) + u1(2,2)) + crhs4*(X1(3,2) + u1(3,2)) - crhs5*(X2(0,2) + u2(0,2)) - crhs6*(X2(1,2) + u2(1,2)) - crhs7*(X2(2,2) + u2(2,2)) - crhs8*(X2(3,2) + u2(3,2))) + crhs9*(crhs1*(X1(0,1) + u1(0,1)) + crhs2*(X1(1,1) + u1(1,1)) + crhs3*(X1(2,1) + u1(2,1)) + crhs4*(X1(3,1) + u1(3,1)) - crhs5*(X2(0,1) + u2(0,1)) - crhs6*(X2(1,1) + u2(1,1)) - crhs7*(X2(2,1) + u2(2,1)) - crhs8*(X2(3,1) + u2(3,1)));
-        const double crhs12 =     PenaltyParameter[3]*crhs11;
-        const double crhs13 =     LM(3,0)*ScaleFactor - crhs0*crhs12;
-        const double crhs14 =     DynamicFactor[3]*crhs5;
-        const double crhs15 =     LM(3,1)*ScaleFactor - crhs12*crhs9;
-        const double crhs16 =     LM(3,2)*ScaleFactor - crhs10*crhs12;
-        const double crhs17 =     DynamicFactor[3]*crhs6;
-        const double crhs18 =     DynamicFactor[3]*crhs7;
-        const double crhs19 =     DynamicFactor[3]*crhs8;
-        const double crhs20 =     DynamicFactor[3]*crhs1;
-        const double crhs21 =     DynamicFactor[3]*crhs2;
-        const double crhs22 =     DynamicFactor[3]*crhs3;
-        const double crhs23 =     DynamicFactor[3]*crhs4;
-        const double crhs24 =     LM(3,0)*NormalSlave(3,0) + LM(3,1)*NormalSlave(3,1) + LM(3,2)*NormalSlave(3,2);
-        const double crhs25 =     LM(3,1) - NormalSlave(3,1)*crhs24;
-        const double crhs26 =     NormalSlave(3,0)*NormalSlave(3,1);
-        const double crhs27 =     LM(3,2) - NormalSlave(3,2)*crhs24;
-        const double crhs28 =     NormalSlave(3,2)*crhs27;
-        const double crhs29 =     LM(3,0) - NormalSlave(3,0)*crhs24;
-        const double crhs30 =     ScaleFactor/PenaltyParameter[3];
-
-        rLocalRHS[0]+=-crhs13*crhs14;
-        rLocalRHS[1]+=-crhs14*crhs15;
-        rLocalRHS[2]+=-crhs14*crhs16;
-        rLocalRHS[3]+=-crhs13*crhs17;
-        rLocalRHS[4]+=-crhs15*crhs17;
-        rLocalRHS[5]+=-crhs16*crhs17;
-        rLocalRHS[6]+=-crhs13*crhs18;
-        rLocalRHS[7]+=-crhs15*crhs18;
-        rLocalRHS[8]+=-crhs16*crhs18;
-        rLocalRHS[9]+=-crhs13*crhs19;
-        rLocalRHS[10]+=-crhs15*crhs19;
-        rLocalRHS[11]+=-crhs16*crhs19;
-        rLocalRHS[12]+=crhs13*crhs20;
-        rLocalRHS[13]+=crhs15*crhs20;
-        rLocalRHS[14]+=crhs16*crhs20;
-        rLocalRHS[15]+=crhs13*crhs21;
-        rLocalRHS[16]+=crhs15*crhs21;
-        rLocalRHS[17]+=crhs16*crhs21;
-        rLocalRHS[18]+=crhs13*crhs22;
-        rLocalRHS[19]+=crhs15*crhs22;
-        rLocalRHS[20]+=crhs16*crhs22;
-        rLocalRHS[21]+=crhs13*crhs23;
-        rLocalRHS[22]+=crhs15*crhs23;
-        rLocalRHS[23]+=crhs16*crhs23;
-        rLocalRHS[33]+=ScaleFactor*(-NormalSlave(3,0)*crhs11 + crhs30*(NormalSlave(3,0)*crhs28 + crhs25*crhs26 - crhs29*(-std::pow(NormalSlave(3,0), 2) + 1)));
-        rLocalRHS[34]+=ScaleFactor*(-NormalSlave(3,1)*crhs11 + crhs30*(NormalSlave(3,1)*crhs28 - crhs25*(-std::pow(NormalSlave(3,1), 2) + 1) + crhs26*crhs29));
-        rLocalRHS[35]+=ScaleFactor*(-NormalSlave(3,2)*crhs11 + crhs30*(NormalSlave(3,0)*NormalSlave(3,2)*crhs29 + NormalSlave(3,1)*NormalSlave(3,2)*crhs25 - crhs27*(-std::pow(NormalSlave(3,2), 2) + 1)));
-    }
+    AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, false, 4>::StaticCalculateLocalRHS(
+      pCondition,
+      rLocalRHS,
+      rMortarConditionMatrices,
+      rDerivativeData,
+      rActiveInactive,
+      rCurrentProcessInfo
+      );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, true, 4>::CalculateLocalRHS(
+void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, true, 4>::StaticCalculateLocalRHS(
+    PairedCondition* pCondition,
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -29541,292 +28983,22 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, 
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // Initialize
-    for (std::size_t i = 0; i < 30; ++i)
-        rLocalRHS[i] = 0.0;
-
-    // The geometry of the condition
-    const GeometryType& r_geometry = this->GetParentGeometry();
-
-    // Initialize values
-    const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
-    const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
-    const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
-    const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
-
-    const BoundedMatrix<double, 3, 3> LM = MortarUtilities::GetVariableMatrix<3, 3>(this->GetParentGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0);
-
-    const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
-
-    // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
-    const double ScaleFactor = rDerivativeData.ScaleFactor;
-    const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-
-    // Mortar operators
-    const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
-    const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
-
-
-    // NODE 0
-    if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-        const double crhs0 =     std::pow(ScaleFactor, 2)/PenaltyParameter[0];
-
-        rLocalRHS[21]+=-LM(0,0)*crhs0;
-        rLocalRHS[22]+=-LM(0,1)*crhs0;
-        rLocalRHS[23]+=-LM(0,2)*crhs0;
-    } else { // ACTIVE
-        const double crhs0 =      NormalSlave(0,0); // NORMALSLAVE(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs1 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs2 =     crhs1*(X2(0,0) + u2(0,0));
-        const double crhs3 =      MOperator(0,1); // MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs4 =     crhs3*(X2(1,0) + u2(1,0));
-        const double crhs5 =      MOperator(0,2); // MOPERATOR(0,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs6 =     crhs5*(X2(2,0) + u2(2,0));
-        const double crhs7 =      MOperator(0,3); // MOPERATOR(0,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs8 =     crhs7*(X2(3,0) + u2(3,0));
-        const double crhs9 =      DOperator(0,0); // DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs10 =     crhs9*(X1(0,0) + u1(0,0));
-        const double crhs11 =      DOperator(0,1); // DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs12 =     crhs11*(X1(1,0) + u1(1,0));
-        const double crhs13 =      DOperator(0,2); // DOPERATOR(0,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs14 =     crhs13*(X1(2,0) + u1(2,0));
-        const double crhs15 =      NormalSlave(0,1); // NORMALSLAVE(0,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs16 =     crhs1*(X2(0,1) + u2(0,1));
-        const double crhs17 =     crhs3*(X2(1,1) + u2(1,1));
-        const double crhs18 =     crhs5*(X2(2,1) + u2(2,1));
-        const double crhs19 =     crhs7*(X2(3,1) + u2(3,1));
-        const double crhs20 =     crhs9*(X1(0,1) + u1(0,1));
-        const double crhs21 =     crhs11*(X1(1,1) + u1(1,1));
-        const double crhs22 =     crhs13*(X1(2,1) + u1(2,1));
-        const double crhs23 =      NormalSlave(0,2); // NORMALSLAVE(0,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs24 =     crhs1*(X2(0,2) + u2(0,2));
-        const double crhs25 =     crhs3*(X2(1,2) + u2(1,2));
-        const double crhs26 =     crhs5*(X2(2,2) + u2(2,2));
-        const double crhs27 =     crhs7*(X2(3,2) + u2(3,2));
-        const double crhs28 =     crhs9*(X1(0,2) + u1(0,2));
-        const double crhs29 =     crhs11*(X1(1,2) + u1(1,2));
-        const double crhs30 =     crhs13*(X1(2,2) + u1(2,2));
-        const double crhs31 =     PenaltyParameter[0]*(crhs0*(-crhs10 - crhs12 - crhs14 + crhs2 + crhs4 + crhs6 + crhs8) + crhs15*(crhs16 + crhs17 + crhs18 + crhs19 - crhs20 - crhs21 - crhs22) + crhs23*(crhs24 + crhs25 + crhs26 + crhs27 - crhs28 - crhs29 - crhs30));
-        const double crhs32 =     LM(0,0)*ScaleFactor + crhs0*crhs31;
-        const double crhs33 =     DynamicFactor[0]*crhs1;
-        const double crhs34 =     LM(0,1)*ScaleFactor + crhs15*crhs31;
-        const double crhs35 =     LM(0,2)*ScaleFactor + crhs23*crhs31;
-        const double crhs36 =     DynamicFactor[0]*crhs3;
-        const double crhs37 =     DynamicFactor[0]*crhs5;
-        const double crhs38 =     DynamicFactor[0]*crhs7;
-        const double crhs39 =     DynamicFactor[0]*crhs9;
-        const double crhs40 =     DynamicFactor[0]*crhs11;
-        const double crhs41 =     DynamicFactor[0]*crhs13;
-        const double crhs42 =     LM(0,0)*NormalSlave(0,0) + LM(0,1)*NormalSlave(0,1) + LM(0,2)*NormalSlave(0,2);
-        const double crhs43 =     LM(0,1) - NormalSlave(0,1)*crhs42;
-        const double crhs44 =     NormalSlave(0,0)*NormalSlave(0,1);
-        const double crhs45 =     LM(0,2) - NormalSlave(0,2)*crhs42;
-        const double crhs46 =     NormalSlave(0,2)*crhs45;
-        const double crhs47 =     LM(0,0) - NormalSlave(0,0)*crhs42;
-        const double crhs48 =     ScaleFactor/PenaltyParameter[0];
-        const double crhs49 =     crhs0*(crhs10 + crhs12 + crhs14 - crhs2 - crhs4 - crhs6 - crhs8) + crhs15*(-crhs16 - crhs17 - crhs18 - crhs19 + crhs20 + crhs21 + crhs22) + crhs23*(-crhs24 - crhs25 - crhs26 - crhs27 + crhs28 + crhs29 + crhs30);
-
-        rLocalRHS[0]+=-crhs32*crhs33;
-        rLocalRHS[1]+=-crhs33*crhs34;
-        rLocalRHS[2]+=-crhs33*crhs35;
-        rLocalRHS[3]+=-crhs32*crhs36;
-        rLocalRHS[4]+=-crhs34*crhs36;
-        rLocalRHS[5]+=-crhs35*crhs36;
-        rLocalRHS[6]+=-crhs32*crhs37;
-        rLocalRHS[7]+=-crhs34*crhs37;
-        rLocalRHS[8]+=-crhs35*crhs37;
-        rLocalRHS[9]+=-crhs32*crhs38;
-        rLocalRHS[10]+=-crhs34*crhs38;
-        rLocalRHS[11]+=-crhs35*crhs38;
-        rLocalRHS[12]+=crhs32*crhs39;
-        rLocalRHS[13]+=crhs34*crhs39;
-        rLocalRHS[14]+=crhs35*crhs39;
-        rLocalRHS[15]+=crhs32*crhs40;
-        rLocalRHS[16]+=crhs34*crhs40;
-        rLocalRHS[17]+=crhs35*crhs40;
-        rLocalRHS[18]+=crhs32*crhs41;
-        rLocalRHS[19]+=crhs34*crhs41;
-        rLocalRHS[20]+=crhs35*crhs41;
-        rLocalRHS[21]+=ScaleFactor*(-NormalSlave(0,0)*crhs49 + crhs48*(NormalSlave(0,0)*crhs46 + crhs43*crhs44 - crhs47*(-std::pow(NormalSlave(0,0), 2) + 1)));
-        rLocalRHS[22]+=ScaleFactor*(-NormalSlave(0,1)*crhs49 + crhs48*(NormalSlave(0,1)*crhs46 - crhs43*(-std::pow(NormalSlave(0,1), 2) + 1) + crhs44*crhs47));
-        rLocalRHS[23]+=ScaleFactor*(-NormalSlave(0,2)*crhs49 + crhs48*(NormalSlave(0,0)*NormalSlave(0,2)*crhs47 + NormalSlave(0,1)*NormalSlave(0,2)*crhs43 - crhs45*(-std::pow(NormalSlave(0,2), 2) + 1)));
-    }
-    // NODE 1
-    if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-        const double crhs0 =     std::pow(ScaleFactor, 2)/PenaltyParameter[1];
-
-        rLocalRHS[24]+=-LM(1,0)*crhs0;
-        rLocalRHS[25]+=-LM(1,1)*crhs0;
-        rLocalRHS[26]+=-LM(1,2)*crhs0;
-    } else { // ACTIVE
-        const double crhs0 =      NormalSlave(1,0); // NORMALSLAVE(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs1 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs2 =     crhs1*(X2(0,0) + u2(0,0));
-        const double crhs3 =      MOperator(1,1); // MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs4 =     crhs3*(X2(1,0) + u2(1,0));
-        const double crhs5 =      MOperator(1,2); // MOPERATOR(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs6 =     crhs5*(X2(2,0) + u2(2,0));
-        const double crhs7 =      MOperator(1,3); // MOPERATOR(1,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs8 =     crhs7*(X2(3,0) + u2(3,0));
-        const double crhs9 =      DOperator(1,0); // DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs10 =     crhs9*(X1(0,0) + u1(0,0));
-        const double crhs11 =      DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs12 =     crhs11*(X1(1,0) + u1(1,0));
-        const double crhs13 =      DOperator(1,2); // DOPERATOR(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs14 =     crhs13*(X1(2,0) + u1(2,0));
-        const double crhs15 =      NormalSlave(1,1); // NORMALSLAVE(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs16 =     crhs1*(X2(0,1) + u2(0,1));
-        const double crhs17 =     crhs3*(X2(1,1) + u2(1,1));
-        const double crhs18 =     crhs5*(X2(2,1) + u2(2,1));
-        const double crhs19 =     crhs7*(X2(3,1) + u2(3,1));
-        const double crhs20 =     crhs9*(X1(0,1) + u1(0,1));
-        const double crhs21 =     crhs11*(X1(1,1) + u1(1,1));
-        const double crhs22 =     crhs13*(X1(2,1) + u1(2,1));
-        const double crhs23 =      NormalSlave(1,2); // NORMALSLAVE(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs24 =     crhs1*(X2(0,2) + u2(0,2));
-        const double crhs25 =     crhs3*(X2(1,2) + u2(1,2));
-        const double crhs26 =     crhs5*(X2(2,2) + u2(2,2));
-        const double crhs27 =     crhs7*(X2(3,2) + u2(3,2));
-        const double crhs28 =     crhs9*(X1(0,2) + u1(0,2));
-        const double crhs29 =     crhs11*(X1(1,2) + u1(1,2));
-        const double crhs30 =     crhs13*(X1(2,2) + u1(2,2));
-        const double crhs31 =     PenaltyParameter[1]*(crhs0*(-crhs10 - crhs12 - crhs14 + crhs2 + crhs4 + crhs6 + crhs8) + crhs15*(crhs16 + crhs17 + crhs18 + crhs19 - crhs20 - crhs21 - crhs22) + crhs23*(crhs24 + crhs25 + crhs26 + crhs27 - crhs28 - crhs29 - crhs30));
-        const double crhs32 =     LM(1,0)*ScaleFactor + crhs0*crhs31;
-        const double crhs33 =     DynamicFactor[1]*crhs1;
-        const double crhs34 =     LM(1,1)*ScaleFactor + crhs15*crhs31;
-        const double crhs35 =     LM(1,2)*ScaleFactor + crhs23*crhs31;
-        const double crhs36 =     DynamicFactor[1]*crhs3;
-        const double crhs37 =     DynamicFactor[1]*crhs5;
-        const double crhs38 =     DynamicFactor[1]*crhs7;
-        const double crhs39 =     DynamicFactor[1]*crhs9;
-        const double crhs40 =     DynamicFactor[1]*crhs11;
-        const double crhs41 =     DynamicFactor[1]*crhs13;
-        const double crhs42 =     LM(1,0)*NormalSlave(1,0) + LM(1,1)*NormalSlave(1,1) + LM(1,2)*NormalSlave(1,2);
-        const double crhs43 =     LM(1,1) - NormalSlave(1,1)*crhs42;
-        const double crhs44 =     NormalSlave(1,0)*NormalSlave(1,1);
-        const double crhs45 =     LM(1,2) - NormalSlave(1,2)*crhs42;
-        const double crhs46 =     NormalSlave(1,2)*crhs45;
-        const double crhs47 =     LM(1,0) - NormalSlave(1,0)*crhs42;
-        const double crhs48 =     ScaleFactor/PenaltyParameter[1];
-        const double crhs49 =     crhs0*(crhs10 + crhs12 + crhs14 - crhs2 - crhs4 - crhs6 - crhs8) + crhs15*(-crhs16 - crhs17 - crhs18 - crhs19 + crhs20 + crhs21 + crhs22) + crhs23*(-crhs24 - crhs25 - crhs26 - crhs27 + crhs28 + crhs29 + crhs30);
-
-        rLocalRHS[0]+=-crhs32*crhs33;
-        rLocalRHS[1]+=-crhs33*crhs34;
-        rLocalRHS[2]+=-crhs33*crhs35;
-        rLocalRHS[3]+=-crhs32*crhs36;
-        rLocalRHS[4]+=-crhs34*crhs36;
-        rLocalRHS[5]+=-crhs35*crhs36;
-        rLocalRHS[6]+=-crhs32*crhs37;
-        rLocalRHS[7]+=-crhs34*crhs37;
-        rLocalRHS[8]+=-crhs35*crhs37;
-        rLocalRHS[9]+=-crhs32*crhs38;
-        rLocalRHS[10]+=-crhs34*crhs38;
-        rLocalRHS[11]+=-crhs35*crhs38;
-        rLocalRHS[12]+=crhs32*crhs39;
-        rLocalRHS[13]+=crhs34*crhs39;
-        rLocalRHS[14]+=crhs35*crhs39;
-        rLocalRHS[15]+=crhs32*crhs40;
-        rLocalRHS[16]+=crhs34*crhs40;
-        rLocalRHS[17]+=crhs35*crhs40;
-        rLocalRHS[18]+=crhs32*crhs41;
-        rLocalRHS[19]+=crhs34*crhs41;
-        rLocalRHS[20]+=crhs35*crhs41;
-        rLocalRHS[24]+=ScaleFactor*(-NormalSlave(1,0)*crhs49 + crhs48*(NormalSlave(1,0)*crhs46 + crhs43*crhs44 - crhs47*(-std::pow(NormalSlave(1,0), 2) + 1)));
-        rLocalRHS[25]+=ScaleFactor*(-NormalSlave(1,1)*crhs49 + crhs48*(NormalSlave(1,1)*crhs46 - crhs43*(-std::pow(NormalSlave(1,1), 2) + 1) + crhs44*crhs47));
-        rLocalRHS[26]+=ScaleFactor*(-NormalSlave(1,2)*crhs49 + crhs48*(NormalSlave(1,0)*NormalSlave(1,2)*crhs47 + NormalSlave(1,1)*NormalSlave(1,2)*crhs43 - crhs45*(-std::pow(NormalSlave(1,2), 2) + 1)));
-    }
-    // NODE 2
-    if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-        const double crhs0 =     std::pow(ScaleFactor, 2)/PenaltyParameter[2];
-
-        rLocalRHS[27]+=-LM(2,0)*crhs0;
-        rLocalRHS[28]+=-LM(2,1)*crhs0;
-        rLocalRHS[29]+=-LM(2,2)*crhs0;
-    } else { // ACTIVE
-        const double crhs0 =      NormalSlave(2,0); // NORMALSLAVE(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs1 =      MOperator(2,0); // MOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs2 =     crhs1*(X2(0,0) + u2(0,0));
-        const double crhs3 =      MOperator(2,1); // MOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs4 =     crhs3*(X2(1,0) + u2(1,0));
-        const double crhs5 =      MOperator(2,2); // MOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs6 =     crhs5*(X2(2,0) + u2(2,0));
-        const double crhs7 =      MOperator(2,3); // MOPERATOR(2,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs8 =     crhs7*(X2(3,0) + u2(3,0));
-        const double crhs9 =      DOperator(2,0); // DOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs10 =     crhs9*(X1(0,0) + u1(0,0));
-        const double crhs11 =      DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs12 =     crhs11*(X1(1,0) + u1(1,0));
-        const double crhs13 =      DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-        const double crhs14 =     crhs13*(X1(2,0) + u1(2,0));
-        const double crhs15 =      NormalSlave(2,1); // NORMALSLAVE(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs16 =     crhs1*(X2(0,1) + u2(0,1));
-        const double crhs17 =     crhs3*(X2(1,1) + u2(1,1));
-        const double crhs18 =     crhs5*(X2(2,1) + u2(2,1));
-        const double crhs19 =     crhs7*(X2(3,1) + u2(3,1));
-        const double crhs20 =     crhs9*(X1(0,1) + u1(0,1));
-        const double crhs21 =     crhs11*(X1(1,1) + u1(1,1));
-        const double crhs22 =     crhs13*(X1(2,1) + u1(2,1));
-        const double crhs23 =      NormalSlave(2,2); // NORMALSLAVE(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
-        const double crhs24 =     crhs1*(X2(0,2) + u2(0,2));
-        const double crhs25 =     crhs3*(X2(1,2) + u2(1,2));
-        const double crhs26 =     crhs5*(X2(2,2) + u2(2,2));
-        const double crhs27 =     crhs7*(X2(3,2) + u2(3,2));
-        const double crhs28 =     crhs9*(X1(0,2) + u1(0,2));
-        const double crhs29 =     crhs11*(X1(1,2) + u1(1,2));
-        const double crhs30 =     crhs13*(X1(2,2) + u1(2,2));
-        const double crhs31 =     PenaltyParameter[2]*(crhs0*(-crhs10 - crhs12 - crhs14 + crhs2 + crhs4 + crhs6 + crhs8) + crhs15*(crhs16 + crhs17 + crhs18 + crhs19 - crhs20 - crhs21 - crhs22) + crhs23*(crhs24 + crhs25 + crhs26 + crhs27 - crhs28 - crhs29 - crhs30));
-        const double crhs32 =     LM(2,0)*ScaleFactor + crhs0*crhs31;
-        const double crhs33 =     DynamicFactor[2]*crhs1;
-        const double crhs34 =     LM(2,1)*ScaleFactor + crhs15*crhs31;
-        const double crhs35 =     LM(2,2)*ScaleFactor + crhs23*crhs31;
-        const double crhs36 =     DynamicFactor[2]*crhs3;
-        const double crhs37 =     DynamicFactor[2]*crhs5;
-        const double crhs38 =     DynamicFactor[2]*crhs7;
-        const double crhs39 =     DynamicFactor[2]*crhs9;
-        const double crhs40 =     DynamicFactor[2]*crhs11;
-        const double crhs41 =     DynamicFactor[2]*crhs13;
-        const double crhs42 =     LM(2,0)*NormalSlave(2,0) + LM(2,1)*NormalSlave(2,1) + LM(2,2)*NormalSlave(2,2);
-        const double crhs43 =     LM(2,1) - NormalSlave(2,1)*crhs42;
-        const double crhs44 =     NormalSlave(2,0)*NormalSlave(2,1);
-        const double crhs45 =     LM(2,2) - NormalSlave(2,2)*crhs42;
-        const double crhs46 =     NormalSlave(2,2)*crhs45;
-        const double crhs47 =     LM(2,0) - NormalSlave(2,0)*crhs42;
-        const double crhs48 =     ScaleFactor/PenaltyParameter[2];
-        const double crhs49 =     crhs0*(crhs10 + crhs12 + crhs14 - crhs2 - crhs4 - crhs6 - crhs8) + crhs15*(-crhs16 - crhs17 - crhs18 - crhs19 + crhs20 + crhs21 + crhs22) + crhs23*(-crhs24 - crhs25 - crhs26 - crhs27 + crhs28 + crhs29 + crhs30);
-
-        rLocalRHS[0]+=-crhs32*crhs33;
-        rLocalRHS[1]+=-crhs33*crhs34;
-        rLocalRHS[2]+=-crhs33*crhs35;
-        rLocalRHS[3]+=-crhs32*crhs36;
-        rLocalRHS[4]+=-crhs34*crhs36;
-        rLocalRHS[5]+=-crhs35*crhs36;
-        rLocalRHS[6]+=-crhs32*crhs37;
-        rLocalRHS[7]+=-crhs34*crhs37;
-        rLocalRHS[8]+=-crhs35*crhs37;
-        rLocalRHS[9]+=-crhs32*crhs38;
-        rLocalRHS[10]+=-crhs34*crhs38;
-        rLocalRHS[11]+=-crhs35*crhs38;
-        rLocalRHS[12]+=crhs32*crhs39;
-        rLocalRHS[13]+=crhs34*crhs39;
-        rLocalRHS[14]+=crhs35*crhs39;
-        rLocalRHS[15]+=crhs32*crhs40;
-        rLocalRHS[16]+=crhs34*crhs40;
-        rLocalRHS[17]+=crhs35*crhs40;
-        rLocalRHS[18]+=crhs32*crhs41;
-        rLocalRHS[19]+=crhs34*crhs41;
-        rLocalRHS[20]+=crhs35*crhs41;
-        rLocalRHS[27]+=ScaleFactor*(-NormalSlave(2,0)*crhs49 + crhs48*(NormalSlave(2,0)*crhs46 + crhs43*crhs44 - crhs47*(-std::pow(NormalSlave(2,0), 2) + 1)));
-        rLocalRHS[28]+=ScaleFactor*(-NormalSlave(2,1)*crhs49 + crhs48*(NormalSlave(2,1)*crhs46 - crhs43*(-std::pow(NormalSlave(2,1), 2) + 1) + crhs44*crhs47));
-        rLocalRHS[29]+=ScaleFactor*(-NormalSlave(2,2)*crhs49 + crhs48*(NormalSlave(2,0)*NormalSlave(2,2)*crhs47 + NormalSlave(2,1)*NormalSlave(2,2)*crhs43 - crhs45*(-std::pow(NormalSlave(2,2), 2) + 1)));
-    }
+    AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,3, false, 4>::StaticCalculateLocalRHS(
+      pCondition,
+      rLocalRHS,
+      rMortarConditionMatrices,
+      rDerivativeData,
+      rActiveInactive,
+      rCurrentProcessInfo
+      );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, true, 3>::CalculateLocalRHS(
+void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, true, 3>::StaticCalculateLocalRHS(
+    PairedCondition* pCondition,
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -29834,287 +29006,15 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, 
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // Initialize
-    for (std::size_t i = 0; i < 33; ++i)
-        rLocalRHS[i] = 0.0;
-
-    // The geometry of the condition
-    const GeometryType& r_geometry = this->GetParentGeometry();
-
-    // Initialize values
-    const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
-    const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
-    const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
-    const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
-
-    const BoundedMatrix<double, 4, 3> LM = MortarUtilities::GetVariableMatrix<3, 4>(this->GetParentGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0);
-
-    const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
-
-    // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
-    const double ScaleFactor = rDerivativeData.ScaleFactor;
-    const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-
-    // Mortar operators
-    const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
-    const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
-
-
-    // NODE 0
-    if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-        const double crhs0 =     std::pow(ScaleFactor, 2)/PenaltyParameter[0];
-
-        rLocalRHS[21]+=-LM(0,0)*crhs0;
-        rLocalRHS[22]+=-LM(0,1)*crhs0;
-        rLocalRHS[23]+=-LM(0,2)*crhs0;
-    } else { // ACTIVE
-        const double crhs0 =      NormalSlave(0,0); // NORMALSLAVE(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs1 =      DOperator(0,0); // DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs2 =      DOperator(0,1); // DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs3 =      DOperator(0,2); // DOPERATOR(0,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs4 =      DOperator(0,3); // DOPERATOR(0,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs5 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs6 =      MOperator(0,1); // MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs7 =      MOperator(0,2); // MOPERATOR(0,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs8 =      NormalSlave(0,1); // NORMALSLAVE(0,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs9 =      NormalSlave(0,2); // NORMALSLAVE(0,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs10 =     crhs0*(crhs1*(X1(0,0) + u1(0,0)) + crhs2*(X1(1,0) + u1(1,0)) + crhs3*(X1(2,0) + u1(2,0)) + crhs4*(X1(3,0) + u1(3,0)) - crhs5*(X2(0,0) + u2(0,0)) - crhs6*(X2(1,0) + u2(1,0)) - crhs7*(X2(2,0) + u2(2,0))) + crhs8*(crhs1*(X1(0,1) + u1(0,1)) + crhs2*(X1(1,1) + u1(1,1)) + crhs3*(X1(2,1) + u1(2,1)) + crhs4*(X1(3,1) + u1(3,1)) - crhs5*(X2(0,1) + u2(0,1)) - crhs6*(X2(1,1) + u2(1,1)) - crhs7*(X2(2,1) + u2(2,1))) + crhs9*(crhs1*(X1(0,2) + u1(0,2)) + crhs2*(X1(1,2) + u1(1,2)) + crhs3*(X1(2,2) + u1(2,2)) + crhs4*(X1(3,2) + u1(3,2)) - crhs5*(X2(0,2) + u2(0,2)) - crhs6*(X2(1,2) + u2(1,2)) - crhs7*(X2(2,2) + u2(2,2)));
-        const double crhs11 =     PenaltyParameter[0]*crhs10;
-        const double crhs12 =     LM(0,0)*ScaleFactor - crhs0*crhs11;
-        const double crhs13 =     DynamicFactor[0]*crhs5;
-        const double crhs14 =     LM(0,1)*ScaleFactor - crhs11*crhs8;
-        const double crhs15 =     LM(0,2)*ScaleFactor - crhs11*crhs9;
-        const double crhs16 =     DynamicFactor[0]*crhs6;
-        const double crhs17 =     DynamicFactor[0]*crhs7;
-        const double crhs18 =     DynamicFactor[0]*crhs1;
-        const double crhs19 =     DynamicFactor[0]*crhs2;
-        const double crhs20 =     DynamicFactor[0]*crhs3;
-        const double crhs21 =     DynamicFactor[0]*crhs4;
-        const double crhs22 =     LM(0,0)*NormalSlave(0,0) + LM(0,1)*NormalSlave(0,1) + LM(0,2)*NormalSlave(0,2);
-        const double crhs23 =     LM(0,1) - NormalSlave(0,1)*crhs22;
-        const double crhs24 =     NormalSlave(0,0)*NormalSlave(0,1);
-        const double crhs25 =     LM(0,2) - NormalSlave(0,2)*crhs22;
-        const double crhs26 =     NormalSlave(0,2)*crhs25;
-        const double crhs27 =     LM(0,0) - NormalSlave(0,0)*crhs22;
-        const double crhs28 =     ScaleFactor/PenaltyParameter[0];
-
-        rLocalRHS[0]+=-crhs12*crhs13;
-        rLocalRHS[1]+=-crhs13*crhs14;
-        rLocalRHS[2]+=-crhs13*crhs15;
-        rLocalRHS[3]+=-crhs12*crhs16;
-        rLocalRHS[4]+=-crhs14*crhs16;
-        rLocalRHS[5]+=-crhs15*crhs16;
-        rLocalRHS[6]+=-crhs12*crhs17;
-        rLocalRHS[7]+=-crhs14*crhs17;
-        rLocalRHS[8]+=-crhs15*crhs17;
-        rLocalRHS[9]+=crhs12*crhs18;
-        rLocalRHS[10]+=crhs14*crhs18;
-        rLocalRHS[11]+=crhs15*crhs18;
-        rLocalRHS[12]+=crhs12*crhs19;
-        rLocalRHS[13]+=crhs14*crhs19;
-        rLocalRHS[14]+=crhs15*crhs19;
-        rLocalRHS[15]+=crhs12*crhs20;
-        rLocalRHS[16]+=crhs14*crhs20;
-        rLocalRHS[17]+=crhs15*crhs20;
-        rLocalRHS[18]+=crhs12*crhs21;
-        rLocalRHS[19]+=crhs14*crhs21;
-        rLocalRHS[20]+=crhs15*crhs21;
-        rLocalRHS[21]+=ScaleFactor*(-NormalSlave(0,0)*crhs10 + crhs28*(NormalSlave(0,0)*crhs26 + crhs23*crhs24 - crhs27*(-std::pow(NormalSlave(0,0), 2) + 1)));
-        rLocalRHS[22]+=ScaleFactor*(-NormalSlave(0,1)*crhs10 + crhs28*(NormalSlave(0,1)*crhs26 - crhs23*(-std::pow(NormalSlave(0,1), 2) + 1) + crhs24*crhs27));
-        rLocalRHS[23]+=ScaleFactor*(-NormalSlave(0,2)*crhs10 + crhs28*(NormalSlave(0,0)*NormalSlave(0,2)*crhs27 + NormalSlave(0,1)*NormalSlave(0,2)*crhs23 - crhs25*(-std::pow(NormalSlave(0,2), 2) + 1)));
-    }
-    // NODE 1
-    if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-        const double crhs0 =     std::pow(ScaleFactor, 2)/PenaltyParameter[1];
-
-        rLocalRHS[24]+=-LM(1,0)*crhs0;
-        rLocalRHS[25]+=-LM(1,1)*crhs0;
-        rLocalRHS[26]+=-LM(1,2)*crhs0;
-    } else { // ACTIVE
-        const double crhs0 =      NormalSlave(1,0); // NORMALSLAVE(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs1 =      DOperator(1,0); // DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs2 =      DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs3 =      DOperator(1,2); // DOPERATOR(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs4 =      DOperator(1,3); // DOPERATOR(1,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs5 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs6 =      MOperator(1,1); // MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs7 =      MOperator(1,2); // MOPERATOR(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs8 =      NormalSlave(1,1); // NORMALSLAVE(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs9 =      NormalSlave(1,2); // NORMALSLAVE(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs10 =     crhs0*(crhs1*(X1(0,0) + u1(0,0)) + crhs2*(X1(1,0) + u1(1,0)) + crhs3*(X1(2,0) + u1(2,0)) + crhs4*(X1(3,0) + u1(3,0)) - crhs5*(X2(0,0) + u2(0,0)) - crhs6*(X2(1,0) + u2(1,0)) - crhs7*(X2(2,0) + u2(2,0))) + crhs8*(crhs1*(X1(0,1) + u1(0,1)) + crhs2*(X1(1,1) + u1(1,1)) + crhs3*(X1(2,1) + u1(2,1)) + crhs4*(X1(3,1) + u1(3,1)) - crhs5*(X2(0,1) + u2(0,1)) - crhs6*(X2(1,1) + u2(1,1)) - crhs7*(X2(2,1) + u2(2,1))) + crhs9*(crhs1*(X1(0,2) + u1(0,2)) + crhs2*(X1(1,2) + u1(1,2)) + crhs3*(X1(2,2) + u1(2,2)) + crhs4*(X1(3,2) + u1(3,2)) - crhs5*(X2(0,2) + u2(0,2)) - crhs6*(X2(1,2) + u2(1,2)) - crhs7*(X2(2,2) + u2(2,2)));
-        const double crhs11 =     PenaltyParameter[1]*crhs10;
-        const double crhs12 =     LM(1,0)*ScaleFactor - crhs0*crhs11;
-        const double crhs13 =     DynamicFactor[1]*crhs5;
-        const double crhs14 =     LM(1,1)*ScaleFactor - crhs11*crhs8;
-        const double crhs15 =     LM(1,2)*ScaleFactor - crhs11*crhs9;
-        const double crhs16 =     DynamicFactor[1]*crhs6;
-        const double crhs17 =     DynamicFactor[1]*crhs7;
-        const double crhs18 =     DynamicFactor[1]*crhs1;
-        const double crhs19 =     DynamicFactor[1]*crhs2;
-        const double crhs20 =     DynamicFactor[1]*crhs3;
-        const double crhs21 =     DynamicFactor[1]*crhs4;
-        const double crhs22 =     LM(1,0)*NormalSlave(1,0) + LM(1,1)*NormalSlave(1,1) + LM(1,2)*NormalSlave(1,2);
-        const double crhs23 =     LM(1,1) - NormalSlave(1,1)*crhs22;
-        const double crhs24 =     NormalSlave(1,0)*NormalSlave(1,1);
-        const double crhs25 =     LM(1,2) - NormalSlave(1,2)*crhs22;
-        const double crhs26 =     NormalSlave(1,2)*crhs25;
-        const double crhs27 =     LM(1,0) - NormalSlave(1,0)*crhs22;
-        const double crhs28 =     ScaleFactor/PenaltyParameter[1];
-
-        rLocalRHS[0]+=-crhs12*crhs13;
-        rLocalRHS[1]+=-crhs13*crhs14;
-        rLocalRHS[2]+=-crhs13*crhs15;
-        rLocalRHS[3]+=-crhs12*crhs16;
-        rLocalRHS[4]+=-crhs14*crhs16;
-        rLocalRHS[5]+=-crhs15*crhs16;
-        rLocalRHS[6]+=-crhs12*crhs17;
-        rLocalRHS[7]+=-crhs14*crhs17;
-        rLocalRHS[8]+=-crhs15*crhs17;
-        rLocalRHS[9]+=crhs12*crhs18;
-        rLocalRHS[10]+=crhs14*crhs18;
-        rLocalRHS[11]+=crhs15*crhs18;
-        rLocalRHS[12]+=crhs12*crhs19;
-        rLocalRHS[13]+=crhs14*crhs19;
-        rLocalRHS[14]+=crhs15*crhs19;
-        rLocalRHS[15]+=crhs12*crhs20;
-        rLocalRHS[16]+=crhs14*crhs20;
-        rLocalRHS[17]+=crhs15*crhs20;
-        rLocalRHS[18]+=crhs12*crhs21;
-        rLocalRHS[19]+=crhs14*crhs21;
-        rLocalRHS[20]+=crhs15*crhs21;
-        rLocalRHS[24]+=ScaleFactor*(-NormalSlave(1,0)*crhs10 + crhs28*(NormalSlave(1,0)*crhs26 + crhs23*crhs24 - crhs27*(-std::pow(NormalSlave(1,0), 2) + 1)));
-        rLocalRHS[25]+=ScaleFactor*(-NormalSlave(1,1)*crhs10 + crhs28*(NormalSlave(1,1)*crhs26 - crhs23*(-std::pow(NormalSlave(1,1), 2) + 1) + crhs24*crhs27));
-        rLocalRHS[26]+=ScaleFactor*(-NormalSlave(1,2)*crhs10 + crhs28*(NormalSlave(1,0)*NormalSlave(1,2)*crhs27 + NormalSlave(1,1)*NormalSlave(1,2)*crhs23 - crhs25*(-std::pow(NormalSlave(1,2), 2) + 1)));
-    }
-    // NODE 2
-    if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-        const double crhs0 =     std::pow(ScaleFactor, 2)/PenaltyParameter[2];
-
-        rLocalRHS[27]+=-LM(2,0)*crhs0;
-        rLocalRHS[28]+=-LM(2,1)*crhs0;
-        rLocalRHS[29]+=-LM(2,2)*crhs0;
-    } else { // ACTIVE
-        const double crhs0 =      NormalSlave(2,0); // NORMALSLAVE(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs1 =      DOperator(2,0); // DOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs2 =      DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs3 =      DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs4 =      DOperator(2,3); // DOPERATOR(2,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs5 =      MOperator(2,0); // MOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs6 =      MOperator(2,1); // MOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs7 =      MOperator(2,2); // MOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs8 =      NormalSlave(2,1); // NORMALSLAVE(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs9 =      NormalSlave(2,2); // NORMALSLAVE(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs10 =     crhs0*(crhs1*(X1(0,0) + u1(0,0)) + crhs2*(X1(1,0) + u1(1,0)) + crhs3*(X1(2,0) + u1(2,0)) + crhs4*(X1(3,0) + u1(3,0)) - crhs5*(X2(0,0) + u2(0,0)) - crhs6*(X2(1,0) + u2(1,0)) - crhs7*(X2(2,0) + u2(2,0))) + crhs8*(crhs1*(X1(0,1) + u1(0,1)) + crhs2*(X1(1,1) + u1(1,1)) + crhs3*(X1(2,1) + u1(2,1)) + crhs4*(X1(3,1) + u1(3,1)) - crhs5*(X2(0,1) + u2(0,1)) - crhs6*(X2(1,1) + u2(1,1)) - crhs7*(X2(2,1) + u2(2,1))) + crhs9*(crhs1*(X1(0,2) + u1(0,2)) + crhs2*(X1(1,2) + u1(1,2)) + crhs3*(X1(2,2) + u1(2,2)) + crhs4*(X1(3,2) + u1(3,2)) - crhs5*(X2(0,2) + u2(0,2)) - crhs6*(X2(1,2) + u2(1,2)) - crhs7*(X2(2,2) + u2(2,2)));
-        const double crhs11 =     PenaltyParameter[2]*crhs10;
-        const double crhs12 =     LM(2,0)*ScaleFactor - crhs0*crhs11;
-        const double crhs13 =     DynamicFactor[2]*crhs5;
-        const double crhs14 =     LM(2,1)*ScaleFactor - crhs11*crhs8;
-        const double crhs15 =     LM(2,2)*ScaleFactor - crhs11*crhs9;
-        const double crhs16 =     DynamicFactor[2]*crhs6;
-        const double crhs17 =     DynamicFactor[2]*crhs7;
-        const double crhs18 =     DynamicFactor[2]*crhs1;
-        const double crhs19 =     DynamicFactor[2]*crhs2;
-        const double crhs20 =     DynamicFactor[2]*crhs3;
-        const double crhs21 =     DynamicFactor[2]*crhs4;
-        const double crhs22 =     LM(2,0)*NormalSlave(2,0) + LM(2,1)*NormalSlave(2,1) + LM(2,2)*NormalSlave(2,2);
-        const double crhs23 =     LM(2,1) - NormalSlave(2,1)*crhs22;
-        const double crhs24 =     NormalSlave(2,0)*NormalSlave(2,1);
-        const double crhs25 =     LM(2,2) - NormalSlave(2,2)*crhs22;
-        const double crhs26 =     NormalSlave(2,2)*crhs25;
-        const double crhs27 =     LM(2,0) - NormalSlave(2,0)*crhs22;
-        const double crhs28 =     ScaleFactor/PenaltyParameter[2];
-
-        rLocalRHS[0]+=-crhs12*crhs13;
-        rLocalRHS[1]+=-crhs13*crhs14;
-        rLocalRHS[2]+=-crhs13*crhs15;
-        rLocalRHS[3]+=-crhs12*crhs16;
-        rLocalRHS[4]+=-crhs14*crhs16;
-        rLocalRHS[5]+=-crhs15*crhs16;
-        rLocalRHS[6]+=-crhs12*crhs17;
-        rLocalRHS[7]+=-crhs14*crhs17;
-        rLocalRHS[8]+=-crhs15*crhs17;
-        rLocalRHS[9]+=crhs12*crhs18;
-        rLocalRHS[10]+=crhs14*crhs18;
-        rLocalRHS[11]+=crhs15*crhs18;
-        rLocalRHS[12]+=crhs12*crhs19;
-        rLocalRHS[13]+=crhs14*crhs19;
-        rLocalRHS[14]+=crhs15*crhs19;
-        rLocalRHS[15]+=crhs12*crhs20;
-        rLocalRHS[16]+=crhs14*crhs20;
-        rLocalRHS[17]+=crhs15*crhs20;
-        rLocalRHS[18]+=crhs12*crhs21;
-        rLocalRHS[19]+=crhs14*crhs21;
-        rLocalRHS[20]+=crhs15*crhs21;
-        rLocalRHS[27]+=ScaleFactor*(-NormalSlave(2,0)*crhs10 + crhs28*(NormalSlave(2,0)*crhs26 + crhs23*crhs24 - crhs27*(-std::pow(NormalSlave(2,0), 2) + 1)));
-        rLocalRHS[28]+=ScaleFactor*(-NormalSlave(2,1)*crhs10 + crhs28*(NormalSlave(2,1)*crhs26 - crhs23*(-std::pow(NormalSlave(2,1), 2) + 1) + crhs24*crhs27));
-        rLocalRHS[29]+=ScaleFactor*(-NormalSlave(2,2)*crhs10 + crhs28*(NormalSlave(2,0)*NormalSlave(2,2)*crhs27 + NormalSlave(2,1)*NormalSlave(2,2)*crhs23 - crhs25*(-std::pow(NormalSlave(2,2), 2) + 1)));
-    }
-    // NODE 3
-    if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
-        const double crhs0 =     std::pow(ScaleFactor, 2)/PenaltyParameter[3];
-
-        rLocalRHS[30]+=-LM(3,0)*crhs0;
-        rLocalRHS[31]+=-LM(3,1)*crhs0;
-        rLocalRHS[32]+=-LM(3,2)*crhs0;
-    } else { // ACTIVE
-        const double crhs0 =      NormalSlave(3,0); // NORMALSLAVE(3,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs1 =      DOperator(3,0); // DOPERATOR(3,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs2 =      DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs3 =      DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs4 =      DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs5 =      MOperator(3,0); // MOPERATOR(3,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs6 =      MOperator(3,1); // MOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs7 =      MOperator(3,2); // MOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-        const double crhs8 =      NormalSlave(3,1); // NORMALSLAVE(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs9 =      NormalSlave(3,2); // NORMALSLAVE(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
-        const double crhs10 =     crhs0*(crhs1*(X1(0,0) + u1(0,0)) + crhs2*(X1(1,0) + u1(1,0)) + crhs3*(X1(2,0) + u1(2,0)) + crhs4*(X1(3,0) + u1(3,0)) - crhs5*(X2(0,0) + u2(0,0)) - crhs6*(X2(1,0) + u2(1,0)) - crhs7*(X2(2,0) + u2(2,0))) + crhs8*(crhs1*(X1(0,1) + u1(0,1)) + crhs2*(X1(1,1) + u1(1,1)) + crhs3*(X1(2,1) + u1(2,1)) + crhs4*(X1(3,1) + u1(3,1)) - crhs5*(X2(0,1) + u2(0,1)) - crhs6*(X2(1,1) + u2(1,1)) - crhs7*(X2(2,1) + u2(2,1))) + crhs9*(crhs1*(X1(0,2) + u1(0,2)) + crhs2*(X1(1,2) + u1(1,2)) + crhs3*(X1(2,2) + u1(2,2)) + crhs4*(X1(3,2) + u1(3,2)) - crhs5*(X2(0,2) + u2(0,2)) - crhs6*(X2(1,2) + u2(1,2)) - crhs7*(X2(2,2) + u2(2,2)));
-        const double crhs11 =     PenaltyParameter[3]*crhs10;
-        const double crhs12 =     LM(3,0)*ScaleFactor - crhs0*crhs11;
-        const double crhs13 =     DynamicFactor[3]*crhs5;
-        const double crhs14 =     LM(3,1)*ScaleFactor - crhs11*crhs8;
-        const double crhs15 =     LM(3,2)*ScaleFactor - crhs11*crhs9;
-        const double crhs16 =     DynamicFactor[3]*crhs6;
-        const double crhs17 =     DynamicFactor[3]*crhs7;
-        const double crhs18 =     DynamicFactor[3]*crhs1;
-        const double crhs19 =     DynamicFactor[3]*crhs2;
-        const double crhs20 =     DynamicFactor[3]*crhs3;
-        const double crhs21 =     DynamicFactor[3]*crhs4;
-        const double crhs22 =     LM(3,0)*NormalSlave(3,0) + LM(3,1)*NormalSlave(3,1) + LM(3,2)*NormalSlave(3,2);
-        const double crhs23 =     LM(3,1) - NormalSlave(3,1)*crhs22;
-        const double crhs24 =     NormalSlave(3,0)*NormalSlave(3,1);
-        const double crhs25 =     LM(3,2) - NormalSlave(3,2)*crhs22;
-        const double crhs26 =     NormalSlave(3,2)*crhs25;
-        const double crhs27 =     LM(3,0) - NormalSlave(3,0)*crhs22;
-        const double crhs28 =     ScaleFactor/PenaltyParameter[3];
-
-        rLocalRHS[0]+=-crhs12*crhs13;
-        rLocalRHS[1]+=-crhs13*crhs14;
-        rLocalRHS[2]+=-crhs13*crhs15;
-        rLocalRHS[3]+=-crhs12*crhs16;
-        rLocalRHS[4]+=-crhs14*crhs16;
-        rLocalRHS[5]+=-crhs15*crhs16;
-        rLocalRHS[6]+=-crhs12*crhs17;
-        rLocalRHS[7]+=-crhs14*crhs17;
-        rLocalRHS[8]+=-crhs15*crhs17;
-        rLocalRHS[9]+=crhs12*crhs18;
-        rLocalRHS[10]+=crhs14*crhs18;
-        rLocalRHS[11]+=crhs15*crhs18;
-        rLocalRHS[12]+=crhs12*crhs19;
-        rLocalRHS[13]+=crhs14*crhs19;
-        rLocalRHS[14]+=crhs15*crhs19;
-        rLocalRHS[15]+=crhs12*crhs20;
-        rLocalRHS[16]+=crhs14*crhs20;
-        rLocalRHS[17]+=crhs15*crhs20;
-        rLocalRHS[18]+=crhs12*crhs21;
-        rLocalRHS[19]+=crhs14*crhs21;
-        rLocalRHS[20]+=crhs15*crhs21;
-        rLocalRHS[30]+=ScaleFactor*(-NormalSlave(3,0)*crhs10 + crhs28*(NormalSlave(3,0)*crhs26 + crhs23*crhs24 - crhs27*(-std::pow(NormalSlave(3,0), 2) + 1)));
-        rLocalRHS[31]+=ScaleFactor*(-NormalSlave(3,1)*crhs10 + crhs28*(NormalSlave(3,1)*crhs26 - crhs23*(-std::pow(NormalSlave(3,1), 2) + 1) + crhs24*crhs27));
-        rLocalRHS[32]+=ScaleFactor*(-NormalSlave(3,2)*crhs10 + crhs28*(NormalSlave(3,0)*NormalSlave(3,2)*crhs27 + NormalSlave(3,1)*NormalSlave(3,2)*crhs23 - crhs25*(-std::pow(NormalSlave(3,2), 2) + 1)));
-    }
+    AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3,4, false, 3>::StaticCalculateLocalRHS(
+      pCondition,
+      rLocalRHS,
+      rMortarConditionMatrices,
+      rDerivativeData,
+      rActiveInactive,
+      rCurrentProcessInfo
+      );
 }
-
 
 /****************************** END AD REPLACEMENT *********************************/
 /***********************************************************************************/

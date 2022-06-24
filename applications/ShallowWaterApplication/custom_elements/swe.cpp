@@ -110,7 +110,7 @@ void SWE<TNumNodes, TFramework>::CalculateLocalSystem(
     ElementVariables variables;
     this->InitializeElementVariables(variables, rCurrentProcessInfo);
 
-    const BoundedMatrix<double,TNumNodes, TNumNodes> NContainer = Geom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 ); // In this case, number of Gauss points and number of nodes coincides
+    const BoundedMatrix<double,TNumNodes, TNumNodes> NContainer = Geom.ShapeFunctionsValues( GeometryData::IntegrationMethod::GI_GAUSS_2 ); // In this case, number of Gauss points and number of nodes coincides
 
     BoundedMatrix<double,TNumNodes, 2> DN_DX;  // Shape function gradients are constant since we are using linear functions
     array_1d<double,TNumNodes> N;
@@ -187,7 +187,7 @@ void SWE<TNumNodes, TFramework>::InitializeElementVariables(
     rVariables.gravity = rCurrentProcessInfo[GRAVITY_Z];
     rVariables.manning2 = 0.0;
     rVariables.porosity = 0.0;
-    rVariables.permeability = rCurrentProcessInfo[PERMEABILITY];
+    rVariables.permeability = 1e-4;  // This is Legacy. The variable PERMEABILITY has been removed to avoid conflict with other applications
     rVariables.discharge_penalty = rCurrentProcessInfo[DRY_DISCHARGE_PENALTY];
 
     const GeometryType& rGeom = GetGeometry();
@@ -222,11 +222,11 @@ void SWE<TNumNodes, TFramework>::CalculateGeometry(BoundedMatrix<double, TNumNod
     const GeometryType& rGeom = this->GetGeometry();
 
     // We select GI_GAUSS_1 due to we are computing at the barycenter.
-    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_1);
+    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_1);
     const size_t NumGPoints = integration_points.size();
     rArea = rGeom.Area();
     GeometryType::ShapeFunctionsGradientsType DN_DXContainer( NumGPoints );
-    rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer, GeometryData::GI_GAUSS_1);
+    rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
     rDN_DX = DN_DXContainer[0];
 }
@@ -263,10 +263,10 @@ void SWE<TNumNodes, TFramework>::CalculateElementValues(
     ElementVariables& rVariables)
 {
     // Initialize outputs
-    rVariables.projected_momentum = ZeroVector(2);
+    rVariables.projected_momentum = ZeroVector(3);
     rVariables.height = 0.0;
     rVariables.surface_grad = ZeroVector(2);
-    rVariables.velocity = ZeroVector(2);
+    rVariables.velocity = ZeroVector(3);
     rVariables.momentum_div = 0.0;
     rVariables.velocity_div = 0.0;
 
@@ -399,7 +399,7 @@ void SWE<TNumNodes, TFramework>::AddConvectiveTerms(
 {
     if (TFramework == Eulerian)
     {
-        BoundedMatrix<double,2, rVariables.LocalSize> convection_operator;
+        BoundedMatrix<double,2, 3*TNumNodes> convection_operator;
         convection_operator = rVariables.velocity[0] * rVariables.Grad_q1;
         convection_operator += rVariables.velocity[1] * rVariables.Grad_q2;
 

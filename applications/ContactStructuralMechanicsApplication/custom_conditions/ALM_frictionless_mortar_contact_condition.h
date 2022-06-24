@@ -115,7 +115,7 @@ public:
 
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
 
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster>                   DerivativeDataType;
 
     static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodesMaster) + TNumNodes;
 
@@ -213,6 +213,27 @@ public:
         PropertiesPointerType pProperties,
         GeometryPointerType pMasterGeom
         ) const override;
+
+    /********************************************************************************/
+    /**************** METHODS TO CALCULATE MORTAR CONDITION MATRICES ****************/
+    /********************************************************************************/
+
+    /**
+     * @brief Calculates the local contibution of the RHS
+     * @param pCondition The condition pointer
+     * @param rLocalRHS The local RHS to compute
+     * @param rMortarConditionMatrices The mortar operators to be considered
+     * @param rDerivativeData The class containing all the derivatives uses to compute the jacobian
+     * @param rActiveInactive The integer that is used to identify which case is the currectly computed
+     */
+    static void StaticCalculateLocalRHS(
+        PairedCondition* pCondition,
+        Vector& rLocalRHS,
+        const MortarConditionMatrices& rMortarConditionMatrices,
+        const DerivativeDataType& rDerivativeData,
+        const IndexType rActiveInactive,
+        const ProcessInfo& rCurrentProcessInfo
+        );
 
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/

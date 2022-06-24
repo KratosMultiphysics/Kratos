@@ -22,12 +22,11 @@
 #include "includes/model_part.h"
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
-#include "processes/find_elements_neighbours_process.h"
 #include "processes/find_nodal_neighbours_process.h"
 
 //Database includes
 #include "includes/define.h"
-#include "../../../DEMApplication/custom_elements/discrete_element.h"
+#include "custom_elements/discrete_element.h"
 #include "custom_elements/swimming_particle.h"
 
 namespace Kratos

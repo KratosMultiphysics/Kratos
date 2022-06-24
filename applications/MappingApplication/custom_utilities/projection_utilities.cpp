@@ -36,6 +36,8 @@ namespace {
 void FillEquationIdVector(const GeometryType& rGeometry,
                           std::vector<int>& rEquationIds)
 {
+    KRATOS_TRY
+
     const SizeType num_points = rGeometry.PointsNumber();
 
     if (rEquationIds.size() != num_points) {
@@ -47,6 +49,8 @@ void FillEquationIdVector(const GeometryType& rGeometry,
         KRATOS_DEBUG_ERROR_IF_NOT(r_node.Has(INTERFACE_EQUATION_ID)) << r_node << " does not have an \"INTERFACE_EQUATION_ID\"" << std::endl;
         rEquationIds[point_index++] = r_node.GetValue(INTERFACE_EQUATION_ID);
     }
+
+    KRATOS_CATCH("")
 }
 
 bool IsBetterProjection(const PairingIndex CurrentPairingIndex,
@@ -70,6 +74,8 @@ PairingIndex ProjectOnLine(const GeometryType& rGeometry,
                            double& rProjectionDistance,
                            const bool ComputeApproximation)
 {
+    KRATOS_TRY
+
     Point projected_point;
 
     rProjectionDistance = std::abs(GeometricalProjectionUtilities::FastProjectOnLine(rGeometry, rPointToProject, projected_point));
@@ -112,6 +118,8 @@ PairingIndex ProjectOnLine(const GeometryType& rGeometry,
     }
 
     return pairing_index;
+
+    KRATOS_CATCH("")
 }
 
 PairingIndex ProjectOnSurface(const GeometryType& rGeometry,
@@ -122,6 +130,8 @@ PairingIndex ProjectOnSurface(const GeometryType& rGeometry,
                      double& rProjectionDistance,
                      const bool ComputeApproximation)
 {
+    KRATOS_TRY
+
     Point projected_point;
 
     rProjectionDistance = std::abs(GeometricalProjectionUtilities::FastProjectOnGeometry(rGeometry, rPointToProject, projected_point));
@@ -163,6 +173,8 @@ PairingIndex ProjectOnSurface(const GeometryType& rGeometry,
     }
 
     return pairing_index;
+
+    KRATOS_CATCH("")
 }
 
 PairingIndex ProjectIntoVolume(const GeometryType& rGeometry,
@@ -173,6 +185,8 @@ PairingIndex ProjectIntoVolume(const GeometryType& rGeometry,
                                double& rProjectionDistance,
                                const bool ComputeApproximation)
 {
+    KRATOS_TRY
+
     array_1d<double, 3> local_coords;
     PairingIndex pairing_index;
 
@@ -216,6 +230,8 @@ PairingIndex ProjectIntoVolume(const GeometryType& rGeometry,
     }
 
     return pairing_index;
+
+    KRATOS_CATCH("")
 }
 
 bool ComputeProjection(const GeometryType& rGeometry,
@@ -227,22 +243,25 @@ bool ComputeProjection(const GeometryType& rGeometry,
                        PairingIndex& rPairingIndex,
                        const bool ComputeApproximation)
 {
+    KRATOS_TRY
+
     const SizeType num_points = rGeometry.PointsNumber();
     const auto geom_family = rGeometry.GetGeometryFamily();
     bool is_full_projection = false;
 
-    if (geom_family == GeometryData::Kratos_Linear && num_points == 2) { // linear line
+    if (geom_family == GeometryData::KratosGeometryFamily::Kratos_Linear && num_points == 2) { // linear line
         rPairingIndex = ProjectOnLine(rGeometry, rPointToProject, LocalCoordTol, rShapeFunctionValues, rEquationIds, rProjectionDistance, ComputeApproximation);
         is_full_projection = (rPairingIndex == PairingIndex::Line_Inside);
 
-    } else if ((geom_family == GeometryData::Kratos_Triangle      && num_points == 3) || // linear triangle
-               (geom_family == GeometryData::Kratos_Quadrilateral && num_points == 4)) { // linear quad
+    } else if ((geom_family == GeometryData::KratosGeometryFamily::Kratos_Triangle      && num_points == 3) || // linear triangle
+               (geom_family == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral && num_points == 4)) { // linear quad
         rPairingIndex = ProjectOnSurface(rGeometry, rPointToProject, LocalCoordTol, rShapeFunctionValues, rEquationIds, rProjectionDistance, ComputeApproximation);
         is_full_projection = (rPairingIndex == PairingIndex::Surface_Inside);
 
-    } else if (geom_family == GeometryData::Kratos_Tetrahedra ||
-               geom_family == GeometryData::Kratos_Prism ||
-               geom_family == GeometryData::Kratos_Hexahedra) { // Volume projection
+    } else if (geom_family == GeometryData::KratosGeometryFamily::Kratos_Tetrahedra ||
+               geom_family == GeometryData::KratosGeometryFamily::Kratos_Prism ||
+               geom_family == GeometryData::KratosGeometryFamily::Kratos_Pyramid ||
+               geom_family == GeometryData::KratosGeometryFamily::Kratos_Hexahedra) { // Volume projection
         rPairingIndex = ProjectIntoVolume(rGeometry, rPointToProject, LocalCoordTol, rShapeFunctionValues, rEquationIds, rProjectionDistance, ComputeApproximation);
         is_full_projection = (rPairingIndex == PairingIndex::Volume_Inside);
 
@@ -273,6 +292,8 @@ bool ComputeProjection(const GeometryType& rGeometry,
     KRATOS_DEBUG_ERROR_IF(rPairingIndex != PairingIndex::Unspecified && rShapeFunctionValues.size() != rEquationIds.size()) << "Number of equation-ids is not the same as the number of ShapeFunction values, something went wrong!" << std::endl;
 
     return is_full_projection;
+
+    KRATOS_CATCH("")
 }
 
 } // namespace ProjectionUtilities

@@ -2,6 +2,7 @@ import math
 import datetime
 import shutil
 import weakref
+import os
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
@@ -10,6 +11,7 @@ from KratosMultiphysics.DEMApplication import DEM_procedures as DEM_procedures
 class MaterialTest():
 
     def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
+
         self.parameters = DEM_parameters
         self.graphs_path = graphs_path
         self.post_path = post_path
@@ -18,7 +20,7 @@ class MaterialTest():
         self.Procedures = weakref.proxy(procedures)
         self.solver = weakref.proxy(solver)
 
-        self.top_mesh_nodes = []; self.bot_mesh_nodes = []; self.top_mesh_fem_nodes = []; self.bot_mesh_fem_nodes = [];
+        self.top_mesh_nodes = []; self.bot_mesh_nodes = []; self.top_mesh_fem_nodes = []; self.bot_mesh_fem_nodes = []
 
         self.xtop_area = 0.0
         self.xbot_area = 0.0
@@ -52,7 +54,7 @@ class MaterialTest():
             self.tau_rel_std_dev_table.append(0.0)
             self.sigma_ratio_table.append(0.0)
 
-        self.graph_counter = 0; self.renew_pressure = 0; self.Pressure = 0.0; self.pressure_to_apply = 0.0
+        self.graph_counter = 0; self.renew_pressure = 0; self.Pressure = 0.0; self.pressure_to_apply = 0.0; self.CN_graph_counter = 0
 
         self.length_correction_factor = 1.0
 
@@ -62,6 +64,7 @@ class MaterialTest():
 
         self.new_strain = 0.0
         self.LoadingVelocity = 0.0
+        self.MeasuringSurface = 1.0
 
         # for the graph plotting
         if "material_test_settings" in DEM_parameters.keys():
@@ -69,20 +72,18 @@ class MaterialTest():
             self.diameter = self.parameters["material_test_settings"]["SpecimenDiameter"].GetDouble()
             self.ConfinementPressure = self.parameters["material_test_settings"]["ConfinementPressure"].GetDouble()
             self.test_type = self.parameters["material_test_settings"]["TestType"].GetString()
-            self.MeasuringSurface = self.parameters["material_test_settings"]["MeasuringSurface"].GetDouble()
-            self.MeshType = self.parameters["material_test_settings"]["MeshType"].GetString()
-            #self.MeshPath = self.parameters["material_test_settings"]["MeshPath"].GetString()
-
+            self.y_coordinate_of_cylinder_bottom_base = self.parameters["material_test_settings"]["YCoordinateOfCylinderBottomBase"].GetDouble()
+            self.z_coordinate_of_cylinder_bottom_base = self.parameters["material_test_settings"]["ZCoordinateOfCylinderBottomBase"].GetDouble()
         else:
             self.height = self.parameters["SpecimenLength"].GetDouble()
             self.diameter = self.parameters["SpecimenDiameter"].GetDouble()
             self.ConfinementPressure = self.parameters["ConfinementPressure"].GetDouble()
             self.test_type = self.parameters["TestType"].GetString()
-            self.MeasuringSurface = self.parameters["MeasuringSurface"].GetDouble()
-            self.MeshType = self.parameters["MeshType"].GetString()
-            self.MeshPath = self.parameters["MeshPath"].GetString()
+            self.y_coordinate_of_cylinder_bottom_base = self.parameters["YCoordinateOfCylinderBottomBase"].GetDouble()
+            self.z_coordinate_of_cylinder_bottom_base = self.parameters["ZCoordinateOfCylinderBottomBase"].GetDouble()
 
         self.ComputeLoadingVelocity()
+        self.ComputeMeasuringSurface()
         self.problem_name = self.parameters["problem_name"].GetString()
         self.initial_time = datetime.datetime.now()
 
@@ -181,6 +182,9 @@ class MaterialTest():
 
             self.length_correction_factor = self.height/extended_length
 
+        absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_CN.grf")
+        self.CN_export = open(absolute_path_to_file, 'w')
+
     def ComputeLoadingVelocity(self):
         top_vel = bot_vel = 0.0
         for smp in self.rigid_face_model_part.SubModelParts:
@@ -190,15 +194,18 @@ class MaterialTest():
                 bot_vel = smp[LINEAR_VELOCITY_Y]
         self.LoadingVelocity = top_vel - bot_vel
 
+    def ComputeMeasuringSurface(self):
+        self.MeasuringSurface = 0.25 * math.pi * self.diameter * self.diameter
+
     def CylinderSkinDetermination(self): #model_part, solver, DEM_parameters):
 
         # SKIN DETERMINATION
         total_cross_section = 0.0
 
         # Cylinder dimensions
-
         h = self.height
         d = self.diameter
+        y_min = self.y_coordinate_of_cylinder_bottom_base
 
         eps = 3.0 #2.0
 
@@ -231,25 +238,25 @@ class MaterialTest():
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
                 self.LAT.append(node)
 
-                if (y > eps * r) and (y < (h - eps * r)):
+                if (y > y_min + eps * r) and (y < y_min + (h - eps * r)):
 
                     self.SKIN.append(element)
                     self.XLAT.append(node)
 
                     xlat_area = xlat_area + cross_section
 
-            if (y <= eps * r) or (y >= (h - eps * r)):
+            if (y <= y_min + eps * r) or (y >= y_min + (h - eps * r)):
 
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
                 self.SKIN.append(element)
 
-                if y <= eps * r:
+                if y <= y_min + eps * r:
 
                     self.BOT.append(node)
                     y_bot_total += y*r
                     weight_bot += r
 
-                elif y >= (h - eps * r):
+                elif y >= y_min + (h - eps * r):
 
                     self.TOP.append(node)
 
@@ -258,7 +265,7 @@ class MaterialTest():
 
                 if (x * x + z * z) >= ((0.5 * d - eps * r) * (0.5 * d - eps * r)):
 
-                    if y > h / 2:
+                    if y > y_min + h / 2:
 
                         self.XTOPCORNER.append(node)
                         xtopcorner_area = xtopcorner_area + cross_section
@@ -269,12 +276,12 @@ class MaterialTest():
                         xbotcorner_area = xbotcorner_area + cross_section
                 else:
 
-                    if y <= eps * r:
+                    if y <= y_min + eps * r:
 
                         self.XBOT.append(node)
                         xbot_area = xbot_area + cross_section
 
-                    elif y >= (h - eps * r):
+                    elif y >= y_min + (h - eps * r):
 
                         self.XTOP.append(node)
                         xtop_area = xtop_area + cross_section
@@ -293,6 +300,7 @@ class MaterialTest():
         h = self.height
         d = self.diameter
         eps = 3.0 #2.0
+        z_min = self.z_coordinate_of_cylinder_bottom_base
 
         for element in self.spheres_model_part.Elements:
 
@@ -306,7 +314,7 @@ class MaterialTest():
             if (x * x + y * y) >= ((0.5 * d - eps * r) * (0.5 * d - eps * r)):
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
 
-            if (z <= eps * r) or (z >= (h - eps * r)):
+            if (z <= z_min + eps * r) or (z >= z_min + (h - eps * r)):
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
 
         self.Procedures.KratosPrintInfo("Finished computing the skin of the BTS specimen..." + "\n")
@@ -356,7 +364,7 @@ class MaterialTest():
                 force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
                 total_force_bts += force_node_y
 
-            self.total_stress_bts = 2.0 * total_force_bts /(math.pi * self.height * self.diameter)
+            self.total_stress_bts = 2.0 * total_force_bts / (math.pi * self.height * self.diameter)
             self.strain_bts += -100 * self.LoadingVelocity * dt / self.diameter
 
         else:
@@ -372,22 +380,22 @@ class MaterialTest():
                 force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
                 total_force_top += force_node_y
 
-            self.total_stress_top = total_force_top/(self.MeasuringSurface)
+            self.total_stress_top = total_force_top / self.MeasuringSurface
 
             for node in self.bot_mesh_nodes:
                 force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
                 total_force_bot += force_node_y
 
-            self.total_stress_bot = total_force_bot/(self.MeasuringSurface)
+            self.total_stress_bot = total_force_bot / self.MeasuringSurface
 
-            self.total_stress_mean = 0.5*(self.total_stress_bot + self.total_stress_top)
+            self.total_stress_mean = 0.5 * (self.total_stress_bot + self.total_stress_top)
 
             if self.test_type =="Shear":
                 self.strain += dt
                 self.total_stress_top = total_force_top/1.0 # applied force divided by efective shear cylinder area 2*pi*0.0225*0.08
                 self.total_stress_mean = self.total_stress_top
 
-            if (self.test_type == "Triaxial" or self.test_type == "Hydrostatic") and self.ConfinementPressure != 0.0:
+            if (self.test_type == "Triaxial" or self.test_type == "Hydrostatic") and self.ConfinementPressure:
 
                 self.Pressure = min(self.total_stress_mean, self.ConfinementPressure * 1e6)
 
@@ -421,6 +429,17 @@ class MaterialTest():
                     self.Flush(self.graph_export_volumetric)
 
         self.graph_counter += 1
+
+    def PrintCoordinationNumberGraph(self, time, solver):
+
+        if self.CN_graph_counter == self.graph_frequency:
+            self.CN_graph_counter = 0
+            dummy = 0
+            CN = self.solver.cplusplus_strategy.ComputeCoordinationNumber(dummy)
+            self.CN_export.write(str("%.8g"%time).rjust(12) + "  " + str(CN) + '\n')
+            self.Flush(self.CN_export)
+
+        self.CN_graph_counter += 1
 
     def PrintChart(self):
 

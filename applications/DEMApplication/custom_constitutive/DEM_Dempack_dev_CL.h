@@ -9,16 +9,16 @@
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_Dempack_dev : public DEM_Dempack {
+
+        typedef DEM_Dempack BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack_dev);
 
         DEM_Dempack_dev() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
-        ~DEM_Dempack_dev() {
-        }
+        ~DEM_Dempack_dev() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 

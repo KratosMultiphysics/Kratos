@@ -181,6 +181,7 @@ class DEMSearch : public SpatialSearch
         mDomainMax[1] = domain_max_y;
         mDomainMax[2] = domain_max_z;
         TDerived::ElementConfigureType::SetDomain(domain_min_x, domain_min_y, domain_min_z, domain_max_x, domain_max_y, domain_max_z);
+        TDerived::NodeConfigureType::SetDomain(domain_min_x, domain_min_y, domain_min_z, domain_max_x, domain_max_y, domain_max_z);
         mDomainPeriodicity = TDerived::ElementConfigureType::GetDomainPeriodicity();
         searchPoints = new std::vector<PtrPointType>(0);
       }

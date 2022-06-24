@@ -29,7 +29,7 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    void EulerianConvectionDiffusionElement< TDim, TNumNodes >::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const 
+    void EulerianConvectionDiffusionElement< TDim, TNumNodes >::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
@@ -50,7 +50,7 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    void EulerianConvectionDiffusionElement< TDim, TNumNodes >::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo) const 
+    void EulerianConvectionDiffusionElement< TDim, TNumNodes >::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
@@ -71,8 +71,8 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    void EulerianConvectionDiffusionElement<TDim,TNumNodes>::CalculateLocalSystem(Matrix& rLeftHandSideMatrix, 
-                        Vector& rRightHandSideVector, 
+    void EulerianConvectionDiffusionElement<TDim,TNumNodes>::CalculateLocalSystem(Matrix& rLeftHandSideMatrix,
+                        Vector& rRightHandSideVector,
                         const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
@@ -97,7 +97,7 @@ namespace Kratos
         // Getting the values of shape functions on Integration Points
         BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         const GeometryType& Geom = this->GetGeometry();
-        Ncontainer = Geom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
+        Ncontainer = Geom.ShapeFunctionsValues( GeometryData::IntegrationMethod::GI_GAUSS_2 );
 
         // Getting the values of Current Process Info and computing the value of h
         this-> GetNodalValues(Variables,rCurrentProcessInfo);
@@ -199,11 +199,11 @@ namespace Kratos
         const GeometryType& Geom = this->GetGeometry();
 
         // We select GI_GAUSS_1 due to we are computing at the barycenter.
-        const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( GeometryData::GI_GAUSS_1 );
+        const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( GeometryData::IntegrationMethod::GI_GAUSS_1 );
         const unsigned int NumGPoints = integration_points.size();
         rVolume = Geom.Area();
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
-        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,GeometryData::GI_GAUSS_1);
+        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,GeometryData::IntegrationMethod::GI_GAUSS_1);
 
         noalias( rDN_DX ) = DN_DXContainer[0];
 
@@ -232,7 +232,7 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    void EulerianConvectionDiffusionElement<TDim,TNumNodes>::GetNodalValues(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo) const 
+    void EulerianConvectionDiffusionElement<TDim,TNumNodes>::GetNodalValues(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo) const
     {
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 

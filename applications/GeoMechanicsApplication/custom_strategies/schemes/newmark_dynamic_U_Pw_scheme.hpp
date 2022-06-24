@@ -14,6 +14,8 @@
 #if !defined(KRATOS_NEWMARK_DYNAMIC_U_PW_SCHEME )
 #define  KRATOS_NEWMARK_DYNAMIC_U_PW_SCHEME
 
+#include "utilities/parallel_utilities.h"
+
 // Application includes
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
 #include "geo_mechanics_application_variables.h"
@@ -63,7 +65,7 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void Predict(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -72,80 +74,132 @@ public:
         KRATOS_TRY
 
         // Predict Displacements on free nodes and update Acceleration, Velocity and DtPressure
-
-        array_1d<double,3> DeltaDisplacement;
-        double DeltaPressure;
-
-        const int NNodes = static_cast<int>(r_model_part.Nodes().size());
-        ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
-
-        #pragma omp parallel for private(DeltaDisplacement,DeltaPressure)
-        for(int i = 0; i < NNodes; i++)
-        {
-            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
-
-            array_1d<double,3>& CurrentDisplacement = itNode->FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d<double,3>& CurrentAcceleration = itNode->FastGetSolutionStepValue(ACCELERATION);
-            array_1d<double,3>& CurrentVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
-
-            const array_1d<double,3>& PreviousDisplacement = itNode->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            const array_1d<double,3>& PreviousAcceleration = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
-            const array_1d<double,3>& PreviousVelocity = itNode->FastGetSolutionStepValue(VELOCITY, 1);
-
-            if (itNode -> IsFixed(ACCELERATION_X))
+        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+            if (rNode.IsFixed(ACCELERATION_X))
             {
-                CurrentDisplacement[0] = PreviousDisplacement[0] + mDeltaTime * PreviousVelocity[0] + std::pow(mDeltaTime, 2) * ( ( 0.5 - mBeta) * PreviousAcceleration[0] + mBeta * CurrentAcceleration[0] );
+                const double &PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT_X, 1);
+                const double &PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY_X, 1);
+                const double &PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION_X, 1);
+                const double &CurrentAcceleration  = rNode.FastGetSolutionStepValue(ACCELERATION_X);
+
+                rNode.FastGetSolutionStepValue(DISPLACEMENT_X) =  PreviousDisplacement
+                                                                + mDeltaTime * PreviousVelocity
+                                                                + mDeltaTime * mDeltaTime
+                                                                * ( ( 0.5 - mBeta) * PreviousAcceleration + mBeta * CurrentAcceleration );
             }
-            else if (itNode -> IsFixed(VELOCITY_X))
+            else if (rNode.IsFixed(VELOCITY_X))
             {
-                CurrentDisplacement[0] = PreviousDisplacement[0] + mDeltaTime*(mBeta/mGamma*(CurrentVelocity[0]-PreviousVelocity[0])+PreviousVelocity[0]);
+                const double &PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT_X, 1);
+                const double &PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY_X, 1);
+                const double &CurrentVelocity      = rNode.FastGetSolutionStepValue(VELOCITY_X);
+                rNode.FastGetSolutionStepValue(DISPLACEMENT_X) =  PreviousDisplacement
+                                                                 + mDeltaTime*(mBeta/mGamma*(CurrentVelocity - PreviousVelocity)
+                                                                 + PreviousVelocity);
             }
-            else if (itNode -> IsFixed(DISPLACEMENT_X) == false)
+            else if (!rNode.IsFixed(DISPLACEMENT_X))
             {
-                CurrentDisplacement[0] = PreviousDisplacement[0] + mDeltaTime * PreviousVelocity[0] + 0.5 * std::pow(mDeltaTime, 2) * PreviousAcceleration[0];
+                const double &PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT_X, 1);
+                const double &PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY_X, 1);
+                const double &PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION_X, 1);
+
+                rNode.FastGetSolutionStepValue(DISPLACEMENT_X) =   PreviousDisplacement
+                                                                 + mDeltaTime * PreviousVelocity
+                                                                 + 0.5 * mDeltaTime * mDeltaTime
+                                                                 * PreviousAcceleration;
             }
 
-            if (itNode -> IsFixed(ACCELERATION_Y))
+            if (rNode.IsFixed(ACCELERATION_Y))
             {
-                CurrentDisplacement[1] = PreviousDisplacement[1] + mDeltaTime * PreviousVelocity[1] + std::pow(mDeltaTime, 2) * ( ( 0.5 - mBeta) * PreviousAcceleration[1] + mBeta * CurrentAcceleration[1] );
+                const double &PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT_Y, 1);
+                const double &PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY_Y, 1);
+                const double &PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION_Y, 1);
+                const double &CurrentAcceleration  = rNode.FastGetSolutionStepValue(ACCELERATION_Y);
+
+                rNode.FastGetSolutionStepValue(DISPLACEMENT_Y) =  PreviousDisplacement
+                                                                + mDeltaTime * PreviousVelocity
+                                                                + mDeltaTime * mDeltaTime
+                                                                * ( ( 0.5 - mBeta) * PreviousAcceleration + mBeta * CurrentAcceleration );
             }
-            else if (itNode -> IsFixed(VELOCITY_Y))
+            else if (rNode.IsFixed(VELOCITY_Y))
             {
-                CurrentDisplacement[1] = PreviousDisplacement[1] + mDeltaTime*(mBeta/mGamma*(CurrentVelocity[1]-PreviousVelocity[1])+PreviousVelocity[1]);
+                const double &PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT_Y, 1);
+                const double &PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY_Y, 1);
+                const double &CurrentVelocity      = rNode.FastGetSolutionStepValue(VELOCITY_Y);
+                rNode.FastGetSolutionStepValue(DISPLACEMENT_Y) =  PreviousDisplacement
+                                                                 + mDeltaTime*(mBeta/mGamma*(CurrentVelocity - PreviousVelocity)
+                                                                 + PreviousVelocity);
             }
-            else if (itNode -> IsFixed(DISPLACEMENT_Y) == false)
+            else if (!rNode.IsFixed(DISPLACEMENT_Y))
             {
-                CurrentDisplacement[1] = PreviousDisplacement[1] + mDeltaTime * PreviousVelocity[1] + 0.5 * std::pow(mDeltaTime, 2) * PreviousAcceleration[1];
+                const double &PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT_Y, 1);
+                const double &PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY_Y, 1);
+                const double &PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION_Y, 1);
+
+                rNode.FastGetSolutionStepValue(DISPLACEMENT_Y) =   PreviousDisplacement
+                                                                 + mDeltaTime * PreviousVelocity
+                                                                 + 0.5 * mDeltaTime * mDeltaTime
+                                                                 * PreviousAcceleration;
             }
 
             // For 3D cases
-            if (itNode -> HasDofFor(DISPLACEMENT_Z))
+            if (rNode.HasDofFor(DISPLACEMENT_Z))
             {
-                if (itNode -> IsFixed(ACCELERATION_Z))
+                if (rNode.IsFixed(ACCELERATION_Z))
                 {
-                    CurrentDisplacement[2] = PreviousDisplacement[2] + mDeltaTime * PreviousVelocity[2] + std::pow(mDeltaTime, 2) * ( ( 0.5 - mBeta) * PreviousAcceleration[2] + mBeta * CurrentAcceleration[2] );
+                    const double &PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT_Z, 1);
+                    const double &PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY_Z, 1);
+                    const double &PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION_Z, 1);
+                    const double &CurrentAcceleration  = rNode.FastGetSolutionStepValue(ACCELERATION_Z);
+
+                    rNode.FastGetSolutionStepValue(DISPLACEMENT_Z) =  PreviousDisplacement
+                                                                    + mDeltaTime * PreviousVelocity
+                                                                    + mDeltaTime * mDeltaTime
+                                                                    * ( ( 0.5 - mBeta) * PreviousAcceleration + mBeta * CurrentAcceleration );
                 }
-                else if (itNode -> IsFixed(VELOCITY_Z))
+                else if (rNode.IsFixed(VELOCITY_Z))
                 {
-                    CurrentDisplacement[2] = PreviousDisplacement[2] + mDeltaTime*(mBeta/mGamma*(CurrentVelocity[2]-PreviousVelocity[2])+PreviousVelocity[2]);
+                    const double &PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT_Z, 1);
+                    const double &PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY_Z, 1);
+                    const double &CurrentVelocity      = rNode.FastGetSolutionStepValue(VELOCITY_Z);
+                    rNode.FastGetSolutionStepValue(DISPLACEMENT_Z) =  PreviousDisplacement
+                                                                    + mDeltaTime*(mBeta/mGamma*(CurrentVelocity - PreviousVelocity)
+                                                                    + PreviousVelocity);
                 }
-                else if (itNode -> IsFixed(DISPLACEMENT_Z) == false)
+                else if (!rNode.IsFixed(DISPLACEMENT_Z))
                 {
-                    CurrentDisplacement[2] = PreviousDisplacement[2] + mDeltaTime * PreviousVelocity[2] + 0.5 * std::pow(mDeltaTime, 2) * PreviousAcceleration[2];
+                    const double &PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT_Z, 1);
+                    const double &PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY_Z, 1);
+                    const double &PreviousAcceleration = rNode.FastGetSolutionStepValue(ACCELERATION_Z, 1);
+
+                    rNode.FastGetSolutionStepValue(DISPLACEMENT_Z) =   PreviousDisplacement
+                                                                    + mDeltaTime * PreviousVelocity
+                                                                    + 0.5 * mDeltaTime * mDeltaTime
+                                                                    * PreviousAcceleration;
                 }
             }
 
-            noalias(DeltaDisplacement) = CurrentDisplacement - PreviousDisplacement;
+            noalias(rNode.FastGetSolutionStepValue(ACCELERATION)) =   1.0/(mBeta*mDeltaTime*mDeltaTime)
+                                                                    * ( (rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT,1))
+                                                                     - mDeltaTime
+                                                                     * rNode.FastGetSolutionStepValue(VELOCITY, 1)
+                                                                     - (0.5-mBeta) * mDeltaTime * mDeltaTime
+                                                                     * rNode.FastGetSolutionStepValue(ACCELERATION,1));
 
-            noalias(CurrentAcceleration) = 1.0/(mBeta*mDeltaTime*mDeltaTime)*(DeltaDisplacement - mDeltaTime*PreviousVelocity - (0.5-mBeta)*mDeltaTime*mDeltaTime*PreviousAcceleration);
-            noalias(CurrentVelocity) = PreviousVelocity + (1.0-mGamma)*mDeltaTime*PreviousAcceleration + mGamma*mDeltaTime*CurrentAcceleration;
+            noalias(rNode.FastGetSolutionStepValue(VELOCITY)) =   rNode.FastGetSolutionStepValue(VELOCITY, 1)
+                                                                 + (1.0-mGamma) * mDeltaTime
+                                                                 * rNode.FastGetSolutionStepValue(ACCELERATION,1)
+                                                                 + mGamma * mDeltaTime
+                                                                 * rNode.FastGetSolutionStepValue(ACCELERATION);
 
-            double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE);
-            DeltaPressure = itNode->FastGetSolutionStepValue(WATER_PRESSURE) - itNode->FastGetSolutionStepValue(WATER_PRESSURE, 1);
-            const double& PreviousDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
+            const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
+                                        - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
 
-            CurrentDtPressure = 1.0/(mTheta*mDeltaTime)*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
-        }
+            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =  1.0/(mTheta*mDeltaTime)
+                                                                * ( DeltaPressure
+                                                                   - (1.0-mTheta) * mDeltaTime 
+                                                                   * rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE,1));
+        });
+
 
         KRATOS_CATCH( "" )
     }

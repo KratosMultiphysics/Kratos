@@ -24,7 +24,7 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "utilities/timer.h"
-#include "utilities/delaunator_utilities.h"
+#include "utilities/tessellation_utilities/delaunator_utilities.h"
 // #include "input_output/vtk_output.h"
 
 namespace Kratos {

@@ -60,7 +60,7 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
                 "compute_contact_forces": false,
                 "block_builder": false,
                 "component_wise": false,
-                "predictor_corrector": true,
+                "predictor_corrector": true,         
                 "time_order": 2,
                 "maximum_velocity_iterations": 1,
                 "maximum_pressure_iterations": 7,
@@ -229,13 +229,22 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
 
     def PrepareThermalModelPart(self):
         # Thermal model part is being prepared here instead of calling its application
-        # because there is a small change needed in that function (self.thermal_solver.PrepareModelPart())
+        # because there is a small change needed in that function (self.thermal_solver.PrepareModelPart()).
+        # ATTENTION: in the future, better call self.thermal_solver.PrepareModelPart(), but sending a flag
+        # to not execute TetrahedralMeshOrientationCheck inside that function.
         if not self.thermal_solver.is_restarted():
-            self.thermal_solver._execute_after_reading()
+            materials_imported = self.thermal_solver.import_materials()
+            if materials_imported:
+                KM.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were successfully imported.")
+            else:
+                KM.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
+				
             KM.ReplaceElementsAndConditionsProcess(self.thermal_solver.main_model_part,self.thermal_solver._get_element_condition_replace_settings()).Execute()
             self.thermal_solver._set_and_fill_buffer()
+			
         if (self.thermal_solver.settings["echo_level"].GetInt() > 0):
             KM.Logger.PrintInfo(self.thermal_solver.model)
+
         KM.Logger.PrintInfo("::[ConvectionDiffusionSolver]::", "ModelPart prepared for Solver.")
 
     def AddMaterialVariables(self):

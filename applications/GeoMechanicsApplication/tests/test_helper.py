@@ -77,11 +77,7 @@ def get_displacement(simulation):
     :return displacements:
     """
 
-    nodes = simulation._list_of_output_processes[0].model_part.Nodes
-    displacements = [node.GetSolutionStepValue(Kratos.DISPLACEMENT) for node in nodes]
-
-    return displacements
-
+    return get_nodal_variable(simulation, Kratos.DISPLACEMENT)
 
 def get_water_pressure(simulation):
     """
@@ -90,11 +86,29 @@ def get_water_pressure(simulation):
     :param simulation:
     :return:
     """
+    return get_nodal_variable(simulation, Kratos.WATER_PRESSURE)
+
+def get_hydraulic_discharge(simulation):
+    """
+    Gets displacements from kratos simulation
+    :param simulation:
+    :return hydraulic discharge:
+    """
+
+    return get_nodal_variable(simulation, KratosGeo.HYDRAULIC_DISCHARGE)
+
+
+def get_nodal_variable(simulation, variable):
+    """
+    Gets values of a give nodal variable from kratos simulation
+    :param simulation:
+    :return values of a variable:
+    """
+
     nodes = simulation._list_of_output_processes[0].model_part.Nodes
-    water_pressure = [node.GetSolutionStepValue(Kratos.WATER_PRESSURE) for node in nodes]
+    values = [node.GetSolutionStepValue(variable) for node in nodes]
 
-    return water_pressure
-
+    return values
 
 def get_gauss_coordinates(simulation):
     """

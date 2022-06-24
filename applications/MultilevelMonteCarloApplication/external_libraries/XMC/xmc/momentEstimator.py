@@ -21,9 +21,56 @@ class MomentEstimator(StatisticalEstimator):
     This class estimates raw and central moments up to a given order (including
     expectations, obviously). These estimations are computed using h-statistics,
     so we store (and update) the power sums from which they are computed.
+    It inherits from StatisticalEstimator; the description below
+    describes only its differences with it.
+
+    Description of attributes
+    _________________________
+
+    * order: integer.
+        Mandatory.
+        All statistical moments up to this order are estimated. It determines the power of the sums of realisations to be computed; see MomentEstimator.powerSumsOrder.
+
+    * indexSetDimension: integer.
+        Local dimension of the Monte Carlo index set, i.e. the number of solvers sending samples to this estimator is 2^self.indexSetDimenion. It is only used to initialise self.powerSums and define the default value of self._updatedPowerSums.
+
+    * powerSums: List[float]
+        List of power sums required to compute the moments.
+
+    * _updatedPowerSums : callable.
+        Default: xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder{o}Dimension{d}, where o is the order and d is the indexSetDimension. It may be set by the user with the key \"updatedPowerSums\".
+        Method which updates power sums with additional sample values; called by self.update (see also its documentation).
+
+    * _centralMomentComputer : callable.
+        Default: xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper. It may be set by the user with the key \"centralMomentComputer\".
+        Method which computes the desired statistics (central moments) from the available power sums; called by self.value (see also its documentation).
+
+    * _centralMomentErrorComputer : callable.
+        Default: xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper. It may be set by the user with the key \"centralMomentErrorComputer\".
+        Method which computes the error of the desired statistics (central moments) from the available power sums; called by self.value (see also its documentation).
+
+    * _rawMomentComputer : callable.
+        Default: None. It may be set by the user with the key \"rawMomentComputer\".
+        Method which computes the desired statistics (raw moments) from the available power sums; called by self.value (see also its documentation).
+
+    * _rawMomentErrorComputer : callable.
+        Default: None. It may be set by the user with the key \"rawMomentErrorComputer\".
+        Method which computes the error of the desired statistics (raw moments) from the available power sums; called by self.value (see also its documentation).
     """
 
     def __init__(self, **keywordArgs):
+        """
+        Keyword arguments required:
+            * order
+            * indexSetDimension
+
+        Optional keyword arguments:
+            * updatedPowerSums
+            * centralMomentComputer
+            * centralMomentErrorComputer
+            * rawMomentComputer
+            * rawMomentErrorComputer
+        """
         # Parent constructor
         super().__init__(**keywordArgs)
 
@@ -215,6 +262,29 @@ class CombinedMomentEstimator(MomentEstimator):
     Another difference with respect to MomentEstimator is that, for multi-index moment estimators (as Multilevel Monte Carlo),
     we can compute only power sums of order a of the form (Sa0,S0a), which requires to estimate h-statistics
     exploiting equations as eq. (4) of [S. Krumscheid et al. / Journal ofComputational Physics 414 (2020) 109466].
+
+    It inherits from MomentEstimator; the description below
+    describes only its differences with it.
+
+    * _updatedPowerSums : callable.
+        Default: xmc.methodDefs_momentEstimator.updateCombinedPowerSums.updatePowerSumsOrder{o}Dimension{d}, where o is the order and d is the indexSetDimension. It may be set by the user with the key \"updatedPowerSums\".
+        Method which updates power sums with additional sample values; called by self.update (see also its documentation).
+
+    * _centralMomentComputer : callable.
+        Default: xmc.methodDefs_momentEstimator.computeCentralMoments.centralCombinedMomentErrorWrapper. It may be set by the user with the key \"centralMomentComputer\".
+        Method which computes the desired statistics (central moments) from the available power sums; called by self.value (see also its documentation).
+
+    * _centralMomentErrorComputer : callable.
+        Default: xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper. It may be set by the user with the key \"centralMomentErrorComputer\".
+        Method which computes the error of the desired statistics (central moments) from the available power sums; called by self.value (see also its documentation).
+
+    * _rawMomentComputer : callable.
+        Default: None. It may be set by the user with the key \"rawMomentComputer\".
+        Method which computes the desired statistics (raw moments) from the available power sums; called by self.value (see also its documentation).
+
+    * _rawMomentErrorComputer : callable.
+        Default: None. It may be set by the user with the key \"rawMomentErrorComputer\".
+        Method which computes the error of the desired statistics (raw moments) from the available power sums; called by self.value (see also its documentation).
 
     Methods:
     - update: method updating power sums and number of realizations.
@@ -500,7 +570,7 @@ class MultiMomentEstimator(StatisticalEstimator):
         if singleSample is not None:
             # This list should contain sublists of length equal to the variable dimension
             if not isinstance(singleSample, list) or not isinstance(singleSample[0], list):
-                raise TypeError("Expected a list of lists; received a {type(singleSample)}.")
+                raise TypeError(f"Expected a list of lists; received a {type(singleSample)}.")
             return len(singleSample[0])
         if self._powerSums is not None:
             # Get any key (first, here)

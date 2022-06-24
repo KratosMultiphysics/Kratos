@@ -26,24 +26,28 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 
-#include "custom_processes/spalart_allmaras_turbulence_model.h"
+#include "custom_processes/apply_compressible_navier_stokes_boundary_conditions_process.h"
 #include "custom_processes/Boundary_Windkessel_model.h"
-#include "custom_processes/stokes_initialization_process.h"
-#include "custom_processes/distance_modification_process.h"
 #include "custom_processes/boussinesq_force_process.h"
+#include "custom_processes/calulate_levelset_consistent_nodal_gradient_process.h"
+#include "custom_processes/compute_pressure_coefficient_process.h"
+#include "custom_processes/distance_modification_process.h"
+#include "custom_processes/distance_smoothing_process.h"
 #include "custom_processes/embedded_nodes_initialization_process.h"
 #include "custom_processes/embedded_postprocess_process.h"
 #include "custom_processes/embedded_skin_visualization_process.h"
 #include "custom_processes/integration_point_statistics_process.h"
 #include "custom_processes/mass_conservation_check_process.h"
-#include "custom_processes/shock_capturing_process.h"
 #include "custom_processes/two_fluids_inlet_process.h"
-#include "custom_processes/distance_smoothing_process.h"
-#include "custom_processes/calulate_levelset_consistent_nodal_gradient_process.h"
+#include "custom_processes/shock_capturing_entropy_viscosity_process.h"
+#include "custom_processes/shock_capturing_physics_based_process.h"
+#include "custom_processes/spalart_allmaras_turbulence_model.h"
+#include "custom_processes/stokes_initialization_process.h"
+
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/linear_solver.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 
 
@@ -134,8 +138,14 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def("ComputeFlowOverBoundary", &MassConservationCheckProcess::ComputeFlowOverBoundary)
     ;
 
-    py::class_<ShockCapturingProcess, ShockCapturingProcess::Pointer, Process>
-    (m, "ShockCapturingProcess")
+    py::class_<ShockCapturingPhysicsBasedProcess, ShockCapturingPhysicsBasedProcess::Pointer, Process>
+    (m, "ShockCapturingPhysicsBasedProcess")
+    .def(py::init < Model&, Parameters >())
+    .def(py::init < ModelPart&, Parameters >())
+    ;
+
+    py::class_<ShockCapturingEntropyViscosityProcess, ShockCapturingEntropyViscosityProcess::Pointer, Process>
+    (m, "ShockCapturingEntropyViscosityProcess")
     .def(py::init < Model&, Parameters >())
     .def(py::init < ModelPart&, Parameters >())
     ;
@@ -162,6 +172,14 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init< ModelPart& >())
     .def(py::init< ModelPart&, Parameters >())
     .def(py::init< Model&, Parameters >())
+    ;
+
+    py::class_<ApplyCompressibleNavierStokesBoundaryConditionsProcess, ApplyCompressibleNavierStokesBoundaryConditionsProcess::Pointer, Process>(m, "ApplyCompressibleNavierStokesBoundaryConditionsProcess")
+    .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<ComputePressureCoefficientProcess, ComputePressureCoefficientProcess::Pointer, Process>(m, "ComputePressureCoefficientProcess")
+    .def(py::init<Model&, Parameters>())
     ;
 }
 

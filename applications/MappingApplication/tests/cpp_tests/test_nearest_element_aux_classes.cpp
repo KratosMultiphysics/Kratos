@@ -56,10 +56,10 @@ void TestNearestElementLocalSystem(const MatrixResultsType& rExpMatrix,
 
     InterfaceObject::Pointer interface_geom_obj(Kratos::make_shared<InterfaceGeometryObject>(pGeom.get()));
     MapperInterfaceInfo::Pointer p_nearest_elem_info(Kratos::make_shared<NearestElementInterfaceInfo>(local_sys.Coordinates(), 0, 0));
-    p_nearest_elem_info->ProcessSearchResult(*interface_geom_obj, 15.1);
+    p_nearest_elem_info->ProcessSearchResult(*interface_geom_obj);
 
     if (!local_sys.HasInterfaceInfo()) { // in case we test an approximation
-        p_nearest_elem_info->ProcessSearchResultForApproximation(*interface_geom_obj, 15.1);
+        p_nearest_elem_info->ProcessSearchResultForApproximation(*interface_geom_obj);
     }
 
     local_sys.AddInterfaceInfo(p_nearest_elem_info);
@@ -151,9 +151,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_ValidProjectionExists, Kra
     node_5->SetValue(INTERFACE_EQUATION_ID, 899);
 
     // Distances do not matter bcs only one projection is valid!
-    nearest_element_info.ProcessSearchResult(*interface_geom_obj_1, 10.0);
-    nearest_element_info.ProcessSearchResult(*interface_geom_obj_2, 11.0);
-    nearest_element_info.ProcessSearchResult(*interface_geom_obj_3, 33.5);
+    nearest_element_info.ProcessSearchResult(*interface_geom_obj_1);
+    nearest_element_info.ProcessSearchResult(*interface_geom_obj_2);
+    nearest_element_info.ProcessSearchResult(*interface_geom_obj_3);
 
     KRATOS_CHECK(nearest_element_info.GetLocalSearchWasSuccessful());
     KRATOS_CHECK_IS_FALSE(nearest_element_info.GetIsApproximation());
@@ -331,7 +331,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Serialization, KratosMappi
     node_4->SetValue(INTERFACE_EQUATION_ID, 61);
 
     // Distances do not matter bcs only one projection is valid!
-    nearest_element_info.ProcessSearchResult(*interface_geom_obj_2, 11.0);
+    nearest_element_info.ProcessSearchResult(*interface_geom_obj_2);
 
     KRATOS_CHECK(nearest_element_info.GetLocalSearchWasSuccessful());
 
@@ -396,7 +396,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_BasicTests, KratosMappingApp
     KRATOS_CHECK_EQUAL(origin_ids2.size(), 0);
     KRATOS_CHECK_EQUAL(destination_ids2.size(), 0);
 
-    KRATOS_CHECK_C_STRING_EQUAL((local_sys.PairingInfo(2)).c_str(),
+    std::stringstream str_steam;
+    local_sys.PairingInfo(str_steam, 4);
+    KRATOS_CHECK_STRING_EQUAL(str_steam.str(),
         "NearestElementLocalSystem based on Node #8 at Coodinates 1 | 2.5 | -5");
 }
 

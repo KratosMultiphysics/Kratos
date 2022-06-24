@@ -131,7 +131,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericSmallStrainViscoplasticit
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return 6;
     };
@@ -210,6 +210,14 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericSmallStrainViscoplasticit
     bool RequiresFinalizeMaterialResponse() override
     {
         return true;
+    }
+
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return false;
     }
 
     double &CalculateValue(

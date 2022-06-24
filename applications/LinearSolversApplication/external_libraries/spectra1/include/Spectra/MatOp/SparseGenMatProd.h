@@ -19,6 +19,12 @@ namespace Spectra {
 /// \f$x\f$. It is mainly used in the GenEigsSolver and SymEigsSolver
 /// eigen solvers.
 ///
+/// \tparam Scalar_      The element type of the matrix, for example,
+///                      `float`, `double`, and `long double`.
+/// \tparam Flags        Either `Eigen::ColMajor` or `Eigen::RowMajor`, indicating
+///                      the storage format of the input matrix.
+/// \tparam StorageIndex The type of the indices for the sparse matrix.
+///
 template <typename Scalar_, int Flags = Eigen::ColMajor, typename StorageIndex = int>
 class SparseGenMatProd
 {
@@ -47,9 +53,14 @@ public:
     /// `Eigen::SparseMatrix<Scalar, ...>` or its mapped version
     /// `Eigen::Map<Eigen::SparseMatrix<Scalar, ...> >`.
     ///
-    SparseGenMatProd(ConstGenericSparseMatrix& mat) :
+    template <typename Derived>
+    SparseGenMatProd(const Eigen::SparseMatrixBase<Derived>& mat) :
         m_mat(mat)
-    {}
+    {
+        static_assert(
+            static_cast<int>(Derived::PlainObject::IsRowMajor) == static_cast<int>(SparseMatrix::IsRowMajor),
+            "SparseGenMatProd: the \"Flags\" template parameter does not match the input matrix (Eigen::ColMajor/Eigen::RowMajor)");
+    }
 
     ///
     /// Return the number of rows of the underlying matrix.

@@ -23,6 +23,13 @@ namespace Spectra {
 /// matrix. It is mainly used in the SymGEigsSolver generalized eigen solver
 /// in the Cholesky decomposition mode.
 ///
+/// \tparam Scalar_ The element type of the matrix, for example,
+///                 `float`, `double`, and `long double`.
+/// \tparam Uplo    Either `Eigen::Lower` or `Eigen::Upper`, indicating which
+///                 triangular part of the matrix is used.
+/// \tparam Flags   Either `Eigen::ColMajor` or `Eigen::RowMajor`, indicating
+///                 the storage format of the input matrix.
+///
 template <typename Scalar_, int Uplo = Eigen::Lower, int Flags = Eigen::ColMajor>
 class DenseCholesky
 {
@@ -38,7 +45,6 @@ private:
     using Vector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
     using MapConstVec = Eigen::Map<const Vector>;
     using MapVec = Eigen::Map<Vector>;
-    using ConstGenericMatrix = const Eigen::Ref<const Matrix>;
 
     const Index m_n;
     Eigen::LLT<Matrix, Uplo> m_decomp;
@@ -53,9 +59,14 @@ public:
     /// `Eigen::MatrixXf`), or its mapped version
     /// (e.g. `Eigen::Map<Eigen::MatrixXd>`).
     ///
-    DenseCholesky(ConstGenericMatrix& mat) :
+    template <typename Derived>
+    DenseCholesky(const Eigen::MatrixBase<Derived>& mat) :
         m_n(mat.rows()), m_info(CompInfo::NotComputed)
     {
+        static_assert(
+            static_cast<int>(Derived::PlainObject::IsRowMajor) == static_cast<int>(Matrix::IsRowMajor),
+            "DenseCholesky: the \"Flags\" template parameter does not match the input matrix (Eigen::ColMajor/Eigen::RowMajor)");
+
         if (m_n != mat.cols())
             throw std::invalid_argument("DenseCholesky: matrix must be square");
 

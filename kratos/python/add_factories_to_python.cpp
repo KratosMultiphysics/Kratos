@@ -40,8 +40,6 @@ typedef LinearSolverFactory< ComplexSpaceType, ComplexLocalSpaceType > ComplexLi
 typedef PreconditionerFactory< SpaceType, LocalSpaceType > PreconditionerFactoryType;
 typedef ExplicitBuilder< SpaceType, LocalSpaceType > ExplicitBuilderType;
 typedef Factory< ExplicitBuilderType > ExplicitBuilderFactoryType;
-typedef ExplicitSolvingStrategy< SpaceType, LocalSpaceType > ExplicitSolvingStrategyType;
-typedef Factory< ExplicitSolvingStrategyType > ExplicitStrategyFactoryType;
 
 void  AddFactoriesToPython(pybind11::module& m)
 {
@@ -79,14 +77,6 @@ void  AddFactoriesToPython(pybind11::module& m)
      .def( py::init< >() )
      .def("Create",[](ExplicitBuilderFactoryType& rExplicitBuilderFactory, Kratos::Parameters Settings) {return rExplicitBuilderFactory.Create(Settings);})
      .def("__str__", PrintObject<ExplicitBuilderFactoryType>)
-    ;
-
-    //////////////////////////////////////////////////////////////
-    //HERE THE TOOLS TO REGISTER EXPLICIT STRATEGIES
-    py::class_<ExplicitStrategyFactoryType, ExplicitStrategyFactoryType::Pointer, FactoryBase>(m, "ExplicitStrategyFactory")
-     .def( py::init< >() )
-     .def("Create",[](ExplicitStrategyFactoryType& rExplicitStrategyFactory, ModelPart& rModelPart, Kratos::Parameters Settings) {return rExplicitStrategyFactory.Create(rModelPart, Settings);})
-     .def("__str__", PrintObject<ExplicitStrategyFactoryType>)
     ;
 
 }

@@ -21,6 +21,7 @@
 // Project includes
 #include "small_strain_j2_plasticity_3d.h"
 #include "constitutive_laws_application_variables.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "includes/checks.h"
 
@@ -620,7 +621,7 @@ int SmallStrainJ2Plasticity3D::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
     KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO));

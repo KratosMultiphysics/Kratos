@@ -8,6 +8,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
+//                   Alejandro Cornejo Velazquez
 //
 
 // System includes
@@ -27,6 +28,7 @@
 
 namespace Kratos
 {
+
 void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -38,19 +40,19 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             switch ( integration_order )
             {
             case 1:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
                 break;
             case 2:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
                 break;
             case 3:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
                 break;
             case 4:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
                 break;
             case 5:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
                 break;
             default:
                 KRATOS_WARNING("BaseSolidElement") << "Integration order " << integration_order << " is not available, using default integration order for the geometry" << std::endl;
@@ -67,6 +69,7 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             mConstitutiveLawVector.resize( integration_points.size() );
 
         InitializeMaterial();
+
     }
 
     KRATOS_CATCH( "" )
@@ -941,6 +944,16 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
                 rOutput[point_number] = global_point.Coordinates();
             }
+        } else if (rVariable == LOCAL_AXIS_1 || rVariable == LOCAL_AXIS_2 || rVariable == LOCAL_AXIS_3) {
+            if (this->Has(rVariable)) {
+                for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number)
+                    rOutput[point_number] = this->GetValue(rVariable);
+            } else if (rVariable == LOCAL_AXIS_3) {
+                const array_1d<double, 3> r_local_axis_1 = this->GetValue(LOCAL_AXIS_1);
+                const array_1d<double, 3> local_axis_2 = this->GetValue(LOCAL_AXIS_2);
+                for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number)
+                    rOutput[point_number] = MathUtils<double>::CrossProduct(r_local_axis_1, local_axis_2);
+            }
         } else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
         }
@@ -1481,8 +1494,130 @@ void BaseSolidElement::CalculateConstitutiveVariables(
     // Setting the variables for the CL
     SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
 
-    // Actually do the computations in the ConstitutiveLaw
+    // rotate to local axes strain/F
+    RotateToLocalAxes(rValues, rThisKinematicVariables);
+
+    // Actually do the computations in the ConstitutiveLaw in local axes
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
+
+    // We undo the rotation of strain/F, C, stress
+    RotateToGlobalAxes(rValues, rThisKinematicVariables);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::BuildRotationSystem(
+    BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    const SizeType StrainSize
+    )
+{
+    const array_1d<double, 3>& r_local_axis_1 = this->GetValue(LOCAL_AXIS_1);
+    array_1d<double, 3> local_axis_2;
+    array_1d<double, 3> local_axis_3;
+
+    if (StrainSize == 6) {
+        noalias(local_axis_2) = this->GetValue(LOCAL_AXIS_2);
+        noalias(local_axis_3) = MathUtils<double>::CrossProduct(r_local_axis_1, local_axis_2);
+    } else if (StrainSize == 3) { // we assume xy plane
+        local_axis_2[0] = r_local_axis_1[1];
+        local_axis_2[1] = -r_local_axis_1[0];
+        local_axis_2[2] = 0.0;
+        local_axis_3[0] = 0.0;
+        local_axis_3[1] = 0.0;
+        local_axis_3[2] = 1.0;
+    }
+    StructuralMechanicsElementUtilities::InitialCheckLocalAxes(r_local_axis_1, local_axis_2, local_axis_3);
+    StructuralMechanicsElementUtilities::BuildRotationMatrix(rRotationMatrix, r_local_axis_1, local_axis_2, local_axis_3);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::RotateToLocalAxes(
+    ConstitutiveLaw::Parameters& rValues,
+    KinematicVariables& rThisKinematicVariables
+    )
+{
+    if (this->IsElementRotated()) {
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+        BoundedMatrix<double, 3, 3> rotation_matrix;
+
+        BuildRotationSystem(rotation_matrix, strain_size);
+
+        if (UseElementProvidedStrain()) { // we rotate strain
+            if (strain_size == 6) {
+                BoundedMatrix<double, 6, 6> voigt_rotation_matrix;
+                ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+                rValues.GetStrainVector() = prod(voigt_rotation_matrix, rValues.GetStrainVector());
+            } else if (strain_size == 3) {
+                BoundedMatrix<double, 3, 3> voigt_rotation_matrix;
+                ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+                rValues.GetStrainVector() = prod(voigt_rotation_matrix, rValues.GetStrainVector());
+            }
+        } else { // rotate F
+            BoundedMatrix<double, 3, 3> inv_rotation_matrix;
+            double aux_det;
+            MathUtils<double>::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
+            rThisKinematicVariables.F = prod(rotation_matrix, rThisKinematicVariables.F);
+            rThisKinematicVariables.F = prod(rThisKinematicVariables.F, inv_rotation_matrix);
+            rValues.SetDeformationGradientF(rThisKinematicVariables.F);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::RotateToGlobalAxes(
+    ConstitutiveLaw::Parameters& rValues,
+    KinematicVariables& rThisKinematicVariables
+    )
+{
+    if (this->IsElementRotated()) {
+        const auto& r_options = rValues.GetOptions();
+        const bool stress_option = r_options.Is(ConstitutiveLaw::COMPUTE_STRESS);
+        const bool constitutive_matrix_option = r_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+        BoundedMatrix<double, 3, 3> rotation_matrix;
+
+        BuildRotationSystem(rotation_matrix, strain_size);
+
+        // Undo the rotation in strain, stress and C
+        if (strain_size == 6) {
+            BoundedMatrix<double, 6, 6> voigt_rotation_matrix;
+            ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+            rValues.GetStrainVector() = prod(trans(voigt_rotation_matrix), rValues.GetStrainVector());
+            if (stress_option)
+                rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
+            if (constitutive_matrix_option) {
+                BoundedMatrix<double, 6, 6> aux;
+                noalias(aux) = prod(trans(voigt_rotation_matrix), rValues.GetConstitutiveMatrix());
+                noalias(rValues.GetConstitutiveMatrix()) = prod(aux, voigt_rotation_matrix);
+            }
+        } else if (strain_size == 3) {
+            BoundedMatrix<double, 3, 3> voigt_rotation_matrix;
+            ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+            rValues.GetStrainVector() = prod(trans(voigt_rotation_matrix), rValues.GetStrainVector());
+            if (stress_option)
+                rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
+            if (constitutive_matrix_option) {
+                BoundedMatrix<double, 3, 3> aux;
+                noalias(aux) = prod(trans(voigt_rotation_matrix), rValues.GetConstitutiveMatrix());
+                noalias(rValues.GetConstitutiveMatrix()) = prod(aux, voigt_rotation_matrix);
+            }
+        }
+        // Now undo the rotation in F if required
+        if (!UseElementProvidedStrain()) {
+            BoundedMatrix<double, 3, 3> inv_rotation_matrix;
+            double aux_det;
+            MathUtils<double>::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
+            rThisKinematicVariables.F = prod(inv_rotation_matrix, rThisKinematicVariables.F);
+            rThisKinematicVariables.F = prod(rThisKinematicVariables.F, rotation_matrix);
+            rValues.SetDeformationGradientF(rThisKinematicVariables.F);
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -1786,7 +1921,7 @@ const Parameters BaseSolidElement::GetSpecifications() const
             "entity"                 : []
         },
         "required_variables"         : ["DISPLACEMENT"],
-        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+        "required_dofs"              : [],
         "flags_used"                 : [],
         "compatible_geometries"      : ["Triangle2D3", "Triangle2D6", "Quadrilateral2D4", "Quadrilateral2D8", "Quadrilateral2D9","Tetrahedra3D4", "Prism3D6", "Prism3D15", "Hexahedra3D8", "Hexahedra3D20", "Hexahedra3D27", "Tetrahedra3D10"],
         "element_integrates_in_time" : true,
@@ -1798,7 +1933,30 @@ const Parameters BaseSolidElement::GetSpecifications() const
         "required_polynomial_degree_of_geometry" : -1,
         "documentation"   : "This is a pure displacement element"
     })");
+
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    if (dimension == 2) {
+        std::vector<std::string> dofs_2d({"DISPLACEMENT_X","DISPLACEMENT_Y"});
+        specifications["required_dofs"].SetStringArray(dofs_2d);
+    } else {
+        std::vector<std::string> dofs_3d({"DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"});
+        specifications["required_dofs"].SetStringArray(dofs_3d);
+    }
+
     return specifications;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool BaseSolidElement::IsElementRotated() const
+{
+    if (mConstitutiveLawVector[0]->GetStrainSize() == 6) {
+        return (this->Has(LOCAL_AXIS_1) && this->Has(LOCAL_AXIS_2));
+    } else if (mConstitutiveLawVector[0]->GetStrainSize() == 3) {
+        return (this->Has(LOCAL_AXIS_1));
+    }
+    return false;
 }
 
 /***********************************************************************************/

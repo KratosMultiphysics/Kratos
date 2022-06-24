@@ -32,8 +32,17 @@
 
 // Shallow water includes
 #include "custom_elements/swe.h"
+#include "custom_elements/wave_element.h"
+#include "custom_elements/crank_nicolson_wave_element.h"
+#include "custom_elements/boussinesq_element.h"
+#include "custom_elements/conservative_element.h"
+#include "custom_elements/conservative_element_rv.h"
+#include "custom_elements/conservative_element_fc.h"
 #include "custom_elements/shallow_water_2d_3.h"
-#include "custom_conditions/nothing_condition.hpp"
+#include "custom_conditions/wave_condition.h"
+#include "custom_conditions/boussinesq_condition.h"
+#include "custom_conditions/conservative_condition.h"
+#include "custom_modelers/mesh_moving_modeler.h"
 
 
 namespace Kratos
@@ -93,8 +102,6 @@ namespace Kratos
 
         virtual void Register() override;
 
-
-
         ///@}
         ///@name Access
         ///@{
@@ -145,43 +152,6 @@ namespace Kratos
 
         ///@}
 
-    protected:
-        ///@name Protected static Member Variables
-        ///@{
-
-
-        ///@}
-        ///@name Protected member Variables
-        ///@{
-
-
-        ///@}
-        ///@name Protected Operators
-        ///@{
-
-
-        ///@}
-        ///@name Protected Operations
-        ///@{
-
-
-        ///@}
-        ///@name Protected  Access
-        ///@{
-
-
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
-
-
-        ///@}
-
     private:
         ///@name Static Member Variables
         ///@{
@@ -196,10 +166,26 @@ namespace Kratos
         const SWE<4, Eulerian> mSWE2D4N;
         const SWE<3, PFEM2> mLagrangianSWE2D3N;
         const SWE<4, PFEM2> mLagrangianSWE2D4N;
+        const WaveElement<3> mWaveElement2D3N;
+        const WaveElement<6> mWaveElement2D6N;
+        const WaveElement<4> mWaveElement2D4N;
+        const WaveElement<8> mWaveElement2D8N;
+        const WaveElement<9> mWaveElement2D9N;
+        const CrankNicolsonWaveElement<3> mCrankNicolsonWaveElement2D3N;
+        const BoussinesqElement<3> mBoussinesqElement2D3N;
+        const BoussinesqElement<4> mBoussinesqElement2D4N;
+        const ConservativeElement<3> mConservativeElementGJ2D3N;
+        const ConservativeElementRV<3> mConservativeElementRV2D3N;
+        const ConservativeElementFC<3> mConservativeElementFC2D3N;
         const ShallowWater2D3 mShallowWater2D3N;
-        // Condition
-        const NothingCondition<2> mNothingCondition2D2N;
+        // Conditions
+        const WaveCondition<2> mWaveCondition2D2N;
+        const WaveCondition<3> mWaveCondition2D3N;
+        const BoussinesqCondition<2> mBoussinesqCondition2D2N;
+        const ConservativeCondition<2> mConservativeCondition2D2N;
 
+        // Modelers
+        const MeshMovingModeler mMeshMovingModeler;
 
         ///@}
         ///@name Private Operators

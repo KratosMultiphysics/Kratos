@@ -11,30 +11,12 @@ import KratosMultiphysics
 from KratosMultiphysics.MultilevelMonteCarloApplication.adaptive_refinement_utilities import AdaptiveRefinement
 from exaqute import *
 
-try:
-    computing_units_mlmc_execute_0 = int(os.environ["computing_units_mlmc_execute_0"])
-except:
-    computing_units_mlmc_execute_0 = 1
-try:
-    computing_units_mlmc_execute_1 = int(os.environ["computing_units_mlmc_execute_1"])
-except:
-    computing_units_mlmc_execute_1 = 1
-try:
-    computing_units_mlmc_execute_2 = int(os.environ["computing_units_mlmc_execute_2"])
-except:
-    computing_units_mlmc_execute_2 = 1
-try:
-    computing_units_mlmc_execute_3 = int(os.environ["computing_units_mlmc_execute_3"])
-except:
-    computing_units_mlmc_execute_3 = 1
-try:
-    computing_units_mlmc_execute_4 = int(os.environ["computing_units_mlmc_execute_4"])
-except:
-    computing_units_mlmc_execute_4 = 1
-try:
-    computing_units_mlmc_execute_5 = int(os.environ["computing_units_mlmc_execute_5"])
-except:
-    computing_units_mlmc_execute_5 = 1
+computing_units_mlmc_execute_0 = int(os.getenv("computing_units_mlmc_execute_0", 1))
+computing_units_mlmc_execute_1 = int(os.getenv("computing_units_mlmc_execute_1", 1))
+computing_units_mlmc_execute_2 = int(os.getenv("computing_units_mlmc_execute_2", 1))
+computing_units_mlmc_execute_3 = int(os.getenv("computing_units_mlmc_execute_3", 1))
+computing_units_mlmc_execute_4 = int(os.getenv("computing_units_mlmc_execute_4", 1))
+computing_units_mlmc_execute_5 = int(os.getenv("computing_units_mlmc_execute_5", 1))
 
 ####################################################################################################
 ############################################ WRAPPERS ##############################################
@@ -114,6 +96,46 @@ def executeInstanceReadingFromFile_Wrapper(current_index,pickled_model,pickled_p
 ############################################## TASKS ###############################################
 ####################################################################################################
 
+
+########################################## Serialization ##########################################
+
+@constraint(computing_units=computing_units_mlmc_execute_0)
+@task(keep=True,returns=2)
+def SerializeSerialModel_Task(pickled_parameters, main_model_part_name, fake_sample_to_serialize, analysis):
+    """
+    Function serializing and pickling the Kratos Model of the problem. It builds pickled_model and serialized_model. It is called if we are not runnnig in MPI.
+
+    Inputs:
+
+
+    pickled_parameters: KratosMultiphysics.ProjectParameters object.
+        It contains the settings of the simulation.
+    main_model_part_name: string.
+        String defining the main model part name of the Kratos model.
+    fake_sample_to_serialize: list.
+        List of random variables required by the Kratos analysis stage.
+    analysis: Kratos analysis stage.
+        It defines the Kratos analysis stage of the problem.
+    """
+    # deserialize pickled parameters
+    serialized_parameters = pickle.loads(pickled_parameters)
+    del pickled_parameters
+    parameters = KratosMultiphysics.Parameters()
+    serialized_parameters.Load("ParametersSerialization", parameters)
+    # set to read the model part
+    parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("mdpa")
+    # prepare the model to serialize
+    model = KratosMultiphysics.Model()
+    simulation = analysis(model,parameters,fake_sample_to_serialize)
+    simulation.Initialize()
+    # reset general flags
+    simulation.model.GetModelPart(main_model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED,True)
+    # serialize model
+    serialized_model = KratosMultiphysics.MpiSerializer()
+    serialized_model.Save("ModelSerialization",simulation.model)
+    # pickle dataserialized_data
+    pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+    return serialized_model, pickled_model
 
 ############################### StochasticAdaptiveRefinementAllAtOnce ##############################
 
@@ -486,12 +508,18 @@ def returnZeroQoiAndTime_Task(estimators, size_vector):
     It is called by multi-level methods as level "-1".
 
     Inputs:
-    - estimators: list of strings. Each string is the moment estimator corresponding to the specific quantity of interest.
-    - size_vector: length of multi moment estimators. Namely, the field dimension of each multi quantity of interest.
+
+    estimators: list of strings.
+        Each string is the moment estimator corresponding to the specific quantity of interest.
+    size_vector: integer.
+        It defines the length of multi moment estimators. Namely, the field dimension of each multi quantity of interest.
 
     Outputs:
-    - qoi: list containing null moment estimators in the required order.
-    - time_for_qoi: null time to solution.
+
+    qoi: list.
+        It contains null moment estimators in the required order.
+    time_for_qoi: scalar.
+        Null time to solution.
     """
     qoi = []
     for estimator in estimators:
@@ -517,20 +545,31 @@ def ExecuteInstanceDeterministicAdaptiveRefinementAux_Functionality(pickled_mode
     Auxiliary method to the solve method of the KratosSolverWrapper class. The problem is solved calling Kratos. To be called if the selected refinement strategy is deterministic_adaptive_refinement.
 
     Inputs:
-    - pickled_model: serialization of the model.
-    - pickled_project_parameters: serialization of the parameters.
-    - current_analysis_stage: Kratos analysis stage of the problem.
-    - random_variable: list containing all random variables.
-    - previous_computational_time: time to solution of previous indices, if any.
-    - mapping_flag: booleans. Defines if in current_analysis_stage = SimulationScenario class mapping is required.
-    - pickled_mapping_reference_model: Kratos Model to which mapping is performed.
-    - print_to_file: boolean. If true, the specific filename is passed to the analysis stage.
-    - filename: string which defines the name of the file the task will write, if any.
-    - open_mp_threads: number of threads we are exploiting to solve current task.
+
+    pickled_model: serialization of the KratosMultiphysics.Model.
+    pickled_project_parameters: serialization of the KratosMultiphysics.Parameters.
+    current_analysis_stage: KratosMultiphysics.AnalysisStage.
+    random_variable: list.
+        List containing all random variables.
+    previous_computational_time: scalar.
+        Time to solution of previous indices, if any.
+    mapping_flag: boolean.
+        It defines if in current_analysis_stage = SimulationScenario class mapping is required.
+    pickled_mapping_reference_model: KratosMultiphysics.Model
+        KratosMultiphysics.Model to which mapping is performed, if required.
+    print_to_file: boolean.
+        If true, the specific filename is passed to the analysis stage.
+    filename: string
+        It defines the name of the file the task will write, if any.
+    open_mp_threads: integer.
+        Number of threads we are exploiting to solve current task.
 
     Outputs:
-    - qoi: list containing all the quantities of interest.
-    - computational_time: time to solution up to current index.
+
+    qoi: list.
+        It contains all the quantities of interest.
+    computational_time: scalar.
+        Time to solution up to current index.
     """
 
     start_time = time.time()
@@ -592,25 +631,36 @@ def ExecuteInstanceStochasticAdaptiveRefinementAux_Functionality(current_global_
     Auxiliary method to the solve method of the KratosSolverWrapper class. Firstly, if needed, adaptive refinement is performed. Then the problem is solved calling Kratos. To be called if the selected refinement strategy is stochastic_adaptive_refinement.
 
     Inputs:
-    - current_global_index: index we are interested in and for which we have called the solve method of the solver wrapper.
-    - pickled_coarse_model: serialization of the model.
-    - pickled_coarse_project_parameters: serialization of the parameters.
-    - pickled_custom_metric_refinement_parameters: serialization of metric adaptive refinement parameters.
-    - pickled_custom_remesh_refinement_parameters: serialization of remeshing adaptive refinement parameters.
-    - random_variable: list containing all random variables.
-    - current_index: index we are currently solving at this moment. May be different from current_global_index for "stocharstic_adaptive_refinement" strategy.
-    - current_analysis_stage: Kratos analysis stage of the problem.
-    - previous_computational_time: time to solution of previous indices, if any.
-    - open_mp_threads: number of threads we are exploiting to solve current task.
-    - mapping_flag: booleans. Defines if in current_analysis_stage = SimulationScenario class mapping is required.
-    - pickled_mapping_reference_model: Kratos Model to which mapping is performed.
-    - print_to_file: boolean. If true, the specific filename is passed to the analysis stage.
-    - filename: string which defines the name of the file the task will write, if any.
+    current_global_index: integer.
+        Index we are interested in and for which we have called the solve method of the solver wrapper.
+    pickled_coarse_model: serialization of the KratosMultiphysics.Model.
+    pickled_coarse_project_parameters: serialization of the KratosMultiphysics.Parameters.
+    pickled_custom_metric_refinement_parameters: serialization of metric adaptive refinement parameters.
+    pickled_custom_remesh_refinement_parameters: serialization of remeshing adaptive refinement parameters.
+    random_variable: list.
+        List containing all random variables.
+    current_index: integer.
+        Index we are currently solving at this moment. May be different from current_global_index for "stocharstic_adaptive_refinement" strategy.
+    current_analysis_stage: KratosMultiphysics.AnalysisStage of the problem.
+    previous_computational_time: scalar.
+        Time to solution of previous indices, if any.
+    open_mp_threads: integer.
+        Number of threads we are exploiting to solve current task.
+    mapping_flag: boolean.
+        It defines if in current_analysis_stage = SimulationScenario class mapping is required.
+    pickled_mapping_reference_model: KratosMultiphysics.Model
+        Model to which mapping is performed, if required.
+    print_to_file: boolean.
+        If true, the specific filename is passed to the analysis stage.
+    filename: string.
+        String which defines the name of the file the task will write, if any.
 
     Outputs:
-    - qoi: quantities of interest.
-    - pickled_finer_model: serialized adaptively refined model, used at current index.
-    - computational_time: time to solution up to current index.
+    qoi: list.
+        List of quantities of interest.
+    pickled_finer_model: serialized adaptively refined KratosMultiphysics.Model, used at current index.
+    computational_time: scalar.
+        Time to solution up to current index.
     """
 
     start_time = time.time()
@@ -683,20 +733,28 @@ def ExecuteInstanceReadingFromFileAux_Functionality(pickled_model,pickled_projec
     Auxiliary method to the solve method of the KratosSolverWrapper class. The problem is solved calling Kratos. To be called if the selected refinement strategy is reading_from_file.
 
     Inputs:
-    - pickled_model: serialization of the model.
-    - pickled_project_parameters: serialization of the parameters.
-    - current_analysis_stage: Kratos analysis stage of the problem.
-    - random_variable: list containing all random variables.
-    - previous_computational_time: time to solution of previous indices, if any.
-    - mapping_flag: booleans. Defines if in current_analysis_stage = SimulationScenario class mapping is required.
-    - pickled_mapping_reference_model: Kratos Model to which mapping is performed.
-    - print_to_file: boolean. If true, the specific filename is passed to the analysis stage.
-    - filename: string which defines the name of the file the task will write, if any.
-    - open_mp_threads: number of threads we are exploiting to solve current task.
+    pickled_model: serialization of the KratosMultiphysics.Model.
+    pickled_project_parameters: serialization of the KratosMultiphysics.Parameters.
+    current_analysis_stage: KratosMultiphysics.AnalysisStage of the problem.
+    random_variable: list.
+        List containing all random variables.
+    previous_computational_time: scalar.
+        Time to solution of previous indices, if any.
+    mapping_flag: boolean.
+        It defines if in current_analysis_stage = SimulationScenario class mapping is required.
+    pickled_mapping_reference_model: KratosMultiphysics.Model to which mapping is performed.
+    print_to_file: boolean.
+        If true, the specific filename is passed to the analysis stage.
+    filename: string.
+        String which defines the name of the file the task will write, if any.
+    open_mp_threads: integer.
+        Number of threads we are exploiting to solve current task.
 
     Outputs:
-    - qoi: quantities of interest.
-    - computational_time: time to solution up to current index.
+    qoi: list.
+        List of quantities of interest.
+    computational_time: scalar.
+        Time to solution up to current index.
     """
 
     start_time = time.time()

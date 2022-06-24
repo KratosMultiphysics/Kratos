@@ -7,6 +7,13 @@ from KratosMultiphysics.HDF5Application.core.utils import ParametersWrapper
 from unittest.mock import patch, MagicMock
 import test_hdf5_core
 
+def _SurrogateModelPart():
+    model_part = MagicMock(spec=KratosMultiphysics.ModelPart)
+    model_part.ProcessInfo = {KratosMultiphysics.TIME: 1.23456789,
+                              KratosMultiphysics.DELTA_TIME: 0.1}
+    model_part.Name = 'model_part'
+    return model_part
+
 class TestFileIO(KratosUnittest.TestCase):
 
     def test_HDF5ParallelFileIO_Creation(self):
@@ -14,6 +21,43 @@ class TestFileIO(KratosUnittest.TestCase):
         test_hdf5_core.TestFileIO._BuildTestFileIOObject(io)
         obj = io.Get('kratos.h5')
         self.assertIsInstance(obj, KratosHDF5.HDF5FileParallel)
+
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FilenameGetterWithDirectoryInitialization_DirectoryExists(self, mock_class):
+        mock_instance = mock_class.return_value
+        mock_instance.GetFileName.return_value = '/foo/kratos.h5'
+        settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
+        patcher = patch('KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories', autospec=True)
+        makedirs = patcher.start()
+        data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
+        obj = file_io._FilenameGetterWithDirectoryInitialization(settings, data_comm)
+        obj.Get(_SurrogateModelPart())
+        makedirs.assert_called_once_with('/foo')
+        patcher.stop()
+
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FilenameGetterWithDirectoryInitialization_DirectoryDoesNotExist(self, mock_class):
+        mock_instance = mock_class.return_value
+        mock_instance.GetFileName.return_value = '/foo/kratos.h5'
+        settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
+        patcher = patch('KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories', autospec=True)
+        makedirs = patcher.start()
+        data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
+        obj = file_io._FilenameGetterWithDirectoryInitialization(settings, data_comm)
+        obj.Get(_SurrogateModelPart())
+        makedirs.assert_called_once_with('/foo')
+        patcher.stop()
+
+    @staticmethod
+    def _FilenameGetterSettings(**kwargs):
+        settings = ParametersWrapper()
+        if 'file_name' in kwargs:
+            settings['file_name'] = kwargs['file_name']
+        else:
+            settings['file_name'] = 'kratos.h5'
+        if 'time_format' in kwargs:
+            settings['time_format'] = kwargs['time_format']
+        return settings
 
 
 class TestOperations(KratosUnittest.TestCase):

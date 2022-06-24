@@ -129,7 +129,8 @@ namespace Testing {
         Geometry<Point>::CoordinatesArrayType global_coords;
         Geometry<Point>::CoordinatesArrayType local_coords;
 
-        geom->ProjectionPoint(point.Coordinates(), global_coords, local_coords);
+        geom->ProjectionPointGlobalToLocalSpace(point.Coordinates(), local_coords);
+        geom->GlobalCoordinates(global_coords, local_coords);
 
         const Point point_to_project(point);
         Point point_projected;
@@ -189,6 +190,86 @@ namespace Testing {
         KRATOS_CHECK_NEAR(centre_local_coords(2), 0.0, TOLERANCE);
     }
 
+    /** Checks the point local coordinates for a given point respect to the line.
+    * A point outside but aligned with the line is selected. In this case the distance from second node is smaller than the length
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2PointLocalCoordinatesOutsidePoint1, KratosCoreGeometriesFastSuite)
+    {
+        // Create the test line
+        auto geom = GeneratePointsDiagonalLine2D2();
+
+        // Set the point to be checked
+        Point test_point(1.5,1.5,0.0);
+
+        // Compute the centre local coordinates
+        array_1d<double, 3> test_point_local_coords;
+        geom->PointLocalCoordinates(test_point_local_coords, test_point);
+
+        KRATOS_CHECK_NEAR(test_point_local_coords(0), 2.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(test_point_local_coords(1), 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(test_point_local_coords(2), 0.0, TOLERANCE);
+    }
+
+    /** Checks the point local coordinates for a given point respect to the line.
+    * A point outside but aligned with the line is selected. In this case the distance from second node is larger than the length
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2PointLocalCoordinatesOutsidePoint2, KratosCoreGeometriesFastSuite)
+    {
+        // Create the test line
+        auto geom = GeneratePointsDiagonalLine2D2();
+
+        // Set the point to be checked
+        Point test_point(2.5,2.5,0.0);
+
+        // Compute the centre local coordinates
+        array_1d<double, 3> test_point_local_coords;
+        geom->PointLocalCoordinates(test_point_local_coords, test_point);
+
+        KRATOS_CHECK_NEAR(test_point_local_coords(0), 4.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(test_point_local_coords(1), 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(test_point_local_coords(2), 0.0, TOLERANCE);
+    }
+
+    /** Checks the point local coordinates for a given point respect to the line.
+    * A point outside but aligned with the line is selected. In this case the distance from first node is smaller than the length
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2PointLocalCoordinatesOutsidePoint3, KratosCoreGeometriesFastSuite)
+    {
+        // Create the test line
+        auto geom = GeneratePointsDiagonalLine2D2();
+
+        // Set the point to be checked
+        Point test_point(-0.25,-0.25,0.0);
+
+        // Compute the centre local coordinates
+        array_1d<double, 3> test_point_local_coords;
+        geom->PointLocalCoordinates(test_point_local_coords, test_point);
+
+        KRATOS_CHECK_NEAR(test_point_local_coords(0), -1.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(test_point_local_coords(1), 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(test_point_local_coords(2), 0.0, TOLERANCE);
+    }
+
+    /** Checks the point local coordinates for a given point respect to the line.
+    * A point outside but aligned with the line is selected. In this case the distance from first node is larger than the length
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2PointLocalCoordinatesOutsidePoint4, KratosCoreGeometriesFastSuite)
+    {
+        // Create the test line
+        auto geom = GeneratePointsDiagonalLine2D2();
+
+        // Set the point to be checked
+        Point test_point(-1.5,-1.5,0.0);
+
+        // Compute the centre local coordinates
+        array_1d<double, 3> test_point_local_coords;
+        geom->PointLocalCoordinates(test_point_local_coords, test_point);
+
+        KRATOS_CHECK_NEAR(test_point_local_coords(0), -4.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(test_point_local_coords(1), 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(test_point_local_coords(2), 0.0, TOLERANCE);
+    }
+
     /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
     * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
     */
@@ -197,7 +278,7 @@ namespace Testing {
         const double ExpectedJacobian = 0.5;
 
         Vector JacobianDeterminants;
-        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_1 );
+        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_1 );
 
         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i) {
             KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
@@ -212,7 +293,7 @@ namespace Testing {
         const double ExpectedJacobian = 0.5;
 
         Vector JacobianDeterminants;
-        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_2 );
+        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_2 );
 
         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i) {
             KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
@@ -227,7 +308,7 @@ namespace Testing {
         const double ExpectedJacobian = 0.5;
 
         Vector JacobianDeterminants;
-        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_3 );
+        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_3 );
 
         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i) {
             KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
@@ -242,7 +323,7 @@ namespace Testing {
         const double ExpectedJacobian = 0.5;
 
         Vector JacobianDeterminants;
-        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_4 );
+        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_4 );
 
         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i) {
             KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
@@ -257,7 +338,7 @@ namespace Testing {
         const double ExpectedJacobian = 0.5;
 
         Vector JacobianDeterminants;
-        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_5 );
+        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_5 );
 
         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i) {
             KRATOS_CHECK_NEAR(JacobianDeterminants[i], ExpectedJacobian, TOLERANCE);
@@ -271,7 +352,7 @@ namespace Testing {
         auto geom = GeneratePointsUnitXDirectionLine2D2();
         const double ExpectedJacobian = 0.5;
 
-        double JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_1 );
+        double JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_1 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
     }
 
@@ -283,10 +364,10 @@ namespace Testing {
         double JacobianDeterminant = 0.0;
         const double ExpectedJacobian = 0.5;
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_2 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_2 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::GI_GAUSS_2 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_2 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
     }
 
@@ -298,13 +379,13 @@ namespace Testing {
         double JacobianDeterminant = 0.0;
         const double ExpectedJacobian = 0.5;
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_3 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_3 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::GI_GAUSS_3 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_3 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::GI_GAUSS_3 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_3 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
     }
 
@@ -316,16 +397,16 @@ namespace Testing {
         double JacobianDeterminant = 0.0;
         const double ExpectedJacobian = 0.5;
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_4 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_4 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::GI_GAUSS_4 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_4 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::GI_GAUSS_4 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_4 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::GI_GAUSS_4 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::IntegrationMethod::GI_GAUSS_4 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
     }
 
@@ -337,19 +418,19 @@ namespace Testing {
         double JacobianDeterminant = 0.0;
         const double ExpectedJacobian = 0.5;
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_5 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_5 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::GI_GAUSS_5 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_5 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::GI_GAUSS_5 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_5 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::GI_GAUSS_5 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::IntegrationMethod::GI_GAUSS_5 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 5, GeometryData::GI_GAUSS_5 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 5, GeometryData::IntegrationMethod::GI_GAUSS_5 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
     }
 
@@ -374,8 +455,8 @@ namespace Testing {
         Geometry<Point>::Pointer p_geom = GeneratePointsDiagonalLine2D2();
         Line2D2<Point>::Pointer p_line = GeneratePointsDiagonalLine2D2();
 
-        const Matrix N_values_geom = p_geom->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-        const Matrix N_values_line = p_line->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+        const Matrix N_values_geom = p_geom->ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+        const Matrix N_values_line = p_line->ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
         KRATOS_CHECK_NEAR(N_values_geom(0, 0), 0.788675, TOLERANCE);
         KRATOS_CHECK_NEAR(N_values_geom(0, 1), 0.211325, TOLERANCE);

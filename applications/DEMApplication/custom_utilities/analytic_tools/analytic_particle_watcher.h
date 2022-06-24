@@ -10,7 +10,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "../../custom_elements/analytic_spheric_particle.h"
+#include "custom_elements/analytic_spheric_particle.h"
 
 
 /* External includes */

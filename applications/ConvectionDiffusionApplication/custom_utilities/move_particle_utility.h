@@ -12,15 +12,12 @@
 #if !defined(KRATOS_MOVE_PARTICLE_UTILITY_FLUID_PFEM2_TRANSPORT_INCLUDED)
 #define  KRATOS_MOVE_PARTICLE_UTILITY_FLUID_PFEM2_TRANSPORT_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 #include <algorithm>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -55,7 +52,7 @@
 #include "convection_particle.h"
 
 #include "utilities/openmp_utils.h"
-
+#include "utilities/parallel_utilities.h"
 #include "time.h"
 
 //#include "processes/process.h"
@@ -290,6 +287,23 @@ namespace Kratos
 			//BinsObjectDynamic<Configure>  mpBinsObjectDynamic(it_begin, it_end );
 
 			std::cout << "finished mounting Bins" << std::endl;
+
+			KRATOS_CATCH("")
+		}
+
+		void MountBin(const double CellSize)
+		{
+			KRATOS_TRY
+
+			//copy the elements to a new container, as the list will
+			//be shuffled duringthe construction of the tree
+			ContainerType& rElements           =  mr_model_part.ElementsArray();
+	        IteratorType it_begin              =  rElements.begin();
+	        IteratorType it_end                =  rElements.end();
+			typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure>(it_begin, it_end, CellSize ) );
+			paux.swap(mpBinsObjectDynamic);
+
+			KRATOS_INFO("MoveParticleUtilityScalarTransport") << "Finished mounting Bins with cell size: " << CellSize << std::endl;
 
 			KRATOS_CATCH("")
 		}
@@ -1017,7 +1031,7 @@ namespace Kratos
 			const int max_results = 1000;
 
 			//tools for the paralelization
-			unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
+			unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
 			vector<unsigned int> elem_partition;
 			int number_of_rows=mr_model_part.Elements().size();
 			elem_partition.resize(number_of_threads + 1);
@@ -1136,7 +1150,7 @@ namespace Kratos
 
 			//TOOLS FOR THE PARALELIZATION
 			//int last_id= (mr_linea_model_part.NodesEnd()-1)->Id();
-			unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
+			unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
 			//KRATOS_WATCH(number_of_threads);
 			vector<unsigned int> elem_partition;
 			int number_of_rows=mr_model_part.Elements().size();
@@ -1366,7 +1380,6 @@ namespace Kratos
 		//we start with the first position, then it will enter the loop.
 		position = pparticle.Coordinates(); //initial coordinates
 
-		double only_integral  = 0.0 ;
 
 		is_found = FindNodeOnMesh(position, N ,pelement,result_begin,MaxNumberOfResults); //good, now we know where this point is:
 		if(is_found == true)
@@ -1386,7 +1399,6 @@ namespace Kratos
 				nsubsteps=1;
 			substep_dt = delta_t / double(nsubsteps);
 
-			only_integral = 1.0;// weight;//*double(nsubsteps);
 			position += vel*substep_dt;//weight;
 
 			//DONE THE FIRST LOCATION OF THE PARTICLE, NOW WE PROCEED TO STREAMLINE INTEGRATION USING THE MESH SEDIMENT_VELOCITY
@@ -1409,7 +1421,6 @@ namespace Kratos
 						noalias(vel) += geom[j].FastGetSolutionStepValue(mVelocityVar)*N[j];
 					}
 
-					only_integral += 1.0; //values saved for the current time step
 
 					position+=vel*substep_dt;//weight;
 
@@ -1493,7 +1504,6 @@ namespace Kratos
 		//we start with the first position, then it will enter the loop.
 		position = pparticle.Coordinates(); // + (pparticle)->FastGetSolutionStepValue(DISPLACEMENT); //initial coordinates
 
-		double only_integral  = 0.0 ;
 
 		is_found = FindNodeOnMesh(position, N ,pelement,result_begin,MaxNumberOfResults); //good, now we know where this point is:
 		if(is_found == true)
@@ -1514,7 +1524,6 @@ namespace Kratos
 				nsubsteps=1;
 			substep_dt = delta_t / double(nsubsteps);
 
-			only_integral = 1.0;// weight;//*double(nsubsteps);
 			position -= vel*substep_dt;//weight;
 
 			for(unsigned int i=0; i<(nsubsteps-1); i++)// this is for the substeps n+1. in the first one we already knew the position of the particle.
@@ -1535,7 +1544,6 @@ namespace Kratos
 					}
 
 
-					only_integral += 1.0;//weight ; //values saved for the current time step
 					position-=vel*substep_dt;//weight;
 				  }
 				  else KEEP_INTEGRATING=false;
@@ -1600,7 +1608,8 @@ namespace Kratos
 		//we check all the neighbour elements
 		for (unsigned int i=0;i!=(neighb_elems.size());i++)
 		{
-
+			if(neighb_elems(i).get()!=nullptr)
+			{
 				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
@@ -1608,6 +1617,7 @@ namespace Kratos
 					pelement=neighb_elems(i)->shared_from_this();
 					return true;
 				}
+			}
 		}
 
 	    //if checking all the neighbour elements did not work, we have to use the bins
@@ -1699,7 +1709,8 @@ namespace Kratos
 		//we check all the neighbour elements
 		for (unsigned int i=0;i!=(neighb_elems.size());i++)
 		{
-
+			if(neighb_elems(i).get()!=nullptr)
+			{
 				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
@@ -1713,6 +1724,7 @@ namespace Kratos
 					}
 					return true;
 				}
+			}
 		}
 
 

@@ -39,7 +39,17 @@
                 "body_model_part_name": "FluidModelPart.Body3D_Body_Auto1",
                 "wake_stl_file_name" : "wake_stl.stl",
                 "output_wake": false,
-                "epsilon"         : 1e-6
+                "wake_process_cpp_parameters":    {
+                    "tolerance"                     : 1e-6,
+                    "wake_normal"                   : [0.0,0.0,1.0],
+                    "switch_wake_normal"            : false,
+                    "count_elements_number"         : false,
+                    "write_elements_ids_to_file"    : false,
+                    "shed_wake_from_trailing_edge"  : false,
+                    "shedded_wake_distance"         : 12.5,
+                    "shedded_wake_element_size"     : 0.2,
+                    "echo_level"                    : 0
+                }
             }
         }]
     }

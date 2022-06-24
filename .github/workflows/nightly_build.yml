@@ -1,17 +1,19 @@
 name: Nightly Build
 
 on:
-  pull_request:
-    paths:
-    - '.github/workflows/nightly_build.yml'
-    - '.github/workflows/configure.sh'
-    - '.github/workflows/configure.cmd'
-
   schedule:
     - cron:  '0 1 * * *'
 
   workflow_dispatch:
 
+# for cancelling redundant runs
+concurrency:
+  group: nightly-build-${{ github.head_ref }}
+  cancel-in-progress: true
+
+
+permissions:
+  contents: read
 
 jobs:
   ubuntu-nightly:
@@ -22,17 +24,15 @@ jobs:
         compiler: [gcc, clang]
     env:
       KRATOS_BUILD_TYPE: Release
+      OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
+      OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
       options: --user 1001
 
     steps:
-    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Build
       shell: bash
@@ -76,7 +76,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 3 -f--oversubscribe
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 3
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
@@ -84,20 +84,20 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 4 -f--oversubscribe
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 4
 
 
   windows-nightly:
-    runs-on: windows-latest
+    runs-on: windows-2022
     env:
       KRATOS_BUILD_TYPE: Custom
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - uses: actions/setup-python@v1
+    - uses: actions/setup-python@v4
       with:
-        python-version: '3.6'
+        python-version: '3.8'
 
     - name: Download boost
       run: |
@@ -111,6 +111,7 @@ jobs:
       run: |
         pip install numpy
         pip install h5py
+        pip install sympy
 
     - name: Build
       shell: cmd
@@ -124,3 +125,26 @@ jobs:
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/run_tests.py -l nightly -c python
+
+  centos-nightly:
+    runs-on: ubuntu-latest
+    env:
+      KRATOS_BUILD_TYPE: Custom
+
+    container:
+      image: kratosmultiphysics/kratos-image-ci-centos7-python35:latest
+      options: --user 1001
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build
+      run: |
+        cp .github/workflows/centos_configure.sh centos_configure.sh
+        bash centos_configure.sh
+
+    - name: Running nightly tests
+      run: |
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3.5 kratos/python_scripts/run_tests.py -l nightly -c python3.5

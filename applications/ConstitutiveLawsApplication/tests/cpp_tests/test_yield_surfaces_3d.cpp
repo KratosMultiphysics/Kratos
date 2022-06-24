@@ -127,12 +127,12 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosConstitutiveLawsFastSu
     Properties material_properties;
 
     GenerateTestVariables(Stress, Strain, material_properties);
-    ConstitutiveLawUtilities<6>::CalculateI1Invariant(Stress, I1);
-    ConstitutiveLawUtilities<6>::CalculateJ2Invariant(Stress, I1, Deviator, J2);
+    AdvancedConstitutiveLawUtilities<6>::CalculateI1Invariant(Stress, I1);
+    AdvancedConstitutiveLawUtilities<6>::CalculateJ2Invariant(Stress, I1, Deviator, J2);
 
     // Analytical solutions of the yield surfaces derivatives
     std::vector<double> MCres, VMres, DPres, Rres, Tres, SJres;
-    MCres = {0.109261, 2.07822, 10.6714, 2.6863, 11.8748, 2.62528};
+    MCres = {-0.102799,1.27795,7.82485,2.40467,8.84815,1.84099};
     VMres = {-0.316228, -0.316228, 0.632456, 0.948683, 0.948683, 0.0};
     DPres = {0.197647,0.197647,1.85929,1.66165,1.66165,0};
     Tres = {-0.369513, -0.364032, 0.733545, 1.08113, 1.10671, 0.0073077};

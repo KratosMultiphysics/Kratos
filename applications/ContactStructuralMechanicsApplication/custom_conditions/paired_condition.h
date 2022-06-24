@@ -1,7 +1,7 @@
 // KRATOS    ______            __             __  _____ __                  __                   __
 //          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
-//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
-//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
@@ -197,6 +197,42 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+    /**
+     * @brief This method returns the parent geometry
+     * @return The slave geometry (slave in the definition of Popp which is the opposite of the standard)
+     */
+    GeometryType::Pointer pGetParentGeometry()
+    {
+        return this->GetGeometry().pGetGeometryPart(CouplingGeometryType::Master);
+    }
+
+    /**
+     * @brief This method returns the parent geometry (constant version)
+     * @return The slave geometry (slave in the definition of Popp which is the opposite of the standard)
+     */
+    GeometryType::Pointer const pGetParentGeometry() const
+    {
+        return this->GetGeometry().pGetGeometryPart(CouplingGeometryType::Master);
+    }
+
+    /**
+     * @brief This method returns the paired geometry
+     * @return The master geometry (master in the definition of Popp which is the opposite of the standard)
+     */
+    GeometryType::Pointer pGetPairedGeometry()
+    {
+        return this->GetGeometry().pGetGeometryPart(CouplingGeometryType::Slave);
+    }
+
+    /**
+     * @brief This method returns the paired geometry (constant version)
+     * @return The master geometry (master in the definition of Popp which is the opposite of the standard)
+     */
+    GeometryType::Pointer const pGetPairedGeometry() const
+    {
+        return this->GetGeometry().pGetGeometryPart(CouplingGeometryType::Slave);
+    }
 
     /**
      * @brief This method returns the parent geometry

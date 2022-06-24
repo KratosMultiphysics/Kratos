@@ -11,7 +11,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    LothSteadyViscousTorqueLaw::LothSteadyViscousTorqueLaw(Parameters& r_parameters)
+    LothSteadyViscousTorqueLaw::LothSteadyViscousTorqueLaw(Parameters r_parameters)
     {
 
     }

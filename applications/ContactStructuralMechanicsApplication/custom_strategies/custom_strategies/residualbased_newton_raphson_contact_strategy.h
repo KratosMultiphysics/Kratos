@@ -1,7 +1,7 @@
 // KRATOS    ______            __             __  _____ __                  __                   __
 //          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
-//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
-//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
@@ -66,7 +66,6 @@ template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-
 class ResidualBasedNewtonRaphsonContactStrategy :
     public ResidualBasedNewtonRaphsonStrategy< TSparseSpace, TDenseSpace, TLinearSolver >
 {
@@ -77,7 +76,9 @@ public:
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedNewtonRaphsonContactStrategy );
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>            StrategyBaseType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace>                        SolvingStrategyType;
+
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>    StrategyBaseType;
 
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -278,7 +279,7 @@ public:
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
-    typename StrategyBaseType::Pointer Create(
+    typename SolvingStrategyType::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters
         ) const override
@@ -299,14 +300,14 @@ public:
 
         // Set to zero the weighted gap
         ModelPart& r_model_part = StrategyBaseType::GetModelPart();
-        NodesArrayType& nodes_array = r_model_part.GetSubModelPart("Contact").Nodes();
+        NodesArrayType& r_nodes_array = r_model_part.GetSubModelPart("Contact").Nodes();
         const bool frictional = r_model_part.Is(SLIP);
 
         // We predict contact pressure in case of contact problem
-        if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
-            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, nodes_array);
+        if (r_nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
             if (frictional) {
-                VariableUtils().SetVariable(WEIGHTED_SLIP, zero_array, nodes_array);
+                VariableUtils().SetVariable(WEIGHTED_SLIP, zero_array, r_nodes_array);
             }
 
             // Compute the current gap
@@ -317,19 +318,13 @@ public:
             const std::size_t step = r_process_info[STEP];
 
             if (step == 1) {
-                #pragma omp parallel for
-                for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-                    auto it_node = nodes_array.begin() + i;
-                    noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
-
-                }
+                block_for_each(r_nodes_array, [&](NodeType& rNode) {
+                    noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
+                });
             } else {
-                #pragma omp parallel for
-                for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-                    auto it_node = nodes_array.begin() + i;
-                    noalias(it_node->Coordinates()) += (it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1));
-
-                }
+                block_for_each(r_nodes_array, [&](NodeType& rNode) {
+                    noalias(rNode.Coordinates()) += (rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1));
+                });
             }
         }
 
@@ -351,26 +346,21 @@ public:
 //             const double initial_penalty_parameter = r_process_info[INITIAL_PENALTY];
 //
 //             // We iterate over the nodes
-//             bool is_components = nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) ? false : true;
+//             const bool is_components = nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) ? false : true;
 //
-//             #pragma omp parallel for
-//             for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-//                 auto it_node = nodes_array.begin() + i;
-//
-//                 const double current_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-//
-//                 const double penalty = it_node->Has(INITIAL_PENALTY) ? it_node->GetValue(INITIAL_PENALTY) : initial_penalty_parameter;
-//
+//             block_for_each(r_nodes_array, [&initial_penalty_parameter, &is_components](NodeType& rNode) {
+//                 const double current_gap = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
+//                 const double penalty = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : initial_penalty_parameter;
 //                 if (current_gap < 0.0) {
-//                     it_node->Set(ACTIVE, true);
+//                     rNode.Set(ACTIVE, true);
 //                     if (is_components) {
-//                         it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = penalty * current_gap;
+//                         rNode.FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = penalty * current_gap;
 //                     } else {
-//                         const array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
-//                         it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = penalty * current_gap * normal;
+//                         const array_1d<double, 3>& normal = rNode.FastGetSolutionStepValue(NORMAL);
+//                         rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = penalty * current_gap * normal;
 //                     }
 //                 }
-//             }
+//             });
 //         }
 
         KRATOS_CATCH("")
@@ -821,25 +811,20 @@ protected:
                     if (StrategyBaseType::MoveMeshFlag())
                         UnMoveMesh();
 
-                    NodesArrayType& nodes_array = r_model_part.Nodes();
-
-                    #pragma omp parallel for
-                    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-                        auto it_node = nodes_array.begin() + i;
-
-                        it_node->OverwriteSolutionStepData(1, 0);
-//                         it_node->OverwriteSolutionStepData(2, 1);
-                    }
+                    NodesArrayType& r_nodes_array = r_model_part.Nodes();
+                    block_for_each(r_nodes_array, [&](NodeType& rNode) {
+                        rNode.OverwriteSolutionStepData(1, 0);
+//                         rNode.OverwriteSolutionStepData(2, 1);
+                    });
 
                     r_process_info.SetCurrentTime(current_time); // Reduces the time step
 
                     FinalizeSolutionStep();
                 } else {
-                    NodesArrayType& nodes_array = r_model_part.Nodes();
-
-                    #pragma omp parallel for
-                    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-                        (nodes_array.begin() + i)->CloneSolutionStepData();
+                    NodesArrayType& r_nodes_array = r_model_part.Nodes();
+                    block_for_each(r_nodes_array, [&](NodeType& rNode) {
+                        rNode.CloneSolutionStepData();
+                    });
 
                     r_process_info.CloneSolutionStepInfo();
                     r_process_info.ClearHistory(r_model_part.GetBufferSize());
@@ -966,7 +951,6 @@ protected:
      * @param CurrentTime The current time
      * @return The destination time
      */
-
     double SplitTimeStep(
         double& AuxDeltaTime,
         double& CurrentTime
@@ -990,9 +974,8 @@ protected:
     }
 
     /**
-     * This method moves bak the mesh to the previous position
+     * @brief This method moves bak the mesh to the previous position
      */
-
     void UnMoveMesh()
     {
         KRATOS_TRY;
@@ -1000,15 +983,11 @@ protected:
         if (StrategyBaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
             KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
 
-        NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
-
-            noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
-            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
-        }
+        NodesArrayType& r_nodes_array = StrategyBaseType::GetModelPart().Nodes();
+        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
+            noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+        });
 
         KRATOS_CATCH("");
     }
@@ -1016,7 +995,6 @@ protected:
     /**
      * @brief This method prints information after solving the problem
      */
-
     void CoutSolvingProblem()
     {
         if (mConvergenceCriteriaEchoLevel != 0) {
@@ -1029,7 +1007,6 @@ protected:
      * @param AuxDeltaTime The new time step to be considered
      * @param AuxTime The destination time
      */
-
     void CoutSplittingTime(
         const double AuxDeltaTime,
         const double AuxTime
@@ -1050,7 +1027,6 @@ protected:
     /**
      * @brief This method prints information after reach the max number of interations
      */
-
     void MaxIterationsExceeded() override
     {
         if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 ) {
@@ -1063,7 +1039,6 @@ protected:
     /**
      * @brief This method prints information after reach the max number of interations and splits
      */
-
     void MaxIterationsAndSplitsExceeded()
     {
         if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 ) {
@@ -1090,7 +1065,6 @@ protected:
     /**
      * Copy constructor.
      */
-
     ResidualBasedNewtonRaphsonContactStrategy(const ResidualBasedNewtonRaphsonContactStrategy& Other)
     {
     };

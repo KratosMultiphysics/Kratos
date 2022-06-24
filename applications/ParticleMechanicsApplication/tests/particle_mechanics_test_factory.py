@@ -87,6 +87,10 @@ class CLLinearElastic3DQuadTest(ParticleMechanicsTestFactory):
 class GravityApplicationTest(ParticleMechanicsTestFactory):
     file_name = "gravity_tests/dynamic_gravity_application_test"
 
+### Gravity Time Step Table Tests
+class GravityTimeStepTableTest(ParticleMechanicsTestFactory):
+    file_name = "gravity_tests/dynamic_gravity_time_step_table_test"
+
 ### Penalty Imposition Tests
 class PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/hyperelastic_cantilever_beam/penalty_self_weight_load_2D_quad_test"

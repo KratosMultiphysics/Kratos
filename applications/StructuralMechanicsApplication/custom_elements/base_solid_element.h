@@ -8,6 +8,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
+//                   Alejandro Cornejo Velazquez
 //
 
 #if !defined(KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED )
@@ -23,6 +24,7 @@
 #include "utilities/integration_utilities.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/geometrical_sensitivity_utility.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos
 {
@@ -158,6 +160,8 @@ public:
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BaseSolidElement );
 
+    KRATOS_DEFINE_LOCAL_FLAG(ROTATED);
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -172,7 +176,10 @@ public:
 
     // Constructor using an array of nodes with properties
     BaseSolidElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Element(NewId,pGeometry,pProperties)
-    {};
+    {
+        // This is needed to prevent uninitialised integration method in inactive elements
+        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+    };
 
     // Copy constructor
     BaseSolidElement(BaseSolidElement const& rOther)
@@ -944,6 +951,39 @@ private:
             mConstitutiveLawVector[point_number]->GetValue( rVariable,rOutput[point_number]);
         }
     }
+
+    /**
+     * @brief This method rotates the F or strain according to local axis from
+     * global to local coordinates
+     * @param rValues The constitutive laws parameters
+     * @param rThisKinematicVariables The Kinematic parameters
+     */
+    void RotateToLocalAxes(
+        ConstitutiveLaw::Parameters &rValues,
+        KinematicVariables& rThisKinematicVariables);
+
+    /**
+     * @brief This method rotates the F or strain according to local axis from
+     * local de global
+     * @param rValues The constitutive laws parameters
+     * @param rThisKinematicVariables The Kinematic parameters
+     */
+    void RotateToGlobalAxes(
+        ConstitutiveLaw::Parameters &rValues,
+        KinematicVariables& rThisKinematicVariables);
+
+    /**
+     * @brief This method builds the rotation matrices and local axes
+     */
+    void BuildRotationSystem(
+        BoundedMatrix<double, 3, 3> &rRotationMatrix,
+        const SizeType StrainSize);
+
+    /**
+     * @brief This method checks is an element has to be rotated
+     * according to a set of local axes
+     */
+    bool IsElementRotated() const;
 
     /**
      * @brief This method computes directly in the CL

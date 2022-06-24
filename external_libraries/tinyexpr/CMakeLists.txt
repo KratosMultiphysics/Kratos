@@ -9,11 +9,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     TARGET_LINK_LIBRARIES(tinyexpr m)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-# In case of using Cotire
-IF(USE_COTIRE MATCHES ON)
-    cotire(tinyexpr)
-ENDIF(USE_COTIRE MATCHES ON)
-
 # Define include and library
 SET(TINYEXPR_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tinyexpr/)
 SET(TINYEXPR_LIBRARIES tinyexpr)

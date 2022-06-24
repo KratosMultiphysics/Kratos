@@ -14,13 +14,23 @@ class ExplicitStrategy():
         default_settings = Parameters("""
         {
             "strategy" : "sphere_strategy",
-            "do_search_neighbours" : true,
+            "do_search_dem_neighbours" : true,
+            "do_search_fem_neighbours" : true,
             "RemoveBallsInitiallyTouchingWalls": false,
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
+            },
+            "material_import_settings"           : {
+                "materials_filename" : "MaterialsDEM.json"
             }
         }""")
+
+        if self.solver_settings.Has("do_search_neighbours"):
+            Logger.PrintWarning("DEM", '\nWARNING!:  do_search_neighbours flag is deprecated. Please use do_search_dem_neighbours instead.\n')
+            self.solver_settings.AddValue("do_search_dem_neighbours", self.solver_settings["do_search_neighbours"])
+            self.solver_settings.RemoveValue("do_search_neighbours")
+
         self.solver_settings.ValidateAndAssignDefaults(default_settings)
 
         # Initialization of member variables
@@ -32,7 +42,7 @@ class ExplicitStrategy():
         self.contact_model_part = all_model_parts.Get("ContactPart")
 
         self.DEM_parameters = DEM_parameters
-        self.mesh_motion = DEMFEMUtilities()
+        self.dem_fem_utils = DEMFEMUtilities()
 
         self.dimension = DEM_parameters["Dimension"].GetInt()
 
@@ -46,11 +56,6 @@ class ExplicitStrategy():
             self.print_stress_tensor_option = 1
         else:
             self.print_stress_tensor_option = 0
-
-        if not "AutomaticTimestep" in DEM_parameters.keys():
-            self.critical_time_option = 0
-        else:
-            self.critical_time_option = DEM_parameters["AutomaticTimestep"].GetBool() #TODO: add suffix option
 
         self.trihedron_option        = DEM_parameters["PostEulerAngles"].GetBool()
         self.rotation_option         = DEM_parameters["RotationOption"].GetBool()
@@ -74,6 +79,7 @@ class ExplicitStrategy():
 
         self.search_increment = 0.0
         self.search_increment_for_walls = 0.0
+        self.search_increment_for_bonds_creation = 0.0
         self.coordination_number = 10.0
         self.case_option = 3
 
@@ -99,15 +105,17 @@ class ExplicitStrategy():
         elif DEM_parameters["DeltaOption"].GetString() == "Absolute":
             self.delta_option = 1
             self.search_increment = DEM_parameters["SearchTolerance"].GetDouble()
+            if not "SearchToleranceForBondsCreation" in DEM_parameters.keys():
+                self.search_increment_for_bonds_creation  = self.search_increment
+            else:
+                self.search_increment_for_bonds_creation = DEM_parameters["SearchToleranceForBondsCreation"].GetDouble()
 
         elif DEM_parameters["DeltaOption"].GetString() == "Coordination_Number":
             self.delta_option = 2
             self.coordination_number = DEM_parameters["CoordinationNumber"].GetDouble()
             self.search_increment = 0.01 * 0.0001 #DEM_parameters-MeanRadius
 
-
         self.search_increment_for_walls = DEM_parameters["search_tolerance_against_walls"].GetDouble()
-
 
         # TIME RELATED PARAMETERS
         self.dt = DEM_parameters["MaxTimeStep"].GetDouble()
@@ -182,7 +190,6 @@ class ExplicitStrategy():
 
         self.SetContinuumType()
 
-    @classmethod
     def _GetRestartSettings(self, model_part_import_settings):
         restart_settings = model_part_import_settings.Clone()
         restart_settings.RemoveValue("input_type")
@@ -223,7 +230,6 @@ class ExplicitStrategy():
         # SIMULATION FLAGS
         self.spheres_model_part.ProcessInfo.SetValue(IS_TIME_TO_PRINT, False)
         self.spheres_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
-        self.spheres_model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
         self.spheres_model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
         self.spheres_model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROTATION_OPTION, self.rotation_option)
@@ -256,6 +262,7 @@ class ExplicitStrategy():
         # SEARCH-RELATED
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_WALLS, self.search_increment_for_walls)
+        self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_BONDS_CREATION, self.search_increment_for_bonds_creation)
         self.spheres_model_part.ProcessInfo.SetValue(COORDINATION_NUMBER, self.coordination_number)
         self.spheres_model_part.ProcessInfo.SetValue(LOCAL_RESOLUTION_METHOD, self.local_resolution_method)
         if self.contact_mesh_option:
@@ -274,15 +281,16 @@ class ExplicitStrategy():
 
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
-
-        for properties in self.inlet_model_part.Properties:
-            self.ModifyProperties(properties)
+            for subproperties in properties.GetSubProperties():
+                self.ModifySubProperties(subproperties)
 
         for submp in self.inlet_model_part.SubModelParts:
             if submp.Has(CLUSTER_FILE_NAME):
                 cluster_file_name = submp[CLUSTER_FILE_NAME]
                 [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
                 pre_utils = PreUtilities(self.spheres_model_part)
+                if not submp.Has(PROPERTIES_ID):
+                    raise Exception("This ModelPart: " + submp.Name + " should contain PROPERTIES_ID. Make sure it was added in the assignation table of the Materials json file.")
                 props_id = submp[PROPERTIES_ID]
                 for prop in self.inlet_model_part.Properties:
                     if prop.Id == props_id:
@@ -291,12 +299,6 @@ class ExplicitStrategy():
                 pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
                 if not properties.Has(BREAKABLE_CLUSTER):
                     properties.SetValue(BREAKABLE_CLUSTER, False)
-
-        for properties in self.cluster_model_part.Properties:
-            self.ModifyProperties(properties)
-
-        for properties in self.fem_model_part.Properties:
-            self.ModifyProperties(properties, 1)
 
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
@@ -374,7 +376,7 @@ class ExplicitStrategy():
         self.SolveSolutionStep()
 
     def SolveSolutionStep(self):
-        (self.cplusplus_strategy).SolveSolutionStep()
+        self.cplusplus_strategy.SolveSolutionStep()
         return True
 
     def AdvanceInTime(self, time):
@@ -390,9 +392,9 @@ class ExplicitStrategy():
         dem_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
 
-        self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
-        self.mesh_motion.MoveAllMeshes(dem_inlet_model_part, time, dt)
-        self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
+        self.dem_fem_utils.MoveAllMeshes(spheres_model_part, time, dt)
+        self.dem_fem_utils.MoveAllMeshes(dem_inlet_model_part, time, dt)
+        self.dem_fem_utils.MoveAllMeshes(rigid_face_model_part, time, dt)
 
     def _UpdateTimeInModelParts(self, time, is_time_to_print = False):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")
@@ -412,13 +414,10 @@ class ExplicitStrategy():
         '''
 
         AuxiliaryUtilities().UpdateTimeInOneModelPart(model_part, time, dt, is_time_to_print)
-        # model_part.ProcessInfo[TIME] = time
-        # model_part.ProcessInfo[DELTA_TIME] = dt
-        # model_part.ProcessInfo[TIME_STEPS] += 1
-        # model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
+
 
     def FinalizeSolutionStep(self):
-        (self.cplusplus_strategy).FinalizeSolutionStep()
+        self.cplusplus_strategy.FinalizeSolutionStep()
 
     def Finalize(self):
         pass
@@ -426,22 +425,23 @@ class ExplicitStrategy():
     def InitializeSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
         self.FixDOFsManually(time)
-        (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()
+        self.cplusplus_strategy.ResetPrescribedMotionFlagsRespectingImposedDofs()
         self.FixExternalForcesManually(time)
 
-        (self.cplusplus_strategy).InitializeSolutionStep()
+        self.cplusplus_strategy.InitializeSolutionStep()
 
     def SetNormalRadiiOnAllParticles(self):
-        (self.cplusplus_strategy).SetNormalRadiiOnAllParticles(self.spheres_model_part)
+        self.cplusplus_strategy.SetNormalRadiiOnAllParticles(self.spheres_model_part)
 
     def SetSearchRadiiOnAllParticles(self):
-        (self.cplusplus_strategy).SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
+
+        self.cplusplus_strategy.SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
 
     def RebuildListOfDiscontinuumSphericParticles(self):
-        (self.cplusplus_strategy).RebuildListOfDiscontinuumSphericParticles()
+        self.cplusplus_strategy.RebuildListOfDiscontinuumSphericParticles()
 
     def Compute_RigidFace_Movement(self):
-        (self.cplusplus_strategy).Compute_RigidFace_Movement()
+        self.cplusplus_strategy.Compute_RigidFace_Movement()
 
 
     def FixDOFsManually(self, time):
@@ -474,13 +474,13 @@ class ExplicitStrategy():
             self.Procedures.KratosPrintInfo("DOFs for the DEM solution added correctly")
 
     def PrepareElementsForPrinting(self):
-        (self.cplusplus_strategy).PrepareElementsForPrinting()
+        self.cplusplus_strategy.PrepareElementsForPrinting()
 
     def PrepareContactElementsForPrinting(self):
-        (self.cplusplus_strategy).PrepareContactElementsForPrinting()
+        self.cplusplus_strategy.PrepareContactElementsForPrinting()
 
     def AttachSpheresToStickyWalls(self):
-        (self.cplusplus_strategy).AttachSpheresToStickyWalls()
+        self.cplusplus_strategy.AttachSpheresToStickyWalls()
 
     def coeff_of_rest_diff(self, gamma, desired_coefficient_of_restit):
 
@@ -543,7 +543,6 @@ class ExplicitStrategy():
 
         return math.sqrt(1.0/(1.0 - (1.0+e)*(1.0+e) * math.exp(alpha)) - 1.0)
 
-    @classmethod
     def SinAlphaConicalDamage(self, e):
 
         if e < 0.001:
@@ -634,57 +633,76 @@ class ExplicitStrategy():
 
     def ModifyProperties(self, properties, param = 0):
 
-        if not param:
-            DiscontinuumConstitutiveLaw = globals().get(properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
-            coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
+        if param:
+            return
 
-            type_of_law = DiscontinuumConstitutiveLaw.GetTypeOfLaw()
+        if not properties.Has(COMPUTE_WEAR):
+            properties.SetValue(COMPUTE_WEAR, False)
 
-            write_gamma = False
-
-            write_AlphaFunction = False
-
-            if (type_of_law == 'Linear'):
-                gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)
-                write_gamma = True
-
-            elif (type_of_law == 'Hertz'):
-                gamma = self.GammaForHertzThornton(coefficient_of_restitution)
-                write_gamma = True
-
-            elif (type_of_law == 'Conical_damage'):
-                gamma = self.GammaForHertzThornton(coefficient_of_restitution)
-                write_gamma = True
-                conical_damage_alpha = properties[CONICAL_DAMAGE_ALPHA]
-                AlphaFunction = self.SinAlphaConicalDamage(conical_damage_alpha)
-                write_AlphaFunction = True
-                if not properties.Has(LEVEL_OF_FOULING):
-                    properties[LEVEL_OF_FOULING] = 0.0
-
-            else:
-                pass
-
-            if write_gamma == True:
-                properties[DAMPING_GAMMA] = gamma
-
-            if write_AlphaFunction == True:
-                properties[CONICAL_DAMAGE_ALPHA_FUNCTION] = AlphaFunction
-
-            if properties.Has(CLUSTER_FILE_NAME):
-                cluster_file_name = properties[CLUSTER_FILE_NAME]
-                [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
-                pre_utils = PreUtilities(self.spheres_model_part)
-                pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
-                self.Procedures.KratosPrintInfo(properties)
-                if not properties.Has(BREAKABLE_CLUSTER):
-                    properties.SetValue(BREAKABLE_CLUSTER, False)
-
-            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
+        if properties.Has(CLUSTER_FILE_NAME):
+            cluster_file_name = properties[CLUSTER_FILE_NAME]
+            [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
+            pre_utils = PreUtilities(self.spheres_model_part)
+            pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
+            self.Procedures.KratosPrintInfo(properties)
+            if not properties.Has(BREAKABLE_CLUSTER):
+                properties.SetValue(BREAKABLE_CLUSTER, False)
 
         if properties.Has(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME):
             translational_scheme_name = properties[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME]
         else:
             translational_scheme_name = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
+
+        translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)
+
+        translational_scheme.SetTranslationalIntegrationSchemeInProperties(properties, True)
+
+        if properties.Has(DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME):
+            rotational_scheme_name = properties[DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME]
+        else:
+            rotational_scheme_name = self.DEM_parameters["RotationalIntegrationScheme"].GetString()
+
+        rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
+        rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
+
+    def ModifySubProperties(self, properties, param = 0):
+
+        DiscontinuumConstitutiveLaw = globals().get(properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
+        coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
+
+        type_of_law = DiscontinuumConstitutiveLaw.GetTypeOfLaw()
+
+        write_gamma = False
+
+        write_AlphaFunction = False
+
+        if (type_of_law == 'Linear'):
+            gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)
+            write_gamma = True
+
+        elif (type_of_law == 'Hertz'):
+            gamma = self.GammaForHertzThornton(coefficient_of_restitution)
+            write_gamma = True
+
+        elif (type_of_law == 'Conical_damage'):
+            gamma = self.GammaForHertzThornton(coefficient_of_restitution)
+            write_gamma = True
+            conical_damage_alpha = properties[CONICAL_DAMAGE_ALPHA]
+            AlphaFunction = self.SinAlphaConicalDamage(conical_damage_alpha)
+            write_AlphaFunction = True
+            if not properties.Has(LEVEL_OF_FOULING):
+                properties[LEVEL_OF_FOULING] = 0.0
+
+        else:
+            pass
+
+        if write_gamma == True:
+            properties[DAMPING_GAMMA] = gamma
+
+        if write_AlphaFunction == True:
+            properties[CONICAL_DAMAGE_ALPHA_FUNCTION] = AlphaFunction
+
+        DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, False)
 
         if properties.Has(FRICTION):
             self.Procedures.KratosPrintWarning("-------------------------------------------------")
@@ -698,18 +716,6 @@ class ExplicitStrategy():
 
         if not properties.Has(FRICTION_DECAY):
             properties[FRICTION_DECAY] = 500.0
-
-        translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)
-
-        translational_scheme.SetTranslationalIntegrationSchemeInProperties(properties, True)
-
-        if properties.Has(DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME):
-            rotational_scheme_name = properties[DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME]
-        else:
-            rotational_scheme_name = self.DEM_parameters["RotationalIntegrationScheme"].GetString()
-
-        rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
-        rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
 
         if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
             properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]

@@ -21,9 +21,7 @@
 // Project includes
 #include "includes/define_python.h"
 #include "mapping_application.h"
-#include "custom_python/add_mapper_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_utilities/mapper_define.h"
 
 namespace Kratos {
 namespace Python {
@@ -38,8 +36,6 @@ PYBIND11_MODULE(KratosMappingApplication, m)
         KratosApplication >(m,"KratosMappingApplication")
         .def(py::init<>())
         ;
-
-    AddMapperToPython<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>(m);
 
     AddCustomUtilitiesToPython(m);
 }

@@ -238,7 +238,7 @@ int TrussPlasticityConstitutiveLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-)
+) const
 {
     KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
 

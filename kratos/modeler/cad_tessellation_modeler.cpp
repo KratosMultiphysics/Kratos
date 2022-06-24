@@ -10,11 +10,12 @@
 //  Main authors:    Dagmawi Bekel
 //                   Ruben Zorrilla
 //
-
+#if USE_TRIANGLE_NONFREE_TPL
 // Project includes
 #include "includes/define.h"
-#include "utilities/delaunator_utilities.h"
+#include "utilities/tessellation_utilities/delaunator_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "cad_tessellation_modeler.h"
 
 namespace Kratos
@@ -57,7 +58,7 @@ void CadTessellationModeler::SetupModelPart()
     for (auto it = r_geometries.begin(); it != r_geometries.end(); ++it) {
 
         IndexType trim_index = 0;
-        if (it->GetGeometryType() == GeometryData::Kratos_Brep_Surface) {
+        if (it->GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Brep_Surface) {
 
             const auto& r_aux_geometry = *it;
             const auto r_brep_surface_geom = dynamic_cast<const BrepSurfaceType&>(r_aux_geometry);
@@ -134,7 +135,7 @@ std::vector<array_1d<double, 2>> CadTessellationModeler::ComputeBoundaryTessella
         << "Missing \"absolute_chordal_error\" in CadTessellationModeler Parameters" << std::endl;
     const double chordal_error = mParameters["absolute_chordal_error"].GetDouble();
 
-    auto tessellation = NurbsCurveTessellation<2, ContainerNodeType>::ComputeTessellation(
+    auto tessellation = CurveTessellation<ContainerNodeType>::ComputeTessellation(
         rBoundarySegment,
         rBoundarySegment.PolynomialDegree(0),
         rBoundarySegment.pGetCurveOnSurface()->pGetCurve()->DomainInterval(),
@@ -354,3 +355,4 @@ double CadTessellationModeler::ComputeDiscretizationError(
 }
 
 } // namespace Kratos
+#endif

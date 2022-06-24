@@ -45,7 +45,7 @@
         "residual_absolute_tolerance":        1.0E-9,
         "min_iterations":                      6,
         "max_iterations":                      15,
-        "number_cycles":                      10,
+        "number_cycles":                      1,
         "reduction_factor":                   0.5,
         "increase_factor":                    2.0,
         "realised_factor":                    0.9999,
