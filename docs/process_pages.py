@@ -236,7 +236,7 @@ if __name__ == "__main__":
                     if "side_bar_name" not in menu_info.keys():
                         raise RuntimeError("No side bar name provied. Please add it to {:s}/menu_info.json.".format(str(sub_itr_dir)))
                     default_header_dict["sidebar"] = "<!>" + menu_info["side_bar_name"]
-                    list_of_strings = CreateNavigatonBar(str(sub_itr_dir), 3, default_header_dict, is_locally_built)
+                    list_of_strings = CreateNavigatonBar(str(sub_itr_dir), 3, default_header_dict, True)
                     with open("_data/sidebars/{:s}.yml".format(menu_info["side_bar_name"]), "w") as file_output:
                         file_output.write("entries:\n")
                         file_output.writelines(list_of_strings)

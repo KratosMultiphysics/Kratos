@@ -7,8 +7,8 @@ entries:
     output: web
     folderitems:
     - title: Utilities MMG Process
-      url: /Kratos/pages/Applications/Meshing_Application/General/Utilities-MMG-Process.html
+      url: /pages/Applications/Meshing_Application/General/Utilities-MMG-Process.html
       output: web
     - title: Utilities ParMmg Process
-      url: /Kratos/pages/Applications/Meshing_Application/General/Utilities-ParMmg-Process.html
+      url: /pages/Applications/Meshing_Application/General/Utilities-ParMmg-Process.html
       output: web

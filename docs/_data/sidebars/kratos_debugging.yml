@@ -7,29 +7,29 @@ entries:
     output: web
     folderitems:
     - title: Checking memory usage with Valgrind
-      url: /Kratos/pages/Kratos/Debugging/General/Checking-memory-usage-with-Valgrind.html
+      url: /pages/Kratos/Debugging/General/Checking-memory-usage-with-Valgrind.html
       output: web
     - title: Debug Memory Using ASAN
-      url: /Kratos/pages/Kratos/Debugging/General/Debug-Memory-Using-ASAN.html
+      url: /pages/Kratos/Debugging/General/Debug-Memory-Using-ASAN.html
       output: web
     - title: Debugging Kratos using GDB
-      url: /Kratos/pages/Kratos/Debugging/General/Debugging-Kratos-using-GDB.html
+      url: /pages/Kratos/Debugging/General/Debugging-Kratos-using-GDB.html
       output: web
     - title: Debugging Kratos using Visual Studio
-      url: /Kratos/pages/Kratos/Debugging/General/Debugging-Kratos-using-Visual-Studio.html
+      url: /pages/Kratos/Debugging/General/Debugging-Kratos-using-Visual-Studio.html
       output: web
     - title: How to cross debug Kratos under Windows
-      url: /Kratos/pages/Kratos/Debugging/General/How-to-cross-debug-Kratos-under-Windows.html
+      url: /pages/Kratos/Debugging/General/How-to-cross-debug-Kratos-under-Windows.html
       output: web
     - title: How to profile Kratos using MAQAO
-      url: /Kratos/pages/Kratos/Debugging/General/How-to-profile-Kratos-using-MAQAO.html
+      url: /pages/Kratos/Debugging/General/How-to-profile-Kratos-using-MAQAO.html
       output: web
     - title: Profiling Kratos with LineProfile
-      url: /Kratos/pages/Kratos/Debugging/General/Profiling-Kratos-with-LineProfile.html
+      url: /pages/Kratos/Debugging/General/Profiling-Kratos-with-LineProfile.html
       output: web
     - title: Serialization
-      url: /Kratos/pages/Kratos/Debugging/General/How-to-use-Serialization.html
+      url: /pages/Kratos/Debugging/General/How-to-use-Serialization.html
       output: web
     - title: Thread Sanitizer
-      url: /Kratos/pages/Kratos/Debugging/General/thread-sanitizer.html
+      url: /pages/Kratos/Debugging/General/thread-sanitizer.html
       output: web
