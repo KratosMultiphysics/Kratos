@@ -7,5 +7,5 @@ entries:
     output: web
     folderitems:
     - title: 2D Cavity flow problem
-      url: /Kratos/pages/Applications/Fluid_Dynamics_Application/General/2D-Cavity-flow-problem.html
+      url: /pages/Applications/Fluid_Dynamics_Application/General/2D-Cavity-flow-problem.html
       output: web
