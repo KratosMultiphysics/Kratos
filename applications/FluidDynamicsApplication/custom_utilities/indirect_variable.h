@@ -68,167 +68,167 @@ public:
     ///@name Operators
     ///@{
 
-    TDataType operator+(const TDataType T)
+    inline TDataType operator+(const TDataType T)
     {
         return mGet() + T;
     }
 
-    TDataType operator-(const TDataType T)
+    inline TDataType operator-(const TDataType T)
     {
         return mGet() - T;
     }
 
-    TDataType operator*(const TDataType T)
+    inline TDataType operator*(const TDataType T)
     {
         return mGet() * T;
     }
 
-    TDataType operator/(const TDataType T)
+    inline TDataType operator/(const TDataType T)
     {
         return mGet() / T;
     }
 
-    TDataType operator+(const IndirectDataType& T)
+    inline TDataType operator+(const IndirectDataType& T)
     {
         return mGet() + T.mGet();
     }
 
-    TDataType operator-(const IndirectDataType& T)
+    inline TDataType operator-(const IndirectDataType& T)
     {
         return mGet() - T.mGet();
     }
 
-    TDataType operator*(const IndirectDataType& T)
+    inline TDataType operator*(const IndirectDataType& T)
     {
         return mGet() * T.mGet();
     }
 
-    TDataType operator/(const IndirectDataType& T)
+    inline TDataType operator/(const IndirectDataType& T)
     {
         return mGet() / T.mGet();
     }
 
-    IndirectDataType& operator=(const TDataType T)
+    inline IndirectDataType& operator=(const TDataType T)
     {
         mSet(T);
         return *this;
     }
 
-    IndirectDataType& operator+=(const TDataType T)
+    inline IndirectDataType& operator+=(const TDataType T)
     {
         mSet(mGet() + T);
         return *this;
     }
 
-    IndirectDataType& operator-=(const TDataType T)
+    inline IndirectDataType& operator-=(const TDataType T)
     {
         mSet(mGet() - T);
         return *this;
     }
 
-    IndirectDataType& operator*=(const TDataType T)
+    inline IndirectDataType& operator*=(const TDataType T)
     {
         mSet(mGet() * T);
         return *this;
     }
 
-    IndirectDataType& operator/=(const TDataType T)
+    inline IndirectDataType& operator/=(const TDataType T)
     {
         mSet(mGet() / T);
         return *this;
     }
 
-    IndirectDataType& operator=(const IndirectDataType& T)
+    inline IndirectDataType& operator=(const IndirectDataType& T)
     {
         mSet(T.mGet());
         return *this;
     }
 
-    IndirectDataType& operator+=(const IndirectDataType& T)
+    inline IndirectDataType& operator+=(const IndirectDataType& T)
     {
         mSet(mGet() + T.mGet());
         return *this;
     }
 
-    IndirectDataType& operator-=(const IndirectDataType& T)
+    inline IndirectDataType& operator-=(const IndirectDataType& T)
     {
         mSet(mGet() - T.mGet());
         return *this;
     }
 
-    IndirectDataType& operator*=(const IndirectDataType& T)
+    inline IndirectDataType& operator*=(const IndirectDataType& T)
     {
         mSet(mGet() * T.mGet());
         return *this;
     }
 
-    IndirectDataType& operator/=(const IndirectDataType& T)
+    inline IndirectDataType& operator/=(const IndirectDataType& T)
     {
         mSet(mGet() / T.mGet());
         return *this;
     }
 
-    bool operator==(const TDataType T)
+    inline bool operator==(const TDataType T)
     {
         return mGet() == T;
     }
 
-    bool operator!=(const TDataType T)
+    inline bool operator!=(const TDataType T)
     {
         return mGet() != T;
     }
 
-    bool operator>=(const TDataType T)
+    inline bool operator>=(const TDataType T)
     {
         return mGet() >= T;
     }
 
-    bool operator<=(const TDataType T)
+    inline bool operator<=(const TDataType T)
     {
         return mGet() <= T;
     }
 
-    bool operator>(const TDataType T)
+    inline bool operator>(const TDataType T)
     {
         return mGet() > T;
     }
 
-    bool operator<(const TDataType T)
+    inline bool operator<(const TDataType T)
     {
         return mGet() < T;
     }
 
-    bool operator==(const IndirectDataType& T)
+    inline bool operator==(const IndirectDataType& T)
     {
         return mGet() == T.mGet();
     }
 
-    bool operator!=(const IndirectDataType& T)
+    inline bool operator!=(const IndirectDataType& T)
     {
         return mGet() != T.mGet();
     }
 
-    bool operator>=(const IndirectDataType& T)
+    inline bool operator>=(const IndirectDataType& T)
     {
         return mGet() >= T.mGet();
     }
 
-    bool operator<=(const IndirectDataType& T)
+    inline bool operator<=(const IndirectDataType& T)
     {
         return mGet() <= T.mGet();
     }
 
-    bool operator>(const IndirectDataType& T)
+    inline bool operator>(const IndirectDataType& T)
     {
         return mGet() > T.mGet();
     }
 
-    bool operator<(const IndirectDataType& T)
+    inline bool operator<(const IndirectDataType& T)
     {
         return mGet() < T.mGet();
     }
 
-    std::ostream& print(std::ostream& os) const
+    inline std::ostream& print(std::ostream& os) const
     {
         return os << mGet();
     }
@@ -285,8 +285,9 @@ public:
      *
      */
     IndirectVariable()
-        : mConstGetter([](const NodeType&, const IndexType) -> TVariableDataType { return TVariableDataType{};}),
-          mIndirectData([](NodeType& rNode, const IndexType Step) -> IndirectDataType { return IndirectDataType(); })
+        : mrVariable(TVariableType::StaticObject()),
+          mConstGetter(&IndirectVariable<TVariableDataType>::DefaultValueGetter),
+          mIndirectData(&IndirectVariable<TVariableDataType>::DefaultIndirectDataGetter)
     {
     }
 
@@ -301,41 +302,51 @@ public:
 
     IndirectVariable(
         const TVariableType& rVariable)
-        : mConstGetter([&rVariable](const NodeType& rNode, const IndexType Step) -> TVariableDataType { return rNode.FastGetSolutionStepValue(rVariable, Step);}),
-          mIndirectData([&rVariable](NodeType& rNode, const IndexType Step) -> IndirectDataType { return IndirectDataType(rVariable, rNode, Step); })
+        : mrVariable(rVariable),
+          mConstGetter(&IndirectVariable<TVariableDataType>::NodalValueGetter),
+          mIndirectData(&IndirectVariable<TVariableDataType>::NodalIndirectDataGetter)
     {
     }
+
     ///@}
-    ///@name Static Operations
+    ///@name Public Member Operations
     ///@{
 
-    static void InitializeIndirectVariableType(NodeType& rNode)
+    inline const TVariableType& GetVariable() const
     {
-        rNode.SetValue(TVariableType::StaticObject(), TVariableDataType{});
+        return mrVariable;
+    }
+
+    template <class TUnaryFunction>
+    inline void ExecuteForVariable(TUnaryFunction &&f) const
+    {
+        if (mrVariable != TVariableType::StaticObject()) {
+            f(mrVariable);
+        }
     }
 
     ///@}
     ///@name Operators
     ///@{
 
-    IndirectDataType operator()(NodeType& rNode) const
+    inline IndirectDataType operator()(NodeType& rNode) const
     {
-        return mIndirectData(rNode, 0);
+        return  (this->*(this->mIndirectData))(rNode, 0);
     }
 
-    TVariableDataType operator()(const NodeType& rNode) const
+    inline TVariableDataType operator()(const NodeType& rNode) const
     {
-        return mConstGetter(rNode, 0);
+        return  (this->*(this->mConstGetter))(rNode, 0);
     }
 
-    IndirectDataType operator()(NodeType& rNode, const IndexType Step) const
+    inline IndirectDataType operator()(NodeType& rNode, const IndexType Step) const
     {
-        return mIndirectData(rNode, Step);
+        return  (this->*(this->mIndirectData))(rNode, Step);
     }
 
-    TVariableDataType operator()(const NodeType& rNode, const IndexType Step) const
+    inline TVariableDataType operator()(const NodeType& rNode, const IndexType Step) const
     {
-        return mConstGetter(rNode, Step);
+        return  (this->*(this->mConstGetter))(rNode, Step);
     }
 
     ///@}
@@ -343,9 +354,46 @@ private:
     ///@name Private Members
     ///@{
 
-    // const std::function<TVariableDataType&(NodeType&, const IndexType)> mNonConstGetter;
-    const std::function<TVariableDataType(const NodeType&, const IndexType)> mConstGetter;
-    const std::function<IndirectDataType(NodeType&, const IndexType)> mIndirectData;
+    const TVariableType& mrVariable;
+
+    TVariableDataType (IndirectVariable<TVariableDataType>::*mConstGetter)(
+        const NodeType&,
+        const IndexType) const;
+
+    IndirectDataType (IndirectVariable<TVariableDataType>::*mIndirectData)(
+        NodeType&,
+        const IndexType) const;
+
+    // nodal value methods
+    inline TVariableDataType NodalValueGetter(
+        const NodeType& rNode,
+        const IndexType Step) const
+    {
+        return rNode.FastGetSolutionStepValue(mrVariable, Step);
+    }
+
+    inline IndirectDataType NodalIndirectDataGetter(
+        NodeType& rNode,
+        const IndexType Step) const
+    {
+        return IndirectDataType(mrVariable, rNode, Step);
+    }
+
+    // default value methos
+    inline TVariableDataType DefaultValueGetter(
+        const NodeType& rNode,
+        const IndexType Step) const
+    {
+        return TVariableDataType{};
+    }
+
+    inline IndirectDataType DefaultIndirectDataGetter(
+        NodeType& rNode,
+        const IndexType Step) const
+    {
+        return IndirectDataType();
+    }
+
 
     ///@}
 };

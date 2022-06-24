@@ -65,14 +65,14 @@ public:
 
     /// Constructor.
     explicit LSSBossakBackwardScheme(
-        FluidLSSVariableUtilities::Pointer pFluidLeastSquaresShadowingUtilities,
+        FluidLSSVariableUtilities::Pointer pFluidLeastSquaresShadowingVariableUtilities,
         const Variable<Vector>& rAuxVariable,
         const double BossakAlpha,
         const IndexType Dimension,
         const IndexType BlockSize,
         const IndexType EchoLevel)
         : BaseType(),
-          mpFluidLeastSquaresShadowingUtilities(pFluidLeastSquaresShadowingUtilities),
+          mpFluidLeastSquaresShadowingVariableUtilities(pFluidLeastSquaresShadowingVariableUtilities),
           mrAuxVariable(rAuxVariable),
           mDimension(Dimension),
           mEchoLevel(EchoLevel),
@@ -86,9 +86,9 @@ public:
         const int number_of_threads = ParallelUtilities::GetNumThreads();
         mTLS.resize(number_of_threads);
 
-        KRATOS_ERROR_IF_NOT(mpFluidLeastSquaresShadowingUtilities->GetPrimalVariablePointersList().size() == BlockSize)
+        KRATOS_ERROR_IF_NOT(mpFluidLeastSquaresShadowingVariableUtilities->GetPrimalIndirectVariablesList().size() == BlockSize)
                 << "Provided block size does not match with the number of primal variables provided in least squares shadowing utilities. [ block size = "
-                << BlockSize << ", number of primal variables in least squares shadowing utilities = " << mpFluidLeastSquaresShadowingUtilities->GetPrimalVariablePointersList().size() << " ].\n";
+                << BlockSize << ", number of primal variables in least squares shadowing utilities = " << mpFluidLeastSquaresShadowingVariableUtilities->GetPrimalIndirectVariablesList().size() << " ].\n";
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Created [ Dimensionality = " << Dimension << ", BlockSize = " << BlockSize << " ].\n";
 
@@ -105,11 +105,6 @@ public:
     int Check(const ModelPart& rModelPart) const override
     {
         KRATOS_TRY
-
-        IndexPartition<IndexType>(rModelPart.NumberOfElements()).for_each([&](const IndexType iElement) {
-            const auto& r_element = *(rModelPart.ElementsBegin() + iElement);
-            mpFluidLeastSquaresShadowingUtilities->CheckVariables(r_element);
-        });
 
         const IndexType buffer_size = rModelPart.GetBufferSize();
         KRATOS_ERROR_IF(buffer_size < 2) << "Buffer size needs to be greater than 1 in " << rModelPart.FullName() << " [ buffer size = " << buffer_size << " ].\n";
@@ -220,14 +215,14 @@ public:
         const double coeff_1 = (mBossak.GetGamma() - 1) / mBossak.GetGamma();
 
         // update mu
-        const auto& r_adjoint_variable_pointers_list = mpFluidLeastSquaresShadowingUtilities->GetAdjointVariablePointersList();
-        const auto& r_adjoint_first_derivative_variable_pointers_list = mpFluidLeastSquaresShadowingUtilities->GetAdjointFirstDerivativeVariablePointersList();
+        const auto& r_adjoint_variable_pointers_list = mpFluidLeastSquaresShadowingVariableUtilities->GetAdjointIndirectVariablesList();
+        const auto& r_adjoint_first_derivative_variable_pointers_list = mpFluidLeastSquaresShadowingVariableUtilities->GetAdjointFirstDerivativeIndirectVariablesList();
         const IndexType number_of_variables = r_adjoint_variable_pointers_list.size();
 
         // clear current first derivative variables
         block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
             for (IndexType i = 0; i < number_of_variables; ++i) {
-                rNode.FastGetSolutionStepValue(*r_adjoint_first_derivative_variable_pointers_list[i]) = 0.0;
+                r_adjoint_first_derivative_variable_pointers_list[i](rNode) = 0.0;
             }
         });
 
@@ -264,20 +259,22 @@ public:
 
                 r_node.SetLock();
                 for (IndexType j = 0; j < number_of_variables; ++j) {
-                    r_node.FastGetSolutionStepValue(*r_adjoint_first_derivative_variable_pointers_list[j]) -= rTLS.mCurrentAux[local_index++];
+                    r_adjoint_first_derivative_variable_pointers_list[j](r_node) -= rTLS.mCurrentAux[local_index++];
                 }
                 r_node.UnSetLock();
             }
         });
 
         for (IndexType i = 0; i < number_of_variables; ++i) {
-            rModelPart.GetCommunicator().AssembleCurrentData(*r_adjoint_first_derivative_variable_pointers_list[i]);
+            r_adjoint_first_derivative_variable_pointers_list[i].ExecuteForVariable([&](const Variable<double>& rVariable){
+                rModelPart.GetCommunicator().AssembleCurrentData(rVariable);
+            });
         }
 
         // add nodal contributions
         block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
             for (IndexType i = 0; i < number_of_variables; ++i){
-                rNode.FastGetSolutionStepValue(*r_adjoint_first_derivative_variable_pointers_list[i]) += coeff_1 * rNode.FastGetSolutionStepValue(*r_adjoint_first_derivative_variable_pointers_list[i], 1);
+                r_adjoint_first_derivative_variable_pointers_list[i](rNode) += r_adjoint_first_derivative_variable_pointers_list[i](rNode, 1) * coeff_1;
             }
         });
 
@@ -341,7 +338,7 @@ private:
     ///@name Private Member Variables
     ///@{
 
-    FluidLSSVariableUtilities::Pointer mpFluidLeastSquaresShadowingUtilities;
+    FluidLSSVariableUtilities::Pointer mpFluidLeastSquaresShadowingVariableUtilities;
 
     const Variable<Vector>& mrAuxVariable;
 
@@ -432,7 +429,7 @@ private:
 
         rEntity.GetSecondDerivativesVector(rPreviousSecondDerivativesValues, 1);
 
-        mpFluidLeastSquaresShadowingUtilities->GetLSSValues(rRHS, rEntity);
+        mpFluidLeastSquaresShadowingVariableUtilities->GetLSSValues(rRHS, rEntity);
         rRHS *= -2.0;
         noalias(rRHS) -= rEntity.GetValue(mrAuxVariable) * mBossakConstants.mC1;
         noalias(rRHS) -= rPreviousSecondDerivativesValues * mBossakConstants.mC2;
