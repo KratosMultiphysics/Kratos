@@ -425,12 +425,12 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
         BondedLocalElasticContactForce2 = 0.0;
     }
 
-    //* For debug
+    /* For debug
     if (element1->Id() == 1 && element2->Id() == 14){
         KRATOS_WATCH(element1->Id())
         KRATOS_WATCH(element2->Id())
         KRATOS_WATCH(BondedLocalElasticContactForce2)
-    }
+    }*/
     
 
     ComputeNormalUnbondedForce(unbonded_indentation);
@@ -805,19 +805,8 @@ void DEM_parallel_bond::CheckBondFailure(const int i_neighbour_count,
         const double& bond_tau_zero_deviation = (*mpProperties)[BOND_TAU_ZERO_DEVIATION];
         const double& bond_interanl_friction = (*mpProperties)[BOND_INTERNAL_FRICC];
         const double& bond_rotational_moment_coefficient =(*mpProperties)[BOND_ROTATIONAL_MOMENT_COEFFICIENT];
-
-        //if (!element1->mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
-        //ParticleContactElement* this_bond = element1->mBondElements[i_neighbour_count];
-        //if (this_bond == NULL) return; 
-
-        //const double& bond_current_contact_sigma = this_bond->mContactSigma;
-        //const double& bond_current_contact_tau   = this_bond->mContactTau;
-        //double bond_current_contact_sigma = contact_sigma;
-        //double bond_current_contact_tau   = contact_tau;
+        
         double bond_rotational_moment[3] = {0.0};
-        //bond_rotational_moment[0]  = this_bond->mElasticLocalRotationalMoment[0];
-        //bond_rotational_moment[1]  = this_bond->mElasticLocalRotationalMoment[1];
-        //bond_rotational_moment[2]  = this_bond->mElasticLocalRotationalMoment[2];
         bond_rotational_moment[0]  = ElasticLocalRotationalMoment[0];
         bond_rotational_moment[1]  = ElasticLocalRotationalMoment[1];
         bond_rotational_moment[2]  = ElasticLocalRotationalMoment[2];
