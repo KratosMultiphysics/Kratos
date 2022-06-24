@@ -20,7 +20,6 @@
 #endif
 
 // Project includes
-#include "includes/define.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
@@ -35,10 +34,6 @@ template<class TStorageType>
 class SMPStorage
 {
 public:
-    ///@name Type Definitions
-    ///@{
-
-    ///@}
     ///@name Life Cycle
     ///@{
 
@@ -93,7 +88,7 @@ private:
 
 ///@}
 
-///@} addtogroup block
+///@} addtogroup KratosCore
 
 }  // namespace Kratos.
 
