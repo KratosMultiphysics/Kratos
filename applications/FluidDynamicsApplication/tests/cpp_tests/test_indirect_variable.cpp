@@ -26,7 +26,7 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(IndirectVariable, FluidDynamicsApplicationFastSuite1) {
+KRATOS_TEST_CASE_IN_SUITE(IndirectVariable, FluidDynamicsApplicationFastSuite) {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestPart");
     r_model_part.SetBufferSize(2);
@@ -38,11 +38,13 @@ KRATOS_TEST_CASE_IN_SUITE(IndirectVariable, FluidDynamicsApplicationFastSuite1) 
     // const check
     const auto& r_const_node_1 = r_node_1;
 
-    r_node_1.FastGetSolutionStepValue(STEP) = 1;
-    r_node_1.FastGetSolutionStepValue(STEP, 1) = -1;
-
     IndirectVariable<int> indirect_step(STEP);
     IndirectVariable<int> indirect_none;
+
+    indirect_step(r_node_1, 0) = 1;
+    indirect_step(r_node_1, 1) = -1;
+    indirect_none(r_node_1, 0) = 1;
+    indirect_none(r_node_1, 1) = -1;
 
     indirect_step(r_node_1, 0) += 10;
     indirect_step(r_node_1, 1) += 10;
