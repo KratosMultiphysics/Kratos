@@ -67,7 +67,7 @@ struct Node
 };
 ```
 
-[Here](data/example_1/html/index.html)'s what the generated documentation looks like for the example above. Notice the tags identified with <i>@</i> characters in the annotations; these are doxygen commands that relay formatting directives. They always modify the appearance of the text that follows them, but the number of characters/words they effect varies between commands. For example, the ```@ref``` command creates a link to the documentation of the name that follows it (```@ref Node``` links to ```Node``` in the generated documentation), while ```@param``` describes an argument of the function, taking a parameter name and a possibly multi-line description. There's also ```@name``` that tags every construct in its scope enclosed between ```@{``` and ```@}```. You can browse through the [complete list of doxygen commands](https://www.doxygen.nl/manual/commands.html) to get an idea of what you can work with, but here's a short list often used in <i>Kratos</i>:
+[Here](../../../../../external_data/documentation_guide/example_1/index.html)'s what the generated documentation looks like for the example above. Notice the tags identified with <i>@</i> characters in the annotations; these are doxygen commands that relay formatting directives. They always modify the appearance of the text that follows them, but the number of characters/words they effect varies between commands. For example, the ```@ref``` command creates a link to the documentation of the name that follows it (```@ref Node``` links to ```Node``` in the generated documentation), while ```@param``` describes an argument of the function, taking a parameter name and a possibly multi-line description. There's also ```@name``` that tags every construct in its scope enclosed between ```@{``` and ```@}```. You can browse through the [complete list of doxygen commands](https://www.doxygen.nl/manual/commands.html) to get an idea of what you can work with, but here's a short list often used in <i>Kratos</i>:
 - ```@brief```: brief description of the class/function/variable/concept that always gets displayed next to its name.
 - ```@details```: detailed description of the class/function/variable/concept that is only displayed on the construct's own documentation page.
 - ```@addtogroup```: add all constructs defined in the scope to a doxygen *module* (each *Kratos* application has its own *module*).
@@ -84,7 +84,7 @@ struct Node
 - ```@c```: render the following name in typewriter font.
 
 
-Let's take a deep dive and look at a reasonably well-decorated piece of code with lots of doxygen commands. Be sure to compare the source and the [generated documentation](data/example_2/html/index.html)
+Let's take a deep dive and look at a reasonably well-decorated piece of code with lots of doxygen commands. Be sure to compare the source and the [generated documentation](../../../../../external_data/documentation_guide/example_2/index.html)
 ```cpp
 /** @defgroup CompileTimeApplication
  *  @{
