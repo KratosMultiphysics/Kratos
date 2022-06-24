@@ -55,6 +55,9 @@ topnav_dropdowns:
     - title: Reduced Order Modelling Application
       url: /Kratos/pages/Applications/Reduced_Order_Modelling_Application/General/API-for-RomApplication-(draft-to-be-moved-elsewhere).html
       output: web
+    - title: Shape Optimization Application
+      url: /Kratos/pages/Applications/Shape_Optimization_Application/General/Multi_objective_optimization.html
+      output: web
     - title: Statistics Application
       url: /Kratos/pages/Applications/Statistics_Application/General/Overview.html
       output: web
