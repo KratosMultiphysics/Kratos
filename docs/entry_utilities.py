@@ -207,16 +207,25 @@ def GenerateEntryDataFromExternalUrl(url_dict: dict, navigation_level: int) -> d
 def IsLeafEntry(entry_dict: dict) -> bool:
     return entry_dict["type"] in file_navigation_levels
 
-def CreateNavigationBarEntry(entry_info: dict) -> str:
-    if "title" not in entry_info.keys():
-        raise Exception("title is not found in entry {:s}".format(entry_info))
+def AddMissingUrlEntry(entry_info: dict, url_prefix: str):
     if "url" not in entry_info.keys():
         file_path = entry_info["path"]
         if file_path.is_file():
             if str(file_path).endswith(".md"):
-                entry_info["url"] = "/" + str(file_path)[:-2] + "html"
+                entry_info["url"] = "/" + url_prefix + str(file_path)[:-2] + "html"
             else:
                 raise RuntimeError("Final entry {:s} is not a mark down file.".format(str(file_path)))
+
+def CreateNavigationBarEntry(entry_info: dict) -> str:
+    if "title" not in entry_info.keys():
+        raise Exception("title is not found in entry {:s}".format(entry_info))
+    # if "url" not in entry_info.keys():
+    #     file_path = entry_info["path"]
+    #     if file_path.is_file():
+    #         if str(file_path).endswith(".md"):
+    #             entry_info["url"] = "/" + str(file_path)[:-2] + "html"
+    #         else:
+    #             raise RuntimeError("Final entry {:s} is not a mark down file.".format(str(file_path)))
     if "url" in entry_info.keys() and entry_info["url"] == "<dummy>":
         del entry_info["url"]
 

@@ -7,5 +7,5 @@ entries:
     output: web
     folderitems:
     - title: Overview
-      url: /pages/Kratos/Processes/General/Overview.html
+      url: /Kratos/pages/Kratos/Processes/General/Overview.html
       output: web

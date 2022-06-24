@@ -7,8 +7,8 @@ entries:
     output: web
     folderitems:
     - title: API for RomApplication (draft to be moved elsewhere
-      url: /pages/Applications/Reduced_Order_Modelling_Application/General/API-for-RomApplication-(draft-to-be-moved-elsewhere.html
+      url: /Kratos/pages/Applications/Reduced_Order_Modelling_Application/General/API-for-RomApplication-(draft-to-be-moved-elsewhere.html
       output: web
     - title: API for RomApplication (draft to be moved elsewhere)
-      url: /pages/Applications/Reduced_Order_Modelling_Application/General/API-for-RomApplication-(draft-to-be-moved-elsewhere).html
+      url: /Kratos/pages/Applications/Reduced_Order_Modelling_Application/General/API-for-RomApplication-(draft-to-be-moved-elsewhere).html
       output: web

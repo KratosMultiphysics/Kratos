@@ -7,38 +7,38 @@ entries:
     output: web
     folderitems:
     - title: Overview
-      url: /pages/Applications/Statistics_Application/General/Overview.html
+      url: /Kratos/pages/Applications/Statistics_Application/General/Overview.html
       output: web
   - title: Norm Methods
     output: web
     folderitems:
     - title: Overview
-      url: /pages/Applications/Statistics_Application/Norm_Methods/Overview.html
+      url: /Kratos/pages/Applications/Statistics_Application/Norm_Methods/Overview.html
       output: web
   - title: Statistical Methods
     output: web
     folderitems:
     - title: Distribution
-      url: /pages/Applications/Statistics_Application/Statistical_Methods/Distribution.html
+      url: /Kratos/pages/Applications/Statistics_Application/Statistical_Methods/Distribution.html
       output: web
     - title: Max
-      url: /pages/Applications/Statistics_Application/Statistical_Methods/Max.html
+      url: /Kratos/pages/Applications/Statistics_Application/Statistical_Methods/Max.html
       output: web
     - title: Mean
-      url: /pages/Applications/Statistics_Application/Statistical_Methods/Mean.html
+      url: /Kratos/pages/Applications/Statistics_Application/Statistical_Methods/Mean.html
       output: web
     - title: Median
-      url: /pages/Applications/Statistics_Application/Statistical_Methods/Median.html
+      url: /Kratos/pages/Applications/Statistics_Application/Statistical_Methods/Median.html
       output: web
     - title: Min
-      url: /pages/Applications/Statistics_Application/Statistical_Methods/Min.html
+      url: /Kratos/pages/Applications/Statistics_Application/Statistical_Methods/Min.html
       output: web
     - title: Root Mean Square
-      url: /pages/Applications/Statistics_Application/Statistical_Methods/Root_Mean_Square.html
+      url: /Kratos/pages/Applications/Statistics_Application/Statistical_Methods/Root_Mean_Square.html
       output: web
     - title: Sum
-      url: /pages/Applications/Statistics_Application/Statistical_Methods/Sum.html
+      url: /Kratos/pages/Applications/Statistics_Application/Statistical_Methods/Sum.html
       output: web
     - title: Variance
-      url: /pages/Applications/Statistics_Application/Statistical_Methods/Variance.html
+      url: /Kratos/pages/Applications/Statistics_Application/Statistical_Methods/Variance.html
       output: web

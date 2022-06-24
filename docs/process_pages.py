@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 from collections import OrderedDict
 from pathlib import Path
 
@@ -8,11 +9,14 @@ from entry_utilities import GenerateEntryDataFromDir
 from entry_utilities import GenerateEntryDataFromFile
 from entry_utilities import GenerateEntryDataFromKratosExampleUrl
 from entry_utilities import GetTaglessName
+from entry_utilities import AddMissingUrlEntry
 from entry_utilities import CreateNavigationBarEntry
 from entry_utilities import GetDirMenuInfoFromJson
 from entry_utilities import GenerateEntryDataFromExternalUrl
 from entry_utilities import IsLeafEntry
 from entry_utilities import GetNavigationString
+
+web_prefix = "Kratos/"
 
 docs_absolute_path = Path(__file__)
 
@@ -128,8 +132,12 @@ def CreateEntriesDicts(current_path: Path, navigation_level: int, max_navigation
 
     return list_of_entries
 
-def GenerateStrings(list_of_dicts: list[dict]) -> list[str]:
+def GenerateStrings(list_of_dicts: list[dict], is_locally_built) -> list[str]:
     for itr_dict in list_of_dicts:
+        if is_locally_built:
+            AddMissingUrlEntry(itr_dict, "")
+        else:
+            AddMissingUrlEntry(itr_dict, web_prefix)
         itr_dict["str"] = CreateNavigationBarEntry(itr_dict)
 
     written_types = OrderedDict()
@@ -191,7 +199,7 @@ def ClearDummies(list_of_entries: list) -> list:
 
     return list_of_entries
 
-def CreateNavigatonBar(root_path: str, max_levels: int, default_header_dict: dict) -> list:
+def CreateNavigatonBar(root_path: str, max_levels: int, default_header_dict: dict, is_locally_built) -> list:
     list_of_entries = CreateEntriesDicts(
         Path(root_path),
         0,
@@ -199,15 +207,21 @@ def CreateNavigatonBar(root_path: str, max_levels: int, default_header_dict: dic
         default_header_dict)
     list_of_entries = UpdateRootEntry(list_of_entries)
     list_of_entries = ClearDummies(list_of_entries)
-    list_of_strings = GenerateStrings(list_of_entries)
+    list_of_strings = GenerateStrings(list_of_entries, is_locally_built)
     return list_of_strings
 
 if __name__ == "__main__":
+    parser = ArgumentParser(description="Process mark down files in pages folder to create navigation bars.")
+    parser.add_argument("-t", "--build_type", dest="build_type", metavar="<build_type>",
+                        choices=['local', 'web'], default="locally", help="type of the web page build")
+    args = parser.parse_args()
+
+    is_locally_built = args.build_type == "local"
     print("Creating top navigation bar...")
     # generate top navigation bar
     with open("_data/topnav.yml.orig", "r") as file_input:
         lines = file_input.readlines()
-    list_of_strings = CreateNavigatonBar("pages", 2, default_header_dict)
+    list_of_strings = CreateNavigatonBar("pages", 2, default_header_dict, is_locally_built)
     lines.extend(list_of_strings)
     with open("_data/topnav.yml", "w") as file_output:
         file_output.writelines(lines)
@@ -222,7 +236,7 @@ if __name__ == "__main__":
                     if "side_bar_name" not in menu_info.keys():
                         raise RuntimeError("No side bar name provied. Please add it to {:s}/menu_info.json.".format(str(sub_itr_dir)))
                     default_header_dict["sidebar"] = "<!>" + menu_info["side_bar_name"]
-                    list_of_strings = CreateNavigatonBar(str(sub_itr_dir), 3, default_header_dict)
+                    list_of_strings = CreateNavigatonBar(str(sub_itr_dir), 3, default_header_dict, is_locally_built)
                     with open("_data/sidebars/{:s}.yml".format(menu_info["side_bar_name"]), "w") as file_output:
                         file_output.write("entries:\n")
                         file_output.writelines(list_of_strings)

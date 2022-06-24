@@ -7,10 +7,10 @@ entries:
     output: web
     folderitems:
     - title: Overview
-      url: /pages/Kratos/Documentation_Guide/General/Overview.html
+      url: /Kratos/pages/Kratos/Documentation_Guide/General/Overview.html
       output: web
     - title: Organization
-      url: /pages/Kratos/Documentation_Guide/General/Organization.html
+      url: /Kratos/pages/Kratos/Documentation_Guide/General/Organization.html
       output: web
   - title: How Tos
     output: web
@@ -22,23 +22,32 @@ entries:
         output: web
         subfolderitems:
         - title: Documentation Pages
-          url: /pages/Kratos/Documentation_Guide/How_Tos/Create_Content/Documentation_Pages.html
+          url: /Kratos/pages/Kratos/Documentation_Guide/How_Tos/Create_Content/Documentation_Pages.html
           output: web
         - title: Kratos Core
-          url: /pages/Kratos/Documentation_Guide/How_Tos/Create_Content/Kratos_Core.html
+          url: /Kratos/pages/Kratos/Documentation_Guide/How_Tos/Create_Content/Kratos_Core.html
           output: web
         - title: Application Documentation
-          url: /pages/Kratos/Documentation_Guide/How_Tos/Create_Content/Application_documentation.html
+          url: /Kratos/pages/Kratos/Documentation_Guide/How_Tos/Create_Content/Application_documentation.html
           output: web
       - title: Modify Navigation Bars
         output: web
         subfolderitems:
         - title: Top Navigation Bar
-          url: /pages/Kratos/Documentation_Guide/How_Tos/Modify_Navigation_Bars/Modify_top_nav.html
+          url: /Kratos/pages/Kratos/Documentation_Guide/How_Tos/Modify_Navigation_Bars/Modify_top_nav.html
           output: web
         - title: Side Navigation Bar
-          url: /pages/Kratos/Documentation_Guide/How_Tos/Modify_Navigation_Bars/Modify_side_nav.html
+          url: /Kratos/pages/Kratos/Documentation_Guide/How_Tos/Modify_Navigation_Bars/Modify_side_nav.html
           output: web
         - title: Custom Entries
-          url: /pages/Kratos/Documentation_Guide/How_Tos/Modify_Navigation_Bars/Custom_entries.html
+          url: /Kratos/pages/Kratos/Documentation_Guide/How_Tos/Modify_Navigation_Bars/Custom_entries.html
+          output: web
+      - title: Source Code Documentation
+        output: web
+        subfolderitems:
+        - title: Documenting C++ Code
+          url: /Kratos/pages/Kratos/Documentation_Guide/How_Tos/Source_Code_Documentation/documenting_cpp.html
+          output: web
+        - title: Documenting Python Code
+          url: /Kratos/pages/Kratos/Documentation_Guide/How_Tos/Source_Code_Documentation/documenting_python.html
           output: web
