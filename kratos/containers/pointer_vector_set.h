@@ -636,9 +636,12 @@ protected:
 
 private:
 
-    class CompareKey : public std::binary_function<TPointerType, TPointerType, typename TCompareType::result_type>
+    class CompareKey
     {
     public:
+        using first_argument_type = TPointerType;
+        using second_argument_type = TPointerType;
+        using result_type = typename TCompareType::result_type;
         typename TCompareType::result_type operator()(key_type a, TPointerType b) const
         {
             return TCompareType()(a, TGetKeyType()(*b));
@@ -653,10 +656,13 @@ private:
         }
     };
 
-    class EqualKeyTo : public std::binary_function<TPointerType, TPointerType, typename TEqualType::result_type>
+    class EqualKeyTo
     {
         key_type mKey;
     public:
+        using first_argument_type = TPointerType;
+        using second_argument_type = TPointerType;
+        using result_type = typename TEqualType::result_type;
         EqualKeyTo() : mKey() {}
         explicit EqualKeyTo(key_type Key) : mKey(Key) {}
         typename TEqualType::result_type operator()(TPointerType a) const

@@ -63,11 +63,14 @@ public:
 };
 
 template <class Type>
-class MultAndAddValue : public std::binary_function<Type, Type, Type>
+class MultAndAddValue
 {
 private:
     Type Factor; // The value to multiply by
 public:
+    using first_argument_type = Type;
+    using second_argument_type = Type;
+    using result_type = Type;
     // Constructor initializes the value to multiply by
 
     MultAndAddValue(const Type& _Val) : Factor(_Val)

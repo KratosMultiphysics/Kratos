@@ -68,11 +68,15 @@ private:
      * @author Riccardo Rossi
      */
     class KRATOS_API(KRATOS_CORE) iterator_adaptor
-        : public std::iterator<std::forward_iterator_tag, Parameters>
     {
         ///@name Type Definitions
         ///@{
 
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = Parameters;
+        using difference_type = std::ptrdiff_t;
+        using pointer = Parameters*;
+        using reference = Parameters&;
         using value_iterator = nlohmann::detail::iter_impl<nlohmann::json>; /// Iterator definition
 
         ///@}
@@ -174,7 +178,6 @@ private:
      * @author Riccardo Rossi
      */
     class KRATOS_API(KRATOS_CORE) const_iterator_adaptor
-        : public std::iterator<std::forward_iterator_tag, Parameters>
     {
         ///@name Type Definitions
         ///@{
@@ -191,6 +194,12 @@ private:
 
         ///@}
     public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = Parameters;
+        using difference_type = std::ptrdiff_t;
+        using pointer = Parameters*;
+        using reference = Parameters&;
+
         ///@name Life Cycle
         ///@{
 
