@@ -62,7 +62,7 @@ public:
     ///@name Operations
     ///@{
 
-    TStorageType& GetThreadLocalStorage()
+    inline TStorageType& GetThreadLocalStorage()
     {
         #ifdef KRATOS_SMP_OPENMP
             return mThreadLocalStorageContainer[OpenMPUtils::ThisThread()];
