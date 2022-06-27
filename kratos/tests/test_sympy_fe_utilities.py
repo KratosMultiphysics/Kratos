@@ -33,14 +33,52 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
             [6,11,15,18,20,21]])
         C = KratosSympy.ConvertVoigtMatrixToTensor(C_voigt)
         C_reference = [
-            [[[1,6,5],[6,2,4],[5,4,3]],[[6,21,20],[21,11,18],[20,18,15]],[[5,20,19],[20,10,17],[19,17,14]]],
-            [[[6,21,20],[21,11,18],[20,18,15]],[[2,11,10],[11,7,9],[10,9,8]],[[4,18,17],[18,9,16],[17,16,13]]],
-            [[[5,20,19],[20,10,17],[19,17,14]],[[4,18,17],[18,9,16],[17,16,13]],[[3,15,14],[15,8,13],[14,13,12]]]]
+            [[[1,4,6],[4,2,5],[6,5,3]],[[4,16,18],[16,9,17],[18,17,13]],[[6,18,21],[18,11,20],[21,20,15]]],
+            [[[4,16,18],[16,9,17],[18,17,13]],[[2,9,11],[9,7,10],[11,10,8]],[[5,17,20],[17,10,19],[20,19,14]]],
+            [[[6,18,21],[18,11,20],[21,20,15]],[[5,17,20],[17,10,19],[20,19,14]],[[3,13,15],[13,8,14],[15,14,12]]]]
         for i in range(dim):
             for j in range(dim):
                 for k in range(dim):
                     for l in range(dim):
                         self.assertEqual(C[i][j][k][l], C_reference[i][j][k][l])
+
+    def testStrainToVoigt2D(self):
+        strain = sympy.Matrix([
+            [1.0, 2.0],
+            [2.0, 3.0]])
+        strain_voigt = KratosSympy.StrainToVoigt(strain)
+        self._AuxCheckToVoigtResults(3, lambda i,j : 1.0 if i == j else 2.0, strain, strain_voigt)
+
+    def testStrainToVoigt3D(self):
+        strain = sympy.Matrix([
+            [1.0, 2.0, 3.0],
+            [2.0, 4.0, 5.0],
+            [3.0, 5.0, 6.0]])
+        strain_voigt = KratosSympy.StrainToVoigt(strain)
+        self._AuxCheckToVoigtResults(6, lambda i,j : 1.0 if i == j else 2.0, strain, strain_voigt)
+
+    def testMatrixToVoigt2D(self):
+        matrix = sympy.Matrix([
+            [1.0, 2.0],
+            [2.0, 3.0]])
+        matrix_voigt = KratosSympy.MatrixToVoigt(matrix)
+        self._AuxCheckToVoigtResults(3, lambda i,j : 1.0, matrix, matrix_voigt)
+
+    def testMatrixToVoigt3D(self):
+        matrix = sympy.Matrix([
+            [1.0, 2.0, 3.0],
+            [2.0, 4.0, 5.0],
+            [3.0, 5.0, 6.0]])
+        matrix_voigt = KratosSympy.MatrixToVoigt(matrix)
+        self._AuxCheckToVoigtResults(6, lambda i,j : 1.0, matrix, matrix_voigt)
+
+    def _AuxCheckToVoigtResults(self, strain_size, factor_calculator, reference, voigt_output):
+        dim = 2 if strain_size == 3 else 3
+        aux_indices = KratosSympy._GetVoigtToTensorConversionIndices(strain_size)
+        for i in range(dim):
+            for j in range(dim):
+                factor = factor_calculator(i,j)
+                self.assertEqual(voigt_output[aux_indices[(i, j)]], factor * reference[i,j])
 
     def testDoubleContraction(self):
         A_2nd_order = sympy.Matrix([
