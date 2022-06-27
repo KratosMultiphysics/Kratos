@@ -126,6 +126,12 @@ public:
         this->AssignSettings(this_parameters_copy);
     }
 
+    explicit ROMBuilderAndSolver(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver)
+        : BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
+    {
+    }
+
     ~ROMBuilderAndSolver() = default;
 
     ///@}

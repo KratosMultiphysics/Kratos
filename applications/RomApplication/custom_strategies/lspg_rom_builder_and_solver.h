@@ -87,7 +87,7 @@ public:
     typedef LSPGROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
     /// Definition of the classes from the base class
-    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef typename BaseType::TSchemeType TSchemeType;
     typedef typename BaseType::DofsArrayType DofsArrayType;
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
@@ -126,14 +126,13 @@ public:
 
     explicit LSPGROMBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
-        Parameters ThisParameters)
-        : ROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver, ThisParameters) 
+        Parameters ThisParameters) : BaseType(pNewLinearSystemSolver) 
     {
         // Validate and assign defaults
-        // Parameters this_parameters_copy = ThisParameters.Clone();
-        // this_parameters_copy = this->ValidateAndAssignParameters(this_parameters_copy, this->GetDefaultParameters());
-        // this->AssignSettings(this_parameters_copy);
-    }
+        Parameters this_parameters_copy = ThisParameters.Clone();
+        this_parameters_copy = this->ValidateAndAssignParameters(this_parameters_copy, this->GetDefaultParameters());
+        this->AssignSettings(this_parameters_copy);
+    } 
 
     ~LSPGROMBuilderAndSolver() = default;
 
@@ -319,9 +318,6 @@ protected:
         LSPGSystemVectorType &rb) override
     {
         KRATOS_TRY
-        // Define a dense matrix to hold the reduced problem
-        rA = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
-        rb = ZeroVector(BaseType::GetEquationSystemSize());
 
         // Build the system matrix by looping over elements and conditions and assembling to A
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
