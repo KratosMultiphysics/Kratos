@@ -35,11 +35,69 @@ void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateOnIntegration
         rOutput.resize(num_GP);
     }
 
-    if(rVariable == VARIATIONAL_SENSITIVITY) {
+    if(rVariable == YOUNG_MODULUS_VARIATIONAL_SENSITIVITY) {
         std::vector<Vector> pseudo_stress;
         this->CalculateOnIntegrationPoints(YOUNG_MODULUS_PSEUDO_PK2_STRESS_VECTOR, pseudo_stress, rCurrentProcessInfo);
         std::vector<Vector> adjoint_strain;
-        this->CalculateOnIntegrationPoints(ADJOINT_STRAIN_VECTOR, adjoint_strain, rCurrentProcessInfo);
+        this->CalculateOnIntegrationPoints(ADJOINT_GL_STRAIN_VECTOR, adjoint_strain, rCurrentProcessInfo);
+        const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        rOutput[0] = -1 * pseudo_stress[0][0] * adjoint_strain[0][0] * l_0;
+    }
+    else if(rVariable == CROSS_AREA_VARIATIONAL_SENSITIVITY) {
+        // internal part
+        std::vector<Vector> pseudo_stress;
+        this->CalculateOnIntegrationPoints(CROSS_AREA_PSEUDO_CAUCHY_STRESS_VECTOR, pseudo_stress, rCurrentProcessInfo);
+        std::vector<Vector> adjoint_strain;
+        this->CalculateOnIntegrationPoints(ADJOINT_EA_STRAIN_VECTOR, adjoint_strain, rCurrentProcessInfo);
+        const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        rOutput[0] = -1 * pseudo_stress[0][0] * adjoint_strain[0][0] * l;
+
+        // external part
+        const Matrix& Ncontainer = this->mpPrimalElement->GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
+
+        // creating necessary values;
+        const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double rho = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+
+        double derived_total_mass =  L * rho;
+        const SizeType num_nodes = this->mpPrimalElement->GetGeometry().PointsNumber();
+        const SizeType dimension = this->mpPrimalElement->GetGeometry().WorkingSpaceDimension();
+        const SizeType num_dofs = num_nodes * dimension;
+        Vector body_forces_node = ZeroVector(dimension);
+        Vector body_forces_global = ZeroVector(num_dofs);
+
+        // assemble global Vector
+        for (IndexType i = 0; i < num_nodes; ++i) {
+            body_forces_node =
+                derived_total_mass *
+                this->mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
+                Ncontainer(0, i);
+
+            for (IndexType j = 0; j < dimension; ++j) {
+                body_forces_global[(i * dimension) + j] = body_forces_node[j];
+            }
+        }
+
+        Vector rhs;
+        this->mpPrimalElement->CalculateRightHandSide(rhs, rCurrentProcessInfo);
+
+        Vector adjoint_displacements(num_dofs);
+        this->GetValuesVector(adjoint_displacements);
+
+        double external_part = 0.00;
+        for(IndexType i = 0; i < num_dofs; ++i) {
+            external_part += adjoint_displacements[i] * body_forces_global[i];
+        }
+
+
+        rOutput[0] += external_part;
+    }
+    else if(rVariable == TRUSS_PRESTRESS_PK2_VARIATIONAL_SENSITIVITY) {
+        std::vector<Vector> pseudo_stress;
+        this->CalculateOnIntegrationPoints(TRUSS_PRESTRESS_PK2_PSEUDO_PK2_STRESS_VECTOR, pseudo_stress, rCurrentProcessInfo);
+        std::vector<Vector> adjoint_strain;
+        this->CalculateOnIntegrationPoints(ADJOINT_GL_STRAIN_VECTOR, adjoint_strain, rCurrentProcessInfo);
         const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
         rOutput[0] = -1 * pseudo_stress[0][0] * adjoint_strain[0][0] * l_0;
     }
@@ -65,7 +123,20 @@ void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateOnIntegration
     const SizeType dimension = this->mpPrimalElement->GetGeometry().WorkingSpaceDimension();
     const SizeType num_dofs = num_nodes * dimension;
 
-    if(rVariable == ADJOINT_STRAIN_VECTOR) {
+    /*if(rVariable == ADJOINT_GL_STRAIN_VECTOR) {
+        const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const array_1d<double, 3> delta_pos =
+        this->GetGeometry()[1].GetInitialPosition().Coordinates() -
+        this->GetGeometry()[0].GetInitialPosition().Coordinates() +
+        this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) -
+        this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+        const double l = MathUtils<double>::Norm3(delta_pos);
+
+        KRATOS_ERROR_IF(l <= std::numeric_limits<double>::epsilon())
+                << "Element #" << rElement.Id() << " has a current length of zero!" << std::endl;
+        const double e = ((l * l - L * L) / (2.00 * L * L));
+    }*/
+    if(rVariable == ADJOINT_ES_STRAIN_VECTOR || rVariable == ADJOINT_GL_STRAIN_VECTOR || rVariable == ADJOINT_EA_STRAIN_VECTOR) {
         Vector strain = ZeroVector(dimension);
 
         Vector length_derivative_vector;
@@ -73,7 +144,15 @@ void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateOnIntegration
 
         const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
         const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-        const double gl_strain_length_derivative = l / (l_0 * l_0);
+
+        double strain_length_derivative = 0.0;
+        if( rVariable == ADJOINT_ES_STRAIN_VECTOR) {
+            strain_length_derivative = 1.0 / l_0;
+        } else if (rVariable == ADJOINT_GL_STRAIN_VECTOR) {
+            strain_length_derivative = l / (l_0 * l_0);
+        } else {
+            strain_length_derivative = 1.0 / l; //(l_0 * l_0) / (l * l * l);
+        }
 
         Vector adjoint_displacements(num_dofs);
         this->GetValuesVector(adjoint_displacements);
@@ -85,7 +164,7 @@ void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateOnIntegration
 
         strain[0] = 0.00;
         for(IndexType i = 0; i < num_dofs; ++i) {
-            strain[0] += gl_strain_length_derivative * length_derivative_vector[i] * (adjoint_displacements[i] + particular_solution[i]);
+            strain[0] += strain_length_derivative * length_derivative_vector[i] * (adjoint_displacements[i] + particular_solution[i]);
         }
 
         strain[1] = 0.00;
@@ -103,6 +182,49 @@ void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateOnIntegration
         // we assume pre-integration w.r.t. A in the internal virtual work.
         const double A = this->mpPrimalElement->GetProperties()[CROSS_AREA];
         pseudo_stress[0] *= A;
+        pseudo_stress[1] = 0.00;
+        pseudo_stress[2] = 0.00;
+        rOutput[0] = pseudo_stress;
+    }
+    if(rVariable == CROSS_AREA_PSEUDO_PK2_STRESS_VECTOR || rVariable == CROSS_AREA_PSEUDO_CAUCHY_STRESS_VECTOR) {
+        Vector pseudo_stress = ZeroVector(dimension);
+        std::vector<Vector> gl_strain_vector;
+        this->mpPrimalElement->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, gl_strain_vector, rCurrentProcessInfo);
+        const double E = this->mpPrimalElement->GetProperties()[YOUNG_MODULUS];
+        double prestress = 0.00;
+        if (this->mpPrimalElement->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+            prestress = this->mpPrimalElement->GetProperties()[TRUSS_PRESTRESS_PK2];
+        }
+
+        // we assume linear material, i.e., sigma_pk2 = E * epsilon_gl + prestress.
+        //As we assume pre-integration w.r.t. A in the internal virtual work the pseudo-stress is equal to sigma_pk2.
+        pseudo_stress[0] = gl_strain_vector[0][0] * E + prestress;
+
+        pseudo_stress[1] = 0.00;
+        pseudo_stress[2] = 0.00;
+        rOutput[0] = pseudo_stress;
+
+        if(rVariable == CROSS_AREA_PSEUDO_CAUCHY_STRESS_VECTOR) {
+            const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+            const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+            rOutput[0] *= l/L0;
+        }
+    }
+    if(rVariable == TRUSS_PRESTRESS_PK2_PSEUDO_PK2_STRESS_VECTOR) {
+        Vector pseudo_stress = ZeroVector(dimension);
+
+        double multiplicator = 0.0;
+        if (this->mpPrimalElement->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+            multiplicator = 1.0;
+            double prestress = 0.0;
+            prestress = this->mpPrimalElement->GetProperties()[TRUSS_PRESTRESS_PK2];
+            if (std::abs(prestress) < 1.0e-12) {
+                multiplicator = 0.0;
+            }
+        }
+
+        const double A = this->mpPrimalElement->GetProperties()[CROSS_AREA];
+        pseudo_stress[0] = A * multiplicator;
         pseudo_stress[1] = 0.00;
         pseudo_stress[2] = 0.00;
         rOutput[0] = pseudo_stress;

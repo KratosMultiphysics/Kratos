@@ -84,6 +84,9 @@ public:
                  std::vector< array_1d<double, 3 > >& rOutput,
                 const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput,
+                        const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 

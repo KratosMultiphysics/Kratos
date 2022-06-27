@@ -311,7 +311,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
         const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
         const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
         const SizeType local_size = number_of_nodes * num_dofs_per_node;
-        rOutput = ZeroMatrix(0, local_size);
+        rOutput = ZeroMatrix(1, local_size);
     }
 
     KRATOS_CATCH("")
@@ -499,7 +499,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
     }
     else
     {
-        rOutput = ZeroMatrix(0, stress_vector_size);
+        rOutput = ZeroMatrix(1, stress_vector_size);
     }
 
     KRATOS_CATCH("")

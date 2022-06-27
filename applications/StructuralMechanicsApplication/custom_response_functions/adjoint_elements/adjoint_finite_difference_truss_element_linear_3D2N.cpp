@@ -14,10 +14,34 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "custom_elements/truss_element_linear_3D2N.hpp"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 
 namespace Kratos
 {
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const SizeType num_GP = (this->mpPrimalElement->GetGeometry().IntegrationPoints()).size();
+    if (rOutput.size() != num_GP) {
+        rOutput.resize(num_GP);
+    }
+
+    if(rVariable == CROSS_AREA_VARIATIONAL_SENSITIVITY) {
+        std::vector< array_1d<double, 3 > > pseudo_force;
+        this->CalculateOnIntegrationPoints(CROSS_AREA_PSEUDO_FORCE, pseudo_force, rCurrentProcessInfo);
+        std::vector< array_1d<double, 3 > > adjoint_strain;
+        this->CalculateOnIntegrationPoints(ADJOINT_STRAIN, adjoint_strain, rCurrentProcessInfo);
+        const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        rOutput[0] = -1 * pseudo_force[0][0] * adjoint_strain[0][0] * l_0;
+    }
+
+    KRATOS_CATCH("")
+}
 
 template <class TPrimalElement>
 void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
@@ -26,7 +50,25 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateOnInteg
 {
     KRATOS_TRY
 
-    if (rVariable == ADJOINT_STRAIN) {
+    if (rVariable == CROSS_AREA_PSEUDO_FORCE) {
+        std::vector<Vector> strain_vector;
+        this->mpPrimalElement->CalculateOnIntegrationPoints(STRAIN, strain_vector, rCurrentProcessInfo);
+        if (rOutput.size() != strain_vector.size()) {
+            rOutput.resize(strain_vector.size());
+        }
+        KRATOS_ERROR_IF(strain_vector[0].size() != 3) << "Dimension of strain vector not as expected!" << std::endl;
+
+        double prestress = 0.00;
+        if (this->mpPrimalElement->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+            prestress = this->mpPrimalElement->GetProperties()[TRUSS_PRESTRESS_PK2];
+        }
+        const double youngs_modulus = this->mpPrimalElement->GetProperties()[YOUNG_MODULUS];
+
+        double pseudo_force = youngs_modulus * strain_vector[0][0] + prestress;
+
+        rOutput[0][0] = pseudo_force;
+
+    } else if (rVariable == ADJOINT_STRAIN) {
         std::vector<Vector> strain_vector;
         this->CalculateAdjointFieldOnIntegrationPoints(STRAIN, strain_vector, rCurrentProcessInfo);
         if (rOutput.size() != strain_vector.size()) {
