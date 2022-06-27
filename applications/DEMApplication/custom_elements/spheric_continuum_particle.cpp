@@ -361,7 +361,7 @@ namespace Kratos {
 
             double LocalContactForce[3] = {0.0};
 
-            // Moment need to be calculated here for failure check
+            // Moment need to be calculated before failure check
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 ComputeMoments(LocalContactForce[2], TotalGlobalElasticContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, indentation, i);
                 if (i < (int)mContinuumInitialNeighborsSize && mIniNeighbourFailureId[i] == 0) {
@@ -404,6 +404,7 @@ namespace Kratos {
                 total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
                 total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
                 total_local_elastic_contact_force[2] = LocalElasticContactForce[2] + LocalElasticExtraContactForce[2];
+                //TODO: REMOVE ElasticLocalRotationalMoment
                 CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, ElasticLocalRotationalMoment, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps);
             }
 
@@ -724,17 +725,6 @@ namespace Kratos {
             }
         }
         return false;
-
-
-
-
-
-
-
-
-
-
-
 
         KRATOS_CATCH("")
     }
