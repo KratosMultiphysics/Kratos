@@ -56,6 +56,16 @@ public:
     ///@name Operations
     ///@{
 
+    virtual const Variable<double>& GetDerivativeVariable() const
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "Calling the base class GetDerivativeVariable. Please call the derrived class same method.\n";
+
+        return Variable<double>::StaticObject();
+        KRATOS_CATCH("");
+    }
+
     virtual void CalculateResidualSensitivity(
         Vector& rOutput,
         Element& rElement,

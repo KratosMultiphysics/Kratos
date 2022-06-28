@@ -234,6 +234,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_<FluidLSSSensitivity, FluidLSSSensitivity::Pointer>(m, "FluidLSSSensitivity")
         .def(py::init<>())
+        .def("GetDerivativeVariable", &FluidLSSSensitivity::GetDerivativeVariable)
         .def("CalculateResidualSensitivity", (void(FluidLSSSensitivity::*)(Vector&, ModelPart::ConditionType&, const FluidAdjointSlipUtilities&, const ProcessInfo&))(&FluidLSSSensitivity::CalculateResidualSensitivity))
         .def("CalculateResidualSensitivity", (void(FluidLSSSensitivity::*)(Vector&, ModelPart::ElementType&, const FluidAdjointSlipUtilities&, const ProcessInfo&))(&FluidLSSSensitivity::CalculateResidualSensitivity))
         .def("CalculateResponseSensitivity", (double(FluidLSSSensitivity::*)(ModelPart::ConditionType&, AdjointResponseFunction&,const FluidAdjointSlipUtilities&, const ProcessInfo&))(&FluidLSSSensitivity::CalculateResponseSensitivity))

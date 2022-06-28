@@ -65,6 +65,17 @@ FluidLSSShapeSensitivity::FluidLSSShapeSensitivity(
     KRATOS_CATCH("");
 }
 
+const Variable<double>& FluidLSSShapeSensitivity::GetDerivativeVariable() const
+{
+    switch (mShapeDerivativeDirection) {
+        case 0: return SHAPE_SENSITIVITY_X;
+        case 1: return SHAPE_SENSITIVITY_Y;
+        case 2: return SHAPE_SENSITIVITY_Z;
+    }
+
+    return Variable<double>::StaticObject();
+}
+
 void FluidLSSShapeSensitivity::CalculateResidualSensitivity(
     Vector& rOutput,
     Element& rElement,

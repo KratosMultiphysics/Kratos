@@ -64,6 +64,8 @@ public:
     ///@name Operations
     ///@{
 
+    const Variable<double>& GetDerivativeVariable() const override;
+
     void CalculateResidualSensitivity(
         Vector& rOutput,
         Element& rElement,
