@@ -155,7 +155,7 @@ void DEM_parallel_bond::Check(Properties::Pointer pProp) const {
     }
 } // CHECK()
 
-// TODO: Calculate Contact Area = Calculate Bond area?
+// TODO: Calculate Contact Area = Calculate Bond area? --> Yes
 void DEM_parallel_bond::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
 
     KRATOS_TRY
@@ -199,6 +199,11 @@ void DEM_parallel_bond::GetcontactArea(const double radius, const double other_r
     KRATOS_CATCH("")
 }
 
+// Here we calcilate the mKn and mKt
+void DEM_parallel_bond::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
+
+}
+
 // TODO: In this function, it is better to replace 'kn_el' with 'kn_bond' and 'kt_el' with 'kt_bond'.
 void DEM_parallel_bond::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
                                 double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) {
@@ -219,7 +224,8 @@ void DEM_parallel_bond::CalculateElasticConstants(double& kn_el, double& kt_el, 
     const double other_young     = element2->GetYoung();
     const double my_poisson      = element1->GetPoisson();
     const double other_poisson   = element2->GetPoisson();
-    const double equiv_young     = 2.0 * my_young * other_young / (my_young + other_young);
+    const double equiv_young     = my_young * other_young / (my_young + other_young);
+    const double equiv_poisson   = my_poisson * other_poisson / (my_poisson + other_poisson);
 
     //Get equivalent Shear Modulus //TODO: check
     const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
@@ -228,12 +234,16 @@ void DEM_parallel_bond::CalculateElasticConstants(double& kn_el, double& kt_el, 
 
     //Normal and Tangent elastic constants
     const double aim_radius = std::min(my_radius, other_radius);
-    mUnbondedNormalElasticConstant = equiv_young * Globals::Pi * aim_radius * aim_radius / radius_sum;
+    mKn = equiv_young * Globals::Pi * aim_radius * aim_radius / radius_sum;
+    mKt = mKn / (1 + equiv_poisson);
 
     //for bonded part
     const double bond_equiv_young = (*mpProperties)[BOND_YOUNG_MODULUS];
     kn_el = bond_equiv_young * calculation_area / initial_dist;
     kt_el = kn_el / (*mpProperties)[BOND_KNKS_RATIO];
+
+    //FOR COMPOUND
+    InitializeContact(element1, element2, indentation); // TODO: Check [indentation]
 
     KRATOS_CATCH("")
 
@@ -264,13 +274,12 @@ double DEM_parallel_bond::LocalMaxSearchDistance(const int i,
     double kn_el = equiv_young * calculation_area / initial_dist;
 
     //tension_limit = GetContactSigmaMax();
-    tension_limit = (*mpProperties)[BOND_SIGMA_MAX]; //TODO: BOND_SIGMA_MAX_DEVIATION
+    tension_limit = (*mpProperties)[BOND_SIGMA_MAX]; //TODO: add BOND_SIGMA_MAX_DEVIATION
 
     const double max_normal_bond_force = tension_limit * calculation_area;
     double u_max = max_normal_bond_force / kn_el;
 
     //TODO: need to choose whether the [if] below is necessary
-    
     if (u_max > 2.0 * radius_sum) {
         u_max = 2.0 * radius_sum;
     } // avoid error in special cases with too high tensile
@@ -378,14 +387,14 @@ void DEM_parallel_bond::CalculateForces(const ProcessInfo& r_process_info,
 }
 
 
-void DEM_parallel_bond::ComputeNormalUnbondedForce(double unbonded_indentation){
+double DEM_parallel_bond::ComputeNormalUnbondedForce(double unbonded_indentation){
     
     KRATOS_TRY
 
     if (unbonded_indentation > 0.0) {
-        mUnbondedLocalElasticContactForce2 = mUnbondedNormalElasticConstant * unbonded_indentation;
+        return mKn * unbonded_indentation;
     } else {
-        mUnbondedLocalElasticContactForce2 = 0.0;
+        return 0.0;
     }
 
     KRATOS_CATCH("")
@@ -425,7 +434,7 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
         BondedLocalElasticContactForce2 = 0.0;
     }
 
-    ComputeNormalUnbondedForce(unbonded_indentation);
+    mUnbondedLocalElasticContactForce2 = ComputeNormalUnbondedForce(unbonded_indentation);
 
     if(calculation_area){
         contact_sigma = BondedLocalElasticContactForce2 / calculation_area;
@@ -466,8 +475,8 @@ void DEM_parallel_bond::CalculateViscoDampingCoeff(double &equiv_visco_damp_coef
     equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * kn_el);
     equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * kt_el);
 
-    mUnbondedEquivViscoDampCoeffNormal = 2.0 * equiv_gamma * sqrt(equiv_mass * mUnbondedNormalElasticConstant);
-    mUnbondedEquivViscoDampCoeffTangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mUnbondedTangentialElasticConstant);
+    mUnbondedEquivViscoDampCoeffNormal = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
+    mUnbondedEquivViscoDampCoeffTangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mKt);
 
     KRATOS_CATCH("")                    
 }
@@ -599,8 +608,8 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
         OldUnbondedLocalElasticContactForce[0] = (1 - mBondedScalingFactor[0]) * OldLocalElasticContactForce[0];
         OldUnbondedLocalElasticContactForce[1] = (1 - mBondedScalingFactor[1]) * OldLocalElasticContactForce[1];
 
-        UnbondedLocalElasticContactForce[0] = OldUnbondedLocalElasticContactForce[0] - mUnbondedTangentialElasticConstant * LocalDeltDisp[0];
-        UnbondedLocalElasticContactForce[1] = OldUnbondedLocalElasticContactForce[1] - mUnbondedTangentialElasticConstant * LocalDeltDisp[1];
+        UnbondedLocalElasticContactForce[0] = OldUnbondedLocalElasticContactForce[0] - mKn * LocalDeltDisp[0];
+        UnbondedLocalElasticContactForce[1] = OldUnbondedLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
 
         const double& equiv_tg_of_static_fri_ang = (*mpProperties)[STATIC_FRICTION];
         const double& equiv_tg_of_dynamic_fri_ang = (*mpProperties)[DYNAMIC_FRICTION];

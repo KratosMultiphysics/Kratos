@@ -36,6 +36,7 @@ namespace Kratos{
         void GetcontactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area);
         void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
                                     double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) override;
+        virtual void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation);
 
         // TODO: check whether it is necessary 
         double LocalMaxSearchDistance(const int i,
@@ -82,7 +83,7 @@ namespace Kratos{
                             double LocalRelVel[3],
                             double ViscoDampingLocalContactForce[3]) override;
 
-        virtual void ComputeNormalUnbondedForce(double unbonded_indentation);
+        virtual double ComputeNormalUnbondedForce(double unbonded_indentation);
 
         virtual void CalculateNormalForces(double LocalElasticContactForce[3],
                 const double kn_el,
@@ -181,6 +182,8 @@ namespace Kratos{
         double mAccumulatedBondedTangentialLocalDisplacement[2] = {0.0};
         double mBondedLocalContactNormalTorque[3] = {0.0};
         double mBondedLocalContactTangentTorque[3] = {0.0};
+        double mKn;
+        double mKt;
 
     protected:
 
