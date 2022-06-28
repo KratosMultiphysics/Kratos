@@ -19,7 +19,7 @@ public:
         return p_clone;
     }
 
-    std::unique_ptr<DEMContinuumConstitutiveLaw> CloneUnique() override {
+    std::unique_ptr<DEMContinuumConstitutiveLaw> CloneUnique() {
         return std::unique_ptr<DEMContinuumConstitutiveLaw>{new DEM_compound_constitutive_law_for_PBM<BondCL, UnbondCL>(*this)};
     }
 

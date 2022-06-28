@@ -42,6 +42,8 @@
 #include "custom_constitutive/DEM_ExponentialHC_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_Nestle_CL.h"
 #include "custom_constitutive/DEM_compound_constitutive_law.h"
+#include "custom_constitutive/DEM_compound_constitutive_law_for_PBM.h"
+#include "custom_constitutive/DEM_parallel_bond_CL.h"
 
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_strategies/schemes/forward_euler_scheme.h"
@@ -508,6 +510,9 @@ template class DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_
 template class DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>;
 template class DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_JKR_Cohesive_Law>;
 template class DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>;
+
+// for parallel bond model
+template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Hertz_viscous_Coulomb>;
 
 void KratosDEMApplication::Register() {
     KRATOS_INFO("") << "\n"
@@ -976,6 +981,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEM_Dempack_dev", DEM_Dempack_dev());
     Serializer::Register("DEM_KDEM2D", DEM_KDEM2D());
     Serializer::Register("DEM_ExponentialHC", DEM_ExponentialHC());
+    Serializer::Register("DEM_parallel_bond", DEM_parallel_bond());
 
     Serializer::Register("ForwardEulerScheme", ForwardEulerScheme());
     Serializer::Register("SymplecticEulerScheme", SymplecticEulerScheme());

@@ -199,7 +199,7 @@ void DEM_parallel_bond::GetcontactArea(const double radius, const double other_r
     KRATOS_CATCH("")
 }
 
-// Here we calcilate the mKn and mKt
+// Here we calculate the mKn and mKt
 void DEM_parallel_bond::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
 
 }
@@ -243,7 +243,13 @@ void DEM_parallel_bond::CalculateElasticConstants(double& kn_el, double& kt_el, 
     kt_el = kn_el / (*mpProperties)[BOND_KNKS_RATIO];
 
     //FOR COMPOUND
-    InitializeContact(element1, element2, indentation); // TODO: Check [indentation]
+    //double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
+    array_1d<double, 3> other_to_me_vect;
+    noalias(other_to_me_vect) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
+    double distance = DEM_MODULUS_3(other_to_me_vect);
+    double unbonded_indentation = 0.0;
+    unbonded_indentation = radius_sum - distance;
+    InitializeContact(element1, element2, unbonded_indentation);
 
     KRATOS_CATCH("")
 
@@ -434,8 +440,12 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
         BondedLocalElasticContactForce2 = 0.0;
     }
 
-    mUnbondedLocalElasticContactForce2 = ComputeNormalUnbondedForce(unbonded_indentation);
-
+    if (unbonded_indentation > 0.0) {
+        mUnbondedLocalElasticContactForce2 = ComputeNormalUnbondedForce(unbonded_indentation);
+    } else {
+        mUnbondedLocalElasticContactForce2 = 0.0;
+    }
+        
     if(calculation_area){
         contact_sigma = BondedLocalElasticContactForce2 / calculation_area;
     }
@@ -608,7 +618,7 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
         OldUnbondedLocalElasticContactForce[0] = (1 - mBondedScalingFactor[0]) * OldLocalElasticContactForce[0];
         OldUnbondedLocalElasticContactForce[1] = (1 - mBondedScalingFactor[1]) * OldLocalElasticContactForce[1];
 
-        UnbondedLocalElasticContactForce[0] = OldUnbondedLocalElasticContactForce[0] - mKn * LocalDeltDisp[0];
+        UnbondedLocalElasticContactForce[0] = OldUnbondedLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
         UnbondedLocalElasticContactForce[1] = OldUnbondedLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
 
         const double& equiv_tg_of_static_fri_ang = (*mpProperties)[STATIC_FRICTION];

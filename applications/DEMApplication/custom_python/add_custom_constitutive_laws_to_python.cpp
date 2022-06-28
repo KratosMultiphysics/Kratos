@@ -11,6 +11,7 @@
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "custom_constitutive/DEM_continuum_constitutive_law.h"
 #include "custom_constitutive/DEM_compound_constitutive_law.h"
+#include "custom_constitutive/DEM_compound_constitutive_law_for_PBM.h"
 
 #include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
@@ -248,6 +249,12 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
     py::class_<DEM_parallel_bond, DEM_parallel_bond::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_parallel_bond")
         .def(py::init<>())
         ;
+
+    py::class_<DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Hertz_viscous_Coulomb>, DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Hertz_viscous_Coulomb>::Pointer, DEM_parallel_bond>(m, "DEM_parallel_bond_Hertz")
+        .def(py::init<>())
+        ;
+
+    //for compound constitutive law
 
     // DEM Beam Constitutive Laws:
 
