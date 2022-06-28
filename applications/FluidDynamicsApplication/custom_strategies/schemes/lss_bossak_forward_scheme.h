@@ -71,7 +71,6 @@ public:
         AdjointResponseFunction::Pointer pResponseFunction,
         FluidLSSSensitivity::Pointer pFluidLeastSquaresShadowingSensitivity,
         FluidLSSVariableUtilities::Pointer pFluidLeastSquaresShadowingVariableUtilities,
-        const Variable<double>& rResponseDesignTotalDerivativeVariable,
         const double BossakAlpha,
         const double DeltaTimeDialationAlpha,
         const double FinalResponseValue,
@@ -82,7 +81,6 @@ public:
           mpResponseFunction(pResponseFunction),
           mpFluidLeastSquaresShadowingSensitivity(pFluidLeastSquaresShadowingSensitivity),
           mpFluidLeastSquaresShadowingVariableUtilities(pFluidLeastSquaresShadowingVariableUtilities),
-          mrResponseDesignTotalDerivativeVariable(rResponseDesignTotalDerivativeVariable),
           mDeltaTimeDialationAlpha(DeltaTimeDialationAlpha),
           mFinalResponseValue(FinalResponseValue),
           mDimension(Dimension),
@@ -132,7 +130,7 @@ public:
 
         mAdjointSlipUtilities.Initialize(rModelPart);
 
-        rModelPart.GetProcessInfo()[mrResponseDesignTotalDerivativeVariable] = 0.0;
+        rModelPart.GetProcessInfo()[mpFluidLeastSquaresShadowingSensitivity->GetDerivativeVariable()] = 0.0;
 
         KRATOS_CATCH("");
     }
@@ -327,12 +325,12 @@ public:
         const double current_response_design_total_derivative = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(elemental_design_deriv_contribution + condition_design_deriv_contribution)
                                                           + r_process_info[TIME_STEP_SENSITIVITY] * (mCurrentResponseValue - mFinalResponseValue);
 
-        auto& response_design_total_derivative = r_process_info[mrResponseDesignTotalDerivativeVariable];
+        auto& response_design_total_derivative = r_process_info[mpFluidLeastSquaresShadowingSensitivity->GetDerivativeVariable()];
         const double time = r_process_info[TIME];
         response_design_total_derivative = (response_design_total_derivative * (time - delta_time) + current_response_design_total_derivative) / time;
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Computed response function total design derivative is "
-                << response_design_total_derivative << " in " << rModelPart.FullName() << " and stored in " << mrResponseDesignTotalDerivativeVariable.Name() <<".\n";
+                << response_design_total_derivative << " in " << rModelPart.FullName() << " and stored in " << mpFluidLeastSquaresShadowingSensitivity->GetDerivativeVariable().Name() <<".\n";
 
         KRATOS_CATCH("")
     }
@@ -405,8 +403,6 @@ private:
     FluidLSSSensitivity::Pointer mpFluidLeastSquaresShadowingSensitivity;
 
     FluidLSSVariableUtilities::Pointer mpFluidLeastSquaresShadowingVariableUtilities;
-
-    const Variable<double>& mrResponseDesignTotalDerivativeVariable;
 
     const double mDeltaTimeDialationAlpha;
 
