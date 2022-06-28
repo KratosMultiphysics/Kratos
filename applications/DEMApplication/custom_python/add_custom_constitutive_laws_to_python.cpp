@@ -22,6 +22,7 @@
 #include "custom_constitutive/DEM_D_JKR_cohesive_law.h"
 #include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
 #include "custom_constitutive/DEM_D_Stress_dependent_cohesive_CL.h"
+#include "custom_constitutive/DEM_D_Quadratic_CL.h"
 
 #include "custom_constitutive/DEM_D_Hertz_confined_CL.h"
 #include "custom_constitutive/DEM_D_Linear_confined_CL.h"
@@ -143,6 +144,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         ;
 
+    py::class_<DEM_D_Quadratic, DEM_D_Quadratic::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Quadratic")
+        .def(py::init<>())
+        ;
+
     // DEM Continuum Constitutive Laws:
 
     py::class_<DEMContinuumConstitutiveLaw, DEMContinuumConstitutiveLaw::Pointer>(m, "DEMContinuumConstitutiveLaw")
@@ -251,6 +256,14 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Hertz_viscous_Coulomb>, DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Hertz_viscous_Coulomb>::Pointer, DEM_parallel_bond>(m, "DEM_parallel_bond_Hertz")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Linear_viscous_Coulomb>, DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Linear_viscous_Coulomb>::Pointer, DEM_parallel_bond>(m, "DEM_parallel_bond_Linear")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Quadratic>, DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Quadratic>::Pointer, DEM_parallel_bond>(m, "DEM_parallel_bond_Quadratic")
         .def(py::init<>())
         ;
 

@@ -233,9 +233,9 @@ void DEM_parallel_bond::CalculateElasticConstants(double& kn_el, double& kt_el, 
     const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
     //Normal and Tangent elastic constants
-    const double aim_radius = std::min(my_radius, other_radius);
-    mKn = equiv_young * Globals::Pi * aim_radius * aim_radius / radius_sum;
-    mKt = mKn / (1 + equiv_poisson);
+    //const double aim_radius = std::min(my_radius, other_radius);
+    //mKn = equiv_young * Globals::Pi * aim_radius * aim_radius / radius_sum;
+    //mKt = mKn / (1 + equiv_poisson);
 
     //for bonded part
     const double bond_equiv_young = (*mpProperties)[BOND_YOUNG_MODULUS];
@@ -397,11 +397,19 @@ double DEM_parallel_bond::ComputeNormalUnbondedForce(double unbonded_indentation
     
     KRATOS_TRY
 
+    KRATOS_ERROR << "This function shouldn't be accessed here, use basic contact model instead."<<std::endl
+                << "Maybe you are using \"DEM_parallel_bond\" for DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME." <<std::endl
+                << "Unfortunately, you can only input one of the names listed below." <<std::endl
+                << "1. DEM_parallel_bond_Linear" <<std::endl 
+                << "2. DEM_parallel_bond_Linear" <<std::endl
+                << "3. DEM_parallel_bond_Linear" <<std::endl;
+    /*
     if (unbonded_indentation > 0.0) {
         return mKn * unbonded_indentation;
     } else {
         return 0.0;
     }
+    */
 
     KRATOS_CATCH("")
 }
