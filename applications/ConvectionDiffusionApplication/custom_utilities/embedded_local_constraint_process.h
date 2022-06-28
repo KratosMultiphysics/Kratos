@@ -19,6 +19,7 @@
 // Project includes
 #include "containers/model.h"
 #include "processes/process.h"
+#include "utilities/mls_shape_functions_utility.h"
 
 // Application includes
 
@@ -60,6 +61,12 @@ public:
 
     using GeometryType = ModelPart::GeometryType;
 
+    using CloudDataVectorType = DenseVector<std::pair<NodeType::Pointer, double>>;
+
+    using NodesCloudMapType = std::unordered_map<NodeType::Pointer, CloudDataVectorType, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
+
+    using MLSShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&)>;
+
     ///@}
     ///@name Pointer Definitions
 
@@ -93,6 +100,9 @@ public:
     {
         const Parameters default_parameters = Parameters(R"({
             "model_part_name" : "",
+            "apply_to_all_negative_cut_nodes" : false,
+            "use_mls_shape_functions" : true,
+            "include_intersection_points" : true,
             "avoid_zero_distances" : true,
             "deactivate_negative_elements" : true,
             "deactivate_intersected_elements" : false
@@ -178,6 +188,10 @@ private:
 
     ModelPart* mpModelPart = nullptr;
 
+    bool mApplyToAllNegativeCutNodes;
+    bool mUseMLSShapeFunctions;
+    bool mIncludeIntersectionPoints;
+
     bool mAvoidZeroDistances;
 
     bool mDeactivateNegativeElements;
@@ -191,7 +205,25 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ApplyConstraints();
+    void CalculateNodeClouds(
+        NodesCloudMapType& rCloudsMap);
+
+    void AddAveragedNodeCloud(
+        NodesCloudMapType& rCloudsMap,
+        NodeType::Pointer slave_node,
+        std::vector<NodeType::Pointer> pos_nodes_element);
+
+    void AddMLSNodeCloud(
+        NodesCloudMapType& rCloudsMap,
+        NodeType::Pointer slave_node,
+        std::vector<NodeType::Pointer> pos_nodes_element);
+
+    double CalculateKernelRadius(
+        const Matrix& rCloudCoordinates,
+        const array_1d<double,3>& rOrigin);
+
+    void ApplyConstraints(
+        NodesCloudMapType& rCloudsMap);
 
     void DeactivateElementsAndNodes();
 
@@ -202,6 +234,8 @@ private:
     bool IsSmallCut(const GeometryType& rGeometry);
 
     bool IsNegative(const GeometryType& rGeometry);
+
+    MLSShapeFunctionsFunctionType GetMLSShapeFunctionsFunction();
 
     ///@}
     ///@name Private  Access

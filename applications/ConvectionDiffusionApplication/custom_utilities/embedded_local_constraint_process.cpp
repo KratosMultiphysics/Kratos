@@ -24,6 +24,8 @@
 namespace Kratos
 {
 
+using MLSShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&)>;
+
 /* Public functions *******************************************************/
 
 EmbeddedLocalConstraintProcess::EmbeddedLocalConstraintProcess(
@@ -38,6 +40,11 @@ EmbeddedLocalConstraintProcess::EmbeddedLocalConstraintProcess(
     const std::string model_part_name = ThisParameters["model_part_name"].GetString();
     mpModelPart = &rModel.GetModelPart(model_part_name);
 
+    // Set how constraints are applied
+    mApplyToAllNegativeCutNodes = ThisParameters["apply_to_all_negative_cut_nodes"].GetBool();
+    mUseMLSShapeFunctions = ThisParameters["use_mls_shape_functions"].GetBool();
+    mIncludeIntersectionPoints = ThisParameters["include_intersection_points"].GetBool();
+
     // Set whether nodal distances will be modified to avoid levelset zeros
     mAvoidZeroDistances = ThisParameters["avoid_zero_distances"].GetBool();
 
@@ -48,66 +55,197 @@ EmbeddedLocalConstraintProcess::EmbeddedLocalConstraintProcess(
 
 void EmbeddedLocalConstraintProcess::Execute()
 {
+    // Declare extension operator map for negative nodes of split elements
+    NodesCloudMapType clouds_map;
+
     if (mAvoidZeroDistances) { ModifyDistances(); }
 
     // Deactivate intersected and negative elements as well as their nodes depending on the process settings
     DeactivateElementsAndNodes();
 
+    // Calculate the negative nodes' clouds
+    CalculateNodeClouds(clouds_map);
+
     // Apply a constraint to negative nodes of split elements
-    ApplyConstraints();
+    ApplyConstraints(clouds_map);
 }
 
 /* Protected functions ****************************************************/
 
 /* Private functions ****************************************************/
 
-void EmbeddedLocalConstraintProcess::ApplyConstraints()
+void EmbeddedLocalConstraintProcess::CalculateNodeClouds(NodesCloudMapType& rCloudsMap)
+{
+    //TODO mIncludeIntersectionPoints
+
+    //Pointer for which function to call
+    void(Kratos::EmbeddedLocalConstraintProcess::*fptrNodeCloud)(NodesCloudMapType&, NodeType::Pointer, std::vector<NodeType::Pointer>);
+    if (mUseMLSShapeFunctions) {
+        fptrNodeCloud = &Kratos::EmbeddedLocalConstraintProcess::AddMLSNodeCloud;
+    } else {
+        fptrNodeCloud = &Kratos::EmbeddedLocalConstraintProcess::AddAveragedNodeCloud;
+    }
+
+    // Containers for negative and positive side nodes of split element
+    std::vector<std::vector<NodeType::Pointer>> neg_nodes = {};
+    std::vector<std::vector<NodeType::Pointer>> pos_nodes = {};
+
+    // Loop through all elements to get negative and positive nodes of split elements
+    for (auto& rElement : mpModelPart->Elements()) {
+    auto& r_geom = rElement.GetGeometry();
+        // TODO: decide to add constraint for small cuts only ?!
+        if (IsSplit(r_geom)) {  // && IsSmallCut(r_geom)) {
+            if (mApplyToAllNegativeCutNodes || IsSmallCut(r_geom)) {
+
+                //TODO: Calculate using boundary condition
+                //const double temp_bc = rElement.GetValue(EMBEDDED_SCALAR);
+                // Intersection point coordinates
+                // TODO: get shape function values for intersection point
+                // array_1d<double,3> xg_coords = ZeroVector(3);
+                // for (std::size_t i = 0; i < TDim+1; ++i) {
+                //     noalias(xg_coords) += N(i) * r_geom[i].Coordinates();
+                // const double aux_temp_bc = std::pow(xg_coords[0],2) + std::pow(xg_coords[1],2);
+
+                // Containers for negative and positive side nodes of split element
+                std::vector<NodeType::Pointer> neg_nodes_element = {};
+                std::vector<NodeType::Pointer> pos_nodes_element = {};
+                // .clear().reserve(n_nodes);  .size()
+
+                for (auto& rNode : r_geom) {
+                    if (rNode.FastGetSolutionStepValue(DISTANCE) > 0.0) {
+                        pos_nodes_element.push_back(&rNode);
+                    } else {
+                        neg_nodes_element.push_back(&rNode);
+                    }
+                }
+                pos_nodes.push_back(pos_nodes_element);
+                neg_nodes.push_back(neg_nodes_element);
+            }
+        }
+    }
+
+    //TODO delete "used" entries for faster looping?
+    // Loop through cut elements to add single negative nodes first
+    for(std::size_t it = 0; it < neg_nodes.size(); ++it) {
+        if (neg_nodes[it].size() == 1) {
+            for (auto slave_node : neg_nodes[it]) {
+                (this->*fptrNodeCloud)(rCloudsMap, slave_node, pos_nodes[it]);
+            }
+        }
+    }
+    // Loop for two negative nodes of cut elements
+    for(std::size_t it = 0; it < neg_nodes.size(); ++it) {
+        if (neg_nodes[it].size() == 2) {
+            for (auto slave_node : neg_nodes[it]) {
+                (this->*fptrNodeCloud)(rCloudsMap, slave_node, pos_nodes[it]);
+            }
+        }
+    }
+    // Loop for three negative nodes of cut elements if 3D
+    if (mpModelPart->GetProcessInfo()[DOMAIN_SIZE] == 3) {
+        for(std::size_t it = 0; it < neg_nodes.size(); ++it) {
+            if (neg_nodes[it].size() == 3) {
+                for (auto slave_node : neg_nodes[it]) {
+                    (this->*fptrNodeCloud)(rCloudsMap, slave_node, pos_nodes[it]);
+                }
+            }
+        }
+    }
+}
+
+void EmbeddedLocalConstraintProcess::AddAveragedNodeCloud(NodesCloudMapType& rCloudsMap, NodeType::Pointer slave_node, std::vector<NodeType::Pointer> pos_nodes_element)
+{
+    // Check whether node was already added because of a previous element
+    if (!rCloudsMap.count(slave_node)) {
+        // Get number of positive element nodes
+        const std::size_t n_pos_nodes_element = pos_nodes_element.size();
+        // Calculate weight as averaging of all master nodes
+        const double cloud_node_weight = 1.0 / n_pos_nodes_element;
+
+        // Save positive element nodes and weights
+        CloudDataVectorType cloud_data_vector(n_pos_nodes_element);
+        for (std::size_t i_pos_node = 0; i_pos_node < n_pos_nodes_element; ++i_pos_node) {
+            auto i_data = std::make_pair(pos_nodes_element[i_pos_node], cloud_node_weight);
+            cloud_data_vector(i_pos_node) = i_data;
+        }
+        rCloudsMap.insert(std::make_pair(slave_node, cloud_data_vector));
+        KRATOS_WATCH("Added local averaged cloud for a negative node of a cut element");
+    }
+}
+
+void EmbeddedLocalConstraintProcess::AddMLSNodeCloud(NodesCloudMapType& rCloudsMap, NodeType::Pointer slave_node, std::vector<NodeType::Pointer> pos_nodes_element)
+{
+    // Check whether node was already added because of a previous element
+    if (!rCloudsMap.count(slave_node)) {
+        // Get the MLS shape functions function
+        auto p_mls_sh_func = GetMLSShapeFunctionsFunction();
+
+        // Get number of positive element nodes
+        const std::size_t n_pos_nodes_element = pos_nodes_element.size();
+
+        // Get the current negative node support cloud coordinates (positive nodes of cut element)
+        Matrix cloud_nodes_coordinates;
+        cloud_nodes_coordinates.resize(n_pos_nodes_element, 3);
+        IndexPartition<std::size_t>(n_pos_nodes_element).for_each(array_1d<double,3>(), [&pos_nodes_element, &cloud_nodes_coordinates](std::size_t i_pos_node, array_1d<double,3>& rAuxCoordTLS){
+            noalias(rAuxCoordTLS) = pos_nodes_element[i_pos_node]->Coordinates();
+            cloud_nodes_coordinates(i_pos_node, 0) = rAuxCoordTLS[0];
+            cloud_nodes_coordinates(i_pos_node, 1) = rAuxCoordTLS[1];
+            cloud_nodes_coordinates(i_pos_node, 2) = rAuxCoordTLS[2];
+        });
+
+        // Calculate the MLS basis in the current negative node
+        Vector N_container;
+        const array_1d<double,3> r_coords = slave_node->Coordinates();
+        const double mls_kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
+        p_mls_sh_func(cloud_nodes_coordinates, r_coords, 1.01 * mls_kernel_rad, N_container);
+
+        // Save the extension operator nodal data
+        std::size_t n_cl_nod = pos_nodes_element.size();
+        CloudDataVectorType cloud_data_vector(n_pos_nodes_element);
+        for (std::size_t i_pos_node = 0; i_pos_node < n_pos_nodes_element; ++i_pos_node) {
+            auto i_data = std::make_pair(pos_nodes_element[i_pos_node], N_container[i_pos_node]);
+            cloud_data_vector(i_pos_node) = i_data;
+        }
+
+        rCloudsMap.insert(std::make_pair(slave_node, cloud_data_vector));
+    }
+    KRATOS_WATCH("Added local MLS cloud for a negative node of a cut element");
+}
+
+double EmbeddedLocalConstraintProcess::CalculateKernelRadius(
+    const Matrix& rCloudCoordinates,
+    const array_1d<double,3>& rOrigin)
+{
+    const std::size_t n_nodes = rCloudCoordinates.size1();
+    const double squared_rad = IndexPartition<std::size_t>(n_nodes).for_each<MaxReduction<double>>([&](std::size_t I){
+        return std::pow(rCloudCoordinates(I,0) - rOrigin(0), 2) + std::pow(rCloudCoordinates(I,1) - rOrigin(1), 2) + std::pow(rCloudCoordinates(I,2) - rOrigin(2), 2);
+    });
+    return std::sqrt(squared_rad);
+}
+
+void EmbeddedLocalConstraintProcess::ApplyConstraints(NodesCloudMapType& rCloudsMap)
 {
     // Initialize counter of master slave constraints
     ModelPart::IndexType id = mpModelPart->NumberOfMasterSlaveConstraints()+1;
     // Get variable to constrain  //TODO: different variable??
     const auto& r_var = KratosComponents<Variable<double>>::Get("TEMPERATURE");
 
-    // Loop through all elements to get negative nodes of split elements (slave nodes)
-    // TODO: only add constraint for small cut??
-    for (auto& rElement : mpModelPart->Elements()) {
-    auto& r_geom = rElement.GetGeometry();
-        if (IsSplit(r_geom)) {  // && IsSmallCut(r_geom)) {
+    // Loop through all negative nodes of split elements (slave nodes)
+    for (auto it_slave = rCloudsMap.begin(); it_slave != rCloudsMap.end(); ++it_slave) {
+        auto p_slave_node = std::get<0>(*it_slave);
+        auto& r_ext_op_data = rCloudsMap[p_slave_node];
 
-            //TODO: Calculate using boundary condition
-            //const double temp_bc = rElement.GetValue(EMBEDDED_SCALAR);
-            // Intersection point coordinates
-            // TODO: get shape function values for intersection point
-            // array_1d<double,3> xg_coords = ZeroVector(3);
-            // for (std::size_t i = 0; i < TDim+1; ++i) {
-            //     noalias(xg_coords) += N(i) * r_geom[i].Coordinates();
-            // const double aux_temp_bc = std::pow(xg_coords[0],2) + std::pow(xg_coords[1],2);
+        // Add one master slave constraint for every node of the support cloud (master) of the negative node (slave)
+        // The contributions of each master will be summed up in the BuilderAndSolver to give an equation for the slave dof
+        for (auto it_data = r_ext_op_data.begin(); it_data != r_ext_op_data.end(); ++it_data) {
+            auto& r_node_data = *it_data;
+            auto p_support_node = std::get<0>(r_node_data);
+            const double support_node_N = std::get<1>(r_node_data);
 
-            // Containers for negative and positive side nodes of split element
-            std::vector<NodeType::Pointer> neg_nodes = {};
-            std::vector<NodeType::Pointer> pos_nodes = {};
-            // .clear().reserve(n_nodes);  .size()
-
-            for (auto& rNode : r_geom) {
-                if (rNode.FastGetSolutionStepValue(DISTANCE) > 0.0) {
-                    pos_nodes.push_back(&rNode);
-                } else {
-                    neg_nodes.push_back(&rNode);
-                }
-            }
-            const double support_node_weight = 0.0; //1.0 / pos_nodes.size();
-
-            //TODO: Add constraints for a negative node only for one split element
-            // --> dictonary of cut elements negative nodes, first add elements with 1 negative node, then 2, then 3 (3D), only add if node is not already there
-            // Add one master-slave constraint for every positive distance node of the split element for all negative distance nodes
-            // The contributions of each master will be summed up in the BuilderAndSolver to give an equation for the slave dof
-            for(auto p_slave_node : neg_nodes) {
-                for (auto p_support_node : pos_nodes) {
-                    mpModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id++,
-                    *p_support_node, r_var, *p_slave_node, r_var,
-                    support_node_weight, 0.5);
-                }
-            }
+            // Add master slave constraint, the support node MLS shape function value N serves as weight of the constraint
+            mpModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id++,
+            *p_support_node, r_var, *p_slave_node, r_var,
+            support_node_N, 0.0);
         }
     }
 }
@@ -201,6 +339,20 @@ bool EmbeddedLocalConstraintProcess::IsNegative(const GeometryType& rGeometry)
         }
     }
     return (n_neg == rGeometry.PointsNumber());
+}
+
+MLSShapeFunctionsFunctionType EmbeddedLocalConstraintProcess::GetMLSShapeFunctionsFunction()
+{
+    switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
+        case 2:
+            return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
+                MLSShapeFunctionsUtility::CalculateShapeFunctions<2,1>(rPoints, rX, h, rN);};
+        case 3:
+            return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
+                MLSShapeFunctionsUtility::CalculateShapeFunctions<3,1>(rPoints, rX, h, rN);};
+        default:
+            KRATOS_ERROR << "Wrong domain size. MLS shape functions utility cannot be set.";
+    }
 }
 
 }; // namespace Kratos.

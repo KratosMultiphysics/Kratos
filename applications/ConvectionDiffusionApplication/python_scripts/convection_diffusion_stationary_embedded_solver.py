@@ -55,6 +55,9 @@ class ConvectionDiffusionStationaryEmbeddedSolver(convection_diffusion_stationar
             # NOTE: the nodal distances will still be modified slightly to avoid levelset zeros (tol=1e-12)
             # NOTE: elements in the negative distance region will be deactivated
             settings = KratosMultiphysics.Parameters("""{}""")
+            settings.AddEmptyValue("apply_to_all_negative_cut_nodes").SetBool(True)
+            settings.AddEmptyValue("use_mls_shape_functions").SetBool(False)
+            settings.AddEmptyValue("include_intersection_points").SetBool(False)
             settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
             settings.AddEmptyValue("avoid_zero_distances").SetBool(True)
             settings.AddEmptyValue("deactivate_negative_elements").SetBool(True)
