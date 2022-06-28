@@ -205,8 +205,29 @@ void HelmholtzSurfShapeCondition::Calculate(const Variable<Matrix>& rVariable, M
 
 void HelmholtzSurfShapeCondition::Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
-    auto& parentElement = this->GetValue(NEIGHBOUR_ELEMENTS);
-    parentElement[0].Calculate(rVariable,rOutput,rCurrentProcessInfo);
+
+    if (rVariable == ELEMENT_STRAIN_ENERGY){
+        MatrixType K;
+        CalculateSurfaceStiffnessMatrix(K,rCurrentProcessInfo);
+
+        auto& r_geometry = this->GetGeometry();
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType dimension = r_geometry.WorkingSpaceDimension();
+
+        const unsigned int number_of_points = r_geometry.size();
+        Vector nodal_vals(number_of_points*3);
+        for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
+        {
+            nodal_vals[3 * node_element + 0] = r_geometry[node_element].X0();
+            nodal_vals[3 * node_element + 1] = r_geometry[node_element].Y0();
+            nodal_vals[3 * node_element + 2] = r_geometry[node_element].Z0();
+        }    
+        rOutput = inner_prod(nodal_vals, prod(K, nodal_vals));    
+    }
+    else{
+        auto& parentElement = this->GetValue(NEIGHBOUR_ELEMENTS);
+        parentElement[0].Calculate(rVariable,rOutput,rCurrentProcessInfo);
+    }
 }
 /***********************************************************************************/
 /***********************************************************************************/

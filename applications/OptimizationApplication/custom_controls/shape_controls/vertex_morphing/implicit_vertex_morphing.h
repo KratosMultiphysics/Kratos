@@ -663,62 +663,35 @@ private:
 
     void AdjustFilterSizes()
     {
-        // now adjust the filter size if its adaptive
-        if( mTechniqueSettings["adaptive_filter_size"].GetBool() ){
-            for(auto& control_obj : mControlSettings["controlling_objects"]){
-                ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
-                ModelPart& root_model_part = r_controlling_object.GetRootModelPart();
-                std::string vm_model_part_name =  root_model_part.Name()+"_Implicit_VM_Part";
-                ModelPart* mpVMModePart = &(root_model_part.GetSubModelPart(vm_model_part_name));
-                Properties::Pointer p_vm_model_part_property;
-                for(int i =0; i<mpVMModelParts.size(); i++)
-                    if(mpVMModelParts[i]->Name()==mpVMModePart->Name())
-                        p_vm_model_part_property = mpVMModelPartsProperties[i];
-
-                double max_length = 0.0;
-                for(auto& cond_i : r_controlling_object.Conditions())
-                        max_length = cond_i.GetGeometry().Length();
-
-                p_vm_model_part_property->SetValue(HELMHOLTZ_SURF_RADIUS_SHAPE,5 * max_length); 
-                KRATOS_INFO("ImplicitVertexMorphing:AdjustFilterSizes:") << " surface filter of "<<control_obj.GetString() <<" is adjusted to " << 3 * max_length << std::endl; 
-            }
-        }
-
         for(int obj_i=0;obj_i<mpVMModelPartsTypes.size();obj_i++)
             if(mpVMModelPartsTypes[obj_i]=="solid"){
                 ModelPart* mpVMModePart = mpVMModelParts[obj_i];
                 Properties::Pointer p_vm_model_part_property = mpVMModelPartsProperties[obj_i];
 
-                double total_vol = 0.0;
-                double vol_int_radius = 0.0;
-                for(auto& elem_i : mpVMModePart->Elements()){
-                    const auto& r_geom = elem_i.GetGeometry(); 
-                    total_vol += r_geom.Volume();
-                    const IntegrationMethod& integration_method = r_geom.GetDefaultIntegrationMethod();
-                    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
-                    const unsigned int NumGauss = integration_points.size();
-                    Vector GaussPtsJDet = ZeroVector(NumGauss);
-                    r_geom.DeterminantOfJacobian(GaussPtsJDet,integration_method);  
+                p_vm_model_part_property->SetValue(HELMHOLTZ_BULK_RADIUS_SHAPE,1.0);
 
-                    for(std::size_t i_point = 0; i_point<NumGauss; ++i_point){
-                        vol_int_radius += GaussPtsJDet[i_point] * integration_points[i_point].Weight() * std::pow(1.0/GaussPtsJDet[i_point],2.0);
-                    }
+                double total_volume_strain_energy = 0.0;
+                for(auto& elem_i : mpVMModePart->Elements()){
+                    double elem_strain_energy;
+                    elem_i.Calculate(ELEMENT_STRAIN_ENERGY,elem_strain_energy,mpVMModePart->GetProcessInfo());
+                    total_volume_strain_energy += elem_strain_energy;
                 }
 
-                double total_cond_area = 0.0;
-                for(auto& cond_i : mpVMModePart->Conditions())
-                    total_cond_area += cond_i.GetGeometry().Area(); 
-
-                double surface_filter_size = p_vm_model_part_property->GetValue(HELMHOLTZ_SURF_RADIUS_SHAPE);
+                double total_surface_strain_energy = 0.0;
+                for(auto& cond_i : mpVMModePart->Conditions()){
+                    double cond_strain_energy;
+                    cond_i.Calculate(ELEMENT_STRAIN_ENERGY,cond_strain_energy,mpVMModePart->GetProcessInfo());
+                    total_surface_strain_energy += cond_strain_energy;
+                }
                 double bulk_surface_ratio = mTechniqueSettings["surface_bulk_ratio"].GetDouble();
-                double bulk_filter_size = (total_cond_area * surface_filter_size * surface_filter_size)/(bulk_surface_ratio * vol_int_radius);
-                bulk_filter_size = std::pow(bulk_filter_size,0.1/0.2);                                                    
-
+                double bulk_filter_size = (total_surface_strain_energy)/(bulk_surface_ratio * total_volume_strain_energy);
+                bulk_filter_size = std::pow(bulk_filter_size,0.1/0.1);                                                    
                 p_vm_model_part_property->SetValue(HELMHOLTZ_BULK_RADIUS_SHAPE,bulk_filter_size);
-                KRATOS_INFO("ImplicitVertexMorphing:AdjustFilterSizes") << " numerator of bulk filter of "<<mpVMModePart->Name() <<" is adjusted to " << bulk_filter_size<<" !"<<std::endl;
-                KRATOS_INFO("ImplicitVertexMorphing:AdjustFilterSizes") << " surface filter size is "<<surface_filter_size<<" so !"<<std::endl;
 
-            }  
+                KRATOS_INFO("ImplicitVertexMorphing:AdjustFilterSizes") << " ++++ total_volume_strain_energy: "<<total_volume_strain_energy<<" ++++ "<<std::endl;
+                KRATOS_INFO("ImplicitVertexMorphing:AdjustFilterSizes") << " ++++ total_surface_strain_energy: "<<total_surface_strain_energy<<" ++++ "<<std::endl;
+                KRATOS_INFO("ImplicitVertexMorphing:AdjustFilterSizes") << " ++++ bulk_filter_size: "<<bulk_filter_size<<" ++++ "<<std::endl;
+            }
     }  
 
     void InitializePlaneSymmetry(){

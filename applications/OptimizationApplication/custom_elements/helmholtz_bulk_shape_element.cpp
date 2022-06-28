@@ -161,6 +161,30 @@ void HelmholtzBulkShapeElement::Calculate(const Variable<Matrix>& rVariable, Mat
 
 }
 
+void HelmholtzBulkShapeElement::Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == ELEMENT_STRAIN_ENERGY){
+        MatrixType K;
+        CalculateBulkStiffnessMatrix(K,rCurrentProcessInfo);
+
+        auto& r_geometry = this->GetGeometry();
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType dimension = r_geometry.WorkingSpaceDimension();
+
+        const unsigned int number_of_points = r_geometry.size();
+        Vector nodal_vals(number_of_points*3);
+        for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
+        {
+            nodal_vals[3 * node_element + 0] = r_geometry[node_element].X0();
+            nodal_vals[3 * node_element + 1] = r_geometry[node_element].Y0();
+            nodal_vals[3 * node_element + 2] = r_geometry[node_element].Z0();
+        }    
+
+        rOutput = inner_prod(nodal_vals, prod(K, nodal_vals));    
+
+    }
+}
+
 //************************************************************************************
 //************************************************************************************
 void HelmholtzBulkShapeElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
@@ -382,7 +406,7 @@ HelmholtzBulkShapeElement::SetAndModifyConstitutiveLaw(
   // Stiffening of elements using Jacobian determinants and exponent between
   // 0.0 and 2.0
   const double r_helmholtz = this->pGetProperties()->GetValue(HELMHOLTZ_BULK_RADIUS_SHAPE);
-  const double xi = 2.0; // 1.5 Exponent influences stiffening of smaller
+  const double xi = 1.0; // 1.5 Exponent influences stiffening of smaller
                          // elements; 0 = no stiffening
   const double quotient = r_helmholtz / detJ0;
   const double weighting_factor = std::pow(quotient, xi);
