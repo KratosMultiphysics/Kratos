@@ -134,6 +134,7 @@ public:
     double                                              mDensity;
     double                                            mViscosity;
     double                                             mAlphaMin;
+    double                                             mAlphaMax;
     double                                                mSigma;
     double                                                mUchar;
     double                                             mX1Origin;
@@ -156,7 +157,6 @@ public:
 
     void SetBodyForceAndPorosityField();
 
-    void SetFluidProperties();
     ///@}
     ///@name Friends
     ///@{
