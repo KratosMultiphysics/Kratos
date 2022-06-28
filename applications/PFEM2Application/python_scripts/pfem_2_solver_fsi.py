@@ -77,12 +77,10 @@ class PFEM2Solver:
         self.monolitic_linear_solver =  AMGCLSolver(smoother,AMGCLIterativeSolverType.CG,tol,5000,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver()   
         self.conv_criteria = DisplacementCriteria(1e-6,1e-12)  #tolerance for the solver 
         self.domain_size = domain_size
-        number_of_avg_elems = 10
-        number_of_avg_nodes = 10
         self.neighbour_search = FindNodalNeighboursProcess(model_part)
         (self.neighbour_search).Execute()
-        self.neighbour_elements_search= FindElementalNeighboursProcess(model_part,domain_size,number_of_avg_elems)
-        (self.neighbour_elements_search).Execute()
+        self.neighbour_elements_search= GenericFindElementalNeighboursProcess(model_part)
+        (self.neighbour_elements_search).ExecuteInitialize()
         ##calculate normals
         self.normal_tools = BodyNormalCalculationUtils()
         
