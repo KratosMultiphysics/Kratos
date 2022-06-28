@@ -230,8 +230,8 @@ public:
         block_for_each(r_dof_set, [&](const DofType& r_dof)
         {
             const auto& r_node = rModelPart.GetNode(r_dof.Id());
-            //const Matrix& r_rom_nodal_basis = r_node.GetValue(ROM_BASIS);
-            const Matrix& r_rom_nodal_basis = r_node.GetValue(ROM_BASIS_DEC);
+            const Matrix& r_rom_nodal_basis = r_node.GetValue(ROM_BASIS);
+            // const Matrix& r_rom_nodal_basis = r_node.GetValue(ROM_BASIS_DEC);
             const Matrix::size_type row_id = mMapPhi.at(r_dof.GetVariable().Key());
             rDx[r_dof.EquationId()] = inner_prod(row(r_rom_nodal_basis, row_id), rRomUnkowns);
         });
@@ -728,7 +728,7 @@ protected:
 
         // Save the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
-        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) = dxrom;
+        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
 
         // project reduced solution back to full order model
         const auto backward_projection_timer = BuiltinTimer();
