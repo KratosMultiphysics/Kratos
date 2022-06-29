@@ -28,7 +28,8 @@ class AdjointFluidSolver(FluidSolver):
     def InitializeSolutionStep(self):
         self._GetSolutionStrategy().InitializeSolutionStep()
         self.GetResponseFunction().InitializeSolutionStep()
-        self.GetSensitivityBuilder().InitializeSolutionStep()
+        if self.GetSensitivityBuilder() is not None:
+            self.GetSensitivityBuilder().InitializeSolutionStep()
 
     def Predict(self):
         self._GetSolutionStrategy().Predict()
@@ -40,8 +41,9 @@ class AdjointFluidSolver(FluidSolver):
         self._GetSolutionStrategy().FinalizeSolutionStep()
         self.GetResponseFunction().FinalizeSolutionStep()
 
-        self.GetSensitivityBuilder().UpdateSensitivities()
-        self.GetSensitivityBuilder().FinalizeSolutionStep()
+        if self.GetSensitivityBuilder() is not None:
+            self.GetSensitivityBuilder().UpdateSensitivities()
+            self.GetSensitivityBuilder().FinalizeSolutionStep()
 
     def Check(self):
         self._GetSolutionStrategy().Check()
@@ -146,10 +148,10 @@ class AdjointFluidSolver(FluidSolver):
 
     def GetSensitivityBuilder(self):
         if not hasattr(self, '_sensitivity_builder'):
-            self._sensitivity_builder = self.__CreateSensitivityBuilder()
+            self._sensitivity_builder = self._CreateSensitivityBuilder()
         return self._sensitivity_builder
 
-    def __CreateSensitivityBuilder(self):
+    def _CreateSensitivityBuilder(self):
         response_function = self.GetResponseFunction()
         time_scheme_settings = self.settings["scheme_settings"]
         time_scheme_type = time_scheme_settings["scheme_type"].GetString()

@@ -163,7 +163,8 @@ class AdjointMonolithicSolver(AdjointFluidSolver):
         # Initialize the strategy and adjoint utilities
         solution_strategy.Initialize()
         self.GetResponseFunction().Initialize()
-        self.GetSensitivityBuilder().Initialize()
+        if self.GetSensitivityBuilder() is not None:
+            self.GetSensitivityBuilder().Initialize()
 
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.main_model_part.Conditions, domain_size)
