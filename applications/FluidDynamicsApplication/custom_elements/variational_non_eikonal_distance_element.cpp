@@ -617,7 +617,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                         const double norm_grad_phi_avg_i = norm_2( grad_phi_avg_i );
                         //grad_phi_avg_i /= norm_2(grad_phi_avg_i); // It is not a good idea!
 
-                        const double theta = 0.0;
+                        const double theta = 1.0;
                         if (contact_angle_weight > 0.0){
                             minus_cos_contact_angle = -theta*norm_grad_phi_avg_i*std::cos(contact_angle/contact_angle_weight) +
                             (1.0-theta)*Kratos::inner_prod(solid_normal,grad_phi_avg_i);

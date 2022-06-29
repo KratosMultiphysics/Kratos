@@ -253,7 +253,7 @@ void VariationalNonEikonalDistance::Execute()
     double max_grad_norm_deviation = 1.0e2;
     double norm_grad_norm_deviation = 0.0;
 
-    while (max_grad_norm_deviation > 2.0e-1 && iteration < 10){
+    while (max_grad_norm_deviation > 1.0e-2 && iteration < 10){
 
         KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, about to solve the LSE" << std::endl;
         mp_solving_strategy->Solve();
@@ -278,7 +278,7 @@ void VariationalNonEikonalDistance::Execute()
         KRATOS_INFO("Deviation in the norm of distance gradient") <<
             norm_grad_norm_deviation/static_cast<double>(NumNodes) << std::endl;
     }
-    if (max_grad_norm_deviation > 2.0e-1){
+    if (max_grad_norm_deviation > 1.0e-2){
         KRATOS_INFO("VariationalNonEikonalDistance") << "Convergence is not achieved." << std::endl;
     }
 
