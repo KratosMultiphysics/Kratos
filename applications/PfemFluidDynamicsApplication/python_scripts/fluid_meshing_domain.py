@@ -150,6 +150,10 @@ class FluidMeshingDomain(object):
     def SetMeshingParameters(self):
 
         # Create MeshingParameters
+        # self.list_of_meshing_parameters = []
+        # for item in self.settings["list_of_spatial_refining_box"]:
+        #     refining_box = item
+            
         self.MeshingParameters = KratosDelaunay.MeshingParameters()
         self.MeshingParameters.Initialize()
 

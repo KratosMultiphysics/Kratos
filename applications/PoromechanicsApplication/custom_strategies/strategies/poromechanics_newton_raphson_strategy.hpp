@@ -70,6 +70,7 @@ public:
         ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
                 pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
         {
+            // Mirar aqui
             //only include validation with c++11 since raw_literals do not exist in c++03
             Parameters default_parameters( R"(
                 {

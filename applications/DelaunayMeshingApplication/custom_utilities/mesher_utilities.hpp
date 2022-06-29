@@ -710,6 +710,10 @@ namespace Kratos
                   array_1d<double, 3> RefiningBoxMaxInternalPoint;
                   array_1d<double, 3> RefiningBoxMaxExternalPoint;
 
+                  std::vector<array_1d<double, 3>> RefiningBoxMaxExternalPointList;
+                  std::vector<std::vector<double>> RefiningBoxMaxExternalPointList;
+                  // Mirar 
+
                   void Set(Flags ThisFlag)
                   {
                         Options.Set(ThisFlag);
