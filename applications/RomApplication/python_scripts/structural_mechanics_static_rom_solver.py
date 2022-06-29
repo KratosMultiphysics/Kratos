@@ -30,6 +30,7 @@ class ROMSolver(StaticMechanicalSolver):
     def GetDefaultParameters(cls):
         default_settings = KratosMultiphysics.Parameters("""
         {
+            "solving_strategy" : "Galerkin",
             "rom_settings": {
             "nodal_unknowns": [ "DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"],
             "number_of_rom_dofs": 3
