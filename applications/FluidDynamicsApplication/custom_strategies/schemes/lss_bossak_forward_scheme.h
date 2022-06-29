@@ -158,10 +158,14 @@ public:
             mpFluidLeastSquaresShadowingVariableUtilities->GetAdjointValues(rTLS.mAdjointSolution, rElement, 0);
             rElement.CalculateSensitivityMatrix(TIME_STEP_SENSITIVITY, rTLS.mResidualPartialTimeDerivative, r_process_info);
 
-            mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
-                rTLS.mRotatedResidualPartialTimeDerivative, rTLS.mResidualPartialTimeDerivative, rElement.GetGeometry());
+            if (rTLS.mResidualPartialTimeDerivative.size1() != 0) {
+                mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
+                    rTLS.mRotatedResidualPartialTimeDerivative, rTLS.mResidualPartialTimeDerivative, rElement.GetGeometry());
 
-            return inner_prod(rTLS.mAdjointSolution, row(rTLS.mRotatedResidualPartialTimeDerivative, 0));
+                return inner_prod(rTLS.mAdjointSolution, row(rTLS.mRotatedResidualPartialTimeDerivative, 0));
+            } else {
+                return 0.0;
+            }
         });
 
         const double delta_time = r_process_info[DELTA_TIME];
@@ -510,10 +514,6 @@ private:
 
         const double eta = rCurrentProcessInfo[TIME_STEP_SENSITIVITY];
 
-        rEntity.CalculateSensitivityMatrix(TIME_STEP_SENSITIVITY, rResidualTimeStepDerivatives, rCurrentProcessInfo);
-        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
-            rRotatedResidualTimeStepDerivatives, rResidualTimeStepDerivatives, rEntity.GetGeometry());
-
         rEntity.GetValuesVector(rPreviousLSSSolution, 1);
         rEntity.GetSecondDerivativesVector(rPreviousLSSSecondDerivativeSolution, 1);
         mpFluidLeastSquaresShadowingVariableUtilities->GetPrimalValues(rCurrentPrimalSolution, rEntity, 0);
@@ -531,8 +531,14 @@ private:
                              mBossakConstants.mC2 * mBossakConstants.mCurrentStepSecondDerivativeCoefficient
                             + mBossakConstants.mPreviousStepSecondDerivativeCoefficient);
         noalias(rRHS) += prod(rRotatedResidualSecondDerivatives, rCurrentPrimalSolution - rPreviousPrimalSolution) * (mBossakConstants.mC3 * mBossakConstants.mCurrentStepSecondDerivativeCoefficient * eta);
-        noalias(rRHS) -= row(rRotatedResidualTimeStepDerivatives, 0) * eta;
         noalias(rRHS) -= rRotatedResidualDesignDerivatives;
+
+        rEntity.CalculateSensitivityMatrix(TIME_STEP_SENSITIVITY, rResidualTimeStepDerivatives, rCurrentProcessInfo);
+        if (rResidualTimeStepDerivatives.size1() != 0) {
+            mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipNonShapeVariableDerivatives(
+                rRotatedResidualTimeStepDerivatives, rResidualTimeStepDerivatives, rEntity.GetGeometry());
+            noalias(rRHS) -= row(rRotatedResidualTimeStepDerivatives, 0) * eta;
+        }
 
         KRATOS_CATCH("");
     }
@@ -571,7 +577,9 @@ private:
 
         rEntity.CalculateSensitivityMatrix(TIME_STEP_SENSITIVITY, rResidualTimeStepDerivatives, rProcessInfo);
         mpResponseFunction->CalculatePartialSensitivity(rEntity, TIME_STEP_SENSITIVITY, rResidualTimeStepDerivatives, rResponseTimeStepDerivatives, rProcessInfo);
-        value += rResponseTimeStepDerivatives[0] * eta;
+        if (rResponseTimeStepDerivatives.size() != 0) {
+            value += rResponseTimeStepDerivatives[0] * eta;
+        }
 
         value += mpFluidLeastSquaresShadowingSensitivity->CalculateResponseSensitivity(rEntity, *mpResponseFunction, mAdjointSlipUtilities, rProcessInfo);
 
