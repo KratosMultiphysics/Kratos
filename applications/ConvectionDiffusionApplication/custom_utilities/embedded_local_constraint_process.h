@@ -65,6 +65,8 @@ public:
 
     using NodesCloudMapType = std::unordered_map<NodeType::Pointer, CloudDataVectorType, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
 
+    using NodesOffsetMapType = std::unordered_map<NodeType::Pointer, double, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
+
     using MLSShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&)>;
 
     ///@}
@@ -206,15 +208,30 @@ private:
     ///@{
 
     void CalculateNodeClouds(
-        NodesCloudMapType& rCloudsMap);
+        NodesCloudMapType& rCloudsMap,
+        NodesOffsetMapType& rOffsetsMap);
 
     void AddAveragedNodeCloud(
         NodesCloudMapType& rCloudsMap,
+        NodesOffsetMapType& rOffsetsMap,
+        NodeType::Pointer slave_node,
+        std::vector<NodeType::Pointer> pos_nodes_element);
+
+    void AddAveragedNodeCloudIncludingBC(
+        NodesCloudMapType& rCloudsMap,
+        NodesOffsetMapType& rOffsetsMap,
         NodeType::Pointer slave_node,
         std::vector<NodeType::Pointer> pos_nodes_element);
 
     void AddMLSNodeCloud(
         NodesCloudMapType& rCloudsMap,
+        NodesOffsetMapType& rOffsetsMap,
+        NodeType::Pointer slave_node,
+        std::vector<NodeType::Pointer> pos_nodes_element);
+
+    void AddMLSNodeCloudIncludingBC(
+        NodesCloudMapType& rCloudsMap,
+        NodesOffsetMapType& rOffsetsMap,
         NodeType::Pointer slave_node,
         std::vector<NodeType::Pointer> pos_nodes_element);
 
@@ -223,7 +240,8 @@ private:
         const array_1d<double,3>& rOrigin);
 
     void ApplyConstraints(
-        NodesCloudMapType& rCloudsMap);
+        NodesCloudMapType& rCloudsMap,
+        NodesOffsetMapType& rOffsetsMap);
 
     void DeactivateElementsAndNodes();
 
