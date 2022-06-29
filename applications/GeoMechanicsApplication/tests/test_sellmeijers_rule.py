@@ -1,12 +1,9 @@
 import sys
 import os
-import csv
 import json
 import math
 from parameterized import parameterized
-import unittest
 
-sys.path.append(os.path.join('D:/kratos'))
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 sys.path.append(os.path.join('..', 'python_scripts'))
