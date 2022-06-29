@@ -82,7 +82,6 @@ def AssembleTestSuites(is_team_city):
 
     night_test_cases = [KratosGeoMechanicsDynamicsTests,
                         TestSellmeijersRule,
-                        TestMeshDependencyPiping,
                         TestElementaryGroundWaterFlow]
 
     # Create an array that contains all the tests from every testCase
