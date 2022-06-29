@@ -69,8 +69,7 @@ def AssembleTestSuites(is_team_city):
         KratosGeoMechanicsSettlementTests,
         KratosGeoMechanicsCurvedBeamElementTests,
         TestUnitPipingElements,
-        TestNormalFluxCondition,
-        TestConsecutivePipeLines
+        TestNormalFluxCondition
     ]
 
     # Create an array with the selected tests
@@ -81,7 +80,8 @@ def AssembleTestSuites(is_team_city):
 
     night_test_cases = [KratosGeoMechanicsDynamicsTests,
                         TestSellmeijersRule,
-                        TestElementaryGroundWaterFlow]
+                        TestElementaryGroundWaterFlow,
+                        TestConsecutivePipeLines]
 
     # Create an array that contains all the tests from every testCase
     # in the list:
