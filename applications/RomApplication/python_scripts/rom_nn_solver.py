@@ -19,6 +19,7 @@ def CreateSolver(cls, model, custom_settings):
         @classmethod
         def GetDefaultParameters(cls):
             default_settings = KratosMultiphysics.Parameters("""{
+                "solving_strategy" : "Galerkin",
                 "rom_settings": {
                     "nodal_unknowns": [],
                     "number_of_rom_dofs": 0
@@ -30,8 +31,15 @@ def CreateSolver(cls, model, custom_settings):
         def _CreateBuilderAndSolver(self):
             linear_solver = self._GetLinearSolver()
             rom_parameters = self._ValidateAndReturnRomParameters()
-            builder_and_solver = KratosROM.ROMBuilderAndSolver(linear_solver, rom_parameters)
-            return builder_and_solver
+            available_solving_strategies = {
+                "Galerkin": KratosROM.ROMBuilderAndSolver, 
+                "LSPG": KratosROM.LSPGROMBuilderAndSolver
+            }
+            if solving_strategy in available_solving_strategies:
+                return available_solving_strategies[solving_strategy](linear_solver, rom_parameters)
+            else:
+                err_msg = "\'Solving_strategy\': '" +solving_strategy+"' is not available. Please select one of the following: "+ str(list(available_solving_strategies.keys()))
+                raise ValueError(err_msg)
 
         def _ValidateAndReturnRomParameters(self):
             # Check that the number of ROM DOFs has been provided
