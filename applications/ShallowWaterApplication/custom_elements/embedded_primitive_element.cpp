@@ -157,21 +157,10 @@ void EmbeddedPrimitiveElement<TNumNodes>::CalculateLocalSystem(
     //TODO: We're temporarily doing the splitting twice
     // Set the modified shape functions pointer
     const auto& r_geom = this->GetGeometry();
-    const std::size_t n_nodes = r_geom.PointsNumber();
-    Vector distances(n_nodes);
-    std::size_t n_pos = 0;
-    std::size_t n_neg = 0;
-    for (std::size_t i = 0; i < n_nodes; ++i) {
-        const double d = r_geom[i].FastGetSolutionStepValue(DISTANCE);
-        distances[i] = d;
-        if (d > 0.0) {
-            n_pos++;
-        } else {
-            n_neg++;
-        }
-    }
+    Vector distances(TNumNodes);
+    int is_cut = CalculateDistances(distances);
 
-    if (n_pos != 0 && n_neg != 0) {
+    if (is_cut == 1) {
         // Set element data container
         ElementData data;
         BaseType::InitializeData(data, rCurrentProcessInfo);
@@ -227,9 +216,9 @@ void EmbeddedPrimitiveElement<TNumNodes>::CalculateLocalSystem(
 
             // Assemble Nitsche terms
             const double penalty = aux_pen * norm_2(aux_v);
-            for (std::size_t i = 0; i < n_nodes; ++i) {
+            for (std::size_t i = 0; i < TNumNodes; ++i) {
                 std::size_t i_block = 3*i;
-                for (std::size_t j = 0; j < n_nodes; ++j) {
+                for (std::size_t j = 0; j < TNumNodes; ++j) {
                     std::size_t j_block = 3*j;
                     const double h_j = r_geom[j].FastGetSolutionStepValue(HEIGHT);
                     // Height equation penalty term
