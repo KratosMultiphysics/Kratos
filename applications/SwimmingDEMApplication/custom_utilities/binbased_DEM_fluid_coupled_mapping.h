@@ -232,7 +232,8 @@ void UpdateOldVelocity(ModelPart& r_dem_model_part);
 void UpdateOldAdditionalForce(ModelPart& r_dem_model_part);
 void InterpolateFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid); // this is a bin of objects which contains the FLUID model part
 void VariingRadiusHomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, const double& search_radius, const double& shape_factor, bool must_search = true, bool use_drew_model = false);
-void HomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, const double& search_radius, const double& shape_factor, bool must_search = true, bool use_drew_model = false);
+void HomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, const double& search_radius, bool must_search = true, bool use_drew_model = false);
+void CalculateGranularTemperature(ModelPart& r_fluid_model_part);
 void ComputePostProcessResults(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, ModelPart& rfem_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const ProcessInfo& r_current_process_info);
 
 ///@}
@@ -407,6 +408,7 @@ void CalculateNodalFluidFractionWithLinearWeighing(Element::Pointer p_elem, cons
 void CalculateNodalFluidFractionByLumpedL2Projection(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node);
 //void CalculateFluidFractionGradient(ModelPart& r_model_part);
 void TransferByAveraging(const ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights, const Variable<array_1d<double, 3> >& r_destination_variable, const Variable<array_1d<double, 3> >& r_origin_variable, bool use_drew_model);
+void CalculateWeightedIncrementalGranularTemperature(double& granular_temperature, array_1d<double, 3>& old_filtered_variable, array_1d<double, 3> origin_data, double weight, double& sum_of_weights);
 void CalculateNodalFluidFractionByAveraging(ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights);
 void CalculateNodalSolidFractionByAveraging(const Node<3>::Pointer p_node, const ResultNodesContainerType& neighbours, const DistanceType& weights, const double averaging_volume_inv);
 void MultiplyNodalVariableBy(ModelPart& r_model_part, const Variable<double>& r_variable, const double& factor);
