@@ -30,10 +30,10 @@ class DerivativeRecoveryStrategy:
         self.do_pre_recovery = False
         self.must_reconstruct_gradient = self.laplacian_type in {0, 3, 4, 5, 6} and self.mat_deriv_type in {3, 4}
 
-        if self.parameters["custom_fluid"]["fluid_already_calculated"].GetBool(): # the fluid has been calculated before, and the derivatives fed to the fluid_model_part
-            self.pre_computed_derivatives = self.parameters["load_derivatives"].GetBool()
-        else:
-            self.pre_computed_derivatives = False
+        # if self.parameters["custom_fluid"]["fluid_already_calculated"].GetBool(): # the fluid has been calculated before, and the derivatives fed to the fluid_model_part
+        #     self.pre_computed_derivatives = self.parameters["load_derivatives"].GetBool()
+        # else:
+        self.pre_computed_derivatives = False
 
         self.mat_deriv_tool = self.GetMatDerivTool()
         self.laplacian_tool = self.GetLaplacianTool()
