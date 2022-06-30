@@ -11,8 +11,8 @@
 //
 //
 
-#ifndef KRATOS_TRANSIENT_POROSITY_SOLUTION_BODY_FORCE_PROCESS_H
-#define KRATOS_TRANSIENT_POROSITY_SOLUTION_BODY_FORCE_PROCESS_H
+#ifndef KRATOS_HYPERBOLIC_TANGENTIAL_POROSITY_SOLUTION_TRANSIENT_BODY_FORCE_PROCESS_H
+#define KRATOS_HYPERBOLIC_TANGENTIAL_POROSITY_SOLUTION_TRANSIENT_BODY_FORCE_PROCESS_H
 
 // System includes
 #include <string>
@@ -52,36 +52,36 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(SWIMMING_DEM_APPLICATION) TransientPorositySolutionBodyForceProcess : public Process
+class KRATOS_API(SWIMMING_DEM_APPLICATION) HyperbolicTangentialPorositySolutionTransientBodyForceProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of TransientPorositySolutionBodyForceProcess
-    KRATOS_CLASS_POINTER_DEFINITION(TransientPorositySolutionBodyForceProcess);
+    /// Pointer definition of HyperbolicTangentialPorositySolutionTransientBodyForceProcess
+    KRATOS_CLASS_POINTER_DEFINITION(HyperbolicTangentialPorositySolutionTransientBodyForceProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    TransientPorositySolutionBodyForceProcess();
+    HyperbolicTangentialPorositySolutionTransientBodyForceProcess();
     /// Constructor.
-    TransientPorositySolutionBodyForceProcess(
+    HyperbolicTangentialPorositySolutionTransientBodyForceProcess(
         ModelPart& rModelPart);
 
     /// Constructor with Kratos parameters.
-    TransientPorositySolutionBodyForceProcess(
+    HyperbolicTangentialPorositySolutionTransientBodyForceProcess(
         ModelPart& rModelPart,
         Parameters& rParameters);
 
     /// Constructor with Kratos model
-    TransientPorositySolutionBodyForceProcess(
+    HyperbolicTangentialPorositySolutionTransientBodyForceProcess(
         Model& rModel,
         Parameters& rParameters);
 
     /// Destructor.
-    ~TransientPorositySolutionBodyForceProcess() override {}
+    ~HyperbolicTangentialPorositySolutionTransientBodyForceProcess() override {}
 
     ///@}
 
@@ -90,16 +90,15 @@ public:
     double                                            mViscosity;
     double                                         mPermeability;
     double                                                mUchar;
-    double                                           mDeltaAlpha;
     double                                               mLength;
-    double                                   mMaxSqueezeFraction;
-    double                                                mOmega;
-    double                                     mSqueezeAmplitude;
-    double                                              mNSafety;
-    double                                             mX1Origin;
-    double                                             mX2Origin;
+    double                                            mMeanAlpha;
+    double                                             mMinAlpha;
+    double                                               mHeight;
     double                                       mReynoldsNumber;
     double                                      mDamKohlerNumber;
+    double                                         mMaxGradAlpha;
+    double                                       mFirstParameter;
+    double                                      mSecondParameter;
     bool                                      mInitialConditions;
     bool                                 mAlternativeFormulation;
     ///@}
@@ -125,21 +124,15 @@ public:
 
     const Parameters GetDefaultParameters() const override;
 
-    void CalculateKinematicViscosity();
-
     void CalculatePermeability(double &dynamic_viscosity);
+
+    void CalculateFunctionParameters();
 
     void SetInitialBodyForceAndPorosityField();
 
     void SetBodyForceAndPorosityField();
 
     void SetFluidProperties();
-
-    bool IsInsideEllipticalSupport(
-        const double x1,
-        const double x2,
-        const double c,
-        const double R);
 
     ///@}
     ///@name Access
@@ -157,12 +150,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "TransientPorositySolutionBodyForceProcess" ;
+        buffer << "HyperbolicTangentialPorositySolutionTransientBodyForceProcess" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "TransientPorositySolutionBodyForceProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "HyperbolicTangentialPorositySolutionTransientBodyForceProcess";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -210,7 +203,7 @@ private:
     /// Copy constructor.
     ///@}
 
-}; // Class TransientPorositySolutionBodyForceProcess
+}; // Class HyperbolicTangentialPorositySolutionTransientBodyForceProcess
 
 ///@}
 ///@name Type Definitions
@@ -226,4 +219,4 @@ private:
 
 };  // namespace Kratos.
 
-#endif // KRATOS_TRANSIENT_POROSITY_SOLUTION_BODY_FORCE_PROCESS_H
+#endif // KRATOS_HYPERBOLIC_TANGENTIAL_POROSITY_SOLUTION_TRANSIENT_BODY_FORCE_PROCESS_H
