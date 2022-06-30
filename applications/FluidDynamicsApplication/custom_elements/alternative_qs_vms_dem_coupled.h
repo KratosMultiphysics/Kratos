@@ -179,6 +179,9 @@ public:
         GeometryType::Pointer pGeom,
         Properties::Pointer pProperties) const override;
 
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -217,7 +220,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
+    DenseVector <BoundedMatrix<double,Dim,Dim>> mViscousResistanceTensor;
 
     ///@}
     ///@name Protected Operators
@@ -265,6 +268,16 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
+    void CalculateResistanceTensor(
+        const TElementData& rData);
+
+    void CalculateSpectralRadius(
+        const TElementData& rData,
+        double& spectral_radius,
+        double tau_one_NS,
+        const double c1,
+        MatrixType matrix) const;
+
     void MassProjTerm(
         const TElementData& rData,
         double &rMassRHS) const override;
@@ -280,6 +293,16 @@ protected:
     void Calculate(
         const Variable<array_1d<double, 3>>& rVariable,
         array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
+    bool GaussSeidelEigenSystem(
+        MatrixType& rA,
+        MatrixType& rEigenVectorsMatrix,
+        MatrixType& rEigenValuesMatrix,
+        const double Tolerance = 1.0e-18,
+        const SizeType MaxIterations = 20
+        ) const;
+
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Protected  Access
