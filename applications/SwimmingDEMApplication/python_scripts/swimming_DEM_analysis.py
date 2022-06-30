@@ -468,6 +468,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         if self.DEM_to_fluid_counter.Tick() and self.time >= self.project_parameters["coupling"]["interaction_start_time"].GetDouble():
             self._GetSolver().projection_module.ProjectFromParticles()
+            self._GetSolver().projection_module.CalculateGranularTemperature()
 
         # coupling checks (debugging)
         if self.debug_info_counter.Tick():
