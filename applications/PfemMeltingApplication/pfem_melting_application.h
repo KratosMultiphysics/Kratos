@@ -48,7 +48,8 @@
 #include "../applications/FluidDynamicsApplication/custom_constitutive/newtonian_temperature_dependent_3d_law.h"
 
 #include "custom_elements/lagrangian_vms.h"
-
+//#include "custom_elements/HypoElasticSolid.h"
+#include "custom_elements/hypo.h"
 namespace Kratos
 {
 
@@ -208,6 +209,12 @@ private:
 
     const LagrangianFluidVMS<2,3> mLagrangianFluidVMS2D;
     const LagrangianFluidVMS<3,4> mLagrangianFluidVMS3D;
+    //const HYPOELASTICSOLID<2,3> mHYPOELASTICSOLID2D;
+    //const HYPOELASTICSOLID<3,4> mHYPOELASTICSOLID3D;
+    
+    const HYPO<2,3> mHYPO2D;
+    const HYPO<3,4> mHYPO3D;
+
     ///@}
     ///@name Private Operations
     ///@{

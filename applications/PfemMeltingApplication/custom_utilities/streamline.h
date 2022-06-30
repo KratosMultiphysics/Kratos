@@ -66,7 +66,7 @@ namespace Kratos
       void SubSteppingElementbasedSI(ModelPart& rModelPart, unsigned int substeps)
       {
 				double deltadt = rModelPart.GetProcessInfo()[DELTA_TIME];
-				double dt=0.5 * deltadt;
+				double dt=1.0 * deltadt;
 
 				BinBasedFastPointLocator<TDim> SearchStructure(rModelPart);
 				SearchStructure.UpdateSearchDatabase();
@@ -85,16 +85,16 @@ namespace Kratos
 				for (int i = 0; i < nparticles; i++)
 					{
 					//int substep = 0;
-					int subdivisions = 1;
+					int subdivisions = 10;
 					//double temperature=0.0;
 					ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
 					Node < 3 > ::Pointer pparticle = *(iparticle.base());
 
 					bool do_move = true;
 					//bool first_time=false;
-					iparticle->FastGetSolutionStepValue(DISTANCE)=0.0;
+					//iparticle->FastGetSolutionStepValue(DISTANCE)=0.0;
 
-					iparticle->FastGetSolutionStepValue(EMBEDDED_VELOCITY) = iparticle->FastGetSolutionStepValue(VELOCITY);  //AUX_VEL
+					//iparticle->FastGetSolutionStepValue(EMBEDDED_VELOCITY) = iparticle->FastGetSolutionStepValue(VELOCITY);  //AUX_VEL
 
 					if(iparticle->FastGetSolutionStepValue(IS_STRUCTURE) == 1.0) do_move = false;
 
@@ -104,9 +104,8 @@ namespace Kratos
 							array_1d<double,3> current_position = pparticle->Coordinates();
 							noalias(iparticle->GetInitialPosition()) = old_position;
 							iparticle->FastGetSolutionStepValue(DISPLACEMENT,1) = ZeroVector(3);
-							subdivisions=4;
 							const double small_dt = dt / subdivisions;
-							iparticle->FastGetSolutionStepValue(DISTANCE)=small_dt;
+							//iparticle->FastGetSolutionStepValue(DISTANCE)=small_dt;
 							//
 							for (int substep = 0; substep < subdivisions; substep++)
 								{
@@ -115,12 +114,13 @@ namespace Kratos
 								bool is_found = SearchStructure.FindPointOnMesh(current_position, N, pelement, result_begin, max_results);
 								iparticle->Set(TO_ERASE, true);
 								//KRATOS_WATCH(is_found);
+								is_found = false;
 								if (is_found == true)
 									{
 									Geometry< Node < 3 > >& geom = pelement->GetGeometry();
 									//int nn=0;
 									noalias(veulerian) = ZeroVector(3);
-									noalias(acc_particle) = ZeroVector(3);
+									//noalias(acc_particle) = ZeroVector(3);
 									for (unsigned int k = 0; k < geom.size(); k++)
 									{
 										noalias(veulerian) += N[k] * geom[k].FastGetSolutionStepValue(VELOCITY);
@@ -130,18 +130,20 @@ namespace Kratos
 									noalias(current_position) += small_dt*veulerian;
 
 									pparticle->Set(TO_ERASE, false);
-									iparticle->FastGetSolutionStepValue(DISTANCE) += small_dt;
-									iparticle->FastGetSolutionStepValue(EMBEDDED_VELOCITY)=veulerian;
+									
+									//iparticle->FastGetSolutionStepValue(EMBEDDED_VELOCITY)=veulerian;
 								} //if (is_found == true)
 								else
 									{
 										//double time1=iparticle->FastGetSolutionStepValue(DISTANCE);
-										array_1d<double,3> acc;
+										/*array_1d<double,3> acc;
 										acc[0] =  0.0;
 										acc[1] = -10.0;
-										acc[2] =  0.0;
+										acc[2] =  0.0;*/
 
-										noalias(current_position) += small_dt * iparticle->FastGetSolutionStepValue(VELOCITY);									pparticle->Set(TO_ERASE, false);
+										noalias(current_position) += small_dt * iparticle->FastGetSolutionStepValue(VELOCITY);									
+										pparticle->Set(TO_ERASE, false);
+										iparticle->FastGetSolutionStepValue(IS_INTERFACE) = 1.0;	
 		  							}//else
 	      					}//for
 
@@ -159,7 +161,7 @@ namespace Kratos
 void RungeKutta4ElementbasedSI(ModelPart& rModelPart, unsigned int substeps)
     {
 	double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
-        //dt *=0.5; 
+        dt *=0.5; 
 	BinBasedFastPointLocator<TDim> SearchStructure(rModelPart);
 	SearchStructure.UpdateSearchDatabase();
 
@@ -320,6 +322,7 @@ void RungeKutta4KernelbasedSI(ModelPart& rModelPart, unsigned int substeps)
     {
 	double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
         dt *=0.5;
+        //dt *=1.0;
 	BinBasedFastPointLocator<TDim> SearchStructure(rModelPart);
 	SearchStructure.UpdateSearchDatabase();
 
@@ -404,7 +407,7 @@ void RungeKutta4KernelbasedSI(ModelPart& rModelPart, unsigned int substeps)
 
 	    Node < 3 > ::Pointer pparticle = *(iparticle.base());
 
-		if(iparticle->FastGetSolutionStepValue(IS_INTERFACE) == 0.0) {
+		if(iparticle->FastGetSolutionStepValue(IS_STRUCTURE) == 0.0/*iparticle->FastGetSolutionStepValue(IS_INTERFACE) == 0.0 or iparticle->FastGetSolutionStepValue(IS_INTERFACE) == 1.0*/) {
                 initial_position = pparticle->GetInitialPosition() + pparticle->FastGetSolutionStepValue(DISPLACEMENT);
 
 		Element::Pointer pelement;
@@ -562,7 +565,7 @@ void RungeKutta4KernelbasedSI(ModelPart& rModelPart, unsigned int substeps)
 
 		}
 
-	       if(iparticle->FastGetSolutionStepValue(IS_INTERFACE) == 0.0)
+	       if(iparticle->FastGetSolutionStepValue(IS_STRUCTURE) == 0.0/*iparticle->FastGetSolutionStepValue(IS_INTERFACE) == 0.0 or iparticle->FastGetSolutionStepValue(IS_INTERFACE) == 1.0 */)
 		{
 
 
@@ -603,7 +606,63 @@ void RungeKutta4KernelbasedSI(ModelPart& rModelPart, unsigned int substeps)
 			}
 }
 
-    bool CheckInvertElement(ModelPart& ThisModelPart, int domain_size)
+void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
+    {
+	double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
+        dt *=0.5; 
+	BinBasedFastPointLocator<TDim> SearchStructure(rModelPart);
+	SearchStructure.UpdateSearchDatabase();
+
+	//do movement
+	array_1d<double, 3 > veulerian;
+	//double temperature=0.0;
+	//array_1d<double, 3 > acc_particle;
+
+        array_1d<double, 3 > v1,v2,v3,v4,vtot,x;
+
+	//array_1d<double, TDim + 1 > N;
+
+	const int max_results = 10000;
+
+	//typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+
+	const int nparticles = rModelPart.Nodes().size();
+
+	//#pragma omp parallel for firstprivate(results,N,veulerian,v1,v2,v3,v4,x)
+	#pragma omp parallel for firstprivate(veulerian,v1,v2,v3,v4,x)
+	for (int i = 0; i < nparticles; i++)
+	  {
+	    array_1d<double,3> initial_position;
+
+	    ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
+
+	    Node < 3 > ::Pointer pparticle = *(iparticle.base());
+
+		if(iparticle->FastGetSolutionStepValue(IS_STRUCTURE) == 0.0) {
+                initial_position = pparticle->GetInitialPosition() + pparticle->FastGetSolutionStepValue(DISPLACEMENT);
+
+ 		noalias(x) = initial_position;
+		noalias(x) += dt*pparticle->FastGetSolutionStepValue(VELOCITY);
+		pparticle->FastGetSolutionStepValue(DISPLACEMENT) = x - pparticle->GetInitialPosition();
+		}
+
+
+		}
+
+
+		for(ModelPart::NodesContainerType::iterator it = rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); it++)
+			{
+				array_1d<double,3>& dn1 = it->FastGetSolutionStepValue(DISPLACEMENT);
+				noalias(it->Coordinates()) = it->GetInitialPosition();
+				noalias(it->Coordinates()) += dn1;
+
+			}
+
+
+}
+
+
+    bool CheckInvertElement(ModelPart& ThisModelPart, int domain_size, double mesh_element_size)
     {
         KRATOS_TRY
 
@@ -611,7 +670,7 @@ void RungeKutta4KernelbasedSI(ModelPart& rModelPart, unsigned int substeps)
         bool inverted=false;
 	double vol=0.0;
 	array_1d<double,TDim+1> N;
-
+        double dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
 	//defining work arrays
         //PointerVector< Element > elements_to_solve;
         std::vector<GlobalPointersVector<Element>> nodal_neighbours;
@@ -631,22 +690,51 @@ void RungeKutta4KernelbasedSI(ModelPart& rModelPart, unsigned int substeps)
         else
         {
 
+	      //reference volumen
+             double vol_r=sqrt(2)* pow(mesh_element_size, 3)	/12.0;
 	     for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin();
                 in!=ThisModelPart.NodesEnd(); in++)
 		{
 		    in->FastGetSolutionStepValue(RADIATIVE_INTENSITY) = 0.00;
 		}
-            for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
-                    i!=ThisModelPart.ElementsEnd(); i++)
+		
+	      bool erase_node=false;	
+             for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); i!=ThisModelPart.ElementsEnd(); i++)
 		    {
 		        //calculating shape functions values
 		        Geometry< Node<3> >& geom = i->GetGeometry();
 
+                       
 		        //counting number of structural nodes
 		        vol = GeometryUtils::CalculateVolume3D(geom);
+ 
+//	     	        if(vol <= 0 or vol<= 0.00000000000001)  
+     	     	        //if(vol <= 0 or vol<= 0.0001*vol_r)  
+     	     	        //if(vol <= 0 or vol<= 0.001*vol_r)  
+     	     	        
+     	     	        /////
+     	     	        
+			//erase_node=false;								
+                    	//for (unsigned int k = 0; k < geom.size(); k++)
+			//{
+            		//array_1d<double,3> delta_disp = geom[k].FastGetSolutionStepValue(DISPLACEMENT);
+            		//noalias(delta_disp) -= geom[k].FastGetSolutionStepValue(DISPLACEMENT,1);
 
-	     	        if(vol <= 0 or vol<= 0.00000000000001)  
-// 	     	        if(vol > 0)  
+            		//double norm_delta_disp = norm_2(delta_disp);
+
+            		//array_1d<double,3> v_old = geom[k].FastGetSolutionStepValue(VELOCITY,1);
+            		//double norm_v = norm_2(v_old);
+
+            		//if(norm_delta_disp*3.0 < norm_v*dt ) erase_node=true;
+                       //if(norm_delta_disp* (0.333333333333333*0.001) >  norm_v*dt ) erase_node=true;
+                       //if(norm_v >1.5) erase_node=true;
+        		//}
+
+
+
+     	     	        /////
+     	     	        if(vol<= 0.01*vol_r or vol> 2.5*vol_r )//or erase_node==true)  //0.001
+     	     	        
 	     	        {
 	     	        	inverted=true;
 	     	            	        

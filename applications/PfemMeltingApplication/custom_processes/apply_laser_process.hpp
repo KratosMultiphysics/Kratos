@@ -82,16 +82,33 @@ public:
         mDirectionx = rParameters["direction"][0].GetDouble();
         mDirectiony = rParameters["direction"][1].GetDouble();
         mDirectionz = rParameters["direction"][2].GetDouble();
-
-
+	
+        mParameters=rParameters;
+        auto values = rParameters["laser_profile"]["values"];
+        
+        //mCorrectionFactor = rParameters["correction_factor"].GetDouble();
+        
         // Now validate agains defaults -- this also ensures no type mismatch
         //rParameters.ValidateAndAssignDefaults(default_parameters);
 
         //mLaserProfile.clear();
         //mDirection.clear();
         //mPositionLaserTable.clear();
-
-
+        int i=0;
+        //KRATOS_WATCH(rParameters["laser_profile"]["shape"])
+        //KRATOS_WATCH(rParameters["laser_profile"]["values"])
+        //KRATOS_THROW_ERROR(std::logic_error, "method not implemented", ""); 
+	if(rParameters["laser_profile"]["shape"].GetString()=="custom")
+	{
+	  while(i < values.size())
+	  {
+            //mLaserProfileTable.PushBack(values[i]["distance"].GetDouble(), values[i]["power_per_unit_area"].GetDouble());
+            mLaserProfileTable.PushBack(values[i]["distance"].GetDouble(), values[i]["power_deviation_from_flat"].GetDouble());
+            i = i + 1;
+	}
+	mRadius=values[i-1]["distance"].GetDouble();	
+	}
+	
         KRATOS_CATCH("");
     }
 
@@ -117,7 +134,7 @@ public:
     }
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-	void ApplyLaser(double x, double y, double z)  {
+	void ApplyLaser(double x, double y, double z, double power)  {
         KRATOS_TRY;
 
         //defintions for spatial search
@@ -130,7 +147,7 @@ public:
 
         for (ModelPart::NodesContainerType::iterator node_it = mrModelPart.NodesBegin(); node_it != mrModelPart.NodesEnd(); ++node_it) {
             PointTypePointer pnode = *(node_it.base());
-            node_it->FastGetSolutionStepValue(FACE_HEAT_FLUX)=0.0;
+            //node_it->FastGetSolutionStepValue(FACE_HEAT_FLUX)=0.0;
             if(node_it->FastGetSolutionStepValue(IS_FREE_SURFACE)) {
                 list_of_nodes.push_back(pnode);
             }
@@ -179,15 +196,48 @@ public:
             //KRATOS_WATCH(distance_to_laser_axis) 
             //KRATOS_THROW_ERROR(std::logic_error, "method not implemented", ""); 
             //KRATOS_WATCH(mRadius)
-            if(distance_to_laser_axis < mRadius) {
+            double power_per_unit_area=0.0;
+            double power_deviation_from_flat=0.0;
+            double power_per_unit_area_from_flat=0.0;
+            if(mParameters["laser_profile"]["shape"].GetString()=="custom")
+            {
+            
+              //KRATOS_WATCH(mLaserProfileTable)
+	      //KRATOS_WATCH(mRadius)
+	      //KRATOS_WATCH(distance_to_laser_axis)
+	      
+	      
+             //power_per_unit_area=mLaserProfileTable(distance_to_laser_axis);
+             power_deviation_from_flat=mLaserProfileTable(distance_to_laser_axis);
+             power_per_unit_area_from_flat=power / (Globals::Pi * mRadius * mRadius);
+             power_per_unit_area = power_deviation_from_flat * power_per_unit_area_from_flat;
+             
+             //KRATOS_WATCH(power);
+             //KRATOS_WATCH(mLaserProfileTable);
+             //KRATOS_WATCH(distance_to_laser_axis)             
+             //KRATOS_WATCH(power_per_unit_area)
+             
+             if(power_per_unit_area<0) power_per_unit_area=0.0;
+             
+             
+	    }
+	    else if(mParameters["laser_profile"]["shape"].GetString()=="flat")
+		{
+		power_per_unit_area=mPower / (Globals::Pi * mRadius * mRadius);}
+		
+		
+           if(distance_to_laser_axis < mRadius) {
                 double& aux= list_of_nodes[k]->FastGetSolutionStepValue(FACE_HEAT_FLUX);
-                double aux_1 =  cos_angle * mPower / (Globals::Pi * mRadius * mRadius);
+                double aux_1 =  cos_angle * power_per_unit_area; 
                 if (aux_1>0.000000001) aux=aux_1;
                 else aux=0.0;
                 //aux=2000000.0;
 
 		//KRATOS_WATCH(aux)
             }
+            
+            //KRATOS_THROW_ERROR(std::logic_error, "method not implemented", ""); 
+            
         }
         //KRATOS_THROW_ERROR(std::logic_error, "method not implemented", ""); 
         KRATOS_CATCH("");
@@ -246,7 +296,11 @@ private:
     double mDirectionx;
     double mDirectiony;
     double mDirectionz;
-
+    
+    Parameters mParameters;
+    
+    TableType mLaserProfileTable;
+     
     /// Assignment operator.
     ApplyLaserProcess& operator=(ApplyLaserProcess const& rOther);
 

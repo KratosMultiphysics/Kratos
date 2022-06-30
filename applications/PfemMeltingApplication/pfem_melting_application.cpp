@@ -38,8 +38,11 @@ KratosPfemMeltingApplication::KratosPfemMeltingApplication()
     : KratosApplication("PfemMeltingApplication"),
 
 	mLagrangianFluidVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-	mLagrangianFluidVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
-
+	mLagrangianFluidVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+	//mHYPOELASTICSOLID2D  (0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+	//mHYPOELASTICSOLID3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))) 
+	mHYPO2D  (0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+	mHYPO3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))) 
       {}
 
 void KratosPfemMeltingApplication::Register() {
@@ -60,11 +63,42 @@ void KratosPfemMeltingApplication::Register() {
     KRATOS_REGISTER_VARIABLE(RADIOUS)
     KRATOS_REGISTER_VARIABLE(HEAT_OF_VAPORIZATION)
     KRATOS_REGISTER_VARIABLE(ARRHENIUS_VALUE)
+    
+    KRATOS_REGISTER_VARIABLE(DELTA_SIGMA_XX)
+    KRATOS_REGISTER_VARIABLE(DELTA_SIGMA_XY)
+    KRATOS_REGISTER_VARIABLE(DELTA_SIGMA_XZ)
+    
+    KRATOS_REGISTER_VARIABLE(DELTA_SIGMA_YX)
+    KRATOS_REGISTER_VARIABLE(DELTA_SIGMA_YY)
+    KRATOS_REGISTER_VARIABLE(DELTA_SIGMA_YZ)
+    
+    KRATOS_REGISTER_VARIABLE(DELTA_SIGMA_ZX)
+    KRATOS_REGISTER_VARIABLE(DELTA_SIGMA_ZY)
+    KRATOS_REGISTER_VARIABLE(DELTA_SIGMA_ZZ)
+    
+    
+    KRATOS_REGISTER_VARIABLE(HISTORICAL_SIGMA_XX)
+    KRATOS_REGISTER_VARIABLE(HISTORICAL_SIGMA_XY)
+    KRATOS_REGISTER_VARIABLE(HISTORICAL_SIGMA_XZ)
+    
+    KRATOS_REGISTER_VARIABLE(HISTORICAL_SIGMA_YX)
+    KRATOS_REGISTER_VARIABLE(HISTORICAL_SIGMA_YY)
+    KRATOS_REGISTER_VARIABLE(HISTORICAL_SIGMA_YZ)
 
+    KRATOS_REGISTER_VARIABLE(HISTORICAL_SIGMA_ZX)
+    KRATOS_REGISTER_VARIABLE(HISTORICAL_SIGMA_ZY)
+    KRATOS_REGISTER_VARIABLE(HISTORICAL_SIGMA_ZZ)
+    
+            
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INITIAL_POSITION)
 
     KRATOS_REGISTER_ELEMENT("LagrangianFluidVMS2D",mLagrangianFluidVMS2D);
     KRATOS_REGISTER_ELEMENT("LagrangianFluidVMS3D",mLagrangianFluidVMS3D);
+    //KRATOS_REGISTER_ELEMENT("HYPOELASTICSOLID2D",mHYPOELASTICSOLID2D);
+    //KRATOS_REGISTER_ELEMENT("HYPOELASTICSOLID3D",mHYPOELASTICSOLID3D);
+    KRATOS_REGISTER_ELEMENT("HYPO2D",mHYPO2D);
+    KRATOS_REGISTER_ELEMENT("HYPO3D",mHYPO3D);
+
 
 }
 
