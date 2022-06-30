@@ -32,20 +32,24 @@ class ErrorProjectionPostProcessTool(object):
         self.dtype = np.float64
         self.group_name = str(test_number)
 
-    def WriteData(self, error_model_part, velocity_error_projected, pressure_error_projected, projection_type, model_type, subscale_type, reynolds_number, porosity_mean, n_iterations, max_iteration, relax_alpha):
+    def WriteData(self, error_model_part, velocity_error_projected, pressure_error_projected, projection_type, model_type, subscale_type, porosity_mean, n_iterations, max_iteration, relax_alpha, lowest_alpha, damkohler_number):
         self.error_model_part = error_model_part
 
         self.projection_type = projection_type
         self.model_type = model_type
         self.subscale_type = subscale_type
-        self.reynolds_number = reynolds_number
+        #self.reynolds_number = reynolds_number
         self.porosity_mean = porosity_mean
         self.max_iteration = max_iteration
         self.relax_alpha = relax_alpha
+        self.lowest_alpha = lowest_alpha
+        self.damkohler_number = damkohler_number
 
-        for Element in self.error_model_part.Elements:
-            self.element_size = Element.GetGeometry().Length()
-            break
+        # for Element in self.error_model_part.Elements:
+        #     self.element_size = Element.GetGeometry().Length()
+        #     break
+        element_size = [Element.GetGeometry().Length() for Element in self.error_model_part.Elements]
+        self.element_size = np.max(element_size)
 
         # iterations = 0.0
         # for Element in self.error_model_part.Elements:
@@ -75,10 +79,11 @@ class ErrorProjectionPostProcessTool(object):
         self.sub_group.attrs['projection_type'] = str(self.projection_type)
         self.sub_group.attrs['model_type'] = str(self.model_type)
         self.sub_group.attrs['subscale_type'] = str(self.subscale_type)
-        self.sub_group.attrs['reynolds_number'] = str(self.reynolds_number)
         self.sub_group.attrs['porosity_mean'] = str(self.porosity_mean)
         self.sub_group.attrs['max_iteration'] = str(self.max_iteration)
         self.sub_group.attrs['relaxation_alpha'] = str(self.relax_alpha)
+        self.sub_group.attrs['lowest_alpha'] = str(self.lowest_alpha)
+        self.sub_group.attrs['damkohler_number'] = str(self.damkohler_number)
 
         for name, datum in zip(names, data):
             if name in file_or_group:

@@ -1,6 +1,7 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 from KratosMultiphysics import Model, Parameters, Logger
+import numpy as np
 
 import os
 import sys
@@ -29,6 +30,10 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
         self.project_parameters = varying_parameters
         self.GetModelAttributes()
         self.max_iteration = self.project_parameters['fluid_parameters']['solver_settings']['maximum_iterations'].GetInt()
+        self.u_char = self.project_parameters["error_projection_parameters"]["u_characteristic"].GetDouble()
+        self.lowest_alpha = self.project_parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"]["alpha_min"].GetDouble()
+        self.damkohler_number = self.project_parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"]["sigma"].GetDouble()/(self.lowest_alpha*self.u_char)
+        self.max_grad_alpha = 0.0
         # This model analysis is created to validate formulations so we have to make sure the fluid is computed in every time step
 
     def InitializeVariablesWithNonZeroValues(self):
@@ -74,7 +79,11 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
         super(SwimmingDEMAnalysis, self).FinalizeSolutionStep()
         self.n_iteration_number = self.fluid_model_part.ProcessInfo[Kratos.NL_ITERATION_NUMBER]
         self.relax_alpha = self.fluid_model_part.ProcessInfo[SDEM.RELAXATION_ALPHA]
-        self.velocity_error_projected, self.pressure_error_projected, self.error_model_part, self.reynolds_number, self.porosity_mean = self._GetSolver().CalculateL2Error()
+
+        porosity_field = [node.GetSolutionStepValue(Kratos.FLUID_FRACTION) for node in self.fluid_model_part.Nodes]
+        self.porosity_mean = np.mean(porosity_field)
+
+        self.velocity_error_projected, self.pressure_error_projected, self.error_model_part = self._GetSolver().CalculateL2Error()
 
         self.projector_post_process.WriteData(self.error_model_part,
                                             self.velocity_error_projected,
@@ -82,11 +91,12 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
                                             self.projection_type,
                                             self.model_type,
                                             self.subscale_type,
-                                            self.reynolds_number,
                                             self.porosity_mean,
                                             self.n_iteration_number,
                                             self.max_iteration,
-                                            self.relax_alpha)
+                                            self.relax_alpha,
+                                            self.lowest_alpha,
+                                            self.damkohler_number)
 
         return self.velocity_error_projected
 
