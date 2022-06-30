@@ -316,13 +316,21 @@ void CrBeamElement3D2N::CalculateDampingMatrix(
 
 Vector CrBeamElement3D2N::CalculateLocalNodalForces() const
 {
+    Vector initial_internal_forces_l = ZeroVector(msElementSize);
+    if (this->Has(BEAM_INITIAL_INTERNAL_FORCES)) {
+        BoundedMatrix<double, msElementSize, msElementSize> total_rotation_matrix = GetTransformationMatrixGlobal();
+        Vector initial_internal_forces_g = ZeroVector(msElementSize);
+        initial_internal_forces_g = this->GetValue(BEAM_INITIAL_INTERNAL_FORCES);
+        noalias(initial_internal_forces_l) = prod(trans(total_rotation_matrix), initial_internal_forces_g);
+    }
+
     // Deformation modes
     const Vector element_forces_t = CalculateElementForces();
-    
+
     // Nodal element forces local
     const Matrix transformation_matrix_s = CalculateTransformationS();
-    const Vector nodal_forces_local_qe = prod(transformation_matrix_s, element_forces_t);
-     
+    const Vector nodal_forces_local_qe = prod(transformation_matrix_s, element_forces_t) + initial_internal_forces_l;
+
     return nodal_forces_local_qe;
 }
 
@@ -1033,25 +1041,25 @@ void CrBeamElement3D2N::CalculateRightHandSide(
 }
 
 void CrBeamElement3D2N::ConstCalculateRightHandSide(
-    VectorType& rRightHandSideVector, 
+    VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
     KRATOS_TRY;
-    
+
     // Add internal forces
     const Vector internal_forces = CalculateGlobalNodalForces();
     rRightHandSideVector = ZeroVector(msElementSize);
     noalias(rRightHandSideVector) -= internal_forces;
-    
+
     // Add bodyforces
     noalias(rRightHandSideVector) += CalculateBodyForces();
-    
+
     KRATOS_CATCH("")
 }
 
 void CrBeamElement3D2N::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, 
+    MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1062,7 +1070,7 @@ void CrBeamElement3D2N::CalculateLeftHandSide(
 }
 
 void CrBeamElement3D2N::ConstCalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, 
+    MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
