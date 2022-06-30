@@ -144,7 +144,8 @@ namespace Kratos{
                                                 double ElasticLocalRotationalMoment[3],
                                                 double ViscoLocalRotationalMoment[3],
                                                 double equiv_poisson,
-                                                double indentation) override;
+                                                double indentation,
+                                                double LocalElasticContactForce[3]) override;
 
         /*
         void AddPoissonContribution(const double equiv_poisson,
@@ -174,7 +175,7 @@ namespace Kratos{
         double mUnbondedTangentialElasticConstant = 0.0;
         double mUnbondedViscoDampingLocalContactForce[3] = {0.0};
         double mBondedViscoDampingLocalContactForce[3] = {0.0};
-        double mBondedScalingFactor[2] = {0.0};
+        double mBondedScalingFactor[3] = {0.0};
         //double mUnbondedScalingFactor[2] = {0.0};
         double mUnbondedEquivViscoDampCoeffTangential = 0.0;
         double mUnbondedEquivViscoDampCoeffNormal = 0.0;

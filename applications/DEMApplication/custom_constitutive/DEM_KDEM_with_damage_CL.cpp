@@ -381,7 +381,8 @@ namespace Kratos {
                                                     double ElasticLocalRotationalMoment[3],
                                                     double ViscoLocalRotationalMoment[3],
                                                     double equiv_poisson,
-                                                    double indentation) {
+                                                    double indentation,
+                                                    double LocalElasticContactForce[3]) {
 
         KRATOS_TRY
 
@@ -394,7 +395,8 @@ namespace Kratos {
                                                     ElasticLocalRotationalMoment,
                                                     ViscoLocalRotationalMoment,
                                                     equiv_poisson,
-                                                    indentation);
+                                                    indentation,
+                                                    LocalElasticContactForce);
 
         ElasticLocalRotationalMoment[0] *= (1.0 - mDamageMoment);
         ElasticLocalRotationalMoment[1] *= (1.0 - mDamageMoment);

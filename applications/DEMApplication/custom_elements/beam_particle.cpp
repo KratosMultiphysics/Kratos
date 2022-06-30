@@ -381,7 +381,8 @@ namespace Kratos {
                                                                                    ElasticLocalRotationalMoment,
                                                                                    ViscoLocalRotationalMoment,
                                                                                    equiv_poisson,
-                                                                                   indentation);
+                                                                                   indentation,
+                                                                                   LocalElasticContactForce);
                 }
 
                 AddUpMomentsAndProject(data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
