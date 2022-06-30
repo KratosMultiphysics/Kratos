@@ -67,36 +67,9 @@ def AssembleTestSuites():
 
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
-        # Single patch test - checks iga essentials
-        SinglePatchTest,
-        # Truss tests
-        TTrussElementTests,
-        # Membrane tests
-        MembraneSinglePatchFourPointSailLinearStatic,
-        MembraneSinglePatchFourPointSailNonLinearStatic,
-        # 3p Shell KL
-        TShell3pElementTests,
-        ScordelisRoofShell3pTest,
-        LinearBeamShell3pTest,
-        LinearBeamShell3pAdditiveSchwarzTest,
-        # 5p Shell Director
-        ScordelisRoofShell5pTest,
-        # Weak support tests
-        SinglePatchRefinedSupportPenaltyTest,
-        SinglePatchRefinedSupportLagrangeTest,
-        # Coupling tests
-        TwoPatchCouplingPenaltyShell3pTest,
-        TwoPatchCouplingLagrangeShell3pTest,
-        TwoPatchRefinedCouplingPenaltyMembraneTest,
-        TwoPatchRefinedCouplingLagrangeMembraneTest,
-        # Rotation/G_1 coupling tests
-        TwoPatchCantileverCouplingPenaltyTest,
-        TwoPatchCantileverRefinedCouplingPenaltyTest,
-        # Volumes
-        TTestNurbsVolumeElements,
-        # Modelers
-        TTestModelers,
-        TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
+        TShell5pHierarchicLinearThickBeamTest,
+        TShell5pHierarchicLinearScordelisTest,
+        TShell5pHierarchicNonLinearThickBeamTest
     ]))
 
     if has_linear_solvers_application:

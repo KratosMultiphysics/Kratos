@@ -23,7 +23,10 @@
 #include "custom_elements/iga_membrane_element.h"
 #include "custom_elements/shell_3p_element.h"
 #include "custom_elements/shell_3p_stress_based_element.h"
+#include "custom_elements/shell_3p_stress_based_gradient_element.h"
 #include "custom_elements/shell_5p_hierarchic_element.h"
+#include "custom_elements/shell_5p_hierarchic_steel_element.h"
+#include "custom_elements/shell_5p_hierarchic_gradient_element.h"
 #include "custom_elements/shell_5p_element.h"
 #include "custom_elements/shell_5p_element_stress_based.h"
 
@@ -122,7 +125,10 @@ private:
     const IgaMembraneElement mIgaMembraneElement;
     const Shell3pElement mShell3pElement;
     const Shell3pStressBasedElement mShell3pStressBasedElement;
+    const Shell3pStressBasedGradientElement mShell3pStressBasedGradientElement;
     const Shell5pHierarchicElement mShell5pHierarchicElement;
+    const Shell5pHierarchicSteelElement mShell5pHierarchicSteelElement;
+    const Shell5pHierarchicGradientElement mShell5pHierarchicGradientElement;
     const Shell5pElement mShell5pElement;
     const Shell5pStressBasedElement mShell5pStressBasedElement;
 

@@ -26,7 +26,13 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mShell3pStressBasedElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    , mShell3pStressBasedGradientElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mShell5pHierarchicElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    , mShell5pHierarchicSteelElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    , mShell5pHierarchicGradientElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mShell5pElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
@@ -71,7 +77,10 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("IgaMembraneElement", mIgaMembraneElement)
     KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
     KRATOS_REGISTER_ELEMENT("Shell3pStressBasedElement", mShell3pStressBasedElement)
+    KRATOS_REGISTER_ELEMENT("Shell3pStressBasedGradientElement", mShell3pStressBasedGradientElement)
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
+    KRATOS_REGISTER_ELEMENT("Shell5pHierarchicSteelElement", mShell5pHierarchicSteelElement)
+    KRATOS_REGISTER_ELEMENT("Shell5pHierarchicGradientElement", mShell5pHierarchicGradientElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
     KRATOS_REGISTER_ELEMENT("Shell5pStressBasedElement", mShell5pStressBasedElement)
 
@@ -94,6 +103,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
 
     // VARIABLES
     KRATOS_REGISTER_VARIABLE(CROSS_AREA)
+    KRATOS_REGISTER_VARIABLE(SHEAR_MODULUS)
       
     KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_CAUCHY)
     KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_PK2)
@@ -153,6 +163,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(SHEAR_FORCE_2)
 
     KRATOS_REGISTER_VARIABLE(INTEGRATE_CONSERVATIVE)
+    KRATOS_REGISTER_VARIABLE(ZETA_STEEL)
+    KRATOS_REGISTER_VARIABLE(THICKNESS_STEEL)
     KRATOS_REGISTER_VARIABLE(NUMBER_OF_THICKNESS_INTEGRATION_POINTS)
 
     KRATOS_REGISTER_VARIABLE(PENALTY_FACTOR)

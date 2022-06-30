@@ -9,6 +9,8 @@
 // External includes
 
 // Project includes
+#include "integration/integration_point_utilities.h"
+
 
 // Application includes
 #include "iga_application_variables.h"
@@ -192,6 +194,12 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -223,13 +231,54 @@ private:
     ///@{
 
     /// The vector containing the constitutive laws
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+    std::vector<std::vector<ConstitutiveLaw::Pointer>> mConstitutiveLawVector;
 
     // curvilinear coordinate zeta (theta3)
-    double mZeta;
+    //double mZeta;
 
     // transformation matrix from contravariant curvilinear base to local Cartesian base both in the initial configuration
     Matrix mInitialTransConToCar;
+
+    /**
+     * @brief This method gets a value directly from the CL
+     * @details Avoids code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained at the integration points
+     * @tparam TType The variable type
+     */
+    template<class TType>
+    void GetValueOnConstitutiveLaw(
+        const Variable<TType>& rVariable,
+        std::vector<TType>& rOutput
+    )
+    {
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+            mConstitutiveLawVector[point_number][0]->GetValue(rVariable, rOutput[point_number]);
+        }
+    }
+
+    template<class TType, class TType2>
+    void GetValueVectorOnConstitutiveLaw(
+        const Variable<TType>& rVectorVariable,
+        const Variable<TType2>& rScalarVariable,
+        std::vector<TType>& rOutput
+    )
+    {
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+            if (rOutput[point_number].size() != mNumberOfThicknessIntegrationPoints) {
+                rOutput[point_number].resize(mNumberOfThicknessIntegrationPoints);
+            }
+
+            for (IndexType thickness_point_number = 0; thickness_point_number < mNumberOfThicknessIntegrationPoints; ++thickness_point_number)
+            {
+                mConstitutiveLawVector[point_number][thickness_point_number]->GetValue(rScalarVariable, rOutput[point_number][thickness_point_number]);
+            }
+        }
+    }
 
     /// Internal variables used for metric transformation
     struct MetricVariables
@@ -342,44 +391,50 @@ private:
     MetricVariables mInitialMetric = MetricVariables(3, 5);
 
     /// @brief Informations regarding the Gauss-quadrature in thickness direction
-    struct GaussQuadratureThickness
-    {
-        unsigned int num_GP_thickness;
-        Vector integration_weight_thickness;
-        Vector zeta;
+    //struct GaussQuadratureThickness
+    //{
+    //    unsigned int num_GP_thickness;
+    //    Vector integration_weight_thickness;
+    //    Vector zeta;
 
-        // The default constructor
-        GaussQuadratureThickness(){}
-        // constructor
-        GaussQuadratureThickness(const unsigned int& rNumGPThickness)
-        {
-            num_GP_thickness = rNumGPThickness;
-            integration_weight_thickness = ZeroVector(rNumGPThickness);
-            zeta = ZeroVector(rNumGPThickness);
+    //    // The default constructor
+    //    GaussQuadratureThickness(){}
+    //    // constructor
+    //    GaussQuadratureThickness(const unsigned int& rNumGPThickness)
+    //    {
+    //        num_GP_thickness = rNumGPThickness;
+    //        integration_weight_thickness = ZeroVector(rNumGPThickness);
+    //        zeta = ZeroVector(rNumGPThickness);
 
-            if (rNumGPThickness == 3)
-            {
-                integration_weight_thickness(0) = 5.0 / 9.0;
-                zeta(0) = -sqrt(3.0 / 5.0);
-                integration_weight_thickness(1) = 8.0/9.0;
-                zeta(1) = 0.0;
-                integration_weight_thickness(2) = 5.0 / 9.0;
-                zeta(2) = sqrt(3.0 / 5.0);
-            }
-            else
-            {
-                KRATOS_ERROR << "Desired number of Gauss-Points unlogical or not implemented. You can choose 3 Gauss-Points." << std::endl;
-            }
-            
-        }
-    };
+    //        if (rNumGPThickness == 3)
+    //        {
+    //            integration_weight_thickness(0) = 5.0 / 9.0;
+    //            zeta(0) = -sqrt(3.0 / 5.0);
+    //            integration_weight_thickness(1) = 8.0/9.0;
+    //            zeta(1) = 0.0;
+    //            integration_weight_thickness(2) = 5.0 / 9.0;
+    //            zeta(2) = sqrt(3.0 / 5.0);
+    //        }
+    //        else
+    //        {
+    //            KRATOS_ERROR << "Desired number of Gauss-Points unlogical or not implemented. You can choose 3 Gauss-Points." << std::endl;
+    //        }
+    //        
+    //    }
+    //};
 
     // here the number of Gauss-Points over the thickness is specified
-    GaussQuadratureThickness mGaussIntegrationThickness = GaussQuadratureThickness(3);
+    //GaussQuadratureThickness mGaussIntegrationThickness = GaussQuadratureThickness(3);
+
+    double mNumberOfThicknessIntegrationPoints;
+    Vector mThicknessIntegrationWeights;
+    Vector mZeta;
 
     ///@}
     ///@name Operations
     ///@{
+
+    void SetThicknessIntegrationPoints();
 
     /* @brief Calculation of the Stiffness Matrix
      * @detail Km = integration_weight * B^T * D *B
@@ -460,7 +515,8 @@ private:
         array_1d<double, 3>& rG1,
         array_1d<double, 3>& rG2,
         array_1d<double, 3>& rG1_con,
-        array_1d<double, 3>& rG2_con);
+        array_1d<double, 3>& rG2_con,
+        double Zeta);
 
     /* @brief Calculation of the base vectors of the shell body (in contrast to the mid-surface) for the actual configuration
      * @detail A linearized metric (g_alpha = a_alpha + zeta * Da3_Dalpha) is assumed.
@@ -478,7 +534,8 @@ private:
         const Vector& rDw_D2,
         array_1d<double, 3>& rg1,
         array_1d<double, 3>& rg2,
-        array_1d<double, 3>& rg3);
+        array_1d<double, 3>& rg3,
+        double Zeta);
 
     /* @brief Calculates deformation gradient F for a Gauss point
      * @param rG1, rG2 = base vectors of the shell body of the reference configuration (G3=A3)
@@ -511,7 +568,8 @@ private:
         const Vector& rDw_D2,
         ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure);
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure,
+        IndexType ThicknessIntegrationPoint);
 
     /* @brief This method calculates the strain according to the Kirchhoff-Love theory
      * @param ra_ab = covariant metric
@@ -519,7 +577,8 @@ private:
     void CalculateStrain(
         array_1d<double, 5>& rStrainVector,
         const Vector& ra_ab,
-        const Vector& rCurvature);
+        const Vector& rCurvature,
+        double Zeta);
 
     /* @brief This method calculates the additional strain components according to the Reissner-Mindlin theory
      * @param rw = shear difference vector
@@ -532,7 +591,8 @@ private:
         const Vector& rDw_D1,
         const Vector& rDw_D2,
         const Vector& ra1,
-        const Vector& ra2);
+        const Vector& ra2,
+        double Zeta);
 
     /// @brief This method performs a transformation of a curvilinear strain vector with Voigt size 5 to a Cartesian strain vector with Voigt size 6
     void TransformationCurvilinearStrainSize5ToCartesianStrainSize6(
@@ -545,13 +605,15 @@ private:
     void CalculateB(
         Matrix& rB,
         const MetricVariables& rActualMetric,
-        IndexType IntegrationPointIndex = 0);
+        IndexType IntegrationPointIndex,
+        double Zeta);
 
     /// @brief The method calculates the second variations according to Kirchhoff-Love
     void CalculateSecondVariations(
         SecondVariations& rSecondVariations,
         const MetricVariables& rActualMetric,
-        IndexType IntegrationPointIndex = 0);
+        IndexType IntegrationPointIndex,
+        double Zeta);
 
     /* @brief The method calculates the additional terms of the B matrix and the second variations according to Reissner-Mindlin
      * @param rw = hierarchic shear difference vector
@@ -570,7 +632,8 @@ private:
         const Matrix& rDw_alpha_Dbeta,
         const MetricVariables& rActualMetric,
         const bool& rCalculateStiffnessMatrixFlag,
-        IndexType IntegrationPointIndex = 0);
+        IndexType IntegrationPointIndex,
+        double Zeta);
 
     ///@}
     ///@name Protected Operations

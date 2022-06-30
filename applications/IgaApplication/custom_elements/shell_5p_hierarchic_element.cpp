@@ -36,15 +36,33 @@
 
 namespace Kratos
 {
+    void Shell5pHierarchicElement::SetThicknessIntegrationPoints()
+    {
+        const int number_integration_points = (GetProperties().Has(NUMBER_OF_THICKNESS_INTEGRATION_POINTS))
+            ? this->GetProperties()[NUMBER_OF_THICKNESS_INTEGRATION_POINTS]
+            : 3;
+
+        const std::vector<std::array<double, 2>>& integration_point_list = IntegrationPointUtilities::s_gauss_legendre[number_integration_points - 1];
+
+        mNumberOfThicknessIntegrationPoints = number_integration_points;
+        mZeta.resize(number_integration_points);
+        mThicknessIntegrationWeights.resize(number_integration_points);
+
+        for (SizeType i = 0; i < number_integration_points; ++i)
+        {
+            mZeta[i] = -1 + 2 * integration_point_list[i][0];
+            mThicknessIntegrationWeights[i] = 2 * integration_point_list[i][1];
+        }
+    }
+
     void Shell5pHierarchicElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
+        SetThicknessIntegrationPoints();
+
         //Constitutive Law initialisation
         InitializeMaterial();
 
         CalculateMetric(mInitialMetric);
-
-        mZeta = 0.0;
-        mInitialTransConToCar = ZeroMatrix(5, 5);
     }
 
     void Shell5pHierarchicElement::InitializeMaterial()
@@ -61,11 +79,31 @@ namespace Kratos
         if (mConstitutiveLawVector.size() != r_number_of_integration_points)
             mConstitutiveLawVector.resize(r_number_of_integration_points);
 
+        for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number) {
+            if (mConstitutiveLawVector[point_number].size() != mNumberOfThicknessIntegrationPoints)
+                mConstitutiveLawVector[point_number].resize(mNumberOfThicknessIntegrationPoints);
 
-        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
-            mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-            mConstitutiveLawVector[point_number]->InitializeMaterial(
-                r_properties, r_geometry, row(r_N, point_number));
+            for (IndexType thickness_point_number = 0; thickness_point_number < mNumberOfThicknessIntegrationPoints; ++thickness_point_number) {
+                mConstitutiveLawVector[point_number][thickness_point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+                mConstitutiveLawVector[point_number][thickness_point_number]->InitializeMaterial(r_properties, r_geometry, row(r_N, point_number));
+            }
+        }
+
+        //double E = properties[YOUNG_MODULUS];
+        //double G = properties[SHEAR_MODULUS];
+
+        for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number) {
+            if (mConstitutiveLawVector[point_number].size() != mNumberOfThicknessIntegrationPoints)
+                mConstitutiveLawVector[point_number].resize(mNumberOfThicknessIntegrationPoints);
+
+            for (IndexType thickness_point_number = 0; thickness_point_number < mNumberOfThicknessIntegrationPoints; ++thickness_point_number) {
+                //double local_E = E * (mZeta[thickness_point_number] * mZeta[thickness_point_number] + 0.003);
+                //properties[YOUNG_MODULUS] = local_E;
+                //double local_G = G * (mZeta[thickness_point_number] * mZeta[thickness_point_number] + 0.003);
+                //properties[SHEAR_MODULUS] = local_G;
+                mConstitutiveLawVector[point_number][thickness_point_number] = r_properties[CONSTITUTIVE_LAW]->Clone();
+                mConstitutiveLawVector[point_number][thickness_point_number]->InitializeMaterial(r_properties, r_geometry, row(r_N, point_number));
+            }
         }
 
         KRATOS_CATCH("");
@@ -85,11 +123,13 @@ namespace Kratos
         SizeType number_of_control_points = GetGeometry().size();
         SizeType mat_size = number_of_control_points * 5;
 
+        Properties properties = GetProperties();
+        //double E = properties[YOUNG_MODULUS];
+        //double G = properties[SHEAR_MODULUS];
+
+        const Properties& r_properties = GetProperties();
         //set up properties for Constitutive Law
-        ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-        Values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
-        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
 
         // initialization of shear difference vector
         array_1d<double, 3> w(3, 0.0);  // shear difference vector
@@ -106,38 +146,47 @@ namespace Kratos
         double thickness = GetProperties().GetValue(THICKNESS);
 
         // Gauss Integration over thickness
-        for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
+        for (IndexType thickness_point_number = 0; thickness_point_number < mNumberOfThicknessIntegrationPoints; ++thickness_point_number)
         {
-            mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
+            //mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
             
             // Differential Volume
             array_1d<double, 3> G1(3, 0.0), G2(3, 0.0), G1_con(3, 0.0), G2_con(3, 0.0);
-            CalculateInitialBaseVectorsLinearised(G1, G2, G1_con, G2_con);
+            CalculateInitialBaseVectorsLinearised(G1, G2, G1_con, G2_con, mZeta(thickness_point_number));
             double dV = inner_prod(MathUtils<double>::CrossProduct(G1, G2), mInitialMetric.a3_kirchhoff_love);   // mInitialMetric.a3_kirchhoff_love = G3
 
             // Transformation Matrix
             CalculateTransformationMatrixInitialTransConToCar(G1_con, G2_con);
 
+            //double local_E = E * (mZeta[thickness_point_number] * mZeta[thickness_point_number] + 0.003);
+            //properties[YOUNG_MODULUS] = local_E;
+            //double local_G = G * (mZeta[thickness_point_number] * mZeta[thickness_point_number] + 0.003);
+            //properties[SHEAR_MODULUS] = local_G;
+            ConstitutiveLaw::Parameters Values(GetGeometry(), properties, rCurrentProcessInfo);
+            Values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+            Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
+            Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
             // calculate strains and stresses
             ConstitutiveVariables constitutive_variables(5);
             CalculateConstitutiveVariables(actual_metric, w, Dw_D1, Dw_D2, constitutive_variables, Values, 
-                ConstitutiveLaw::StressMeasure_PK2);
+                ConstitutiveLaw::StressMeasure_PK2, thickness_point_number);
 
             // calculate variations (second variations according to Kirchhoff-Love are later computed, if needed)
             Matrix B = ZeroMatrix(5, mat_size);
             SecondVariations second_variations(mat_size);
-            CalculateB(B, actual_metric); // only Kirchhoff-Love contribution
+            CalculateB(B, actual_metric, 0, mZeta(thickness_point_number)); // only Kirchhoff-Love contribution
             CalculateVariationsReissnerMindlin(B, second_variations, w, Dw_D1, Dw_D2, w_alpha, Dw_alpha_Dbeta, 
-                actual_metric, CalculateStiffnessMatrixFlag);   // only Reissner-Mindlin contribution, the contributions in B are added to that one of the Kirchhoff-Love part
+                actual_metric, CalculateStiffnessMatrixFlag, 0, mZeta(thickness_point_number));   // only Reissner-Mindlin contribution, the contributions in B are added to that one of the Kirchhoff-Love part
 
-            double integration_weight = mGaussIntegrationThickness.integration_weight_thickness(Gauss_index) * 
-                GetGeometry().IntegrationPoints()[0].Weight()  * dV * thickness / 2.0;
+            double integration_weight = mThicknessIntegrationWeights(thickness_point_number) // mGaussIntegrationThickness.integration_weight_thickness(Gauss_index)*
+                * GetGeometry().IntegrationPoints()[0].Weight()  * dV * thickness / 2.0;
 
             // LEFT HAND SIDE MATRIX
             if (CalculateStiffnessMatrixFlag == true)
             {
                 // Second variations (Kirchhoff-Love)
-                CalculateSecondVariations(second_variations, actual_metric);
+                CalculateSecondVariations(second_variations, actual_metric, 0, mZeta(thickness_point_number));
                 
                 // adding linear contributions to the stiffness matrix
                 CalculateAndAddKm(rLeftHandSideMatrix, B, constitutive_variables.D, integration_weight);
@@ -376,7 +425,8 @@ namespace Kratos
         array_1d<double, 3>& rG1,
         array_1d<double, 3>& rG2,
         array_1d<double, 3>& rG1_con,
-        array_1d<double, 3>& rG2_con)
+        array_1d<double, 3>& rG2_con,
+        double Zeta)
     {
         double thickness = GetProperties()[THICKNESS];
         
@@ -393,8 +443,8 @@ namespace Kratos
             / (mInitialMetric.dA * mInitialMetric.dA);
 
         // covariant base vectors of the shell body in the reference configuration
-        rG1 = mInitialMetric.a1 + thickness / 2.0 * mZeta * DA3_D1;
-        rG2 = mInitialMetric.a2 + thickness / 2.0 * mZeta * DA3_D2;
+        rG1 = mInitialMetric.a1 + thickness / 2.0 * Zeta * DA3_D1;
+        rG2 = mInitialMetric.a2 + thickness / 2.0 * Zeta * DA3_D2;
         // G3 = A3
 
         // covariant metric
@@ -421,7 +471,8 @@ namespace Kratos
         const Vector& rDw_D2,
         array_1d<double, 3>& rg1,
         array_1d<double, 3>& rg2,
-        array_1d<double, 3>& rg3
+        array_1d<double, 3>& rg3,
+        double Zeta
         )
     {
         double thickness = GetProperties()[THICKNESS];
@@ -459,8 +510,8 @@ namespace Kratos
         }
 
         /* Kovariante Basisvektoren */
-        rg1 = rActualMetric.a1 + thickness / 2.0 * mZeta*(Da3_KL_D1 + rDw_D1);
-        rg2 = rActualMetric.a2 + thickness / 2.0 * mZeta*(Da3_KL_D2 + rDw_D2);
+        rg1 = rActualMetric.a1 + thickness / 2.0 * Zeta*(Da3_KL_D1 + rDw_D1);
+        rg2 = rActualMetric.a2 + thickness / 2.0 * Zeta*(Da3_KL_D2 + rDw_D2);
         rg3 = rActualMetric.a3_kirchhoff_love + rw;     // g3 = a3
     }
 
@@ -509,15 +560,16 @@ namespace Kratos
         const Vector& rDw_D2,
         ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure)
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure,
+        IndexType ThicknessIntegrationPoint)
     {
         KRATOS_TRY
 
         array_1d<double, 5> strain_vector(5, 0.0), strain_vector_reissner_mindlin(5, 0.0);
         
         // Strain computation in curvilinear space
-        CalculateStrain(strain_vector, rActualMetric.a_ab, rActualMetric.curvature);
-        CalculateStrainReissnerMindlin(strain_vector_reissner_mindlin, rw, rDw_D1, rDw_D2, rActualMetric.a1, rActualMetric.a2);
+        CalculateStrain(strain_vector, rActualMetric.a_ab, rActualMetric.curvature, mZeta(ThicknessIntegrationPoint));
+        CalculateStrainReissnerMindlin(strain_vector_reissner_mindlin, rw, rDw_D1, rDw_D2, rActualMetric.a1, rActualMetric.a2, mZeta(ThicknessIntegrationPoint));
         rThisConstitutiveVariables.E = strain_vector + strain_vector_reissner_mindlin;
 
         // Strain transformation to local Cartesian Space with VoigtSize 6 because ConstitutiveLaw is 3D
@@ -529,7 +581,7 @@ namespace Kratos
         rValues.SetStressVector(constitutive_variables.S);    //this is an ouput parameter
         rValues.SetConstitutiveMatrix(constitutive_variables.D); //this is an ouput parameter
 
-        mConstitutiveLawVector[0]->CalculateMaterialResponse(rValues, ThisStressMeasure);
+        mConstitutiveLawVector[0][ThicknessIntegrationPoint]->CalculateMaterialResponse(rValues, ThisStressMeasure);
         // static condensation of  sigma_33
         IndexType index_i = 0;
         for (IndexType i = 0; i < 6; i++)
@@ -561,15 +613,16 @@ namespace Kratos
     void Shell5pHierarchicElement::CalculateStrain(
         array_1d<double, 5>& rStrainVector,
         const Vector& ra_ab,
-        const Vector& rCurvature)
+        const Vector& rCurvature,
+        double Zeta)
     {
         KRATOS_TRY
         
         double thickness = GetProperties().GetValue(THICKNESS);
 
-        rStrainVector[0] = 0.5 * (ra_ab[0] - mInitialMetric.a_ab[0]) + mZeta * thickness / 2.0 * (mInitialMetric.curvature[0] - rCurvature[0]);
-        rStrainVector[1] = 0.5 * (ra_ab[1] - mInitialMetric.a_ab[1]) + mZeta * thickness / 2.0 * (mInitialMetric.curvature[1] - rCurvature[1]);
-        rStrainVector[2] = 0.5 * (ra_ab[2] - mInitialMetric.a_ab[2]) + mZeta * thickness / 2.0 * (mInitialMetric.curvature[2] - rCurvature[2]);
+        rStrainVector[0] = 0.5 * (ra_ab[0] - mInitialMetric.a_ab[0]) + Zeta * thickness / 2.0 * (mInitialMetric.curvature[0] - rCurvature[0]);
+        rStrainVector[1] = 0.5 * (ra_ab[1] - mInitialMetric.a_ab[1]) + Zeta * thickness / 2.0 * (mInitialMetric.curvature[1] - rCurvature[1]);
+        rStrainVector[2] = 0.5 * (ra_ab[2] - mInitialMetric.a_ab[2]) + Zeta * thickness / 2.0 * (mInitialMetric.curvature[2] - rCurvature[2]);
         // the other entries are (remain) zero (Kirchhoff-Love)
         
         KRATOS_CATCH("")
@@ -581,13 +634,14 @@ namespace Kratos
         const Vector& rDw_D1,
         const Vector& rDw_D2,
         const Vector& ra1,
-        const Vector& ra2)
+        const Vector& ra2,
+        double Zeta)
     {
         double thickness = GetProperties().GetValue(THICKNESS);
                 
-        rStrainVectorReissnerMindlin[0] = mZeta * thickness/2.0 * inner_prod(rDw_D1, ra1);
-        rStrainVectorReissnerMindlin[1] = mZeta * thickness/2.0 * inner_prod(rDw_D2, ra2);
-        rStrainVectorReissnerMindlin[2] = mZeta * thickness/2.0 * 0.5 * (inner_prod(rDw_D1, ra2) + inner_prod(rDw_D2, ra1));
+        rStrainVectorReissnerMindlin[0] = Zeta * thickness/2.0 * inner_prod(rDw_D1, ra1);
+        rStrainVectorReissnerMindlin[1] = Zeta * thickness/2.0 * inner_prod(rDw_D2, ra2);
+        rStrainVectorReissnerMindlin[2] = Zeta * thickness/2.0 * 0.5 * (inner_prod(rDw_D1, ra2) + inner_prod(rDw_D2, ra1));
         rStrainVectorReissnerMindlin[3] = 0.5 * inner_prod(rw, ra2);
         rStrainVectorReissnerMindlin[4] = 0.5 * inner_prod(rw, ra1);
     }
@@ -616,7 +670,8 @@ namespace Kratos
     void Shell5pHierarchicElement::CalculateB(
         Matrix& rB,
         const MetricVariables& rActualMetric,
-        IndexType IntegrationPointIndex)
+        IndexType IntegrationPointIndex,
+        double Zeta)
     {
         const GeometryType& r_geometry = GetGeometry();
         const Matrix& r_DN_De = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
@@ -695,11 +750,11 @@ namespace Kratos
             // "index" guarantees that there are zero entries corresponding to the new parameters w_1 and w_2
             for (unsigned int j = 0; j < 3; j++)
             {
-                b(0, index_KL + j) = -mZeta * thickness / 2.0 * (r_DDN_DDe(i, 0) * rActualMetric.a3_kirchhoff_love[j] + rActualMetric.H(0, 0) * dn(j, 0)
+                b(0, index_KL + j) = -Zeta * thickness / 2.0 * (r_DDN_DDe(i, 0) * rActualMetric.a3_kirchhoff_love[j] + rActualMetric.H(0, 0) * dn(j, 0)
                     + rActualMetric.H(1, 0) * dn(j, 1) + rActualMetric.H(2, 0) * dn(j, 2));
-                b(1, index_KL + j) = -mZeta * thickness / 2.0 * (r_DDN_DDe(i, 2) * rActualMetric.a3_kirchhoff_love[j] + rActualMetric.H(0, 1) * dn(j, 0)
+                b(1, index_KL + j) = -Zeta * thickness / 2.0 * (r_DDN_DDe(i, 2) * rActualMetric.a3_kirchhoff_love[j] + rActualMetric.H(0, 1) * dn(j, 0)
                     + rActualMetric.H(1, 1) * dn(j, 1) + rActualMetric.H(2, 1) * dn(j, 2));
-                b(2, index_KL + j) = -mZeta * thickness / 2.0 * (r_DDN_DDe(i, 1) * rActualMetric.a3_kirchhoff_love[j] + rActualMetric.H(0, 2) * dn(j, 0)
+                b(2, index_KL + j) = -Zeta * thickness / 2.0 * (r_DDN_DDe(i, 1) * rActualMetric.a3_kirchhoff_love[j] + rActualMetric.H(0, 2) * dn(j, 0)
                     + rActualMetric.H(1, 2) * dn(j, 1) + rActualMetric.H(2, 2) * dn(j, 2));
 
                 rB(0, index + j) += mInitialTransConToCar(0, 0) * b(0, index_KL + j);
@@ -713,7 +768,8 @@ namespace Kratos
     void Shell5pHierarchicElement::CalculateSecondVariations(
         SecondVariations& rSecondVariations,
         const MetricVariables& rActualMetric,
-        IndexType IntegrationPointIndex)
+        IndexType IntegrationPointIndex,
+        double Zeta)
     {
         const GeometryType& r_geometry = GetGeometry();
         const Matrix& r_DN_De = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
@@ -808,11 +864,11 @@ namespace Kratos
                 ddn[2] = ddg3[2] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(2, r) - S_g3dg3lg3_3[r] * S_dg3(2, s) + (c + d)*rActualMetric.a3_kirchhoff_love_tilde[2];
 
                 array_1d<double, 3> ddK_cu(3, 0.0);
-                ddK_cu[0] = - mZeta * thickness / 2.0 * (r_DDN_DDe(kr, 0)*S_dn(dirr, s) + r_DDN_DDe(ks, 0)*S_dn(dirs, r)
+                ddK_cu[0] = - Zeta * thickness / 2.0 * (r_DDN_DDe(kr, 0)*S_dn(dirr, s) + r_DDN_DDe(ks, 0)*S_dn(dirs, r)
                     + rActualMetric.H(0, 0)*ddn[0] + rActualMetric.H(1, 0)*ddn[1] + rActualMetric.H(2, 0)*ddn[2]);
-                ddK_cu[1] = - mZeta * thickness / 2.0 * (r_DDN_DDe(kr, 2)*S_dn(dirr, s) + r_DDN_DDe(ks, 2)*S_dn(dirs, r)
+                ddK_cu[1] = - Zeta * thickness / 2.0 * (r_DDN_DDe(kr, 2)*S_dn(dirr, s) + r_DDN_DDe(ks, 2)*S_dn(dirs, r)
                     + rActualMetric.H(0, 1)*ddn[0] + rActualMetric.H(1, 1)*ddn[1] + rActualMetric.H(2, 1)*ddn[2]);
-                ddK_cu[2] = - mZeta * thickness / 2.0 * (r_DDN_DDe(kr, 1)*S_dn(dirr, s) + r_DDN_DDe(ks, 1)*S_dn(dirs, r)
+                ddK_cu[2] = - Zeta * thickness / 2.0 * (r_DDN_DDe(kr, 1)*S_dn(dirr, s) + r_DDN_DDe(ks, 1)*S_dn(dirs, r)
                     + rActualMetric.H(0, 2)*ddn[0] + rActualMetric.H(1, 2)*ddn[1] + rActualMetric.H(2, 2)*ddn[2]);
 
                 // calculated with reduced mInitialTransConToCar
@@ -860,7 +916,8 @@ namespace Kratos
         const Matrix& rDw_alpha_Dbeta,
         const MetricVariables& rActualMetric,
         const bool& rCalculateStiffnessMatrixFlag,
-        IndexType IntegrationPointIndex)
+        IndexType IntegrationPointIndex,
+        double Zeta)
     {
         const GeometryType& r_geometry = GetGeometry();
         const Matrix& r_N = r_geometry.ShapeFunctionsValues();
@@ -943,10 +1000,10 @@ namespace Kratos
             dK_cu[2] += 0.5 * (inner_prod(DDw_DD1r, rActualMetric.a2) + inner_prod(DDw_DD2r, rActualMetric.a1));
 
             // calculated with reduced mInitialTransConToCar
-            rB(0, r) += mZeta * thickness / 2.0 * mInitialTransConToCar(0, 0) * dK_cu[0];
-            rB(1, r) += mZeta * thickness / 2.0 * (mInitialTransConToCar(1, 0) * dK_cu[0] + mInitialTransConToCar(1, 1) * dK_cu[1] 
+            rB(0, r) += Zeta * thickness / 2.0 * mInitialTransConToCar(0, 0) * dK_cu[0];
+            rB(1, r) += Zeta * thickness / 2.0 * (mInitialTransConToCar(1, 0) * dK_cu[0] + mInitialTransConToCar(1, 1) * dK_cu[1] 
                 + mInitialTransConToCar(1, 2) * dK_cu[2]);
-            rB(2, r) += mZeta * thickness / 2.0 * (mInitialTransConToCar(2, 0) * dK_cu[0] + mInitialTransConToCar(2, 2) * dK_cu[2]);
+            rB(2, r) += Zeta * thickness / 2.0 * (mInitialTransConToCar(2, 0) * dK_cu[0] + mInitialTransConToCar(2, 2) * dK_cu[2]);
             // all other entries are (remain) zero
 
             // 3. Second Strain Variation
@@ -1037,9 +1094,9 @@ namespace Kratos
                     }
                     
                     if (dirr == 0 || dirr == 1 || dirr == 2){
-                        ddK_cu[0] = mZeta * thickness /2.0 * DDw_DD1s[dirr] * r_DN_De(kr, 0);
-                        ddK_cu[1] = mZeta * thickness /2.0 * DDw_DD2s[dirr] * r_DN_De(kr, 1);
-                        ddK_cu[2] = mZeta * thickness /2.0 * 0.5 * (DDw_DD1s[dirr] * r_DN_De(kr, 1) + DDw_DD2s[dirr] * r_DN_De(kr, 0));
+                        ddK_cu[0] = Zeta * thickness /2.0 * DDw_DD1s[dirr] * r_DN_De(kr, 0);
+                        ddK_cu[1] = Zeta * thickness /2.0 * DDw_DD2s[dirr] * r_DN_De(kr, 1);
+                        ddK_cu[2] = Zeta * thickness /2.0 * 0.5 * (DDw_DD1s[dirr] * r_DN_De(kr, 1) + DDw_DD2s[dirr] * r_DN_De(kr, 0));
                         }
                     else if (dirr == 3 && (dirs == 0 || dirs == 1 || dirs == 2)){
                         DDDw_DDD1rs[dirs] = r_DN_De(kr, 0) * r_DN_De(ks, 0) + r_N(IntegrationPointIndex, kr) * r_DDN_DDe(ks, 0);
@@ -1050,9 +1107,9 @@ namespace Kratos
                         DDDw_DDD2rs[dirs] += r_DN_De(kr, 1) * r_DN_De(ks, 1) + r_N(IntegrationPointIndex, kr) * r_DDN_DDe(ks, 2);
                     }
                     if (dirs == 0 || dirs == 1 || dirs == 2){
-                        ddK_cu[0] += mZeta * thickness /2.0 * DDw_DD1r[dirs] * r_DN_De(ks, 0);
-                        ddK_cu[1] += mZeta * thickness /2.0 * DDw_DD2r[dirs] * r_DN_De(ks, 1);
-                        ddK_cu[2] += mZeta * thickness /2.0 * 0.5 * (DDw_DD1r[dirs] * r_DN_De(ks, 1) + DDw_DD2r[dirs] * r_DN_De(ks, 0));
+                        ddK_cu[0] += Zeta * thickness /2.0 * DDw_DD1r[dirs] * r_DN_De(ks, 0);
+                        ddK_cu[1] += Zeta * thickness /2.0 * DDw_DD2r[dirs] * r_DN_De(ks, 1);
+                        ddK_cu[2] += Zeta * thickness /2.0 * 0.5 * (DDw_DD1r[dirs] * r_DN_De(ks, 1) + DDw_DD2r[dirs] * r_DN_De(ks, 0));
                         }
                     else if (dirs == 3 && (dirr == 0 || dirr == 1 || dirr == 2)){
                         DDDw_DDD1rs[dirr] += r_DN_De(ks, 0) * r_DN_De(kr, 0) + r_N(IntegrationPointIndex, ks) * r_DDN_DDe(kr, 0);
@@ -1062,9 +1119,9 @@ namespace Kratos
                         DDDw_DDD1rs[dirr] += r_DN_De(ks, 0) * r_DN_De(kr, 1) + r_N(IntegrationPointIndex, ks) * r_DDN_DDe(kr, 1);
                         DDDw_DDD2rs[dirr] += r_DN_De(ks, 1) * r_DN_De(kr, 1) + r_N(IntegrationPointIndex, ks) * r_DDN_DDe(kr, 2);
                     }
-                    ddK_cu[0] += mZeta * thickness / 2.0 * inner_prod(DDDw_DDD1rs, rActualMetric.a1);
-                    ddK_cu[1] += mZeta * thickness / 2.0 * inner_prod(DDDw_DDD2rs, rActualMetric.a2);
-                    ddK_cu[2] += mZeta * thickness / 2.0 * 0.5 * (inner_prod(DDDw_DDD1rs, rActualMetric.a2) + inner_prod(DDDw_DDD2rs, rActualMetric.a1));
+                    ddK_cu[0] += Zeta * thickness / 2.0 * inner_prod(DDDw_DDD1rs, rActualMetric.a1);
+                    ddK_cu[1] += Zeta * thickness / 2.0 * inner_prod(DDDw_DDD2rs, rActualMetric.a2);
+                    ddK_cu[2] += Zeta * thickness / 2.0 * 0.5 * (inner_prod(DDDw_DDD1rs, rActualMetric.a2) + inner_prod(DDDw_DDD2rs, rActualMetric.a1));
 
                     // calculated with reduced mInitialTransConToCar
                     rSecondVariations.B11(r, s) += mInitialTransConToCar(0, 0) * ddK_cu[0];
@@ -1090,7 +1147,7 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo
     )
     {
-        KRATOS_TRY
+        //KRATOS_TRY
 
         const auto& r_geometry = GetGeometry();
         const auto& r_integration_points = r_geometry.IntegrationPoints();
@@ -1107,7 +1164,7 @@ namespace Kratos
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-        
+
         // shear difference vector
         array_1d<double, 3> w(3, 0.0);
         // derivatives of the shear difference vector
@@ -1117,27 +1174,29 @@ namespace Kratos
         // derivatives of the components w_alpha
         Matrix Dw_alpha_Dbeta = ZeroMatrix(2, 2);
 
-        std::vector<array_1d<double, 5>> stress_pk2_cart(mGaussIntegrationThickness.num_GP_thickness);
-        std::vector<array_1d<double, 5>> stress_pk2_cov(mGaussIntegrationThickness.num_GP_thickness);
-        std::vector<array_1d<double, 5>> stress_cau_cov(mGaussIntegrationThickness.num_GP_thickness);
-        std::vector<array_1d<double, 5>> stress_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
+        std::vector<array_1d<double, 5>> stress_pk2_cart(mNumberOfThicknessIntegrationPoints);
+        std::vector<array_1d<double, 5>> stress_pk2_cov(mNumberOfThicknessIntegrationPoints);
+        std::vector<array_1d<double, 5>> stress_cau_cov(mNumberOfThicknessIntegrationPoints);
+        std::vector<array_1d<double, 5>> stress_cau_cart(mNumberOfThicknessIntegrationPoints);
 
         MetricVariables actual_metric(3, 5);
         CalculateMetric(actual_metric);
         CalculateShearDifferenceVector(w, Dw_D1, Dw_D2, w_alpha, Dw_alpha_Dbeta, actual_metric);
 
         // the Gauss-Points start from bottom to top
-        for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
+        //for (IndexType Gauss_index = 0; Gauss_index < mNumberOfThicknessIntegrationPoints; Gauss_index++)
+        //{
+        for (IndexType thickness_point_number = 0; thickness_point_number < mNumberOfThicknessIntegrationPoints; ++thickness_point_number)
         {
-            mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
+            double Zeta = mZeta(thickness_point_number);
 
             array_1d<double, 3> G1(3, 0.0), G2(3, 0.0), G1_con(3, 0.0), G2_con(3, 0.0), g1(3, 0.0), g2(3, 0.0), g3(3, 0.0);
             Matrix F = ZeroMatrix(3, 3);
             double detF = 0.0;
-            CalculateInitialBaseVectorsLinearised(G1, G2, G1_con, G2_con);
-            CalculateActualBaseVectorsLinearised(actual_metric, w, Dw_D1, Dw_D2, g1, g2, g3);
+            CalculateInitialBaseVectorsLinearised(G1, G2, G1_con, G2_con, Zeta);
+            CalculateActualBaseVectorsLinearised(actual_metric, w, Dw_D1, Dw_D2, g1, g2, g3, Zeta);
             CalculateDeformationGradient(G1, G2, g1, g2, g3, F, detF);
-            
+
             // Transformation matrices
             Matrix initial_trans_car_to_cov = ZeroMatrix(5, 5);
             Matrix actual_trans_cov_to_car = ZeroMatrix(5, 5);
@@ -1146,46 +1205,45 @@ namespace Kratos
             CalculateTransformationMatrixActualTransCovToCar(actual_trans_cov_to_car, g1, g2, g3, actual_metric.a2_con, actual_metric.a3_kirchhoff_love);
 
             ConstitutiveVariables constitutive_variables(5);
-            CalculateConstitutiveVariables(actual_metric, w, 
-                Dw_D1, Dw_D2, constitutive_variables, Values, ConstitutiveLaw::StressMeasure_PK2);
+            CalculateConstitutiveVariables(actual_metric, w,
+                Dw_D1, Dw_D2, constitutive_variables, Values, ConstitutiveLaw::StressMeasure_PK2, thickness_point_number);
 
             // stresses at GP
-            stress_pk2_cart[Gauss_index] = constitutive_variables.S;
-            stress_pk2_cov[Gauss_index] = prod(initial_trans_car_to_cov, stress_pk2_cart[Gauss_index]);
-            stress_cau_cov[Gauss_index] = stress_pk2_cov[Gauss_index] / detF;
-            stress_cau_cart[Gauss_index] = prod(actual_trans_cov_to_car, stress_cau_cov[Gauss_index]);
+            stress_pk2_cart[thickness_point_number] = constitutive_variables.S;
+            stress_pk2_cov[thickness_point_number] = prod(initial_trans_car_to_cov, stress_pk2_cart[thickness_point_number]);
+            stress_cau_cov[thickness_point_number] = stress_pk2_cov[thickness_point_number] / detF;
+            stress_cau_cart[thickness_point_number] = prod(actual_trans_cov_to_car, stress_cau_cov[thickness_point_number]);
         }   // loop GP_thickness
-    
+
         // Cauchy stress at midspan
         array_1d<double, 5> stress_cau_cart_mid;
-        stress_cau_cart_mid = (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness-1] + stress_cau_cart[0]) / 2.0;
+        stress_cau_cart_mid = (stress_cau_cart[mNumberOfThicknessIntegrationPoints - 1] + stress_cau_cart[0]) / 2.0;
 
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
         {
-
             if (rVariable == CAUCHY_STRESS_TOP_XX) {
-                rOutput[point_number] = stress_cau_cart_mid[0] + (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness - 1][0]
-                    - stress_cau_cart_mid[0]) / mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness - 1);
+                rOutput[point_number] = stress_cau_cart_mid[0] + (stress_cau_cart[mNumberOfThicknessIntegrationPoints - 1][0]
+                    - stress_cau_cart_mid[0]) / mZeta(mNumberOfThicknessIntegrationPoints - 1);
             }
             else if (rVariable == CAUCHY_STRESS_TOP_YY) {
-                rOutput[point_number] = stress_cau_cart_mid[1] + (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness - 1][1]
-                    - stress_cau_cart_mid[1]) / mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness - 1);
+                rOutput[point_number] = stress_cau_cart_mid[1] + (stress_cau_cart[mNumberOfThicknessIntegrationPoints - 1][1]
+                    - stress_cau_cart_mid[1]) / mZeta(mNumberOfThicknessIntegrationPoints - 1);
             }
             else if (rVariable == CAUCHY_STRESS_TOP_XY) {
-                rOutput[point_number] = stress_cau_cart_mid[2] + (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness - 1][2]
-                    - stress_cau_cart_mid[2]) / mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness - 1);
+                rOutput[point_number] = stress_cau_cart_mid[2] + (stress_cau_cart[mNumberOfThicknessIntegrationPoints - 1][2]
+                    - stress_cau_cart_mid[2]) / mZeta(mNumberOfThicknessIntegrationPoints - 1);
             }
             else if (rVariable == CAUCHY_STRESS_BOTTOM_XX) {
                 rOutput[point_number] = stress_cau_cart_mid[0] + (stress_cau_cart[0][0] - stress_cau_cart_mid[0]) /
-                    mGaussIntegrationThickness.zeta(0);
+                    mZeta(0);
             }
             else if (rVariable == CAUCHY_STRESS_BOTTOM_YY) {
                 rOutput[point_number] = stress_cau_cart_mid[1] + (stress_cau_cart[0][1] - stress_cau_cart_mid[1]) /
-                    mGaussIntegrationThickness.zeta(0);
+                    mZeta(0);
             }
             else if (rVariable == CAUCHY_STRESS_BOTTOM_XY) {
                 rOutput[point_number] = stress_cau_cart_mid[2] + (stress_cau_cart[0][2] - stress_cau_cart_mid[2]) /
-                    mGaussIntegrationThickness.zeta(0);
+                    mZeta(0);
             }
             else if (rVariable == MEMBRANE_FORCE_XX) {
                 rOutput[point_number] = stress_cau_cart_mid[0] * GetProperties()[THICKNESS];
@@ -1197,16 +1255,16 @@ namespace Kratos
                 rOutput[point_number] = stress_cau_cart_mid[2] * GetProperties()[THICKNESS];
             }
             else if (rVariable == INTERNAL_MOMENT_XX) {
-                rOutput[point_number] = (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness - 1][0] - stress_cau_cart_mid[0])
-                    * pow(GetProperties()[THICKNESS], 2) / (mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness - 1) * 6);
+                rOutput[point_number] = (stress_cau_cart[mNumberOfThicknessIntegrationPoints - 1][0] - stress_cau_cart_mid[0])
+                    * pow(GetProperties()[THICKNESS], 2) / (mZeta(mNumberOfThicknessIntegrationPoints - 1) * 6);
             }
             else if (rVariable == INTERNAL_MOMENT_YY) {
-                rOutput[point_number] = (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness - 1][1] - stress_cau_cart_mid[1]) * pow(GetProperties()[THICKNESS], 2) /
-                    (mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness - 1) * 6);
+                rOutput[point_number] = (stress_cau_cart[mNumberOfThicknessIntegrationPoints - 1][1] - stress_cau_cart_mid[1])
+                    * pow(GetProperties()[THICKNESS], 2) / (mZeta(mNumberOfThicknessIntegrationPoints - 1) * 6);
             }
             else if (rVariable == INTERNAL_MOMENT_XY) {
-                rOutput[point_number] = (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness - 1][2] - stress_cau_cart_mid[2]) * pow(GetProperties()[THICKNESS], 2) /
-                    (mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness - 1) * 6);
+                rOutput[point_number] = (stress_cau_cart[mNumberOfThicknessIntegrationPoints - 1][2] - stress_cau_cart_mid[2])
+                    * pow(GetProperties()[THICKNESS], 2) / (mZeta(mNumberOfThicknessIntegrationPoints - 1) * 6);
             }
             else if (rVariable == SHEAR_FORCE_1) {
                 rOutput[point_number] = GetProperties()[THICKNESS] * stress_cau_cart_mid[4];
@@ -1214,12 +1272,36 @@ namespace Kratos
             else if (rVariable == SHEAR_FORCE_2) {
                 rOutput[point_number] = GetProperties()[THICKNESS] * stress_cau_cart_mid[3];
             }
+            else if (mConstitutiveLawVector[0][0]->Has(rVariable)) {
+                GetValueOnConstitutiveLaw(rVariable, rOutput);
+            }
             else {
-                KRATOS_WATCH("No results for desired variable available in Calculate of Shell5pHierarchicElement.")
+                KRATOS_WATCH("No results for desired variable available in Calculate of Shell5pHierarchicElement.", rVariable)
             }
         }
 
-        KRATOS_CATCH("");
+        //KRATOS_CATCH("");
+    }
+
+    void Shell5pHierarchicElement::CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        const auto& r_geometry = GetGeometry();
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        if (rOutput.size() != r_integration_points.size())
+        {
+            rOutput.resize(r_integration_points.size());
+        }
+        if (rVariable == DAMAGE_TENSION_VECTOR) {
+            GetValueVectorOnConstitutiveLaw(rVariable, DAMAGE_TENSION, rOutput);
+        }
+        else if (rVariable == DAMAGE_COMPRESSION_VECTOR) {
+            GetValueVectorOnConstitutiveLaw(rVariable, DAMAGE_COMPRESSION, rOutput);
+        }
     }
 
     void Shell5pHierarchicElement::CalculateHessian(
@@ -1306,7 +1388,7 @@ namespace Kratos
     {
 
         // Check whether ConstitutiveLaw is 3D
-        KRATOS_ERROR_IF(mConstitutiveLawVector[0]->GetStrainSize() != 6) << "ConstitutiveLaw is not 3D." << std::endl;
+        KRATOS_ERROR_IF(mConstitutiveLawVector[0][0]->GetStrainSize() != 6) << "ConstitutiveLaw is not 3D." << std::endl;
 
         return 0;
     }
