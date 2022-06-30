@@ -248,6 +248,19 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
+    void CalculateResistanceTensor(
+        const TElementData& rData,
+        MatrixType& sigma,
+        const double kin_viscosity,
+        const double porosity) const;
+
+    void CalculateSpectralRadius(
+        const TElementData& rData,
+        double& spectral_radius,
+        double tau_one_NS,
+        const double c1,
+        MatrixType matrix) const;
+
     void AddMassStabilization(
         TElementData& rData,
         MatrixType& rMassMatrix) override;
@@ -272,6 +285,14 @@ protected:
     void SubscalePressure(
         const TElementData& rData,
         double& rPressureSubscale) const override;
+
+    bool GaussSeidelEigenSystem(
+        MatrixType& rA,
+        MatrixType& rEigenVectorsMatrix,
+        MatrixType& rEigenValuesMatrix,
+        const double Tolerance = 1.0e-18,
+        const SizeType MaxIterations = 20
+        ) const;
 
     array_1d<double,3> FullConvectiveVelocity(
         const TElementData& rData) const override;
