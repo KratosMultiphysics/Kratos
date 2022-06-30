@@ -62,9 +62,8 @@ class DensityFunctionPolynomial: public DensityFunction<TDim>
 public:
 KRATOS_CLASS_POINTER_DEFINITION(DensityFunctionPolynomial);
 
-DensityFunctionPolynomial(const double range, const double shape_factor)
-    : mR(range),
-      mHeightOverR(shape_factor)
+DensityFunctionPolynomial(const double range)
+    : mR(range)
 {
     m6 = fm6(mR);
     m4 = fm4(mR);
@@ -136,7 +135,6 @@ void ComputeWeights(std::vector<double> & distances, std::vector<double> & nodal
 private:
 
 double mR; // the radius of the support of the PDF;
-double mHeightOverR;
 double m6;
 double m4;
 double m2;
