@@ -148,6 +148,3 @@ class ProjectionModule:
 
     def ComputePostProcessResults(self, particles_process_info):
         self.projector.ComputePostProcessResults(self.particles_model_part, self.fluid_model_part, self.FEM_DEM_model_part, self.bin_of_objects_fluid, particles_process_info)
-
-    def CalculateGranularTemperature(self):
-        self.projector.CalculateGranularTemperature(self.fluid_model_part)
