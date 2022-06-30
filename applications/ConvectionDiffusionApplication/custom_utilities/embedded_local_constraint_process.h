@@ -211,28 +211,28 @@ private:
         NodesCloudMapType& rCloudsMap,
         NodesOffsetMapType& rOffsetsMap);
 
-    void AddAveragedNodeCloud(
+    void AddAveragedNodeClouds(
         NodesCloudMapType& rCloudsMap,
         NodesOffsetMapType& rOffsetsMap,
-        NodeType::Pointer slave_node,
+        std::vector<NodeType::Pointer> neg_nodes_element,
         std::vector<NodeType::Pointer> pos_nodes_element);
 
-    void AddAveragedNodeCloudIncludingBC(
+    void AddAveragedNodeCloudsIncludingBC(
         NodesCloudMapType& rCloudsMap,
         NodesOffsetMapType& rOffsetsMap,
-        NodeType::Pointer slave_node,
+        std::vector<NodeType::Pointer> neg_nodes_element,
         std::vector<NodeType::Pointer> pos_nodes_element);
 
-    void AddMLSNodeCloud(
+    void AddMLSNodeClouds(
         NodesCloudMapType& rCloudsMap,
         NodesOffsetMapType& rOffsetsMap,
-        NodeType::Pointer slave_node,
+        std::vector<NodeType::Pointer> neg_nodes_element,
         std::vector<NodeType::Pointer> pos_nodes_element);
 
-    void AddMLSNodeCloudIncludingBC(
+    void AddMLSNodeCloudsIncludingBC(
         NodesCloudMapType& rCloudsMap,
         NodesOffsetMapType& rOffsetsMap,
-        NodeType::Pointer slave_node,
+        std::vector<NodeType::Pointer> neg_nodes_element,
         std::vector<NodeType::Pointer> pos_nodes_element);
 
     double CalculateKernelRadius(
