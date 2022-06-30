@@ -308,8 +308,8 @@ public:
         //if orthogonal subscales are computed
         if (CurrentProcessInfo[OSS_SWITCH] == 1.0)
         {
-            //this->LumpedProjection(rModelPart);
-            this->FullProjection(rModelPart);
+            this->LumpedProjection(rModelPart);
+            //this->FullProjection(rModelPart);
         }
 
         KRATOS_CATCH("")
