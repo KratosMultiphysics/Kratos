@@ -437,6 +437,12 @@ public:
      */
     Parameters AddEmptyValue(const std::string& rEntry);
 
+     /**
+     * @brief This method returns the json object pointed by mpValue
+     * @return json object pointed by mpValue
+     */
+    nlohmann::json GetMpValue();
+
     /**
      * @brief This method removes an entry of the Parameters given a certain key
      * @param rEntry The key identifier of the parameter

@@ -266,6 +266,14 @@ std::string GetJSONStringForLevelsDefaults()
         "string_value": "hello"
     })";
 }
+std::string GetJSONStringWithIncludes()
+{
+    return R"(
+    {
+      "bool_value" : true, "double_value": 2.0, "int_value" : 10,
+      "@include_json" : "test_included_parameters"
+    })";
+}
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParameters, KratosCoreFastSuite)
 {
@@ -932,6 +940,15 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetStringArrayValid, KratosCoreFastSui
         KRATOS_CHECK_STRING_EQUAL(new_string_array[counter], r_string);
         ++counter;
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersWithIncludes, KratosCoreFastSuite)
+{
+    Parameters kp = Parameters(GetJSONStringWithIncludes());
+    KRATOS_CHECK_STRING_EQUAL(
+        kp.WriteJsonString(),
+        R"({"bool_value":true,"double_value":2.0,"int_value":10,"level1":{"list_value":[3,"hi",false],"tmp":5.0},"string_value":"hello"})"
+    );
 }
 
 }  // namespace Testing.
