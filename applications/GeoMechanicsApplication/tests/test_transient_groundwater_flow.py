@@ -26,7 +26,7 @@ class KratosGeoMechanicsTransientGroundWaterFlowTests(KratosUnittest.TestCase):
 
         p_height_1_72_m = water_pressure_stage_2[32]
 
-        self.assertAlmostEqual(1.9762325593327588, p_height_1_72_m)
+        self.assertAlmostEqual(1.9762325593327588, p_height_1_72_m, 3)
 
     def test_Transient_Case_A1_2D3N(self):
         test_name = 'test_Transient_Case_A1_2D3N'
