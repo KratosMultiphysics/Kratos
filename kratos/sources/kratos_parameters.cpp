@@ -213,6 +213,39 @@ Parameters::Parameters(const std::string& rJsonString)
 {
     mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rJsonString, nullptr, true, true));
     mpValue = mpRoot.get();
+
+    auto it = mpValue->begin();
+
+    while(it != mpValue->end()) {
+        if(it.key()=="@include_json") {
+            std::string file_name = *it;
+
+            std::ifstream new_file;
+            new_file.open(file_name.c_str(),std::ios::in);  
+
+            std::stringstream strStream;
+            strStream << new_file.rdbuf();
+            std::string input_json = strStream.str();
+        
+            Parameters new_parameters = Parameters(input_json);   
+            nlohmann::json j1 = new_parameters.GetMpValue();
+            
+            // Add the new entries due to the new included file
+            mpValue->insert(j1.begin(), j1.end());
+
+            //Remove the all @include entry
+            this->RemoveValue("@include_json");
+        }
+        if(it.value().is_object()) {
+            Parameters new_parameters = Parameters(to_string(it.value()));
+            nlohmann::json j1 = new_parameters.GetMpValue();
+            //holaaa
+            std::string key = it.key();
+            (*mpValue)[key] = j1;
+        }
+        it++;
+    }
+
 }
 
 
@@ -223,6 +256,7 @@ Parameters::Parameters(std::ifstream& rStringStream)
 {
     mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rStringStream, nullptr, true, true));
     mpValue = mpRoot.get();
+
 }
 
 /***********************************************************************************/
@@ -383,6 +417,13 @@ Parameters Parameters::AddEmptyValue(const std::string& rEntry)
         return Parameters(&(*mpValue)[rEntry], mpRoot);
     }
     return this->GetValue(rEntry);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+nlohmann::json Parameters::GetMpValue() {
+    return *(mpValue);
 }
 
 /***********************************************************************************/
