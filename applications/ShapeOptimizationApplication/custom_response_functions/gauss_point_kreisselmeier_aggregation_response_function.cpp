@@ -177,6 +177,8 @@ void GaussPointKreisselmeierAggregationResponseFunction::CalculateFiniteDifferen
                     rOutput(i_node * number_of_dofs_per_node + i_var) += (gp_values[i] - ref_gp_values[i]) / mStepSize;
                 }
 
+                rOutput(i_node * number_of_dofs_per_node + i_var) /= ref_gp_values.size();
+
                 variable_value -= mStepSize;
             }
         }
