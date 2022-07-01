@@ -13,7 +13,7 @@
 // System includes
 
 // External includes
-#include "dem_application_variables.h"
+#include "DEM_application_variables.h"
 
 // Project includes
 #include "numerical_integration_adaptive_simpson.h"
