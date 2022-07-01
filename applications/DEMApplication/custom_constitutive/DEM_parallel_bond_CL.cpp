@@ -244,12 +244,14 @@ void DEM_parallel_bond::CalculateElasticConstants(double& kn_el, double& kt_el, 
 
     //FOR COMPOUND
     //double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
+    /*
     array_1d<double, 3> other_to_me_vect;
     noalias(other_to_me_vect) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
     double distance = DEM_MODULUS_3(other_to_me_vect);
     double unbonded_indentation = 0.0;
-    unbonded_indentation = radius_sum - distance;
-    InitializeContact(element1, element2, unbonded_indentation);
+    unbonded_indentation = radius_sum - distance;*/
+
+    InitializeContact(element1, element2, indentation);
 
     KRATOS_CATCH("")
 
@@ -393,7 +395,7 @@ void DEM_parallel_bond::CalculateForces(const ProcessInfo& r_process_info,
 }
 
 
-double DEM_parallel_bond::ComputeNormalUnbondedForce(double unbonded_indentation){
+double DEM_parallel_bond::ComputeNormalUnbondedForce(double indentation){
     
     KRATOS_TRY
 
@@ -428,18 +430,20 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
                 double& contact_sigma) {
 
     KRATOS_TRY
-
+    
     int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
     const double bonded_indentation = indentation - mInitialIndentationForBondedPart;                                                                                                          
     
-    
+    /*
     array_1d<double, 3> other_to_me_vect;
     noalias(other_to_me_vect) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
     double distance = DEM_MODULUS_3(other_to_me_vect);
     double radius_sum = element1->GetRadius() + element2->GetRadius();
     double unbonded_indentation = 0.0;
     unbonded_indentation = radius_sum - distance;
+    */
     //double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
+
     double BondedLocalElasticContactForce2 = 0.0;
 
     if (!failure_type){ //if the bond is not broken
@@ -448,8 +452,8 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
         BondedLocalElasticContactForce2 = 0.0;
     }
 
-    if (unbonded_indentation > 0.0) {
-        mUnbondedLocalElasticContactForce2 = ComputeNormalUnbondedForce(unbonded_indentation);
+    if (indentation > 0.0) {
+        mUnbondedLocalElasticContactForce2 = ComputeNormalUnbondedForce(indentation);
     } else {
         mUnbondedLocalElasticContactForce2 = 0.0;
     }
@@ -525,14 +529,16 @@ void DEM_parallel_bond::CalculateViscoDamping(double LocalRelVel[3],
     mBondedViscoDampingLocalContactForce[2] = 0.0;
 
     //double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
+    /*
     array_1d<double, 3> other_to_me_vect;
     noalias(other_to_me_vect) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
     double distance = DEM_MODULUS_3(other_to_me_vect);
     double radius_sum = element1->GetRadius() + element2->GetRadius();
     double unbonded_indentation = 0.0;
     unbonded_indentation = radius_sum - distance;
+    */
 
-    if (unbonded_indentation > 0) {
+    if (indentation > 0) {
         mUnbondedViscoDampingLocalContactForce[0] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[0];
         mUnbondedViscoDampingLocalContactForce[1] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[1];
         mUnbondedViscoDampingLocalContactForce[2] = -mUnbondedEquivViscoDampCoeffNormal * LocalRelVel[2];
@@ -617,14 +623,16 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
     double max_admissible_shear_force = 0.0;
     double fraction = 0.0;
     //double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
+    /*
     array_1d<double, 3> other_to_me_vect;
     noalias(other_to_me_vect) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
     double distance = DEM_MODULUS_3(other_to_me_vect);
     double radius_sum = element1->GetRadius() + element2->GetRadius();
     double unbonded_indentation = 0.0;
     unbonded_indentation = radius_sum - distance;
+    */
 
-    if (unbonded_indentation <= 0.0) {
+    if (indentation <= 0.0) {
         UnbondedLocalElasticContactForce[0] = 0.0;
         UnbondedLocalElasticContactForce[1] = 0.0;
     } else {
@@ -739,7 +747,8 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
 //*************************************
 
 double DEM_parallel_bond::GetYoungModulusForComputingRotationalMoments(const double& equiv_young){
-        return equiv_young;
+        const double bond_equiv_young = (*mpProperties)[BOND_YOUNG_MODULUS];
+        return bond_equiv_young;
     }
 
 void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
@@ -775,7 +784,10 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
     const double neighbor_mass = neighbor->GetMass();
     const double equiv_mass    = element_mass * neighbor_mass / (element_mass + neighbor_mass);
 
-    const double young_modulus = GetYoungModulusForComputingRotationalMoments(equiv_young);
+    const double bond_equiv_young = GetYoungModulusForComputingRotationalMoments(equiv_young);
+    
+    double kn_el = bond_equiv_young * calculation_area / distance;
+    double kt_el = kn_el / (*mpProperties)[BOND_KNKS_RATIO];
 
     const double Inertia_I     = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
     const double Inertia_J     = 2.0 * Inertia_I; // This is the polar inertia
@@ -784,9 +796,9 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
 
     //Viscous parameter taken from Olmedo et al., 'Discrete element model of the dynamic response of fresh wood stems to impact'
     array_1d<double, 3> visc_param;
-    visc_param[0] = 2.0 * damping_gamma * std::sqrt(equiv_mass * young_modulus * Inertia_I / distance); // OLMEDO
-    visc_param[1] = 2.0 * damping_gamma * std::sqrt(equiv_mass * young_modulus * Inertia_I / distance); // OLMEDO
-    visc_param[2] = 2.0 * damping_gamma * std::sqrt(equiv_mass * young_modulus * Inertia_J / distance); // OLMEDO
+    visc_param[0] = 2.0 * damping_gamma * std::sqrt(equiv_mass * bond_equiv_young * Inertia_I / distance); // OLMEDO
+    visc_param[1] = 2.0 * damping_gamma * std::sqrt(equiv_mass * bond_equiv_young * Inertia_I / distance); // OLMEDO
+    visc_param[2] = 2.0 * damping_gamma * std::sqrt(equiv_mass * bond_equiv_young * Inertia_J / distance); // OLMEDO
 
     double aux = 0.0;
     aux = (element->GetRadius() + neighbor->GetRadius()) / distance; // This is necessary because if spheres are not tangent the DeltaAngularVelocity has to be interpolated
@@ -803,17 +815,17 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
     LocalEffDeltaAngularVelocity[2] = LocalDeltaAngularVelocity[2] * aux;
 
     
-    ElasticLocalRotationalMoment[0] = -young_modulus * Inertia_I * LocalEffDeltaRotatedAngle[0] / distance;
-    ElasticLocalRotationalMoment[1] = -young_modulus * Inertia_I * LocalEffDeltaRotatedAngle[1] / distance;
-    ElasticLocalRotationalMoment[2] = -young_modulus * Inertia_J * LocalEffDeltaRotatedAngle[2] / distance;
+    ElasticLocalRotationalMoment[0] = -kt_el * Inertia_I * LocalEffDeltaRotatedAngle[0];
+    ElasticLocalRotationalMoment[1] = -kt_el * Inertia_I * LocalEffDeltaRotatedAngle[1];
+    ElasticLocalRotationalMoment[2] = -kn_el * Inertia_J * LocalEffDeltaRotatedAngle[2];
     
-
     //ViscoLocalRotationalMoment[0] = -visc_param[0] * LocalEffDeltaAngularVelocity[0];
     //ViscoLocalRotationalMoment[1] = -visc_param[1] * LocalEffDeltaAngularVelocity[1];
     //ViscoLocalRotationalMoment[2] = -visc_param[2] * LocalEffDeltaAngularVelocity[2];
 
     // Bond rotational 'friction' based on particle rolling fricton 
     //Not damping but simple implementation to help energy dissipation
+    /*
     array_1d<double, 3> element1AngularVelocity;
     noalias(element1AngularVelocity) = element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
     if (element1AngularVelocity[0] || element1AngularVelocity[1] || element1AngularVelocity[2]){
@@ -850,10 +862,13 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
         ViscoLocalRotationalMoment[0] = 0.0;
         ViscoLocalRotationalMoment[1] = 0.0;
         ViscoLocalRotationalMoment[2] = 0.0;
-    }
-    
-     
+    }*/
 
+    ViscoLocalRotationalMoment[0] = 0.0;
+    ViscoLocalRotationalMoment[1] = 0.0;
+    ViscoLocalRotationalMoment[2] = 0.0;
+     
+    //const double rotational_moment_coeff = 0.01;
     //DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, rotational_moment_coeff);
     //DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, rotational_moment_coeff);
 
@@ -924,9 +939,9 @@ void DEM_parallel_bond::CheckBondFailure(const int i_neighbour_count,
             LocalElasticContactForce[0] *= (1 - mBondedScalingFactor[0]);      
             LocalElasticContactForce[1] *= (1 - mBondedScalingFactor[1]);      
             LocalElasticContactForce[2]  = mUnbondedLocalElasticContactForce2;
-            ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
-            ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
-            ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2];
+            //ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
+            //ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
+            //ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2];
             ElasticLocalRotationalMoment[0] = 0.0;
             ElasticLocalRotationalMoment[1] = 0.0;
             ElasticLocalRotationalMoment[2] = 0.0;
@@ -944,9 +959,9 @@ void DEM_parallel_bond::CheckBondFailure(const int i_neighbour_count,
             LocalElasticContactForce[0] *= (1 - mBondedScalingFactor[0]);      
             LocalElasticContactForce[1] *= (1 - mBondedScalingFactor[1]);      
             LocalElasticContactForce[2]  = mUnbondedLocalElasticContactForce2;
-            ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
-            ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
-            ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2];
+            //ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
+            //ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
+            //ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2];
             ElasticLocalRotationalMoment[0] = 0.0;
             ElasticLocalRotationalMoment[1] = 0.0;
             ElasticLocalRotationalMoment[2] = 0.0;

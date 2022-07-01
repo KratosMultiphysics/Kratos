@@ -26,8 +26,8 @@ public:
     virtual ~DEM_compound_constitutive_law_for_PBM() {}
 
     //add
-    double ComputeNormalUnbondedForce(double unbonded_indentation) override {
-        return mCCL.CalculateNormalForce(unbonded_indentation);
+    double ComputeNormalUnbondedForce(double indentation) override {
+        return mCCL.CalculateNormalForce(indentation);
     }
 
     void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override {

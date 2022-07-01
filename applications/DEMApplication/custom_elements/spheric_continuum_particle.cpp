@@ -267,7 +267,8 @@ namespace Kratos {
             if ((myPoisson + other_poisson) != 0.0) { equiv_poisson = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson); }
             else { equiv_poisson = 0.0; }
 
-            double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
+            //double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young); TODO: CHECK
+            double equiv_young = myYoung * other_young / (myYoung + other_young);
             double calculation_area = 0.0;
             const double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
 
@@ -364,6 +365,7 @@ namespace Kratos {
             // Moment need to be calculated before failure check
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 ComputeMoments(LocalContactForce[2], TotalGlobalElasticContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, indentation, i);
+
                 if (i < (int)mContinuumInitialNeighborsSize && mIniNeighbourFailureId[i] == 0) {
                     mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, data_buffer.mDistance, calculation_area,
                                                                                         data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, 
