@@ -162,6 +162,7 @@ void DropletDynamicsElement<TElementData>::CalculateLocalSystem(
                 Vector int_gauss_pts_weights;
                 std::vector< array_1d<double,3> > int_normals_neg;
 
+                // Surface tension is by default ON for droplet dynamics application
                 /* if (rCurrentProcessInfo[SURFACE_TENSION] || rCurrentProcessInfo[MOMENTUM_CORRECTION]) */{
                     ComputeSplitInterface(
                         data,
@@ -218,6 +219,7 @@ void DropletDynamicsElement<TElementData>::CalculateLocalSystem(
                     noalias(rRightHandSideVector) -= prod(lhs_acc_correction,tempU);
                 }
 
+                // Surface tension is by default ON for droplet dynamics application
                 /* if (rCurrentProcessInfo[SURFACE_TENSION]) */{
 
                     AddSurfaceTensionContribution(
@@ -841,14 +843,18 @@ void DropletDynamicsElement<TElementData>::SurfaceTension(
     const std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
     VectorType& rRHS)
 {
+    // The external interfacial force (per unit area) will be integrated along with the surface tension
+    // At the moment, it can be constant for the cut element
+    const Vector external_int_force = this->GetValue(EXT_INT_FORCE);
+
     for (unsigned int intgp = 0; intgp < rInterfaceWeights.size(); ++intgp){
         const double intgp_curv = rCurvature(intgp);
         const double intgp_w = rInterfaceWeights(intgp);
         const auto& intgp_normal = rInterfaceNormalsNeg[intgp];
-        for (unsigned int j = 0; j < NumNodes; ++j){
+        for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int dim = 0; dim < NumNodes-1; ++dim){
-                rRHS[ j*(NumNodes) + dim ] -= SurfaceTensionCoefficient*intgp_normal[dim]
-                    *intgp_curv*intgp_w*rInterfaceShapeFunctions(intgp,j);
+                rRHS[ i*(NumNodes) + dim ] += ( -SurfaceTensionCoefficient*intgp_curv*intgp_normal[dim]
+                    + external_int_force[dim] )*intgp_w*rInterfaceShapeFunctions(intgp,i);
             }
         }
     }

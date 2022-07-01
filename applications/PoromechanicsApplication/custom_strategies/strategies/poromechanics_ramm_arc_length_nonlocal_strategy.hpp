@@ -54,7 +54,6 @@ public:
     using Grandx2MotherType::mpb; //Residual vector of iteration i
     using Grandx2MotherType::mpDx; //Delta x of iteration i
     using Grandx2MotherType::mCalculateReactionsFlag;
-    using Grandx2MotherType::mSolutionStepIsInitialized;
     using Grandx2MotherType::mMaxIterationNumber;
     using Grandx2MotherType::mInitializeWasPerformed;
     using GrandMotherType::mpParameters;
@@ -129,24 +128,21 @@ public:
     {
         KRATOS_TRY
 
-        if (mSolutionStepIsInitialized == false)
-		{
-            MotherType::InitializeSolutionStep();
+        MotherType::InitializeSolutionStep();
 
-            if(mNonlocalDamageIsInitialized == false)
+        if(mNonlocalDamageIsInitialized == false)
+        {
+            if(BaseType::GetModelPart().GetProcessInfo()[DOMAIN_SIZE]==2)
             {
-                if(BaseType::GetModelPart().GetProcessInfo()[DOMAIN_SIZE]==2)
-                {
-                    mpNonlocalDamageUtility = new NonlocalDamage2DUtilities();
-                }
-                else
-                {
-                    mpNonlocalDamageUtility = new NonlocalDamage3DUtilities();
-                }
-                mpNonlocalDamageUtility->SearchGaussPointsNeighbours(mpParameters,BaseType::GetModelPart());
-
-                mNonlocalDamageIsInitialized = true;
+                mpNonlocalDamageUtility = new NonlocalDamage2DUtilities();
             }
+            else
+            {
+                mpNonlocalDamageUtility = new NonlocalDamage3DUtilities();
+            }
+            mpNonlocalDamageUtility->SearchGaussPointsNeighbours(mpParameters,BaseType::GetModelPart());
+
+            mNonlocalDamageIsInitialized = true;
         }
 
         KRATOS_CATCH( "" )
