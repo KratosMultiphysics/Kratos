@@ -218,11 +218,7 @@ void KratosPfemFluidDynamicsApplication::Register()
   KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham2DLaw", mBingham2DLaw);
   KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham3DLaw", mBingham3DLaw);
   KRATOS_REGISTER_CONSTITUTIVE_LAW("HerschelBulkley2DLaw", mHerschelBulkley2DLaw);
-<<<<<<< HEAD
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("HerschelBulkley3DLaw", mHerschelBulkley3DLaw);
-=======
   KRATOS_REGISTER_CONSTITUTIVE_LAW("HerschelBulkley3DLaw", mHerschelBulkley3DLaw);
->>>>>>> 5c1e777858190e16160438e457be7ce25548d696
   KRATOS_REGISTER_CONSTITUTIVE_LAW("FrictionalViscoplastic2DLaw", mFrictionalViscoplastic2DLaw);
   KRATOS_REGISTER_CONSTITUTIVE_LAW("FrictionalViscoplastic3DLaw", mFrictionalViscoplastic3DLaw);
   KRATOS_REGISTER_CONSTITUTIVE_LAW("BinghamTemperatureDependent2DLaw", mBinghamTemperatureDependent2DLaw);
