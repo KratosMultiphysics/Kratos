@@ -11,12 +11,14 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 file( GLOB_RECURSE KRATOS_SHAPE_OPTIMIZATION_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/shape_optimization_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/*.cpp
 )
 
 ## ShapeOptimization python interface sources
 set( KRATOS_SHAPE_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/shape_optimization_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_response_functions_to_python.cpp
 )
 
 add_library(KratosShapeOptimizationCore SHARED ${KRATOS_SHAPE_OPTIMIZATION_APPLICATION_CORE})

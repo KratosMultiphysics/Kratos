@@ -25,6 +25,7 @@
 #include "includes/define_python.h"
 #include "shape_optimization_application.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_response_functions_to_python.h"
 
 // ==============================================================================
 
@@ -42,6 +43,7 @@ PYBIND11_MODULE(KratosShapeOptimizationApplication, m)
         ;
 
     AddCustomUtilitiesToPython(m);
+    AddCustomResponseFunctionsToPython(m);
 
     //registering variables in python
 
