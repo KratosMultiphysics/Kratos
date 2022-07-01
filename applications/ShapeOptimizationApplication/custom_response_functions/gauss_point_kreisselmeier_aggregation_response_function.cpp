@@ -171,18 +171,17 @@ void GaussPointKreisselmeierAggregationResponseFunction::CalculateFiniteDifferen
                 double& variable_value = r_node.FastGetSolutionStepValue(*p_variable);
 
                 variable_value += mStepSize;
-
                 rElement.CalculateOnIntegrationPoints(*mpGaussPointValueScalarVariable, gp_values, rProcessInfo);
                 for (IndexType i = 0; i < gp_values.size(); ++i) {
-                    rOutput(i_node * number_of_dofs_per_node + i_var) += (gp_values[i] - ref_gp_values[i]) / mStepSize;
+                    rOutput[i_node * number_of_dofs_per_node + i_var] += (gp_values[i] - ref_gp_values[i]) / mStepSize;
                 }
-
-                rOutput(i_node * number_of_dofs_per_node + i_var) /= ref_gp_values.size();
 
                 variable_value -= mStepSize;
             }
         }
     }
+
+    rOutput /= ref_gp_values.size();
 
     KRATOS_CATCH("");
 }
@@ -230,6 +229,8 @@ void GaussPointKreisselmeierAggregationResponseFunction::CalculateFiniteDifferen
             }
         }
     }
+
+    rOutput /= ref_gp_values.size();
 
     KRATOS_CATCH("");
 }
@@ -358,6 +359,10 @@ void GaussPointKreisselmeierAggregationResponseFunction::CalculatePartialSensiti
     KRATOS_TRY
 
     if (rVariable == SHAPE_SENSITIVITY) {
+        KRATOS_ERROR_IF_NOT(mAreKSPrefactorsInitialized)
+            << "GaussPointKreisselmeierAggregationResponseFunction::CalculateGradient: Prefactors missing. First calculate value before calculating gradients!"
+            << std::endl;
+
         if (mKSPrefactors.find(rAdjointElement.Id()) != mKSPrefactors.end()) {
             CalculateFiniteDifferenceShapeVariableSensitivities(rSensitivityGradient, rAdjointElement, rProcessInfo);
             rSensitivityGradient *= mKSPrefactors.find(rAdjointElement.Id())->second / (-mGaussPointValueScalingFactor * mSumKSPrefactors);
