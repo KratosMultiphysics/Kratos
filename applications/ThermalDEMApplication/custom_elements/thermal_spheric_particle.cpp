@@ -719,7 +719,7 @@ namespace Kratos
     // If for any reason the distance remain null (some rare cases in particle-wall contact),
     // set it to the summ of the radii of the elements (1% more, as if there is no overlap)
     // to avoid numerical issues of using a zero distance or separation in some formulas.
-    if (distance == 0.0)
+    if (distance <= std::numeric_limits<double>::epsilon())
       distance = 1.001 * (GetRadius() + GetNeighborRadius()); // GetNeighborRadius should return 0.0 for walls!
     
     return distance;
@@ -830,10 +830,9 @@ namespace Kratos
         Rc = sqrt(fabs(r1 * r1 - pow(((r1 * r1 - r2 * r2 + mNeighborDistance * mNeighborDistance) / (2.0 * mNeighborDistance)), 2.0)));
       }
       else if (mNeighborType & WALL_NEIGHBOR) {
-        const double r    = GetParticleRadius();
-        const double root = r * r - mNeighborDistance * mNeighborDistance;
-        if (root >= 0.0)
-            Rc = sqrt(root);
+        const double r = GetParticleRadius();
+        if (r >= mNeighborDistance)
+            Rc = sqrt(r * r - mNeighborDistance * mNeighborDistance);
         else
             Rc = 0.0;
       }
