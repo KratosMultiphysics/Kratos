@@ -196,7 +196,7 @@ void ThermalFace::CalculateRightHandSide(
 }
 
 
-inline GeometryData::IntegrationMethod ThermalFace::GetIntegrationMethod()
+inline GeometryData::IntegrationMethod ThermalFace::GetIntegrationMethod() const
 {
     return IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(this->GetGeometry());
 }
