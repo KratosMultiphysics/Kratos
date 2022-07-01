@@ -82,29 +82,25 @@ for dim in dim_vect:
     cofF_gauss = j_gauss*(invF_gauss.transpose())
 
     # Calculate the strain tensors
-    Fbar_gauss = (1/(j_gauss**(1/3)))*F_gauss # Deviatoric deformation gradient tensor #TODO: Decide about the dim
-    # Fbar_gauss = (1/(j_gauss**(1/dim)))*F_gauss # Deviatoric deformation gradient tensor
+    Fbar_gauss = (1/j_gauss**sympy.Rational(1,dim))*F_gauss # Deviatoric deformation gradient tensor
     Cbar_gauss = Fbar_gauss.transpose() * Fbar_gauss # Deviatoric right Cauchy-Green strain tensor
-    Ebar_gauss = 0.5*(Cbar_gauss - sympy.eye(dim,dim)) # Deviatoric Green strain tensor
+    Ebar_gauss = 0.5*(Cbar_gauss - sympy.eye(dim,dim)) # Deviatoric Green-Lagrange strain tensor
 
     # Calculate the equivalent strain tensors
-    Fmod_gauss = ((1.0 + th_gauss)**(1/3))*Fbar_gauss # Equivalent (enriched) deformation gradient tensor #TODO: Decide about the dim
-    # Fmod_gauss = ((1.0 + th_gauss)**(1/dim))*Fbar_gauss # Equivalent (enriched) deformation gradient tensor
+    Fmod_gauss = ((1.0 + th_gauss)**sympy.Rational(1,dim))*Fbar_gauss # Equivalent (enriched) deformation gradient tensor
     Cmod_gauss = Fmod_gauss.transpose() * Fmod_gauss # Equivalent (enriched) right Cauchy-Green strain tensor
-    Emod_gauss = 0.5*(Cmod_gauss - sympy.eye(dim,dim)) # Equivalent (enriched) Green strain tensor
+    Emod_gauss = 0.5*(Cmod_gauss - sympy.eye(dim,dim)) # Equivalent (enriched) Green-Lagrange strain tensor
 
     # Variational form
     tmp = (DoubleContraction(C, F_gauss.transpose()*F_gauss)).tomatrix()
 
     mom_first = DoubleContraction(grad_w_gauss, F_gauss* S)
     mom_second = (w_gauss.transpose() * b_gauss)[0]
-    mom_aux_scalar = (tau_th / 3.0) * ((1+th_gauss)**(-1.0/3.0)) * (1.0/(j_gauss**(2.0/3.0))) #TODO: Decide about the dim
-    # mom_aux_scalar = (tau_th / dim) * ((1+th_gauss)**((2.0-dim)/dim)) * (1.0/(j_gauss**(2/dim)))
+    mom_aux_scalar = (tau_th / dim) * ((1+th_gauss)**sympy.Rational(2-dim,dim)) * (1.0/j_gauss**sympy.Rational(2,dim))
     mom_stab = DoubleContraction(grad_w_gauss, mom_aux_scalar * (1 + th_gauss - j_gauss) * tmp)
 
     mass_first = q_gauss[0] * (1.0+th_gauss - j_gauss)
-    mass_aux_scalar = (tau_u / 3.0) * ((j_gauss / (1.0+th_gauss))**((1.0)/3.0)) #TODO: Decide about the dim
-    # mass_aux_scalar = (tau_u / dim) * ((j_gauss / (1.0+th_gauss))**((dim-2.0)/dim))
+    mass_aux_scalar = (tau_u / dim) * ((j_gauss / (1.0+th_gauss))**sympy.Rational(dim-2,dim))
     mass_stab_1 = (mass_aux_scalar * grad_q_gauss * tmp * grad_th_gauss)[0]
     mass_stab_2 = (tau_u * grad_q_gauss * cofF_gauss.transpose() * b_gauss)[0]
 
@@ -129,10 +125,54 @@ for dim in dim_vect:
     rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
 
     # Compute LHS (RHS(residual) differentiation w.r.t. the DOFs)
-    # Note that 'S' (stress symbolic variable) is substituted by 'C*E' for the LHS differentiation, being E the enriched strain.
+    # Note that 'S' (stress symbolic variable) is substituted by a definition of a function in terms of E for the LHS differentiation
     # Otherwise the displacement terms inside the modified Green strain would not be considered in the differentiation
-    SubstituteMatrixValue(rhs, S, DoubleContraction(C, Emod_gauss).tomatrix())
-    lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications)
+    # Also note that a direct substitution by C:E is not valid in this case as this would imply a wrong differentiation of the LHS terms involving S (e.g. geometric stiffness)
+
+    # Create an auxiliary symbol for the Green-Lagrange strain as a function such that E(u,tetha)
+    E = sympy.MatrixSymbol("E", 2, 2).as_mutable()
+    for i in range(dim):
+        for j in range(dim):
+            E[i,j] = sympy.Function(f"E_{i}_{j}")(*dofs)
+
+    # Create an auxiliary symbol for the PK2 stress as a function depending on E(u,tetha)
+    S_func = sympy.MatrixSymbol("S", dim, dim).as_mutable()
+    for i in range(dim):
+        for j in range(dim):
+            S_func[i,j] = sympy.Function(f"S_{i}_{j}")(*(E.values()))
+
+    # Substitute the previous auxiliary definition of the stress by S(E(u,tetha))
+    SubstituteMatrixValue(rhs, S, S_func)
+
+    # Set the substitution list to be applied after the differentiation
+    n_dofs = rhs.shape[0]
+    substitution_list = {}
+    for i in range(dim):
+        for j in range(dim):
+            # First, for the dS/dE differentiation from the constitutive tensor symbols
+            for k in range(dim):
+                for l in range(dim):
+                    t = sympy.diff(S_func[i, j], E[k, l])
+                    substitution_list[t] = C[i, j, k, l]
+
+            # Secondly, for the dE/dDOFs differentiation (note that we used the enriched strain)
+            for i_dof in range(n_dofs):
+                t = sympy.diff(E[i,j], dofs[i_dof])
+                substitution_list[t] = sympy.diff(Emod_gauss[i,j], dofs[i_dof])
+
+            # Finally, set the remaining E and S symbols as the enriched strain and the CL stress
+            substitution_list[E[i,j]] = Emod_gauss[i,j]
+            substitution_list[S_func[i,j]] = S[i,j]
+
+    # Calculate the LHS from the previous derivatives
+    n_dofs = rhs.shape[0]
+    lhs = sympy.zeros(n_dofs, n_dofs)
+    for i in range(n_dofs):
+        for j in range(n_dofs):
+                lhs[i,j] -= sympy.diff(rhs[i], dofs[j])
+                lhs[i,j] = lhs[i,j].subs(substitution_list)
+                if do_simplifications:
+                    lhs[i, j] = sympy.simplify(lhs[i, j])
     lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
 
     # Replace the computed RHS and LHS in the template outstring
