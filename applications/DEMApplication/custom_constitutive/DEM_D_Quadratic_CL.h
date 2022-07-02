@@ -13,13 +13,13 @@
 //project include
 #include <string>
 #include <iostream>
-#include "DEM_discontinuum_constitutive_law.h"
+#include "DEM_D_Linear_viscous_Coulomb_CL.h"
 
 namespace Kratos{
 
     class SphericParticle;
 
-    class KRATOS_API(DEM_APPLICATION) DEM_D_Quadratic : public DEMDiscontinuumConstitutiveLaw {
+    class KRATOS_API(DEM_APPLICATION) DEM_D_Quadratic : public DEM_D_Linear_viscous_Coulomb {
 
     public:
 
@@ -42,6 +42,8 @@ namespace Kratos{
         void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;
 
         double CalculateNormalForce(const double indentation) override;
+
+        void InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0) override;
 
 
     private:

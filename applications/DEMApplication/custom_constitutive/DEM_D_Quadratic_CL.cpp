@@ -70,4 +70,27 @@ namespace Kratos {
         return mKn * indentation * indentation;
     }
 
+    void DEM_D_Quadratic::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
+        
+        //Get effective Radius
+        const double my_radius           = element->GetRadius(); //Get equivalent Radius
+        const double effective_radius    = my_radius - ini_delta;
+
+        //Get equivalent Young's Modulus
+        const double my_young            = element->GetYoung();
+        const double walls_young         = wall->GetProperties()[YOUNG_MODULUS];
+        const double my_poisson          = element->GetPoisson();
+        const double walls_poisson       = wall->GetProperties()[POISSON_RATIO];
+        const double equiv_young         = my_young * walls_young / (walls_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - walls_poisson * walls_poisson));
+        const double equiv_poisson       = my_poisson * walls_poisson / (my_poisson + walls_poisson);
+
+        //Get equivalent Shear Modulus
+        const double my_shear_modulus    = 0.5 * my_young / (1.0 + my_poisson);
+        const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
+        const double equiv_shear         = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus);
+ 
+        mKn = equiv_young * Globals::Pi * my_radius * my_radius / (my_radius + my_radius); 
+        mKt = equiv_shear * Globals::Pi * my_radius * my_radius / (my_radius + my_radius);
+    }
+
 } //namespace Kratos
