@@ -385,8 +385,14 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
-        # Set the distance modification process
-        self.GetDistanceModificationProcess().ExecuteInitialize()
+        # Set the distance modification process  # TODO check if continuous? FSI? parallelization?
+        if True:
+            self.GetDistanceModificationProcess().ExecuteInitialize()
+        else:
+            if True:
+                self.GetMLSConstraintProcess(mls_order=1).Execute()
+            else:
+                self.GetLocalConstraintProcess(use_mls_sf=False, use_bc=False).Execute()
 
         # For the primitive Ausas formulation, set the find nodal neighbours process
         # Recall that the Ausas condition requires the nodal neighbours.
@@ -543,6 +549,43 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         if not hasattr(self, '_distance_modification_process'):
             self._distance_modification_process = self.__CreateDistanceModificationProcess()
         return self._distance_modification_process
+
+    def GetMLSConstraintProcess(self, mls_order=1):
+        if not hasattr(self, '_mls_constraint_process'):
+            # Calculate the required neighbours
+            nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.main_model_part)
+            nodal_neighbours_process.Execute()
+            avg_num_elements = 10
+            dimensions = self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
+            elemental_neighbours_process = KratosMultiphysics.FindElementalNeighboursProcess(self.main_model_part, dimensions, avg_num_elements)
+            elemental_neighbours_process.Execute()
+            # Create the MLS basis and add multi point constraints for all negative nodes of intersected elements
+            # NOTE: the nodal distances will still be modified slightly to avoid levelset zeros (tol=1e-12)
+            # NOTE: elements in the negative distance region will be deactivated
+            settings = KratosMultiphysics.Parameters("""{}""")
+            settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
+            settings.AddEmptyValue("mls_extension_operator_order").SetInt(mls_order)
+            settings.AddEmptyValue("avoid_zero_distances").SetBool(True)
+            settings.AddEmptyValue("deactivate_negative_elements").SetBool(True)
+            settings.AddEmptyValue("deactivate_intersected_elements").SetBool(False)
+            self._mls_constraint_process = KratosCFD.EmbeddedMLSConstraintProcess(self.model, settings)
+        return self._mls_constraint_process
+
+    def GetLocalConstraintProcess(self, use_mls_sf=False, use_bc=False):
+        if not hasattr(self, '_local_constraint_process'):
+            # Create a single point constraint for all negative nodes of intersected elements
+            # NOTE: the nodal distances will still be modified slightly to avoid levelset zeros (tol=1e-12)
+            # NOTE: elements in the negative distance region will be deactivated
+            settings = KratosMultiphysics.Parameters("""{}""")
+            settings.AddEmptyValue("apply_to_all_negative_cut_nodes").SetBool(True)
+            settings.AddEmptyValue("use_mls_shape_functions").SetBool(use_mls_sf)
+            settings.AddEmptyValue("include_intersection_points").SetBool(use_bc)
+            settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
+            settings.AddEmptyValue("avoid_zero_distances").SetBool(True)
+            settings.AddEmptyValue("deactivate_negative_elements").SetBool(True)
+            settings.AddEmptyValue("deactivate_intersected_elements").SetBool(False)
+            self._local_constraint_process = KratosCFD.EmbeddedLocalConstraintProcess(self.model, settings)
+        return self._local_constraint_process
 
     def __CreateDistanceModificationProcess(self):
         # Set the distance modification settings according to the level set type
