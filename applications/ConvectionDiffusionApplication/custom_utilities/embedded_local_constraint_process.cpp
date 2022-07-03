@@ -100,8 +100,7 @@ void EmbeddedLocalConstraintProcess::CalculateNodeClouds(NodesCloudMapType& rClo
     // Loop through all elements to get negative and positive nodes of split elements
     for (auto& rElement : mpModelPart->Elements()) {
     auto& r_geom = rElement.GetGeometry();
-        // TODO: decide to add constraint for small cuts only ?!
-        if (IsSplit(r_geom)) {  // && IsSmallCut(r_geom)) {
+        if (IsSplit(r_geom)) {
             if (mApplyToAllNegativeCutNodes || IsSmallCut(r_geom)) {
                 // Containers for negative and positive side nodes of split element
                 std::vector<NodeType::Pointer> neg_nodes_element = {};
@@ -178,7 +177,7 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloud
 
             // Get nodal distances
             const double dist_slave = slave_node->FastGetSolutionStepValue(DISTANCE);
-            double sum_dist_cloud_nodes;
+            double sum_dist_cloud_nodes = 0.0;
             for (auto pos_node : pos_nodes_element) {
                 sum_dist_cloud_nodes += pos_node->FastGetSolutionStepValue(DISTANCE);
             }
@@ -205,7 +204,7 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloud
             avg_int_pt_coord /= n_intersections;
 
             // Get boundary condition value for averaged intersection point  // TODO  different boundary condition?!?
-            //const double temp_bc = rElement.GetValue(EMBEDDED_SCALAR);
+            //const double temp_bc = rElement.GetValue(EMBEDDED_SCALAR);  // TODO =0.0 if value_bc = 0.0 ???
             const double value_bc = std::pow(avg_int_pt_coord[0],2) + std::pow(avg_int_pt_coord[1],2);
 
             // Calculate weight
@@ -257,7 +256,7 @@ void EmbeddedLocalConstraintProcess::AddMLSNodeClouds(NodesCloudMapType& rClouds
             const double mls_kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
             p_mls_sh_func(cloud_nodes_coordinates, r_coords, 1.01 * mls_kernel_rad, N_container);
 
-            /// Save positive element nodes (cloud nodes) and weights (MLS shape function values)
+            /// Save positive element nodes (cloud nodes) and weights (MLS shape function values)  // =0.0 if value_bc = 0.0 ???
             CloudDataVectorType cloud_data_vector(n_cloud_nodes);
             for (std::size_t i_pos_node = 0; i_pos_node < n_cloud_nodes; ++i_pos_node) {
                 auto i_data = std::make_pair(pos_nodes_element[i_pos_node], N_container[i_pos_node]);
@@ -457,7 +456,7 @@ bool EmbeddedLocalConstraintProcess::IsSmallCut(const GeometryType& rGeometry)
     const double tol_d = 0.001;
     for (const auto& r_node : rGeometry) {
         if (abs(r_node.FastGetSolutionStepValue(DISTANCE)) < tol_d) {
-            true;
+            return true;
         }
     }
     return false;
