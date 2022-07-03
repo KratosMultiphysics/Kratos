@@ -142,10 +142,10 @@ namespace Kratos {
       ModelPart::ElementsContainerType::iterator it = rElements.ptr_begin() + i;
       ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*it);
 
-      for (unsigned int j = 0; j < rOut.numberofedges; j++) {
+      for (int j = 0; j < rOut.numberofedges; j++) {
         // Vertices of delaunay edge
-        const int vd1 = rOut.edgelist[2 * j + 0] - 1;
-        const int vd2 = rOut.edgelist[2 * j + 1] - 1;
+        unsigned const int vd1 = rOut.edgelist[2 * j + 0] - 1;
+        unsigned const int vd2 = rOut.edgelist[2 * j + 1] - 1;
 
         // Check if delaunay edge contains current point:
         // Only look at one vertex to avoid repeating the process for both vetices of the same edge

@@ -144,7 +144,7 @@ namespace Kratos {
         const double z0 = rOut.vpointlist[3 * ev1 + 2];
 
         // Triangle area irradiation
-        for (unsigned int j = 2; j <= num_face_edges; j++) {
+        for (int j = 2; j <= num_face_edges; j++) {
           // Edge vertices
           edge = rOut.vedgelist[face.elist[j] - 1];
           ev1 = edge.v1 - 1;
@@ -288,7 +288,7 @@ namespace Kratos {
     const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
     double MeanMeshSize = 0.0;
 
-    for (unsigned int i = 0; i < rOut.numberoftetrahedra; i++) {
+    for (int i = 0; i < rOut.numberoftetrahedra; i++) {
       // Get vertices IDs
       const int v1 = rOut.tetrahedronlist[4 * i + 0] - 1;
       const int v2 = rOut.tetrahedronlist[4 * i + 1] - 1;
