@@ -180,10 +180,15 @@ class SDoFSolver(object):
 
     def CalculateEquivalentForceFromRootPointExcitation(self, d_f):
         #d_f = self.root_point_displacement
-        v_f = self.x_f[1,0] + self.delta_t * (self.gamma * d_f + (1-self.gamma) * self.x_f[2,0])
-        a_f = 1/(self.delta_t**2 * self.beta) * (d_f - self.x_f[0,1])\
+        
+        v_f = self.gamma/self.beta/self.delta_t*(d_f-self.x_f[0,0])\
+            + (1-self.gamma/self.beta)*self.x_f[1,0]\
+            + self.delta_t*(1-self.gamma/2/self.beta)*self.x_f[2,0]
+
+        a_f = 1/(self.delta_t**2 * self.beta) * (d_f - self.x_f[0,0])\
             - 1/(self.delta_t * self.beta) * self.x_f[1,0]\
             + (1-1/(2*self.beta)) * self.x_f[2,0]
+        
         self.dx_f = np.array([d_f, v_f, a_f])
         b_f = np.array([0.0, 0.0, d_f * self.stiffness + v_f * self.damping])
         return b_f
