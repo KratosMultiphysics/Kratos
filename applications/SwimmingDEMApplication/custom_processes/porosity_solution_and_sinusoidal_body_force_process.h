@@ -11,8 +11,8 @@
 //
 //
 
-#ifndef KRATOS_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H
-#define KRATOS_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H
+#ifndef KRATOS_POROSITY_SOLUTION_AND_SINUSOIDAL_BODY_FORCE_PROCESS_H
+#define KRATOS_POROSITY_SOLUTION_AND_SINUSOIDAL_BODY_FORCE_PROCESS_H
 
 // System includes
 #include <string>
@@ -52,36 +52,36 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(SWIMMING_DEM_APPLICATION) PorositySolutionAndBodyForceProcess : public Process
+class KRATOS_API(SWIMMING_DEM_APPLICATION) PorositySolutionAndSinusoidalBodyForceProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of PorositySolutionAndBodyForceProcess
-    KRATOS_CLASS_POINTER_DEFINITION(PorositySolutionAndBodyForceProcess);
+    /// Pointer definition of PorositySolutionAndSinusoidalBodyForceProcess
+    KRATOS_CLASS_POINTER_DEFINITION(PorositySolutionAndSinusoidalBodyForceProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    PorositySolutionAndBodyForceProcess();
+    PorositySolutionAndSinusoidalBodyForceProcess();
     /// Constructor.
-    PorositySolutionAndBodyForceProcess(
+    PorositySolutionAndSinusoidalBodyForceProcess(
         ModelPart& rModelPart);
 
     /// Constructor with Kratos parameters.
-    PorositySolutionAndBodyForceProcess(
+    PorositySolutionAndSinusoidalBodyForceProcess(
         ModelPart& rModelPart,
         Parameters& rParameters);
 
     /// Constructor with Kratos model
-    PorositySolutionAndBodyForceProcess(
+    PorositySolutionAndSinusoidalBodyForceProcess(
         Model& rModel,
         Parameters& rParameters);
 
     /// Destructor.
-    ~PorositySolutionAndBodyForceProcess() override {}
+    ~PorositySolutionAndSinusoidalBodyForceProcess() override {}
 
     ///@}
 
@@ -104,6 +104,24 @@ public:
     ///@name Operations
     ///@{
 
+    void CheckDefaultsAndProcessSettings(Parameters &rParameters);
+
+    const Parameters GetDefaultParameters() const override;
+
+    void CalculateKinematicViscosity();
+
+    void CalculatePermeability(double &dynamic_viscosity);
+
+    void SetInitialBodyForceAndPorosityField();
+
+    void SetFluidProperties();
+
+    bool IsInsideEllipticalSupport(
+        const double x1,
+        const double x2,
+        const double c,
+        const double R);
+
     ///@}
     ///@name Access
     ///@{
@@ -120,12 +138,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "PorositySolutionAndBodyForceProcess" ;
+        buffer << "PorositySolutionAndSinusoidalBodyForceProcess" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "PorositySolutionAndBodyForceProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "PorositySolutionAndSinusoidalBodyForceProcess";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -134,25 +152,19 @@ public:
     double                                              mDensity;
     double                                            mViscosity;
     double                                         mPermeability;
-    double                                                mAlpha;
     double                                                mUchar;
+    double                                           mDeltaAlpha;
+    double                                               mLength;
+    double                                   mMaxSqueezeFraction;
+    double                                                mOmega;
+    double                                     mSqueezeAmplitude;
+    double                                              mNSafety;
+    double                                             mX1Origin;
+    double                                             mX2Origin;
+    double                                       mReynoldsNumber;
+    double                                      mDamKohlerNumber;
     bool                                      mInitialConditions;
     bool                                 mAlternativeFormulation;
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    void CheckDefaultsAndProcessSettings(Parameters &rParameters);
-
-    const Parameters GetDefaultParameters() const override;
-
-    void SetInitialBodyForceAndPorosityField();
-
-    void SetBodyForceAndPorosityField();
-
-    void SetFluidProperties();
     ///@}
     ///@name Friends
     ///@{
@@ -195,7 +207,7 @@ private:
     /// Copy constructor.
     ///@}
 
-}; // Class PorositySolutionAndBodyForceProcess
+}; // Class PorositySolutionAndSinusoidalBodyForceProcess
 
 ///@}
 ///@name Type Definitions
@@ -211,4 +223,4 @@ private:
 
 };  // namespace Kratos.
 
-#endif // KRATOS_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H
+#endif // KRATOS_POROSITY_SOLUTION_AND_SINUSOIDAL_BODY_FORCE_PROCESS_H
