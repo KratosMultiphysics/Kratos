@@ -444,6 +444,13 @@ public:
     nlohmann::json GetMpValue();
 
     /**
+     * @brief This method solves all the include dependencies in a json file
+     * @param rJson The json object 
+     * @return This method leaves in rJson the final json object with no include dependencies
+     */
+    void Parameters::solveIncludes(nlohmann::json& rJson);
+
+    /**
      * @brief This method removes an entry of the Parameters given a certain key
      * @param rEntry The key identifier of the parameter
      * @return False if failed, true otherwise
