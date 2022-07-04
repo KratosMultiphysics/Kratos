@@ -443,7 +443,7 @@ namespace Kratos
 
       //BOUNDARY NORMALS SEARCH and SHRINKAGE FACTOR
       BoundaryNormalsCalculationUtilities BoundaryComputation;
-      BoundaryComputation.CalculateWeightedBoundaryNormals(mrMainModelPart, mEchoLevel);
+      BoundaryComputation.CalculateUnitBoundaryNormals(mrMainModelPart, mEchoLevel);
 
       KRATOS_CATCH(" ")
     }
