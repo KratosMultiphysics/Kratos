@@ -88,8 +88,9 @@ class WaveGeneratorProcess(KM.Process):
         velocity_parameters.AddDouble("period", wave_theory.period)
         velocity_parameters.AddValue("phase", self.settings["wave_specifications"]["t_shift"])
         velocity_parameters.AddValue("shift", self.settings["wave_specifications"]["x_shift"])
-        velocity_parameters.AddValue("smooth_time", self.settings["smooth_time"])
         velocity_parameters.AddValue("direction", self.settings["direction"])
+        velocity_parameters.AddValue("smooth_time", self.settings["smooth_time"])
+        velocity_parameters.AddValue("smooth_time_centers", self.settings["interval"])
         self.velocity_process = SW.ApplySinusoidalFunctionToVector(self.model_part, KM.VELOCITY, velocity_parameters)
 
 

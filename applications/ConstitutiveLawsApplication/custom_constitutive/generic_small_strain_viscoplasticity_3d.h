@@ -212,6 +212,14 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericSmallStrainViscoplasticit
         return true;
     }
 
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return false;
+    }
+
     double &CalculateValue(
         Parameters &rParameterValues,
         const Variable<double> &rThisVariable,
