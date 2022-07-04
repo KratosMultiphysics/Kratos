@@ -1128,7 +1128,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
             // End damage calculation
         }
 
-        // Calculating output stress
+        // Calculating output stresses
 
         // for(int i=0; i < mConstitutiveLaws.size(); ++i) {
 
@@ -1166,7 +1166,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
         auxiliar_stress_vector[5] = damage_coeff * undamaged_auxiliar_stress_vector[5];
 
 
-        // End calculating output stress
+        // End calculating output stresses
 
         //
 
@@ -1863,7 +1863,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
             // End damage calculation
         }
 
-        // Calculating output stress
+        // Calculating output stresses
 
         // for(int i=0; i < mConstitutiveLaws.size(); ++i) {
 
@@ -1900,7 +1900,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
         auxiliar_stress_vector[4] = damage_coeff * undamaged_auxiliar_stress_vector[4];
         auxiliar_stress_vector[5] = damage_coeff * undamaged_auxiliar_stress_vector[5];
     
-        // End calculating output stress
+        // End calculating output stresses
 
         // KRATOS_WATCH(delamination_damage);
         
