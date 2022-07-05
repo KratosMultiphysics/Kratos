@@ -18,9 +18,9 @@ EXPORT int __stdcall DGeoSettlement(Kratos::KratosExecute* instance, char* worki
     return instance->geosettlement(workingDirectory, projectFile);
 }
 
-EXPORT int __stdcall DGeoFlow(Kratos::KratosExecute* instance, char* workingDirectory, char* projectFile, bool* hasPiping)
+EXPORT int __stdcall DGeoFlow(Kratos::KratosExecute* instance, char* workingDirectory, char* projectFile, double minCriticalHead, double maxCriticalHead, double stepCriticalHead)
 {
-    return instance->geoflow(workingDirectory, projectFile, hasPiping);
+    return instance->geoflow(workingDirectory, projectFile, minCriticalHead, maxCriticalHead, stepCriticalHead);
 }
 
 #endif
