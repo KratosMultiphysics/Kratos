@@ -601,26 +601,27 @@ namespace Kratos
 
         auto modelName = projectfile["solver_settings"]["model_part_name"].GetString();
 
-    	Kratos::KratosGeoMechanicsApplication application;
+        Kratos::KratosGeoMechanicsApplication application;
         application.Register();
 
-        Kratos::OpenMPUtils::SetNumThreads(1);
-        Kratos::OpenMPUtils::PrintOMPInfo();
+        if (this->GetEchoLevel() > 0)
+        {
+            Kratos::OpenMPUtils::PrintOMPInfo();
+        }
 
         // Initial Setup
         Model current_model;
         constexpr double tolerance = 1e-6;
         ModelPart& model_part = current_model.CreateModelPart(modelName);
-        const auto rank = model_part.GetCommunicator().MyPID();
         model_part.SetBufferSize(2);
 
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "Working Directory: " << workingDirectory << std::endl;
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "Project Name: " << projectName << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Working Directory: " << workingDirectory << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Project Name: " << projectName << std::endl;
 
         const auto p_solving_strategy = setup_strategy_dgeoflow(model_part);
         p_solving_strategy->SetEchoLevel(0);
 
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "Setup Solving Strategy" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Setup Solving Strategy" << std::endl;
 
         model_part.AddNodalSolutionStepVariable(VELOCITY);
         model_part.AddNodalSolutionStepVariable(ACCELERATION);
@@ -651,11 +652,11 @@ namespace Kratos
         model_part.AddNodalSolutionStepVariable(NODAL_JOINT_WIDTH);
         model_part.AddNodalSolutionStepVariable(NODAL_JOINT_DAMAGE);
 
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "Nodal Solution Variables Added" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Nodal Solution Variables Added" << std::endl;
 
         parseMesh(model_part, meshpath);
 
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "Parsed Mesh" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Mesh" << std::endl;
 
         parseMaterial(current_model, materialpath);
 
@@ -667,12 +668,12 @@ namespace Kratos
         VariableUtils().AddDof(VOLUME_ACCELERATION_Y, model_part);
         VariableUtils().AddDof(VOLUME_ACCELERATION_Z, model_part);
 
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "Added DoF" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Added DoF" << std::endl;
 
         std::vector<std::shared_ptr<Process>> processes = parseProcess(model_part, projectfile);
 
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "Parsed Process Data" << std::endl;
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "Critical Head Search: " << hasPiping << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Process Data" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Search: " << hasPiping << std::endl;
 
         if (!hasPiping) {
             int error = mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
@@ -786,7 +787,7 @@ namespace Kratos
 
             }
 
-            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0 && rank == 0) << "critical Head: " << criticalHead << " Elements: " << count << " / " << noPipeElements << std::endl;
+            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "critical Head: " << criticalHead << " Elements: " << count << " / " << noPipeElements << std::endl;
 
             // output critical head_json
             ofstream CriticalHeadFile(workingDirectory + "\\criticalHead.json");

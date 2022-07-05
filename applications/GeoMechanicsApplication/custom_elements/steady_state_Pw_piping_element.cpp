@@ -60,9 +60,8 @@ Initialize(const ProcessInfo& rCurrentProcessInfo)
     this->CalculateLength(this->GetGeometry());
 
     double smallPipeHeight = 1e-10;
-
-    // initialse pipe parameters if not initalised, (important for staged analysis. 
-    if (this->GetValue(PIPE_HEIGHT) < smallPipeHeight/10)
+	// initialse pipe parameters if not initalised, important for staged analysis. 
+    if (!this->Has(PIPE_HEIGHT))
     {
         this->SetValue(PIPE_EROSION, false);
 
