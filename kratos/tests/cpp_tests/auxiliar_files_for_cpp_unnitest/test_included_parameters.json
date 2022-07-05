@@ -1,0 +1,8 @@
+{
+    "level1":
+    {
+    "list_value":[ 3, "hi", false],
+    "tmp" : 5.0
+    },
+    "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/test_included_parameters_level2.json"
+}
