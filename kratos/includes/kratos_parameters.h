@@ -448,7 +448,7 @@ public:
      * @param rJson The json object 
      * @return This method leaves in rJson the final json object with no include dependencies
      */
-    void Parameters::solveIncludes(nlohmann::json& rJson);
+    void solveIncludes(nlohmann::json& rJson);
 
     /**
      * @brief This method removes an entry of the Parameters given a certain key

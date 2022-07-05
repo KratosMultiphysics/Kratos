@@ -214,10 +214,15 @@ Parameters::Parameters(const std::string& rJsonString)
 {
     mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rJsonString, nullptr, true, true));
     mpValue = mpRoot.get();
-    //solveIncludes(*mpValue); 
+    solveIncludes(*mpValue); 
 
+   
+}
+
+void Parameters::solveIncludes(nlohmann::json& rJson) {
+    auto it =rJson.begin();
     std::stack<std::pair<nlohmann::json*,nlohmann::json::iterator>> s;
-    s.push({mpValue,mpValue->begin()});
+    s.push({&rJson,rJson.begin()});
    
     while(!s.empty()) {
         std::pair<nlohmann::json*,nlohmann::json::iterator> pJson_it = s.top();
@@ -266,36 +271,6 @@ Parameters::Parameters(const std::string& rJsonString)
            
         }         
     } 
-}
-
-void Parameters::solveIncludes(nlohmann::json& rJson) {
-    auto it =rJson.begin();
-    while(it != rJson.end()) {
-        if(it.value().is_object()) {
-            solveIncludes(it.value());
-        }
-        if(it.key()=="@include_json") {
-            std::string file_name = *it;
-
-            std::ifstream new_file;
-            new_file.open(file_name.c_str(),std::ios::in);  
-
-            std::stringstream strStream;
-            strStream << new_file.rdbuf();
-            std::string input_json = strStream.str();
-        
-            nlohmann::json j1 = nlohmann::json::parse(input_json);
-            solveIncludes(j1);
-
-            //Remove the @include entry
-            rJson.erase("@include_json");
-
-            // Add the new entries due to the new included file
-            rJson.insert(j1.begin(), j1.end());
-            return;
-        } 
-        it++;
-    }   
 }
 
 /***********************************************************************************/
