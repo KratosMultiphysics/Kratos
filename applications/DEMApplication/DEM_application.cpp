@@ -257,6 +257,7 @@ KRATOS_CREATE_VARIABLE(double, BOND_TAU_ZERO_DEVIATION)
 KRATOS_CREATE_VARIABLE(double, BOND_INTERNAL_FRICC)
 KRATOS_CREATE_VARIABLE(double, BOND_ROTATIONAL_MOMENT_COEFFICIENT)
 KRATOS_CREATE_VARIABLE(double, BOND_RADIUS_FACTOR)
+KRATOS_CREATE_VARIABLE(double, ALPHA_K) // for DEM_D_Quadratic_LAW
 
 // *************** Continuum only END *************
 
@@ -515,7 +516,7 @@ template class DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D
 
 // for parallel bond model
 template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Hertz_viscous_Coulomb>;
-template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Linear_classic>;
+template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Linear_viscous_Coulomb>;
 template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Quadratic>;
 
 void KratosDEMApplication::Register() {

@@ -996,7 +996,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
     const auto& central_node = GetGeometry()[0];
 
     std::vector<DEMWall*>& rNeighbours   = this->mNeighbourRigidFaces;
-    const array_1d<double, 3>& velocity         = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+    const array_1d<double, 3>& velocity  = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
     const array_1d<double,3>& AngularVel = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
 
     for (unsigned int i = 0; i < rNeighbours.size(); i++) {

@@ -949,8 +949,9 @@ void DEM_parallel_bond::CheckBondFailure(const int i_neighbour_count,
             //ViscoLocalRotationalMoment[1] = 0.0;
             //ViscoLocalRotationalMoment[2] = 0.0;
         } 
-        else if ((-1 * contact_sigma + bond_rotational_moment_tangential_modulus * bond_radius / I > bond_current_tau_max) 
-            && !(*mpProperties)[IS_UNBREAKABLE]) 
+        else if (contact_sigma < 0.0  /*break only in tension*/
+                && (-1 * contact_sigma + bond_rotational_moment_tangential_modulus * bond_radius / I > bond_current_tau_max) 
+                && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for normal
             failure_type = 4; // failure in tension
             contact_sigma = 0.0;
