@@ -58,7 +58,7 @@ refer to [Compiling Kratos with MPI support](https://github.com/KratosMultiphysi
 
 Assuming that the dependencies are installed, the following steps are:
 
-1. Add the `TrilinosApplication` to the list of applications to compile in the building script for Kratos,
+1. Add the `TrilinosApplication` to the list of applications to be compiled in the building script for Kratos,
 as described in the [install instructions](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md#adding-applications).
 ```bash
 export KRATOS_APPLICATIONS=
@@ -116,7 +116,7 @@ sudo apt install \
 ```
 
 - It is possible to do a minimal installation of the TrilinosApplication only using the Epetra package.
-Other packages can be disable with the following flags:
+Other packages can be disabled with the following flags:
 ```bash
 -DTRILINOS_EXCLUDE_ML_SOLVER=ON  # exclude the interface to the Trilinos ML solver package
 -DTRILINOS_EXCLUDE_AZTEC_SOLVER=ON  # exclude solvers from the Trilinos AztecOO package
