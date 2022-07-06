@@ -604,7 +604,8 @@ namespace Kratos
         Kratos::KratosGeoMechanicsApplication application;
         application.Register();
 
-        if (this->GetEchoLevel() > 0)
+        Kratos::OpenMPUtils::SetNumThreads(1);
+    	if (this->GetEchoLevel() > 0)
         {
             Kratos::OpenMPUtils::PrintOMPInfo();
         }
