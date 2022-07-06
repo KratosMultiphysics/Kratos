@@ -127,7 +127,7 @@ sudo apt install \
         libtrilinos-shylu-dev
 ```
 
-- It is possible to do a minimal installation of the TrilinosApplication only using the Epetra package.
+-It is possible to do a minimal installation of the TrilinosApplication only using the Epetra package.
 Other packages can be disabled with the following flags:
 
 ```bash
