@@ -54,7 +54,7 @@ double BrooksCoreyLaw::
     const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
     const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
    
-    if (p > 0.0 & p > pb )
+    if (p > 0.0 && p >= pb )
     {
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
@@ -65,7 +65,7 @@ double BrooksCoreyLaw::
         double sat = satMin + (satMax - satMin) *  pow(pb/p, Lambda);
         return sat;
     }
-    else
+    else 
     {
         return rMaterialProperties[SATURATED_SATURATION];
     }
@@ -99,7 +99,7 @@ double BrooksCoreyLaw::
     KRATOS_TRY;
     const double &p = rParameters.GetFluidPressure();
 
-    if (p > 0.0)
+    if (p > 0.0 && p >= pb)
     {
         const auto &rMaterialProperties = rParameters.GetMaterialProperties();
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
@@ -153,7 +153,7 @@ double BrooksCoreyLaw::
      const auto &rMaterialProperties = rParameters.GetMaterialProperties();
      const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
      
-if (p > 0.0 & p > pb)
+if (p > 0.0 && p >= pb)
     {
         const auto &rMaterialProperties = rParameters.GetMaterialProperties();
         const double &Porosity = rMaterialProperties[POROSITY];
