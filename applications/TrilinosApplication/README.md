@@ -53,7 +53,7 @@ sudo apt install trilinos-all-dev
 ```
 However, there may be situations where downloading the packages may not be possible.
 In this case, other (potentially trickier) option is to download the source code and build the libraries.
-For more detailed and updated instructions for compiling Trilinos and other necessary pakages,
+For more detailed and updated instructions for compiling Trilinos and other necessary packages,
 refer to [Compiling Kratos with MPI support](https://github.com/KratosMultiphysics/Kratos/wiki/Compiling-Kratos-with-MPI-support), in the wiki.
 
 Assuming that the dependencies are installed, the following steps are:
@@ -65,7 +65,7 @@ export KRATOS_APPLICATIONS=
 ...
 add_app ${KRATOS_APP_DIR}/TrilinosApplication
 ```
-2. Tell cmake where are located the libraries and includes of Trilinos.
+2. Tell cmake where are located the libraries and headers of Trilinos.
 If Trilinos was compiled (instead of downloaded with a package manager),
 it is usually enough to point the `TRILINOS_ROOT` variable to the build directory.
 For example:
@@ -80,7 +80,7 @@ Moreover, the name of the libraries may not be standard.
 In this case, instead of setting `TRILINOS_ROOT`, set 
 `-DTRILINOS_INCLUDE_DIR=String` with the path to the include dir, 
 `-DTRILINOS_LIBRARY_DIR=String` with the path to the library dir, and set
-`-DTRILINOS_LIBRARY_PREFIX=String` with the prefix to use when looking for the trilinos libraries, i.e.,
+`-DTRILINOS_LIBRARY_PREFIX=String` with the prefix to use when looking for the Trilinos libraries, i.e.,
 ```
 libepetra.so  # No need to set TRILINOS_PREFIX
 libtrilinos_epetra.so  # -DTRILINOS_PREFIX="trilinos_"
