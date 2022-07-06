@@ -67,7 +67,8 @@ double BrooksCoreyLaw::
     }
     else 
     {
-        return rMaterialProperties[SATURATED_SATURATION];
+        double sat = rMaterialProperties[SATURATED_SATURATION];;
+        return sat;
     }
 
     KRATOS_CATCH("")
