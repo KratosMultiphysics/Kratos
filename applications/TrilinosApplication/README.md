@@ -45,29 +45,48 @@ For more information about these please refer to their serial version (without _
 
 
 ### Build instructions
-First add the `TrilinosApplication` to the compiled apps, as described in the [install instructions](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md#adding-applications).
+Building the `TrilinosApplication` requires the Trilinos libraries and their dependencies already installed on the system.
+The easiest way to get them is by the package repository of the Linux distribution.
+For example, in Ubuntu:
+```Shell
+sudo apt install trilinos-all-dev
+```
+Usually the only option is to download the source code and build the libraries, which may be more difficult than the previous one.
 
-Use the following settings to add Trilinos:
+For more detailed and updated instructions for compiling Trilinos and other necessary pakages,
+refer to [Compiling Kratos with MPI support](https://github.com/KratosMultiphysics/Kratos/wiki/Compiling-Kratos-with-MPI-support), in the wiki.
 
-`-DTRILINOS_ROOT=String`
+- First add the `TrilinosApplication` to the list of applications to compile in the building script for Kratos,
+as described in the [install instructions](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md#adding-applications).
+```bash
+export KRATOS_APPLICATIONS=
+...
+add_app ${KRATOS_APP_DIR}/TrilinosApplication
+```
+- Then it is necessary to tell cmake where are located the libraries and includes:
+If trilinos is compiled, it is usually enough to set the `TRILINOS_ROOT` variable the the build directory.
+For example:
+```bash
+cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}" \
+...
+-DTRILINOS_ROOT="${HOME}/Projects/Trilinos/build"
+```
 
-Root directory for Trilinos library.
+Or, if Trilinos is installed with a package manager, libraries and headers are in different locations, and name may not be standard.
 
-`-DTRILINOS_INCLUDE_DIR=String`
+So, instead of setting `TRILINOS_ROOT`, set 
 
-Not required if `TRILINOS_ROOT` is set. Path to trilinos include dir.
+`-DTRILINOS_INCLUDE_DIR=String` Path to trilinos include dir.
+`-DTRILINOS_LIBRARY_DIR=String` Path to trilinos library dir.
+and set:
 
-`-DTRILINOS_LIBRARY_DIR=String`
-
-Not required if `TRILINOS_ROOT` is set. Path to trilinos library dir.
-
-`-DTRILINOS_LIBRARY_PREFIX=String`
-Indicates the prefix of the trilinos libraries in case they have:
+`-DTRILINOS_LIBRARY_PREFIX=String` Indicates the prefix of the trilinos libraries in case they have, i.e.,
 ```
 libepetra.so          -> No prefix
 libtrilinos_epetra.so -> -DTRILINOS_PREFIX="trilinos_"
 ```
-If trilinos was installed using the package manager usually the following lines have to be used:
+
+For example, in the case of Ubuntu, installed Trilinos installed by `apt`:
 ```
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
@@ -81,12 +100,3 @@ Furthermore it is possible to do a minimal installation of the TrilinosApplicati
 - *TRILINOS_EXCLUDE_AZTEC_SOLVER*: Setting this flag to `ON` in the configure file will exclude solvers from the Trilinos AztecOO package
 - *TRILINOS_EXCLUDE_AMESOS_SOLVER*: Setting this flag to `ON` in the configure file will exclude solvers using features of the Trilinos Amesos package
 - *TRILINOS_EXCLUDE_AMESOS2_SOLVER*: Setting this flag to `ON` in the configure file will exclude solvers using features of the Trilinos Amesos2 package
-
-
-From Ubuntu 18.04 onwards, Trilinos can be installed with the following command:
-
-```Shell
-sudo apt-get install trilinos-all-dev
-```
-
-
