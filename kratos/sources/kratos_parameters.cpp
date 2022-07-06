@@ -209,17 +209,24 @@ Parameters::Parameters()
 
 /***********************************************************************************/
 /***********************************************************************************/
+nlohmann::json Parameters::read_file(std::string file_name) {
+    std::ifstream new_file;
+    new_file.open(file_name.c_str(),std::ios::in);  
+
+    std::stringstream strStream;
+    strStream << new_file.rdbuf();
+    std::string input_json = strStream.str();
+    return nlohmann::json::parse(input_json); 
+}
 
 Parameters::Parameters(const std::string& rJsonString)
 {
     mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rJsonString, nullptr, true, true));
     mpValue = mpRoot.get();
-    solveIncludes(*mpValue); 
-
-   
+    SolveIncludes(*mpValue); 
 }
 
-void Parameters::solveIncludes(nlohmann::json& rJson) {
+void Parameters::SolveIncludes(nlohmann::json& rJson) {
     auto it =rJson.begin();
     std::stack<std::pair<nlohmann::json*,nlohmann::json::iterator>> s;
     s.push({&rJson,rJson.begin()});
@@ -241,27 +248,17 @@ void Parameters::solveIncludes(nlohmann::json& rJson) {
             } 
 
             else if(act_it.key() =="@include_json") { 
+                
+                nlohmann::json included_json= read_file(*act_it);
 
-                std::string file_name = *act_it;
-
-                std::ifstream new_file;
-                new_file.open(file_name.c_str(),std::ios::in);  
-
-                std::stringstream strStream;
-                strStream << new_file.rdbuf();
-                std::string input_json = strStream.str();
-            
-                nlohmann::json* pIncluded_json =nullptr;
-                nlohmann::json included_json= nlohmann::json::parse(input_json);  
-
-                solveIncludes(included_json);
+                SolveIncludes(included_json);
 
                 //Remove the @include entry
                 act_pJson->erase("@include_json"); 
 
                 // Add the new entries due to the new included file
                 act_pJson->insert(included_json.begin(), included_json.end()); 
-                //act_it = act_pJson->begin(); 
+                 
                 break;
 
             }
@@ -280,7 +277,7 @@ Parameters::Parameters(std::ifstream& rStringStream)
 {
     mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rStringStream, nullptr, true, true));
     mpValue = mpRoot.get();
-
+    SolveIncludes(*mpValue); 
 }
 
 /***********************************************************************************/
@@ -441,13 +438,6 @@ Parameters Parameters::AddEmptyValue(const std::string& rEntry)
         return Parameters(&(*mpValue)[rEntry], mpRoot);
     }
     return this->GetValue(rEntry);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-nlohmann::json Parameters::GetMpValue() {
-    return *(mpValue);
 }
 
 /***********************************************************************************/

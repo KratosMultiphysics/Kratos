@@ -273,6 +273,7 @@ private:
 
         ///@}
     };
+    //aqui?
 
     ///@}
 
@@ -436,19 +437,6 @@ public:
      * @param rEntry The key identifier of the parameter
      */
     Parameters AddEmptyValue(const std::string& rEntry);
-
-     /**
-     * @brief This method returns the json object pointed by mpValue
-     * @return json object pointed by mpValue
-     */
-    nlohmann::json GetMpValue();
-
-    /**
-     * @brief This method solves all the include dependencies in a json file
-     * @param rJson The json object 
-     * @return This method leaves in rJson the final json object with no include dependencies
-     */
-    void solveIncludes(nlohmann::json& rJson);
 
     /**
      * @brief This method removes an entry of the Parameters given a certain key
@@ -1035,6 +1023,20 @@ private:
      * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
      */
     void InternalSetValue(const Parameters& rOtherValue);
+
+    /**
+     * @brief This method solves all the include dependencies in a json file
+     * @param rJson The json object 
+     * @return This method leaves in rJson the final json object with no include dependencies
+     */
+    void SolveIncludes(nlohmann::json& rJson);
+
+    /**
+     * @brief This method read a json file
+     * @param rJson The json file name 
+     * @return The json object obtained from reading the file 
+     */
+    nlohmann::json read_file(std::string file_name);
 
 }; // Parameters class
 
