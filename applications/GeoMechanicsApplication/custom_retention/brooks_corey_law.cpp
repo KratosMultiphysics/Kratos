@@ -97,7 +97,8 @@ double BrooksCoreyLaw::
     CalculateDerivativeOfSaturation(Parameters &rParameters)
 {
     KRATOS_TRY;
-    const double &p = rParameters.GetFluidPressure();
+   const double &p = rParameters.GetFluidPressure();
+    const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
     const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
 
     if (p > 0.0 && p >= pb)
