@@ -98,6 +98,7 @@ double BrooksCoreyLaw::
 {
     KRATOS_TRY;
     const double &p = rParameters.GetFluidPressure();
+    const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
 
     if (p > 0.0 && p >= pb)
     {
