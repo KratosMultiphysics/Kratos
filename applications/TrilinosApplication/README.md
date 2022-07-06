@@ -51,7 +51,7 @@ For example, in Ubuntu:
 ```Shell
 sudo apt install trilinos-all-dev
 ```
-However, there may be situations where downloading the package may not be possible.
+However, there may be situations where downloading the packages may not be possible.
 In this case, other (potentially trickier) option is to download the source code and build the libraries.
 For more detailed and updated instructions for compiling Trilinos and other necessary pakages,
 refer to [Compiling Kratos with MPI support](https://github.com/KratosMultiphysics/Kratos/wiki/Compiling-Kratos-with-MPI-support), in the wiki.
@@ -66,7 +66,7 @@ export KRATOS_APPLICATIONS=
 add_app ${KRATOS_APP_DIR}/TrilinosApplication
 ```
 2. Tell cmake where are located the libraries and includes of Trilinos.
-If Trilinos was compiled (instead of download with a package manager),
+If Trilinos was compiled (instead of downloaded with a package manager),
 it is usually enough to point the `TRILINOS_ROOT` variable to the build directory.
 For example:
 ```bash
@@ -86,7 +86,7 @@ libepetra.so  # No need to set TRILINOS_PREFIX
 libtrilinos_epetra.so  # -DTRILINOS_PREFIX="trilinos_"
 ```
 
-For example, in the case of Ubuntu, installed Trilinos installed by `apt`:
+For example, in the case of Ubuntu with Trilinos installed by `sudo apt install trilinos-all-dev`:
 ```
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"
@@ -98,7 +98,7 @@ For example, in the case of Ubuntu, installed Trilinos installed by `apt`:
 - Trilinos is a large project and not all of its packages are being used in Kratos.
 Check the [docker of the CI](https://github.com/KratosMultiphysics/Kratos/blob/master/scripts/docker_files/docker_file_ci_ubuntu_20_04/DockerFile)
 to see which packages are necessary in order to compile the TrilinosApplication.
-At the moment, the list of packages installed is:
+At the moment, the list of required packages is:
 ```bash
 sudo apt install \
         libtrilinos-amesos-dev \
@@ -115,8 +115,8 @@ sudo apt install \
         libtrilinos-shylu-dev
 ```
 
-- It is possible to do a minimal installation of the TrilinosApplication with only using the Epetra package.
-Other packages can be disable be disabled with the following flags:
+- It is possible to do a minimal installation of the TrilinosApplication only using the Epetra package.
+Other packages can be disable with the following flags:
 ```bash
 -DTRILINOS_EXCLUDE_ML_SOLVER=ON  # exclude the interface to the Trilinos ML solver package
 -DTRILINOS_EXCLUDE_AZTEC_SOLVER=ON  # exclude solvers from the Trilinos AztecOO package
