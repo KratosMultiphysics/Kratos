@@ -46,25 +46,28 @@ For more information about these please refer to their serial version (without _
 
 ### Build instructions
 Building the `TrilinosApplication` requires the Trilinos libraries and their dependencies already installed on the system.
-The easiest way to get them is by the package repository of the Linux distribution.
+The easiest way to get them is by the package manager of the Linux distribution.
 For example, in Ubuntu:
 ```Shell
 sudo apt install trilinos-all-dev
 ```
-Usually the only option is to download the source code and build the libraries, which may be more difficult than the previous one.
-
+However, there may be situations where downloading the package may not be possible.
+In this case, other (potentially trickier) option is to download the source code and build the libraries.
 For more detailed and updated instructions for compiling Trilinos and other necessary pakages,
 refer to [Compiling Kratos with MPI support](https://github.com/KratosMultiphysics/Kratos/wiki/Compiling-Kratos-with-MPI-support), in the wiki.
 
-- First add the `TrilinosApplication` to the list of applications to compile in the building script for Kratos,
+Assuming that the dependencies are installed, the following steps are:
+
+1. Add the `TrilinosApplication` to the list of applications to compile in the building script for Kratos,
 as described in the [install instructions](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md#adding-applications).
 ```bash
 export KRATOS_APPLICATIONS=
 ...
 add_app ${KRATOS_APP_DIR}/TrilinosApplication
 ```
-- Then it is necessary to tell cmake where are located the libraries and includes:
-If trilinos is compiled, it is usually enough to set the `TRILINOS_ROOT` variable the the build directory.
+2. Tell cmake where are located the libraries and includes of Trilinos.
+If Trilinos was compiled (instead of download with a package manager),
+it is usually enough to point the `TRILINOS_ROOT` variable to the build directory.
 For example:
 ```bash
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}" \
@@ -72,31 +75,51 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}" \
 -DTRILINOS_ROOT="${HOME}/Projects/Trilinos/build"
 ```
 
-Or, if Trilinos is installed with a package manager, libraries and headers are in different locations, and name may not be standard.
-
-So, instead of setting `TRILINOS_ROOT`, set 
-
-`-DTRILINOS_INCLUDE_DIR=String` Path to trilinos include dir.
-`-DTRILINOS_LIBRARY_DIR=String` Path to trilinos library dir.
-and set:
-
-`-DTRILINOS_LIBRARY_PREFIX=String` Indicates the prefix of the trilinos libraries in case they have, i.e.,
+Or, if Trilinos is installed with a package manager, then libraries and headers may be in different locations.
+Moreover, the name of the libraries may not be standard.
+In this case, instead of setting `TRILINOS_ROOT`, set 
+`-DTRILINOS_INCLUDE_DIR=String` with the path to the include dir, 
+`-DTRILINOS_LIBRARY_DIR=String` with the path to the library dir, and set
+`-DTRILINOS_LIBRARY_PREFIX=String` with the prefix to use when looking for the trilinos libraries, i.e.,
 ```
-libepetra.so          -> No prefix
-libtrilinos_epetra.so -> -DTRILINOS_PREFIX="trilinos_"
+libepetra.so  # No need to set TRILINOS_PREFIX
+libtrilinos_epetra.so  # -DTRILINOS_PREFIX="trilinos_"
 ```
 
 For example, in the case of Ubuntu, installed Trilinos installed by `apt`:
 ```
--DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
--DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
--DTRILINOS_LIBRARY_PREFIX="trilinos_" \
+-DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"
+-DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"
+-DTRILINOS_LIBRARY_PREFIX="trilinos_"
 ```
 
-### Notes for compilation
-Trilinos is a large project and not all of its packages are being used in Kratos. Check the [docker of the CI](https://github.com/KratosMultiphysics/Kratos/blob/master/scripts/docker_files/docker_file_ci_ubuntu_20_04/DockerFile) to see which packages are necessary in order to compile the TrilinosApplication.
-Furthermore it is possible to do a minimal installation of the TrilinosApplication with only using the Epetra package. Using the other packages is enabled by default, but can be disabled with the following flags:
-- *TRILINOS_EXCLUDE_ML_SOLVER*: Setting this flag to `ON` in the configure file will exclude the interface to the Trilinos ML solver package
-- *TRILINOS_EXCLUDE_AZTEC_SOLVER*: Setting this flag to `ON` in the configure file will exclude solvers from the Trilinos AztecOO package
-- *TRILINOS_EXCLUDE_AMESOS_SOLVER*: Setting this flag to `ON` in the configure file will exclude solvers using features of the Trilinos Amesos package
-- *TRILINOS_EXCLUDE_AMESOS2_SOLVER*: Setting this flag to `ON` in the configure file will exclude solvers using features of the Trilinos Amesos2 package
+**Notes**
+
+- Trilinos is a large project and not all of its packages are being used in Kratos.
+Check the [docker of the CI](https://github.com/KratosMultiphysics/Kratos/blob/master/scripts/docker_files/docker_file_ci_ubuntu_20_04/DockerFile)
+to see which packages are necessary in order to compile the TrilinosApplication.
+At the moment, the list of packages installed is:
+```bash
+sudo apt install \
+        libtrilinos-amesos-dev \
+        libtrilinos-amesos2-dev \
+        libtrilinos-aztecoo-dev \
+        libtrilinos-epetra-dev \
+        libtrilinos-epetraext-dev \
+        libtrilinos-ifpack-dev \
+        libtrilinos-ml-dev \
+        libtrilinos-teuchos-dev \
+        libtrilinos-tpetra-dev \
+        libtrilinos-kokkos-dev \
+        libtrilinos-kokkos-kernels-dev \
+        libtrilinos-shylu-dev
+```
+
+- It is possible to do a minimal installation of the TrilinosApplication with only using the Epetra package.
+Other packages can be disable be disabled with the following flags:
+```bash
+-DTRILINOS_EXCLUDE_ML_SOLVER=ON  # exclude the interface to the Trilinos ML solver package
+-DTRILINOS_EXCLUDE_AZTEC_SOLVER=ON  # exclude solvers from the Trilinos AztecOO package
+-DTRILINOS_EXCLUDE_AMESOS_SOLVER=ON  # exclude solvers using features of the Trilinos Amesos package
+-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=ON  # exclude solvers using features of the Trilinos Amesos2 package
+```
