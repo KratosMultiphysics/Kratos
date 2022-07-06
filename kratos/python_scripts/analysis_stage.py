@@ -251,9 +251,9 @@ class AnalysisStage(object):
     def _CreateModelers(self):
         """ List of modelers in following format:
         "modelers" : [{
-            "modeler_name" : "geometry_import":
-            "parameters" : {
-                "echo_level" : 0:
+            "modeler_name" : "geometry_import",
+            "Parameters" : {
+                "echo_level" : 0,
                 // settings for this modeler
             }
         },{ ... }]
