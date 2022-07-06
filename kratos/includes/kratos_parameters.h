@@ -1036,7 +1036,7 @@ private:
      * @param rJson The json file name 
      * @return The json object obtained from reading the file 
      */
-    nlohmann::json read_file(std::string file_name);
+    nlohmann::json ReadFile(std::string file_name);
 
 }; // Parameters class
 

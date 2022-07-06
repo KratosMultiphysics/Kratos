@@ -209,7 +209,7 @@ Parameters::Parameters()
 
 /***********************************************************************************/
 /***********************************************************************************/
-nlohmann::json Parameters::read_file(std::string file_name) {
+nlohmann::json Parameters::ReadFile(std::string file_name) {
     std::ifstream new_file;
     new_file.open(file_name.c_str(),std::ios::in);  
 
@@ -249,7 +249,7 @@ void Parameters::SolveIncludes(nlohmann::json& rJson) {
 
             else if(act_it.key() =="@include_json") { 
                 
-                nlohmann::json included_json= read_file(*act_it);
+                nlohmann::json included_json= ReadFile(*act_it);
 
                 SolveIncludes(included_json);
 
