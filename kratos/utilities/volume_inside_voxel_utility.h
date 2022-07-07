@@ -53,7 +53,7 @@ namespace Kratos
  * voxel that is actually filled with volume.
  * @author Ariadna Cortés
  */
-class VolumeInsideVoxel
+class VolumeInsideVoxelUtility
 {
 public:
 
@@ -61,7 +61,7 @@ public:
     ///@{
 
     /// Pointer definition of VoxelInsideVolume
-    KRATOS_CLASS_POINTER_DEFINITION( VolumeInsideVoxel );
+    KRATOS_CLASS_POINTER_DEFINITION( VolumeInsideVoxelUtility );
 
     ///@}
     ///@name Life Cycle
@@ -74,10 +74,10 @@ public:
     /**
      * @brief Default constructor
      */
-    VolumeInsideVoxel(){}
+    VolumeInsideVoxelUtility(){}
 
     /// Destructor
-    virtual ~VolumeInsideVoxel(){}
+    virtual ~VolumeInsideVoxelUtility(){}
 
     ///@}
     ///@name Operations

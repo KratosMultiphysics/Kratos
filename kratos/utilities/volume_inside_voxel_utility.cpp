@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "volume_inside_voxel.h"
+#include "volume_inside_voxel_utility.h"
 #include "includes/define.h"
 
 namespace Kratos
