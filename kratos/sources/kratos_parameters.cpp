@@ -210,7 +210,7 @@ Parameters::Parameters()
 /***********************************************************************************/
 /***********************************************************************************/
 
-nlohmann::json Parameters::ReadFile(std::string file_name) {
+nlohmann::json Parameters::ReadFile(std::string FileName) {
     std::ifstream new_file;
     new_file.open(file_name.c_str(),std::ios::in);  
 
