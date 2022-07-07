@@ -12,10 +12,10 @@
 //
 
 // System includes
+#include <stack>
 
 // External includes
 #include "json/json.hpp" // Import nlohmann json library
-#include <stack>
 
 // Project includes
 #include "includes/kratos_parameters.h"
