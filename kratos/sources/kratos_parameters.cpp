@@ -236,7 +236,6 @@ Parameters::Parameters(const std::string& rJsonString)
 
 void Parameters::SolveIncludes(nlohmann::json& rJson) 
 {
-    auto it =rJson.begin();
     std::stack<std::pair<nlohmann::json*,nlohmann::json::iterator>> s;
     s.push({&rJson,rJson.begin()});
    
