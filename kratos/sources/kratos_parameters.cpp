@@ -12,10 +12,10 @@
 //
 
 // System includes
+#include <stack>
 
 // External includes
 #include "json/json.hpp" // Import nlohmann json library
-#include <stack>
 
 // Project includes
 #include "includes/kratos_parameters.h"
@@ -210,9 +210,10 @@ Parameters::Parameters()
 /***********************************************************************************/
 /***********************************************************************************/
 
-nlohmann::json Parameters::ReadFile(std::string file_name) {
+nlohmann::json Parameters::ReadFile(std::string FileName) 
+{
     std::ifstream new_file;
-    new_file.open(file_name.c_str(),std::ios::in);  
+    new_file.open(FileName.c_str(),std::ios::in);  
 
     std::stringstream strStream;
     strStream << new_file.rdbuf();
@@ -233,7 +234,8 @@ Parameters::Parameters(const std::string& rJsonString)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void Parameters::SolveIncludes(nlohmann::json& rJson) {
+void Parameters::SolveIncludes(nlohmann::json& rJson) 
+{
     auto it =rJson.begin();
     std::stack<std::pair<nlohmann::json*,nlohmann::json::iterator>> s;
     s.push({&rJson,rJson.begin()});
