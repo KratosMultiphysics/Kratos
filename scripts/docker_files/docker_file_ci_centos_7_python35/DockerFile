@@ -7,25 +7,28 @@ ENV HOME /root
 #RUN python --version
 RUN yum -y --quiet install wget git cmake gcc-c++ unzip python-pip make gcc-gfortran zlib-devel bzip2-devel openssl-devel samba-client openmpi-devel hdf5-openmpi-devel boost-devel
 
+# Devtools 8
+RUN yum install -y binutils-devel wget && rm -rf /var/cache/yum/*
+RUN source scl_source enable devtoolset-8
 
-# compiling python3.5.4 to be compatible with HW
+# compiling python3.8.10 to be compatible with HW
 RUN cd /usr/src
-RUN wget https://www.python.org/ftp/python/3.5.4/Python-3.5.4.tgz
-RUN tar xzf Python-3.5.4.tgz -C /usr/src
-RUN ls /usr/src/Python-3.5.4
-RUN sh /usr/src/Python-3.5.4/configure --enable-optimizations --with-lto --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
+RUN wget https://www.python.org/ftp/python/3.8.10/Python-3.8.10.tgz
+RUN tar xzf Python-3.8.10.tgz -C /usr/src
+RUN ls /usr/src/Python-3.8.10
+RUN sh /usr/src/Python-3.8.10/configure --enable-optimizations --with-lto --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
 RUN make altinstall
-RUN rm Python-3.5.4.tgz
-RUN python3.5 -m pip install 'cx_Freeze==6.1' numpy sympy
+RUN rm Python-3.8.10.tgz
+RUN python3.8 -m pip install 'cx_Freeze==6.1'
 
 # Setting the needed environment variables for being able to run/compile
-ENV PYTHON_EXECUTABLE /usr/local/bin/python3.5
-# ENV  AMS_EXTERNAL_LIBRARIES_INSTALL_PATH /usr/local/
+ENV PYTHON_EXECUTABLE /usr/local/bin/python3.8
+ENV AMS_EXTERNAL_LIBRARIES_INSTALL_PATH /usr/local/
 
 # Installing cmake3
-RUN wget https://cmake.org/files/v3.17/cmake-3.17.3.tar.gz &&  tar zxvf cmake-3.* && cd cmake-3.* \
+RUN source scl_source enable devtoolset-8 && wget https://cmake.org/files/v3.18/cmake-3.18.6.tar.gz &&  tar zxvf cmake-3.* && cd cmake-3.* \
     && ./bootstrap --prefix=/usr/local && gmake  -j$(nproc) && make install
-RUN rm cmake-3* -rf
+# RUN rm cmake-3* -rf
 
 # COPY external_libraries /external_libraries
 # RUN source /etc/profile.d/modules.sh && module load mpi/openmpi-x86_64 \
