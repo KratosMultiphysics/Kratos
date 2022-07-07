@@ -209,6 +209,7 @@ Parameters::Parameters()
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 nlohmann::json Parameters::ReadFile(std::string file_name) {
     std::ifstream new_file;
     new_file.open(file_name.c_str(),std::ios::in);  
@@ -219,12 +220,18 @@ nlohmann::json Parameters::ReadFile(std::string file_name) {
     return nlohmann::json::parse(input_json); 
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 Parameters::Parameters(const std::string& rJsonString)
 {
     mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rJsonString, nullptr, true, true));
     mpValue = mpRoot.get();
     SolveIncludes(*mpValue); 
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void Parameters::SolveIncludes(nlohmann::json& rJson) {
     auto it =rJson.begin();
@@ -260,12 +267,10 @@ void Parameters::SolveIncludes(nlohmann::json& rJson) {
                 act_pJson->insert(included_json.begin(), included_json.end()); 
                  
                 break;
-
             }
             else {
                 act_it++;                 
-            } 
-           
+            }   
         }         
     } 
 }
