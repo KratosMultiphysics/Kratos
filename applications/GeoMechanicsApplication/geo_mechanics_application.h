@@ -38,12 +38,14 @@
 #include "custom_conditions/U_Pw_normal_flux_FIC_condition.hpp"
 #include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
 #include "custom_conditions/U_Pw_normal_flux_interface_condition.hpp"
+#include "custom_conditions/Pw_normal_flux_condition.hpp"
 #include "custom_conditions/line_load_2D_diff_order_condition.hpp"
 #include "custom_conditions/line_normal_load_2D_diff_order_condition.hpp"
 #include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.hpp"
 #include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
 #include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
 #include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
+#include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
 
 // elements
 #include "custom_elements/transient_Pw_element.hpp"
@@ -416,6 +418,9 @@ private:
     const UPwNormalFluxCondition<2,2> mUPwNormalFluxCondition2D2N;
     const UPwNormalFluxCondition<3,3> mUPwNormalFluxCondition3D3N;
     const UPwNormalFluxCondition<3,4> mUPwNormalFluxCondition3D4N;
+    const PwNormalFluxCondition<2, 2> mPwNormalFluxCondition2D2N;
+    const PwNormalFluxCondition<3, 3> mPwNormalFluxCondition3D3N;
+    const PwNormalFluxCondition<3, 4> mPwNormalFluxCondition3D4N;
 
     const UPwFaceLoadCondition<2,3> mUPwFaceLoadCondition2D3N;
 
@@ -440,6 +445,10 @@ private:
     const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D6N;
     const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D8N;
     const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D9N;
+
+    const UPwLysmerAbsorbingCondition<2, 2> mUPwLysmerAbsorbingCondition2D2N;
+    const UPwLysmerAbsorbingCondition<3, 3> mUPwLysmerAbsorbingCondition3D3N;
+    const UPwLysmerAbsorbingCondition<3, 4> mUPwLysmerAbsorbingCondition3D4N;
 
     // constitutive models
     const BilinearCohesive3DLaw             mBilinearCohesive3DLaw;
