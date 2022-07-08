@@ -10,6 +10,8 @@ import test_helper
 class TestConsecutivePipeLines(KratosUnittest.TestCase):
     """
     Class to Check consecutive pipelines with different configurations
+    Note that  we are testing for convergence and FE operation/integration, No theory is available to describe 2
+    materials, therefore no comparison of results.
     """
 
     def setUp(self):
@@ -46,25 +48,90 @@ class TestConsecutivePipeLines(KratosUnittest.TestCase):
             counter_head = counter_head + 1
         return math.nan
 
-    def test_consecutive_pipe_lines(self):
-        # Testing for convergence and FE operation/integration, No theory is available to describe 2 materials,
-        # therefore no comparison of results.
-        test_files = ["split_geometry_permeability_soil1_e10", "split_geometry_permeability_soil2_e10",
-                      "split_geometry_permeability_soil1_soil2_e10", "split_geometry_double_lines_pipe2_added",
-                      "split_geometry_pipe2_D70_3e4"]
-        result_dict = {}
 
-        for test_file in test_files:
-            test_name = os.path.join('test_consecutive_pipe_lines', test_file)
-            file_path = test_helper.get_file_path(os.path.join('.', test_name))
-            heads = [x * 0.1 for x in range(int(0),
-                                          int(120), 1)]
-            critical_head_found = self.linear_search(file_path, heads)
-            result_dict[test_file] = critical_head_found
+    def test_reference_geometry(self):
+        """
+         Testing a simple Sellmeijer rule (Soil_permeability= 1.157e-12 , PIPE_D_70: 0.0001)
+        """
+        test_file = "reference_geometry"
 
-        # "Analytical" Comparison - Average of Sellmeijer rules (NO PIPING RESULT AVAILABLE - ALL FAIL thus commented)
-        # assert math.isclose(result_dict["split_geometry_permeability_soil1_e10"], 1.6)
-        # assert math.isclose(result_dict["split_geometry_permeability_soil2_e10", 1.8])
-        # assert math.isclose(result_dict["split_geometry_permeability_soil1_soil2_e10", 0.9])
-        # assert math.isclose(result_dict["split_geometry_double_lines_pipe2_added", 3.7])
-        # assert math.isclose(result_dict["split_geometry_pipe2_D70_3e4", 2.4000000000000004])
+        test_name = os.path.join('test_consecutive_pipe_lines', test_file)
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+        heads = [x * 0.01 for x in range(int(370),
+                                      int(380), 1)]
+        critical_head_found = self.linear_search(file_path, heads)
+        self.assertAlmostEqual(critical_head_found, 3.78, 2)
+
+
+    def test_split_geometry_permeability_soil1_e10(self):
+        """
+         Testing a split geometry with two different permeability (Soil_1_permeability= 1.157e-10 ,
+         Soil_2_permeability= 1.157e-12)
+        """
+        test_file = "split_geometry_permeability_soil1_e10"
+
+        test_name = os.path.join('test_consecutive_pipe_lines', test_file)
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+        heads = [x * 0.01 for x in range(int(165),
+                                      int(180), 1)]
+        critical_head_found = self.linear_search(file_path, heads)
+        self.assertAlmostEqual(critical_head_found, 1.67, 2)
+
+
+    def test_split_geometry_permeability_soil2_e10(self):
+        """
+         Testing a split geometry with two different permeability (Soil_1_permeability= 1.157e-12 ,
+         Soil_2_permeability= 1.157e-10)
+        """
+        test_file = "split_geometry_permeability_soil2_e10"
+
+        test_name = os.path.join('test_consecutive_pipe_lines', test_file)
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+        heads = [x * 0.01 for x in range(int(180),
+                                      int(190), 1)]
+        critical_head_found = self.linear_search(file_path, heads)
+        self.assertAlmostEqual(critical_head_found, 1.82, 2)
+
+
+    def test_split_geometry_permeability_soil1_soil2_e10(self):
+        """
+         Testing a split geometry with same permeability (Soil_permeability= 1.157e-10)
+        """
+        test_file = "split_geometry_permeability_soil1_soil2_e10"
+
+        test_name = os.path.join('test_consecutive_pipe_lines', test_file)
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+        heads = [x * 0.01 for x in range(int(90),
+                                         int(100), 1)]
+        critical_head_found = self.linear_search(file_path, heads)
+        self.assertAlmostEqual(critical_head_found, 0.94, 2)
+
+
+    def test_split_geometry_double_lines_pipe2_added(self):
+        """
+         Testing a split geometry with same permeability (Soil_permeability= 1.157e-12). Pipe is separated to two parts.
+         Pipe_2 with the same material is added to the geometry along the other one (PIPE_D_70: 0.0001)
+        """
+        test_file = "split_geometry_double_lines_pipe2_added"
+
+        test_name = os.path.join('test_consecutive_pipe_lines', test_file)
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+        heads = [x * 0.01 for x in range(int(370),
+                                      int(380), 1)]
+        critical_head_found = self.linear_search(file_path, heads)
+        self.assertAlmostEqual(critical_head_found, 3.77, 2)
+
+
+    def test_split_geometry_pipe2_D70_3e4(self):
+        """
+         Testing a split geometry with same permeability (Soil_permeability= 1.157e-10). Pipe is separated to two parts
+         with different D70 parameter (PIPE_D_70: 0.0003)
+        """
+        test_file = "split_geometry_pipe2_D70_3e4"
+
+        test_name = os.path.join('test_consecutive_pipe_lines', test_file)
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+        heads = [x * 0.01 for x in range(int(240),
+                                      int(250), 1)]
+        critical_head_found = self.linear_search(file_path, heads)
+        self.assertAlmostEqual(critical_head_found, 2.43, 2)

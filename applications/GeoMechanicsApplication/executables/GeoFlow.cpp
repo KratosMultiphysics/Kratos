@@ -15,14 +15,23 @@
 
 int main(int argc, char** argv) {
 
-	//string workingDirectory = "C:/Development/Kratos/KratosStandaloneTest/test1";
-    //string projectName = "ProjectParameters_stage1.json";
+    try
+    {
+        string workingDirectory = argv[1];
+        string projectName = argv[2];
+        double minCriticalHead = stod(argv[3]);
+        double maxCriticalHead = stod(argv[4]);
+        double stepCriticalHead = stod(argv[5]);
 
-    string workingDirectory = argv[1];
-    string projectName = argv[2];
-    string hasPiping = argv[3];
-    bool hasPipingFlag;
-    hasPipingFlag = hasPiping=="1";
-    auto execute = Kratos::KratosExecute();
-    execute.geoflow(workingDirectory, projectName, hasPipingFlag);
+        auto execute = Kratos::KratosExecute();
+        execute.geoflow(workingDirectory, projectName, minCriticalHead, maxCriticalHead, stepCriticalHead);
+    }
+    catch (runtime_error e)
+    {
+        cout << "Runtime error: " << e.what();
+    }
+
+	
+    
+
 }

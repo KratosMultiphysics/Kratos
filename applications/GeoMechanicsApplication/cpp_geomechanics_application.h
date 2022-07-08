@@ -136,7 +136,7 @@ namespace Kratos
         KratosExecute() {};
 		~KratosExecute() {};
 
-        int geoflow(string workingDirectory, string parameterName, bool hasPiping);
+        int geoflow(string workingDirectory, string parameterName, double minCriticalHead, double maxCriticalHead, double stepCriticalHead);
         int geosettlement(string workingDirectory, string parameterName);
 
         typedef Node<3> NodeType;

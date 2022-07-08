@@ -50,7 +50,7 @@ class LatexWriterFile:
                         f"{result_pair['value_name']} & {result_pair['test_result']} & "
                         f"{result_pair['kratos_results']} & {round(error, 2)}  \\\\ \hline \n")
         for result_pair in result_list:
-            assert math.isclose(result_pair['test_result'], result_pair['kratos_results'])
+            assert math.isclose(result_pair['test_result'], result_pair['kratos_results'], abs_tol=1e-7)
 
 
 class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
@@ -71,7 +71,7 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
 
     def assert_test_expectations(self, result_list):
         for result_pair in result_list:
-            assert math.isclose(result_pair['test_result'], result_pair['kratos_results'])
+            self.assertAlmostEqual(result_pair['test_result'], result_pair['kratos_results'], 1)
 
     def test_hydrostatic_conditions(self):
         """ Hydrostatic conditions test """
@@ -81,9 +81,9 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
                 "test_elementary_groundwater_flow/benchmark_1_hydrostatic.gid/benchmark_1_hydrostatic.tex")
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
         simulation = test_helper.run_kratos(file_path)
-        p3 = {"value_name": "water pressure at n3 [kPa]", "test_result": -20,
+        p3 = {"value_name": "water pressure at n3 [kPa]", "test_result": -20000,
               "kratos_results": test_helper.get_water_pressure(simulation)[0], "round": True}
-        p4 = {"value_name": "water pressure at n4 [kPa]", "test_result": -20,
+        p4 = {"value_name": "water pressure at n4 [kPa]", "test_result": -20000,
               "kratos_results": test_helper.get_water_pressure(simulation)[1], "round": True}
         phi4_value = test_helper.get_hydraylic_head_with_intergration_points(simulation)[2][11]
         phi3_value = test_helper.get_hydraylic_head_with_intergration_points(simulation)[2][8]
