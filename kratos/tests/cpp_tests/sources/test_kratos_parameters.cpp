@@ -22,6 +22,21 @@
 namespace Kratos {
 namespace Testing {
 
+// input string with ugly formatting
+std::string GetJSONString()
+{
+    return R"(
+    {
+      "bool_value" : true, "double_value": 2.0, "int_value" : 10,
+      "level1":
+      {
+        "list_value":[ 3, "hi", false],
+        "tmp" : 5.0
+      },
+      "string_value" : "hello"
+    })";
+}
+
 std::string GetJSONStringPrettyOut()
 { 
     return R"({
@@ -249,14 +264,6 @@ std::string GetJSONStringForLevelsDefaults()
             }
         },
         "string_value": "hello"
-    })";
-}
-std::string GetJSONStringWithIncludes()
-{
-    return R"(
-    {
-      "bool_value" : true, "double_value": 2.0, "int_value" : 10,
-      "@include_json" : "test_included_parameters"
     })";
 }
 
