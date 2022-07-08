@@ -62,8 +62,9 @@ Initialize(const ProcessInfo& rCurrentProcessInfo)
     double smallPipeHeight = 1e-10;
 
     // initialse pipe parameters if not initalised, (important for staged analysis. 
-    if (this->GetValue(PIPE_HEIGHT) < smallPipeHeight/10)
-    {
+    if (!this->pipe_initialised)
+    { 
+        this->pipe_initialised = true;
         this->SetValue(PIPE_EROSION, false);
 
         // initialise pipe height with a small value
@@ -83,7 +84,6 @@ void SteadyStatePwPipingElement<2, 4>::CalculateLength(const GeometryType& Geom)
 {
     // currently length is only calculated in x direction
     KRATOS_TRY
-        //this->pipe_length = abs(Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]);
         this->SetValue(PIPE_ELEMENT_LENGTH, abs(Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]));
 	KRATOS_CATCH("")
 }
