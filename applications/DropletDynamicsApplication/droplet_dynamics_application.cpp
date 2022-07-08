@@ -25,7 +25,9 @@
 namespace Kratos {
 
 KratosDropletDynamicsApplication::KratosDropletDynamicsApplication():
-    KratosApplication("DropletDynamicsApplication")
+    KratosApplication("DropletDynamicsApplication"),
+    mDropletDynamics2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mDropletDynamics3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
     {}
 
 void KratosDropletDynamicsApplication::Register()
@@ -48,11 +50,15 @@ void KratosDropletDynamicsApplication::Register()
 
 
     KRATOS_REGISTER_VARIABLE( INV_K_ENRICH )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( BIJ_ENRICH_ROW )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( BJI_ENRICH_ROW )
+    KRATOS_REGISTER_VARIABLE( BIJ_ENRICH_ROW )
+    KRATOS_REGISTER_VARIABLE( BJI_ENRICH_ROW )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POS_GRAD_ENRICH )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NEG_GRAD_ENRICH )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( RHS_ENRICH )
+    
+        // Register Elements
+    KRATOS_REGISTER_ELEMENT("DropletDynamics2D3N", mDropletDynamics2D3N);
+    KRATOS_REGISTER_ELEMENT("DropletDynamics3D4N", mDropletDynamics3D4N);
 }
 }  // namespace Kratos.
 

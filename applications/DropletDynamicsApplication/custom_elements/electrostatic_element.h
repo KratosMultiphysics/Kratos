@@ -15,7 +15,8 @@
 
 
 // System includes
-
+#include <string>
+#include <iostream>
 
 // External includes
 
@@ -24,6 +25,7 @@
 #include "includes/element.h"
 #include "droplet_dynamics_application_variables.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 
 namespace Kratos
 {
@@ -48,6 +50,7 @@ namespace Kratos
 ///@{
 
 
+template< unsigned int TDim >
 class ElectrostaticElement : public Element
 {
 public:

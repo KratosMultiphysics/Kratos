@@ -293,7 +293,7 @@ private:
         // Generate AuxModelPart
         auto& r_electric_model_part = mrModel.CreateModelPart( mAuxModelPartName );
 
-        auto p_electric_element = Kratos::make_intrusive<ElectrostaticElement>();
+        auto p_electric_element = Kratos::make_intrusive<ElectrostaticElement<TDim>>();
 
         r_electric_model_part.GetNodalSolutionStepVariablesList() = mrModelPart.GetNodalSolutionStepVariablesList();
                 

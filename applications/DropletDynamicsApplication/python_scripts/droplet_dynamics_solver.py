@@ -107,7 +107,7 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
 
         FluidSolver.__init__(self,model,custom_settings)
 
-        self.element_name = "TwoFluidNavierStokes"
+        self.element_name = "DropletDynamics"
         self.condition_name = "TwoFluidNavierStokesWallCondition"
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
@@ -267,6 +267,78 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
             # We intentionally avoid correcting the acceleration in the first resolution step as this might cause problems with zero initial conditions
             if self._apply_acceleration_limitation and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.min_buffer_size:
                 self._GetAccelerationLimitationUtility().Execute()
+            
+            #############################
+            # Zero Disance - Structured #
+            #############################
+            TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+            DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+            
+            X_c = 0.5
+            Y_c = X_c
+
+            X_max = 1.0
+            Y_max = 1.0 
+            
+                    
+            XPlusMax = X_max
+            XMinusMax = X_c
+            DistPlusMax = 1.0e5
+            DistMinusMax = -1.0e5
+            XZeroMax = (XPlusMax + XMinusMax) / 2.0
+
+ 
+            YPlusMax = Y_max
+            YMinusMax = Y_c
+            DistPlusYMax = 1.0e5
+            DistMinusYMax = -1.0e5
+            YZeroMax = (YPlusMax + YMinusMax) / 2.0
+
+
+            for node in self.main_model_part.Nodes:
+                NodeX = node.X
+                NodeY = node.Y
+                NodeZ = node.Z
+
+                
+                if (abs(NodeY - Y_c) < 1.0e-6 and abs(NodeZ - 1.0) < 1.0e-6):
+                    if (NodeX >= X_c):
+                        Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                        if (Dist >= 0.0 and Dist <= DistPlusMax):
+                            DistPlusMax = Dist
+                            XPlusMax = NodeX
+                        if (Dist <= 0.0 and Dist >= DistMinusMax):
+                            DistMinusMax = Dist
+                            XMinusMax = NodeX
+
+                if (abs(NodeX - X_c) < 1.0e-6 and abs(NodeZ - 1.0) < 1.0e-6):
+                    if (NodeY >= Y_c):
+                        Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                        if (Dist >= 0.0 and Dist <= DistPlusYMax):
+                            DistPlusYMax = Dist
+                            YPlusMax = NodeY
+                        if (Dist <= 0.0 and Dist >= DistMinusYMax):
+                            DistMinusYMax = Dist
+                            YMinusMax = NodeY
+                
+            
+            if (abs(DistPlusMax - DistMinusMax) > 1.0e-15):
+                XZeroMax = XMinusMax + (-DistMinusMax)/(DistPlusMax - DistMinusMax)*(XPlusMax - XMinusMax)
+            else:
+                XZeroMax = XMinusMax
+
+            
+            if (abs(DistPlusYMax - DistMinusYMax) > 1.0e-15):
+                YZeroMax = YMinusMax + (-DistMinusYMax)/(DistPlusYMax - DistMinusYMax)*(YPlusMax - YMinusMax)
+            else:
+                YZeroMax = YMinusMax
+            
+
+            DEFORMATION = ((YZeroMax-0.5) - (XZeroMax-0.5))/((YZeroMax-0.5) + (XZeroMax-0.5))
+
+            with open("XYZ-Distance_Structured.log", "a") as distLogFile:
+                distLogFile.write( str(TimeStep*DT) + "\t" + "\t" + str(XZeroMax) + "\t" + str(YZeroMax) + "\t" + str(DEFORMATION) + "\n" )
+
 
     def _SetNodalProperties(self):
         super(DropletDynamicsSolver,self)._SetNodalProperties() # Keep it for now, this function might need more parameters for EHD
