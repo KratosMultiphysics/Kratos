@@ -411,12 +411,12 @@ namespace Kratos
         }
       }
 
-      //Sort
-      rComputingModelPart.Nodes().Sort();
-      rComputingModelPart.Elements().Sort();
-      // rComputingModelPart.Conditions().Sort();
+      // // // Sort
+      // // rComputingModelPart.Nodes().Sort();
+      // // rComputingModelPart.Elements().Sort();
+      // // // rComputingModelPart.Conditions().Sort();
 
-      //Unique
+      // Unique (Sort is included)
       rComputingModelPart.Nodes().Unique();
       rComputingModelPart.Elements().Unique();
       // rComputingModelPart.Conditions().Unique();
