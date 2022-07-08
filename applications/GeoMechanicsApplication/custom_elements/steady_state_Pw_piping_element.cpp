@@ -43,7 +43,30 @@ int SteadyStatePwPipingElement<TDim,TNumNodes>::
     KRATOS_TRY
     int ierr = SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
-    // todo check piping parameters
+
+    const PropertiesType& rProp = this->GetProperties();
+    // Verify properties
+    if (rProp.Has(PIPE_ETA) == false ||
+        rProp[PIPE_ETA] < 0.0)
+        KRATOS_ERROR << "PIPE_ETA has Key zero, is not defined or has an invalid value at element " << this->Id() << std::endl;
+
+    if (rProp.Has(PIPE_THETA) == false ||
+        rProp[PIPE_THETA] < 0.0)
+        KRATOS_ERROR << "PIPE_THETA has Key zero, is not defined or has an invalid value at element " << this->Id() << std::endl;
+
+    if (rProp.Has(PIPE_D_70) == false ||
+        rProp[PIPE_D_70] < 0.0)
+        KRATOS_ERROR << "PIPE_D_70 has Key zero, is not defined or has an invalid value at element " << this->Id() << std::endl;
+
+    if (rProp.Has(PIPE_START_ELEMENT) == false)
+        KRATOS_ERROR << "PIPE_START_ELEMENT has Key zero, is not defined or has an invalid value at element " << this->Id() << std::endl;
+
+    if (rProp.Has(PIPE_MODIFIED_D) == false)
+        KRATOS_ERROR << "PIPE_MODIFIED_D has Key zero, is not defined or has an invalid value at element " << this->Id() << std::endl;
+
+    if (rProp.Has(PIPE_MODEL_FACTOR) == false)
+        KRATOS_ERROR << "PIPE_MODEL_FACTOR has Key zero, is not defined or has an invalid value at element " << this->Id() << std::endl;
+
     return ierr;
     KRATOS_CATCH( "" );
 

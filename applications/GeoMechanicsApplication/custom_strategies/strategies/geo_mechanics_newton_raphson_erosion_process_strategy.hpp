@@ -395,9 +395,6 @@ private:
                     auto& Geom = OpenPipeElement->GetGeometry();
                     auto& prop = OpenPipeElement->GetProperties();
 
-                    // todo set this property in the input
-                    prop.SetValue(PIPE_MODEL_FACTOR, 0.89);
-
                     // calculate equilibrium pipe height and get current pipe height
                     double eq_height = pElement->CalculateEquilibriumPipeHeight(prop, Geom, OpenPipeElement->GetValue(PIPE_ELEMENT_LENGTH));
                     double current_height = OpenPipeElement->GetValue(PIPE_HEIGHT);

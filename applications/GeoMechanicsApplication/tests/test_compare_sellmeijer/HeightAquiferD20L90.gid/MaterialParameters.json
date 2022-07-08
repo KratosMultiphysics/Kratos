@@ -95,6 +95,7 @@
                     "VAN_GENUCHTEN_GL": 1.25,
                     "MINIMUM_RELATIVE_PERMEABILITY": 0.0001,
                     "PIPE_START_ELEMENT": 1058,
+					"PIPE_MODEL_FACTOR": 1,
                     "PIPE_MODIFIED_D": false
                 },
                 "Tables": {}
