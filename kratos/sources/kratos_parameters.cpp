@@ -355,13 +355,8 @@ void Parameters::SolveIncludes(nlohmann::json& rJson, const std::string& rFileNa
         while(act_it != act_pJson->end()) {
 
             if(act_it.value().is_object()) {
-                nlohmann::json::iterator aux = act_it;
-                s.push({act_pJson,++aux});
-                act_pJson =  &(act_it.value());
-                act_it = act_pJson->begin();
-            }
-
-            else if(act_it.key() =="@include_json") {
+                s.emplace(&act_it.value(), act_it.value().begin());
+            } else if (act_it.key() == "@include_json") {
                 // Check whether the included file exists
                 const auto included_file_path = FilesystemExtensions::ResolveSymlinks(*act_it);
                 KRATOS_ERROR_IF_NOT(filesystem::is_regular_file(included_file_path)) << "File not found: '" << *act_it << "'";
@@ -374,17 +369,14 @@ void Parameters::SolveIncludes(nlohmann::json& rJson, const std::string& rFileNa
                 // Resolve links in the included json
                 SolveIncludes(included_json, included_file_path, rAdjacencyMap);
 
-                //Remove the @include entry
-                act_pJson->erase("@include_json");
+                // Remove the @include entry
+                act_it = act_pJson->erase(act_it);
 
                 // Add the new entries due to the new included file
                 act_pJson->insert(included_json.begin(), included_json.end());
-
-                break;
+                continue;
             }
-            else {
-                act_it++;
-            }
+            ++act_it;
         }
     }
 }
