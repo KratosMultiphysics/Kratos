@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/kratos_parameters.h"
 #include "includes/define.h"
+#include "includes/kratos_filesystem.h"
 #include "input_output/logger.h"
 
 namespace Kratos
@@ -210,15 +211,15 @@ Parameters::Parameters()
 /***********************************************************************************/
 /***********************************************************************************/
 
-nlohmann::json Parameters::ReadFile(std::string FileName) 
+nlohmann::json Parameters::ReadFile(std::string FileName)
 {
     std::ifstream new_file;
-    new_file.open(FileName.c_str(),std::ios::in);  
+    new_file.open(FileName.c_str(),std::ios::in);
 
     std::stringstream strStream;
     strStream << new_file.rdbuf();
     std::string input_json = strStream.str();
-    return nlohmann::json::parse(input_json); 
+    return nlohmann::json::parse(input_json);
 }
 
 /***********************************************************************************/
@@ -228,52 +229,55 @@ Parameters::Parameters(const std::string& rJsonString)
 {
     mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rJsonString, nullptr, true, true));
     mpValue = mpRoot.get();
-    SolveIncludes(*mpValue); 
+    SolveIncludes(*mpValue);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void Parameters::SolveIncludes(nlohmann::json& rJson) 
+void Parameters::SolveIncludes(nlohmann::json& rJson)
 {
     std::stack<std::pair<nlohmann::json*,nlohmann::json::iterator>> s;
     s.push({&rJson,rJson.begin()});
-   
+
     while(!s.empty()) {
         std::pair<nlohmann::json*,nlohmann::json::iterator> pJson_it = s.top();
         s.pop();
-        
+
         nlohmann::json* act_pJson= pJson_it.first;
         nlohmann::json::iterator act_it = pJson_it.second;
-      
-        while(act_it != act_pJson->end()) { 
+
+        while(act_it != act_pJson->end()) {
 
             if(act_it.value().is_object()) {
                 nlohmann::json::iterator aux = act_it;
                 s.push({act_pJson,++aux});
                 act_pJson =  &(act_it.value());
                 act_it = act_pJson->begin();
-            } 
+            }
 
-            else if(act_it.key() =="@include_json") { 
-                
-                nlohmann::json included_json= ReadFile(*act_it);
+            else if(act_it.key() =="@include_json") {
+                // Check whether the included file exists
+                const auto included_file_path = FilesystemExtensions::ResolveSymlinks(*act_it);
+                KRATOS_ERROR_IF_NOT(filesystem::is_regular_file(included_file_path)) << "File not found: '" << *act_it << "'";
+
+                nlohmann::json included_json= ReadFile(included_file_path);
 
                 SolveIncludes(included_json);
 
                 //Remove the @include entry
-                act_pJson->erase("@include_json"); 
+                act_pJson->erase("@include_json");
 
                 // Add the new entries due to the new included file
-                act_pJson->insert(included_json.begin(), included_json.end()); 
-                 
+                act_pJson->insert(included_json.begin(), included_json.end());
+
                 break;
             }
             else {
-                act_it++;                 
-            }   
-        }         
-    } 
+                act_it++;
+            }
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -283,7 +287,7 @@ Parameters::Parameters(std::ifstream& rStringStream)
 {
     mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rStringStream, nullptr, true, true));
     mpValue = mpRoot.get();
-    SolveIncludes(*mpValue); 
+    SolveIncludes(*mpValue);
 }
 
 /***********************************************************************************/
