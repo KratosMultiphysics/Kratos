@@ -38,7 +38,7 @@ std::string GetJSONString()
 }
 
 std::string GetJSONStringPrettyOut()
-{ 
+{
     return R"({
     "bool_value": true,
     "double_value": 2.0,
@@ -949,6 +949,38 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersWithIncludes, KratosCoreFastSuite)
         kp.WriteJsonString(),
         R"({"bool_value":true,"double_value":2.0,"int_value":10,"level1":{"list_value":[3,"hi",false],"tmp":5.0},"string_value":"hello"})"
     );
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersWithRepeatedIncludes, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({
+        "another_include" : {
+            "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/test_included_parameters.json"
+        },
+        "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/test_included_parameters.json"
+    })");
+    KRATOS_CHECK_STRING_EQUAL(
+        parameters.WriteJsonString(),
+        R"({"another_include":{"level1":{"list_value":[3,"hi",false],"tmp":5.0},"string_value":"hello"},"level1":{"list_value":[3,"hi",false],"tmp":5.0},"string_value":"hello"})"
+    );
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersWithSelfInclude, KratosCoreFastSuite)
+{
+    try {
+    Parameters parameters(R"({"@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/test_self_include.json"})");
+    } catch (Exception& rException) {
+        KRATOS_CHECK_NOT_EQUAL(std::string(rException.what()).find("cycle in json"), std::string::npos);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersWithCyclicInclude, KratosCoreFastSuite)
+{
+    try {
+    Parameters parameters(R"({"@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/test_cyclic_0_1.json"})");
+    } catch (Exception& rException) {
+        KRATOS_CHECK_NOT_EQUAL(std::string(rException.what()).find("cycle in json"), std::string::npos);
+    }
 }
 
 }  // namespace Testing.
