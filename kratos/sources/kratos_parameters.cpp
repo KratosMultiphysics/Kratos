@@ -13,6 +13,8 @@
 
 // System includes
 #include <stack>
+#include <queue>
+#include <algorithm>
 
 // External includes
 #include "json/json.hpp" // Import nlohmann json library
@@ -229,14 +231,117 @@ Parameters::Parameters(const std::string& rJsonString)
 {
     mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rJsonString, nullptr, true, true));
     mpValue = mpRoot.get();
-    SolveIncludes(*mpValue);
+
+    // Initialize the include graph
+    std::map<std::string,std::set<std::string>> adjacency_list;
+
+    // Recursively resolve json links
+    SolveIncludes(*mpValue, "root", adjacency_list);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void Parameters::SolveIncludes(nlohmann::json& rJson)
+
+namespace {
+
+using AdjacencyMap = std::map<std::string,std::set<std::string>>;
+
+using Vertex = AdjacencyMap::mapped_type::const_iterator; // iterator pointing to a string
+
+using Path = std::vector<Vertex>;
+
+
+std::pair<Path::const_iterator,Path::const_iterator> FindDuplicateVertexInPath(const Path& rPath)
 {
+    const auto it_end = rPath.end();
+    Path::const_iterator it_first = rPath.begin();
+    Path::const_iterator it_second = it_end;
+
+    for (; it_first!=it_end; ++it_first) {
+        it_second = std::find(it_first + 1, it_end, *it_first);
+        if (it_second != it_end) {
+            break;
+        }
+    }
+
+    return std::make_pair(it_first, it_second);
+}
+
+
+/// Walk through the include graph depth-first to detect cycles
+Path DetectIncludeCycle(const std::map<std::string,std::set<std::string>>& rAdjacencyMap)
+{
+    Path cycle;
+
+    // TODO: store paths that have already been visited
+    //std::map<Vertex,std::vector<Path>> memo;
+    for (const auto& r_pair : rAdjacencyMap) {
+        // Initialize path stack
+        std::queue<Path> incomplete_paths;
+        const auto& r_includes = r_pair.second;
+        for (auto it_vertex=r_includes.begin(); it_vertex!=r_includes.end(); ++it_vertex) {
+            incomplete_paths.push({it_vertex});
+        }
+
+        // Walk through all paths depth-first
+        while (!incomplete_paths.empty()) {
+            // Strip the first unfinished path from the stack
+            auto path = incomplete_paths.front();
+            incomplete_paths.pop();
+
+            const auto it_adjacency = rAdjacencyMap.find(*path.back());
+            if (it_adjacency == rAdjacencyMap.end()) {
+                // No branches from this vertex => this path is done
+                // TODO: complete paths can be memoized here
+            } else {
+                // Add all branched paths from this vertex to the queue
+                for (auto vertex=it_adjacency->second.begin(); vertex!=it_adjacency->second.end(); ++vertex) {
+                    // TODO: use memoized paths if applicable
+                    Path branched_path = path;
+                    branched_path.push_back(vertex);
+
+                    // Check for cycles
+                    const auto pair_it = FindDuplicateVertexInPath(branched_path);
+                    if (pair_it.first != pair_it.second) {
+                        cycle.insert(cycle.end(), pair_it.first, pair_it.second + 1);
+                        return cycle; // return immediately instead of breaking from the nested loop
+                    }
+
+                    incomplete_paths.emplace(std::move(branched_path));
+                }
+            } // else
+        } // while incomplete_paths
+    } // for file_name, includes in rAdjacencyMap
+
+    return cycle;
+} // Path DetectIncludeCycle
+
+} // unnamed namespace
+
+
+void Parameters::SolveIncludes(nlohmann::json& rJson, const std::string& rFileName, std::map<std::string,std::set<std::string>>& rAdjacencyMap)
+{
+    // Update the include graph if necessary
+    if (rAdjacencyMap.find(rFileName) == rAdjacencyMap.end()) {
+        rAdjacencyMap.emplace(rFileName, std::set<std::string>());
+    }
+
+    // Check for include cycles
+    {
+        const auto cycle = DetectIncludeCycle(rAdjacencyMap);
+        if (!cycle.empty()) {
+            std::stringstream message_stream;
+            message_stream << "Include cycle in json files: ";
+            for (auto it_file_name : cycle) {
+                message_stream << *it_file_name << " => ";
+            }
+            message_stream << "...";
+            KRATOS_ERROR << message_stream.str();
+        }
+    }
+
+
     std::stack<std::pair<nlohmann::json*,nlohmann::json::iterator>> s;
     s.push({&rJson,rJson.begin()});
 
@@ -263,7 +368,11 @@ void Parameters::SolveIncludes(nlohmann::json& rJson)
 
                 nlohmann::json included_json= ReadFile(included_file_path);
 
-                SolveIncludes(included_json);
+                // Update the include graph
+                rAdjacencyMap[rFileName].insert(included_file_path);
+
+                // Resolve links in the included json
+                SolveIncludes(included_json, included_file_path, rAdjacencyMap);
 
                 //Remove the @include entry
                 act_pJson->erase("@include_json");
@@ -287,7 +396,12 @@ Parameters::Parameters(std::ifstream& rStringStream)
 {
     mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rStringStream, nullptr, true, true));
     mpValue = mpRoot.get();
-    SolveIncludes(*mpValue);
+
+    // Initialize the include graph
+    std::map<std::string,std::set<std::string>> adjacency_list;
+
+    // Recursively resolve json links
+    SolveIncludes(*mpValue, "root", adjacency_list);
 }
 
 /***********************************************************************************/
