@@ -144,8 +144,8 @@ std::string ResolveSymlinks(const std::string& rPath)
 
     while (ghc::filesystem::is_symlink(path))
     {
-        KRATOS_ERROR_IF_NOT(symlinks.find(path) == symlinks.end()) << rPath << " leads to cyclic symlinks";
-        symlinks.insert(path);
+        const auto insert_result = symlinks.insert(path);
+        KRATOS_ERROR_IF_NOT(insert_result.second) << rPath << " leads to cyclic symlinks";
         path = ghc::filesystem::read_symlink(path);
     }
 
