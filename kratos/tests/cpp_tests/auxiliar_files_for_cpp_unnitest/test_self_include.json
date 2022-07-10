@@ -1,3 +1,0 @@
-{
-    "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/test_self_include.json"
-}

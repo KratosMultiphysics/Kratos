@@ -1041,7 +1041,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersWithSelfInclude, KratosCoreFastSuite)
     file_0_includes_0 << GetCircularIncludeJSONString(0, 0);
 
     try {
-        Parameters parameters(R"({"@include_json" : "test_cyclic_0_0.json"})");
+        Parameters(R"({"@include_json" : "test_cyclic_0_0.json"})");
     } catch (Exception& rException) { // std::exceptions are not caught and indicate parsing errors
         KRATOS_CHECK_NOT_EQUAL(std::string(rException.what()).find("cycle in json"), std::string::npos);
     }
@@ -1058,7 +1058,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersWithCyclicInclude, KratosCoreFastSuite
     file_2_includes_0 << GetCircularIncludeJSONString(2, 0);
 
     try {
-        Parameters parameters(R"({"@include_json" : "test_cyclic_0_1.json"})");
+        Parameters(R"({"@include_json" : "test_cyclic_0_1.json"})");
     } catch (Exception& rException) { // std::exceptions are not caught and indicate parsing errors
         KRATOS_CHECK_NOT_EQUAL(std::string(rException.what()).find("cycle in json"), std::string::npos);
     }
