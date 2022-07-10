@@ -16,6 +16,8 @@
 #define  KRATOS_KRATOS_PARAMETERS_H_INCLUDED
 
 // System includes
+#include <map>
+#include <set>
 
 // External includes
 #include "json/json_fwd.hpp" // Import forward declaration nlohmann json library
@@ -1025,15 +1027,17 @@ private:
 
     /**
      * @brief This method solves all the include dependencies in a json file
-     * @param rJson The json object 
+     * @param rJson The json object
+     * @param rFileName name of the current json file ("root" if called from the constructor)
+     * @param rAdjacencyMap adjacency map of the include graph for checking cyclic includes
      * @return This method leaves in rJson the final json object with no include dependencies
      */
-    void SolveIncludes(nlohmann::json& rJson);
+    void SolveIncludes(nlohmann::json& rJson, const std::string& rFileName, std::map<std::string,std::set<std::string>>& rAdjacencyMap);
 
     /**
      * @brief This method read a json file
-     * @param rJson The json file name 
-     * @return The json object obtained from reading the file 
+     * @param rJson The json file name
+     * @return The json object obtained from reading the file
      */
     nlohmann::json ReadFile(std::string FileName);
 

@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <thread>
 #include <chrono>
+#include <set>
 
 // External includes
 #include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
@@ -131,6 +132,24 @@ void MPISafeCreateDirectories(const std::string& rPath)
     if (!ghc::filesystem::exists(rPath)) { // wait for the path to appear in the filesystem
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
+}
+
+
+std::string ResolveSymlinks(const std::string& rPath)
+{
+    ghc::filesystem::path path = rPath;
+    KRATOS_ERROR_IF_NOT(ghc::filesystem::exists(path)) << "File not found: " << rPath;
+
+    std::set<ghc::filesystem::path> symlinks;
+
+    while (ghc::filesystem::is_symlink(path))
+    {
+        const auto insert_result = symlinks.insert(path);
+        KRATOS_ERROR_IF_NOT(insert_result.second) << rPath << " leads to cyclic symlinks";
+        path = ghc::filesystem::read_symlink(path);
+    }
+
+    return path;
 }
 
 } // namespace FilesystemExtensions

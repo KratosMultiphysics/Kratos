@@ -18,6 +18,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/kratos_parameters.h"
+#include "includes/kratos_filesystem.h"
 
 namespace Kratos {
 namespace Testing {
@@ -38,7 +39,7 @@ std::string GetJSONString()
 }
 
 std::string GetJSONStringPrettyOut()
-{ 
+{
     return R"({
     "bool_value": true,
     "double_value": 2.0,
@@ -266,14 +267,71 @@ std::string GetJSONStringForLevelsDefaults()
         "string_value": "hello"
     })";
 }
+
 std::string GetJSONStringWithIncludes()
 {
     return R"(
     {
       "bool_value" : true, "double_value": 2.0, "int_value" : 10,
-      "@include_json" : "../tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_included_parameters_cpp.json"
+      "@include_json" : "test_included_parameters.json"
     })";
 }
+
+std::string GetIncludedJSONString()
+{
+    return R"({
+        "level1":
+        {
+        "list_value":[ 3, "hi", false],
+        "tmp" : 5.0
+        },
+        "@include_json" : "test_included_parameters_level2.json"
+    })";
+}
+
+std::string GetIncludedJSONLevel2String()
+{
+    return R"({"string_value":"hello"})";
+}
+
+std::string GetCircularIncludeJSONString(int FileIndex, int IncludeIndex)
+{
+    std::stringstream stream;
+    stream << R"({"@include_json":"test_cyclic_)" << FileIndex << "_" << IncludeIndex << R"(.json"})"; // could be nicer with fmtlib or C++20
+    return stream.str();
+}
+
+namespace {
+
+class ScopedFile
+{
+public:
+    ScopedFile(std::string&& rPath)
+        : mStream(rPath),
+          mPath(std::move(rPath))
+    {}
+
+    ~ScopedFile()
+    {
+        mStream.close();
+        filesystem::remove(mPath);
+    }
+
+    template <class T>
+    friend ScopedFile& operator<<(ScopedFile& rFile, const T& rContent)
+    {
+        rFile.mStream << rContent;
+        rFile.mStream.flush();
+        return rFile;
+    }
+
+private:
+    std::ofstream mStream;
+
+    const std::string mPath;
+}; // class ScopedFile
+
+} // unnamed namespace
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParameters, KratosCoreFastSuite)
 {
@@ -944,11 +1002,66 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetStringArrayValid, KratosCoreFastSui
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersWithIncludes, KratosCoreFastSuite)
 {
+    ScopedFile included_json("test_included_parameters.json");
+    ScopedFile included_json_level2("test_included_parameters_level2.json");
+
+    included_json << GetIncludedJSONString();
+    included_json_level2 << GetIncludedJSONLevel2String();
+
     Parameters kp = Parameters(GetJSONStringWithIncludes());
     KRATOS_CHECK_STRING_EQUAL(
         kp.WriteJsonString(),
         R"({"bool_value":true,"double_value":2.0,"int_value":10,"level1":{"list_value":[3,"hi",false],"tmp":5.0},"string_value":"hello"})"
     );
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersWithRepeatedIncludes, KratosCoreFastSuite)
+{
+    ScopedFile included_json("test_included_parameters.json");
+    ScopedFile included_json_level2("test_included_parameters_level2.json");
+
+    included_json << GetIncludedJSONString();
+    included_json_level2 << GetIncludedJSONLevel2String();
+
+    Parameters parameters(R"({
+        "another_include" : {
+            "@include_json" : "test_included_parameters.json"
+        },
+        "@include_json" : "test_included_parameters.json"
+    })");
+    KRATOS_CHECK_STRING_EQUAL(
+        parameters.WriteJsonString(),
+        R"({"another_include":{"level1":{"list_value":[3,"hi",false],"tmp":5.0},"string_value":"hello"},"level1":{"list_value":[3,"hi",false],"tmp":5.0},"string_value":"hello"})"
+    );
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersWithSelfInclude, KratosCoreFastSuite)
+{
+    ScopedFile file_0_includes_0("test_cyclic_0_0.json");
+    file_0_includes_0 << GetCircularIncludeJSONString(0, 0);
+
+    try {
+        Parameters(R"({"@include_json" : "test_cyclic_0_0.json"})");
+    } catch (Exception& rException) { // std::exceptions are not caught and indicate parsing errors
+        KRATOS_CHECK_NOT_EQUAL(std::string(rException.what()).find("cycle in json"), std::string::npos);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersWithCyclicInclude, KratosCoreFastSuite)
+{
+    ScopedFile file_0_includes_1("test_cyclic_0_1.json");
+    ScopedFile file_1_includes_2("test_cyclic_1_2.json");
+    ScopedFile file_2_includes_0("test_cyclic_2_0.json");
+
+    file_0_includes_1 << GetCircularIncludeJSONString(0, 1);
+    file_1_includes_2 << GetCircularIncludeJSONString(1, 2);
+    file_2_includes_0 << GetCircularIncludeJSONString(2, 0);
+
+    try {
+        Parameters(R"({"@include_json" : "test_cyclic_0_1.json"})");
+    } catch (Exception& rException) { // std::exceptions are not caught and indicate parsing errors
+        KRATOS_CHECK_NOT_EQUAL(std::string(rException.what()).find("cycle in json"), std::string::npos);
+    }
 }
 
 }  // namespace Testing.
