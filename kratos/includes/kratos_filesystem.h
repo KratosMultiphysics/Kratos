@@ -88,7 +88,8 @@ std::vector<std::string> KRATOS_API(KRATOS_CORE) ListDirectory(const std::string
  */
 void KRATOS_API(KRATOS_CORE) MPISafeCreateDirectories(const std::string& rPath);
 
-/** @brief Resolve symlinks recursively.
+/** 
+ * @brief Resolve symlinks recursively.
  *
  *  @param rPath: path to a symbolic link.
  *  @return The result of the recursive dereferencing.
