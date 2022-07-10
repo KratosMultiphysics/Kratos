@@ -94,7 +94,7 @@ def StrainToVoigt(M):
     - M -- The strain matrix
     """
     if M.shape[0] == 2:
-        vm = sympy.Matrix(3, 1, lambda _: 0.0)
+        vm = sympy.Matrix(3, 1, lambda i,j: 0.0)
         vm[0,0] = M[0,0]
         vm[1,0] = M[1,1]
         vm[2,0] = 2.0*M[0,1]
