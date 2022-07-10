@@ -90,7 +90,6 @@ void KRATOS_API(KRATOS_CORE) MPISafeCreateDirectories(const std::string& rPath);
 
 /** 
  * @brief Resolve symlinks recursively.
- *
  *  @param rPath: path to a symbolic link.
  *  @return The result of the recursive dereferencing.
  *  @throws If the input path does not exist or the symlink is cyclic.
