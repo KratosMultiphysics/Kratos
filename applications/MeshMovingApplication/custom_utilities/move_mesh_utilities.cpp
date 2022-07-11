@@ -49,7 +49,7 @@ void MoveMesh(ModelPart::NodesContainerType& rNodes) {
     KRATOS_TRY;
 
     block_for_each(rNodes, [](Node<3>& rNode ){
-        noalias(rNode.Coordinates()) = rNode.GetInitialPosition() + rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        noalias(rNode.Coordinates()) = rNode.GetInitialPosition() + rNode.FastGetSolutionStepValue(DISPLACEMENT);
     });
 
     KRATOS_CATCH("");
@@ -107,7 +107,7 @@ void MoveModelPart(
         rModelPart.Nodes(),
         [&rTransform](Node<3>& rNode){
             const array_1d<double,3>& initial_position = rNode.GetInitialPosition();
-            noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = rTransform.Apply(initial_position) - initial_position;
+            noalias(rNode.GetSolutionStepValue(DISPLACEMENT)) = rTransform.Apply(initial_position) - initial_position;
         });
 
     KRATOS_CATCH("");
@@ -125,7 +125,7 @@ void MoveModelPart(
         rModelPart.Nodes(),
         [&rTransform, time](Node<3>& rNode){
             const array_1d<double,3>& initial_position = rNode.GetInitialPosition();
-            noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = rTransform.Apply(
+            noalias(rNode.GetSolutionStepValue(DISPLACEMENT)) = rTransform.Apply(
                 initial_position,
                 time,
                 rNode.X0(),
@@ -218,7 +218,7 @@ void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double
 
 void SuperImposeMeshDisplacement(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
 {
-  SuperImposeVariables(rModelPart, MESH_DISPLACEMENT, rVariableToSuperImpose);
+  SuperImposeVariables(rModelPart, DISPLACEMENT, rVariableToSuperImpose);
 }
 
 void SuperImposeMeshVelocity(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose)

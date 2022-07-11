@@ -41,10 +41,17 @@ class ComputeResultantsOperation(CoSimulationCouplingOperation):
 
         # Calculate the total reaction
         model_part = self.interface_data.GetModelPart()
+        # reaction_force, reaction_moment = KM.ForceAndTorqueUtils.ComputeEquivalentForceAndTorque(
+        #     model_part,
+        #     self.reference_point,
+        #     KM.REACTION,
+        #     KM.REACTION_MOMENT
+        # )
+
         reaction_force, reaction_moment = KM.ForceAndTorqueUtils.ComputeEquivalentForceAndTorque(
             model_part,
             self.reference_point,
-            KM.REACTION,
+            KM.CONTACT_FORCE,
             KM.REACTION_MOMENT
         )
 
