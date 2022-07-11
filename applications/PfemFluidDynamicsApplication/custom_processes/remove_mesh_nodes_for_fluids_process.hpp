@@ -1161,6 +1161,8 @@ namespace Kratos
 			}
 
 			unsigned int rigidNode = 0;
+			array_1d<double, 3> WallBaricenter = ZeroVector(3);
+
 			for (unsigned int i = 0; i < numNodes; i++)
 			{
 				if (eElement[i].Is(FREE_SURFACE))
@@ -1171,6 +1173,7 @@ namespace Kratos
 				{
 					if (eElement[i].Is(RIGID))
 					{
+						WallBaricenter += eElement[i].Coordinates() / 3.0;
 						rigidNodesCoordinates[rigidNode] = eElement[i].Coordinates();
 						rigidNodesNormals[rigidNode] = eElement[i].FastGetSolutionStepValue(NORMAL);
 						rigidNode++;
@@ -1200,9 +1203,10 @@ namespace Kratos
 					}
 				}
 			}
-
+			double wallNodedistance = -1;
 			if (rigidNode == 3 && eElement[notRigidNodeId].IsNot(TO_ERASE))
 			{
+
 				double a1 = 0; // slope x,y,z for the plane composed by rigid nodes only
 				double b1 = 0;
 				double c1 = 0;
@@ -1257,6 +1261,13 @@ namespace Kratos
 						mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
 					}
 				}
+
+				double pwdDistance = 0.0f;
+				for (std::size_t i = 0; i < 3; i++)
+				{
+					pwdDistance += std::pow(eElement[notRigidNodeId].Coordinates()[i] - WallBaricenter[i], 2);
+				}
+				wallNodedistance = std::sqrt(pwdDistance);
 			}
 
 			bool longDamBreak = false; // to attivate in case of long dam breaks to avoid separated elements in the water front
@@ -1345,7 +1356,6 @@ namespace Kratos
 			array_1d<unsigned int, 6> FirstEdgeNode(6, 0);
 			array_1d<unsigned int, 6> SecondEdgeNode(6, 0);
 			double wallLength = 0;
-			double minimumLength = 0;
 			// array_1d<double,3> CoorDifference(3,0.0);
 
 			// ////////  to compute the length of the wall edge /////////
@@ -1356,8 +1366,10 @@ namespace Kratos
 								   CoorDifference[1] * CoorDifference[1] +
 								   CoorDifference[2] * CoorDifference[2];
 			Edges[0] = sqrt(SquaredLength);
+			double minimumLength = Edges[0] * 10.0;
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
+			int erasableNode = -1;
 			if (eElement[0].Is(RIGID) && eElement[1].Is(RIGID))
 			{
 				wallLength = Edges[0];
@@ -1366,6 +1378,14 @@ namespace Kratos
 				(eElement[1].Is(RIGID) && eElement[0].IsNot(RIGID)))
 			{
 				minimumLength = Edges[0];
+				if (eElement[0].IsNot(RIGID))
+				{
+					erasableNode = 0;
+				}
+				else
+				{
+					erasableNode = 1;
+				}
 			}
 			unsigned int counter = 0;
 			for (unsigned int i = 2; i < eElement.size(); i++)
@@ -1381,15 +1401,24 @@ namespace Kratos
 					Edges[counter] = sqrt(SquaredLength);
 					FirstEdgeNode[counter] = j;
 					SecondEdgeNode[counter] = i;
-					if (eElement[i].Is(RIGID) && eElement[j].Is(RIGID) && wallLength == 0)
+					if (eElement[i].Is(RIGID) && eElement[j].Is(RIGID) && (wallLength == 0 || Edges[counter] > wallLength))
 					{
 						wallLength = Edges[counter];
 					}
 					if (((eElement[i].Is(RIGID) && eElement[j].IsNot(RIGID)) ||
 						 (eElement[j].Is(RIGID) && eElement[i].IsNot(RIGID))) &&
+						eElement[i].IsNot(TO_ERASE) && eElement[j].IsNot(TO_ERASE) &&
 						(Edges[counter] < minimumLength || minimumLength == 0))
 					{
 						minimumLength = Edges[counter];
+						if (eElement[i].IsNot(RIGID))
+						{
+							erasableNode = i;
+						}
+						else
+						{
+							erasableNode = j;
+						}
 					}
 				}
 			}
@@ -1424,38 +1453,20 @@ namespace Kratos
 				}
 			}
 
-			// ////////// ////////// ////////// ////////// ////////// ////////
-			// if(minimumLength<(0.5*safetyCoefficient3D*wallLength)){
-			//   std::cout<<"(1. minimumLength:  "<<minimumLength<<" vs "<<wallLength<<")"<<std::endl;
-
-			//   for (unsigned int i = 0; i < Element.size(); i++){
-			// 	if(Element[i].IsNot(RIGID) && Element[i].IsNot(TO_ERASE) && Element[i].IsNot(SOLID) && Element[i].IsNot(ISOLATED)){
-
-			// 	  Element[i].Set(TO_ERASE);
-			// 	  inside_nodes_removed++;
-			// 	  erased_nodes += 1;
-			// 	}
-			//   }
-			// }
-			// else if(minimumLength<safetyCoefficient3D*wallLength){
-
-			//   std::cout<<"(2. minimumLength:  "<<minimumLength<<" vs "<<wallLength<<")"<<std::endl;
-
-			//   for (unsigned int i = 0; i < Element.size(); i++){
-			// 	if(Element[i].IsNot(RIGID) && Element[i].IsNot(TO_ERASE) && Element[i].IsNot(SOLID) && Element[i].IsNot(ISOLATED)){
-			// 	  bool eraseNode=true;
-			// 	  eraseNode=CheckForMovingLayerNodes(Element[i],wallLength);
-
-			// 	  if(eraseNode==true){
-			// 	    std::cout<<"I will erase this node because too close to neighbour nodes "<<std::endl;
-			// 	    Element[i].Set(TO_ERASE);
-			// 	    erased_nodes += 1;
-			// 	    inside_nodes_removed++;
-			// 	  }
-			// 	}
-			//   }
-			// }
-			// ////////// ////////// ////////// ////////// ////////// ////////
+			if ((minimumLength < (0.35 * wallLength) || (wallNodedistance < (0.25 * wallLength) && wallNodedistance > 0)) && erasableNode > -1)
+			{
+				if (eElement[erasableNode].IsNot(RIGID) && eElement[erasableNode].IsNot(TO_ERASE) && eElement[erasableNode].IsNot(SOLID) && eElement[erasableNode].IsNot(ISOLATED) && eElement[erasableNode].IsNot(FREE_SURFACE))
+				{
+					eElement[erasableNode].Set(TO_ERASE);
+					inside_nodes_removed++;
+					erased_nodes += 1;
+					unsigned int propertyIdNode = eElement[erasableNode].FastGetSolutionStepValue(PROPERTY_ID);
+					if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
+					{
+						mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
+					}
+				}
+			}
 
 			// ////////  to compare the non-wall length to wall edge length /////////
 			for (unsigned int i = 0; i < Edges.size(); i++)
