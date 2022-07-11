@@ -395,7 +395,7 @@ Matrix& HyperElasticIsotropicNeoHookean3D::CalculateValue(
         } else if (rThisVariable == CONSTITUTIVE_MATRIX_PK2) {
             HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(rParameterValues);
         } else if (rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
-            HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(rParameterValues);
+            HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff(rParameterValues);
         }
 
         rValue = rParameterValues.GetConstitutiveMatrix();
@@ -554,7 +554,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateGreenLagrangianStrain(
     // 1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
 
-    // 2.-Compute e = 0.5*(inv(C) - I)
+    // 2.-Compute E = 0.5*(C - I)
     Matrix C_tensor(dimension, dimension);
     noalias(C_tensor) = prod(trans(F),F);
     ConstitutiveLawUtilities<VoigtSize>::CalculateGreenLagrangianStrain(C_tensor, rStrainVector);
