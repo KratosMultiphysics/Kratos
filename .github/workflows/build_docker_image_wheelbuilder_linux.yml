@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build the Docker image
         run: docker build scripts/docker_files/docker_file_wheelbuilder_linux/ --tag kratosmultiphysics/kratos-wheelbuilder-linux
       - name: Docker Login

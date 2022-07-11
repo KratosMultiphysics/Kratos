@@ -3,7 +3,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.ShallowWaterApplication.benchmarks.base_benchmark_process import BaseBenchmarkProcess
 
 # Other imports
-import numpy as np
+from math import sqrt
 import scipy.optimize as opt
 
 def Factory(settings, model):
@@ -73,7 +73,7 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         if x < xa:
             return self.hl
         elif x < xb:
-            return 4 / 9 / self.g * (np.sqrt(self.g * self.hl) - 0.5*(x - self.dam) / time)**2
+            return 4 / 9 / self.g * (sqrt(self.g * self.hl) - 0.5*(x - self.dam) / time)**2
         elif x < xc:
             return self.cm**2 / self.g
         else:
@@ -90,27 +90,27 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         if x < xa:
             return [0.0, 0.0, 0.0]
         elif x < xb:
-            return [2 / 3 * ((x - self.dam) / time + np.sqrt(self.g * self.hl)), 0.0, 0.0]
+            return [2 / 3 * ((x - self.dam) / time + sqrt(self.g * self.hl)), 0.0, 0.0]
         elif x < xc:
-            return [2 * (np.sqrt(self.g * self.hl) - self.cm), 0.0, 0.0]
+            return [2 * (sqrt(self.g * self.hl) - self.cm), 0.0, 0.0]
         else:
             return [0.0, 0.0, 0.0]
 
 
     def __xa(self, t):
-        return self.dam - t * np.sqrt(self.g * self.hl)
+        return self.dam - t * sqrt(self.g * self.hl)
 
 
     def __xb(self, t):
-        return self.dam + t * (2*np.sqrt(self.g * self.hl) - 3 * self.cm)
+        return self.dam + t * (2*sqrt(self.g * self.hl) - 3 * self.cm)
 
 
     def __xc(self, t):
-        return self.dam + t * 2 * self.cm**2 * (np.sqrt(self.g*self.hl) - self.cm) / (self.cm**2 - self.g * self.hr)
+        return self.dam + t * 2 * self.cm**2 * (sqrt(self.g*self.hl) - self.cm) / (self.cm**2 - self.g * self.hr)
 
 
     def __cm(self):
-        cm0 = np.sqrt(self.g * 0.5 * (self.hl + self.hr))
+        cm0 = sqrt(self.g * 0.5 * (self.hl + self.hr))
         cm = opt.newton(self.__cm_residual, cm0)
         return cm
 
@@ -119,4 +119,4 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         hl = self.hl
         hr = self.hr
         g  = self.g
-        return -8*g*hr*cm**2*(np.sqrt(g*hl)-cm)**2 + (cm**2-g*hr)**2 * (cm**2+g*hr)
+        return -8*g*hr*cm**2*(sqrt(g*hl)-cm)**2 + (cm**2-g*hr)**2 * (cm**2+g*hr)

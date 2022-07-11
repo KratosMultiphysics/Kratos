@@ -438,7 +438,7 @@ private:
                 Condition::Pointer pCondition = i_entity->GetEntityType().Create(i_cond->Id(), i_cond->GetGeometry(), pProperties);
 
                 //set mechanical variables to contact conditions:
-                pCondition->Data() = i_cond->Data();
+                pCondition->GetData() = i_cond->GetData();
 
                 rDestinationModelPart.Conditions().push_back(pCondition);
               }
