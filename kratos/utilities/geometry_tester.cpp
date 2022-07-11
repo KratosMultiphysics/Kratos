@@ -1012,16 +1012,16 @@ bool GeometryTesterUtility::VerifyShapeFunctionsSecondDerivativesValues(
             rGeometry.ShapeFunctionsValues(f_4,local_coordinates - ei - ej);
             f = f_1-f_2-f_3+f_4;
             transform(f.begin(), f.end(), f.begin(), [delta](double &c){ return c/(4.0*std::pow(delta,2)); });
-            for (unsigned int g = 0; g<rGeometry.size();g++){
-                H[g](i,j) = f[g];
+            for (unsigned int k = 0; k<rGeometry.size();k++){
+                H[k](i,j) = f[k];
             }
         }
     }
 
-    for (unsigned int g = 0; g<rGeometry.size();g++){
-        if(norm_frobenius(DDN_DX[g] - H[g])/norm_frobenius(H[g]) > 1e-13) {
-            rErrorMessage << "     error: shape function second derivatives are wrongly calculated in function ShapeFunctionsSecondDerivatives: DDN_DX[point_number] " << DDN_DX[g] << " vs " << H[g] << std::endl;
-            rErrorMessage << " norm_frobenius(DDN_DX[point_number] - H[point_number])/norm_frobenius(H[point_number]) = " << norm_frobenius(DDN_DX[g] - H[g])/norm_frobenius(H[g]) <<std::endl;
+    for (unsigned int i = 0; i<rGeometry.size();i++){
+        if(norm_frobenius(DDN_DX[i] - H[i]) > 1e-13) {
+            rErrorMessage << "     error: shape function second derivatives are wrongly calculated in function ShapeFunctionsSecondDerivatives: DDN_DX[point_number] " << DDN_DX[i] << " vs " << H[i] << std::endl;
+            rErrorMessage << " norm_frobenius(DDN_DX[point_number] - H[point_number])/norm_frobenius(H[point_number]) = " << norm_frobenius(DDN_DX[i] - H[i])/norm_frobenius(H[i]) <<std::endl;
             return false;
         }
     }
