@@ -747,6 +747,11 @@ namespace Kratos
 
             }
 
+            if(!RiverBoundary) {
+                std::cerr << "No boundary found on the river side at node " << RiverNode << "." << std::endl;
+                return -1;
+            }
+
             int count = 0;
             double criticalHead;
             double currentHead;
