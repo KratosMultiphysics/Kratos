@@ -1,6 +1,6 @@
 {
     "problem_data"       : {
-        "problem_name"   : "pfem_utilities_tests/2D_thermal_coupling/Test_2D_thermal_coupling",
+        "problem_name"   : "pfem_utilities_tests/Test_2D_Thermal_Coupling/Test_2D_Thermal_Coupling",
         "start_time"     : 0.0,
         "end_time"       : 0.05,
         "echo_level"     : 0,
@@ -26,7 +26,7 @@
             },
             "model_import_settings" : {
                 "input_type"        : "mdpa",
-                "input_filename"    : "pfem_utilities_tests/2D_thermal_coupling/Test_2D_thermal_coupling"
+                "input_filename"    : "pfem_utilities_tests/Test_2D_Thermal_Coupling/Test_2D_Thermal_Coupling"
             },
             "maximum_pressure_iterations" : 10,
             "velocity_tolerance"          : 1e-4,
@@ -71,7 +71,7 @@
             "constitutive_laws_list"             : ["NewtonianTemperatureDependent2DLaw","None","None","None","None"],
             "processes_sub_model_part_list"      : ["VELOCITY_Bottom_Wall","VELOCITY_Right_Wall","VELOCITY_Top_Wall","VELOCITY_Left_Wall","TEMPERATURE_Bottom_Wall","TEMPERATURE_Top_Wall","TEMPERATURE_Right_Wall","TEMPERATURE_Left_Wall","TEMPERATURE_Fluid","HEAT_FLUX_Fluid","HeatFlux2D_Left_Wall","FreeSurfaceHeatFlux2D_Free_Surface","ThermalFace2D_Right_Wall"],
             "material_import_settings"           : {
-                "materials_filename" : "pfem_utilities_tests/2D_thermal_coupling/PFEMThermicMaterials.json"
+                "materials_filename" : "pfem_utilities_tests/Test_2D_Thermal_Coupling/PFEMThermicMaterials.json"
             }
         },
         "thermal_solver_settings"  : {
@@ -79,11 +79,10 @@
             "analysis_type"                      : "linear",
 	    "time_integration_method"                : "implicit",
             "model_part_name"                    : "ThermalModelPart",
-            "computing_model_part_name"          : "thermal_computing_domain",
             "domain_size"                        : 2,
             "reform_dofs_at_each_step"           : true,
             "material_import_settings"           : {
-                "materials_filename" : "pfem_utilities_tests/2D_thermal_coupling/PFEMThermicMaterials.json"
+                "materials_filename" : "pfem_utilities_tests/Test_2D_Thermal_Coupling/PFEMThermicMaterials.json"
             },
             "line_search"                        : false,
             "echo_level"                         : 2,
@@ -405,7 +404,7 @@
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
                 "check_variables"     : ["VELOCITY","PRESSURE","TEMPERATURE"],
-                "input_file_name"     : "pfem_utilities_tests/2D_thermal_coupling/Test_2D_thermal_coupling_results.json",
+                "input_file_name"     : "pfem_utilities_tests/Test_2D_Thermal_Coupling/Test_2D_Thermal_Coupling_results.json",
                 "model_part_name"      : "PfemFluidModelPart",
                 "time_frequency"       : 0.01
             }
@@ -416,7 +415,7 @@
         "kratos_module" : "KratosMultiphysics",
         "Parameters"    : {
             "output_variables"     : ["VELOCITY","PRESSURE","TEMPERATURE"],
-            "output_file_name"     : "pfem_utilities_tests/2D_thermal_coupling/Test_2D_thermal_coupling_results.json",
+            "output_file_name"     : "pfem_utilities_tests/Test_2D_Thermal_Coupling/Test_2D_Thermal_Coupling_results.json",
             "model_part_name"      : "PfemFluidModelPart",
             "time_frequency"       : 0.01
         }
