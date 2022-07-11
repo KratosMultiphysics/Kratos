@@ -26,9 +26,17 @@ int main(int argc, char** argv) {
         auto execute = Kratos::KratosExecute();
         execute.geoflow(workingDirectory, projectName, minCriticalHead, maxCriticalHead, stepCriticalHead);
     }
-    catch (runtime_error e)
+    catch (std::runtime_error& e)
     {
         cout << "Runtime error: " << e.what();
+    }
+    catch (std::exception& e) {
+
+        std::cout << "Caught an exception of an unexpected type: "
+                  << e.what () << '\n';
+    }
+    catch (...) {
+        std::cout << "Caught an unknown exception\n";
     }
 
 	
