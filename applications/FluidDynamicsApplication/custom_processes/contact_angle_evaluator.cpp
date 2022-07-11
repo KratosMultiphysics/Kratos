@@ -33,8 +33,8 @@ void ContactAngleEvaluator::Execute()
 {
     KRATOS_TRY;
 
-    const double theta_advancing = 180.0*PI/180.0;;//149.0*PI/180.0;//129.78*PI/
-    const double theta_receding = 0.0*PI/180.0;;//115.0*PI/180.0;//129.78*PI/
+    const double theta_advancing = 150.0*PI/180.0;//180.0*PI/180.0;//149.0*PI/180.0;//129.78*PI/
+    const double theta_receding = 150.0*PI/180.0;//0.0*PI/180.0;//115.0*PI/180.0;//129.78*PI/
 
     const unsigned int num_nodes = mrModelPart.NumberOfNodes();
     const unsigned int num_elements = mrModelPart.NumberOfElements();
@@ -204,7 +204,7 @@ void ContactAngleEvaluator::Execute()
         }
     }
 
-    /* #pragma omp parallel for
+    #pragma omp parallel for
     for (unsigned int i = 0; i < num_nodes; ++i) {
 
         auto it_node_i = it_node_begin + i;
@@ -239,7 +239,7 @@ void ContactAngleEvaluator::Execute()
             }
         }
 
-    } */
+    }
 
     KRATOS_CATCH("");
 }

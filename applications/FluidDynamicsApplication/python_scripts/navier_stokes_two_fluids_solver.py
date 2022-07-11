@@ -413,7 +413,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             print("Smoothing Finished")
 
             # Recompute the distance field according to the new level-set position
-            if (TimeStep % 10 == 0):
+            if (TimeStep % 10000 == 0):
                 #(self.variational_distance_process).Execute()
 
                 #(self.hyperbolic_distance_reinitialization).Execute()

@@ -618,11 +618,13 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                         const double distance_i = GetGeometry()[i_node].FastGetSolutionStepValue(DISTANCE);
                         //grad_phi_avg_i /= norm_2(grad_phi_avg_i); // It is not a good idea!
 
-                        //const double normalDist = 1.0/(5.0*element_size)* std::abs(GetGeometry()[i_node].GetSolutionStepValue(DISTANCE));
+                        const double normalDist = 1.0/(5.0*element_size)* std::abs(GetGeometry()[i_node].GetSolutionStepValue(DISTANCE));
                         double theta = 1.0;
-                        /* if (normalDist < 1.0){
+                        if (normalDist < 1.0){
                             theta = 1.0 - std::max(0.0, std::min( normalDist*normalDist*(3.0 - 2.0*normalDist), 1.0 ));//0.0; for small unpinned hydrophobic droplet //1.0; for pinned droplet
-                        } */
+                        }
+                        // const double theta = std::min( std::exp( -( std::abs(distance_i)/element_size - 1.0 ) ), 1.0); //1.0;
+
                         if (contact_angle_weight > 0.0){
                             minus_cos_contact_angle = -theta*norm_grad_phi_avg_i*std::cos(contact_angle/contact_angle_weight) +
                             (1.0-theta)/* /norm_grad_phi_avg_i */*Kratos::inner_prod(solid_normal,grad_phi_avg_i);
