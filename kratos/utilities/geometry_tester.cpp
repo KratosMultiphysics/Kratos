@@ -256,7 +256,7 @@ bool GeometryTesterUtility::StreamTestTriangle2D6N(
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_4, rErrorMessage);
 //         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_5, rErrorMessage);
 
-    array_1d<double,3> point_in(geometry.Dimension(),1.0/3.0);
+    array_1d<double,3> point_in(3,1.0/3.0);
     if( !VerifyShapeFunctionsSecondDerivativesValues(geometry,point_in,rErrorMessage) ) successful = false;
 
     rErrorMessage << std::endl;
@@ -297,7 +297,7 @@ bool GeometryTesterUtility::StreamTestQuadrilateral2D4N(
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_4, rErrorMessage);
 //         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_5, rErrorMessage);
 
-    array_1d<double,3> point_in(geometry.Dimension(),1.0/3.0);
+    array_1d<double,3> point_in(3,1.0/3.0);
     if( !VerifyShapeFunctionsSecondDerivativesValues(geometry,point_in,rErrorMessage) ) successful = false;
 
     rErrorMessage << std::endl;
@@ -340,7 +340,7 @@ bool GeometryTesterUtility::StreamTestQuadrilateral2D9N(
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_4, rErrorMessage);
 //         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_5, rErrorMessage);
 
-    array_1d<double,3> point_in(geometry.Dimension(),1.0/3.0);
+    array_1d<double,3> point_in(3,1.0/3.0);
     if( !VerifyShapeFunctionsSecondDerivativesValues(geometry,point_in,rErrorMessage) ) successful = false;
 
     rErrorMessage << std::endl;
@@ -371,7 +371,7 @@ bool GeometryTesterUtility::StreamTestQuadrilateralInterface2D4N(
         successful=false;
     }
 
-    array_1d<double,3> point_in(geometry.Dimension(),1.0/3.0);
+    array_1d<double,3> point_in(3,1.0/3.0);
     if( !VerifyShapeFunctionsSecondDerivativesValues(geometry,point_in,rErrorMessage) ) successful = false;
 
     return successful;
@@ -1001,8 +1001,8 @@ bool GeometryTesterUtility::VerifyShapeFunctionsSecondDerivativesValues(
             ei[i] = 1.0;
             ej = ZeroVector(dim);
             ej[j] = 1.0;
-            transform(ei.begin(), ei.end(), ei.begin(), [delta](double &c){ return c*delta; });
-            transform(ej.begin(), ej.end(), ej.begin(), [delta](double &c){ return c*delta; });
+            std::transform(ei.begin(), ei.end(), ei.begin(), [delta](double &c){ return c*delta; });
+            std::transform(ej.begin(), ej.end(), ej.begin(), [delta](double &c){ return c*delta; });
             rGeometry.ShapeFunctionsValues(f_1,local_coordinates + ei + ej);
             rGeometry.ShapeFunctionsValues(f_2,local_coordinates + ei - ej);
             rGeometry.ShapeFunctionsValues(f_3,local_coordinates - ei + ej);
