@@ -233,8 +233,8 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     const double dt = rCurrentProcessInfo.GetValue(DELTA_TIME);
     const double scale = rCurrentProcessInfo.GetValue(NODAL_AREA);
 
-    //GeometryType::Pointer p_geom = this->pGetGeometry();
-    //const double he = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+    const double element_size = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
     //const double he = ElementSizeCalculator<3,4>::AverageElementSize(GetGeometry()); //this->GetValue(ELEMENT_H);
     //const double epsilon = 2.0e3*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
     //KRATOS_INFO("smoothing coefficient:") << epsilon << std::endl;
@@ -552,12 +552,32 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                 for (unsigned int i = 0; i < num_nodes; i++){
                     // tempBCRHS[i] += epsilon * temp_value * face_weight * face_shape_func(i);
 
-                    if (contact_angle_weight > 0.0){
-                        minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
-                    } else{
-                        minus_cos_contact_angle = Kratos::inner_prod(solid_normal, //grad_phi_old);
-                            GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT));
+                    VectorType grad_phi_avg_i = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
+                    const double norm_grad_phi_avg_i = norm_2( grad_phi_avg_i );
+                    const double distance_i = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+
+                    const double normalDist = 1.0/(5.0*element_size)* std::abs(distance_i);
+                    double theta = 1.0;
+                    if (normalDist < 1.0){
+                        theta = 1.0 - std::max(0.0, std::min( normalDist*normalDist*(3.0 - 2.0*normalDist), 1.0 ));//0.0; for small unpinned hydrophobic droplet //1.0; for pinned droplet
                     }
+                    // const double theta = std::min( std::exp( -( std::abs(distance_i)/element_size - 1.0 ) ), 1.0); //1.0;
+
+                    if (contact_angle_weight > 0.0){
+                        minus_cos_contact_angle = -theta*norm_grad_phi_avg_i*std::cos(contact_angle/contact_angle_weight) +
+                        (1.0-theta)*Kratos::inner_prod(solid_normal,grad_phi_avg_i)/* /norm_grad_phi_avg_i */;
+                        /* minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
+                        minus_cos_contact_angle = minus_cos_contact_angle*norm_grad_phi_avg_i; */
+                    } else{
+                        minus_cos_contact_angle = Kratos::inner_prod(solid_normal,grad_phi_avg_i)/* /norm_grad_phi_avg_i */;
+                    }
+
+                    // if (contact_angle_weight > 0.0){
+                    //     minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
+                    // } else{
+                    //     minus_cos_contact_angle = Kratos::inner_prod(solid_normal, //grad_phi_old);
+                    //         GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT));
+                    // }
                     //KRATOS_WATCH(rCurrentProcessInfo[NODAL_AREA])
                     tempBCRHS[i] += epsilon * (scale*minus_cos_contact_angle) * face_weight * face_shape_func(i);
                 }

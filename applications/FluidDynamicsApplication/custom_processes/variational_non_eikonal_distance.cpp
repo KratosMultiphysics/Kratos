@@ -182,6 +182,8 @@ void VariationalNonEikonalDistance::Execute()
     double max_grad_norm_deviation = 1.0e2;
     double norm_grad_norm_deviation = 0.0;
 
+    const unsigned int time_step = mrModelPart.pGetProcessInfo()->GetValue(STEP);
+
     while (iteration < 5){
 
         KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, about to solve the LSE" << std::endl;
@@ -206,6 +208,9 @@ void VariationalNonEikonalDistance::Execute()
         KRATOS_INFO("Deviation in the norm of distance gradient") <<
             norm_grad_norm_deviation/static_cast<double>(NumNodes) << std::endl;
     } */
+
+    //if (time_step % 10 == 0)
+    {
 
     //************************************************************************************
     //************************************************************************************
@@ -280,6 +285,8 @@ void VariationalNonEikonalDistance::Execute()
     }
     if (max_grad_norm_deviation > 2.0e-1){
         KRATOS_INFO("VariationalNonEikonalDistance") << "Convergence is not achieved." << std::endl;
+    }
+
     }
 
     KRATOS_CATCH("")

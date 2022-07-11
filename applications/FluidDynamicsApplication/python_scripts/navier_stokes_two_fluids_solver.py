@@ -420,7 +420,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
                 print("Parallel Redistancing Started")
                 print(time.time())
-                layers = 300#int(4000/100000*self.main_model_part.NumberOfElements())
+                layers = 100#int(4000/100000*self.main_model_part.NumberOfElements())
                 (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances( #
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,
@@ -987,12 +987,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
     def _set_parallel_distance_process(self):
         # Construct the parallel distance process
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-                locator = KratosMultiphysics.BinBasedFastPointLocator2D(self.main_model_part)
-                locator.UpdateSearchDatabase()
+                #locator = KratosMultiphysics.BinBasedFastPointLocator2D(self.main_model_part)
+                #locator.UpdateSearchDatabase()
                 parallel_distance_process = KratosMultiphysics.ParallelDistanceCalculator2D()
         else:
-                locator = KratosMultiphysics.BinBasedFastPointLocator3D(self.main_model_part)
-                locator.UpdateSearchDatabase()
+                #locator = KratosMultiphysics.BinBasedFastPointLocator3D(self.main_model_part)
+                #locator.UpdateSearchDatabase()
                 parallel_distance_process = KratosMultiphysics.ParallelDistanceCalculator3D()
 
         return parallel_distance_process

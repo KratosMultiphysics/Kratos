@@ -615,16 +615,23 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                         // Working with averaged DISTANE_GRADIENT (accessed in the process) for the 0th-step?
                         VectorType grad_phi_avg_i = GetGeometry()[i_node].GetValue(DISTANCE_GRADIENT);
                         const double norm_grad_phi_avg_i = norm_2( grad_phi_avg_i );
+                        const double distance_i = GetGeometry()[i_node].FastGetSolutionStepValue(DISTANCE);
                         //grad_phi_avg_i /= norm_2(grad_phi_avg_i); // It is not a good idea!
 
-                        const double theta = 0.0;
+                        const double normalDist = 1.0/(5.0*element_size)* std::abs(distance_i);
+                        double theta = 1.0;
+                        if (normalDist < 1.0){
+                            theta = 1.0 - std::max(0.0, std::min( normalDist*normalDist*(3.0 - 2.0*normalDist), 1.0 ));//0.0; for small unpinned hydrophobic droplet //1.0; for pinned droplet
+                        }
+                        // const double theta = std::min( std::exp( -( std::abs(distance_i)/element_size - 1.0 ) ), 1.0); //1.0;
+
                         if (contact_angle_weight > 0.0){
-                            minus_cos_contact_angle = -theta*norm_grad_phi_avg_i*std::cos(contact_angle/contact_angle_weight) +
-                            (1.0-theta)*Kratos::inner_prod(solid_normal,grad_phi_avg_i);
+                            minus_cos_contact_angle = -theta/* *norm_grad_phi_avg_i */*std::cos(contact_angle/contact_angle_weight) +
+                            (1.0-theta)*Kratos::inner_prod(solid_normal,grad_phi_avg_i)/norm_grad_phi_avg_i;
                             /* minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
                             minus_cos_contact_angle = minus_cos_contact_angle*norm_grad_phi_avg_i; */
                         } else{
-                            minus_cos_contact_angle = Kratos::inner_prod(solid_normal,grad_phi_avg_i);
+                            minus_cos_contact_angle = Kratos::inner_prod(solid_normal,grad_phi_avg_i)/norm_grad_phi_avg_i;
                         }
 
                         if (step == 0){
