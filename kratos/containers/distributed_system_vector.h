@@ -361,10 +361,16 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const {rOStream << "DistributedSystemVector";}
+    void PrintInfo(std::ostream& rOStream) const 
+    {
+        rOStream << "DistributedSystemVector LOCAL DATA:" << std::endl;        
+    }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const {
+        const auto k = GetComm().Rank();
+        std::cout << "Local Size=" << LocalSize() << " Total Size=" << GetNumbering().Size() << std::endl; 
+        std::cout << "Numbering begins with " << GetNumbering().GetCpuBounds()[k] << " ends at " << GetNumbering().GetCpuBounds()[k+1] << std::endl;
         std::cout << mLocalData << std::endl;
     }
 

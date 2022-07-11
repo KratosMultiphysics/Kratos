@@ -116,7 +116,7 @@ OrientedBoundingBox<3>::OrientedBoundingBox(
         double distance = 0.0;
         const Point center = rGeometry.Center();
         Point aux_point;
-        IndexType aux_i_node;
+        IndexType aux_i_node = 0;
         for (IndexType i_node = 0; i_node < rGeometry.size(); ++i_node) {
             noalias(aux_point.Coordinates()) = rGeometry[i_node].Coordinates();
             MortarUtilities::RotatePoint(aux_point, center, mOrientationVectors[1], mOrientationVectors[2], false);

@@ -21,6 +21,7 @@
 #include "shallow_water_application_variables.h"
 #include "custom_utilities/flow_rate_slip_utility.h"
 #include "solving_strategies/schemes/residual_based_bdf_scheme.h"
+#include "processes/calculate_nodal_area_process.h"
 
 namespace Kratos
 {
@@ -88,6 +89,7 @@ public:
         : BDFBaseType(Order)
         , mRotationTool()
         , mUpdateVelocities(UpdateVelocities)
+        , mProjectDispersiveField(false)
     {
         mVariables = {&MOMENTUM_X, &MOMENTUM_Y, &HEIGHT};
         mDerivativeVariables = {&ACCELERATION_X, &ACCELERATION_Y, &VERTICAL_VELOCITY};
@@ -107,6 +109,7 @@ public:
         : BDFBaseType(rOther)
         , mRotationTool()
         , mUpdateVelocities(rOther.mUpdateVelocities)
+        , mProjectDispersiveField(rOther.mProjectDispersiveField)
         , mVariables(rOther.mVariables)
         , mDerivativeVariables(rOther.mDerivativeVariables)
     {}
@@ -307,6 +310,54 @@ public:
     }
 
     /**
+     * @brief Initialize the nodal area and the derivatives recovery.
+     * @details The nodal area is used to apply the explicit prediction.
+     * @param rModelPart The model part of the problem to solve
+     */
+    void Initialize(ModelPart& rModelPart) override
+    {
+        BaseType::Initialize(rModelPart);
+        if (mProjectDispersiveField) {
+            CalculateNodalAreaProcess<true>(rModelPart).Execute();
+        }
+    }
+
+    /**
+     * @brief Calculate the global projection of the dispersive field.
+     * @param rModelPart The model part of the problem to solve
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void InitializeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+    ) override
+    {
+        if (mProjectDispersiveField) {
+            const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+            block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+                rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = ZeroVector(3);
+                rNode.FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN) = ZeroVector(3);
+            });
+            block_for_each(rModelPart.Elements(), [&](Element& rElement){
+                rElement.InitializeNonLinearIteration(r_process_info);
+            });
+            block_for_each(rModelPart.Conditions(), [&](Condition& rCondition){
+                rCondition.InitializeNonLinearIteration(r_process_info);
+            });
+            block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+                const double nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
+                rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) /= nodal_area;
+                rNode.FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN) /= nodal_area;
+            });
+            ApplyLaplacianBoundaryConditions(rModelPart);
+        }
+    }
+
+    /**
      * @brief Free memory allocated by this class.
      */
     void Clear() override
@@ -321,10 +372,11 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name"               : "shallow_water_residual_based_bdf_scheme",
-            "integration_order"  : 2,
-            "update_velocities"  : false,
-            "solution_variables" : ["MOMENTUM","HEIGHT"]
+            "name"                     : "shallow_water_residual_based_bdf_scheme",
+            "integration_order"        : 2,
+            "update_velocities"        : false,
+            "project_dispersive_field" : false,
+            "solution_variables"       : ["MOMENTUM","HEIGHT"]
         })" );
 
         // Getting base class default parameters
@@ -382,9 +434,9 @@ protected:
     void AssignSettings(const Parameters ThisParameters) override
     {
         mUpdateVelocities = ThisParameters["update_velocities"].GetBool();
+        mProjectDispersiveField = ThisParameters["project_dispersive_field"].GetBool();
 
         const auto variable_names = ThisParameters["solution_variables"].GetStringArray();
-
         for (std::string variable_name : variable_names)
         {
             if (KratosComponents<Variable<double>>::Has(variable_name))
@@ -417,6 +469,7 @@ protected:
     FlowRateSlipToolType mRotationTool;
 
     bool mUpdateVelocities;
+    bool mProjectDispersiveField;
 
     std::vector<const Variable<double>*> mVariables;
     std::vector<const Variable<double>*> mDerivativeVariables;
@@ -535,6 +588,21 @@ protected:
             rCondition.GetFirstDerivativesVector(BDFBaseType::mVector.dotun0[this_thread], 0);
             noalias(rRHS_Contribution) -= prod(rM, BDFBaseType::mVector.dotun0[this_thread]);
         }
+    }
+
+
+    void ApplyLaplacianBoundaryConditions(ModelPart& rModelPart)
+    {
+        block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+            if (rNode.IsFixed(VELOCITY_X)) {
+                rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_X) = 0.0;
+                rNode.FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN_X) = 0.0;
+            }
+            if (rNode.IsFixed(VELOCITY_Y)) {
+                rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_Y) = 0.0;
+                rNode.FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN_Y) = 0.0;
+            }
+        });
     }
 
     ///@}

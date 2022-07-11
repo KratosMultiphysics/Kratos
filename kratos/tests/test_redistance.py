@@ -23,7 +23,6 @@ class TestRedistance(KratosUnittest.TestCase):
 
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere")).ReadModelPart(model_part)
         model_part.SetBufferSize(2)
 
@@ -54,7 +53,6 @@ class TestRedistance(KratosUnittest.TestCase):
 
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
 
         model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0)
         model_part.CreateNewNode(2, 1.0 , 2.0 , 0.0)
@@ -90,7 +88,6 @@ class TestRedistance(KratosUnittest.TestCase):
 
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
 
         model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0)
         model_part.CreateNewNode(2, 1.0 , 2.0 , 0.0)
