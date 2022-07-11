@@ -669,23 +669,23 @@ namespace Kratos
         VariableUtils().AddDof(VOLUME_ACCELERATION_Y, model_part);
         VariableUtils().AddDof(VOLUME_ACCELERATION_Z, model_part);
 
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Added DoF" << std::endl;
+        std::cout << "Added DoF" << std::endl;
 
         std::vector<std::shared_ptr<Process>> processes = parseProcess(model_part, projectfile);
 
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Process Data" << std::endl;
+        std::cout << "Parsed Process Data" << std::endl;
         
         bool hasPiping = stepCriticalHead != 0;
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Search: " << hasPiping << std::endl;
+        std::cout << "Critical Head Search: " << hasPiping << std::endl;
 
     	if (!hasPiping) {
             int error = mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
         }
         else
         {
-            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Min Head: " << minCriticalHead << std::endl;
-            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Max Head: " << maxCriticalHead << std::endl;
-            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Step Head: " << stepCriticalHead << std::endl;
+            std::cout << "Critical Head Min Head: " << minCriticalHead << std::endl;
+            std::cout << "Critical Head Max Head: " << maxCriticalHead << std::endl;
+            std::cout << "Critical Head Step Head: " << stepCriticalHead << std::endl;
 
         	std::vector<Element*> pipeElements;
             pipeElements = p_solving_strategy->GetPipingElements();
@@ -758,7 +758,7 @@ namespace Kratos
 
         	while (true)
             {
-                KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Searching: Current: " << currentHead << " Critical: " << criticalHead << std::endl;
+                std::cout << "Searching: Current: " << currentHead << " Critical: " << criticalHead << std::endl;
             	int error = mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
 
                 count = 0;
@@ -771,19 +771,19 @@ namespace Kratos
                 if (count == noPipeElements)
                 {
                     if (abs(criticalHead - minCriticalHead) < 1e-9) {
-                        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Undetermined: All pipe elements open at initial search value :" << minCriticalHead << std::endl;
+                        std::cout << "Critical Head Undetermined: All pipe elements open at initial search value :" << minCriticalHead << std::endl;
                     }
                     else
                     {
                         pipingSuccess = true;
-                        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Found:" << criticalHead << std::endl;
+                        std::cout << "Critical Head Found:" << criticalHead << std::endl;
                     }
                 	break;
                 }
 
         		else if(abs(currentHead - maxCriticalHead)<1e-9)
                 {
-                    KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Undetermined: Max search head reached" << minCriticalHead << std::endl;
+                    std::cout << "Critical Head Undetermined: Max search head reached" << minCriticalHead << std::endl;
         			break;
                 }
 
