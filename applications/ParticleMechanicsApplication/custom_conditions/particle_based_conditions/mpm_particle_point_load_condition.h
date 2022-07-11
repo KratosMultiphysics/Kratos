@@ -224,8 +224,6 @@ private:
 
     array_1d<double, 3> m_point_load;
     array_1d<double, 3> m_delta_xg;
-    array_1d<double, 3> m_displacement;
-    array_1d<double, 3> m_velocity;
 
     ///@}
     ///@name Private Operators
@@ -255,6 +253,7 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticleBaseLoadCondition );
         rSerializer.save("point_load", m_point_load);
+        rSerializer.save("delta_xg", m_delta_xg);
 
     }
 
@@ -262,6 +261,7 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticleBaseLoadCondition );
         rSerializer.load("point_load", m_point_load);
+        rSerializer.load("delta_xg", m_delta_xg);
     }
 
 

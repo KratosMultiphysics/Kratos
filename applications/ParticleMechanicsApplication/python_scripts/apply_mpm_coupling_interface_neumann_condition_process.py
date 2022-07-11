@@ -2,8 +2,6 @@ import KratosMultiphysics
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 from KratosMultiphysics.ParticleMechanicsApplication.apply_mpm_particle_neumann_condition_process import ApplyMPMParticleNeumannConditionProcess
 
-from math import sqrt
-
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")

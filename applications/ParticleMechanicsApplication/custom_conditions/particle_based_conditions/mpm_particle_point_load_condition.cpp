@@ -259,15 +259,6 @@ namespace Kratos
         if (rVariable == POINT_LOAD) {
             rValues[0] = m_point_load;
         }
-        else if (rVariable == MP_COORD || rVariable == MPC_COORD) {
-            rValues[0] = m_xg;
-        }
-        else if (rVariable == MPC_VELOCITY) {
-            rValues[0] = m_velocity;
-        }
-        else if (rVariable == MPC_DISPLACEMENT) {
-            rValues[0] = m_displacement;
-        }
         else if (rVariable == MPC_DELTA_DISPLACEMENT) {
             rValues[0] = m_delta_xg;
         }
@@ -287,15 +278,6 @@ namespace Kratos
 
         if (rVariable == POINT_LOAD) {
             m_point_load = rValues[0];
-        }
-        else if (rVariable == MP_COORD || rVariable == MPC_COORD) {
-            m_xg = rValues[0];
-        }
-        else if (rVariable == MPC_VELOCITY) {
-            m_velocity = rValues[0];
-        }
-        else if (rVariable == MPC_DISPLACEMENT) {
-            m_displacement = rValues[0];
         }
         else if (rVariable == MPC_DELTA_DISPLACEMENT) {
             m_delta_xg = rValues[0];

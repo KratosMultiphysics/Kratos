@@ -402,8 +402,6 @@ namespace MPMParticleGeneratorUtility
                             // Mark as boundary condition
                             p_condition->Set(BOUNDARY, true);
 
-                            last_condition_id += 1;
-
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
                             last_condition_id +=1;
