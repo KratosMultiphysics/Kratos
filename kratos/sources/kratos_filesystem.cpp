@@ -148,7 +148,7 @@ std::string ResolveSymlinks(const std::string& rPath)
         path = std::filesystem::read_symlink(path);
     }
 
-    return path;
+    return path.string();
 }
 
 } // namespace FilesystemExtensions
