@@ -34,7 +34,6 @@ class ErrorProjectionPostProcessTool(object):
 
     def WriteData(self, error_model_part, velocity_error_projected, pressure_error_projected, projection_type, model_type, subscale_type, porosity_mean, n_iterations, max_iteration, relax_alpha, lowest_alpha, damkohler_number):
         self.error_model_part = error_model_part
-
         self.projection_type = projection_type
         self.model_type = model_type
         self.subscale_type = subscale_type

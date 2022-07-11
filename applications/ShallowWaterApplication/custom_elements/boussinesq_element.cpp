@@ -27,6 +27,18 @@ namespace Kratos
 {
 
 template<std::size_t TNumNodes>
+const Parameters BoussinesqElement<TNumNodes>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "required_variables"         : ["VELOCITY","FREE_SURFACE_ELEVATION","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY","VELOCITY_LAPLACIAN","VELOCITY_H_LAPLACIAN"],
+        "required_dofs"              : ["VELOCITY_X","VELOCITY_Y","FREE_SURFACE_ELEVATION"],
+        "compatible_geometries"      : ["Triangle2D3"],
+        "element_integrates_in_time" : false
+    })");
+    return specifications;
+}
+
+template<std::size_t TNumNodes>
 const Variable<double>& BoussinesqElement<TNumNodes>::GetUnknownComponent(int Index) const
 {
     switch (Index) {
@@ -177,14 +189,14 @@ void BoussinesqElement<TNumNodes>::AlgebraicResidual(
 
     // Spatial derivatives
     rFreeSurfaceGradient = prod(rData.nodal_f, rDN_DX);
-    const double v_divergence = WaveElementType::VectorProduct(rData.nodal_v, rDN_DX);
+    const double v_divergence = WaveElementType::VectorDivergence(rData.nodal_v, rDN_DX);
 
     // Mass conservation residual
     const double vertical_vel = inner_prod(rData.nodal_w, rN);
     const double wave_f = rData.height * v_divergence;
     const double convection_f = rData.velocity[0] * rFreeSurfaceGradient[0] + rData.velocity[1] * rFreeSurfaceGradient[1];
-    double dispersion_f = C1 * H3 * WaveElementType::VectorProduct(rData.nodal_v_lap, rDN_DX);
-    dispersion_f       += C3 * H2 * WaveElementType::VectorProduct(rData.nodal_q_lap, rDN_DX);
+    double dispersion_f = C1 * H3 * WaveElementType::VectorDivergence(rData.nodal_v_lap, rDN_DX);
+    dispersion_f       += C3 * H2 * WaveElementType::VectorDivergence(rData.nodal_q_lap, rDN_DX);
     rMassResidual = vertical_vel + wave_f + convection_f + dispersion_f;
 }
 
@@ -308,7 +320,8 @@ void BoussinesqElement<TNumNodes>::AddMassTerms(
 
 template<std::size_t TNumNodes>
 void BoussinesqElement<TNumNodes>::AddAuxiliaryLaplacian(
-    LocalMatrixType& rLaplacian,
+    LocalMatrixType& rVelocityLaplacian,
+    LocalMatrixType& rMomentumLaplacian,
     const ElementData& rData,
     const array_1d<double,TNumNodes>& rN,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
@@ -328,9 +341,10 @@ void BoussinesqElement<TNumNodes>::AddAuxiliaryLaplacian(
             gradients_vector_j[0] = rDN_DX(j,0);
             gradients_vector_j[1] = rDN_DX(j,1);
             gradients_vector_j[2] = 0.0;
+            const double depth = std::max(0.0, -rData.nodal_z[j]);
 
-            // Projector for the auxiliary field
-            MathUtils<double>::AddMatrix(rLaplacian, -Weight*outer_prod(gradients_vector_i, gradients_vector_j), 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rVelocityLaplacian, -Weight*outer_prod(gradients_vector_i, gradients_vector_j), 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rMomentumLaplacian, -Weight*depth*outer_prod(gradients_vector_i, gradients_vector_j), 3*i, 3*j);
         }
     }
 }
@@ -353,6 +367,7 @@ void BoussinesqElement<TNumNodes>::InitializeNonLinearIteration(const ProcessInf
 
     // Auxiliary field
     LocalMatrixType laplacian = ZeroMatrix(mLocalSize, mLocalSize);
+    LocalMatrixType H_laplacian = ZeroMatrix(mLocalSize, mLocalSize);
 
     const std::size_t num_gauss_points = weights.size();
     for (std::size_t g = 0; g < num_gauss_points; ++g)
@@ -363,22 +378,27 @@ void BoussinesqElement<TNumNodes>::InitializeNonLinearIteration(const ProcessInf
 
         UpdateGaussPointData(data, N);
 
-        AddAuxiliaryLaplacian(laplacian, data, N, DN_DX, weight);
+        AddAuxiliaryLaplacian(laplacian, H_laplacian, data, N, DN_DX, weight);
     }
 
     // Calculate the laplacian vector
     const LocalVectorType& vel_vector = this->GetUnknownVector(data);
     LocalVectorType vel_laplacian_vector = prod(laplacian, vel_vector);
+    LocalVectorType vel_H_laplacian_vector = prod(H_laplacian, vel_vector);
 
     // Add the elemental contribution to the nodes
     array_1d<double,3> vel_laplacian = ZeroVector(3);
+    array_1d<double,3> vel_H_laplacian = ZeroVector(3);
     for (std::size_t i = 0; i < TNumNodes; ++i)
     {
         std::size_t block = 3 * i;
         vel_laplacian[0] = vel_laplacian_vector[block];
         vel_laplacian[1] = vel_laplacian_vector[block + 1];
+        vel_H_laplacian[0] = vel_H_laplacian_vector[block];
+        vel_H_laplacian[1] = vel_H_laplacian_vector[block + 1];
         r_geometry[i].SetLock();
         r_geometry[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) += vel_laplacian;
+        r_geometry[i].FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN) += vel_H_laplacian;
         r_geometry[i].UnSetLock();
     }
 }
@@ -393,6 +413,7 @@ void BoussinesqElement<TNumNodes>::AddRightHandSide(
     const Vector& rWeights)
 {
     LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
+    LocalVectorType dummy; // since the free surface is a primary variable, the bottom artificial viscosity must not be substracted.
 
     const std::size_t num_gauss_points = rWeights.size();
 
@@ -407,7 +428,7 @@ void BoussinesqElement<TNumNodes>::AddRightHandSide(
         this->AddWaveTerms(lhs, rRHS, rData, N, DN_DX, weight);
         this->AddFrictionTerms(lhs, rRHS, rData, N, DN_DX, weight);
         this->AddDispersiveTerms(rRHS, rData, N, DN_DX, weight);
-        this->AddArtificialViscosityTerms(lhs, rData, N, DN_DX, weight);
+        this->AddArtificialViscosityTerms(lhs, dummy, rData, N, DN_DX, weight);
 
         // Deactivating the dry domain
         const double w = WaveElementType::WetFraction(rData);

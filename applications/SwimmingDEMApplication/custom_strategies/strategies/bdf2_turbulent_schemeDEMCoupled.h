@@ -265,16 +265,16 @@ public:
                 dMomProj = ind->GetValue(ADVPROJ) / Area;
                 dMassProj = ind->GetValue(DIVPROJ) / Area;
 
-                RelMomErr += sqrt( dMomProj[0]*dMomProj[0] + dMomProj[1]*dMomProj[1] + dMomProj[2]*dMomProj[2]);
-                RelMassErr += fabs(dMassProj);
+                RelMomErr += std::sqrt(std::pow(dMomProj[0],2) + std::pow(dMomProj[1],2) + std::pow(dMomProj[2],2));
+                RelMassErr += std::fabs(dMassProj);
 
                 auto& rMomRHS = ind->FastGetSolutionStepValue(ADVPROJ);
                 double& rMassRHS = ind->FastGetSolutionStepValue(DIVPROJ);
                 rMomRHS += dMomProj;
                 rMassRHS += dMassProj;
 
-                AbsMomErr += sqrt( rMomRHS[0]*rMomRHS[0] + rMomRHS[1]*rMomRHS[1] + rMomRHS[2]*rMomRHS[2]);
-                AbsMassErr += fabs(rMassRHS);
+                AbsMomErr += std::sqrt(std::pow(rMomRHS[0],2) + std::pow(rMomRHS[1],2) + std::pow(rMomRHS[2],2));
+                AbsMassErr += std::fabs(rMassRHS);
             }
 
             if(AbsMomErr > 1e-10)

@@ -13,6 +13,9 @@ concurrency:
   cancel-in-progress: true
 
 
+permissions:
+  contents: read
+
 jobs:
   ubuntu:
     runs-on: ubuntu-latest
@@ -31,7 +34,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Build
       shell: bash
@@ -124,8 +127,8 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.8'
 
@@ -166,7 +169,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Build
       run: |
@@ -197,11 +200,11 @@ jobs:
         CCACHE_MAXSIZE: 500M
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Cache Build
       id: cache-build
-      uses: actions/cache@v1
+      uses: actions/cache@v3
       with:
         path: ~/.ccache
         key: ${{ runner.os }}-no-unity-ccache-${{ github.sha }}
@@ -309,8 +312,8 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.8'
 
@@ -383,7 +386,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Build
       shell: bash
