@@ -100,6 +100,7 @@ void  AddIOToPython(pybind11::module& m)
 
     py::class_<GidIO<>, GidIO<>::Pointer, IO>(m, "GidIO")
     .def(py::init<std::string const&, const GiD_PostMode, const MultiFileFlag, const WriteDeformedMeshFlag, const WriteConditionsFlag>())
+    .def(py::init<std::string const&, const GiD_PostMode, const MultiFileFlag, const WriteDeformedMeshFlag, const WriteConditionsFlag, const bool>())
     //.def(py::init<std::string const&>())
     .def("WriteMesh",[](GidIO<>& dummy, GidIO<>::MeshType& rThisMesh){dummy.WriteMesh( rThisMesh );})
     .def("WriteNodeMesh",[](GidIO<>& dummy, GidIO<>::MeshType& rThisMesh){dummy.WriteNodeMesh( rThisMesh );})

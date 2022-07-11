@@ -283,7 +283,7 @@ public:
      * @return default integration method of the used Geometry
      * this method is: OPTIONAL ( is recommended to reimplement it in the derived class )
      */
-    virtual IntegrationMethod GetIntegrationMethod()
+    virtual IntegrationMethod GetIntegrationMethod() const
     {
         return pGetGeometry()->GetDefaultIntegrationMethod();
     }

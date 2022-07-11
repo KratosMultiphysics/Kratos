@@ -69,11 +69,22 @@ void SetCartesianLocalAxesProcess::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SetCartesianLocalAxesProcess::ExecuteInitializeSolutionStep()
+{
+    if (mThisParameters["update_at_each_step"].GetBool()) {
+        ExecuteInitialize();
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 const Parameters SetCartesianLocalAxesProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {
-        "cartesian_local_axis"          : [[1.0,0.0,0.0],[0.0,1.0,0.0]]
+        "cartesian_local_axis"          : [[1.0,0.0,0.0],[0.0,1.0,0.0]],
+        "update_at_each_step"           : false
     })" );
 
     return default_parameters;

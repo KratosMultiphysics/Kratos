@@ -99,6 +99,9 @@ class FluidSolver(PythonSolver):
             ## Set and fill buffer
             self._SetAndFillBuffer()
 
+        ## Executes the check and prepare model process. Always executed as it also assigns neighbors which are not saved in a restart
+        self._ExecuteCheckAndPrepare()
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Model reading finished.")
 
     def ExportModelPart(self):

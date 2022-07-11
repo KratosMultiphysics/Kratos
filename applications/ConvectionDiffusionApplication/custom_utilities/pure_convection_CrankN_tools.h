@@ -56,13 +56,13 @@ public:
         mDofSet.reserve(model_part.Nodes().size() );
 
         int tot_nnz=0;
-        int tot_row=0;
-        for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
+        //int tot_row=0;
+        for (auto it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
         {
             if( (it->GetValue(NEIGHBOUR_NODES)).size() != 0 )
             {
                 mDofSet.push_back( it->pGetDof(rScalarVar) );
-                tot_row += 1;
+                //tot_row += 1;
                 tot_nnz +=  (it->GetValue(NEIGHBOUR_NODES)).size()+1;
             }
         }
@@ -90,8 +90,8 @@ public:
         //unsigned int dof_position = (model_part.NodesBegin())->GetDofPosition(rScalarVar);
 
         //building up the matrix graph row by row
-        int total_size = 0;
-        for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
+        //int total_size = 0;
+        for (auto it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
         {
             unsigned int index_i = it->GetDof(rScalarVar).EquationId();
 
@@ -121,7 +121,7 @@ public:
 
                 //clearing the array for the next step
                 work_array.erase(work_array.begin(),work_array.end());
-                total_size += number_of_entries;
+                //total_size += number_of_entries;
             }
 
         }

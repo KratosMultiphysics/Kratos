@@ -46,7 +46,7 @@ message("    CO_SIM_IO_BUILD_PYTHON:    " ${CO_SIM_IO_BUILD_PYTHON})
 message("    CO_SIM_IO_STRICT_COMPILER: " ${CO_SIM_IO_STRICT_COMPILER})
 message("")
 
-
+# needs to be here as otherwise doesn't find MPI properly
 if (CO_SIM_IO_BUILD_MPI)
     find_package(MPI REQUIRED)
     add_definitions( -DCO_SIM_IO_USING_MPI )
@@ -55,6 +55,8 @@ if (CO_SIM_IO_BUILD_MPI)
     set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
     include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 endif()
+
+find_package (Threads REQUIRED)
 
 # detect whether CoSimIO is integrated into another project
 get_directory_property(hasParent PARENT_DIRECTORY)
@@ -136,22 +138,33 @@ file(GLOB_RECURSE co_sim_io_source_files
     ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/sources/*.cpp
 )
 add_library (co_sim_io SHARED ${co_sim_io_source_files})
+target_link_libraries(co_sim_io ${CMAKE_THREAD_LIBS_INIT})
 
 # To automatically configure a library export header into build tree
 include(GenerateExportHeader)
 generate_export_header( co_sim_io EXPORT_MACRO_NAME CO_SIM_IO_API EXPORT_FILE_NAME
                         ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/includes/co_sim_io_api.hpp )
 
-install(TARGETS co_sim_io DESTINATION libs) # Kratos does this
+install(TARGETS co_sim_io DESTINATION libs)
 
 if (CO_SIM_IO_BUILD_MPI)
-    # Adding CoSimIO library
+    # optionally enable communication via MPI
+    OPTION ( CO_SIM_IO_BUILD_MPI_COMMUNICATION "Enabling communication via MPI" OFF )
+    if (CO_SIM_IO_BUILD_MPI_COMMUNICATION)
+        add_definitions( -DCO_SIM_IO_BUILD_MPI_COMMUNICATION )
+        message("Enabled communication via MPI")
+        if(MPI_CXX_VERSION_MAJOR VERSION_LESS 2.0)
+            message(WARNING "Communication via MPI requires at least MPI version 2.0! Currently detected version: " ${MPI_CXX_VERSION})
+        endif ()
+    endif()
+
+    # Adding CoSimIOMPI library
     file(GLOB_RECURSE co_sim_io_mpi_source_files ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/mpi/sources/*.cpp)
     add_library (co_sim_io_mpi SHARED ${co_sim_io_mpi_source_files})
 
     target_link_libraries(co_sim_io_mpi co_sim_io ${MPI_LIBRARIES})
 
-    install(TARGETS co_sim_io_mpi DESTINATION libs) # Kratos does this
+    install(TARGETS co_sim_io_mpi DESTINATION libs)
 endif()
 
 target_include_directories(co_sim_io PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io)
@@ -184,4 +197,3 @@ if (CO_SIM_IO_BUILD_TESTING)
       "${CMAKE_CURRENT_SOURCE_DIR}/tests/compiled_config.json"
     )
 endif()
-

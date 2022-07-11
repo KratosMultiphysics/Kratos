@@ -489,7 +489,6 @@ namespace Kratos
   {
 
     double RHSi = 0;
-    //////////////////////////// TO CHEEEEEEEEEEEEEEEEEEEEEEECCCCCCCCCCCCCCCCCCCCKKKKKKKKKKKKKKK///////////////////////
 
     // LHS contribution
     const SizeType NumNodes = this->GetGeometry().PointsNumber();

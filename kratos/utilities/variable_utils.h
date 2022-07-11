@@ -780,7 +780,7 @@ public:
         KRATOS_TRY
 
         block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
-                rEntity.Data().Clear();
+                rEntity.GetData().Clear();
         });
 
         KRATOS_CATCH("")

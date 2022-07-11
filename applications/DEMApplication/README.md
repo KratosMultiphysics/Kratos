@@ -6,6 +6,8 @@ The [DEMpack Team](www.cimne.com/dem) at [CIMNE](www.cimne.com) is in charge of 
 
 For the coupling between DEM and Fluids, go to the [Swimming DEM Application](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/SwimmingDEMApplication).
 
+For the coupling between DEM and thermal effects, go to the [Thermal DEM Application](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ThermalDEMApplication).
+
 ## Getting started
 
 This application is part of the Kratos Multiphysics Platform. Instructions on how to get you a copy of the project up and running on your local machine for development and testing purposes are available for both [Linux](http://kratos-wiki.cimne.upc.edu/index.php/LinuxInstall) and [Windows](http://kratos-wiki.cimne.upc.edu/index.php/Windows_7_Download_and_Installation) systems.

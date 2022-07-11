@@ -738,7 +738,7 @@ void TransientPwElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 void TransientPwElement<TDim,TNumNodes>::
     CalculateKinematics( ElementVariables& rVariables,
-                         const unsigned int &PointNumber )
+                         unsigned int PointNumber )
 
 {
     KRATOS_TRY

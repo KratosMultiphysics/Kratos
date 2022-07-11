@@ -230,6 +230,22 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ViscousGeneralizedMaxwell
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
 
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return false;
+    }
+
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return true;
+    }
+
     ///@}
     ///@name Access
     ///@{
