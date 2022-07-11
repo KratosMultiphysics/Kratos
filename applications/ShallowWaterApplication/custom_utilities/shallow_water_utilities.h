@@ -152,6 +152,11 @@ public:
     void SetMeshZCoordinate(ModelPart& rModelPart, const Variable<double>& rVariable);
 
     /**
+     * @brief Move the z-coordinate of the mesh according to a variable
+     */
+    void OffsetMeshZCoordinate(ModelPart& rModelPart, const double Increment);
+
+    /**
      * @brief Swap the Y and Z coordinates of the nodes
      */
     void SwapYZCoordinates(ModelPart& rModelPart);
@@ -238,7 +243,7 @@ public:
         KRATOS_ERROR_IF_NOT(rProcessInfo.Has(GRAVITY)) << "ShallowWaterUtilities::ComputeHydrostaticForces : GRAVITY is not defined in the ProcessInfo" << std::endl;
         if (rContainer.size() > 0) {
             const auto& r_prop = rContainer.begin()->GetProperties();
-            KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "ShallowWaterUtilities::ComputeHydrostaticForces : DENSITY is not defined in the ProcessInfo" << std::endl;
+            KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "ShallowWaterUtilities::ComputeHydrostaticForces : DENSITY is not defined in the Properties" << std::endl;
         }
 
         array_1d<double,3> forces = ZeroVector(3);

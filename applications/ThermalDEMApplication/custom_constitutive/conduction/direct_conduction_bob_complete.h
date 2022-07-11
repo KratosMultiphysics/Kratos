@@ -45,6 +45,10 @@ namespace Kratos
       double ComputeHeatTransferCoeff (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
       double ContactCoeff             (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
       double SeparatedCoeff           (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
+      double ContactCoeffEtaMin       (const double Reff, const double kf, const double eta, const double kpf);
+      double ContactCoeffEtaMax       (const double Reff, const double kf, const double eta, const double kpf);
+      double SeparatedCoeffLambMin    (const double Reff, const double kf, const double kpf2);
+      double SeparatedCoeffLambMax    (const double Reff, const double kf, const double Rcyl, const double Ds);
 
       // Clone
       HeatExchangeMechanism* CloneRaw() const override {

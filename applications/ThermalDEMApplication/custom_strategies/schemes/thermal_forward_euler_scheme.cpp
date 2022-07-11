@@ -13,7 +13,7 @@
 // System includes
 
 // External includes
-#include "dem_application_variables.h"
+#include "DEM_application_variables.h"
 
 // Project includes
 #include "thermal_forward_euler_scheme.h"
