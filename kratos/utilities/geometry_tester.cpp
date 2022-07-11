@@ -15,8 +15,11 @@
 // System includes
 
 // External includes
-
+#include <cmath>
 // Project includes
+#include "utilities/math_utils.h"
+#include "spaces/ublas_space.h"
+
 #include "utilities/geometry_tester.h"
 #include "includes/element.h"
 
@@ -67,7 +70,7 @@ bool GeometryTesterUtility::RunTest(Model& rModel)
 
     if(StreamTestTriangle2D3N(model_part, error_message) == false) successful=false;
     if(StreamTestTriangle2D6N(model_part, error_message) == false) successful=false;
-    
+
     if(StreamTestQuadrilateral2D4N(model_part, error_message) == false) successful=false;
     if(StreamTestQuadrilateral2D9N(model_part, error_message) == false) successful=false;
     if(StreamTestQuadrilateralInterface2D4N(model_part, error_message) == false) successful=false;
@@ -81,7 +84,7 @@ bool GeometryTesterUtility::RunTest(Model& rModel)
     if(StreamTestHexahedraInterface3D8N(model_part, error_message) == false) successful=false;
 
     if(StreamTestPrism3D6N(model_part, error_message) == false) successful=false;
-    if(StreamTestPrism3D15N(model_part, error_message) == false) successful=false; 
+    if(StreamTestPrism3D15N(model_part, error_message) == false) successful=false;
     if(StreamTestPrismInterface3D6N(model_part, error_message) == false) successful=false;
 
     KRATOS_WARNING_IF("GeometryTesterUtility", !successful) << "Some errors were detected in the GeometryTester Utility\n" << error_message.str() << std::endl;
@@ -402,6 +405,7 @@ bool GeometryTesterUtility::StreamTestHexahedra3D8N(
     if( !VerifyIsInside( geometry, point_in, true, rErrorMessage) ) successful=false;
     if( !VerifyIsInside( geometry, point_out, false, rErrorMessage) ) successful=false;
     if( !VerfiyShapeFunctionsValues(geometry,point_in,rErrorMessage) ) successful = false;
+    if( !VerifyShapeFunctionsSecondDerivativesValues(geometry,point_in,rErrorMessage) ) successful = false;
 
     return successful;
 }
@@ -661,10 +665,10 @@ void GeometryTesterUtility::GenerateNodes(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometryTesterUtility::VerifyAreaByIntegration( 
-    GeometryType& rGeometry, 
-    GeometryType::IntegrationMethod ThisMethod, 
-    const double ReferenceArea, 
+bool GeometryTesterUtility::VerifyAreaByIntegration(
+    GeometryType& rGeometry,
+    GeometryType::IntegrationMethod ThisMethod,
+    const double ReferenceArea,
     std::stringstream& rErrorMessage
     )
 {
@@ -715,9 +719,9 @@ bool GeometryTesterUtility::VerifyAreaByIntegration(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GeometryTesterUtility::VerifyStrainExactness( 
-    GeometryType& rGeometry,  
-    GeometryType::IntegrationMethod ThisMethod, 
+void GeometryTesterUtility::VerifyStrainExactness(
+    GeometryType& rGeometry,
+    GeometryType::IntegrationMethod ThisMethod,
     std::stringstream& rErrorMessage
     )
 {
@@ -944,8 +948,75 @@ bool GeometryTesterUtility::VerfiyShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool GeometryTesterUtility::VerifyShapeFunctionsSecondDerivativesValues(
+    GeometryType& rGeometry,
+    GeometryType::CoordinatesArrayType& rGlobalCoordinates,
+    std::stringstream& rErrorMessage
+    )
+{
+    GeometryType::CoordinatesArrayType local_coordinates;
+    rGeometry.PointLocalCoordinates( local_coordinates, rGlobalCoordinates );
+
+    Vector f_1 = ZeroVector(rGeometry.size());
+    Vector f_2 = ZeroVector(rGeometry.size());
+    Vector f_3 = ZeroVector(rGeometry.size());
+    Vector f_4 = ZeroVector(rGeometry.size());
+
+    DenseVector<Matrix> DDN_DX, H;
+    Vector ei,ej,f;
+
+    double delta = 1e-1;
+    rGeometry.ShapeFunctionsSecondDerivatives(DDN_DX,local_coordinates);
+    KRATOS_WATCH(DDN_DX)
+
+    if ( H.size() != rGeometry.size() )
+    {
+        // KLUDGE: While there is a bug in
+        // ublas vector resize, I have to put this beside resizing!!
+        DenseVector<Matrix> temp( rGeometry.size() );
+        H.swap( temp );
+    }
+
+
+    for ( unsigned int i = 0; i < rGeometry.size(); ++i ) H[i].resize(3, 3, false);
+
+    for (unsigned int i = 0; i<3;i++){
+        for (unsigned int j = 0; j<3;j++){
+            ei = ZeroVector(3);
+            ei[i] = 1.0;
+            ej = ZeroVector(3);
+            ej[j] = 1.0;
+            transform(ei.begin(), ei.end(), ei.begin(), [delta](double &c){ return c*delta; });
+            transform(ej.begin(), ej.end(), ej.begin(), [delta](double &c){ return c*delta; });
+            rGeometry.ShapeFunctionsValues(f_1,local_coordinates + ei + ej);
+            rGeometry.ShapeFunctionsValues(f_2,local_coordinates + ei - ej);
+            rGeometry.ShapeFunctionsValues(f_3,local_coordinates - ei + ej);
+            rGeometry.ShapeFunctionsValues(f_4,local_coordinates - ei - ej);
+            f = f_1-f_2-f_3+f_4;
+            transform(f.begin(), f.end(), f.begin(), [delta](double &c){ return c/(4*std::pow(delta,2)); });
+            for (unsigned int g = 0; g<rGeometry.size();g++){
+                H[g](i,j) = 100*f[g];
+            }
+        }
+    }
+
+    for (unsigned int g = 0; g<rGeometry.size();g++){
+        KRATOS_WATCH(norm_frobenius(DDN_DX[g] - H[g])/norm_frobenius(H[g]))
+        if(norm_frobenius(DDN_DX[g] - H[g])/norm_frobenius(H[g]) > 1e-13) {
+            rErrorMessage << "     error: shape function gradients are wrongly calculated in function ShapeFunctionsIntegrationPointsGradients: DN_DX_geometry " << DDN_DX[g] << " vs " << H[g] << std::endl;
+            rErrorMessage << " norm_frobenius(DN_DX_geometry[point_number] - DN_DX)/norm_frobenius(DN_DX) = " << norm_frobenius(DDN_DX[g] - H[g])/norm_frobenius(H[g]) <<std::endl;
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 std::string GeometryTesterUtility::GetIntegrationName(
-    GeometryType& rGeometry, 
+    GeometryType& rGeometry,
     GeometryType::IntegrationMethod ThisMethod
     )
 {
