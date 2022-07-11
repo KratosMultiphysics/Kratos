@@ -343,7 +343,10 @@ void Parameters::SolveIncludes(nlohmann::json& rJson, const std::string& rFileNa
 
 
     std::stack<std::pair<nlohmann::json*,nlohmann::json::iterator>> s;
-    s.push({&rJson,rJson.begin()});
+
+    if (rJson.is_object()) {
+        s.push({&rJson,rJson.begin()});
+    }
 
     while(!s.empty()) {
         std::pair<nlohmann::json*,nlohmann::json::iterator> pJson_it = s.top();
