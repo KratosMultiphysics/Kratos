@@ -15,6 +15,7 @@
 // System includes
 
 // External includes
+#include "spaces/ublas_space.h"
 
 // Project includes
 #include "utilities/geometry_tester.h"
