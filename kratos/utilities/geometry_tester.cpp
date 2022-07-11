@@ -15,11 +15,8 @@
 // System includes
 
 // External includes
-#include <cmath>
-// Project includes
-#include "utilities/math_utils.h"
-#include "spaces/ublas_space.h"
 
+// Project includes
 #include "utilities/geometry_tester.h"
 #include "includes/element.h"
 
