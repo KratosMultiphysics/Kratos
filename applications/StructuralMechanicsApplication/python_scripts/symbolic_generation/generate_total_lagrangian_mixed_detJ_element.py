@@ -4,8 +4,7 @@ from KratosMultiphysics.sympy_fe_utilities import *
 
 # Symbolic generation settings
 mode = "c"
-dim_vect = [2]
-# dim_vect = [2, 3]
+dim_vect = [2, 3]
 do_simplifications = False
 output_filename = "total_lagrangian_mixed_detJ_element.cpp"
 template_filename = "total_lagrangian_mixed_detJ_element_template.cpp"
@@ -82,6 +81,8 @@ for dim in dim_vect:
     cofF_gauss = j_gauss*(invF_gauss.transpose())
 
     # Calculate the strain tensors
+    # Note that for the multiplicative decomposition of the strain we assume the dimension to be the volumetric deformation exponent
+    # As a consequence, current implementation is valid for the general 3D case and the 2D plain strain one (not valid for the 2D plane stress)
     Fbar_gauss = (1/j_gauss**sympy.Rational(1,dim))*F_gauss # Deviatoric deformation gradient tensor
     Cbar_gauss = Fbar_gauss.transpose() * Fbar_gauss # Deviatoric right Cauchy-Green strain tensor
     Ebar_gauss = 0.5*(Cbar_gauss - sympy.eye(dim,dim)) # Deviatoric Green-Lagrange strain tensor
@@ -130,7 +131,7 @@ for dim in dim_vect:
     # Also note that a direct substitution by C:E is not valid in this case as this would imply a wrong differentiation of the LHS terms involving S (e.g. geometric stiffness)
 
     # Create an auxiliary symbol for the Green-Lagrange strain as a function such that E(u,tetha)
-    E = sympy.MatrixSymbol("E", 2, 2).as_mutable()
+    E = sympy.MatrixSymbol("E", dim, dim).as_mutable()
     for i in range(dim):
         for j in range(dim):
             E[i,j] = sympy.Function(f"E_{i}_{j}")(*dofs)
