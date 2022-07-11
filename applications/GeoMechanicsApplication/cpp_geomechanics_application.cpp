@@ -691,6 +691,8 @@ namespace Kratos
             pipeElements = p_solving_strategy->GetPipingElements();
             int noPipeElements = pipeElements.size();
 
+            std::cout << "Pipe elements found: " << noPipeElements << std::endl;
+
             double firstNode_A = pipeElements.front()->GetGeometry().GetPoint(0).X0();
             double firstNode_B = pipeElements.front()->GetGeometry().GetPoint(1).X0();
             double lastNode_A = pipeElements.back()->GetGeometry().GetPoint(0).X0();
