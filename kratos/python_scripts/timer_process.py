@@ -69,6 +69,6 @@ class TimerProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         self.timer.Stop(self.interval_name)
-        self.timer.PrintTimingInformation(self.timer)
+        self.timer.PrintTimingInformation()
         if self.output_filename != "":
             self.timer.CloseOuputFile()

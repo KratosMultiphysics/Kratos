@@ -139,7 +139,7 @@ public:
 
     void ExecuteInitialize() override;
 
-    void ExecuteFinalizeSolutionStep() override;
+    void ExecuteInitializeSolutionStep() override;
 
     int Check() override;
 
@@ -283,7 +283,7 @@ private:
             double midpoint_p;
             FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(r_midpoint_v, VELOCITY), std::tie(midpoint_p, PRESSURE), std::tie(midpoint_rho, DENSITY));
             // If the formulation is not energy coupled, the total energy equals the kinetic energy plus the potential one
-            midpoint_tot_ener = 0.5 * midpoint_rho * inner_prod(r_midpoint_v, r_midpoint_v) + midpoint_p;
+            midpoint_tot_ener = 0.5 * midpoint_rho * inner_prod(r_midpoint_v, r_midpoint_v) + midpoint_p/(gamma - 1);
         }
 
         // Calculate common values
