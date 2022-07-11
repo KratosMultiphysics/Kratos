@@ -271,20 +271,20 @@ class TestParameters(KratosUnittest.TestCase):
 
         self.assertEqual(self.kp.PrettyPrintJsonString(), pretty_out)
 
-    def test_kratos_include_parameters(self): 
+    def test_kratos_include_parameters(self):
         param = Parameters(json_with_includes)
         self.assertEqual(
             param.WriteJsonString(),
             self.compact_expected_output
         )
-    
-    def test_kratos_more_levels_include_parameters(self): 
+
+    def test_kratos_more_levels_include_parameters(self):
         param = Parameters(more_levels_json_with_includes)
         self.assertEqual(
             param.WriteJsonString(),
             self.compact_expected_output
         )
-        
+
     def test_kratos_change_parameters(self):
         # now change one item in the sublist
         subparams = self.kp["level1"]
