@@ -193,9 +193,10 @@ def DoubleContraction(A,B):
     - A -- Left tensor
     - B -- Right tensor
     """
+    rank_A = len(A.shape)
     AB = sympy.tensorproduct(A,B)
-    tmp = sympy.tensorcontraction(AB, (A.rank()-1,A.rank()+1))
-    output = sympy.tensorcontraction(tmp, (A.rank()-2,A.rank()-1))
+    tmp = sympy.tensorcontraction(AB, (rank_A-1,rank_A+1))
+    output = sympy.tensorcontraction(tmp, (rank_A-2,rank_A-1))
     return output
 
 def MatrixB(DN):
@@ -391,6 +392,7 @@ def Compute_RHS(functional, testfunc, do_simplifications=False):
     """
     rhs = sympy.Matrix(sympy.zeros(testfunc.shape[0],1))
     for i in range(testfunc.shape[0]):
+        print(i)
         rhs[i] = sympy.diff(functional[0,0], testfunc[i])
 
         if do_simplifications:
