@@ -13,15 +13,30 @@
 #include "GeoFlow.h"
 #include <iostream>
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
 
     try
     {
+        if (argc != 6)
+        {
+            std::cerr << "Invalid arguments detected, usage: KratosGeoFlow.exe <working directory> <project parameters file> <minimum critical head> <maximum critical head> <critical head step size>" << std::endl;
+            return -1;
+        }
+
         string workingDirectory = argv[1];
         string projectName = argv[2];
-        double minCriticalHead = stod(argv[3]);
-        double maxCriticalHead = stod(argv[4]);
-        double stepCriticalHead = stod(argv[5]);
+
+        try
+        {
+            double minCriticalHead = stod(argv[3]);
+            double maxCriticalHead = stod(argv[4]);
+            double stepCriticalHead = stod(argv[5]);
+        }
+        catch (...)
+        {
+            std::cerr << "Could not parse critical head parameters to double values. Please check the input and try again."
+        }
 
         auto execute = Kratos::KratosExecute();
         execute.geoflow(workingDirectory, projectName, minCriticalHead, maxCriticalHead, stepCriticalHead);
@@ -30,8 +45,4 @@ int main(int argc, char** argv) {
     {
         cout << "Runtime error: " << e.what();
     }
-
-	
-    
-
 }
