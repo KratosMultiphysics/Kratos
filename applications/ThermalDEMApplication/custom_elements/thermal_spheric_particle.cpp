@@ -346,37 +346,46 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, SphericParticle* neighbor, double GlobalContactForce[3], bool sliding) {
+  void ThermalSphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info,
+                                                          SphericParticle::ParticleDataBuffer& data_buffer,
+                                                          double GlobalContactForceTotal[3],
+                                                          double LocalContactForceDamping[3],
+                                                          bool sliding) {
     KRATOS_TRY
 
-    SphericParticle::StoreBallToBallContactInfo(r_process_info, data_buffer, neighbor, GlobalContactForce, sliding);
+    SphericParticle::StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceDamping, sliding);
 
     if (!mStoreContactParam)
       return;
 
     // Increment number of contact particle neighbors
+    SphericParticle* neighbor = data_buffer.mpOtherParticle;
     mNumberOfContactParticleNeighbor++;
 
-    // Local relavive velocity components (normal and tangential)
+    // Local components of relavive velocity (normal and tangential)
     std::vector<double> LocalRelativeVelocity{ data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) };
 
-    // Local contact force components (normal and sliding tangential)
-    double LocalContactForce[3] = { 0.0 };
-    GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, GlobalContactForce, LocalContactForce);
-    std::vector<double> LocalForce{ LocalContactForce[2] };
+    // Local components of total contact force (normal and sliding tangential)
+    double LocalContactForceTotal[3] = { 0.0 };
+    GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, GlobalContactForceTotal, LocalContactForceTotal);
+    std::vector<double> LocalForceTotal{ LocalContactForceTotal[2] };
 
     // Friction heat generation is not considered when particles are not sliding against each other, so tangent velocity is set to zero.
     // ATTENTION: Becareful when using the tangent velocity in other context that is not friction heat generation, as it can be zero.
     if (sliding)
-      LocalForce.push_back(sqrt(LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]));
+      LocalForceTotal.push_back(sqrt(LocalContactForceTotal[0] * LocalContactForceTotal[0] + LocalContactForceTotal[1] * LocalContactForceTotal[1]));
     else
-      LocalForce.push_back(0.0);
+      LocalForceTotal.push_back(0.0);
+
+    // Local components of damping force (normal and tangential)
+    std::vector<double> LocalForceDamping{ LocalContactForceDamping[2], sqrt(LocalContactForceDamping[0] * LocalContactForceDamping[0] + LocalContactForceDamping[1] * LocalContactForceDamping[1]) };
 
     // Update contact parameters
     ContactParams params;
-    params.updated_step   = r_process_info[TIME_STEPS];
-    params.local_velocity = LocalRelativeVelocity;
-    params.local_force    = LocalForce;
+    params.updated_step        = r_process_info[TIME_STEPS];
+    params.local_velocity      = LocalRelativeVelocity;
+    params.local_force_total   = LocalForceTotal;
+    params.local_force_damping = LocalForceDamping;
 
     // Keep impact parameters if contact is not new
     if (mContactParamsParticle.count(neighbor)) {
@@ -396,34 +405,43 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, DEMWall* neighbor, double GlobalContactForce[3], bool sliding) {
+  void ThermalSphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info,
+                                                               SphericParticle::ParticleDataBuffer& data_buffer,
+                                                               DEMWall* neighbor,
+                                                               double GlobalContactForceTotal[3],
+                                                               double LocalContactForceDamping[3],
+                                                               bool sliding) {
     KRATOS_TRY
 
-    SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, neighbor, GlobalContactForce, sliding);
+    SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, neighbor, GlobalContactForceTotal, LocalContactForceDamping, sliding);
 
     if (!mStoreContactParam)
       return;
 
-    // Local relavive velocity components (normal and tangential)
+    // Local components of relavive velocity (normal and tangential)
     std::vector<double> LocalRelativeVelocity{ data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) };
 
-    // Local contact force components (normal and sliding tangential)
-    double LocalContactForce[3] = { 0.0 };
-    GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, GlobalContactForce, LocalContactForce);
-    std::vector<double> LocalForce{ LocalContactForce[2] };
+    // Local components of total contact force (normal and sliding tangential)
+    double LocalContactForceTotal[3] = { 0.0 };
+    GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, GlobalContactForceTotal, LocalContactForceTotal);
+    std::vector<double> LocalForceTotal{ LocalContactForceTotal[2] };
 
     // Friction heat generation is not considered when particles are not sliding against each other, so tangent velocity is set to zero.
     // ATTENTION: Becareful when using the tangent velocity in other context that is not friction heat generation, as it can be zero.
     if (sliding)
-      LocalForce.push_back(sqrt(LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]));
+      LocalForceTotal.push_back(sqrt(LocalContactForceTotal[0] * LocalContactForceTotal[0] + LocalContactForceTotal[1] * LocalContactForceTotal[1]));
     else
-      LocalForce.push_back(0.0);
+      LocalForceTotal.push_back(0.0);
+
+    // Local components of damping force (normal and tangential)
+    std::vector<double> LocalForceDamping{ LocalContactForceDamping[2], sqrt(LocalContactForceDamping[0] * LocalContactForceDamping[0] + LocalContactForceDamping[1] * LocalContactForceDamping[1]) };
 
     // Update contact parameters
     ContactParams params;
-    params.updated_step   = r_process_info[TIME_STEPS];
-    params.local_velocity = LocalRelativeVelocity;
-    params.local_force    = LocalForce;
+    params.updated_step        = r_process_info[TIME_STEPS];
+    params.local_velocity      = LocalRelativeVelocity;
+    params.local_force_total   = LocalForceTotal;
+    params.local_force_damping = LocalForceDamping;
 
     // Keep impact parameters if contact is not new
     if (mContactParamsWall.count(neighbor)) {
@@ -1357,7 +1375,8 @@ namespace Kratos
       null_param.impact_time  = 0.0;
       null_param.impact_velocity.assign(2, 0.0);
       null_param.local_velocity.assign(2, 0.0);
-      null_param.local_force.assign(2, 0.0);
+      null_param.local_force_total.assign(2, 0.0);
+      null_param.local_force_damping.assign(2, 0.0);
       return null_param;
     }
   }

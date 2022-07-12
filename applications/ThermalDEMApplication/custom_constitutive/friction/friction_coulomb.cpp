@@ -28,7 +28,7 @@ namespace Kratos {
 
     typename ThermalSphericParticle:: ContactParams contact_params = particle->GetContactParameters();
     const double velocity_tangent = contact_params.local_velocity[1];
-    const double force_normal     = contact_params.local_force[0];
+    const double force_normal     = contact_params.local_force_total[0];
 
     if (velocity_tangent == 0 || force_normal == 0)
       return 0.0;
