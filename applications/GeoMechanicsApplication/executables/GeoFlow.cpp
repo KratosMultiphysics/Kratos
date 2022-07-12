@@ -32,14 +32,14 @@ int main(int argc, char **argv)
             double minCriticalHead = stod(argv[3]);
             double maxCriticalHead = stod(argv[4]);
             double stepCriticalHead = stod(argv[5]);
+
+            auto execute = Kratos::KratosExecute();
+            execute.geoflow(workingDirectory, projectName, minCriticalHead, maxCriticalHead, stepCriticalHead);
         }
         catch (...)
         {
-            std::cerr << "Could not parse critical head parameters to double values. Please check the input and try again."
+            std::cerr << "Could not parse critical head parameters to double values. Please check the input and try again.";
         }
-
-        auto execute = Kratos::KratosExecute();
-        execute.geoflow(workingDirectory, projectName, minCriticalHead, maxCriticalHead, stepCriticalHead);
     }
     catch (runtime_error e)
     {
