@@ -322,16 +322,17 @@ void ThermalFace::AddIntegrationPointRHSContribution(
 
     double h = 0.0;
     if (dT > 0.0) {
-      const double g     = 9.81;
-      const double L     = 0.0225;
-      const double K     = 0.02514;
-      const double rho   = 1.2040;
-      const double beta  = 0.00343;
-      const double mu    = 0.00001825;
-      const double alpha = 0.00002074;
-      const double Ra    = g * rho * beta * pow(L, 3) * dT / (mu * alpha);
-      const double Nu    = 0.54 * pow(Ra, 0.25);
-      h = Nu * K / L;
+      const double factor = 2.0;
+      const double g      = 9.81;
+      const double L      = 0.0225;
+      const double K      = 0.02514;
+      const double rho    = 1.2040;
+      const double beta   = 0.00343;
+      const double mu     = 0.00001825;
+      const double alpha  = 0.00002074;
+      const double Ra     = g * rho * beta * pow(L, 3) * dT / (mu * alpha);
+      const double Nu     = 0.54 * pow(Ra, 0.25);
+      h = factor * Nu * K / L;
     }
 
     const double aux_conv_rhs = h * (gauss_pt_unknown - rData.AmbientTemperature);
@@ -363,16 +364,17 @@ void ThermalFace::AddIntegrationPointLHSContribution(
 
             double h = 0.0;
             if (dT > 0.0) {
-              const double g     = 9.81;
-              const double L     = 0.0225;
-              const double K     = 0.02514;
-              const double rho   = 1.2040;
-              const double beta  = 0.00343;
-              const double mu    = 0.00001825;
-              const double alpha = 0.00002074;
-              const double Ra    = g * rho * beta * pow(L, 3) * dT / (mu * alpha);
-              const double Nu    = 0.54 * pow(Ra, 0.25);
-              h = Nu * K / L;
+              const double factor = 2.0;
+              const double g      = 9.81;
+              const double L      = 0.0225;
+              const double K      = 0.02514;
+              const double rho    = 1.2040;
+              const double beta   = 0.00343;
+              const double mu     = 0.00001825;
+              const double alpha  = 0.00002074;
+              const double Ra     = g * rho * beta * pow(L, 3) * dT / (mu * alpha);
+              const double Nu     = 0.54 * pow(Ra, 0.25);
+              h = factor * Nu * K / L;
             }
 
             rLeftHandSideMatrix(i,j) += rData.N(i) * h * rData.N(j) * rData.Weight;
