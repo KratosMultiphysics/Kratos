@@ -11,6 +11,7 @@ RUN yum -y --quiet install wget git cmake gcc-c++ unzip python-pip make gcc-gfor
 RUN yum -y --quiet install scl-utils
 
 # Devtools 8
+RUN yum install -y devtoolset-8 devtoolset-8-gcc-c++
 RUN yum install -y binutils-devel wget && rm -rf /var/cache/yum/*
 RUN source scl_source enable devtoolset-8
 
