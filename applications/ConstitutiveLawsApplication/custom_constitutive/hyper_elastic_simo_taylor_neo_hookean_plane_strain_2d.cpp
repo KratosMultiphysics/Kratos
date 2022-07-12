@@ -64,12 +64,12 @@ void HyperElasticSimoTaylorNeoHookeanPlaneStrain2D::CalculateGreenLagrangianStra
     Vector& rStrainVector)
 {
     // Get the total deformation gradient
-    const auto& F = rValues.GetDeformationGradientF();
+    const auto& rF = rValues.GetDeformationGradientF();
 
     // E = 0.5*(C - I)
     const SizeType dim = WorkingSpaceDimension();
     Matrix C_tensor(dim, dim);
-    noalias(C_tensor) = prod(trans(F), F);
+    noalias(C_tensor) = prod(trans(rF), rF);
 
     rStrainVector[0] = 0.5 * (C_tensor(0,0) - 1.0);
     rStrainVector[1] = 0.5 * (C_tensor(1,1) - 1.0);
@@ -88,14 +88,14 @@ void HyperElasticSimoTaylorNeoHookeanPlaneStrain2D::AuxiliaryCalculateConstituti
     rConstitutiveMatrix.clear();
 
     const double crConstitutiveMatrix0 = 2*rStrain[1] + 1;
-    const double crConstitutiveMatrix1 = pow(rStrain[2], 2);
+    const double crConstitutiveMatrix1 = std::pow(rStrain[2], 2);
     const double crConstitutiveMatrix2 = 2*rStrain[0];
     const double crConstitutiveMatrix3 = 4*rStrain[0];
     const double crConstitutiveMatrix4 = crConstitutiveMatrix0 + crConstitutiveMatrix2 + crConstitutiveMatrix3*rStrain[1];
     const double crConstitutiveMatrix5 = -crConstitutiveMatrix1 + crConstitutiveMatrix4;
-    const double crConstitutiveMatrix6 = pow(crConstitutiveMatrix5, 6);
+    const double crConstitutiveMatrix6 = std::pow(crConstitutiveMatrix5, 6);
     const double crConstitutiveMatrix7 = 1.0/crConstitutiveMatrix6;
-    const double crConstitutiveMatrix8 = Kappa*pow(crConstitutiveMatrix5, 4);
+    const double crConstitutiveMatrix8 = Kappa*std::pow(crConstitutiveMatrix5, 4);
     const double crConstitutiveMatrix9 = crConstitutiveMatrix0*crConstitutiveMatrix8;
     const double crConstitutiveMatrix10 = rStrain[0] + rStrain[1] + 1;
     const double crConstitutiveMatrix11 = 3*crConstitutiveMatrix0;
@@ -103,14 +103,14 @@ void HyperElasticSimoTaylorNeoHookeanPlaneStrain2D::AuxiliaryCalculateConstituti
     const double crConstitutiveMatrix13 = 2*crConstitutiveMatrix1;
     const double crConstitutiveMatrix14 = 8*rStrain[0];
     const double crConstitutiveMatrix15 = -crConstitutiveMatrix13 + crConstitutiveMatrix14*rStrain[1] + crConstitutiveMatrix3 + 4*rStrain[1] + 2;
-    const double crConstitutiveMatrix16 = Mu*pow(crConstitutiveMatrix5, 7.0/2.0);
-    const double crConstitutiveMatrix17 = pow(crConstitutiveMatrix5, 7);
+    const double crConstitutiveMatrix16 = Mu*std::pow(crConstitutiveMatrix5, 7.0/2.0);
+    const double crConstitutiveMatrix17 = std::pow(crConstitutiveMatrix5, 7);
     const double crConstitutiveMatrix18 = 1.0/crConstitutiveMatrix17;
     const double crConstitutiveMatrix19 = Kappa*crConstitutiveMatrix17;
     const double crConstitutiveMatrix20 = Kappa*crConstitutiveMatrix6;
     const double crConstitutiveMatrix21 = crConstitutiveMatrix2 + 1;
-    const double crConstitutiveMatrix22 = Kappa*pow(crConstitutiveMatrix5, 5);
-    const double crConstitutiveMatrix23 = Mu*crConstitutiveMatrix10*pow(crConstitutiveMatrix5, 9.0/2.0);
+    const double crConstitutiveMatrix22 = Kappa*std::pow(crConstitutiveMatrix5, 5);
+    const double crConstitutiveMatrix23 = Mu*crConstitutiveMatrix10*std::pow(crConstitutiveMatrix5, 9.0/2.0);
     const double crConstitutiveMatrix24 = crConstitutiveMatrix18*(crConstitutiveMatrix0*crConstitutiveMatrix21*crConstitutiveMatrix22 + crConstitutiveMatrix19 - crConstitutiveMatrix20 - crConstitutiveMatrix23*(-4*crConstitutiveMatrix1 - crConstitutiveMatrix11*crConstitutiveMatrix21 + crConstitutiveMatrix14 + 16*rStrain[0]*rStrain[1] + 8*rStrain[1] + 4));
     const double crConstitutiveMatrix25 = crConstitutiveMatrix7*rStrain[2];
     const double crConstitutiveMatrix26 = -crConstitutiveMatrix25*(-crConstitutiveMatrix16*(crConstitutiveMatrix12 + crConstitutiveMatrix5) + crConstitutiveMatrix9);
@@ -142,14 +142,14 @@ void HyperElasticSimoTaylorNeoHookeanPlaneStrain2D::AuxiliaryCalculatePK2Stress(
 
     const double crStressVector0 = 2*rStrain[1] + 1;
     const double crStressVector1 = 2*rStrain[0];
-    const double crStressVector2 = crStressVector0 + crStressVector1 + 4*rStrain[0]*rStrain[1] - pow(rStrain[2], 2);
+    const double crStressVector2 = crStressVector0 + crStressVector1 + 4*rStrain[0]*rStrain[1] - std::pow(rStrain[2], 2);
     const double crStressVector3 = 1.0/crStressVector2;
     const double crStressVector4 = crStressVector1 + 1;
     const double crStressVector5 = crStressVector0*crStressVector3*crStressVector4 - 2;
-    const double crStressVector6 = Mu/sqrt(crStressVector2);
-    rStressVector[0]=-1.0/2.0*Kappa*crStressVector0*crStressVector3 + (1.0/2.0)*Kappa*crStressVector0 - 1.0/2.0*crStressVector6*(pow(crStressVector0, 2)*crStressVector3 + crStressVector5);
-    rStressVector[1]=-1.0/2.0*Kappa*crStressVector3*crStressVector4 + (1.0/2.0)*Kappa*crStressVector4 - 1.0/2.0*crStressVector6*(crStressVector3*pow(crStressVector4, 2) + crStressVector5);
-    rStressVector[2]=(1.0/2.0)*rStrain[2]*(Kappa*crStressVector3 - Kappa + 2*Mu*(rStrain[0] + rStrain[1] + 1)/pow(crStressVector2, 3.0/2.0));
+    const double crStressVector6 = Mu/std::sqrt(crStressVector2);
+    rStressVector[0]=-1.0/2.0*Kappa*crStressVector0*crStressVector3 + (1.0/2.0)*Kappa*crStressVector0 - 1.0/2.0*crStressVector6*(std::pow(crStressVector0, 2)*crStressVector3 + crStressVector5);
+    rStressVector[1]=-1.0/2.0*Kappa*crStressVector3*crStressVector4 + (1.0/2.0)*Kappa*crStressVector4 - 1.0/2.0*crStressVector6*(crStressVector3*std::pow(crStressVector4, 2) + crStressVector5);
+    rStressVector[2]=(1.0/2.0)*rStrain[2]*(Kappa*crStressVector3 - Kappa + 2*Mu*(rStrain[0] + rStrain[1] + 1)/std::pow(crStressVector2, 3.0/2.0));
 
 }
 
