@@ -18,14 +18,20 @@ int main(int argc, char **argv)
 
     try
     {
-        if (argc != 6)
+        if (argc < 6)
         {
-            std::cerr << "Invalid arguments detected, usage: KratosGeoFlow.exe <working directory> <project parameters file> <minimum critical head> <maximum critical head> <critical head step size>" << std::endl;
+            std::cerr << "Invalid arguments detected, usage: KratosGeoFlow.exe <working directory> <project parameters file> <minimum critical head> <maximum critical head> <critical head step size> <optional: critical head boundary model part name>" << std::endl;
             return -1;
         }
 
         string workingDirectory = argv[1];
         string projectName = argv[2];
+
+        string criticalHeadBoundaryModelPartName;
+        if (argc == 7)
+        {
+            criticalHeadBoundaryModelPartName = argv[6];
+        }
 
         try
         {
@@ -34,7 +40,7 @@ int main(int argc, char **argv)
             double stepCriticalHead = stod(argv[5]);
 
             auto execute = Kratos::KratosExecute();
-            execute.geoflow(workingDirectory, projectName, minCriticalHead, maxCriticalHead, stepCriticalHead);
+            execute.geoflow(workingDirectory, projectName, minCriticalHead, maxCriticalHead, stepCriticalHead, criticalHeadBoundaryModelPartName);
         }
         catch (...)
         {

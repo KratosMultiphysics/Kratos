@@ -33,7 +33,7 @@ namespace Kratos
             auto projectFile = "ProjectParameters.json";
             
             auto execute = KratosExecute();
-    		execute.geoflow(workingDirectory, projectFile, 3, 4, 0.1);
+    		execute.geoflow(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head");
             
         }
     }
