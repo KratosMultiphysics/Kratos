@@ -16,6 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <limits>
 
 // External includes
 #include "includes/define.h"
