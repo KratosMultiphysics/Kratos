@@ -5,7 +5,12 @@ USER root
 ENV HOME /root
 
 # Enable devtools packages
+RUN yum -y install centos-release-scl
+RUN yum-config-manager --enable rhel-7-server-devtools-rpms
+RUN yum-config-manager --enable rhel-7-server-extras-rpms
+RUN yum-config-manager --enable rhel-7-server-optional-rpms
 RUN yum-config-manager --enable rhel-server-rhscl-7-rpms
+
 RUN yum -y update
 
 # Install dependencies
