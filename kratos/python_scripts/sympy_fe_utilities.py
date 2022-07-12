@@ -1,4 +1,3 @@
-from multiprocessing.sharedctypes import Value
 import re
 import sympy
 
@@ -94,7 +93,7 @@ def StrainToVoigt(M):
     - M -- The strain matrix
     """
     if M.shape[0] == 2:
-        vm = sympy.Matrix(3, 1, lambda i,j : 0.0)
+        vm = sympy.Matrix(3, 1, lambda i,j: 0.0)
         vm[0,0] = M[0,0]
         vm[1,0] = M[1,1]
         vm[2,0] = 2.0*M[0,1]
@@ -142,7 +141,7 @@ def ConvertTensorToVoigtMatrix(C):
     # Get input Voigt matrix strain size
     dim = C.shape[0]
     if dim != C.shape[1] or dim != C.shape[2] or dim != C.shape[3]:
-        raise ValueError("Input Voigt matrix is not valid. Shape is ({},{},{},{})".format(dim, C.shape[1],  C.shape[2],  C.shape[3]))
+        raise ValueError(f"Input 4th order tensor is not valid. Shape is ({dim},{C.shape[1]},{C.shape[2]},{C.shape[3]})")
 
     # Set the tensor to Voigt indices conversion dictionary from the input strain size
     conversion = _GetTensorToVoigtConversionIndices(dim)
