@@ -263,26 +263,50 @@ protected:
 
     ///@name Protected Operations
     ///@{
-
     /**
-     * @brief Computes H(r), the hardening module value as a function of the strain variable
-     * @param StrainVariable The properties of the material
-     * @param rMaterialProperties The elastic tensor/matrix to be computed
-     */
-    // double EvaluateHardeningModulus(
-    //         double StrainVariable,
-    //         const Properties &rMaterialProperties);
 
+     * @brief This method computes derivatives of invariants
+     * @param StressVector Stresses in vector form
+     * @param dI1dS 
+     * @param dJ2ddS 
+     * @param dJ2dS 
+     */
+    void GetDerivatives(const Vector StressVector,
+                        Vector& dI1dS,
+                        Matrix& dJ2ddS,
+                        Vector& dJ2dS);
     /**
-     * @brief Computes q(r), the hardening law value as a function of the strain variable
-     * @param StrainVariable The properties of the material
-     * @param rMaterialProperties The elastic tensor/matrix to be computed
-     */
-    // double EvaluateHardeningLaw(
-    //         double StrainVariable,
-    //         const Properties &rMaterialProperties);
 
+     * @brief This method computes principal values of stresses/strains
+     * @param StressVector Stresses in vector form
+     * @param Pri_Values principal values in vector form
+     * @param MaxValue maximum of the principal values
+     * @param MinValue minimum of the principal values
+     */
+    void GetEigenValues(const Vector& StressVector,
+                        Vector& Pri_Values,
+                        double& MaxValue,
+                        double& MinValue); 
+        
     ///@}
+    
+    /**
+     * @brief This method computes dSprdS
+     * @param StressVector Stresses in vector form
+     * @param Spr principal values
+     */
+    void ComputedSprdS(const Vector StressVector,
+                       const Vector Spr,
+                       Matrix& dSprdS);  
+    /**
+     * @brief This method computes the invariants of stress matrix
+     * @param StressVector Stresses in vector form
+     * @param I1 first invariant of stress
+     * @param J2 second invariant of deviator stress
+     */
+    void GetInvariants(const Vector& StressVector,
+                       double& I1,
+                       double& J2);
 
 private:
 
@@ -298,12 +322,6 @@ private:
 
     ///@name Private Operators
     ///@{
-
-    void AssembleSubMatrixToMatrix(
-        Matrix& rOutput, 
-        const Matrix& rInput, 
-        const int StartRow, 
-        const int StartCol);
 
     ///@}
     void TensorProduct6(
