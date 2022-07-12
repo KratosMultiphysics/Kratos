@@ -11,7 +11,8 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#pragma once
+#if !defined (KRATOS_HYPER_ELASTIC_SIMO_TAYLOR_NEO_HOOKEAN_PLANE_STRAIN_2D_H_INCLUDED)
+#define  KRATOS_HYPER_ELASTIC_SIMO_TAYLOR_NEO_HOOKEAN_PLANE_STRAIN_2D_H_INCLUDED
 
 // System includes
 
@@ -223,3 +224,5 @@ private:
 
 }; // Class HyperElasticSimoTaylorNeoHookeanPlaneStrain2D
 }  // namespace Kratos.
+
+#endif // KRATOS_HYPER_ELASTIC_SIMO_TAYLOR_NEO_HOOKEAN_PLANE_STRAIN_2D_H_INCLUDED  defined
