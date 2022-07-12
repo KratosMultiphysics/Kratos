@@ -8,7 +8,7 @@ ENV HOME /root
 RUN yum -y --quiet install wget git cmake gcc-c++ unzip python-pip make gcc-gfortran zlib-devel bzip2-devel openssl-devel samba-client openmpi-devel hdf5-openmpi-devel boost-devel
 
 # Update scl-utils
-RUN yum update scl-utils
+RUN yum -y --quiet update scl-utils
 
 # Devtools 8
 RUN yum install -y binutils-devel wget && rm -rf /var/cache/yum/*
