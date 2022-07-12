@@ -198,7 +198,7 @@ namespace Kratos
 
         MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult);
 
-        // Additional check to eliminate loss of point load quantity
+        // Only nodes with mass are assigned kinematic values. No contribution of mass-less nodes
         const GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 

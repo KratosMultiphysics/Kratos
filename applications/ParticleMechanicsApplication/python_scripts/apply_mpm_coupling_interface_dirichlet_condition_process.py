@@ -41,11 +41,11 @@ class ApplyMPMCouplingInterfaceDirichletConditionProcess(ApplyMPMParticleDirichl
         mpm_material_model_part_name = "MPM_Material." + self.model_part_name
         self.model_part = self.model[mpm_material_model_part_name]
 
-        ### Translate conditions with INTERFACE flag into a new model part "MPM_Coupling_Interface" responsible for coupling with structure
+        ### Translate conditions with INTERFACE flag into a new model part "MPM_Coupling_Dirichlet_Interface" responsible for coupling with structure
         # Create coupling model part
         if not self.model.HasModelPart("MPM_Coupling_Dirichlet_Interface"):
             self.model.CreateModelPart("MPM_Coupling_Dirichlet_Interface")
-        self.coupling_model_part = self.model.GetModelPart("MPM_Coupling_Dirichlet_Interface")
+        self.coupling_model_part = self.model.GetModelPart("MPM_Coupling_Dirichlet_Interface").CreateSubModelPart(self.model_part_name)
 
         # Prepare coupling model part
         self._prepare_coupling_model_part(self.coupling_model_part)

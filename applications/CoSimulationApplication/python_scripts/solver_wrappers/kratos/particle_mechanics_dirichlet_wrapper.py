@@ -18,7 +18,8 @@ def Create(settings, model, solver_name):
     return ParticleMechanicsDirichletWrapper(settings, model, solver_name)
 
 class ParticleMechanicsDirichletWrapper(kratos_base_wrapper.KratosBaseWrapper):
-    """This class is the interface to the ParticleMechanicsApplication of Kratos"""
+    """This class is the interface to the ParticleMechanicsApplication of Kratos."""
+    """It is designed for the Dirichlet Interface in the ParticleMechanicsApplication"""
 
     def _CreateAnalysisStage(self):
         return ParticleMechanicsAnalysis(self.model, self.project_parameters)

@@ -24,7 +24,7 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
         self.model = Model
         self.model_part_name = settings["model_part_name"].GetString()
 
-        # Initiate base class - Dirichlet condition
+        # Initiate base class - Neumann condition
         super(ApplyMPMCouplingInterfaceNeumannConditionProcess, self).__init__(Model, settings)
 
         # Set INTERFACE flag active
@@ -38,7 +38,7 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
         mpm_material_model_part_name = "MPM_Material." + self.model_part_name
         self.model_part = self.model[mpm_material_model_part_name]
 
-        ### Translate conditions with INTERFACE flag into a new model part "MPM_Coupling_Neumann_Interface" responsible for coupling with structure
+        ### Translate conditions with INTERFACE flag into a new model part "MPM_Coupling_Neumann_Interface" responsible for coupling 
         # Create coupling model part
         if not self.model.HasModelPart("MPM_Coupling_Neumann_Interface"):
             self.model.CreateModelPart("MPM_Coupling_Neumann_Interface")
@@ -70,7 +70,7 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
 
 
     def ExecuteFinalizeSolutionStep(self):
-        ### Get contact force from mp to coupling_mp
+        ### Get kinematic variables from mp to coupling_mp
         for mpc in self.model_part.Conditions:
             if (mpc.Is(KratosMultiphysics.INTERFACE)):
                 coupling_id   = mpc.Id

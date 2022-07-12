@@ -16,6 +16,7 @@ def Create(settings, model, solver_name):
 
 class ParticleMechanicsNeumannWrapper(kratos_base_wrapper.KratosBaseWrapper):
     """This class is the interface to the ParticleMechanicsApplication of Kratos"""
+    """It is designed for the Neumann Interface in the ParticleMechanicsApplication"""
 
     def _CreateAnalysisStage(self):
         return ParticleMechanicsAnalysis(self.model, self.project_parameters)
