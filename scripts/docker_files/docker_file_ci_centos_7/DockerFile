@@ -32,7 +32,6 @@ RUN ls /usr/src/Python-3.8.10
 RUN sh /usr/src/Python-3.8.10/configure --enable-optimizations --with-lto --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
 RUN make altinstall
 RUN rm Python-3.8.10.tgz
-RUN python3.8 -m pip install 'cx_Freeze==6.1'
 
 # Setting the needed environment variables for being able to run/compile
 ENV PYTHON_EXECUTABLE /usr/local/bin/python3.8
