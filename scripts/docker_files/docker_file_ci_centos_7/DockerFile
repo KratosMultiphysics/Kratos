@@ -4,6 +4,10 @@ USER root
 
 ENV HOME /root
 
+# Enable devtools packages
+RUN yum-config-manager --enable rhel-server-rhscl-7-rpms
+RUN yum -y --quiet update
+
 # Install dependencies
 RUN yum -y --quiet install wget git cmake gcc-c++ unzip python-pip make gcc-gfortran zlib-devel bzip2-devel openssl-devel samba-client openmpi-devel hdf5-openmpi-devel boost-devel
 
@@ -11,8 +15,8 @@ RUN yum -y --quiet install wget git cmake gcc-c++ unzip python-pip make gcc-gfor
 RUN yum -y --quiet install scl-utils
 
 # Devtools 8
-RUN yum install -y devtoolset-8 devtoolset-8-gcc-c++
-RUN yum install -y binutils-devel wget && rm -rf /var/cache/yum/*
+RUN yum -y --quiet install devtoolset-8 devtoolset-8-gcc-c++
+RUN yum -y --quiet install binutils-devel wget && rm -rf /var/cache/yum/*
 RUN source scl_source enable devtoolset-8
 
 # compiling python3.8.10 to be compatible with HW
