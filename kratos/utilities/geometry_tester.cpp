@@ -1006,7 +1006,7 @@ bool GeometryTesterUtility::VerifyShapeFunctionsSecondDerivativesValues(
             rGeometry.ShapeFunctionsValues(f_3,local_coordinates - ei + ej);
             rGeometry.ShapeFunctionsValues(f_4,local_coordinates - ei - ej);
             f = f_1-f_2-f_3+f_4;
-            transform(f.begin(), f.end(), f.begin(), [delta](double &c){ return c/(4.0*std::pow(delta,2)); });
+            std::transform(f.begin(), f.end(), f.begin(), [delta](double &c){ return c/(4.0*std::pow(delta,2)); });
             for (unsigned int k = 0; k<rGeometry.size();k++){
                 H[k](i,j) = f[k];
             }
