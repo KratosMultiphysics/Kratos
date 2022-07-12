@@ -7,92 +7,154 @@
 //  License:     BSD License
 //           Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
+//  Main authors:    Ariadna Cortés
 //
 //
 
 // Project includes
 #include "containers/model.h"
+#include "includes/element.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/triangle_3d_3.h"
+#include "includes/checks.h"
 #include "testing/testing.h"
 #include "utilities/intersection_utilities.h"
+#include "utilities/volume_inside_voxel_utility.h"
 
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelOctal,KratosCoreFastSuite) {
-
     typedef Node<3> NodeType;
     typedef Node<3>::Pointer NodePtrType;
-    typedef Hexahedra3D8<NodeType> HexaGeometryType;
-    typedef HexaGeometryType::Pointer HexaGeometryPtrType;
+    typedef Geometry<NodeType> GeometryType;
+    typedef GeometryType::Pointer GeometryPtrType;
     typedef Triangle3D3<NodeType> TriGeometryType;
-    typedef TriGeometryType::Pointer TriGeometryPtrType;
-    typedef TriGeometryType::GeometriesArrayType TriGeometryArray;
-    typedef HexaGeometryType::PointsArrayType HexaPointsArray;
+    //typedef TriGeometryType::Pointer TriGeometryPtrType;
+    typedef GeometryType::GeometriesArrayType GeometryArrayType;
+    typedef GeometryType::PointsArrayType PointsArrayType;
 
-    //Define our testing variables
+    /*this functions are creating a model for each element used in the test in order to avoid troblue with repeated Ids.
+    This is not optimal but since it is just a test (in real cases, funcions will be used with well-defined models) we 
+    could just look the other way...
+    */
+    GeometryPtrType GenerateHexahedra3D8(const std::vector<double>& rDistances) 
+    { 
+        Model my_model;
+        ModelPart &voxel = my_model.CreateModelPart("Voxel");  
+        voxel.AddNodalSolutionStepVariable(DISTANCE);  
 
-    //Generate the HEXAHEDRA3D8
-    Model my_model;
-    ModelPart &voxel = my_model.CreateModelPart("Voxel");  
-    voxel.AddNodalSolutionStepVariable(DISTANCE);  
+        voxel.CreateNewNode(1, -0.5, -0.5, 0);
+        voxel.CreateNewNode(2,  0.5, -0.5, 0);
+        voxel.CreateNewNode(3, 0.5,  0.5, 0);
+        voxel.CreateNewNode(4, -0.5,  0.5, 0);
+        voxel.CreateNewNode(5, -0.5, -0.5,  1);
+        voxel.CreateNewNode(6, 0.5, -0.5,  1);
+        voxel.CreateNewNode(7, 0.5,  0.5,  1);
+        voxel.CreateNewNode(8, -0.5,  0.5,  1); 
+        Properties::Pointer p_properties_0(new Properties(0));
+        Element::Pointer pElement = voxel.CreateNewElement("Element3D8N", 1, {1, 2, 3, 4, 5, 6, 7, 8}, p_properties_0);  
+        GeometryPtrType pVoxel = pElement->pGetGeometry();
 
-    voxel.CreateNewNode(1, -0.5, -0.5, -0.5);
-    voxel.CreateNewNode(2,  0.5, -0.5, -0.5);
-    voxel.CreateNewNode(3, 0.5,  0.5, -0.5);
-    voxel.CreateNewNode(4, -0.5,  0.5, -0.5);
-    voxel.CreateNewNode(5, -0.5, -0.5,  0.5);
-    voxel.CreateNewNode(6, 0.5, -0.5,  0.5);
-    voxel.CreateNewNode(7, 0.5,  0.5,  0.5);
-    voxel.CreateNewNode(8, -0.5,  0.5,  0.5); 
-    Properties::Pointer p_properties_0(new Properties(0));
-    voxel.CreateNewElement("Voxel", 1, {1, 2, 3, 4, 5, 6, 7, 8}, p_properties_0); 
-    //HexaGeometryPtrType pVoxel =  voxel.pGetGeometry(1);  
-
-    //Generate some TRIANGLE3D3 and array of them 
-    ModelPart& triangles = my_model.CreateModelPart("Triangles");
-    
-    triangles.CreateNewNode(1, 0.0, 0.0, 0.0);
-    triangles.CreateNewNode(2, 0.0, 0.0, 0.0);
-    triangles.CreateNewNode(3, 0.0, 0.0, 0.0);
-    triangles.CreateNewNode(4, 0.0, 0.0, 0.0);
-    triangles.CreateNewNode(5, 0.0, 0.0, 0.0);
-    triangles.CreateNewNode(6, 0.0, 0.0, 0.0);
-    triangles.CreateNewNode(7, 0.0, 0.0, 0.0);
-    triangles.CreateNewNode(8, 0.0, 0.0, 0.0);
-    triangles.CreateNewNode(9, 0.0, 0.0, 0.0); 
-
-    Properties::Pointer p_properties_1(new Properties(0));  /*
-    TriGeometryPtrType pTriangle1 = triangles.CreateNewElement("Triangle1", 1, {1, 2, 3}, p_properties_1);
-    TriGeometryPtrType pTriangle2 = triangles.CreateNewElement("Triangle2", 2, {4, 5, 6}, p_properties_1);
-    TriGeometryPtrType pTriangle3 = triangles.CreateNewElement("Triangle3", 3, {7, 8, 9}, p_properties_1);
-
-    //Add the distances for this test
-    HexaPointsArray nodes = pVoxel->Points();
-    const array_1d<double,1> distances(8);              //Hardcoded to 8 point-geometry
-    distances = {1, -1, -1, -1, -1, -1, -1, -1,};       
-    
-    for (int i = 0; i < 8; i++) {
-        nodes[i].FastGetSolutionStepValue(DISTANCE) = distances[i];
+        //Add the distances
+        PointsArrayType nodes = pVoxel->Points();   
+        
+        for (int i = 0; i < 8; i++) {
+            nodes[i].FastGetSolutionStepValue(DISTANCE) = rDistances[i];
+        }
+        return pVoxel;  
     }
 
-    //Select the triangles for this test
-    TriGeometryArray triArray;
-    triArray.push_back(pTriangle1);
-    triArray.push_back(pTriangle2);
-    triArray.push_back(pTriangle3);
+    //rNodes is a 3*3 matrix representin de (x,y,z) coordinates of each of the 3 triangle nodes
+    GeometryPtrType GenerateTriangle3D3(std::vector<std::vector<double>>& rNodes)
+    {
+        Model my_model;
+        ModelPart& triangles = my_model.CreateModelPart("Triangles"); 
+        triangles.CreateNewNode(1, rNodes[0][0], rNodes[0][1], rNodes[0][2]);
+        triangles.CreateNewNode(2, rNodes[1][0], rNodes[1][1], rNodes[1][2]);
+        triangles.CreateNewNode(3, rNodes[2][0], rNodes[2][1], rNodes[2][2]);
+        Properties::Pointer p_properties_1(new Properties(0)); 
+        Element::Pointer pTriangle = triangles.CreateNewElement("Element3D3N", 1, {1, 2, 3}, p_properties_1);
+        return pTriangle->pGetGeometry();
+    } 
 
-    //Call the volume utility
-    const double volume = VolumeInsideVoxelUtility::OctalApproximation(pVoxel, triArray);
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelNodes, KratosCoreFastSuite) 
+    {
 
-    //Expected output of the function
-    const double real_volume = 0.125;
-    
-    KRATOS_CHECK_EQUAL(volume, real_volume);
-    //KRATOS_CHECK_NEAR(volume, real_volume, 0.1);
-    */
-}
+        //Generate the HEXAHEDRA3D8
+        std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1,};   
+        GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
+
+        std::vector<double> distances2{1, -1, -0.5, -1, 8, -1, -23, 1,}; 
+        GeometryPtrType pVoxel2 = GenerateHexahedra3D8(distances2);
+
+        //Call the volume utility
+        double volume = VolumeInsideVoxelUtility::NodesApproximation<Geometry<NodeType>>(*pVoxel); 
+        double volume2 = VolumeInsideVoxelUtility::NodesApproximation<Geometry<NodeType>>(*pVoxel2); 
+
+        //Expected output of the function
+        const double expected_volume = 0.125;
+        const double expected_volume2 = 0.375;
+        
+        KRATOS_CHECK_EQUAL(volume, expected_volume);
+        KRATOS_CHECK_EQUAL(volume2, expected_volume2);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdges, KratosCoreFastSuite) 
+    {
+
+        //Generate the HEXAHEDRA3D8
+        std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1,};   
+        GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
+
+        std::vector<double> distances2{1, -1, -0.5, -1, 8, -1, -23, 1,};   
+        GeometryPtrType pVoxel2 = GenerateHexahedra3D8(distances2);
+
+        //Call the volume utility
+        double volume = VolumeInsideVoxelUtility::EdgesApproximation<Geometry<NodeType>>(*pVoxel); 
+        double volume2 = VolumeInsideVoxelUtility::EdgesApproximation<Geometry<NodeType>>(*pVoxel2); 
+
+        //Expected output of the function
+        const double expected_volume = 3.0/24;
+        const double expected_volume2 = 0.375;
+        
+        KRATOS_CHECK_EQUAL(volume, expected_volume);
+        KRATOS_CHECK_EQUAL(volume2, expected_volume2);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortion, KratosCoreFastSuite) 
+    {
+
+        //Generate the HEXAHEDRA3D8
+        std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1,};   
+        GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
+
+        std::vector<double> distances2{1, -1, -0.5, -1, 8, -1, -23, 1,};   
+        GeometryPtrType pVoxel2 = GenerateHexahedra3D8(distances2);
+
+        //Generate the intersecting triangles triangles
+        std::vector<std::vector<double>> triangle1{{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}}; //Canviar!
+        std::vector<std::vector<double>> triangle2{{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}}; //Canviar!!
+        std::vector<std::vector<double>> triangle3{{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}}; //Canviar!!
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
+        GeometryPtrType pTriangle3 = GenerateTriangle3D3(triangle3);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1); 
+        array1.push_back(pTriangle2);
+        array1.push_back(pTriangle3);
+
+        //Call the volume utility
+        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array1); 
+        double volume2 = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel2,array1); 
+
+        //Expected output of the function
+        const double expected_volume = 3.0/24; //calcular!
+        const double expected_volume2 = 0.375; //Calcular!
+        
+        KRATOS_CHECK_NEAR(volume, expected_volume, 0.05);
+        KRATOS_CHECK_NEAR(volume2, expected_volume2, 0.05);
+    }
+
 }  // namespace Testing.
 }  // namespace Kratos.

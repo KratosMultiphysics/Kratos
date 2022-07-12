@@ -22,6 +22,7 @@
 #include "includes/geometrical_object.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
+#include "geometries/hexahedra_3d_8.h"
 #include "intersection_utilities.h"
 
 namespace Kratos
@@ -60,6 +61,14 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef Node<3> NodeType;
+    typedef Node<3>::Pointer NodePtrType;
+    typedef Geometry<NodeType> GeometryType;
+    typedef GeometryType::Pointer GeometryPtrType;
+    typedef GeometryType::GeometriesArrayType GeometryArrayType;
+    typedef GeometryType::PointsArrayType PointsArrayType;
+
+
     /// Pointer definition of VoxelInsideVolume
     KRATOS_CLASS_POINTER_DEFINITION( VolumeInsideVoxelUtility );
 
@@ -82,9 +91,61 @@ public:
     ///@}
     ///@name Operations
     ///@{
-        /*
-        with doxygen shit 
-        */
+
+    /**
+     * @brief Aproximates the actual volume inside the voxel 
+     * @param rVoxel references to the voxel whose actual volume will be approximated
+     * @return Approximated volume 
+     * @note This approximation assigns a fraction of volume (1/8) to each node of the
+     * voxel, and counts it as volume if the node is inside the object (NodeDistance > 0)
+     */  
+    template<class TGeometryType>
+    static double NodesApproximation(
+        const TGeometryType& rVoxel        
+    ) {
+        double volume = 0;
+        PointsArrayType nodes = rVoxel.Points();
+        for (int i = 0; i < 8; i++) {
+            if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
+                volume+=0.125; //heyho
+            } 
+        }
+        return volume;
+    }
+
+    /*This method is completly useless since it does the same calculation as the previous 
+    one but in a different way. Helps to illustrate use of edges
+    */
+    template<class TGeometryType>
+    static double EdgesApproximation(
+        const TGeometryType& rVoxel        
+    ) {
+        double volume = 0;
+        GeometryArrayType edges = rVoxel.GenerateEdges();
+        PointsArrayType nodes = rVoxel.Points();
+        for (int i = 0; i < 12; i++) {
+            PointsArrayType ends = edges[i].Points();
+            if(ends[0].GetSolutionStepValue(DISTANCE) > 0 && ends[1].GetSolutionStepValue(DISTANCE) > 0) {
+                volume+=1.0/12;
+            } else if(
+                ends[0].GetSolutionStepValue(DISTANCE) > 0 && ends[1].GetSolutionStepValue(DISTANCE) < 0 || 
+                ends[0].GetSolutionStepValue(DISTANCE) < 0 && ends[1].GetSolutionStepValue(DISTANCE) > 0 ) {
+                volume+=1.0/24;
+            }
+        }
+        return volume;
+    }
+
+    template<class TGeometryType, class TGeometryArrayType>
+    static double EdgesPortionApproximation(
+        const TGeometryType& rVoxel,  
+        const TGeometryArrayType& rTriangles     
+    ) {
+        //still not implemented
+        double volume = 0;
+        return volume;
+    }
+    
 private:
 
     ///@name Private static Member Variables
