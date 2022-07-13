@@ -137,7 +137,7 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
     KRATOS_TRY
 
     struct SurfacePoint{
-        double distance;
+        double distance = 1e16;
         double mean_water_level;
         array_1d<double,3> coordinates;
         array_1d<double,3> direction;
@@ -153,11 +153,11 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
             return wave_height;
         }
 
-        void LocalReduce(SurfacePoint& r_point)
+        void LocalReduce(SurfacePoint point)
         {
-            if (r_point.distance < this->distance) {
-                this->distance = r_point.distance;
-                this->wave_height = inner_prod(r_point.direction, r_point.coordinates) - r_point.mean_water_level;
+            if (point.distance < this->distance) {
+                this->distance = point.distance;
+                this->wave_height = inner_prod(point.direction, point.coordinates) - point.mean_water_level;
             }
         }
 
