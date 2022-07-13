@@ -386,16 +386,18 @@ namespace Kratos
     params.local_velocity      = LocalRelativeVelocity;
     params.local_force_total   = LocalForceTotal;
     params.local_force_damping = LocalForceDamping;
-
-    // Keep impact parameters if contact is not new
-    if (mContactParamsParticle.count(neighbor)) {
-      params.impact_time     = mContactParamsParticle[neighbor].impact_time;
-      params.impact_velocity = mContactParamsParticle[neighbor].impact_velocity;
-    }
-    // Set impact parameters for new contacts
-    else {
-      params.impact_time     = r_process_info[TIME];
-      params.impact_velocity = LocalRelativeVelocity;
+    
+    if (r_process_info[DIRECT_CONDUCTION_OPTION]) { // only when collisional conduction model is used
+      // Keep impact parameters if contact is not new
+      if (mContactParamsParticle.count(neighbor)) {
+        params.impact_time     = mContactParamsParticle[neighbor].impact_time;
+        params.impact_velocity = mContactParamsParticle[neighbor].impact_velocity;
+      }
+      // Set impact parameters for new contacts
+      else {
+        params.impact_time     = r_process_info[TIME];
+        params.impact_velocity = LocalRelativeVelocity;
+      }
     }
 
     // Add/Update parameters in map
@@ -443,15 +445,17 @@ namespace Kratos
     params.local_force_total   = LocalForceTotal;
     params.local_force_damping = LocalForceDamping;
 
-    // Keep impact parameters if contact is not new
-    if (mContactParamsWall.count(neighbor)) {
-      params.impact_time     = mContactParamsWall[neighbor].impact_time;
-      params.impact_velocity = mContactParamsWall[neighbor].impact_velocity;
-    }
-    // Set impact parameters for new contacts
-    else {
-      params.impact_time     = r_process_info[TIME];
-      params.impact_velocity = LocalRelativeVelocity;
+    if (r_process_info[DIRECT_CONDUCTION_OPTION]) { // only when collisional conduction model is used
+      // Keep impact parameters if contact is not new
+      if (mContactParamsWall.count(neighbor)) {
+        params.impact_time = mContactParamsWall[neighbor].impact_time;
+        params.impact_velocity = mContactParamsWall[neighbor].impact_velocity;
+      }
+      // Set impact parameters for new contacts
+      else {
+        params.impact_time = r_process_info[TIME];
+        params.impact_velocity = LocalRelativeVelocity;
+      }
     }
 
     // Add/Update parameters in map

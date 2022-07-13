@@ -70,9 +70,8 @@ namespace Kratos {
   double GenerationDissipation::ComputeHeatGenerationRollingFriction(ThermalSphericParticle* particle) {
     KRATOS_TRY
 
-    typename ThermalSphericParticle:: ContactParams contact_params = particle->GetContactParameters();
-
     // Total normal force
+    typename ThermalSphericParticle:: ContactParams contact_params = particle->GetContactParameters();
     const double force_normal = fabs(contact_params.local_force_total[0]);
 
     // Relative angular velocity
