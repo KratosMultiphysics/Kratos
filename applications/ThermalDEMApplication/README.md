@@ -9,6 +9,21 @@ This application is an extension of the [DEM Application](https://github.com/Kra
 
 Theoretical information on thermal DEM analysis can be found [here](./ThermalDEMTheory.pdf).
 
+A [Matlab version](https://gitlab.com/rafaelrangel/demlab) of this application is also available.
+
+## Table of Contents
+- [Authorship](#authorship)
+- [License](#license)
+- [Getting Started](#getting-started)
+- [Instructions](#instructions)
+    - [MainKratos](#mainkratos-python-file)
+    - [Project Parameters](#project-parameters-json-file)
+    - [Materials](#materials-json-file)
+    - [DEM Model Parts](#dem-model-parts-mdpa-file)
+    - [DEM-FEM Boundary Model Parts](#dem-fem-boundary-model-parts-mdpa-file)
+- [Input Explanations](#input-explanations)
+- [Testing](#testing)
+
 ## Authorship
 
 - **Rafael Rangel** - (<rrangel@cimne.upc.edu>)
@@ -17,12 +32,16 @@ International Center for Numerical Methods in Engineering ([CIMNE](https://www.c
 
 ## License
 
-The Thermal DEM application is OPEN SOURCE. The main code and program structure is available and aimed to grow with the need of any users willing to expand it. The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
+The Thermal DEM application is OPEN SOURCE.
+The main code and program structure is available and aimed to grow with the need of any users willing to expand it.
+The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction,
+but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
 
-## Getting started
+## Getting Started
 
 This application is part of the ***Kratos Multiphysics*** framework.
-Instructions on how to get a copy of the project and run on your local machine for development and testing purposes are available for both [Linux](http://kratos-wiki.cimne.upc.edu/index.php/LinuxInstall) and [Windows](http://kratos-wiki.cimne.upc.edu/index.php/Windows_7_Download_and_Installation) systems.
+Instructions on how to get a copy of the project and run on your local machine for development and testing purposes are available for both
+[Linux](http://kratos-wiki.cimne.upc.edu/index.php/LinuxInstall) and [Windows](http://kratos-wiki.cimne.upc.edu/index.php/Windows_7_Download_and_Installation) systems.
 
 Before building *Kratos Multiphysics*, make sure to add the following applications to your configure file: 
 
@@ -32,6 +51,14 @@ Before building *Kratos Multiphysics*, make sure to add the following applicatio
 ## Instructions
 
 To create a model for the Thermal DEM Application, the following adaptations must be done to the input files of the DEM Application.
+
+### MainKratos (python file)
+
+Replace the import of the *AnalysisStage* of the DEM Application with the *AnalysisStage* of the Thermal DEM Application, which is imported as follows:
+
+	from KratosMultiphysics.ThermalDEMApplication.thermal_dem_analysis import ThermalDEMAnalysis
+
+You can check the template of the *MainKratos* file [here](https://github.com/KratosMultiphysics/Kratos/blob/4c8a07592cf4056557be0e5dff1c19839a5e3b98/applications/ThermalDEMApplication/python_scripts/MainKratosThermalDEMAnalysis.py).
 
 ### Project Parameters (json file)
 
@@ -55,6 +82,7 @@ Add **thermal settings** with desired options:
 		"thermal_solve_frequency"        : 1,
 		"voronoi_tesselation_frequency"  : 1000,
 		"porosity_update_frequency"      : 1000,
+		"automatic_solve_frequency"      : true or false,
 		"compute_motion"                 : true or false,
 		"compute_direct_conduction"      : true or false,
 		"compute_indirect_conduction"    : true or false,
@@ -62,7 +90,7 @@ Add **thermal settings** with desired options:
 		"compute_radiation"              : true or false,
 		"compute_friction_heat"          : true or false,
 		"compute_adjusted_contact"       : true or false,
-		"direct_conduction_model"        : "batchelor_obrien" or "thermal_pipe" or "collisional",
+		"direct_conduction_model"        : "batchelor_obrien_simple" or "batchelor_obrien_complete" or "batchelor_obrien_modified" or "thermal_pipe" or "collisional",
 		"indirect_conduction_model"      : "surrounding_layer" or "voronoi_a" or "voronoi_b" or "vargas_mccarthy",
 		"nusselt_correlation"            : "sphere_hanz_marshall" or "sphere_whitaker" or "sphere_gunn" or "sphere_li_mason",
 		"radiation_model"                : "continuum_zhou" or "continuum_krause",
@@ -72,6 +100,7 @@ Add **thermal settings** with desired options:
 		"porosity_method"                : "global" or "average_convex_hull" or "average_alpha_shape",
 		"min_conduction_distance"        : 0.0000000275,
 		"max_conduction_distance"        : 1.0,
+		"conduction_radius"              : 1.0,
 		"fluid_layer_thickness"          : 0.4,
 		"isothermal_core_radius"         : 0.5,
 		"max_radiation_distance"         : 2.0,
@@ -191,6 +220,10 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"porosity_update_frequency"*:\
   Number of steps in which porosity is computed, in case it is required.\
   Default: 1000
+
+- *"automatic_solve_frequency"*:\
+  Boolean for automatically setting the thermal solve frequency based on the maximum allowed time step (it overrides the value set for thermal_solve_frequency).\
+  Default: false
   
 - *"compute_motion"*:\
   Boolean for solving mechanical problem.\
@@ -222,7 +255,7 @@ Add **SubModelPartData** to sub model parts with desired options:
 
 - *"direct_conduction_model"*:\
   Selected model for simulating heat transfer by direct conduction.\
-  Default: "batchelor_obrien"
+  Default: "batchelor_obrien_simple"
 
 - *"indirect_conduction_model"*:\
   Selected model for simulating heat transfer by indirect conduction.\
@@ -257,19 +290,23 @@ Add **SubModelPartData** to sub model parts with desired options:
   Default: 0.0000000275
 
 - *"max_conduction_distance"*:\
-  Maximum distance for heat conduction (ratio of particle radius) required for indirect conduction model "voronoi_a" and "voronoi_b".\
+  Maximum distance for heat conduction (ratio of particles radii) required for conduction model "batchelor_obrien_complete", "batchelor_obrien_modified", "voronoi_a" and "voronoi_b".\
   Default: 1.0
 
+- *"conduction_radius"*:\
+  Radius of cylindrical conductive region (ratio of particles radii) required for conduction model "batchelor_obrien_complete" and "batchelor_obrien_modified".\
+  Default: 1.0
+  
 - *"fluid_layer_thickness"*:\
-  Thickness of particle fluid layer (ratio of particle radius) required for indirect conduction model "surrounding_layer".\
+  Thickness of particle fluid layer (ratio of particles radii) required for conduction model "surrounding_layer".\
   Default: 0.4
 
 - *"isothermal_core_radius"*:\
-  Radius of particle isothermal core (ratio of particle radius) required for indirect conduction model "voronoi_b".\
+  Radius of particle isothermal core (ratio of particles radii) required for conduction model "voronoi_b".\
   Default: 0.5
 
 - *"max_radiation_distance"*:\
-  Maximum distance for heat radiation (ratio of particle radius) required by all radiation models.\
+  Maximum distance for heat radiation (ratio of particles radii) required for all radiation models.\
   Default: 2.0
 
 - *"friction_heat_conversion_ratio"*:\
@@ -408,4 +445,4 @@ Add **SubModelPartData** to sub model parts with desired options:
 
 ## Testing
 
-To test if the application is working correctly, run the test_ThermalDEMApplication.py file, located in the *tests* folder.
+To test if the application is working correctly, run the *test_ThermalDEMApplication.py* file, located in the *tests* folder.

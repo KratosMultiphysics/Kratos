@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla, Edurd Gómez
+//  Main authors:    Ruben Zorrilla, Eduard Gómez
 //
 //
 
@@ -183,18 +183,6 @@ public:
         return default_parameters;
     }
 
-    /**
-     * @brief Returns the name of the class as used in the settings (snake_case format)
-     * @return The name of the class
-     */
-    static std::string Name()
-    {
-        std::stringstream s;
-        s << "explicit_solving_strategy_runge_kutta"
-          << "[TButcherTableau=" << TButcherTableau::Name() << "]";
-        return s.str();
-    }
-
     ///@}
     ///@name Operators
     ///@{
@@ -214,11 +202,22 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        std::stringstream s;
+        s << "explicit_solving_strategy_runge_kutta_" << TButcherTableau::Name();
+        return s.str();
+    }
+
+    /// Return information as a string.
     std::string Info() const override
     {
         std::stringstream ss;
-        ss << "ExplicitSolvingStrategyRungeKutta with tableau " << mButcherTableau.Name();
+        ss << "ExplicitSolvingStrategyRungeKutta<" << mButcherTableau.Info() << ">";
         return ss.str();
     }
 
@@ -260,10 +259,10 @@ protected:
         KRATOS_TRY
 
         // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
-        auto& r_dof_set = p_explicit_bs->GetDofSet();
-        const unsigned int dof_size = p_explicit_bs->GetEquationSystemSize();
-        const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
+        auto& r_explicit_bs = BaseType::GetExplicitBuilder();
+        auto& r_dof_set = r_explicit_bs.GetDofSet();
+        const unsigned int dof_size = r_explicit_bs.GetEquationSystemSize();
+        const auto& r_lumped_mass_vector = r_explicit_bs.GetLumpedMassMatrixVector();
 
         // Set the auxiliary RK vectors
         LocalSystemVectorType u_n(dof_size); // TODO: THIS IS INEFICCIENT. CREATE A UNORDERED_SET WITH THE IDOF AND VALUE AS ENTRIES. THIS HAS TO BE OPTIONAL
@@ -355,9 +354,9 @@ protected:
         KRATOS_TRY
 
         // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
-        auto& r_dof_set = p_explicit_bs->GetDofSet();
-        const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
+        auto& r_explicit_bs = BaseType::GetExplicitBuilder();
+        auto& r_dof_set = r_explicit_bs.GetDofSet();
+        const auto& r_lumped_mass_vector = r_explicit_bs.GetLumpedMassMatrixVector();
 
         // Get model part and information
         const double dt = BaseType::GetDeltaTime();
@@ -375,7 +374,7 @@ protected:
 
         // Perform the intermidate sub step update
         InitializeRungeKuttaIntermediateSubStep();
-        p_explicit_bs->BuildRHS(r_model_part);
+        r_explicit_bs.BuildRHS(r_model_part);
 
         IndexPartition<int>(r_dof_set.size()).for_each(
             [&](int i_dof){
@@ -419,8 +418,8 @@ protected:
         KRATOS_TRY
 
         // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
-        auto& r_dof_set = p_explicit_bs->GetDofSet();
+        auto& r_explicit_bs = BaseType::GetExplicitBuilder();
+        auto& r_dof_set = r_explicit_bs.GetDofSet();
 
         // Get model part
         auto& r_model_part = BaseType::GetModelPart();
@@ -433,7 +432,7 @@ protected:
 
         // Perform the last sub step residual calculation
         InitializeRungeKuttaLastSubStep();
-        p_explicit_bs->BuildRHS(r_model_part);
+        r_explicit_bs.BuildRHS(r_model_part);
 
         IndexPartition<int>(r_dof_set.size()).for_each(
             [&](int i_dof){

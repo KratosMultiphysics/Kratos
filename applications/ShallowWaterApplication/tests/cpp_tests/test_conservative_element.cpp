@@ -71,7 +71,7 @@ void ConservativeElementSteadyStateTest(
     r_process_info.SetValue(RELATIVE_DRY_HEIGHT, 0.1);
 
     // Create the triangle and its conditions
-    ShallowWaterTestsUtilities::CreateGeometry(model_part, "ConservativeElement2D3N", "ConservativeCondition2D2N");
+    ShallowWaterTestsUtilities::CreateGeometry(model_part, "ConservativeElementRV2D3N", "ConservativeCondition2D2N");
 
     // Set the nodal values
     SetNodalValues(model_part, rManning, rHeight, rMomentum, rTopographySlope, rHeightGradient);
@@ -106,7 +106,7 @@ void ConservativeElementSteadyStateTestParts(
     r_process_info.SetValue(RELATIVE_DRY_HEIGHT, 0.1);
 
     // Create the triangle and its conditions
-    ShallowWaterTestsUtilities::CreateGeometry(model_part, "ConservativeElement2D3N", "ConservativeCondition2D2N");
+    ShallowWaterTestsUtilities::CreateGeometry(model_part, "ConservativeElementRV2D3N", "ConservativeCondition2D2N");
 
     // Set the nodal values
     SetNodalValues(model_part, rManning, rHeight, rMomentum, rTopographySlope, rHeightGradient);

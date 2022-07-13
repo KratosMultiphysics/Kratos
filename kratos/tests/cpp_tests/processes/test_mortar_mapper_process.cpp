@@ -111,7 +111,7 @@ namespace Kratos
             master_model_part.AddCondition(p_cond_1);
 
             // We compute the normals
-            NormalCalculationUtils().CalculateUnitNormals<Condition>(this_model_part, true);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(this_model_part, true);
 
             p_node_4->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_4->X(), 2) + std::pow(p_node_4->Y(), 2);
             p_node_5->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_5->X(), 2) + std::pow(p_node_5->Y(), 2);
@@ -207,7 +207,7 @@ namespace Kratos
             master_model_part.AddCondition(p_cond_1);
 
             // We compute the normals
-            NormalCalculationUtils().CalculateUnitNormals<Condition>(this_model_part, true);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(this_model_part, true);
 
             p_node_5->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_5->X(), 2) + std::pow(p_node_5->Y(), 2);
             p_node_6->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_6->X(), 2) + std::pow(p_node_6->Y(), 2);
@@ -316,7 +316,7 @@ namespace Kratos
             master_model_part.AddCondition(p_cond_3);
 
             // We compute the normals
-            NormalCalculationUtils().CalculateUnitNormals<Condition>(this_model_part, true);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(this_model_part, true);
 
             p_node_5->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_5->Z(), 2) + std::pow(p_node_5->Y(), 2);
             p_node_6->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_6->Z(), 2) + std::pow(p_node_6->Y(), 2);

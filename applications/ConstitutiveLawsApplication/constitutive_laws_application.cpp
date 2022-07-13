@@ -41,7 +41,10 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("KirchhoffSaintVenantPlaneStress2DLaw", mHyperElasticIsotropicKirchhoffPlaneStress2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("KirchhoffSaintVenantPlaneStrain2DLaw", mHyperElasticIsotropicKirchhoffPlaneStrain2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElastic3DLaw", mHyperElasticIsotropicNeoHookean3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D", mHyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlaneStrain2DLaw", mHyperElasticIsotropicNeoHookeanPlaneStrain2D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticSimoTaylorNeoHookean3DLaw", mHyperElasticSimoTaylorNeoHookean3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticSimoTaylorNeoHookeanPlaneStrain2DLaw", mHyperElasticSimoTaylorNeoHookeanPlaneStrain2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainJ2PlasticityPlaneStrain2DLaw", mSmallStrainJ2PlasticityPlaneStrain2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainJ2Plasticity3DLaw", mSmallStrainJ2Plasticity3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamagePlaneStrain2DLaw", mSmallStrainIsotropicDamagePlaneStrain2D);
@@ -394,10 +397,10 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ParallelRuleOfMixturesLaw2D", mParallelRuleOfMixturesLaw2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ParallelRuleOfMixturesLaw3D", mParallelRuleOfMixturesLaw3D);
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DVonMisesVonMises", mAssociativePlasticDamageModel3DVonMisesVonMises);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DDruckerPragerDruckerPrager", mAssociativePlasticDamageModel3DDruckerPragerDruckerPrager);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb", mAssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DRankineRankine", mAssociativePlasticDamageModel3DRankineRankine);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DVonMises", mAssociativePlasticDamageModel3DVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DDruckerPrager", mAssociativePlasticDamageModel3DDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DModifiedMohrCoulomb", mAssociativePlasticDamageModel3DModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DRankine", mAssociativePlasticDamageModel3DRankine);
 
     // Constitutive laws variables
 
@@ -422,6 +425,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_VARIABLE(ADVANCE_STRATEGY_APPLIED);
 
     // Constitutive laws variables
+    KRATOS_REGISTER_VARIABLE(CRACK_RECLOSING)
     KRATOS_REGISTER_VARIABLE(LAYER_EULER_ANGLES)
     KRATOS_REGISTER_VARIABLE(INELASTIC_FLAG)
     KRATOS_REGISTER_VARIABLE(INFINITY_YIELD_STRESS)

@@ -133,7 +133,8 @@ class ExplicitStrategy(BaseStrategy):
         self.thermal_settings.ValidateAndAssignDefaults(default_settings)
 
         # General options
-        self.compute_motion_option = self.thermal_settings["compute_motion"].GetBool()
+        self.compute_motion_option       = self.thermal_settings["compute_motion"].GetBool()
+        self.auto_solve_frequency_option = self.thermal_settings["automatic_solve_frequency"].GetBool()
 
         # Frequencies
         self.thermal_solve_frequency       = self.thermal_settings["thermal_solve_frequency"].GetInt()
@@ -165,6 +166,7 @@ class ExplicitStrategy(BaseStrategy):
         # Model parameters
         self.min_conduction_distance  = self.thermal_settings["min_conduction_distance"].GetDouble()
         self.max_conduction_distance  = self.thermal_settings["max_conduction_distance"].GetDouble()
+        self.conduction_radius        = self.thermal_settings["conduction_radius"].GetDouble()
         self.fluid_layer_thickness    = self.thermal_settings["fluid_layer_thickness"].GetDouble()
         self.isothermal_core_radius   = self.thermal_settings["isothermal_core_radius"].GetDouble()
         self.max_radiation_distance   = self.thermal_settings["max_radiation_distance"].GetDouble()
@@ -204,8 +206,10 @@ class ExplicitStrategy(BaseStrategy):
             raise Exception('ThermalDEM', 'Numerical integration method \'' + self.numerical_integration_method + '\' is not implemented.')
         
         # Heat transfer models
-        if (self.direct_conduction_model != "batchelor_obrien" and
-            self.direct_conduction_model != "thermal_pipe"     and
+        if (self.direct_conduction_model != "batchelor_obrien_simple"   and
+            self.direct_conduction_model != "batchelor_obrien_complete" and
+            self.direct_conduction_model != "batchelor_obrien_modified" and
+            self.direct_conduction_model != "thermal_pipe"              and
             self.direct_conduction_model != "collisional"):
             raise Exception('ThermalDEM', 'Direct thermal conduction model \'' + self.direct_conduction_model + '\' is not implemented.')
 
@@ -254,6 +258,8 @@ class ExplicitStrategy(BaseStrategy):
             raise Exception('ThermalDEM', '"min_conduction_distance" must be positive.')
         if (self.max_conduction_distance < 0):
             self.max_conduction_distance = 0
+        if (self.conduction_radius < 0):
+            self.conduction_radius = 0
         if (self.fluid_layer_thickness < 0):
             self.fluid_layer_thickness = 0
         if (self.isothermal_core_radius < 0):
@@ -386,8 +392,12 @@ class ExplicitStrategy(BaseStrategy):
     #----------------------------------------------------------------------------------------------
     def SetConstitutiveLaw(self, properties):
         # Direct conduction
-        if self.direct_conduction_model == "batchelor_obrien":
-            class_name = "DirectConductionBOB"
+        if self.direct_conduction_model == "batchelor_obrien_simple":
+            class_name = "DirectConductionBOBSimple"
+        elif self.direct_conduction_model == "batchelor_obrien_complete":
+            class_name = "DirectConductionBOBComplete"
+        elif self.direct_conduction_model == "batchelor_obrien_modified":
+            class_name = "DirectConductionBOBModified"
         elif self.direct_conduction_model == "thermal_pipe":
             class_name = "DirectConductionPipe"
         elif self.direct_conduction_model == "collisional":
@@ -476,7 +486,8 @@ class ExplicitStrategy(BaseStrategy):
     #----------------------------------------------------------------------------------------------
     def SetThermalVariablesAndOptions(self):
         # General options
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MOTION_OPTION, self.compute_motion_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MOTION_OPTION,               self.compute_motion_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, AUTO_SOLVE_FREQUENCY_OPTION, self.auto_solve_frequency_option)
         self.spheres_model_part.ProcessInfo.SetValue(THERMAL_FREQUENCY, self.thermal_solve_frequency)
 
         # Models for heat transfer
@@ -500,6 +511,7 @@ class ExplicitStrategy(BaseStrategy):
         # Model parameters
         self.spheres_model_part.ProcessInfo.SetValue(MIN_CONDUCTION_DISTANCE,  self.min_conduction_distance)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_CONDUCTION_DISTANCE,  self.max_conduction_distance)
+        self.spheres_model_part.ProcessInfo.SetValue(CONDUCTION_RADIUS,        self.conduction_radius)
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_LAYER_THICKNESS,    self.fluid_layer_thickness)
         self.spheres_model_part.ProcessInfo.SetValue(ISOTHERMAL_CORE_RADIUS,   self.isothermal_core_radius)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_RADIATION_DISTANCE,   self.max_radiation_distance)

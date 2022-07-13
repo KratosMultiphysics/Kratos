@@ -58,10 +58,10 @@ namespace Kratos {
                                                            ++sub_model_part)
       {
         ModelPart& submp = *sub_model_part;
-        ModelPart::ElementsContainerType& rElements = submp.GetCommunicator().LocalMesh().Elements();
+        ModelPart::ElementsContainerType& r_elements = submp.GetCommunicator().LocalMesh().Elements();
 
-        block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
-          Element* p_element = &(rElement);
+        block_for_each(r_elements, [&](ModelPart::ElementType& r_element) {
+          Element* p_element = &(r_element);
           ThermalSphericParticle* particle = dynamic_cast<ThermalSphericParticle*>(p_element);
 
           if (submp.Has(TEMPERATURE))
@@ -108,13 +108,13 @@ namespace Kratos {
                                                        ++sub_model_part)
     {
       ModelPart& submp = *sub_model_part;
-      ModelPart::ConditionsContainerType& rConditions = submp.GetCommunicator().LocalMesh().Conditions();
+      ModelPart::ConditionsContainerType& r_conditions = submp.GetCommunicator().LocalMesh().Conditions();
 
-      block_for_each(rConditions, [&](ModelPart::ConditionType& rCondition) {
+      block_for_each(r_conditions, [&](ModelPart::ConditionType& r_condition) {
         if (submp.Has(ADIABATIC))
-          rCondition.Set(DEMThermalFlags::IS_ADIABATIC, submp[ADIABATIC]);
+          r_condition.Set(DEMThermalFlags::IS_ADIABATIC, submp[ADIABATIC]);
         else
-          rCondition.Set(DEMThermalFlags::IS_ADIABATIC, false);
+          r_condition.Set(DEMThermalFlags::IS_ADIABATIC, false);
         });
     }
 

@@ -16,6 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <limits>
 
 // External includes
 #include "includes/define.h"
@@ -117,6 +118,7 @@ namespace Kratos
       double ComputeEffectiveYoungReal           (void);
       double ComputeEffectiveConductivity        (void);
       double ComputeAverageConductivity          (void);
+      double ComputeMeanConductivity             (void);
 
       // Get/Set methods
       ThermalDEMIntegrationScheme& GetThermalIntegrationScheme   (void);
@@ -145,6 +147,7 @@ namespace Kratos
       double             GetParticleMass                      (void);
       double             GetParticleHeatCapacity              (void);
       double             GetParticleConductivity              (void);
+      double             GetParticleDiffusivity               (void);
       double             GetParticleEmissivity                (void);
       double             GetParticleExpansionCoefficient      (void);
   

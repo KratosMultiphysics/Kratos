@@ -46,15 +46,17 @@ set( KRATOS_THERMAL_DEM_APPLICATION_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/heat_exchange_mechanism.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/heat_generation_mechanism.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/sintering_continuum.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_direct/direct_conduction_model.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_direct/direct_conduction_bob.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_direct/direct_conduction_collision.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_direct/direct_conduction_pipe.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_indirect/indirect_conduction_model.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_indirect/indirect_conduction_surround_layer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_indirect/indirect_conduction_vargas.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_indirect/indirect_conduction_voronoi_a.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_indirect/indirect_conduction_voronoi_b.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_bob_complete.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_bob_modified.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_bob_simple.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_collision.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/direct_conduction_pipe.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/indirect_conduction_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/indirect_conduction_surround_layer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/indirect_conduction_vargas.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/indirect_conduction_voronoi_a.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction/indirect_conduction_voronoi_b.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/convection_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/nusselt_gunn.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/nusselt_hanz_marshall.cpp

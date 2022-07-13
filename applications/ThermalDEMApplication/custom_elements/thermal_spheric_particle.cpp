@@ -522,6 +522,12 @@ namespace Kratos
   void ThermalSphericParticle::ComputeAddedSearchDistance(const ProcessInfo& r_process_info, double& added_search_distance) {
     KRATOS_TRY
 
+    if (r_process_info[DIRECT_CONDUCTION_OPTION] && mpDirectConductionModel) {
+      const double model_search_distance  = GetDirectConductionModel().GetSearchDistance(r_process_info, this);
+      const double current_added_distance = added_search_distance;
+      added_search_distance = std::max(current_added_distance, model_search_distance);
+    }
+
     if (r_process_info[INDIRECT_CONDUCTION_OPTION] && mpIndirectConductionModel) {
       const double model_search_distance  = GetIndirectConductionModel().GetSearchDistance(r_process_info, this);
       const double current_added_distance = added_search_distance;
@@ -664,14 +670,15 @@ namespace Kratos
   double ThermalSphericParticle::ComputeDistanceToNeighbor(void) {
     KRATOS_TRY
 
+    double distance = 0.0;
+
     if (mNeighborType & PARTICLE_NEIGHBOR) {
       array_1d<double, 3> direction;
       noalias(direction) = GetParticleCoordinates() - GetNeighborCoordinates();
-      return DEM_MODULUS_3(direction);
+      distance = DEM_MODULUS_3(direction);
     }
     else if (mNeighborType & WALL_NEIGHBOR_CONTACT) {
       // Computing the distance again, as it is done in SphericParticle::ComputeBallToRigidFaceContactForce
-      double distance = 0.0;
       array_1d<double, 4>& weight = this->mContactConditionWeights[mNeighborIndex];
 
       // Dummy variables: not used now
@@ -682,12 +689,9 @@ namespace Kratos
       int dummy4 = 0;
 
       mNeighbor_w->ComputeConditionRelativeData(mNeighborIndex, this, dummy1, distance, weight, dummy2, dummy3, dummy4);
-
-      return distance;
     }
     else if (mNeighborType & WALL_NEIGHBOR_NONCONTACT) {
       // Computing the distance again, as it is done in SphericParticle::ComputeBallToRigidFaceContactForce
-      double distance = 0.0;
 
       // ATTENTION:
       // Weight vector defines the indexes of the wall nodes in RigidEdge2D::ComputeConditionRelativeData.
@@ -709,13 +713,17 @@ namespace Kratos
       int dummy4 = 0;
 
       mNeighbor_w->ComputeConditionRelativeData(mNeighborIndex, this, dummy1, distance, weight, dummy2, dummy3, dummy4);
-
-      return distance;
-    }
-    else {
-      return 0.0;
     }
 
+    // ATTENTION:
+    // If for any reason the distance remain null (some rare cases in particle-wall contact),
+    // set it to the summ of the radii of the elements (1% more, as if there is no overlap)
+    // to avoid numerical issues of using a zero distance or separation in some formulas.
+    if (distance <= std::numeric_limits<double>::epsilon())
+      distance = 1.001 * (GetRadius() + GetNeighborRadius()); // GetNeighborRadius should return 0.0 for walls!
+    
+    return distance;
+    
     KRATOS_CATCH("")
   }
 
@@ -770,28 +778,10 @@ namespace Kratos
     const double col_time_max = ComputeMaxCollisionTime();
     const double Rc_max       = ComputeMaxContactRadius();
 
-    // Compute particle Fourier number
-    double Fo_particle;
     if (Rc_max > 0.0)
-      Fo_particle = GetParticleConductivity() * col_time_max / (GetParticleDensity() * GetParticleHeatCapacity() * Rc_max * Rc_max);
+      return GetParticleConductivity() * col_time_max / (GetParticleDensity() * GetParticleHeatCapacity() * Rc_max * Rc_max);
     else
-      Fo_particle = 0.0;
-
-    // Compute neighbor Fourier number
-    double Fo_neighbor;
-
-    if (mNeighborType & PARTICLE_NEIGHBOR) {
-      if (Rc_max > 0.0)
-        Fo_neighbor = GetNeighborConductivity() * col_time_max / (GetNeighborDensity() * GetNeighborHeatCapacity() * Rc_max * Rc_max);
-      else
-        Fo_neighbor = 0.0;
-    }
-    else {
-      Fo_neighbor = Fo_particle;
-    }
-
-    // Assumption: average of both particles (only particle if neighbor is a wall)
-    return (Fo_particle + Fo_neighbor) / 2.0;
+      return 0.0;
 
     KRATOS_CATCH("")
   }
@@ -841,7 +831,10 @@ namespace Kratos
       }
       else if (mNeighborType & WALL_NEIGHBOR) {
         const double r = GetParticleRadius();
-        Rc = sqrt(r * r - mNeighborDistance * mNeighborDistance);
+        if (r >= mNeighborDistance)
+            Rc = sqrt(r * r - mNeighborDistance * mNeighborDistance);
+        else
+            Rc = 0.0;
       }
     }
 
@@ -938,6 +931,15 @@ namespace Kratos
     const double k2 = GetNeighborConductivity();
 
     return (r1 + r2) / (r1 / k1 + r2 / k2);
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double ThermalSphericParticle::ComputeMeanConductivity(void) {
+    KRATOS_TRY
+
+    return (GetParticleConductivity() + GetNeighborConductivity()) / 2.0;
 
     KRATOS_CATCH("")
   }
@@ -1093,6 +1095,11 @@ namespace Kratos
     else {
       return GetProperties()[THERMAL_CONDUCTIVITY]; // TODO: Use GetFastProperties?
     }
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double ThermalSphericParticle::GetParticleDiffusivity(void) {
+    return GetParticleConductivity() / (GetParticleDensity() * GetParticleHeatCapacity());
   }
 
   //------------------------------------------------------------------------------------------------------------
