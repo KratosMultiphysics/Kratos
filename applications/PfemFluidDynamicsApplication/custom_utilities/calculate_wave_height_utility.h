@@ -5,8 +5,7 @@
 //                   Multi-Physics PfemFluidDynamics Application
 //
 //  License:         BSD License
-//    Kratos default license:
-//  kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
 //                   Miguel Maso Sotomayor
@@ -146,7 +145,7 @@ private:
     /**
      * @brief Calculate the wave height from the nearest node.
      */
-    double CalculateNearest(const array_1d<double,3>& rCoordinates) const;
+    double CalculateNearest(const array_1d<double,3>& rCoordinates, double SearchRadius) const;
 
     /**
      * @brief Find the local element size near the boundary

@@ -77,16 +77,19 @@ CalculateWaveHeightUtility::CalculateWaveHeightUtility(
 
 double CalculateWaveHeightUtility::Calculate(const array_1d<double,3>& rCoordinates) const
 {
-    if (mUseNearestNode) {
-        return CalculateNearest(rCoordinates);
+    // First step: calculating the search radius
+    double search_radius;
+    if (mUseLocalElementSize) {
+        double element_size = FindLocalElementSize(rCoordinates);
+        search_radius = mRelativeRadius * element_size + mAbsoluteRadius;
     } else {
-        double search_radius;
-        if (mUseLocalElementSize) {
-            double element_size = FindLocalElementSize(rCoordinates);
-            search_radius = mRelativeRadius * element_size + mAbsoluteRadius;
-        } else {
-            search_radius = mRelativeRadius * mMeanElementSize + mAbsoluteRadius;
-        }
+        search_radius = mRelativeRadius * mMeanElementSize + mAbsoluteRadius;
+    }
+
+    // Second step: calculating the wave height
+    if (mUseNearestNode) {
+        return CalculateNearest(rCoordinates, search_radius);
+    } else {
         return CalculateAverage(rCoordinates, search_radius);
     }
 }
@@ -129,11 +132,56 @@ double CalculateWaveHeightUtility::CalculateAverage(const array_1d<double,3>& rC
 }
 
 
-double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rCoordinates) const
+double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rCoordinates, double SearchRadius) const
 {
     KRATOS_TRY
 
-    return 0.0;
+    struct CustomReducer{
+        using return_type = double;
+        double distance = 1e16;
+        double wave_height = 0.0;
+
+        return_type GetValue()
+        {
+            return wave_height;
+        }
+
+        void LocalReduce(std::pair<double,double> DistHeight)
+        {
+            if (DistHeight.first < this->distance) {
+                this->distance = DistHeight.first;
+                this->wave_height = DistHeight.second;
+            }
+        }
+
+        void ThreadSafeReduce(CustomReducer& rOther)
+        {
+            #pragma omp critical
+            {
+                if (rOther.distance < this->distance) {
+                    this->distance = rOther.distance;
+                    this->wave_height = rOther.wave_height;
+                }
+            }
+        }
+    };
+
+    return block_for_each<CustomReducer>(mrModelPart.Nodes(), [&](NodeType& rNode) {
+        double distance = 1e16;
+        double wave_height = 0.0;
+        if (rNode.IsNot(ISOLATED) && rNode.IsNot(RIGID) && rNode.Is(FREE_SURFACE))
+        {
+            const array_1d<double,3> relative_position = rNode.Coordinates() - rCoordinates;
+            const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(mDirection, relative_position);
+            distance = norm_2(horizontal_position);
+
+            if (distance < SearchRadius)
+            {
+                wave_height = inner_prod(mDirection, rNode) - mMeanWaterLevel;
+            }
+        }
+        return std::pair<double,double>(distance, wave_height);
+    });
 
     KRATOS_CATCH("")
 }
@@ -141,8 +189,10 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
 
 double CalculateWaveHeightUtility::FindLocalElementSize(const array_1d<double,3>& rCoordinates) const
 {
-    Point::Pointer low_point = Kratos::make_shared<NodeType>(0, rCoordinates + mDirection * (mLowBound - inner_prod(rCoordinates, mDirection)));
-    Point::Pointer top_point = Kratos::make_shared<NodeType>(0, rCoordinates + mDirection * (mTopBound - inner_prod(rCoordinates, mDirection)));
+    // TODO: 1. move tetrahedra-line intersection to intersection utilities
+    // TODO: 2. use intersection utilities and avoid the creation of nodes, use points instead
+    NodeType::Pointer low_point = Kratos::make_intrusive<NodeType>(0, rCoordinates + mDirection * (mLowBound - inner_prod(rCoordinates, mDirection)));
+    NodeType::Pointer top_point = Kratos::make_intrusive<NodeType>(0, rCoordinates + mDirection * (mTopBound - inner_prod(rCoordinates, mDirection)));
     GeometryType::Pointer p_vertical_line;
     if (mrModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3) {
         p_vertical_line = Kratos::make_shared<Line3D2<NodeType>>(low_point, top_point);
