@@ -124,12 +124,35 @@ private:
     array_1d<double,3> mDirection;
     array_1d<double,3> mCoordinates;
     double mMeanWaterLevel;
-    double mSearchRadius;
+    bool mUseLocalElementSize;
+    bool mUseNearestNode;
+    double mRelativeRadius;
+    double mAbsoluteRadius;
+    double mMeanElementSize;
 
     ///@}
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Calculate the averaged wave height from the nearest nodes.
+     */
+    double CalculateAverage(const array_1d<double,3>& rCoordinates, double SearchRadius) const;
+
+    /**
+     * @brief Calculate the wave height from the nearest node.
+     */
+    double CalculateNearest(const array_1d<double,3>& rCoordinates) const;
+
+    /**
+     * @brief Find the local element size near the boundary
+     */
+    double FindLocalElementSize(const array_1d<double,3>& rCoordinates) const;
+
+    /**
+     * @brief Update the search database for the calculation of the local element size
+     */
+    void UpdateSearchDatabase();
 
     ///@}
     ///@name Private  Access
