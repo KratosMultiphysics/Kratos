@@ -33,8 +33,8 @@ void ContactAngleEvaluator::Execute()
 {
     KRATOS_TRY;
 
-    const double theta_advancing = 150.0*PI/180.0;//180.0*PI/180.0;//149.0*PI/180.0;//129.78*PI/
-    const double theta_receding = 150.0*PI/180.0;//0.0*PI/180.0;//115.0*PI/180.0;//129.78*PI/
+    const double theta_advancing = 180.0*PI/180.0;//180.0*PI/180.0;//149.0*PI/180.0;//129.78*PI/
+    const double theta_receding = 0.0*PI/180.0;//0.0*PI/180.0;//115.0*PI/180.0;//129.78*PI/
 
     const unsigned int num_nodes = mrModelPart.NumberOfNodes();
     const unsigned int num_elements = mrModelPart.NumberOfElements();
@@ -211,11 +211,13 @@ void ContactAngleEvaluator::Execute()
         if (it_node_i->GetValue(IS_STRUCTURE) == 1.0 && it_node_i->Coordinates()[2] == 0.0){
 
             auto& node_i_contact_angle = it_node_i->FastGetSolutionStepValue(CONTACT_ANGLE);
+            const double node_i_distance = it_node_i->FastGetSolutionStepValue(DISTANCE);
 
             if (node_i_contact_angle == 0.0){
 
-                double min_dist = 1.0e6;
+                double min_horizontal_dist = 1.0e6;
                 double min_dist_contact_angle;
+                double radius_at_nodej;
 
                 for (unsigned int j = 0; j < num_nodes; ++j) {
 
@@ -223,18 +225,19 @@ void ContactAngleEvaluator::Execute()
                     const double node_j_contact_angle = it_node_j->FastGetSolutionStepValue(CONTACT_ANGLE);
 
                     if (node_j_contact_angle > 1.0e-12){
-
                         const double nodal_dist = norm_2(it_node_i->Coordinates() - it_node_j->Coordinates());
-                        if (nodal_dist < min_dist){
-                            min_dist = nodal_dist;
+                        if (nodal_dist < min_horizontal_dist){
+                            min_horizontal_dist = nodal_dist;
                             min_dist_contact_angle = node_j_contact_angle;
+                            const double node_j_curvature = it_node_j->FastGetSolutionStepValue(CURVATURE);
+                            radius_at_nodej = 2.0*node_j_curvature/(node_j_curvature*node_j_curvature + 1.0e-10);
                         }
 
                     }
 
                 }
 
-                node_i_contact_angle = min_dist_contact_angle;
+                node_i_contact_angle = std::asin( radius_at_nodej*std::sin(min_dist_contact_angle - PI/2.0)/(node_i_distance + radius_at_nodej) ) + PI/2.0; //min_dist_contact_angle;
 
             }
         }
