@@ -463,14 +463,14 @@ void WaveElement<TNumNodes>::AddWaveTerms(
     const auto z = rData.nodal_z;
     const double l = StabilizationParameter(rData);
 
-    const BoundedMatrix<double,3,3> AA11 = prod(rData.A1, rData.A1);
-    const BoundedMatrix<double,3,3> AA22 = prod(rData.A2, rData.A2);
-    const BoundedMatrix<double,3,3> AA12 = prod(rData.A1, rData.A2);
-    const BoundedMatrix<double,3,3> AA21 = prod(rData.A2, rData.A1);
-    const array_1d<double,3> Ab11 = prod(rData.A1, rData.b1);
-    const array_1d<double,3> Ab22 = prod(rData.A2, rData.b2);
-    const array_1d<double,3> Ab12 = prod(rData.A1, rData.b2);
-    const array_1d<double,3> Ab21 = prod(rData.A2, rData.b1);
+    const BoundedMatrix<double,3,3> AA11 = prod(trans(rData.A1), rData.A1);
+    const BoundedMatrix<double,3,3> AA22 = prod(trans(rData.A2), rData.A2);
+    const BoundedMatrix<double,3,3> AA12 = prod(trans(rData.A1), rData.A2);
+    const BoundedMatrix<double,3,3> AA21 = prod(trans(rData.A2), rData.A1);
+    const array_1d<double,3> Ab11 = prod(trans(rData.A1), rData.b1);
+    const array_1d<double,3> Ab22 = prod(trans(rData.A2), rData.b2);
+    const array_1d<double,3> Ab12 = prod(trans(rData.A1), rData.b2);
+    const array_1d<double,3> Ab21 = prod(trans(rData.A2), rData.b1);
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
@@ -538,8 +538,8 @@ void WaveElement<TNumNodes>::AddFrictionTerms(
     this->CalculateArtificialDamping(art_s, rData);
     Sf += art_s;
 
-    BoundedMatrix<double,3,3> ASf1 = prod(rData.A1, Sf);
-    BoundedMatrix<double,3,3> ASf2 = prod(rData.A2, Sf);
+    BoundedMatrix<double,3,3> ASf1 = prod(trans(rData.A1), Sf);
+    BoundedMatrix<double,3,3> ASf2 = prod(trans(rData.A2), Sf);
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
@@ -636,11 +636,11 @@ void WaveElement<TNumNodes>::AddMassTerms(
 
             /// Stabilization x
             const double g1_ij = rDN_DX(i,0) * rN[j];
-            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g1_ij*rData.A1, 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g1_ij*trans(rData.A1), 3*i, 3*j);
 
             /// Stabilization y
             const double g2_ij = rDN_DX(i,1) * rN[j];
-            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*rData.A2, 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*trans(rData.A2), 3*i, 3*j);
         }
     }
 }
