@@ -215,9 +215,11 @@ private:
         //casuistics: Both nodes inside, both nodes outside, one node inside and one outside
         if (rEnds[0].GetSolutionStepValue(DISTANCE) > 0 && rEnds[1].GetSolutionStepValue(DISTANCE) > 0) {
             bool inside = true;
-            if (rPoints.size() == 0) return 1;
             if(Distances.size() % 2 == 1) Distances.pop_back();
-
+            if (Distances.size() == 2) { 
+                return 1;
+            }
+            
             for(int i = 1; i < Distances.size(); i++) {
                 if (inside) {
                     portion += abs(Distances[i]-Distances[i-1])/Length;
@@ -243,8 +245,8 @@ private:
                 } else inside = true;
             }
         } else {    //rEnds[0].GetSolutionStepValue(DISTANCE) < 0 && rEnds[1].GetSolutionStepValue(DISTANCE) < 0
-            if (rPoints.size() == 0) return 0;
             if (Distances.size() % 2 == 1) Distances.pop_back();
+            if (Distances.size() == 2) return 0;
             bool inside = false;
 
             for(int i = 1; i < Distances.size(); i++) {
@@ -254,7 +256,7 @@ private:
                 } else inside = true;             
             }
         }
-        //std::cout << length << std::endl;
+        //std::cout << "edge: " << rEnds[0] << " " << rEnds[1] << "contributed with " << portion << std::endl;  
         return portion;
     }
 

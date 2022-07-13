@@ -125,14 +125,11 @@ namespace Testing {
     {
 
         //Generate the HEXAHEDRA3D8
-        std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1,};   
+        std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
         GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
 
-        std::vector<double> distances2{1, -1, -0.5, -1, 8, -1, -23, 1,};   
-        GeometryPtrType pVoxel2 = GenerateHexahedra3D8(distances2);
-
         //Generate the intersecting triangles
-        std::vector<std::vector<double>> triangle1{{0.5,-1,-0.95},{0.5,-0.95,-1.05},{0.5,-1.05,-1.05}}; //canviar la x per canviar el punt d'interseccio 
+        std::vector<std::vector<double>> triangle1{{0.5,-1,-0.95},{0.5,-0.95,-1.05},{0.5,-1.05,-1.05}};
         std::vector<std::vector<double>> triangle2{{-1,-0.95,0.0},{-0.95,-1.05,0.0},{-1.05,-1.05,0.0}}; 
         std::vector<std::vector<double>> triangle3{{-1,0.0,-0.95},{-0.95,0.0,-1.05},{-1.05,0.0,-1.05}}; 
         std::vector<std::vector<double>> triangle4{{0.5,1,-0.95},{0.5,1.05,-1.05},{0.5,0.95,-1.05}};
@@ -170,7 +167,47 @@ namespace Testing {
         KRATOS_CHECK_NEAR(volume, ExpectedVolume1, 0.001);
         KRATOS_CHECK_NEAR(volume2, ExpectedVolume2, 0.001);
         KRATOS_CHECK_NEAR(volume3, ExpectedVolume3, 0.001);
+    }
 
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortion2, KratosCoreFastSuite) 
+    {
+        //SECOND PART OF THE TEST
+        //Generate the Hexahedra3D8
+        std::vector<double> distances{1, -1, -0.5, -1, 8, -1, -23, 1};   
+        GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
+
+        //Generate the intersecting triangles
+        std::vector<std::vector<double>> triangle1{{0.5,-1,-0.95},{0.5,-0.95,-1.05},{0.5,-1.05,-1.05}};
+        std::vector<std::vector<double>> triangle2{{-1,-0.95,0.0},{-0.95,-1.05,0.0},{-1.05,-1.05,0.0}}; 
+        std::vector<std::vector<double>> triangle3{{-1,0.0,-0.95},{-0.95,0.0,-1.05},{-1.05,0.0,-1.05}}; 
+        std::vector<std::vector<double>> triangle4{{0.5,1,-0.95},{0.5,1.05,-1.05},{0.5,0.95,-1.05}};
+        std::vector<std::vector<double>> triangle5{{-0.5,1,-0.95},{-0.5,1.05,-1.05},{-0.5,0.95,-1.05}};
+        std::vector<std::vector<double>> triangle6{{0,1,-0.95},{0,1.05,-1.05},{0,0.95,-1.05}};
+        std::vector<std::vector<double>> triangle7{{0.5,-1,1.05},{0.5,-0.95,0.95},{0.5,-1.05,0.95}};
+        std::vector<std::vector<double>> triangle8{{1,0.0,-0.95},{1.05,0.0,-1.05},{0.95,0.0,-1.05}}; 
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
+        GeometryPtrType pTriangle3 = GenerateTriangle3D3(triangle3);
+        GeometryPtrType pTriangle4 = GenerateTriangle3D3(triangle4);
+        GeometryPtrType pTriangle5 = GenerateTriangle3D3(triangle5);
+        GeometryPtrType pTriangle6 = GenerateTriangle3D3(triangle6);
+        GeometryPtrType pTriangle7 = GenerateTriangle3D3(triangle7);
+        GeometryPtrType pTriangle8 = GenerateTriangle3D3(triangle8);
+
+        GeometryArrayType array;
+        array.push_back(pTriangle1); 
+        array.push_back(pTriangle2);
+        array.push_back(pTriangle3);
+        array.push_back(pTriangle4); 
+        array.push_back(pTriangle5);
+        array.push_back(pTriangle6);
+        array.push_back(pTriangle7);
+        array.push_back(pTriangle8);
+
+        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array); 
+        const double ExpectedVolume = 0.3542; 
+
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
     }
 
 }  // namespace Testing.
