@@ -392,7 +392,6 @@ def Compute_RHS(functional, testfunc, do_simplifications=False):
     """
     rhs = sympy.Matrix(sympy.zeros(testfunc.shape[0],1))
     for i in range(testfunc.shape[0]):
-        print(i)
         rhs[i] = sympy.diff(functional[0,0], testfunc[i])
 
         if do_simplifications:
