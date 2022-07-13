@@ -774,7 +774,7 @@ namespace Kratos
             CriticalHeadFile << "\t \"PipeData\":\t{\n";
             if (pipingSuccess)
             {
-                CriticalHeadFile << "\t\t \"Success\": \"True\"\n";
+                CriticalHeadFile << "\t\t \"Success\": \"True\",\n";
                 CriticalHeadFile << "\t\t \"CriticalHead\": \"" + std::to_string(criticalHead) + "\"\n";
             }
             else
