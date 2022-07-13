@@ -233,8 +233,9 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     const double dt = rCurrentProcessInfo.GetValue(DELTA_TIME);
     const double scale = rCurrentProcessInfo.GetValue(NODAL_AREA);
 
-    GeometryType::Pointer p_geom = this->pGetGeometry();
-    const double element_size = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
+    const double element_size = ElementSizeCalculator<3,4>::AverageElementSize(this->GetGeometry()); //MinimumElementSize!!?
+    const double tolerance = 1.0e-3*element_size;
+
     //const double he = ElementSizeCalculator<3,4>::AverageElementSize(GetGeometry()); //this->GetValue(ELEMENT_H);
     //const double epsilon = 2.0e3*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
     //KRATOS_INFO("smoothing coefficient:") << epsilon << std::endl;
@@ -561,7 +562,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                     if (normalDist < 1.0){
                         theta = 1.0 - std::max(0.0, std::min( normalDist*normalDist*(3.0 - 2.0*normalDist), 1.0 ));//0.0; for small unpinned hydrophobic droplet //1.0; for pinned droplet
                     } */
-                    const double theta = std::min( std::exp( -( std::abs(distance_i)/element_size - 1.0 ) ), 1.0); //1.0;
+                    const double theta = std::min( std::exp( -( (std::abs(distance_i) + tolerance)/element_size - 1.0 ) ), 1.0); //1.0;
 
                     if (contact_angle_weight > 0.0){
                         minus_cos_contact_angle = -theta*norm_grad_phi_avg_i*std::cos(contact_angle/contact_angle_weight) +

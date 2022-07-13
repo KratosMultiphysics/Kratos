@@ -232,6 +232,9 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     const unsigned int num_faces = num_nodes; //for simplex elements
     const unsigned int num_face_nodes = num_nodes - 1;
 
+    const double element_size = ElementSizeCalculator<3,4>::AverageElementSize(this->GetGeometry()); //MinimumElementSize!!?
+    const double tolerance = 1.0e-3*element_size;
+
     GeometryData::ShapeFunctionsGradientsType DN_DX;
     Matrix N;
     Vector DetJ;
@@ -289,8 +292,6 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
     const double scale = 1.0e0; // For very small (micrometric) elements
 
-    const double element_size = ElementSizeCalculator<3,4>::MinimumElementSize(this->GetGeometry());
-
     const double penalty_phi0 = scale*1.0e6/element_size; // For Nitsche's method we need 1/h
 
     if(mean_curvature > 0.5/element_size)   // Sharp corners
@@ -321,7 +322,6 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
         grad_phi_old = prod(trans(DN_DX[gp]),distances0);
 
-        const double tolerance = 1.0e-3*element_size;
         if (norm_grad_phi_avg > tolerance){
             diffusion = 1.0/norm_grad_phi_avg;
             diffusion_prime_to_s = -1.0/(norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg);
@@ -623,7 +623,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                         if (normalDist < 1.0){
                             theta = 1.0 - std::max(0.0, std::min( normalDist*normalDist*(3.0 - 2.0*normalDist), 1.0 ));//0.0; for small unpinned hydrophobic droplet //1.0; for pinned droplet
                         } */
-                        const double theta = std::min( std::exp( -( std::abs(distance_i)/element_size - 1.0 ) ), 1.0); //1.0;
+                        const double theta = std::min( std::exp( -( (std::abs(distance_i) + tolerance)/element_size - 1.0 ) ), 1.0); //1.0;
 
                         if (contact_angle_weight > 0.0){
                             minus_cos_contact_angle = -theta*norm_grad_phi_avg_i*std::cos(contact_angle/contact_angle_weight) +
