@@ -381,8 +381,11 @@ find_package(Boost)
 
 if(NOT Boost_FOUND)
   # Trying to find in in external libraries
-	set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost")
+  set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost")
   find_package(Boost)
+  if(NOT Boost_FOUND)
+    message(FATAL_ERROR "It was not possible to find Boost in your machine, please define properly BOOST_ROOT if you have not")
+  endif(NOT Boost_FOUND)
 endif(NOT Boost_FOUND)
 
 set(Boost_USE_STATIC_LIBS   OFF)
