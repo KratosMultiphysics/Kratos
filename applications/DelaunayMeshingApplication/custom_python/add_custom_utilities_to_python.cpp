@@ -275,6 +275,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
       .def("SetRefiningBoxMaximumPoint",&MesherUtilities::MeshingParameters::SetRefiningBoxMaximumPoint)
       .def("SetRefiningBoxTimeInterval",&MesherUtilities::MeshingParameters::SetRefiningBoxTimeInterval)
       .def("SetRefiningBoxMeshSize",&MesherUtilities::MeshingParameters::SetRefiningBoxMeshSize)
+      .def("SetUseRefiningBoxList",&MesherUtilities::MeshingParameters::SetUseRefiningBoxList)
+      .def("SetRefiningBoxMinimumPointList",&MesherUtilities::MeshingParameters::SetRefiningBoxMinimumPointList)
+      .def("SetRefiningBoxMinExternalPointList",&MesherUtilities::MeshingParameters::SetRefiningBoxMinExternalPointList)
+      .def("SetRefiningBoxMinInternalPointList",&MesherUtilities::MeshingParameters::SetRefiningBoxMinInternalPointList)
+      .def("SetRefiningBoxMaximumPointList",&MesherUtilities::MeshingParameters::SetRefiningBoxMaximumPointList)
+      .def("SetRefiningBoxMaxExternalPointList",&MesherUtilities::MeshingParameters::SetRefiningBoxMaxExternalPointList)
+      .def("SetRefiningBoxMaxInternalPointList",&MesherUtilities::MeshingParameters::SetRefiningBoxMaxInternalPointList)
+      .def("SetRefiningBoxTimeIntervalList",&MesherUtilities::MeshingParameters::SetRefiningBoxTimeIntervalList)
+      .def("SetRefiningBoxMeshSizeList",&MesherUtilities::MeshingParameters::SetRefiningBoxMeshSizeList)
       ;
 
 }

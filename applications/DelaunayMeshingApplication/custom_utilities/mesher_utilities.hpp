@@ -289,7 +289,7 @@ namespace Kratos
                   int BalancePrincipalSecondaryPartsNodes;
                   unsigned int InsertedBoundaryNodes;
                   unsigned int InsertedBoundaryConditions;
-                  
+
                   unsigned int CriticalElements;
 
                   bool GeometricalSmoothingRequired;
@@ -710,9 +710,17 @@ namespace Kratos
                   array_1d<double, 3> RefiningBoxMaxInternalPoint;
                   array_1d<double, 3> RefiningBoxMaxExternalPoint;
 
+                  std::vector<bool> UseRefiningBoxList;
+                  std::vector<double> RefiningBoxInitialTimeList;
+                  std::vector<double> RefiningBoxFinalTimeList;
+                  std::vector<double> RefiningBoxMeshSizeList;
+                  std::vector<array_1d<double, 3>> RefiningBoxMinimumPointList;
+                  std::vector<array_1d<double, 3>> RefiningBoxMaximumPointList;
+
+                  std::vector<array_1d<double, 3>> RefiningBoxMinInternalPointList;
+                  std::vector<array_1d<double, 3>> RefiningBoxMinExternalPointList;
+                  std::vector<array_1d<double, 3>> RefiningBoxMaxInternalPointList;
                   std::vector<array_1d<double, 3>> RefiningBoxMaxExternalPointList;
-                  std::vector<std::vector<double>> RefiningBoxMaxExternalPointList;
-                  // Mirar 
 
                   void Set(Flags ThisFlag)
                   {
@@ -977,6 +985,75 @@ namespace Kratos
                   void SetRefiningBoxMeshSize(double rRefiningBoxMeshSize)
                   {
                         RefiningBoxMeshSize = rRefiningBoxMeshSize;
+                  };
+
+                  void SetUseRefiningBoxList(unsigned int index,bool rUseRefiningBox)
+                  {
+                        UseRefiningBoxList.resize(index + 1);
+                        UseRefiningBoxList[index] = rUseRefiningBox;
+                  };
+
+                  void SetRefiningBoxMinimumPointList(unsigned int index, double rRefiningBoxMinimumPointX, double rRefiningBoxMinimumPointY, double rRefiningBoxMinimumPointZ)
+                  {
+                        RefiningBoxMinimumPointList.resize(index+1);
+                        RefiningBoxMinimumPointList[index][0] = rRefiningBoxMinimumPointX;
+                        RefiningBoxMinimumPointList[index][1] = rRefiningBoxMinimumPointY;
+                        RefiningBoxMinimumPointList[index][2] = rRefiningBoxMinimumPointZ;
+                  };
+
+                  void SetRefiningBoxMaximumPointList(unsigned int index, double rRefiningBoxMaximumPointX, double rRefiningBoxMaximumPointY, double rRefiningBoxMaximumPointZ)
+                  {
+                        RefiningBoxMaximumPointList.resize(index + 1);
+                        RefiningBoxMaximumPointList[index][0] = rRefiningBoxMaximumPointX;
+                        RefiningBoxMaximumPointList[index][1] = rRefiningBoxMaximumPointY;
+                        RefiningBoxMaximumPointList[index][2] = rRefiningBoxMaximumPointZ;
+                  };
+
+                  void SetRefiningBoxMinExternalPointList(unsigned int index, double rPointX, double rPointY, double rPointZ)
+                  {
+                        RefiningBoxMinExternalPointList.resize(index + 1);
+                        RefiningBoxMinExternalPointList[index][0] = rPointX;
+                        RefiningBoxMinExternalPointList[index][1] = rPointY;
+                        RefiningBoxMinExternalPointList[index][2] = rPointZ;
+                  };
+
+                  void SetRefiningBoxMinInternalPointList(unsigned int index, double rPointX, double rPointY, double rPointZ)
+                  {
+                        RefiningBoxMinInternalPointList.resize(index + 1);
+                        RefiningBoxMinInternalPointList[index][0] = rPointX;
+                        RefiningBoxMinInternalPointList[index][1] = rPointY;
+                        RefiningBoxMinInternalPointList[index][2] = rPointZ;
+                  };
+
+                  void SetRefiningBoxMaxExternalPointList(unsigned int index, double rPointX, double rPointY, double rPointZ)
+                  {
+                        RefiningBoxMaxExternalPointList.resize(index + 1);
+                        RefiningBoxMaxExternalPointList[index][0] = rPointX;
+                        RefiningBoxMaxExternalPointList[index][1] = rPointY;
+                        RefiningBoxMaxExternalPointList[index][2] = rPointZ;
+                  };
+
+                  void SetRefiningBoxMaxInternalPointList(unsigned int index, double rPointX, double rPointY, double rPointZ)
+                  {
+                        RefiningBoxMaxInternalPointList.resize(index + 1);
+                        RefiningBoxMaxInternalPointList[index][0] = rPointX;
+                        RefiningBoxMaxInternalPointList[index][1] = rPointY;
+                        RefiningBoxMaxInternalPointList[index][2] = rPointZ;
+                        KRATOS_WATCH(RefiningBoxMaxInternalPointList);
+                  };
+
+                  void SetRefiningBoxTimeIntervalList(unsigned int index, double rRefiningBoxInitialTime, double rRefiningBoxFinalTime)
+                  {
+                        RefiningBoxInitialTimeList.resize(index + 1);
+                        RefiningBoxFinalTimeList.resize(index + 1);
+                        RefiningBoxInitialTimeList[index] = rRefiningBoxInitialTime;
+                        RefiningBoxFinalTimeList[index] = rRefiningBoxFinalTime;
+                  };
+
+                  void SetRefiningBoxMeshSizeList(unsigned int index, double rRefiningBoxMeshSize)
+                  {
+                        RefiningBoxMeshSizeList.resize(index + 1);
+                        RefiningBoxMeshSizeList[index] = rRefiningBoxMeshSize;
                   };
             };
 

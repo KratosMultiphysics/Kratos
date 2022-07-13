@@ -26,12 +26,12 @@
 #include "geometries/tetrahedra_3d_10.h"
 #include "custom_processes/mesher_process.hpp"
 
-///VARIABLES used:
-//Data:
-//Flags:    (checked) TO_ERASE, BOUNDARY, NEW_ENTITY
-//          (set)
-//          (modified)
-//          (reset)
+/// VARIABLES used:
+// Data:
+// Flags:    (checked) TO_ERASE, BOUNDARY, NEW_ENTITY
+//           (set)
+//           (modified)
+//           (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -217,8 +217,8 @@ namespace Kratos
                             noremesh = true;
                         }
 
-                        previouslyFreeSurfaceNodes += vertices.back().FastGetSolutionStepValue(FREESURFACE);       //it is 1 if it was free-surface (set in build_mesh_boundary_for_fluids)
-                        previouslyIsolatedNodes += vertices.back().FastGetSolutionStepValue(PREVIOUS_FREESURFACE); //it is 1 if it was isolated (set in build_mesh_boundary_for_fluids)
+                        previouslyFreeSurfaceNodes += vertices.back().FastGetSolutionStepValue(FREESURFACE);       // it is 1 if it was free-surface (set in build_mesh_boundary_for_fluids)
+                        previouslyIsolatedNodes += vertices.back().FastGetSolutionStepValue(PREVIOUS_FREESURFACE); // it is 1 if it was isolated (set in build_mesh_boundary_for_fluids)
 
                         if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID))
                         {
@@ -263,11 +263,13 @@ namespace Kratos
                         {
                             if (dimension == 2)
                             {
-                                SetAlphaForRefinedZones2D(MeanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y());
+                                //SetAlphaForRefinedZones2D(MeanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y());
+                                SetAlphaForRefinedZonesList2D(MeanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y());
                             }
                             else if (dimension == 3)
                             {
-                                SetAlphaForRefinedZones3D(MeanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y(), vertices.back().Z());
+                                //SetAlphaForRefinedZones3D(MeanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y(), vertices.back().Z());
+                                SetAlphaForRefinedZonesList3D(MeanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y(), vertices.back().Z());
                             }
                         }
                         if (dimension == 3)
@@ -477,27 +479,27 @@ namespace Kratos
                         Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
                         double Volume = tetrahedron->Volume();
 
-                        double a1 = 0; //slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-                        double b1 = 0; //slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-                        double c1 = 0; //slope z for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+                        double a1 = 0; // slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+                        double b1 = 0; // slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+                        double c1 = 0; // slope z for plane on the first triangular face of the tetrahedra (nodes A,B,C)
                         a1 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[2][2] - nodesCoordinates[0][2]) - (nodesCoordinates[2][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
                         b1 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[2][0] - nodesCoordinates[0][0]) - (nodesCoordinates[2][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
                         c1 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[2][1] - nodesCoordinates[0][1]) - (nodesCoordinates[2][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
-                        double a2 = 0; //slope x for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-                        double b2 = 0; //slope y for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-                        double c2 = 0; //slope z for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+                        double a2 = 0; // slope x for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+                        double b2 = 0; // slope y for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+                        double c2 = 0; // slope z for plane on the second triangular face of the tetrahedra (nodes A,B,D)
                         a2 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[3][2] - nodesCoordinates[0][2]) - (nodesCoordinates[3][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
                         b2 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[3][0] - nodesCoordinates[0][0]) - (nodesCoordinates[3][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
                         c2 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[3][1] - nodesCoordinates[0][1]) - (nodesCoordinates[3][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
-                        double a3 = 0; //slope x for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-                        double b3 = 0; //slope y for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-                        double c3 = 0; //slope z for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+                        double a3 = 0; // slope x for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+                        double b3 = 0; // slope y for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+                        double c3 = 0; // slope z for plane on the third triangular face of the tetrahedra (nodes B,C,D)
                         a3 = (nodesCoordinates[1][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[1][2] - nodesCoordinates[2][2]);
                         b3 = (nodesCoordinates[1][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[1][0] - nodesCoordinates[2][0]);
                         c3 = (nodesCoordinates[1][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[1][1] - nodesCoordinates[2][1]);
-                        double a4 = 0; //slope x for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-                        double b4 = 0; //slope y for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-                        double c4 = 0; //slope z for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+                        double a4 = 0; // slope x for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+                        double b4 = 0; // slope y for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+                        double c4 = 0; // slope z for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
                         a4 = (nodesCoordinates[0][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[0][2] - nodesCoordinates[2][2]);
                         b4 = (nodesCoordinates[0][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[0][0] - nodesCoordinates[2][0]);
                         c4 = (nodesCoordinates[0][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[0][1] - nodesCoordinates[2][1]);
@@ -608,14 +610,14 @@ namespace Kratos
 
                 ModelPart::NodesContainerType &rNodes = mrModelPart.Nodes();
 
-                //check engaged nodes
+                // check engaged nodes
                 for (int el = 0; el < OutNumberOfElements; el++)
                 {
                     if (mrRemesh.PreservedElements[el])
                     {
                         for (unsigned int pn = 0; pn < nds; pn++)
                         {
-                            //set vertices
+                            // set vertices
                             rNodes[OutElementList[el * nds + pn]].Set(BLOCKED);
                         }
                     }
@@ -735,6 +737,130 @@ namespace Kratos
         ///@}
         ///@name Un accessible methods
         ///@{
+        void SetAlphaForRefinedZonesList2D(double &MeanMeshSize, bool &increaseAlfa, double coorX, double coorY)
+        {
+
+            KRATOS_TRY
+            const unsigned int numberOfRefiningBoxes = mrRemesh.UseRefiningBoxList.size();
+            for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
+            {
+                array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPointList[index];
+                array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPointList[index];
+                array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPointList[index];
+                array_1d<double, 3> minInternalPoint = mrRemesh.RefiningBoxMinInternalPointList[index];
+                array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPointList[index];
+                array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPointList[index];
+                double distance = 2.0 * mrRemesh.Refine->CriticalRadius;
+                double seperation = 0;
+                double coefficient = 0;
+                if (coorX > RefiningBoxMinimumPoint[0] && coorY > RefiningBoxMinimumPoint[1] &&
+                    coorX < RefiningBoxMaximumPoint[0] && coorY < RefiningBoxMaximumPoint[1])
+                {
+                    MeanMeshSize = mrRemesh.RefiningBoxMeshSizeList[index];
+                }
+                else if (coorX < RefiningBoxMinimumPoint[0] && coorX > (minExternalPoint[0] - distance) && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1])
+                {
+                    seperation = coorX - RefiningBoxMinimumPoint[0];
+                    coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                    MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSizeList[index] + coefficient * mrRemesh.Refine->CriticalRadius;
+                    increaseAlfa = true;
+                }
+                else if (coorY < RefiningBoxMinimumPoint[1] && coorY > (minExternalPoint[1] - distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0])
+                {
+                    seperation = coorY - RefiningBoxMinimumPoint[1];
+                    coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                    MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSizeList[index] + coefficient * mrRemesh.Refine->CriticalRadius;
+                    increaseAlfa = true;
+                }
+                else if (coorX > RefiningBoxMaximumPoint[0] && coorX < (maxExternalPoint[0] + distance) && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1])
+                {
+                    seperation = coorX - RefiningBoxMaximumPoint[0];
+                    coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                    MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSizeList[index] + coefficient * mrRemesh.Refine->CriticalRadius;
+                    increaseAlfa = true;
+                }
+                else if (coorY > RefiningBoxMaximumPoint[1] && coorY < (maxExternalPoint[1] + distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0])
+                {
+                    seperation = coorY - RefiningBoxMaximumPoint[1];
+                    coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                    MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSizeList[index] + coefficient * mrRemesh.Refine->CriticalRadius;
+                    increaseAlfa = true;
+                }
+            }
+
+            KRATOS_CATCH("")
+        }
+
+        void SetAlphaForRefinedZonesList3D(double &MeanMeshSize, bool &increaseAlfa, double coorX, double coorY, double coorZ)
+        {
+
+            KRATOS_TRY
+            const unsigned int numberOfRefiningBoxes = mrRemesh.UseRefiningBoxList.size();
+            for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
+            {
+                array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPointList[index];
+                array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPointList[index];
+                array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPointList[index];
+                array_1d<double, 3> minInternalPoint = mrRemesh.RefiningBoxMinInternalPointList[index];
+                array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPointList[index];
+                array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPointList[index];
+                double distance = 2.0 * mrRemesh.Refine->CriticalRadius;
+                double seperation = 0;
+                double coefficient = 0;
+
+                if (coorX > RefiningBoxMinimumPoint[0] && coorX < RefiningBoxMaximumPoint[0] &&
+                    coorY > RefiningBoxMinimumPoint[1] && coorY < RefiningBoxMaximumPoint[1] &&
+                    coorZ > RefiningBoxMinimumPoint[2] && coorZ < RefiningBoxMaximumPoint[2])
+                {
+                    MeanMeshSize = mrRemesh.RefiningBoxMeshSizeList[index];
+                }
+                else if (coorX < RefiningBoxMinimumPoint[0] && coorX > (minExternalPoint[0] - distance) && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1] && coorZ > minExternalPoint[2] && coorZ < maxExternalPoint[2])
+                {
+                    seperation = coorX - RefiningBoxMinimumPoint[0];
+                    coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                    MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSizeList[index] + coefficient * mrRemesh.Refine->CriticalRadius;
+                    increaseAlfa = true;
+                }
+                else if (coorY < RefiningBoxMinimumPoint[1] && coorY > (minExternalPoint[1] - distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0] && coorZ > minExternalPoint[2] && coorZ < maxExternalPoint[2])
+                {
+                    seperation = coorY - RefiningBoxMinimumPoint[1];
+                    coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                    MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSizeList[index] + coefficient * mrRemesh.Refine->CriticalRadius;
+                    increaseAlfa = true;
+                }
+                else if (coorZ < RefiningBoxMinimumPoint[2] && coorZ > (minExternalPoint[2] - distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0] && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1])
+                {
+                    seperation = coorZ - RefiningBoxMinimumPoint[2];
+                    coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                    MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSizeList[index] + coefficient * mrRemesh.Refine->CriticalRadius;
+                    increaseAlfa = true;
+                }
+                else if (coorX > RefiningBoxMaximumPoint[0] && coorX < (maxExternalPoint[0] + distance) && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1] && coorZ > minExternalPoint[2] && coorZ < maxExternalPoint[2])
+                {
+                    seperation = coorX - RefiningBoxMaximumPoint[0];
+                    coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                    MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSizeList[index] + coefficient * mrRemesh.Refine->CriticalRadius;
+                    increaseAlfa = true;
+                }
+                else if (coorY > RefiningBoxMaximumPoint[1] && coorY < (maxExternalPoint[1] + distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0] && coorZ > minExternalPoint[2] && coorZ < maxExternalPoint[2])
+                {
+                    seperation = coorY - RefiningBoxMaximumPoint[1];
+                    coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                    MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSizeList[index] + coefficient * mrRemesh.Refine->CriticalRadius;
+                    increaseAlfa = true;
+                }
+                else if (coorZ > RefiningBoxMaximumPoint[2] && coorZ < (maxExternalPoint[2] + distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0] && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1])
+                {
+                    seperation = coorZ - RefiningBoxMaximumPoint[2];
+                    coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                    MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSizeList[index] + coefficient * mrRemesh.Refine->CriticalRadius;
+                    increaseAlfa = true;
+                }
+            }
+
+            KRATOS_CATCH("")
+        }
+
         void SetAlphaForRefinedZones2D(double &MeanMeshSize, bool &increaseAlfa, double coorX, double coorY)
         {
 
@@ -903,7 +1029,7 @@ namespace Kratos
         /// this function is a private function
 
         /// Copy constructor.
-        //Process(Process const& rOther);
+        // Process(Process const& rOther);
 
         ///@}
 
