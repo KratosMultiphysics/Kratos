@@ -355,7 +355,7 @@ namespace Kratos
 
     SphericParticle::StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceDamping, sliding);
 
-    if (!mStoreContactParam)
+    if (!mStoreContactParam || !mIsTimeToSolve)
       return;
 
     // Increment number of contact particle neighbors
@@ -387,7 +387,7 @@ namespace Kratos
     params.local_force_total   = LocalForceTotal;
     params.local_force_damping = LocalForceDamping;
     
-    if (r_process_info[DIRECT_CONDUCTION_OPTION]) { // only when collisional conduction model is used
+    if (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0) {
       // Keep impact parameters if contact is not new
       if (mContactParamsParticle.count(neighbor)) {
         params.impact_time     = mContactParamsParticle[neighbor].impact_time;
@@ -417,7 +417,7 @@ namespace Kratos
 
     SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, neighbor, GlobalContactForceTotal, LocalContactForceDamping, sliding);
 
-    if (!mStoreContactParam)
+    if (!mStoreContactParam || !mIsTimeToSolve)
       return;
 
     // Local components of relavive velocity (normal and tangential)
@@ -445,7 +445,7 @@ namespace Kratos
     params.local_force_total   = LocalForceTotal;
     params.local_force_damping = LocalForceDamping;
 
-    if (r_process_info[DIRECT_CONDUCTION_OPTION]) { // only when collisional conduction model is used
+    if (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0) {
       // Keep impact parameters if contact is not new
       if (mContactParamsWall.count(neighbor)) {
         params.impact_time = mContactParamsWall[neighbor].impact_time;
@@ -486,18 +486,21 @@ namespace Kratos
     if (mHasMotion)
       SphericParticle::FinalizeSolutionStep(r_process_info);
 
-    // Remove non-contacting neighbors from maps of contact parameters
-    if (mStoreContactParam)
-      CleanContactParameters(r_process_info);
+    if (mIsTimeToSolve) {
+      // Remove non-contacting neighbors from maps of contact parameters
+      if (mStoreContactParam) {
+        CleanContactParameters(r_process_info);
+      }
 
-    // Update temperature dependent radius 
-    if (mIsTimeToSolve && mHasVariableRadius) {
-      UpdateTemperatureDependentRadius(r_process_info);
+      // Update temperature dependent radius
+      if (mHasVariableRadius) {
+        UpdateTemperatureDependentRadius(r_process_info);
 
-      // Update search distance
-      double added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
-      ComputeAddedSearchDistance(r_process_info, added_search_distance);
-      SetSearchRadius(GetRadius() + added_search_distance);
+        // Update search distance
+        double added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
+        ComputeAddedSearchDistance(r_process_info, added_search_distance);
+        SetSearchRadius(GetRadius() + added_search_distance);
+      }
     }
 
     KRATOS_CATCH("")
