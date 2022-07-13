@@ -991,13 +991,13 @@ bool GeometryTesterUtility::VerifyShapeFunctionsSecondDerivativesValues(
     }
 
 
-    for ( unsigned int i = 0; i < rGeometry.size(); ++i ) H[i].resize(dim, dim, false);
+    for ( unsigned int i = 0; i < rGeometry.size(); i++ ) H[i].resize(dim, dim, false);
 
     for (unsigned int i = 0; i<dim;i++){
         for (unsigned int j = 0; j<dim;j++){
-            ei = ZeroVector(dim);
+            ei = ZeroVector(3);
             ei[i] = 1.0;
-            ej = ZeroVector(dim);
+            ej = ZeroVector(3);
             ej[j] = 1.0;
             std::transform(ei.begin(), ei.end(), ei.begin(), [delta](double &c){ return c*delta; });
             std::transform(ej.begin(), ej.end(), ej.begin(), [delta](double &c){ return c*delta; });
