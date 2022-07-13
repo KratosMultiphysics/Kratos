@@ -74,7 +74,7 @@ namespace Kratos {
     if (mGraph_ParticleHeatFluxContributions) {
       mFile_ParticleHeatFluxContributions.open("graph_flux_contributions.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleHeatFluxContributions) << "Could not open graph file for heat flux contributions!" << std::endl;
-      mFile_ParticleHeatFluxContributions << "TIME STEP | TIME | DIRECT CONDUCTION | INDIRECT CONDUCTION | RADIATION | FRICTION | CONVECTION | SURFACE PRESCRIBED | VOLUME PRESCRIBED" << std::endl;
+      mFile_ParticleHeatFluxContributions << "TIME STEP | TIME | DIRECT CONDUCTION | INDIRECT CONDUCTION | RADIATION | GENERATION | CONVECTION | SURFACE PRESCRIBED | VOLUME PRESCRIBED" << std::endl;
     }
 
     KRATOS_CATCH("")
@@ -101,7 +101,7 @@ namespace Kratos {
     double    particle_flux_conducdir_ratio_avg   =  0.0;
     double    particle_flux_conducindir_ratio_avg =  0.0;
     double    particle_flux_rad_ratio_avg         =  0.0;
-    double    particle_flux_fric_ratio_avg        =  0.0;
+    double    particle_flux_gen_ratio_avg         =  0.0;
     double    particle_flux_conv_ratio_avg        =  0.0;
     double    particle_flux_prescsurf_ratio_avg   =  0.0;
     double    particle_flux_prescvol_ratio_avg    =  0.0;
@@ -129,11 +129,11 @@ namespace Kratos {
         const double flux_conducdir   = fabs(particle.mConductionDirectHeatFlux);
         const double flux_conducindir = fabs(particle.mConductionIndirectHeatFlux);
         const double flux_rad         = fabs(particle.mRadiationHeatFlux);
-        const double flux_fric        = fabs(particle.mFrictionHeatFlux);
+        const double flux_gen         = fabs(particle.mGenerationHeatFlux);
         const double flux_conv        = fabs(particle.mConvectionHeatFlux);
         const double flux_prescsurf   = fabs(particle.mPrescribedHeatFluxSurface);
         const double flux_prescvol    = fabs(particle.mPrescribedHeatFluxVolume);
-        const double flux_total       = flux_conducdir + flux_conducindir + flux_rad + flux_fric + flux_conv + flux_prescsurf + flux_prescvol;
+        const double flux_total       = flux_conducdir + flux_conducindir + flux_rad + flux_gen + flux_conv + flux_prescsurf + flux_prescvol;
 
         // Compute relative contribution of each heat transfer mechanism for current particle
         if (flux_total != 0.0) {
@@ -143,7 +143,7 @@ namespace Kratos {
             particle_flux_conducdir_ratio_avg   += flux_conducdir   / flux_total;
             particle_flux_conducindir_ratio_avg += flux_conducindir / flux_total;
             particle_flux_rad_ratio_avg         += flux_rad         / flux_total;
-            particle_flux_fric_ratio_avg        += flux_fric        / flux_total;
+            particle_flux_gen_ratio_avg         += flux_gen         / flux_total;
             particle_flux_conv_ratio_avg        += flux_conv        / flux_total;
             particle_flux_prescsurf_ratio_avg   += flux_prescsurf   / flux_total;
             particle_flux_prescvol_ratio_avg    += flux_prescvol    / flux_total;
@@ -162,7 +162,7 @@ namespace Kratos {
       particle_flux_conducdir_ratio_avg   /= num_ratio_particles;
       particle_flux_conducindir_ratio_avg /= num_ratio_particles;
       particle_flux_rad_ratio_avg         /= num_ratio_particles;
-      particle_flux_fric_ratio_avg        /= num_ratio_particles;
+      particle_flux_gen_ratio_avg         /= num_ratio_particles;
       particle_flux_conv_ratio_avg        /= num_ratio_particles;
       particle_flux_prescsurf_ratio_avg   /= num_ratio_particles;
       particle_flux_prescvol_ratio_avg    /= num_ratio_particles;
@@ -183,7 +183,7 @@ namespace Kratos {
     if (mFile_ModelTempAvg.is_open())
       mFile_ModelTempAvg << time_step << " " << time << " " << model_temp_avg << std::endl;
     if (mFile_ParticleHeatFluxContributions.is_open())
-      mFile_ParticleHeatFluxContributions << time_step << " " << time << " " << particle_flux_conducdir_ratio_avg << " " << particle_flux_conducindir_ratio_avg << " " << particle_flux_rad_ratio_avg << " " << particle_flux_fric_ratio_avg << " " << particle_flux_conv_ratio_avg << " " << particle_flux_prescsurf_ratio_avg << " " << particle_flux_prescvol_ratio_avg << std::endl;
+      mFile_ParticleHeatFluxContributions << time_step << " " << time << " " << particle_flux_conducdir_ratio_avg << " " << particle_flux_conducindir_ratio_avg << " " << particle_flux_rad_ratio_avg << " " << particle_flux_gen_ratio_avg << " " << particle_flux_conv_ratio_avg << " " << particle_flux_prescsurf_ratio_avg << " " << particle_flux_prescvol_ratio_avg << std::endl;
 
     KRATOS_CATCH("")
   }

@@ -124,7 +124,7 @@ namespace Kratos
       HeatExchangeMechanism&       GetIndirectConductionModel    (void);
       HeatExchangeMechanism&       GetConvectionModel            (void);
       HeatExchangeMechanism&       GetRadiationModel             (void);
-      HeatGenerationMechanism&     GetFrictionModel              (void);
+      HeatGenerationMechanism&     GetGenerationModel            (void);
       RealContactModel&            GetRealContactModel           (void);
 
       double GetYoung   (void) override;
@@ -181,7 +181,7 @@ namespace Kratos
       void               SetIndirectConductionModel           (HeatExchangeMechanism::Pointer& model);
       void               SetConvectionModel                   (HeatExchangeMechanism::Pointer& model);
       void               SetRadiationModel                    (HeatExchangeMechanism::Pointer& model);
-      void               SetFrictionModel                     (HeatGenerationMechanism::Pointer& model);
+      void               SetGenerationModel                   (HeatGenerationMechanism::Pointer& model);
       void               SetRealContactModel                  (RealContactModel::Pointer& model);
       void               SetParticleTemperature               (const double temperature);
       void               SetParticleHeatFlux                  (const double heat_flux);
@@ -199,7 +199,7 @@ namespace Kratos
       HeatExchangeMechanism*       mpIndirectConductionModel;
       HeatExchangeMechanism*       mpConvectionModel;
       HeatExchangeMechanism*       mpRadiationModel;
-      HeatGenerationMechanism*     mpFrictionModel;
+      HeatGenerationMechanism*     mpGenerationModel;
       RealContactModel*            mpRealContactModel;
 
       // General properties
@@ -215,7 +215,7 @@ namespace Kratos
       double mConductionDirectHeatFlux;
       double mConductionIndirectHeatFlux;
       double mRadiationHeatFlux;
-      double mFrictionHeatFlux;
+      double mGenerationHeatFlux;
       double mConvectionHeatFlux;
       double mPrescribedHeatFluxSurface;
       double mPrescribedHeatFluxVolume;

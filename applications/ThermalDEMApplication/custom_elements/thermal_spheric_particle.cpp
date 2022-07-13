@@ -32,7 +32,7 @@ namespace Kratos
     mpIndirectConductionModel    = NULL;
     mpConvectionModel            = NULL;
     mpRadiationModel             = NULL;
-    mpFrictionModel              = NULL;
+    mpGenerationModel            = NULL;
     mpRealContactModel           = NULL;
   }
 
@@ -43,7 +43,7 @@ namespace Kratos
     mpIndirectConductionModel    = NULL;
     mpConvectionModel            = NULL;
     mpRadiationModel             = NULL;
-    mpFrictionModel              = NULL;
+    mpGenerationModel            = NULL;
     mpRealContactModel           = NULL;
   }
 
@@ -54,7 +54,7 @@ namespace Kratos
     mpIndirectConductionModel    = NULL;
     mpConvectionModel            = NULL;
     mpRadiationModel             = NULL;
-    mpFrictionModel              = NULL;
+    mpGenerationModel            = NULL;
     mpRealContactModel           = NULL;
   }
 
@@ -65,7 +65,7 @@ namespace Kratos
     mpIndirectConductionModel    = NULL;
     mpConvectionModel            = NULL;
     mpRadiationModel             = NULL;
-    mpFrictionModel              = NULL;
+    mpGenerationModel            = NULL;
     mpRealContactModel           = NULL;
   }
 
@@ -98,9 +98,9 @@ namespace Kratos
       delete mpRadiationModel;
       mpRadiationModel = NULL;
     }
-    if (mpFrictionModel != NULL) {
-      delete mpFrictionModel;
-      mpFrictionModel = NULL;
+    if (mpGenerationModel != NULL) {
+      delete mpGenerationModel;
+      mpGenerationModel = NULL;
     }
     if (mpRealContactModel != NULL) {
       delete mpRealContactModel;
@@ -136,7 +136,7 @@ namespace Kratos
     HeatExchangeMechanism::Pointer&       indirect_conduction_model    = GetProperties()[INDIRECT_CONDUCTION_MODEL_POINTER];
     HeatExchangeMechanism::Pointer&       convection_model             = GetProperties()[CONVECTION_MODEL_POINTER];
     HeatExchangeMechanism::Pointer&       radiation_model              = GetProperties()[RADIATION_MODEL_POINTER];
-    HeatGenerationMechanism::Pointer&     friction_model               = GetProperties()[FRICTION_MODEL_POINTER];
+    HeatGenerationMechanism::Pointer&     generation_model             = GetProperties()[GENERATION_MODEL_POINTER];
     RealContactModel::Pointer&            real_contact_model           = GetProperties()[REAL_CONTACT_MODEL_POINTER];
 
     SetThermalIntegrationScheme(thermal_integration_scheme);
@@ -145,12 +145,12 @@ namespace Kratos
     SetIndirectConductionModel(indirect_conduction_model);
     SetConvectionModel(convection_model);
     SetRadiationModel(radiation_model);
-    SetFrictionModel(friction_model);
+    SetGenerationModel(generation_model);
     SetRealContactModel(real_contact_model);
 
     // Set flag to store contact parameters during mechanical loop over neighbors
     mStoreContactParam = mHasMotion &&
-                        (r_process_info[FRICTION_HEAT_OPTION]  ||
+                        (r_process_info[HEAT_GENERATION_OPTION]  ||
                         (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0));    
 
     // Clear maps
@@ -194,7 +194,7 @@ namespace Kratos
     mConductionDirectHeatFlux   = 0.0;
     mConductionIndirectHeatFlux = 0.0;
     mRadiationHeatFlux          = 0.0;
-    mFrictionHeatFlux           = 0.0;
+    mGenerationHeatFlux         = 0.0;
     mConvectionHeatFlux         = 0.0;
     mPrescribedHeatFlux         = 0.0;
     mTotalHeatFlux              = 0.0;
@@ -289,7 +289,7 @@ namespace Kratos
       mPrescribedHeatFlux += mPrescribedHeatFluxVolume * GetParticleVolume();
 
     // Sum up heat fluxes contributions
-    mTotalHeatFlux = mConductionDirectHeatFlux + mConductionIndirectHeatFlux + mRadiationHeatFlux + mFrictionHeatFlux + mConvectionHeatFlux + mPrescribedHeatFlux;
+    mTotalHeatFlux = mConductionDirectHeatFlux + mConductionIndirectHeatFlux + mRadiationHeatFlux + mGenerationHeatFlux + mConvectionHeatFlux + mPrescribedHeatFlux;
     SetParticleHeatFlux(mTotalHeatFlux);
 
     KRATOS_CATCH("")
@@ -316,8 +316,8 @@ namespace Kratos
     if (r_process_info[RADIATION_OPTION])
       mRadiationHeatFlux += GetRadiationModel().ComputeHeatFlux(r_process_info, this);
 
-    if (r_process_info[FRICTION_HEAT_OPTION] && mHasMotion)
-      mFrictionHeatFlux += GetFrictionModel().ComputeHeatGeneration(r_process_info, this);
+    if (r_process_info[HEAT_GENERATION_OPTION] && mHasMotion)
+      mGenerationHeatFlux += GetGenerationModel().ComputeHeatGeneration(r_process_info, this);
 
     KRATOS_CATCH("")
   }
@@ -992,8 +992,8 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  HeatGenerationMechanism& ThermalSphericParticle::GetFrictionModel(void) {
-    return *mpFrictionModel;
+  HeatGenerationMechanism& ThermalSphericParticle::GetGenerationModel(void) {
+    return *mpGenerationModel;
   }
 
   //------------------------------------------------------------------------------------------------------------
@@ -1412,8 +1412,8 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::SetFrictionModel(HeatGenerationMechanism::Pointer& model) {
-    mpFrictionModel = model->CloneRaw();
+  void ThermalSphericParticle::SetGenerationModel(HeatGenerationMechanism::Pointer& model) {
+    mpGenerationModel = model->CloneRaw();
   }
 
   //------------------------------------------------------------------------------------------------------------
