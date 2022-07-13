@@ -999,14 +999,14 @@ bool GeometryTesterUtility::VerifyShapeFunctionsSecondDerivativesValues(
             ei[i] = 1.0;
             ej = ZeroVector(3);
             ej[j] = 1.0;
-            std::transform(ei.begin(), ei.end(), ei.begin(), [delta](double &c){ return c*delta; });
-            std::transform(ej.begin(), ej.end(), ej.begin(), [delta](double &c){ return c*delta; });
+            std::transform(ei.begin(), ei.end(), ei.begin(), [delta](double c){ return c*delta; });
+            std::transform(ej.begin(), ej.end(), ej.begin(), [delta](double c){ return c*delta; });
             rGeometry.ShapeFunctionsValues(f_1,local_coordinates + ei + ej);
             rGeometry.ShapeFunctionsValues(f_2,local_coordinates + ei - ej);
             rGeometry.ShapeFunctionsValues(f_3,local_coordinates - ei + ej);
             rGeometry.ShapeFunctionsValues(f_4,local_coordinates - ei - ej);
             f = f_1-f_2-f_3+f_4;
-            std::transform(f.begin(), f.end(), f.begin(), [delta](double &c){ return c/(4.0*std::pow(delta,2)); });
+            std::transform(f.begin(), f.end(), f.begin(), [delta](double c){ return c/(4.0*std::pow(delta,2)); });
             for (unsigned int k = 0; k<rGeometry.size();k++){
                 H[k](i,j) = f[k];
             }
