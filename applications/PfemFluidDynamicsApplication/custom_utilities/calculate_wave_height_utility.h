@@ -49,6 +49,8 @@ public:
 
     typedef Node<3> NodeType;
 
+    typedef Geometry<NodeType> GeometryType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -129,6 +131,8 @@ private:
     double mRelativeRadius;
     double mAbsoluteRadius;
     double mMeanElementSize;
+    double mLowBound;
+    double mTopBound;
 
     ///@}
     ///@name Private Operations
@@ -148,11 +152,6 @@ private:
      * @brief Find the local element size near the boundary
      */
     double FindLocalElementSize(const array_1d<double,3>& rCoordinates) const;
-
-    /**
-     * @brief Update the search database for the calculation of the local element size
-     */
-    void UpdateSearchDatabase();
 
     ///@}
     ///@name Private  Access

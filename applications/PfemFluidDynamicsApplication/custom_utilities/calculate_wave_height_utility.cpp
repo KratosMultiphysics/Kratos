@@ -21,6 +21,10 @@
 #include "utilities/math_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/line_3d_2.h"
+
+// Application utilities
 #include "calculate_wave_height_utility.h"
 
 
@@ -50,11 +54,24 @@ CalculateWaveHeightUtility::CalculateWaveHeightUtility(
     mMeanWaterLevel = ThisParameters["mean_water_level"].GetDouble();
     mAbsoluteRadius = ThisParameters["search_tolerance"].GetDouble();
     mRelativeRadius = ThisParameters["relative_search_radius"].GetDouble();
-    double elem_size_sum = block_for_each<SumReduction<double>>(
+
+    // The average element size is an initial guess for computing the average height or to finding the closest node
+    mMeanElementSize = block_for_each<SumReduction<double>>(
         mrModelPart.Elements(), [](Element& rElement) {
         return rElement.GetGeometry().Length();
     });
-    mMeanElementSize = elem_size_sum / mrModelPart.NumberOfElements();
+    mMeanElementSize /= mrModelPart.NumberOfElements();
+
+    // The top and low bounds will be used to find the local element size
+    using MinMaxReduction = CombinedReduction<MinReduction<double>,MaxReduction<double>>; 
+
+    std::tie(mLowBound, mTopBound) = block_for_each<MinMaxReduction>(mrModelPart.Nodes(), [&](NodeType& rNode){
+        double vertical_position = inner_prod(mDirection, rNode.Coordinates());
+        return std::make_tuple(vertical_position, vertical_position);
+    });
+    double distance = mTopBound - mLowBound; // increasing the limits for safety
+    mTopBound += distance;
+    mLowBound -= distance;
 }
 
 
@@ -124,13 +141,25 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
 
 double CalculateWaveHeightUtility::FindLocalElementSize(const array_1d<double,3>& rCoordinates) const
 {
-    return 0.0;
-}
-
-
-void CalculateWaveHeightUtility::UpdateSearchDatabase()
-{
-
+    Point::Pointer low_point = Kratos::make_shared<NodeType>(0, rCoordinates + mDirection * (mLowBound - inner_prod(rCoordinates, mDirection)));
+    Point::Pointer top_point = Kratos::make_shared<NodeType>(0, rCoordinates + mDirection * (mTopBound - inner_prod(rCoordinates, mDirection)));
+    GeometryType::Pointer p_vertical_line;
+    if (mrModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3) {
+        p_vertical_line = Kratos::make_shared<Line3D2<NodeType>>(low_point, top_point);
+    }
+    else if (mrModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2) {
+        p_vertical_line = Kratos::make_shared<Line2D2<NodeType>>(low_point, top_point);
+    }
+    else {
+        KRATOS_ERROR << "CalculateWaveHeightUtility. DOMAIN_SIZE is not defined in the model part." << std::endl;
+    }
+    return block_for_each<MinReduction<double>>(mrModelPart.Elements(), [&](Element& rElement){
+        double local_elem_size = 1e16;
+        if (rElement.GetGeometry().HasIntersection(*p_vertical_line)) {
+            local_elem_size = rElement.GetGeometry().Length();
+        }
+        return local_elem_size;
+    });
 }
 
 }  // namespace Kratos.
