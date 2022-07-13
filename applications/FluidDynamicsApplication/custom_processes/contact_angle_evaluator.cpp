@@ -147,6 +147,7 @@ void ContactAngleEvaluator::Execute()
 
         //it_node->SetValue(CONTACT_ANGLE, 0.0);
         it_node->FastGetSolutionStepValue(CONTACT_ANGLE) = 0.0;
+        it_node->SetValue(CONTACT_ANGLE, 0.0);
         it_node->FastGetSolutionStepValue(CONTACT_VELOCITY) = 0.0;
         it_node->Free(DISTANCE);
 
@@ -169,6 +170,7 @@ void ContactAngleEvaluator::Execute()
         if (weight >= 1.0){
             const double contact_angle = avg_contact_angle/weight;
             it_node->FastGetSolutionStepValue(CONTACT_ANGLE) = contact_angle;
+            it_node->GetValue(CONTACT_ANGLE) = contact_angle;
             const Vector normal = (1.0/norm_2(normal_avg)) * normal_avg;
             it_node->FastGetSolutionStepValue(NORMAL_VECTOR) = normal;
 
@@ -222,7 +224,7 @@ void ContactAngleEvaluator::Execute()
                 for (unsigned int j = 0; j < num_nodes; ++j) {
 
                     auto it_node_j = it_node_begin + j;
-                    const double node_j_contact_angle = it_node_j->FastGetSolutionStepValue(CONTACT_ANGLE);
+                    const double node_j_contact_angle = it_node_j->GetValue(CONTACT_ANGLE);
 
                     if (node_j_contact_angle > 1.0e-12){
                         const double nodal_dist = norm_2(it_node_i->Coordinates() - it_node_j->Coordinates());
@@ -232,13 +234,11 @@ void ContactAngleEvaluator::Execute()
                             const double node_j_curvature = it_node_j->FastGetSolutionStepValue(CURVATURE);
                             radius_at_nodej = 2.0*node_j_curvature/(node_j_curvature*node_j_curvature + 1.0e-10);
                         }
-
                     }
 
                 }
 
                 node_i_contact_angle = std::asin( radius_at_nodej*std::sin(min_dist_contact_angle - PI/2.0)/(node_i_distance + radius_at_nodej) ) + PI/2.0; //min_dist_contact_angle;
-
             }
         }
 
