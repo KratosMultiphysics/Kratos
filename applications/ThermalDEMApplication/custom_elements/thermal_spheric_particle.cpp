@@ -299,12 +299,17 @@ namespace Kratos
   void ThermalSphericParticle::ComputeHeatFluxWithNeighbor(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
+    // Compute simulated or adjusted interaction properties
+    ComputeInteractionProps(r_process_info);
+
+    // Heat generation
+    // ASSUMPTION: Heat is generated even when neighbor is adiabatic
+    if (r_process_info[HEAT_GENERATION_OPTION] && mHasMotion)
+      mGenerationHeatFlux += GetGenerationModel().ComputeHeatGeneration(r_process_info, this);
+
     // Check if neighbor is adiabatic
     if (CheckAdiabaticNeighbor())
       return;
-
-    // Compute simulated or adjusted interaction properties
-    ComputeInteractionProps(r_process_info);
 
     // Heat transfer mechanisms
     if (r_process_info[DIRECT_CONDUCTION_OPTION])
@@ -315,9 +320,6 @@ namespace Kratos
 
     if (r_process_info[RADIATION_OPTION])
       mRadiationHeatFlux += GetRadiationModel().ComputeHeatFlux(r_process_info, this);
-
-    if (r_process_info[HEAT_GENERATION_OPTION] && mHasMotion)
-      mGenerationHeatFlux += GetGenerationModel().ComputeHeatGeneration(r_process_info, this);
 
     KRATOS_CATCH("")
   }
