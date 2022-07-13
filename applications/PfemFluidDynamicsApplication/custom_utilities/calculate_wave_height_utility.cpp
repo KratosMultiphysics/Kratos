@@ -136,6 +136,13 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
 {
     KRATOS_TRY
 
+    struct SurfacePoint{
+        double distance;
+        double mean_water_level;
+        array_1d<double,3> coordinates;
+        array_1d<double,3> direction;
+    };
+
     struct CustomReducer{
         using return_type = double;
         double distance = 1e16;
@@ -146,11 +153,11 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
             return wave_height;
         }
 
-        void LocalReduce(std::pair<double,double> DistHeight)
+        void LocalReduce(SurfacePoint& r_point)
         {
-            if (DistHeight.first < this->distance) {
-                this->distance = DistHeight.first;
-                this->wave_height = DistHeight.second;
+            if (r_point.distance < this->distance) {
+                this->distance = r_point.distance;
+                this->wave_height = inner_prod(r_point.direction, r_point.coordinates) - r_point.mean_water_level;
             }
         }
 
@@ -167,20 +174,17 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
     };
 
     return block_for_each<CustomReducer>(mrModelPart.Nodes(), [&](NodeType& rNode) {
-        double distance = 1e16;
-        double wave_height = 0.0;
+        SurfacePoint surface_point;
         if (rNode.IsNot(ISOLATED) && rNode.IsNot(RIGID) && rNode.Is(FREE_SURFACE))
         {
             const array_1d<double,3> relative_position = rNode.Coordinates() - rCoordinates;
             const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(mDirection, relative_position);
-            distance = norm_2(horizontal_position);
-
-            if (distance < SearchRadius)
-            {
-                wave_height = inner_prod(mDirection, rNode) - mMeanWaterLevel;
-            }
+            surface_point.distance = norm_2(horizontal_position);
+            surface_point.coordinates = rNode.Coordinates();
+            surface_point.direction = mDirection;
+            surface_point.mean_water_level = mMeanWaterLevel;
         }
-        return std::pair<double,double>(distance, wave_height);
+        return surface_point;
     });
 
     KRATOS_CATCH("")
