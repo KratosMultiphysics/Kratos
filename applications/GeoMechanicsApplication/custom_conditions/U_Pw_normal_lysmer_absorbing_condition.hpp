@@ -63,6 +63,8 @@ public:
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
  
+   // void Initialize(const ProcessInfo& rCurrentProcessInfo);
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
@@ -74,9 +76,21 @@ protected:
         double NormalAbsorb;
         double IntegrationCoefficient;
         array_1d<double,TNumNodes> Np;
-        array_1d<double,TNumNodes> PVector;
+        array_1d<double, TNumNodes* TDim> UVector;
+        double E;
+        double nu;
+        double rho;
+        double Ec;
+        double G;
+        double vp;
+        double vs;
+        double alpha1;
+        double alpha2;
     };
     
+
+
+
     // Member Variables
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -93,6 +107,8 @@ protected:
         const unsigned int& GPoint);
 
     void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const Element::GeometryType& Geom);
+
+    void GetNeighbourElementVariables(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
