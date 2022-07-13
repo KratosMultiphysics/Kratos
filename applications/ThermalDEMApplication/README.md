@@ -129,7 +129,8 @@ Add **post options** with desired options:
 	"PostGraphParticleTempAvg"       : true or false,
 	"PostGraphParticleTempDev"       : true or false,
 	"PostGraphModelTempAvg"          : true or false,
-	"PostGraphHeatFluxContributions" : true or false
+	"PostGraphHeatFluxContributions" : true or false,
+	"PostGraphHeatGenContributions"  : true or false
 
 ### Materials (json file)
 
@@ -393,6 +394,10 @@ Add **SubModelPartData** to sub model parts with desired options:
   Boolean for writing a graph with the contribution of each heat transfer mechanism to the total heat transfer.\
   Default: false
 
+- *"PostGraphHeatGenContributions"*:\
+  Boolean for writing a graph with the contribution of each heat generation mechanism to the total heat generation.\
+  Default: false
+  
 **Material properties**
 - *"materials.Variables.THERMAL_CONDUCTIVITY"*:\
   Thermal conductivity of material (always required).

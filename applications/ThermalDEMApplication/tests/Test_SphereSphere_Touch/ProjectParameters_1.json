@@ -98,5 +98,6 @@
 	"PostGraphParticleTempDev"       : false,
 	"PostGraphModelTempAvg"          : false,
 	"PostGraphHeatFluxContributions" : false,
+	"PostGraphHeatGenContributions"  : false,
     "problem_name"                   : "SphereSphere_Touch_1"
 }

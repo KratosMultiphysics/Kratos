@@ -197,6 +197,7 @@ class ExplicitStrategy(BaseStrategy):
         self.PostGraphParticleTempDev   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempDev")
         self.PostGraphModelTempAvg      = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphModelTempAvg")
         self.PostGraphFluxContributions = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphFluxContributions")
+        self.PostGraphGenContributions  = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphGenContributions")
 
     #----------------------------------------------------------------------------------------------
     def CheckProjectParameters(self):
@@ -322,12 +323,13 @@ class ExplicitStrategy(BaseStrategy):
     
     #----------------------------------------------------------------------------------------------
     def SetGraphFlags(self):
-        if (self.PostGraphParticleTempMin  or
-            self.PostGraphParticleTempMax  or
-            self.PostGraphParticleTempAvg  or 
-            self.PostGraphParticleTempDev  or
-            self.PostGraphModelTempAvg     or
-            self.PostGraphFluxContributions):
+        if (self.PostGraphParticleTempMin   or
+            self.PostGraphParticleTempMax   or
+            self.PostGraphParticleTempAvg   or 
+            self.PostGraphParticleTempDev   or
+            self.PostGraphModelTempAvg      or
+            self.PostGraphFluxContributions or
+            self.PostGraphGenContributions):
             self.write_graph = True
         else:
             self.write_graph = False
@@ -563,7 +565,8 @@ class ExplicitStrategy(BaseStrategy):
                                                self.PostGraphParticleTempAvg,
                                                self.PostGraphParticleTempDev,
                                                self.PostGraphModelTempAvg,
-                                               self.PostGraphFluxContributions)
+                                               self.PostGraphFluxContributions,
+                                               self.PostGraphGenContributions)
 
     #----------------------------------------------------------------------------------------------
     def IsTimeToUpdateVoronoi(self):

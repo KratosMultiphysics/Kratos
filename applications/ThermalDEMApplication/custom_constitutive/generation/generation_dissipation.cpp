@@ -27,23 +27,25 @@ namespace Kratos {
       return 0.0;
 
     // Add contribution from different sources of energy dissipation
-    double heat_generation = 0.0;
+    particle->mGenerationHeatFlux_sliding = 0.0;
+    particle->mGenerationHeatFlux_rolling = 0.0;
+    particle->mGenerationHeatFlux_damping = 0.0;
 
     if (r_process_info[GENERATION_SLIDING_OPTION]) {
-      heat_generation += ComputeHeatGenerationSlidingFriction(particle);
+      particle->mGenerationHeatFlux_sliding = ComputeHeatGenerationSlidingFriction(particle);
     }
     if (r_process_info[GENERATION_ROLLING_OPTION] && particle->Is(DEMFlags::HAS_ROTATION) && particle->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
-      heat_generation += ComputeHeatGenerationRollingFriction(particle);
+      particle->mGenerationHeatFlux_rolling = ComputeHeatGenerationRollingFriction(particle);
     }
     if (r_process_info[GENERATION_DAMPING_OPTION]) {
-      heat_generation += ComputeHeatGenerationDampingContact(particle);
+      particle->mGenerationHeatFlux_damping = ComputeHeatGenerationDampingContact(particle);
     }
 
     // Conversion and partition coefficients
     const double conversion = r_process_info[HEAT_GENERATION_RATIO];
     const double partition  = ComputePartitionCoeff(particle);
 
-    return partition * conversion * heat_generation;
+    return partition * conversion * (particle->mGenerationHeatFlux_sliding + particle->mGenerationHeatFlux_rolling + particle->mGenerationHeatFlux_damping);
 
     KRATOS_CATCH("")
   }
