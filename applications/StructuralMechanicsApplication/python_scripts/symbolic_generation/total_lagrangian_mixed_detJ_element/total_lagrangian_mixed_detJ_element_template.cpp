@@ -391,17 +391,13 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
     const auto& S = constitutive_variables.StressVector;
     const auto& C = constitutive_variables.ConstitutiveMatrix;
 
-    // Aux RHS and LHS
-    //TODO: To be removed
-    BoundedVector<double,LocalSize> rhs;
-    BoundedMatrix<double,LocalSize,LocalSize> lhs;
-
+    // RHS and LHS assembly
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-        const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
+        const double w_g = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(
@@ -426,9 +422,6 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
         //substitute_lhs_2D_3N
         // Calculate and add the RHS Gauss point contribution
         //substitute_rhs_2D_3N
-        //TODO: Amend this once the assembly is done in the input arrays
-        rLeftHandSideMatrix += w_gauss * lhs;
-        rRightHandSideVector += w_gauss * rhs;
     }
 }
 
@@ -490,17 +483,13 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
     const auto& S = constitutive_variables.StressVector;
     const auto& C = constitutive_variables.ConstitutiveMatrix;
 
-    // Aux RHS and LHS
-    //TODO: To be removed
-    BoundedVector<double,LocalSize> rhs;
-    BoundedMatrix<double,LocalSize,LocalSize> lhs;
-
+    // RHS and LHS assembly
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-        const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
+        const double w_g = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(
@@ -525,9 +514,6 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
         //substitute_lhs_3D_4N
         // Calculate and add the RHS Gauss point contribution
         //substitute_rhs_3D_4N
-        //TODO: Amend this once the assembly is done in the input arrays
-        rLeftHandSideMatrix += w_gauss * lhs;
-        rRightHandSideVector += w_gauss * rhs;
     }
 }
 
@@ -582,16 +568,13 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
     const auto& S = constitutive_variables.StressVector;
     const auto& C = constitutive_variables.ConstitutiveMatrix;
 
-    // Aux RHS and LHS
-    //TODO: To be removed
-    BoundedMatrix<double,LocalSize,LocalSize> lhs;
-
+    // LHS assembly
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-        const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
+        const double w_g = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(
@@ -614,8 +597,6 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
 
         // Calculate and add the LHS Gauss point contributions
         //substitute_lhs_2D_3N
-        //TODO: Amend this once the assembly is done in the input arrays
-        rLeftHandSideMatrix += w_gauss * lhs;
     }
 }
 
@@ -670,16 +651,13 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
     const auto& S = constitutive_variables.StressVector;
     const auto& C = constitutive_variables.ConstitutiveMatrix;
 
-    // Aux RHS and LHS
-    //TODO: To be removed
-    BoundedMatrix<double,LocalSize,LocalSize> lhs;
-
+    // LHS assembly
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-        const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
+        const double w_g = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(
@@ -702,8 +680,6 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
 
         // Calculate and add the LHS Gauss point contributions
         //substitute_lhs_3D_4N
-        //TODO: Amend this once the assembly is done in the input arrays
-        rLeftHandSideMatrix += w_gauss * lhs;
     }
 }
 
@@ -758,16 +734,13 @@ void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
     const auto& S = constitutive_variables.StressVector;
     const auto& C = constitutive_variables.ConstitutiveMatrix;
 
-    // Aux RHS and LHS
-    //TODO: To be removed
-    BoundedVector<double,LocalSize> rhs;
-
+    // RHS assembly
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-        const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
+        const double w_g = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(
@@ -790,8 +763,6 @@ void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
 
         // Calculate and add the RHS Gauss point contribution
         //substitute_rhs_2D_3N
-        //TODO: Amend this once the assembly is done in the input arrays
-        rRightHandSideVector += w_gauss * rhs;
     }
 }
 
@@ -846,17 +817,13 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
     const auto& S = constitutive_variables.StressVector;
     const auto& C = constitutive_variables.ConstitutiveMatrix;
 
-    // Aux RHS and LHS
-    //TODO: To be removed
-    BoundedVector<double,LocalSize> rhs;
-    BoundedMatrix<double,LocalSize,LocalSize> lhs;
-
+    // RHS assembly
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-        const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
+        const double w_g = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(
@@ -879,8 +846,6 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
 
         // Calculate and add the RHS Gauss point contribution
         //substitute_rhs_3D_4N
-        //TODO: Amend this once the assembly is done in the input arrays
-        rRightHandSideVector += w_gauss * rhs;
     }
 }
 

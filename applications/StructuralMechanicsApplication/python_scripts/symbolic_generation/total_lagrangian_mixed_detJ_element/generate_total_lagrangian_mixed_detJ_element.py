@@ -31,6 +31,7 @@ for dim in dim_vect:
     th = DefineVector('th',n_nodes) # Variable representing the nodal det(J) - 1 (volumetric deformation increment)
     w = DefineMatrix('w',n_nodes,dim) # Displacement test function
     q = DefineVector('q',n_nodes) # Deformation Jacobian test function
+    w_g = sympy.Symbol("w_g", positive=True) # Gauss point integration weight
     tau_u = sympy.Symbol("tau_u",positive=True) # Displacement stabilization constant
     tau_th = sympy.Symbol("tau_th",positive=True) # Deformation Jacobian stabilization constant
 
@@ -77,7 +78,7 @@ for dim in dim_vect:
 
     # Calculate the cofactor of the deformation gradient
     # cof(F) = det(J)*F^{-T}
-    invF_gauss = F_gauss.inv()
+    invF_gauss = F_gauss.inv(method="LU")
     cofF_gauss = j_gauss*(invF_gauss.transpose())
 
     # Calculate the strain tensors
@@ -123,7 +124,7 @@ for dim in dim_vect:
     # Compute RHS (functional differentiation w.r.t. the shape functions)
     # Note that the stress is included as a symbolic variable, which is assumed to computed by the constitutive law module
     rhs = Compute_RHS(functional_array.copy(), testfunc, do_simplifications)
-    rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
+    rhs_out = OutputVector_CollectingFactors(w_g*rhs, "rRightHandSideVector", mode, indentation_level=2, assignment_op="+=")
 
     # Compute LHS (RHS(residual) differentiation w.r.t. the DOFs)
     # Note that 'S' (stress symbolic variable) is substituted by a definition of a function in terms of E for the LHS differentiation
@@ -174,20 +175,20 @@ for dim in dim_vect:
                 lhs[i,j] = lhs[i,j].subs(substitution_list)
                 if do_simplifications:
                     lhs[i, j] = sympy.simplify(lhs[i, j])
-    lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
+    lhs_out = OutputMatrix_CollectingFactors(w_g*lhs, "rLeftHandSideMatrix", mode, indentation_level=2, assignment_op="+=")
 
     # Replace the computed RHS and LHS in the template outstring
     outstring = outstring.replace(f"//substitute_rhs_{dim}D_{n_nodes}N", rhs_out)
     outstring = outstring.replace(f"//substitute_lhs_{dim}D_{n_nodes}N", lhs_out)
 
     # Replace the equivalent deformation gradient in the template outstring
-    Fmod_gauss_out = OutputMatrix_CollectingFactors(Fmod_gauss, "r_eq_def_gradient", mode)
-    det_Fmod_gauss_out = OutputScalar_CollectingFactors(Fmod_gauss.det(), "r_det_eq_def_gradient", mode)
+    Fmod_gauss_out = OutputMatrix_CollectingFactors(Fmod_gauss, "r_eq_def_gradient", mode, indentation_level=1)
+    det_Fmod_gauss_out = OutputScalar_CollectingFactors(Fmod_gauss.det(), "r_det_eq_def_gradient", mode, indentation_level=0)
     outstring = outstring.replace(f"//substitute_def_gradient_{dim}D_{n_nodes}N", Fmod_gauss_out)
     outstring = outstring.replace(f"//substitute_det_def_gradient_{dim}D_{n_nodes}N", det_Fmod_gauss_out)
 
     # Replace the equivalent strain in the template outstring
-    Emod_gauss_out = OutputVector_CollectingFactors(StrainToVoigt(Emod_gauss), "r_eq_green_strain", mode)
+    Emod_gauss_out = OutputVector_CollectingFactors(StrainToVoigt(Emod_gauss), "r_eq_green_strain", mode, indentation_level=1)
     outstring = outstring.replace(f"//substitute_green_strain_{dim}D_{n_nodes}N", Emod_gauss_out)
 
 # Write the modified template
