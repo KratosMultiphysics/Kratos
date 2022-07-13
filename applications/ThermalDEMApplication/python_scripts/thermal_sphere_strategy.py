@@ -196,8 +196,8 @@ class ExplicitStrategy(BaseStrategy):
         self.PostGraphParticleTempAvg   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAvg")
         self.PostGraphParticleTempDev   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempDev")
         self.PostGraphModelTempAvg      = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphModelTempAvg")
-        self.PostGraphFluxContributions = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphFluxContributions")
-        self.PostGraphGenContributions  = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphGenContributions")
+        self.PostGraphFluxContributions = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatFluxContributions")
+        self.PostGraphGenContributions  = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatGenContributions")
 
     #----------------------------------------------------------------------------------------------
     def CheckProjectParameters(self):

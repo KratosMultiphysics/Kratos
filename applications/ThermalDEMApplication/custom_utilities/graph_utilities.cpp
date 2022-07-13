@@ -46,7 +46,7 @@ namespace Kratos {
     mGraph_ParticleTempDev               = ParticleTempDev;
     mGraph_ModelTempAvg                  = ModelTempAvg;
     mGraph_ParticleHeatFluxContributions = ParticleHeatFluxContributions;
-    mGraph_ParticleHeatGenContributions  = ParticleHeatFluxContributions;
+    mGraph_ParticleHeatGenContributions  = ParticleHeatGenContributions;
 
     // Open files
     if (mGraph_ParticleTempMin) {
