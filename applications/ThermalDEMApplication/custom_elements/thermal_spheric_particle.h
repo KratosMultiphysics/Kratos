@@ -133,6 +133,7 @@ namespace Kratos
 
       array_1d<double,3> GetParticleCoordinates               (void);
       array_1d<double,3> GetParticleVelocity                  (void);
+      array_1d<double,3> GetParticleAngularVelocity           (void);
       double             GetParticleTemperature               (void);
       double             GetParticleRadius                    (void);
       double             GetParticleSurfaceArea               (void);
@@ -173,6 +174,7 @@ namespace Kratos
       double             GetNeighborEmissivity                (void);
   
       double             GetContactDynamicFrictionCoefficient (void);
+      double             GetContactRollingFrictionCoefficient (void);
       ContactParams      GetContactParameters                 (void);
 
       void               SetThermalIntegrationScheme          (ThermalDEMIntegrationScheme::Pointer& scheme);

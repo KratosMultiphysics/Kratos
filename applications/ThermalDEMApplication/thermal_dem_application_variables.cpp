@@ -37,6 +37,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(bool,                                 RADIATION_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 HEAT_GENERATION_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 GENERATION_SLIDING_OPTION)
+  KRATOS_CREATE_VARIABLE(bool,                                 GENERATION_ROLLING_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 GENERATION_DAMPING_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 REAL_CONTACT_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 FIXED_TEMPERATURE)

@@ -94,7 +94,7 @@ Add **thermal settings** with desired options:
 		"indirect_conduction_model"      : "surrounding_layer" or "voronoi_a" or "voronoi_b" or "vargas_mccarthy",
 		"nusselt_correlation"            : "sphere_hanz_marshall" or "sphere_whitaker" or "sphere_gunn" or "sphere_li_mason",
 		"radiation_model"                : "continuum_zhou" or "continuum_krause",
-		"heat_generation_model"          : ["sliding_friction","contact_damping"],
+		"heat_generation_model"          : ["sliding_friction","rolling_friction","contact_damping"],
 		"adjusted_contact_model"         : "zhou" or "lu" or "morris",
 		"voronoi_method"                 : "tesselation" or "porosity",
 		"porosity_method"                : "global" or "average_convex_hull" or "average_alpha_shape",

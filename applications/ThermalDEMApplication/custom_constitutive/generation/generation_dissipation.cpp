@@ -32,6 +32,9 @@ namespace Kratos {
     if (r_process_info[GENERATION_SLIDING_OPTION]) {
       heat_generation += ComputeHeatGenerationSlidingFriction(particle);
     }
+    if (r_process_info[GENERATION_ROLLING_OPTION] && particle->Is(DEMFlags::HAS_ROTATION) && particle->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
+      heat_generation += ComputeHeatGenerationRollingFriction(particle);
+    }
     if (r_process_info[GENERATION_DAMPING_OPTION]) {
       heat_generation += ComputeHeatGenerationDampingContact(particle);
     }
@@ -53,12 +56,46 @@ namespace Kratos {
     const double force_normal     = contact_params.local_force_total[0];
     const double velocity_tangent = contact_params.local_velocity[1];
 
-    if (abs(force_normal)     < std::numeric_limits<double>::epsilon() ||
-        abs(velocity_tangent) < std::numeric_limits<double>::epsilon())
+    if (fabs(force_normal)     < std::numeric_limits<double>::epsilon() ||
+        fabs(velocity_tangent) < std::numeric_limits<double>::epsilon())
       return 0.0;
 
     const double friction_coeff = particle->GetContactDynamicFrictionCoefficient();
     return friction_coeff * fabs(force_normal * velocity_tangent);
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double GenerationDissipation::ComputeHeatGenerationRollingFriction(ThermalSphericParticle* particle) {
+    KRATOS_TRY
+
+    typename ThermalSphericParticle:: ContactParams contact_params = particle->GetContactParameters();
+
+    // Total normal force
+    const double force_normal = fabs(contact_params.local_force_total[0]);
+
+    // Relative angular velocity
+    // ASSUMPTION: Angular velocity of walls is not considered!
+    double rel_vel;
+
+    if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
+      array_1d<double, 3> rel_angular_velocity;
+      noalias(rel_angular_velocity) = particle->GetParticleAngularVelocity() - particle->mNeighbor_p->GetParticleAngularVelocity();
+      rel_vel = DEM_MODULUS_3(rel_angular_velocity);
+    }
+    else {
+      rel_vel = DEM_MODULUS_3(particle->GetParticleAngularVelocity());
+    }
+
+    if (force_normal < std::numeric_limits<double>::epsilon() ||
+        rel_vel      < std::numeric_limits<double>::epsilon())
+      return 0.0;
+    
+    const double eff_radius    = particle->ComputeEffectiveRadius();
+    const double rolling_coeff = particle->GetContactRollingFrictionCoefficient();
+
+    return rel_vel * rolling_coeff * eff_radius * force_normal;
 
     KRATOS_CATCH("")
   }

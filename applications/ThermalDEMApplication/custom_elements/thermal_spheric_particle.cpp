@@ -1045,6 +1045,11 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
+  array_1d<double, 3> ThermalSphericParticle::GetParticleAngularVelocity(void) {
+    return GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+  }
+
+  //------------------------------------------------------------------------------------------------------------
   double ThermalSphericParticle::GetParticleTemperature(void) {
     return GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
   }
@@ -1356,6 +1361,20 @@ namespace Kratos
     else if (mNeighborType & WALL_NEIGHBOR) {
       Properties& properties_of_contact = GetProperties().GetSubProperties(mNeighbor_w->GetProperties().Id());
       return properties_of_contact[DYNAMIC_FRICTION];
+    }
+    else
+      return 0.0;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double ThermalSphericParticle::GetContactRollingFrictionCoefficient(void) {
+    if (mNeighborType & PARTICLE_NEIGHBOR) {
+      Properties& properties_of_contact = GetProperties().GetSubProperties(mNeighbor_p->GetProperties().Id());
+      return properties_of_contact[ROLLING_FRICTION];
+    }
+    else if (mNeighborType & WALL_NEIGHBOR) {
+      Properties& properties_of_contact = GetProperties().GetSubProperties(mNeighbor_w->GetProperties().Id());
+      return properties_of_contact[ROLLING_FRICTION_WITH_WALLS];
     }
     else
       return 0.0;

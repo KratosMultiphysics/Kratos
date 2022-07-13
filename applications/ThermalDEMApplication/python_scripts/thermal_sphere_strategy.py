@@ -234,6 +234,7 @@ class ExplicitStrategy(BaseStrategy):
 
         for model in self.heat_generation_model:
             if (model != "sliding_friction" and
+                model != "rolling_friction" and
                 model != "contact_damping"):
                 raise Exception('ThermalDEM', 'Heat generation model \'' + model + '\' is not implemented.')
 
@@ -508,6 +509,7 @@ class ExplicitStrategy(BaseStrategy):
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, RADIATION_OPTION,           self.compute_radiation_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, HEAT_GENERATION_OPTION,     self.compute_heat_generation_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GENERATION_SLIDING_OPTION,  self.compute_heat_generation_option and "sliding_friction" in self.heat_generation_model)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GENERATION_ROLLING_OPTION,  self.compute_heat_generation_option and "rolling_friction" in self.heat_generation_model)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GENERATION_DAMPING_OPTION,  self.compute_heat_generation_option and "contact_damping"  in self.heat_generation_model)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, REAL_CONTACT_OPTION,        self.compute_adjusted_contact_option)
 
