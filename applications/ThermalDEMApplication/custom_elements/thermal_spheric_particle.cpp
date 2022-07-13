@@ -195,6 +195,9 @@ namespace Kratos
     mConductionIndirectHeatFlux = 0.0;
     mRadiationHeatFlux          = 0.0;
     mGenerationHeatFlux         = 0.0;
+    mGenerationHeatFlux_sliding = 0.0;
+    mGenerationHeatFlux_rolling = 0.0;
+    mGenerationHeatFlux_damping = 0.0;
     mConvectionHeatFlux         = 0.0;
     mPrescribedHeatFlux         = 0.0;
     mTotalHeatFlux              = 0.0;
