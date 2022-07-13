@@ -92,11 +92,11 @@ namespace Testing {
         double volume2 = VolumeInsideVoxelUtility::NodesApproximation<Geometry<NodeType>>(*pVoxel2); 
 
         //Expected output of the function
-        const double expected_volume = 0.125;
-        const double expected_volume2 = 0.375;
+        const double ExpectedVolume1 = 0.125;
+        const double ExpectedVolume2 = 0.375;
         
-        KRATOS_CHECK_EQUAL(volume, expected_volume);
-        KRATOS_CHECK_EQUAL(volume2, expected_volume2);
+        KRATOS_CHECK_EQUAL(volume, ExpectedVolume1);
+        KRATOS_CHECK_EQUAL(volume2, ExpectedVolume2);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdges, KratosCoreFastSuite) 
@@ -114,11 +114,11 @@ namespace Testing {
         double volume2 = VolumeInsideVoxelUtility::EdgesApproximation<Geometry<NodeType>>(*pVoxel2); 
 
         //Expected output of the function
-        const double expected_volume = 3.0/24;
-        const double expected_volume2 = 0.375;
+        const double ExpectedVolume1 = 3.0/24;
+        const double ExpectedVolume2 = 0.375;
         
-        KRATOS_CHECK_EQUAL(volume, expected_volume);
-        KRATOS_CHECK_EQUAL(volume2, expected_volume2);
+        KRATOS_CHECK_EQUAL(volume, ExpectedVolume1);
+        KRATOS_CHECK_EQUAL(volume2, ExpectedVolume2);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortion, KratosCoreFastSuite) 
@@ -132,12 +132,18 @@ namespace Testing {
         GeometryPtrType pVoxel2 = GenerateHexahedra3D8(distances2);
 
         //Generate the intersecting triangles
-        std::vector<std::vector<double>> triangle1{{0,-1,-0.95},{0,-0.95,-1.05},{0,-1.05,-1.05}}; //canviar la x per canviar el punt d'interseccio 
-        std::vector<std::vector<double>> triangle2{{-1,-0.95,0.0},{-0.95,-1.05,0.0},{-1.05,-1.05,0.0}}; //Canviar!!
-        std::vector<std::vector<double>> triangle3{{-1,0.0,-0.95},{-0.95,0.0,-1.05},{-1.05,0.0,-1.05}}; //Canviar!!
+        std::vector<std::vector<double>> triangle1{{0.5,-1,-0.95},{0.5,-0.95,-1.05},{0.5,-1.05,-1.05}}; //canviar la x per canviar el punt d'interseccio 
+        std::vector<std::vector<double>> triangle2{{-1,-0.95,0.0},{-0.95,-1.05,0.0},{-1.05,-1.05,0.0}}; 
+        std::vector<std::vector<double>> triangle3{{-1,0.0,-0.95},{-0.95,0.0,-1.05},{-1.05,0.0,-1.05}}; 
+        std::vector<std::vector<double>> triangle4{{0.5,1,-0.95},{0.5,1.05,-1.05},{0.5,0.95,-1.05}};
+        std::vector<std::vector<double>> triangle5{{-0.5,1,-0.95},{-0.5,1.05,-1.05},{-0.5,0.95,-1.05}};
+        std::vector<std::vector<double>> triangle6{{-0.5,1,1.05},{-0.5,1.05,0.95},{-0.5,0.95,0.95}};
         GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
         GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
         GeometryPtrType pTriangle3 = GenerateTriangle3D3(triangle3);
+        GeometryPtrType pTriangle4 = GenerateTriangle3D3(triangle4);
+        GeometryPtrType pTriangle5 = GenerateTriangle3D3(triangle5);
+        GeometryPtrType pTriangle6 = GenerateTriangle3D3(triangle6);
 
         GeometryArrayType array1;
         array1.push_back(pTriangle1); 
@@ -146,14 +152,25 @@ namespace Testing {
 
         //Call the volume utility
         double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array1); 
-        //double volume2 = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel2,array1); 
 
-        //Expected output of the function
-        const double expected_volume = 3.0/24; //calcular!
-        const double expected_volume2 = 0.375; //Calcular!
+        //with two intersection between ouside nodes
+        array1.push_back(pTriangle4);
+        array1.push_back(pTriangle5);
+        double volume2 = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array1); 
+
+        //with a tangent intersection
+        array1.push_back(pTriangle6);
+        double volume3 = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array1); 
+
+        //Expected output of the function at each case
+        const double ExpectedVolume1 = 0.1458; 
+        const double ExpectedVolume2 = 0.1875; 
+        const double ExpectedVolume3 = 0.1875; //tangential intersections are ignored
         
-        KRATOS_CHECK_NEAR(volume, expected_volume, 0.05);
-        //KRATOS_CHECK_NEAR(volume2, expected_volume2, 0.05);
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume1, 0.001);
+        KRATOS_CHECK_NEAR(volume2, ExpectedVolume2, 0.001);
+        KRATOS_CHECK_NEAR(volume3, ExpectedVolume3, 0.001);
+
     }
 
 }  // namespace Testing.

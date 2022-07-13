@@ -161,7 +161,7 @@ public:
                 
                 if(result == 1) {
                     intersectionPoints.push_back(intersection);
-                    std::cout << std::endl << "Intersection with edge " << i << ": " << ends[0] << " " << ends[1] << std::endl;  
+                    //std::cout << std::endl << "Intersection with edge " << i << ": " << ends[0] << " " << ends[1] << std::endl;  
                 }  
             }  
             
@@ -197,13 +197,74 @@ private:
      * voxel, and counts it as volume if the node is inside the object (NodeDistance > 0)
      */  
     static const double EdgeFilledPortion(const std::vector<array_1d<double,3>>& rPoints, const PointsArrayType& rEnds) {
-        double length = Distance(rEnds[0],rEnds[1]);
-        if (rPoints.size() == 0) return 0;
+        double Length = Distance(rEnds[0],rEnds[1]);
+        double portion = 0;
+
+        //Prepare to see the most uneficcient code in all Kratos
+        std::vector<double> Distances(rPoints.size()+2);
+        Distances[0] = 0;
+        for (int i = 0; i < rPoints.size(); i++) {
+            double Dist = Distance(rEnds[0], rPoints[i]);
+            Distances[i] = Dist;
+        }
+        Distances[rPoints.size()+1] = Length;
+        std::sort(Distances.begin(),Distances.end());
+
+        
+
+        //casuistics: Both nodes inside, both nodes outside, one node inside and one outside
+        if (rEnds[0].GetSolutionStepValue(DISTANCE) > 0 && rEnds[1].GetSolutionStepValue(DISTANCE) > 0) {
+            bool inside = true;
+            if (rPoints.size() == 0) return 1;
+            if(Distances.size() % 2 == 1) Distances.pop_back();
+
+            for(int i = 1; i < Distances.size(); i++) {
+                if (inside) {
+                    portion += abs(Distances[i]-Distances[i-1])/Length;
+                    inside = false;
+                } else inside = true;             
+            }
+        } else if (rEnds[0].GetSolutionStepValue(DISTANCE) > 0 && rEnds[1].GetSolutionStepValue(DISTANCE) < 0) {
+            if(Distances.size() % 2 == 0) Distances.pop_back();
+            bool inside = true;
+            for(int i = 1; i < Distances.size(); i++) {
+                if(inside) {
+                    inside = false;
+                    portion += abs(Distances[i]-Distances[i-1])/Length;
+                } else inside = true;
+            }
+        } else if (rEnds[0].GetSolutionStepValue(DISTANCE) < 0 && rEnds[1].GetSolutionStepValue(DISTANCE) > 0) {
+            if(Distances.size() % 2 == 0) Distances.pop_back();
+            bool inside = false;
+            for(int i = 1; i < Distances.size(); i++) {
+                if (inside) {
+                    inside = false;
+                    portion += abs(Distances[i]-Distances[i-1])/Length;
+                } else inside = true;
+            }
+        } else {    //rEnds[0].GetSolutionStepValue(DISTANCE) < 0 && rEnds[1].GetSolutionStepValue(DISTANCE) < 0
+            if (rPoints.size() == 0) return 0;
+            if (Distances.size() % 2 == 1) Distances.pop_back();
+            bool inside = false;
+
+            for(int i = 1; i < Distances.size(); i++) {
+                if (inside) {
+                    portion += abs(Distances[i]-Distances[i-1])/Length;
+                    inside = false;
+                } else inside = true;             
+            }
+        }
         //std::cout << length << std::endl;
-        return 0.5;
+        return portion;
     }
 
-    static const double Distance(const NodeType& Point0, const NodeType& Point1) {
+    /**
+     * @brief Returns the distance between two 3D points.
+     * @param rPoint0 reference to the first point
+     * @param rPoint1 reference to the second point
+     * @return Distance 
+     */  
+    static double Distance(const NodeType& Point0, const NodeType& Point1) {
         const double lx = Point0.X() - Point1.X();
         const double ly = Point0.Y() - Point1.Y();
         const double lz = Point0.Z() - Point1.Z();
@@ -212,6 +273,22 @@ private:
 
         return std::sqrt( length );
     }
+    /**
+     * @brief Returns the distance between two 3D points.
+     * @param rPoint0 reference to the first point
+     * @param rPoint1 reference to the second point
+     * @return Distance 
+     */  
+    static double Distance(const NodeType& Point0, const array_1d<double,3>& Point1) {
+        const double lx = Point0.X() - Point1[0];
+        const double ly = Point0.Y() - Point1[1];
+        const double lz = Point0.Z() - Point1[2];
+
+        const double length = lx * lx + ly * ly + lz * lz;
+
+        return std::sqrt( length );
+    }
+
 }; /* Class VoxelInsideVolumeUtility */
 
 ///@name Type Definitions
