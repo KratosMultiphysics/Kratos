@@ -769,8 +769,7 @@ namespace Kratos
             // output critical head_json
             ofstream CriticalHeadFile(workingDirectory + "\\criticalHead.json");
 
-            CriticalHeadFile << "[\n";
-            CriticalHeadFile << "\t {\n";
+            CriticalHeadFile << "{\n";
             CriticalHeadFile << "\t \"PipeData\":\t{\n";
             if (pipingSuccess)
             {
@@ -782,7 +781,7 @@ namespace Kratos
                 CriticalHeadFile << "\t\t \"Success\": \"False\"\n";
             }
             CriticalHeadFile << "\t }\n";
-            CriticalHeadFile << "]\n";
+            CriticalHeadFile << "}\n";
 
             // Close the file
             CriticalHeadFile.close();
