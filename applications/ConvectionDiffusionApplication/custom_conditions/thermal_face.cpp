@@ -322,7 +322,7 @@ void ThermalFace::AddIntegrationPointRHSContribution(
 
     double h = 0.0;
     if (dT > 0.0) {
-      const double factor = 2.5;
+      const double factor = 3.0;
       const double g      = 9.81;
       const double L      = 0.0225;
       const double K      = 0.02514;
@@ -364,7 +364,7 @@ void ThermalFace::AddIntegrationPointLHSContribution(
 
             double h = 0.0;
             if (dT > 0.0) {
-              const double factor = 2.5;
+              const double factor = 3.0;
               const double g      = 9.81;
               const double L      = 0.0225;
               const double K      = 0.02514;
