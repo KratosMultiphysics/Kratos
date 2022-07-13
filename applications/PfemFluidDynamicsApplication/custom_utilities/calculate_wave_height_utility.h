@@ -130,27 +130,26 @@ private:
     double mRelativeRadius;
     double mAbsoluteRadius;
     double mMeanElementSize;
-    double mLowBound;
-    double mTopBound;
 
     ///@}
     ///@name Private Operations
     ///@{
 
     /**
-     * @brief Calculate the averaged wave height from the nearest nodes.
+     * @brief Calculate the averaged wave height from the nearest nodes with a given search radius.
      */
     double CalculateAverage(const array_1d<double,3>& rCoordinates, double SearchRadius) const;
+
+
+    /**
+     * @brief Calculate the averaged wave height from the nearest nodes.
+     */
+    double CalculateAverage(const array_1d<double,3>& rCoordinates) const;
 
     /**
      * @brief Calculate the wave height from the nearest node.
      */
-    double CalculateNearest(const array_1d<double,3>& rCoordinates, double SearchRadius) const;
-
-    /**
-     * @brief Find the local element size near the boundary
-     */
-    double FindLocalElementSize(const array_1d<double,3>& rCoordinates) const;
+    double CalculateNearest(const array_1d<double,3>& rCoordinates) const;
 
     ///@}
     ///@name Private  Access

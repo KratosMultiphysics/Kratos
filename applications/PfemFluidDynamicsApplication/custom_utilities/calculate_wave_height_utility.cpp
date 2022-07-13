@@ -55,42 +55,25 @@ CalculateWaveHeightUtility::CalculateWaveHeightUtility(
     mAbsoluteRadius = ThisParameters["search_tolerance"].GetDouble();
     mRelativeRadius = ThisParameters["relative_search_radius"].GetDouble();
 
-    // The average element size is an initial guess for computing the average height or to finding the closest node
+    // The average element size is an initial guess for computing the average height
     mMeanElementSize = block_for_each<SumReduction<double>>(
         mrModelPart.Elements(), [](Element& rElement) {
         return rElement.GetGeometry().Length();
     });
     mMeanElementSize /= mrModelPart.NumberOfElements();
-
-    // The top and low bounds will be used to find the local element size
-    using MinMaxReduction = CombinedReduction<MinReduction<double>,MaxReduction<double>>; 
-
-    std::tie(mLowBound, mTopBound) = block_for_each<MinMaxReduction>(mrModelPart.Nodes(), [&](NodeType& rNode){
-        double vertical_position = inner_prod(mDirection, rNode.Coordinates());
-        return std::make_tuple(vertical_position, vertical_position);
-    });
-    double distance = mTopBound - mLowBound; // increasing the limits for safety
-    mTopBound += distance;
-    mLowBound -= distance;
 }
 
 
 double CalculateWaveHeightUtility::Calculate(const array_1d<double,3>& rCoordinates) const
 {
-    // First step: calculating the search radius
-    double search_radius;
-    if (mUseLocalElementSize) {
-        double element_size = FindLocalElementSize(rCoordinates);
-        search_radius = mRelativeRadius * element_size + mAbsoluteRadius;
-    } else {
-        search_radius = mRelativeRadius * mMeanElementSize + mAbsoluteRadius;
-    }
-
-    // Second step: calculating the wave height
     if (mUseNearestNode) {
-        return CalculateNearest(rCoordinates, search_radius);
+        return CalculateNearest(rCoordinates);
     } else {
-        return CalculateAverage(rCoordinates, search_radius);
+        if (mUseLocalElementSize) {
+            return CalculateAverage(rCoordinates, mRelativeRadius);
+        } else {
+            return CalculateAverage(rCoordinates);
+        }
     }
 }
 
@@ -101,23 +84,21 @@ double CalculateWaveHeightUtility::CalculateAverage(const array_1d<double,3>& rC
 
     using MultipleReduction = CombinedReduction<SumReduction<double>, SumReduction<double>>; 
 
-    double counter = 0.0;
+    double count = 0.0;
     double wave_height = 0.0;
 
-    std::tie(counter, wave_height) = block_for_each<MultipleReduction>(
+    std::tie(count, wave_height) = block_for_each<MultipleReduction>(
         mrModelPart.Nodes(), [&](NodeType& rNode)
     {
         double local_count = 0.0;
         double local_wave_height = 0.0;
 
-        if (rNode.IsNot(ISOLATED) && rNode.IsNot(RIGID) && rNode.Is(FREE_SURFACE))
-        {
+        if (rNode.IsNot(ISOLATED) && rNode.IsNot(RIGID) && rNode.Is(FREE_SURFACE)) {
             const array_1d<double,3> relative_position = rNode.Coordinates() - rCoordinates;
             const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(mDirection, relative_position);
             const double distance = norm_2(horizontal_position);
 
-            if (distance < SearchRadius)
-            {
+            if (distance < SearchRadius) {
                 local_count = 1.0;
                 local_wave_height = inner_prod(mDirection, rNode) - mMeanWaterLevel;
             }
@@ -125,14 +106,53 @@ double CalculateWaveHeightUtility::CalculateAverage(const array_1d<double,3>& rC
         return std::make_tuple(local_count, local_wave_height);
     });
 
-    wave_height /= counter;
+    wave_height /= count;
     return wave_height;
 
     KRATOS_CATCH("");
 }
 
 
-double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rCoordinates, double SearchRadius) const
+double CalculateWaveHeightUtility::CalculateAverage(const array_1d<double,3>& rCoordinates) const
+{
+    KRATOS_TRY
+
+    using MultipleReduction = CombinedReduction<SumReduction<double>, SumReduction<double>>; 
+
+    double count = 0.0;
+    double wave_height = 0.0;
+
+    std::tie(count, wave_height) = block_for_each<MultipleReduction>(
+        mrModelPart.Elements(), [&](Element& rElement)
+    {
+        double local_count = 0.0;
+        double local_wave_height = 0.0;
+
+        const double radius = mRelativeRadius * rElement.GetGeometry().Length() + mAbsoluteRadius;
+
+        for (auto& r_node : rElement.GetGeometry()) {
+            if (r_node.IsNot(ISOLATED) && r_node.IsNot(RIGID) && r_node.Is(FREE_SURFACE)) {
+                const array_1d<double,3> relative_position = r_node.Coordinates() - rCoordinates;
+                const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(mDirection, relative_position);
+                const double distance = norm_2(horizontal_position);
+
+                if (distance < radius) {
+                    local_count = 1.0;
+                    local_wave_height = inner_prod(mDirection, r_node) - mMeanWaterLevel;
+                }
+            }
+        }
+        return std::make_tuple(local_count, local_wave_height);
+    });
+
+    wave_height /= count;
+    return wave_height;
+
+    KRATOS_CATCH("");
+}
+
+
+double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rCoordinates) const
 {
     KRATOS_TRY
 
@@ -188,32 +208,6 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
     });
 
     KRATOS_CATCH("")
-}
-
-
-double CalculateWaveHeightUtility::FindLocalElementSize(const array_1d<double,3>& rCoordinates) const
-{
-    // TODO: 1. move tetrahedra-line intersection to intersection utilities
-    // TODO: 2. use intersection utilities and avoid the creation of nodes, use points instead
-    NodeType::Pointer low_point = Kratos::make_intrusive<NodeType>(0, rCoordinates + mDirection * (mLowBound - inner_prod(rCoordinates, mDirection)));
-    NodeType::Pointer top_point = Kratos::make_intrusive<NodeType>(0, rCoordinates + mDirection * (mTopBound - inner_prod(rCoordinates, mDirection)));
-    GeometryType::Pointer p_vertical_line;
-    if (mrModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3) {
-        p_vertical_line = Kratos::make_shared<Line3D2<NodeType>>(low_point, top_point);
-    }
-    else if (mrModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2) {
-        p_vertical_line = Kratos::make_shared<Line2D2<NodeType>>(low_point, top_point);
-    }
-    else {
-        KRATOS_ERROR << "CalculateWaveHeightUtility. DOMAIN_SIZE is not defined in the model part." << std::endl;
-    }
-    return block_for_each<MinReduction<double>>(mrModelPart.Elements(), [&](Element& rElement){
-        double local_elem_size = 1e16;
-        if (rElement.GetGeometry().HasIntersection(*p_vertical_line)) {
-            local_elem_size = rElement.GetGeometry().Length();
-        }
-        return local_elem_size;
-    });
 }
 
 }  // namespace Kratos.
