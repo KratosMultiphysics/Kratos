@@ -135,14 +135,39 @@ public:
         }
         return volume;
     }
-
+    
+    /**
+     * @brief Aproximates the actual volume inside the voxel 
+     * @param rVoxel references to the voxel whose actual volume will be approximated
+     * @param rTriangles references to the triangles which intersect the voxel at some edge.
+     * @return Approximated volume 
+     * @note This approximation finds the portion of each edge that is part of the volume (using
+     * intersection point with triangles of the mesh)
+     */  
     template<class TGeometryType, class TGeometryArrayType>
     static double EdgesPortionApproximation(
         const TGeometryType& rVoxel,  
         const TGeometryArrayType& rTriangles     
     ) {
-        //still not implemented
         double volume = 0;
+        GeometryArrayType edges = rVoxel.GenerateEdges();
+        for (int i = 0; i < 12; i++) {
+            std::vector<array_1d<double,3>> intersectionPoints;
+            PointsArrayType ends = edges[i].Points();
+
+            for (auto triangle : rTriangles) {
+                array_1d<double,3> intersection;
+                int result = IntersectionUtilities::ComputeTriangleLineIntersection(triangle,ends[0],ends[1],intersection);
+                
+                if(result == 1) {
+                    intersectionPoints.push_back(intersection);
+                    std::cout << std::endl << "Intersection with edge " << i << ": " << ends[0] << " " << ends[1] << std::endl;  
+                }  
+            }  
+            
+            double edgePortion = VolumeInsideVoxelUtility::EdgeFilledPortion(intersectionPoints, ends);
+            volume += edgePortion/12;                
+        }
         return volume;
     }
     
@@ -163,7 +188,31 @@ private:
     ///@name Private Operations
     ///@{
 
-}; /* Class VoxelInsideVolume */
+    /**
+     * @brief Aproximates the portion of the edge that represents volume
+     * @param rPoints references to a vector containing the points intersecting with the edge
+     * @param rTriangles references to the triangles which intersect the voxel at some edge.
+     * @return Approximated volume 
+     * @note This approximation assigns a fraction of volume (1/8) to each node of the
+     * voxel, and counts it as volume if the node is inside the object (NodeDistance > 0)
+     */  
+    static const double EdgeFilledPortion(const std::vector<array_1d<double,3>>& rPoints, const PointsArrayType& rEnds) {
+        double length = Distance(rEnds[0],rEnds[1]);
+        if (rPoints.size() == 0) return 0;
+        //std::cout << length << std::endl;
+        return 0.5;
+    }
+
+    static const double Distance(const NodeType& Point0, const NodeType& Point1) {
+        const double lx = Point0.X() - Point1.X();
+        const double ly = Point0.Y() - Point1.Y();
+        const double lz = Point0.Z() - Point1.Z();
+
+        const double length = lx * lx + ly * ly + lz * lz;
+
+        return std::sqrt( length );
+    }
+}; /* Class VoxelInsideVolumeUtility */
 
 ///@name Type Definitions
 ///@{
