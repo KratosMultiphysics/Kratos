@@ -611,7 +611,6 @@ namespace Kratos
 
         // Initial Setup
         Model current_model;
-        constexpr double tolerance = 1e-6;
         ModelPart &model_part = current_model.CreateModelPart(modelName);
         model_part.SetBufferSize(2);
 
@@ -702,7 +701,6 @@ namespace Kratos
                 return -1;
             }
 
-            int count = 0;
             double criticalHead;
             double currentHead;
             bool pipingSuccess = false;
