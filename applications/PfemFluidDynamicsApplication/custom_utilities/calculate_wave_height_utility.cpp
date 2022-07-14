@@ -156,12 +156,9 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
 {
     KRATOS_TRY
 
-    struct SurfacePoint{
-        double distance = 1e16;
-        double mean_water_level;
-        array_1d<double,3> coordinates;
-        array_1d<double,3> direction;
-    };
+    static array_1d<double,3> coordinates = rCoordinates; // Workaround to make variables accessible to the local reducer
+    static array_1d<double,3> direction = mDirection;
+    static double mean_water_level = mMeanWaterLevel;
 
     struct CustomReducer{
         using return_type = double;
@@ -173,11 +170,17 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
             return wave_height;
         }
 
-        void LocalReduce(SurfacePoint point)
+        void LocalReduce(NodeType& rNode)
         {
-            if (point.distance < this->distance) {
-                this->distance = point.distance;
-                this->wave_height = inner_prod(point.direction, point.coordinates) - point.mean_water_level;
+            if (rNode.IsNot(ISOLATED) && rNode.IsNot(RIGID) && rNode.Is(FREE_SURFACE))
+            {
+                const array_1d<double,3> relative_position = rNode.Coordinates() - coordinates;
+                const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(direction, relative_position);
+                const double new_distance = norm_2(horizontal_position);
+                if (new_distance < this->distance) {
+                    this->distance = new_distance;
+                    this->wave_height = inner_prod(direction, coordinates) - mean_water_level;
+                }
             }
         }
 
@@ -193,19 +196,7 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
         }
     };
 
-    return block_for_each<CustomReducer>(mrModelPart.Nodes(), [&](NodeType& rNode) {
-        SurfacePoint surface_point;
-        if (rNode.IsNot(ISOLATED) && rNode.IsNot(RIGID) && rNode.Is(FREE_SURFACE))
-        {
-            const array_1d<double,3> relative_position = rNode.Coordinates() - rCoordinates;
-            const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(mDirection, relative_position);
-            surface_point.distance = norm_2(horizontal_position);
-            surface_point.coordinates = rNode.Coordinates();
-            surface_point.direction = mDirection;
-            surface_point.mean_water_level = mMeanWaterLevel;
-        }
-        return surface_point;
-    });
+    return block_for_each<CustomReducer>(mrModelPart.Nodes(),[&](NodeType& rNode) -> NodeType& {return rNode;});
 
     KRATOS_CATCH("")
 }
