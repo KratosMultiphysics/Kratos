@@ -562,7 +562,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                     if (normalDist < 1.0){
                         theta = 1.0 - std::max(0.0, std::min( normalDist*normalDist*(3.0 - 2.0*normalDist), 1.0 ));//0.0; for small unpinned hydrophobic droplet //1.0; for pinned droplet
                     } */
-                    const double theta = std::min( std::exp( -( (std::abs(distance_i) + tolerance)/(5.0*element_size) - 1.0 ) ), 1.0); //1.0;
+                    const double theta = std::min( std::exp( -( (std::abs(distance_i) + tolerance)/(20.0*element_size) - 1.0 ) ), 1.0); //1.0;
 
                     if (contact_angle_weight > 0.0){
                         minus_cos_contact_angle = -theta*norm_grad_phi_avg_i*std::cos(contact_angle/contact_angle_weight) +
