@@ -388,9 +388,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #        inlet_node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, vel_inlet)
             #        KratosMultiphysics.Logger.PrintInfo("Inlet", vel_inlet)
 
+            print("Calculating curvature for elliptic redistiancing and contact angle distribution, prior to smoothing: Start")
+            (self.distance_gradient_process).Execute() # Always check if calculated above
+            (self.curvature_calculation_process).Execute()
+            print("Calculating curvature for elliptic redistiancing and contact angle distribution, prior to smoothing: End")
+
             # Evaluating the average nodal contact angle: First location: works fine with dewetting
             print("Contact Angle Evaluator: Start")
-            (self.distance_gradient_process).Execute()
             (self.contact_angle_evaluator).Execute()
 
             # Store current level-set to check for wetting/dewetting used in contact_angle_evaluator
@@ -436,8 +440,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 print("Elliptic Redistancing Started")
                 print(time.time())
 
-                (self.distance_gradient_process).Execute() # Always check if calculated above
-                (self.curvature_calculation_process).Execute()
+                #(self.distance_gradient_process).Execute() # Always check if calculated above
+                #(self.curvature_calculation_process).Execute()
                 (self.variational_non_eikonal_distance).Execute()
                 for node in self.main_model_part.Nodes:
                     smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
