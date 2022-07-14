@@ -152,7 +152,8 @@ public:
         double volume = 0;
         GeometryArrayType edges = rVoxel.GenerateEdges();
         for (int i = 0; i < 12; i++) {
-            std::vector<array_1d<double,3>> intersectionPoints;
+            std::vector<double> Distances;
+            Distances.push_back(0);
             PointsArrayType ends = edges[i].Points();
 
             for (auto triangle : rTriangles) {
@@ -160,12 +161,14 @@ public:
                 int result = IntersectionUtilities::ComputeTriangleLineIntersection(triangle,ends[0],ends[1],intersection);
                 
                 if(result == 1) {
-                    intersectionPoints.push_back(intersection);
+                    double Dist = Distance(ends[0], intersection);
+                    Distances.push_back(Dist);
                     //std::cout << std::endl << "Intersection with edge " << i << ": " << ends[0] << " " << ends[1] << std::endl;  
                 }  
-            }  
-            
-            double edgePortion = VolumeInsideVoxelUtility::EdgeFilledPortion(intersectionPoints, ends);
+            } 
+            Distances.push_back(Distance(ends[0],ends[1]));
+            std::sort(Distances.begin(),Distances.end());            
+            double edgePortion = VolumeInsideVoxelUtility::EdgeFilledPortion(Distances, ends);
             volume += edgePortion/12;                
         }
         return volume;
@@ -190,27 +193,15 @@ private:
 
     /**
      * @brief Aproximates the portion of the edge that represents volume
-     * @param rPoints references to a vector containing the points intersecting with the edge
-     * @param rTriangles references to the triangles which intersect the voxel at some edge.
+     * @param rDistances references to a vector containing the distances of each intersecting point with the edge
+     * @param rEnds references to the nodes at both sides of the edge
      * @return Approximated volume 
      * @note This approximation assigns a fraction of volume (1/8) to each node of the
      * voxel, and counts it as volume if the node is inside the object (NodeDistance > 0)
      */  
-    static const double EdgeFilledPortion(const std::vector<array_1d<double,3>>& rPoints, const PointsArrayType& rEnds) {
-        double Length = Distance(rEnds[0],rEnds[1]);
-        double portion = 0;
-
-        //Prepare to see the most uneficcient code in all Kratos
-        std::vector<double> Distances(rPoints.size()+2);
-        Distances[0] = 0;
-        for (int i = 0; i < rPoints.size(); i++) {
-            double Dist = Distance(rEnds[0], rPoints[i]);
-            Distances[i] = Dist;
-        }
-        Distances[rPoints.size()+1] = Length;
-        std::sort(Distances.begin(),Distances.end());
-
-        
+    static const double EdgeFilledPortion(std::vector<double>& Distances, const PointsArrayType& rEnds) {
+        double Length = Distances[Distances.size() - 1];
+        double portion = 0;        
 
         //casuistics: Both nodes inside, both nodes outside, one node inside and one outside
         if (rEnds[0].GetSolutionStepValue(DISTANCE) > 0 && rEnds[1].GetSolutionStepValue(DISTANCE) > 0) {
