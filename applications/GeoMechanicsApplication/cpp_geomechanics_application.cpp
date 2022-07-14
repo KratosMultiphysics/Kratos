@@ -701,6 +701,7 @@ namespace Kratos
                 return -1;
             }
 
+            int count = 0;
             double criticalHead;
             double currentHead;
             bool pipingSuccess = false;
