@@ -278,7 +278,7 @@ private:
     /**
      * @brief Returns the distance between two 3D points.
      * @param rPoint0 reference to the first point
-     * @param rPoint1 reference to the second point
+     * @param rPoint1 reference an array of 3 coordinates representing the second point
      * @return Distance 
      */  
     static double Distance(const NodeType& Point0, const array_1d<double,3>& Point1) {
