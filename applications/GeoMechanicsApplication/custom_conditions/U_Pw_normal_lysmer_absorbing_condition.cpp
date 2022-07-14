@@ -27,13 +27,17 @@ Condition::Pointer UPwLysmerAbsorbingCondition<TDim,TNumNodes>::Create(IndexType
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//template< unsigned int TDim, unsigned int TNumNodes >
-//void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
-//    Initialize(const ProcessInfo& rCurrentProcessInfo)
-//{
-//
-//
-//}
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
+InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    // reset bool which indicates if an abosrbing force is present on current node 
+    GeometryType& Geom = this->GetGeometry();
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
+    
+        Geom[i].SetValue(IS_ABSORBING, false);
+    }
+}
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim,TNumNodes>::
@@ -43,10 +47,10 @@ void UPwLysmerAbsorbingCondition<TDim,TNumNodes>::
 
     int n_dof = TNumNodes * TDim;
     BoundedMatrix<double, TNumNodes* TDim, TNumNodes* TDim> rAbsMatrix = ZeroMatrix(n_dof, n_dof);
-    BoundedMatrix<double, TDim, TNumNodes* TDim> rAuxAbsMatrix = ZeroMatrix(TDim, n_dof);
 
     //Previous definitions
-    const GeometryType& Geom = this->GetGeometry();
+    GeometryType& Geom = this->GetGeometry();
+    const PropertiesType& prop = this->GetProperties();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
     const unsigned int NumGPoints = IntegrationPoints.size();
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
@@ -59,77 +63,13 @@ void UPwLysmerAbsorbingCondition<TDim,TNumNodes>::
     Geom.Jacobian( JContainer, mThisIntegrationMethod );
     
     //Condition variables
-    array_1d<double, TNumNodes* TDim> rGlobalVelocityVector;
-    array_1d<double, TDim> rLocalVelocityVector;
-    array_1d<double, TDim> rNodalVelocityVector;
-    //array_1d<double, TNumNodes* TDim> VelocityVectorPrev;
-    //array_1d<double, TNumNodes* TDim> DeltaVelocityVector;
-    GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rGlobalVelocityVector, Geom, VELOCITY);
-    //GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(VelocityVectorPrev, Geom, VELOCITY,1);
-    //DeltaVelocityVector = VelocityVector - VelocityVectorPrev;
-    BoundedMatrix<double, TDim, TDim> rotationMatrix;
-
-    // calculate rotation matrix
-    CalculateRotationMatrix(rotationMatrix, Geom);
     BoundedMatrix<double, TDim, TNumNodes* TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
-    array_1d<double, TDim> relVelVector;
-    array_1d<double, TDim> localVelVector;
-    array_1d<double, TDim> rTractionVector;
-    array_1d<double, TNumNodes* TDim> rTractionVector2;
-
-
-
-    //// create identity matrix
-    //BoundedMatrix<double, TDim, TDim>             rIdentityMatrix = ZeroMatrix(TDim, TDim);
-    //for (unsigned int idim = 0; idim < rIdentityMatrix.size1(); ++idim) {
-    //    for (unsigned int jdim = 0; jdim < rIdentityMatrix.size2(); ++jdim) {
-    //        rIdentityMatrix(idim, jdim) = 1;
-    //    }
-    //}
-
-
-
-
-    //std::vector< Vector > mVelocityVector;
-    //array_1d<double, TDim> nodalVelocityVector;
-    //for(unsigned int i=0; i<TNumNodes; ++i)
-    //{
-    //    nodalVelocityVector = Geom[i].FastGetSolutionStepValue(VELOCITY);
-    //    for (unsigned int j = 0; j < TDim; ++j)
-    //    {
-    //        VelocityVector(i,j) = nodalVelocityVector[j];
-    //    }
-    //}
+    array_1d<double, TNumNodes* TDim> rTractionVector;
 
     NormalLysmerAbsorbingVariables rVariables;
 
-    this->GetNeighbourElementVariables(rVariables, CurrentProcessInfo);
-
-    double alpha1 = 1;
-    double alpha2 = 1;
-
-    rTractionVector[0] = rVariables.vs * rVariables.rho * alpha2;
-    
-    rTractionVector[1] = rVariables.vp * rVariables.rho * alpha1;;
-    if (TDim > 2) {
-        rTractionVector[2] = rVariables.vs * rVariables.rho * alpha2;
-    }
-
-
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        const unsigned int Local_i = i * TDim;
-
-        for (unsigned int dim = 0; dim < TDim; ++dim) {
-            rNodalVelocityVector[dim] = rGlobalVelocityVector[Local_i + dim];
-        }
-        rLocalVelocityVector = prod(rNodalVelocityVector, rotationMatrix);
-
-        
-        for (unsigned int dim = 0; dim < TDim; ++dim) {
-            rTractionVector2[Local_i + dim] = -rLocalVelocityVector[dim] * rTractionVector[dim];
-            //rTractionVector2[Local_i + dim] = -rGlobalVelocityVector[Local_i + dim] * rTractionVector[dim];
-        }
-    }
+    this->GetVariables(rVariables, CurrentProcessInfo);
+    this->CalculateTractionVector(rVariables, CurrentProcessInfo, Geom, rTractionVector);
 
     //Loop over integration points
     for(unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -144,9 +84,8 @@ void UPwLysmerAbsorbingCondition<TDim,TNumNodes>::
         rAbsMatrix += prod(trans(Nu), Nu) * rVariables.IntegrationCoefficient;
     }
 
-    rVariables.UVector = prod(rAbsMatrix, rTractionVector2);
+    rVariables.UVector = prod(rAbsMatrix, rTractionVector);
     this->CalculateAndAddRHS(rRightHandSideVector, rVariables);
-
 }
 
 //----------------------------------------------------------------------------------------
@@ -154,11 +93,75 @@ void UPwLysmerAbsorbingCondition<TDim,TNumNodes>::
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
+CalculateTractionVector(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, Element::GeometryType& Geom, 
+    array_1d<double, TNumNodes* TDim>& rTractionVector)
+{
+    double alpha1 = 1;
+    double alpha2 = 1;
+
+
+    array_1d<double, TDim> rTractionVectorConstants;
+    array_1d<double, TDim> rNodalVelocityVector;
+    array_1d<double, TDim> rLocalVelocityVector;
+
+    array_1d<double, TNumNodes* TDim> rGlobalVelocityVector;
+    GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rGlobalVelocityVector, Geom, VELOCITY);
+
+
+    // calculate rotation matrix
+    BoundedMatrix<double, TDim, TDim> rotationMatrix;
+    CalculateRotationMatrix(rotationMatrix, Geom);
+
+
+    // calculate constant traction vector part
+    rTractionVectorConstants[0] = rVariables.vs * rVariables.rho * alpha2;
+    if (TDim == 2)
+    {
+        rTractionVectorConstants[1] = rVariables.vp * rVariables.rho * alpha1;
+    }
+    else if(TDim == 3)
+    {
+        rTractionVectorConstants[1] = rVariables.vs * rVariables.rho * alpha2;
+        rTractionVectorConstants[2] = rVariables.vp * rVariables.rho * alpha1;
+    }
+
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
+        const unsigned int Local_i = i * TDim;
+
+        // check if absorbing forces are already set at current node, if so, do not fill traction vector
+        if (Geom[i].GetValue(IS_ABSORBING))
+        {
+            for (unsigned int dim = 0; dim < TDim; ++dim) {
+                rTractionVector[Local_i + dim] = 0;
+            }
+        }
+        else 
+        {
+            // get velocity vector at current node
+            for (unsigned int dim = 0; dim < TDim; ++dim) {
+                rNodalVelocityVector[dim] = rGlobalVelocityVector[Local_i + dim];
+            }
+
+            // rotate nodal velocity vector to local system
+            rLocalVelocityVector = prod(rNodalVelocityVector, rotationMatrix);
+
+
+            // calculate traction vector
+            for (unsigned int dim = 0; dim < TDim; ++dim) {
+                rTractionVector[Local_i + dim] = -rLocalVelocityVector[dim] * rTractionVectorConstants[dim];
+            }
+            Geom[i].SetValue(IS_ABSORBING, true);
+        }
+    }
+}
+
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
 GetNeighbourElementVariables(
     NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    auto neighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
-
+    
     double rho_s = 0;
     double rho_w = 0;
     double E = 0;
@@ -168,47 +171,69 @@ GetNeighbourElementVariables(
 
     // get mean degree of saturation of all integration points in all neighbour elements
     std::vector<double> SaturationVector;
-    int nValues = 0;
+    
+    // get neighbour elements
+    auto neighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
+    
     int nElements = neighbours.size();
     
+    // loop over all neighbour elements
+    int nValues = 0;
     for (unsigned int i = 0; i < neighbours.size(); ++i) {
         
         auto const rPropNeighbour = neighbours[i].GetProperties();
 
         rho_s = rho_s + rPropNeighbour[DENSITY_SOLID];
         rho_w = rho_w + rPropNeighbour[DENSITY_WATER];
-
         n = n + rPropNeighbour[POROSITY];
         E = E + rPropNeighbour[YOUNG_MODULUS];
         nu = nu + rPropNeighbour[POISSON_RATIO];
 
         neighbours[i].CalculateOnIntegrationPoints(DEGREE_OF_SATURATION, SaturationVector, rCurrentProcessInfo);
+
+        // loop over all integration points
         for (unsigned int j = 0; j < SaturationVector.size(); ++j)
         {
             rMeanDegreeOfSaturation = rMeanDegreeOfSaturation + SaturationVector[j];
             nValues = nValues + 1;
         }
-
-
-
     }
-    rMeanDegreeOfSaturation = rMeanDegreeOfSaturation / nValues;
+
+    // calculate mean of neighbour element variables
     rVariables.E = E / nElements;
     rVariables.nu = nu / nElements;
+
     n = n / nElements;
     rho_s = rho_s / nElements;
     rho_w = rho_w / nElements;
+    rMeanDegreeOfSaturation = rMeanDegreeOfSaturation / nValues;
 
+    // calculate density of mixture
     rVariables.rho = (rMeanDegreeOfSaturation * n * rho_w) + (1.0 - n) * rho_s;
-
-  
-
-    rVariables.Ec = E * (1 - rVariables.nu) / ((1 + rVariables.nu) * (1 - 2 * rVariables.nu));
-    rVariables.G = E / (2 * (1 + rVariables.nu));
-    rVariables.vp = sqrt(rVariables.Ec / rVariables.rho);
-    rVariables.vs = sqrt(rVariables.G / rVariables.rho);
 }
 
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
+GetVariables(
+    NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+{
+    // gets average of variables as stored in neighbour elements
+    this->GetNeighbourElementVariables(rVariables, rCurrentProcessInfo);
+
+    // calculate P wave modulus and shear wave modulus
+    rVariables.Ec = rVariables.E * (1 - rVariables.nu) / ((1 + rVariables.nu) * (1 - 2 * rVariables.nu));
+    rVariables.G = rVariables.E / (2 * (1 + rVariables.nu));
+
+    // calculate pressure wave and shear wave velocity
+    rVariables.vp = sqrt(rVariables.Ec / rVariables.rho);
+    rVariables.vs = sqrt(rVariables.G / rVariables.rho);
+
+    //auto absorbing_factors = this->GetValue(ABSORBING_FACTORS);
+
+    //rVariables.alpha1 = absorbing_factors[0];
+    //rVariables.alpha2 = absorbing_factors[1];
+}
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim,TNumNodes>::

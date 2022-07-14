@@ -63,6 +63,7 @@ public:
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
  
+   void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
    // void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -77,13 +78,13 @@ protected:
         double IntegrationCoefficient;
         array_1d<double,TNumNodes> Np;
         array_1d<double, TNumNodes* TDim> UVector;
-        double E;
-        double nu;
-        double rho;
-        double Ec;
-        double G;
-        double vp;
-        double vs;
+        double E; // youngs modulus
+        double nu; // poison ratio
+        double rho; // density of soil mixture
+        double Ec; // p wave modulus
+        double G; // shear wave modulus
+        double vp; // p wave velocity
+        double vs; // sheare wave velocity
         double alpha1;
         double alpha2;
     };
@@ -109,6 +110,9 @@ protected:
     void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const Element::GeometryType& Geom);
 
     void GetNeighbourElementVariables(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
+    void GetVariables(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
+
+    void CalculateTractionVector(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, Element::GeometryType& Geom, array_1d<double, TNumNodes* TDim>& rTractionVector);
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
