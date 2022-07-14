@@ -219,7 +219,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
     const double L = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double rho = GetProperties()[DENSITY];
 
-    const double factor = double(TDim * TNumNodes);
+    const double factor = TDim * TNumNodes;
     const BoundedMatrix<double, TDim, TDim> fill_matrix = A * L * rho* (IdentityMatrix(TDim)/factor);
 
     project(rMassMatrix, range(0,    TDim), range(0,    TDim)) += fill_matrix*2.0;
