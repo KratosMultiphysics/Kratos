@@ -733,7 +733,7 @@ namespace Kratos
 
                 if (count == noPipeElements)
                 {
-                    if (abs(criticalHead - minCriticalHead) < 1e-9)
+                    if (abs(currentHead - minCriticalHead) < 1e-9)
                     {
                         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Undetermined: All pipe elements open at initial search value :" << minCriticalHead << std::endl;
                     }
@@ -747,7 +747,7 @@ namespace Kratos
 
                 else if (abs(currentHead - maxCriticalHead) < 1e-9)
                 {
-                    KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Undetermined: Max search head reached" << minCriticalHead << std::endl;
+                    KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Undetermined: Max search head reached: " << maxCriticalHead << std::endl;
                     break;
                 }
 
