@@ -229,7 +229,7 @@ public:
      * @param rRightHandSideVector Local finite element residual vector (output)
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
-    void CalculateLocalVelocityContribution(
+    virtual void CalculateLocalVelocityContribution(
         MatrixType &rDampMatrix,
         VectorType &rRightHandSideVector,
         const ProcessInfo &rCurrentProcessInfo) override;
@@ -239,7 +239,7 @@ public:
      * @param rMassMatrix Local mass matrix (output)
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
-    void CalculateMassMatrix(
+    virtual void CalculateMassMatrix(
         MatrixType &rMassMatrix,
         const ProcessInfo &rCurrentProcessInfo) override;
 

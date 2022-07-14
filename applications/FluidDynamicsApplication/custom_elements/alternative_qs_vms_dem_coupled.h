@@ -100,6 +100,8 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
+    typedef GeometryType::ShapeFunctionsSecondDerivativesType ShapeFunctionsSecondDerivativesType;
+
     constexpr static unsigned int Dim = QSVMS<TElementData>::Dim;
     constexpr static unsigned int NumNodes = QSVMS<TElementData>::NumNodes;
     constexpr static unsigned int BlockSize = QSVMS<TElementData>::BlockSize;
@@ -233,6 +235,10 @@ protected:
 
     // Protected interface of FluidElement ////////////////////////////////////
 
+    /// Determine the shape second derivative in the gauss point
+    void GetShapeSecondDerivatives(ShapeFunctionsSecondDerivativesType &rDDN_DDX,
+                                          const int& rGaussPointIndex) const;
+
     void AlgebraicMomentumResidual(
         const TElementData& rData,
         const array_1d<double,3> &rConvectionVelocity,
@@ -259,10 +265,25 @@ protected:
         BoundedMatrix<double,Dim,Dim> &TauOne,
         double &TauTwo) const;
 
+    void UpdateIntegrationPointData(
+        TElementData& rData,
+        unsigned int IntegrationPointIndex,
+        double Weight,
+        const typename TElementData::MatrixRowType& rN,
+        const typename TElementData::ShapeDerivativesType& rDN_DX,
+        const typename TElementData::ShapeFunctionsSecondDerivativesType& rDDN_DDX) const;
+
     void AddVelocitySystem(
         TElementData& rData,
         MatrixType &rLocalLHS,
         VectorType &rLocalRHS) override;
+
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
+                            const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
+                                            VectorType& rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo) override;
 
     void AddMassLHS(
         TElementData& rData,
