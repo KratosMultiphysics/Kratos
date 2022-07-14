@@ -132,7 +132,7 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-centos7-python35:latest
+      image: kratosmultiphysics/kratos-image-ci-centos7:latest
       options: --user 1001
 
     steps:
@@ -147,4 +147,4 @@ jobs:
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3.5 kratos/python_scripts/run_tests.py -l nightly -c python3.5
+        python3.8 kratos/python_scripts/run_tests.py -l nightly -c python3.8
