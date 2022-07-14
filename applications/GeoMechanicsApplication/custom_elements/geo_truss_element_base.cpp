@@ -213,8 +213,6 @@ template< unsigned int TDim, unsigned int TNumNodes >
 {
     KRATOS_TRY
 
-    static constexpr unsigned int NDof = TDim * TNumNodes;
-
     const double A = GetProperties()[CROSS_AREA];
     const double L = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double rho = GetProperties()[DENSITY];
@@ -706,9 +704,6 @@ void GeoTrussElementBase<3,2>::
 {
     KRATOS_TRY
 
-    static constexpr unsigned int DIM = 3;
-    static constexpr unsigned int NUM_NODES = 2;
-
     Vector current_displacement = ZeroVector(DIM*NUM_NODES);
     GetValuesVector(current_displacement, 0);
     rReferenceCoordinates[0] = GetGeometry()[0].X0() + current_displacement[0];
@@ -728,9 +723,6 @@ void GeoTrussElementBase<2,2>::
 {
     KRATOS_TRY;
 
-    static constexpr unsigned int DIM = 2;
-    static constexpr unsigned int NUM_NODES = 2;
-
     Vector current_displacement = ZeroVector(DIM*NUM_NODES);
     GetValuesVector(current_displacement, 0);
     rReferenceCoordinates[0] = GetGeometry()[0].X0() + current_displacement[0];
@@ -747,9 +739,6 @@ void GeoTrussElementBase<3,2>::
     CreateTransformationMatrix(FullDofMatrixType& rRotationMatrix)
 {
     KRATOS_TRY
-
-    static constexpr unsigned int DIM = 3;
-    static constexpr unsigned int NUM_NODES = 2;
 
     // 1st calculate transformation matrix
     typedef BoundedVector<double, DIM> arraydim;
@@ -825,7 +814,6 @@ void GeoTrussElementBase<2,2>::
 
     static constexpr unsigned int DIM_2D = 2;
     static constexpr unsigned int DIM_3D = 3;
-    static constexpr unsigned int NUM_NODES = 2;
 
     // 1st calculate transformation matrix
 
@@ -956,9 +944,6 @@ void GeoTrussElementBase<3,2>::
 {
     KRATOS_TRY;
 
-    static constexpr unsigned int DIM = 3;
-    static constexpr unsigned int NUM_NODES = 2;
-
     double E = ReturnTangentModulus1D(rCurrentProcessInfo);
     const double A = GetProperties()[CROSS_AREA];
 
@@ -1059,9 +1044,6 @@ void GeoTrussElementBase<2,2>::
 {
     KRATOS_TRY;
 
-    static constexpr unsigned int DIM = 2;
-    static constexpr unsigned int NUM_NODES = 2;
-
     double E = ReturnTangentModulus1D(rCurrentProcessInfo);
     const double A = GetProperties()[CROSS_AREA];
 
@@ -1127,9 +1109,6 @@ void GeoTrussElementBase<3,2>::
                                     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-
-    static constexpr unsigned int DIM = 3;
-    static constexpr unsigned int NUM_NODES = 2;
 
     double E = ReturnTangentModulus1D(rCurrentProcessInfo);
 
@@ -1211,11 +1190,7 @@ void GeoTrussElementBase<2,2>::
 {
     KRATOS_TRY
 
-    static constexpr unsigned int DIM = 2;
-    static constexpr unsigned int NUM_NODES = 2;
-
     double E = ReturnTangentModulus1D(rCurrentProcessInfo);
-
     double A = GetProperties()[CROSS_AREA];
 
     rElasticStiffnessMatrix = ZeroMatrix(DIM*NUM_NODES, DIM*NUM_NODES);
