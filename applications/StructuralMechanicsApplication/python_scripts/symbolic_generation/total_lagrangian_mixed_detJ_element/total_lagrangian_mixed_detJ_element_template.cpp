@@ -297,7 +297,6 @@ void TotalLagrangianMixedDetJElement<TDim>::FinalizeSolutionStep(const ProcessIn
     const auto& r_geometry = GetGeometry();
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
-    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
     // Create the kinematics container and fill the nodal data
@@ -1207,7 +1206,6 @@ const Parameters TotalLagrangianMixedDetJElement<TDim>::GetSpecifications() cons
             "This element implements a mixed displacement - volumetric strain formulation with Variational MultiScales (VMS) stabilization. This formulation is capable to deal with materials in the incompressible limit as well as with anisotropy."
     })");
 
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     if (TDim == 2) {
         std::vector<std::string> dofs_2d({"DISPLACEMENT_X","DISPLACEMENT_Y","VOLUMETRIC_STRAIN"});
         specifications["required_dofs"].SetStringArray(dofs_2d);
