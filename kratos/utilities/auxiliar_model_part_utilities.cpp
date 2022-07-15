@@ -412,11 +412,15 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
 
     // TODO
 
-    // We copy the list of variables
+    // We copy the geometries
 
     // TODO
 
-    // We copy the communicator
+    // We copy the list of variables (using copy constructor)
+    r_model_part.SetNodalSolutionStepVariablesList(Kratos::make_intrusive<VariablesList>(mrModelPart.GetNodalSolutionStepVariablesList()));
+    r_model_part.SetNodalSolutionStepVariablesList();
+
+    // We copy the communicator (using copy constructor)
     r_model_part.SetCommunicator(Kratos::make_shared<Communicator>(mrModelPart.GetCommunicator()));
 
     // We cannot copy the parent model part as it will break the concept of deep copy, which a priori assumes this is the parent model part, so nothing to do here
