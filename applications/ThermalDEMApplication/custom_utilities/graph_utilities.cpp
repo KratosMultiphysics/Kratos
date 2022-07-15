@@ -82,7 +82,7 @@ namespace Kratos {
     if (mGraph_ParticleHeatGenContributions) {
       mFile_ParticleHeatGenContributions.open("graph_generation_contributions.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleHeatGenContributions) << "Could not open graph file for heat generation contributions!" << std::endl;
-      mFile_ParticleHeatGenContributions << "TIME STEP | TIME | SLIDING FRICTION | ROLLING FRICTION | DAMPING CONTACT FORCE" << std::endl;
+      mFile_ParticleHeatGenContributions << "TIME STEP | TIME | SLIDING FRICTION PARTICLE-PARTICLE | SLIDING FRICTION PARTICLE-WALL | ROLLING FRICTION PARTICLE-PARTICLE | ROLLING FRICTION PARTICLE-WALL | DAMPING FORCE PARTICLE-PARTICLE | DAMPING FORCE PARTICLE-WALL" << std::endl;
     }
 
     KRATOS_CATCH("")
@@ -114,9 +114,12 @@ namespace Kratos {
     double    particle_flux_conv_ratio_avg        =  0.0;
     double    particle_flux_prescsurf_ratio_avg   =  0.0;
     double    particle_flux_prescvol_ratio_avg    =  0.0;
-    double    particle_gen_sliding_ratio_avg      =  0.0;
-    double    particle_gen_rolling_ratio_avg      =  0.0;
-    double    particle_gen_damping_ratio_avg      =  0.0;
+    double    particle_gen_slid_pp_ratio_avg      =  0.0;
+    double    particle_gen_slid_pw_ratio_avg      =  0.0;
+    double    particle_gen_roll_pp_ratio_avg      =  0.0;
+    double    particle_gen_roll_pw_ratio_avg      =  0.0;
+    double    particle_gen_damp_pp_ratio_avg      =  0.0;
+    double    particle_gen_damp_pw_ratio_avg      =  0.0;
 
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < num_of_particles; i++) {
@@ -165,9 +168,12 @@ namespace Kratos {
 
       if (mGraph_ParticleHeatGenContributions) {
         // Get absolute value of particle heat generation mechanisms
-        const double gen_sliding = fabs(particle.mGenerationHeatFlux_sliding);
-        const double gen_rolling = fabs(particle.mGenerationHeatFlux_rolling);
-        const double gen_damping = fabs(particle.mGenerationHeatFlux_damping);
+        const double gen_slid_pp = fabs(particle.mGenerationHeatFlux_slid_particle);
+        const double gen_slid_pw = fabs(particle.mGenerationHeatFlux_slid_wall);
+        const double gen_roll_pp = fabs(particle.mGenerationHeatFlux_roll_particle);
+        const double gen_roll_pw = fabs(particle.mGenerationHeatFlux_roll_wall);
+        const double gen_damp_pp = fabs(particle.mGenerationHeatFlux_damp_particle);
+        const double gen_damp_pw = fabs(particle.mGenerationHeatFlux_damp_wall);
         const double gen_total   = fabs(particle.mGenerationHeatFlux);
 
         // Compute relative contribution of each heat generation mechanism for current particle
@@ -175,9 +181,12 @@ namespace Kratos {
           #pragma omp critical
           {
             num_ratio_particles_gen++;
-            particle_gen_sliding_ratio_avg += gen_sliding / gen_total;
-            particle_gen_rolling_ratio_avg += gen_rolling / gen_total;
-            particle_gen_damping_ratio_avg += gen_damping / gen_total;
+            particle_gen_slid_pp_ratio_avg += gen_slid_pp / gen_total;
+            particle_gen_slid_pw_ratio_avg += gen_slid_pw / gen_total;
+            particle_gen_roll_pp_ratio_avg += gen_roll_pp / gen_total;
+            particle_gen_roll_pw_ratio_avg += gen_roll_pw / gen_total;
+            particle_gen_damp_pp_ratio_avg += gen_damp_pp / gen_total;
+            particle_gen_damp_pw_ratio_avg += gen_damp_pw / gen_total;
           }
         }
       }
@@ -201,9 +210,12 @@ namespace Kratos {
 
     // Compute average of relative contribution of each heat generation mechanism
     if (mGraph_ParticleHeatGenContributions && num_ratio_particles_gen > 0) {
-      particle_gen_sliding_ratio_avg /= num_ratio_particles_gen;
-      particle_gen_rolling_ratio_avg /= num_ratio_particles_gen;
-      particle_gen_damping_ratio_avg /= num_ratio_particles_gen;
+      particle_gen_slid_pp_ratio_avg /= num_ratio_particles_gen;
+      particle_gen_slid_pw_ratio_avg /= num_ratio_particles_gen;
+      particle_gen_roll_pp_ratio_avg /= num_ratio_particles_gen;
+      particle_gen_roll_pw_ratio_avg /= num_ratio_particles_gen;
+      particle_gen_damp_pp_ratio_avg /= num_ratio_particles_gen;
+      particle_gen_damp_pw_ratio_avg /= num_ratio_particles_gen;
     }
 
     // Write results to files
@@ -223,7 +235,7 @@ namespace Kratos {
     if (mFile_ParticleHeatFluxContributions.is_open())
       mFile_ParticleHeatFluxContributions << time_step << " " << time << " " << particle_flux_conducdir_ratio_avg << " " << particle_flux_conducindir_ratio_avg << " " << particle_flux_rad_ratio_avg << " " << particle_flux_gen_ratio_avg << " " << particle_flux_conv_ratio_avg << " " << particle_flux_prescsurf_ratio_avg << " " << particle_flux_prescvol_ratio_avg << std::endl;
     if (mFile_ParticleHeatGenContributions.is_open())
-      mFile_ParticleHeatGenContributions << time_step << " " << time << " " << particle_gen_sliding_ratio_avg << " " << particle_gen_rolling_ratio_avg << " " << particle_gen_damping_ratio_avg << std::endl;
+      mFile_ParticleHeatGenContributions << time_step << " " << time << " " << particle_gen_slid_pp_ratio_avg << " " << particle_gen_slid_pw_ratio_avg << " " << particle_gen_roll_pp_ratio_avg << " " << particle_gen_roll_pw_ratio_avg << " " << particle_gen_damp_pp_ratio_avg << " " << particle_gen_damp_pw_ratio_avg << std::endl;
 
     KRATOS_CATCH("")
   }

@@ -218,9 +218,12 @@ namespace Kratos
       double mConductionIndirectHeatFlux;
       double mRadiationHeatFlux;
       double mGenerationHeatFlux;
-      double mGenerationHeatFlux_sliding;
-      double mGenerationHeatFlux_rolling;
-      double mGenerationHeatFlux_damping;
+      double mGenerationHeatFlux_slid_particle;
+      double mGenerationHeatFlux_slid_wall;
+      double mGenerationHeatFlux_roll_particle;
+      double mGenerationHeatFlux_roll_wall;
+      double mGenerationHeatFlux_damp_particle;
+      double mGenerationHeatFlux_damp_wall;
       double mConvectionHeatFlux;
       double mPrescribedHeatFluxSurface;
       double mPrescribedHeatFluxVolume;

@@ -37,15 +37,27 @@ namespace Kratos {
 
     if (r_process_info[GENERATION_SLIDING_OPTION]) {
       heat_gen_sliding = partition * conversion * ComputeHeatGenerationSlidingFriction(particle);
-      particle->mGenerationHeatFlux_sliding += heat_gen_sliding;
+
+      if (particle->mNeighborType & PARTICLE_NEIGHBOR)
+        particle->mGenerationHeatFlux_slid_particle += heat_gen_sliding;
+      else if (particle->mNeighborType & WALL_NEIGHBOR)
+        particle->mGenerationHeatFlux_slid_wall += heat_gen_sliding;
     }
     if (r_process_info[GENERATION_ROLLING_OPTION] && particle->Is(DEMFlags::HAS_ROTATION) && particle->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
       heat_gen_rolling = partition * conversion * ComputeHeatGenerationRollingFriction(particle);
-      particle->mGenerationHeatFlux_rolling += heat_gen_rolling;
+
+      if (particle->mNeighborType & PARTICLE_NEIGHBOR)
+        particle->mGenerationHeatFlux_roll_particle += heat_gen_rolling;
+      else if (particle->mNeighborType & WALL_NEIGHBOR)
+        particle->mGenerationHeatFlux_roll_wall += heat_gen_rolling;
     }
     if (r_process_info[GENERATION_DAMPING_OPTION]) {
       heat_gen_damping = partition * conversion * ComputeHeatGenerationDampingContact(particle);
-      particle->mGenerationHeatFlux_damping += heat_gen_damping;
+
+      if (particle->mNeighborType & PARTICLE_NEIGHBOR)
+        particle->mGenerationHeatFlux_damp_particle += heat_gen_damping;
+      else if (particle->mNeighborType & WALL_NEIGHBOR)
+        particle->mGenerationHeatFlux_damp_wall += heat_gen_damping;
     }
 
     return heat_gen_sliding + heat_gen_rolling + heat_gen_damping;

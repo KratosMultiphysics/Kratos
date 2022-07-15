@@ -191,16 +191,19 @@ namespace Kratos
     KRATOS_TRY
 
     // Initialize heat fluxes contributions
-    mConductionDirectHeatFlux   = 0.0;
-    mConductionIndirectHeatFlux = 0.0;
-    mRadiationHeatFlux          = 0.0;
-    mGenerationHeatFlux         = 0.0;
-    mGenerationHeatFlux_sliding = 0.0;
-    mGenerationHeatFlux_rolling = 0.0;
-    mGenerationHeatFlux_damping = 0.0;
-    mConvectionHeatFlux         = 0.0;
-    mPrescribedHeatFlux         = 0.0;
-    mTotalHeatFlux              = 0.0;
+    mConductionDirectHeatFlux         = 0.0;
+    mConductionIndirectHeatFlux       = 0.0;
+    mRadiationHeatFlux                = 0.0;
+    mGenerationHeatFlux               = 0.0;
+    mGenerationHeatFlux_slid_particle = 0.0;
+    mGenerationHeatFlux_slid_wall     = 0.0;
+    mGenerationHeatFlux_roll_particle = 0.0;
+    mGenerationHeatFlux_roll_wall     = 0.0;
+    mGenerationHeatFlux_damp_particle = 0.0;
+    mGenerationHeatFlux_damp_wall     = 0.0;
+    mConvectionHeatFlux               = 0.0;
+    mPrescribedHeatFlux               = 0.0;
+    mTotalHeatFlux                    = 0.0;
 
     // Initialize environment-related variables for radiation
     if (r_process_info[RADIATION_OPTION]) {
