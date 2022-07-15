@@ -116,7 +116,6 @@ namespace Kratos
       // double refinedMeanNodalSize = 0;
 
       const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-      // unsigned int count=0;
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
         if (refiningBox == false)
@@ -241,8 +240,13 @@ namespace Kratos
       meanNodalSize = 0;
 
       const unsigned int numberOfRefiningBoxes = mrRemesh.UseRefiningBoxList.size();
-
-      // unsigned int count=0;
+      std::cout << "numberOfRefiningBoxes" << numberOfRefiningBoxes << std::endl;
+      array_1d<double, 1> refinedFluidNodesList = ZeroVector(1);
+      array_1d<double, 1> refinedMeanNodalSizeList = ZeroVector(1);
+      refinedFluidNodesList.resize(numberOfRefiningBoxes);
+      refinedMeanNodalSizeList.resize(numberOfRefiningBoxes);
+      refinedFluidNodesList = ZeroVector(numberOfRefiningBoxes);
+      refinedMeanNodalSizeList = ZeroVector(numberOfRefiningBoxes);
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
         if (i_node->Is(FLUID))
@@ -267,7 +271,14 @@ namespace Kratos
                     i_node->X() < (RefiningBoxMaximumPointList[0] + transitionDistanceInInputMesh) && i_node->Y() < (RefiningBoxMaximumPointList[1] + transitionDistanceInInputMesh))
                 {
                   outOfRefiningBoxes = false;
-                  break;
+                  // break;
+                  double localSize = i_node->FastGetSolutionStepValue(NODAL_H) * 2.0; // local size is used to avoid the frontiere zone in the mean mesh size computation
+                  if (i_node->X() > (RefiningBoxMinimumPointList[0] + localSize) && i_node->Y() > (RefiningBoxMinimumPointList[1] + localSize) &&
+                      i_node->X() < (RefiningBoxMaximumPointList[0] - localSize) && i_node->Y() < (RefiningBoxMaximumPointList[1] - localSize))
+                  {
+                    refinedFluidNodesList[index] += 1.0;
+                    refinedMeanNodalSizeList[index] += i_node->FastGetSolutionStepValue(NODAL_H);
+                  }
                 }
               }
               else if (dimension == 3)
@@ -276,7 +287,14 @@ namespace Kratos
                     i_node->X() < (RefiningBoxMaximumPointList[0] + transitionDistanceInInputMesh) && i_node->Y() < (RefiningBoxMaximumPointList[1] + transitionDistanceInInputMesh) && i_node->Z() < (RefiningBoxMaximumPointList[2] + transitionDistanceInInputMesh))
                 {
                   outOfRefiningBoxes = false;
-                  break;
+                  // break;
+                  double localSize = i_node->FastGetSolutionStepValue(NODAL_H) * 2.0; // local size is used to avoid the frontiere zone in the mean mesh size computation
+                  if (i_node->X() > (RefiningBoxMinimumPointList[0] + localSize) && i_node->Y() > (RefiningBoxMinimumPointList[1] + localSize) && i_node->Z() > (RefiningBoxMinimumPointList[2] + localSize) &&
+                      i_node->X() < (RefiningBoxMaximumPointList[0] - localSize) && i_node->Y() < (RefiningBoxMaximumPointList[1] - localSize) && i_node->Z() < (RefiningBoxMaximumPointList[2] - localSize))
+                  {
+                    refinedFluidNodesList[index] += 1.0;
+                    refinedMeanNodalSizeList[index] += i_node->FastGetSolutionStepValue(NODAL_H);
+                  }
                 }
               }
             }
@@ -299,11 +317,14 @@ namespace Kratos
 
       for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
       {
-        if (dimension == 3)
-        {
-          mrRemesh.RefiningBoxMeshSizeList[index] *= 0.8;
-        }
-
+        // {
+        //   mrRemesh.RefiningBoxMeshSizeList[index] *= 0.8;
+        // }
+        std::cout << " user provided fine mesh size " << mrRemesh.RefiningBoxMeshSizeList[index] << std::endl;
+        double localMeshSize = refinedMeanNodalSizeList[index] / refinedFluidNodesList[index];
+        mrRemesh.SetRefiningBoxMeshSizeList(index, localMeshSize);
+        std::cout << " fluid nodesin refined zone " << refinedFluidNodesList[index] << std::endl;
+        std::cout << " new computed fine mesh size " << mrRemesh.RefiningBoxMeshSizeList[index] << std::endl;
         double tolerance = mrRemesh.RefiningBoxMeshSizeList[index] * 0.01;
         double differenceOfSize = meanNodalSize - mrRemesh.RefiningBoxMeshSizeList[index];
 
