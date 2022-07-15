@@ -41,7 +41,7 @@ RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
     wget https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.zip -OutFile c:\TEMP\boost.zip; \
     mkdir c:\boost; \
-    7z x c:\TEMP\boost.zip -o "c:\boost"
+    7z x c:\TEMP\boost.zip -o"c:\boost"
 
 #Install python 3.8
 RUN powershell.exe -Command \
