@@ -388,7 +388,40 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     // We create the new model part
     ModelPart& r_model_part = pModel->CreateModelPart(rNewModelPartName);
 
+    /// We will copy the member variables of the model part one by one
+
+    // We copy the buffer size
+    r_model_part.SetBufferSize(mrModelPart.GetBufferSize());
+
+    // We copy the process info
+
     // TODO
+
+    // We copy the tables
+
+    // TODO
+
+    // We copy the meshes (here is the heavy work)
+
+    // TODO
+
+    // We copy the list of variables
+
+    // TODO
+
+    // We copy the communicator
+
+    // TODO
+
+    // We cannot copy the parent model part as it will break the concept of deep copy, which a priori assumes this is the parent model part
+
+    // TODO
+
+    // We copy the sub model parts 
+
+    // TODO
+
+    // Finally the Model is set in the initial creation
 
     return r_model_part;
 }
