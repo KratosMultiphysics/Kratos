@@ -56,6 +56,7 @@ enum class DataLocation {
  * @class AuxiliarModelPartUtilities
  * @ingroup KratosCore
  * @brief This utility includes auxiliar methods not included in the model part to avoid increase more than necessary the API
+ * @todo Typo, Auxiliar is not English, it is Auxiliary, please replace it.
  * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) AuxiliarModelPartUtilities
