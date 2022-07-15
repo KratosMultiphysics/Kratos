@@ -163,11 +163,10 @@ public:
                 if(result == 1) {
                     double Dist = Distance(ends[0], intersection);
                     Distances.push_back(Dist);
-                    //std::cout << std::endl << "Intersection with edge " << i << ": " << ends[0] << " " << ends[1] << std::endl;  
                 }  
             } 
             Distances.push_back(Distance(ends[0],ends[1]));
-            std::sort(Distances.begin(),Distances.end());       //WOULD A MAP BE MORE EFFICIENT?     
+            std::sort(Distances.begin(),Distances.end());       //WOULD A SET BE MORE EFFICIENT?     
             double edgePortion = VolumeInsideVoxelUtility::EdgeFilledPortion(Distances, ends);
             volume += edgePortion/12;                
         }
@@ -193,11 +192,9 @@ private:
 
     /**
      * @brief Aproximates the portion of the edge that represents volume
-     * @param rDistances references to a vector containing the distances of each intersecting point with the edge
+     * @param rDistances references to a sorted vector containing the distances of each intersecting point with the edge
      * @param rEnds references to the nodes at both sides of the edge
      * @return Approximated volume 
-     * @note This approximation assigns a fraction of volume (1/8) to each node of the
-     * voxel, and counts it as volume if the node is inside the object (NodeDistance > 0)
      */  
     static const double EdgeFilledPortion(std::vector<double>& Distances, const PointsArrayType& rEnds) {
         double Length = Distances[Distances.size() - 1];
@@ -220,14 +217,13 @@ private:
             if (Distances.size() == 2) return 0;
             inside = false;
         }
-        
+
         for(int i = 1; i < Distances.size(); i++) {
             if (inside) {
                 portion += abs(Distances[i]-Distances[i-1])/Length;
                 inside = false;
             } else inside = true;             
         }
-        //std::cout << "edge: " << rEnds[0] << " " << rEnds[1] << "contributed with " << portion << std::endl;  
         return portion;
     }
 
