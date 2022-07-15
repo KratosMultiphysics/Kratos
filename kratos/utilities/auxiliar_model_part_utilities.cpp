@@ -494,6 +494,9 @@ void AuxiliarModelPartUtilities::DeepCopySubModelPart(ModelPart& rNewModelPart, 
             });
             r_new_sub_model_part.AddMasterSlaveConstraints(index_list);
 
+            // TODO: Iterate in the properties ??
+            // This is to discuss, as it is not clear if we should copy the properties or not.
+
             // Finally we do a loop over the submodelparts of the submodelpart to copy them (this is done recursively, so the copy will be done until there are no more submodelparts)
             DeepCopySubModelPart(r_new_sub_model_part, r_old_sub_model_part);
         }
