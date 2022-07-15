@@ -276,10 +276,13 @@ protected:
         double height;
         array_1d<double,3> velocity;
 
-        BoundedMatrix<double,3,3> A1;
-        BoundedMatrix<double,3,3> A2;
-        array_1d<double,3> b1;
-        array_1d<double,3> b2;
+        BoundedMatrix<double,3,3> A1; // TODO: Remove
+        BoundedMatrix<double,3,3> A2; // TODO: Remove
+        array_1d<double,3> b1;        // TODO: Remove
+        array_1d<double,3> b2;        // TODO: Remove
+        double v_neumann;
+        double h_dirichlet;
+        array_1d<double,3> flux;
 
         array_1d<double,TNumNodes> nodal_f;
         array_1d<double,TNumNodes> nodal_h;
