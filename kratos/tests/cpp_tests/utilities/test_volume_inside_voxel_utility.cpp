@@ -118,7 +118,7 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(volume2, ExpectedVolume2);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortion3, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortion, KratosCoreFastSuite) {
 
         //Unlike test 1 and 2, this is an organized and methodic test by edge cases.
 
@@ -215,7 +215,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortion, KratosCoreFastSuite) 
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortion2, KratosCoreFastSuite) 
     {   
         //Just a simple general-case test
         //Generate the HEXAHEDRA3D8

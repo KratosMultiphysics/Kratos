@@ -167,7 +167,7 @@ public:
                 }  
             } 
             Distances.push_back(Distance(ends[0],ends[1]));
-            std::sort(Distances.begin(),Distances.end());            
+            std::sort(Distances.begin(),Distances.end());       //WOULD A MAP BE MORE EFFICIENT?     
             double edgePortion = VolumeInsideVoxelUtility::EdgeFilledPortion(Distances, ends);
             volume += edgePortion/12;                
         }
