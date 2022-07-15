@@ -353,7 +353,8 @@ virtual void ComputeRollingResistance(double& RollingResistance,
                                     const double& equiv_rolling_friction_coeff,
                                     const unsigned int i);
 
-virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt) final;
+//virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt) final;
+virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt, SphericParticle* p_neighbor, double LocalContactForce[3]) final;
 
 virtual double GetInitialDeltaWithFEM(int index);
 
@@ -394,7 +395,8 @@ virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                                 array_1d<double, 3>& rElasticForce,
                                 array_1d<double, 3>& rContactForce,
                                 const unsigned int i_neighbour_count,
-                                const ProcessInfo& r_process_info) final;
+                                const ProcessInfo& r_process_info,
+                                double GlobalUnbondElasticContactForce[3]) final;
 
 virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                                     double LocalContactForce[3],
@@ -448,6 +450,7 @@ int mClusterId;
 DEMIntegrationScheme* mpTranslationalIntegrationScheme;
 DEMIntegrationScheme* mpRotationalIntegrationScheme;
 double mGlobalDamping;
+double mBondedScalingFactor[3] = {0.0};
 
 private:
 

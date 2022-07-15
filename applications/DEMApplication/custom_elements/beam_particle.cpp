@@ -340,6 +340,7 @@ namespace Kratos {
             array_1d<double, 3> other_ball_to_ball_forces(3,0.0);
             ComputeOtherBallToBallForces(other_ball_to_ball_forces);
 
+            double GlobalUnbondElasticContactForce[3] = {0.0}; // TODO: THIS SHOULD BE MORE CLEAR
             AddUpForcesAndProject(data_buffer.mOldLocalCoordSystem,
                                   data_buffer.mLocalCoordSystem,
                                   LocalContactForce,
@@ -355,7 +356,8 @@ namespace Kratos {
                                   rElasticForce,
                                   rContactForce,
                                   i,
-                                  r_process_info); // 0.0 means null cohesive force
+                                  r_process_info,
+                                  GlobalUnbondElasticContactForce); // 0.0 means null cohesive force
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
 

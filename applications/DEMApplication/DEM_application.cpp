@@ -516,7 +516,7 @@ template class DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D
 
 // for parallel bond model
 template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Hertz_viscous_Coulomb>;
-template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Linear_viscous_Coulomb>;
+template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Linear_classic>;
 template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Quadratic>;
 
 void KratosDEMApplication::Register() {

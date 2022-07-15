@@ -172,6 +172,7 @@ def GetDefaultInputParameters():
             "PostControlModule"                : false,
             "PostDeltaDisplacement"            : false,
             "print_CN_graph"                   : false,
+            "PostBrokenRatio"                  : false,
             "output_configuration" : {
                 "print_number_of_neighbours_histogram" : false
             },

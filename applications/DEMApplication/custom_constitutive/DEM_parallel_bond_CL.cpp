@@ -825,7 +825,7 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
 
     // Bond rotational 'friction' based on particle rolling fricton 
     //Not damping but simple implementation to help energy dissipation
-    /*
+    
     array_1d<double, 3> element1AngularVelocity;
     noalias(element1AngularVelocity) = element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
     if (element1AngularVelocity[0] || element1AngularVelocity[1] || element1AngularVelocity[2]){
@@ -862,11 +862,11 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
         ViscoLocalRotationalMoment[0] = 0.0;
         ViscoLocalRotationalMoment[1] = 0.0;
         ViscoLocalRotationalMoment[2] = 0.0;
-    }*/
+    }
 
-    ViscoLocalRotationalMoment[0] = 0.0;
-    ViscoLocalRotationalMoment[1] = 0.0;
-    ViscoLocalRotationalMoment[2] = 0.0;
+    //ViscoLocalRotationalMoment[0] = 0.0;
+    //ViscoLocalRotationalMoment[1] = 0.0;
+    //ViscoLocalRotationalMoment[2] = 0.0;
      
     //const double rotational_moment_coeff = 0.01;
     //DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, rotational_moment_coeff);
@@ -939,15 +939,15 @@ void DEM_parallel_bond::CheckBondFailure(const int i_neighbour_count,
             LocalElasticContactForce[0] *= (1 - mBondedScalingFactor[0]);      
             LocalElasticContactForce[1] *= (1 - mBondedScalingFactor[1]);      
             LocalElasticContactForce[2]  = mUnbondedLocalElasticContactForce2;
-            //ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
-            //ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
-            //ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2];
+            ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
+            ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
+            ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2];
             ElasticLocalRotationalMoment[0] = 0.0;
             ElasticLocalRotationalMoment[1] = 0.0;
             ElasticLocalRotationalMoment[2] = 0.0;
-            //ViscoLocalRotationalMoment[0] = 0.0;
-            //ViscoLocalRotationalMoment[1] = 0.0;
-            //ViscoLocalRotationalMoment[2] = 0.0;
+            ViscoLocalRotationalMoment[0] = 0.0;
+            ViscoLocalRotationalMoment[1] = 0.0;
+            ViscoLocalRotationalMoment[2] = 0.0;
         } 
         else if (contact_sigma < 0.0  /*break only in tension*/
                 && (-1 * contact_sigma + bond_rotational_moment_tangential_modulus * bond_radius / I > bond_current_tau_max) 
@@ -960,15 +960,15 @@ void DEM_parallel_bond::CheckBondFailure(const int i_neighbour_count,
             LocalElasticContactForce[0] *= (1 - mBondedScalingFactor[0]);      
             LocalElasticContactForce[1] *= (1 - mBondedScalingFactor[1]);      
             LocalElasticContactForce[2]  = mUnbondedLocalElasticContactForce2;
-            //ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
-            //ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
-            //ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2];
+            ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
+            ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
+            ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2];
             ElasticLocalRotationalMoment[0] = 0.0;
             ElasticLocalRotationalMoment[1] = 0.0;
             ElasticLocalRotationalMoment[2] = 0.0;
-            //ViscoLocalRotationalMoment[0] = 0.0;
-            //ViscoLocalRotationalMoment[1] = 0.0;
-            //ViscoLocalRotationalMoment[2] = 0.0;
+            ViscoLocalRotationalMoment[0] = 0.0;
+            ViscoLocalRotationalMoment[1] = 0.0;
+            ViscoLocalRotationalMoment[2] = 0.0;
         }
     }
 
