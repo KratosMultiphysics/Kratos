@@ -82,40 +82,32 @@ void PrimitiveCondition<TNumNodes>::AddFluxTerms(
     const array_1d<double,3> v = BaseType::VectorProduct(rData.nodal_v, rN);
     const auto g = rData.gravity;
     const auto n = rData.normal;
-    double vel_trace;
-    double press_trace;
-    double vel_penalty;
-    double press_penalty;
-    const double penalty_factor = 1e-2 * rData.length;
+    const double penalty_factor = 1.0 * rData.length;
     const bool is_supercritical = (norm_2(v) >= std::sqrt(g*h));
 
+    double v_neumann;
+    double h_dirichlet;
+
     if (this->Is(SLIP)) {
-        press_trace = g * (h + z);
-        vel_trace = 0.0;
-        press_penalty = 0.0;
-        vel_penalty = inner_prod(n, v);
+        v_neumann = 0.0;
+        h_dirichlet = h;
     }
     else if (this->Is(INLET)) {
-        const double v_neumann = inner_prod(n, this->GetValue(VELOCITY));
-        const double h_inlet = (is_supercritical) ? this->GetValue(HEIGHT) : h;
-        press_trace = g * (h_inlet + z);
-        vel_trace = v_neumann;
-        press_penalty = h - h_inlet;
-        vel_penalty = inner_prod(n, v) - v_neumann;
+        v_neumann = inner_prod(n, this->GetValue(VELOCITY));
+        h_dirichlet = (is_supercritical) ? this->GetValue(HEIGHT) : h;
     }
     else if (this->Is(OUTLET)) {
-        const double h_dirichlet = (is_supercritical) ? h : this->GetValue(HEIGHT);
-        press_trace = g * (h_dirichlet + z);
-        vel_trace = inner_prod(v, rN);
-        press_penalty = h - h_dirichlet;
-        vel_penalty = 0.0;
+        v_neumann = inner_prod(n, v);
+        h_dirichlet = (is_supercritical) ? h : this->GetValue(HEIGHT);
     }
     else {
-        press_trace = g * (h + z);
-        vel_trace = inner_prod(v, rN);
-        press_penalty = 0.0;
-        vel_penalty = 0.0;
+        v_neumann = inner_prod(n, v);
+        h_dirichlet = h;
     }
+
+    /// Boundary traces
+    const double press_trace = g * (h_dirichlet + z);
+    const double vel_trace = v_neumann;
 
     /// Convective flux
     array_1d<double,3> conv_flux = v;
@@ -143,9 +135,9 @@ void PrimitiveCondition<TNumNodes>::AddFluxTerms(
         MathUtils<double>::AddVector(rVector, -Weight * n_i * flux, 3*i);
 
         /// Penalty stabilization
-        rVector[3*i    ] -= n[0] * Weight * penalty_factor * vel_penalty;
-        rVector[3*i + 1] -= n[1] * Weight * penalty_factor * vel_penalty;
-        rVector[3*i + 2] -=        Weight * penalty_factor * press_penalty;
+        rVector[3*i    ] -= n[0] * Weight * penalty_factor * (inner_prod(n, rData.nodal_v[i]) - v_neumann);
+        rVector[3*i + 1] -= n[1] * Weight * penalty_factor * (inner_prod(n, rData.nodal_v[i]) - v_neumann);
+        rVector[3*i + 2] -=        Weight * penalty_factor * (rData.nodal_h[i] - h_dirichlet);
     }
 }
 
