@@ -409,7 +409,7 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     }
 
     // We copy the meshes (here is the heavy work)
-
+    // NOTE: From the mesh I am not going to copy neither the Flags, neither the DataValueContainer, as those are unused and I think it is needed to open a discussion about clean up of the code and remove those derivations (multiple derivations have problems of overhead https://isocpp.org/wiki/faq/multiple-inheritance)
     // TODO
 
     // We copy the geometries
