@@ -418,8 +418,20 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     // RecursiveEnsureModelPartOwnsProperties(); //NOTE: To be activated in case people doesn't create the model parts properly and the properties are not created in the model part before assigning tho the elements and conditions. For the moment I would not activate it because I don't like to patronize the code with this kind of stuff. 
     
     // Copy nodes
-
-    // TODO
+    const auto& r_reference_nodes = mrModelPart.Nodes();
+    auto& r_nodes = r_model_part.Nodes();
+    r_nodes.SetMaxBufferSize(r_reference_nodes.GetMaxBufferSize());
+    r_nodes.SetSortedPartSize(r_reference_nodes.GetSortedPartSize());
+    const auto& r_reference_nodes_container = r_reference_nodes.GetContainer();
+    auto& r_nodes_container = r_nodes.GetContainer();
+    const IndexType number_nodes = r_reference_nodes_container.size();
+    r_nodes_container.resize(number_nodes);
+    const auto it_node_begin = r_reference_nodes_container.begin();
+    IndexPartition<std::size_t>(number_nodes).for_each([&it_node_begin,&r_nodes_container](std::size_t i) {
+        // auto it_node = it_node_begin + i;
+        // TODO
+        r_nodes_container[i] = nullptr;
+    });
 
     // Copy elements
 
