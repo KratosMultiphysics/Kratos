@@ -429,8 +429,9 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     const auto it_node_begin = r_reference_nodes_container.begin();
     IndexPartition<std::size_t>(number_nodes).for_each([&it_node_begin,&r_nodes_container](std::size_t i) {
         // auto it_node = it_node_begin + i;
+        // auto p_new_node = Kratos::make_intrusive<Node<3>>( it_node->Id(), it_node->X(), it_node->Y(), it_node->Z());
         // TODO
-        r_nodes_container[i] = nullptr;
+        // r_nodes_container[i] = p_new_node;
     });
 
     // Copy elements
