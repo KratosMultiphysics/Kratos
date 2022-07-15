@@ -39,9 +39,14 @@ RUN powershell.exe -Command \
 #download and extract boost
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://sourceforge.net/projects/boost/files/boost/1.74.0/boost_1_74_0.tar.gz/download -OutFile c:\TEMP\boost.zip; \
-    mkdir c:\boost; \
-    7z x c:\TEMP\boost.zip -o"c:\boost"
+    wget https://altushost-swe.dl.sourceforge.net/project/boost/boost/1.74.0/boost_1_74_0.tar.gz -OutFile c:\TEMP\boost.tar.gz; \
+    mkdir c:\boost;
+
+#Decompress and clean
+RUN powershell.exe -Command \
+    ls c:\TEMP; \
+    7z x "c:\TEMP\boost.tar.gz" -o"c:\boost"; \
+    rm "c:\TEMP\boost.tar.gz"
 
 #Install python 3.8
 RUN powershell.exe -Command \
@@ -59,8 +64,6 @@ ENV VCVARS      "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTo
 ENV BOOST       "C:\\boost\\boost_1_71_0"
 ENV PYTHONROOT  "C:\\python"
 
-COPY start.ps1 c:\\scripts\\start.ps1
-
 # Default to PowerShell if no other command specified.
-ENTRYPOINT ["powershell.exe", "-NoLogo", "-ExecutionPolicy", "Bypass", "-Command", "c:\\scripts\\start.ps1"]
+CMD ["powershell.exe"]
 
