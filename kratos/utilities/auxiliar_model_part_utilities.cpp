@@ -410,6 +410,7 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
 
     // We copy the meshes (here is the heavy work)
     // NOTE: From the mesh I am not going to copy neither the Flags, neither the DataValueContainer, as those are unused and I think it is needed to open a discussion about clean up of the code and remove those derivations (multiple derivations have problems of overhead https://isocpp.org/wiki/faq/multiple-inheritance)
+    // RecursiveEnsureModelPartOwnsProperties(); //NOTE: To be activated in case people doesn't create the model parts properly and the properties are not created in the model part before assigning tho the elements and conditions. For the moment I would not activate it because I don't like to patronize the code with this kind of stuff. 
     // TODO
 
     // We copy the geometries
