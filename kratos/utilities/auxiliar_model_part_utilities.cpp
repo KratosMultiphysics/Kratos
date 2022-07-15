@@ -397,15 +397,20 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     r_model_part.pGetProcessInfo() = Kratos::make_shared<ProcessInfo>(mrModelPart.GetProcessInfo());
 
     // We copy the tables, first using the copy constructor, and then reassigning each table so it doesn't point to the original one
+    IndexType counter = 0;
     const auto& r_reference_tables = mrModelPart.Tables();
     auto& r_tables = r_model_part.Tables();
     r_tables.SetMaxBufferSize(r_reference_tables.GetMaxBufferSize());
     r_tables.SetSortedPartSize(r_reference_tables.GetSortedPartSize());
+    const auto& r_reference_tables_container = r_reference_tables.GetContainer();
     auto& r_tables_container = r_tables.GetContainer();
-    for (auto& r_table_ref : r_reference_tables.GetContainer()) {
+    r_tables_container.resize(r_reference_tables_container.size());
+    counter = 0;
+    for (auto& r_table_ref : r_reference_tables_container) {
         const auto index = r_table_ref.first;
         const auto& r_pointer_table = r_table_ref.second;
-        r_tables_container.push_back(std::pair<std::size_t,Table<double,double>::Pointer>(index, Kratos::make_shared<Table<double,double>>(*r_pointer_table)));
+        r_tables_container[counter] = std::pair<std::size_t,Table<double,double>::Pointer>(index, Kratos::make_shared<Table<double,double>>(*r_pointer_table));
+        ++counter;
     }
 
     // We copy the meshes (here is the heavy work)
@@ -433,9 +438,13 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     auto& r_properties= r_model_part.rProperties();
     r_properties.SetMaxBufferSize(r_reference_properties.GetMaxBufferSize());
     r_properties.SetSortedPartSize(r_reference_properties.GetSortedPartSize());
+    const auto& r_reference_properties_container = r_reference_properties.GetContainer();
     auto& r_properties_container = r_properties.GetContainer();
-    for (auto& r_pointer_properties : r_reference_properties.GetContainer()) {
-        r_properties_container.push_back(Kratos::make_shared<Properties>(*r_pointer_properties));
+    r_properties_container.resize(r_reference_properties_container.size());
+    counter = 0;
+    for (auto& r_pointer_properties : r_reference_properties_container) {
+        r_properties_container[counter] = Kratos::make_shared<Properties>(*r_pointer_properties);
+        ++counter;
     }
 
     // We copy the geometries
