@@ -255,14 +255,16 @@ namespace Kratos
           else
           {
             unsigned outOfRefiningBoxes = true;
+            double transitionElementsInInputMesh = 10.0;
             for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
             {
+              double transitionDistanceInInputMesh = transitionElementsInInputMesh * mrRemesh.RefiningBoxMeshSizeList[index];
               array_1d<double, 3> RefiningBoxMinimumPointList = mrRemesh.RefiningBoxMinimumPointList[index];
               array_1d<double, 3> RefiningBoxMaximumPointList = mrRemesh.RefiningBoxMaximumPointList[index];
               if (dimension == 2)
               {
-                if (i_node->X() > RefiningBoxMinimumPointList[0] && i_node->Y() > RefiningBoxMinimumPointList[1] &&
-                    i_node->X() < RefiningBoxMaximumPointList[0] && i_node->Y() < RefiningBoxMaximumPointList[1])
+                if (i_node->X() > (RefiningBoxMinimumPointList[0] - transitionDistanceInInputMesh) && i_node->Y() > (RefiningBoxMinimumPointList[1] - transitionDistanceInInputMesh) &&
+                    i_node->X() < (RefiningBoxMaximumPointList[0] + transitionDistanceInInputMesh) && i_node->Y() < (RefiningBoxMaximumPointList[1] + transitionDistanceInInputMesh))
                 {
                   outOfRefiningBoxes = false;
                   break;
@@ -270,8 +272,8 @@ namespace Kratos
               }
               else if (dimension == 3)
               {
-                if (i_node->X() > RefiningBoxMinimumPointList[0] && i_node->Y() > RefiningBoxMinimumPointList[1] && i_node->Z() > RefiningBoxMinimumPointList[2] &&
-                    i_node->X() < RefiningBoxMaximumPointList[0] && i_node->Y() < RefiningBoxMaximumPointList[1] && i_node->Z() < RefiningBoxMaximumPointList[2])
+                if (i_node->X() > (RefiningBoxMinimumPointList[0] - transitionDistanceInInputMesh) && i_node->Y() > (RefiningBoxMinimumPointList[1] - transitionDistanceInInputMesh) && i_node->Z() > (RefiningBoxMinimumPointList[2] - transitionDistanceInInputMesh) &&
+                    i_node->X() < (RefiningBoxMaximumPointList[0] + transitionDistanceInInputMesh) && i_node->Y() < (RefiningBoxMaximumPointList[1] + transitionDistanceInInputMesh) && i_node->Z() < (RefiningBoxMaximumPointList[2] + transitionDistanceInInputMesh))
                 {
                   outOfRefiningBoxes = false;
                   break;
@@ -301,44 +303,35 @@ namespace Kratos
         {
           mrRemesh.RefiningBoxMeshSizeList[index] *= 0.8;
         }
-        double tolerance = meanNodalSize * 0.01;
-        if (meanNodalSize < mrRemesh.RefiningBoxMeshSizeList[index])
-        {
-          tolerance = mrRemesh.RefiningBoxMeshSize * 0.01;
-          mrRemesh.RefiningBoxMinimumPointList[index][0] += tolerance; // the finest nodes at the frontier should not be erased
-          mrRemesh.RefiningBoxMinimumPointList[index][1] += tolerance;
-          mrRemesh.RefiningBoxMinimumPointList[index][2] += tolerance;
 
-          mrRemesh.RefiningBoxMaximumPointList[index][0] += -tolerance;
-          mrRemesh.RefiningBoxMaximumPointList[index][1] += -tolerance;
-          mrRemesh.RefiningBoxMaximumPointList[index][2] += -tolerance;
-        }
-        else // the mesh is finer in the RefiningBox
-        {
-          mrRemesh.RefiningBoxMinimumPointList[index][0] += -tolerance; // the finest nodes at the frontier should not be erased
-          mrRemesh.RefiningBoxMinimumPointList[index][1] += -tolerance;
-          mrRemesh.RefiningBoxMinimumPointList[index][2] += -tolerance;
+        double tolerance = mrRemesh.RefiningBoxMeshSizeList[index] * 0.01;
+        double differenceOfSize = meanNodalSize - mrRemesh.RefiningBoxMeshSizeList[index];
 
-          mrRemesh.RefiningBoxMaximumPointList[index][0] += tolerance;
-          mrRemesh.RefiningBoxMaximumPointList[index][1] += tolerance;
-          mrRemesh.RefiningBoxMaximumPointList[index][2] += tolerance;
-        }
+        mrRemesh.RefiningBoxMinimumPointList[index][0] += -tolerance; // the finest nodes at the frontier should not be erased
+        mrRemesh.RefiningBoxMinimumPointList[index][1] += -tolerance;
+        mrRemesh.RefiningBoxMinimumPointList[index][2] += -tolerance;
 
-        mrRemesh.RefiningBoxMinExternalPointList[index][0] = mrRemesh.RefiningBoxMinimumPointList[index][0] - mrRemesh.Refine->CriticalRadius;
-        mrRemesh.RefiningBoxMinExternalPointList[index][1] = mrRemesh.RefiningBoxMinimumPointList[index][1] - mrRemesh.Refine->CriticalRadius;
-        mrRemesh.RefiningBoxMinExternalPointList[index][2] = mrRemesh.RefiningBoxMinimumPointList[index][2] - mrRemesh.Refine->CriticalRadius;
-        mrRemesh.RefiningBoxMinInternalPointList[index][0] = mrRemesh.RefiningBoxMinimumPointList[index][0] + mrRemesh.RefiningBoxMeshSizeList[index];
-        mrRemesh.RefiningBoxMinInternalPointList[index][1] = mrRemesh.RefiningBoxMinimumPointList[index][1] + mrRemesh.RefiningBoxMeshSizeList[index];
-        mrRemesh.RefiningBoxMinInternalPointList[index][2] = mrRemesh.RefiningBoxMinimumPointList[index][2] + mrRemesh.RefiningBoxMeshSizeList[index];
+        mrRemesh.RefiningBoxMaximumPointList[index][0] += tolerance;
+        mrRemesh.RefiningBoxMaximumPointList[index][1] += tolerance;
+        mrRemesh.RefiningBoxMaximumPointList[index][2] += tolerance;
 
-        mrRemesh.RefiningBoxMaxExternalPointList[index][0] = mrRemesh.RefiningBoxMaximumPointList[index][0] + mrRemesh.Refine->CriticalRadius;
-        mrRemesh.RefiningBoxMaxExternalPointList[index][1] = mrRemesh.RefiningBoxMaximumPointList[index][1] + mrRemesh.Refine->CriticalRadius;
-        mrRemesh.RefiningBoxMaxExternalPointList[index][2] = mrRemesh.RefiningBoxMaximumPointList[index][2] + mrRemesh.Refine->CriticalRadius;
-        mrRemesh.RefiningBoxMaxInternalPointList[index][0] = mrRemesh.RefiningBoxMaximumPointList[index][0] - mrRemesh.RefiningBoxMeshSizeList[index];
-        mrRemesh.RefiningBoxMaxInternalPointList[index][1] = mrRemesh.RefiningBoxMaximumPointList[index][1] - mrRemesh.RefiningBoxMeshSizeList[index];
-        mrRemesh.RefiningBoxMaxInternalPointList[index][2] = mrRemesh.RefiningBoxMaximumPointList[index][2] - mrRemesh.RefiningBoxMeshSizeList[index];
+        double transitionDistance = 5.0 * fabs(differenceOfSize);
 
-        std::cout << "mrRemesh.RefiningBoxMaxInternalPointList[index][0] " << mrRemesh.RefiningBoxMaxInternalPointList[index][0] << std::endl;
+        mrRemesh.RefiningBoxMinExternalPointList[index][0] = mrRemesh.RefiningBoxMinimumPointList[index][0] - transitionDistance;
+        mrRemesh.RefiningBoxMinExternalPointList[index][1] = mrRemesh.RefiningBoxMinimumPointList[index][1] - transitionDistance;
+        mrRemesh.RefiningBoxMinExternalPointList[index][2] = mrRemesh.RefiningBoxMinimumPointList[index][2] - transitionDistance;
+        // mrRemesh.RefiningBoxMinInternalPointList[index][0] = mrRemesh.RefiningBoxMinimumPointList[index][0] + mrRemesh.RefiningBoxMeshSizeList[index];
+        // mrRemesh.RefiningBoxMinInternalPointList[index][1] = mrRemesh.RefiningBoxMinimumPointList[index][1] + mrRemesh.RefiningBoxMeshSizeList[index];
+        // mrRemesh.RefiningBoxMinInternalPointList[index][2] = mrRemesh.RefiningBoxMinimumPointList[index][2] + mrRemesh.RefiningBoxMeshSizeList[index];
+
+        mrRemesh.RefiningBoxMaxExternalPointList[index][0] = mrRemesh.RefiningBoxMaximumPointList[index][0] + transitionDistance;
+        mrRemesh.RefiningBoxMaxExternalPointList[index][1] = mrRemesh.RefiningBoxMaximumPointList[index][1] + transitionDistance;
+        mrRemesh.RefiningBoxMaxExternalPointList[index][2] = mrRemesh.RefiningBoxMaximumPointList[index][2] + transitionDistance;
+        // mrRemesh.RefiningBoxMaxInternalPointList[index][0] = mrRemesh.RefiningBoxMaximumPointList[index][0] - mrRemesh.RefiningBoxMeshSizeList[index];
+        // mrRemesh.RefiningBoxMaxInternalPointList[index][1] = mrRemesh.RefiningBoxMaximumPointList[index][1] - mrRemesh.RefiningBoxMeshSizeList[index];
+        // mrRemesh.RefiningBoxMaxInternalPointList[index][2] = mrRemesh.RefiningBoxMaximumPointList[index][2] - mrRemesh.RefiningBoxMeshSizeList[index];
+
+        std::cout << "mrRemesh.RefiningBoxMaxExternalPointList[index][0] " << mrRemesh.RefiningBoxMaxExternalPointList[index][0] << std::endl;
       }
 
       KRATOS_CATCH(" ")

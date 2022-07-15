@@ -987,7 +987,7 @@ namespace Kratos
                         RefiningBoxMeshSize = rRefiningBoxMeshSize;
                   };
 
-                  void SetUseRefiningBoxList(unsigned int index,bool rUseRefiningBox)
+                  void SetUseRefiningBoxList(unsigned int index, bool rUseRefiningBox)
                   {
                         UseRefiningBoxList.resize(index + 1);
                         UseRefiningBoxList[index] = rUseRefiningBox;
@@ -995,7 +995,7 @@ namespace Kratos
 
                   void SetRefiningBoxMinimumPointList(unsigned int index, double rRefiningBoxMinimumPointX, double rRefiningBoxMinimumPointY, double rRefiningBoxMinimumPointZ)
                   {
-                        RefiningBoxMinimumPointList.resize(index+1);
+                        RefiningBoxMinimumPointList.resize(index + 1);
                         RefiningBoxMinimumPointList[index][0] = rRefiningBoxMinimumPointX;
                         RefiningBoxMinimumPointList[index][1] = rRefiningBoxMinimumPointY;
                         RefiningBoxMinimumPointList[index][2] = rRefiningBoxMinimumPointZ;
@@ -1135,6 +1135,17 @@ namespace Kratos
             // computes deformation gradient determinant
             double GetDeformationGradientDeterminant(GeometryType &rVertices, const unsigned int &rDimension);
 
+            void DefineMeshSizeInTransitionZones2D(MeshingParameters &rMeshingVariables,
+                                                   double currentTime,
+                                                   array_1d<double, 3> NodeCoordinates,
+                                                   double &meanMeshSize,
+                                                   bool &insideTransitionZone);
+
+            void DefineMeshSizeInTransitionZones3D(MeshingParameters &rMeshingVariables,
+                                                   double currentTime,
+                                                   array_1d<double, 3> NodeCoordinates,
+                                                   double &meanMeshSize,
+                                                   bool &insideTransitionZone);
             //*******************************************************************************************
             //*******************************************************************************************
 
