@@ -273,11 +273,11 @@ namespace Kratos
 					//////// choose the right (big and safe) elements to refine and compute the new node position and variables ////////
 					if (dimension == 2)
 					{
-						SelectEdgeToRefine2DWithRefinementList(ie->GetGeometry(), NewPositions, NodesIDToInterpolate, CountNodes, ElementsToRefine);
+						SelectEdgeToRefine2DWithRefinement(ie->GetGeometry(), NewPositions, NodesIDToInterpolate, CountNodes, ElementsToRefine);
 					}
 					else if (dimension == 3)
 					{
-						SelectEdgeToRefine3DWithRefinementList(ie->GetGeometry(), NewPositions, NodesIDToInterpolate, CountNodes, ElementsToRefine);
+						SelectEdgeToRefine3DWithRefinement(ie->GetGeometry(), NewPositions, NodesIDToInterpolate, CountNodes, ElementsToRefine);
 					}
 
 				} // elements loop
@@ -1245,10 +1245,10 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void SelectEdgeToRefine2DWithRefinementList(Element::GeometryType &Element,
-													std::vector<array_1d<double, 3>> &NewPositions,
-													std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
-													int &CountNodes,
+		void SelectEdgeToRefine2DWithRefinement(Element::GeometryType &Element,
+												std::vector<array_1d<double, 3>> &NewPositions,
+												std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
+												int &CountNodes,
 													int ElementsToRefine)
 		{
 			KRATOS_TRY
@@ -1386,10 +1386,10 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void SelectEdgeToRefine3DWithRefinementList(Element::GeometryType &Element,
-													std::vector<array_1d<double, 3>> &NewPositions,
-													std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
-													int &CountNodes,
+		void SelectEdgeToRefine3DWithRefinement(Element::GeometryType &Element,
+												std::vector<array_1d<double, 3>> &NewPositions,
+												std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
+												int &CountNodes,
 													int ElementsToRefine)
 		{
 			KRATOS_TRY
