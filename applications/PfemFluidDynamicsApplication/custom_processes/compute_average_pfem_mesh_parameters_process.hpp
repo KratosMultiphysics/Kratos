@@ -100,13 +100,13 @@ namespace Kratos
       if (mEchoLevel > 1)
         std::cout << "  COMPUTE AVERAGE PFEM MESH PARAMETERS PROCESS ]; " << std::endl;
       const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-      const unsigned int numberOfRefiningBoxes = mrRemesh.UseRefiningBoxList.size();
-      array_1d<double, 1> refinedFluidNodesList = ZeroVector(1); // to change!
-      array_1d<double, 1> refinedMeanNodalSizeList = ZeroVector(1);
-      refinedFluidNodesList.resize(numberOfRefiningBoxes);
-      refinedMeanNodalSizeList.resize(numberOfRefiningBoxes);
-      refinedFluidNodesList = ZeroVector(numberOfRefiningBoxes);
-      refinedMeanNodalSizeList = ZeroVector(numberOfRefiningBoxes);
+      const unsigned int numberOfRefiningBoxes = mrRemesh.UseRefiningBox.size();
+      array_1d<double, 1> refinedFluidNodes = ZeroVector(1); // to change!
+      array_1d<double, 1> refinedMeanNodalSize = ZeroVector(1);
+      refinedFluidNodes.resize(numberOfRefiningBoxes);
+      refinedMeanNodalSize.resize(numberOfRefiningBoxes);
+      refinedFluidNodes = ZeroVector(numberOfRefiningBoxes);
+      refinedMeanNodalSize = ZeroVector(numberOfRefiningBoxes);
       double fluidNodes = 0;
       double meanNodalSize = 0;
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
@@ -124,38 +124,38 @@ namespace Kratos
             double transitionElementsInInputMesh = 10.0;
             for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
             {
-              double transitionDistanceInInputMesh = transitionElementsInInputMesh * mrRemesh.RefiningBoxMeshSizeList[index];
-              array_1d<double, 3> RefiningBoxMinimumPointList = mrRemesh.RefiningBoxMinimumPointList[index];
-              array_1d<double, 3> RefiningBoxMaximumPointList = mrRemesh.RefiningBoxMaximumPointList[index];
+              double transitionDistanceInInputMesh = transitionElementsInInputMesh * mrRemesh.RefiningBoxMeshSize[index];
+              array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint[index];
+              array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint[index];
               if (dimension == 2)
               {
-                if (i_node->X() > (RefiningBoxMinimumPointList[0] - transitionDistanceInInputMesh) && i_node->Y() > (RefiningBoxMinimumPointList[1] - transitionDistanceInInputMesh) &&
-                    i_node->X() < (RefiningBoxMaximumPointList[0] + transitionDistanceInInputMesh) && i_node->Y() < (RefiningBoxMaximumPointList[1] + transitionDistanceInInputMesh))
+                if (i_node->X() > (RefiningBoxMinimumPoint[0] - transitionDistanceInInputMesh) && i_node->Y() > (RefiningBoxMinimumPoint[1] - transitionDistanceInInputMesh) &&
+                    i_node->X() < (RefiningBoxMaximumPoint[0] + transitionDistanceInInputMesh) && i_node->Y() < (RefiningBoxMaximumPoint[1] + transitionDistanceInInputMesh))
                 {
                   outOfRefiningBoxes = false;
                   // break;
                   double localSize = i_node->FastGetSolutionStepValue(NODAL_H) * 2.0; // local size is used to avoid the frontiere zone in the mean mesh size computation
-                  if (i_node->X() > (RefiningBoxMinimumPointList[0] + localSize) && i_node->Y() > (RefiningBoxMinimumPointList[1] + localSize) &&
-                      i_node->X() < (RefiningBoxMaximumPointList[0] - localSize) && i_node->Y() < (RefiningBoxMaximumPointList[1] - localSize))
+                  if (i_node->X() > (RefiningBoxMinimumPoint[0] + localSize) && i_node->Y() > (RefiningBoxMinimumPoint[1] + localSize) &&
+                      i_node->X() < (RefiningBoxMaximumPoint[0] - localSize) && i_node->Y() < (RefiningBoxMaximumPoint[1] - localSize))
                   {
-                    refinedFluidNodesList[index] += 1.0;
-                    refinedMeanNodalSizeList[index] += i_node->FastGetSolutionStepValue(NODAL_H);
+                    refinedFluidNodes[index] += 1.0;
+                    refinedMeanNodalSize[index] += i_node->FastGetSolutionStepValue(NODAL_H);
                   }
                 }
               }
               else if (dimension == 3)
               {
-                if (i_node->X() > (RefiningBoxMinimumPointList[0] - transitionDistanceInInputMesh) && i_node->Y() > (RefiningBoxMinimumPointList[1] - transitionDistanceInInputMesh) && i_node->Z() > (RefiningBoxMinimumPointList[2] - transitionDistanceInInputMesh) &&
-                    i_node->X() < (RefiningBoxMaximumPointList[0] + transitionDistanceInInputMesh) && i_node->Y() < (RefiningBoxMaximumPointList[1] + transitionDistanceInInputMesh) && i_node->Z() < (RefiningBoxMaximumPointList[2] + transitionDistanceInInputMesh))
+                if (i_node->X() > (RefiningBoxMinimumPoint[0] - transitionDistanceInInputMesh) && i_node->Y() > (RefiningBoxMinimumPoint[1] - transitionDistanceInInputMesh) && i_node->Z() > (RefiningBoxMinimumPoint[2] - transitionDistanceInInputMesh) &&
+                    i_node->X() < (RefiningBoxMaximumPoint[0] + transitionDistanceInInputMesh) && i_node->Y() < (RefiningBoxMaximumPoint[1] + transitionDistanceInInputMesh) && i_node->Z() < (RefiningBoxMaximumPoint[2] + transitionDistanceInInputMesh))
                 {
                   outOfRefiningBoxes = false;
                   // break;
                   double localSize = i_node->FastGetSolutionStepValue(NODAL_H) * 2.0; // local size is used to avoid the frontiere zone in the mean mesh size computation
-                  if (i_node->X() > (RefiningBoxMinimumPointList[0] + localSize) && i_node->Y() > (RefiningBoxMinimumPointList[1] + localSize) && i_node->Z() > (RefiningBoxMinimumPointList[2] + localSize) &&
-                      i_node->X() < (RefiningBoxMaximumPointList[0] - localSize) && i_node->Y() < (RefiningBoxMaximumPointList[1] - localSize) && i_node->Z() < (RefiningBoxMaximumPointList[2] - localSize))
+                  if (i_node->X() > (RefiningBoxMinimumPoint[0] + localSize) && i_node->Y() > (RefiningBoxMinimumPoint[1] + localSize) && i_node->Z() > (RefiningBoxMinimumPoint[2] + localSize) &&
+                      i_node->X() < (RefiningBoxMaximumPoint[0] - localSize) && i_node->Y() < (RefiningBoxMaximumPoint[1] - localSize) && i_node->Z() < (RefiningBoxMaximumPoint[2] - localSize))
                   {
-                    refinedFluidNodesList[index] += 1.0;
-                    refinedMeanNodalSizeList[index] += i_node->FastGetSolutionStepValue(NODAL_H);
+                    refinedFluidNodes[index] += 1.0;
+                    refinedMeanNodalSize[index] += i_node->FastGetSolutionStepValue(NODAL_H);
                   }
                 }
               }
@@ -180,41 +180,41 @@ namespace Kratos
       for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
       {
         // {
-        //   mrRemesh.RefiningBoxMeshSizeList[index] *= 0.8;
+        //   mrRemesh.RefiningBoxMeshSize[index] *= 0.8;
         // }
-        std::cout << " user provided fine mesh size " << mrRemesh.RefiningBoxMeshSizeList[index] << std::endl;
-        double localMeshSize = refinedMeanNodalSizeList[index] / refinedFluidNodesList[index];
-        mrRemesh.SetRefiningBoxMeshSizeList(index, localMeshSize);
-        std::cout << " fluid nodesin refined zone " << refinedFluidNodesList[index] << std::endl;
-        std::cout << " new computed fine mesh size " << mrRemesh.RefiningBoxMeshSizeList[index] << std::endl;
-        double tolerance = mrRemesh.RefiningBoxMeshSizeList[index] * 0.01;
-        double differenceOfSize = meanNodalSize - mrRemesh.RefiningBoxMeshSizeList[index];
+        std::cout << " user provided fine mesh size " << mrRemesh.RefiningBoxMeshSize[index] << std::endl;
+        double localMeshSize = refinedMeanNodalSize[index] / refinedFluidNodes[index];
+        mrRemesh.SetRefiningBoxMeshSize(index, localMeshSize);
+        std::cout << " fluid nodesin refined zone " << refinedFluidNodes[index] << std::endl;
+        std::cout << " new computed fine mesh size " << mrRemesh.RefiningBoxMeshSize[index] << std::endl;
+        double tolerance = mrRemesh.RefiningBoxMeshSize[index] * 0.01;
+        double differenceOfSize = meanNodalSize - mrRemesh.RefiningBoxMeshSize[index];
 
-        mrRemesh.RefiningBoxMinimumPointList[index][0] += -tolerance; // the finest nodes at the frontier should not be erased
-        mrRemesh.RefiningBoxMinimumPointList[index][1] += -tolerance;
-        mrRemesh.RefiningBoxMinimumPointList[index][2] += -tolerance;
+        mrRemesh.RefiningBoxMinimumPoint[index][0] += -tolerance; // the finest nodes at the frontier should not be erased
+        mrRemesh.RefiningBoxMinimumPoint[index][1] += -tolerance;
+        mrRemesh.RefiningBoxMinimumPoint[index][2] += -tolerance;
 
-        mrRemesh.RefiningBoxMaximumPointList[index][0] += tolerance;
-        mrRemesh.RefiningBoxMaximumPointList[index][1] += tolerance;
-        mrRemesh.RefiningBoxMaximumPointList[index][2] += tolerance;
+        mrRemesh.RefiningBoxMaximumPoint[index][0] += tolerance;
+        mrRemesh.RefiningBoxMaximumPoint[index][1] += tolerance;
+        mrRemesh.RefiningBoxMaximumPoint[index][2] += tolerance;
 
         double transitionDistance = 5.0 * fabs(differenceOfSize);
 
-        mrRemesh.RefiningBoxMinExternalPointList[index][0] = mrRemesh.RefiningBoxMinimumPointList[index][0] - transitionDistance;
-        mrRemesh.RefiningBoxMinExternalPointList[index][1] = mrRemesh.RefiningBoxMinimumPointList[index][1] - transitionDistance;
-        mrRemesh.RefiningBoxMinExternalPointList[index][2] = mrRemesh.RefiningBoxMinimumPointList[index][2] - transitionDistance;
-        // mrRemesh.RefiningBoxMinInternalPointList[index][0] = mrRemesh.RefiningBoxMinimumPointList[index][0] + mrRemesh.RefiningBoxMeshSizeList[index];
-        // mrRemesh.RefiningBoxMinInternalPointList[index][1] = mrRemesh.RefiningBoxMinimumPointList[index][1] + mrRemesh.RefiningBoxMeshSizeList[index];
-        // mrRemesh.RefiningBoxMinInternalPointList[index][2] = mrRemesh.RefiningBoxMinimumPointList[index][2] + mrRemesh.RefiningBoxMeshSizeList[index];
+        mrRemesh.RefiningBoxMinExternalPoint[index][0] = mrRemesh.RefiningBoxMinimumPoint[index][0] - transitionDistance;
+        mrRemesh.RefiningBoxMinExternalPoint[index][1] = mrRemesh.RefiningBoxMinimumPoint[index][1] - transitionDistance;
+        mrRemesh.RefiningBoxMinExternalPoint[index][2] = mrRemesh.RefiningBoxMinimumPoint[index][2] - transitionDistance;
+        // mrRemesh.RefiningBoxMinInternalPoint[index][0] = mrRemesh.RefiningBoxMinimumPoint[index][0] + mrRemesh.RefiningBoxMeshSize[index];
+        // mrRemesh.RefiningBoxMinInternalPoint[index][1] = mrRemesh.RefiningBoxMinimumPoint[index][1] + mrRemesh.RefiningBoxMeshSize[index];
+        // mrRemesh.RefiningBoxMinInternalPoint[index][2] = mrRemesh.RefiningBoxMinimumPoint[index][2] + mrRemesh.RefiningBoxMeshSize[index];
 
-        mrRemesh.RefiningBoxMaxExternalPointList[index][0] = mrRemesh.RefiningBoxMaximumPointList[index][0] + transitionDistance;
-        mrRemesh.RefiningBoxMaxExternalPointList[index][1] = mrRemesh.RefiningBoxMaximumPointList[index][1] + transitionDistance;
-        mrRemesh.RefiningBoxMaxExternalPointList[index][2] = mrRemesh.RefiningBoxMaximumPointList[index][2] + transitionDistance;
-        // mrRemesh.RefiningBoxMaxInternalPointList[index][0] = mrRemesh.RefiningBoxMaximumPointList[index][0] - mrRemesh.RefiningBoxMeshSizeList[index];
-        // mrRemesh.RefiningBoxMaxInternalPointList[index][1] = mrRemesh.RefiningBoxMaximumPointList[index][1] - mrRemesh.RefiningBoxMeshSizeList[index];
-        // mrRemesh.RefiningBoxMaxInternalPointList[index][2] = mrRemesh.RefiningBoxMaximumPointList[index][2] - mrRemesh.RefiningBoxMeshSizeList[index];
+        mrRemesh.RefiningBoxMaxExternalPoint[index][0] = mrRemesh.RefiningBoxMaximumPoint[index][0] + transitionDistance;
+        mrRemesh.RefiningBoxMaxExternalPoint[index][1] = mrRemesh.RefiningBoxMaximumPoint[index][1] + transitionDistance;
+        mrRemesh.RefiningBoxMaxExternalPoint[index][2] = mrRemesh.RefiningBoxMaximumPoint[index][2] + transitionDistance;
+        // mrRemesh.RefiningBoxMaxInternalPoint[index][0] = mrRemesh.RefiningBoxMaximumPoint[index][0] - mrRemesh.RefiningBoxMeshSize[index];
+        // mrRemesh.RefiningBoxMaxInternalPoint[index][1] = mrRemesh.RefiningBoxMaximumPoint[index][1] - mrRemesh.RefiningBoxMeshSize[index];
+        // mrRemesh.RefiningBoxMaxInternalPoint[index][2] = mrRemesh.RefiningBoxMaximumPoint[index][2] - mrRemesh.RefiningBoxMeshSize[index];
 
-        std::cout << "mrRemesh.RefiningBoxMaxExternalPointList[index][0] " << mrRemesh.RefiningBoxMaxExternalPointList[index][0] << std::endl;
+        std::cout << "mrRemesh.RefiningBoxMaxExternalPoint[index][0] " << mrRemesh.RefiningBoxMaxExternalPoint[index][0] << std::endl;
       }
 
       KRATOS_CATCH(" ")

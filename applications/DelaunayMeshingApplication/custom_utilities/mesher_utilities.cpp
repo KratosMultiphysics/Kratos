@@ -2179,17 +2179,17 @@ namespace Kratos
   {
 
     KRATOS_TRY
-    const unsigned int numberOfRefiningBoxes = rMeshingVariables.UseRefiningBoxList.size();
+    const unsigned int numberOfRefiningBoxes = rMeshingVariables.UseRefiningBox.size();
     meanMeshSize = rMeshingVariables.Refine->CriticalRadius;
     for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
     {
-      if (rMeshingVariables.UseRefiningBoxList[index] == true && currentTime > rMeshingVariables.RefiningBoxInitialTimeList[index] && currentTime < rMeshingVariables.RefiningBoxFinalTimeList[index])
+      if (rMeshingVariables.UseRefiningBox[index] == true && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
       {
-        array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPointList[index];
-        array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPointList[index];
-        array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxMinExternalPointList[index];
-        array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxMaxExternalPointList[index];
-        double differenceOfSize = rMeshingVariables.Refine->CriticalRadius - rMeshingVariables.RefiningBoxMeshSizeList[index];
+        array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
+        array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
+        array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxMinExternalPoint[index];
+        array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxMaxExternalPoint[index];
+        double differenceOfSize = rMeshingVariables.Refine->CriticalRadius - rMeshingVariables.RefiningBoxMeshSize[index];
         double transitionDistance = 5.0 * fabs(differenceOfSize);
         double distanceToBox = 0;
         double coefficient = 0;
@@ -2197,7 +2197,7 @@ namespace Kratos
         if (NodeCoordinates[0] > RefiningBoxMinimumPoint[0] && NodeCoordinates[1] > RefiningBoxMinimumPoint[1] &&
             NodeCoordinates[0] < RefiningBoxMaximumPoint[0] && NodeCoordinates[1] < RefiningBoxMaximumPoint[1])
         {
-          meanMeshSize = rMeshingVariables.RefiningBoxMeshSizeList[index];
+          meanMeshSize = rMeshingVariables.RefiningBoxMeshSize[index];
         }
         else if (NodeCoordinates[0] < RefiningBoxMinimumPoint[0] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1])
         {
@@ -2228,7 +2228,7 @@ namespace Kratos
             distanceToBox = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
           }
           coefficient = fabs(distanceToBox) / transitionDistance;
-          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSizeList[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
           insideTransitionZone = true;
         }
         else if (NodeCoordinates[0] > RefiningBoxMaximumPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1])
@@ -2260,21 +2260,21 @@ namespace Kratos
             distanceToBox = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
           }
           coefficient = fabs(distanceToBox) / transitionDistance;
-          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSizeList[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
           insideTransitionZone = true;
         }
         else if (NodeCoordinates[1] < RefiningBoxMinimumPoint[1] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0])
         {
           distanceToBox = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
           coefficient = fabs(distanceToBox) / transitionDistance;
-          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSizeList[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
           insideTransitionZone = true;
         }
         else if (NodeCoordinates[1] > RefiningBoxMaximumPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0])
         {
           distanceToBox = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
           coefficient = fabs(distanceToBox) / transitionDistance;
-          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSizeList[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
           insideTransitionZone = true;
         }
       }
@@ -2291,18 +2291,18 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int numberOfRefiningBoxes = rMeshingVariables.UseRefiningBoxList.size();
+    const unsigned int numberOfRefiningBoxes = rMeshingVariables.UseRefiningBox.size();
     meanMeshSize = rMeshingVariables.Refine->CriticalRadius;
     for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
     {
-      if (rMeshingVariables.UseRefiningBoxList[index] == true && currentTime > rMeshingVariables.RefiningBoxInitialTimeList[index] && currentTime < rMeshingVariables.RefiningBoxFinalTimeList[index])
+      if (rMeshingVariables.UseRefiningBox[index] == true && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
       {
-        array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxMinExternalPointList[index];
-        array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxMaxExternalPointList[index];
-        array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPointList[index];
-        array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPointList[index];
+        array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxMinExternalPoint[index];
+        array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxMaxExternalPoint[index];
+        array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
+        array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
 
-        double differenceOfSize = meanMeshSize - rMeshingVariables.RefiningBoxMeshSizeList[index];
+        double differenceOfSize = meanMeshSize - rMeshingVariables.RefiningBoxMeshSize[index];
         double transitionDistance = 5.0 * fabs(differenceOfSize);
         double distanceToBox = 0;
         double coefficient = 0;
@@ -2311,7 +2311,7 @@ namespace Kratos
             NodeCoordinates[1] > RefiningBoxMinimumPoint[1] && NodeCoordinates[1] < RefiningBoxMaximumPoint[1] &&
             NodeCoordinates[2] > RefiningBoxMinimumPoint[2] && NodeCoordinates[2] < RefiningBoxMaximumPoint[2])
         {
-          meanMeshSize = rMeshingVariables.RefiningBoxMeshSizeList[index]; // in the internal domain the size is the one given by the user
+          meanMeshSize = rMeshingVariables.RefiningBoxMeshSize[index]; // in the internal domain the size is the one given by the user
         }
         else if ((NodeCoordinates[0] < RefiningBoxMinimumPoint[0] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
         {
@@ -2397,7 +2397,7 @@ namespace Kratos
           }
 
           coefficient = fabs(distanceToBox) / transitionDistance;
-          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSizeList[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
           insideTransitionZone = true;
         }
         else if ((NodeCoordinates[0] > RefiningBoxMaximumPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
@@ -2483,7 +2483,7 @@ namespace Kratos
             distanceToBox = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
           }
           coefficient = fabs(distanceToBox) / transitionDistance;
-          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSizeList[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
           insideTransitionZone = true;
         }
         else if ((NodeCoordinates[1] < RefiningBoxMinimumPoint[1] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
@@ -2516,7 +2516,7 @@ namespace Kratos
           }
 
           coefficient = fabs(distanceToBox) / transitionDistance;
-          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSizeList[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
           insideTransitionZone = true;
         }
         else if ((NodeCoordinates[1] > RefiningBoxMaximumPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
@@ -2549,21 +2549,21 @@ namespace Kratos
           }
 
           coefficient = fabs(distanceToBox) / transitionDistance;
-          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSizeList[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
           insideTransitionZone = true;
         }
         else if ((NodeCoordinates[2] < RefiningBoxMinimumPoint[2] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1]))
         {
           distanceToBox = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
           coefficient = fabs(distanceToBox) / transitionDistance;
-          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSizeList[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
           insideTransitionZone = true;
         }
         else if ((NodeCoordinates[2] > RefiningBoxMaximumPoint[2] && NodeCoordinates[2] < maxExternalPoint[2] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1]))
         {
           distanceToBox = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
           coefficient = fabs(distanceToBox) / transitionDistance;
-          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSizeList[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+          meanMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
           insideTransitionZone = true;
         }
       }

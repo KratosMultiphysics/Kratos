@@ -397,9 +397,9 @@ namespace Kratos
 			double currentTime = rCurrentProcessInfo[TIME];
 
 			bool refiningBox = false;
-			for (unsigned int index = 0; index < mrRemesh.UseRefiningBoxList.size(); index++)
+			for (unsigned int index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
 			{
-				if (mrRemesh.UseRefiningBoxList[index] == true && currentTime > mrRemesh.RefiningBoxInitialTimeList[index] && currentTime < mrRemesh.RefiningBoxFinalTimeList[index])
+				if (mrRemesh.UseRefiningBox[index] == true && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
 				{
 					refiningBox = true;
 				}
@@ -938,31 +938,31 @@ namespace Kratos
 			double baricenterY = 0.25 * (eElement[0].Y() + eElement[1].Y() + eElement[2].Y() + eElement[3].Y());
 			double baricenterZ = 0.25 * (eElement[0].Z() + eElement[1].Z() + eElement[2].Z() + eElement[3].Z());
 
-			const unsigned int numberOfRefiningBoxes = mrRemesh.UseRefiningBoxList.size();
+			const unsigned int numberOfRefiningBoxes = mrRemesh.UseRefiningBox.size();
 			double currentTime = rCurrentProcessInfo[TIME];
 			for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
 			{
-				double initialTime = mrRemesh.RefiningBoxInitialTimeList[index];
-				double finalTime = mrRemesh.RefiningBoxFinalTimeList[index];
-				bool refiningBox = mrRemesh.UseRefiningBoxList[index];
+				double initialTime = mrRemesh.RefiningBoxInitialTime[index];
+				double finalTime = mrRemesh.RefiningBoxFinalTime[index];
+				bool refiningBox = mrRemesh.UseRefiningBox[index];
 
 				if (refiningBox == true && currentTime > initialTime && currentTime < finalTime)
 				{
-					array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPointList[index];
-					array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPointList[index];
-					array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPointList[index];
-					array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPointList[index];
+					array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPoint[index];
+					array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint[index];
+					array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint[index];
+					array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint[index];
 					if (baricenterX > RefiningBoxMinimumPoint[0] && baricenterX < RefiningBoxMaximumPoint[0] &&
 						baricenterY > RefiningBoxMinimumPoint[1] && baricenterY < RefiningBoxMaximumPoint[1] &&
 						baricenterZ > RefiningBoxMinimumPoint[2] && baricenterZ < RefiningBoxMaximumPoint[2])
 					{
-						criticalVolume = 0.01 * (pow(mrRemesh.RefiningBoxMeshSizeList[index], 3) / (6.0 * sqrt(2))); // mean Volume of a regular tetrahedral per node with 0.01 of penalization
+						criticalVolume = 0.01 * (pow(mrRemesh.RefiningBoxMeshSize[index], 3) / (6.0 * sqrt(2))); // mean Volume of a regular tetrahedral per node with 0.01 of penalization
 					}
 					else if ((baricenterX < RefiningBoxMinimumPoint[0] && baricenterX > minExternalPoint[0]) || (baricenterX > RefiningBoxMaximumPoint[0] && baricenterX < maxExternalPoint[0]) ||
 							 (baricenterY < RefiningBoxMinimumPoint[1] && baricenterY > minExternalPoint[1]) || (baricenterY > RefiningBoxMaximumPoint[1] && baricenterY < maxExternalPoint[1]) ||
 							 (baricenterZ < RefiningBoxMinimumPoint[2] && baricenterZ > minExternalPoint[2]) || (baricenterZ > RefiningBoxMaximumPoint[2] && baricenterZ < maxExternalPoint[2])) // transition zone
 					{
-						double meanMeshSize = mrRemesh.RefiningBoxMeshSizeList[index] * 0.5 + mrRemesh.Refine->CriticalRadius * 0.5;
+						double meanMeshSize = mrRemesh.RefiningBoxMeshSize[index] * 0.5 + mrRemesh.Refine->CriticalRadius * 0.5;
 						criticalVolume = 0.005 * (pow(meanMeshSize, 3) / (6.0 * sqrt(2)));
 						safetyCoefficient3D *= 0.5;
 					}

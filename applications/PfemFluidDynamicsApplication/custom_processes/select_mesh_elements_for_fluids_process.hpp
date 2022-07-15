@@ -130,9 +130,9 @@ namespace Kratos
             int number_of_slivers = 0;
 
             bool refiningBox = false;
-            for (unsigned int index = 0; index < mrRemesh.UseRefiningBoxList.size(); index++)
+            for (unsigned int index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
             {
-                if (mrRemesh.UseRefiningBoxList[index] == true && currentTime > mrRemesh.RefiningBoxInitialTimeList[index] && currentTime < mrRemesh.RefiningBoxFinalTimeList[index])
+                if (mrRemesh.UseRefiningBox[index] == true && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
                 {
                     refiningBox = true;
                 }
