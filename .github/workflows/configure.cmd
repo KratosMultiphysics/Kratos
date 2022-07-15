@@ -7,6 +7,9 @@ set KRATOS_SOURCE=%cd%
 set KRATOS_BUILD=%cd%\build
 set KRATOS_APP_DIR=applications
 
+set BOOST_ROOT=%BOOST%
+set PYTHON_EXECUTABLE="c:\python\38\python.exe"
+
 set KRATOS_APPLICATIONS=
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ConvectionDiffusionApplication;
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\FluidDynamicsApplication;
