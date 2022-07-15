@@ -69,6 +69,7 @@ private:
      */
     class KRATOS_API(KRATOS_CORE) iterator_adaptor
     {
+    public:
         ///@name Type Definitions
         ///@{
 
@@ -77,19 +78,10 @@ private:
         using value_type        = Parameters;
         using pointer           = Parameters*;
         using reference         = Parameters&;
-        
+
         using value_iterator = nlohmann::detail::iter_impl<nlohmann::json>; /// Iterator definition
 
         ///@}
-        ///@name Member Variables
-        ///@{
-
-        std::size_t mDistance = 0;                       /// The iterator distance
-        nlohmann::json& mrValue;                         /// The original container
-        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
-
-        ///@}
-    public:
         ///@name Life Cycle
         ///@{
 
@@ -170,6 +162,16 @@ private:
         const std::string name();
 
         ///@}
+
+    private:
+        ///@name Member Variables
+        ///@{
+
+        std::size_t mDistance = 0;                       /// The iterator distance
+        nlohmann::json& mrValue;                         /// The original container
+        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
+
+        ///@}
     };
 
     /**
@@ -180,27 +182,19 @@ private:
      */
     class KRATOS_API(KRATOS_CORE) const_iterator_adaptor
     {
+    public:
         ///@name Type Definitions
         ///@{
 
         using iterator_category = std::forward_iterator_tag;
         using difference_type   = std::ptrdiff_t;
         using value_type        = Parameters;
-        using pointer           = Parameters*;
-        using reference         = Parameters&;
+        using pointer           = const Parameters*;
+        using reference         = const Parameters&;
 
         using value_iterator = nlohmann::detail::iter_impl<const nlohmann::json>; /// Iterator definition
 
         ///@}
-        ///@name Member Variables
-        ///@{
-
-        std::size_t mDistance = 0;                       /// The iterator distance
-        nlohmann::json& mrValue;                         /// The original container
-        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
-
-        ///@}
-    public:
         ///@name Life Cycle
         ///@{
 
@@ -280,6 +274,15 @@ private:
          * @return The key (name) of the Parameter iterator
          */
         const std::string name();
+
+        ///@}
+    private:
+        ///@name Member Variables
+        ///@{
+
+        std::size_t mDistance = 0;                       /// The iterator distance
+        nlohmann::json& mrValue;                         /// The original container
+        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
 
         ///@}
     };
