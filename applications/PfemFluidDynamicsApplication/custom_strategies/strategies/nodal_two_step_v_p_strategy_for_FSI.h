@@ -77,7 +77,7 @@ namespace Kratos
 		KRATOS_CLASS_POINTER_DEFINITION(NodalTwoStepVPStrategyForFSI);
 
 		/// Counted pointer of NodalTwoStepVPStrategy
-		//typedef boost::shared_ptr< NodalTwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
+		// typedef boost::shared_ptr< NodalTwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
 
 		typedef NodalTwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -91,7 +91,7 @@ namespace Kratos
 
 		typedef std::size_t SizeType;
 
-		//typedef typename BaseType::DofSetType DofSetType;
+		// typedef typename BaseType::DofSetType DofSetType;
 
 		typedef typename BaseType::DofsArrayType DofsArrayType;
 
@@ -165,14 +165,14 @@ namespace Kratos
 			typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
 			typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-			//initializing fractional velocity solution step
+			// initializing fractional velocity solution step
 			typedef Scheme<TSparseSpace, TDenseSpace> SchemeType;
 			typename SchemeType::Pointer pScheme;
 
 			typename SchemeType::Pointer Temp = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
 			pScheme.swap(Temp);
 
-			//CONSTRUCTION OF VELOCITY
+			// CONSTRUCTION OF VELOCITY
 			BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new NodalResidualBasedEliminationBuilderAndSolverForFSI<TSparseSpace, TDenseSpace, TLinearSolver>(pVelocityLinearSolver));
 
 			this->mpMomentumStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pVelocityLinearSolver, vel_build, ReformDofAtEachIteration, CalculateNormDxFlag));
@@ -287,8 +287,8 @@ namespace Kratos
 
 				if (it == maxNonLinearIterations - 1 || ((continuityConverged && momentumConverged) && it > 1))
 				{
-					//this->ComputeErrorL2NormCaseImposedG();
-					//this->ComputeErrorL2NormCasePoiseuille();
+					// this->ComputeErrorL2NormCaseImposedG();
+					// this->ComputeErrorL2NormCasePoiseuille();
 					this->CalculateAccelerations();
 					// std::ofstream myfile;
 					// myfile.open ("maxConvergedIteration.txt",std::ios::app);
@@ -610,9 +610,9 @@ namespace Kratos
 				const double youngModulus = itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
 				const double poissonRatio = itNode->FastGetSolutionStepValue(POISSON_RATIO);
 
-				//deviatoricCoeff=deltaT*secondLame
+				// deviatoricCoeff=deltaT*secondLame
 				deviatoricCoeff = timeInterval * youngModulus / (1.0 + poissonRatio) * 0.5;
-				//volumetricCoeff=bulk*deltaT=deltaT*(firstLame+2*secondLame/3)
+				// volumetricCoeff=bulk*deltaT=deltaT*(firstLame+2*secondLame/3)
 				volumetricCoeff = timeInterval * poissonRatio * youngModulus / ((1.0 + poissonRatio) * (1.0 - 2.0 * poissonRatio)) + 2.0 * deviatoricCoeff / 3.0;
 			}
 			else if (itNode->Is(FLUID) || itNode->Is(RIGID))
@@ -632,7 +632,7 @@ namespace Kratos
 
 			const double currFirstLame = volumetricCoeff - 2.0 * deviatoricCoeff / 3.0;
 
-			//currFirstLame=deltaT*firstLame
+			// currFirstLame=deltaT*firstLame
 			itNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT) = currFirstLame;
 			itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT) = deviatoricCoeff;
 		}
@@ -658,7 +658,7 @@ namespace Kratos
 			typename ElementsArrayType::iterator ElemBegin = pElements.begin() + element_partition[k];
 			typename ElementsArrayType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
 
-			for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++) //MSI: To be parallelized
+			for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++) // MSI: To be parallelized
 			{
 				Element::GeometryType &geometry = itElem->GetGeometry();
 				double elementalVolume = 0;
@@ -715,7 +715,7 @@ namespace Kratos
 			typename ElementsArrayType::iterator ElemBegin = pElements.begin() + element_partition[k];
 			typename ElementsArrayType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
 
-			for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++) //MSI: To be parallelized
+			for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++) // MSI: To be parallelized
 			{
 				Element::GeometryType &geometry = itElem->GetGeometry();
 				double elementalVolume = 0;
@@ -1077,10 +1077,10 @@ namespace Kratos
 						noalias(interfaceFgrad) = ZeroMatrix(dimension, dimension);
 						noalias(interfaceFgradVel) = ZeroMatrix(dimension, dimension);
 
-						//I have to compute the stresses and strains two times because one time is for the solid and the other for the fluid
-						// Matrix interfaceFgrad=ZeroMatrix(dimension,dimension);
-						// Matrix interfaceFgradVel=ZeroMatrix(dimension,dimension);
-						//the following function is more expensive than the general one because there is one loop more over neighbour nodes. This is why I do it here also for fluid interface nodes.
+						// I have to compute the stresses and strains two times because one time is for the solid and the other for the fluid
+						//  Matrix interfaceFgrad=ZeroMatrix(dimension,dimension);
+						//  Matrix interfaceFgradVel=ZeroMatrix(dimension,dimension);
+						// the following function is more expensive than the general one because there is one loop more over neighbour nodes. This is why I do it here also for fluid interface nodes.
 						ComputeAndStoreNodalDeformationGradientForInterfaceNode(itNode, nodalSFDneighboursId, rNodalSFDneigh, theta, interfaceFgrad, interfaceFgradVel);
 						// itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)=interfaceFgrad;
 						// itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL)=interfaceFgradVel;
@@ -1218,7 +1218,7 @@ namespace Kratos
 				MathUtils<double>::InvertMatrix3(Fgrad, InvFgrad, detFgrad);
 			}
 
-			//it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
+			// it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
 			SpatialVelocityGrad = prod(FgradVel, InvFgrad);
 
 			if (dimension == 2)
@@ -1390,7 +1390,7 @@ namespace Kratos
 				MathUtils<double>::InvertMatrix3(Fgrad, InvFgrad, detFgrad);
 			}
 
-			//it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
+			// it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
 			SpatialVelocityGrad = prod(FgradVel, InvFgrad);
 
 			if (dimension == 2)
@@ -1579,7 +1579,7 @@ namespace Kratos
 			// }else{
 			// 	std::cout<<"NOT INTERFACE currFirstLame "<<currFirstLame<<"  deviatoricCoeff "<<deviatoricCoeff<<std::endl;
 			// }
-			//it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
+			// it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
 			SpatialVelocityGrad = prod(FgradVel, InvFgrad);
 
 			if (dimension == 2)
@@ -1752,7 +1752,7 @@ namespace Kratos
 			nodalFgrad = itNode->FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD);
 			FgradVel = itNode->FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD_VEL);
 
-			//Inverse
+			// Inverse
 
 			if (dimension == 2)
 			{
@@ -1763,7 +1763,7 @@ namespace Kratos
 				MathUtils<double>::InvertMatrix3(nodalFgrad, InvFgrad, detFgrad);
 			}
 
-			//it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
+			// it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
 			SpatialVelocityGrad = prod(FgradVel, InvFgrad);
 
 			if (dimension == 2)
@@ -1824,7 +1824,7 @@ namespace Kratos
 			double detFgrad = 1.0;
 			Matrix InvFgrad = ZeroMatrix(dimension, dimension);
 			Matrix SpatialVelocityGrad = ZeroMatrix(dimension, dimension);
-			//Inverse
+			// Inverse
 
 			if (dimension == 2)
 			{
@@ -1835,7 +1835,7 @@ namespace Kratos
 				MathUtils<double>::InvertMatrix3(Fgrad, InvFgrad, detFgrad);
 			}
 
-			//it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
+			// it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
 			SpatialVelocityGrad = prod(FgradVel, InvFgrad);
 
 			if (dimension == 2)
@@ -1912,7 +1912,7 @@ namespace Kratos
 
 					if (nodalVolume > 0)
 					{
-						//I have to compute the strains two times because one time is for the solid and the other for the fluid
+						// I have to compute the strains two times because one time is for the solid and the other for the fluid
 						Vector nodalSFDneighboursId = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
 						Vector rNodalSFDneigh = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
 
@@ -1930,7 +1930,7 @@ namespace Kratos
 
 						// Matrix interfaceFgrad    = ZeroMatrix(dimension,dimension);
 						// Matrix interfaceFgradVel = ZeroMatrix(dimension,dimension);
-						//the following function is more expensive than the general one because there is one loop more over neighbour nodes. This is why I do it here also for fluid interface nodes.
+						// the following function is more expensive than the general one because there is one loop more over neighbour nodes. This is why I do it here also for fluid interface nodes.
 						ComputeAndStoreNodalDeformationGradientForInterfaceNode(itNode, nodalSFDneighboursId, rNodalSFDneigh, theta, interfaceFgrad, interfaceFgradVel);
 						// itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)=interfaceFgrad;
 						// itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL)=interfaceFgradVel;
@@ -2027,7 +2027,7 @@ namespace Kratos
 
 				if (neighSize > 0)
 				{
-					for (unsigned int i = 0; i < neighSize - 1; i++) //neigh_nodes has one cell less than nodalSFDneighboursId becuase this has also the considered node ID at the beginning
+					for (unsigned int i = 0; i < neighSize - 1; i++) // neigh_nodes has one cell less than nodalSFDneighboursId becuase this has also the considered node ID at the beginning
 					{
 						dNdXi = rNodalSFDneigh[firstRow];
 						dNdYi = rNodalSFDneigh[firstRow + 1];
@@ -2175,7 +2175,7 @@ namespace Kratos
 
 				if (neighSize > 0)
 				{
-					for (unsigned int i = 0; i < neighSize - 1; i++) //neigh_nodes has one cell less than nodalSFDneighboursId becuase this has also the considered node ID at the beginning
+					for (unsigned int i = 0; i < neighSize - 1; i++) // neigh_nodes has one cell less than nodalSFDneighboursId becuase this has also the considered node ID at the beginning
 					{
 						unsigned int other_neigh_nodes_id = nodalSFDneighboursId[i + 1];
 						for (unsigned int k = 0; k < neighNodesSize; k++)
@@ -2306,7 +2306,8 @@ namespace Kratos
 			CalculateDisplacementsAndResetNodalVariables();
 			BaseType::MoveMesh();
 			BoundaryNormalsCalculationUtilities BoundaryComputation;
-			BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel);
+			BoundaryComputation.CalculateUnitBoundaryNormals(rModelPart, echoLevel);
+
 			// std::cout<<"                 UpdateTopology DONE"<<std::endl;
 
 			KRATOS_CATCH("");

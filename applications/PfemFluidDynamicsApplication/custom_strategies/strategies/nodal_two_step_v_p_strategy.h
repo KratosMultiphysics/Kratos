@@ -1190,7 +1190,7 @@ namespace Kratos
 			this->CalculateDisplacementsAndResetNodalVariables();
 			BaseType::MoveMesh();
 			BoundaryNormalsCalculationUtilities BoundaryComputation;
-			BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel);
+            BoundaryComputation.CalculateUnitBoundaryNormals(rModelPart, echoLevel);
 
 			KRATOS_CATCH("");
 		}
