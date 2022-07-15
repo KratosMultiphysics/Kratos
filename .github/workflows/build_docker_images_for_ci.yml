@@ -8,14 +8,14 @@ on:
       - 'master'
     paths:
       - 'scripts/docker_files/docker_file_ci_ubuntu_20_04/*'
-      - 'scripts/docker_files/docker_file_ci_centos_7_python35/*'
+      - 'scripts/docker_files/docker_file_ci_centos_7/*'
       - '.github/workflows/build_docker_images_for_ci.yml'
   pull_request:
     branches:
       - 'master'
     paths:
       - 'scripts/docker_files/docker_file_ci_ubuntu_20_04/*'
-      - 'scripts/docker_files/docker_file_ci_centos_7_python35/*'
+      - 'scripts/docker_files/docker_file_ci_centos_7/*'
       - '.github/workflows/build_docker_images_for_ci.yml'
 
 jobs:
@@ -42,7 +42,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build . --file scripts/docker_files/docker_file_ci_centos_7_python35/DockerFile --tag kratosmultiphysics/kratos-image-ci-centos7-python35
+      run: docker build . --file scripts/docker_files/docker_file_ci_centos_7/DockerFile --tag kratosmultiphysics/kratos-image-ci-centos7
     - name: Docker Login
       uses: azure/docker-login@v1
       with:
@@ -51,4 +51,4 @@ jobs:
     - name: Publish the Docker image
       if: ${{ github.event_name == 'push'}}
       # only push the new image when the changes are merged to master
-      run: docker push kratosmultiphysics/kratos-image-ci-centos7-python35
+      run: docker push kratosmultiphysics/kratos-image-ci-centos7
