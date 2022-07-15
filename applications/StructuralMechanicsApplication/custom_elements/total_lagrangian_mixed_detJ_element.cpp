@@ -1041,7 +1041,7 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
     // Calculate stabilization constant
     const double c_tau_u = 2.0;
     const double c_tau_th = 4.0;
-    const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
+    const double h = ElementSizeCalculator<3,NumNodes>::AverageElementSize(r_geometry);
     const double aux_tau = c_tau_u * std::pow(h,2) / 2.0;
 
     // Set the auxiliary references matching the automatic differentiation symbols
@@ -3963,7 +3963,7 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
     // Calculate stabilization constant
     const double c_tau_u = 2.0;
     const double c_tau_th = 4.0;
-    const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
+    const double h = ElementSizeCalculator<3,NumNodes>::AverageElementSize(r_geometry);
     const double aux_tau = c_tau_u * std::pow(h,2) / 2.0;
 
     // Set the auxiliary references matching the automatic differentiation symbols
@@ -6205,7 +6205,7 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
     // Calculate stabilization constant
     const double c_tau_u = 2.0;
     const double c_tau_th = 4.0;
-    const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
+    const double h = ElementSizeCalculator<3,NumNodes>::AverageElementSize(r_geometry);
     const double aux_tau = c_tau_u * std::pow(h,2) / 2.0;
 
     // Set the auxiliary references matching the automatic differentiation symbols
