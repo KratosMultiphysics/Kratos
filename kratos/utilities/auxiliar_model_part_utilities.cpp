@@ -417,12 +417,9 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     // TODO
 
     // We copy the communicator
+    r_model_part.SetCommunicator(Kratos::make_shared<Communicator>(mrModelPart.GetCommunicator()));
 
-    // TODO
-
-    // We cannot copy the parent model part as it will break the concept of deep copy, which a priori assumes this is the parent model part
-
-    // TODO
+    // We cannot copy the parent model part as it will break the concept of deep copy, which a priori assumes this is the parent model part, so nothing to do here
 
     // We copy the sub model parts 
 
