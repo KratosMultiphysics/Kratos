@@ -260,7 +260,6 @@ public:
         auto& r_root_mp = rModelPart.GetRootModelPart();
         r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(GetNumberOfROMModes());
     }
-
     
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
@@ -372,7 +371,7 @@ public:
 
 
     ///@}
-protected:
+public:
     ///@}
     ///@name Protected static member variables
     ///@{
@@ -672,6 +671,8 @@ protected:
             rA += Aconditions;
             rb += bconditions;
         }
+
+        rModelPart.GetRootModelPart().SetValue(ROM_RESIDUAL, rb);
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished parallel building" << std::endl;
