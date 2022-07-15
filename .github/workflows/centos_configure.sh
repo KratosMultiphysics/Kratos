@@ -34,6 +34,9 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 
+# Enable devtoolset-8
+source scl_source enable devtoolset-8
+
 # Configure
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 ${KRATOS_CMAKE_OPTIONS_FLAGS} \

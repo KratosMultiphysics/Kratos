@@ -171,10 +171,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Enable devtoolset-8
-      run: |
-        source scl_source enable devtoolset-8
-
     - name: Build
       run: |
         cp .github/workflows/centos_configure.sh centos_configure.sh
