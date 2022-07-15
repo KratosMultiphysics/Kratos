@@ -54,6 +54,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
      py::class_<ROMBuilderAndSolverType, typename ROMBuilderAndSolverType::Pointer, BuilderAndSolverType>(m, "ROMBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
+        .def("BuildROM", &ROMBuilderAndSolverType::BuildROM)
         ;
 
     typedef LSPGROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> LSPGROMBuilderAndSolverType;
