@@ -580,6 +580,18 @@ public:
 
     }
 
+    /**
+     * @brief This method deep copies a whole model part
+     * @details This means that excepting the Model pointer, if default behaviour, every data is copied, no reference to the original model part is kept.
+     * @param rNewModelPartName The name of the new model part
+     * @param pModel The pointer to the Model that will host the new ModelPart, if nullptr, the current Model will be used.
+     * @return The deep copied model part
+     */
+    ModelPart& DeepCopyModelPart(
+        const std::string& rNewModelPartName, 
+        Model* pModel = nullptr
+        );
+
     /// Turn back information as a string.
     virtual std::string Info() const
     {

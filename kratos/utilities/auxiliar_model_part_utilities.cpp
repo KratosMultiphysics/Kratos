@@ -21,6 +21,7 @@
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "variable_utils.h"
+#include "containers/model.h"
 
 namespace Kratos
 {
@@ -370,6 +371,26 @@ void AuxiliarModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels(Flag
     ModelPart& root_model_part = mrModelPart.GetRootModelPart();
     AuxiliarModelPartUtilities aux_utility = AuxiliarModelPartUtilities(root_model_part);
     aux_utility.RemoveConditionsAndBelongings(IdentifierFlag);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
+    const std::string& rNewModelPartName,
+    Model* pModel
+    )
+{
+    // First we check if the model is not null
+    if (pModel == nullptr)
+        pModel = &mrModelPart.GetModel();
+
+    // We create the new model part
+    ModelPart& r_model_part = pModel->CreateModelPart(rNewModelPartName);
+
+    // TODO
+
+    return r_model_part;
 }
 
 }  // namespace Kratos.
