@@ -6,14 +6,14 @@ SHELL ["cmd", "/S", "/C"]
 # Download the Build Tools bootstrapper.
 RUN powershell.exe -Command \
 	mkdir c:\TEMP; \
-    wget https://aka.ms/vs/16/release/vs_buildtools.exe -OutFile c:\TEMP\vs_buildtools.exe
+    wget https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile c:\TEMP\vs_buildtools.exe
 
 # Install Build Tools
 RUN C:\TEMP\vs_buildtools.exe --quiet --wait --norestart --nocache \
     --add Microsoft.VisualStudio.Product.BuildTools \
     --add Microsoft.VisualStudio.Workload.VCTools \
     --add Microsoft.VisualStudio.Component.VC.CMake.Project \
-    --add Microsoft.VisualStudio.Component.Windows10SDK.17763 \
+    --add Microsoft.VisualStudio.Component.Windows10SDK.19041 \
     --add Microsoft.VisualStudio.Component.TestTools.BuildTools \
     --add Microsoft.VisualStudio.Component.VC.140 \
  || IF "%ERRORLEVEL%"=="3010" EXIT 0 ; \
