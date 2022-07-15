@@ -397,21 +397,21 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     r_model_part.pGetProcessInfo() = Kratos::make_shared<ProcessInfo>(mrModelPart.GetProcessInfo());
 
     // We copy the tables, first using the copy constructor, and then reassigning each table so it doesn't point to the original one
-    IndexType counter = 0;
     const auto& r_reference_tables = mrModelPart.Tables();
     auto& r_tables = r_model_part.Tables();
     r_tables.SetMaxBufferSize(r_reference_tables.GetMaxBufferSize());
     r_tables.SetSortedPartSize(r_reference_tables.GetSortedPartSize());
     const auto& r_reference_tables_container = r_reference_tables.GetContainer();
     auto& r_tables_container = r_tables.GetContainer();
-    r_tables_container.resize(r_reference_tables_container.size());
-    counter = 0;
-    for (auto& r_table_ref : r_reference_tables_container) {
-        const auto index = r_table_ref.first;
-        const auto& r_pointer_table = r_table_ref.second;
-        r_tables_container[counter] = std::pair<std::size_t,Table<double,double>::Pointer>(index, Kratos::make_shared<Table<double,double>>(*r_pointer_table));
-        ++counter;
-    }
+    const IndexType number_tables = r_reference_tables_container.size();
+    r_tables_container.resize(number_tables);
+    const auto it_tab_begin = r_reference_tables_container.begin();
+    IndexPartition<std::size_t>(number_tables).for_each([&it_tab_begin,&r_tables_container](std::size_t i) {
+        auto it_tab = it_tab_begin + i;
+        const auto index = it_tab->first;
+        const auto& r_pointer_table = it_tab->second;
+        r_tables_container[i] = std::pair<std::size_t,Table<double,double>::Pointer>(index, Kratos::make_shared<Table<double,double>>(*r_pointer_table));
+    });
 
     // We copy the meshes (here is the heavy work)
     // NOTE: From the mesh I am not going to copy neither the Flags, neither the DataValueContainer, as those are unused and I think it is needed to open a discussion about clean up of the code and remove those derivations (multiple derivations have problems of overhead https://isocpp.org/wiki/faq/multiple-inheritance)
@@ -440,12 +440,13 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     r_properties.SetSortedPartSize(r_reference_properties.GetSortedPartSize());
     const auto& r_reference_properties_container = r_reference_properties.GetContainer();
     auto& r_properties_container = r_properties.GetContainer();
-    r_properties_container.resize(r_reference_properties_container.size());
-    counter = 0;
-    for (auto& r_pointer_properties : r_reference_properties_container) {
-        r_properties_container[counter] = Kratos::make_shared<Properties>(*r_pointer_properties);
-        ++counter;
-    }
+    const IndexType number_properties = r_reference_properties_container.size();
+    r_properties_container.resize(number_properties);
+    const auto it_prop_begin = r_reference_properties_container.begin();
+    IndexPartition<std::size_t>(number_properties).for_each([&it_prop_begin,&r_properties_container](std::size_t i) {
+        auto it_prop = it_prop_begin + i;
+        r_properties_container[i] = Kratos::make_shared<Properties>(*(*(it_prop.base())));
+    });
 
     // We copy the geometries
 
@@ -529,15 +530,6 @@ void AuxiliarModelPartUtilities::DeepCopySubModelPart(ModelPart& rNewModelPart, 
             r_new_sub_model_part.AddMasterSlaveConstraints(index_list);
 
             // TODO: Properties. The problem with the properties is that to the contrary to the entities, it is not guaranteed that a property from a sub model part will be present in the parent model part.
-            // // Copy properties, first using the copy constructor, and then reassigning each table so it doesn't point to the original one
-            // const auto& r_reference_properties = r_old_sub_model_part.rProperties();
-            // auto& r_properties= r_new_sub_model_part.rProperties();
-            // r_properties.SetMaxBufferSize(r_reference_properties.GetMaxBufferSize());
-            // r_properties.SetSortedPartSize(r_reference_properties.GetSortedPartSize());
-            // auto& r_properties_container = r_properties.GetContainer();
-            // for (auto& r_pointer_properties : r_reference_properties.GetContainer()) {
-            //     r_properties_container.push_back(Kratos::make_shared<Properties>(*r_pointer_properties));
-            // }
 
             // Finally we do a loop over the submodelparts of the submodelpart to copy them (this is done recursively, so the copy will be done until there are no more submodelparts)
             DeepCopySubModelPart(r_new_sub_model_part, r_old_sub_model_part);
