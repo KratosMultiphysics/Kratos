@@ -12,6 +12,9 @@ add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
 }
 
+export CC=gcc8
+export CXX=g++8
+
 # Set variables
 export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
@@ -38,7 +41,7 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DUSE_MPI=OFF \
--DPYBIND11_PYTHON_VERSION="3.5" \
+-DPYBIND11_PYTHON_VERSION="3.8" \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} --std=c++17 -O0 -Wall" \
 -DCMAKE_UNITY_BUILD=ON                              \
 
