@@ -201,51 +201,31 @@ private:
      */  
     static const double EdgeFilledPortion(std::vector<double>& Distances, const PointsArrayType& rEnds) {
         double Length = Distances[Distances.size() - 1];
-        double portion = 0;        
+        double portion = 0; 
+        bool inside;       
 
         //casuistics: Both nodes inside, both nodes outside, one node inside and one outside
         if (rEnds[0].GetSolutionStepValue(DISTANCE) > 0 && rEnds[1].GetSolutionStepValue(DISTANCE) > 0) {
             bool inside = true;
             if(Distances.size() % 2 == 1) Distances.pop_back();
-            if (Distances.size() == 2) { 
-                return 1;
-            }
-            
-            for(int i = 1; i < Distances.size(); i++) {
-                if (inside) {
-                    portion += abs(Distances[i]-Distances[i-1])/Length;
-                    inside = false;
-                } else inside = true;             
-            }
+            if (Distances.size() == 2) return 1;
         } else if (rEnds[0].GetSolutionStepValue(DISTANCE) > 0 && rEnds[1].GetSolutionStepValue(DISTANCE) < 0) {
             if(Distances.size() % 2 == 0) Distances.pop_back();
-            bool inside = true;
-            for(int i = 1; i < Distances.size(); i++) {
-                if(inside) {
-                    inside = false;
-                    portion += abs(Distances[i]-Distances[i-1])/Length;
-                } else inside = true;
-            }
+            inside = true;
         } else if (rEnds[0].GetSolutionStepValue(DISTANCE) < 0 && rEnds[1].GetSolutionStepValue(DISTANCE) > 0) {
             if(Distances.size() % 2 == 0) Distances.pop_back();
-            bool inside = false;
-            for(int i = 1; i < Distances.size(); i++) {
-                if (inside) {
-                    inside = false;
-                    portion += abs(Distances[i]-Distances[i-1])/Length;
-                } else inside = true;
-            }
+            inside = false;
         } else {    //rEnds[0].GetSolutionStepValue(DISTANCE) < 0 && rEnds[1].GetSolutionStepValue(DISTANCE) < 0
             if (Distances.size() % 2 == 1) Distances.pop_back();
             if (Distances.size() == 2) return 0;
-            bool inside = false;
-
-            for(int i = 1; i < Distances.size(); i++) {
-                if (inside) {
-                    portion += abs(Distances[i]-Distances[i-1])/Length;
-                    inside = false;
-                } else inside = true;             
-            }
+            inside = false;
+        }
+        
+        for(int i = 1; i < Distances.size(); i++) {
+            if (inside) {
+                portion += abs(Distances[i]-Distances[i-1])/Length;
+                inside = false;
+            } else inside = true;             
         }
         //std::cout << "edge: " << rEnds[0] << " " << rEnds[1] << "contributed with " << portion << std::endl;  
         return portion;
