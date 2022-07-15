@@ -390,16 +390,23 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
 
     /// We will copy the member variables of the model part one by one
 
-    // We copy the buffer size
+    // We copy the buffer size (direct copy)
     r_model_part.SetBufferSize(mrModelPart.GetBufferSize());
 
-    // We copy the process info
+    // We copy the process info (using copy constructor)
+    r_model_part.pGetProcessInfo() = Kratos::make_shared<ProcessInfo>(mrModelPart.GetProcessInfo());
 
-    // TODO
-
-    // We copy the tables
-
-    // TODO
+    // We copy the tables, first using the copy constructor, and then reassigning each table so it doesn't point to the original one
+    const auto& r_reference_tables = mrModelPart.Tables();
+    auto& r_tables = r_model_part.Tables();
+    r_tables.SetMaxBufferSize(r_reference_tables.GetMaxBufferSize());
+    r_tables.SetSortedPartSize(r_reference_tables.GetSortedPartSize());
+    auto& r_tables_container = r_tables.GetContainer();
+    for (auto& r_table_ref : r_reference_tables.GetContainer()) {
+        const auto index = r_table_ref.first;
+        const auto& r_pointer_table = r_table_ref.second;
+        r_tables_container.push_back(std::pair<std::size_t,Table<double,double>::Pointer>(index, Kratos::make_shared<Table<double,double>>(*r_pointer_table)));
+    }
 
     // We copy the meshes (here is the heavy work)
 
