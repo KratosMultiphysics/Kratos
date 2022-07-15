@@ -411,7 +411,32 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     // We copy the meshes (here is the heavy work)
     // NOTE: From the mesh I am not going to copy neither the Flags, neither the DataValueContainer, as those are unused and I think it is needed to open a discussion about clean up of the code and remove those derivations (multiple derivations have problems of overhead https://isocpp.org/wiki/faq/multiple-inheritance)
     // RecursiveEnsureModelPartOwnsProperties(); //NOTE: To be activated in case people doesn't create the model parts properly and the properties are not created in the model part before assigning tho the elements and conditions. For the moment I would not activate it because I don't like to patronize the code with this kind of stuff. 
+    
+    // Copy nodes
+
     // TODO
+
+    // Copy elements
+
+    // TODO
+
+    // Copy conditions
+
+    // TODO
+
+    // Copy constraints
+
+    // TODO
+
+    // Copy properties, first using the copy constructor, and then reassigning each table so it doesn't point to the original one
+    const auto& r_reference_properties = mrModelPart.rProperties();
+    auto& r_properties= r_model_part.rProperties();
+    r_properties.SetMaxBufferSize(r_reference_properties.GetMaxBufferSize());
+    r_properties.SetSortedPartSize(r_reference_properties.GetSortedPartSize());
+    auto& r_properties_container = r_properties.GetContainer();
+    for (auto& r_pointer_properties : r_reference_properties.GetContainer()) {
+        r_properties_container.push_back(Kratos::make_shared<Properties>(*r_pointer_properties));
+    }
 
     // We copy the geometries
 
@@ -494,8 +519,16 @@ void AuxiliarModelPartUtilities::DeepCopySubModelPart(ModelPart& rNewModelPart, 
             });
             r_new_sub_model_part.AddMasterSlaveConstraints(index_list);
 
-            // TODO: Iterate in the properties ??
-            // This is to discuss, as it is not clear if we should copy the properties or not.
+            // TODO: Properties. The problem with the properties is that to the contrary to the entities, it is not guaranteed that a property from a sub model part will be present in the parent model part.
+            // // Copy properties, first using the copy constructor, and then reassigning each table so it doesn't point to the original one
+            // const auto& r_reference_properties = r_old_sub_model_part.rProperties();
+            // auto& r_properties= r_new_sub_model_part.rProperties();
+            // r_properties.SetMaxBufferSize(r_reference_properties.GetMaxBufferSize());
+            // r_properties.SetSortedPartSize(r_reference_properties.GetSortedPartSize());
+            // auto& r_properties_container = r_properties.GetContainer();
+            // for (auto& r_pointer_properties : r_reference_properties.GetContainer()) {
+            //     r_properties_container.push_back(Kratos::make_shared<Properties>(*r_pointer_properties));
+            // }
 
             // Finally we do a loop over the submodelparts of the submodelpart to copy them (this is done recursively, so the copy will be done until there are no more submodelparts)
             DeepCopySubModelPart(r_new_sub_model_part, r_old_sub_model_part);
