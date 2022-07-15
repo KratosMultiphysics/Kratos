@@ -67,13 +67,13 @@ namespace Kratos
     ComputeAveragePfemMeshParametersProcess(ModelPart &rModelPart,
                                             MesherUtilities::MeshingParameters &rRemeshingParameters,
                                             int EchoLevel)
-      : mrModelPart(rModelPart),
-        mrRemesh(rRemeshingParameters)
-  {
-    KRATOS_INFO("ComputeAveragePfemMeshParametersProcess") << " activated "<< std::endl;
+        : mrModelPart(rModelPart),
+          mrRemesh(rRemeshingParameters)
+    {
+      KRATOS_INFO("ComputeAveragePfemMeshParametersProcess") << " activated " << std::endl;
 
-    mEchoLevel = EchoLevel;
-  }
+      mEchoLevel = EchoLevel;
+    }
 
     /// Destructor.
     virtual ~ComputeAveragePfemMeshParametersProcess() {}
@@ -99,154 +99,16 @@ namespace Kratos
 
       if (mEchoLevel > 1)
         std::cout << "  COMPUTE AVERAGE PFEM MESH PARAMETERS PROCESS ]; " << std::endl;
-
-      bool refiningBox = mrRemesh.UseRefiningBox;
-
-      array_1d<double, 3> &minExternalPointRefiningBox = mrRemesh.RefiningBoxMinExternalPoint;
-      array_1d<double, 3> &minInternalPointRefiningBox = mrRemesh.RefiningBoxMinInternalPoint;
-      array_1d<double, 3> &maxExternalPointRefiningBox = mrRemesh.RefiningBoxMaxExternalPoint;
-      array_1d<double, 3> &maxInternalPointRefiningBox = mrRemesh.RefiningBoxMaxInternalPoint;
-      array_1d<double, 3> &RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
-      array_1d<double, 3> &RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
-
-      double fluidNodes = 0;
-      double meanNodalSize = 0;
-
-      // double refinedFluidNodes = 0;
-      // double refinedMeanNodalSize = 0;
-
       const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-      for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
-      {
-        if (refiningBox == false)
-        {
-          if (i_node->Is(FLUID))
-          {
-            fluidNodes += 1.0;
-            meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
-          }
-        }
-        else
-        {
-          if (dimension == 2)
-          {
-            if (i_node->X() < RefiningBoxMinimumPoint[0] || i_node->Y() < RefiningBoxMinimumPoint[1] ||
-                i_node->X() > RefiningBoxMaximumPoint[0] || i_node->Y() > RefiningBoxMaximumPoint[1])
-            {
-              // CONSIDER ONLY THE NODES OUT FROM THE REFINEMENT AREA
-              if (i_node->Is(FLUID))
-              {
-                fluidNodes += 1.0;
-                meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
-              }
-            }
-            // else{
-            //   if (i_node->Is(FLUID))
-            //   {
-            //     refinedFluidNodes += 1.0;
-            //     refinedMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
-            //   }
-            // }
-          }
-          else if (dimension == 3)
-          {
-            if (i_node->X() < RefiningBoxMinimumPoint[0] || i_node->Y() < RefiningBoxMinimumPoint[1] || i_node->Z() < RefiningBoxMinimumPoint[2] ||
-                i_node->X() > RefiningBoxMaximumPoint[0] || i_node->Y() > RefiningBoxMaximumPoint[1] || i_node->Z() > RefiningBoxMaximumPoint[2])
-            {
-              // CONSIDER ONLY THE NODES OUT FROM THE REFINEMENT AREA
-              if (i_node->Is(FLUID))
-              {
-                fluidNodes += 1.0;
-                meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
-              }
-            }
-            // else
-            // {
-            //   if (i_node->Is(FLUID))
-            //   {
-            //     refinedFluidNodes += 1.0;
-            //     refinedMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
-            //   }
-            // }
-          }
-        }
-      }
-      meanNodalSize *= 1.0 / fluidNodes;
-      // refinedMeanNodalSize *= 1.0 / refinedFluidNodes;
-
-      mrRemesh.Refine->CriticalRadius = meanNodalSize;
-      mrRemesh.Refine->InitialRadius = meanNodalSize;
-
-      if (dimension == 3)
-      {
-        mrRemesh.RefiningBoxMeshSize *= 0.8;
-      }
-
-      // std::cout << fluidNodes << " nodes in Not Refined area with mean element size: " << mrRemesh.Refine->CriticalRadius << std::endl;
-      // std::cout << refinedFluidNodes << " nodes in Refined area with mean element size:  " << mrRemesh.RefiningBoxMeshSize << std::endl;
-      // std::cout << " othermeanNodalSize " << refinedMeanNodalSize << std::endl;
-
-      double smallSize = meanNodalSize;
-
-      if (meanNodalSize < mrRemesh.RefiningBoxMeshSize)
-      {
-        smallSize = mrRemesh.RefiningBoxMeshSize;
-
-        RefiningBoxMinimumPoint[0] += 0.01 * smallSize; // the finest nodes at the frontier should not be erased
-        RefiningBoxMinimumPoint[1] += 0.01 * smallSize;
-        RefiningBoxMinimumPoint[2] += 0.01 * smallSize;
-
-        RefiningBoxMaximumPoint[0] += -0.01 * smallSize;
-        RefiningBoxMaximumPoint[1] += -0.01 * smallSize;
-        RefiningBoxMaximumPoint[2] += -0.01 * smallSize;
-      }
-      else // the mesh is finer in the RefiningBox
-      {
-        RefiningBoxMinimumPoint[0] += -0.01 * smallSize; // the finest nodes at the frontier should not be erased
-        RefiningBoxMinimumPoint[1] += -0.01 * smallSize;
-        RefiningBoxMinimumPoint[2] += -0.01 * smallSize;
-
-        RefiningBoxMaximumPoint[0] += 0.01 * smallSize;
-        RefiningBoxMaximumPoint[1] += 0.01 * smallSize;
-        RefiningBoxMaximumPoint[2] += 0.01 * smallSize;
-      }
-
-      minExternalPointRefiningBox[0] = RefiningBoxMinimumPoint[0] - mrRemesh.Refine->CriticalRadius;
-      minExternalPointRefiningBox[1] = RefiningBoxMinimumPoint[1] - mrRemesh.Refine->CriticalRadius;
-      minExternalPointRefiningBox[2] = RefiningBoxMinimumPoint[2] - mrRemesh.Refine->CriticalRadius;
-      minInternalPointRefiningBox[0] = RefiningBoxMinimumPoint[0] + mrRemesh.RefiningBoxMeshSize;
-      minInternalPointRefiningBox[1] = RefiningBoxMinimumPoint[1] + mrRemesh.RefiningBoxMeshSize;
-      minInternalPointRefiningBox[2] = RefiningBoxMinimumPoint[2] + mrRemesh.RefiningBoxMeshSize;
-
-      maxExternalPointRefiningBox[0] = RefiningBoxMaximumPoint[0] + mrRemesh.Refine->CriticalRadius;
-      maxExternalPointRefiningBox[1] = RefiningBoxMaximumPoint[1] + mrRemesh.Refine->CriticalRadius;
-      maxExternalPointRefiningBox[2] = RefiningBoxMaximumPoint[2] + mrRemesh.Refine->CriticalRadius;
-      maxInternalPointRefiningBox[0] = RefiningBoxMaximumPoint[0] - mrRemesh.RefiningBoxMeshSize;
-      maxInternalPointRefiningBox[1] = RefiningBoxMaximumPoint[1] - mrRemesh.RefiningBoxMeshSize;
-      maxInternalPointRefiningBox[2] = RefiningBoxMaximumPoint[2] - mrRemesh.RefiningBoxMeshSize;
-
-      // std::cout<<" RefiningBoxMinimumPoint "<<mrRemesh.RefiningBoxMinimumPoint <<std::endl;
-      // std::cout<<" minExternalPointRefiningBox "<<mrRemesh.RefiningBoxMinExternalPoint <<std::endl;
-      // std::cout<<" minInternalPointRefiningBox "<<mrRemesh.RefiningBoxMinInternalPoint <<std::endl;
-      // std::cout<<"     RefiningBoxMaximumPoint "<<mrRemesh.RefiningBoxMaximumPoint <<std::endl;
-      // std::cout<<"     maxExternalPointRefiningBox "<<mrRemesh.RefiningBoxMaxExternalPoint <<std::endl;
-      // std::cout<<"     maxInternalPointRefiningBox "<<mrRemesh.RefiningBoxMaxInternalPoint <<std::endl;
-
-      std::cout << "previous computation of meanNodalSize " << meanNodalSize << std::endl;
-      std::cout << "previous computation of fluidNodes " << fluidNodes << std::endl;
-      std::cout << "maxInternalPointRefiningBox[0] " << maxInternalPointRefiningBox[0] << std::endl;
-
-      fluidNodes = 0;
-      meanNodalSize = 0;
-
       const unsigned int numberOfRefiningBoxes = mrRemesh.UseRefiningBoxList.size();
-      std::cout << "numberOfRefiningBoxes" << numberOfRefiningBoxes << std::endl;
-      array_1d<double, 1> refinedFluidNodesList = ZeroVector(1);
+      array_1d<double, 1> refinedFluidNodesList = ZeroVector(1); // to change!
       array_1d<double, 1> refinedMeanNodalSizeList = ZeroVector(1);
       refinedFluidNodesList.resize(numberOfRefiningBoxes);
       refinedMeanNodalSizeList.resize(numberOfRefiningBoxes);
       refinedFluidNodesList = ZeroVector(numberOfRefiningBoxes);
       refinedMeanNodalSizeList = ZeroVector(numberOfRefiningBoxes);
+      double fluidNodes = 0;
+      double meanNodalSize = 0;
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
         if (i_node->Is(FLUID))

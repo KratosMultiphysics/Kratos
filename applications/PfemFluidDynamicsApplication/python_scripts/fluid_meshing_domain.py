@@ -112,15 +112,6 @@ class FluidMeshingDomain(object):
         self.RefiningParameters.SetAlphaParameter(self.settings["alpha_shape"].GetDouble())
 
         # set mesh refinement in box
-        # size = self.dimension
-        refining_box = self.settings["spatial_refining_box"]
-        if(refining_box["use_refining_box"].GetBool()):
-            self.MeshingParameters.SetUseRefiningBox(True) 
-            self.MeshingParameters.SetRefiningBoxMinimumPoint(refining_box["lower_point"][0].GetDouble(),refining_box["lower_point"][1].GetDouble(),refining_box["lower_point"][2].GetDouble()) 
-            self.MeshingParameters.SetRefiningBoxMaximumPoint(refining_box["upper_point"][0].GetDouble(),refining_box["upper_point"][1].GetDouble(),refining_box["upper_point"][2].GetDouble()) 
-            self.MeshingParameters.SetRefiningBoxTimeInterval(refining_box["initial_time"].GetDouble(),refining_box["final_time"].GetDouble())
-            self.MeshingParameters.SetRefiningBoxMeshSize(refining_box["mesh_size"].GetDouble())
-  
         index=0    
         for item in self.settings["spatial_refining_box_list"]:
             refining_box_list = item
