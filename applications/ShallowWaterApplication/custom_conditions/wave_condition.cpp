@@ -377,7 +377,7 @@ void WaveCondition<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMat
 
     if(rRightHandSideVector.size() != mLocalSize)
         rRightHandSideVector.resize(mLocalSize, false);
-    
+
     LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
     LocalVectorType rhs = ZeroVector(mLocalSize);
 

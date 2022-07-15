@@ -273,7 +273,7 @@ template<std::size_t TNumNodes>
 void BoussinesqCondition<TNumNodes>::CalculateLocalSystem(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     if(rLeftHandSideMatrix.size1() != 0)
-        rLeftHandSideMatrix.resize(0, 0, false);
+        rLeftHandSideMatrix.resize(mLocalSize, mLocalSize, false);
 
     if(rRightHandSideVector.size() != mLocalSize)
         rRightHandSideVector.resize(mLocalSize, false);
@@ -310,6 +310,7 @@ void BoussinesqCondition<TNumNodes>::CalculateLocalSystem(Matrix& rLeftHandSideM
         this->AddFluxTerms(rhs, data, N, weight);
     }
 
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mLocalSize, mLocalSize);
     noalias(rRightHandSideVector) = rhs;
 }
 
