@@ -19,6 +19,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         # Validate input settings against defaults
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
+        self.settings = settings
 
         # Get the model part from which the snapshots are to be retrieved
         if not settings["model_part_name"].GetString():
@@ -82,7 +83,10 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "nodal_unknowns": [],
             "rom_basis_output_format": "json",
             "rom_basis_output_name": "RomParameters",
-            "svd_truncation_tolerance": 1.0e-6
+            "svd_truncation_tolerance": 1.0e-6,
+            "save_svd_to_file": false,
+            "load_svd_from_file": false,
+            "svd_file_name": ""
         }""")
 
         return default_settings
@@ -138,7 +142,15 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             snapshots_matrix[:,i_col] = aux_col.transpose()
 
         # Calculate the randomized SVD of the snapshots matrix
-        u,_,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
+        if self.settings["load_svd_from_file"].GetBool():
+            print(f"Using precalculated U to write ROM modes...")
+            u = numpy.load(self.settings["svd_file_name"].GetString())
+        else:
+            u,_,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
+
+            if self.settings["save_svd_to_file"].GetBool():
+                print(f"Writing u with {u.shape=}")
+                numpy.save(self.settings["svd_file_name"].GetString(), u)
 
         # Save the nodal basis
         rom_basis_dict["rom_settings"]["nodal_unknowns"] = [var.Name() for var in self.snapshot_variables_list]
