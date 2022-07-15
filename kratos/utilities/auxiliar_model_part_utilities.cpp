@@ -427,12 +427,77 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     // We cannot copy the parent model part as it will break the concept of deep copy, which a priori assumes this is the parent model part, so nothing to do here
 
     // We copy the sub model parts 
-
-    // TODO
+    // NOTE: It is assumed that the submodelparts that working only with Id of the different entities will be enough, as we have ensured to copy everything, including the ids
+    DeepCopySubModelPart(r_model_part, mrModelPart);
 
     // Finally the Model is set in the initial creation
 
     return r_model_part;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AuxiliarModelPartUtilities::DeepCopySubModelPart(ModelPart& rNewModelPart, const ModelPart& rOldModelPart)
+{
+    if (rOldModelPart.NumberOfSubModelParts() == 0) {
+        return;
+    } else {
+        for (auto& r_old_sub_model_part : rOldModelPart.SubModelParts()) {
+            const std::string& r_old_sub_model_part_name = r_old_sub_model_part.Name();
+            ModelPart& r_new_sub_model_part = rNewModelPart.CreateSubModelPart(r_old_sub_model_part_name);
+
+            // Now reassigning the entities (first nodes, then elements, then conditions, then constraints)
+            const IndexType number_of_nodes = r_old_sub_model_part.NumberOfNodes();
+            std::vector<IndexType> index_list(number_of_nodes);
+
+            // Iterate in the nodes
+            auto& r_nodes_array = r_old_sub_model_part.Nodes();
+            const auto it_node_begin = r_nodes_array.begin();
+            IndexPartition<std::size_t>(number_of_nodes).for_each([&it_node_begin,&index_list](std::size_t i) {
+                auto it_node = it_node_begin + i;
+                index_list[i] = it_node->Id();
+            });
+            r_new_sub_model_part.AddNodes(index_list);
+
+            // Iterate in the elements
+            const IndexType number_of_elements = r_old_sub_model_part.NumberOfElements();
+            index_list.resize(number_of_elements);
+            auto& r_elements_array = r_old_sub_model_part.Elements();
+            const auto it_elem_begin = r_elements_array.begin();
+            IndexPartition<std::size_t>(number_of_elements).for_each([&it_elem_begin,&index_list](std::size_t i) {
+                auto it_elem = it_elem_begin + i;
+                index_list[i] = it_elem->Id();
+            });
+            r_new_sub_model_part.AddElements(index_list);
+
+            // Iterate in the conditions
+            const IndexType number_of_conditions = r_old_sub_model_part.NumberOfConditions();
+            index_list.resize(number_of_conditions);
+            auto& r_conditions_array = r_old_sub_model_part.Conditions();
+            const auto it_cond_begin = r_conditions_array.begin();
+            IndexPartition<std::size_t>(number_of_conditions).for_each([&it_cond_begin,&index_list](std::size_t i) {
+                auto it_cond = it_cond_begin + i;
+                index_list[i] = it_cond->Id();
+            });
+            r_new_sub_model_part.AddConditions(index_list);
+
+
+            // Iterate in the constraints
+            const IndexType number_of_master_slave_constraints = r_old_sub_model_part.NumberOfConditions();
+            index_list.resize(number_of_master_slave_constraints);
+            auto& r_master_slave_constraints_array = r_old_sub_model_part.MasterSlaveConstraints();
+            const auto it_const_begin = r_master_slave_constraints_array.begin();
+            IndexPartition<std::size_t>(number_of_master_slave_constraints).for_each([&it_const_begin,&index_list](std::size_t i) {
+                auto it_const = it_const_begin + i;
+                index_list[i] = it_const->Id();
+            });
+            r_new_sub_model_part.AddMasterSlaveConstraints(index_list);
+
+            // Finally we do a loop over the submodelparts of the submodelpart to copy them (this is done recursively, so the copy will be done until there are no more submodelparts)
+            DeepCopySubModelPart(r_new_sub_model_part, r_old_sub_model_part);
+        }
+    }
 }
 
 }  // namespace Kratos.

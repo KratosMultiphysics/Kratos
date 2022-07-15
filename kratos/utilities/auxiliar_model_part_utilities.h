@@ -711,6 +711,13 @@ private:
         KRATOS_ERROR_IF(rContainerSize != rSize) << "mismatch in size! Expected size: " << rContainerSize << std::endl;
     }
 
+    /**
+     * @brief This method copies the submodelpart structure from the original model part to the new one.
+     * @details This method is called recursively
+     * @param rNewModelPart The new model part
+     * @param rOriginalModelPart The original model part
+     */
+    void DeepCopySubModelPart(ModelPart& rNewModelPart, const ModelPart& rOldModelPart);
 
     ///@}
     ///@name Private  Access
