@@ -826,21 +826,23 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
     // Bond rotational 'friction' based on particle rolling fricton 
     //Not damping but simple implementation to help energy dissipation
     
-    array_1d<double, 3> element1AngularVelocity;
-    noalias(element1AngularVelocity) = element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-    if (element1AngularVelocity[0] || element1AngularVelocity[1] || element1AngularVelocity[2]){
+    double LocalElement1AngularVelocity[3] = {0.0};
+    array_1d<double, 3> GlobalElement1AngularVelocity;
+    noalias(GlobalElement1AngularVelocity) = element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+    GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElement1AngularVelocity, LocalElement1AngularVelocity);
+    if (LocalElement1AngularVelocity[0] || LocalElement1AngularVelocity[1] || LocalElement1AngularVelocity[2]){
         array_1d<double, 3> other_to_me_vect;
         noalias(other_to_me_vect) = element->GetGeometry()[0].Coordinates() - neighbor->GetGeometry()[0].Coordinates();
         double bond_center_point_to_element1_mass_center_distance = DEM_MODULUS_3(other_to_me_vect) / 2; //Here, this only works for sphere particles
         
-        double element1AngularVelocity_modulus = sqrt(element1AngularVelocity[0] * element1AngularVelocity[0] + 
-                                                element1AngularVelocity[1] * element1AngularVelocity[1] +
-                                                element1AngularVelocity[2] * element1AngularVelocity[2]);
+        double element1AngularVelocity_modulus = sqrt(LocalElement1AngularVelocity[0] * LocalElement1AngularVelocity[0] + 
+                                                LocalElement1AngularVelocity[1] * LocalElement1AngularVelocity[1] +
+                                                LocalElement1AngularVelocity[2] * LocalElement1AngularVelocity[2]);
 
         array_1d<double, 3> element1AngularVelocity_normalise;
-        element1AngularVelocity_normalise[0] = element1AngularVelocity[0] / element1AngularVelocity_modulus;
-        element1AngularVelocity_normalise[1] = element1AngularVelocity[1] / element1AngularVelocity_modulus;
-        element1AngularVelocity_normalise[2] = element1AngularVelocity[2] / element1AngularVelocity_modulus;
+        element1AngularVelocity_normalise[0] = LocalElement1AngularVelocity[0] / element1AngularVelocity_modulus;
+        element1AngularVelocity_normalise[1] = LocalElement1AngularVelocity[1] / element1AngularVelocity_modulus;
+        element1AngularVelocity_normalise[2] = LocalElement1AngularVelocity[2] / element1AngularVelocity_modulus;
 
         Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(neighbor->GetProperties().Id());
         
@@ -849,10 +851,10 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
         BondedLocalElasticContactForce[1] = mBondedScalingFactor[1] * LocalElasticContactForce[1];
         BondedLocalElasticContactForce[2] = mBondedScalingFactor[2] * LocalElasticContactForce[2];
 
-        ViscoLocalRotationalMoment[0] = - element1AngularVelocity_normalise[0] * fabs(BondedLocalElasticContactForce[0]) * bond_center_point_to_element1_mass_center_distance 
+        ViscoLocalRotationalMoment[0] = - element1AngularVelocity_normalise[0] * fabs(BondedLocalElasticContactForce[2]) * bond_center_point_to_element1_mass_center_distance 
                                         * properties_of_this_contact[ROLLING_FRICTION]; 
 
-        ViscoLocalRotationalMoment[1] = - element1AngularVelocity_normalise[1] * fabs(BondedLocalElasticContactForce[1]) * bond_center_point_to_element1_mass_center_distance 
+        ViscoLocalRotationalMoment[1] = - element1AngularVelocity_normalise[1] * fabs(BondedLocalElasticContactForce[2]) * bond_center_point_to_element1_mass_center_distance 
                                         * properties_of_this_contact[ROLLING_FRICTION]; 
 
         ViscoLocalRotationalMoment[2] = - element1AngularVelocity_normalise[2] * fabs(BondedLocalElasticContactForce[2]) * bond_center_point_to_element1_mass_center_distance 
