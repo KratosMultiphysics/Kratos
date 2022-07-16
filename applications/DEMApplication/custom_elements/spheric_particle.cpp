@@ -886,6 +886,35 @@ void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resist
     } 
 }
 
+void SphericParticle::ComputeRollingFrictionWithWall(double dt, double LocalContactForce[3], Condition* const wall, double indentation)
+{
+    array_1d<double, 3> element1AngularVelocity;
+    noalias(element1AngularVelocity) = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+    if (element1AngularVelocity[0] || element1AngularVelocity[1] || element1AngularVelocity[2]){
+        //array_1d<double, 3> other_to_me_vect;
+        //noalias(other_to_me_vect) = GetGeometry()[0].Coordinates() - wall->GetGeometry()[0].Coordinates();
+        double arm_length = GetInteractionRadius() - indentation; 
+        
+        double element1AngularVelocity_modulus = sqrt(element1AngularVelocity[0] * element1AngularVelocity[0] + 
+                                                element1AngularVelocity[1] * element1AngularVelocity[1] +
+                                                element1AngularVelocity[2] * element1AngularVelocity[2]);
+
+        array_1d<double, 3> element1AngularVelocity_normalise;
+        element1AngularVelocity_normalise[0] = element1AngularVelocity[0] / element1AngularVelocity_modulus;
+        element1AngularVelocity_normalise[1] = element1AngularVelocity[1] / element1AngularVelocity_modulus;
+        element1AngularVelocity_normalise[2] = element1AngularVelocity[2] / element1AngularVelocity_modulus;
+
+        Properties& properties_of_this_contact = GetProperties().GetSubProperties(wall->GetProperties().Id());
+
+        mContactMoment[0] -= element1AngularVelocity_normalise[0] * fabs(LocalContactForce[0]) * arm_length * properties_of_this_contact[ROLLING_FRICTION]; 
+
+        mContactMoment[1] -= element1AngularVelocity_normalise[1] * fabs(LocalContactForce[1]) * arm_length * properties_of_this_contact[ROLLING_FRICTION]; 
+
+        mContactMoment[2] -= element1AngularVelocity_normalise[2] * fabs(LocalContactForce[2]) * arm_length * properties_of_this_contact[ROLLING_FRICTION]; 
+
+    } 
+}
+
 void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
                                                     const ProcessInfo& r_process_info,
                                                     array_1d<double, 3>& r_elastic_force,
@@ -1160,6 +1189,10 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 ComputeMomentsWithWalls(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], wall, indentation, i); //WARNING: sending itself as the neighbor!!
+
+                if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {                
+                    ComputeRollingFrictionWithWall(data_buffer.mDt, LocalContactForce, wall, indentation);
+                }
             }
 
             //WEAR

@@ -355,6 +355,7 @@ virtual void ComputeRollingResistance(double& RollingResistance,
 
 //virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt) final;
 virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt, SphericParticle* p_neighbor, double LocalContactForce[3]) final;
+virtual void ComputeRollingFrictionWithWall(double dt, double LocalContactForce[3], Condition* const wall, double indentation) final;
 
 virtual double GetInitialDeltaWithFEM(int index);
 
