@@ -928,10 +928,10 @@ void DEM_parallel_bond::CheckBondFailure(const int i_neighbour_count,
         double bond_current_tau_max = bond_tau_zero;
 
         if (contact_sigma >= 0) {
-            bond_current_tau_max += bond_interanl_friction * contact_sigma;
+            bond_current_tau_max += tan(bond_interanl_friction) * contact_sigma;
         }
 
-        if(( fabs(contact_tau) + bond_rotational_moment_normal_modulus * bond_radius / J > bond_current_tau_max) 
+        if(( fabs(contact_tau) + bond_rotational_moment_coefficient * bond_rotational_moment_normal_modulus * bond_radius / J > bond_current_tau_max) 
             && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for tangential 
             failure_type = 2; // failure in shear
@@ -952,7 +952,7 @@ void DEM_parallel_bond::CheckBondFailure(const int i_neighbour_count,
             ViscoLocalRotationalMoment[2] = 0.0;
         } 
         else if (contact_sigma < 0.0  /*break only in tension*/
-                && (-1 * contact_sigma + bond_rotational_moment_tangential_modulus * bond_radius / I > bond_current_tau_max) 
+                && (-1 * contact_sigma + bond_rotational_moment_coefficient * bond_rotational_moment_tangential_modulus * bond_radius / I > bond_current_tau_max) 
                 && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for normal
             failure_type = 4; // failure in tension
