@@ -41,28 +41,28 @@ def AssembleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestConservativeResidualViscosity2D3NElement]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestConservativeGradientJump2D3NElement]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestConservativeFluxCorrected2D3NElement]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestBoussinesq2D3NElement]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestSetTopographyProcess]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestVisualizationMeshProcess]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestMacDonaldShockBenchmark]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestMacDonaldTransitionBenchmark]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestDamBreakBenchmark]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestDryDamBreakBenchmark]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestPlanarSurfaceInParabolaBenchmark]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestSolitaryWaveBenchmark]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestLineGraphOutputProcess]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestDerivativesRecoveryProcess]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestWaveGeneratorProcess]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestConservativeResidualViscosity2D3NElement))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestConservativeGradientJump2D3NElement))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestConservativeFluxCorrected2D3NElement))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestBoussinesq2D3NElement))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestSetTopographyProcess))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestVisualizationMeshProcess))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestMacDonaldShockBenchmark))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestMacDonaldTransitionBenchmark))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestDamBreakBenchmark))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestDryDamBreakBenchmark))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestPlanarSurfaceInParabolaBenchmark))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestSolitaryWaveBenchmark))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestLineGraphOutputProcess))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestDerivativesRecoveryProcess))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestWaveGeneratorProcess))
 
     # Create a test suit with the selected tests plus all small tests
     nightlySuite = suites['nightly']
     nightlySuite.addTests(smallSuite)
-    nightlySuite.addTests(TestLoader().loadTestsFromTestCases([TestShallowWaterElement]))
-    nightlySuite.addTests(TestLoader().loadTestsFromTestCases([TestSemiLagrangianShallowWaterElement]))
-    nightlySuite.addTests(TestLoader().loadTestsFromTestCases([TestMeshMovingStrategy]))
+    nightlySuite.addTests(TestLoader().loadTestsFromTestCase(TestShallowWaterElement))
+    nightlySuite.addTests(TestLoader().loadTestsFromTestCase(TestSemiLagrangianShallowWaterElement))
+    nightlySuite.addTests(TestLoader().loadTestsFromTestCase(TestMeshMovingStrategy))
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']

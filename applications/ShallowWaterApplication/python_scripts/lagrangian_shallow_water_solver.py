@@ -59,6 +59,7 @@ class LagrangianShallowWaterSolver(PythonSolver):
     def FinalizeSolutionStep(self):
         self.mesh_solver.FinalizeSolutionStep()
         self.mesh_moving.MapResults()
+        SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
 
     def Finalize(self):
         self.mesh_solver.Finalize()
