@@ -416,7 +416,22 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     // We copy the meshes (here is the heavy work)
     // NOTE: From the mesh I am not going to copy neither the Flags, neither the DataValueContainer, as those are unused and I think it is needed to open a discussion about clean up of the code and remove those derivations (multiple derivations have problems of overhead https://isocpp.org/wiki/faq/multiple-inheritance)
     // RecursiveEnsureModelPartOwnsProperties(); //NOTE: To be activated in case people doesn't create the model parts properly and the properties are not created in the model part before assigning tho the elements and conditions. For the moment I would not activate it because I don't like to patronize the code with this kind of stuff. 
-    
+
+    // Copy properties, first using the copy constructor, and then reassigning each table so it doesn't point to the original one
+    const auto& r_reference_properties = mrModelPart.rProperties();
+    auto& r_properties= r_model_part.rProperties();
+    r_properties.SetMaxBufferSize(r_reference_properties.GetMaxBufferSize());
+    r_properties.SetSortedPartSize(r_reference_properties.GetSortedPartSize());
+    const auto& r_reference_properties_container = r_reference_properties.GetContainer();
+    auto& r_properties_container = r_properties.GetContainer();
+    const IndexType number_properties = r_reference_properties_container.size();
+    r_properties_container.resize(number_properties);
+    const auto it_prop_begin = r_reference_properties_container.begin();
+    IndexPartition<std::size_t>(number_properties).for_each([&it_prop_begin,&r_properties_container](std::size_t i) {
+        auto it_prop = it_prop_begin + i;
+        r_properties_container[i] = Kratos::make_shared<Properties>(*(*(it_prop.base())));
+    });
+
     // Copy nodes
     const auto& r_reference_nodes = mrModelPart.Nodes();
     auto& r_nodes = r_model_part.Nodes();
@@ -470,12 +485,40 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     }
 
     // Copy elements
-
-    // TODO
+    auto& r_elements = r_model_part.Elements();
+    r_elements.SetMaxBufferSize(r_reference_elements.GetMaxBufferSize());
+    r_elements.SetSortedPartSize(r_reference_elements.GetSortedPartSize());
+    const auto& r_reference_elements_container = r_reference_elements.GetContainer();
+    auto& r_elements_container = r_elements.GetContainer();
+    const IndexType number_elements = r_reference_elements_container.size();
+    r_elements_container.resize(number_elements);
+    const auto it_elem_begin = r_reference_elements_container.begin();
+    IndexPartition<std::size_t>(number_elements).for_each([&it_elem_begin,&r_elements_container,&geometry_pointers_database,&r_properties](std::size_t i) {
+        auto it_elem = it_elem_begin + i;
+        auto& p_old_elem = (*it_elem);
+        auto p_new_elem = p_old_elem->Create(p_old_elem->Id(), geometry_pointers_database[p_old_elem->pGetGeometry()], r_properties(p_old_elem->pGetProperties()->Id()));
+        p_new_elem->SetData(p_old_elem->GetData());
+        p_new_elem->Set(Flags(*p_old_elem));
+        r_elements_container[i] = p_new_elem;
+    });
 
     // Copy conditions
-
-    // TODO
+    auto& r_conditions = r_model_part.Conditions();
+    r_conditions.SetMaxBufferSize(r_reference_conditions.GetMaxBufferSize());
+    r_conditions.SetSortedPartSize(r_reference_conditions.GetSortedPartSize());
+    const auto& r_reference_conditions_container = r_reference_conditions.GetContainer();
+    auto& r_conditions_container = r_conditions.GetContainer();
+    const IndexType number_conditions = r_reference_conditions_container.size();
+    r_conditions_container.resize(number_conditions);
+    const auto it_cond_begin = r_reference_conditions_container.begin();
+    IndexPartition<std::size_t>(number_conditions).for_each([&it_cond_begin,&r_conditions_container,&geometry_pointers_database,&r_properties](std::size_t i) {
+        auto it_cond = it_cond_begin + i;
+        auto& p_old_cond = (*it_cond);
+        auto p_new_cond = p_old_cond->Create(p_old_cond->Id(), geometry_pointers_database[p_old_cond->pGetGeometry()], r_properties(p_old_cond->pGetProperties()->Id()));
+        p_new_cond->SetData(p_old_cond->GetData());
+        p_new_cond->Set(Flags(*p_old_cond));
+        r_conditions_container[i] = p_new_cond;
+    });
 
     // Copy constraints
     // NOTE: Constraints cannot be deep copied (most of the information in implemented in derived classes as the LinearMasterSlaveConstraint), therefore we will use the Clone method of the constraint to create a new one.
@@ -491,21 +534,6 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     IndexPartition<std::size_t>(number_constraints).for_each([&it_const_begin,&r_const_container](std::size_t i) {
         auto it_const = it_const_begin + i;
         r_const_container[i] = (*it_const)->Clone((*it_const)->Id());
-    });
-
-    // Copy properties, first using the copy constructor, and then reassigning each table so it doesn't point to the original one
-    const auto& r_reference_properties = mrModelPart.rProperties();
-    auto& r_properties= r_model_part.rProperties();
-    r_properties.SetMaxBufferSize(r_reference_properties.GetMaxBufferSize());
-    r_properties.SetSortedPartSize(r_reference_properties.GetSortedPartSize());
-    const auto& r_reference_properties_container = r_reference_properties.GetContainer();
-    auto& r_properties_container = r_properties.GetContainer();
-    const IndexType number_properties = r_reference_properties_container.size();
-    r_properties_container.resize(number_properties);
-    const auto it_prop_begin = r_reference_properties_container.begin();
-    IndexPartition<std::size_t>(number_properties).for_each([&it_prop_begin,&r_properties_container](std::size_t i) {
-        auto it_prop = it_prop_begin + i;
-        r_properties_container[i] = Kratos::make_shared<Properties>(*(*(it_prop.base())));
     });
 
     // We copy the geometries
