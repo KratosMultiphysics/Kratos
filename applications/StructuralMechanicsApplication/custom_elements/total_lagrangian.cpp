@@ -511,6 +511,43 @@ bool TotalLagrangian::IsAxissymmetric() const
 /***********************************************************************************/
 /***********************************************************************************/
 
+// CalculateSensitivityMatrix() added for a <double> variable (compare to CalculateSensitivityMatrixVariable for 3d array variable);
+// Here CalculateSensitivityMatrix() is implemented using FiniteDifferenceUtility located in ../applications/StructuralMechanicsApplication/custom_response_functions/response_utilities/finite_difference_utility.cpp
+// CalculateSensitivityMatrix() = delta RHS / delta s, is the derivative of the residuum wrt considered variable
+void TotalLagrangian::CalculateSensitivityMatrix(
+    const Variable<double>& rDesignVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+    if(this->GetProperties().Has(rDesignVariable))
+    {
+        double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
+        if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE])
+        {
+            delta *= this->GetProperties()[rDesignVariable];
+        }
+        const double FinDiffStepSize = delta;
+
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+        const SizeType mat_size = number_of_nodes * dimension;
+        
+        Vector RHS;
+        this->CalculateRightHandSide(RHS, rCurrentProcessInfo);
+        KRATOS_ERROR_IF_NOT(RHS.size() == mat_size) << "RHS is of different size then DoFs vector" << std::endl;
+
+        rOutput.resize(mat_size, mat_size, false);
+        rOutput.clear();
+        FiniteDifferenceUtility::CalculateRightHandSideDerivative(*this, RHS, rDesignVariable, FinDiffStepSize, rOutput, rCurrentProcessInfo);
+    }
+    else
+        KRATOS_ERROR << "Unsupported variable for this element: " << rDesignVariable << std::endl;
+
+    KRATOS_CATCH("");
+}
+
 void TotalLagrangian::CalculateSensitivityMatrix(
     const Variable<array_1d<double, 3>>& rDesignVariable,
     Matrix& rOutput,

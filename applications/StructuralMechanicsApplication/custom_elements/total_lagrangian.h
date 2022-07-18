@@ -24,6 +24,7 @@
 #include "includes/define.h"
 #include "custom_elements/base_solid_element.h"
 #include "includes/variables.h"
+#include "custom_response_functions/response_utilities/finite_difference_utility.h"
 
 namespace Kratos
 {
@@ -143,6 +144,9 @@ public:
         ) const override;
 
     //std::string Info() const;
+    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
+                                    Matrix& rOutput,
+                                    const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rDesignVariable,
                                     Matrix& rOutput,
