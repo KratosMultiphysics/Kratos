@@ -441,8 +441,20 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     // TODO
 
     // Copy constraints
-
-    // TODO
+    // NOTE: Constraints cannot be deep copied (most of the information in implemented in derived classes as the LinearMasterSlaveConstraint), therefore we will use the Clone method of the constraint to create a new one.
+    const auto& r_reference_constraints = mrModelPart.MasterSlaveConstraints();
+    auto& r_constraints = r_model_part.MasterSlaveConstraints();
+    r_constraints.SetMaxBufferSize(r_reference_constraints.GetMaxBufferSize());
+    r_constraints.SetSortedPartSize(r_reference_constraints.GetSortedPartSize());
+    const auto& r_reference_const_container = r_reference_constraints.GetContainer();
+    auto& r_const_container = r_constraints.GetContainer();
+    const IndexType number_constraints = r_reference_const_container.size();
+    r_const_container.resize(number_constraints);
+    const auto it_const_begin = r_reference_const_container.begin();
+    IndexPartition<std::size_t>(number_constraints).for_each([&it_const_begin,&r_const_container](std::size_t i) {
+        auto it_const = it_const_begin + i;
+        r_const_container[i] = (*it_const)->Clone((*it_const)->Id());
+    });
 
     // Copy properties, first using the copy constructor, and then reassigning each table so it doesn't point to the original one
     const auto& r_reference_properties = mrModelPart.rProperties();
