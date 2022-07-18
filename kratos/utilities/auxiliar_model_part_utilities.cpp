@@ -463,7 +463,8 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
             for (IndexType i = 0; i < p_old_points.size(); ++i) {
                 points_geometry(i) = r_nodes(p_old_points[i].Id());
             }
-            auto p_new_geometry = p_old_geometry->Create(p_old_geometry->Id(),points_geometry);
+            const IndexType id = p_old_geometry->IsIdSelfAssigned() ? 0 : p_old_geometry->Id();
+            auto p_new_geometry = p_old_geometry->Create(id,points_geometry);
             p_new_geometry->GetData() = p_old_geometry->GetData();
             geometry_pointers_database[p_old_geometry] = p_new_geometry;
         }
@@ -481,7 +482,8 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
             for (IndexType i = 0; i < p_old_points.size(); ++i) {
                 points_geometry(i) = r_nodes(p_old_points[i].Id());
             }
-            auto p_new_geometry = p_old_geometry->Create(p_old_geometry->Id(),points_geometry);
+            const IndexType id = p_old_geometry->IsIdSelfAssigned() ? 0 : p_old_geometry->Id();
+            auto p_new_geometry = p_old_geometry->Create(id,points_geometry);
             p_new_geometry->GetData() = p_old_geometry->GetData();
             geometry_pointers_database[p_old_geometry] = p_new_geometry;
         }
@@ -499,7 +501,8 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
             for (IndexType i = 0; i < p_old_points.size(); ++i) {
                 points_geometry(i) = r_nodes(p_old_points[i].Id());
             }
-            auto p_new_geometry = p_old_geometry->Create(p_old_geometry->Id(),points_geometry);
+            const IndexType id = p_old_geometry->IsIdSelfAssigned() ? 0 : p_old_geometry->Id();
+            auto p_new_geometry = p_old_geometry->Create(id,points_geometry);
             p_new_geometry->GetData() = p_old_geometry->GetData();
             geometry_pointers_database[p_old_geometry] = p_new_geometry;
         }
