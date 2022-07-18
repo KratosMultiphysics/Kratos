@@ -640,6 +640,18 @@ void AuxiliarModelPartUtilities::DeepCopySubModelPart(ModelPart& rNewModelPart, 
 
             // TODO: Properties. The problem with the properties is that to the contrary to the entities, it is not guaranteed that a property from a sub model part will be present in the parent model part.
 
+            // Iterate in the geometries
+            const IndexType number_of_geometries = r_old_sub_model_part.NumberOfGeometries();
+            index_list.resize(number_of_geometries);
+            auto& r_geometries_array = r_old_sub_model_part.Geometries();
+            const auto it_geo_begin = r_geometries_array.begin();
+            IndexPartition<std::size_t>(number_of_geometries).for_each([&it_geo_begin,&index_list](std::size_t i) {
+                auto it_geo = it_geo_begin;
+                for (std::size_t j = 0; j < i; ++j) ++it_geo; // TODO: Redefine the iterators adaptors to accept arbitrary integers
+                index_list[i] = it_geo->Id();
+            });
+            r_new_sub_model_part.AddGeometries(index_list);
+
             // Finally we do a loop over the submodelparts of the submodelpart to copy them (this is done recursively, so the copy will be done until there are no more submodelparts)
             DeepCopySubModelPart(r_new_sub_model_part, r_old_sub_model_part);
         }
