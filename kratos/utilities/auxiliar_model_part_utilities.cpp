@@ -558,8 +558,10 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     });
 
     // We copy the geometries
-
-    // TODO
+    for (auto it_geom = r_reference_geometries.begin(); it_geom != r_reference_geometries.end(); ++it_geom) {
+        auto p_old_geometry = (it_geom.base())->second;
+        r_model_part.AddGeometry(geometry_pointers_database[p_old_geometry]);
+    }
 
     // We copy the list of variables (using copy constructor)
     r_model_part.SetNodalSolutionStepVariablesList(Kratos::make_intrusive<VariablesList>(mrModelPart.GetNodalSolutionStepVariablesList()));
