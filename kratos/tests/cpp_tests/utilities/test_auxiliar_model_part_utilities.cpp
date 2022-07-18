@@ -281,7 +281,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     ModelPart& r_copy_model_part = AuxiliarModelPartUtilities(r_origin_model_part).DeepCopyModelPart("MainCopied");
 
     KRATOS_CHECK(r_copy_model_part.HasSubModelPart("SubModel"));
-    //KRATOS_CHECK(r_copy_model_part.HasSubModelPart("SubSubModel")); TODO: This is not working yet
+    KRATOS_CHECK(r_copy_model_part.GetSubModelPart("SubModel").HasSubModelPart("SubSubModel")); 
     KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(1).get());
     KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(2).get());
     KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(3).get());
