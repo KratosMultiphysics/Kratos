@@ -414,3 +414,113 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         }
         response_type = self.response_settings["response_type"].GetString()
         return "Adjoint" + type_labels[response_type] + "Response"
+
+class AdjointEigenResponseFunction(AdjointResponseFunction):
+    
+    def __init__(self, identifier, response_settings, model):
+        self.identifier = identifier
+        self.response_settings = response_settings
+    
+        # Create the primal solver
+        with open(self.response_settings["primal_settings"].GetString(), 'r') as primal_parameter_file:
+            primal_parameters = Parameters(primal_parameter_file.read() )
+        self.primal_model_part = _GetModelPart(model, primal_parameters["solver_settings"])
+        self.primal_analysis = StructuralMechanicsAnalysis(model, primal_parameters)
+        self.primal_data_transfer_with_python = self.response_settings["primal_data_transfer_with_python"].GetBool()
+
+        # Add primal variables (used to transfer solution from primal to adjoint model)
+        self.primal_state_variables = [KratosMultiphysics.DISPLACEMENT]
+        if primal_parameters["solver_settings"].Has("rotation_dofs"):
+            if primal_parameters["solver_settings"]["rotation_dofs"].GetBool():
+                self.primal_state_variables.append(KratosMultiphysics.ROTATION)
+        
+        # Create the eigenvalue solver (use the same model as for primal analysis)
+        with open(self.response_settings["eigenvalue_settings"].GetString(),'r') as eigenvalue_parameter_file:
+            eigenvalue_parameters = Parameters( eigenvalue_parameter_file.read() )
+        self.eigenvalue_model_part = _GetModelPart(model, eigenvalue_parameters["solver_settings"])
+        self.eigenvalue_analysis = StructuralMechanicsAnalysis(model, eigenvalue_parameters)
+
+        # Create the adjoint solver
+        with open(self.response_settings["adjoint_settings"].GetString(),'r') as adjoint_parameter_file:
+            adjoint_parameters = Parameters( adjoint_parameter_file.read() )
+        adjoint_model = KratosMultiphysics.Model()
+        self.adjoint_model_part = _GetModelPart(adjoint_model, adjoint_parameters["solver_settings"])
+        self.adjoint_analysis = StructuralMechanicsAnalysis(adjoint_model, adjoint_parameters)
+
+        # for being able to choose traced eigenfrequencies and weighting between them
+        # add response settings to adjoint parameters to access from the response function
+        adjoint_parameters["solver_settings"]["response_function_settings"].AddValue("traced_eigenfrequencies", self.response_settings["traced_eigenfrequencies"])
+        adjoint_parameters["solver_settings"]["response_function_settings"].AddValue("weighting_method", self.response_settings["weighting_method"])
+        adjoint_parameters["solver_settings"]["response_function_settings"].AddValue("weighting_factors", self.response_settings["weighting_factors"])
+
+    def Initialize(self):
+        self.primal_analysis.Initialize()
+        self.eigenvalue_analysis.Initialize()
+        self.adjoint_analysis.Initialize()
+    
+    def InitializeSolutionStep(self):
+        # run primal analysis to get deformed structure
+        self.primal_analysis.RunSolutionLoop()
+        # run the eigenvalue analysis on deformed structure
+        self.eigenvalue_analysis.RunSolutionLoop()
+        #canbedeleted start
+        eigenvalues= self.eigenvalue_model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR]
+        print(eigenvalues)
+        #canbedeleted end
+
+    def CalculateValue(self):
+        value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
+        # calculate the eigenfrequencies and pass is to ProcessInfo
+        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
+
+    def GetValue(self):
+        return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
+
+    def CalculateGradient(self):
+        #transfer primal solution to adjoint model
+        self._SynchronizeAdjointFromPrimalAndEigenAnalysis()
+        #run adjoint analysis
+        self.adjoint_analysis.RunSolutionLoop()
+
+    def Finalize(self):
+        self.primal_analysis.Finalize()
+        self.eigenvalue_analysis.Finalize()
+        self.adjoint_analysis.Finalize()
+
+    def _GetLabel(self):
+        print("getting label")
+        type_labels = {
+            "adjoint_eigenfrequency" : "Eigenfrequency"
+        }
+        response_type = self.response_settings["response_type"].GetString()
+        return "Adjoint" + type_labels[response_type] + "Response"
+    
+    def _SynchronizeAdjointFromPrimalAndEigenAnalysis(self):
+        Logger.PrintInfo(self._GetLabel(), "Synchronize primal and adjoint modelpart for response:", self.identifier)
+        
+        if len(self.primal_model_part.Nodes) != len(self.adjoint_model_part.Nodes):
+            raise RuntimeError("_SynchronizeAdjointFromPrimal: Model parts have a different number of nodes!")
+
+        # TODO this should happen automatically
+        for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
+            adjoint_node.X0 = primal_node.X0
+            adjoint_node.Y0 = primal_node.Y0
+            adjoint_node.Z0 = primal_node.Z0
+            adjoint_node.X = primal_node.X
+            adjoint_node.Y = primal_node.Y
+            adjoint_node.Z = primal_node.Z
+
+            #TODO to put it into the variable utility
+            primal_matrix = primal_node.GetValue(StructuralMechanicsApplication.EIGENVECTOR_MATRIX)
+            adjoint_node.SetValue(StructuralMechanicsApplication.EIGENVECTOR_MATRIX, primal_matrix)        
+
+        # add EIGENVALUE_VECTOR to adjoint model
+        primal_eigenvalues= self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR]
+        self.adjoint_model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR] = primal_eigenvalues
+
+        # add primal solution to adjoint model
+        if self.primal_data_transfer_with_python:
+            Logger.PrintInfo(self._GetLabel(), "Transfer primal state to adjoint model part.")
+            variable_utils = KratosMultiphysics.VariableUtils()
+            for variable in self.primal_state_variables:
+                variable_utils.CopyModelPartNodalVar(variable, self.primal_model_part, self.adjoint_model_part, 0)
