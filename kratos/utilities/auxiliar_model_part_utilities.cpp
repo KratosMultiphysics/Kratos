@@ -450,9 +450,9 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     // First, before copy, we create a database of pointers of the geometries
     PointerVector<Node<3>> points_geometry;
     std::unordered_map<Geometry<Node<3>>::Pointer,Geometry<Node<3>>::Pointer> geometry_pointers_database;
+
+    // The database of elements
     const auto& r_reference_elements = mrModelPart.Elements();
-    const auto& r_reference_conditions = mrModelPart.Conditions();
-    //const auto& r_reference_geometries = mrModelPart.Geometries();
     for (auto& r_elem : r_reference_elements) {
         const auto& p_old_geometry = r_elem.pGetGeometry();
         if (geometry_pointers_database.find(p_old_geometry) == geometry_pointers_database.end()) {
@@ -468,8 +468,29 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
             geometry_pointers_database[p_old_geometry] = p_new_geometry;
         }
     }
+
+    // The database of conditions
+    const auto& r_reference_conditions = mrModelPart.Conditions();
     for (auto& r_cond : r_reference_conditions) {
         const auto& p_old_geometry = r_cond.pGetGeometry();
+        if (geometry_pointers_database.find(p_old_geometry) == geometry_pointers_database.end()) {
+            const auto& p_old_points = p_old_geometry->Points();
+            if (points_geometry.size() != p_old_points.size()) {
+                points_geometry.resize(p_old_points.size());
+            }
+            for (IndexType i = 0; i < p_old_points.size(); ++i) {
+                points_geometry[i] = r_nodes[p_old_points[i].Id()];
+            }
+            auto p_new_geometry = p_old_geometry->Create(p_old_geometry->Id(),points_geometry);
+            p_new_geometry->GetData() = p_old_geometry->GetData();
+            geometry_pointers_database[p_old_geometry] = p_new_geometry;
+        }
+    }
+
+    // The database of geometries
+    const auto& r_reference_geometries = mrModelPart.Geometries();
+    for (auto it_geom = r_reference_geometries.begin(); it_geom != r_reference_geometries.end(); ++it_geom) {
+        auto p_old_geometry = (it_geom.base())->second;
         if (geometry_pointers_database.find(p_old_geometry) == geometry_pointers_database.end()) {
             const auto& p_old_points = p_old_geometry->Points();
             if (points_geometry.size() != p_old_points.size()) {
