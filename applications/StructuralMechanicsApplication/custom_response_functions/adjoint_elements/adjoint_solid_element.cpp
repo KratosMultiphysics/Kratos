@@ -321,6 +321,15 @@ int AdjointSolidElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProces
     return 0;
     KRATOS_CATCH("");
 }
+// Added CalculateSensitivityMatrix for <double> variable
+template <class TPrimalElement>
+void AdjointSolidElement<TPrimalElement>::CalculateSensitivityMatrix(
+    const Variable<double>& rDesignVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    mPrimalElement.CalculateSensitivityMatrix(rDesignVariable, rOutput, rCurrentProcessInfo);
+    KRATOS_CATCH("");
+}
 
 template <class TPrimalElement>
 void AdjointSolidElement<TPrimalElement>::CalculateSensitivityMatrix(
@@ -328,6 +337,142 @@ void AdjointSolidElement<TPrimalElement>::CalculateSensitivityMatrix(
 {
     KRATOS_TRY;
     mPrimalElement.CalculateSensitivityMatrix(rDesignVariable, rOutput, rCurrentProcessInfo);
+    KRATOS_CATCH("");
+}
+
+template <class TPrimalElement>
+void AdjointSolidElement<TPrimalElement>::Calculate(const Variable<Matrix >& rVariable,
+                                                    Matrix& rOutput,
+                                                    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    if (rVariable == LHS_DESIGN_DERIVATIVE)
+    {
+        // Calls calculation of delta LHS / delta s using FiniteDifferenceUtility
+        const std::string& r_design_variable_name = this->GetValue( DESIGN_VARIABLE_NAME );
+
+        if (KratosComponents<Variable<double>>::Has(r_design_variable_name))
+        {
+            const Variable<double>& rDesignVariable =
+                KratosComponents<Variable<double>>::Get(r_design_variable_name);
+
+            double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
+            if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE])
+            {
+                delta *= this->GetProperties()[rDesignVariable];
+            }
+            const double FinDiffStepSize = delta;
+
+            const SizeType number_of_nodes = mPrimalElement.GetGeometry().size();
+            const SizeType dimension = mPrimalElement.GetGeometry().WorkingSpaceDimension();
+            const SizeType mat_size = number_of_nodes * dimension;
+                
+            Matrix LHS;
+            mPrimalElement.CalculateLeftHandSide(LHS, rCurrentProcessInfo);
+            KRATOS_ERROR_IF_NOT(LHS.size1() == mat_size) << "LHS has different size than dofs" << std::endl;
+
+            rOutput.resize(mat_size, mat_size, false);
+            rOutput.clear();
+            FiniteDifferenceUtility::CalculateLeftHandSideDerivative(mPrimalElement, LHS, rDesignVariable, FinDiffStepSize, rOutput, rCurrentProcessInfo);
+        }
+        else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_design_variable_name))
+        {
+            KRATOS_WARNING("AdjointFiniteDifferencingBaseElement") << "LHS derivative: No calculation for the 3D variable" << rVariable << "is yet implemented " << std::endl;
+        }
+    }
+    else if (rVariable == MASS_DESIGN_DERIVATIVE)
+    {
+        // Calls calculation of delta M / delta s using FiniteDifferenceUtility
+        const std::string& r_design_variable_name = this->GetValue( DESIGN_VARIABLE_NAME );
+        
+        if (KratosComponents<Variable<double>>::Has(r_design_variable_name))
+        {
+            const Variable<double>& rDesignVariable =
+                KratosComponents<Variable<double>>::Get(r_design_variable_name);
+            
+            double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
+            if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE])
+            {
+                delta *= this->GetProperties()[rDesignVariable];
+            }
+            const double FinDiffStepSize = delta;
+
+            const SizeType number_of_nodes = mPrimalElement.GetGeometry().size();
+            const SizeType dimension = mPrimalElement.GetGeometry().WorkingSpaceDimension();
+            const SizeType mat_size = number_of_nodes * dimension;
+                
+            Matrix Mass;
+            mPrimalElement.CalculateMassMatrix(Mass, rCurrentProcessInfo);
+            KRATOS_ERROR_IF_NOT(Mass.size1() == mat_size) << "Mass Matrix has different size than dofs" << std::endl;
+
+            rOutput.resize(mat_size, mat_size, false);
+            rOutput.clear();
+            FiniteDifferenceUtility::CalculateMassMatrixDerivative(mPrimalElement, Mass, rDesignVariable, FinDiffStepSize, rOutput, rCurrentProcessInfo);
+        }
+        else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_design_variable_name))
+        {
+            KRATOS_WARNING("AdjointFiniteDifferencingBaseElement") << "Mass Matrix derivative: No calculation for the 3D variable" << rVariable << "is yet implemented " << std::endl;
+        }
+    }
+    else if (rVariable == LHS_PRIMAL_ELEMENT)
+    {
+        // Added to call LHS calculation of the primal element from an adjoint element 
+        const SizeType number_of_nodes = mPrimalElement.GetGeometry().size();
+        const SizeType dimension = mPrimalElement.GetGeometry().WorkingSpaceDimension();
+        const SizeType mat_size = number_of_nodes * dimension;
+
+        rOutput.resize(mat_size, mat_size, false);
+        rOutput.clear();
+
+        mPrimalElement.CalculateLeftHandSide(rOutput, rCurrentProcessInfo);
+        KRATOS_ERROR_IF_NOT(rOutput.size1() == mat_size) << "LHS has different size than dofs" << std::endl;
+        noalias(rOutput) = -rOutput;
+    }
+    else if (rVariable == MASS_MATRIX_PRIMAL_ELEMENT)
+    {
+        // Added to call Mass Matrix calculation of the primal element from an adjoint element 
+        const SizeType number_of_nodes = mPrimalElement.GetGeometry().size();
+        const SizeType dimension = mPrimalElement.GetGeometry().WorkingSpaceDimension();
+        const SizeType mat_size = number_of_nodes * dimension;
+
+        rOutput.resize(mat_size, mat_size, false);
+        rOutput.clear();
+
+        mPrimalElement.CalculateMassMatrix(rOutput, rCurrentProcessInfo);
+        KRATOS_ERROR_IF_NOT(rOutput.size1() == mat_size) << "Mass Matrix has different size than dofs" << std::endl;
+        noalias(rOutput) = -rOutput;
+    }
+    else
+    {
+        KRATOS_WARNING("AdjointFiniteDifferencingBaseElement") << "Calculate function called for unknown variable: " << rVariable << std::endl;
+        rOutput.clear();
+    }
+
+    KRATOS_CATCH("");
+}
+template <class TPrimalElement>
+void AdjointSolidElement<TPrimalElement>::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                                    std::vector<double>& rValues,
+                                                    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    // Added to call print sensitivity on Integration Points
+    if (mPrimalElement.Has(rVariable))
+    {
+        // Get result value for output
+        const double& output_value = mPrimalElement.GetValue(rVariable);
+        // Resize Output
+        const SizeType gauss_points_number = mPrimalElement.GetGeometry().IntegrationPointsNumber(mPrimalElement.GetIntegrationMethod());
+        if (rValues.size() != gauss_points_number)
+            rValues.resize(gauss_points_number);
+
+        // Write scalar result value on all Gauss-Points
+        for(IndexType i = 0; i < gauss_points_number; ++i)
+            rValues[i] = output_value;
+    }
+    else
+        KRATOS_ERROR << "Unsupported output variable." << std::endl;
+
     KRATOS_CATCH("");
 }
 
