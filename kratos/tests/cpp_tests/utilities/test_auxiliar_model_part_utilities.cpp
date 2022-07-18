@@ -248,37 +248,52 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
 {
     Model current_model;
     ModelPart& r_origin_model_part = current_model.CreateModelPart("Main");
+    auto& r_sub = r_origin_model_part.CreateSubModelPart("SubModel");
+    r_sub.CreateSubModelPart("SubSubModel");
 
     Properties::Pointer p_prop = r_origin_model_part.CreateNewProperties(0);
 
     // First we create the nodes
-    NodeType::Pointer p_node_1 = r_origin_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.00);
-    NodeType::Pointer p_node_2 = r_origin_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.00);
-    NodeType::Pointer p_node_3 = r_origin_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.01);
+    auto p_node_1 = r_origin_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.00);
+    auto p_node_2 = r_origin_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.00);
+    auto p_node_3 = r_origin_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.01);
     std::vector<NodeType::Pointer> nodes_0 = {p_node_3, p_node_2, p_node_1};
 
-    NodeType::Pointer p_node_4 = r_origin_model_part.CreateNewNode(4, 0.0 , 0.0 , 0.01);
-    NodeType::Pointer p_node_5 = r_origin_model_part.CreateNewNode(5, 1.0 , 0.0 , 0.01);
-    NodeType::Pointer p_node_6 = r_origin_model_part.CreateNewNode(6, 0.0 , 1.0 , 0.02);
+    auto p_node_4 = r_origin_model_part.CreateNewNode(4, 0.0 , 0.0 , 0.01);
+    auto p_node_5 = r_origin_model_part.CreateNewNode(5, 1.0 , 0.0 , 0.01);
+    auto p_node_6 = r_origin_model_part.CreateNewNode(6, 0.0 , 1.0 , 0.02);
     std::vector<NodeType::Pointer> nodes_1 = { p_node_4, p_node_5, p_node_6};
 
     // Now we create the "geometries"
     Triangle3D3<NodeType> triangle_0( PointerVector<NodeType>{nodes_0} );
     Triangle3D3<NodeType> triangle_1( PointerVector<NodeType>{nodes_1} );
-    r_origin_model_part.CreateNewGeometry("Triangle3D3", 1, triangle_0);
-    r_origin_model_part.CreateNewGeometry("Triangle3D3", 2, triangle_1);
+    auto p_geom_1 = r_origin_model_part.CreateNewGeometry("Triangle3D3", 1, triangle_0);
+    auto p_geom_2 = r_origin_model_part.CreateNewGeometry("Triangle3D3", 2, triangle_1);
 
     // Now we create the "elements"
-    r_origin_model_part.CreateNewElement("Element3D3N", 1, triangle_0, p_prop);
-    r_origin_model_part.CreateNewElement("Element3D3N", 2, triangle_1, p_prop);
+    auto p_elem_1 = r_origin_model_part.CreateNewElement("Element3D3N", 1, triangle_0, p_prop);
+    auto p_elem_2 = r_origin_model_part.CreateNewElement("Element3D3N", 2, triangle_1, p_prop);
 
     // Now we create the "conditions"
-    r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_prop);
-    r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1, p_prop);
+    auto p_cond_1 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_prop);
+    auto p_cond_2 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1, p_prop);
 
     ModelPart& r_copy_model_part = AuxiliarModelPartUtilities(r_origin_model_part).DeepCopyModelPart("MainCopied");
 
-    KRATOS_CHECK_NOT_EQUAL(p_node_1, r_copy_model_part.pGetNode(1));
+    KRATOS_CHECK(r_copy_model_part.HasSubModelPart("SubModel"));
+    //KRATOS_CHECK(r_copy_model_part.HasSubModelPart("SubSubModel")); TODO: This is not working yet
+    KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(1).get());
+    KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(2).get());
+    KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(3).get());
+    KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(4).get());
+    KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(5).get());
+    KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(6).get());
+
+    KRATOS_CHECK_NOT_EQUAL(p_elem_1.get(), r_copy_model_part.pGetElement(1).get());
+    KRATOS_CHECK_NOT_EQUAL(p_elem_2.get(), r_copy_model_part.pGetElement(2).get());
+
+    KRATOS_CHECK_NOT_EQUAL(p_cond_1.get(), r_copy_model_part.pGetCondition(1).get());
+    KRATOS_CHECK_NOT_EQUAL(p_cond_2.get(), r_copy_model_part.pGetCondition(2).get());
 }
 
 /******************************************************************************************/
