@@ -140,7 +140,7 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateGreenLagrangianStrai
     //1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
 
-    // e = 0.5*(inv(C) - I)
+    // E = 0.5*(C - I)
     Matrix C_tensor(Dimension, Dimension);
     noalias(C_tensor) = prod(trans(F), F);
 
