@@ -18,13 +18,16 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/model_part.h"
-#include "utilities/auxiliar_model_part_utilities.h"
+#include "geometries/triangle_3d_3.h"
 
 // Utilities
+#include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/cpp_tests_utilities.h"
 
 namespace Kratos {
 namespace Testing {
+
+typedef Node<3> NodeType;
 
 /******************************************************************************************/
 /* Helper Functions */
@@ -239,6 +242,43 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_CopySubModelPartStructure, 
     KRATOS_CHECK_EQUAL(this_model_part.HasSubModelPart("SubModel"), this_copy_model_part.HasSubModelPart("SubModel"));
     auto& r_sub_copy = this_copy_model_part.GetSubModelPart("SubModel");
     KRATOS_CHECK_EQUAL(r_sub.HasSubModelPart("SubSubModel"), r_sub_copy.HasSubModelPart("SubSubModel"));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCoreFastSuite2)
+{
+    Model current_model;
+    ModelPart& r_origin_model_part = current_model.CreateModelPart("Main");
+
+    Properties::Pointer p_prop = r_origin_model_part.CreateNewProperties(0);
+
+    // First we create the nodes
+    NodeType::Pointer p_node_1 = r_origin_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.00);
+    NodeType::Pointer p_node_2 = r_origin_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.00);
+    NodeType::Pointer p_node_3 = r_origin_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.01);
+    std::vector<NodeType::Pointer> nodes_0 = {p_node_3, p_node_2, p_node_1};
+
+    NodeType::Pointer p_node_4 = r_origin_model_part.CreateNewNode(4, 0.0 , 0.0 , 0.01);
+    NodeType::Pointer p_node_5 = r_origin_model_part.CreateNewNode(5, 1.0 , 0.0 , 0.01);
+    NodeType::Pointer p_node_6 = r_origin_model_part.CreateNewNode(6, 0.0 , 1.0 , 0.02);
+    std::vector<NodeType::Pointer> nodes_1 = { p_node_4, p_node_5, p_node_6};
+
+    // Now we create the "geometries"
+    Triangle3D3<NodeType> triangle_0( PointerVector<NodeType>{nodes_0} );
+    Triangle3D3<NodeType> triangle_1( PointerVector<NodeType>{nodes_1} );
+    r_origin_model_part.CreateNewGeometry("Triangle3D3", 1, triangle_0);
+    r_origin_model_part.CreateNewGeometry("Triangle3D3", 2, triangle_1);
+
+    // Now we create the "elements"
+    r_origin_model_part.CreateNewElement("Element3D3N", 1, triangle_0, p_prop);
+    r_origin_model_part.CreateNewElement("Element3D3N", 2, triangle_1, p_prop);
+
+    // Now we create the "conditions"
+    r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_prop);
+    r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1, p_prop);
+
+    ModelPart& r_copy_model_part = AuxiliarModelPartUtilities(r_origin_model_part).DeepCopyModelPart("MainCopied");
+
+    KRATOS_CHECK_NOT_EQUAL(p_node_1, r_copy_model_part.pGetNode(1));
 }
 
 /******************************************************************************************/
