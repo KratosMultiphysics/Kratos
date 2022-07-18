@@ -70,6 +70,8 @@ public:
     /// Geometry type
     typedef Geometry<NodeType> GeometryType;
 
+    typedef typename GeometryType::ShapeFunctionsSecondDerivativesType ShapeFunctionsSecondDerivativesType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -444,10 +446,10 @@ private:
      * @param ReferenceArea The reference area
      * @param rErrorMessage The error message
      */
-    bool VerifyAreaByIntegration( 
-        GeometryType& rGeometry, 
-        GeometryType::IntegrationMethod ThisMethod, 
-        const double ReferanceArea, 
+    bool VerifyAreaByIntegration(
+        GeometryType& rGeometry,
+        GeometryType::IntegrationMethod ThisMethod,
+        const double ReferanceArea,
         std::stringstream& rErrorMessage
         );
 
@@ -458,9 +460,9 @@ private:
      * @param ThisMethod The integration method
      * @param rErrorMessage The error message
      */
-    void VerifyStrainExactness( 
-        GeometryType& rGeometry,  
-        GeometryType::IntegrationMethod ThisMethod, 
+    void VerifyStrainExactness(
+        GeometryType& rGeometry,
+        GeometryType::IntegrationMethod ThisMethod,
         std::stringstream& rErrorMessage
         );
 
@@ -507,13 +509,26 @@ private:
         );
 
     /**
+     * @brief This function verifies the shape functions second derivatives
+     * @param rGeometry The geometry
+     * @param rGlobalCoordinates The global coordinates
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
+    bool VerifyShapeFunctionsSecondDerivativesValues(
+        GeometryType& rGeometry,
+        GeometryType::CoordinatesArrayType& rGlobalCoordinates,
+        std::stringstream& rErrorMessage
+        );
+
+    /**
      * @brief Get the name of the intergration method
      * @param rGeometry The geometry
      * @param ThisMethod The integration method
      * @return The integration method name
      */
     std::string GetIntegrationName(
-        GeometryType& rGeometry, 
+        GeometryType& rGeometry,
         GeometryType::IntegrationMethod ThisMethod
         );
 
