@@ -508,9 +508,6 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
         }
     }
 
-
-    KRATOS_WATCH("7")
-
     // Copy elements
     auto& r_elements = r_model_part.Elements();
     r_elements.SetMaxBufferSize(r_reference_elements.GetMaxBufferSize());
