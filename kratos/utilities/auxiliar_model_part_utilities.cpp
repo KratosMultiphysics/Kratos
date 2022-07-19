@@ -393,8 +393,8 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     // We copy the buffer size (direct copy)
     r_model_part.SetBufferSize(mrModelPart.GetBufferSize());
 
-    // We copy the process info (using copy constructor)
-    r_model_part.pGetProcessInfo() = Kratos::make_shared<ProcessInfo>(mrModelPart.GetProcessInfo());
+    // We copy the process info
+    r_model_part.GetProcessInfo() = mrModelPart.GetProcessInfo();
 
     // We copy the list of variables (using copy constructor)
     r_model_part.SetNodalSolutionStepVariablesList(Kratos::make_intrusive<VariablesList>(mrModelPart.GetNodalSolutionStepVariablesList()));
