@@ -251,6 +251,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     auto& r_sub = r_origin_model_part.CreateSubModelPart("SubModel");
     r_sub.CreateSubModelPart("SubSubModel");
 
+    // Adding variables to the model part
+    r_origin_model_part.SetBufferSize(2);
+    r_origin_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+
     Properties::Pointer p_prop = r_origin_model_part.CreateNewProperties(0);
 
     // First we create the nodes
@@ -264,6 +268,11 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     auto p_node_6 = r_origin_model_part.CreateNewNode(6, 0.0 , 1.0 , 0.02);
     std::vector<NodeType::Pointer> nodes_1 = { p_node_4, p_node_5, p_node_6};
 
+    // Set temperature to the nodes
+    for (auto& r_node : r_origin_model_part.Nodes()) {
+        r_node.FastGetSolutionStepValue(TEMPERATURE, static_cast<double>(r_node.Id()));
+    }
+
     // Now we create the "geometries"
     Triangle3D3<NodeType> triangle_0( PointerVector<NodeType>{nodes_0} );
     Triangle3D3<NodeType> triangle_1( PointerVector<NodeType>{nodes_1} );
@@ -275,14 +284,12 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     auto p_elem_2 = r_origin_model_part.CreateNewElement("Element3D3N", 2, triangle_1, p_prop);
 
     // Adding elements to the submodelpart
-    //r_sub.AddElement(p_elem_2);
+    std::vector<IndexType> element_ids = {2};
+    r_sub.AddElements(element_ids);
 
     // Now we create the "conditions"
     auto p_cond_1 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_prop);
     auto p_cond_2 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1, p_prop);
-
-    // Adding conditions to the submodelpart
-    //r_sub.AddCondition(p_cond_1);
 
     ModelPart& r_copy_model_part = AuxiliarModelPartUtilities(r_origin_model_part).DeepCopyModelPart("MainCopied");
 
@@ -292,10 +299,9 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     KRATOS_CHECK(r_sub_copy.HasSubModelPart("SubSubModel")); 
     KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfNodes(), 0); 
     KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfGeometries(), 0); 
-    // KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfElements(), 1); 
-    // KRATOS_CHECK_EQUAL(r_sub_copy.Elements().begin()->Id(), 2); 
-    // KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfConditions(), 1);
-    // KRATOS_CHECK_EQUAL(r_sub_copy.Conditions().begin()->Id(), 1);
+    KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfElements(), 1); 
+    KRATOS_CHECK_EQUAL(r_sub_copy.Elements().begin()->Id(), 2); 
+    KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfConditions(), 0);
     
     // Verify it is the same pointer
     KRATOS_CHECK_EQUAL(p_node_1.get(), r_origin_model_part.pGetNode(1).get());
@@ -324,6 +330,8 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
 
     KRATOS_CHECK_NOT_EQUAL(p_cond_1.get(), r_copy_model_part.pGetCondition(1).get());
     KRATOS_CHECK_NOT_EQUAL(p_cond_2.get(), r_copy_model_part.pGetCondition(2).get());
+
+    // Verify values set
 }
 
 /******************************************************************************************/
