@@ -613,27 +613,6 @@ inline VariablesListDataValueContainer::SizeType VariablesListDataValueContainer
     return mpVariablesList->Index(rThisVariable.SourceKey());
 }
 
-// /***********************************************************************************/
-// /***********************************************************************************/
-
-// inline VariablesListDataValueContainer::BlockType* VariablesListDataValueContainer::Position(VariableData const & rThisVariable) const
-// {
-//     KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-//     KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
-//     return mpCurrentPosition + mpVariablesList->Index(rThisVariable.SourceKey());
-// }
-
-// /***********************************************************************************/
-// /***********************************************************************************/
-
-// inline VariablesListDataValueContainer::BlockType* VariablesListDataValueContainer::Position(VariableData const & rThisVariable, const SizeType ThisIndex) const
-// {
-//     KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-//     KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
-//     KRATOS_DEBUG_ERROR_IF((ThisIndex + 1) > mQueueSize) << "Trying to access data from step " << ThisIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
-//     return Position(ThisIndex) + mpVariablesList->Index(rThisVariable.SourceKey());
-// }
-
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -641,17 +620,6 @@ inline VariablesListDataValueContainer::BlockType* VariablesListDataValueContain
 {
     return mpCurrentPosition;
 }
-
-// /***********************************************************************************/
-// /***********************************************************************************/
-
-// inline VariablesListDataValueContainer::BlockType* VariablesListDataValueContainer::Position(const SizeType ThisIndex) const
-// {
-//     KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-//     const SizeType total_size = TotalSize();
-//     BlockType* position = mpCurrentPosition + ThisIndex * mpVariablesList->DataSize();
-//     return (position < mpData + total_size) ? position : position - total_size;
-// }
 
 /***********************************************************************************/
 /***********************************************************************************/
