@@ -22,9 +22,7 @@
 #include <cstddef>
 #include <atomic>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -37,10 +35,7 @@
 #include "intrusive_ptr/intrusive_ptr.hpp"
 #include "containers/global_pointers_vector.h"
 #include "containers/data_value_container.h"
-
 #include "containers/nodal_data.h"
-
-
 
 namespace Kratos
 {
@@ -242,11 +237,18 @@ public:
     typename Node<TDimension>::Pointer Clone()
     {
         Node<3>::Pointer p_new_node = Kratos::make_intrusive<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
+        
+        // Giving previous node's variables list to the node
+        p_new_node->SetSolutionStepVariablesList(this->pGetVariablesList());
+        
+        // Set buffer size
+        p_new_node->SetBufferSize(this->GetBufferSize());
+        
+        // Now we can assign the NodalData (it the list of variables and the buffer size is not the same it will not assign anything)
         p_new_node->mNodalData = this->mNodalData;
 
         Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
-        for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
-        {
+        for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++) {
             p_new_node->pAddDof(**it_dof);
         }
 
