@@ -263,5 +263,37 @@ namespace Testing {
         KRATOS_CHECK_NEAR(volume3, ExpectedVolume3, 0.001);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortion3, KratosCoreFastSuite) {
+        //A test regarding the real efficiency of this method
+        
+        //A voxel crossed by a straight plane 
+        std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
+        GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
+
+        //Generate the intersecting triangles
+        std::vector<std::vector<double>> triangle1{{-1,0.5,-0.95},{-0.95,0.5,-1.05},{-1.05,0.5,-1.05}}; 
+        std::vector<std::vector<double>> triangle2{{-1,-0.95,0.0},{-0.95,-1.05,0.0},{-1.05,-1.05,0.0}}; 
+        std::vector<std::vector<double>> triangle3{{1,-0.95,0.0},{1.05,-1.05,0.0},{0.95,-1.05,0.0}}; 
+        std::vector<std::vector<double>> triangle4{{1,0.5,-0.95},{1.05,0.5,-1.05},{0.95,0.5,-1.05}}; 
+        
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
+        GeometryPtrType pTriangle3 = GenerateTriangle3D3(triangle3);
+        GeometryPtrType pTriangle4 = GenerateTriangle3D3(triangle4);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1); 
+        array1.push_back(pTriangle2);
+        array1.push_back(pTriangle3);
+        array1.push_back(pTriangle4);
+
+        //Call the volume utility
+        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array1);
+        const double ExpectedVolume = 1.5/8; 
+        
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
+
+    }
+
 }  // namespace Testing.
 }  // namespace Kratos.
