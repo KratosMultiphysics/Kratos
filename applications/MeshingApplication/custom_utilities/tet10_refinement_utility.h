@@ -185,20 +185,17 @@ private:
           // to true, but this is not the case for partially refined element, so we set it here.
           it->SetValue(SPLIT_ELEMENT,true);
           rChildElements.resize(0);
-
-	      // Create the new connectivity
 	      
-		 
-		  unsigned int i0 = aux[t[0]];
-		  unsigned int i1 = aux[t[1]];
-		  unsigned int i2 = aux[t[2]];
-		  unsigned int i3 = aux[t[3]];
-          unsigned int i4 = aux[t[4]];
-		  unsigned int i5 = aux[t[5]];
-		  unsigned int i6 = aux[t[6]];
-		  unsigned int i7 = aux[t[7]];
-          unsigned int i8 = aux[t[8]];
-		  unsigned int i9 = aux[t[9]];
+		  unsigned int i0 = aux[0];
+		  unsigned int i1 = aux[1];
+		  unsigned int i2 = aux[2];
+		  unsigned int i3 = aux[3];
+          unsigned int i4 = aux[4];
+		  unsigned int i6 = aux[5];
+		  unsigned int i7 = aux[6];
+		  unsigned int i5 = aux[7];
+          unsigned int i8 = aux[8];
+		  unsigned int i9 = aux[9];
           
 
 		  Tetrahedra3D10<Node < 3 > > geom(

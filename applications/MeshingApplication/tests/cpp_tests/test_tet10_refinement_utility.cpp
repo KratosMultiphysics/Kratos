@@ -26,6 +26,23 @@ namespace Testing {
     typedef GeometryType::GeometriesArrayType GeometryArrayType;
     typedef GeometryType::PointsArrayType PointsArrayType;
 
+    //Auxiliar functions
+    /**
+     * @brief Returns the distance between two 3D points.
+     * @param rPoint0 reference to the first point
+     * @param rPoint1 reference an array of 3 coordinates representing the second point
+     * @return Distance 
+     */  
+    static double Distance(const NodeType& Point0, const array_1d<double,3>& Point1) {
+        const double lx = Point0.X() - Point1[0];
+        const double ly = Point0.Y() - Point1[1];
+        const double lz = Point0.Z() - Point1[2];
+
+        const double length = lx * lx + ly * ly + lz * lz;
+
+        return std::sqrt( length );
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(Tet10RefinementUtility, KratosMeshingApplicationFastSuite)
     {
         Model MyModel;
@@ -52,7 +69,15 @@ namespace Testing {
         
         for(auto elem : modelpart.Elements()) {
             KRATOS_CHECK_EQUAL(typeid(elem.GetGeometry()), typeid(Tetrahedra3D10<NodeType>));
-            
+            GeometryPtrType geom = elem.pGetGeometry();
+
+            auto points = geom->Points();
+            KRATOS_CHECK_EQUAL(Distance(points[0],points[1]), Distance(points[0],points[4]) + Distance(points[4],points[1]) );
+            KRATOS_CHECK_EQUAL(Distance(points[1],points[2]), Distance(points[1],points[5]) + Distance(points[5],points[2]) );
+            KRATOS_CHECK_EQUAL(Distance(points[2],points[3]), Distance(points[2],points[9]) + Distance(points[9],points[3]) );
+            KRATOS_CHECK_EQUAL(Distance(points[3],points[0]), Distance(points[3],points[7]) + Distance(points[7],points[0]) );
+            KRATOS_CHECK_EQUAL(Distance(points[0],points[2]), Distance(points[0],points[6]) + Distance(points[6],points[0]) );
+            KRATOS_CHECK_EQUAL(Distance(points[1],points[3]), Distance(points[1],points[8]) + Distance(points[8],points[1]) );
         }
 
     }
