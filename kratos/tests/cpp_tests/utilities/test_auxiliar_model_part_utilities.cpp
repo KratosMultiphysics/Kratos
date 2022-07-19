@@ -260,6 +260,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     r_origin_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
 
     Properties::Pointer p_prop = r_origin_model_part.CreateNewProperties(0);
+    p_prop->SetValue(DENSITY, 1.0);
 
     // First we create the nodes
     auto p_node_1 = r_origin_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.00);
@@ -351,6 +352,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     KRATOS_CHECK_NOT_EQUAL(p_cond_2.get(), r_copy_model_part.pGetCondition(2).get());
 
     // Verify values set
+    auto& r_new_properties = r_copy_model_part.GetProperties(0);
+    KRATOS_CHECK(p_prop->Has(DENSITY));
+    KRATOS_CHECK(r_new_properties.Has(DENSITY));
+    KRATOS_CHECK_EQUAL(r_new_properties.GetValue(DENSITY), p_prop->GetValue(DENSITY));
     auto& r_copy_process_info = r_copy_model_part.GetProcessInfo();
     KRATOS_CHECK(r_process_info.Has(STEP));
     KRATOS_CHECK(r_copy_process_info.Has(STEP));
