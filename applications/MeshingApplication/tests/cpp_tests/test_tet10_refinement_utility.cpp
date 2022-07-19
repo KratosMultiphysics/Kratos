@@ -70,7 +70,8 @@ namespace Testing {
         
         for(auto elem : modelpart.Elements()) {
             GeometryPtrType geom = elem.pGetGeometry();
-            KRATOS_CHECK_EQUAL(typeid(*geom), typeid(Tetrahedra3D10<NodeType>));
+            const auto geometryType = geom->GetGeometryType();
+            KRATOS_CHECK_EQUAL(geometryType, GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10);
 
             auto points = geom->Points();
             KRATOS_CHECK_EQUAL(Distance(points[0],points[1]), Distance(points[0],points[4]) + Distance(points[4],points[1]) );
@@ -82,7 +83,8 @@ namespace Testing {
         }
         for(auto cond : modelpart.Conditions()) {
             GeometryPtrType geom = cond.pGetGeometry();
-            KRATOS_CHECK_EQUAL(typeid(*geom), typeid(Triangle3D6<NodeType>));
+            const auto geometryType = geom->GetGeometryType();
+            KRATOS_CHECK_EQUAL(geometryType, GeometryData::KratosGeometryType::Kratos_Triangle3D6);
 
             auto points = geom->Points();
             KRATOS_CHECK_EQUAL(Distance(points[0],points[1]), Distance(points[0],points[3]) + Distance(points[3],points[1]) );
