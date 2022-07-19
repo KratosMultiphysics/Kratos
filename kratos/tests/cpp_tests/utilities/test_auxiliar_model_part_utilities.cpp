@@ -267,6 +267,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     auto p_node_3 = r_origin_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.01);
     std::vector<NodeType::Pointer> nodes_0 = {p_node_3, p_node_2, p_node_1};
 
+    // Set values
+    p_node_1->Set(RIGID, true); 
+    p_node_1->SetValue(PRESSURE, 15.0); 
+
     auto p_node_4 = r_origin_model_part.CreateNewNode(4, 0.0 , 0.0 , 0.01);
     auto p_node_5 = r_origin_model_part.CreateNewNode(5, 1.0 , 0.0 , 0.01);
     auto p_node_6 = r_origin_model_part.CreateNewNode(6, 0.0 , 1.0 , 0.02);
@@ -352,6 +356,11 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     KRATOS_CHECK(r_copy_process_info.Has(STEP));
     KRATOS_CHECK_EQUAL(r_copy_process_info.GetValue(STEP),r_process_info.GetValue(STEP));
     KRATOS_CHECK_IS_FALSE(r_copy_process_info.Has(NL_ITERATION_NUMBER));
+    KRATOS_CHECK_EQUAL(p_node_1->Is(RIGID), r_copy_model_part.pGetNode(1)->Is(RIGID));
+    KRATOS_CHECK_EQUAL(p_node_1->Is(ACTIVE), r_copy_model_part.pGetNode(1)->Is(ACTIVE));
+    KRATOS_CHECK(r_copy_model_part.pGetNode(1)->Has(PRESSURE));
+    KRATOS_CHECK_EQUAL(p_node_1->GetValue(PRESSURE), r_copy_model_part.pGetNode(1)->GetValue(PRESSURE));
+    KRATOS_CHECK_IS_FALSE(r_copy_model_part.pGetNode(1)->Has(TEMPERATURE));
     for (auto& r_node : r_copy_model_part.Nodes()) {
         KRATOS_CHECK_DOUBLE_EQUAL(r_node.FastGetSolutionStepValue(TEMPERATURE), static_cast<double>(r_node.Id()));
     }
