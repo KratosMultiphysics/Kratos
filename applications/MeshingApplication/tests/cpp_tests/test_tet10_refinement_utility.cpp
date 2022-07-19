@@ -47,15 +47,13 @@ namespace Testing {
         Tet10RefinementUtility refineTetra(modelpart); 
         refineTetra.LocalRefineMesh(false,false);
 
-        KRATOS_CHECK_EQUAL(modelpart.Nodes().size(),14); //There are 14 nodes (10 for each tetra but 6 are shared)  
-        KRATOS_CHECK_EQUAL(typeid(tetra1->GetGeometry()), typeid(Tetrahedra3D10<NodeType>));
-        KRATOS_CHECK_EQUAL(typeid(tetra1->GetGeometry()), typeid(Tetrahedra3D10<NodeType>));
-        
+        KRATOS_CHECK_EQUAL(modelpart.Nodes().size(),14); //There are 14 nodes (10 for each tetra but 6 are shared) 
+        std::cout << "hola?" << std::endl;
         KRATOS_CHECK_EQUAL(modelpart.Elements().size(),2); //No new elements are added
-        /*
-        for(auto element : modelpart.Elements()) {
-            //check new nodes are well placed
-        }  */
+        
+        for(auto elem : modelpart.Elements()) {
+            KRATOS_CHECK_EQUAL(typeid(elem.GetGeometry()), typeid(Tetrahedra3D10<NodeType>));
+        }
 
     }
 
