@@ -56,16 +56,10 @@ namespace Testing {
         modelpart.CreateNewNode(5, 0, 2, 0);
         Properties::Pointer p_properties_1(new Properties(0)); 
         Element::Pointer tetra1 = modelpart.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_1);
-        GeometryPtrType ptetra1 = tetra1->pGetGeometry();
         Element::Pointer tetra2 = modelpart.CreateNewElement("Element3D4N", 2, {2, 3, 4, 5}, p_properties_1);
-        GeometryPtrType ptetra2 = tetra2->pGetGeometry();
 
         Condition::Pointer cond1;
         cond1 = modelpart.CreateNewCondition("SurfaceCondition3D3N", 3, {1, 2, 3}, p_properties_1);
-        //GeometryPtrType cond1 = pCond1->pGetGeometry();
-        
-        //tetra1->SetValue(SPLIT_ELEMENT,true);
-        //tetra2->SetValue(SPLIT_ELEMENT,true);
 
         Tet10RefinementUtility refineTetra(modelpart); 
         refineTetra.LocalRefineTet10Mesh(true);
