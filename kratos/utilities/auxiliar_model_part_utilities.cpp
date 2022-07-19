@@ -396,6 +396,10 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     // We copy the process info (using copy constructor)
     r_model_part.pGetProcessInfo() = Kratos::make_shared<ProcessInfo>(mrModelPart.GetProcessInfo());
 
+    // We copy the list of variables (using copy constructor)
+    r_model_part.SetNodalSolutionStepVariablesList(Kratos::make_intrusive<VariablesList>(mrModelPart.GetNodalSolutionStepVariablesList()));
+    r_model_part.SetNodalSolutionStepVariablesList();
+
     // We copy the tables, first using the copy constructor, and then reassigning each table so it doesn't point to the original one
     const auto& r_reference_tables = mrModelPart.Tables();
     auto& r_tables = r_model_part.Tables();
@@ -445,19 +449,7 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     IndexPartition<std::size_t>(number_nodes).for_each([&it_node_begin,&r_nodes_container](std::size_t i) {
         auto it_node = it_node_begin + i;
         auto& p_old_node = *(it_node.base());
-        auto p_new_node = Kratos::make_intrusive<Node<3> >( p_old_node->Id(), p_old_node->X(), p_old_node->Y(), p_old_node->Z());
-        
-        // Giving previous node's variables list to the node
-        p_new_node->SetSolutionStepVariablesList(p_old_node->pGetVariablesList());
-
-        // Set buffer size
-        p_new_node->SetBufferSize(p_old_node->GetBufferSize());
-        
-        // Copy the rest of the data
-        (*p_new_node) = (*p_old_node);
-
-        // Save to the list
-        r_nodes_container[i] = p_new_node;
+        r_nodes_container[i] = p_old_node->Clone();
     });
 
     // First, before copy, we create a database of pointers of the geometries
@@ -578,10 +570,6 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
         auto p_old_geometry = (it_geom.base())->second;
         r_model_part.AddGeometry(geometry_pointers_database[p_old_geometry]);
     }
-
-    // We copy the list of variables (using copy constructor)
-    r_model_part.SetNodalSolutionStepVariablesList(Kratos::make_intrusive<VariablesList>(mrModelPart.GetNodalSolutionStepVariablesList()));
-    r_model_part.SetNodalSolutionStepVariablesList();
 
     // We copy the communicator (using copy constructor)
     r_model_part.SetCommunicator(Kratos::make_shared<Communicator>(mrModelPart.GetCommunicator()));
