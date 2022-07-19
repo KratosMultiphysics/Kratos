@@ -251,6 +251,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     auto& r_sub = r_origin_model_part.CreateSubModelPart("SubModel");
     r_sub.CreateSubModelPart("SubSubModel");
 
+    // Set in the ProcessInfo a value
+    auto& r_process_info = r_origin_model_part.GetProcessInfo();
+    r_process_info[STEP] = 1;
+
     // Adding variables to the model part
     r_origin_model_part.SetBufferSize(2);
     r_origin_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
@@ -283,6 +287,9 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     auto p_elem_1 = r_origin_model_part.CreateNewElement("Element3D3N", 1, triangle_0, p_prop);
     auto p_elem_2 = r_origin_model_part.CreateNewElement("Element3D3N", 2, triangle_1, p_prop);
 
+    // Set the variables to the elements
+    p_elem_1->SetValue(TEMPERATURE, 1.0);
+
     // Adding elements to the submodelpart
     std::vector<IndexType> element_ids = {2};
     r_sub.AddElements(element_ids);
@@ -304,6 +311,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfConditions(), 0);
     
     // Verify it is the same pointer
+    KRATOS_CHECK_EQUAL(p_prop.get(), r_origin_model_part.pGetProperties(0).get());
     KRATOS_CHECK_EQUAL(p_node_1.get(), r_origin_model_part.pGetNode(1).get());
     KRATOS_CHECK_EQUAL(p_node_2.get(), r_origin_model_part.pGetNode(2).get());
     KRATOS_CHECK_EQUAL(p_node_3.get(), r_origin_model_part.pGetNode(3).get());
@@ -321,6 +329,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     KRATOS_CHECK_EQUAL(p_cond_2.get(), r_origin_model_part.pGetCondition(2).get());
 
     // Check it is a different pointer
+    KRATOS_CHECK_NOT_EQUAL(p_prop.get(), r_copy_model_part.pGetProperties(0).get());
     KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(1).get());
     KRATOS_CHECK_NOT_EQUAL(p_node_2.get(), r_copy_model_part.pGetNode(2).get());
     KRATOS_CHECK_NOT_EQUAL(p_node_3.get(), r_copy_model_part.pGetNode(3).get());
@@ -338,9 +347,17 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     KRATOS_CHECK_NOT_EQUAL(p_cond_2.get(), r_copy_model_part.pGetCondition(2).get());
 
     // Verify values set
+    auto& r_copy_process_info = r_copy_model_part.GetProcessInfo();
+    KRATOS_CHECK(r_process_info.Has(STEP));
+    KRATOS_CHECK(r_copy_process_info.Has(STEP));
+    KRATOS_CHECK_EQUAL(r_copy_process_info.GetValue(STEP),r_process_info.GetValue(STEP));
+    KRATOS_CHECK_IS_FALSE(r_copy_process_info.Has(NL_ITERATION_NUMBER));
     for (auto& r_node : r_copy_model_part.Nodes()) {
         KRATOS_CHECK_DOUBLE_EQUAL(r_node.FastGetSolutionStepValue(TEMPERATURE), static_cast<double>(r_node.Id()));
     }
+
+    KRATOS_CHECK_DOUBLE_EQUAL(p_elem_1->GetValue(TEMPERATURE), r_copy_model_part.pGetElement(1)->GetValue(TEMPERATURE));
+    KRATOS_CHECK_IS_FALSE(r_copy_model_part.pGetElement(2)->Has(TEMPERATURE));
 }
 
 /******************************************************************************************/
