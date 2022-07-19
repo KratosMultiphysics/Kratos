@@ -270,7 +270,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
 
     // Set temperature to the nodes
     for (auto& r_node : r_origin_model_part.Nodes()) {
-        r_node.FastGetSolutionStepValue(TEMPERATURE, static_cast<double>(r_node.Id()));
+        r_node.FastGetSolutionStepValue(TEMPERATURE) = static_cast<double>(r_node.Id());
     }
 
     // Now we create the "geometries"
@@ -332,6 +332,9 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     KRATOS_CHECK_NOT_EQUAL(p_cond_2.get(), r_copy_model_part.pGetCondition(2).get());
 
     // Verify values set
+    for (auto& r_node : r_copy_model_part.Nodes()) {
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.FastGetSolutionStepValue(TEMPERATURE), static_cast<double>(r_node.Id()));
+    }
 }
 
 /******************************************************************************************/
