@@ -274,20 +274,50 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     auto p_elem_1 = r_origin_model_part.CreateNewElement("Element3D3N", 1, triangle_0, p_prop);
     auto p_elem_2 = r_origin_model_part.CreateNewElement("Element3D3N", 2, triangle_1, p_prop);
 
+    // Adding elements to the submodelpart
+    //r_sub.AddElement(p_elem_2);
+
     // Now we create the "conditions"
     auto p_cond_1 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_prop);
     auto p_cond_2 = r_origin_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1, p_prop);
 
+    // Adding conditions to the submodelpart
+    //r_sub.AddCondition(p_cond_1);
+
     ModelPart& r_copy_model_part = AuxiliarModelPartUtilities(r_origin_model_part).DeepCopyModelPart("MainCopied");
 
+    // Check the structure of the copied model part
     KRATOS_CHECK(r_copy_model_part.HasSubModelPart("SubModel"));
-    KRATOS_CHECK(r_copy_model_part.GetSubModelPart("SubModel").HasSubModelPart("SubSubModel")); 
+    auto& r_sub_copy = r_copy_model_part.GetSubModelPart("SubModel");
+    KRATOS_CHECK(r_sub_copy.HasSubModelPart("SubSubModel")); 
+    KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfNodes(), 0); 
+    KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfGeometries(), 0); 
+    // KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfElements(), 1); 
+    // KRATOS_CHECK_EQUAL(r_sub_copy.Elements().begin()->Id(), 2); 
+    // KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfConditions(), 1);
+    // KRATOS_CHECK_EQUAL(r_sub_copy.Conditions().begin()->Id(), 1);
+    
+    // Verify it is the same pointer
+    KRATOS_CHECK_EQUAL(p_node_1.get(), r_origin_model_part.pGetNode(1).get());
+    KRATOS_CHECK_EQUAL(p_node_2.get(), r_origin_model_part.pGetNode(2).get());
+    KRATOS_CHECK_EQUAL(p_node_3.get(), r_origin_model_part.pGetNode(3).get());
+    KRATOS_CHECK_EQUAL(p_node_4.get(), r_origin_model_part.pGetNode(4).get());
+    KRATOS_CHECK_EQUAL(p_node_5.get(), r_origin_model_part.pGetNode(5).get());
+    KRATOS_CHECK_EQUAL(p_node_6.get(), r_origin_model_part.pGetNode(6).get());
+
+    KRATOS_CHECK_EQUAL(p_elem_1.get(), r_origin_model_part.pGetElement(1).get());
+    KRATOS_CHECK_EQUAL(p_elem_2.get(), r_origin_model_part.pGetElement(2).get());
+
+    KRATOS_CHECK_EQUAL(p_cond_1.get(), r_origin_model_part.pGetCondition(1).get());
+    KRATOS_CHECK_EQUAL(p_cond_2.get(), r_origin_model_part.pGetCondition(2).get());
+
+    // Check it is a different pointer
     KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(1).get());
-    KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(2).get());
-    KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(3).get());
-    KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(4).get());
-    KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(5).get());
-    KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(6).get());
+    KRATOS_CHECK_NOT_EQUAL(p_node_2.get(), r_copy_model_part.pGetNode(2).get());
+    KRATOS_CHECK_NOT_EQUAL(p_node_3.get(), r_copy_model_part.pGetNode(3).get());
+    KRATOS_CHECK_NOT_EQUAL(p_node_4.get(), r_copy_model_part.pGetNode(4).get());
+    KRATOS_CHECK_NOT_EQUAL(p_node_5.get(), r_copy_model_part.pGetNode(5).get());
+    KRATOS_CHECK_NOT_EQUAL(p_node_6.get(), r_copy_model_part.pGetNode(6).get());
 
     KRATOS_CHECK_NOT_EQUAL(p_elem_1.get(), r_copy_model_part.pGetElement(1).get());
     KRATOS_CHECK_NOT_EQUAL(p_elem_2.get(), r_copy_model_part.pGetElement(2).get());
