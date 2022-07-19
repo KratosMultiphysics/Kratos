@@ -311,6 +311,9 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     KRATOS_CHECK_EQUAL(p_node_5.get(), r_origin_model_part.pGetNode(5).get());
     KRATOS_CHECK_EQUAL(p_node_6.get(), r_origin_model_part.pGetNode(6).get());
 
+    KRATOS_CHECK_EQUAL(p_geom_1.get(), r_origin_model_part.pGetGeometry(1).get());
+    KRATOS_CHECK_EQUAL(p_geom_2.get(), r_origin_model_part.pGetGeometry(2).get());
+
     KRATOS_CHECK_EQUAL(p_elem_1.get(), r_origin_model_part.pGetElement(1).get());
     KRATOS_CHECK_EQUAL(p_elem_2.get(), r_origin_model_part.pGetElement(2).get());
 
@@ -324,6 +327,9 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     KRATOS_CHECK_NOT_EQUAL(p_node_4.get(), r_copy_model_part.pGetNode(4).get());
     KRATOS_CHECK_NOT_EQUAL(p_node_5.get(), r_copy_model_part.pGetNode(5).get());
     KRATOS_CHECK_NOT_EQUAL(p_node_6.get(), r_copy_model_part.pGetNode(6).get());
+
+    KRATOS_CHECK_NOT_EQUAL(p_geom_1.get(), r_copy_model_part.pGetGeometry(1).get());
+    KRATOS_CHECK_NOT_EQUAL(p_geom_2.get(), r_copy_model_part.pGetGeometry(2).get());
 
     KRATOS_CHECK_NOT_EQUAL(p_elem_1.get(), r_copy_model_part.pGetElement(1).get());
     KRATOS_CHECK_NOT_EQUAL(p_elem_2.get(), r_copy_model_part.pGetElement(2).get());
