@@ -235,10 +235,6 @@ public:
         return *(reinterpret_cast<TDataType*>(mpCurrentPosition + ThisPosition) + rThisVariable.GetComponentIndex());
     }
 
-    SizeType Size() const;
-
-    SizeType TotalSize() const;
-
     template<class TDataType> 
     void SetValue(const Variable<TDataType>& rThisVariable, TDataType const& rValue)
     {
@@ -294,6 +290,10 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    SizeType Size() const;
+
+    SizeType TotalSize() const;
 
     SizeType DataSize();
 

@@ -177,28 +177,6 @@ VariablesListDataValueContainer& VariablesListDataValueContainer::operator=(cons
 /***********************************************************************************/
 /***********************************************************************************/
 
-VariablesListDataValueContainer::SizeType VariablesListDataValueContainer::Size() const
-{
-    if(!mpVariablesList)
-        return 0;
-
-    return mpVariablesList->DataSize();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-VariablesListDataValueContainer::SizeType VariablesListDataValueContainer::TotalSize() const
-{
-    if(!mpVariablesList)
-        return 0;
-
-    return mQueueSize * mpVariablesList->DataSize();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void VariablesListDataValueContainer::Clear()
 {
     DestructAllElements();
@@ -478,6 +456,28 @@ VariablesListDataValueContainer::BlockType* VariablesListDataValueContainer::Dat
 {
     KRATOS_DEBUG_ERROR_IF(!mpVariablesList->Has(rThisVariable)) << "Variable " << rThisVariable.Name() << " is not added to this variables list. Stopping" << std::endl;
     return Position(rThisVariable);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+VariablesListDataValueContainer::SizeType VariablesListDataValueContainer::Size() const
+{
+    if(!mpVariablesList)
+        return 0;
+
+    return mpVariablesList->DataSize();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+VariablesListDataValueContainer::SizeType VariablesListDataValueContainer::TotalSize() const
+{
+    if(!mpVariablesList)
+        return 0;
+
+    return mQueueSize * mpVariablesList->DataSize();
 }
 
 /***********************************************************************************/
