@@ -19,6 +19,7 @@
 #include "processes/parallel_distance_calculation_process.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "utilities/variable_utils.h"
 
 // Application includes
 #include "fluid_dynamics_biomedical_application_variables.h"
@@ -36,6 +37,44 @@ double ParabolicProfileUtilities::CalculateInletArea(const ModelPart& rModelPart
     }
     inlet_area = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(inlet_area);
     return inlet_area;
+}
+
+ModelPart& ParabolicProfileUtilities::CreateAndFillInletAuxiliaryVolumeModelPart(ModelPart& rInletModelPart)
+{
+    // Create an auxiliary model part to store the elements attached to the inlet face
+    // Note that we do this at the level of the parent in order to avoid adding elements to the current inlet model part
+    auto& r_inlet_aux_model_part = rInletModelPart.GetParentModelPart().CreateSubModelPart(rInletModelPart.Name()+"_auxiliary");
+
+    // Flag the first layer of elements attached to the inlet face
+    // For this we flag the inlet nodes and then check the elements sharing these nodes
+    std::set<std::size_t> nodes_ids;
+    std::vector<std::size_t> elem_ids;
+    VariableUtils().SetFlag(SELECTED, true, rInletModelPart.Nodes());
+    for (auto& r_element : rInletModelPart.GetRootModelPart().Elements()) {
+        bool is_selected = false;
+        const auto& r_geom = r_element.GetGeometry();
+        // Check if current element is attached to the inlet by checking if it owns an inlet node
+        for (const auto& r_node : r_geom) {
+            if (r_node.Is(SELECTED)) {
+                is_selected = true;
+                elem_ids.push_back(r_element.Id());
+                break;
+            }
+        }
+        // If current element is an inlet element, add also its nodes (required by the parallel distance)
+        if (is_selected) {
+            for (const auto& r_node : r_geom) {
+                nodes_ids.insert(r_node.Id());
+            }
+        }
+    }
+
+    // Add nodes and elements to the auxiliary model part
+    r_inlet_aux_model_part.AddNodes(std::vector<std::size_t>(nodes_ids.begin(), nodes_ids.end()));
+    r_inlet_aux_model_part.AddElements(elem_ids);
+
+    // Return the new model part
+    return r_inlet_aux_model_part;
 }
 
 void ParabolicProfileUtilities::CalculateWallParallelDistance(
@@ -110,9 +149,11 @@ void ParabolicProfileUtilities::CalculateWallParallelDistance(
 
     // Calculate parallel distance
     // Note that we check that the initial maximum levels are sufficient
+    std::size_t dist_it = 0;
+    const std::size_t max_dist_its = 10;
     double current_max_dist = char_length;
     std::size_t current_max_levels = WallDistanceLevels / 2;
-    while (std::abs(current_max_dist - char_length) < 1.0e-12) {
+    while (std::abs(current_max_dist - char_length) < 1.0e-12 && dist_it < max_dist_its) {
         // Calculate the parallel distance with the new number of levels
         current_max_levels *= 2;
         parallel_distance_settings["max_levels"].SetInt(current_max_levels);
@@ -129,6 +170,10 @@ void ParabolicProfileUtilities::CalculateWallParallelDistance(
             return rNode.GetValue(WALL_DISTANCE);
         });
         rFluidModelPart.GetCommunicator().GetDataCommunicator().MaxAll(current_max_dist);
+
+        // Update the parallel distance iterations counter
+        ++dist_it;
+        KRATOS_WARNING_IF("CalculateWallParallelDistance", dist_it == max_dist_its) << "Reached maximum wall distance calculation iterations. Check input geometry." << std::endl;
     }
 
     // Reset boundary values to zero
