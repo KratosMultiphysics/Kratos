@@ -151,8 +151,9 @@ public:
     ) {
         double volume = 0;
         GeometryArrayType edges = rVoxel.GenerateEdges();
+        std::vector<double> Distances;
+
         for (int i = 0; i < 12; i++) {
-            std::vector<double> Distances;
             Distances.push_back(0);
             PointsArrayType ends = edges[i].Points();
 
@@ -168,7 +169,8 @@ public:
             Distances.push_back(Distance(ends[0],ends[1]));
             std::sort(Distances.begin(),Distances.end());       //WOULD A SET BE MORE EFFICIENT?     
             double edgePortion = VolumeInsideVoxelUtility::EdgeFilledPortion(Distances, ends);
-            volume += edgePortion/12;                
+            volume += edgePortion/12;  
+            Distances.clear();              
         }
         return volume;
     }
