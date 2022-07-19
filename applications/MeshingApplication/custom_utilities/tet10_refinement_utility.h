@@ -80,10 +80,16 @@ public:
     ///@name Operations
     ///@{
         
-    void LocalRefineTet10Mesh(bool interpolate_internal_variables) {
+    /**
+    * Refine the mesh locally, call all the commands necessaries to compute the remeshing
+    * Resulting is a mesh of Tetrahedra3D10 created by adding intermediate nodes to each Tetrahedra3D4
+    * @param refine_on_reference: Boolean that defines if refine or not the mesh according to the reference
+    * @param interpolate_internal_variables: Boolean that defines if to interpolate or not the internal variables
+    */
+    void LocalRefineTet10Mesh(bool refine_on_reference, bool interpolate_internal_variables) {
             for (auto element : mModelPart.Elements()) element.SetValue(SPLIT_ELEMENT,true);
             for (auto condition : mModelPart.Conditions()) condition.SetValue(SPLIT_ELEMENT,true);
-            LocalRefineMesh(false, interpolate_internal_variables);
+            LocalRefineMesh(refine_on_reference, interpolate_internal_variables);
         } 
   
     

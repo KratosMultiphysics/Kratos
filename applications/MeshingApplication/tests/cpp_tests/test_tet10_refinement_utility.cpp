@@ -62,7 +62,7 @@ namespace Testing {
         cond1 = modelpart.CreateNewCondition("SurfaceCondition3D3N", 3, {1, 2, 3}, p_properties_1);
 
         Tet10RefinementUtility refineTetra(modelpart); 
-        refineTetra.LocalRefineTet10Mesh(true);
+        refineTetra.LocalRefineTet10Mesh(false,false);
 
         KRATOS_CHECK_EQUAL(modelpart.Nodes().size(),14); //There are 14 nodes (10 for each tetra but 6 are shared) 
         KRATOS_CHECK_EQUAL(modelpart.Elements().size(),2); //No new elements are added
