@@ -22,9 +22,11 @@
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
 #include "containers/model.h"
 #include "includes/element.h"
+#include "includes/condition.h"
 #include "includes/checks.h"
 #include "testing/testing.h"
 #include "geometries/tetrahedra_3d_10.h"
+#include "geometries/triangle_3d_6.h"
 
 namespace Kratos
 {
@@ -80,6 +82,7 @@ public:
         
     void LocalRefineTet10Mesh(bool interpolate_internal_variables) {
             for (auto element : mModelPart.Elements()) element.SetValue(SPLIT_ELEMENT,true);
+            for (auto condition : mModelPart.Conditions()) condition.SetValue(SPLIT_ELEMENT,true);
             LocalRefineMesh(false, interpolate_internal_variables);
         } 
   
@@ -304,6 +307,171 @@ private:
           }
       }
     }
+
+    /**
+    * Remove the old conditions and creates new ones
+    * @param Coord: The coordinates of the nodes of the geometry
+    * @return this_model_part: The model part of the model (it is the input too)
+    */
+
+    void EraseOldConditionsAndCreateNew(
+            ModelPart& this_model_part,
+            const compressed_matrix<int>& Coord
+            ) override
+    {
+        KRATOS_TRY;
+
+        PointerVector< Condition > NewConditions;
+
+        ConditionsArrayType& rConditions = this_model_part.Conditions();
+
+        if(rConditions.size() > 0)
+        {
+            ConditionsArrayType::iterator it_begin = rConditions.ptr_begin();
+            ConditionsArrayType::iterator it_end = rConditions.ptr_end();
+            unsigned int to_be_deleted = 0;
+            unsigned int large_id = (rConditions.end() - 1)->Id() * 7;
+            int  edge_ids[3];
+            int  t[12];
+            int  number_elem  = 0;
+            int  splitted_edges  = 0;
+            int  nint            = 0;
+            array_1d<int, 6> aux;
+
+            const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+
+            unsigned int current_id = (rConditions.end() - 1)->Id() + 1;
+            for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
+            {
+                Condition::GeometryType& geom = it->GetGeometry();
+
+                if (geom.size() == 3)
+                {
+                    CalculateEdgesFaces(geom, Coord, edge_ids, aux);
+
+                    // Create the new conditions
+                    bool create_condition =  Split_Triangle(edge_ids, t, &number_elem, &splitted_edges, &nint);
+
+                    if(create_condition==true)
+                    {
+                        GlobalPointersVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
+                        // We will use this flag to identify the condition later, when operating on
+                        // SubModelParts.
+                        it->SetValue(SPLIT_ELEMENT,true);
+                        rChildConditions.resize(0);
+                        to_be_deleted++;
+
+                        unsigned int i0   = aux[0];
+                        unsigned int i1   = aux[1];
+                        unsigned int i2   = aux[2];
+                        unsigned int i3   = aux[3];
+                        unsigned int i4   = aux[4];
+                        unsigned int i5   = aux[5];
+
+                        Triangle3D6<Node<3> > newgeom(
+                                this_model_part.Nodes()(i0),
+                                this_model_part.Nodes()(i1),
+                                this_model_part.Nodes()(i2),
+                                this_model_part.Nodes()(i3),
+                                this_model_part.Nodes()(i4),
+                                this_model_part.Nodes()(i5)
+                                );
+
+                        // Generate new condition by cloning the base one
+                        Condition::Pointer pcond;
+                        const Condition& rCond = KratosComponents<Condition>::Get("SurfaceCondition3D6N");
+		                pcond = rCond.Create(current_id, newgeom, it->pGetProperties());
+                        pcond ->Initialize(rCurrentProcessInfo);
+                        pcond ->InitializeSolutionStep(rCurrentProcessInfo);
+                        pcond ->FinalizeSolutionStep(rCurrentProcessInfo);
+
+                        // Transfer condition variables
+                        pcond->Data() = it->Data();
+                        pcond->GetValue(SPLIT_ELEMENT) = false;
+                        NewConditions.push_back(pcond);
+
+                        rChildConditions.push_back( Condition::WeakPointer( pcond ) );
+
+                        current_id++;
+                        it->SetId(large_id);
+                        large_id++;
+                    }
+                }
+            }
+
+            /* All of the conditions to be erased are at the end */
+            this_model_part.Conditions().Sort();
+
+            /* Now remove all of the "old" conditions*/
+            this_model_part.Conditions().erase(this_model_part.Conditions().end() - to_be_deleted, this_model_part.Conditions().end());
+
+            unsigned int total_size = this_model_part.Conditions().size()+ NewConditions.size();
+            this_model_part.Conditions().reserve(total_size);
+
+            /// Add the new Conditions to the ModelPart
+            for (auto iCond = NewConditions.ptr_begin();
+                    iCond != NewConditions.ptr_end(); iCond++)
+            {
+                this_model_part.Conditions().push_back( *iCond );
+            }
+
+            /* Renumber id */
+            unsigned int my_index = 1;
+            for(ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin(); it != this_model_part.ConditionsEnd(); it++)
+            {
+                it->SetId(my_index++);
+            }
+
+
+            // Now update the conditions in SubModelParts
+            if (NewConditions.size() > 0)
+            {
+                for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
+                        iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
+                {
+                    to_be_deleted = 0;
+                    NewConditions.clear();
+
+                    // Create list of new conditions in SubModelPart
+                    // Count how many conditions will be removed
+                    for (ModelPart::ConditionIterator iCond = iSubModelPart->ConditionsBegin();
+                            iCond != iSubModelPart->ConditionsEnd(); iCond++)
+                    {
+                        if( iCond->GetValue(SPLIT_ELEMENT) )
+                        {
+                            to_be_deleted++;
+                            GlobalPointersVector< Condition >& rChildConditions = iCond->GetValue(NEIGHBOUR_CONDITIONS);
+
+                            for ( auto iChild = rChildConditions.ptr_begin();
+                                    iChild != rChildConditions.ptr_end(); iChild++ )
+                            {
+                                NewConditions.push_back((*iChild)->shared_from_this());
+                            }
+                        }
+                    }
+
+                    // Add new conditions to SubModelPart
+                    iSubModelPart->Conditions().reserve( iSubModelPart->Conditions().size() + NewConditions.size() );
+                    for (PointerVector< Condition >::iterator it_new = NewConditions.begin();
+                            it_new != NewConditions.end(); it_new++)
+                    {
+                        iSubModelPart->Conditions().push_back(*(it_new.base()));
+                    }
+
+                    // Delete old conditions
+                    iSubModelPart->Conditions().Sort();
+                    iSubModelPart->Conditions().erase(iSubModelPart->Conditions().end() - to_be_deleted, iSubModelPart->Conditions().end());
+
+                    KRATOS_WATCH(iSubModelPart->Info());
+                    KRATOS_WATCH(to_be_deleted);
+                    KRATOS_WATCH(iSubModelPart->Conditions().size());
+                    KRATOS_WATCH(this_model_part.Conditions().size());
+                }
+            }
+        }
+        KRATOS_CATCH("");
+    }
+
 
     ///@}
     ///@name Private  Access

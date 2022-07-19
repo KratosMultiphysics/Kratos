@@ -13,6 +13,8 @@
 
 // Project includes
 #include "custom_utilities/tet10_refinement_utility.h"
+#include "geometries/triangle_3d_3.h"
+
 
 
 namespace Kratos {
@@ -57,6 +59,10 @@ namespace Testing {
         GeometryPtrType ptetra1 = tetra1->pGetGeometry();
         Element::Pointer tetra2 = modelpart.CreateNewElement("Element3D4N", 2, {2, 3, 4, 5}, p_properties_1);
         GeometryPtrType ptetra2 = tetra2->pGetGeometry();
+
+        Condition::Pointer cond1;
+        cond1 = modelpart.CreateNewCondition("SurfaceCondition3D3N", 3, {1, 2, 3}, p_properties_1);
+        //GeometryPtrType cond1 = pCond1->pGetGeometry();
         
         //tetra1->SetValue(SPLIT_ELEMENT,true);
         //tetra2->SetValue(SPLIT_ELEMENT,true);
@@ -66,6 +72,7 @@ namespace Testing {
 
         KRATOS_CHECK_EQUAL(modelpart.Nodes().size(),14); //There are 14 nodes (10 for each tetra but 6 are shared) 
         KRATOS_CHECK_EQUAL(modelpart.Elements().size(),2); //No new elements are added
+        KRATOS_CHECK_EQUAL(modelpart.Conditions().size(),1); //No new conditions are added
         
         for(auto elem : modelpart.Elements()) {
             KRATOS_CHECK_EQUAL(typeid(elem.GetGeometry()), typeid(Tetrahedra3D10<NodeType>));
@@ -78,6 +85,15 @@ namespace Testing {
             KRATOS_CHECK_EQUAL(Distance(points[3],points[0]), Distance(points[3],points[7]) + Distance(points[7],points[0]) );
             KRATOS_CHECK_EQUAL(Distance(points[0],points[2]), Distance(points[0],points[6]) + Distance(points[6],points[0]) );
             KRATOS_CHECK_EQUAL(Distance(points[1],points[3]), Distance(points[1],points[8]) + Distance(points[8],points[1]) );
+        }
+        for(auto cond : modelpart.Conditions()) {
+            KRATOS_CHECK_EQUAL(typeid(cond.GetGeometry()), typeid(Triangle3D6<NodeType>));
+            GeometryPtrType geom = cond.pGetGeometry();
+
+            auto points = geom->Points();
+            KRATOS_CHECK_EQUAL(Distance(points[0],points[1]), Distance(points[0],points[3]) + Distance(points[3],points[1]) );
+            KRATOS_CHECK_EQUAL(Distance(points[1],points[2]), Distance(points[1],points[4]) + Distance(points[4],points[2]) );
+            KRATOS_CHECK_EQUAL(Distance(points[2],points[0]), Distance(points[2],points[5]) + Distance(points[5],points[0]) );
         }
 
     }
