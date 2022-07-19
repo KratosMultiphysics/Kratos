@@ -740,8 +740,6 @@ namespace Kratos
                     {
                         pipingSuccess = true;
                         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Found:" << criticalHead << std::endl;
-
-                        criticalHead = currentProcess->GetReferenceCoord();
                         currentProcess->SetReferenceCoord(criticalHead);
                         mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
                     }
