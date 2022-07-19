@@ -77,13 +77,11 @@ public:
     ///@}
     ///@name Operations
     ///@{
-        /*
-    void LocalRefineMesh(
-        bool refine_on_reference,
-        bool interpolate_internal_variables) {
-            //for (auto element : mModelPart.Elements()) element->SetValue(SPLIT_ELEMENT,true);
-            //super.LocalRefineMesh();
-        } */
+        
+    void LocalRefineTet10Mesh(bool interpolate_internal_variables) {
+            for (auto element : mModelPart.Elements()) element.SetValue(SPLIT_ELEMENT,true);
+            LocalRefineMesh(false, interpolate_internal_variables);
+        } 
   
     
 protected:
@@ -131,6 +129,13 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+        /**
+    * It erases the old elements and it creates the new ones
+    * @param Coord: The compressed matrix containing at (i,j) the id of the node created between nodes i,j
+    * @param New_Elements: The new elements created
+    * @param interpolate_internal_variables: A boolean that defines if it is necessary to interpolate the internal variables
+    * @return this_model_part: The model part of the model (it is the input too)
+    */
 
     void EraseOldElementAndCreateNewElement(
             ModelPart& this_model_part,
@@ -188,18 +193,30 @@ private:
 		  unsigned int i1 = aux[t[1]];
 		  unsigned int i2 = aux[t[2]];
 		  unsigned int i3 = aux[t[3]];
+          unsigned int i4 = aux[t[4]];
+		  unsigned int i5 = aux[t[5]];
+		  unsigned int i6 = aux[t[6]];
+		  unsigned int i7 = aux[t[7]];
+          unsigned int i8 = aux[t[8]];
+		  unsigned int i9 = aux[t[9]];
           
 
-		  Tetrahedra3D4<Node < 3 > > geom(
+		  Tetrahedra3D10<Node < 3 > > geom(
 		      this_model_part.Nodes()(i0),
 		      this_model_part.Nodes()(i1),
 		      this_model_part.Nodes()(i2),
-		      this_model_part.Nodes()(i3)
+		      this_model_part.Nodes()(i3),
+              this_model_part.Nodes()(i4),
+		      this_model_part.Nodes()(i5),
+		      this_model_part.Nodes()(i6),
+		      this_model_part.Nodes()(i7),
+              this_model_part.Nodes()(i8),
+		      this_model_part.Nodes()(i9)
 		  );
 
 		  // Generate new element by cloning the base one
 		  Element::Pointer p_element;
-          const Element& rElem = KratosComponents<Element>::Get("Element3D4N");
+          const Element& rElem = KratosComponents<Element>::Get("Element3D10N");
 		  p_element = rElem.Create(current_id, geom, it->pGetProperties());
 		  p_element->Initialize(rCurrentProcessInfo);
 		  p_element->InitializeSolutionStep(rCurrentProcessInfo);

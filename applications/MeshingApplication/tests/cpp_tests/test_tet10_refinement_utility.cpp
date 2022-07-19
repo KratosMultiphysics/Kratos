@@ -41,18 +41,18 @@ namespace Testing {
         Element::Pointer tetra2 = modelpart.CreateNewElement("Element3D4N", 2, {2, 3, 4, 5}, p_properties_1);
         GeometryPtrType ptetra2 = tetra2->pGetGeometry();
         
-        tetra1->SetValue(SPLIT_ELEMENT,true);
-        tetra2->SetValue(SPLIT_ELEMENT,true);
+        //tetra1->SetValue(SPLIT_ELEMENT,true);
+        //tetra2->SetValue(SPLIT_ELEMENT,true);
 
         Tet10RefinementUtility refineTetra(modelpart); 
-        refineTetra.LocalRefineMesh(false,false);
+        refineTetra.LocalRefineTet10Mesh(true);
 
         KRATOS_CHECK_EQUAL(modelpart.Nodes().size(),14); //There are 14 nodes (10 for each tetra but 6 are shared) 
-        std::cout << "hola?" << std::endl;
         KRATOS_CHECK_EQUAL(modelpart.Elements().size(),2); //No new elements are added
         
         for(auto elem : modelpart.Elements()) {
             KRATOS_CHECK_EQUAL(typeid(elem.GetGeometry()), typeid(Tetrahedra3D10<NodeType>));
+            
         }
 
     }
