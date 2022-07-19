@@ -448,8 +448,7 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     const auto it_node_begin = r_reference_nodes_container.begin();
     IndexPartition<std::size_t>(number_nodes).for_each([&it_node_begin,&r_nodes_container](std::size_t i) {
         auto it_node = it_node_begin + i;
-        auto& p_old_node = *(it_node.base());
-        r_nodes_container[i] = p_old_node->Clone();
+        r_nodes_container[i] = (*it_node)->Clone();
     });
 
     // First, before copy, we create a database of pointers of the geometries
