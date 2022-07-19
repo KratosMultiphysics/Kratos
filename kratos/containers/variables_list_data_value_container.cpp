@@ -37,7 +37,7 @@ VariablesListDataValueContainer::VariablesListDataValueContainer(const SizeType 
     const SizeType size = mpVariablesList->DataSize();
     for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
         BlockType* position = Position(*it_variable);
-        for(SizeType i = 0 ; i < mQueueSize ; i++) {
+        for(IndexType i = 0 ; i < mQueueSize ; i++) {
             it_variable->AssignZero(position + i * size);
         }
     }
@@ -62,7 +62,7 @@ VariablesListDataValueContainer::VariablesListDataValueContainer(VariablesListDa
     const SizeType size = mpVariablesList->DataSize();
     for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
         const SizeType offset = LocalOffset(*it_variable);
-        for(SizeType i = 0 ; i < mQueueSize ; i++) {
+        for(IndexType i = 0 ; i < mQueueSize ; i++) {
             const SizeType total_offset =  offset + i * size;
             it_variable->Copy(rOther.mpData + total_offset, mpData + total_offset);
         }
@@ -90,7 +90,7 @@ VariablesListDataValueContainer::VariablesListDataValueContainer(
     const SizeType size = mpVariablesList->DataSize();
     for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
         BlockType*  position = Position(*it_variable);
-        for(SizeType i = 0 ; i < mQueueSize ; i++) {
+        for(IndexType i = 0 ; i < mQueueSize ; i++) {
             it_variable->AssignZero(position + i * size);
         }
     }
@@ -118,7 +118,7 @@ VariablesListDataValueContainer::VariablesListDataValueContainer(
     const SizeType size = mpVariablesList->DataSize();
     for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
         const SizeType offset = LocalOffset(*it_variable);
-        for(SizeType i = 0 ; i < mQueueSize ; i++) {
+        for(IndexType i = 0 ; i < mQueueSize ; i++) {
             const SizeType total_offset =  offset + i * size;
             it_variable->Copy(ThisData + total_offset, mpData + total_offset);
         }
@@ -146,7 +146,7 @@ VariablesListDataValueContainer& VariablesListDataValueContainer::operator=(cons
         const SizeType size = mpVariablesList->DataSize();
         for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
             const SizeType offset = LocalOffset(*it_variable);
-            for(SizeType i = 0 ; i < mQueueSize ; i++) {
+            for(IndexType i = 0 ; i < mQueueSize ; i++) {
                 const SizeType total_offset =  offset + i * size;
                 it_variable->Assign(rOther.mpData + total_offset, mpData + total_offset);
             }
@@ -164,7 +164,7 @@ VariablesListDataValueContainer& VariablesListDataValueContainer::operator=(cons
         const SizeType size = mpVariablesList->DataSize();
         for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
             const SizeType offset = LocalOffset(*it_variable);
-            for(SizeType i = 0 ; i < mQueueSize ; i++) {
+            for(IndexType i = 0 ; i < mQueueSize ; i++) {
                 const SizeType total_offset =  offset + i * size;
                 it_variable->Copy(rOther.mpData + total_offset, mpData + total_offset);
             }
@@ -267,7 +267,7 @@ void VariablesListDataValueContainer::SetVariablesList(VariablesList::Pointer pV
     const SizeType size = mpVariablesList->DataSize();
     for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
         BlockType*  position = Position(*it_variable);
-        for(SizeType i = 0 ; i < mQueueSize ; i++) {
+        for(IndexType i = 0 ; i < mQueueSize ; i++) {
             it_variable->AssignZero(position + i * size);
         }
     }
@@ -294,7 +294,7 @@ void VariablesListDataValueContainer::SetVariablesList(VariablesList::Pointer pV
     const SizeType size = mpVariablesList->DataSize();
     for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
         BlockType*  position = Position(*it_variable);
-        for(SizeType i = 0 ; i < mQueueSize ; i++) {
+        for(IndexType i = 0 ; i < mQueueSize ; i++) {
             it_variable->AssignZero(position + i * size);
         }
     }
@@ -313,7 +313,7 @@ void VariablesListDataValueContainer::Resize(const SizeType NewSize)
 
     if(mQueueSize > NewSize) { // if new size is smaller
         // Destructing elements out of the new size
-        for(SizeType i = NewSize ; i < mQueueSize ; i++)
+        for(IndexType i = NewSize ; i < mQueueSize ; i++)
             DestructElements(i);
 
         const SizeType size = mpVariablesList->DataSize();
@@ -322,7 +322,7 @@ void VariablesListDataValueContainer::Resize(const SizeType NewSize)
         BlockType* temp = (BlockType*)malloc(size * sizeof(BlockType) * NewSize);
 
         //Copying data to allocated memory
-        for(SizeType i = 0 ; i < NewSize ; i++)
+        for(IndexType i = 0 ; i < NewSize ; i++)
             memcpy(temp + i * size, Position(i), size * sizeof(BlockType));
 
         // Updating the queue size
@@ -365,7 +365,7 @@ void VariablesListDataValueContainer::Resize(const SizeType NewSize)
         // Assigning zero to the added elements
         for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
             BlockType*  position = mpCurrentPosition + LocalOffset(*it_variable);
-            for(SizeType i = 0 ; i < difference ; i++) {
+            for(IndexType i = 0 ; i < difference ; i++) {
                 it_variable->AssignZero(position + i * size);
             }
         }
@@ -523,7 +523,7 @@ void VariablesListDataValueContainer::PrintData(std::ostream& rOStream) const
 
     for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
         rOStream <<"    ";
-        for(SizeType i = 0 ; i < mQueueSize ; i++) {
+        for(IndexType i = 0 ; i < mQueueSize ; i++) {
             rOStream << i << ": ";
             it_variable->Print(Position(*it_variable, i), rOStream);
             rOStream << "  ";
@@ -581,7 +581,7 @@ void VariablesListDataValueContainer::DestructAllElements()
     const SizeType size = mpVariablesList->DataSize();
     for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
         BlockType*  position = mpData + LocalOffset(*it_variable);
-        for(SizeType i = 0 ; i < mQueueSize ; i++) {
+        for(IndexType i = 0 ; i < mQueueSize ; i++) {
             it_variable->Destruct(position + i * size);
         }
     }
@@ -634,7 +634,7 @@ void VariablesListDataValueContainer::save(Serializer& rSerializer) const
     const SizeType size = mpVariablesList->DataSize();
     for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
         BlockType*  position = mpData + LocalOffset(*it_variable);
-        for(SizeType i = 0 ; i < mQueueSize ; i++) {
+        for(IndexType i = 0 ; i < mQueueSize ; i++) {
             //rSerializer.save("VariableName", it_variable->Name());
             it_variable->Save(rSerializer, position + i * size);
         }
@@ -658,13 +658,13 @@ void VariablesListDataValueContainer::load(Serializer& rSerializer)
         mpCurrentPosition = mpData + queue_index * mpVariablesList->DataSize();
 
     std::string name;
-    for(SizeType i = 0 ; i < mQueueSize ; i++)
+    for(IndexType i = 0 ; i < mQueueSize ; i++)
         AssignZero(i);
 
     const SizeType size = mpVariablesList->DataSize();
     for(auto it_variable = mpVariablesList->begin() ;it_variable != mpVariablesList->end() ; it_variable++) {
         BlockType*  position = mpData + LocalOffset(*it_variable);
-        for(SizeType i = 0 ; i < mQueueSize ; i++) {
+        for(IndexType i = 0 ; i < mQueueSize ; i++) {
             //rSerializer.load("VariableName", name);
             it_variable->Load(rSerializer, position + i * size);
         }
