@@ -12,16 +12,11 @@
 //
 
 // System includes
-#include <string>
-#include <iostream>
-#include <cstddef>
-#include <cstring>
 
 // External includes
 
 // Project includes
 #include "containers/variables_list_data_value_container.h"
-#include "includes/global_variables.h"
 
 namespace Kratos
 {
@@ -524,7 +519,7 @@ bool VariablesListDataValueContainer::IsEmpty()
 void VariablesListDataValueContainer::PrintData(std::ostream& rOStream) const
 {
     if(!mpVariablesList)
-        rOStream << "No varaibles list is assigned yet." << std::endl;
+        rOStream << "No variables list is assigned yet." << std::endl;
 
     for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
         rOStream <<"    ";
