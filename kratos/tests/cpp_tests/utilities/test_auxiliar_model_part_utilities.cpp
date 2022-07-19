@@ -244,7 +244,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_CopySubModelPartStructure, 
     KRATOS_CHECK_EQUAL(r_sub.HasSubModelPart("SubSubModel"), r_sub_copy.HasSubModelPart("SubSubModel"));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCoreFastSuite2)
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& r_origin_model_part = current_model.CreateModelPart("Main");
