@@ -444,7 +444,20 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     const auto it_node_begin = r_reference_nodes_container.begin();
     IndexPartition<std::size_t>(number_nodes).for_each([&it_node_begin,&r_nodes_container](std::size_t i) {
         auto it_node = it_node_begin + i;
-        r_nodes_container[i] = (*it_node)->Clone();
+        auto& p_old_node = *(it_node.base());
+        auto p_new_node = Kratos::make_intrusive<Node<3> >( p_old_node->Id(), p_old_node->X(), p_old_node->Y(), p_old_node->Z());
+        
+        // Giving previous node's variables list to the node
+        p_new_node->SetSolutionStepVariablesList(p_old_node->pGetVariablesList());
+
+        // Set buffer size
+        p_new_node->SetBufferSize(p_old_node->GetBufferSize());
+        
+        // Copy the rest of the data
+        (*p_new_node) = (*p_old_node);
+
+        // Save to the list
+        r_nodes_container[i] = p_new_node;
     });
 
     // First, before copy, we create a database of pointers of the geometries
