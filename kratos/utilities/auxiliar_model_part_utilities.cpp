@@ -433,7 +433,8 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     const auto it_prop_begin = r_reference_properties_container.begin();
     IndexPartition<std::size_t>(number_properties).for_each([&it_prop_begin,&r_properties_container](std::size_t i) {
         auto it_prop = it_prop_begin + i;
-        r_properties_container[i] = Kratos::make_shared<Properties>(*(*(it_prop.base())));
+        const auto& r_old_properties = *(*(it_prop.base()));
+        r_properties_container[i] = Kratos::make_shared<Properties>(r_old_properties);
     });
 
     // Copy nodes
