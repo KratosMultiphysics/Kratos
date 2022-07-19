@@ -316,7 +316,7 @@ void VariablesListDataValueContainer::Resize(const SizeType NewSize)
     if(!mpVariablesList)
         return;
 
-        if(mQueueSize > NewSize) { // if new size is smaller
+    if(mQueueSize > NewSize) { // if new size is smaller
         // Destructing elements out of the new size
         for(SizeType i = NewSize ; i < mQueueSize ; i++)
             DestructElements(i);
