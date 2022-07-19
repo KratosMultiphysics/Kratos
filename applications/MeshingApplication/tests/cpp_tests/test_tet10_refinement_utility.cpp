@@ -69,8 +69,8 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(modelpart.Conditions().size(),1); //No new conditions are added
         
         for(auto elem : modelpart.Elements()) {
-            KRATOS_CHECK_EQUAL(typeid(elem.GetGeometry()), typeid(Tetrahedra3D10<NodeType>));
             GeometryPtrType geom = elem.pGetGeometry();
+            KRATOS_CHECK_EQUAL(typeid(*geom), typeid(Tetrahedra3D10<NodeType>));
 
             auto points = geom->Points();
             KRATOS_CHECK_EQUAL(Distance(points[0],points[1]), Distance(points[0],points[4]) + Distance(points[4],points[1]) );
@@ -81,8 +81,8 @@ namespace Testing {
             KRATOS_CHECK_EQUAL(Distance(points[1],points[3]), Distance(points[1],points[8]) + Distance(points[8],points[1]) );
         }
         for(auto cond : modelpart.Conditions()) {
-            KRATOS_CHECK_EQUAL(typeid(cond.GetGeometry()), typeid(Triangle3D6<NodeType>));
             GeometryPtrType geom = cond.pGetGeometry();
+            KRATOS_CHECK_EQUAL(typeid(*geom), typeid(Triangle3D6<NodeType>));
 
             auto points = geom->Points();
             KRATOS_CHECK_EQUAL(Distance(points[0],points[1]), Distance(points[0],points[3]) + Distance(points[3],points[1]) );
