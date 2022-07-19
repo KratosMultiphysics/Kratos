@@ -84,8 +84,10 @@ void ParabolicProfileUtilities::CalculateWallParallelDistance(
 {
     // Initialize the distance field to the geometry bounding box characteristic length
     // Also initialize the BOUNDARY flag that will be used to mark the wall
-    const double char_length = CalculateBoundingBoxCharacteristicLength(rFluidModelPart);
-    block_for_each(rFluidModelPart.Nodes(), [char_length](NodeType& rNode){
+    // Note that we do this with the parent model part in case only the slice of elements attached to the inlet is passed
+    const auto& r_parent_model_part = rFluidModelPart.GetParentModelPart();
+    const double char_length = CalculateBoundingBoxCharacteristicLength(r_parent_model_part);
+    block_for_each(r_parent_model_part.Nodes(), [char_length](NodeType& rNode){
         rNode.Set(BOUNDARY, false);
         rNode.SetValue(WALL_DISTANCE, char_length);
     });
