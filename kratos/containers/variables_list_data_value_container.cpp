@@ -33,10 +33,10 @@ VariablesListDataValueContainer::VariablesListDataValueContainer(const SizeType 
     if(!mpVariablesList)
         return;
 
-    // Allcating memory
+    // Allocating memory
     Allocate();
 
-    // Setting the current position at the begining of data
+    // Setting the current position at the beginning of data
     mpCurrentPosition = mpData;
 
     const SizeType size = mpVariablesList->DataSize();
@@ -89,7 +89,7 @@ VariablesListDataValueContainer::VariablesListDataValueContainer(
     // Allcating memory
     Allocate();
 
-    // Setting the current position at the begining of data
+    // Setting the current position at the beginning of data
     mpCurrentPosition = mpData;
 
     const SizeType size = mpVariablesList->DataSize();
@@ -117,7 +117,7 @@ VariablesListDataValueContainer::VariablesListDataValueContainer(
     // Allcating memory
     Allocate();
 
-    // Setting the current position at the begining of data
+    // Setting the current position at the beginning of data
     mpCurrentPosition = mpData;
 
     const SizeType size = mpVariablesList->DataSize();
@@ -657,7 +657,7 @@ void VariablesListDataValueContainer::load(Serializer& rSerializer)
     rSerializer.load("QueueIndex", queue_index);
     Allocate();
 
-    // Setting the current position at the begining of data
+    // Setting the current position at the beginning of data
     if(queue_index > mQueueSize)
         KRATOS_THROW_ERROR(std::invalid_argument, "Invalid Queue index loaded : ", queue_index)
         mpCurrentPosition = mpData + queue_index * mpVariablesList->DataSize();
