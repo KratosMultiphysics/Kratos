@@ -237,8 +237,6 @@ public:
 
     SizeType Size() const;
 
-    SizeType QueueSize() const;
-
     SizeType TotalSize() const;
 
     template<class TDataType> 
@@ -255,9 +253,23 @@ public:
 
     void Clear();
 
+    void Resize(const SizeType NewSize);
+
+    void AssignData(BlockType* Source, SizeType QueueIndex);
+
+    void CloneFront();
+
+    void PushFront();
+
+    void AssignZero();
+
+    void AssignZero(const SizeType QueueIndex);
+
     ///@}
     ///@name Access
     ///@{
+
+    SizeType QueueSize() const;
 
     VariablesList::Pointer pGetVariablesList();
 
@@ -271,8 +283,6 @@ public:
 
     void SetVariablesList(VariablesList::Pointer pVariablesList, const SizeType ThisQueueSize);
 
-    void Resize(const SizeType NewSize);
-
     BlockType* Data();
 
     const BlockType* Data() const;
@@ -281,23 +291,13 @@ public:
 
     BlockType* Data(VariableData const & rThisVariable);
 
-    SizeType DataSize();
-
-    SizeType TotalDataSize();
-
-    void AssignData(BlockType* Source, SizeType QueueIndex);
-
-    void CloneFront();
-
-    void PushFront();
-
-    void AssignZero();
-
-    void AssignZero(const SizeType QueueIndex);
-
     ///@}
     ///@name Inquiry
     ///@{
+
+    SizeType DataSize();
+
+    SizeType TotalDataSize();
 
     template<class TDataType> 
     bool Has(const Variable<TDataType>& rThisVariable) const
@@ -371,13 +371,13 @@ private:
     ///@name Member Variables
     ///@{
 
-    SizeType mQueueSize;
+    SizeType mQueueSize;                    /// The size of the queue
 
-    BlockType* mpCurrentPosition;
+    BlockType* mpCurrentPosition;           /// The current position in the queue
 
-    ContainerType mpData;
+    ContainerType mpData;                   /// The data container
 
-    VariablesList::Pointer mpVariablesList;
+    VariablesList::Pointer mpVariablesList; /// The variables list
 
     ///@}
     ///@name Private Operators

@@ -188,14 +188,6 @@ VariablesListDataValueContainer::SizeType VariablesListDataValueContainer::Size(
 /***********************************************************************************/
 /***********************************************************************************/
 
-VariablesListDataValueContainer::SizeType VariablesListDataValueContainer::QueueSize() const
-{
-    return mQueueSize;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 VariablesListDataValueContainer::SizeType VariablesListDataValueContainer::TotalSize() const
 {
     if(!mpVariablesList)
@@ -214,6 +206,161 @@ void VariablesListDataValueContainer::Clear()
         free(mpData);
 
     mpData = 0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariablesListDataValueContainer::Resize(const SizeType NewSize)
+{
+    if(mQueueSize == NewSize) // if new size is equal to the provious one
+        return; // Do nothing!!
+
+    if(!mpVariablesList)
+        return;
+
+    if(mQueueSize > NewSize) { // if new size is smaller
+        // Destructing elements out of the new size
+        for(IndexType i = NewSize ; i < mQueueSize ; i++)
+            DestructElements(i);
+
+        const SizeType size = mpVariablesList->DataSize();
+
+        //allocating memory
+        BlockType* temp = (BlockType*)malloc(size * sizeof(BlockType) * NewSize);
+
+        //Copying data to allocated memory
+        for(IndexType i = 0 ; i < NewSize ; i++)
+            memcpy(temp + i * size, Position(i), size * sizeof(BlockType));
+
+        // Updating the queue size
+        mQueueSize = NewSize;
+
+        // freeing the old memory
+        free(mpData);
+
+        // Setting data pointer to the allocated memory
+        mpData = temp;
+
+        // updating the current position
+        mpCurrentPosition = mpData;
+
+    } else {
+        // Calculating the difference of new and old sizes
+        const SizeType difference = NewSize - mQueueSize;
+
+        //keeping the old queue size
+        const SizeType old_size = mQueueSize;
+
+        // Getting the relative offset of current position
+        const SizeType current_offset = mpCurrentPosition - mpData;
+
+        //Updating the queue size
+        mQueueSize = NewSize;
+
+        // Reallocating for new size
+        Reallocate();
+
+        SizeType size = mpVariablesList->DataSize();
+
+        // Updating the mpCurrentPosition
+        mpCurrentPosition = mpData + current_offset;
+
+        // moving the region after current position to the end
+        const SizeType region_size = old_size * size - current_offset;
+        memmove(mpCurrentPosition + difference * size, mpCurrentPosition, region_size * sizeof(BlockType));
+
+        // Assigning zero to the added elements
+        for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
+            BlockType*  position = mpCurrentPosition + LocalOffset(*it_variable);
+            for(IndexType i = 0 ; i < difference ; i++) {
+                it_variable->AssignZero(position + i * size);
+            }
+        }
+
+        //moving the current position to the moved place
+        mpCurrentPosition +=  difference * size;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariablesListDataValueContainer::AssignData(BlockType* Source, SizeType QueueIndex)
+{
+    AssignData(Source, Position(QueueIndex));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariablesListDataValueContainer::CloneFront()
+{
+    if(mQueueSize == 0) {
+        Resize(1);
+        return;
+    }
+
+    if(mQueueSize == 1)
+        return;
+
+    KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
+
+    const SizeType size = mpVariablesList->DataSize();
+    BlockType* position = (mpCurrentPosition == mpData) ? mpData + TotalSize() - size :  mpCurrentPosition - size;
+    AssignData(mpCurrentPosition, position);
+    mpCurrentPosition = position;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariablesListDataValueContainer::PushFront()
+{
+    if(mQueueSize == 0) {
+        Resize(1);
+        return;
+    }
+
+    if(mQueueSize == 1)
+        return;
+
+    KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
+
+    const SizeType size = mpVariablesList->DataSize();
+    mpCurrentPosition = (mpCurrentPosition == mpData) ? mpData + TotalSize() - size :  mpCurrentPosition - size;
+    AssignZero();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariablesListDataValueContainer::AssignZero()
+{
+    KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
+    for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
+        it_variable->AssignZero(mpCurrentPosition + LocalOffset(*it_variable)); 
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariablesListDataValueContainer::AssignZero(const SizeType QueueIndex)
+{
+    KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
+    BlockType* position = Position(QueueIndex);
+    for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
+        it_variable->AssignZero(position + LocalOffset(*it_variable));
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+VariablesListDataValueContainer::SizeType VariablesListDataValueContainer::QueueSize() const
+{
+    return mQueueSize;
 }
 
 /***********************************************************************************/
@@ -303,81 +450,6 @@ void VariablesListDataValueContainer::SetVariablesList(VariablesList::Pointer pV
 /***********************************************************************************/
 /***********************************************************************************/
 
-void VariablesListDataValueContainer::Resize(const SizeType NewSize)
-{
-    if(mQueueSize == NewSize) // if new size is equal to the provious one
-        return; // Do nothing!!
-
-    if(!mpVariablesList)
-        return;
-
-    if(mQueueSize > NewSize) { // if new size is smaller
-        // Destructing elements out of the new size
-        for(IndexType i = NewSize ; i < mQueueSize ; i++)
-            DestructElements(i);
-
-        const SizeType size = mpVariablesList->DataSize();
-
-        //allocating memory
-        BlockType* temp = (BlockType*)malloc(size * sizeof(BlockType) * NewSize);
-
-        //Copying data to allocated memory
-        for(IndexType i = 0 ; i < NewSize ; i++)
-            memcpy(temp + i * size, Position(i), size * sizeof(BlockType));
-
-        // Updating the queue size
-        mQueueSize = NewSize;
-
-        // freeing the old memory
-        free(mpData);
-
-        // Setting data pointer to the allocated memory
-        mpData = temp;
-
-        // updating the current position
-        mpCurrentPosition = mpData;
-
-    } else {
-        // Calculating the difference of new and old sizes
-        const SizeType difference = NewSize - mQueueSize;
-
-        //keeping the old queue size
-        const SizeType old_size = mQueueSize;
-
-        // Getting the relative offset of current position
-        const SizeType current_offset = mpCurrentPosition - mpData;
-
-        //Updating the queue size
-        mQueueSize = NewSize;
-
-        // Reallocating for new size
-        Reallocate();
-
-        SizeType size = mpVariablesList->DataSize();
-
-        // Updating the mpCurrentPosition
-        mpCurrentPosition = mpData + current_offset;
-
-        // moving the region after current position to the end
-        const SizeType region_size = old_size * size - current_offset;
-        memmove(mpCurrentPosition + difference * size, mpCurrentPosition, region_size * sizeof(BlockType));
-
-        // Assigning zero to the added elements
-        for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
-            BlockType*  position = mpCurrentPosition + LocalOffset(*it_variable);
-            for(IndexType i = 0 ; i < difference ; i++) {
-                it_variable->AssignZero(position + i * size);
-            }
-        }
-
-        //moving the current position to the moved place
-        mpCurrentPosition +=  difference * size;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 VariablesListDataValueContainer::BlockType* VariablesListDataValueContainer::Data()
 {
     return mpData;
@@ -428,78 +500,6 @@ VariablesListDataValueContainer::SizeType VariablesListDataValueContainer::Total
         return 0;
 
     return mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariablesListDataValueContainer::AssignData(BlockType* Source, SizeType QueueIndex)
-{
-    AssignData(Source, Position(QueueIndex));
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariablesListDataValueContainer::CloneFront()
-{
-    if(mQueueSize == 0) {
-        Resize(1);
-        return;
-    }
-
-    if(mQueueSize == 1)
-        return;
-
-    KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-
-    const SizeType size = mpVariablesList->DataSize();
-    BlockType* position = (mpCurrentPosition == mpData) ? mpData + TotalSize() - size :  mpCurrentPosition - size;
-    AssignData(mpCurrentPosition, position);
-    mpCurrentPosition = position;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariablesListDataValueContainer::PushFront()
-{
-    if(mQueueSize == 0) {
-        Resize(1);
-        return;
-    }
-
-    if(mQueueSize == 1)
-        return;
-
-    KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-
-    const SizeType size = mpVariablesList->DataSize();
-    mpCurrentPosition = (mpCurrentPosition == mpData) ? mpData + TotalSize() - size :  mpCurrentPosition - size;
-    AssignZero();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariablesListDataValueContainer::AssignZero()
-{
-    KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-    for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
-        it_variable->AssignZero(mpCurrentPosition + LocalOffset(*it_variable)); 
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariablesListDataValueContainer::AssignZero(const SizeType QueueIndex)
-{
-    KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-    BlockType* position = Position(QueueIndex);
-    for(auto it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
-        it_variable->AssignZero(position + LocalOffset(*it_variable));
-    }
 }
 
 /***********************************************************************************/
