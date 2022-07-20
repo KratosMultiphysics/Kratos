@@ -674,7 +674,6 @@ namespace Kratos
         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Process Data" << std::endl;
 
         bool hasPiping = stepCriticalHead != 0;
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Search: " << hasPiping << std::endl;
 
         if (!hasPiping)
         {
@@ -682,9 +681,10 @@ namespace Kratos
         }
         else
         {
-            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Min Head: " << minCriticalHead << std::endl;
-            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Max Head: " << maxCriticalHead << std::endl;
-            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Step Head: " << stepCriticalHead << std::endl;
+            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head search started." << std::endl;
+            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head min head: " << minCriticalHead << std::endl;
+            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head max head: " << maxCriticalHead << std::endl;
+            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head step size: " << stepCriticalHead << std::endl;
 
             shared_ptr<Process> RiverBoundary;
             if (criticalHeadBoundaryModelPartName.empty())
@@ -707,7 +707,6 @@ namespace Kratos
             bool pipingSuccess = false;
 
             auto currentProcess = std::static_pointer_cast<GeoFlowApplyConstantHydrostaticPressureProcess>(RiverBoundary);
-
             std::cout << "River boundary name: " << currentProcess->GetName() << std::endl;
 
             currentProcess->SetReferenceCoord(minCriticalHead);
@@ -720,7 +719,7 @@ namespace Kratos
 
             while (true)
             {
-                KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Searching: Current: " << currentHead << " Critical: " << criticalHead << std::endl;
+                KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Searching at head: " << currentHead << std::endl;
                 int error = mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
 
                 count = 0;
@@ -734,28 +733,28 @@ namespace Kratos
                 {
                     if (abs(currentHead - minCriticalHead) < 1e-9)
                     {
-                        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Undetermined: All pipe elements open at initial search value :" << minCriticalHead << std::endl;
+                        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head undetermined: All pipe elements open at initial search value :" << minCriticalHead << std::endl;
                     }
                     else
                     {
                         pipingSuccess = true;
-                        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Found:" << criticalHead << std::endl;
-                        currentProcess->SetReferenceCoord(criticalHead);
-                        mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
+                        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head found: " << criticalHead << std::endl;
                     }
                     break;
                 }
 
                 else if (abs(currentHead - maxCriticalHead) < 1e-9)
                 {
-                    KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical Head Undetermined: Max search head reached: " << maxCriticalHead << std::endl;
+                    KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head undetermined: Max search head reached: " << maxCriticalHead << std::endl;
                     break;
                 }
+
+                outputGiD(current_model, model_part, projectfile, workingDirectory);
 
                 // Update boundary conditions for next search head.
                 if (RiverBoundary->Info() == "ApplyConstantScalarValueProcess")
                 {
-                    throw std::logic_error("Not Implemented");
+                    throw std::logic_error("ApplyConstantScalarValueProcess process search is not Implemented");
                 }
 
                 if (RiverBoundary->Info() == "ApplyConstantHydrostaticPressureProcess")
@@ -787,8 +786,6 @@ namespace Kratos
             // Close the file
             CriticalHeadFile.close();
         }
-
-        outputGiD(current_model, model_part, projectfile, workingDirectory);
 
         return 0;
     };
