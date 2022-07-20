@@ -285,7 +285,7 @@ class GenericConstitutiveLawIntegratorDamage
             KRATOS_ERROR_IF(irreversibility_damage_check > E)<< "The defined S-E curve induces negative damage at region " << i << std::endl;
         }
         volumentric_fracture_energy_first_region -= 0.5 * stress_damage_curve[curve_points] * strain_damage_curve[curve_points];
-        KRATOS_ERROR_IF(volumentric_fracture_energy_first_region >= volumetric_fracture_energy) << "The Fracture Energy is too low: " << fracture_energy << std::endl;
+        KRATOS_ERROR_IF(volumentric_fracture_energy_first_region >= volumetric_fracture_energy - 0.5 * stress_damage_curve[curve_points] * strain_damage_curve[curve_points]) << "The Fracture Energy is too low: " << fracture_energy << std::endl;
 
         const double predictive_stress_end_first_region = strain_damage_curve[curve_points] * E;
         if (UniaxialStress < predictive_stress_end_first_region){ //First region: point-by-point definition with linear interpolation
