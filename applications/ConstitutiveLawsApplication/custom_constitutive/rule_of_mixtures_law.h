@@ -644,12 +644,13 @@ private:
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The vector containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
     std::vector<double> mCombinationFactors;                 /// The vector containing the combination factors of the different layers of the material
-    Vector mGc;
-    Vector minitial_threshold;
-    Vector mthreshold;
+    // Vector mGc;
+    // Vector minitial_threshold;
+    // Vector mthreshold;
     Vector mdelamination_damage;
-    Vector mAParameter;
-    Vector mDamageIndicator;
+    // Vector mAParameter;
+    // Vector mDamageIndicator;
+    Vector mstatus_coeff;
     // double mT_eq = 0;                                        // Equivalent Stress
     // double mDamageIndicator = 1;                             // Onset of Damage
     // double mGc = 0;                                          // Mix Mode Energy Release Rate
