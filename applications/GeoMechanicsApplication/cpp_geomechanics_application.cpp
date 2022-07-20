@@ -493,7 +493,7 @@ namespace Kratos
         WriteConditionsFlag condition_output = ConditionFlag[outputParameters["postprocess_parameters"]["result_file_configuration"]["gidpost_flags"]["WriteConditionsFlag"].GetString()];
 
         filename = workingDirectory + "/" + filename;
-        cout << "Output Filename: " << filename << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Output Filename: " << filename << std::endl;
         GidIO<> gid_io(filename, gid_output_type, multifiles_output, deformed_output, condition_output);
 
         gid_io.InitializeMesh(0.0);
@@ -659,7 +659,7 @@ namespace Kratos
 
         parseMaterial(current_model, materialpath);
 
-        std::cout << "Parsed Material" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Material" << std::endl;
 
         // Dofs for Water Pressure
         VariableUtils().AddDofWithReaction(WATER_PRESSURE, REACTION_WATER_PRESSURE, model_part);
@@ -708,7 +708,7 @@ namespace Kratos
             bool pipingSuccess = false;
 
             auto currentProcess = std::static_pointer_cast<GeoFlowApplyConstantHydrostaticPressureProcess>(RiverBoundary);
-            std::cout << "River boundary name: " << currentProcess->GetName() << std::endl;
+            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "River boundary name: " << currentProcess->GetName() << std::endl;
 
             currentProcess->SetReferenceCoord(minCriticalHead);
             currentHead = minCriticalHead;
@@ -900,9 +900,8 @@ namespace Kratos
 
     int KratosExecute::geosettlement(string workingDirectory, string projectName)
     {
-
-        cout << "Working Directory: " << workingDirectory << std::endl;
-        cout << "Project Name: " << projectName << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Working Directory: " << workingDirectory << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Project Name: " << projectName << std::endl;
 
         string projectpath = workingDirectory + "/" + projectName;
         auto projectfile = openProjectParamsFile(projectpath);
@@ -929,12 +928,12 @@ namespace Kratos
         const auto rank = model_part.GetCommunicator().MyPID();
         model_part.SetBufferSize(2);
 
-        std::cout << "Initial Setup Done" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Initial Setup Done" << std::endl;
 
         const auto p_solving_strategy = setup_strategy_dgeoflow(model_part);
         p_solving_strategy->SetEchoLevel(0);
 
-        std::cout << "Setup Solving Strategy" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Setup Solving Strategy" << std::endl;
 
         model_part.AddNodalSolutionStepVariable(VELOCITY);
         model_part.AddNodalSolutionStepVariable(ACCELERATION);
@@ -965,15 +964,15 @@ namespace Kratos
         model_part.AddNodalSolutionStepVariable(NODAL_JOINT_WIDTH);
         model_part.AddNodalSolutionStepVariable(NODAL_JOINT_DAMAGE);
 
-        std::cout << "Nodal Solution Variables Added" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Nodal Solution Variables Added" << std::endl;
 
         parseMesh(model_part, meshpath);
 
-        std::cout << "Parsed Mesh" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Mesh" << std::endl;
 
         parseMaterial(current_model, materialpath);
 
-        std::cout << "Parsed Material" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Material" << std::endl;
 
         // Dofs for Water Pressure
         VariableUtils().AddDofWithReaction(WATER_PRESSURE, REACTION_WATER_PRESSURE, model_part);
@@ -981,11 +980,11 @@ namespace Kratos
         VariableUtils().AddDof(VOLUME_ACCELERATION_Y, model_part);
         VariableUtils().AddDof(VOLUME_ACCELERATION_Z, model_part);
 
-        std::cout << "Added DoF" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Added DoF" << std::endl;
 
         std::vector<std::shared_ptr<Process>> processes = parseProcess(model_part, projectfile);
 
-        std::cout << "Parsed Process Data" << std::endl;
+        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Process Data" << std::endl;
 
         // FOR SETTLEMENT READ FROM PARAMETER DATA
         double time = 0.0;
