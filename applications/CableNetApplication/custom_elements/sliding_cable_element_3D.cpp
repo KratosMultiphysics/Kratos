@@ -318,6 +318,7 @@ Vector SlidingCableElement3D::GetDirectionVectorNt() const
 
 Vector SlidingCableElement3D::GetInternalForces()
 {
+  const double numerical_limit = std::numeric_limits<double>::epsilon();
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
   const int segments_number = points_number-1;
@@ -338,8 +339,14 @@ Vector SlidingCableElement3D::GetInternalForces()
   Values.SetStressVector(temp_stress);
   mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
 
-
+ 
   double total_internal_force = (temp_stress[0]+prestress) * area * current_length / ref_length;
+
+  mIsCompressed = false;
+  if ((total_internal_force < 0.00)&&(std::abs(current_length-ref_length)>numerical_limit)) {
+        mIsCompressed = true;
+    }
+
 
   Vector internal_forces = total_internal_force*this->GetDirectionVectorNt();
 
@@ -400,7 +407,7 @@ Vector SlidingCableElement3D::GetInternalForces()
         if (el_i_1<el_i_0) next_n = internal_normal_resulting_forces[i] - friction_force;
         else next_n = internal_normal_resulting_forces[i] + friction_force;
 
-        internal_normal_resulting_forces[i+1] = next_n;
+        if (next_n >= 0) internal_normal_resulting_forces[i+1] = next_n;
       }
     }
 
@@ -518,6 +525,14 @@ Matrix SlidingCableElement3D::GeometricStiffnessMatrix(const ProcessInfo& rCurre
 
 inline Matrix SlidingCableElement3D::TotalStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const
 {
+  const int points_number = GetGeometry().PointsNumber();
+  const int dimension = 3;
+  const SizeType local_size = dimension*points_number;
+
+  if (mIsCompressed) {
+        return ZeroMatrix(local_size, local_size);
+    }
+
   const Matrix ElasticStiffnessMatrix = this->ElasticStiffnessMatrix(rCurrentProcessInfo);
   const Matrix GeometrixStiffnessMatrix = this->GeometricStiffnessMatrix(rCurrentProcessInfo);
   return (ElasticStiffnessMatrix+GeometrixStiffnessMatrix);
@@ -549,8 +564,10 @@ void SlidingCableElement3D::CalculateRightHandSide(
 
 
   rRightHandSideVector = ZeroVector(local_size);
-  noalias(rRightHandSideVector) -= this->GetInternalForces();
-
+  Vector internal_forces = this->GetInternalForces();
+  if (!mIsCompressed) {
+        noalias(rRightHandSideVector) -= internal_forces;
+    }
   if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
@@ -564,13 +581,18 @@ void SlidingCableElement3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix
   const int dimension = 3;
   const SizeType local_size = dimension*points_number;
 
-  rLeftHandSideMatrix = ZeroMatrix(local_size, local_size);
-  noalias(rLeftHandSideMatrix) = this->TotalStiffnessMatrix(rCurrentProcessInfo);
 
   rRightHandSideVector = ZeroVector(local_size);
-  noalias(rRightHandSideVector) -= this->GetInternalForces();
+  Vector internal_forces = this->GetInternalForces();
+  if (!mIsCompressed) {
+        noalias(rRightHandSideVector) -= internal_forces;
+    }
 
   if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
+
+
+  rLeftHandSideMatrix = ZeroMatrix(local_size, local_size);
+  noalias(rLeftHandSideMatrix) = this->TotalStiffnessMatrix(rCurrentProcessInfo);
   KRATOS_CATCH("")
 }
 
@@ -898,9 +920,11 @@ double SlidingCableElement3D::ReturnTangentModulus1D(const ProcessInfo& rCurrent
 void SlidingCableElement3D::save(Serializer &rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     rSerializer.save("mpConstitutiveLaw", mpConstitutiveLaw);
+    rSerializer.save("mIscompressed", mIsCompressed);
 }
 void SlidingCableElement3D::load(Serializer &rSerializer) {
   KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
   rSerializer.load("mpConstitutiveLaw", mpConstitutiveLaw);
+  rSerializer.load("mIscompressed", mIsCompressed);
 }
 } // namespace Kratos.
