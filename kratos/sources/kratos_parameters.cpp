@@ -629,6 +629,30 @@ Matrix Parameters::GetMatrix() const
 /***********************************************************************************/
 /***********************************************************************************/
 
+#define KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(TYPE, TYPE_NAME)                                \
+    template <> bool Parameters::Is<TYPE>() const {return this->Is ## TYPE_NAME();}              \
+    template <> TYPE Parameters::Get<TYPE>() const {return this->Get ## TYPE_NAME();}            \
+    template <> void Parameters::Set<TYPE>(const TYPE& rValue) {this->Set ## TYPE_NAME(rValue);}
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(double, Double)
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(int, Int)
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(bool, Bool)
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(std::string, String)
+
+//KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(std::vector<std::string>, StringArray) // <== missing Parameters::IsStringArray()
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(Vector, Vector)
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(Matrix, Matrix)
+
+#undef KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Parameters::SetDouble(const double Value)
 {
     *mpValue=Value;
