@@ -4,6 +4,7 @@ from KratosMultiphysics import Parameters, Logger
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 from KratosMultiphysics.ShapeOptimizationApplication.utilities import custom_math as cm
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import ReadNodalVariableToList
 
 import time as timer
 
@@ -97,8 +98,10 @@ class ShapeFractionResponseFunction(ResponseFunctionInterface):
         Logger.PrintInfo("ShapeFractionResponse", "Starting gradient calculation for response", self.identifier)
 
         startTime = timer.time()
+        # quantile = self._GetQuantile()
+        quantile = 1.0
         for node in self.model_part.Nodes:
-            gradient_i = self._CalculateNodalGradient(node)
+            gradient_i = self._CalculateNodalGradient(node, quantile)
             self.gradient[node.Id] = gradient_i
 
         Logger.PrintInfo("ShapeFractionResponse", "Time needed for calculating gradients",round(timer.time() - startTime,2),"s")
@@ -122,15 +125,35 @@ class ShapeFractionResponseFunction(ResponseFunctionInterface):
         else:
             return 0.0
 
-    def _CalculateNodalGradient(self, node):
+    def _CalculateNodalGradient(self, node, quantile):
         shape_change = node.GetSolutionStepValue(KSO.SHAPE_CHANGE)
         norm = cm.Norm2(shape_change)
 
         if norm > self.tolerance:
             return [
-                shape_change[0] / (norm**2),
-                shape_change[1] / (norm**2),
-                shape_change[2] / (norm**2)
+                (shape_change[0] / norm)*(quantile / norm)**1,
+                (shape_change[1] / norm)*(quantile / norm)**1,
+                (shape_change[2] / norm)*(quantile / norm)**1
             ]
         else:
             return [0.0, 0.0, 0.0]
+
+    def _GetQuantile(self):
+
+        nodal_variable = KM.KratosGlobals.GetVariable("SHAPE_CHANGE")
+        shape_change = ReadNodalVariableToList(self.model_part, nodal_variable)
+
+        shape_change_norm = []
+        Logger.PrintInfo("print(len(shape_change)/3):{}".format(len(shape_change)/3))
+        for i in range(int(len(shape_change)/3)):
+            shape_change_norm.append(cm.Norm2(shape_change[3*i:3*i+2]))
+
+        shape_change_norm.sort()
+
+        index = round(len(shape_change_norm)*(1-self.max_shape_fraction))
+
+        quantile = shape_change_norm[index]
+
+        Logger.PrintInfo("ShapeChange Quantile {}: {}".format((1-self.max_shape_fraction), quantile))
+
+        return quantile
