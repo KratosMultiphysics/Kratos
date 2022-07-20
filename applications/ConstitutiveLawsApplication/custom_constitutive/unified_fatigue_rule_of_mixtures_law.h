@@ -619,6 +619,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
 
     bool mAcumulatedDamageCurrentCycle = true;
     bool mAcumulatedPlasticityCurrentCycle = true;
+    bool mFirstCycleOfANewLoad = false; // Variable used to identify the first cycle after a new load block. This is used in the Nlocal calculation and to compute the C factor.
+    double mCFactor = 1.0;
 
 
     ///@}

@@ -434,7 +434,8 @@ private:
     double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     double mReferenceDamage = 0.0; // Damage level to be considered at each load block. This is used to work with stable loads during the fatigue process.
     double mPreviousCycleDamage = 0.0; // Damage level at the previous cycle.
-
+    bool mFirstCycleOfANewLoad = false; // Variable used to identify the first cycle after a new load block. This is used in the Nlocal calculation and to compute the C factor.
+    double mCFactor = 1.0;
     ///@}
     ///@name Private Operators
     ///@{

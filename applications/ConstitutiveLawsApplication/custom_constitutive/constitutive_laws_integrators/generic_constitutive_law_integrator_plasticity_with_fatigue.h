@@ -1040,8 +1040,8 @@ class GenericConstitutiveLawIntegratorPlasticityWithFatigue
             const SizeType curve_points = stress_plasticity_curve.size() - 1;
 
             ultimate_stress = 0.0;
-            for (IndexType i = 1; i <= curve_points; ++i) {
-                ultimate_stress = std::max(ultimate_stress, stress_plasticity_curve[i-1]);
+            for (IndexType i = 0; i <= curve_points; ++i) {
+                ultimate_stress = std::max(ultimate_stress, stress_plasticity_curve[i]);
             }
         }
         return ultimate_stress;

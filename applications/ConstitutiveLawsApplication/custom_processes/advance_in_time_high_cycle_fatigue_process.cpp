@@ -55,7 +55,6 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
         this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[NO_LINEARITY_ACTIVATION]); //Checks if the conditions are optimal to apply the advancing strategy in
                                                                                                         //terms of max stress and reversion factor variation.
         if (advancing_strategy) {
-            KRATOS_WATCH("HERE")
             double increment = 0.0;
             if (!process_info[NO_LINEARITY_ACTIVATION]) { //Stable conditions + No damage/plasticity -> Big jump prior no-linearities initiation
                 this->TimeIncrementBlock1(increment);
@@ -63,6 +62,8 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
                 if (increment > 0.0) {
                     this->TimeAndCyclesUpdate(increment);
                 }
+                process_info[ADVANCE_STRATEGY_APPLIED] = true;
+
             } else {
                 if (std::abs(maximum_damage_increment) + std::abs(maximum_plastic_dissipation_increment) < tolerance) { //Stable conditions + Damage/Plastic dissipation but not accumulated in the last cycle -> Big jump after no-linearities initiation
                     this->TimeIncrementBlock1(increment);
@@ -282,7 +283,9 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
             }
         }
     }
-    if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (NoLinearityIndicator && acumulated_max_stress_rel_error < 1e-3 && acumulated_rev_factor_rel_error < 1e-3 && fatigue_in_course)) {
+    // KRATOS_WATCH(acumulated_max_stress_rel_error)
+    // KRATOS_WATCH(acumulated_rev_factor_rel_error)
+    if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (NoLinearityIndicator && acumulated_max_stress_rel_error < 1e-3 && acumulated_rev_factor_rel_error < 1e-2 && fatigue_in_course)) {
         rAdvancingStrategy = true;
     }
 }

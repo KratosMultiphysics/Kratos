@@ -110,6 +110,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
     double s_th = mFatigueLimit;
     double cycles_to_failure = mCyclesToFailure;
     bool advance_in_time_process_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
+    double c_factor = mCFactor;
 
     // bool no_linearity_activation = rValues.GetProcessInfo()[NO_LINEARITY_ACTIVATION];
     const bool current_load_type = rValues.GetProcessInfo()[CURRENT_LOAD_TYPE];
@@ -125,6 +126,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
         min_indicator = false;
         cycles_to_failure = 0.0; //Each time that a new load block is detected the most restrictive case (ULCF) is considered.
                                                     //The behaviour will be updated depending on the Nf value after a cycle.
+        // mFirstCycleOfANewLoad = true;
     }
 
     auto& r_material_properties = rValues.GetMaterialProperties();
@@ -147,6 +149,14 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
     }
 
     if (max_indicator && min_indicator && current_load_type) {
+        if (mFirstCycleOfANewLoad) {
+            const SizeType fatigue_parameters_size = values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS].size();
+            if (fatigue_parameters_size == 8) {
+                c_factor = values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7];
+            } else if (fatigue_parameters_size == 9) {
+                c_factor = values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7] * max_stress + values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][8];
+            }
+        }
         //Checking if there is any no-linearity accumulation
         mAcumulatedDamageCurrentCycle = (damage - mPreviousCycleDamage > machine_tolerance) ? true : false;
         mAcumulatedPlasticityCurrentCycle = (plastic_dissipation - mPreviousCyclePlasticDissipation > machine_tolerance) ? true : false;
@@ -167,7 +177,8 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
             s_th,
             alphat,
             cycles_to_failure,
-            ultimate_stress);
+            ultimate_stress,
+            c_factor);
 
         double betaf = values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
         if (std::abs(min_stress) < 0.001) {
@@ -180,7 +191,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
         } else {
             max_stress_relative_error = std::abs((max_stress - previous_max_stress) / max_stress);
         }
-        if (global_number_of_cycles > 2 && !advance_in_time_process_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.1) && (max_stress >= s_th)) {
+        if (mFirstCycleOfANewLoad && global_number_of_cycles > 2 && !advance_in_time_process_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.1) && (max_stress >= s_th)) {
             local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / (betaf * betaf)))) + 1;
         }
 
@@ -196,16 +207,16 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
             values_fatigue.GetMaterialProperties(),
             (1.0 - damage) * mIsotropicDamageThreshold, //Current damage threshold with no influence of fatigue, only damage no-linearity
             s_th,
-            ultimate_stress //Composite ultimate stress which is the one used to compute the original number of cycles to failure
-            );
+            ultimate_stress, //Composite ultimate stress which is the one used to compute the original number of cycles to failure
+            c_factor);
         const double cycles_to_failure_plasticity = HighCycleFatigueLawIntegrator<6>::NumberOfCyclesToFailure(
             cycles_to_failure,
             mMaxStressPlasticityBranch,
             values_fatigue.GetMaterialProperties(),
             mPlasticityThreshold / fatigue_reduction_factor, //Plasticity threshold with no influence of fatigue, only damage no-linearity
             s_th,
-            ultimate_stress //Composite ultimate stress which is the one used to compute the original number of cycles to failure
-            );
+            ultimate_stress, //Composite ultimate stress which is the one used to compute the original number of cycles to failure
+            c_factor);
         cycles_to_failure = std::min(cycles_to_failure_damage, cycles_to_failure_plasticity);
 
         new_cycle = true;
@@ -223,7 +234,9 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
                                                                                         alphat,
                                                                                         fatigue_reduction_factor,
                                                                                         wohler_stress,
-                                                                                        ultimate_stress);
+                                                                                        ultimate_stress,
+                                                                                        c_factor);
+        mFirstCycleOfANewLoad = false;
     }
     mCyclesToFailure = cycles_to_failure;
 
@@ -239,7 +252,8 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
             s_th,
             alphat,
             cycles_to_failure,
-            ultimate_stress);
+            ultimate_stress,
+            c_factor);
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(values_fatigue.GetMaterialProperties(),
                                                                                         max_stress,
                                                                                         local_number_of_cycles,
@@ -249,7 +263,8 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
                                                                                         alphat,
                                                                                         fatigue_reduction_factor,
                                                                                         wohler_stress,
-                                                                                        ultimate_stress);
+                                                                                        ultimate_stress,
+                                                                                        c_factor);
     }
     mNumberOfCyclesGlobal = global_number_of_cycles;
     mNumberOfCyclesLocal = local_number_of_cycles;
@@ -264,6 +279,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
     mWohlerStress = wohler_stress;
     mNewCycleIndicator = new_cycle;
     mFatigueLimit = s_th;
+    mCFactor = c_factor;
 
     //Adapting the volumetric participation to the type of load that is being applied
     mIsotrpicDamageVolumetricParticipation = VolumetricParticipationUpdate(

@@ -172,7 +172,8 @@ public:
                                             double& rSth,
                                             double& rAlphat,
                                             double& rNf,
-                                            const double UltimateStress)
+                                            const double UltimateStress,
+                                            const double FatigueReductionFactorSmoothness)
 	{
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
 
@@ -186,9 +187,11 @@ public:
         const double AUXR2 = r_fatigue_coefficients[6];
 
         if (std::abs(ReversionFactor) < 1.0) {
+            // KRATOS_WATCH("sii")
             rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 * ReversionFactor), STHR1);
 			rAlphat = ALFAF + (0.5 + 0.5 * ReversionFactor) * AUXR1;
         } else {
+            // KRATOS_WATCH("NOO")
             rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 / ReversionFactor), STHR2);
 			rAlphat = ALFAF - (0.5 + 0.5 / ReversionFactor) * AUXR2;
         }
@@ -196,7 +199,7 @@ public:
         const double square_betaf = std::pow(BETAF, 2.0);
         if (MaxStress > rSth && MaxStress <= UltimateStress) {
             rNf = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (UltimateStress - rSth))/rAlphat,(1.0/BETAF)));
-            rB0 = -(std::log(MaxStress / UltimateStress) / std::pow((std::log10(rNf)), square_betaf));
+            rB0 = -(std::log(MaxStress / UltimateStress) / std::pow((std::log10(rNf)), FatigueReductionFactorSmoothness * square_betaf));
         } else {
             rNf = 1.0e20; // No fatigue at this IP, i.e., proposing infinite jump.
         }
@@ -216,7 +219,8 @@ public:
                                         const Properties& rMaterialParameters,
                                         double Threshold,
                                         double Sth,
-                                        const double UltimateStress)
+                                        const double UltimateStress,
+                                        const double FatigueReductionFactorSmoothness)
 	{
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         double number_of_cycles_to_failure = Nf;
@@ -224,7 +228,7 @@ public:
         if (UltimateStress - MaxStress > 1.0e-4) {
             if (MaxStress > Sth) {
                 const double square_betaf = std::pow(BETAF, 2.0);
-                number_of_cycles_to_failure = std::pow(Nf, std::pow(std::log(MaxStress / Threshold) / std::log(MaxStress / UltimateStress), 1.0 / square_betaf));
+                number_of_cycles_to_failure = std::pow(Nf, std::pow(std::log(MaxStress / Threshold) / std::log(MaxStress / UltimateStress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));
             }
         }
         return number_of_cycles_to_failure;
@@ -251,15 +255,19 @@ public:
                                                                 const double Alphat,
                                                                 double& rFatigueReductionFactor,
                                                                 double& rWohlerStress,
-                                                                const double UltimateStress)
+                                                                const double UltimateStress,
+                                                                const double FatigueReductionFactorSmoothness)
 	{
         const double BETAF = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
+
         if (GlobalNumberOfCycles > 2){
             rWohlerStress = (Sth + (UltimateStress - Sth) * std::exp(-Alphat * (std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), BETAF)))) / UltimateStress;
         }
         if (MaxStress > Sth) { //In those cases with no fatigue in course (MaxStress < Sth), tbe fatigue reduction factor does not evolve.
-            rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF)));
-            rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
+            rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), FatigueReductionFactorSmoothness * (BETAF * BETAF))));
+            // const double min_fatigue_reduction_factor = std::max(rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][0], 0.9 * MaxStress / UltimateStress);
+            const double min_fatigue_reduction_factor = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][0];
+            rFatigueReductionFactor = (rFatigueReductionFactor < min_fatigue_reduction_factor) ? min_fatigue_reduction_factor : rFatigueReductionFactor;
         }
     }
 
@@ -278,10 +286,11 @@ public:
             const SizeType curve_points = stress_damage_curve.size() - 1;
 
             ultimate_stress = 0.0;
-            for (IndexType i = 1; i <= curve_points; ++i) {
-                ultimate_stress = std::max(ultimate_stress, stress_damage_curve[i-1]);
+            for (IndexType i = 0; i <= curve_points; ++i) {
+                ultimate_stress = std::max(ultimate_stress, stress_damage_curve[i]);
             }
         }
+        // KRATOS_WATCH(ultimate_stress)
         return ultimate_stress;
     }
     ///@}
