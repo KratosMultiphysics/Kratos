@@ -10,8 +10,8 @@
 //  Main authors:    Ariadna Cortés
 //
 
-#if !defined(KRATOS_TET10_REFINEMENT_UTILITY)
-#define  KRATOS_TET10_REFINEMENT_UTILITY
+#if !defined(KRATOS_TETRAHEDRA10_MESH_CONVERTER_UTILITY)
+#define  KRATOS_TETRAHEDRA10_MESH_CONVERTER_UTILITY
 
 // NOTE: Before compute the remeshing it is necessary to compute the neighbours
 
@@ -44,7 +44,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class Tet10RefinementUtility : public LocalRefineTetrahedraMesh
+class Tetrahedra10MeshConverter : public LocalRefineTetrahedraMesh
 {
 public:
 
@@ -63,13 +63,13 @@ public:
     ///@{
 
     /// Default constructors
-    Tet10RefinementUtility(ModelPart& model_part) : LocalRefineTetrahedraMesh(model_part)
+    Tetrahedra10MeshConverter(ModelPart& model_part) : LocalRefineTetrahedraMesh(model_part)
     {
 
     }
 
     /// Destructor
-    ~Tet10RefinementUtility() //TODO maybe {}
+    ~Tetrahedra10MeshConverter() //TODO maybe {}
     = default;
 
     ///@}
@@ -81,12 +81,12 @@ public:
     ///@{
         
     /**
-    * Refine the mesh locally, call all the commands necessaries to compute the remeshing
-    * Resulting is a mesh of Tetrahedra3D10 created by adding intermediate nodes to each Tetrahedra3D4
+    * Changes the geometry of the mesh of Tetrahedra3D4 elements. Resulting is a mesh of Tetrahedra3D10 created
+    * by adding intermediate nodes to each Tetrahedra3D4
     * @param refine_on_reference: Boolean that defines if refine or not the mesh according to the reference
     * @param interpolate_internal_variables: Boolean that defines if to interpolate or not the internal variables
     */
-    void LocalRefineTet10Mesh(bool refine_on_reference, bool interpolate_internal_variables) {
+    void LocalConvertTetrahedra10Mesh(bool refine_on_reference, bool interpolate_internal_variables) {
             for (auto element : mModelPart.Elements()) element.SetValue(SPLIT_ELEMENT,true);
             for (auto condition : mModelPart.Conditions()) condition.SetValue(SPLIT_ELEMENT,true);
             LocalRefineMesh(refine_on_reference, interpolate_internal_variables);
@@ -139,7 +139,7 @@ private:
     ///@name Private Operations
     ///@{
         /**
-    * It erases the old elements and it creates the new ones
+    * It erases the old Tetrahedra3D4 elements and it creates the new Tetrahedra3D10 ones
     * @param Coord: The compressed matrix containing at (i,j) the id of the node created between nodes i,j
     * @param New_Elements: The new elements created
     * @param interpolate_internal_variables: A boolean that defines if it is necessary to interpolate the internal variables
@@ -169,8 +169,8 @@ private:
 	int t[56];
 	std::vector<int> aux;
 
-        std::cout << "****************** REFINING MESH ******************" << std::endl;
-        std::cout << "OLD NUMBER ELEMENTS: " << rElements.size() << std::endl;
+    KRATOS_INFO("") << "************* CONVERTING TO TETRAHEDRA3D8 MESH **************\n" 
+                    << "OLD NUMBER ELEMENTS: " << rElements.size() << std::endl;
 
 	for (int & i : t)
 	{
@@ -182,9 +182,9 @@ private:
 	  Element::GeometryType& geom = it->GetGeometry();
           CalculateEdges(geom, Coord, edge_ids, aux);
 
-	  create_element = TetrahedraSplit::Split_Tetrahedra(edge_ids, t, &number_elem, &splitted_edges, &internal_node);
+	  //create_element = TetrahedraSplit::Split_Tetrahedra(edge_ids, t, &number_elem, &splitted_edges, &internal_node);
 
-	  if (create_element == true)
+	  if (true)
 	  {
 	      to_be_deleted++;
 
@@ -192,7 +192,7 @@ private:
           // We will use this flag to identify the element later, when operating on
           // SubModelParts. Note that fully refined elements already have this flag set
           // to true, but this is not the case for partially refined element, so we set it here.
-          it->SetValue(SPLIT_ELEMENT,true);
+          it->Set(TO_ERASE,true);
           rChildElements.resize(0);
 	      
 		  unsigned int i0 = aux[0];
@@ -258,14 +258,10 @@ private:
 	  rElements.push_back(*(it_new.base()));
       }
 
-      /* All of the elements to be erased are at the end */
-      rElements.Sort();
-
       /* Now remove all of the "old" elements */
-      rElements.erase(this_model_part.Elements().end() - to_be_deleted, this_model_part.Elements().end());
+      this_model_part.RemoveElements(TO_ERASE);
 
-      std::cout << "NEW NUMBER ELEMENTS: " << rElements.size() << std::endl;
-
+     KRATOS_INFO("") <<  "NEW NUMBER ELEMENTS: " << rElements.size() << std::endl;
 
       // Now update the elements in SubModelParts
       if (NewElements.size() > 0)
@@ -315,7 +311,7 @@ private:
     }
 
     /**
-    * Remove the old conditions and creates new ones
+    * Remove the old Trangle3D3 conditions and creates new Trangle3D6 ones
     * @param Coord: The coordinates of the nodes of the geometry
     * @return this_model_part: The model part of the model (it is the input too)
     */
