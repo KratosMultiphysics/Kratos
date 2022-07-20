@@ -318,7 +318,7 @@ Vector SlidingCableElement3D::GetDirectionVectorNt() const
 
 Vector SlidingCableElement3D::GetInternalForces()
 {
-  const double numerical_limit = std::numeric_limits<double>::epsilon();
+  constexpr double numerical_limit = std::numeric_limits<double>::epsilon();
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
   const int segments_number = points_number-1;
