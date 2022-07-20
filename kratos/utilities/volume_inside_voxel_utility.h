@@ -106,6 +106,7 @@ public:
         double volume = 0;
         PointsArrayType nodes = rVoxel.Points();
         for (int i = 0; i < 8; i++) {
+            //std::cout << "Node " << i << " is at " << nodes[i] << std::endl;
             if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
                 volume+=0.125; //heyho
             } 
@@ -156,6 +157,7 @@ public:
         for (int i = 0; i < 12; i++) {
             Distances.push_back(0);
             PointsArrayType ends = edges[i].Points();
+            //std::cout << "Edge " << i << " has nodes " << ends[0] << " " << ends[1] << std::endl;
 
             for (auto triangle : rTriangles) {
                 array_1d<double,3> intersection;
