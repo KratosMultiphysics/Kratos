@@ -81,6 +81,7 @@ namespace Testing {
             KRATOS_CHECK_EQUAL(Distance(points[0],points[2]), Distance(points[0],points[6]) + Distance(points[6],points[0]) );
             KRATOS_CHECK_EQUAL(Distance(points[1],points[3]), Distance(points[1],points[8]) + Distance(points[8],points[1]) );
         }
+
         for(auto cond : modelpart.Conditions()) {
             GeometryPtrType geom = cond.pGetGeometry();
             const auto geometryType = geom->GetGeometryType();

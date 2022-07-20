@@ -157,158 +157,124 @@ private:
 	ElementsArrayType::iterator it_begin = rElements.ptr_begin();
 	ElementsArrayType::iterator it_end = rElements.ptr_end();
 	unsigned int to_be_deleted = 0;
-	unsigned int large_id = (rElements.end() - 1)->Id() * 15;
 	unsigned int current_id = (rElements.end() - 1)->Id() + 1;
-	bool create_element = false;
-	int number_elem = 0;
-	int splitted_edges = 0;
 	int internal_node = 0;
 
 	const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 	int edge_ids[6];
-	int t[56];
 	std::vector<int> aux;
 
     KRATOS_INFO("") << "************* CONVERTING TO TETRAHEDRA3D8 MESH **************\n" 
                     << "OLD NUMBER ELEMENTS: " << rElements.size() << std::endl;
 
-	for (int & i : t)
-	{
-	    i = -1;
-	}
 
 	for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
 	{
-	  Element::GeometryType& geom = it->GetGeometry();
-          CalculateEdges(geom, Coord, edge_ids, aux);
+        Element::GeometryType& geometry = it->GetGeometry();
+        CalculateEdges(geometry, Coord, edge_ids, aux);
 
-	  //create_element = TetrahedraSplit::Split_Tetrahedra(edge_ids, t, &number_elem, &splitted_edges, &internal_node);
+        it->Set(TO_ERASE,true);
 
-	  if (true)
-	  {
-	      to_be_deleted++;
+        unsigned int i0 = aux[0];
+        unsigned int i1 = aux[1];
+        unsigned int i2 = aux[2];
+        unsigned int i3 = aux[3];
+        unsigned int i4 = aux[4];
+        unsigned int i6 = aux[5];
+        unsigned int i7 = aux[6];
+        unsigned int i5 = aux[7];
+        unsigned int i8 = aux[8];
+        unsigned int i9 = aux[9];
 
-          GlobalPointersVector< Element >& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
-          // We will use this flag to identify the element later, when operating on
-          // SubModelParts. Note that fully refined elements already have this flag set
-          // to true, but this is not the case for partially refined element, so we set it here.
-          it->Set(TO_ERASE,true);
-          rChildElements.resize(0);
-	      
-		  unsigned int i0 = aux[0];
-		  unsigned int i1 = aux[1];
-		  unsigned int i2 = aux[2];
-		  unsigned int i3 = aux[3];
-          unsigned int i4 = aux[4];
-		  unsigned int i6 = aux[5];
-		  unsigned int i7 = aux[6];
-		  unsigned int i5 = aux[7];
-          unsigned int i8 = aux[8];
-		  unsigned int i9 = aux[9];
-          
 
-		  Tetrahedra3D10<Node < 3 > > geom(
-		      this_model_part.Nodes()(i0),
-		      this_model_part.Nodes()(i1),
-		      this_model_part.Nodes()(i2),
-		      this_model_part.Nodes()(i3),
-              this_model_part.Nodes()(i4),
-		      this_model_part.Nodes()(i5),
-		      this_model_part.Nodes()(i6),
-		      this_model_part.Nodes()(i7),
-              this_model_part.Nodes()(i8),
-		      this_model_part.Nodes()(i9)
-		  );
+        Tetrahedra3D10<Node < 3 > > geom(
+            this_model_part.Nodes()(i0),
+            this_model_part.Nodes()(i1),
+            this_model_part.Nodes()(i2),
+            this_model_part.Nodes()(i3),
+            this_model_part.Nodes()(i4),
+            this_model_part.Nodes()(i5),
+            this_model_part.Nodes()(i6),
+            this_model_part.Nodes()(i7),
+            this_model_part.Nodes()(i8),
+            this_model_part.Nodes()(i9)
+        );
 
-		  // Generate new element by cloning the base one
-		  Element::Pointer p_element;
-          const Element& rElem = KratosComponents<Element>::Get("Element3D10N");
-		  p_element = rElem.Create(current_id, geom, it->pGetProperties());
-		  p_element->Initialize(rCurrentProcessInfo);
-		  p_element->InitializeSolutionStep(rCurrentProcessInfo);
-		  p_element->FinalizeSolutionStep(rCurrentProcessInfo);
+        // Generate the new Tetrahedra3D10 element
+        Element::Pointer p_element;
+        const Element& rElem = KratosComponents<Element>::Get("Element3D10N");
+        p_element = rElem.Create(current_id, geom, it->pGetProperties());
+        p_element->Initialize(rCurrentProcessInfo);
+        p_element->InitializeSolutionStep(rCurrentProcessInfo);
+        p_element->FinalizeSolutionStep(rCurrentProcessInfo);
 
-		  // Setting the internal variables in the child elem
-		  if (interpolate_internal_variables == true)
-		  {
-		      InterpolateInteralVariables(number_elem, *it.base(), p_element, rCurrentProcessInfo);
-		  }
+        // Setting the internal variables in the child elem
+        if (interpolate_internal_variables == true)
+        {
+            //This method only copies the current information to the new element
+            InterpolateInteralVariables(0, *it.base(), p_element, rCurrentProcessInfo);
+        }
 
-		  // Transfer elemental variables
-		  p_element->Data() = it->Data();
-		  p_element->GetValue(SPLIT_ELEMENT) = false;
-		  NewElements.push_back(p_element);
+        // Transfer elemental variables
+        p_element->Data() = it->Data();
+        p_element->GetValue(SPLIT_ELEMENT) = false;
+        NewElements.push_back(p_element);
 
-          rChildElements.push_back( Element::WeakPointer(p_element) );
-
-		  current_id++;
-	      it->SetId(large_id);
-	      large_id++;
-	  }
-
-	  for (unsigned int i = 0; i < 32; i++)
-	  {
-	      t[i] = -1;
-	  }
-      }
-
-      /* Adding news elements to the model part */
-      for (PointerVector< Element >::iterator it_new = NewElements.begin(); it_new != NewElements.end(); it_new++)
-      {
-	  rElements.push_back(*(it_new.base()));
-      }
-
-      /* Now remove all of the "old" elements */
-      this_model_part.RemoveElements(TO_ERASE);
-
-     KRATOS_INFO("") <<  "NEW NUMBER ELEMENTS: " << rElements.size() << std::endl;
-
-      // Now update the elements in SubModelParts
-      if (NewElements.size() > 0)
-      {
-          for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
-                  iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
-          {
-              to_be_deleted = 0;
-              NewElements.clear();
-
-              // Create list of new elements in SubModelPart
-              // Count how many elements will be removed
-              for (ModelPart::ElementIterator iElem = iSubModelPart->ElementsBegin();
-                      iElem != iSubModelPart->ElementsEnd(); iElem++)
-              {
-                  if( iElem->GetValue(SPLIT_ELEMENT) )
-                  {
-                      to_be_deleted++;
-                      GlobalPointersVector< Element >& rChildElements = iElem->GetValue(NEIGHBOUR_ELEMENTS);
-
-                      for ( auto iChild = rChildElements.ptr_begin();
-                              iChild != rChildElements.ptr_end(); iChild++ )
-                      {
-                          NewElements.push_back((*iChild)->shared_from_this());
-                      }
-                  }
-              }
-
-              // Add new elements to SubModelPart
-              iSubModelPart->Elements().reserve( iSubModelPart->Elements().size() + NewElements.size() );
-              for (PointerVector< Element >::iterator it_new = NewElements.begin();
-                      it_new != NewElements.end(); it_new++)
-              {
-                  iSubModelPart->Elements().push_back(*(it_new.base()));
-              }
-
-              // Delete old elements
-              iSubModelPart->Elements().Sort();
-              iSubModelPart->Elements().erase(iSubModelPart->Elements().end() - to_be_deleted, iSubModelPart->Elements().end());
-
-              KRATOS_WATCH(iSubModelPart->Info());
-              KRATOS_WATCH(to_be_deleted);
-              KRATOS_WATCH(iSubModelPart->Elements().size());
-              KRATOS_WATCH(this_model_part.Elements().size());
-          }
-      }
+        current_id++;
     }
+
+    /* Adding news elements to the model part */
+    for (PointerVector< Element >::iterator it_new = NewElements.begin(); it_new != NewElements.end(); it_new++)
+    {
+    rElements.push_back(*(it_new.base()));
+    }
+
+    /* Now remove all of the "old" elements */
+    this_model_part.RemoveElements(TO_ERASE);
+
+    KRATOS_INFO("") <<  "NEW NUMBER ELEMENTS: " << rElements.size() << std::endl;
+
+    // Now update the elements in SubModelParts
+    if (NewElements.size() > 0)
+    {
+        for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
+                iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
+        {
+            to_be_deleted = 0;
+            NewElements.clear();
+
+            // Create list of new elements in SubModelPart
+            // Count how many elements will be removed
+            for (ModelPart::ElementIterator iElem = iSubModelPart->ElementsBegin();
+                    iElem != iSubModelPart->ElementsEnd(); iElem++)
+            {
+                if( iElem->GetValue(SPLIT_ELEMENT) )
+                {
+                    to_be_deleted++;
+                    GlobalPointersVector< Element >& rChildElements = iElem->GetValue(NEIGHBOUR_ELEMENTS);
+
+                    for ( auto iChild = rChildElements.ptr_begin();
+                            iChild != rChildElements.ptr_end(); iChild++ )
+                    {
+                        NewElements.push_back((*iChild)->shared_from_this());
+                    }
+                }
+            }
+
+            // Add new elements to SubModelPart
+            iSubModelPart->Elements().reserve( iSubModelPart->Elements().size() + NewElements.size() );
+            for (PointerVector< Element >::iterator it_new = NewElements.begin();
+                    it_new != NewElements.end(); it_new++)
+            {
+                iSubModelPart->Elements().push_back(*(it_new.base()));
+            }
+
+            // Delete old elements
+            iSubModelPart->Elements().Sort();
+            iSubModelPart->Elements().erase(iSubModelPart->Elements().end() - to_be_deleted, iSubModelPart->Elements().end());
+        }
+    }
+}
 
     /**
     * Remove the old Trangle3D3 conditions and creates new Trangle3D6 ones
@@ -332,12 +298,7 @@ private:
             ConditionsArrayType::iterator it_begin = rConditions.ptr_begin();
             ConditionsArrayType::iterator it_end = rConditions.ptr_end();
             unsigned int to_be_deleted = 0;
-            unsigned int large_id = (rConditions.end() - 1)->Id() * 7;
             int  edge_ids[3];
-            int  t[12];
-            int  number_elem  = 0;
-            int  splitted_edges  = 0;
-            int  nint            = 0;
             array_1d<int, 6> aux;
 
             const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
@@ -347,65 +308,46 @@ private:
             {
                 Condition::GeometryType& geom = it->GetGeometry();
 
-                if (geom.size() == 3)
-                {
-                    CalculateEdgesFaces(geom, Coord, edge_ids, aux);
+                CalculateEdgesFaces(geom, Coord, edge_ids, aux);
 
-                    // Create the new conditions
-                    bool create_condition =  Split_Triangle(edge_ids, t, &number_elem, &splitted_edges, &nint);
+                // Create the new conditions
+                it->Set(TO_ERASE,true);
 
-                    if(create_condition==true)
-                    {
-                        GlobalPointersVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
-                        // We will use this flag to identify the condition later, when operating on
-                        // SubModelParts.
-                        it->SetValue(SPLIT_ELEMENT,true);
-                        rChildConditions.resize(0);
-                        to_be_deleted++;
+                unsigned int i0   = aux[0];
+                unsigned int i1   = aux[1];
+                unsigned int i2   = aux[2];
+                unsigned int i3   = aux[3];
+                unsigned int i4   = aux[4];
+                unsigned int i5   = aux[5];
 
-                        unsigned int i0   = aux[0];
-                        unsigned int i1   = aux[1];
-                        unsigned int i2   = aux[2];
-                        unsigned int i3   = aux[3];
-                        unsigned int i4   = aux[4];
-                        unsigned int i5   = aux[5];
+                Triangle3D6<Node<3> > newgeom(
+                        this_model_part.Nodes()(i0),
+                        this_model_part.Nodes()(i1),
+                        this_model_part.Nodes()(i2),
+                        this_model_part.Nodes()(i3),
+                        this_model_part.Nodes()(i4),
+                        this_model_part.Nodes()(i5)
+                        );
 
-                        Triangle3D6<Node<3> > newgeom(
-                                this_model_part.Nodes()(i0),
-                                this_model_part.Nodes()(i1),
-                                this_model_part.Nodes()(i2),
-                                this_model_part.Nodes()(i3),
-                                this_model_part.Nodes()(i4),
-                                this_model_part.Nodes()(i5)
-                                );
+                // Generate new condition by cloning the base one
+                Condition::Pointer pcond;
+                const Condition& rCond = KratosComponents<Condition>::Get("SurfaceCondition3D6N");
+                pcond = rCond.Create(current_id, newgeom, it->pGetProperties());
+                pcond ->Initialize(rCurrentProcessInfo);
+                pcond ->InitializeSolutionStep(rCurrentProcessInfo);
+                pcond ->FinalizeSolutionStep(rCurrentProcessInfo);
 
-                        // Generate new condition by cloning the base one
-                        Condition::Pointer pcond;
-                        const Condition& rCond = KratosComponents<Condition>::Get("SurfaceCondition3D6N");
-		                pcond = rCond.Create(current_id, newgeom, it->pGetProperties());
-                        pcond ->Initialize(rCurrentProcessInfo);
-                        pcond ->InitializeSolutionStep(rCurrentProcessInfo);
-                        pcond ->FinalizeSolutionStep(rCurrentProcessInfo);
+                // Transfer condition variables
+                pcond->Data() = it->Data();
+                pcond->GetValue(SPLIT_ELEMENT) = false;
+                NewConditions.push_back(pcond);
 
-                        // Transfer condition variables
-                        pcond->Data() = it->Data();
-                        pcond->GetValue(SPLIT_ELEMENT) = false;
-                        NewConditions.push_back(pcond);
-
-                        rChildConditions.push_back( Condition::WeakPointer( pcond ) );
-
-                        current_id++;
-                        it->SetId(large_id);
-                        large_id++;
-                    }
-                }
+                current_id++;
             }
 
-            /* All of the conditions to be erased are at the end */
-            this_model_part.Conditions().Sort();
 
             /* Now remove all of the "old" conditions*/
-            this_model_part.Conditions().erase(this_model_part.Conditions().end() - to_be_deleted, this_model_part.Conditions().end());
+            this_model_part.RemoveConditions(TO_ERASE);
 
             unsigned int total_size = this_model_part.Conditions().size()+ NewConditions.size();
             this_model_part.Conditions().reserve(total_size);
@@ -463,11 +405,6 @@ private:
                     // Delete old conditions
                     iSubModelPart->Conditions().Sort();
                     iSubModelPart->Conditions().erase(iSubModelPart->Conditions().end() - to_be_deleted, iSubModelPart->Conditions().end());
-
-                    KRATOS_WATCH(iSubModelPart->Info());
-                    KRATOS_WATCH(to_be_deleted);
-                    KRATOS_WATCH(iSubModelPart->Conditions().size());
-                    KRATOS_WATCH(this_model_part.Conditions().size());
                 }
             }
         }
