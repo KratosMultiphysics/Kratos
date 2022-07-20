@@ -678,6 +678,7 @@ namespace Kratos
         if (!hasPiping)
         {
             int error = mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
+            outputGiD(current_model, model_part, projectfile, workingDirectory);
         }
         else
         {
