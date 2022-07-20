@@ -1947,6 +1947,105 @@ class TestProcesses(KratosUnittest.TestCase):
 
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
+    def test_process_info_output_process(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        reference_file_name = GetFilePath("auxiliar_files_for_python_unittest/reference_files/process_info_output_ref.dat")
+
+        settings = KratosMultiphysics.Parameters("""{
+            "process_list" : [{
+                    "python_module"  : "compare_two_files_check_process",
+                    "kratos_module"  : "KratosMultiphysics",
+                    "process_name"   : "CompareTwoFilesCheckProcess",
+                    "Parameters"            : {
+                        "reference_file_name"   : "",
+                        "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/process_info_output.dat",
+                        "comparison_type"       : "dat_file"
+                    }
+                }],
+            "output_process_list" : [{
+                    "python_module"  : "process_info_output_process",
+                    "kratos_module"  : "KratosMultiphysics",
+                    "process_name"   : "ProcessInfoOutputProcess",
+                    "Parameters"            : {
+                        "model_part_name"      : "Main",
+                        "interval"             : [1.5, 4.5],
+                        "execution_point"      : "finalize_solution_step",
+                        "output_file_settings" : {
+                            "file_name" : "process_info_output",
+                            "output_path" : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder"
+                        },
+                        "output_variables" : ["NL_ITERATION_NUMBER"]
+                    }
+            }]
+        }""")
+
+        settings["process_list"][0]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
+
+    def test_process_info_output_process_including_coupling_iterations(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        reference_file_name = GetFilePath("auxiliar_files_for_python_unittest/reference_files/process_info_output_coupled_ref.dat")
+
+        settings = KratosMultiphysics.Parameters("""{
+            "process_list" : [{
+                    "python_module"  : "compare_two_files_check_process",
+                    "kratos_module"  : "KratosMultiphysics",
+                    "process_name"   : "CompareTwoFilesCheckProcess",
+                    "Parameters"            : {
+                        "reference_file_name"   : "",
+                        "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/process_info_output_coupled.dat",
+                        "comparison_type"       : "dat_file"
+                    }
+                }],
+            "output_process_list" : [{
+                    "python_module"  : "process_info_output_process",
+                    "kratos_module"  : "KratosMultiphysics",
+                    "process_name"   : "ProcessInfoOutputProcess",
+                    "Parameters"            : {
+                        "model_part_name"      : "Main",
+                        "execution_point"      : "finalize_coupling_step",
+                        "output_file_settings" : {
+                            "file_name" : "process_info_output_coupled",
+                            "output_path" : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder"
+                        },
+                        "output_variables" : ["NL_ITERATION_NUMBER"]
+                    }
+            }]
+        }""")
+
+        settings["process_list"][0]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
+
     def test_assign_flag_process(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
@@ -2533,6 +2632,21 @@ def SetNodalValuesForPointOutputProcesses(model_part):
         node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION, vec*time)
         node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY, time**2 + 1.038)
 
+def SetValuesForCoupledOutput(model_part, coupling_iter, n_coupling_iter):
+    # number of non-linear iterations decreasing during coupling iterations starting from 7
+    model_part.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] = 7 - coupling_iter
+    time = model_part.ProcessInfo[KratosMultiphysics.TIME]
+    vec = KratosMultiphysics.Vector(3)
+    for node in model_part.Nodes:
+        vec[0] = round(math.sqrt(node.X**2+node.Y**2)*time ,6)
+        vec[1] = round(node.X**2+node.Y**2 + time ,6)
+        vec[2] = round(node.X+node.Y + time ,6)
+        # scaling velocity, so it's decreasing until it is scaled with 1.0 for the last coupling iteration
+        vec = vec*(n_coupling_iter / (coupling_iter+1))
+        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, vec)
+        node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION, vec*time)
+        node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY, time**2 + 1.038)
+
 def SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time):
     current_model = model_part.GetModel()
 
@@ -2552,13 +2666,24 @@ def SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
     for process in list_of_processes:
         process.ExecuteBeforeSolutionLoop()
 
+    time_iter = 0
     while model_part.ProcessInfo[KratosMultiphysics.TIME] < end_time:
         model_part.ProcessInfo[KratosMultiphysics.TIME] += delta_time
+        time_iter += 1
 
         SetNodalValuesForPointOutputProcesses(model_part)
 
         for process in list_of_processes:
             process.ExecuteInitializeSolutionStep()
+
+        # number of coupling iterations switching between 4,5,3
+        n_coupling_iter = 3 + time_iter % 3
+        for coupling_iter in range(n_coupling_iter):
+            for process in list_of_processes:
+                process.ExecuteInitializeCouplingStep()
+            SetValuesForCoupledOutput(model_part, coupling_iter, n_coupling_iter)
+            for process in list_of_processes:
+                process.ExecuteFinalizeCouplingStep()
 
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()

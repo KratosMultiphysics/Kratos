@@ -78,8 +78,12 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
     def SolveSolutionStep(self):
         with self.thread_manager:
+            self._analysis_stage.InitializeCouplingStep()
+        with self.thread_manager:
             self._analysis_stage._GetSolver().SolveSolutionStep()
         super().SolveSolutionStep()
+        with self.thread_manager:
+            self._analysis_stage.FinalizeCouplingStep()
 
     def FinalizeSolutionStep(self):
         with self.thread_manager:
