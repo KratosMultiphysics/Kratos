@@ -407,7 +407,7 @@ Vector SlidingCableElement3D::GetInternalForces()
         if (el_i_1<el_i_0) next_n = internal_normal_resulting_forces[i] - friction_force;
         else next_n = internal_normal_resulting_forces[i] + friction_force;
 
-        if (next_n >= 0) internal_normal_resulting_forces[i+1] = next_n;
+        internal_normal_resulting_forces[i+1] = next_n;
       }
     }
 
