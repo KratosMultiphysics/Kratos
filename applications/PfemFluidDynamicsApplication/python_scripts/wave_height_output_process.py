@@ -23,7 +23,10 @@ class WaveHeightOutputProcess(KM.OutputProcess):
                               - 'file_name' : 'gauge_<i>'
      - wave_calculation_settings: a parameters according to 'CalculateWaveHeightOutputProcess'
                               - 'mean_water_level'
-                              - 'relative_search_tolerance'
+                              - 'relative_search_radius'
+                              - 'search_tolerance'
+                              - 'use_local_element_size'
+                              - 'use_nearest_node'
     """
 
     def GetDefaultParameters(self):
