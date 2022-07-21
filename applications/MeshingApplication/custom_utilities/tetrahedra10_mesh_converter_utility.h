@@ -158,7 +158,6 @@ private:
 	ElementsArrayType::iterator it_end = rElements.ptr_end();
 	unsigned int to_be_deleted = 0;
 	unsigned int current_id = (rElements.end() - 1)->Id() + 1;
-	int internal_node = 0;
 
 	const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 	int edge_ids[6];
