@@ -525,14 +525,6 @@ Matrix SlidingCableElement3D::GeometricStiffnessMatrix(const ProcessInfo& rCurre
 
 inline Matrix SlidingCableElement3D::TotalStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const
 {
-  const int points_number = GetGeometry().PointsNumber();
-  const int dimension = 3;
-  const SizeType local_size = dimension*points_number;
-
-  if (mIsCompressed) {
-        return ZeroMatrix(local_size, local_size);
-    }
-
   const Matrix ElasticStiffnessMatrix = this->ElasticStiffnessMatrix(rCurrentProcessInfo);
   const Matrix GeometrixStiffnessMatrix = this->GeometricStiffnessMatrix(rCurrentProcessInfo);
   return (ElasticStiffnessMatrix+GeometrixStiffnessMatrix);
@@ -549,7 +541,10 @@ void SlidingCableElement3D::CalculateLeftHandSide(
   // resizing the matrices + create memory for LHS
   rLeftHandSideMatrix = ZeroMatrix(local_size, local_size);
   // creating LHS
+
+  if (!mIsCompressed) {
   noalias(rLeftHandSideMatrix) = this->TotalStiffnessMatrix(rCurrentProcessInfo);
+  }
 
   KRATOS_CATCH("")
 }
@@ -590,9 +585,11 @@ void SlidingCableElement3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix
 
   if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
 
-
   rLeftHandSideMatrix = ZeroMatrix(local_size, local_size);
+
+  if (!mIsCompressed) {
   noalias(rLeftHandSideMatrix) = this->TotalStiffnessMatrix(rCurrentProcessInfo);
+  }
   KRATOS_CATCH("")
 }
 
