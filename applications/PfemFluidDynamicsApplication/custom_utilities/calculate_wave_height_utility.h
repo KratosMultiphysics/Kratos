@@ -129,6 +129,7 @@ private:
     bool mUseNearestNode;
     double mRelativeRadius;
     double mAbsoluteRadius;
+    double mLocalElementSize;
 
     ///@}
     ///@name Private Operations

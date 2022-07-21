@@ -42,6 +42,7 @@ CalculateWaveHeightUtility::CalculateWaveHeightUtility(
         "relative_search_radius" : 2.0,
         "search_tolerance"       : 1e-6,
         "use_local_element_size" : false,
+        "local_element_size"     : 1.0,
         "use_nearest_node"       : false
     })");
 
@@ -54,6 +55,7 @@ CalculateWaveHeightUtility::CalculateWaveHeightUtility(
     mMeanWaterLevel = ThisParameters["mean_water_level"].GetDouble();
     mAbsoluteRadius = ThisParameters["search_tolerance"].GetDouble();
     mRelativeRadius = ThisParameters["relative_search_radius"].GetDouble();
+    mLocalElementSize = ThisParameters["local_element_size"].GetDouble();
 }
 
 
@@ -63,7 +65,7 @@ double CalculateWaveHeightUtility::Calculate(const array_1d<double,3>& rCoordina
         return CalculateNearest(rCoordinates);
     } else {
         if (mUseLocalElementSize) {
-            return CalculateAverage(rCoordinates, mRelativeRadius);
+            return CalculateAverage(rCoordinates, mLocalElementSize);
         } else {
             return CalculateAverage(rCoordinates);
         }
