@@ -101,6 +101,113 @@ void AlternativeQSVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(ShapeFu
     r_geometry.ShapeFunctionsSecondDerivatives(rDDN_DDX, point_coordinates);
 }
 
+template< class TElementData >
+void AlternativeQSVMSDEMCoupled<TElementData>::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType::IntegrationPointsArrayType integration_points = this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    const SizeType number_of_integration_points = integration_points.size();
+
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    this->CalculateGeometryData(
+        gauss_weights, shape_functions, shape_derivatives);
+
+    if (rOutput.size() != number_of_integration_points)
+        rOutput.resize(number_of_integration_points);
+
+    TElementData data;
+    data.Initialize(*this, rCurrentProcessInfo);
+
+    for (unsigned int g = 0; g < number_of_integration_points; g++ ) {
+        data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),shape_derivatives[g]);
+        if (rVariable == PRESSURE) {
+            const auto& r_pressure = data.Pressure;
+            double value = this->GetAtCoordinate(r_pressure,data.N);
+            rOutput[g] = value;
+        }
+    }
+}
+
+template< class TElementData >
+void AlternativeQSVMSDEMCoupled<TElementData>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double,3>>& rVariable,
+    std::vector<array_1d<double,3>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType::IntegrationPointsArrayType integration_points = this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    const SizeType number_of_integration_points = integration_points.size();
+
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    this->CalculateGeometryData(
+        gauss_weights, shape_functions, shape_derivatives);
+
+    if (rOutput.size() != number_of_integration_points)
+        rOutput.resize(number_of_integration_points);
+
+    TElementData data;
+    data.Initialize(*this, rCurrentProcessInfo);
+
+    for (unsigned int g = 0; g < number_of_integration_points; g++ ) {
+        data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),shape_derivatives[g]);
+        array_1d<double,3> value(3,0.0);
+        if (rVariable == VELOCITY) {
+            const auto& r_velocity = data.Velocity;
+            value = this->GetAtCoordinate(r_velocity,data.N);
+        }
+        if (rVariable == PRESSURE_GRADIENT){
+            const auto& r_pressure = data.Pressure;
+            for (unsigned int i = 0; i < NumNodes; i++) {
+                for (unsigned int d = 0; d < Dim; d++) {
+                    value[d] += r_pressure[i] * data.DN_DX(i,d);
+                }
+            }
+        }
+        rOutput[g] = value;
+    }
+}
+
+template< class TElementData >
+void AlternativeQSVMSDEMCoupled<TElementData>::CalculateOnIntegrationPoints(
+    const Variable<Matrix>& rVariable,
+    std::vector<Matrix>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType::IntegrationPointsArrayType integration_points = this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    const SizeType number_of_integration_points = integration_points.size();
+
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    this->CalculateGeometryData(
+        gauss_weights, shape_functions, shape_derivatives);
+
+    if (rValues.size() != number_of_integration_points)
+        rValues.resize(number_of_integration_points);
+
+    TElementData data;
+    data.Initialize(*this, rCurrentProcessInfo);
+
+    for (unsigned int g = 0; g < number_of_integration_points; g++ ) {
+        data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),shape_derivatives[g]);
+        Matrix value = ZeroMatrix(Dim, Dim);
+        if (rVariable == VELOCITY_GRADIENT) {
+            const auto& r_velocity = data.Velocity;
+            for (unsigned int i = 0; i < NumNodes; i++) {
+                for (unsigned int d = 0; d < Dim; d++) {
+                    for (unsigned int e = 0; e < Dim; e++)
+                        value(d,e) += data.DN_DX(i,d) * r_velocity(i,e);
+                }
+            }
+        }
+        rValues[g] = value;
+    }
+}
 
 template <class TElementData>
 void AlternativeQSVMSDEMCoupled<TElementData>::Calculate(
