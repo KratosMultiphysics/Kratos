@@ -153,7 +153,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
 
         // if (!damage_activation && global_number_of_cycles > 2 && !advance_in_time_process_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.001)) {
         if (mFirstCycleOfANewLoad && global_number_of_cycles > 2 && !advance_in_time_process_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.1) && ((1.0 - reference_damage) * max_stress >= s_th)) {
-            local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / (betaf * betaf)))) + 1;
+            local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / (betaf * betaf * c_factor)))) + 1;
         }
         global_number_of_cycles++;
         local_number_of_cycles++;
