@@ -54,13 +54,6 @@ CalculateWaveHeightUtility::CalculateWaveHeightUtility(
     mMeanWaterLevel = ThisParameters["mean_water_level"].GetDouble();
     mAbsoluteRadius = ThisParameters["search_tolerance"].GetDouble();
     mRelativeRadius = ThisParameters["relative_search_radius"].GetDouble();
-
-    // The average element size is an initial guess for computing the average height
-    mMeanElementSize = block_for_each<SumReduction<double>>(
-        mrModelPart.Elements(), [](Element& rElement) {
-        return rElement.GetGeometry().Length();
-    });
-    mMeanElementSize /= mrModelPart.NumberOfElements();
 }
 
 
