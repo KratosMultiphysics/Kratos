@@ -26,6 +26,8 @@
 #include "custom_utilities/local_refine_triangle_mesh.hpp"
 #include "custom_utilities/local_refine_prism_mesh.hpp"
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
+#include "custom_utilities/tetrahedra10_mesh_converter_utility.h"
+
 
 #ifdef  USE_TETGEN_NONFREE_TPL
     #include "custom_utilities/tetgen_volume_mesher.h"
@@ -112,6 +114,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     (m,"LocalRefineTetrahedraMesh")
     .def(py::init<ModelPart&>())
     .def("LocalRefineMesh", &LocalRefineTetrahedraMesh::LocalRefineMesh)
+    ;
+
+    py::class_<Tetrahedra10MeshConverter >
+    (m,"Tetrahedra10MeshConverter")
+    .def(py::init<ModelPart&>())
+    .def("LocalConvertTetrahedra10Mesh", &Tetrahedra10MeshConverter::LocalConvertTetrahedra10Mesh)
     ;
 
 #ifdef USE_TETGEN_NONFREE_TPL

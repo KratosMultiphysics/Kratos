@@ -138,6 +138,35 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    
+    Tetrahedra3D10<Node<3>> GenerateTetrahedra(ModelPart& this_model_part, std::vector<int>& aux) {
+        unsigned int i0 = aux[0];
+        unsigned int i1 = aux[1];
+        unsigned int i2 = aux[2];
+        unsigned int i3 = aux[3];
+        unsigned int i4 = aux[4];
+        unsigned int i6 = aux[5];
+        unsigned int i7 = aux[6];
+        unsigned int i5 = aux[7];
+        unsigned int i8 = aux[8];
+        unsigned int i9 = aux[9];
+
+
+        Tetrahedra3D10<Node < 3 > > geom(
+            this_model_part.Nodes()(i0),
+            this_model_part.Nodes()(i1),
+            this_model_part.Nodes()(i2),
+            this_model_part.Nodes()(i3),
+            this_model_part.Nodes()(i4),
+            this_model_part.Nodes()(i5),
+            this_model_part.Nodes()(i6),
+            this_model_part.Nodes()(i7),
+            this_model_part.Nodes()(i8),
+            this_model_part.Nodes()(i9)
+        );
+        return geom;
+    }
+
         /**
     * It erases the old Tetrahedra3D4 elements and it creates the new Tetrahedra3D10 ones
     * @param Coord: The compressed matrix containing at (i,j) the id of the node created between nodes i,j
@@ -163,7 +192,7 @@ private:
 	int edge_ids[6];
 	std::vector<int> aux;
 
-    KRATOS_INFO("") << "************* CONVERTING TO TETRAHEDRA3D8 MESH **************\n" 
+    KRATOS_INFO("") << "************* CONVERTING TO TETRAHEDRA3D10 MESH **************\n" 
                     << "OLD NUMBER ELEMENTS: " << rElements.size() << std::endl;
 
 
@@ -174,32 +203,8 @@ private:
 
         it->Set(TO_ERASE,true);
 
-        unsigned int i0 = aux[0];
-        unsigned int i1 = aux[1];
-        unsigned int i2 = aux[2];
-        unsigned int i3 = aux[3];
-        unsigned int i4 = aux[4];
-        unsigned int i6 = aux[5];
-        unsigned int i7 = aux[6];
-        unsigned int i5 = aux[7];
-        unsigned int i8 = aux[8];
-        unsigned int i9 = aux[9];
-
-
-        Tetrahedra3D10<Node < 3 > > geom(
-            this_model_part.Nodes()(i0),
-            this_model_part.Nodes()(i1),
-            this_model_part.Nodes()(i2),
-            this_model_part.Nodes()(i3),
-            this_model_part.Nodes()(i4),
-            this_model_part.Nodes()(i5),
-            this_model_part.Nodes()(i6),
-            this_model_part.Nodes()(i7),
-            this_model_part.Nodes()(i8),
-            this_model_part.Nodes()(i9)
-        );
-
         // Generate the new Tetrahedra3D10 element
+        Tetrahedra3D10<Node<3>> geom = GenerateTetrahedra(this_model_part, aux);
         Element::Pointer p_element;
         const Element& rElem = KratosComponents<Element>::Get("Element3D10N");
         p_element = rElem.Create(current_id, geom, it->pGetProperties());
