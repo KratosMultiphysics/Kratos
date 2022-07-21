@@ -1257,6 +1257,7 @@ template class AlternativeQSVMSDEMCoupled<QSVMSDEMCoupledData<2,3> >;
 template class AlternativeQSVMSDEMCoupled<QSVMSDEMCoupledData<3,4> >;
 
 template class AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> >;
+template class AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,9> >;
 template class AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> >;
 }
 

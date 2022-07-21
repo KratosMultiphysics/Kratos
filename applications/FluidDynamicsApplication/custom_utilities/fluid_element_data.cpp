@@ -201,6 +201,7 @@ template class FluidElementData<2,3,true>;
 
 // Quadrilaterals
 template class FluidElementData<2,4,false>;
+template class FluidElementData<2,9,false>;
 template class FluidElementData<2,4,true>;
 
 // Tetrahedra
