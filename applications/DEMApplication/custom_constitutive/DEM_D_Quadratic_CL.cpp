@@ -28,13 +28,12 @@ namespace Kratos {
 
     void DEM_D_Quadratic::Check(Properties::Pointer pProp) const {
 
-        /*
         if(!pProp->Has(ALPHA_K)){
         KRATOS_WARNING("DEM")<<std::endl;
-        KRATOS_WARNING("DEM")<<"WARNING: Variable ALPHA_K should be present in the properties when using DEM_D_Quadratic_LAW. 1.0 value assigned by default."<<std::endl;
+        KRATOS_ERROR << "Error: Variable ALPHA_K should be present in the properties when using DEM_D_Quadratic_LAW. "<<std::endl;
         KRATOS_WARNING("DEM")<<std::endl;
-        pProp->GetValue(ALPHA_K) = 1.0;
-        */
+        //pProp->GetValue(ALPHA_K) = 1.0;
+        }
     }
 
 
@@ -66,8 +65,8 @@ namespace Kratos {
 
         //Normal and Tangent elastic constants //TODO: UPDATE 
         
-        //const double alpha_k = (*mpProperties)[ALPHA_K];
-        const double alpha_k = 4e5; 
+        const double alpha_k = element1->GetProperties()[ALPHA_K];
+        //const double alpha_k = 4e5; 
         const double aim_radius = std::min(my_radius, other_radius);
         // mKn is from Li,2011 [Modeling of stress-dependent static and dynamic moduli of weak sandstones]
         mKn = alpha_k * equiv_shear * Globals::Pi * aim_radius * aim_radius / radius_sum * (1 - equiv_poisson); 

@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstdio>
 #include <algorithm>
+//#include <iomanip>
 
 // Project includes
 #include "DEM_parallel_bond_CL.h"
@@ -390,6 +391,34 @@ void DEM_parallel_bond::CalculateForces(const ProcessInfo& r_process_info,
                             i_neighbour_count,
                             sliding,
                             r_process_info);
+
+    /*/for debug
+    if (contact_sigma > 0.0 || contact_tau > 0.0){
+        KRATOS_WATCH("**************************************normal force")
+        KRATOS_WATCH(element1->Id())
+        KRATOS_WATCH(element2->Id())
+        const double my_radius = element1->GetRadius();
+        const double other_radius = element2->GetRadius();
+        double radius_sum = my_radius + other_radius;
+        double initial_delta = element1->GetInitialDelta(i_neighbour_count);
+        double initial_dist = radius_sum - initial_delta;
+        std::cout << std::setprecision(16) << element1->GetGeometry()[0].Coordinates() << std::endl;
+        std::cout << std::setprecision(16) << element2->GetGeometry()[0].Coordinates() << std::endl;
+        //std::cout << std::setprecision(16) << initial_delta << std::endl;
+        //std::cout << std::setprecision(16) << initial_dist << std::endl;
+        std::cout << std::setprecision(16) << kn_el << std::endl;
+        std::cout << std::setprecision(16) << kt_el << std::endl;
+        std::cout << "LocalElasticContactForce[0]:" << std::setprecision(16) << LocalElasticContactForce[0] << std::endl;
+        std::cout << "LocalElasticContactForce[1]:" << std::setprecision(16) << LocalElasticContactForce[1] << std::endl;
+        std::cout << "LocalElasticContactForce[2]:" << std::setprecision(16) << LocalElasticContactForce[2] << std::endl;
+        std::cout << "contact_sigma:" << std::setprecision(16) << contact_sigma << std::endl;
+        std::cout << "contact_tau:"   << std::setprecision(16) << contact_tau << std::endl;
+        std::cout << "Tan_local_displacement[0]: "  << std::setprecision(16) << mAccumulatedBondedTangentialLocalDisplacement[0] << std::endl;
+        std::cout << "Tan_local_displacement[1]: "  << std::setprecision(16) << mAccumulatedBondedTangentialLocalDisplacement[1] << std::endl;
+        std::cout << "LocalDeltDisp[0]: "  << std::setprecision(16) << LocalDeltDisp[0] << std::endl;
+        std::cout << "LocalDeltDisp[1]: "  << std::setprecision(16) << LocalDeltDisp[1] << std::endl;
+        std::cout << "LocalDeltDisp[2]: "  << std::setprecision(16) << LocalDeltDisp[2] << std::endl;
+    }*/
 
     KRATOS_CATCH("") 
 }
