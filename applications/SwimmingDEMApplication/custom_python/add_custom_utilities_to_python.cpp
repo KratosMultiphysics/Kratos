@@ -84,7 +84,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/mesh_rotation_utility.h"
 #include "custom_utilities/renumbering_nodes_utility.h"
 #include "custom_utilities/stationarity_check.h"
-#include "custom_utilities/L2_error_calculator_utility.h"
+#include "custom_utilities/error_norm_calculator_utility.h"
 
 namespace Kratos{
 
@@ -529,11 +529,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("TransferWalls", &SwimmingDemInPfemUtils::TransferWalls)
         ;
 
-    py::class_<L2ErrorNormCalculator> (m, "L2ErrorNormCalculator")
+    py::class_<ErrorNormCalculator> (m, "ErrorNormCalculator")
         .def(py::init<>())
-        .def("ComputeDofsErrors", &L2ErrorNormCalculator::ComputeDofsErrors)
-        .def("GetL2VectorErrorNorm", &L2ErrorNormCalculator::GetL2VectorErrorNorm)
-        .def("GetL2ScalarErrorNorm", &L2ErrorNormCalculator::GetL2ScalarErrorNorm)
+        .def("ComputeDofsErrors", &ErrorNormCalculator::ComputeDofsErrors)
+        .def("GetL2VectorErrorNorm", &ErrorNormCalculator::GetL2VectorErrorNorm)
+        .def("GetL2ScalarErrorNorm", &ErrorNormCalculator::GetL2ScalarErrorNorm)
+        .def("GetH1ScalarErrorSemiNorm", &ErrorNormCalculator::GetH1ScalarErrorSemiNorm)
+        .def("GetH1VectorErrorSemiNorm", &ErrorNormCalculator::GetH1VectorErrorSemiNorm)
         ;
 
     py::class_<MeshRotationUtility> (m, "MeshRotationUtility")

@@ -41,7 +41,7 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
 
     def Initialize(self):
         super().Initialize()
-        self._GetSolver().ConstructL2ErrorCalculator()
+        self._GetSolver().ConstructErrorNormCalculator()
 
     def GetDebugInfo(self):
         return SDP.Counter(is_dead = 1)
@@ -83,11 +83,15 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
         porosity_field = [node.GetSolutionStepValue(Kratos.FLUID_FRACTION) for node in self.fluid_model_part.Nodes]
         self.porosity_mean = np.mean(porosity_field)
 
-        self.velocity_error_projected, self.pressure_error_projected, self.error_model_part = self._GetSolver().CalculateL2Error()
+        self.velocity_L2_error_projected, self.pressure_L2_error_projected, self.error_model_part = self._GetSolver().CalculateL2ErrorNorm()
+
+        self.velocity_H1_error_projected, self.pressure_H1_error_projected = self._GetSolver().CalculateH1ErrorNorm()
 
         self.projector_post_process.WriteData(self.error_model_part,
-                                            self.velocity_error_projected,
-                                            self.pressure_error_projected,
+                                            self.velocity_L2_error_projected,
+                                            self.pressure_L2_error_projected,
+                                            self.velocity_H1_error_projected,
+                                            self.pressure_H1_error_projected,
                                             self.projection_type,
                                             self.model_type,
                                             self.subscale_type,
@@ -97,8 +101,6 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
                                             self.relax_alpha,
                                             self.lowest_alpha,
                                             self.damkohler_number)
-
-        return self.velocity_error_projected
 
     def TransferBodyForceFromDisperseToFluid(self):
         pass

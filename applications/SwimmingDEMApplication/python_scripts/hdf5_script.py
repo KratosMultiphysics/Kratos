@@ -23,8 +23,10 @@ class ErrorProjectionPostProcessTool(object):
         }  """ )
 
         self.time = []
-        self.v_error = []
-        self.p_error = []
+        self.v_L2_error = []
+        self.p_L2_error = []
+        self.p_H1_error = []
+        self.v_H1_error = []
         self.av_mod_error = []
         self.n_iterations = []
         self.problem_path = os.getcwd()
@@ -32,7 +34,7 @@ class ErrorProjectionPostProcessTool(object):
         self.dtype = np.float64
         self.group_name = str(test_number)
 
-    def WriteData(self, error_model_part, velocity_error_projected, pressure_error_projected, projection_type, model_type, subscale_type, porosity_mean, n_iterations, max_iteration, relax_alpha, lowest_alpha, damkohler_number):
+    def WriteData(self, error_model_part, velocity_L2_error_projected, pressure_L2_error_projected, velocity_H1_error_projected, pressure_H1_error_projected, projection_type, model_type, subscale_type, porosity_mean, n_iterations, max_iteration, relax_alpha, lowest_alpha, damkohler_number):
         self.error_model_part = error_model_part
         self.projection_type = projection_type
         self.model_type = model_type
@@ -58,13 +60,15 @@ class ErrorProjectionPostProcessTool(object):
 
         self.n_iterations.append(n_iterations)
         self.time.append(self.error_model_part.ProcessInfo[Kratos.TIME])
-        self.v_error.append(velocity_error_projected)
-        self.p_error.append(pressure_error_projected)
+        self.v_L2_error.append(velocity_L2_error_projected)
+        self.p_L2_error.append(pressure_L2_error_projected)
+        self.v_H1_error.append(velocity_H1_error_projected)
+        self.p_H1_error.append(pressure_H1_error_projected)
 
         with h5py.File(self.file_path, 'a') as f:
                 self.WriteDataToFile(file_or_group = f,
-                            names = ['TIME', 'V_ERROR', 'P_ERROR', 'N_ITERATIONS'],
-                            data = [self.time, self.v_error, self.p_error, self.n_iterations])
+                            names = ['TIME', 'V_L2_ERROR', 'P_L2_ERROR', 'V_H1_ERROR', 'P_H1_ERROR', 'N_ITERATIONS'],
+                            data = [self.time, self.v_L2_error, self.p_L2_error, self.v_H1_error, self.p_H1_error, self.n_iterations])
 
     def WriteDataToFile(self, file_or_group, names, data):
         if self.group_name in file_or_group:

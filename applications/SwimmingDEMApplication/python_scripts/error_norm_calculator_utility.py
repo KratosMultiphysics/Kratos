@@ -6,7 +6,7 @@ import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import numpy as np
 import sys
 
-class L2ErrorCalculatorUtility:
+class ErrorNormCalculatorUtility:
     def __init__(self, model, parameters):
         """The default constructor of the class.
 
@@ -27,7 +27,7 @@ class L2ErrorCalculatorUtility:
 
         self.model = KratosMultiphysics.Model()
 
-        self.element_name = "Element3D4N"
+        self.element_name = "AlternativeQSVMSDEMCoupled2D4N"
 
         self.error_model_part = self.model.CreateModelPart("ErrorModelPart")
 
@@ -46,16 +46,29 @@ class L2ErrorCalculatorUtility:
     def CalculateL2(self):
         self.ComputeDofsErrors()
 
-        self.velocity_error_norm = self.VectorL2ErrorNorm()
-        self.pressure_error_norm = self.ScalarL2ErrorNorm()
+        self.velocity_L2_error_norm = self.VectorL2ErrorNorm()
+        self.pressure_L2_error_norm = self.ScalarL2ErrorNorm()
 
-        return self.velocity_error_norm/self.u_characteristic, self.pressure_error_norm/self.p_characteristic, self.error_model_part
+        return self.velocity_L2_error_norm/self.u_characteristic, self.pressure_L2_error_norm/self.p_characteristic, self.error_model_part
+
+    def CalculateH1(self):
+
+        self.pressure_H1_error_norm = self.ScalarH1ErrorNorm()
+        self.velocity_H1_error_norm = self.VectorH1ErrorNorm()
+
+        return self.velocity_H1_error_norm/self.u_characteristic, self.pressure_H1_error_norm/self.p_characteristic
 
     def ComputeDofsErrors(self):
-        SDEM.L2ErrorNormCalculator().ComputeDofsErrors(self.error_model_part)
+        SDEM.ErrorNormCalculator().ComputeDofsErrors(self.error_model_part)
 
     def VectorL2ErrorNorm(self):
-        return SDEM.L2ErrorNormCalculator().GetL2VectorErrorNorm(self.error_model_part)
+        return SDEM.ErrorNormCalculator().GetL2VectorErrorNorm(self.error_model_part, KratosMultiphysics.VELOCITY)
 
     def ScalarL2ErrorNorm(self):
-        return SDEM.L2ErrorNormCalculator().GetL2ScalarErrorNorm(self.error_model_part)
+        return SDEM.ErrorNormCalculator().GetL2ScalarErrorNorm(self.error_model_part)
+
+    def ScalarH1ErrorNorm(self):
+        return SDEM.ErrorNormCalculator().GetH1ScalarErrorSemiNorm(self.error_model_part)
+
+    def VectorH1ErrorNorm(self):
+        return SDEM.ErrorNormCalculator().GetH1VectorErrorSemiNorm(self.error_model_part)
