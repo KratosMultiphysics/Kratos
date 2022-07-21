@@ -83,15 +83,15 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
         porosity_field = [node.GetSolutionStepValue(Kratos.FLUID_FRACTION) for node in self.fluid_model_part.Nodes]
         self.porosity_mean = np.mean(porosity_field)
 
-        self.velocity_L2_error_projected, self.pressure_L2_error_projected, self.error_model_part = self._GetSolver().CalculateL2ErrorNorm()
+        self.velocity_L2_error_norm, self.pressure_L2_error_norm, self.error_model_part = self._GetSolver().CalculateL2ErrorNorm()
 
-        self.velocity_H1_error_projected, self.pressure_H1_error_projected = self._GetSolver().CalculateH1ErrorNorm()
+        self.velocity_H1_error_seminorm, self.pressure_H1_error_seminorm = self._GetSolver().CalculateH1ErrorSemiNorm()
 
         self.projector_post_process.WriteData(self.error_model_part,
-                                            self.velocity_L2_error_projected,
-                                            self.pressure_L2_error_projected,
-                                            self.velocity_H1_error_projected,
-                                            self.pressure_H1_error_projected,
+                                            self.velocity_L2_error_norm,
+                                            self.pressure_L2_error_norm,
+                                            self.velocity_H1_error_seminorm,
+                                            self.pressure_H1_error_seminorm,
                                             self.projection_type,
                                             self.model_type,
                                             self.subscale_type,

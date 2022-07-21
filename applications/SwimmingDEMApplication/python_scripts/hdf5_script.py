@@ -34,7 +34,7 @@ class ErrorProjectionPostProcessTool(object):
         self.dtype = np.float64
         self.group_name = str(test_number)
 
-    def WriteData(self, error_model_part, velocity_L2_error_projected, pressure_L2_error_projected, velocity_H1_error_projected, pressure_H1_error_projected, projection_type, model_type, subscale_type, porosity_mean, n_iterations, max_iteration, relax_alpha, lowest_alpha, damkohler_number):
+    def WriteData(self, error_model_part, velocity_L2_error_norm, pressure_L2_error_norm, velocity_H1_error_seminorm, pressure_H1_error_seminorm, projection_type, model_type, subscale_type, porosity_mean, n_iterations, max_iteration, relax_alpha, lowest_alpha, damkohler_number):
         self.error_model_part = error_model_part
         self.projection_type = projection_type
         self.model_type = model_type
@@ -60,10 +60,10 @@ class ErrorProjectionPostProcessTool(object):
 
         self.n_iterations.append(n_iterations)
         self.time.append(self.error_model_part.ProcessInfo[Kratos.TIME])
-        self.v_L2_error.append(velocity_L2_error_projected)
-        self.p_L2_error.append(pressure_L2_error_projected)
-        self.v_H1_error.append(velocity_H1_error_projected)
-        self.p_H1_error.append(pressure_H1_error_projected)
+        self.v_L2_error.append(velocity_L2_error_norm)
+        self.p_L2_error.append(pressure_L2_error_norm)
+        self.v_H1_error.append(velocity_H1_error_seminorm)
+        self.p_H1_error.append(pressure_H1_error_seminorm)
 
         with h5py.File(self.file_path, 'a') as f:
                 self.WriteDataToFile(file_or_group = f,

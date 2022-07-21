@@ -43,7 +43,7 @@ class ErrorNormCalculatorUtility:
 
         self.error_model_part.ProcessInfo = self.model_part.ProcessInfo
 
-    def CalculateL2(self):
+    def CalculateL2Norm(self):
         self.ComputeDofsErrors()
 
         self.velocity_L2_error_norm = self.VectorL2ErrorNorm()
@@ -51,12 +51,12 @@ class ErrorNormCalculatorUtility:
 
         return self.velocity_L2_error_norm/self.u_characteristic, self.pressure_L2_error_norm/self.p_characteristic, self.error_model_part
 
-    def CalculateH1(self):
+    def CalculateH1SemiNorm(self):
 
-        self.pressure_H1_error_norm = self.ScalarH1ErrorNorm()
-        self.velocity_H1_error_norm = self.VectorH1ErrorNorm()
+        self.velocity_H1_error_seminorm = self.VectorH1ErrorSemiNorm()
+        self.pressure_H1_error_seminorm = self.ScalarH1ErrorSemiNorm()
 
-        return self.velocity_H1_error_norm/self.u_characteristic, self.pressure_H1_error_norm/self.p_characteristic
+        return self.velocity_H1_error_seminorm/self.u_characteristic, self.pressure_H1_error_seminorm/self.p_characteristic
 
     def ComputeDofsErrors(self):
         SDEM.ErrorNormCalculator().ComputeDofsErrors(self.error_model_part)
@@ -67,8 +67,8 @@ class ErrorNormCalculatorUtility:
     def ScalarL2ErrorNorm(self):
         return SDEM.ErrorNormCalculator().GetL2ScalarErrorNorm(self.error_model_part)
 
-    def ScalarH1ErrorNorm(self):
+    def ScalarH1ErrorSemiNorm(self):
         return SDEM.ErrorNormCalculator().GetH1ScalarErrorSemiNorm(self.error_model_part)
 
-    def VectorH1ErrorNorm(self):
+    def VectorH1ErrorSemiNorm(self):
         return SDEM.ErrorNormCalculator().GetH1VectorErrorSemiNorm(self.error_model_part)
