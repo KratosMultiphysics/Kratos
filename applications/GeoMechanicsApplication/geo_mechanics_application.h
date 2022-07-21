@@ -477,6 +477,7 @@ private:
     const AxisymmetricLineNormalFluidFlux2DDiffOrderCondition mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N;
 	
 	const UPwLysmerAbsorbingCondition<2, 2> mUPwLysmerAbsorbingCondition2D2N;
+    const UPwLysmerAbsorbingCondition<2, 3> mUPwLysmerAbsorbingCondition2D3N;
     const UPwLysmerAbsorbingCondition<3, 3> mUPwLysmerAbsorbingCondition3D3N;
     const UPwLysmerAbsorbingCondition<3, 4> mUPwLysmerAbsorbingCondition3D4N;
 

@@ -84,9 +84,11 @@ protected:
         double Ec; // p wave modulus
         double G; // shear wave modulus
         double vp; // p wave velocity
-        double vs; // sheare wave velocity
+        double vs; // shear wave velocity
         double alpha1;
         double alpha2;
+        BoundedMatrix<double, TDim, TDim> CAbsMatrix; // damping part of absorbing matrix;
+        BoundedMatrix<double, TDim, TDim> KAbsMatrix; // stiffness part of absorbing matrix;
     };
     
 
