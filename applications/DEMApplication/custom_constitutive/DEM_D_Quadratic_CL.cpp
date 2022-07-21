@@ -64,9 +64,8 @@ namespace Kratos {
         const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
         //Normal and Tangent elastic constants //TODO: UPDATE 
-        
-        const double alpha_k = element1->GetProperties()[ALPHA_K];
-        //const double alpha_k = 4e5; 
+        Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
+        const double alpha_k = properties_of_this_contact[ALPHA_K];
         const double aim_radius = std::min(my_radius, other_radius);
         // mKn is from Li,2011 [Modeling of stress-dependent static and dynamic moduli of weak sandstones]
         mKn = alpha_k * equiv_shear * Globals::Pi * aim_radius * aim_radius / radius_sum * (1 - equiv_poisson); 
