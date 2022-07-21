@@ -58,6 +58,17 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Node type (default is: Node<3>)
+    typedef Node<3> NodeType;
+
+    /// Geometry type (using with given NodeType)
+    typedef Geometry<NodeType> GeometryType;
+
+    /// Definition of nodes container type, redefined from GeometryType
+    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+
+    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+
     /// Pointer definition of PlateauBumpPorositySolutionAndBodyForceProcess
     KRATOS_CLASS_POINTER_DEFINITION(PlateauBumpPorositySolutionAndBodyForceProcess);
 
@@ -144,7 +155,6 @@ public:
     bool                                      mInitialConditions;
     bool                                 mAlternativeFormulation;
 
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -155,7 +165,7 @@ public:
 
     void SetInitialBodyForceAndPorosityField();
 
-    void SetBodyForceAndPorosityField();
+    void SetValuesOnIntegrationPoints();
 
     ///@}
     ///@name Friends
