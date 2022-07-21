@@ -129,7 +129,7 @@ private:
     bool mUseNearestNode;
     double mRelativeRadius;
     double mAbsoluteRadius;
-    double mLocalElementSize;
+    double mMeanElementSize;
 
     ///@}
     ///@name Private Operations

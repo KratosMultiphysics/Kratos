@@ -26,7 +26,6 @@ class WaveHeightOutputProcess(KM.OutputProcess):
                               - 'relative_search_radius'
                               - 'search_tolerance'
                               - 'use_local_element_size'
-                              - 'local_element_size'
                               - 'use_nearest_node'
     """
 
