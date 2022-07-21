@@ -53,13 +53,6 @@ void UPwLysmerAbsorbingCondition<TDim,TNumNodes>::
     GeometryType& Geom = this->GetGeometry();
     PropertiesType& prop = this->GetProperties();
 
-    Vector absorbing_factors = ZeroVector(2);
-
-    for (unsigned int i = 0; i < 2; ++i)
-    {
-        absorbing_factors(i) = 20;
-    }
-    prop.SetValue(ABSORBING_FACTORS, absorbing_factors);
     GeometryData::IntegrationMethod rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(rIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();
@@ -182,16 +175,13 @@ CalculateTractionVector(NormalLysmerAbsorbingVariables& rVariables, const Proces
 
     // calculate constant traction vector part
 
-    double thickness_virtual_layer = 10;
 
-    rDampingConstants[0] = rVariables.vs * rVariables.rho * alpha2;
-    rDampingConstants[1] = rVariables.vp * rVariables.rho * alpha1;
+    rDampingConstants[0] = rVariables.vs * rVariables.rho * rVariables.s_factor;
+    rDampingConstants[1] = rVariables.vp * rVariables.rho * rVariables.p_factor;
 
-    //rDampingConstants[1] = 0;
-    //rDampingConstants[0] = 0;
 
-    rStiffnessConstants[0] = rVariables.G / thickness_virtual_layer;
-    rStiffnessConstants[1] = rVariables.Ec / thickness_virtual_layer;
+    rStiffnessConstants[0] = rVariables.G / rVariables.virtual_thickness;
+    rStiffnessConstants[1] = rVariables.Ec / rVariables.virtual_thickness;
 
 
     BoundedMatrix<double, TDim, TDim>             localCMatrix = ZeroMatrix(TDim, TDim);
@@ -299,10 +289,11 @@ GetVariables(
     rVariables.vp = sqrt(rVariables.Ec / rVariables.rho);
     rVariables.vs = sqrt(rVariables.G / rVariables.rho);
 
-    //auto absorbing_factors = this->GetValue(ABSORBING_FACTORS);
-
-    //rVariables.alpha1 = absorbing_factors[0];
-    //rVariables.alpha2 = absorbing_factors[1];
+    // get condition specific variables
+    Vector absorbing_factors = this->GetValue(ABSORBING_FACTORS);
+    rVariables.p_factor = absorbing_factors(0);
+    rVariables.s_factor = absorbing_factors(1);
+    rVariables.virtual_thickness = this->GetValue(VIRTUAL_THICKNESS);
 }
 
 template< unsigned int TDim, unsigned int TNumNodes >
