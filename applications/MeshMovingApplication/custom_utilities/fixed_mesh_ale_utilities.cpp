@@ -99,8 +99,10 @@ namespace Kratos
 
         // Set the origin process info to the virtual model part
         mrVirtualModelPart.SetProcessInfo(rOriginModelPart.GetProcessInfo());
+        mrStructureModelPart.SetProcessInfo(rOriginModelPart.GetProcessInfo());
 
         // Add the required varibles to the virtual model part
+        mrVirtualModelPart.AddNodalSolutionStepVariable(DISTANCE);
         mrVirtualModelPart.AddNodalSolutionStepVariable(VELOCITY);
         mrVirtualModelPart.AddNodalSolutionStepVariable(PRESSURE);
         mrVirtualModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -146,6 +148,8 @@ namespace Kratos
                     it_virt_node->FastGetSolutionStepValue(PRESSURE, step) = it_orig_node->FastGetSolutionStepValue(PRESSURE, step);
                     noalias(it_virt_node->FastGetSolutionStepValue(VELOCITY, step)) = it_orig_node->FastGetSolutionStepValue(VELOCITY, step);
                 }
+
+                it_virt_node->FastGetSolutionStepValue(DISTANCE) = it_orig_node->FastGetSolutionStepValue(DISTANCE);
             } );
     }
 
@@ -210,6 +214,8 @@ namespace Kratos
                         rNode.FastGetSolutionStepValue(PRESSURE, i_step) = 0.0;
                         noalias(rNode.FastGetSolutionStepValue(VELOCITY, i_step)) = ZeroVector(3);
                     }
+                    //FIXME: LEVEL SET WITH FM ALE
+                    rNode.FastGetSolutionStepValue(DISTANCE)=0.0;
 
                     // Interpolate the origin model part nodal values
                     const auto &r_geom = p_elem->GetGeometry();
@@ -225,6 +231,9 @@ namespace Kratos
                             rNode.FastGetSolutionStepValue(PRESSURE, i_step) += aux_N(i_virt_node) * i_virt_p;
                             noalias(rNode.FastGetSolutionStepValue(VELOCITY, i_step)) += aux_N(i_virt_node) * i_virt_v;
                         }
+
+                        // FIXME: LEVEL SET WITH FM ALE
+                        rNode.FastGetSolutionStepValue(DISTANCE) += aux_N(i_virt_node) * r_geom[i_virt_node].FastGetSolutionStepValue(DISTANCE);
                     }
                 } else {
                     KRATOS_WARNING("FixedMeshALEUtilities")
@@ -365,89 +374,129 @@ namespace Kratos
         );
     }
 
+    // void FixedMeshALEUtilities::SetEmbeddedNodalMeshDisplacement()
+    // {
+    //     // Initialize the DISPLACEMENT variable values
+    //     block_for_each( mrVirtualModelPart.Nodes(),
+    //     []( Node<3>& rNode )
+    //     {
+    //         rNode.FastGetSolutionStepValue(DISPLACEMENT, 0) = ZeroVector(3);
+    //         rNode.FastGetSolutionStepValue(DISPLACEMENT, 1) = ZeroVector(3);
+    //     } );
+
+    //     // Place the structure in its previous position
+    //     block_for_each( mrStructureModelPart.Nodes(),
+    //     []( Node<3>& rNode )
+    //     {
+    //         const auto d_1 = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+    //         rNode.X() = rNode.X0() + d_1[0];
+    //         rNode.Y() = rNode.Y0() + d_1[1];
+    //         rNode.Z() = rNode.Z0() + d_1[2];
+    //     } );
+
+    //     // Compute the DISPLACEMENT increment from the structure model part and save it in the origin mesh MESH_DISPLACEMENT
+    //     const unsigned int buff_pos_0 = 0;
+    //     FixedMeshALEUtilities::EmbeddedNodalVariableProcessArrayType emb_nod_var_from_skin_proc_array_0(
+    //         mrVirtualModelPart,
+    //         mrStructureModelPart,
+    //         mEmbeddedNodalVariableSettings["linear_solver_settings"],
+    //         DISPLACEMENT,
+    //         DISPLACEMENT,
+    //         mEmbeddedNodalVariableSettings["gradient_penalty_coefficient"].GetDouble(),
+    //         buff_pos_0);
+    //     emb_nod_var_from_skin_proc_array_0.Execute();
+    //     emb_nod_var_from_skin_proc_array_0.Clear();
+
+    //     const unsigned int buff_pos_1 = 1;
+    //     FixedMeshALEUtilities::EmbeddedNodalVariableProcessArrayType emb_nod_var_from_skin_proc_array_1(
+    //         mrVirtualModelPart,
+    //         mrStructureModelPart,
+    //         mEmbeddedNodalVariableSettings["linear_solver_settings"],
+    //         DISPLACEMENT,
+    //         DISPLACEMENT,
+    //         mEmbeddedNodalVariableSettings["gradient_penalty_coefficient"].GetDouble(),
+    //         buff_pos_1);
+    //     emb_nod_var_from_skin_proc_array_1.Execute();
+    //     emb_nod_var_from_skin_proc_array_1.Clear();
+
+    //     // In the intersected elements, set the MESH_DISPLACEMENT as the increment of displacement and fix it
+    //     // Note that this assumes that the flag INTERFACE has been set by the embedded nodal variable process
+    //     for (int i_elem = 0; i_elem < static_cast<int>(mrVirtualModelPart.NumberOfElements()); ++i_elem) {
+    //         auto it_elem = mrVirtualModelPart.ElementsBegin() + i_elem;
+    //         if (it_elem->Is(INTERFACE)) {
+    //             auto &r_geom = it_elem->GetGeometry();
+    //             for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+    //                 auto &r_node = r_geom[i_node];
+    //                 if (r_node.Is(VISITED)) {
+    //                     const auto &r_d_0 = r_node.FastGetSolutionStepValue(DISPLACEMENT, 0);
+    //                     const auto &r_d_1 = r_node.FastGetSolutionStepValue(DISPLACEMENT, 1);
+    //                     auto &r_mesh_disp = r_node.FastGetSolutionStepValue(MESH_DISPLACEMENT, 0);
+    //                     if (!r_node.IsFixed(MESH_DISPLACEMENT_X)) {
+    //                         r_node.Fix(MESH_DISPLACEMENT_X);
+    //                         r_mesh_disp[0] = r_d_0[0] - r_d_1[0];
+    //                     }
+    //                     if (!r_node.IsFixed(MESH_DISPLACEMENT_Y)) {
+    //                         r_node.Fix(MESH_DISPLACEMENT_Y);
+    //                         r_mesh_disp[1] = r_d_0[1] - r_d_1[1];
+    //                     }
+    //                     if (!r_node.IsFixed(MESH_DISPLACEMENT_Z)) {
+    //                         r_node.Fix(MESH_DISPLACEMENT_Z);
+    //                         r_mesh_disp[2] = r_d_0[2] - r_d_1[2];
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     // Revert the structure movement to its current position
+    //     block_for_each( mrStructureModelPart.Nodes(),
+    //     []( Node<3>& rNode )
+    //     {
+    //         const auto d_0 = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
+    //         rNode.X() = rNode.X0() + d_0[0];
+    //         rNode.Y() = rNode.Y0() + d_0[1];
+    //         rNode.Z() = rNode.Z0() + d_0[2];
+    //     } );
+    // }
+
     void FixedMeshALEUtilities::SetEmbeddedNodalMeshDisplacement()
     {
-        // Initialize the DISPLACEMENT variable values
-        block_for_each( mrVirtualModelPart.Nodes(),
-        []( Node<3>& rNode )
-        {
-            rNode.FastGetSolutionStepValue(DISPLACEMENT, 0) = ZeroVector(3);
-            rNode.FastGetSolutionStepValue(DISPLACEMENT, 1) = ZeroVector(3);
-        } );
-
-        // Place the structure in its previous position
-        block_for_each( mrStructureModelPart.Nodes(),
-        []( Node<3>& rNode )
-        {
-            const auto d_1 = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
-            rNode.X() = rNode.X0() + d_1[0];
-            rNode.Y() = rNode.Y0() + d_1[1];
-            rNode.Z() = rNode.Z0() + d_1[2];
-        } );
-
-        // Compute the DISPLACEMENT increment from the structure model part and save it in the origin mesh MESH_DISPLACEMENT
-        const unsigned int buff_pos_0 = 0;
-        FixedMeshALEUtilities::EmbeddedNodalVariableProcessArrayType emb_nod_var_from_skin_proc_array_0(
-            mrVirtualModelPart,
-            mrStructureModelPart,
-            mEmbeddedNodalVariableSettings["linear_solver_settings"],
-            DISPLACEMENT,
-            DISPLACEMENT,
-            mEmbeddedNodalVariableSettings["gradient_penalty_coefficient"].GetDouble(),
-            buff_pos_0);
-        emb_nod_var_from_skin_proc_array_0.Execute();
-        emb_nod_var_from_skin_proc_array_0.Clear();
-
-        const unsigned int buff_pos_1 = 1;
-        FixedMeshALEUtilities::EmbeddedNodalVariableProcessArrayType emb_nod_var_from_skin_proc_array_1(
-            mrVirtualModelPart,
-            mrStructureModelPart,
-            mEmbeddedNodalVariableSettings["linear_solver_settings"],
-            DISPLACEMENT,
-            DISPLACEMENT,
-            mEmbeddedNodalVariableSettings["gradient_penalty_coefficient"].GetDouble(),
-            buff_pos_1);
-        emb_nod_var_from_skin_proc_array_1.Execute();
-        emb_nod_var_from_skin_proc_array_1.Clear();
-
-        // In the intersected elements, set the MESH_DISPLACEMENT as the increment of displacement and fix it
-        // Note that this assumes that the flag INTERFACE has been set by the embedded nodal variable process
         for (int i_elem = 0; i_elem < static_cast<int>(mrVirtualModelPart.NumberOfElements()); ++i_elem) {
             auto it_elem = mrVirtualModelPart.ElementsBegin() + i_elem;
-            if (it_elem->Is(INTERFACE)) {
-                auto &r_geom = it_elem->GetGeometry();
+            auto& r_geom = it_elem->GetGeometry();
+            std::size_t n_pos = 0;
+            std::size_t n_neg = 0;
+            for (auto& r_node : r_geom) {
+                if (r_node.FastGetSolutionStepValue(DISTANCE) < 0.0) {
+                    n_neg++;
+                } else {
+                    n_pos++;
+                }
+            }
+            const bool is_cut = n_neg != 0 && n_pos != 0 ? true : false;
+
+            const double dt = mpOriginModelPart->GetProcessInfo()[DELTA_TIME];
+            KRATOS_ERROR_IF (dt < 1.0e-12) << "Dt is zero in virtual model part." << std::endl;
+            if (is_cut) {
                 for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
                     auto &r_node = r_geom[i_node];
-                    if (r_node.Is(VISITED)) {
-                        const auto &r_d_0 = r_node.FastGetSolutionStepValue(DISPLACEMENT, 0);
-                        const auto &r_d_1 = r_node.FastGetSolutionStepValue(DISPLACEMENT, 1);
-                        auto &r_mesh_disp = r_node.FastGetSolutionStepValue(MESH_DISPLACEMENT, 0);
-                        if (!r_node.IsFixed(MESH_DISPLACEMENT_X)) {
-                            r_node.Fix(MESH_DISPLACEMENT_X);
-                            r_mesh_disp[0] = r_d_0[0] - r_d_1[0];
-                        }
-                        if (!r_node.IsFixed(MESH_DISPLACEMENT_Y)) {
-                            r_node.Fix(MESH_DISPLACEMENT_Y);
-                            r_mesh_disp[1] = r_d_0[1] - r_d_1[1];
-                        }
-                        if (!r_node.IsFixed(MESH_DISPLACEMENT_Z)) {
-                            r_node.Fix(MESH_DISPLACEMENT_Z);
-                            r_mesh_disp[2] = r_d_0[2] - r_d_1[2];
-                        }
+                    const auto &r_v_n = r_node.FastGetSolutionStepValue(VELOCITY, 1);
+                    auto &r_mesh_disp = r_node.FastGetSolutionStepValue(MESH_DISPLACEMENT, 0);
+                    if (!r_node.IsFixed(MESH_DISPLACEMENT_X)) {
+                        r_node.Fix(MESH_DISPLACEMENT_X);
+                        r_mesh_disp[0] = dt*r_v_n[0];
+                    }
+                    if (!r_node.IsFixed(MESH_DISPLACEMENT_Y)) {
+                        r_node.Fix(MESH_DISPLACEMENT_Y);
+                        r_mesh_disp[1] = dt*r_v_n[1];
+                    }
+                    if (!r_node.IsFixed(MESH_DISPLACEMENT_Z)) {
+                        r_node.Fix(MESH_DISPLACEMENT_Z);
+                        r_mesh_disp[2] = dt*r_v_n[2];
                     }
                 }
             }
         }
-
-        // Revert the structure movement to its current position
-        block_for_each( mrStructureModelPart.Nodes(),
-        []( Node<3>& rNode )
-        {
-            const auto d_0 = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
-            rNode.X() = rNode.X0() + d_0[0];
-            rNode.Y() = rNode.Y0() + d_0[1];
-            rNode.Z() = rNode.Z0() + d_0[2];
-        } );
     }
 
     void FixedMeshALEUtilities::SolveMeshMovementStrategy(const double DeltaTime)
@@ -467,6 +516,9 @@ namespace Kratos
             KRATOS_ERROR_IF((it_elem->GetGeometry()).Area() < 0.0) << "Element " << it_elem->Id() << " in virtual model part has negative jacobian." << std::endl;
         }
 #endif
+        for (const auto& it_elem : mrVirtualModelPart.ElementsArray()) {
+            KRATOS_ERROR_IF((it_elem->GetGeometry()).Area() < 0.0) << "Element " << it_elem->Id() << " in virtual model part has negative jacobian." << std::endl;
+        }
     }
 
     void FixedMeshALEUtilities::RevertMeshDisplacementFixity()

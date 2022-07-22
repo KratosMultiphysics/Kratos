@@ -2,6 +2,7 @@
 import time
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtilities
+import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -197,6 +198,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
             self.settings["distance_reading_settings"]["distance_file_name"].SetString(self.settings["model_import_settings"]["input_filename"].GetString()+".post.res")
 
+        #FIXME: Traditional FM-ALE
+        self.traditional=True
+        if self.traditional:
+            self.__GetFmAleVirtualModelPart()
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesTwoFluidsSolver finished.")
 
     def AddVariables(self):
@@ -218,7 +224,24 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
 
+        #FIXME: FM-ALE VARIABLES
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_REACTION)
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
+
+    #FIXME: TRADITIONAL FM-ALE
+    def AddDofs(self):
+        # Add formulation DOFs and reactions
+        super().AddDofs()
+
+        # Add mesh motion problem DOFs for the FM-ALE algorithm
+        dofs_and_reactions_to_add = []
+        dofs_and_reactions_to_add.append(["MESH_DISPLACEMENT_X", "MESH_REACTION_X"])
+        dofs_and_reactions_to_add.append(["MESH_DISPLACEMENT_Y", "MESH_REACTION_Y"])
+        dofs_and_reactions_to_add.append(["MESH_DISPLACEMENT_Z", "MESH_REACTION_Z"])
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-ALE DOFs added correctly.")
 
     def PrepareModelPart(self):
         # Initialize the level-set function
@@ -269,7 +292,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # Instantiate the level set convection process
         # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
-        self._GetLevelSetConvectionProcess()
+        # self._GetLevelSetConvectionProcess()
 
         self.mass_source = False
         if self.settings["formulation"].Has("mass_source"):
@@ -285,7 +308,28 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             node.SetValue(
                 KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, artificial_viscosity)
 
+        #FIXME: Traditional FM-ALE
+        # Initialize the FM-ALE utility
+
+        if self.traditional:
+            if not self.energy_preserving:
+                self.__GetFmAleUtility().Initialize(self.main_model_part)
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
+
+    #FIXME: Remove after the traditional FM-ALE
+    def AdvanceInTime(self, current_time):
+        # Call base solver AdvanceInTime to clone the time step and get the new time
+        new_time = super().AdvanceInTime(current_time)
+
+        # Save the current step and time in the virtual model part process info
+        if self.traditional:
+            if not self.energy_preserving:
+                self.__GetFmAleVirtualModelPart().ProcessInfo[KratosMultiphysics.STEP] += 1
+                self.__GetFmAleVirtualModelPart().ProcessInfo[KratosMultiphysics.TIME] = new_time
+                self.__GetFmAleVirtualModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] = self._ComputeDeltaTime()
+
+        return new_time
 
     def InitializeSolutionStep(self):
         for node in self.GetComputingModelPart().Nodes:
@@ -311,9 +355,19 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if self.time_scheme=="bdf2":
             # Recompute the BDF2 coefficients
                 (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+                dt = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
+                bdf_coefs = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.BDF_COEFFICIENTS]
+                bdf_coefs[0] = 1.0/dt
+                bdf_coefs[1] = -1.0/dt
+                bdf_coefs[2] = 0.0
 
             # Perform the level-set convection according to the previous step velocity
-            self._PerformLevelSetConvection()
+
+            if not self.energy_preserving:
+                self._PerformLevelSetConvection()
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
+
+            # Artificial viscosity calculation
             iscut=False
             for element in self.GetComputingModelPart().Elements:
                 n_pos=0
@@ -326,13 +380,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 if n_pos>0 and n_neg>0:
                     for node in element.GetGeometry():
                         node.SetValue(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY,0)
-
-
-
-
-
-
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
             # filtering noises is necessary for curvature calculation
             if (self._distance_smoothing):
@@ -351,6 +398,22 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # TODO: Performing mass conservation check and correction process
 
+            # Particle based fm-ale technique is used in order to preserve energy.
+            if self.energy_preserving:
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, " Particle based fm-ale energy preserving method has initialized")
+                KratosCFD.TwoFluidHistoryProjectionUtility.CalculateHistoryProjection(
+                    self.GetComputingModelPart(),
+                    True,
+                    self.particle_layer_thickness,
+                    self.particle_searching_factor)
+            else:
+                if self.traditional:
+                    # FIXME: Traditional FM-ALE operations
+                    self.__SetVirtualMeshValues()  # Set the virtual mesh values from the background mesh
+                    self.__DoFmAleOperations()  # Perform the FM-ALE operations
+                    self.__UndoFMALEOperations()  # Undo the FM-ALE virtual mesh movement
+                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-ALE operations.")
+
             # Perform distance correction to prevent ill-conditioned cuts
             self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
@@ -362,9 +425,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Accumulative water volume error ratio due to level set. Adding source term
             if self.mass_source:
-                water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
-                volume_error = (water_volume_after_transport - system_volume) / system_volume
-                self.initial_system_volume=system_volume
+                water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(
+                    self.GetComputingModelPart())
+                volume_error = (water_volume_after_transport -
+                                system_volume) / system_volume
+                self.initial_system_volume = system_volume
 
                 # int_area = KratosCFD.FluidAuxiliaryUtilities.CalculateInterfaceArea(self.GetComputingModelPart())
                 # dist_corr = (water_volume_after_transport - system_volume) / int_area
@@ -373,26 +438,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 #     node.SetValue(KratosCFD.DISTANCE_CORRECTION, -dist_corr)
 
             else:
-                volume_error=0
+                volume_error = 0
 
-            self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, volume_error)
-
-
-            print("Before history projection")
-            start = time.time()
-            # Particle based fm-ale technique is used in order to preserve energy.
-            if self.energy_preserving:
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, " Particle based fm-ale energy preserving method has initialized")
-                KratosCFD.TwoFluidHistoryProjectionUtility.CalculateHistoryProjection(self.GetComputingModelPart(), True,  self.particle_layer_thickness, self.particle_searching_factor)
-                for node in self.GetComputingModelPart().Nodes:
-                    if node.Id==19424:
-                        v=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
-                        print("UXUE")
-                        print(v)
-            end = time.time()
-            print("After history projection. Took {} seconds.".format(end-start))
-
-            self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+            self.main_model_part.ProcessInfo.SetValue(
+                KratosCFD.VOLUME_ERROR, volume_error)
 
             # We set this value at every time step as other processes/solvers also use them
             dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
@@ -407,7 +456,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if self._reinitialization_type != "none":
                 self._GetDistanceReinitializationProcess().Execute()
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
-
+                # for node in self.model.GetModelPart("FluidModelPart.Outlet3D_Outlet_pressure_Auto1").Nodes:
+                #     node.Fix(KratosMultiphysics.DISTANCE)
             # Prepare distance correction for next step
             self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
@@ -428,7 +478,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 dt=self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
                 for node in self.GetComputingModelPart().Nodes:
                     vn=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
-                    v=node.c(KratosMultiphysics.VELOCITY,0)
+                    v = node.GetSolutionStepValue(
+                        KratosMultiphysics.VELOCITY, 0)
                     acceleration_n=node.GetValue(KratosMultiphysics.ACCELERATION)
                     acceleration_alpha_method=(v-vn)/(gamma*dt)+((gamma-1)/gamma)*acceleration_n
                     node.SetValue(KratosMultiphysics.ACCELERATION,acceleration_alpha_method)
@@ -734,7 +785,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
         time_scheme = self.settings["time_scheme"].GetString()
         if (time_scheme == "bdf2"):
-            time_order = 2
+            time_order = 1
             self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
         else:
             if not (time_scheme == "generalised_alpha"):
@@ -743,4 +794,61 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 raise Exception(err_msg)
 
         return scheme
+
+    #FIXME: TRADITIONAL FM-ALE METHODS
+
+    def __SetVirtualMeshValues(self):
+        # Fill the virtual model part variable values: VELOCITY (n,nn), PRESSURE (n,nn)
+        self.__GetFmAleUtility().SetVirtualMeshValuesFromOriginMesh()
+
+    def __DoFmAleOperations(self):
+        # Solve the mesh problem
+        delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        self.__GetFmAleUtility().ComputeMeshMovement(delta_time)
+
+        # Project the obtained MESH_VELOCITY and historical VELOCITY and PRESSURE values to the origin mesh
+        buffer_size = self.main_model_part.GetBufferSize()
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+
+        if (domain_size == 2):
+            self.__GetFmAleUtility().ProjectVirtualValues2D(
+                self.main_model_part, buffer_size)
+        else:
+            self.__GetFmAleUtility().ProjectVirtualValues3D(
+                self.main_model_part, buffer_size)
+
+    def __UndoFMALEOperations(self):
+        # Undo the FM-ALE virtual mesh movement
+        self.__GetFmAleUtility().UndoMeshMovement()
+
+    def __GetFmAleUtility(self):
+        if not hasattr(self, '_mesh_moving_util'):
+            self._mesh_moving_util = self.__CreateFmAleUtility()
+        return self._mesh_moving_util
+
+    def __CreateFmAleUtility(self):
+        fm_ale_settings = KratosMultiphysics.Parameters("""{
+            "virtual_model_part_name": "VirtualModelPart",
+            "structure_model_part_name": "FakeStructure",
+            "linear_solver_settings": {
+                "solver_type": "cg",
+                "tolerance": 1.0e-8,
+                "max_iteration": 1000
+            }
+        }""")
+        mesh_moving_util = KratosMeshMoving.FixedMeshALEUtilities(
+            self.model,
+            fm_ale_settings)
+
+        return mesh_moving_util
+
+    def __GetFmAleVirtualModelPart(self):
+        if not hasattr(self, '_virtual_model_part'):
+            self._virtual_model_part = self.__CreateFmAleVirtualModelPart()
+        return self._virtual_model_part
+
+    def __CreateFmAleVirtualModelPart(self):
+        virtual_model_part = self.model.CreateModelPart("VirtualModelPart")
+        virtual_model_part = self.model.CreateModelPart("FakeStructure")
+        return virtual_model_part
 
