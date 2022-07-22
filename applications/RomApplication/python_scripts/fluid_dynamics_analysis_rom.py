@@ -10,7 +10,7 @@ import numpy as np
 
 class FluidDynamicsAnalysisROM(FluidDynamicsAnalysis):
 
-    def __init__(self,model,project_parameters, hyper_reduction_element_selector = None):
+    def __init__(self,model,project_parameters, path = '.', hyper_reduction_element_selector = None):
         KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[DEPRECATED CLASS] \x1b[0m',"\'FluidDynamicsAnalysisROM\'", "class is deprecated. Use the \'RomAnalysis\' one instead.")
         super().__init__(model,project_parameters)
         if hyper_reduction_element_selector != None :
@@ -23,6 +23,7 @@ class FluidDynamicsAnalysisROM(FluidDynamicsAnalysis):
                 raise Exception(err_msg)
         else:
             self.hyper_reduction_element_selector = None
+        self.path = path
 
 
     #### Internal functions ####
@@ -41,7 +42,7 @@ class FluidDynamicsAnalysisROM(FluidDynamicsAnalysis):
         """Here is where the ROM_BASIS is imposed to each node"""
         super().ModifyAfterSolverInitialize()
         computing_model_part = self._solver.GetComputingModelPart()
-        with open('RomParameters.json') as f:
+        with open(self.path + '/RomParameters.json') as f:
             data = json.load(f)
             nodal_dofs = len(data["rom_settings"]["nodal_unknowns"])
             nodal_modes = data["nodal_modes"]
