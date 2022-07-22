@@ -51,20 +51,30 @@ namespace Testing {
     {
         Model MyModel;
         ModelPart& modelpart = MyModel.CreateModelPart("Tetrahedras"); 
+        ModelPart& subMp0 = modelpart.CreateSubModelPart("level1");
+        ModelPart& subMp1 = subMp0.CreateSubModelPart("level2");
+        ModelPart& subMp2 = subMp1.CreateSubModelPart("level3");
         modelpart.CreateNewNode(1, 1, 0, 0); 
         modelpart.CreateNewNode(2, 0, 1, 0);
         modelpart.CreateNewNode(3, 0, 0, 1);
         modelpart.CreateNewNode(4, 0, 0, 2);
         modelpart.CreateNewNode(5, 0, 2, 0);
         Properties::Pointer p_properties_1(new Properties(0)); 
-        Element::Pointer tetra1 = modelpart.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_1);
-        Element::Pointer tetra2 = modelpart.CreateNewElement("Element3D4N", 2, {2, 3, 4, 5}, p_properties_1);
+        Element::Pointer tetra1 = subMp1.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_1);
+        Element::Pointer tetra2 = subMp2.CreateNewElement("Element3D4N", 2, {2, 3, 4, 5}, p_properties_1);
+
+        subMp2.AddNode(modelpart.pGetNode(5));
+        subMp2.AddNode(modelpart.pGetNode(2));
+        subMp2.AddNode(modelpart.pGetNode(3));
+        subMp2.AddNode(modelpart.pGetNode(4));
+        subMp1.AddNode(modelpart.pGetNode(1));
 
         GeometryPtrType geom1 = tetra1->pGetGeometry();
         double volume1 = geom1->Volume();
         GeometryPtrType geom2 = tetra1->pGetGeometry();
         double volume2 = geom2->Volume();
-        std::cout << volume1 << " " << volume2 << std::endl;
+        //KRATOS_CHECK_EQUAL(volume1,0);
+        //KRATOS_CHECK_EQUAL(volume2,0);
 
         Condition::Pointer cond1;
         cond1 = modelpart.CreateNewCondition("SurfaceCondition3D3N", 3, {1, 2, 3}, p_properties_1);
@@ -72,8 +82,12 @@ namespace Testing {
         Tetrahedra10MeshConverter refineTetra(modelpart); 
         refineTetra.LocalConvertTetrahedra10Mesh(false,false);
 
-        KRATOS_CHECK_EQUAL(modelpart.Nodes().size(),14); //There are 14 nodes (10 for each tetra but 6 are shared) 
+        KRATOS_CHECK_EQUAL(modelpart.Nodes().size(),14); //There are 14 nodes (10 for each tetra but 6 are shared)
+        KRATOS_CHECK_EQUAL(subMp1.Nodes().size(),14); //There are 14 nodes (10 for each tetra but 6 are shared) 
+        KRATOS_CHECK_EQUAL(subMp2.Nodes().size(),10); //There are 14 nodes (10 for each tetra but 6 are shared) 
         KRATOS_CHECK_EQUAL(modelpart.Elements().size(),2); //No new elements are added
+        KRATOS_CHECK_EQUAL(subMp1.Elements().size(),2); //No new elements are added
+        KRATOS_CHECK_EQUAL(subMp2.Elements().size(),1); //No new elements are added
         KRATOS_CHECK_EQUAL(modelpart.Conditions().size(),1); //No new conditions are added
         
         for(auto elem : modelpart.Elements()) {
