@@ -13,8 +13,6 @@
 #if !defined(KRATOS_TETRAHEDRA10_MESH_CONVERTER_UTILITY)
 #define  KRATOS_TETRAHEDRA10_MESH_CONVERTER_UTILITY
 
-// NOTE: This utility will change the IDs of the elements in the mesh
-
 // System includes
 
 /* Project includes */
@@ -53,11 +51,8 @@ public:
     ///@}
 
     typedef Node<3> NodeType;
-    typedef Node<3>::Pointer NodePtrType;
     typedef Geometry<NodeType> GeometryType;
     typedef GeometryType::Pointer GeometryPtrType;
-    typedef GeometryType::GeometriesArrayType GeometryArrayType;
-    typedef GeometryType::PointsArrayType PointsArrayType;
 
     ///@name Life Cycle
     ///@{
@@ -69,7 +64,7 @@ public:
     }
 
     /// Destructor
-    ~Tetrahedra10MeshConverter() //TODO maybe {}
+    ~Tetrahedra10MeshConverter() 
     = default;
 
     ///@}
@@ -81,8 +76,9 @@ public:
     ///@{
         
     /**
-    * Changes the geometry of the mesh of Tetrahedra3D4 elements. Resulting is a mesh of Tetrahedra3D10 created
-    * by adding intermediate nodes to each Tetrahedra3D4
+    * Replaces the geometry of the mesh of Tetrahedra3D4 elements. Resulting is a mesh of Tetrahedra3D10 created
+    * by adding intermediate nodes to each Tetrahedra3D4, with same ids as the originals. Does the same for conditions,
+    * replacing the Triangle3D3 by Triangle3D6
     * @param refine_on_reference: Boolean that defines if refine or not the mesh according to the reference
     * @param interpolate_internal_variables: Boolean that defines if to interpolate or not the internal variables
     */
@@ -155,7 +151,6 @@ private:
         unsigned int i8 = aux[8];
         unsigned int i9 = aux[9];
 
-
         Tetrahedra3D10<Node < 3 > > geom(
             this_model_part.Nodes()(i0),
             this_model_part.Nodes()(i1),
@@ -171,6 +166,10 @@ private:
         return geom;
     }
 
+    /**
+    * Creates a new triangle3D6
+    * @return the reference to the new triangle
+    */
     Triangle3D6<Node<3>> GenerateTriangle3D6(ModelPart& this_model_part, array_1d<int, 6>& aux) {
         unsigned int i0   = aux[0];
         unsigned int i1   = aux[1];
@@ -208,15 +207,10 @@ private:
 	ElementsArrayType& rElements = this_model_part.Elements();
 	ElementsArrayType::iterator it_begin = rElements.ptr_begin();
 	ElementsArrayType::iterator it_end = rElements.ptr_end();
-	unsigned int current_id = (rElements.end() - 1)->Id() + 1;
 
 	const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 	int edge_ids[6];
 	std::vector<int> aux;
-
-    KRATOS_INFO("") << "************* CONVERTING TO TETRAHEDRA3D10 MESH **************\n" 
-                    << "OLD NUMBER ELEMENTS: " << rElements.size() << std::endl;
-
 
 	for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
 	{
@@ -226,13 +220,11 @@ private:
         Element::GeometryType& geometry = it->GetGeometry();
         CalculateEdges(geometry, Coord, edge_ids, aux);
 
-        it->Set(TO_ERASE,true);
-
         // Generate the new Tetrahedra3D10 element
         Tetrahedra3D10<Node<3>> geom = GenerateTetrahedra(this_model_part, aux);
         Element::Pointer p_element;
         const Element& rElem = KratosComponents<Element>::Get("Element3D10N");
-        p_element = rElem.Create(current_id, geom, it->pGetProperties());
+        p_element = rElem.Create(it->Id(), geom, it->pGetProperties());
         p_element->Initialize(rCurrentProcessInfo);
         p_element->InitializeSolutionStep(rCurrentProcessInfo);
         p_element->FinalizeSolutionStep(rCurrentProcessInfo);
@@ -250,21 +242,17 @@ private:
         NewElements.push_back(p_element);
 
         rChildElements.push_back( Element::WeakPointer(p_element) );
-
-        current_id++;
     }
 
-    KRATOS_INFO("") <<  "NEW NUMBER ELEMENTS: " << rElements.size() << std::endl;
-
     // Now update the elements in SubModelParts
-    if ( NewElements.size() > 0 ) ReplaceNewElementsToSubModelPart(this_model_part);
+    if ( NewElements.size() > 0 ) ReplaceElementsInSubModelPart(this_model_part);
 }
 
     /**
     * It replaces the old Tetrahedra3D4 elements in its corresponding submodelpart by its new Tetrahedra3D10
     * @param this_model_part: The modelpart or submodelpart to replace the elements
     */
-    void ReplaceNewElementsToSubModelPart(ModelPart& this_model_part) {
+    void ReplaceElementsInSubModelPart(ModelPart& this_model_part) {
         for(Element::Pointer& p_element : this_model_part.ElementsArray()){
                 if( p_element->GetValue(SPLIT_ELEMENT) )
                 {
@@ -272,15 +260,17 @@ private:
                     p_element = children[0].shared_from_this();
                 } 
         }
+
+        //Recursively for all subModelParts
         for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
                 iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
         {
-            ReplaceNewElementsToSubModelPart(*iSubModelPart);
+            ReplaceElementsInSubModelPart(*iSubModelPart);
         }
     }
 
     /**
-    * Remove the old Trangle3D3 conditions and creates new Trangle3D6 ones
+    * Remove the old Trangle3D3 conditions and replace them by the new Trangle3D6 ones
     * @param Coord: The coordinates of the nodes of the geometry
     * @return this_model_part: The model part of the model (it is the input too)
     */
@@ -303,7 +293,6 @@ private:
             array_1d<int, 6> aux;
 
             const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
-            unsigned int current_id = (rConditions.end() - 1)->Id() + 1;
 
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
             {
@@ -320,7 +309,7 @@ private:
                 // Generate new condition by cloning the base one
                 Condition::Pointer pcond;
                 const Condition& rCond = KratosComponents<Condition>::Get("SurfaceCondition3D6N");
-                pcond = rCond.Create(current_id, newgeom, it->pGetProperties());
+                pcond = rCond.Create(it->Id(), newgeom, it->pGetProperties());
                 pcond ->Initialize(rCurrentProcessInfo);
                 pcond ->InitializeSolutionStep(rCurrentProcessInfo);
                 pcond ->FinalizeSolutionStep(rCurrentProcessInfo);
@@ -331,7 +320,6 @@ private:
                 NewConditions.push_back(pcond);
 
                 rChildConditions.push_back( Condition::WeakPointer( pcond ) );
-                current_id++;
             }
 
             this_model_part.Conditions().reserve(this_model_part.Conditions().size()+ NewConditions.size());
@@ -343,15 +331,8 @@ private:
                 this_model_part.Conditions().push_back( *iCond );
             }
 
-            /* Renumber id */
-            unsigned int my_index = 1;
-            for(ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin(); it != this_model_part.ConditionsEnd(); it++)
-            {
-                it->SetId(my_index++);
-            }
-
             // Now update the conditions in SubModelParts
-            if (NewConditions.size() > 0) UpdateSubModelPartConditions(this_model_part, NewConditions);
+            if (NewConditions.size() > 0) ReplaceConditionsInSubModelPart(this_model_part);
 
             //Finally remove the old conditions
             this_model_part.RemoveConditions(TO_ERASE);
@@ -361,43 +342,24 @@ private:
 
 
     /**
-    * Updates recursively the conditions in the submodelpars
-    * @param NewConditions: list of conds
-    * @return this_model_part: The model part of the model (it is the input too)
+    * It replaces the old Tetrahedra3D4 elements in its corresponding submodelpart by its new Tetrahedra3D10
+    * @param this_model_part: The modelpart or submodelpart to replace the elements
     */
-    void UpdateSubModelPartConditions(ModelPart& this_model_part, PointerVector< Condition >& NewConditions)
-      {
-        for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
-            iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
-        {
-            NewConditions.clear();
-            // Create list of new conditions in SubModelPart
-            for (ModelPart::ConditionIterator iCond = iSubModelPart->ConditionsBegin();
-                    iCond != iSubModelPart->ConditionsEnd(); iCond++)
-            {
-                if( iCond->GetValue(SPLIT_ELEMENT))
+    void ReplaceConditionsInSubModelPart(ModelPart& this_model_part) {
+        for(Condition::Pointer& p_cond : this_model_part.ConditionsArray()){
+                if( p_cond->GetValue(SPLIT_ELEMENT) )
                 {
-                    GlobalPointersVector< Condition >& rChildConditions = iCond->GetValue(NEIGHBOUR_CONDITIONS);
-
-                    for ( auto iChild = rChildConditions.ptr_begin();
-                            iChild != rChildConditions.ptr_end(); iChild++ )
-                    {
-                        NewConditions.push_back((*iChild)->shared_from_this());
-                    }
-                }
-            }
-
-            // Add new conditions to SubModelPart
-            iSubModelPart->Conditions().reserve( iSubModelPart->Conditions().size() + NewConditions.size() );
-            for (PointerVector< Condition >::iterator it_new = NewConditions.begin();
-                    it_new != NewConditions.end(); it_new++)
-            {
-                iSubModelPart->Conditions().push_back(*(it_new.base()));
-            }
-
-            if (NewConditions.size() > 0) UpdateSubModelPartConditions(*iSubModelPart, NewConditions);
+                    GlobalPointersVector< Condition >& children = p_cond->GetValue(NEIGHBOUR_CONDITIONS);
+                    p_cond = children[0].shared_from_this();
+                } 
         }
-      }
+        for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
+                iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
+        {
+            ReplaceConditionsInSubModelPart(*iSubModelPart);
+        }
+    }
+
 
     ///@}
     ///@name Private  Access
