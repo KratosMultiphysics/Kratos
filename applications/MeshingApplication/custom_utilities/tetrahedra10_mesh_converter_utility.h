@@ -139,17 +139,17 @@ private:
     * Creates a new tetrahedra3D10
     * @return the reference to the new tetrahedra
     */
-    Tetrahedra3D10<Node<3>> GenerateTetrahedra(ModelPart& this_model_part, std::vector<int>& aux) {
-        unsigned int i0 = aux[0];
-        unsigned int i1 = aux[1];
-        unsigned int i2 = aux[2];
-        unsigned int i3 = aux[3];
-        unsigned int i4 = aux[4];
-        unsigned int i6 = aux[5];
-        unsigned int i7 = aux[6];
-        unsigned int i5 = aux[7];
-        unsigned int i8 = aux[8];
-        unsigned int i9 = aux[9];
+    Tetrahedra3D10<Node<3>> GenerateTetrahedra(ModelPart& this_model_part, std::vector<int>& node_ids) {
+        unsigned int i0 = node_ids[0];
+        unsigned int i1 = node_ids[1];
+        unsigned int i2 = node_ids[2];
+        unsigned int i3 = node_ids[3];
+        unsigned int i4 = node_ids[4];
+        unsigned int i6 = node_ids[5];
+        unsigned int i7 = node_ids[6];
+        unsigned int i5 = node_ids[7];
+        unsigned int i8 = node_ids[8];
+        unsigned int i9 = node_ids[9];
 
         Tetrahedra3D10<Node < 3 > > geom(
             this_model_part.Nodes()(i0),
@@ -170,13 +170,13 @@ private:
     * Creates a new triangle3D6
     * @return the reference to the new triangle
     */
-    Triangle3D6<Node<3>> GenerateTriangle3D6(ModelPart& this_model_part, array_1d<int, 6>& aux) {
-        unsigned int i0   = aux[0];
-        unsigned int i1   = aux[1];
-        unsigned int i2   = aux[2];
-        unsigned int i3   = aux[3];
-        unsigned int i4   = aux[4];
-        unsigned int i5   = aux[5];
+    Triangle3D6<Node<3>> GenerateTriangle3D6(ModelPart& this_model_part, array_1d<int, 6>& node_ids) {
+        unsigned int i0   = node_ids[0];
+        unsigned int i1   = node_ids[1];
+        unsigned int i2   = node_ids[2];
+        unsigned int i3   = node_ids[3];
+        unsigned int i4   = node_ids[4];
+        unsigned int i5   = node_ids[5];
 
         Triangle3D6<Node<3> > geom(
                 this_model_part.Nodes()(i0),
@@ -210,33 +210,32 @@ private:
 
 	const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 	int edge_ids[6];
-	std::vector<int> aux;
+	std::vector<int> node_ids;
 
 	for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
 	{
         GlobalPointersVector< Element >& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
         rChildElements.resize(0);
 
-        Element::GeometryType& geometry = it->GetGeometry();
-        CalculateEdges(geometry, Coord, edge_ids, aux);
+        CalculateEdges(it->GetGeometry(), Coord, edge_ids, node_ids);
 
         // Generate the new Tetrahedra3D10 element
-        Tetrahedra3D10<Node<3>> geom = GenerateTetrahedra(this_model_part, aux);
-        Element::Pointer p_element;
+        Tetrahedra3D10<Node<3>> geom = GenerateTetrahedra(this_model_part, node_ids);
         const Element& rElem = KratosComponents<Element>::Get("Element3D10N");
+        Element::Pointer p_element;
         p_element = rElem.Create(it->Id(), geom, it->pGetProperties());
         p_element->Initialize(rCurrentProcessInfo);
         p_element->InitializeSolutionStep(rCurrentProcessInfo);
         p_element->FinalizeSolutionStep(rCurrentProcessInfo);
 
-        // Setting the internal variables in the child elem
+        // Setting the internal variables in the "child" elem (the element replacing the old one)
         if (interpolate_internal_variables == true)
         {
             //This method only copies the current information to the new element
             InterpolateInteralVariables(0, *it.base(), p_element, rCurrentProcessInfo);
         }
 
-        // Transfer elemental variables
+        // Transfer elemental variables to new element
         p_element->Data() = it->Data();
         p_element->GetValue(SPLIT_ELEMENT) = false;
         NewElements.push_back(p_element);
@@ -244,7 +243,7 @@ private:
         rChildElements.push_back( Element::WeakPointer(p_element) );
     }
 
-    // Now update the elements in SubModelParts
+    // Now replace the elements in SubModelParts
     if ( NewElements.size() > 0 ) ReplaceElementsInSubModelPart(this_model_part);
 }
 
@@ -290,26 +289,22 @@ private:
             ConditionsArrayType::iterator it_begin = rConditions.ptr_begin();
             ConditionsArrayType::iterator it_end = rConditions.ptr_end();
             int  edge_ids[3];
-            array_1d<int, 6> aux;
+            array_1d<int, 6> node_ids;
 
             const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
             {
-                Condition::GeometryType& geom = it->GetGeometry();
-                CalculateEdgesFaces(geom, Coord, edge_ids, aux);
+                CalculateEdgesFaces(it->GetGeometry(), Coord, edge_ids, node_ids);
 
                 GlobalPointersVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
                 rChildConditions.resize(0);
 
-                it->Set(TO_ERASE,true); //Mark them as the "old" conditions for later remove
-
-                Triangle3D6<Node<3> > newgeom = GenerateTriangle3D6 (this_model_part, aux);
-            
-                // Generate new condition by cloning the base one
+                //Generate the new condition
+                Triangle3D6<Node<3> > geom = GenerateTriangle3D6 (this_model_part, node_ids);
                 Condition::Pointer pcond;
                 const Condition& rCond = KratosComponents<Condition>::Get("SurfaceCondition3D6N");
-                pcond = rCond.Create(it->Id(), newgeom, it->pGetProperties());
+                pcond = rCond.Create(it->Id(), geom, it->pGetProperties());
                 pcond ->Initialize(rCurrentProcessInfo);
                 pcond ->InitializeSolutionStep(rCurrentProcessInfo);
                 pcond ->FinalizeSolutionStep(rCurrentProcessInfo);
@@ -322,27 +317,15 @@ private:
                 rChildConditions.push_back( Condition::WeakPointer( pcond ) );
             }
 
-            this_model_part.Conditions().reserve(this_model_part.Conditions().size()+ NewConditions.size());
-
-            /// Add the new Conditions to the ModelPart
-            for (auto iCond = NewConditions.ptr_begin();
-                    iCond != NewConditions.ptr_end(); iCond++)
-            {
-                this_model_part.Conditions().push_back( *iCond );
-            }
-
-            // Now update the conditions in SubModelParts
+            // Replace the conditions in SubModelParts
             if (NewConditions.size() > 0) ReplaceConditionsInSubModelPart(this_model_part);
-
-            //Finally remove the old conditions
-            this_model_part.RemoveConditions(TO_ERASE);
         }
         KRATOS_CATCH("");
     }
 
 
     /**
-    * It replaces the old Tetrahedra3D4 elements in its corresponding submodelpart by its new Tetrahedra3D10
+    * It replaces the old Triangle3D3 elements in its corresponding submodelpart by its new Triangle3D6
     * @param this_model_part: The modelpart or submodelpart to replace the elements
     */
     void ReplaceConditionsInSubModelPart(ModelPart& this_model_part) {
@@ -360,7 +343,6 @@ private:
         }
     }
 
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -374,7 +356,7 @@ private:
     ///@{
     ///@}
 
-};
+}; // Class Tetrahedra10MeshConverter
 
 } // namespace Kratos.
 
