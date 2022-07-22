@@ -306,8 +306,6 @@ private:
         {
             ConditionsArrayType::iterator it_begin = rConditions.ptr_begin();
             ConditionsArrayType::iterator it_end = rConditions.ptr_end();
-            unsigned int to_be_deleted = 0;
-            unsigned int large_id = (rConditions.end() - 1)->Id() * 7;
             int  edge_ids[3];
             array_1d<int, 6> aux;
 
@@ -327,7 +325,8 @@ private:
                     // SubModelParts.
                     it->SetValue(SPLIT_ELEMENT,true);
                     rChildConditions.resize(0);
-                    to_be_deleted++;
+
+                    it->Set(TO_ERASE,true);
 
                     unsigned int i0   = aux[0];
                     unsigned int i1   = aux[1];
@@ -361,16 +360,8 @@ private:
                     rChildConditions.push_back( Condition::WeakPointer( pcond ) );
 
                     current_id++;
-                    it->SetId(large_id);
-                    large_id++;
                 }
             }
-
-            /* All of the conditions to be erased are at the end */
-            this_model_part.Conditions().Sort();
-
-            /* Now remove all of the "old" conditions*/
-            this_model_part.Conditions().erase(this_model_part.Conditions().end() - to_be_deleted, this_model_part.Conditions().end());
 
             unsigned int total_size = this_model_part.Conditions().size()+ NewConditions.size();
             this_model_part.Conditions().reserve(total_size);
@@ -389,12 +380,13 @@ private:
                 it->SetId(my_index++);
             }
 
-
             // Now update the conditions in SubModelParts
             if (NewConditions.size() > 0)
             {
                 UpdateSubModelPartConditions(this_model_part, NewConditions);
             }
+
+            this_model_part.RemoveConditions(TO_ERASE);
         }
         KRATOS_CATCH("");
     }
@@ -407,52 +399,40 @@ private:
     */
     void UpdateSubModelPartConditions(ModelPart& this_model_part, PointerVector< Condition >& NewConditions)
       {
-                for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
-                    iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
+        for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
+            iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
+        {
+            NewConditions.clear();
+            // Create list of new conditions in SubModelPart
+            // Count how many conditions will be removed
+            for (ModelPart::ConditionIterator iCond = iSubModelPart->ConditionsBegin();
+                    iCond != iSubModelPart->ConditionsEnd(); iCond++)
+            {
+                if( iCond->GetValue(SPLIT_ELEMENT) )
                 {
-                    unsigned int to_be_deleted = 0;
-                    NewConditions.clear();
+                    GlobalPointersVector< Condition >& rChildConditions = iCond->GetValue(NEIGHBOUR_CONDITIONS);
 
-                    // Create list of new conditions in SubModelPart
-                    // Count how many conditions will be removed
-                    for (ModelPart::ConditionIterator iCond = iSubModelPart->ConditionsBegin();
-                            iCond != iSubModelPart->ConditionsEnd(); iCond++)
+                    for ( auto iChild = rChildConditions.ptr_begin();
+                            iChild != rChildConditions.ptr_end(); iChild++ )
                     {
-                        if( iCond->GetValue(SPLIT_ELEMENT) )
-                        {
-                            to_be_deleted++;
-                            GlobalPointersVector< Condition >& rChildConditions = iCond->GetValue(NEIGHBOUR_CONDITIONS);
-
-                            for ( auto iChild = rChildConditions.ptr_begin();
-                                    iChild != rChildConditions.ptr_end(); iChild++ )
-                            {
-                                NewConditions.push_back((*iChild)->shared_from_this());
-                            }
-                        }
-                    }
-
-                    // Add new conditions to SubModelPart
-                    iSubModelPart->Conditions().reserve( iSubModelPart->Conditions().size() + NewConditions.size() );
-                    for (PointerVector< Condition >::iterator it_new = NewConditions.begin();
-                            it_new != NewConditions.end(); it_new++)
-                    {
-                        iSubModelPart->Conditions().push_back(*(it_new.base()));
-                    }
-
-                    // Delete old conditions
-                    iSubModelPart->Conditions().Sort();
-                    iSubModelPart->Conditions().erase(iSubModelPart->Conditions().end() - to_be_deleted, iSubModelPart->Conditions().end());
-                    /*
-                    KRATOS_WATCH(iSubModelPart->Info());
-                    KRATOS_WATCH(to_be_deleted);
-                    KRATOS_WATCH(iSubModelPart->Conditions().size());
-                    KRATOS_WATCH(this_model_part.Conditions().size());
-                    */
-                    if (NewConditions.size() > 0)
-                    {
-                        UpdateSubModelPartConditions(this_model_part, NewConditions);
+                        NewConditions.push_back((*iChild)->shared_from_this());
                     }
                 }
+            }
+
+            // Add new conditions to SubModelPart
+            iSubModelPart->Conditions().reserve( iSubModelPart->Conditions().size() + NewConditions.size() );
+            for (PointerVector< Condition >::iterator it_new = NewConditions.begin();
+                    it_new != NewConditions.end(); it_new++)
+            {
+                iSubModelPart->Conditions().push_back(*(it_new.base()));
+            }
+
+            if (NewConditions.size() > 0)
+            {
+                UpdateSubModelPartConditions(*iSubModelPart, NewConditions);
+            }
+        }
 
       }
 
