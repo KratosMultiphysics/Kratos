@@ -21,8 +21,6 @@
 #include "utilities/math_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
-#include "geometries/line_2d_2.h"
-#include "geometries/line_3d_2.h"
 
 // Application utilities
 #include "calculate_wave_height_utility.h"
@@ -72,7 +70,8 @@ double CalculateWaveHeightUtility::Calculate(const array_1d<double,3>& rCoordina
         if (mUseLocalElementSize) {
             return CalculateAverage(rCoordinates);
         } else {
-            return CalculateAverage(rCoordinates,mMeanElementSize);
+            double default_search_radius = mRelativeRadius * mMeanElementSize + mAbsoluteRadius;
+            return CalculateAverage(rCoordinates, default_search_radius);
         }
     }
 }
@@ -99,8 +98,8 @@ double CalculateWaveHeightUtility::CalculateAverage(const array_1d<double,3>& rC
             const double distance = norm_2(horizontal_position);
 
             if (distance < SearchRadius) {
-                local_count = 1.0;
-                local_wave_height = inner_prod(mDirection, rNode) - mMeanWaterLevel;
+                local_count += 1.0;
+                local_wave_height += inner_prod(mDirection, rNode) - mMeanWaterLevel;
             }
         }
         return std::make_tuple(local_count, local_wave_height);
@@ -137,8 +136,8 @@ double CalculateWaveHeightUtility::CalculateAverage(const array_1d<double,3>& rC
                 const double distance = norm_2(horizontal_position);
 
                 if (distance < radius) {
-                    local_count = 1.0;
-                    local_wave_height = inner_prod(mDirection, r_node) - mMeanWaterLevel;
+                    local_count += 1.0;
+                    local_wave_height += inner_prod(mDirection, r_node) - mMeanWaterLevel;
                 }
             }
         }
@@ -177,9 +176,10 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
                 const array_1d<double,3> relative_position = rNode.Coordinates() - coordinates;
                 const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(direction, relative_position);
                 const double new_distance = norm_2(horizontal_position);
+
                 if (new_distance < this->distance) {
                     this->distance = new_distance;
-                    this->wave_height = inner_prod(direction, coordinates) - mean_water_level;
+                    this->wave_height = inner_prod(direction, rNode) - mean_water_level;
                 }
             }
         }
