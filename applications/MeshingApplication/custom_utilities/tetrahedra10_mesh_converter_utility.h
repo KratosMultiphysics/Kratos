@@ -254,57 +254,28 @@ private:
         current_id++;
     }
 
-    /* Adding news elements to the model part */
-    for (PointerVector< Element >::iterator it_new = NewElements.begin(); it_new != NewElements.end(); it_new++)
-    {
-    rElements.push_back(*(it_new.base()));
-    }
-
     KRATOS_INFO("") <<  "NEW NUMBER ELEMENTS: " << rElements.size() << std::endl;
 
     // Now update the elements in SubModelParts
-    if ( NewElements.size() > 0 ) AddNewElementsToSubModelPart(this_model_part, NewElements);
-
-     /* Now remove all of the "old" elements */
-    this_model_part.RemoveElements(TO_ERASE);
+    if ( NewElements.size() > 0 ) ReplaceNewElementsToSubModelPart(this_model_part);
 }
 
     /**
-    * It adds the new Tetrahedra3D10 elements to its corresponding submodelpart and erases the old ones
-    * @param this_model_part: The modelpart or submodelpart to erase the elements
-    * @param New_Elements: The new elements created
+    * It replaces the old Tetrahedra3D4 elements in its corresponding submodelpart by its new Tetrahedra3D10
+    * @param this_model_part: The modelpart or submodelpart to replace the elements
     */
-    void AddNewElementsToSubModelPart(ModelPart& this_model_part, PointerVector< Element >& NewElements) {
+    void ReplaceNewElementsToSubModelPart(ModelPart& this_model_part) {
+        for(Element::Pointer& p_element : this_model_part.ElementsArray()){
+                if( p_element->GetValue(SPLIT_ELEMENT) )
+                {
+                    GlobalPointersVector< Element >& children = p_element->GetValue(NEIGHBOUR_ELEMENTS);
+                    p_element = children[0].shared_from_this();
+                } 
+        }
         for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
                 iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
         {
-            NewElements.clear();
-
-            // Create list of new elements in SubModelPart
-            // Count how many elements will be removed
-            for (ModelPart::ElementIterator iElem = iSubModelPart->ElementsBegin();
-                    iElem != iSubModelPart->ElementsEnd(); iElem++)
-            {
-                if( iElem->GetValue(SPLIT_ELEMENT) )
-                {
-                    GlobalPointersVector< Element >& rChildElements = iElem->GetValue(NEIGHBOUR_ELEMENTS);
-
-                    for ( auto iChild = rChildElements.ptr_begin();
-                            iChild != rChildElements.ptr_end(); iChild++ )
-                    {
-                        NewElements.push_back((*iChild)->shared_from_this());
-                    }
-                }
-            }
-
-            // Add new elements to SubModelPart
-            iSubModelPart->Elements().reserve( iSubModelPart->Elements().size() + NewElements.size() );
-            for (PointerVector< Element >::iterator it_new = NewElements.begin();
-                    it_new != NewElements.end(); it_new++)
-            {
-                iSubModelPart->Elements().push_back(*(it_new.base()));
-            }
-            AddNewElementsToSubModelPart(*iSubModelPart,NewElements);
+            ReplaceNewElementsToSubModelPart(*iSubModelPart);
         }
     }
 
