@@ -176,8 +176,8 @@ public:
                     Matrix N_neg_side_interface;
                     Vector w_gauss_interface;
 
-                    Geometry<Node<2>>::ShapeFunctionsGradientsType DN_DX_neg_side;
-                    Geometry<Node<2>>::ShapeFunctionsGradientsType DN_DX_neg_side_interface;
+                    Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_neg_side;
+                    Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_neg_side_interface;
                     p_ausas_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(N_neg_side, DN_DX_neg_side, w_gauss_neg_side, GeometryData::IntegrationMethod::GI_GAUSS_2);
                     p_ausas_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(N_neg_side_interface, DN_DX_neg_side_interface, w_gauss_interface, GeometryData::IntegrationMethod::GI_GAUSS_2);
                     // Save the coordinates of all the subdivision Gauss pts.nl
@@ -208,7 +208,7 @@ public:
                     }
                     Matrix N_pos_side;
                     Vector w_gauss_pos_side;
-                    Geometry<Node<2>>::ShapeFunctionsGradientsType DN_DX_pos_side;
+                    Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_pos_side;
                     p_ausas_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(N_pos_side, DN_DX_pos_side, w_gauss_pos_side, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
                     // Save the coordinates of all the subdivision Gauss pts.
@@ -652,7 +652,7 @@ protected:
         const unsigned int n_nodes = rGeometry.PointsNumber();
 // It should be improve in order to have z_interpolated depending on the directions of the problem gravity
         for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
-            z_interpolated += rGeometry[i_node].Z() * rN[i_node];
+            z_interpolated += rGeometry[i_node].Y() * rN[i_node];
         }
         // Calculate and return Gauss pt. potential energy
         return (Density * gravity * z_interpolated) * Weight;
@@ -667,7 +667,7 @@ protected:
         double z_interpolated = 0.0;
         const unsigned int n_nodes = rGeometry.PointsNumber();
         for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
-            z_interpolated += rGeometry[i_node].Z() * rN[i_node];
+            z_interpolated += rGeometry[i_node].Y() * rN[i_node];
         }
 
         return (z_interpolated) * Weight;
