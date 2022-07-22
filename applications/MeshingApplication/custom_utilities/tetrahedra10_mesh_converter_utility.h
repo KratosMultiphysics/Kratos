@@ -309,10 +309,6 @@ private:
             unsigned int to_be_deleted = 0;
             unsigned int large_id = (rConditions.end() - 1)->Id() * 7;
             int  edge_ids[3];
-            int  t[12];
-            int  number_elem             = 0;
-            int  splitted_edges  = 0;
-            int  nint            = 0;
             array_1d<int, 6> aux;
 
             const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
@@ -325,9 +321,6 @@ private:
                 if (geom.size() == 3)
                 {
                     CalculateEdgesFaces(geom, Coord, edge_ids, aux);
-
-                    // Create the new conditions
-                    bool create_condition =  Split_Triangle(edge_ids, t, &number_elem, &splitted_edges, &nint);
 
                     GlobalPointersVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
                     // We will use this flag to identify the condition later, when operating on
