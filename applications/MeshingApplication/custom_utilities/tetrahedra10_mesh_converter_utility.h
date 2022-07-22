@@ -310,61 +310,52 @@ private:
             array_1d<int, 6> aux;
 
             const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
-
             unsigned int current_id = (rConditions.end() - 1)->Id() + 1;
+
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
             {
                 Condition::GeometryType& geom = it->GetGeometry();
+                CalculateEdgesFaces(geom, Coord, edge_ids, aux);
 
-                if (geom.size() == 3)
-                {
-                    CalculateEdgesFaces(geom, Coord, edge_ids, aux);
+                GlobalPointersVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
+                rChildConditions.resize(0);
 
-                    GlobalPointersVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
-                    // We will use this flag to identify the condition later, when operating on
-                    // SubModelParts.
-                    it->SetValue(SPLIT_ELEMENT,true);
-                    rChildConditions.resize(0);
+                it->Set(TO_ERASE,true); //Mark them as the "old" conditions for later remove
 
-                    it->Set(TO_ERASE,true);
+                unsigned int i0   = aux[0];
+                unsigned int i1   = aux[1];
+                unsigned int i2   = aux[2];
+                unsigned int i3   = aux[3];
+                unsigned int i4   = aux[4];
+                unsigned int i5   = aux[5];
 
-                    unsigned int i0   = aux[0];
-                    unsigned int i1   = aux[1];
-                    unsigned int i2   = aux[2];
-                    unsigned int i3   = aux[3];
-                    unsigned int i4   = aux[4];
-                    unsigned int i5   = aux[5];
+                Triangle3D6<Node<3> > newgeom(
+                        this_model_part.Nodes()(i0),
+                        this_model_part.Nodes()(i1),
+                        this_model_part.Nodes()(i2),
+                        this_model_part.Nodes()(i3),
+                        this_model_part.Nodes()(i4),
+                        this_model_part.Nodes()(i5)
+                        );
 
-                    Triangle3D6<Node<3> > newgeom(
-                            this_model_part.Nodes()(i0),
-                            this_model_part.Nodes()(i1),
-                            this_model_part.Nodes()(i2),
-                            this_model_part.Nodes()(i3),
-                            this_model_part.Nodes()(i4),
-                            this_model_part.Nodes()(i5)
-                            );
+                // Generate new condition by cloning the base one
+                Condition::Pointer pcond;
+                const Condition& rCond = KratosComponents<Condition>::Get("SurfaceCondition3D6N");
+                pcond = rCond.Create(current_id, newgeom, it->pGetProperties());
+                pcond ->Initialize(rCurrentProcessInfo);
+                pcond ->InitializeSolutionStep(rCurrentProcessInfo);
+                pcond ->FinalizeSolutionStep(rCurrentProcessInfo);
 
-                    // Generate new condition by cloning the base one
-                    Condition::Pointer pcond;
-                    const Condition& rCond = KratosComponents<Condition>::Get("SurfaceCondition3D6N");
-                    pcond = rCond.Create(current_id, newgeom, it->pGetProperties());
-                    pcond ->Initialize(rCurrentProcessInfo);
-                    pcond ->InitializeSolutionStep(rCurrentProcessInfo);
-                    pcond ->FinalizeSolutionStep(rCurrentProcessInfo);
+                // Transfer condition variables
+                pcond->Data() = it->Data();
+                pcond->GetValue(SPLIT_ELEMENT) = false;
+                NewConditions.push_back(pcond);
 
-                    // Transfer condition variables
-                    pcond->Data() = it->Data();
-                    pcond->GetValue(SPLIT_ELEMENT) = false;
-                    NewConditions.push_back(pcond);
-
-                    rChildConditions.push_back( Condition::WeakPointer( pcond ) );
-
-                    current_id++;
-                }
+                rChildConditions.push_back( Condition::WeakPointer( pcond ) );
+                current_id++;
             }
 
-            unsigned int total_size = this_model_part.Conditions().size()+ NewConditions.size();
-            this_model_part.Conditions().reserve(total_size);
+            this_model_part.Conditions().reserve(this_model_part.Conditions().size()+ NewConditions.size());
 
             /// Add the new Conditions to the ModelPart
             for (auto iCond = NewConditions.ptr_begin();
@@ -381,11 +372,9 @@ private:
             }
 
             // Now update the conditions in SubModelParts
-            if (NewConditions.size() > 0)
-            {
-                UpdateSubModelPartConditions(this_model_part, NewConditions);
-            }
+            if (NewConditions.size() > 0) UpdateSubModelPartConditions(this_model_part, NewConditions);
 
+            //Finally remove the old conditions
             this_model_part.RemoveConditions(TO_ERASE);
         }
         KRATOS_CATCH("");
@@ -404,11 +393,10 @@ private:
         {
             NewConditions.clear();
             // Create list of new conditions in SubModelPart
-            // Count how many conditions will be removed
             for (ModelPart::ConditionIterator iCond = iSubModelPart->ConditionsBegin();
                     iCond != iSubModelPart->ConditionsEnd(); iCond++)
             {
-                if( iCond->GetValue(SPLIT_ELEMENT) )
+                if( iCond->GetValue(SPLIT_ELEMENT))
                 {
                     GlobalPointersVector< Condition >& rChildConditions = iCond->GetValue(NEIGHBOUR_CONDITIONS);
 
@@ -428,12 +416,8 @@ private:
                 iSubModelPart->Conditions().push_back(*(it_new.base()));
             }
 
-            if (NewConditions.size() > 0)
-            {
-                UpdateSubModelPartConditions(*iSubModelPart, NewConditions);
-            }
+            if (NewConditions.size() > 0) UpdateSubModelPartConditions(*iSubModelPart, NewConditions);
         }
-
       }
 
     ///@}
