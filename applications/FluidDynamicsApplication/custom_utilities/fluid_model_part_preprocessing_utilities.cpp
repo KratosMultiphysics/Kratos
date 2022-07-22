@@ -205,14 +205,16 @@ void FluidModelPartPreProcessingUtilities::BreakElements(
     IndexType new_node_id = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(local_max_node_id) + 1;
 
     const IndexType local_max_element_id  = block_for_each<MaxReduction<IndexType>>(rModelPart.Elements(), [&](ModelPart::ElementType& rElement) -> IndexType {
-        rElement.Set(TO_ERASE, std::find(rElementIds.begin(), rElementIds.end(), rElement.Id()) != rElementIds.end());
+        rElement.Set(TO_ERASE, false);
         return rElement.Id();
     });
     IndexType new_element_id = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(local_max_element_id) + 1;
 
     IndexType number_of_created_elements = 0;
     for (const auto& element_id : rElementIds) {
-        number_of_created_elements += BreakElement(rModelPart, rModelPart.GetElement(element_id), new_node_id, new_element_id, rNewElementName);
+        auto& r_element = rModelPart.GetElement(element_id);
+        r_element.Set(TO_ERASE, true);
+        number_of_created_elements += BreakElement(rModelPart, r_element, new_node_id, new_element_id, rNewElementName);
     }
 
     rModelPart.RemoveElementsFromAllLevels();
