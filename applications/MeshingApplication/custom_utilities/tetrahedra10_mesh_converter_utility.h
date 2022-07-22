@@ -198,6 +198,9 @@ private:
 
 	for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
 	{
+        GlobalPointersVector< Element >& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
+        rChildElements.resize(0);
+
         Element::GeometryType& geometry = it->GetGeometry();
         CalculateEdges(geometry, Coord, edge_ids, aux);
 
@@ -224,6 +227,8 @@ private:
         p_element->GetValue(SPLIT_ELEMENT) = false;
         NewElements.push_back(p_element);
 
+        rChildElements.push_back( Element::WeakPointer(p_element) );
+
         current_id++;
     }
 
@@ -233,18 +238,24 @@ private:
     rElements.push_back(*(it_new.base()));
     }
 
-    /* Now remove all of the "old" elements */
-    this_model_part.RemoveElements(TO_ERASE);
-
     KRATOS_INFO("") <<  "NEW NUMBER ELEMENTS: " << rElements.size() << std::endl;
 
     // Now update the elements in SubModelParts
-    if (NewElements.size() > 0)
-    {
+    if ( NewElements.size() > 0 ) AddNewElementsToSubModelPart(this_model_part, NewElements);
+
+     /* Now remove all of the "old" elements */
+    this_model_part.RemoveElements(TO_ERASE);
+}
+
+    /**
+    * It adds the new Tetrahedra3D10 elements to its corresponding submodelpart and erases the old ones
+    * @param this_model_part: The modelpart or submodelpart to erase the elements
+    * @param New_Elements: The new elements created
+    */
+    void AddNewElementsToSubModelPart(ModelPart& this_model_part, PointerVector< Element >& NewElements) {
         for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
                 iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
         {
-            to_be_deleted = 0;
             NewElements.clear();
 
             // Create list of new elements in SubModelPart
@@ -254,7 +265,6 @@ private:
             {
                 if( iElem->GetValue(SPLIT_ELEMENT) )
                 {
-                    to_be_deleted++;
                     GlobalPointersVector< Element >& rChildElements = iElem->GetValue(NEIGHBOUR_ELEMENTS);
 
                     for ( auto iChild = rChildElements.ptr_begin();
@@ -272,13 +282,9 @@ private:
             {
                 iSubModelPart->Elements().push_back(*(it_new.base()));
             }
-
-            // Delete old elements
-            iSubModelPart->Elements().Sort();
-            iSubModelPart->Elements().erase(iSubModelPart->Elements().end() - to_be_deleted, iSubModelPart->Elements().end());
+            AddNewElementsToSubModelPart(*iSubModelPart,NewElements);
         }
     }
-}
 
     /**
     * Remove the old Trangle3D3 conditions and creates new Trangle3D6 ones

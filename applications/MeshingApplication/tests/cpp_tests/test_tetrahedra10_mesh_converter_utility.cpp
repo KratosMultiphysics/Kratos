@@ -10,6 +10,8 @@
 //  Main authors:    Ariadna Cortés
 //
 //
+//System inlcudes
+#include <iostream>
 
 // Project includes
 #include "custom_utilities/tetrahedra10_mesh_converter_utility.h"
@@ -58,6 +60,12 @@ namespace Testing {
         Element::Pointer tetra1 = modelpart.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_1);
         Element::Pointer tetra2 = modelpart.CreateNewElement("Element3D4N", 2, {2, 3, 4, 5}, p_properties_1);
 
+        GeometryPtrType geom1 = tetra1->pGetGeometry();
+        double volume1 = geom1->Volume();
+        GeometryPtrType geom2 = tetra1->pGetGeometry();
+        double volume2 = geom2->Volume();
+        std::cout << volume1 << " " << volume2 << std::endl;
+
         Condition::Pointer cond1;
         cond1 = modelpart.CreateNewCondition("SurfaceCondition3D3N", 3, {1, 2, 3}, p_properties_1);
 
@@ -91,6 +99,7 @@ namespace Testing {
             KRATOS_CHECK_EQUAL(Distance(points[0],points[1]), Distance(points[0],points[3]) + Distance(points[3],points[1]) );
             KRATOS_CHECK_EQUAL(Distance(points[1],points[2]), Distance(points[1],points[4]) + Distance(points[4],points[2]) );
             KRATOS_CHECK_EQUAL(Distance(points[2],points[0]), Distance(points[2],points[5]) + Distance(points[5],points[0]) );
+
         }
 
     }
