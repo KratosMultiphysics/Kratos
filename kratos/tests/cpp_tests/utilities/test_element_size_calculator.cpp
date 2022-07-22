@@ -22,6 +22,7 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_2d_9.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "geometries/tetrahedra_3d_10.h"
 #include "geometries/prism_3d_6.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_27.h"
@@ -246,7 +247,7 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(8, 0.1, 0.15, 0.5)));
             nodes.push_back(NodeType::Pointer(new NodeType(9, 0.35, 0.4, 0.5)));
             nodes.push_back(NodeType::Pointer(new NodeType(10, 0.6, 1.15, 0.5)));
-            auto geometry = *GeometryType::Pointer(new Tetrahedra3D4<NodeType>(nodes));
+            auto geometry = *GeometryType::Pointer(new Tetrahedra3D10<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
                 geometry, ElementSizeCalculator<3, 10>::MinimumElementSize,
                 ElementSizeCalculator<3, 10>::MinimumElementSizeDerivative, 1e-8, 1e-7);
@@ -265,7 +266,7 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(8, 0.1, 0.15, 0.5)));
             nodes.push_back(NodeType::Pointer(new NodeType(9, 0.35, 0.4, 0.5)));
             nodes.push_back(NodeType::Pointer(new NodeType(10, 0.6, 1.15, 0.5)));
-            auto geometry = *GeometryType::Pointer(new Tetrahedra3D4<NodeType>(nodes));
+            auto geometry = *GeometryType::Pointer(new Tetrahedra3D10<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
                 geometry, ElementSizeCalculator<3, 10>::AverageElementSize,
                 ElementSizeCalculator<3, 10>::AverageElementSizeDerivative, 1e-8, 1e-7);
