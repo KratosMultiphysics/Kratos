@@ -245,6 +245,10 @@ public:
         return true;
     }
 
+    virtual void CalculateReactions()
+    {
+    }
+
     /**
      * @brief This sets the level of echo for the solving strategy
      * @param Level of echo for the solving strategy

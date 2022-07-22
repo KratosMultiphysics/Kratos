@@ -902,6 +902,7 @@ class ResidualBasedNewtonRaphsonStrategy
      */
     bool SolveSolutionStep() override
     {
+        KRATOS_WATCH("in residualbased_newton_raphson_strategy.h inside SolvesolutionStep");
         // Pointers needed in the solution
         ModelPart& r_model_part = BaseType::GetModelPart();
         typename TSchemeType::Pointer p_scheme = GetScheme();
@@ -1052,12 +1053,172 @@ class ResidualBasedNewtonRaphsonStrategy
             //    TSparseSpace::SetToZero(mb);
             //    p_builder_and_solver->BuildRHS(p_scheme, r_model_part, mb);
         }
-
+         
         //calculate reactions if required
         if (mCalculateReactionsFlag == true)
             p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, rDx, rb);
 
         return is_converged;
+    }
+
+    void CalculateReactions() override
+    {
+        KRATOS_WATCH("in residualbased_newton_raphson_strategy.h inside CalculateReactions");
+        // // Pointers needed in the solution
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        typename TSchemeType::Pointer p_scheme = GetScheme();
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+        auto& r_dof_set = p_builder_and_solver->GetDofSet();
+
+        TSystemMatrixType& rA  = *mpA;
+        TSystemVectorType& rDx = *mpDx;
+        TSystemVectorType& rb  = *mpb;
+
+        // //initializing the parameters of the Newton-Raphson cycle
+        // unsigned int iteration_number = 1;
+        // r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+        // bool residual_is_updated = false;
+        // p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
+        // mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+        // bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+
+        // // Function to perform the building and the solving phase.
+        // if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
+        //     TSparseSpace::SetToZero(rA);
+        //     TSparseSpace::SetToZero(rDx);
+        //     TSparseSpace::SetToZero(rb);
+
+        //     if (mUseOldStiffnessInFirstIteration){
+        //         p_builder_and_solver->BuildAndSolveLinearizedOnPreviousIteration(p_scheme, r_model_part, rA, rDx, rb,BaseType::MoveMeshFlag());
+        //     } else {
+        //         p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+        //     }
+        // } else {
+        //     TSparseSpace::SetToZero(rDx);  // Dx = 0.00;
+        //     TSparseSpace::SetToZero(rb);
+
+        //     p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+        // }
+
+        // // Debugging info
+        // EchoInfo(iteration_number);
+
+        // // Updating the results stored in the database
+        // UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
+
+        // p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
+        // mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+
+        // if (is_converged) {
+        //     if (mpConvergenceCriteria->GetActualizeRHSflag()) {
+        //         TSparseSpace::SetToZero(rb);
+
+        //         p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+        //     }
+
+        //     is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+        // }
+
+        // //Iteration Cycle... performed only for NonLinearProblems
+        // while (is_converged == false &&
+        //        iteration_number++ < mMaxIterationNumber)
+        // {
+        //     //setting the number of iteration
+        //     r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+
+        //     p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
+        //     mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+
+        //     is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+
+        //     //call the linear system solver to find the correction mDx for the
+        //     //it is not called if there is no system to solve
+        //     if (SparseSpaceType::Size(rDx) != 0)
+        //     {
+        //         if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
+        //         {
+        //             if (GetKeepSystemConstantDuringIterations() == false)
+        //             {
+        //                 //A = 0.00;
+        //                 TSparseSpace::SetToZero(rA);
+        //                 TSparseSpace::SetToZero(rDx);
+        //                 TSparseSpace::SetToZero(rb);
+
+        //                 p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+        //             }
+        //             else
+        //             {
+        //                 TSparseSpace::SetToZero(rDx);
+        //                 TSparseSpace::SetToZero(rb);
+
+        //                 p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+        //             }
+        //         }
+        //         else
+        //         {
+        //             TSparseSpace::SetToZero(rDx);
+        //             TSparseSpace::SetToZero(rb);
+
+        //             p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+        //         }
+        //     }
+        //     else
+        //     {
+        //         KRATOS_WARNING("NO DOFS") << "ATTENTION: no free DOFs!! " << std::endl;
+        //     }
+
+        //     // Debugging info
+        //     EchoInfo(iteration_number);
+
+        //     // Updating the results stored in the database
+        //     UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
+
+        //     p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
+        //     mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+
+        //     residual_is_updated = false;
+
+        //     if (is_converged == true)
+        //     {
+        //         if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
+        //         {
+        //             TSparseSpace::SetToZero(rb);
+
+        //             p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+        //             residual_is_updated = true;
+        //         }
+
+        //         is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+        //     }
+        // }
+
+        // //plots a warning if the maximum number of iterations is exceeded
+        // if (iteration_number >= mMaxIterationNumber) {
+        //     MaxIterationsExceeded();
+        // } else {
+        //     KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
+        //         << "Convergence achieved after " << iteration_number << " / "
+        //         << mMaxIterationNumber << " iterations" << std::endl;
+        // }
+
+        // //recalculate residual if needed
+        // //(note that some convergence criteria need it to be recalculated)
+        // if (residual_is_updated == false)
+        // {
+        //     // NOTE:
+        //     // The following part will be commented because it is time consuming
+        //     // and there is no obvious reason to be here. If someone need this
+        //     // part please notify the community via mailing list before uncommenting it.
+        //     // Pooyan.
+
+        //     //    TSparseSpace::SetToZero(mb);
+        //     //    p_builder_and_solver->BuildRHS(p_scheme, r_model_part, mb);
+        // }
+         
+        //calculate reactions if required
+        if (mCalculateReactionsFlag == true)
+            p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, rDx, rb);
+
     }
 
     /**

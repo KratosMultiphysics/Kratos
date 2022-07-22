@@ -944,7 +944,7 @@ public:
         TSystemVectorType& b) override
     {
         TSparseSpace::SetToZero(b);
-
+        KRATOS_WATCH("CalculateReactions has been called");
         //refresh RHS to have the correct reactions
         BuildRHSNoDirichlet(pScheme, rModelPart, b);
 
@@ -955,6 +955,7 @@ public:
             rDof.GetSolutionStepReactionValue() = -b[i];
         });
     }
+
 
     /**
      * @brief Applies the dirichlet conditions. This operation may be very heavy or completely

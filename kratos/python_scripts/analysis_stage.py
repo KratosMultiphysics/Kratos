@@ -38,14 +38,15 @@ class AnalysisStage(object):
             KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"OpenMP" is specified as "parallel_type", but Kratos is running distributed!')
         if self.parallel_type == "MPI" and not is_distributed_run:
             KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"MPI" is specified as "parallel_type", but Kratos is not running distributed!')
-        print("Before self._GetSolver().AddVariables()")
+        print("In analysis_stage.py Before self._GetSolver().AddVariables()")
         self._GetSolver().AddVariables() # this creates the solver and adds the variables
-        print("After self._GetSolver().AddVariables()")
+        print("In analysis_stage.py After self._GetSolver().AddVariables()")
 
     def Run(self):
         """This function executes the entire AnalysisStage
         It can be overridden by derived classes
         """
+        print("in analysis_stage.py in Run")
         self.Initialize()
         print("After self.Initialize")
         # import pdb
@@ -86,18 +87,22 @@ class AnalysisStage(object):
 
         self._GetSolver().ImportModelPart()
         self._GetSolver().PrepareModelPart()
+        print("in analysis_stage before AddDofs")
         self._GetSolver().AddDofs()
-
+        print("in analysis_stage before ModifyInitialProperties")
         self.ModifyInitialProperties()
+        print("in analysis_stage before ModifyInitialGeometry")
         self.ModifyInitialGeometry()
+        print("in analysis_stage before __CreateListOfProcesses")
 
         ##here we initialize user-provided processes
         self.__CreateListOfProcesses() # has to be done after importing and preparing the ModelPart
         for process in self._GetListOfProcesses():
             process.ExecuteInitialize()
 
+        print("in analysis_stage before self._GetSolver().Initialize()")
         self._GetSolver().Initialize()
-        self._GetSolver().SetInitialConditions()
+        print("in analysis_stage before self.Check()")
         self.Check()
 
         self.ModifyAfterSolverInitialize()
@@ -209,11 +214,13 @@ class AnalysisStage(object):
         pass
 
     def _GetSolver(self):
+        print("in analysis_stage.py inside _GetSolver")
         if not hasattr(self, '_solver'):
             self._solver = self._CreateSolver()
         return self._solver
 
     def _CreateSolver(self):
+        print("in analysis_stage.py inside _CreateSolver")
         """Create the solver
         """
         raise Exception("Creation of the solver must be implemented in the derived class.")

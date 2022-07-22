@@ -124,6 +124,8 @@ namespace Kratos {
             mGammaNewmark = 0.5 - mAlphaBossak;
             mMeshVelocity = MoveMeshStrategy;
 
+            // KRATOS_WATCH("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent1");
+            // KRATOS_WATCH(mMeshVelocity);
 
             //Allocate auxiliary memory
             int NumThreads = ParallelUtilities::GetNumThreads();
@@ -152,6 +154,7 @@ namespace Kratos {
             mGammaNewmark = 0.5 - mAlphaBossak;
             mMeshVelocity = 0.0;
 
+            KRATOS_WATCH("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent2");
 
             //Allocate auxiliary memory
             int NumThreads = ParallelUtilities::GetNumThreads();
@@ -181,6 +184,7 @@ namespace Kratos {
             mGammaNewmark = 0.5 - mAlphaBossak;
             mMeshVelocity = MoveMeshStrategy;
 
+            KRATOS_WATCH("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent3");
 
             //Allocate auxiliary memory
             int NumThreads = ParallelUtilities::GetNumThreads();
@@ -210,6 +214,7 @@ namespace Kratos {
             mGammaNewmark = 0.5 - mAlphaBossak;
             mMeshVelocity = MoveMeshStrategy;
 
+            KRATOS_WATCH("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent4");
 
             //Allocate auxiliary memory
             int NumThreads = ParallelUtilities::GetNumThreads();
@@ -241,6 +246,7 @@ namespace Kratos {
             mMeshVelocity = MoveMeshStrategy;
             mRelaxationFactor = RelaxationFactor;
 
+            KRATOS_WATCH("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent5");
 
             //Allocate auxiliary memory
             int NumThreads = ParallelUtilities::GetNumThreads();
@@ -301,7 +307,7 @@ namespace Kratos {
             int NumThreads = ParallelUtilities::GetNumThreads();
             OpenMPUtils::PartitionVector NodePartition;
             OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
-
+            // KRATOS_WATCH("in ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent inside AdditionalUpdateOperations");
             //updating time derivatives (nodally for efficiency)
             #pragma omp parallel
             {
@@ -322,8 +328,10 @@ namespace Kratos {
 
                     if (mMeshVelocity == 2)//Lagrangian
                     {
+                        // KRATOS_WATCH("in ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent inside AdditionalUpdateOperations in if (mMeshVelocity == 2)//Lagrangian");
                         if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
                         {
+                            // KRATOS_WATCH("in ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent inside AdditionalUpdateOperations in if (mMeshVelocity == 2)//Lagrangian in FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)");
                             array_1d<double, 3 > & CurrentDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 0);
                             array_1d<double, 3 > & OldDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
                             array_1d<double, 3 > & OldVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
@@ -333,6 +341,7 @@ namespace Kratos {
                         }
                         else
                         {
+                            // KRATOS_WATCH("in ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent inside AdditionalUpdateOperations in else");
                             noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = ZeroVector(3);
                             noalias(itNode->FastGetSolutionStepValue(DISPLACEMENT)) = ZeroVector(3);
                         }
@@ -360,7 +369,7 @@ namespace Kratos {
             int NumThreads = ParallelUtilities::GetNumThreads();
             OpenMPUtils::PartitionVector NodePartition;
             OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
-
+            // KRATOS_WATCH("in ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent inside Predict");
             #pragma omp parallel
             {
                 //array_1d<double, 3 > DeltaDisp;

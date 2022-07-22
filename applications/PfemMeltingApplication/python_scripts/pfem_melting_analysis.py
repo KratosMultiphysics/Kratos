@@ -32,8 +32,9 @@ class PfemMeltingAnalysis(AnalysisStage):
     #### Internal functions ####
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
-        
+        print("In pfem_melting_analysis.py _CreateSolver has been called")
         ## Solver construction
+        print("In pfem_melting_analysis.py before solver_wrapper.CreateSolverByParameters")
         return solver_wrapper.CreateSolverByParameters(self.model, self.project_parameters["solver_settings"],self.project_parameters["problem_data"]["parallel_type"].GetString())
         
     def _GetSimulationName(self):

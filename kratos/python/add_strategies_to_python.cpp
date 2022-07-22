@@ -569,6 +569,7 @@ namespace Kratos
                 .def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
                 .def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
                 .def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
+                .def("CalculateReactions", &BaseSolvingStrategyType::CalculateReactions)
                 .def("GetModelPart", [](BaseSolvingStrategyType& self) -> ModelPart& { return self.GetModelPart(); })
                 .def("Info", &BaseSolvingStrategyType::Info)
                 ;

@@ -26,7 +26,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
             
         elif (solver_type == "pfem2"):
             
-            solver_module_name = "pfem2_solver"
+            solver_module_name = "PFEM2_Solver"
             
             
         # Coupled mechanical-thermal solver
@@ -47,6 +47,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         raise Exception(err_msg)
 
     module_full = 'KratosMultiphysics.PfemMeltingApplication.' + solver_module_name
+    print("in python_solvers_wrapper_pfem_melting.py before solver = import_module(module_full).CreateSolver(model, solver_settings)")
     solver = import_module(module_full).CreateSolver(model, solver_settings)
     
     return solver
