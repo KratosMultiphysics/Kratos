@@ -194,12 +194,12 @@ namespace Kratos
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
-            nodes.push_back(NodeType::Pointer(new NodeType(2, 0.5, 0.0, 0.0)));
-            nodes.push_back(NodeType::Pointer(new NodeType(3, 1.0, 0.0, 0.0)));
-            nodes.push_back(NodeType::Pointer(new NodeType(4, 1.0, 0.5, 0.0)));
-            nodes.push_back(NodeType::Pointer(new NodeType(5, 1.0, 1.0, 0.0)));
-            nodes.push_back(NodeType::Pointer(new NodeType(6, 0.5, 1.0, 0.0)));
-            nodes.push_back(NodeType::Pointer(new NodeType(7, 0.0, 1.0, 0.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(2, 1.0, 0.0, 0.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(3, 1.0, 1.0, 0.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(4, 0.0, 1.0, 0.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(5, 0.5, 0.0, 0.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(6, 1.0, 0.5, 0.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(7, 0.5, 1.0, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(8, 0.0, 0.5, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(9, 0.5, 0.5, 0.0)));
             auto geometry = *GeometryType::Pointer(new Quadrilateral2D9<NodeType>(nodes));

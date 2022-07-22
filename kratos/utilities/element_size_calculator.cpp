@@ -338,23 +338,19 @@ double ElementSizeCalculator<2,9>::MinimumElementSize(const Geometry<Node<3> >& 
     const Node<3>& r_node_1 = rGeometry[1];
     const Node<3>& r_node_2 = rGeometry[2];
     const Node<3>& r_node_3 = rGeometry[3];
-    const Node<3>& r_node_4 = rGeometry[4];
-    const Node<3>& r_node_5 = rGeometry[5];
-    const Node<3>& r_node_6 = rGeometry[6];
-    const Node<3>& r_node_7 = rGeometry[7];
 
     // Calculate face centers
-    const double x10 = r_node_0.X() - r_node_4.X() + r_node_1.X();
-    const double y10 = r_node_0.Y() - r_node_4.Y() + r_node_1.Y();
+    const double x10 = (r_node_1.X() + r_node_3.X())/2.;
+    const double y10 = (r_node_1.Y() + r_node_3.Y())/2.;
 
-    const double x21 = r_node_1.X() - r_node_5.X() + r_node_2.X();
-    const double y21 = r_node_1.Y() - r_node_5.Y() + r_node_2.Y();
+    const double x21 = (r_node_2.X() + r_node_1.X())/2.;
+    const double y21 = (r_node_2.Y() + r_node_1.Y())/2.;
 
-    const double x32 = r_node_2.X() - r_node_6.X() + r_node_3.X();
-    const double y32 = r_node_2.Y() - r_node_6.Y() + r_node_3.Y();
+    const double x32 = (r_node_3.X() + r_node_2.X())/2.;
+    const double y32 = (r_node_3.Y() + r_node_2.Y())/2.;
 
-    const double x03 = r_node_3.X() - r_node_7.X() + r_node_0.X();
-    const double y03 = r_node_3.Y() - r_node_7.Y() + r_node_0.Y();
+    const double x03 = (r_node_0.X() + r_node_3.X())/2.;
+    const double y03 = (r_node_0.Y() + r_node_3.Y())/2.;
 
     // Distance between face centers (xi direction)
     const double dxi_x = x21 - x03;
@@ -393,35 +389,31 @@ double ElementSizeCalculator<2,9>::MinimumElementSizeDerivative(
     const Node<3>& r_node_1 = rGeometry[1];
     const Node<3>& r_node_2 = rGeometry[2];
     const Node<3>& r_node_3 = rGeometry[3];
-    const Node<3>& r_node_4 = rGeometry[4];
-    const Node<3>& r_node_5 = rGeometry[5];
-    const Node<3>& r_node_6 = rGeometry[6];
-    const Node<3>& r_node_7 = rGeometry[7];
 
     // Calculate face centers
-    const double x10 = r_node_0.X() - r_node_4.X() + r_node_1.X();
-    const double x10_derivative = ((DerivativeNodeIndex == 1) - (DerivativeNodeIndex == 4) + (DerivativeNodeIndex == 0)) * (DerivativeDirectionIndex == 0);
+    const double x10 = (r_node_1.X() + r_node_3.X())/2.;
+    const double x10_derivative = ((DerivativeNodeIndex == 1) + (DerivativeNodeIndex == 3)) * (DerivativeDirectionIndex == 0) / 2.;
 
-    const double y10 = r_node_0.Y() - r_node_4.Y() + r_node_1.Y();
-    const double y10_derivative = ((DerivativeNodeIndex == 0) - (DerivativeNodeIndex == 4) + (DerivativeNodeIndex == 1)) * (DerivativeDirectionIndex == 1);
+    const double y10 = (r_node_1.Y() + r_node_3.Y())/2.;
+    const double y10_derivative = ((DerivativeNodeIndex == 1) + (DerivativeNodeIndex == 3)) * (DerivativeDirectionIndex == 1) / 2.;
 
-    const double x21 = r_node_1.X() - r_node_5.X() + r_node_2.X();
-    const double x21_derivative = ((DerivativeNodeIndex == 1) - (DerivativeNodeIndex == 5) + (DerivativeNodeIndex == 2)) * (DerivativeDirectionIndex == 0);
+    const double x21 = (r_node_2.X() + r_node_1.X())/2.;
+    const double x21_derivative = ((DerivativeNodeIndex == 2) + (DerivativeNodeIndex == 1)) * (DerivativeDirectionIndex == 0) / 2.;
 
-    const double y21 = r_node_1.Y() - r_node_5.Y() + r_node_2.Y();
-    const double y21_derivative = ((DerivativeNodeIndex == 1) - (DerivativeNodeIndex == 5) + (DerivativeNodeIndex == 2)) * (DerivativeDirectionIndex == 1);
+    const double y21 = (r_node_2.Y() + r_node_1.Y())/2.;
+    const double y21_derivative = ((DerivativeNodeIndex == 2) + (DerivativeNodeIndex == 1)) * (DerivativeDirectionIndex == 1) / 2.;
 
-    const double x32 =  r_node_2.X() - r_node_6.X() + r_node_3.X();
-    const double x32_derivative = ((DerivativeNodeIndex == 2) - (DerivativeNodeIndex == 6) + (DerivativeNodeIndex == 3)) * (DerivativeDirectionIndex == 0);
+    const double x32 = (r_node_3.X() + r_node_2.X())/2.;
+    const double x32_derivative = ((DerivativeNodeIndex == 3) + (DerivativeNodeIndex == 2)) * (DerivativeDirectionIndex == 0) / 2.;
 
-    const double y32 = r_node_2.Y() - r_node_6.Y() + r_node_3.Y();
-    const double y32_derivative = ((DerivativeNodeIndex == 2) - (DerivativeNodeIndex == 6) + (DerivativeNodeIndex == 3)) * (DerivativeDirectionIndex == 1);
+    const double y32 = (r_node_3.Y() + r_node_2.Y())/2.;
+    const double y32_derivative = ((DerivativeNodeIndex == 3) + (DerivativeNodeIndex == 2)) * (DerivativeDirectionIndex == 1) / 2.;
 
-    const double x03 = r_node_3.X() - r_node_7.X() + r_node_0.X();
-    const double x03_derivative = ((DerivativeNodeIndex == 3) - (DerivativeNodeIndex == 7) + (DerivativeNodeIndex == 0)) * (DerivativeDirectionIndex == 0);
+    const double x03 = (r_node_0.X() + r_node_3.X())/2.;
+    const double x03_derivative = ((DerivativeNodeIndex == 0) + (DerivativeNodeIndex == 3)) * (DerivativeDirectionIndex == 0) / 2.;
 
-    const double y03 = r_node_3.Y() - r_node_7.Y() + r_node_0.Y();
-    const double y03_derivative = ((DerivativeNodeIndex == 3) - (DerivativeNodeIndex == 7) + (DerivativeNodeIndex == 0)) * (DerivativeDirectionIndex == 1);
+    const double y03 = (r_node_0.Y() + r_node_3.Y())/2.;
+    const double y03_derivative = ((DerivativeNodeIndex == 0) + (DerivativeNodeIndex == 3)) * (DerivativeDirectionIndex == 1) / 2.;
 
     // Distance between face centers (xi direction)
     const double dxi_x = x21 - x03;
