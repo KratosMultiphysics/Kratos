@@ -185,7 +185,6 @@ private:
 	ElementsArrayType& rElements = this_model_part.Elements();
 	ElementsArrayType::iterator it_begin = rElements.ptr_begin();
 	ElementsArrayType::iterator it_end = rElements.ptr_end();
-	unsigned int to_be_deleted = 0;
 	unsigned int current_id = (rElements.end() - 1)->Id() + 1;
 
 	const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
