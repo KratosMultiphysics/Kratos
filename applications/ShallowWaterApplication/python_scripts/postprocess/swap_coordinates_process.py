@@ -20,7 +20,7 @@ class SwapCoordinatesProcess(KM.Process):
         KM.Process.__init__(self)
 
         default_settings = KM.Parameters("""{
-                "model_part_name"        : "model_part_name",
+                "model_part_name"        : "model_part_name"
             }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
