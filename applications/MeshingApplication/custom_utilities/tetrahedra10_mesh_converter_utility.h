@@ -13,7 +13,7 @@
 #if !defined(KRATOS_TETRAHEDRA10_MESH_CONVERTER_UTILITY)
 #define  KRATOS_TETRAHEDRA10_MESH_CONVERTER_UTILITY
 
-// NOTE: Before compute the remeshing it is necessary to compute the neighbours
+// NOTE: This utility will change the IDs of the elements in the mesh
 
 // System includes
 
@@ -139,6 +139,10 @@ private:
     ///@name Private Operations
     ///@{
     
+    /**
+    * Creates a new tetrahedra3D10
+    * @return the reference to the new tetrahedra
+    */
     Tetrahedra3D10<Node<3>> GenerateTetrahedra(ModelPart& this_model_part, std::vector<int>& aux) {
         unsigned int i0 = aux[0];
         unsigned int i1 = aux[1];
@@ -164,6 +168,25 @@ private:
             this_model_part.Nodes()(i8),
             this_model_part.Nodes()(i9)
         );
+        return geom;
+    }
+
+    Triangle3D6<Node<3>> GenerateTriangle3D6(ModelPart& this_model_part, array_1d<int, 6>& aux) {
+        unsigned int i0   = aux[0];
+        unsigned int i1   = aux[1];
+        unsigned int i2   = aux[2];
+        unsigned int i3   = aux[3];
+        unsigned int i4   = aux[4];
+        unsigned int i5   = aux[5];
+
+        Triangle3D6<Node<3> > geom(
+                this_model_part.Nodes()(i0),
+                this_model_part.Nodes()(i1),
+                this_model_part.Nodes()(i2),
+                this_model_part.Nodes()(i3),
+                this_model_part.Nodes()(i4),
+                this_model_part.Nodes()(i5)
+                );
         return geom;
     }
 
@@ -299,7 +322,6 @@ private:
         KRATOS_TRY;
 
         PointerVector< Condition > NewConditions;
-
         ConditionsArrayType& rConditions = this_model_part.Conditions();
 
         if(rConditions.size() > 0)
@@ -322,22 +344,8 @@ private:
 
                 it->Set(TO_ERASE,true); //Mark them as the "old" conditions for later remove
 
-                unsigned int i0   = aux[0];
-                unsigned int i1   = aux[1];
-                unsigned int i2   = aux[2];
-                unsigned int i3   = aux[3];
-                unsigned int i4   = aux[4];
-                unsigned int i5   = aux[5];
-
-                Triangle3D6<Node<3> > newgeom(
-                        this_model_part.Nodes()(i0),
-                        this_model_part.Nodes()(i1),
-                        this_model_part.Nodes()(i2),
-                        this_model_part.Nodes()(i3),
-                        this_model_part.Nodes()(i4),
-                        this_model_part.Nodes()(i5)
-                        );
-
+                Triangle3D6<Node<3> > newgeom = GenerateTriangle3D6 (this_model_part, aux);
+            
                 // Generate new condition by cloning the base one
                 Condition::Pointer pcond;
                 const Condition& rCond = KratosComponents<Condition>::Get("SurfaceCondition3D6N");
