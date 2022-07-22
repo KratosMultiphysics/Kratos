@@ -1815,6 +1815,16 @@ double ElementSizeCalculator<2,3>::ProjectedElementSize(
     return Hvel;
 }
 
+// Triangle2D6 version
+template<>
+double ElementSizeCalculator<2,6>::ProjectedElementSize(
+    const Geometry<Node<3> > &rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
+    KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
+    return 0.0; // Just to avoid warning during compilations
+}
+
 // Quadrilateral2D4 version.
 template<>
 double ElementSizeCalculator<2,4>::ProjectedElementSize(
@@ -1825,6 +1835,16 @@ double ElementSizeCalculator<2,4>::ProjectedElementSize(
     const double Hvel = ElementSizeCalculator<2,3>::ProjectedElementSize(rGeometry,rVelocity);
 
     return Hvel;
+}
+
+// Quadrilateral2D9 version
+template<>
+double ElementSizeCalculator<2,9>::ProjectedElementSize(
+    const Geometry<Node<3> > &rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
+    KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
+    return 0.0; // Just to avoid warning during compilations
 }
 
 // Tetrahedra3D4 version.
@@ -1862,6 +1882,16 @@ double ElementSizeCalculator<3,4>::ProjectedElementSize(
     return Hvel;
 }
 
+// Tetrahedra3D10 version.
+template<>
+double ElementSizeCalculator<3,10>::ProjectedElementSize(
+    const Geometry<Node<3> > &rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
+    KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
+    return 0.0; // Just to avoid warning during compilations
+}
+
 // Prism3D6 version
 template<>
 double ElementSizeCalculator<3,6>::ProjectedElementSize(
@@ -1871,7 +1901,6 @@ double ElementSizeCalculator<3,6>::ProjectedElementSize(
     KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
     return 0.0; // Just to avoid warning during compilations
 }
-
 
 // Hexahedra3D8 version.
 template<>
@@ -1957,6 +1986,16 @@ double ElementSizeCalculator<3,8>::ProjectedElementSize(
     }
 
     return Hvel;
+}
+
+// Hexahedra3D27 version.
+template<>
+double ElementSizeCalculator<3,27>::ProjectedElementSize(
+    const Geometry<Node<3> > &rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
+    KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
+    return 0.0; // Just to avoid warning during compilations
 }
 
 // Triangle2D3 version.
