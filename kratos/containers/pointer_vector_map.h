@@ -486,14 +486,6 @@ public:
     /**
      * @brief Get the maximum size of buffer used in the container.
      */
-    size_type GetMaxBufferSize()
-    {
-        return mMaxBufferSize;
-    }
-
-    /**
-     * @brief Get the maximum size of buffer used in the container (const version)
-     */
     size_type GetMaxBufferSize() const 
     {
         return mMaxBufferSize;
@@ -511,14 +503,6 @@ public:
 
     /**
      * @brief Get the sorted part size of buffer used in the container.
-     */
-    size_type GetSortedPartSize()
-    {
-        return mSortedPartSize;
-    }
-
-    /**
-     * @brief Get the sorted part size of buffer used in the container. (const version)
      */
     size_type GetSortedPartSize() const 
     {
