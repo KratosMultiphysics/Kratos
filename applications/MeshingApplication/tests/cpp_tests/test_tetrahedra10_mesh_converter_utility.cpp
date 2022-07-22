@@ -77,18 +77,20 @@ namespace Testing {
         //KRATOS_CHECK_EQUAL(volume2,0);
 
         Condition::Pointer cond1;
-        cond1 = modelpart.CreateNewCondition("SurfaceCondition3D3N", 3, {1, 2, 3}, p_properties_1);
+        cond1 = subMp2.CreateNewCondition("SurfaceCondition3D3N", 3, {2, 3, 4}, p_properties_1);
 
         Tetrahedra10MeshConverter refineTetra(modelpart); 
         refineTetra.LocalConvertTetrahedra10Mesh(false,false);
 
         KRATOS_CHECK_EQUAL(modelpart.Nodes().size(),14); //There are 14 nodes (10 for each tetra but 6 are shared)
-        KRATOS_CHECK_EQUAL(subMp1.Nodes().size(),14); //There are 14 nodes (10 for each tetra but 6 are shared) 
-        KRATOS_CHECK_EQUAL(subMp2.Nodes().size(),10); //There are 14 nodes (10 for each tetra but 6 are shared) 
+        KRATOS_CHECK_EQUAL(subMp0.Nodes().size(),14); //Also in the first level submodelpart
+        KRATOS_CHECK_EQUAL(subMp1.Nodes().size(),14); //Also in the second level submodelpart
+        KRATOS_CHECK_EQUAL(subMp2.Nodes().size(),10); //In the third level submodelpart only 10 nodes
         KRATOS_CHECK_EQUAL(modelpart.Elements().size(),2); //No new elements are added
+        KRATOS_WATCH(modelpart.Elements().size());
         KRATOS_CHECK_EQUAL(subMp1.Elements().size(),2); //No new elements are added
         KRATOS_CHECK_EQUAL(subMp2.Elements().size(),1); //No new elements are added
-        KRATOS_CHECK_EQUAL(modelpart.Conditions().size(),1); //No new conditions are added
+        KRATOS_CHECK_EQUAL(subMp2.Conditions().size(),1); //No new conditions are added
         
         for(auto elem : modelpart.Elements()) {
             GeometryPtrType geom = elem.pGetGeometry();
