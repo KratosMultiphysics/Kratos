@@ -65,6 +65,7 @@ public:
  
    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
    // void Initialize(const ProcessInfo& rCurrentProcessInfo);
+   void GetFirstDerivativesVector(Vector& rValues, int Step) const override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -78,6 +79,7 @@ protected:
         double IntegrationCoefficient;
         array_1d<double,TNumNodes> Np;
         array_1d<double, TNumNodes* TDim> UVector;
+        BoundedMatrix<double, TNumNodes* TDim, TNumNodes* TDim> UMatrix;
         double E; // youngs modulus
         double nu; // poison ratio
         double rho; // density of soil mixture
@@ -98,24 +100,33 @@ protected:
     // Member Variables
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                                    
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+        const ProcessInfo& CurrentProcessInfo) override;
+
+    void CalculateLocalSystem(MatrixType& rLhsMatrix, VectorType& rRightHandSideVector,
+        const ProcessInfo& CurrentProcessInfo) override;
+
     void CalculateRHS(VectorType& rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo) override;
     
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, NormalLysmerAbsorbingVariables& rVariables);
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, NormalLysmerAbsorbingVariables& rVariables);
 
-    void CalculateLocalVelocityVector(array_1d<double, TDim>& rLocalVelocityVector,
+    /*void CalculateLocalVelocityVector(array_1d<double, TDim>& rLocalVelocityVector,
         const Matrix& Jacobian,
         const Matrix& NContainer,
         const NormalLysmerAbsorbingVariables& Variables,
-        const unsigned int& GPoint);
+        const unsigned int& GPoint);*/
 
     void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const Element::GeometryType& Geom);
 
     void GetNeighbourElementVariables(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
+
     void GetVariables(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
 
     void CalculateTractionVector(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, Element::GeometryType& Geom, array_1d<double, TNumNodes* TDim>& rTractionVector);
+    void CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, Element::GeometryType& Geom);
+    void CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, Element::GeometryType& Geom);
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
