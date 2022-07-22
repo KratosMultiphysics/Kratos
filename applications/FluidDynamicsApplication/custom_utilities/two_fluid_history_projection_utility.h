@@ -91,6 +91,25 @@ public:
             , ParticleVelocity(rParticleVelocity)
         {}
 
+        ParticleData(
+            const array_1d<double, 3> &rCoordinates,
+            const array_1d<double, 3> &rOldVelocity,
+            const array_1d<double, 3> &rParticleVelocity,
+            double rDistance,
+            const array_1d<double, 3> &rInitialCoordinates,
+            const array_1d<double, 3> &rOldAcceleration,
+            double rParticleId,
+            double rDistanceOld)
+            : Coordinates(rCoordinates),
+              OldVelocity(rOldVelocity),
+              ParticleVelocity(rParticleVelocity),
+              Distance(rDistance),
+              InitialCoordinates(rInitialCoordinates),
+              OldAcceleration(rOldAcceleration),
+              ParticleId(rParticleId),
+              DistanceOld(rDistanceOld)
+        {}
+
         /// Assignment operator (required by the dynamic bins)
         ParticleData& operator=(const ParticleData& rOther) {return *this;}
 
@@ -101,9 +120,15 @@ public:
         const double& operator[](std::size_t i) const {return Coordinates[i];}
 
         /// Particle data
-        array_1d<double,3> Coordinates;
-        array_1d<double,3> OldVelocity;
-        array_1d<double,3> ParticleVelocity;
+        double Distance; // Previous step levelset (phi_n)
+        double ParticleId;         // Particle Id
+        double DistanceOld;       // Phi_n_1
+        array_1d<double,3> Coordinates; // Particle final coordinates
+        array_1d<double,3> InitialCoordinates; // Particle initial coordinates
+        array_1d<double,3> OldVelocity; // Particle old velocity (v_n)
+        array_1d<double,3> OldAcceleration; // Particle old acceleration (a_n)
+        array_1d<double,3> ParticleVelocity; // Particle motion velocity that includes the "ALE" weight (equivalent to v_m)
+
     };
 
     using ParticleDataType = ParticleData;
