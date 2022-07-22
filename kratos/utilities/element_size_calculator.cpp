@@ -1436,9 +1436,9 @@ double ElementSizeCalculator<3,10>::AverageElementSizeDerivative(
 {
     KRATOS_TRY
 
-    KRATOS_DEBUG_ERROR_IF(DerivativeNodeIndex > 8)
+    KRATOS_DEBUG_ERROR_IF(DerivativeNodeIndex > 9)
         << "Invalid DerivativeNodeIndex [ DerivativeNodeIndex = " << DerivativeNodeIndex
-        << ", expected DerivativeNodeIndex < 9 ].\n";
+        << ", expected DerivativeNodeIndex < 10 ].\n";
 
     KRATOS_DEBUG_ERROR_IF(DerivativeDirectionIndex > 2)
         << "Invalid DerivativeDirectionIndex [ DerivativeDirectionIndex = " << DerivativeDirectionIndex
