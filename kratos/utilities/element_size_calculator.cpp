@@ -1995,10 +1995,14 @@ double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const Bounded
 // Template class instantiation
 
 template class ElementSizeCalculator<2,3>;
+template class ElementSizeCalculator<2,6>;
 template class ElementSizeCalculator<2,4>;
+template class ElementSizeCalculator<2,9>;
 template class ElementSizeCalculator<3,4>;
 template class ElementSizeCalculator<3,6>;
+template class ElementSizeCalculator<3,10>;
 template class ElementSizeCalculator<3,8>;
+template class ElementSizeCalculator<3,27>;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
