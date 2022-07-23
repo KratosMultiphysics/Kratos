@@ -69,12 +69,12 @@ namespace Testing {
         subMp2.AddNode(modelpart.pGetNode(4));
         subMp1.AddNode(modelpart.pGetNode(1));
 
+        /*
         GeometryPtrType geom1 = tetra1->pGetGeometry();
         double volume1 = geom1->Volume();
         GeometryPtrType geom2 = tetra1->pGetGeometry();
         double volume2 = geom2->Volume();
-        //KRATOS_CHECK_EQUAL(volume1,0);
-        //KRATOS_CHECK_EQUAL(volume2,0);
+        */
 
         Condition::Pointer cond1;
         cond1 = subMp2.CreateNewCondition("SurfaceCondition3D3N", 3, {2, 3, 4}, p_properties_1);

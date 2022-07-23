@@ -500,9 +500,10 @@ namespace Kratos
                             ParentsInSubModelPart++;
                     }
 
-                    if ( ParentCount == ParentsInSubModelPart )
+                    if ( ParentCount == ParentsInSubModelPart ) {
                         iSubModelPart->AddNode( *iNode );
                         added_nodes = true;
+                    }
                 }
             }
             if(added_nodes)
