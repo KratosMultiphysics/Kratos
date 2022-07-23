@@ -981,7 +981,7 @@ template<>
 double ElementSizeCalculator<3,10>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
 {
 
-    const double average_element_size = ElementSizeCalculator<3,10>::AverageElementSize(rGeometry);
+    const double average_element_size = ElementSizeCalculator<3,4>::AverageElementSize(rGeometry);
 
     return average_element_size;
 }
