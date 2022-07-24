@@ -67,7 +67,7 @@ double BrooksCoreyLaw::
     }
     else 
     {
-        double sat = rMaterialProperties[SATURATED_SATURATION];;
+        double sat = rMaterialProperties[SATURATED_SATURATION];
         return sat;
     }
 
@@ -111,7 +111,7 @@ double BrooksCoreyLaw::
         const double &Lambda  = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
         
 
-        double dSdp = (satMax - satMin) * (-Lambda) * pow(pb,Lambda)*pow(p, -Lambda-1.0);
+        double dSdp = (satMax - satMin) * (-Lambda) * pow(pb,Lambda)*pow(p, (-Lambda-1.0));
     
         return dSdp;
     }
@@ -173,7 +173,7 @@ if (p > 0.0 && p >= pb)
     }
     else
     {
-        double BishopCo =1;
+        double BishopCo ==1;
         return BishopCo;
     }
 
