@@ -388,6 +388,21 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #        inlet_node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, vel_inlet)
             #        KratosMultiphysics.Logger.PrintInfo("Inlet", vel_inlet)
 
+            if (TimeStep % 40000 == 0):
+                print("Parallel Redistancing Started")
+                print(time.time())
+                layers = 100#int(4000/100000*self.main_model_part.NumberOfElements())
+                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances( #
+                    self.main_model_part,
+                    KratosMultiphysics.DISTANCE,
+                    KratosCFD.AREA_VARIABLE_AUX,
+                    layers,
+                    1.0e0)#,
+                    #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
+
+                print(time.time())
+                print("Parallel Redistancing Finished")
+
             print("Calculating curvature for elliptic redistiancing and contact angle distribution, prior to smoothing: Start")
             (self.distance_gradient_process).Execute() # Always check if calculated above
             (self.curvature_calculation_process).Execute()
@@ -403,40 +418,21 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 node.SetValue(KratosCFD.DISTANCE_AUX, old_distance)
             print("Contact Angle Evaluator: End")
 
-            print("Smoothing Started")
-            print(time.time())
+            if (TimeStep % 4 == 0):
+                print("Smoothing Started")
+                print(time.time())
 
-            if (TimeStep % 1 == 0):
                 #(self.distance_gradient_process).Execute() # Always check if calculated above
                 (self.surface_smoothing_process).Execute()
                 for node in self.main_model_part.Nodes:
                     smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
                     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
-            print(time.time())
-            print("Smoothing Finished")
+                print(time.time())
+                print("Smoothing Finished")
 
             # Recompute the distance field according to the new level-set position
-            if (TimeStep % 10000 == 0):
-                #(self.variational_distance_process).Execute()
-
-                #(self.hyperbolic_distance_reinitialization).Execute()
-
-                print("Parallel Redistancing Started")
-                print(time.time())
-                layers = 100#int(4000/100000*self.main_model_part.NumberOfElements())
-                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances( #
-                    self.main_model_part,
-                    KratosMultiphysics.DISTANCE,
-                    KratosCFD.AREA_VARIABLE_AUX,
-                    layers,
-                    1.0e0)#,
-                    #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
-
-                print(time.time())
-                print("Parallel Redistancing Finished")
-
-            if (TimeStep % 10 == 0):
+            if (TimeStep % 4 == 0):
                 print("Elliptic Redistancing Started")
                 print(time.time())
 

@@ -274,12 +274,14 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     unsigned int nneg=0, npos=0;
 
     double mean_curvature = 0.0;
+    double mean_norm_distance_grad = 0.0;
 
     for (unsigned int i_node=0; i_node < num_nodes; ++i_node){
         const double dist0 = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE);
         distances0(i_node) = dist0;
 
         mean_curvature += (*p_geometry)[i_node].FastGetSolutionStepValue(CURVATURE);
+        mean_norm_distance_grad += norm_2((*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT));
 
         if (dist0 > 0.0) npos += 1;
         else nneg += 1;
@@ -288,7 +290,10 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         values(i_node) = dist_dof;
     }
 
-    mean_curvature /= static_cast<double>(num_nodes);
+    mean_curvature /= mean_norm_distance_grad; //static_cast<double>(num_nodes);
+    // mean_norm_distance_grad /= static_cast<double>(num_nodes);
+
+    mean_curvature /= mean_norm_distance_grad;
 
     const double scale = 1.0e0; // For very small (micrometric) elements
 
@@ -297,7 +302,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     if(mean_curvature > 0.5/element_size)   // Sharp corners
         mean_curvature = 0.5/element_size;
 
-    double source_coeff = 1.0*scale*mean_curvature;
+    const double source_coeff = 1.0*scale*mean_curvature;
 
     if(rLeftHandSideMatrix.size1() != num_dof)
         rLeftHandSideMatrix.resize(num_dof,num_dof,false); //resizing the system in case it does not have the right size
@@ -322,13 +327,13 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
         grad_phi_old = prod(trans(DN_DX[gp]),distances0);
 
-        if (norm_grad_phi_avg > tolerance){
+        if (norm_grad_phi_avg >= 1.0 /* tolerance */){
             diffusion = 1.0/norm_grad_phi_avg;
             diffusion_prime_to_s = -1.0/(norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg);
         } else{
-            diffusion = 1.0/(norm_grad_phi_avg+tolerance);
+            diffusion = 1.2/(norm_grad_phi_avg+tolerance);
             //diffusion = 2.0-norm_grad_phi_avg;
-            diffusion_prime_to_s = -1.0/(norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg+tolerance);
+            diffusion_prime_to_s = -1.2/(norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg+tolerance);
             //diffusion_prime_to_s = -1.0/(norm_grad_phi_avg+tolerance);
         }
 
@@ -362,7 +367,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                         // move to the LHS for Newton-Raphson strategy:
                         rhs[i_node] += diffusion * weights(gp) * (DN_DX[gp])(i_node, k_dim) * N(gp, j_node) * grad_phi_avg[k_dim];
                         lhs(i_node, j_node) += 1.0/scale * weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
-                        // lhs(i_node, j_node) += - diffusion * weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
+                        //lhs(i_node, j_node) += - diffusion * weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
                     }
 
                     else{    // Elliptic reinitialization
@@ -613,7 +618,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                         //grad_phi_old_avg_i /= norm_2(grad_phi_old_avg_i); //It will help? or disturb? the back of the droplet (upstream where grad < 1) if used without prior parallel redistancing
 
                         // Working with averaged DISTANE_GRADIENT (accessed in the process) for the 0th-step?
-                        VectorType grad_phi_avg_i = GetGeometry()[i_node].GetValue(DISTANCE_GRADIENT);
+                        VectorType grad_phi_avg_i = GetGeometry()[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT);//.GetValue(DISTANCE_GRADIENT);
                         const double norm_grad_phi_avg_i = norm_2( grad_phi_avg_i );
                         const double distance_i = GetGeometry()[i_node].FastGetSolutionStepValue(DISTANCE);
                         //grad_phi_avg_i /= norm_2(grad_phi_avg_i); // It is not a good idea!
@@ -626,19 +631,19 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                         const double theta = std::min( std::exp( -( (std::abs(distance_i) + tolerance)/(20.0*element_size) - 1.0 ) ), 1.0); //1.0;
 
                         if (contact_angle_weight > 0.0){
-                            minus_cos_contact_angle = -theta*norm_grad_phi_avg_i*std::cos(contact_angle/contact_angle_weight) +
-                            (1.0-theta)*Kratos::inner_prod(solid_normal,grad_phi_avg_i)/* /norm_grad_phi_avg_i */;
+                            minus_cos_contact_angle = -theta/* *norm_grad_phi_avg_i */*std::cos(contact_angle/contact_angle_weight) +
+                            (1.0-theta)*Kratos::inner_prod(solid_normal,grad_phi_avg_i)/norm_grad_phi_avg_i;
                             /* minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
                             minus_cos_contact_angle = minus_cos_contact_angle*norm_grad_phi_avg_i; */
                         } else{
-                            minus_cos_contact_angle = Kratos::inner_prod(solid_normal,grad_phi_avg_i)/* /norm_grad_phi_avg_i */;
+                            minus_cos_contact_angle = Kratos::inner_prod(solid_normal,grad_phi_avg_i)/norm_grad_phi_avg_i;
                         }
 
-                        if (step == 0){
+                        /* if (step == 0){ */
                             rhs(i_node) += scale * minus_cos_contact_angle * face_weight * face_shape_func(i_node);
-                        } else{ // step == 1
+                        /* } else{ // step == 1
                             rhs(i_node) += minus_cos_contact_angle * face_weight * face_shape_func(i_node);
-                        }
+                        } */
                         //Note: the elliptic redistancing doesn't need BC.
                     }
                 }

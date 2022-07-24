@@ -33,8 +33,8 @@ void ContactAngleEvaluator::Execute()
 {
     KRATOS_TRY;
 
-    const double theta_advancing = 180.0*PI/180.0;//180.0*PI/180.0;//149.0*PI/180.0;//129.78*PI/
-    const double theta_receding = 0.0*PI/180.0;//0.0*PI/180.0;//115.0*PI/180.0;//129.78*PI/
+    const double theta_advancing = 130.0*PI/180.0;//180.0*PI/180.0;//149.0*PI/180.0;//129.78*PI/
+    const double theta_receding = 130.0*PI/180.0;//0.0*PI/180.0;//115.0*PI/180.0;//129.78*PI/
 
     const unsigned int num_nodes = mrModelPart.NumberOfNodes();
     const unsigned int num_elements = mrModelPart.NumberOfElements();
@@ -62,6 +62,15 @@ void ContactAngleEvaluator::Execute()
     solid_normal.resize(dimension);
     gradient.resize(dimension);
 
+    // First node iterator
+    const auto it_node_begin = mrModelPart.NodesBegin();
+
+    #pragma omp parallel for
+    for (unsigned int k = 0; k < num_nodes; ++k) {
+        auto it_node = it_node_begin + k;
+        it_node->Set(INTERFACE, false);
+    }
+
     // Iterate over the elements
     #pragma omp parallel for firstprivate(N, distances, DN_DX, J0, InvJ0, solid_normal, gradient)
     for(int i_elem=0; i_elem < num_elements; ++i_elem) {
@@ -75,20 +84,36 @@ void ContactAngleEvaluator::Execute()
         unsigned int n_contact_pos = 0;
         //unsigned int n_contact = 0;
 
+        unsigned int n_neg = 0;
+        unsigned int n_pos = 0;
+
         solid_normal = ZeroVector(dimension);
 
         for (std::size_t i_node = 0; i_node < number_of_nodes_first_element; ++i_node){
             auto& node = r_geometry[i_node];
             const double distance = node.FastGetSolutionStepValue(DISTANCE);
             distances[i_node] = distance;
-            if (node.GetValue(IS_STRUCTURE) == 1.0 && distance > 0.0){
-                n_contact_pos++;
-                solid_normal += node.FastGetSolutionStepValue(NORMAL);
-                //n_contact++;
-            } else if (node.GetValue(IS_STRUCTURE) == 1.0){
-                n_contact_neg++;
-                solid_normal += node.FastGetSolutionStepValue(NORMAL);
-                //n_contact++;
+            if (distance > 0.0){
+                n_pos++;
+                if (node.GetValue(IS_STRUCTURE) == 1.0){
+                    n_contact_pos++;
+                    solid_normal += node.FastGetSolutionStepValue(NORMAL);
+                    //n_contact++;
+                }
+            } else{
+                n_neg++;
+                if (node.GetValue(IS_STRUCTURE) == 1.0){
+                    n_contact_neg++;
+                    solid_normal += node.FastGetSolutionStepValue(NORMAL);
+                    //n_contact++;
+                }
+            }
+        }
+
+        if (n_pos > 0 && n_neg > 0){
+            for (std::size_t i_node = 0; i_node < number_of_nodes_first_element; ++i_node){
+                auto& node = r_geometry[i_node];
+                node.Set(INTERFACE, true);
             }
         }
 
@@ -137,9 +162,6 @@ void ContactAngleEvaluator::Execute()
         }
 
     }
-
-    // First node iterator
-    const auto it_node_begin = mrModelPart.NodesBegin();
 
     #pragma omp parallel for
     for (unsigned int k = 0; k < num_nodes; ++k) {
@@ -204,6 +226,10 @@ void ContactAngleEvaluator::Execute()
             }
 
         }
+
+        if (norm_2(it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT)) < 0.5){
+            it_node->Fix(DISTANCE);
+        }
     }
 
     #pragma omp parallel for
@@ -217,29 +243,80 @@ void ContactAngleEvaluator::Execute()
 
             if (node_i_contact_angle == 0.0){
 
+                const auto node_i_coordinates = it_node_i->Coordinates();
+
                 double min_horizontal_dist = 1.0e6;
                 double min_dist_contact_angle;
-                double radius_at_nodej;
+                unsigned int min_dist_index;
 
                 for (unsigned int j = 0; j < num_nodes; ++j) {
-
                     auto it_node_j = it_node_begin + j;
+
                     const double node_j_contact_angle = it_node_j->GetValue(CONTACT_ANGLE);
 
                     if (node_j_contact_angle > 1.0e-12){
-                        const double nodal_dist = norm_2(it_node_i->Coordinates() - it_node_j->Coordinates());
+                        const double nodal_dist = norm_2(node_i_coordinates - it_node_j->Coordinates());
                         if (nodal_dist < min_horizontal_dist){
                             min_horizontal_dist = nodal_dist;
                             min_dist_contact_angle = node_j_contact_angle;
-                            const double node_j_curvature = it_node_j->FastGetSolutionStepValue(CURVATURE);
-                            radius_at_nodej = 2.0*node_j_curvature/(node_j_curvature*node_j_curvature + 1.0e-10);
+                            min_dist_index = j;                            
                         }
                     }
 
                 }
 
+                const double node_j_curvature = (it_node_begin + min_dist_index)->FastGetSolutionStepValue(CURVATURE);
+                const double radius_at_nodej = 2.0*node_j_curvature/(node_j_curvature*node_j_curvature + 1.0e-10);
                 node_i_contact_angle = std::asin( radius_at_nodej*std::sin(min_dist_contact_angle - PI/2.0)/(node_i_distance + radius_at_nodej) ) + PI/2.0; //min_dist_contact_angle;
             }
+        }
+        else if (it_node_i->GetValue(IS_STRUCTURE) == 1.0 || it_node_i->Is(BOUNDARY)){ // By default contact angle is not set for the NON IS_STRUCTURE nodes
+            auto& node_i_contact_angle = it_node_i->FastGetSolutionStepValue(CONTACT_ANGLE);
+            const double node_i_distance = it_node_i->FastGetSolutionStepValue(DISTANCE);
+            const auto node_i_coordinates = it_node_i->Coordinates();
+
+            double min_dist = 1.0e6;
+            unsigned int min_dist_index;
+
+            for (unsigned int j = 0; j < num_nodes; ++j) {
+                auto it_node_j = it_node_begin + j;
+                if (it_node_j->Is(INTERFACE)){
+                    const double nodal_dist = norm_2(node_i_coordinates - it_node_j->Coordinates());
+                    if (nodal_dist < min_dist){
+                        min_dist = nodal_dist;
+                        min_dist_index = j;
+                    }
+                }
+            }
+
+            auto min_dist_iter_node = it_node_begin + min_dist_index;
+            const double node_j_contact_angle = min_dist_iter_node->GetValue(CONTACT_ANGLE);
+            auto min_dist_normal = min_dist_iter_node->FastGetSolutionStepValue(DISTANCE_GRADIENT);
+            min_dist_normal /= norm_2(min_dist_normal);
+            auto node_i_solid_normal = it_node_i->FastGetSolutionStepValue(NORMAL);
+            node_i_solid_normal /= norm_2(node_i_solid_normal);
+
+            if (node_j_contact_angle > 1.0e-12){
+                Vector min_dist_vector = min_dist_iter_node->Coordinates() - node_i_coordinates;
+                min_dist_vector(2) = 0.0;
+                const double min_horizontal_dist = norm_2(min_dist_vector);
+                const double node_j_curvature = min_dist_iter_node->FastGetSolutionStepValue(CURVATURE);
+                const double radius_at_nodej = 2.0*node_j_curvature/(node_j_curvature*node_j_curvature + 1.0e-10);
+                const double gamma = std::acos((min_horizontal_dist + radius_at_nodej*std::sin(node_j_contact_angle))/(
+                                       node_i_distance + radius_at_nodej));
+
+                const double factor = (1.0 - std::sin(gamma)*std::sin(gamma))/(
+                                1.0 - std::sin(node_j_contact_angle)*std::sin(node_j_contact_angle));
+
+                Vector node_i_normal = factor*min_dist_normal;
+                node_i_normal(2) = std::sin(gamma);
+
+                node_i_contact_angle = PI - std::acos(inner_prod(node_i_normal, node_i_solid_normal));
+
+            } else{
+                node_i_contact_angle = PI - std::acos(inner_prod(min_dist_normal, node_i_solid_normal));
+            }
+
         }
 
     }

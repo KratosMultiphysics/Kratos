@@ -215,7 +215,8 @@ void VariationalNonEikonalDistance::Execute()
     //************************************************************************************
     //************************************************************************************
     // Reinitialization
-    r_redistancing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,0);
+   /*  r_redistancing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,0);
+    
     mpGradientCalculator->Execute(); // To provide the initial condition for DISTANCE_GRADIENT
 
     #pragma omp parallel for
@@ -236,13 +237,15 @@ void VariationalNonEikonalDistance::Execute()
 
     KRATOS_INFO("VariationalNonEikonalDistance") << "Reconstruction of levelset, about to solve the LSE" << std::endl;
     mp_solving_strategy->Solve();
-    KRATOS_INFO("VariationalNonEikonalDistance") << "Reconstruction of levelset, LSE is solved" << std::endl;
+    KRATOS_INFO("VariationalNonEikonalDistance") << "Reconstruction of levelset, LSE is solved" << std::endl; */
 
     //************************************************************************************
     //************************************************************************************
     // Reinitialization: step 2 to better estimate norm(grad_phi) on boundaries (seems not essential)
     /* r_redistancing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,1);
+
     mpGradientCalculator->Execute(); // To provide the better approximation of the BC (new gradient)
+
     KRATOS_INFO("VariationalNonEikonalDistance") << "Reconstruction of levelset, about to solve the LSE" << std::endl;
     mp_solving_strategy->Solve();
     KRATOS_INFO("VariationalNonEikonalDistance") << "Reconstruction of levelset, LSE is solved" << std::endl; */
