@@ -215,7 +215,7 @@ void VariationalNonEikonalDistance::Execute()
     //************************************************************************************
     //************************************************************************************
     // Reinitialization
-   /*  r_redistancing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,0);
+    r_redistancing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,0);
     
     mpGradientCalculator->Execute(); // To provide the initial condition for DISTANCE_GRADIENT
 
@@ -237,7 +237,7 @@ void VariationalNonEikonalDistance::Execute()
 
     KRATOS_INFO("VariationalNonEikonalDistance") << "Reconstruction of levelset, about to solve the LSE" << std::endl;
     mp_solving_strategy->Solve();
-    KRATOS_INFO("VariationalNonEikonalDistance") << "Reconstruction of levelset, LSE is solved" << std::endl; */
+    KRATOS_INFO("VariationalNonEikonalDistance") << "Reconstruction of levelset, LSE is solved" << std::endl;
 
     //************************************************************************************
     //************************************************************************************
