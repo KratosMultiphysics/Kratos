@@ -258,7 +258,9 @@ void ContactAngleEvaluator::Execute()
                     }
                 }
             }
-            node_i_curvature = (it_node_begin + min_dist_index)->FastGetSolutionStepValue(CURVATURE);
+            const double node_j_curvature = (it_node_begin + min_dist_index)->FastGetSolutionStepValue(CURVATURE);
+            const double radius_at_nodej = 2.0*node_j_curvature/(node_j_curvature*node_j_curvature + 1.0e-10);
+            node_i_curvature = (std::abs(radius_at_nodej)/(std::abs(radius_at_nodej + node_i_distance) + 1.0e-10))*node_j_curvature;
 
         } else{
             // for interface nodes
