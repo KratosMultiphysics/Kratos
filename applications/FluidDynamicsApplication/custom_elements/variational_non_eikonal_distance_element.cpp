@@ -631,12 +631,12 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                         const double theta = 1.0; //std::min( std::exp( -( (std::abs(distance_i) + tolerance)/(20.0*element_size) - 1.0 ) ), 1.0); //1.0;
 
                         if (contact_angle_weight > 0.0){
-                            minus_cos_contact_angle = -theta*norm_grad_phi_avg_i*std::cos(contact_angle/contact_angle_weight) +
-                            (1.0-theta)*Kratos::inner_prod(solid_normal,grad_phi_avg_i)/* /norm_grad_phi_avg_i */;
+                            minus_cos_contact_angle = -theta/* *norm_grad_phi_avg_i */*std::cos(contact_angle/contact_angle_weight) +
+                            (1.0-theta)*Kratos::inner_prod(solid_normal,grad_phi_avg_i)/norm_grad_phi_avg_i;
                             /* minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
                             minus_cos_contact_angle = minus_cos_contact_angle*norm_grad_phi_avg_i; */
                         } else{
-                            minus_cos_contact_angle = Kratos::inner_prod(solid_normal,grad_phi_avg_i)/* /norm_grad_phi_avg_i */;
+                            minus_cos_contact_angle = Kratos::inner_prod(solid_normal,grad_phi_avg_i)/norm_grad_phi_avg_i;
                         }
 
                         /* if (step == 0){ */
