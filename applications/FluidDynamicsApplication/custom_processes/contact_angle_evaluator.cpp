@@ -237,11 +237,10 @@ void ContactAngleEvaluator::Execute()
 
         auto it_node_i = it_node_begin + i;
         auto& node_i_contact_angle = it_node_i->FastGetSolutionStepValue(CONTACT_ANGLE);
+        const double node_i_distance = it_node_i->FastGetSolutionStepValue(DISTANCE);
 
-        if (node_i_contact_angle == 0.0){
+        if (node_i_contact_angle == 0.0 && node_i_distance > 0.0){
             if (it_node_i->GetValue(IS_STRUCTURE) == 1.0 && it_node_i->Coordinates()[2] == 0.0){
-
-                const double node_i_distance = it_node_i->FastGetSolutionStepValue(DISTANCE);
 
                 const auto node_i_coordinates = it_node_i->Coordinates();
 
@@ -271,7 +270,6 @@ void ContactAngleEvaluator::Execute()
 
             } else if (it_node_i->GetValue(IS_STRUCTURE) == 1.0 || it_node_i->Is(BOUNDARY)){ // By default contact angle is not set for the NON IS_STRUCTURE nodes
                 auto& node_i_contact_angle = it_node_i->FastGetSolutionStepValue(CONTACT_ANGLE);
-                const double node_i_distance = it_node_i->FastGetSolutionStepValue(DISTANCE);
                 const auto node_i_coordinates = it_node_i->Coordinates();
 
                 double min_dist = 1.0e6;
