@@ -20,7 +20,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/element.h"
+#include "includes/ublas_interface.h"
 #include "includes/geometrical_object.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
@@ -71,6 +71,8 @@ public:
     typedef GeometryType::Pointer GeometryPtrType;
     typedef GeometryType::GeometriesArrayType GeometryArrayType;
     typedef GeometryType::PointsArrayType PointsArrayType;
+    typedef Matrix MatrixType;
+    typedef Vector VectorType;
 
 
     /// Pointer definition of VoxelInsideVolume
@@ -110,22 +112,29 @@ public:
         array_1d<double,3> xPoint;
         GeometryArrayType edges = rVoxel.GenerateEdges();
         //Initialize the corresponding matrixes
-        int n = edges.size();
+        MatrixType AtA(3,3,0);  //3x3 matrix initialized to 0
+        MatrixType AtB(3,1,0);  //3x1 matrix
+        MatrixType BtB(1,1,0);  //1x1 matrix
 
-        for (int i = 0; i < n; i++) {
-            Distances.push_back(0);
-            PointsArrayType ends = edges[i].Points();
-            //std::cout << "Edge " << i << " has nodes " << ends[0] << " " << ends[1] << std::endl;
+        auto hello = prod(AtA,AtB);
+        auto c = AtA + AtA;
+        for (int i = 0; i < rTriangles.size(); i++) {
+            VectorType normal = CalculateNormal(rTriangles[i]);
 
-            for (int i = 0; i < rTriangles.size(); i++) {
-                array_1d<double,3> intersection;
-                int result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
-                
-                if(result == 1) {
-                    array_1d<double,3> normal = CalculateNormal<Triangle3D3<NodeType>>(rTriangles[i]);
-                }  
-            } 
-                        
+            //We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
+            //but possible), only one will be taken into account to create the matrixes.
+            int result = 0; 
+            array_1d<double,3> intersection;
+            int j = 0;
+            while(!result) { 
+                PointsArrayType ends = edges[j++].Points();
+                result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
+                KRATOS_ERROR_IF(j > edges.size()) 
+                << "Incorrect parameters: Given mesh elements do not intersect with given voxel" << std::endl;
+
+                auto NtN = MathUtils<double>::Dot(normal,normal);
+                //MathUtils<double>::AddMatrix(AtA, AtB, 0, 0);
+            }
         }
         return xPoint;
     }
@@ -136,7 +145,7 @@ public:
      * @param rEnds references to the nodes at both sides of the edge
      * @return Approximated volume 
      */  
-    static array_1d<double,3> CalculateCenter(GeometryType& rVoxel) {
+    static array_1d<double,3> CalculateCenter(const GeometryType& rVoxel) {
         PointsArrayType nodes = rVoxel.Points();
         double x = (nodes[0].X() + nodes[1].X())/2.0;
         double y = (nodes[1].Y() + nodes[2].Y())/2.0;
@@ -151,7 +160,7 @@ public:
      * @param rEnds references to the nodes at both sides of the edge
      * @return Approximated volume 
      */  
-    static array_1d<double,3> CalculateNormal(GeometryType& triangle) {
+    static array_1d<double,3> CalculateNormal(const GeometryType& triangle) {
         PointsArrayType nodes = triangle.Points();
         array_1d<double,3> u = nodes[1] - nodes[0];
         array_1d<double,3> v = nodes[2] - nodes[0];
