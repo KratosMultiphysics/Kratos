@@ -305,20 +305,20 @@ void ContactAngleEvaluator::Execute()
                     const double factor = (1.0 - std::sin(gamma)*std::sin(gamma))/(
                                     1.0 - std::sin(node_j_contact_angle)*std::sin(node_j_contact_angle) + 1.0e-10);
 
-                    if(factor > 1.0e1){
+                    /* if(factor > 1.0e1){
                         KRATOS_WATCH(gamma)
                         KRATOS_WATCH(node_j_contact_angle)
                         KRATOS_WATCH(node_i_distance)
                         KRATOS_WATCH(min_dist_normal)
                         KRATOS_WATCH(radius_at_nodej)
-                    }
+                    } */
 
                     Vector node_i_normal = factor*min_dist_normal;
                     node_i_normal(2) = std::sin(gamma);
 
                     node_i_contact_angle = PI - std::acos( std::max( std::min( inner_prod(node_i_normal, node_i_solid_normal), 1.0 ), -1.0 ) );
-                    KRATOS_WATCH(factor)
-                    KRATOS_WATCH(node_i_contact_angle)
+                    /* KRATOS_WATCH(factor)
+                    KRATOS_WATCH(node_i_contact_angle) */ // A revision is needed to better interpret the cause of nan (out of range argument of acos and asin above)
 
                 } else{
                     node_i_contact_angle = PI - std::acos( std::max( std::min( inner_prod(min_dist_normal, node_i_solid_normal), 1.0 ), -1.0 ) );
