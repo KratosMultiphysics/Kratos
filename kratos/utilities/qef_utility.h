@@ -27,6 +27,7 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/triangle_3d_3.h"
 #include "intersection_utilities.h"
+#include "../external_libraries/a_matrix/include/matrix.h"
 
 namespace Kratos
 { 
@@ -116,26 +117,54 @@ public:
         MatrixType AtB(3,1,0);  //3x1 matrix
         MatrixType BtB(1,1,0);  //1x1 matrix
 
-        auto hello = prod(AtA,AtB);
-        auto c = AtA + AtA;
         for (int i = 0; i < rTriangles.size(); i++) {
-            VectorType normal = CalculateNormal(rTriangles[i]);
+            array_1d<double,3> normal = CalculateNormal(rTriangles[i]);
+            VectorType vNormal = normal; 
+            MatrixType mNormal;
+            column(mNormal,0) = normal;
 
             //We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
             //but possible), only one will be taken into account to create the matrixes.
             int result = 0; 
             array_1d<double,3> intersection;
+            VectorType vIntersection;
             int j = 0;
             while(!result) { 
                 PointsArrayType ends = edges[j++].Points();
                 result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
+                vIntersection = intersection;
                 KRATOS_ERROR_IF(j > edges.size()) 
                 << "Incorrect parameters: Given mesh elements do not intersect with given voxel" << std::endl;
-
-                auto NtN = MathUtils<double>::Dot(normal,normal);
-                //MathUtils<double>::AddMatrix(AtA, AtB, 0, 0);
             }
+
+            //Fill the matrixes with the corresponding information from the intersection and normal
+            AtA = AtA + prod(trans(mNormal),mNormal);
+            double aux = MathUtils<double>::Dot(normal,intersection);
+            MatrixType mAux(1,1,aux*aux);
+            AtB = AtB + prod(mNormal,mAux);
+            BtB = BtB + mAux;
         }
+        /*
+        //Find the eigenvalues and eigenvectors to AtA
+        VectorType eigenval= Eigenvalues(AtA);
+
+        MatrixType U(3,3)
+        for (int i : {1,2,3}) {
+            row(U,i) = eigenvec(i);
+        }
+        
+
+        //construct D
+        MatrixType D(3,3,0);
+        for (int i : {1,2,3}) {
+            D(i,i) = check(1.0/eigenval(i), 0.01);
+        }
+
+        MatrixType AtAInverse = prod(prod(trans(U),D),U);
+        MatrixType solution = prod(AtAInverse, AtB);
+        xPoint = column(solution,0);
+        */
+
         return xPoint;
     }
 
@@ -186,6 +215,14 @@ private:
     ///@name Private Operations
     ///@{
 
+    static VectorType Eigenvalues(const MatrixType& A) {
+        VectorType v(3,1);
+        return v; //just to compile
+    }
+
+    static double check(const double& d, const double& epsilon) {
+        return d > epsilon ? d : 0;
+    }
     /**
      * @brief Returns the distance between two 3D points.
      * @param rPoint0 reference to the first point
