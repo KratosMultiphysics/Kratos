@@ -76,7 +76,7 @@ void InterfacePreprocessCondition::GenerateInterfacePart(
             KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
 
             if (working_space_dimension == local_space_dimension) {
-                const auto faces = r_geometry.GenerateBoundariesEntities();
+                auto faces = r_geometry.GenerateBoundariesEntities();
                 for (IndexType i_face = 0; i_face < faces.size(); ++i_face) {
                     if (working_space_dimension == 2) {
                         GenerateEdgeCondition(rInterfacePart, p_prop, faces[i_face], simplest_geometry, cond_counter, cond_id);
@@ -351,7 +351,7 @@ IndexType InterfacePreprocessCondition::ReorderConditions()
 inline void InterfacePreprocessCondition::GenerateEdgeCondition(
     ModelPart& rInterfacePart,
     Properties::Pointer pThisProperties,
-    const GeometryType& rEdgeGeometry,
+    GeometryType& rEdgeGeometry,
     const bool SimplestGeometry,
     IndexType& rCondCounter,
     IndexType& rConditionId
@@ -428,7 +428,7 @@ inline void InterfacePreprocessCondition::GenerateEdgeCondition(
 inline void InterfacePreprocessCondition::GenerateFaceCondition(
     ModelPart& rInterfacePart,
     Properties::Pointer pThisProperties,
-    const GeometryType& rFaceGeometry,
+    GeometryType& rFaceGeometry,
     const bool SimplestGeometry,
     IndexType& rCondCounter,
     IndexType& rConditionId

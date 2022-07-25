@@ -168,7 +168,7 @@ private:
 
     std::string mRomSettingsFilename;
 
-    const ModelPart* mpHRomModelPart;
+    ModelPart* mpHRomModelPart;
     ModelPart* mpVisualizationModelPart;
 
     std::vector<const Variable<double>*> mRomVariablesList;

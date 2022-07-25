@@ -425,7 +425,7 @@ public:
         return mpVariablesList;
     }
 
-    const VariablesList::Pointer pGetVariablesList() const
+    VariablesList::PointerToConst pGetVariablesList() const
     {
         return mpVariablesList;
     }
@@ -603,7 +603,18 @@ public:
         return Position(QueueIndex);
     }
 
+    const BlockType* Data(SizeType QueueIndex) const
+    {
+        return Position(QueueIndex);
+    }
+
     BlockType* Data(VariableData const & rThisVariable)
+    {
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList->Has(rThisVariable)) << "Variable " << rThisVariable.Name() << " is not added to this variables list. Stopping" << std::endl;
+        return Position(rThisVariable);
+    }
+
+    const BlockType* Data(VariableData const & rThisVariable) const
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList->Has(rThisVariable)) << "Variable " << rThisVariable.Name() << " is not added to this variables list. Stopping" << std::endl;
         return Position(rThisVariable);

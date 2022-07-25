@@ -970,7 +970,8 @@ public:
         return mpProperties;
     }
 
-    const PropertiesType::Pointer pGetProperties() const
+    // Backwards compatibility. Returning ::PointerToConst would break Clone
+    PropertiesType::Pointer pGetProperties() const
     {
         return mpProperties;
     }

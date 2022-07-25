@@ -427,7 +427,7 @@ public:
     }
 
     /** Returns the Node::Pointer corresponding to it's identifier */
-    const NodeType::Pointer pGetNode(const IndexType NodeId, const IndexType ThisIndex = 0) const
+    NodeType::PointerToConst pGetNode(const IndexType NodeId, const IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).pGetNode(NodeId);
     }
@@ -559,7 +559,12 @@ public:
         return *mpVariablesList;
     }
 
-    VariablesList::Pointer pGetNodalSolutionStepVariablesList() const
+    VariablesList::Pointer pGetNodalSolutionStepVariablesList()
+    {
+        return mpVariablesList;
+    }
+
+    VariablesList::PointerToConst pGetNodalSolutionStepVariablesList() const
     {
         return mpVariablesList;
     }
@@ -862,7 +867,7 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (pointer)
      */
-    const PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
+    PropertiesType::PointerToConst pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
 
     /**
      * @brief Returns the Properties::Pointer  corresponding to it's identifier
@@ -912,7 +917,7 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (pointer)
      */
-    const PropertiesType::Pointer pGetProperties(
+    PropertiesType::PointerToConst pGetProperties(
         const std::string& rAddress,
         IndexType MeshIndex = 0
         ) const;
@@ -1102,7 +1107,7 @@ public:
     }
 
     /** Returns the Element::Pointer  corresponding to it's identifier */
-    const ElementType::Pointer pGetElement(const IndexType ElementId, const IndexType ThisIndex = 0) const
+    ElementType::PointerToConst pGetElement(const IndexType ElementId, const IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).pGetElement(ElementId);
     }
@@ -1294,7 +1299,7 @@ public:
     }
 
     /** Returns the Condition::Pointer  corresponding to it's identifier */
-    const ConditionType::Pointer pGetCondition(const IndexType ConditionId, const IndexType ThisIndex = 0) const
+    ConditionType::PointerToConst pGetCondition(const IndexType ConditionId, const IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).pGetCondition(ConditionId);
     }
@@ -1556,7 +1561,7 @@ public:
     }
 
     /// Returns the const Geometry::Pointer corresponding to the Id
-    const typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) const {
+    typename GeometryType::PointerToConst pGetGeometry(IndexType GeometryId) const {
         return mGeometries.pGetGeometry(GeometryId);
     }
 
@@ -1566,7 +1571,7 @@ public:
     }
 
     /// Returns the Geometry::Pointer corresponding to the name
-    const typename GeometryType::Pointer pGetGeometry(std::string GeometryName) const {
+    typename GeometryType::PointerToConst pGetGeometry(std::string GeometryName) const {
         return mGeometries.pGetGeometry(GeometryName);
     }
 
@@ -1743,7 +1748,7 @@ public:
         return mpProcessInfo;
     }
 
-    const ProcessInfo::Pointer pGetProcessInfo() const
+    ProcessInfo::PointerToConst pGetProcessInfo() const
     {
         return mpProcessInfo;
     }
@@ -1768,7 +1773,7 @@ public:
         return mMeshes(ThisIndex);
     }
 
-    const MeshType::Pointer pGetMesh(IndexType ThisIndex = 0) const
+    MeshType::PointerToConst pGetMesh(IndexType ThisIndex = 0) const
     {
         return mMeshes(ThisIndex);
     }

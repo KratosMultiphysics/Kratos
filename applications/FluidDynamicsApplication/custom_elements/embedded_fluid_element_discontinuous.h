@@ -297,7 +297,7 @@ protected:
      * This method checks if the element is intersected and calls the elemental data filling methods accordingly.
      * @param rData reference to the element data structure
      */
-    void InitializeGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+    void InitializeGeometryData(EmbeddedDiscontinuousElementData& rData);
 
     /**
      * @brief Non-intersected element geometry data fill
@@ -313,7 +313,7 @@ protected:
      * to perform all operations on both, the positive and negative, sides of the element.
      * @param rData reference to the element data structure
      */
-    void DefineCutGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+    void DefineCutGeometryData(EmbeddedDiscontinuousElementData& rData);
 
     /**
      * @brief Intersected element geometry data fill
@@ -322,7 +322,7 @@ protected:
      * to perform all operations on both, the positive and negative, sides of the element.
      * @param rData reference to the element data structure
      */
-    void DefineIncisedGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+    void DefineIncisedGeometryData(EmbeddedDiscontinuousElementData& rData);
 
     /**
      * @brief For an intersected element, normalize the interface normals
@@ -467,7 +467,7 @@ private:
      */
     void CalculateDragForceCenter(
         EmbeddedDiscontinuousElementData& rData,
-        array_1d<double,3>& rDragForceLocation) const;
+        array_1d<double,3>& rDragForceLocation);
 
     /**
      * @brief Auxiliary method to get the density value
@@ -512,17 +512,17 @@ namespace EmbeddedDiscontinuousInternals {
 
 template <size_t TDim, size_t TNumNodes>
 ModifiedShapeFunctions::UniquePointer GetShapeFunctionCalculator(
-    const Element &rElement,
+    Element &rElement,
     const Vector &rElementalDistances);
 
 template <size_t TDim, size_t TNumNodes>
 ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator(
-    const Element &rElement,
+    Element &rElement,
     const Vector &rElementalDistances);
 
 template <size_t TDim, size_t TNumNodes>
 ModifiedShapeFunctions::UniquePointer GetIncisedShapeFunctionCalculator(
-    const Element &rElement,
+    Element &rElement,
     const Vector &rElementalDistancesWithExtrapolated,
     const Vector &rElementalEdgeDistancesExtrapolated);
 }

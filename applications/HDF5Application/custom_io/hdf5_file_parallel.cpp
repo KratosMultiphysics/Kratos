@@ -223,7 +223,7 @@ void FileParallel::WriteDataSetVectorImpl(const std::string& rPath,
                 << "Can't perform independent write with MPI. Invalid data."
                 << std::endl;
     if (is_array_1d_type)
-        local_dims[1] = global_dims[1] = 3; // Set second data space dimension.
+        local_dims[ndims-1] = global_dims[ndims-1] = 3; // Set second data space dimension.
 
     hsize_t local_start[ndims];
     if (Mode == DataTransferMode::collective)
@@ -238,7 +238,7 @@ void FileParallel::WriteDataSetVectorImpl(const std::string& rPath,
         local_start[0] = 0;
 
     if (is_array_1d_type)
-        local_start[1] = 0;
+        local_start[ndims-1] = 0;
 
     // Set the data type.
     hid_t dtype_id;
@@ -423,7 +423,7 @@ void FileParallel::ReadDataSetVectorImpl(const std::string& rPath,
     // Set first memory space dimension.
     local_mem_dims[0] = BlockSize;
     if (is_array_1d_type)
-        local_mem_dims[1] = 3; // Set second dimension.
+        local_mem_dims[ndims-1] = 3; // Set second dimension.
     if (is_array_1d_type)
         KRATOS_ERROR_IF(file_space_dims[1] != 3)
             << "Invalid data set dimension." << std::endl;
@@ -435,7 +435,7 @@ void FileParallel::ReadDataSetVectorImpl(const std::string& rPath,
     hsize_t local_start[ndims];
     local_start[0] = StartIndex;
     if (is_array_1d_type)
-        local_start[1] = 0;
+        local_start[ndims-1] = 0;
 
     // Set the data type.
     hid_t dtype_id;

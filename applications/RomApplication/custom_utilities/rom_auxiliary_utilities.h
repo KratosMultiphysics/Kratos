@@ -78,7 +78,7 @@ public:
      */
     static void SetHRomComputingModelPart(
         const Parameters HRomWeights,
-        const ModelPart& rOriginModelPart,
+        ModelPart& rOriginModelPart,
         ModelPart& rHRomComputingModelPart);
 
     /**

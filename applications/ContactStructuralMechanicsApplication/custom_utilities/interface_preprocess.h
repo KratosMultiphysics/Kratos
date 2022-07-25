@@ -254,7 +254,7 @@ private:
     inline void GenerateEdgeCondition(
         ModelPart& rInterfacePart,
         Properties::Pointer prThisProperties,
-        const GeometryType& rEdgeGeometry,
+        GeometryType& rEdgeGeometry,
         const bool SimplestGeometry,
         IndexType& rCondCounter,
         IndexType& rConditionId
@@ -272,7 +272,7 @@ private:
     inline void GenerateFaceCondition(
         ModelPart& rInterfacePart,
         Properties::Pointer prThisProperties,
-        const GeometryType& rFaceGeometry,
+        GeometryType& rFaceGeometry,
         const bool SimplestGeometry,
         IndexType& rCondCounter,
         IndexType& rConditionId

@@ -103,7 +103,7 @@ public:
 
     /**
      * @brief Get the Default Parameters object
-     * @return * This const 
+     * @return * This const
      */
     const Parameters GetDefaultParameters() const override;
 
@@ -146,7 +146,7 @@ private:
     template<class TContainerType>
     void ReplaceProperties(
         TContainerType& rContainer,
-        const ModelPart& rModelPart);
+        ModelPart& rModelPart);
 
     ///@}
 };

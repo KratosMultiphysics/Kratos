@@ -292,7 +292,7 @@ void Define3DWakeProcess::ComputeAndSaveLocalWakeNormal() const
 // trailing edge.
 void Define3DWakeProcess::ShedWakeSurfaceFromTheTrailingEdge() const
 {
-    const Properties::Pointer pElemProp = mrStlWakeModelPart.pGetProperties(0);
+    Properties::Pointer pElemProp = mrStlWakeModelPart.pGetProperties(0);
     const double number_of_elements = mSheddedWakeDistance / mSheddedWakeElementSize;
     const unsigned int number_of_elements_in_wake_direction = int(number_of_elements);
 

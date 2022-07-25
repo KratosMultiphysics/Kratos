@@ -126,7 +126,7 @@ public:
             {
                 unsigned int NewNodes = 0;
                 ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
-                const GeometryType& rGeometry = itElement->GetGeometry();
+                GeometryType& rGeometry = itElement->GetGeometry();
                 const unsigned int ElemNumNodes = rGeometry.PointsNumber();
 
                 // Get the number of nodes that have switched from structure to fluid in the current element

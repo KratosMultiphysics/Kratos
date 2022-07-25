@@ -441,7 +441,7 @@ void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation()
     for (int i_elem = 0; i_elem < n_new_elems; ++i_elem){
         // Get element geometry
         auto it_elem = mNewElementsPointers.begin() + i_elem;
-        const auto &r_geometry = it_elem->GetGeometry();
+        auto &r_geometry = it_elem->GetGeometry();
         const unsigned int n_points = r_geometry.PointsNumber();
 
         // For the generated elements, set the new interpolation values
@@ -449,7 +449,7 @@ void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation()
         // values, since they have been built using the origin model part nodes.
         for (unsigned int i_node = 0; i_node < n_points; ++i_node){
             // Search for the current node in the cut nodes hash map
-            auto p_node = r_geometry(i_node);
+            Node<3>::Pointer p_node = r_geometry(i_node);
             const CutNodesMapType::iterator cut_node_info = mCutNodesMap.find(p_node);
 
             // If it is not find, keep the origin value
@@ -463,10 +463,10 @@ void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation()
                 std::tie(p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j) = std::get<1>(*cut_node_info);
 
                 // Interpolate the visualization variables
-                InterpolateVariablesListValues<double, true>(p_node, p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j, mVisualizationScalarVariables);
-                InterpolateVariablesListValues<double, false>(p_node, p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j, mVisualizationNonHistoricalScalarVariables);
-                InterpolateVariablesListValues<array_1d<double,3>, true>(p_node, p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j, mVisualizationVectorVariables);
-                InterpolateVariablesListValues<array_1d<double,3>, false>(p_node, p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j, mVisualizationNonHistoricalVectorVariables);
+                InterpolateVariablesListValues<double, true>(*p_node, *p_edge_node_i, *p_edge_node_j, weight_edge_node_i, weight_edge_node_j, mVisualizationScalarVariables);
+                InterpolateVariablesListValues<double, false>(*p_node, *p_edge_node_i, *p_edge_node_j, weight_edge_node_i, weight_edge_node_j, mVisualizationNonHistoricalScalarVariables);
+                InterpolateVariablesListValues<array_1d<double,3>, true>(*p_node, *p_edge_node_i, *p_edge_node_j, weight_edge_node_i, weight_edge_node_j, mVisualizationVectorVariables);
+                InterpolateVariablesListValues<array_1d<double,3>, false>(*p_node, *p_edge_node_i, *p_edge_node_j, weight_edge_node_i, weight_edge_node_j, mVisualizationNonHistoricalVectorVariables);
             }
         }
     }
@@ -488,18 +488,18 @@ void EmbeddedSkinVisualizationProcess::CopyVariablesListValues(
 
 template<class TDataType, bool IsHistorical>
 void EmbeddedSkinVisualizationProcess::InterpolateVariablesListValues(
-    const Node<3>::Pointer& rpNode,
-    const Node<3>::Pointer& rpNodeI,
-    const Node<3>::Pointer& rpNodeJ,
+    Node<3>& rpNode,
+    Node<3>& rpNodeI,
+    Node<3>& rpNodeJ,
     const double WeightI,
     const double WeightJ,
     const std::vector<const Variable<TDataType>*>& rVariablesList)
 {
     for (unsigned int i_var = 0; i_var < rVariablesList.size(); ++i_var){
         const auto &r_var = *(rVariablesList[i_var]);
-        const TDataType &r_edge_node_i_value = AuxiliaryGetValue<IsHistorical>(*rpNodeI, r_var);
-        const TDataType &r_edge_node_j_value = AuxiliaryGetValue<IsHistorical>(*rpNodeJ, r_var);
-        TDataType& r_value = AuxiliaryGetValue<IsHistorical>(*rpNode, r_var);
+        const TDataType &r_edge_node_i_value = AuxiliaryGetValue<IsHistorical>(rpNodeI, r_var);
+        const TDataType &r_edge_node_j_value = AuxiliaryGetValue<IsHistorical>(rpNodeJ, r_var);
+        TDataType& r_value = AuxiliaryGetValue<IsHistorical>(rpNode, r_var);
         r_value = WeightI * r_edge_node_i_value + WeightJ * r_edge_node_j_value;
     }
 }
