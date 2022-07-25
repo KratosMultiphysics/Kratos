@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -47,6 +48,11 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             self.volume_model_part = self.main_model_part
         else:
             self.volume_model_part = self.main_model_part.GetSubModelPart(self.volume_model_part_name)
+
+        element_ids_with_all_nodes_on_boundaries = KratosFluid.FluidModelPartPreProcessingUtilities.GetElementIdsWithAllNodesOnBoundaries(self.main_model_part, self.skin_name_list.GetStringArray())
+        total_number_of_elements_with_all_nodes_on_boundaries = self.main_model_part.GetCommunicator().GetDataCommunicator().SumAll(len(element_ids_with_all_nodes_on_boundaries))
+        if total_number_of_elements_with_all_nodes_on_boundaries > 0:
+            KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Found {:d} elements with all nodes on boundaries in {:s}.".format(total_number_of_elements_with_all_nodes_on_boundaries, self.main_model_part.FullName()))
 
         skin_parts = []
         for i in range(self.skin_name_list.size()):

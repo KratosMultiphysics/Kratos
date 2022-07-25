@@ -38,6 +38,7 @@
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
+#include "custom_utilities/fluid_model_part_preprocessing_utilities.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -180,6 +181,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("CalculateFluidNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidNegativeVolume)
         ;
 
+    py::class_<FluidModelPartPreProcessingUtilities>(m, "FluidModelPartPreProcessingUtilities")
+        .def_static("CreateModelPartForCommenInterface", &FluidModelPartPreProcessingUtilities::CreateModelPartForCommenInterface)
+        .def_static("GetElementIdsWithAllNodesOnBoundaries", &FluidModelPartPreProcessingUtilities::GetElementIdsWithAllNodesOnBoundaries)
+        .def_static("BreakElements", &FluidModelPartPreProcessingUtilities::BreakElements)
+        ;
 }
 
 }  // namespace Python.

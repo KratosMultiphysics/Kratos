@@ -51,6 +51,7 @@ if sympy_available:
 from compressible_slip_wall_process_test import TestCompressibleSlipWallProcess
 from compute_pressure_coefficient_process_test import ComputePressureCoefficientProcessTest
 from compute_drag_process_test import ComputeDragProcessTest
+from test_fluid_model_part_preprocessing_utilities import TestFluidModelPartPreprocessingUtilities
 
 
 def AssembleTestSuites():
@@ -89,6 +90,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCompressibleSlipWallProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputePressureCoefficientProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputeDragProcessTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFluidModelPartPreprocessingUtilities]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
