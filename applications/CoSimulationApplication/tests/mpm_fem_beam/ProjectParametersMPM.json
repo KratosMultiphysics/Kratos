@@ -39,14 +39,11 @@
             "scaling": false
         }
     },
-    "coupling_settings": {
-        "interface_model_part_name"  : "MPM_Material.INTERFACE_coupling_to_fem"
-    },
     "processes"        : {
         "constraints_process_list" : [],
         "loads_process_list"       : [],
         "list_other_processes": [{
-            "python_module" : "apply_mpm_coupling_interface_condition_process",
+            "python_module" : "apply_mpm_coupling_interface_dirichlet_condition_process",
             "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
             "Parameters"    : {
                 "model_part_name" : "Background_Grid.INTERFACE_coupling_to_fem",

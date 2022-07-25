@@ -1,5 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 import KratosMultiphysics.HDF5Application.single_mesh_temporal_output_process as single_mesh_temporal_output_process
 import KratosMultiphysics.HDF5Application.multiple_mesh_temporal_output_process as multiple_mesh_temporal_output_process
 import KratosMultiphysics.HDF5Application.single_mesh_primal_output_process as single_mesh_primal_output_process
@@ -8,6 +9,7 @@ import KratosMultiphysics.HDF5Application.single_mesh_temporal_input_process as 
 import KratosMultiphysics.HDF5Application.single_mesh_xdmf_output_process as single_mesh_xdmf_output_process
 import KratosMultiphysics.HDF5Application.import_model_part_from_hdf5_process as import_model_part_from_hdf5_process
 from unittest.mock import patch
+import pathlib
 
 
 class TestHDF5Processes(KratosUnittest.TestCase):
@@ -485,6 +487,77 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             self.HDF5ConditionFlagValueIO.return_value.ReadConditionFlags.call_count, 1)
         self.HDF5ConditionFlagValueIO.return_value.ReadConditionFlags.assert_called_with(
             self.model_part.Conditions, self.model_part.GetCommunicator())
+
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def test_OutputProcess(self):
+        """Test whether HDF5 output processes conform to the OutputProcess concept."""
+        # Define a scoped mdpa file context
+        class ScopedMDPA:
+            def __init__(self, model_part_name: str):
+                self.model_part_name = model_part_name
+                KratosMultiphysics.ModelPartIO(self.model_part_name, KratosMultiphysics.IO.WRITE).WriteModelPart(KratosMultiphysics.Model().CreateModelPart(model_part_name))
+
+            def __enter__(self) -> None:
+                pass
+
+            def __exit__(self, *args) -> None:
+                # Delete all files with the model part in their names
+                for file_path in pathlib.Path(".").glob("*{}*".format(self.model_part_name)):
+                    kratos_utilities.DeleteFileIfExisting(str(file_path))
+
+        settings = KratosMultiphysics.Parameters('''
+            {
+                "problem_data" : {
+                    "problem_name" : "test_OutputProcess",
+                    "start_time" : 0.0,
+                    "end_time" : 5.0,
+                    "echo_level" : 0,
+                    "parallel_type" : "OpenMP"
+                },
+                "solver_settings" : {
+                    "model_part_name" : "test_OutputProcess",
+                    "domain_size" : 2,
+                    "solver_type" : "dynamic",
+                    "time_integration_method" : "explicit",
+                    "time_stepping" : {
+                        "time_step" : 0.5
+                    },
+                    "model_import_settings" : {
+                        "input_type" : "mdpa",
+                        "input_filename" : "test_OutputProcess"
+                    }
+                },
+                "processes" : {},
+                "output_processes" : {
+                    "hdf5_output" : [{
+                    "python_module" : "single_mesh_temporal_output_process",
+                    "kratos_module" : "KratosMultiphysics.HDF5Application",
+                    "process_name" : "SingleMeshTemporalOutputProcess",
+                    "Parameters": {
+                        "model_part_name": "test_OutputProcess",
+                        "file_settings": {
+                            "file_access_mode": "truncate",
+                            "echo_level": 1
+                        },
+                        "model_part_output_settings": {
+                            "prefix": "/ModelData/<model_part_name>"
+                        },
+                        "output_time_settings": {
+                            "step_frequency" : 2
+                        }
+                    }
+                }]}}
+            ''')
+
+        with patch("KratosMultiphysics.HDF5Application.core.controllers.Controller.ExecuteOperations") as mocked_execute:
+            with ScopedMDPA("test_OutputProcess"):
+                from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+                model = KratosMultiphysics.Model()
+                simulation = StructuralMechanicsAnalysis(model, settings)
+                simulation.Run()
+
+            self.assertEqual(mocked_execute.call_count, 1 + 5)
 
 
 if __name__ == "__main__":
