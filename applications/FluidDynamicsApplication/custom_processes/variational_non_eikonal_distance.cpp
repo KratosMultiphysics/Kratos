@@ -216,7 +216,7 @@ void VariationalNonEikonalDistance::Execute()
     //************************************************************************************
     // Reinitialization
     r_redistancing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,0);
-    
+
     mpGradientCalculator->Execute(); // To provide the initial condition for DISTANCE_GRADIENT
 
     #pragma omp parallel for

@@ -157,7 +157,7 @@ void ContactAngleEvaluator::Execute()
             const double gradient_norm = Kratos::norm_2(gradient);
             gradient = (1.0/gradient_norm)*gradient;
 
-            it_elem->GetValue(CONTACT_ANGLE) = PI - std::acos( inner_prod(solid_normal, gradient) );
+            it_elem->GetValue(CONTACT_ANGLE) = PI - std::acos( std::max( std::min( inner_prod(solid_normal, gradient), 1.0 ), -1.0 ) );
             it_elem->GetValue(NORMAL_VECTOR) = gradient;
         }
 
@@ -266,7 +266,7 @@ void ContactAngleEvaluator::Execute()
 
                 const double node_j_curvature = (it_node_begin + min_dist_index)->FastGetSolutionStepValue(CURVATURE);
                 const double radius_at_nodej = 2.0*node_j_curvature/(node_j_curvature*node_j_curvature + 1.0e-10);
-                node_i_contact_angle = std::asin( radius_at_nodej*std::sin(min_dist_contact_angle - PI/2.0)/(node_i_distance + radius_at_nodej) ) + PI/2.0; //min_dist_contact_angle;
+                node_i_contact_angle = std::asin( std::max( std::min( radius_at_nodej*std::sin(min_dist_contact_angle - PI/2.0)/(node_i_distance + radius_at_nodej), 1.0 ), -1.0 ) ) + PI/2.0; //min_dist_contact_angle;
 
             } else if (it_node_i->GetValue(IS_STRUCTURE) == 1.0 || it_node_i->Is(BOUNDARY)){ // By default contact angle is not set for the NON IS_STRUCTURE nodes
                 auto& node_i_contact_angle = it_node_i->FastGetSolutionStepValue(CONTACT_ANGLE);
@@ -299,19 +299,29 @@ void ContactAngleEvaluator::Execute()
                     const double min_horizontal_dist = norm_2(min_dist_vector);
                     const double node_j_curvature = min_dist_iter_node->FastGetSolutionStepValue(CURVATURE);
                     const double radius_at_nodej = 2.0*node_j_curvature/(node_j_curvature*node_j_curvature + 1.0e-10);
-                    const double gamma = std::acos((min_horizontal_dist + radius_at_nodej*std::sin(node_j_contact_angle))/(
-                                        node_i_distance + radius_at_nodej));
+                    const double gamma = std::acos( std::max( std::min( (min_horizontal_dist + radius_at_nodej*std::sin(node_j_contact_angle))/(
+                                        node_i_distance + radius_at_nodej), 1.0 ), -1.0 ) );
 
                     const double factor = (1.0 - std::sin(gamma)*std::sin(gamma))/(
                                     1.0 - std::sin(node_j_contact_angle)*std::sin(node_j_contact_angle) + 1.0e-10);
 
+                    if(factor > 1.0e1){
+                        KRATOS_WATCH(gamma)
+                        KRATOS_WATCH(node_j_contact_angle)
+                        KRATOS_WATCH(node_i_distance)
+                        KRATOS_WATCH(min_dist_normal)
+                        KRATOS_WATCH(radius_at_nodej)
+                    }
+
                     Vector node_i_normal = factor*min_dist_normal;
                     node_i_normal(2) = std::sin(gamma);
 
-                    node_i_contact_angle = PI - std::acos(inner_prod(node_i_normal, node_i_solid_normal));
+                    node_i_contact_angle = PI - std::acos( std::max( std::min( inner_prod(node_i_normal, node_i_solid_normal), 1.0 ), -1.0 ) );
+                    KRATOS_WATCH(factor)
+                    KRATOS_WATCH(node_i_contact_angle)
 
                 } else{
-                    node_i_contact_angle = PI - std::acos(inner_prod(min_dist_normal, node_i_solid_normal));
+                    node_i_contact_angle = PI - std::acos( std::max( std::min( inner_prod(min_dist_normal, node_i_solid_normal), 1.0 ), -1.0 ) );
                 }
 
             }
