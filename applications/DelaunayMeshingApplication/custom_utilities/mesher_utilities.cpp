@@ -2187,8 +2187,8 @@ namespace Kratos
       {
         array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
         array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
-        array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxMinExternalPoint[index];
-        array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxMaxExternalPoint[index];
+        array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxShiftedMinimumPoint[index];
+        array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxShiftedMaximumPoint[index];
         double differenceOfSize = rMeshingVariables.Refine->CriticalRadius - rMeshingVariables.RefiningBoxMeshSize[index];
         double transitionDistance = 5.0 * fabs(differenceOfSize);
         double distanceToBox = 0;
@@ -2297,8 +2297,8 @@ namespace Kratos
     {
       if (rMeshingVariables.UseRefiningBox[index] == true && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
       {
-        array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxMinExternalPoint[index];
-        array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxMaxExternalPoint[index];
+        array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxShiftedMinimumPoint[index];
+        array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxShiftedMaximumPoint[index];
         array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
         array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
 

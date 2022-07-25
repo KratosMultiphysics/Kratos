@@ -99,63 +99,53 @@ namespace Kratos
 
       if (mEchoLevel > 1)
         std::cout << "  COMPUTE AVERAGE PFEM MESH PARAMETERS PROCESS ]; " << std::endl;
+
       const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
       const unsigned int numberOfRefiningBoxes = mrRemesh.UseRefiningBox.size();
-      array_1d<double, 1> refinedFluidNodes = ZeroVector(1); // to change!
-      array_1d<double, 1> refinedMeanNodalSize = ZeroVector(1);
-      refinedFluidNodes.resize(numberOfRefiningBoxes);
-      refinedMeanNodalSize.resize(numberOfRefiningBoxes);
-      refinedFluidNodes = ZeroVector(numberOfRefiningBoxes);
-      refinedMeanNodalSize = ZeroVector(numberOfRefiningBoxes);
-      double fluidNodes = 0;
-      double meanNodalSize = 0;
+      Vector preliminaryInBoxesNodes(numberOfRefiningBoxes);
+      noalias(preliminaryInBoxesNodes) = ZeroVector(numberOfRefiningBoxes);
+      Vector preliminaryInBoxesMeanNodalSize(numberOfRefiningBoxes);
+      noalias(preliminaryInBoxesMeanNodalSize) = ZeroVector(numberOfRefiningBoxes);
+      double outOfBoxesFluidNodes = 0;
+      double outOfBoxesMeanNodalSize = 0;
+      bool homogeneousMesh = true;
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
         if (i_node->Is(FLUID))
         {
-          if (numberOfRefiningBoxes == 0)
+          if (numberOfRefiningBoxes == 0 || (numberOfRefiningBoxes == 1 && mrRemesh.UseRefiningBox[0] == false))
           {
-            fluidNodes += 1.0;
-            meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
+            outOfBoxesFluidNodes += 1.0;
+            outOfBoxesMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
           }
           else
           {
             unsigned outOfRefiningBoxes = true;
-            double transitionElementsInInputMesh = 10.0;
             for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
             {
-              double transitionDistanceInInputMesh = transitionElementsInInputMesh * mrRemesh.RefiningBoxMeshSize[index];
               array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint[index];
               array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint[index];
-              if (dimension == 2)
+              if (mrRemesh.UseRefiningBox[index] == true)
               {
-                if (i_node->X() > (RefiningBoxMinimumPoint[0] - transitionDistanceInInputMesh) && i_node->Y() > (RefiningBoxMinimumPoint[1] - transitionDistanceInInputMesh) &&
-                    i_node->X() < (RefiningBoxMaximumPoint[0] + transitionDistanceInInputMesh) && i_node->Y() < (RefiningBoxMaximumPoint[1] + transitionDistanceInInputMesh))
+                homogeneousMesh = false;
+                if (dimension == 2)
                 {
-                  outOfRefiningBoxes = false;
-                  // break;
-                  double localSize = i_node->FastGetSolutionStepValue(NODAL_H) * 2.0; // local size is used to avoid the frontiere zone in the mean mesh size computation
-                  if (i_node->X() > (RefiningBoxMinimumPoint[0] + localSize) && i_node->Y() > (RefiningBoxMinimumPoint[1] + localSize) &&
-                      i_node->X() < (RefiningBoxMaximumPoint[0] - localSize) && i_node->Y() < (RefiningBoxMaximumPoint[1] - localSize))
+                  if (i_node->X() > RefiningBoxMinimumPoint[0] && i_node->Y() > RefiningBoxMinimumPoint[1] &&
+                      i_node->X() < RefiningBoxMaximumPoint[0] && i_node->Y() < RefiningBoxMaximumPoint[1])
                   {
-                    refinedFluidNodes[index] += 1.0;
-                    refinedMeanNodalSize[index] += i_node->FastGetSolutionStepValue(NODAL_H);
+                    outOfRefiningBoxes = false;
+                    preliminaryInBoxesNodes[index] += 1.0;
+                    preliminaryInBoxesMeanNodalSize[index] += i_node->FastGetSolutionStepValue(NODAL_H); // this is a preliminary evaluation of the local mesh size
                   }
                 }
-              }
-              else if (dimension == 3)
-              {
-                if (i_node->X() > (RefiningBoxMinimumPoint[0] - transitionDistanceInInputMesh) && i_node->Y() > (RefiningBoxMinimumPoint[1] - transitionDistanceInInputMesh) && i_node->Z() > (RefiningBoxMinimumPoint[2] - transitionDistanceInInputMesh) &&
-                    i_node->X() < (RefiningBoxMaximumPoint[0] + transitionDistanceInInputMesh) && i_node->Y() < (RefiningBoxMaximumPoint[1] + transitionDistanceInInputMesh) && i_node->Z() < (RefiningBoxMaximumPoint[2] + transitionDistanceInInputMesh))
+                else if (dimension == 3)
                 {
-                  outOfRefiningBoxes = false;
-                  // break;
-                  double localSize = i_node->FastGetSolutionStepValue(NODAL_H) * 2.0; // local size is used to avoid the frontiere zone in the mean mesh size computation
-                  if (i_node->X() > (RefiningBoxMinimumPoint[0] + localSize) && i_node->Y() > (RefiningBoxMinimumPoint[1] + localSize) && i_node->Z() > (RefiningBoxMinimumPoint[2] + localSize) &&
-                      i_node->X() < (RefiningBoxMaximumPoint[0] - localSize) && i_node->Y() < (RefiningBoxMaximumPoint[1] - localSize) && i_node->Z() < (RefiningBoxMaximumPoint[2] - localSize))
+                  if (i_node->X() > RefiningBoxMinimumPoint[0] && i_node->Y() > RefiningBoxMinimumPoint[1] && i_node->Z() > RefiningBoxMinimumPoint[2] &&
+                      i_node->X() < RefiningBoxMaximumPoint[0] && i_node->Y() < RefiningBoxMaximumPoint[1] && i_node->Z() < RefiningBoxMaximumPoint[2])
                   {
-                    refinedFluidNodes[index] += 1.0;
-                    refinedMeanNodalSize[index] += i_node->FastGetSolutionStepValue(NODAL_H);
+                    outOfRefiningBoxes = false;
+                    preliminaryInBoxesNodes[index] += 1.0;
+                    preliminaryInBoxesMeanNodalSize[index] += i_node->FastGetSolutionStepValue(NODAL_H); // this is a preliminary evaluation of the local mesh size
                   }
                 }
               }
@@ -163,58 +153,107 @@ namespace Kratos
             // CONSIDER ONLY THE NODES OUT FROM THE REFINEMENT AREAS
             if (outOfRefiningBoxes == true)
             {
-              fluidNodes += 1.0;
-              meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
+              outOfBoxesFluidNodes += 1.0;
+              outOfBoxesMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H); // this is a preliminary evaluation of the local mesh size
             }
           }
         }
       }
-      meanNodalSize *= 1.0 / fluidNodes;
+      outOfBoxesMeanNodalSize *= 1.0 / outOfBoxesFluidNodes;
 
-      std::cout << "new computation of meanNodalSize " << meanNodalSize << std::endl;
-      std::cout << "new computation of fluidNodes " << fluidNodes << std::endl;
+      mrRemesh.Refine->CriticalRadius = outOfBoxesMeanNodalSize;
+      mrRemesh.Refine->InitialRadius = outOfBoxesMeanNodalSize;
 
-      mrRemesh.Refine->CriticalRadius = meanNodalSize;
-      mrRemesh.Refine->InitialRadius = meanNodalSize;
-
-      for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
+      if (homogeneousMesh == false)
       {
-        // {
-        //   mrRemesh.RefiningBoxMeshSize[index] *= 0.8;
-        // }
-        std::cout << " user provided fine mesh size " << mrRemesh.RefiningBoxMeshSize[index] << std::endl;
-        double localMeshSize = refinedMeanNodalSize[index] / refinedFluidNodes[index];
-        mrRemesh.SetRefiningBoxMeshSize(index, localMeshSize);
-        std::cout << " fluid nodesin refined zone " << refinedFluidNodes[index] << std::endl;
-        std::cout << " new computed fine mesh size " << mrRemesh.RefiningBoxMeshSize[index] << std::endl;
-        double tolerance = mrRemesh.RefiningBoxMeshSize[index] * 0.01;
-        double differenceOfSize = meanNodalSize - mrRemesh.RefiningBoxMeshSize[index];
+        outOfBoxesFluidNodes = 0;
+        outOfBoxesMeanNodalSize = 0;
+        Vector insideBoxesFluidNodes(numberOfRefiningBoxes);
+        noalias(insideBoxesFluidNodes) = ZeroVector(numberOfRefiningBoxes);
+        Vector insideBoxesMeanNodalSize(numberOfRefiningBoxes);
+        noalias(insideBoxesMeanNodalSize) = ZeroVector(numberOfRefiningBoxes);
+        for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
+        {
+          if (i_node->Is(FLUID))
+          {
+            unsigned outOfRefiningBoxes = true;
+            for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
+            {
+              double transitionDistanceInInputMesh = 5.0 * mrRemesh.Refine->CriticalRadius;
+              array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint[index];
+              array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint[index];
+              if (mrRemesh.UseRefiningBox[index] == true)
+              {
+                if (dimension == 2)
+                {
+                  if (i_node->X() > (RefiningBoxMinimumPoint[0] - transitionDistanceInInputMesh) && i_node->Y() > (RefiningBoxMinimumPoint[1] - transitionDistanceInInputMesh) &&
+                      i_node->X() < (RefiningBoxMaximumPoint[0] + transitionDistanceInInputMesh) && i_node->Y() < (RefiningBoxMaximumPoint[1] + transitionDistanceInInputMesh))
+                  {
+                    outOfRefiningBoxes = false;
+                    double localTransitionDistance = 2.0 * (preliminaryInBoxesMeanNodalSize[index] / preliminaryInBoxesNodes[index]); // local size is used to avoid the frontiere zone in the mean mesh size computation
+                    if (i_node->X() > (RefiningBoxMinimumPoint[0] + localTransitionDistance) && i_node->Y() > (RefiningBoxMinimumPoint[1] + localTransitionDistance) &&
+                        i_node->X() < (RefiningBoxMaximumPoint[0] - localTransitionDistance) && i_node->Y() < (RefiningBoxMaximumPoint[1] - localTransitionDistance))
+                    {
+                      insideBoxesFluidNodes[index] += 1.0;
+                      insideBoxesMeanNodalSize[index] += i_node->FastGetSolutionStepValue(NODAL_H);
+                    }
+                  }
+                }
+                else if (dimension == 3)
+                {
+                  if (i_node->X() > (RefiningBoxMinimumPoint[0] - transitionDistanceInInputMesh) && i_node->Y() > (RefiningBoxMinimumPoint[1] - transitionDistanceInInputMesh) && i_node->Z() > (RefiningBoxMinimumPoint[2] - transitionDistanceInInputMesh) &&
+                      i_node->X() < (RefiningBoxMaximumPoint[0] + transitionDistanceInInputMesh) && i_node->Y() < (RefiningBoxMaximumPoint[1] + transitionDistanceInInputMesh) && i_node->Z() < (RefiningBoxMaximumPoint[2] + transitionDistanceInInputMesh))
+                  {
+                    outOfRefiningBoxes = false;
+                    double localTransitionDistance = 2.0 * (preliminaryInBoxesMeanNodalSize[index] / preliminaryInBoxesNodes[index]); // local size is used to avoid the frontiere zone in the mean mesh size computation
+                    if (i_node->X() > (RefiningBoxMinimumPoint[0] + localTransitionDistance) && i_node->Y() > (RefiningBoxMinimumPoint[1] + localTransitionDistance) && i_node->Z() > (RefiningBoxMinimumPoint[2] + localTransitionDistance) &&
+                        i_node->X() < (RefiningBoxMaximumPoint[0] - localTransitionDistance) && i_node->Y() < (RefiningBoxMaximumPoint[1] - localTransitionDistance) && i_node->Z() < (RefiningBoxMaximumPoint[2] - localTransitionDistance))
+                    {
+                      insideBoxesFluidNodes[index] += 1.0;
+                      insideBoxesMeanNodalSize[index] += i_node->FastGetSolutionStepValue(NODAL_H);
+                    }
+                  }
+                }
+              }
+            }
+            // CONSIDER ONLY THE NODES OUT FROM THE REFINEMENT AREAS
+            if (outOfRefiningBoxes == true)
+            {
+              outOfBoxesFluidNodes += 1.0;
+              outOfBoxesMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
+            }
+          }
+        }
+        outOfBoxesMeanNodalSize *= 1.0 / outOfBoxesFluidNodes;
 
-        mrRemesh.RefiningBoxMinimumPoint[index][0] += -tolerance; // the finest nodes at the frontier should not be erased
-        mrRemesh.RefiningBoxMinimumPoint[index][1] += -tolerance;
-        mrRemesh.RefiningBoxMinimumPoint[index][2] += -tolerance;
+        mrRemesh.Refine->CriticalRadius = outOfBoxesMeanNodalSize;
+        mrRemesh.Refine->InitialRadius = outOfBoxesMeanNodalSize;
 
-        mrRemesh.RefiningBoxMaximumPoint[index][0] += tolerance;
-        mrRemesh.RefiningBoxMaximumPoint[index][1] += tolerance;
-        mrRemesh.RefiningBoxMaximumPoint[index][2] += tolerance;
+        for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
+        {
+          double localMeshSize = insideBoxesMeanNodalSize[index] / insideBoxesFluidNodes[index];
+          mrRemesh.SetRefiningBoxMeshSize(index, localMeshSize);
+          double tolerance = mrRemesh.RefiningBoxMeshSize[index] * 0.01;
+          double differenceOfSize = outOfBoxesMeanNodalSize - mrRemesh.RefiningBoxMeshSize[index];
 
-        double transitionDistance = 5.0 * fabs(differenceOfSize);
+          mrRemesh.RefiningBoxMinimumPoint[index][0] += -tolerance; // the finest nodes at the frontier should not be erased
+          mrRemesh.RefiningBoxMinimumPoint[index][1] += -tolerance;
+          mrRemesh.RefiningBoxMinimumPoint[index][2] += -tolerance;
 
-        mrRemesh.RefiningBoxMinExternalPoint[index][0] = mrRemesh.RefiningBoxMinimumPoint[index][0] - transitionDistance;
-        mrRemesh.RefiningBoxMinExternalPoint[index][1] = mrRemesh.RefiningBoxMinimumPoint[index][1] - transitionDistance;
-        mrRemesh.RefiningBoxMinExternalPoint[index][2] = mrRemesh.RefiningBoxMinimumPoint[index][2] - transitionDistance;
-        // mrRemesh.RefiningBoxMinInternalPoint[index][0] = mrRemesh.RefiningBoxMinimumPoint[index][0] + mrRemesh.RefiningBoxMeshSize[index];
-        // mrRemesh.RefiningBoxMinInternalPoint[index][1] = mrRemesh.RefiningBoxMinimumPoint[index][1] + mrRemesh.RefiningBoxMeshSize[index];
-        // mrRemesh.RefiningBoxMinInternalPoint[index][2] = mrRemesh.RefiningBoxMinimumPoint[index][2] + mrRemesh.RefiningBoxMeshSize[index];
+          mrRemesh.RefiningBoxMaximumPoint[index][0] += tolerance;
+          mrRemesh.RefiningBoxMaximumPoint[index][1] += tolerance;
+          mrRemesh.RefiningBoxMaximumPoint[index][2] += tolerance;
 
-        mrRemesh.RefiningBoxMaxExternalPoint[index][0] = mrRemesh.RefiningBoxMaximumPoint[index][0] + transitionDistance;
-        mrRemesh.RefiningBoxMaxExternalPoint[index][1] = mrRemesh.RefiningBoxMaximumPoint[index][1] + transitionDistance;
-        mrRemesh.RefiningBoxMaxExternalPoint[index][2] = mrRemesh.RefiningBoxMaximumPoint[index][2] + transitionDistance;
-        // mrRemesh.RefiningBoxMaxInternalPoint[index][0] = mrRemesh.RefiningBoxMaximumPoint[index][0] - mrRemesh.RefiningBoxMeshSize[index];
-        // mrRemesh.RefiningBoxMaxInternalPoint[index][1] = mrRemesh.RefiningBoxMaximumPoint[index][1] - mrRemesh.RefiningBoxMeshSize[index];
-        // mrRemesh.RefiningBoxMaxInternalPoint[index][2] = mrRemesh.RefiningBoxMaximumPoint[index][2] - mrRemesh.RefiningBoxMeshSize[index];
+          double transitionDistance = 5.0 * fabs(differenceOfSize);
 
-        std::cout << "mrRemesh.RefiningBoxMaxExternalPoint[index][0] " << mrRemesh.RefiningBoxMaxExternalPoint[index][0] << std::endl;
+          mrRemesh.RefiningBoxShiftedMinimumPoint[index][0] = mrRemesh.RefiningBoxMinimumPoint[index][0] - transitionDistance;
+          mrRemesh.RefiningBoxShiftedMinimumPoint[index][1] = mrRemesh.RefiningBoxMinimumPoint[index][1] - transitionDistance;
+          mrRemesh.RefiningBoxShiftedMinimumPoint[index][2] = mrRemesh.RefiningBoxMinimumPoint[index][2] - transitionDistance;
+
+          mrRemesh.RefiningBoxShiftedMaximumPoint[index][0] = mrRemesh.RefiningBoxMaximumPoint[index][0] + transitionDistance;
+          mrRemesh.RefiningBoxShiftedMaximumPoint[index][1] = mrRemesh.RefiningBoxMaximumPoint[index][1] + transitionDistance;
+          mrRemesh.RefiningBoxShiftedMaximumPoint[index][2] = mrRemesh.RefiningBoxMaximumPoint[index][2] + transitionDistance;
+        }
       }
 
       KRATOS_CATCH(" ")

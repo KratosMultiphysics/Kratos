@@ -705,10 +705,8 @@ namespace Kratos
                   std::vector<array_1d<double, 3>> RefiningBoxMinimumPoint;
                   std::vector<array_1d<double, 3>> RefiningBoxMaximumPoint;
 
-                  std::vector<array_1d<double, 3>> RefiningBoxMinInternalPoint;
-                  std::vector<array_1d<double, 3>> RefiningBoxMinExternalPoint;
-                  std::vector<array_1d<double, 3>> RefiningBoxMaxInternalPoint;
-                  std::vector<array_1d<double, 3>> RefiningBoxMaxExternalPoint;
+                  std::vector<array_1d<double, 3>> RefiningBoxShiftedMinimumPoint;
+                  std::vector<array_1d<double, 3>> RefiningBoxShiftedMaximumPoint;
 
                   void Set(Flags ThisFlag)
                   {
@@ -912,15 +910,25 @@ namespace Kratos
                         BoundingBoxFinalTime = rBoundingBoxFinalTime;
                   };
 
+                  void InitializeRefiningBoxParameters(unsigned int size)
+                  {
+                        UseRefiningBox.resize(size);
+                        RefiningBoxMinimumPoint.resize(size);
+                        RefiningBoxMaximumPoint.resize(size);
+                        RefiningBoxShiftedMinimumPoint.resize(size);
+                        RefiningBoxShiftedMaximumPoint.resize(size);
+                        RefiningBoxInitialTime.resize(size);
+                        RefiningBoxFinalTime.resize(size);
+                        RefiningBoxMeshSize.resize(size);
+                  }
+
                   void SetUseRefiningBox(unsigned int index, bool rUseRefiningBox)
                   {
-                        UseRefiningBox.resize(index + 1);
                         UseRefiningBox[index] = rUseRefiningBox;
                   };
 
                   void SetRefiningBoxMinimumPoint(unsigned int index, double rRefiningBoxMinimumPointX, double rRefiningBoxMinimumPointY, double rRefiningBoxMinimumPointZ)
                   {
-                        RefiningBoxMinimumPoint.resize(index + 1);
                         RefiningBoxMinimumPoint[index][0] = rRefiningBoxMinimumPointX;
                         RefiningBoxMinimumPoint[index][1] = rRefiningBoxMinimumPointY;
                         RefiningBoxMinimumPoint[index][2] = rRefiningBoxMinimumPointZ;
@@ -928,55 +936,33 @@ namespace Kratos
 
                   void SetRefiningBoxMaximumPoint(unsigned int index, double rRefiningBoxMaximumPointX, double rRefiningBoxMaximumPointY, double rRefiningBoxMaximumPointZ)
                   {
-                        RefiningBoxMaximumPoint.resize(index + 1);
                         RefiningBoxMaximumPoint[index][0] = rRefiningBoxMaximumPointX;
                         RefiningBoxMaximumPoint[index][1] = rRefiningBoxMaximumPointY;
                         RefiningBoxMaximumPoint[index][2] = rRefiningBoxMaximumPointZ;
                   };
 
-                  void SetRefiningBoxMinExternalPoint(unsigned int index, double rPointX, double rPointY, double rPointZ)
+                  void SetRefiningBoxShiftedMinimumPoint(unsigned int index, double rPointX, double rPointY, double rPointZ)
                   {
-                        RefiningBoxMinExternalPoint.resize(index + 1);
-                        RefiningBoxMinExternalPoint[index][0] = rPointX;
-                        RefiningBoxMinExternalPoint[index][1] = rPointY;
-                        RefiningBoxMinExternalPoint[index][2] = rPointZ;
+                        RefiningBoxShiftedMinimumPoint[index][0] = rPointX;
+                        RefiningBoxShiftedMinimumPoint[index][1] = rPointY;
+                        RefiningBoxShiftedMinimumPoint[index][2] = rPointZ;
                   };
 
-                  void SetRefiningBoxMinInternalPoint(unsigned int index, double rPointX, double rPointY, double rPointZ)
+                  void SetRefiningBoxShiftedMaximumPoint(unsigned int index, double rPointX, double rPointY, double rPointZ)
                   {
-                        RefiningBoxMinInternalPoint.resize(index + 1);
-                        RefiningBoxMinInternalPoint[index][0] = rPointX;
-                        RefiningBoxMinInternalPoint[index][1] = rPointY;
-                        RefiningBoxMinInternalPoint[index][2] = rPointZ;
-                  };
-
-                  void SetRefiningBoxMaxExternalPoint(unsigned int index, double rPointX, double rPointY, double rPointZ)
-                  {
-                        RefiningBoxMaxExternalPoint.resize(index + 1);
-                        RefiningBoxMaxExternalPoint[index][0] = rPointX;
-                        RefiningBoxMaxExternalPoint[index][1] = rPointY;
-                        RefiningBoxMaxExternalPoint[index][2] = rPointZ;
-                  };
-
-                  void SetRefiningBoxMaxInternalPoint(unsigned int index, double rPointX, double rPointY, double rPointZ)
-                  {
-                        RefiningBoxMaxInternalPoint.resize(index + 1);
-                        RefiningBoxMaxInternalPoint[index][0] = rPointX;
-                        RefiningBoxMaxInternalPoint[index][1] = rPointY;
-                        RefiningBoxMaxInternalPoint[index][2] = rPointZ;
+                        RefiningBoxShiftedMaximumPoint[index][0] = rPointX;
+                        RefiningBoxShiftedMaximumPoint[index][1] = rPointY;
+                        RefiningBoxShiftedMaximumPoint[index][2] = rPointZ;
                   };
 
                   void SetRefiningBoxTimeInterval(unsigned int index, double rRefiningBoxInitialTime, double rRefiningBoxFinalTime)
                   {
-                        RefiningBoxInitialTime.resize(index + 1);
-                        RefiningBoxFinalTime.resize(index + 1);
                         RefiningBoxInitialTime[index] = rRefiningBoxInitialTime;
                         RefiningBoxFinalTime[index] = rRefiningBoxFinalTime;
                   };
 
                   void SetRefiningBoxMeshSize(unsigned int index, double rRefiningBoxMeshSize)
                   {
-                        RefiningBoxMeshSize.resize(index + 1);
                         RefiningBoxMeshSize[index] = rRefiningBoxMeshSize;
                   };
             };

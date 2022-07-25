@@ -111,19 +111,18 @@ class FluidMeshingDomain(object):
         # parameters
         self.RefiningParameters.SetAlphaParameter(self.settings["alpha_shape"].GetDouble())
 
+        number_of_refining_boxes=self.settings["spatial_refining_box_list"].size()
+        self.MeshingParameters.InitializeRefiningBoxParameters(number_of_refining_boxes)       
         # set mesh refinement in box
         index=0    
         for item in self.settings["spatial_refining_box_list"]:
             refining_box_list = item
-            self.MeshingParameters.SetUseRefiningBox(index,True) 
+            self.MeshingParameters.SetUseRefiningBox(index,refining_box_list["use_refining_box"].GetBool()) 
             self.MeshingParameters.SetRefiningBoxMinimumPoint(index,refining_box_list["lower_point"][0].GetDouble(),refining_box_list["lower_point"][1].GetDouble(),refining_box_list["lower_point"][2].GetDouble()) 
-            self.MeshingParameters.SetRefiningBoxMinExternalPoint(index,refining_box_list["lower_point"][0].GetDouble(),refining_box_list["lower_point"][1].GetDouble(),refining_box_list["lower_point"][2].GetDouble()) 
-            self.MeshingParameters.SetRefiningBoxMinInternalPoint(index,refining_box_list["lower_point"][0].GetDouble(),refining_box_list["lower_point"][1].GetDouble(),refining_box_list["lower_point"][2].GetDouble()) 
+            self.MeshingParameters.SetRefiningBoxShiftedMinimumPoint(index,refining_box_list["lower_point"][0].GetDouble(),refining_box_list["lower_point"][1].GetDouble(),refining_box_list["lower_point"][2].GetDouble()) 
             self.MeshingParameters.SetRefiningBoxMaximumPoint(index,refining_box_list["upper_point"][0].GetDouble(),refining_box_list["upper_point"][1].GetDouble(),refining_box_list["upper_point"][2].GetDouble()) 
-            self.MeshingParameters.SetRefiningBoxMaxExternalPoint(index,refining_box_list["upper_point"][0].GetDouble(),refining_box_list["upper_point"][1].GetDouble(),refining_box_list["upper_point"][2].GetDouble()) 
-            self.MeshingParameters.SetRefiningBoxMaxInternalPoint(index,refining_box_list["upper_point"][0].GetDouble(),refining_box_list["upper_point"][1].GetDouble(),refining_box_list["upper_point"][2].GetDouble()) 
+            self.MeshingParameters.SetRefiningBoxShiftedMaximumPoint(index,refining_box_list["upper_point"][0].GetDouble(),refining_box_list["upper_point"][1].GetDouble(),refining_box_list["upper_point"][2].GetDouble()) 
             self.MeshingParameters.SetRefiningBoxTimeInterval(index,refining_box_list["initial_time"].GetDouble(),refining_box_list["final_time"].GetDouble())
-            self.MeshingParameters.SetRefiningBoxMeshSize(index,refining_box_list["mesh_size"].GetDouble())
             index+=1   
 
         removing_options = KratosMultiphysics.Flags()
@@ -216,7 +215,7 @@ class FluidMeshingDomain(object):
     def GetVariables(self):
 
         nodal_variables = []
-        transfer_variables = self.settings["elemental_variables_to_transfer"]
+        transfer_variables = self.settings["elemental_variables_to_transfer"]  #
         for i in range(0, transfer_variables.size() ):
             nodal_variables.append(transfer_variables[i].GetString())
 

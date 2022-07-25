@@ -186,6 +186,10 @@ namespace Kratos
                     std::vector<array_1d<double, 3>> nodesVelocities;
                     nodesVelocities.resize(nds);
                     unsigned int isolatedNodesInTheElement = 0;
+                    double rigidNodeLocalMeshSize = 0;
+                    double rigidNodeMeshCounter = 0;
+                    // array_1d<double, 3> Edges(3, 0.0); // neighbor 3D edges to a node
+
                     for (unsigned int pn = 0; pn < nds; pn++)
                     {
                         if (OutElementList[el * nds + pn] <= 0)
@@ -217,6 +221,7 @@ namespace Kratos
                         if (vertices.back().GetValue(NO_MESH))
                         {
                             noremesh = true;
+                            std::cout << "I SHOULD NOT ENTER HERE" << std::endl;
                         }
 
                         previouslyFreeSurfaceNodes += vertices.back().FastGetSolutionStepValue(FREESURFACE);       // it is 1 if it was free-surface (set in build_mesh_boundary_for_fluids)
@@ -224,6 +229,12 @@ namespace Kratos
 
                         if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID))
                         {
+                            if (vertices.back().Is(RIGID))
+                            {
+                                rigidNodeLocalMeshSize += vertices.back().FastGetSolutionStepValue(NODAL_H);
+                                rigidNodeMeshCounter += 1.0;
+                            }
+
                             numrigid++;
 
                             NodeWeakPtrVectorType &rN = vertices.back().GetValue(NEIGHBOUR_NODES);
@@ -277,6 +288,14 @@ namespace Kratos
                         if (dimension == 3)
                         {
                             nodesCoordinates[pn] = vertices.back().Coordinates();
+                            // if (pn > 0)
+                            // {
+                            //     array_1d<double, 3> CoorDifference = nodesCoordinates[pn] - nodesCoordinates[0];
+                            //     double SquaredLength = CoorDifference[0] * CoorDifference[0] +
+                            //                            CoorDifference[1] * CoorDifference[1] +
+                            //                            CoorDifference[2] * CoorDifference[2];
+                            //     Edges[pn - 1] = sqrt(SquaredLength);
+                            // }
                         }
                     }
 
@@ -288,6 +307,27 @@ namespace Kratos
 
                     double Alpha = mrRemesh.AlphaParameter; //*nds;
 
+                    if (rigidNodeMeshCounter > 0 && rigidNodeMeshCounter < nds)
+                    {
+                        double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+                        // if ((wallMeshSize / meanMeshSize > 1.6 || wallMeshSize / meanMeshSize < 0.625) && numfreesurf == 0 && numisolated == 0)
+                        // {
+                        //     Alpha *= 1.1;
+                        // }
+                        if (rigidWallMeshSize > meanMeshSize)
+                        {
+                            if (numfreesurf == 0 && numisolated == 0)
+                            {
+                                meanMeshSize = rigidWallMeshSize;
+                            }
+                            else
+                            {
+                                meanMeshSize *= 0.5;
+                                meanMeshSize += 0.5 * rigidWallMeshSize;
+                            }
+                        }
+                    }
+
                     if (refiningBox == true)
                     {
 
@@ -295,8 +335,7 @@ namespace Kratos
 
                         // if (dimension == 3)
                         // {
-                        //     // Alpha *= 1.1; // original
-                        //     Alpha *= 1.05;
+                        //     Alpha *= 1.1; // original
                         // }
                     }
 
@@ -361,10 +400,10 @@ namespace Kratos
                             }
                         }
                     }
-                    // if (firstMesh == true)
-                    // {
-                    //     Alpha *= 1.15;
-                    // }
+                    if (firstMesh == true)
+                    {
+                        Alpha *= 1.05;
+                    }
 
                     if (numinlet > 0)
                     {
@@ -379,6 +418,21 @@ namespace Kratos
                     {
                         accepted = false;
                     }
+
+                    // if (dimension == 3 && accepted == true && (sumIsolatedFreeSurf>0 || sumPreviouslyIsolatedFreeSurf>0) && numrigid>0)
+                    // {
+                    //     double wallLength = 0;
+                    //     double toleranceRate = 5.0;
+                    //     double rate1=Edges[0] / Edges[1];
+                    //     double rate2=Edges[0] / Edges[2];
+                    //     double rate3=Edges[1] / Edges[2];
+                    //     if (rate1 > toleranceRate || rate1 < (1.0/toleranceRate) || rate2 > toleranceRate || rate2 < (1.0/toleranceRate) || rate3 > toleranceRate || rate3 < (1.0/toleranceRate))
+                    //     {
+                    //         accepted = false; // erase this swewed element
+                    //         std::cout << " accepted = false; //erase this swewed element  Edges[0] is " <<Edges[0]<<"   Edges[1] is "<<Edges[1]<<"   Edges[2] is "<<Edges[2]<<std::endl;
+                    //         std::cout << " rate1 is " <<rate1<<"  rate2 "<<rate2<<"  rate3 "<<rate3<<std::endl;
+                    //     }
+                    // }
 
                     if (accepted == true && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds))
                     {
@@ -755,42 +809,21 @@ namespace Kratos
                 if (numfreesurf < nds && numisolated == 0)
                 {
                     // Alpha *= 1.275; //original
-                    Alpha *= 1.05;
+                    Alpha *= 1.2; // asSmall
                 }
                 else if (numfreesurf == 0 && numrigid == 0 && numisolated == 0)
                 {
-                    // Alpha *= 1.4; //original
-                    Alpha *= 1.1;
+                    Alpha *= 1.4; // original
                 }
                 else if (numfreesurf == 0 && numrigid > (0.5 * nds) && numisolated == 0)
                 {
-                    // Alpha *= 5.0; //original
-                    Alpha *= 2.0;
+                    Alpha *= 5.0; // original
                 }
                 else if (numfreesurf == 0 && numrigid > 0 && numisolated == 0)
                 {
-                    // Alpha *= 1.8; //original
-                    Alpha *= 1.2;
+                    Alpha *= 1.8; // original
                 }
             }
-            // if (numfreesurf < (0.5 * nds) && (numrigid < (0.5 * nds) && numfreesurf > 0))
-            // {
-            //     if (numisolated > 0)
-            //     {
-            //         // Alpha *= 1.0; //original
-            //         Alpha *= 1.0;
-            //     }
-            //     else if (numfreesurf == 0)
-            //     {
-            //         // Alpha *= 1.1; //original
-            //         Alpha *= 1.05;
-            //     }
-            //     else
-            //     {
-            //         // Alpha *= 1.05; //original
-            //         Alpha *= 1.025;
-            //     }
-            // }
 
             KRATOS_CATCH("")
         }

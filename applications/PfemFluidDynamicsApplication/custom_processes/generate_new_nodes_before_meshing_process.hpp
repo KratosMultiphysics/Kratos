@@ -1249,7 +1249,7 @@ namespace Kratos
 												std::vector<array_1d<double, 3>> &NewPositions,
 												std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
 												int &CountNodes,
-													int ElementsToRefine)
+												int ElementsToRefine)
 		{
 			KRATOS_TRY
 			const unsigned int nds = Element.size();
@@ -1261,20 +1261,32 @@ namespace Kratos
 			{
 				bool insideBox = false;
 				mMesherUtilities.DefineMeshSizeInTransitionZones2D(mrRemesh, currentTime, Element[pn].Coordinates(), meanMeshSize, insideBox);
-				}
+			}
 
 			unsigned int rigidNodes = 0;
+			double rigidNodeLocalMeshSize = 0;
+			double rigidNodeMeshCounter = 0;
 			bool toEraseNodeFound = false;
 			for (unsigned int pn = 0; pn < nds; pn++)
 			{
 				if (Element[pn].Is(RIGID))
 				{
 					rigidNodes++;
+					rigidNodeLocalMeshSize += Element[pn].FastGetSolutionStepValue(NODAL_H);
+					rigidNodeMeshCounter += 1.0;
 				}
 				if (Element[pn].Is(TO_ERASE))
 				{
 					toEraseNodeFound = true;
 				}
+			}
+
+
+			if (rigidNodeMeshCounter > 0 && rigidNodeMeshCounter < nds)
+			{
+				double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+				meanMeshSize *= 0.5;
+				meanMeshSize += 0.5 * rigidWallMeshSize;
 			}
 
 			double penalization = 1.0; // penalization here should be greater than 1
@@ -1390,7 +1402,7 @@ namespace Kratos
 												std::vector<array_1d<double, 3>> &NewPositions,
 												std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
 												int &CountNodes,
-													int ElementsToRefine)
+												int ElementsToRefine)
 		{
 			KRATOS_TRY
 
@@ -1406,18 +1418,30 @@ namespace Kratos
 			}
 
 			unsigned int rigidNodes = 0;
+			double rigidNodeLocalMeshSize = 0;
+			double rigidNodeMeshCounter = 0;
 			bool toEraseNodeFound = false;
 			for (unsigned int pn = 0; pn < nds; pn++)
 			{
 				if (Element[pn].Is(RIGID))
 				{
 					rigidNodes++;
+					rigidNodeLocalMeshSize += Element[pn].FastGetSolutionStepValue(NODAL_H);
+					rigidNodeMeshCounter += 1.0;
 				}
 				if (Element[pn].Is(TO_ERASE))
 				{
 					toEraseNodeFound = true;
 				}
 			}
+
+			if (rigidNodeMeshCounter > 0 && rigidNodeMeshCounter < nds)
+			{
+				double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+				meanMeshSize *= 0.5;
+				meanMeshSize += 0.5 * rigidWallMeshSize;
+			}
+
 			double penalization = 1.0; // penalization here should be greater than 1
 			double safetyCoefficient3D = 1.6;
 			array_1d<double, 6> Edges(6, 0.0);
@@ -1439,7 +1463,6 @@ namespace Kratos
 				for (unsigned int j = 0; j < i; j++)
 				{
 					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
-					// CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
 					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
 					Counter += 1;
 					Edges[Counter] = sqrt(SquaredLength);
