@@ -54,7 +54,7 @@ double BrooksCoreyLaw::
     const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
     const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
    
-    if (p > 0.0 & p > pb )
+    if (p > 0.0 && p >= pb )
     {
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
@@ -65,9 +65,10 @@ double BrooksCoreyLaw::
         double sat = satMin + (satMax - satMin) *  pow(pb/p, Lambda);
         return sat;
     }
-    else
+    else 
     {
-        return rMaterialProperties[SATURATED_SATURATION];
+        double sat = rMaterialProperties[SATURATED_SATURATION];
+        return sat;
     }
 
     KRATOS_CATCH("")
@@ -97,10 +98,11 @@ double BrooksCoreyLaw::
     CalculateDerivativeOfSaturation(Parameters &rParameters)
 {
     KRATOS_TRY;
-    const double &p = rParameters.GetFluidPressure();
-    const Properties& rMaterialProperties = rParameters.GetMaterialProperties();
-    const double& pb = rMaterialProperties[AIR_ENTRY_PRESSURE];
-    if (p > 0.0 & p > pb)
+   const double &p = rParameters.GetFluidPressure();
+    const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
+    const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
+
+    if (p > 0.0 && p >= pb)
     {
         const auto &rMaterialProperties = rParameters.GetMaterialProperties();
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
@@ -109,7 +111,7 @@ double BrooksCoreyLaw::
         const double &Lambda  = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
         
 
-        double dSdp = (satMax - satMin) * (-Lambda) * pow(pb,Lambda)*pow(p, -Lambda-1.0);
+        double dSdp = (satMax - satMin) * (-Lambda) * pow(pb,Lambda)*pow(p, (-Lambda-1.0));
     
         return dSdp;
     }
@@ -154,7 +156,7 @@ double BrooksCoreyLaw::
      const auto &rMaterialProperties = rParameters.GetMaterialProperties();
      const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
      
-if (p > 0.0 & p > pb)
+if (p > 0.0 && p >= pb)
     {
         const auto &rMaterialProperties = rParameters.GetMaterialProperties();
         const double &Porosity = rMaterialProperties[POROSITY];
@@ -172,7 +174,7 @@ if (p > 0.0 & p > pb)
     else
     {
         double BishopCo =1;
-        return BishopCo;
+        return  BishopCo;
     }
 
 
