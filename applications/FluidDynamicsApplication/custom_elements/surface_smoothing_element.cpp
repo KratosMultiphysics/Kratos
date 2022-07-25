@@ -268,7 +268,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info
     const double he = ElementSizeCalculator<3,4>::GradientsElementSize(DN_DX);
-    const double epsilon = 2.0e-10;//1.7e-9;//6.0e5*dt*he*he;//5.0e5*dt*he*he;//1.0e2*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
+    const double epsilon = 1.0e-10;//1.7e-9;//6.0e5*dt*he*he;//5.0e5*dt*he*he;//1.0e2*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
 
     // HINT: 5e-10 is fine for median mesh and exact gradient (1.3e-9 for finer mesh)
     // For the Avg. Gradient value, a larger epsilon is needed.
@@ -373,7 +373,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
         Vector solid_normal = ZeroVector(num_dim);
 
         for (unsigned int i=0; i < num_face_nodes; ++i){
-            if (r_face[i].Is(BOUNDARY)){
+            if (r_face[i].Is(BOUNDARY) || r_face[i].GetValue(IS_STRUCTURE) == 1.0 ){
                 contact_node++;
                 const double contact_angle_i = r_face[i].FastGetSolutionStepValue(CONTACT_ANGLE);
                 if (contact_angle_i > 1.0e-12)
@@ -562,7 +562,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                     if (normalDist < 1.0){
                         theta = 1.0 - std::max(0.0, std::min( normalDist*normalDist*(3.0 - 2.0*normalDist), 1.0 ));//0.0; for small unpinned hydrophobic droplet //1.0; for pinned droplet
                     } */
-                    const double theta = 1.0; //std::min( std::exp( -( (std::abs(distance_i) + tolerance)/(20.0*element_size) - 1.0 ) ), 1.0); //1.0;
+                    const double theta = 0.0; //std::min( std::exp( -( (std::abs(distance_i) + tolerance)/(20.0*element_size) - 1.0 ) ), 1.0); //1.0;
 
                     if (contact_angle_weight > 0.0){
                         minus_cos_contact_angle = -theta*norm_grad_phi_avg_i*std::cos(contact_angle/contact_angle_weight) +

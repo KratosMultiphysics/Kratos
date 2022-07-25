@@ -236,12 +236,12 @@ void ContactAngleEvaluator::Execute()
     for (unsigned int i = 0; i < num_nodes; ++i) {
 
         auto it_node_i = it_node_begin + i;
-        if (it_node_i->GetValue(IS_STRUCTURE) == 1.0 && it_node_i->Coordinates()[2] == 0.0){
+        auto& node_i_contact_angle = it_node_i->FastGetSolutionStepValue(CONTACT_ANGLE);
 
-            auto& node_i_contact_angle = it_node_i->FastGetSolutionStepValue(CONTACT_ANGLE);
-            const double node_i_distance = it_node_i->FastGetSolutionStepValue(DISTANCE);
+        if (node_i_contact_angle == 0.0){
+            if (it_node_i->GetValue(IS_STRUCTURE) == 1.0 && it_node_i->Coordinates()[2] == 0.0){
 
-            if (node_i_contact_angle == 0.0){
+                const double node_i_distance = it_node_i->FastGetSolutionStepValue(DISTANCE);
 
                 const auto node_i_coordinates = it_node_i->Coordinates();
 
@@ -254,12 +254,12 @@ void ContactAngleEvaluator::Execute()
 
                     const double node_j_contact_angle = it_node_j->GetValue(CONTACT_ANGLE);
 
-                    if (node_j_contact_angle > 1.0e-12){
+                    if (node_j_contact_angle > 1.0e-10){
                         const double nodal_dist = norm_2(node_i_coordinates - it_node_j->Coordinates());
                         if (nodal_dist < min_horizontal_dist){
                             min_horizontal_dist = nodal_dist;
                             min_dist_contact_angle = node_j_contact_angle;
-                            min_dist_index = j;                            
+                            min_dist_index = j;
                         }
                     }
 
@@ -268,57 +268,56 @@ void ContactAngleEvaluator::Execute()
                 const double node_j_curvature = (it_node_begin + min_dist_index)->FastGetSolutionStepValue(CURVATURE);
                 const double radius_at_nodej = 2.0*node_j_curvature/(node_j_curvature*node_j_curvature + 1.0e-10);
                 node_i_contact_angle = std::asin( radius_at_nodej*std::sin(min_dist_contact_angle - PI/2.0)/(node_i_distance + radius_at_nodej) ) + PI/2.0; //min_dist_contact_angle;
-            }
-        }
-        else if (it_node_i->GetValue(IS_STRUCTURE) == 1.0 || it_node_i->Is(BOUNDARY)){ // By default contact angle is not set for the NON IS_STRUCTURE nodes
-            auto& node_i_contact_angle = it_node_i->FastGetSolutionStepValue(CONTACT_ANGLE);
-            const double node_i_distance = it_node_i->FastGetSolutionStepValue(DISTANCE);
-            const auto node_i_coordinates = it_node_i->Coordinates();
 
-            double min_dist = 1.0e6;
-            unsigned int min_dist_index;
+            } else if (it_node_i->GetValue(IS_STRUCTURE) == 1.0 || it_node_i->Is(BOUNDARY)){ // By default contact angle is not set for the NON IS_STRUCTURE nodes
+                auto& node_i_contact_angle = it_node_i->FastGetSolutionStepValue(CONTACT_ANGLE);
+                const double node_i_distance = it_node_i->FastGetSolutionStepValue(DISTANCE);
+                const auto node_i_coordinates = it_node_i->Coordinates();
 
-            for (unsigned int j = 0; j < num_nodes; ++j) {
-                auto it_node_j = it_node_begin + j;
-                if (it_node_j->Is(INTERFACE)){
-                    const double nodal_dist = norm_2(node_i_coordinates - it_node_j->Coordinates());
-                    if (nodal_dist < min_dist){
-                        min_dist = nodal_dist;
-                        min_dist_index = j;
+                double min_dist = 1.0e6;
+                unsigned int min_dist_index;
+
+                for (unsigned int j = 0; j < num_nodes; ++j) {
+                    auto it_node_j = it_node_begin + j;
+                    if (it_node_j->Is(INTERFACE)){
+                        const double nodal_dist = norm_2(node_i_coordinates - it_node_j->Coordinates());
+                        if (nodal_dist < min_dist){
+                            min_dist = nodal_dist;
+                            min_dist_index = j;
+                        }
                     }
                 }
+
+                auto min_dist_iter_node = it_node_begin + min_dist_index;
+                const double node_j_contact_angle = min_dist_iter_node->GetValue(CONTACT_ANGLE);
+                auto min_dist_normal = min_dist_iter_node->FastGetSolutionStepValue(DISTANCE_GRADIENT);
+                min_dist_normal /= norm_2(min_dist_normal);
+                auto node_i_solid_normal = it_node_i->FastGetSolutionStepValue(NORMAL);
+                node_i_solid_normal /= norm_2(node_i_solid_normal);
+
+                if (node_j_contact_angle > 1.0e-10){
+                    Vector min_dist_vector = min_dist_iter_node->Coordinates() - node_i_coordinates;
+                    min_dist_vector(2) = 0.0;
+                    const double min_horizontal_dist = norm_2(min_dist_vector);
+                    const double node_j_curvature = min_dist_iter_node->FastGetSolutionStepValue(CURVATURE);
+                    const double radius_at_nodej = 2.0*node_j_curvature/(node_j_curvature*node_j_curvature + 1.0e-10);
+                    const double gamma = std::acos((min_horizontal_dist + radius_at_nodej*std::sin(node_j_contact_angle))/(
+                                        node_i_distance + radius_at_nodej));
+
+                    const double factor = (1.0 - std::sin(gamma)*std::sin(gamma))/(
+                                    1.0 - std::sin(node_j_contact_angle)*std::sin(node_j_contact_angle) + 1.0e-10);
+
+                    Vector node_i_normal = factor*min_dist_normal;
+                    node_i_normal(2) = std::sin(gamma);
+
+                    node_i_contact_angle = PI - std::acos(inner_prod(node_i_normal, node_i_solid_normal));
+
+                } else{
+                    node_i_contact_angle = PI - std::acos(inner_prod(min_dist_normal, node_i_solid_normal));
+                }
+
             }
-
-            auto min_dist_iter_node = it_node_begin + min_dist_index;
-            const double node_j_contact_angle = min_dist_iter_node->GetValue(CONTACT_ANGLE);
-            auto min_dist_normal = min_dist_iter_node->FastGetSolutionStepValue(DISTANCE_GRADIENT);
-            min_dist_normal /= norm_2(min_dist_normal);
-            auto node_i_solid_normal = it_node_i->FastGetSolutionStepValue(NORMAL);
-            node_i_solid_normal /= norm_2(node_i_solid_normal);
-
-            if (node_j_contact_angle > 1.0e-12){
-                Vector min_dist_vector = min_dist_iter_node->Coordinates() - node_i_coordinates;
-                min_dist_vector(2) = 0.0;
-                const double min_horizontal_dist = norm_2(min_dist_vector);
-                const double node_j_curvature = min_dist_iter_node->FastGetSolutionStepValue(CURVATURE);
-                const double radius_at_nodej = 2.0*node_j_curvature/(node_j_curvature*node_j_curvature + 1.0e-10);
-                const double gamma = std::acos((min_horizontal_dist + radius_at_nodej*std::sin(node_j_contact_angle))/(
-                                       node_i_distance + radius_at_nodej));
-
-                const double factor = (1.0 - std::sin(gamma)*std::sin(gamma))/(
-                                1.0 - std::sin(node_j_contact_angle)*std::sin(node_j_contact_angle));
-
-                Vector node_i_normal = factor*min_dist_normal;
-                node_i_normal(2) = std::sin(gamma);
-
-                node_i_contact_angle = PI - std::acos(inner_prod(node_i_normal, node_i_solid_normal));
-
-            } else{
-                node_i_contact_angle = PI - std::acos(inner_prod(min_dist_normal, node_i_solid_normal));
-            }
-
         }
-
     }
 
     KRATOS_CATCH("");

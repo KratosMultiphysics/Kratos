@@ -567,7 +567,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
             Vector solid_normal = ZeroVector(num_dim);
 
             for (unsigned int i=0; i < num_face_nodes; ++i){
-                if ( r_face[i].Is(BOUNDARY) ){
+                if ( r_face[i].Is(BOUNDARY) || r_face[i].GetValue(IS_STRUCTURE) == 1.0 ){
                     boundary_face_node++;
                     const double contact_angle_i = r_face[i].FastGetSolutionStepValue(CONTACT_ANGLE);
                     if (contact_angle_i > 1.0e-12)
