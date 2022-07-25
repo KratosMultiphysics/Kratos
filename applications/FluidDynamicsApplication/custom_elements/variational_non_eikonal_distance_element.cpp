@@ -280,7 +280,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         const double dist0 = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE);
         distances0(i_node) = dist0;
 
-        mean_curvature += (*p_geometry)[i_node].FastGetSolutionStepValue(CURVATURE);
+        mean_curvature += (*p_geometry)[i_node].GetValue(CURVATURE);//FastGetSolutionStepValue(CURVATURE);
         mean_norm_distance_grad += norm_2((*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT));
 
         if (dist0 > 0.0) npos += 1;

@@ -69,6 +69,7 @@ void ContactAngleEvaluator::Execute()
     for (unsigned int k = 0; k < num_nodes; ++k) {
         auto it_node = it_node_begin + k;
         it_node->Set(INTERFACE, false);
+        it_node->SetValue(CURVATURE, 0.0);
     }
 
     // Iterate over the elements
@@ -227,9 +228,9 @@ void ContactAngleEvaluator::Execute()
 
         }
 
-        if (norm_2(it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT)) < 0.5){
+        /* if (norm_2(it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT)) < 0.5){ // Added to prevent a highly irregular level-set
             it_node->Fix(DISTANCE);
-        }
+        } */
     }
 
     #pragma omp parallel for
@@ -238,12 +239,36 @@ void ContactAngleEvaluator::Execute()
         auto it_node_i = it_node_begin + i;
         auto& node_i_contact_angle = it_node_i->FastGetSolutionStepValue(CONTACT_ANGLE);
         const double node_i_distance = it_node_i->FastGetSolutionStepValue(DISTANCE);
+        const auto node_i_coordinates = it_node_i->Coordinates();
+        double& node_i_curvature = it_node_i->GetValue(CURVATURE);
 
+        // This part (CURVATURE estimation) should be merged with the next one (CONTACT_ANGLE estimation)
+        if (!it_node_i->Is(INTERFACE)){
+
+            double min_dist = 1.0e6;
+            unsigned int min_dist_index;
+
+            for (unsigned int j = 0; j < num_nodes; ++j) {
+                auto it_node_j = it_node_begin + j;
+                if (it_node_j->Is(INTERFACE)){
+                    const double nodal_dist = norm_2(node_i_coordinates - it_node_j->Coordinates());
+                    if (nodal_dist < min_dist){
+                        min_dist = nodal_dist;
+                        min_dist_index = j;
+                    }
+                }
+            }
+            node_i_curvature = (it_node_begin + min_dist_index)->FastGetSolutionStepValue(CURVATURE);
+
+        } else{
+            // for interface nodes
+            node_i_curvature = it_node_i->FastGetSolutionStepValue(CURVATURE);
+        }
+
+
+        // CONTACT_ANGLE estimation
         if (node_i_contact_angle == 0.0 && node_i_distance > 0.0){
             if (it_node_i->GetValue(IS_STRUCTURE) == 1.0 && it_node_i->Coordinates()[2] == 0.0){
-
-                const auto node_i_coordinates = it_node_i->Coordinates();
-
                 double min_horizontal_dist = 1.0e6;
                 double min_dist_contact_angle;
                 unsigned int min_dist_index;
@@ -269,8 +294,6 @@ void ContactAngleEvaluator::Execute()
                 node_i_contact_angle = std::asin( std::max( std::min( radius_at_nodej*std::sin(min_dist_contact_angle - PI/2.0)/(node_i_distance + radius_at_nodej), 1.0 ), -1.0 ) ) + PI/2.0; //min_dist_contact_angle;
 
             } else if (it_node_i->GetValue(IS_STRUCTURE) == 1.0 || it_node_i->Is(BOUNDARY)){ // By default contact angle is not set for the NON IS_STRUCTURE nodes
-                auto& node_i_contact_angle = it_node_i->FastGetSolutionStepValue(CONTACT_ANGLE);
-                const auto node_i_coordinates = it_node_i->Coordinates();
 
                 double min_dist = 1.0e6;
                 unsigned int min_dist_index;
