@@ -122,13 +122,11 @@ namespace Testing {
         array1.push_back(pTriangle3);
         array1.push_back(pTriangle4);
 
-        /*
         array_1d<double,3> point = QEF::QEF_point(*pVoxel,array1);
 
-        KRATOS_CHECK_EQUAL(point[0], 0.0);
-        KRATOS_CHECK_EQUAL(point[1], 0.5);
-        KRATOS_CHECK_EQUAL(point[2], 0.0);        
-        */
+        KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
+        KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
+        KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);        
     }
 
     KRATOS_TEST_CASE_IN_SUITE(QEFplain4, KratosCoreFastSuite) {
@@ -155,12 +153,12 @@ namespace Testing {
 
         array_1d<double,3> point = QEF::QEF_point(*pVoxel,array1);
 
-        KRATOS_CHECK_EQUAL(point[0], 0.0);
-        KRATOS_CHECK_NEAR(point[1], 0.5,0.00001);
-        KRATOS_CHECK_EQUAL(point[2], 0.0);        
+        KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
+        KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
+        KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);        
     } 
 
-    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortion6, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(QEFdoublePlain, KratosCoreFastSuite) {
         //A voxel crossed by two straight planes (enclosing half of the volume) with no nodes inside the volume
         std::vector<double> distances{-1, -1, -1, -1, -1, -1, -1, -1};   
         GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
@@ -195,6 +193,11 @@ namespace Testing {
         array1.push_back(pTriangle8);
 
         //Call the point utility
+        array_1d<double,3> point = QEF::QEF_point(*pVoxel,array1);
+
+        KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
+        KRATOS_CHECK_NEAR(point[1], 0.0, 1e-8);
+        KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);  
         
     } 
 }  // namespace Testing.
