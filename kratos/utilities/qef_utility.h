@@ -158,10 +158,6 @@ public:
 
         const bool converged = MathUtils<double>::GaussSeidelEigenSystem(AtA, mEigenvectors, mEigenvalues);
 
-        std::cout << "AtA after finding eigenvectors: " << std::endl;
-        write(AtA);
-        std:: cout << std::endl;
-
         std::cout << "VAPS: " << std::endl;
         write(mEigenvalues);
         std:: cout << std::endl;
@@ -172,10 +168,7 @@ public:
         //construct D
         MatrixType D(3,3,0);
         for (int i : {0,1,2}) {
-            if (mEigenvalues(i,i) < 1e-12) {
-                D(i,i) = 0;
-                std::cout << "maaaaaaaaaaal" << std::endl;
-            }
+            if (mEigenvalues(i,i) < 1e-12) D(i,i) = 0;
             else D(i,i) = check(1.0/mEigenvalues(i,i), 1e-12);
         }
         std::cout << "D: " << std::endl;
