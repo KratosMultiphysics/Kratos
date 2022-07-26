@@ -70,14 +70,16 @@ namespace Testing {
         subMp1.AddNode(modelpart.pGetNode(1));
 
     
-        std::vector<double> volumes(3); 
+        std::vector<double> volumes(4); 
         GeometryPtrType geom1 = tetra1->pGetGeometry();
         volumes[tetra1->Id()] = geom1->Volume();
         GeometryPtrType geom2 = tetra2->pGetGeometry();
         volumes[tetra2->Id()] = geom2->Volume(); 
 
-        Condition::Pointer cond1;
-        cond1 = subMp2.CreateNewCondition("SurfaceCondition3D3N", 3, {2, 3, 4}, p_properties_1);
+        Condition::Pointer cond1 = subMp2.CreateNewCondition("SurfaceCondition3D3N", 3, {2, 3, 5}, p_properties_1);
+
+        GeometryPtrType geom3 = cond1->pGetGeometry();
+        volumes[cond1->Id()] = geom3->Area(); 
 
         Tetrahedra10MeshConverter refineTetra(modelpart); 
         refineTetra.LocalConvertTetrahedra10Mesh(false,false);
@@ -87,7 +89,6 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(subMp1.Nodes().size(),14); //Also in the second level submodelpart
         KRATOS_CHECK_EQUAL(subMp2.Nodes().size(),10); //In the third level submodelpart only 10 nodes
         KRATOS_CHECK_EQUAL(modelpart.Elements().size(),2); //No new elements are added
-        KRATOS_WATCH(modelpart.Elements().size());
         KRATOS_CHECK_EQUAL(subMp1.Elements().size(),2); //No new elements are added
         KRATOS_CHECK_EQUAL(subMp2.Elements().size(),1); //No new elements are added
         KRATOS_CHECK_EQUAL(subMp2.Conditions().size(),1); //No new conditions are added
@@ -112,6 +113,8 @@ namespace Testing {
             GeometryPtrType geom = cond.pGetGeometry();
             const auto geometryType = geom->GetGeometryType();
             KRATOS_CHECK_EQUAL(geometryType, GeometryData::KratosGeometryType::Kratos_Triangle3D6);
+            const double vol = geom->Area();
+            KRATOS_CHECK_NEAR(volumes[3], vol ,0.001);
 
             auto points = geom->Points();
             KRATOS_CHECK_EQUAL(Distance(points[0],points[1]), Distance(points[0],points[3]) + Distance(points[3],points[1]) );
