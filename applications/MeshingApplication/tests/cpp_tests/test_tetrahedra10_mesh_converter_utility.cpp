@@ -54,11 +54,11 @@ namespace Testing {
         ModelPart& subMp0 = modelpart.CreateSubModelPart("level1");
         ModelPart& subMp1 = subMp0.CreateSubModelPart("level2");
         ModelPart& subMp2 = subMp1.CreateSubModelPart("level3");
-        modelpart.CreateNewNode(1, 1, 0, 0); 
+        modelpart.CreateNewNode(1, 2, 0, 0); 
         modelpart.CreateNewNode(2, 0, 1, 0);
         modelpart.CreateNewNode(3, 0, 0, 1);
         modelpart.CreateNewNode(4, 0, 0, 2);
-        modelpart.CreateNewNode(5, 0, 2, 0);
+        modelpart.CreateNewNode(5, -40, 0, 0);
         Properties::Pointer p_properties_1(new Properties(0)); 
         Element::Pointer tetra1 = subMp1.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_1);
         Element::Pointer tetra2 = subMp2.CreateNewElement("Element3D4N", 2, {2, 3, 4, 5}, p_properties_1);
@@ -69,12 +69,12 @@ namespace Testing {
         subMp2.AddNode(modelpart.pGetNode(4));
         subMp1.AddNode(modelpart.pGetNode(1));
 
-        /*
+    
+        std::vector<double> volumes(3); 
         GeometryPtrType geom1 = tetra1->pGetGeometry();
-        double volume1 = geom1->Volume();
-        GeometryPtrType geom2 = tetra1->pGetGeometry();
-        double volume2 = geom2->Volume();
-        */
+        volumes[tetra1->Id()] = geom1->Volume();
+        GeometryPtrType geom2 = tetra2->pGetGeometry();
+        volumes[tetra2->Id()] = geom2->Volume(); 
 
         Condition::Pointer cond1;
         cond1 = subMp2.CreateNewCondition("SurfaceCondition3D3N", 3, {2, 3, 4}, p_properties_1);
@@ -96,6 +96,8 @@ namespace Testing {
             GeometryPtrType geom = elem.pGetGeometry();
             const auto geometryType = geom->GetGeometryType();
             KRATOS_CHECK_EQUAL(geometryType, GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10);
+            const double vol = geom->Volume();
+            KRATOS_CHECK_NEAR(volumes[elem.Id()], vol ,0.001);
 
             auto points = geom->Points();
             KRATOS_CHECK_EQUAL(Distance(points[0],points[1]), Distance(points[0],points[4]) + Distance(points[4],points[1]) );
