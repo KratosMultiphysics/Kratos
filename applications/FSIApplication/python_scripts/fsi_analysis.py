@@ -90,7 +90,7 @@ class FsiAnalysis(AnalysisStage):
         self._GetSolver().InitializeSolutionStep()
 
     def OutputSolutionStep(self):
-        super(FSIAnalysis, self).OutputSolutionStep()
+        super().OutputSolutionStep()
 
         if self.save_restart:
             fluid_restart_utility = self._GetFluidRestartUtility()

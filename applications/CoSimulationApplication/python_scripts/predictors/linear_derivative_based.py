@@ -15,9 +15,10 @@ class LinearDerivativeBasedPredictor(CoSimulationPredictor):
     def __init__(self, settings, solver_wrapper):
         super().__init__(settings, solver_wrapper)
         self.interface_derivative_data = solver_wrapper.GetInterfaceData(self.settings["derivative_data_name"].GetString())
-        self.solver_wrapper = solver_wrapper
 
     def Predict(self):
+        if not self.interface_data.IsDefinedOnThisRank(): return
+
         data  = self.interface_data.GetData(1)
         derivative_data  = self.interface_derivative_data.GetData(1)
 

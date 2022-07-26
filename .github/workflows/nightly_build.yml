@@ -1,20 +1,6 @@
 name: Nightly Build
 
 on:
-  pull_request:
-    paths:
-    - '.github/workflows/nightly_build.yml'
-    - '.github/workflows/configure.sh'
-    - '.github/workflows/configure.cmd'
-    - 'kratos/**'
-    - 'external_libraries/**'
-    - 'cmake_modules/**'
-    - 'CMakeLists.txt'
-    - 'applications/LinearSolversApplication/**'
-    - 'applications/MetisApplication/**'
-    - 'applications/TrilinosApplication/**'
-
-
   schedule:
     - cron:  '0 1 * * *'
 
@@ -25,6 +11,9 @@ concurrency:
   group: nightly-build-${{ github.head_ref }}
   cancel-in-progress: true
 
+
+permissions:
+  contents: read
 
 jobs:
   ubuntu-nightly:
@@ -43,7 +32,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Build
       shell: bash
@@ -99,16 +88,16 @@ jobs:
 
 
   windows-nightly:
-    runs-on: windows-latest
+    runs-on: windows-2022
     env:
       KRATOS_BUILD_TYPE: Custom
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - uses: actions/setup-python@v1
+    - uses: actions/setup-python@v4
       with:
-        python-version: '3.6'
+        python-version: '3.8'
 
     - name: Download boost
       run: |
@@ -122,6 +111,7 @@ jobs:
       run: |
         pip install numpy
         pip install h5py
+        pip install sympy
 
     - name: Build
       shell: cmd
@@ -135,3 +125,26 @@ jobs:
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/run_tests.py -l nightly -c python
+
+  centos-nightly:
+    runs-on: ubuntu-latest
+    env:
+      KRATOS_BUILD_TYPE: Custom
+
+    container:
+      image: kratosmultiphysics/kratos-image-ci-centos7:latest
+      options: --user 1001
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build
+      run: |
+        cp .github/workflows/centos_configure.sh centos_configure.sh
+        bash centos_configure.sh
+
+    - name: Running nightly tests
+      run: |
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3.8 kratos/python_scripts/run_tests.py -l nightly -c python3.8

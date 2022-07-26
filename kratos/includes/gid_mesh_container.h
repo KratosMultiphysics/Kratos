@@ -49,7 +49,7 @@ public:
     GidMeshContainer ( GeometryData::KratosGeometryType geometryType,
                        GiD_ElementType elementType, const char* mesh_title )
         :mGeometryType (geometryType), mGidElementType (elementType), mMeshTitle (mesh_title) {}
-    bool AddElement ( const ModelPart::ElementsContainerType::iterator pElemIt )
+    bool AddElement ( const ModelPart::ElementConstantIterator pElemIt )
     {
         KRATOS_TRY
         if ( pElemIt->GetGeometry().GetGeometryType() == mGeometryType )
@@ -66,7 +66,7 @@ public:
             return false;
         KRATOS_CATCH ("")
     }
-    bool AddCondition (const ModelPart::ConditionsContainerType::iterator pCondIt)
+    bool AddCondition (const ModelPart::ConditionConstantIterator pCondIt)
     {
         KRATOS_TRY
         if ( pCondIt->GetGeometry().GetGeometryType() == mGeometryType )

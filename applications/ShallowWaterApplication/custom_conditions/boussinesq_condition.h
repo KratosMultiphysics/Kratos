@@ -144,11 +144,35 @@ public:
      */
     Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
-        Condition::Pointer p_new_elem = Create(NewId, this->GetGeometry().Create(ThisNodes), this->pGetProperties());
-        p_new_elem->SetData(this->GetData());
-        p_new_elem->Set(Flags(*this));
-        return p_new_elem;
+        Condition::Pointer p_new_cond = Create(NewId, this->GetGeometry().Create(ThisNodes), this->pGetProperties());
+        p_new_cond->SetData(this->GetData());
+        p_new_cond->Set(Flags(*this));
+        return p_new_cond;
     }
+
+    /**
+     * @brief Calculate the velocity laplacian projection
+     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the conditions
+     */
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Calculate the conditional contribution to the problem
+     * @param rLeftHandSideMatrix Conditional left hand side matrix
+     * @param rRightHandSideVector Conditional right hand side vector
+     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the condition
+     */
+    void CalculateLocalSystem(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
 
     ///@}
     ///@name Input and output
@@ -187,6 +211,28 @@ protected:
         ConditionData& rData,
         const IndexType PointIndex,
         const array_1d<double,TNumNodes>& rN) override;
+
+    void AddLaplacianBoundary(
+        LocalVectorType& rVelocityLaplacian,
+        LocalVectorType& rMomentumLaplacian,
+        const GeometryType& rParentGeometry,
+        const ConditionData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const Matrix& rDN_DX,
+        const double Weight = 1.0);
+
+    void AddMomentumDispersionTerms(
+        LocalVectorType& rLaplacianBoundary,
+        const GeometryType& rParentGeometry,
+        const ConditionData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const Matrix& rDN_DX,
+        const double Weight = 1.0);
+
+    void CalculateShapeFunctionDerivaties(
+        Matrix& rDN_DX,
+        const GeometryType& rParentGeometry,
+        const Point& rPoint);
 
     ///@}
 

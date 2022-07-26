@@ -2153,7 +2153,7 @@ namespace Kratos
 		    {
 		      for (unsigned int edge_aux=0; edge_aux<6; edge_aux++)
 			{
-			  if(active_node_in_replacement_shape_function(aux)==edge_i[edge_aux] or active_node_in_replacement_shape_function(aux)==edge_j[edge_aux] )
+			  if(active_node_in_replacement_shape_function(aux)==edge_i[edge_aux] || active_node_in_replacement_shape_function(aux)==edge_j[edge_aux] )
 			    {
 			      if (split_edge[4+edge_aux]> -1)
 				{

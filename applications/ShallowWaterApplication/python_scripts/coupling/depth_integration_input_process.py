@@ -12,7 +12,7 @@ def Factory(settings, model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return DepthIntegrationInputProcess(model, settings["Parameters"])
 
-class DepthIntegrationInputProcess(KM.OutputProcess):
+class DepthIntegrationInputProcess(KM.Process):
     """DepthIntegrationInputProcess
 
     Read the depth integrated values from an HDF5 file and set them as boundary conditions.
@@ -40,7 +40,7 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
     def __init__(self, model, settings):
         """The constructor of the DepthIntegrationInputProcess."""
 
-        KM.OutputProcess.__init__(self)
+        KM.Process.__init__(self)
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
@@ -59,11 +59,21 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
         '''Check the processes.'''
         self.hdf5_import.Check()
         self.hdf5_process.Check()
+        free_surface_is_present = False
+        height_is_present = False
+        for variable in self.variables:
+            if variable == SW.FREE_SURFACE_ELEVATION:
+                free_surface_is_present = True
+            if variable == SW.HEIGHT:
+                height_is_present = True
+        if free_surface_is_present and not height_is_present:
+            self.variables.append(SW.HEIGHT)
 
 
     def ExecuteInitialize(self):
         '''Read the input_model_part and set the variables.'''
         self.hdf5_import.ExecuteInitialize()
+        self._CheckInputCoordinates()
         self._CheckInputVariables()
         self._CreateMapper()
         self._MapToBoundaryCondition()
@@ -91,6 +101,9 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
         file = Path(file_settings["file_name"].GetString())
         directory = file.parent
         file_names = [str(f) for f in directory.glob("*.h5")]
+        if len(file_names) == 0:
+            msg = self.__class__.__name__ + ": The specified path is empty or does not exist: '{}'"
+            raise Exception(msg.format(directory))
 
         # Find the common parts (prefix and suffix) of the found names and the file pattern
         # The different part is the time, we need to store all the available times
@@ -104,12 +117,24 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
         for f in file_names:
             f = f.replace(prefix, '')
             f = f.replace(suffix, '')
-            self.times.append(float(f))
+            try:
+                self.times.append(float(f))
+            except ValueError:
+                msg = self.__class__.__name__
+                msg += ": Trying to extract the time stamp from the input file name:\n"
+                msg += "\tExpected pattern: {}\n"
+                msg += "\tFound pattern:    {}<{}>{}"
+                KM.Logger.PrintInfo(msg.format(file_pattern, prefix, f, suffix))
+                raise
         self.times.sort()
 
 
     def _SetCurrentTime(self):
         current_time = self.interface_model_part.ProcessInfo.GetValue(KM.TIME)
+        if current_time > self.times[-1]:
+            msg = self.__class__.__name__
+            msg += ": Looking for an input file at time {}. However, the input files end at time {}."
+            raise Exception(msg.format(current_time, self.times[-1]))
         closest_time = next(filter(lambda x: x>current_time, self.times))
         self.input_model_part.ProcessInfo.SetValue(KM.TIME, closest_time)
 
@@ -117,6 +142,15 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
     def _SetDefaultTime(self):
         default_time = self.settings["default_time_after_interval"].GetDouble()
         self.input_model_part.ProcessInfo.SetValue(KM.TIME, default_time)
+
+
+    def _CheckInputCoordinates(self):
+        if self.settings["swap_yz_axis"].GetBool():
+            SW.ShallowWaterUtilities().SwapYZCoordinates(self.input_model_part)
+            SW.ShallowWaterUtilities().SwapY0Z0Coordinates(self.input_model_part)
+        if self.settings["ignore_vertical_component"].GetBool():
+            SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(self.input_model_part)
+            SW.ShallowWaterUtilities().SetMeshZ0CoordinateToZero(self.input_model_part)
 
 
     def _CheckInputVariables(self):
@@ -138,32 +172,47 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
 
     def _MapToBoundaryCondition(self):
         for variable in self.variables:
-            if self.settings["read_historical_database"].GetBool():
-                self.mapper.Map(variable, variable)
+            if variable == SW.FREE_SURFACE_ELEVATION:
+                pass
             else:
-                self.mapper.Map(variable, variable, KM.Mapper.FROM_NON_HISTORICAL)
+                if self.settings["read_historical_database"].GetBool():
+                    self.mapper.Map(variable, variable)
+                else:
+                    self.mapper.Map(variable, variable, KM.Mapper.FROM_NON_HISTORICAL)
+
+        for variable in self.variables:
+            if variable == SW.FREE_SURFACE_ELEVATION:
+                SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.interface_model_part)
+            else:
+                pass
 
         for variable in self.variables_to_fix:
             KM.VariableUtils().ApplyFixity(variable, True, self.interface_model_part.Nodes)
 
 
     def _CreateMapper(self):
-        mapper_settings = KM.Parameters("""{
-            "mapper_type": "nearest_neighbor",
-            "echo_level" : 0,
-            "search_settings" : {
-                "search_radius" : 0.0
-            }
-        }""")
-        min_point = KM.Point([ 1e6,  1e6,  1e6])
-        max_point = KM.Point([-1e6, -1e6, -1e6])
-        for node in self.interface_model_part.Nodes:
-            for i in range(3):
-                point = KM.Point(node)
-                min_point[i] = min([min_point[i], point[i]])
-                max_point[i] = max([max_point[i], point[i]])
-        distance = 1.05 * (max_point - min_point).norm_2()
-        mapper_settings["search_settings"]["search_radius"].SetDouble(distance)
+        domain_size = self.input_model_part.ProcessInfo[KM.DOMAIN_SIZE]
+        if domain_size == 2:
+            mapper_settings = KM.Parameters("""{
+                "mapper_type": "nearest_neighbor",
+                "echo_level" : 0,
+                "search_settings" : {
+                    "search_radius" : 0.0
+                }
+            }""")
+            min_point, max_point = KM.BoundingBox(self.interface_model_part.Nodes).GetPoints()
+            search_radius = 1.05 * (max_point - min_point).norm_2()
+            mapper_settings.AddEmptyValue("search_settings")
+            mapper_settings["search_settings"]["search_radius"].SetDouble(search_radius)
+        elif domain_size == 3:
+            mapper_settings = KM.Parameters("""{
+                "mapper_type": "nearest_neighbor",
+                "echo_level" : 0
+            }""")
+        else:
+            msg = self.__class__.__name__
+            msg += "._CreateMapper: The domain size of the input_model_part is: {}"
+            raise Exception(msg.format(domain_size))
 
         self.mapper = KM.MapperFactory.CreateMapper(
             self.input_model_part,

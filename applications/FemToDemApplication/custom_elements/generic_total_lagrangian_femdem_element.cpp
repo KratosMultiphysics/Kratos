@@ -1021,7 +1021,11 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAverageVaria
 {
     auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
     KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
-    rAverageVector += r_elem_neigb[edge].GetValue(rThisVariable);
+    if(r_elem_neigb(edge).get()!=nullptr) {
+        rAverageVector += r_elem_neigb[edge].GetValue(rThisVariable);
+    } else {
+        rAverageVector += pCurrentElement->GetValue(rThisVariable);
+    }
     rAverageVector *= 0.5;
 }
 

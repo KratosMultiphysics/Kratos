@@ -232,7 +232,7 @@ public:
 		double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 
         if (std::abs(checker) < 29.0) { // If it is not the edge
-            c1 = std::sin(friction_angle);
+            c1 = std::sin(friction_angle) / 3.0;
             c3 = (std::sqrt(3.0) * std::sin(lode_angle) + std::sin(friction_angle) * std::cos(lode_angle)) /
                 (2.0 * J2 * std::cos(3.0 * lode_angle));
             c2 = 0.5 * std::cos(lode_angle)*(1.0 + std::tan(lode_angle) * std::sin(3.0 * lode_angle) +

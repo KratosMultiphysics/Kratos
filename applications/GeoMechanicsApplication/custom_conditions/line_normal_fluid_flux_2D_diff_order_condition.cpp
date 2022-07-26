@@ -21,7 +21,7 @@ namespace Kratos
 
 // Default Constructor
 LineNormalFluidFlux2DDiffOrderCondition::
-    LineNormalFluidFlux2DDiffOrderCondition() : GeneralUPwDiffOrderCondition() {}
+    LineNormalFluidFlux2DDiffOrderCondition() : LineLoad2DDiffOrderCondition() {}
 
 //----------------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ LineNormalFluidFlux2DDiffOrderCondition::
 LineNormalFluidFlux2DDiffOrderCondition::
     LineNormalFluidFlux2DDiffOrderCondition(IndexType NewId,
                                             GeometryType::Pointer pGeometry) :
-                                            GeneralUPwDiffOrderCondition(NewId, pGeometry) {}
+                                            LineLoad2DDiffOrderCondition(NewId, pGeometry) {}
 
 //----------------------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ LineNormalFluidFlux2DDiffOrderCondition::
     LineNormalFluidFlux2DDiffOrderCondition(IndexType NewId,
                                             GeometryType::Pointer pGeometry,
                                             PropertiesType::Pointer pProperties) :
-                                            GeneralUPwDiffOrderCondition(NewId, pGeometry, pProperties) {}
+                                            LineLoad2DDiffOrderCondition(NewId, pGeometry, pProperties) {}
 
 //----------------------------------------------------------------------------------------
 
@@ -75,31 +75,13 @@ void LineNormalFluidFlux2DDiffOrderCondition::
 //----------------------------------------------------------------------------------------
 
 void LineNormalFluidFlux2DDiffOrderCondition::
-    CalculateIntegrationCoefficient(ConditionVariables& rVariables,
-                                    unsigned int PointNumber,
-                                    double weight)
-{
-    KRATOS_TRY
-
-    double dx_dxi = rVariables.JContainer[PointNumber](0,0), dy_dxi = rVariables.JContainer[PointNumber](1,0);
-
-    double ds = sqrt(dx_dxi*dx_dxi + dy_dxi*dy_dxi);
-
-    rVariables.IntegrationCoefficient = ds * weight;
-
-    KRATOS_CATCH( "" )
-}
-
-//----------------------------------------------------------------------------------------
-
-void LineNormalFluidFlux2DDiffOrderCondition::
     CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
                                   ConditionVariables& rVariables)
 {
     const SizeType NumUNodes = GetGeometry().PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
 
-    for(SizeType i = 0; i < NumPNodes; ++i) {
+    for (SizeType i = 0; i < NumPNodes; ++i) {
         rRightHandSideVector[NumUNodes*2+i] -=  rVariables.Np[i]
                                               * rVariables.ConditionVector[0]
                                               * rVariables.IntegrationCoefficient;

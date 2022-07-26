@@ -36,6 +36,8 @@
 #include "custom_elements/crank_nicolson_wave_element.h"
 #include "custom_elements/boussinesq_element.h"
 #include "custom_elements/conservative_element.h"
+#include "custom_elements/conservative_element_rv.h"
+#include "custom_elements/conservative_element_fc.h"
 #include "custom_elements/shallow_water_2d_3.h"
 #include "custom_conditions/wave_condition.h"
 #include "custom_conditions/boussinesq_condition.h"
@@ -171,7 +173,10 @@ namespace Kratos
         const WaveElement<9> mWaveElement2D9N;
         const CrankNicolsonWaveElement<3> mCrankNicolsonWaveElement2D3N;
         const BoussinesqElement<3> mBoussinesqElement2D3N;
-        const ConservativeElement<3> mConservativeElement2D3N;
+        const BoussinesqElement<4> mBoussinesqElement2D4N;
+        const ConservativeElement<3> mConservativeElementGJ2D3N;
+        const ConservativeElementRV<3> mConservativeElementRV2D3N;
+        const ConservativeElementFC<3> mConservativeElementFC2D3N;
         const ShallowWater2D3 mShallowWater2D3N;
         // Conditions
         const WaveCondition<2> mWaveCondition2D2N;
