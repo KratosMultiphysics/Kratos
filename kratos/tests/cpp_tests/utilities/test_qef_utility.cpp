@@ -156,7 +156,7 @@ namespace Testing {
         array_1d<double,3> point = QEF::QEF_point(*pVoxel,array1);
 
         KRATOS_CHECK_EQUAL(point[0], 0.0);
-        KRATOS_CHECK_EQUAL(point[1], 0.5);
+        KRATOS_CHECK_NEAR(point[1], 0.5,0.00001);
         KRATOS_CHECK_EQUAL(point[2], 0.0);        
     } 
 

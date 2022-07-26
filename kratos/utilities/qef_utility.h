@@ -120,8 +120,9 @@ public:
         for (int i = 0; i < rTriangles.size(); i++) {
             array_1d<double,3> normal = CalculateNormal(rTriangles[i]);
             VectorType vNormal = normal; 
-            MatrixType mNormal;
+            MatrixType mNormal(3,1);
             column(mNormal,0) = normal;
+            //write(mNormal);
 
             //We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
             //but possible), only one will be taken into account to create the matrixes.
@@ -138,32 +139,51 @@ public:
             }
 
             //Fill the matrixes with the corresponding information from the intersection and normal
-            AtA = AtA + prod(trans(mNormal),mNormal);
+            MatrixType mNormalTrans = trans(mNormal);
+            MatrixType help = prod(mNormal,mNormalTrans);
+            AtA = AtA + help;
             double aux = MathUtils<double>::Dot(normal,intersection);
-            MatrixType mAux(1,1,aux*aux);
+            MatrixType mAux(1,1,aux);
             AtB = AtB + prod(mNormal,mAux);
-            BtB = BtB + mAux;
+            BtB = BtB + prod(mAux,mAux); 
         }
-        /*
-        //Find the eigenvalues and eigenvectors to AtA
-        VectorType eigenval= Eigenvalues(AtA);
 
-        MatrixType U(3,3)
-        for (int i : {1,2,3}) {
-            row(U,i) = eigenvec(i);
-        }
-        
+        std::cout << "AtA: " << std::endl;
+        write(AtA);
+        std:: cout << std::endl;
+
+        //Find the eigenvalues and eigenvectors to AtA
+        MatrixType mEigenvectors;
+        MatrixType mEigenvalues;
+
+        const bool converged = MathUtils<double>::GaussSeidelEigenSystem(AtA, mEigenvectors, mEigenvalues);
+
+        std::cout << "AtA after finding eigenvectors: " << std::endl;
+        write(AtA);
+        std:: cout << std::endl;
+
+        std::cout << "VAPS: " << std::endl;
+        write(mEigenvalues);
+        std:: cout << std::endl;
+        std::cout << "VEPS: " << std::endl;
+        write(mEigenvectors);
+        std:: cout << std::endl;
 
         //construct D
         MatrixType D(3,3,0);
         for (int i : {1,2,3}) {
-            D(i,i) = check(1.0/eigenval(i), 0.01);
+            if (mEigenvalues(i,i) == 0) D(i,i) = 0;
+            else D(i,i) = check(1.0/mEigenvalues(i,i), 1e-12);
         }
+        std::cout << "D: " << std::endl;
+        write(D);
+        std:: cout << std::endl;
 
-        MatrixType AtAInverse = prod(prod(trans(U),D),U);
-        MatrixType solution = prod(AtAInverse, AtB);
+        MatrixType AtAInverse;  
+        MathUtils<double>::BDBtProductOperation(AtAInverse, D, mEigenvectors);
+       
+        MatrixType solution = prod(AtAInverse, AtB);        
         xPoint = column(solution,0);
-        */
 
         return xPoint;
     }
@@ -214,6 +234,15 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    static void write(MatrixType& A) {
+        for (int i = 0; i < A.size1(); i++) {
+            for (int j = 0; j < A.size2(); j++) {
+                std::cout << A(i,j) << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
 
     static VectorType Eigenvalues(const MatrixType& A) {
         VectorType v(3,1);
