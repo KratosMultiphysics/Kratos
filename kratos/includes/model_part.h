@@ -1926,7 +1926,7 @@ private:
     ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList::Pointer pVariableList, Model& rOwnerModel);
 
     /// Copy constructor.
-    ModelPart(ModelPart const& rOther) = delete; // TODO: Discuss about activate it using the implementation from DeepCopyModelPart from AuxiliarModelPartUtilities
+    ModelPart(ModelPart const& rOther) = delete;
 
 
     ///@name Static Member Variables
