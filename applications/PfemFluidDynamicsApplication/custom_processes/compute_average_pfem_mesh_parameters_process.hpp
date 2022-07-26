@@ -97,7 +97,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      if (mEchoLevel > 1)
+      if (mEchoLevel > -1)
         std::cout << "  COMPUTE AVERAGE PFEM MESH PARAMETERS PROCESS ]; " << std::endl;
 
       const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
@@ -106,8 +106,8 @@ namespace Kratos
       noalias(preliminaryInBoxesNodes) = ZeroVector(numberOfRefiningBoxes);
       Vector preliminaryInBoxesMeanNodalSize(numberOfRefiningBoxes);
       noalias(preliminaryInBoxesMeanNodalSize) = ZeroVector(numberOfRefiningBoxes);
-      double outOfBoxesFluidNodes = 0;
-      double outOfBoxesMeanNodalSize = 0;
+      double preliminaryOutOfBoxesFluidNodes = 0;
+      double preliminaryOutOfBoxesMeanNodalSize = 0;
       bool homogeneousMesh = true;
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
@@ -115,8 +115,8 @@ namespace Kratos
         {
           if (numberOfRefiningBoxes == 0 || (numberOfRefiningBoxes == 1 && mrRemesh.UseRefiningBox[0] == false))
           {
-            outOfBoxesFluidNodes += 1.0;
-            outOfBoxesMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
+            preliminaryOutOfBoxesFluidNodes += 1.0;
+            preliminaryOutOfBoxesMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
           }
           else
           {
@@ -153,21 +153,22 @@ namespace Kratos
             // CONSIDER ONLY THE NODES OUT FROM THE REFINEMENT AREAS
             if (outOfRefiningBoxes == true)
             {
-              outOfBoxesFluidNodes += 1.0;
-              outOfBoxesMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H); // this is a preliminary evaluation of the local mesh size
+              preliminaryOutOfBoxesFluidNodes += 1.0;
+              preliminaryOutOfBoxesMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H); // this is a preliminary evaluation of the local mesh size
             }
           }
         }
       }
-      outOfBoxesMeanNodalSize *= 1.0 / outOfBoxesFluidNodes;
+      preliminaryOutOfBoxesMeanNodalSize *= 1.0 / preliminaryOutOfBoxesFluidNodes;
 
-      mrRemesh.Refine->CriticalRadius = outOfBoxesMeanNodalSize;
-      mrRemesh.Refine->InitialRadius = outOfBoxesMeanNodalSize;
+      mrRemesh.Refine->CriticalRadius = preliminaryOutOfBoxesMeanNodalSize;
+      mrRemesh.Refine->InitialRadius = preliminaryOutOfBoxesMeanNodalSize;
+      std::cout << "preliminaryO " << preliminaryOutOfBoxesMeanNodalSize << std::endl;
 
       if (homogeneousMesh == false)
       {
-        outOfBoxesFluidNodes = 0;
-        outOfBoxesMeanNodalSize = 0;
+        double outOfBoxesFluidNodes = 0;
+        double outOfBoxesMeanNodalSize = 0;
         Vector insideBoxesFluidNodes(numberOfRefiningBoxes);
         noalias(insideBoxesFluidNodes) = ZeroVector(numberOfRefiningBoxes);
         Vector insideBoxesMeanNodalSize(numberOfRefiningBoxes);
@@ -224,14 +225,34 @@ namespace Kratos
             }
           }
         }
-        outOfBoxesMeanNodalSize *= 1.0 / outOfBoxesFluidNodes;
+        if (outOfBoxesFluidNodes == 0)
+        {
+          mrRemesh.Refine->CriticalRadius = preliminaryOutOfBoxesMeanNodalSize;
+          mrRemesh.Refine->InitialRadius = preliminaryOutOfBoxesMeanNodalSize;
+          std::cout<<"the coarse zone is too thin, I'll take the preliminary mesh size estimation: "<<preliminaryOutOfBoxesMeanNodalSize<<std::endl;
+        }
+        else
+        {
+          outOfBoxesMeanNodalSize *= 1.0 / outOfBoxesFluidNodes;
+          mrRemesh.Refine->CriticalRadius = outOfBoxesMeanNodalSize;
+          mrRemesh.Refine->InitialRadius = outOfBoxesMeanNodalSize;
+        }
 
-        mrRemesh.Refine->CriticalRadius = outOfBoxesMeanNodalSize;
-        mrRemesh.Refine->InitialRadius = outOfBoxesMeanNodalSize;
-
+        std::cout << "outOfBoxesMeanNodalSize " << outOfBoxesMeanNodalSize << std::endl;
         for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
         {
-          double localMeshSize = insideBoxesMeanNodalSize[index] / insideBoxesFluidNodes[index];
+          double localMeshSize = 0;
+          if (insideBoxesFluidNodes[index] == 0)
+          {
+            localMeshSize = preliminaryInBoxesMeanNodalSize[index] / preliminaryInBoxesNodes[index]; // this means that the transition distance was too big
+            std::cout << "ATTENTION insideBoxesFluidNodes[index] IS ZERO " << std::endl;
+            std::cout << "localMeshSize " << localMeshSize << std::endl;
+          }
+          else
+          {
+            localMeshSize = insideBoxesMeanNodalSize[index] / insideBoxesFluidNodes[index];
+            std::cout << "localMeshSize " << localMeshSize << std::endl;
+          }
           mrRemesh.SetRefiningBoxMeshSize(index, localMeshSize);
           double tolerance = mrRemesh.RefiningBoxMeshSize[index] * 0.01;
           double differenceOfSize = outOfBoxesMeanNodalSize - mrRemesh.RefiningBoxMeshSize[index];
