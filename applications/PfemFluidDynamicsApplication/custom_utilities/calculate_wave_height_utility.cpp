@@ -35,7 +35,6 @@ CalculateWaveHeightUtility::CalculateWaveHeightUtility(
 ) : mrModelPart(rThisModelPart)
 {
     Parameters default_parameters(R"({
-        "model_part_name"        : "",
         "mean_water_level"       : 0.0,
         "relative_search_radius" : 2.0,
         "search_tolerance"       : 1e-6,
@@ -92,7 +91,7 @@ double CalculateWaveHeightUtility::CalculateAverage(const array_1d<double,3>& rC
         double local_count = 0.0;
         double local_wave_height = 0.0;
 
-        if (rNode.IsNot(ISOLATED) && rNode.IsNot(RIGID) && rNode.Is(FREE_SURFACE)) {
+        if (rNode.Is(FREE_SURFACE) && rNode.IsNot(RIGID) && rNode.IsNot(ISOLATED)) {
             const array_1d<double,3> relative_position = rNode.Coordinates() - rCoordinates;
             const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(mDirection, relative_position);
             const double distance = norm_2(horizontal_position);
@@ -130,7 +129,7 @@ double CalculateWaveHeightUtility::CalculateAverage(const array_1d<double,3>& rC
         const double radius = mRelativeRadius * rElement.GetGeometry().Length() + mAbsoluteRadius;
 
         for (auto& r_node : rElement.GetGeometry()) {
-            if (r_node.IsNot(ISOLATED) && r_node.IsNot(RIGID) && r_node.Is(FREE_SURFACE)) {
+            if (r_node.Is(FREE_SURFACE) && r_node.IsNot(RIGID) && r_node.IsNot(ISOLATED)) {
                 const array_1d<double,3> relative_position = r_node.Coordinates() - rCoordinates;
                 const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(mDirection, relative_position);
                 const double distance = norm_2(horizontal_position);
@@ -155,9 +154,10 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
 {
     KRATOS_TRY
 
-    static array_1d<double,3> coordinates = rCoordinates; // Workaround to make variables accessible to the local reducer
-    static array_1d<double,3> direction = mDirection;
+    static array_1d<double,3> direction = mDirection; // Workaround to make variables accessible to the local reducer
     static double mean_water_level = mMeanWaterLevel;
+
+    using ReductionArguments = std::tuple<const NodeType*,const array_1d<double,3>*>; // {p_node, p_coordinates}
 
     struct CustomReducer{
         using return_type = double;
@@ -169,17 +169,20 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
             return wave_height;
         }
 
-        void LocalReduce(NodeType& rNode)
+        void LocalReduce(ReductionArguments node_coordinates)
         {
-            if (rNode.IsNot(ISOLATED) && rNode.IsNot(RIGID) && rNode.Is(FREE_SURFACE))
+            // auto [p_node, p_coordinates] = node_coordinates; TODO: enable after migrating to c++17
+            const NodeType& r_node = *std::get<0>(node_coordinates);
+            array_1d<double,3> coordinates = *std::get<1>(node_coordinates);
+            if (r_node.Is(FREE_SURFACE) && r_node.IsNot(RIGID) && r_node.IsNot(ISOLATED))
             {
-                const array_1d<double,3> relative_position = rNode.Coordinates() - coordinates;
+                const array_1d<double,3> relative_position = r_node.Coordinates() - coordinates;
                 const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(direction, relative_position);
                 const double new_distance = norm_2(horizontal_position);
 
                 if (new_distance < this->distance) {
                     this->distance = new_distance;
-                    this->wave_height = inner_prod(direction, rNode) - mean_water_level;
+                    this->wave_height = inner_prod(direction, r_node) - mean_water_level;
                 }
             }
         }
@@ -196,7 +199,9 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
         }
     };
 
-    return block_for_each<CustomReducer>(mrModelPart.Nodes(),[&](NodeType& rNode) -> NodeType& {return rNode;});
+    return block_for_each<CustomReducer>(mrModelPart.Nodes(),[&,this](NodeType& rNode) -> ReductionArguments {
+        return std::make_tuple(&rNode, &rCoordinates);
+    });
 
     KRATOS_CATCH("")
 }
