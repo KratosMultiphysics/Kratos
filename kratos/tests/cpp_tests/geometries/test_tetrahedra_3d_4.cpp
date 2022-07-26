@@ -488,16 +488,16 @@ namespace Kratos {
      * This test performs the check of the box intersection method
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4HasIntersection, KratosCoreGeometriesFastSuite2) {
-      auto tetrahedron = GenerateTriRectangularTetrahedra3D4();
+      auto p_tetrahedron = GenerateTriRectangularTetrahedra3D4();
       // TODO: Check intersection with 3D, 2D and 1D
 
       /* 3D intersection */
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
-      const bool intersection_geomRegLen1 = tetraedron->HasIntersection(geomRegLen1);
+      auto p_geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
+      const bool intersection_geomRegLen1 = p_tetrahedron->HasIntersection(*p_geomRegLen1);
       KRATOS_CHECK(intersection_geomRegLen1);
 
-      auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
-      const bool intersection_geomRegLen2 = tetraedron->HasIntersection(geomRegLen2);
+      auto p_geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
+      const bool intersection_geomRegLen2 = p_tetrahedron->HasIntersection(*p_geomRegLen2);
       KRATOS_CHECK(intersection_geomRegLen2);
 
       /* 2D intersection */
