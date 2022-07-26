@@ -171,8 +171,11 @@ public:
 
         //construct D
         MatrixType D(3,3,0);
-        for (int i : {1,2,3}) {
-            if (mEigenvalues(i,i) == 0) D(i,i) = 0;
+        for (int i : {0,1,2}) {
+            if (mEigenvalues(i,i) < 1e-12) {
+                D(i,i) = 0;
+                std::cout << "maaaaaaaaaaal" << std::endl;
+            }
             else D(i,i) = check(1.0/mEigenvalues(i,i), 1e-12);
         }
         std::cout << "D: " << std::endl;
