@@ -67,15 +67,15 @@ class WaveHeightOutputProcess(KM.OutputProcess):
 
     def ExecuteBeforeSolutionLoop(self):
         """Initialize the files and the utility to calculate the water height"""
+        # The cpp utility goes first, since it validates the 'wave_calculation_settings'
+        self.wave_height_utility = PFEM.CalculateWaveHeightUtility(self.model_part, self.settings["wave_calculation_settings"])
+
         self.files = []
         for i, coordinate in enumerate(self.coordinates_list, start=1):
             file_settings = self.settings["output_file_settings"].Clone()
             self._ExecuteReplacement(i, coordinate, file_settings["file_name"])
-            header = "# Wave height at coordinate {}\n".format(list(coordinate))
-            header += "#Time \t\tHeight\n"
+            header = self._GetHeader(coordinate)
             self.files.append(TimeBasedAsciiFileWriterUtility(self.model_part, file_settings, header).file)
-
-        self.wave_height_utility = PFEM.CalculateWaveHeightUtility(self.model_part, self.settings["wave_calculation_settings"])
 
     def IsOutputStep(self):
         """The output control is time based"""
@@ -121,3 +121,12 @@ class WaveHeightOutputProcess(KM.OutputProcess):
         name = name.replace("<Z>", str(coord[2]))
         name = name.replace("<i>", str(i))
         param.SetString(name)
+
+    def _GetHeader(self, coordinates):
+        header = f'# Wave height at coordinates {list(coordinates)}\n'
+        header += f'# "model_part_name": {self.model_part.Name}\n'
+        header += '# "wave_calculation_settings":\n'
+        for line in self.settings["wave_calculation_settings"].PrettyPrintJsonString().splitlines():
+            header += f'# {line}\n'
+        header += '#Time\tHeight\n'
+        return header
