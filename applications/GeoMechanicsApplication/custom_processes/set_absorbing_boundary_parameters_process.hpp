@@ -56,7 +56,7 @@ public:
 
         // get absorbing factors
         mAbsorbingFactors.resize(2, false);
-        mAbsorbingFactors(0) =rParameters["absorbing_factors"][0].GetDouble();
+        mAbsorbingFactors(0) = rParameters["absorbing_factors"][0].GetDouble();
         mAbsorbingFactors(1) = rParameters["absorbing_factors"][1].GetDouble();
 
         // get virtual thickness
@@ -83,25 +83,12 @@ public:
     {
         KRATOS_TRY
 
-        int a = mrModelPart.NumberOfConditions();
-        int b = mrModelPart.NumberOfNodes();
         if (mrModelPart.NumberOfConditions() > 0) {
 
                 block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
-                    //auto prop = rCondition.GetProperties();
                     rCondition.SetValue(ABSORBING_FACTORS, mAbsorbingFactors);
                     rCondition.SetValue(VIRTUAL_THICKNESS, mVirtualThickness);
-                    /*if (mIsFixed) rNode.Fix(var);
-                    else          rNode.Free(var);
-                    const double pressure = CalculatePressure(rNode);
-
-                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
-                        rNode.FastGetSolutionStepValue(var) = pressure;
-                    } else {
-                        rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                    }*/
                 });
-
         }
 
         KRATOS_CATCH("")
@@ -110,13 +97,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ApplyConstantPhreaticLinePressureProcess";
+        return "SetAbsorbingBoundaryParametersProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ApplyConstantPhreaticLinePressureProcess";
+        rOStream << "SetAbsorbingBoundaryParameters";
     }
 
     /// Print object's data.
@@ -131,38 +118,10 @@ protected:
     /// Member Variables
 
     ModelPart& mrModelPart;
-    std::string mVariableName;
-    bool mIsFixed;
-    bool mIsSeepage;
-    unsigned int mGravityDirection;
-    double mSpecificWeight;
-    unsigned int mOutOfPlaneDirection;
-    unsigned int mHorizontalDirection;
-    Vector3 mFirstReferenceCoordinate;
-    Vector3 mSecondReferenceCoordinate;
-    double mSlope;
-    double mMinHorizontalCoordinate;
-    double mMaxHorizontalCoordinate;
-    double mPressureTensionCutOff;
     Vector mAbsorbingFactors;
     double mVirtualThickness;
 
 
-    double CalculatePressure(const Node<3> &rNode) const
-    {
-        double height = 0.0;
-        if (rNode.Coordinates()[mHorizontalDirection] >= mMinHorizontalCoordinate && rNode.Coordinates()[mHorizontalDirection] <= mMaxHorizontalCoordinate) {
-            height = mSlope * (rNode.Coordinates()[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
-        } else if (rNode.Coordinates()[mHorizontalDirection] < mMinHorizontalCoordinate) {
-            height = mSlope * (mMinHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
-        } else if (rNode.Coordinates()[mHorizontalDirection] > mMaxHorizontalCoordinate) {
-            height = mSlope * (mMaxHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
-        }
-
-        const double distance = height - rNode.Coordinates()[mGravityDirection];
-        const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance;
-        return pressure;
-    }
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
