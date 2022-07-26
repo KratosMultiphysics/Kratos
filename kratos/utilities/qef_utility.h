@@ -111,6 +111,10 @@ public:
         const TGeometryArrayType& rTriangles     
     ) {
         array_1d<double,3> xPoint;
+        array_1d<double,3> center = CalculateCenter(rVoxel);
+        VectorType vCenter = center; 
+        MatrixType mCenter(3,1);
+        column(mCenter,0) = center;
         GeometryArrayType edges = rVoxel.GenerateEdges();
         //Initialize the corresponding matrixes
         MatrixType AtA(3,3,0);  //3x3 matrix initialized to 0
@@ -178,7 +182,8 @@ public:
         MatrixType AtAInverse;  
         MathUtils<double>::BDBtProductOperation(AtAInverse, D, mEigenvectors);
        
-        MatrixType solution = prod(AtAInverse, AtB);        
+        MatrixType AtAc = prod(AtA,mCenter);
+        MatrixType solution = prod(AtAInverse, AtB - AtAc) + mCenter;        
         xPoint = column(solution,0);
 
         return xPoint;

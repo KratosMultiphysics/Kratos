@@ -55,6 +55,32 @@ namespace Testing {
         }
         return pVoxel;  
     }
+    GeometryPtrType GenerateUncenteredHexahedra3D8(const std::vector<double>& rDistances) 
+    { 
+        Model my_model;
+        ModelPart &voxel = my_model.CreateModelPart("Voxel");  
+        voxel.AddNodalSolutionStepVariable(DISTANCE);  
+
+        voxel.CreateNewNode(1, 0, 0, 0);
+        voxel.CreateNewNode(2,  2, 0, 0);
+        voxel.CreateNewNode(3, 2,  2, 0);
+        voxel.CreateNewNode(4, 0,  2, 0);
+        voxel.CreateNewNode(5, 0, 0, 2);
+        voxel.CreateNewNode(6, 2, 0,  2);
+        voxel.CreateNewNode(7, 2,  2,  2);
+        voxel.CreateNewNode(8, 0,  2,  2); 
+        Properties::Pointer p_properties_0(new Properties(0));
+        Element::Pointer pElement = voxel.CreateNewElement("Element3D8N", 1, {1, 2, 3, 4, 5, 6, 7, 8}, p_properties_0);  
+        GeometryPtrType pVoxel = pElement->pGetGeometry();
+
+        //Add the distances
+        PointsArrayType nodes = pVoxel->Points();   
+        
+        for (int i = 0; i < 8; i++) {
+            nodes[i].FastGetSolutionStepValue(DISTANCE) = rDistances[i];
+        }
+        return pVoxel;  
+    }
 
     //rNodes is a 3*3 matrix representin de (x,y,z) coordinates of each of the 3 triangle nodes
     GeometryPtrType GenerateTriangle3D3(std::vector<std::vector<double>>& rNodes)
@@ -99,9 +125,10 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(normal[1], 0.0);
         KRATOS_CHECK_EQUAL(normal[2], 1.0);
     }
+
     KRATOS_TEST_CASE_IN_SUITE(QEF0dof, KratosCoreFastSuite) {
         //A voxel crossed by a straight plane with only 2 nodes inside the volume (not good case approximation)
-        std::vector<double> distances{1, 1, -1, -1, -1, -1, -1, -1};   
+        std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
         GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
 
         //Generate the intersecting triangles
@@ -225,7 +252,59 @@ namespace Testing {
         KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
         KRATOS_CHECK_NEAR(point[1], 0.0, 1e-8);
         KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);  
-        
     } 
+
+    KRATOS_TEST_CASE_IN_SUITE(QEF2dofMovedCenter, KratosCoreFastSuite) {
+        //A voxel crossed by a straight plane with 4 nodes inside the volume
+        std::vector<double> distances{1, 1, -1, -1, 1, 1, -1, -1};   
+        GeometryPtrType pVoxel = GenerateUncenteredHexahedra3D8(distances);
+
+        //Generate the intersecting triangles
+        std::vector<std::vector<double>> triangle1{{1,0.5,1.05},{1.05,0.5,0.95},{0.95,0.5,0.95}};  
+        std::vector<std::vector<double>> triangle2{{1,0.5,-0.95},{1.05,0.5,-1.05},{0.95,0.5,-1.05}}; 
+        std::vector<std::vector<double>> triangle3{{-1,0.5,-0.95},{-0.95,0.5,-1.05},{-1.05,0.5,-1.05}}; 
+        std::vector<std::vector<double>> triangle4{{-1,0.5,1.05},{-0.95,0.5,0.95},{-1.05,0.5,0.95}}; 
+        
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
+        GeometryPtrType pTriangle3 = GenerateTriangle3D3(triangle3);
+        GeometryPtrType pTriangle4 = GenerateTriangle3D3(triangle4);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1); 
+        array1.push_back(pTriangle2);
+        array1.push_back(pTriangle3);
+        array1.push_back(pTriangle4);
+
+        array_1d<double,3> point = QEF::QEF_point(*pVoxel,array1);
+
+        KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
+        KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
+        KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);        
+    } 
+    KRATOS_TEST_CASE_IN_SUITE(movedCenter, KratosCoreFastSuite) {
+        std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
+        GeometryPtrType pVoxel = GenerateUncenteredHexahedra3D8(distances);
+
+        std::vector<std::vector<double>> triangle1{{0,1.5,0.05},{0.05,1.5,-0.05},{-0.05,1.5,-0.05}};
+        std::vector<std::vector<double>> triangle2{{0,0.05,1},{0.05,-0.05,1},{-0.05,-0.05,1}};
+        std::vector<std::vector<double>> triangle3{{1.75,0.05,0},{1.75,-0.05,0.05},{1.75,-0.05,-0.05}};
+
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
+        GeometryPtrType pTriangle3 = GenerateTriangle3D3(triangle3);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1);
+        array1.push_back(pTriangle2);
+        array1.push_back(pTriangle3);
+
+        array_1d<double,3> point = QEF::QEF_point(*pVoxel,array1);
+
+        KRATOS_CHECK_NEAR(point[0], 1.75, 1e-8);
+        KRATOS_CHECK_NEAR(point[1], 1.5, 1e-8);
+        KRATOS_CHECK_NEAR(point[2], 1.0, 1e-8);     
+    }
+
 }  // namespace Testing.
 }  // namespace Kratos.
