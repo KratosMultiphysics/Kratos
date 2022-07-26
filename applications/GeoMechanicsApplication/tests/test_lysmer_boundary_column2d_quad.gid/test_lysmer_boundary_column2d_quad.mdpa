@@ -142,7 +142,7 @@ Begin SubModelPart load
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart 10
+Begin SubModelPart abs
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes

@@ -4,7 +4,7 @@
       "properties_id":           1,
       "Material": {
           "constitutive_law": {
-              "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
+              "name"             :  "LinearElastic3DLaw" 
           },
           "Variables": {
               "IGNORE_UNDRAINED"         :  true,
@@ -17,10 +17,11 @@
               "BULK_MODULUS_FLUID"       :  2.0e-30,
               "PERMEABILITY_XX"          :  4.5e-30,
               "PERMEABILITY_YY"          :  4.5e-30,
+              "PERMEABILITY_ZZ"          :  4.5e-30,
               "PERMEABILITY_XY"          :  0.0,
+              "PERMEABILITY_YZ"          :  0.0,
+              "PERMEABILITY_ZX"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  8.90e-7,
-              "THICKNESS"                :  1.0,
-              "BIOT_COEFFICIENT"         :  1.0,
               "RETENTION_LAW"                    : "SaturatedBelowPhreaticLevelLaw",
               "SATURATED_SATURATION"             :  1.0,
               "RESIDUAL_SATURATION"              :  1e-10,

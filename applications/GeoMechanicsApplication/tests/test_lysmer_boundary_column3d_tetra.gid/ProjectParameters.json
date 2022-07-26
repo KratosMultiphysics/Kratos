@@ -1,8 +1,8 @@
 {
     "problem_data": {
-        "problem_name":         "test_lysmer_boundary",
+        "problem_name":         "test_lysmer_boundary_column3d_tetra",
         "start_time":           0.0,
-        "end_time":             1.0,
+        "end_time":             0.3,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -14,13 +14,13 @@
         "start_time":                         0.0,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "test_lysmer_boundary"
+            "input_filename":   "test_lysmer_boundary_column3d_tetra"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
-            "time_step":                0.05,
+            "time_step":                0.01,
             "max_delta_time_factor":    1000
         },
         "buffer_size":                        2,
@@ -37,8 +37,8 @@
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
-        "rayleigh_m":                         0.0,
-        "rayleigh_k":                         0.0,
+        "rayleigh_m":                         0.1,
+        "rayleigh_k":                         0.001,
         "strategy_type":                      "newton_raphson",
         "convergence_criterion":              "displacement_criterion",
         "displacement_relative_tolerance":    1.0E-4,
@@ -50,8 +50,8 @@
         "min_iterations":                     6,
         "max_iterations":                     15,
         "number_cycles":                      100,
-        "reduction_factor":                   0.5,
-        "increase_factor":                    2,
+        "reduction_factor":                   1,
+        "increase_factor":                    1,
         "realised_factor":                    0.9999,
         "desired_iterations":                 4,
         "max_radius_factor":                  10.0,
@@ -72,7 +72,7 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["soil"],
-        "processes_sub_model_part_list":      ["bottom","left","right","load"],
+        "processes_sub_model_part_list":      ["sides","load","abs"],
         "body_domain_sub_model_part_list":    ["soil"]
     },
     "output_processes": {
@@ -82,13 +82,13 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_lysmer_boundary",
+                "output_name": "test_lysmer_boundary_column3d_tetra",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
                             "WriteDeformedMeshFlag": "WriteUndeformed",
                             "WriteConditionsFlag":   "WriteElementsOnly",
-                            "GiDPostMode":           "GiD_PostBinary",
+                            "GiDPostMode":           "GiD_PostAscii",
                             "MultiFileFlag":         "SingleFile"
                         },
                         "file_label":          "step",
@@ -98,8 +98,8 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","VELOCITY", "TOTAL_DISPLACEMENT","WATER_PRESSURE","VOLUME_ACCELERATION"],
-                        "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","ENGINEERING_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR","VON_MISES_STRESS","FLUID_FLUX_VECTOR","HYDRAULIC_HEAD"]
+                        "nodal_results":       ["DISPLACEMENT","VELOCITY"],
+                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
                     },
                     "point_data_configuration":  []
                 }
@@ -112,22 +112,10 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.bottom",
+            "model_part_name": "PorousDomain.sides",
             "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,true],
-            "is_fixed":        [true,true,true],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.left",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [true,false,true],
-            "is_fixed":        [true,false,true],
+            "active":          [true,true,false],
+            "is_fixed":        [true,true,false],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
@@ -138,25 +126,19 @@
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
             "model_part_name": "PorousDomain.load",
-            "variable_name":   "POINT_LOAD",
-            "active":          [false,true,false],
-            "value":           [0.0,-1000,0.0],
+            "variable_name":   "SURFACE_LOAD",
+            "active":          [false,false,true],
+            "value":           [0.0,0.0,-10],
             "table":           [0,0,0]
         }
     },{
-        "python_module": "apply_normal_load_table_process",
+       "python_module": "set_absorbing_boundary_parameters_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyNormalLoadTableProcess",
+        "process_name":  "SetAbsorbingBoundaryParametersProcess",
         "Parameters":    {
-            "model_part_name":      "PorousDomain.right",
-            "variable_name":        "NORMAL_CONTACT_STRESS",
-            "active":               [true,false],
-            "value":                [1,0.0],
-            "table":                [0,0],
-            "fluid_pressure_type": "Uniform",
-            "gravity_direction":    1,
-            "reference_coordinate": 0.0,
-            "specific_weight":      9.81
+            "model_part_name":      "PorousDomain.abs",
+            "absorbing_factors": [1,1],
+			"virtual_thickness": 1000
         }
     }],
         "auxiliar_process_list": []
