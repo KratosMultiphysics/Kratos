@@ -156,6 +156,7 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
 
     static array_1d<double,3> direction = mDirection; // Workaround to make variables accessible to the local reducer
     static double mean_water_level = mMeanWaterLevel;
+    static double search_radius = mRelativeRadius * mMeanElementSize + mAbsoluteRadius;
 
     using ReductionArguments = std::tuple<const NodeType*,const array_1d<double,3>*>; // {p_node, p_coordinates}
 
@@ -180,7 +181,7 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
                 const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(direction, relative_position);
                 const double new_distance = norm_2(horizontal_position);
 
-                if (new_distance < this->distance) {
+                if (new_distance < search_radius && new_distance < this->distance) {
                     this->distance = new_distance;
                     this->wave_height = inner_prod(direction, r_node) - mean_water_level;
                 }
