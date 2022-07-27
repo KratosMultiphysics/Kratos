@@ -204,7 +204,7 @@ namespace Kratos {
         return effectiveVolumeRadius;
     }
 
-    void SphericContinuumParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
+    void SphericContinuumParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::ParticleDataBuffer & data_buffer,
                                                                 const ProcessInfo& r_process_info,
                                                                 array_1d<double, 3>& rElasticForce,
                                                                 array_1d<double, 3>& rContactForce,
@@ -315,8 +315,12 @@ namespace Kratos {
             double ViscoLocalRotationalMoment[3] = {0.0};
             double cohesive_force =  0.0;
             double LocalRelVel[3] = {0.0};
+            double LocalContactForce[3] = {0.0};
+            double GlobalContactForce[3] = {0.0};
+
             GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, RelVel, LocalRelVel);
 
+            //*******************Forces calculation start****************
             if (i < (int)mContinuumInitialNeighborsSize) {
 
                 // A check bond failure function for Parallel bond model is in below
@@ -360,53 +364,66 @@ namespace Kratos {
                 cohesive_force= 0.0;
             }
 
-            double LocalContactForce[3] = {0.0};
+            array_1d<double, 3> other_ball_to_ball_forces(3,0.0);
+            ComputeOtherBallToBallForces(other_ball_to_ball_forces);
+            //*******************Forces calculation end****************
 
-            // Moment need to be calculated before failure check
-            if (this->Is(DEMFlags::HAS_ROTATION)) {
+            GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
+
+            //******************Moments calculation start****************
+            //double GlobalUnbondElasticContactForce[3] = {0.0};
+            if (i < (int)mContinuumInitialNeighborsSize && this->Is(DEMFlags::HAS_ROTATION)) {
+                mContinuumConstitutiveLawArray[i]->CalculateMoments(this, 
+                                                                    neighbour_iterator, 
+                                                                    equiv_young, 
+                                                                    data_buffer.mDistance, 
+                                                                    calculation_area,
+                                                                    data_buffer.mLocalCoordSystem, 
+                                                                    ElasticLocalRotationalMoment, 
+                                                                    ViscoLocalRotationalMoment, 
+                                                                    equiv_poisson, 
+                                                                    indentation, 
+                                                                    LocalElasticContactForce,
+                                                                    LocalContactForce[2],
+                                                                    GlobalElasticContactForce,
+                                                                    RollingResistance,                                                                    
+                                                                    data_buffer.mLocalCoordSystem[2],
+                                                                    i
+                                                                    );
+                /*
                 if (i < (int)mContinuumInitialNeighborsSize && mIniNeighbourFailureId[i] == 0) {
                     mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, data_buffer.mDistance, calculation_area,
                                                                                         data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, 
                                                                                         equiv_poisson, indentation, LocalElasticContactForce);
                 }
-            }
 
-            if (i < (int)mContinuumInitialNeighborsSize) {
-                mContinuumConstitutiveLawArray[i]->CheckBondFailure(i, 
-                                                                    this, 
-                                                                    neighbour_iterator, 
-                                                                    contact_sigma, 
-                                                                    contact_tau, 
-                                                                    LocalElasticContactForce,
-                                                                    ViscoDampingLocalContactForce,
-                                                                    ElasticLocalRotationalMoment,
-                                                                    ViscoLocalRotationalMoment);
-            }
-
-            // Transforming to global forces and adding up
-            double GlobalContactForce[3] = {0.0};
-
-            if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < (int)mContinuumInitialNeighborsSize)) { // We leave apart the discontinuum neighbors (the same for the walls). The neighbor would not be able to do the same if we activate it.
-                mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, data_buffer.mLocalCoordSystem, LocalElasticContactForce[2], calculation_area, mSymmStressTensor, this, neighbour_iterator, r_process_info, i, indentation);
-            }
-
-            array_1d<double, 3> other_ball_to_ball_forces(3,0.0);
-            ComputeOtherBallToBallForces(other_ball_to_ball_forces);
-
-            double GlobalUnbondElasticContactForce[3] = {0.0};
-            AddUpForcesAndProject(data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
-                                  GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce, ViscoDampingLocalContactForce, 0.0, other_ball_to_ball_forces, rElasticForce, rContactForce, i, r_process_info, GlobalUnbondElasticContactForce); //TODO: replace the 0.0 with an actual cohesive force for discontinuum neighbours
-
-            if (this->Is(DEMFlags::HAS_ROTATION)) {
                 ComputeMoments(LocalContactForce[2], GlobalUnbondElasticContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, indentation, i);
-                AddUpMomentsAndProject(data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
-                
+                */
                 if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                     array_1d<double, 3>& rolling_resistance_moment = this_node.FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
                     rolling_resistance_moment.clear();
-                    //ComputeRollingFriction(rolling_resistance_moment, RollingResistance, data_buffer.mDt);
                     ComputeRollingFriction(rolling_resistance_moment, RollingResistance, data_buffer.mDt, data_buffer.mpOtherParticle, LocalContactForce);
                 }
+            }
+            //*****************Moments calculation end******************
+
+            if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < (int)mContinuumInitialNeighborsSize)) { // We leave apart the discontinuum neighbors (the same for the walls). The neighbor would not be able to do the same if we activate it.
+                mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, data_buffer.mLocalCoordSystem, LocalElasticContactForce[2], 
+                                                                          calculation_area, mSymmStressTensor, this, neighbour_iterator, r_process_info, i, indentation);
+            }
+
+            //*******************Bond failure check*********************
+            if (i < (int)mContinuumInitialNeighborsSize) {
+                mContinuumConstitutiveLawArray[i]->CheckBondFailure(i, this, neighbour_iterator, contact_sigma, contact_tau, LocalElasticContactForce, 
+                                                                    ViscoDampingLocalContactForce, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
+            }
+
+            //*******************Add up forces and moments**************
+            AddUpForcesAndProject(data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
+                                  GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce, ViscoDampingLocalContactForce, 0.0, other_ball_to_ball_forces, rElasticForce, rContactForce, i, r_process_info); //TODO: replace the 0.0 with an actual cohesive force for discontinuum neighbours
+
+            if (this->Is(DEMFlags::HAS_ROTATION)) {
+                AddUpMomentsAndProject(data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
             }
 
             if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
@@ -434,7 +451,7 @@ namespace Kratos {
         ComputeBrokenBondsRatio();
 
         KRATOS_CATCH("")
-    } //  ComputeBallToBallContactForce
+    } //  ComputeBallToBallContactForceAndMoment
 
     void SphericContinuumParticle::ComputeRollingResistance(double& RollingResistance, const double& NormalLocalContactForce, const double& equiv_rolling_friction_coeff, const unsigned int i) {
 

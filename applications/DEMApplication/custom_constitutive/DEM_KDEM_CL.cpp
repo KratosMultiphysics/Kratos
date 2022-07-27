@@ -6,6 +6,7 @@
 // Project includes
 #include "DEM_KDEM_CL.h"
 #include "custom_elements/spheric_continuum_particle.h"
+#include "dem_contact.h"
 
 namespace Kratos {
 
@@ -480,6 +481,49 @@ namespace Kratos {
             ViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
             ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
         }
+
+        KRATOS_CATCH("")
+    }
+
+    void DEM_KDEM::CalculateMoments(SphericContinuumParticle* element, 
+                    SphericContinuumParticle* neighbor, 
+                    double equiv_young, 
+                    double distance, 
+                    double calculation_area,
+                    double LocalCoordSystem[3][3], 
+                    double ElasticLocalRotationalMoment[3], 
+                    double ViscoLocalRotationalMoment[3], 
+                    double equiv_poisson, 
+                    double indentation, 
+                    double LocalElasticContactForce[3],
+                    double normalLocalContactForce,
+                    double GlobalElasticContactForces[3],
+                    double& RollingResistance,
+                    double LocalCoordSystem_2[3],
+                    const int i_neighbor_count) 
+    {
+        KRATOS_TRY
+
+        ComputeParticleRotationalMoments(element, 
+                                        neighbor, 
+                                        equiv_young, 
+                                        distance, 
+                                        calculation_area,
+                                        LocalCoordSystem, 
+                                        ElasticLocalRotationalMoment, 
+                                        ViscoLocalRotationalMoment, 
+                                        equiv_poisson, 
+                                        indentation, 
+                                        LocalElasticContactForce);              
+
+        DemContact::ComputeParticleContactMoments(normalLocalContactForce,
+                                                GlobalElasticContactForces,
+                                                RollingResistance,
+                                                LocalCoordSystem_2,
+                                                element,
+                                                neighbor,
+                                                indentation,
+                                                i_neighbor_count);
 
         KRATOS_CATCH("")
     }

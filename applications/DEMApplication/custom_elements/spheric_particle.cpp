@@ -290,9 +290,9 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
 
     double RollingResistance = 0.0;
 
-    ComputeBallToBallContactForce(data_buffer, r_process_info, elastic_force, contact_force, RollingResistance);
+    ComputeBallToBallContactForceAndMoment(data_buffer, r_process_info, elastic_force, contact_force, RollingResistance);
 
-    ComputeBallToRigidFaceContactForce(data_buffer, elastic_force, contact_force, RollingResistance, rigid_element_force, r_process_info);
+    ComputeBallToRigidFaceContactForceAndMoment(data_buffer, elastic_force, contact_force, RollingResistance, rigid_element_force, r_process_info);
 
     if (this->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)){
         ComputeAdditionalForces(additional_forces, additionally_applied_moment, r_process_info, gravity);
@@ -915,7 +915,7 @@ void SphericParticle::ComputeRollingFrictionWithWall(double dt, double LocalCont
     } 
 }
 
-void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
+void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::ParticleDataBuffer & data_buffer,
                                                     const ProcessInfo& r_process_info,
                                                     array_1d<double, 3>& r_elastic_force,
                                                     array_1d<double, 3>& r_contact_force,
@@ -979,14 +979,13 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             ComputeOtherBallToBallForces(other_ball_to_ball_forces); //These forces can exist even with no indentation.
 
             // Transforming to global forces and adding up
-            double GlobalUnbondElasticContactForce[3] = {0.0};
             AddUpForcesAndProject(data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
-                                  GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, other_ball_to_ball_forces, r_elastic_force, r_contact_force, i, r_process_info, GlobalUnbondElasticContactForce);
+                                  GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, other_ball_to_ball_forces, r_elastic_force, r_contact_force, i, r_process_info);
             //TODO: make different AddUpForces for continuum and discontinuum (different arguments, different operations!)
 
             // ROTATION FORCES
             if (this->Is(DEMFlags::HAS_ROTATION) && !data_buffer.mMultiStageRHS) {
-                ComputeMoments(LocalContactForce[2], GlobalUnbondElasticContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation, i);
+                ComputeMoments(LocalContactForce[2], GlobalElasticContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation, i);
                     
                 if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                     array_1d<double, 3>& rolling_resistance_moment = this_node.FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
@@ -1024,7 +1023,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
     }// for each neighbor
 
     KRATOS_CATCH("")
-}// ComputeBallToBallContactForce
+}// ComputeBallToBallContactForceAndMoment
 
 void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
                                                                        const ProcessInfo& r_process_info,
@@ -1058,7 +1057,7 @@ void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericPa
             ViscoDampingLocalContactForce, cohesive_force, this, p_neighbour_element, sliding, LocalCoordSystem);
 }
 
-void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
+void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticle::ParticleDataBuffer & data_buffer,
                                                         array_1d<double, 3>& r_elastic_force,
                                                         array_1d<double, 3>& r_contact_force,
                                                         double& RollingResistance,
@@ -1359,7 +1358,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
     }
 
     KRATOS_CATCH("")
-}// ComputeBallToRigidFaceContactForce
+}// ComputeBallToRigidFaceContactForceAndMoment
 
 void SphericParticle::RenewData()
 {
@@ -1888,8 +1887,7 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
                                             array_1d<double, 3>& r_elastic_force,
                                             array_1d<double, 3>& r_contact_force,
                                             const unsigned int i_neighbour_count,
-                                            const ProcessInfo& r_process_info,
-                                            double GlobalUnbondElasticContactForce[3])
+                                            const ProcessInfo& r_process_info)
 {
 
     for (unsigned int index = 0; index < 3; index++) {
@@ -1898,11 +1896,12 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
     LocalContactForce[2] -= cohesive_force;
 
     //TODO: modify it to more general
+    /*
     double LocalUnbondElasticContactForce[3] = {0.0};
     LocalUnbondElasticContactForce[0] = (1 - mBondedScalingFactor[0]) * LocalElasticContactForce[0];
     LocalUnbondElasticContactForce[1] = (1 - mBondedScalingFactor[1]) * LocalElasticContactForce[1];
     LocalUnbondElasticContactForce[2] = (1 - mBondedScalingFactor[2]) * LocalElasticContactForce[2];
-    GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalUnbondElasticContactForce, GlobalUnbondElasticContactForce);
+    GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalUnbondElasticContactForce, GlobalUnbondElasticContactForce);*/
     
     DEM_ADD_SECOND_TO_FIRST(LocalElasticContactForce, other_ball_to_ball_forces);
 

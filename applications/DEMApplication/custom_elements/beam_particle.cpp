@@ -138,7 +138,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void BeamParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
+    void BeamParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::ParticleDataBuffer & data_buffer,
                                                      const ProcessInfo& r_process_info,
                                                      array_1d<double, 3>& rElasticForce,
                                                      array_1d<double, 3>& rContactForce,
@@ -340,7 +340,6 @@ namespace Kratos {
             array_1d<double, 3> other_ball_to_ball_forces(3,0.0);
             ComputeOtherBallToBallForces(other_ball_to_ball_forces);
 
-            double GlobalUnbondElasticContactForce[3] = {0.0}; // TODO: THIS SHOULD BE MORE CLEAR
             AddUpForcesAndProject(data_buffer.mOldLocalCoordSystem,
                                   data_buffer.mLocalCoordSystem,
                                   LocalContactForce,
@@ -356,8 +355,7 @@ namespace Kratos {
                                   rElasticForce,
                                   rContactForce,
                                   i,
-                                  r_process_info,
-                                  GlobalUnbondElasticContactForce); // 0.0 means null cohesive force
+                                  r_process_info); // 0.0 means null cohesive force
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
 
@@ -408,7 +406,7 @@ namespace Kratos {
         } // for each neighbor
 
         KRATOS_CATCH("")
-    } //  ComputeBallToBallContactForce
+    } //  ComputeBallToBallContactForceAndMoment
 
     void BeamParticle::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
 

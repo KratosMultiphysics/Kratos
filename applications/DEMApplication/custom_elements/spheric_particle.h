@@ -272,10 +272,14 @@ std::unique_ptr<DEMDiscontinuumConstitutiveLaw> pCloneDiscontinuumConstitutiveLa
 
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> pCloneDiscontinuumConstitutiveLawWithFEMNeighbour(Condition* neighbour);
 
+virtual void ComputeRollingResistance(double& RollingResistance,
+                                    const double& NormalLocalContactForce,
+                                    const double& equiv_rolling_friction_coeff,
+                                    const unsigned int i);
 
 protected:
 
-virtual void ComputeBallToRigidFaceContactForce(ParticleDataBuffer & data_buffer,
+virtual void ComputeBallToRigidFaceContactForceAndMoment(ParticleDataBuffer & data_buffer,
                                                 array_1d<double, 3>& rElasticForce,
                                                 array_1d<double, 3>& rContactForce,
                                                 double& RollingResistance,
@@ -286,7 +290,7 @@ virtual void CalculateMomentum(array_1d<double, 3>& rMomentum);
 
 virtual void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum);
 
-virtual void ComputeBallToBallContactForce(ParticleDataBuffer & data_buffer,
+virtual void ComputeBallToBallContactForceAndMoment(ParticleDataBuffer & data_buffer,
                                         const ProcessInfo& r_process_info,
                                         array_1d<double, 3>& rElasticForce,
                                         array_1d<double, 3>& rContactForce,
@@ -348,11 +352,6 @@ virtual void ComputeMomentsWithWalls(double normalLocalContactForce,
                             double indentation,
                             unsigned int i);
 
-virtual void ComputeRollingResistance(double& RollingResistance,
-                                    const double& NormalLocalContactForce,
-                                    const double& equiv_rolling_friction_coeff,
-                                    const unsigned int i);
-
 //virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt) final;
 virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt, SphericParticle* p_neighbor, double LocalContactForce[3]) final;
 virtual void ComputeRollingFrictionWithWall(double dt, double LocalContactForce[3], Condition* const wall, double indentation) final;
@@ -396,8 +395,7 @@ virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                                 array_1d<double, 3>& rElasticForce,
                                 array_1d<double, 3>& rContactForce,
                                 const unsigned int i_neighbour_count,
-                                const ProcessInfo& r_process_info,
-                                double GlobalUnbondElasticContactForce[3]) final;
+                                const ProcessInfo& r_process_info) final;
 
 virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                                     double LocalContactForce[3],
