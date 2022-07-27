@@ -658,7 +658,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
             }
 
             // Compute the splitting pattern
-            DivideGeometry::Pointer p_split_utility = p_modified_shape_functions->pGetSplittingUtil();
+            DivideGeometry<Node<3>>::Pointer p_split_utility = p_modified_shape_functions->pGetSplittingUtil();
 
             // Create the auxiliar map that will be used to generate the skin
             std::unordered_map<std::pair<unsigned int,bool>, unsigned int, Hash, KeyEqual> new_nodes_map;
@@ -668,7 +668,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
             const auto& r_neg_subdivisions = p_split_utility->GetNegativeSubdivisions();
             const unsigned int n_pos_split_geom = r_pos_subdivisions.size();
             const unsigned int n_neg_split_geom = r_neg_subdivisions.size();
-            std::vector<DivideGeometry::IndexedPointGeometryPointerType> split_geometries;
+            std::vector<DivideGeometry<Node<3>>::IndexedPointGeometryPointerType> split_geometries;
             split_geometries.reserve(n_pos_split_geom + n_neg_split_geom);
             split_geometries.insert(split_geometries.end(), r_pos_subdivisions.begin(), r_pos_subdivisions.end());
             split_geometries.insert(split_geometries.end(), r_neg_subdivisions.begin(), r_neg_subdivisions.end());
@@ -676,14 +676,14 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
             // Create the split geometries in the visualization model part
             for (unsigned int i_geom = 0; i_geom < split_geometries.size(); ++i_geom){
                 const bool pos_side = i_geom < n_pos_split_geom ? true : false;
-                const DivideGeometry::IndexedPointGeometryPointerType p_sub_geom = split_geometries[i_geom];
+                const DivideGeometry<Node<3>>::IndexedPointGeometryPointerType p_sub_geom = split_geometries[i_geom];
                 const unsigned int sub_geom_n_nodes = p_sub_geom->PointsNumber();
 
                 // Fill the new element nodes array
                 Element::NodesArrayType sub_geom_nodes_array;
                 for (unsigned int i_sub_geom_node = 0; i_sub_geom_node < sub_geom_n_nodes; ++i_sub_geom_node){
 
-                    DivideGeometry::IndexedPointType &sub_geom_node = p_sub_geom->operator[](i_sub_geom_node);
+                    DivideGeometry<Node<3>>::IndexedPointType &sub_geom_node = p_sub_geom->operator[](i_sub_geom_node);
                     const unsigned int local_id = sub_geom_node.Id();
 
                     // Non-intersection node. Get the copied original geometry nodes
@@ -753,7 +753,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
             const unsigned int n_pos_interface_geom = r_pos_interfaces.size();
             const unsigned int n_neg_interface_geom = r_neg_interfaces.size();
 
-            std::vector<DivideGeometry::IndexedPointGeometryPointerType> split_interface_geometries;
+            std::vector<DivideGeometry<Node<3>>::IndexedPointGeometryPointerType> split_interface_geometries;
             split_interface_geometries.reserve(n_pos_interface_geom + n_neg_interface_geom);
             split_interface_geometries.insert(split_interface_geometries.end(), r_pos_interfaces.begin(), r_pos_interfaces.end());
             split_interface_geometries.insert(split_interface_geometries.end(), r_neg_interfaces.begin(), r_neg_interfaces.end());
@@ -761,7 +761,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
             // Create the split interface geometries in the visualization model part
             for (unsigned int i_int_geom = 0; i_int_geom < split_interface_geometries.size(); ++i_int_geom){
                 const bool int_pos_side = (i_int_geom < n_pos_interface_geom) ? true : false;
-                DivideGeometry::IndexedPointGeometryPointerType p_int_sub_geom = split_interface_geometries[i_int_geom];
+                DivideGeometry<Node<3>>::IndexedPointGeometryPointerType p_int_sub_geom = split_interface_geometries[i_int_geom];
                 GeometryData::KratosGeometryType p_int_sub_geom_type = p_int_sub_geom->GetGeometryType();
                 const unsigned int sub_int_geom_n_nodes = p_int_sub_geom->PointsNumber();
 
@@ -769,7 +769,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
                 Condition::NodesArrayType sub_int_geom_nodes_array;
                 for (unsigned int i_node = 0; i_node < sub_int_geom_n_nodes; ++i_node){
 
-                    DivideGeometry::IndexedPointType &sub_int_geom_node = p_int_sub_geom->operator[](i_node);
+                    DivideGeometry<Node<3>>::IndexedPointType &sub_int_geom_node = p_int_sub_geom->operator[](i_node);
                     const unsigned int local_id = sub_int_geom_node.Id();
 
                     // Get the global id from the intersection nodes map

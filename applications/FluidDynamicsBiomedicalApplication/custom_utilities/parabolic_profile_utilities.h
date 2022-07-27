@@ -72,6 +72,8 @@ public:
 
     static double CalculateInletArea(const ModelPart& rModelPart);
 
+    static ModelPart& CreateAndFillInletAuxiliaryVolumeModelPart(ModelPart& rInletModelPart);
+
     static void CalculateWallParallelDistance(
         ModelPart& rWallModelPart,
         ModelPart& rFluidModelPart,
