@@ -500,6 +500,14 @@ namespace Kratos {
       const bool intersection_geomRegLen2 = p_tetrahedron->HasIntersection(*p_geomRegLen2);
       KRATOS_CHECK(intersection_geomRegLen2);
 
+      PointPtrType PointA = GeneratePoint<PointType>(100.0, 100.0, 100.0);
+      PointPtrType PointB = GeneratePoint<PointType>(101.0, 100.0, 100.0);
+      PointPtrType PointC = GeneratePoint<PointType>(100.0, 101.0, 100.0);
+      PointPtrType PointD = GeneratePoint<PointType>(100.0, 100.0, 101.0);
+      auto p_far_tetrahedron = GenerateTetrahedra3D4(PointA, PointB, PointC, PointD);
+      const bool intersection_far_geom = p_tetrahedron->HasIntersection(*p_far_tetrahedron);
+      KRATOS_CHECK_IS_FALSE(intersection_far_geom);
+
       /* 2D intersection */
 
       /* 1D intersection */
