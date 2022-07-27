@@ -267,33 +267,37 @@ void WaveElement<TNumNodes>::UpdateGaussPointData(
 
 
 template<>
-void WaveElement<3>::CalculateGeometryData(
-    const GeometryType& rGeometry,
-    Vector &rGaussWeights,
-    Matrix &rNContainer,
-    ShapeFunctionsGradientsType &rDN_DXContainer)
+GeometryData::IntegrationMethod WaveElement<3>::GetIntegrationMethod() const
 {
-    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
-    array_1d<double,3> N;            // Position of the gauss point
-    double area;
-    GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, area);
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
+}
 
-    if (rGaussWeights.size() != 1) {
-        rGaussWeights.resize(1, false);
-    }
-    rGaussWeights[0] = area;
 
-    if (rNContainer.size1() != 1 && rNContainer.size2() != 3) {
-        rNContainer.resize(1, 3, false);
-    }
-    for (std::size_t i = 0; i < 3; ++i) {
-        rNContainer(0, i) = N[i];
-    }
+template<>
+GeometryData::IntegrationMethod WaveElement<4>::GetIntegrationMethod() const
+{
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
+}
 
-    if (rDN_DXContainer.size() != 1) {
-        rDN_DXContainer.resize(1, false);
-    }
-    rDN_DXContainer[0] = DN_DX;
+
+template<>
+GeometryData::IntegrationMethod WaveElement<6>::GetIntegrationMethod() const
+{
+    return GeometryData::IntegrationMethod::GI_GAUSS_3;
+}
+
+
+template<>
+GeometryData::IntegrationMethod WaveElement<8>::GetIntegrationMethod() const
+{
+    return GeometryData::IntegrationMethod::GI_GAUSS_3;
+}
+
+
+template<>
+GeometryData::IntegrationMethod WaveElement<9>::GetIntegrationMethod() const
+{
+    return GeometryData::IntegrationMethod::GI_GAUSS_3;
 }
 
 
@@ -305,8 +309,7 @@ void WaveElement<TNumNodes>::CalculateGeometryData(
     ShapeFunctionsGradientsType &rDN_DXContainer)
 {
     Vector det_j_vector;
-    // const auto& r_geom = this->GetGeometry();
-    const auto integration_method = rGeometry.GetDefaultIntegrationMethod();
+    const auto integration_method = GetIntegrationMethod();
     rNContainer = rGeometry.ShapeFunctionsValues(integration_method);
     rGeometry.ShapeFunctionsIntegrationPointsGradients(rDN_DXContainer, det_j_vector, integration_method);
 
@@ -321,14 +324,14 @@ void WaveElement<TNumNodes>::CalculateGeometryData(
 }
 
 
-template<>
-double WaveElement<3>::ShapeFunctionProduct(
-    const array_1d<double,3>& rN,
-    const std::size_t I,
-    const std::size_t J)
-{
-    return (I == J) ? 1.0/6.0 : 1.0/12.0;
-}
+// template<>
+// double WaveElement<3>::ShapeFunctionProduct(
+//     const array_1d<double,3>& rN,
+//     const std::size_t I,
+//     const std::size_t J)
+// {
+//     return (I == J) ? 1.0/6.0 : 1.0/12.0;
+// }
 
 
 template<std::size_t TNumNodes>
@@ -518,6 +521,7 @@ void WaveElement<TNumNodes>::AddWaveTerms(
     }
 }
 
+
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::AddFrictionTerms(
     LocalMatrixType& rMatrix,
@@ -558,6 +562,7 @@ void WaveElement<TNumNodes>::AddFrictionTerms(
     }
 }
 
+
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::AddDispersiveTerms(
     LocalVectorType& rVector,
@@ -566,6 +571,7 @@ void WaveElement<TNumNodes>::AddDispersiveTerms(
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
     const double Weight)
 {}
+
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
@@ -692,7 +698,7 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
         AddArtificialViscosityTerms(lhs, rhs, data, N, DN_DX, weight);
     }
 
-    // Substracting the Dirichlet term (since we use a residualbased approach)
+    // Subtracting the Dirichlet term (since we use a residual based approach)
     noalias(rhs) -= prod(lhs, this->GetUnknownVector(data));
 
     noalias(rLeftHandSideMatrix) = lhs;
