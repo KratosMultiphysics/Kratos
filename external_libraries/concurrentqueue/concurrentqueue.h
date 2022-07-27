@@ -158,16 +158,8 @@ namespace moodycamel { namespace details {
 } }
 #endif
 
-// Constexpr if
-#ifndef MOODYCAMEL_CONSTEXPR_IF
-#if (defined(_MSC_VER) && defined(_HAS_CXX17) && _HAS_CXX17) || __cplusplus > 201402L
 #define MOODYCAMEL_CONSTEXPR_IF if constexpr
 #define MOODYCAMEL_MAYBE_UNUSED [[maybe_unused]]
-#else
-#define MOODYCAMEL_CONSTEXPR_IF if
-#define MOODYCAMEL_MAYBE_UNUSED
-#endif
-#endif
 
 // Exceptions
 #ifndef MOODYCAMEL_EXCEPTIONS_ENABLED
