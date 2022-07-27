@@ -166,7 +166,7 @@ def get_nodal_variable_from_ascii(filename: str, variable: str):
         var_data.pop(0)
 
         # convert var data to floats
-        for i in range(len(var_data)):
+        for i, _ in enumerate(var_data):
             line = var_data[i].split()
             line[1] = float(line[1])
             line[2] = float(line[2])
@@ -300,6 +300,7 @@ def compute_distance(point1, point2):
     """
     import math
     return math.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2)
+
 
 def compute_mean_list(list):
     return sum(list)/len(list)

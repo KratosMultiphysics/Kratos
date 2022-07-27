@@ -1,4 +1,3 @@
-import sys
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -22,12 +21,10 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
 
         self.calculate_expected_p_wave_velocity()
         self.calculate_expected_velocity_column()
-        pass
 
     def tearDown(self):
         # Code here will be placed AFTER every test in this TestCase.
         pass
-
 
     def test_absorbing_boundary_on_1d_column_quad(self):
         """
@@ -103,7 +100,7 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
         """
 
         # get name of output file
-        directory, output_file_name = os.path.split(file_path)
+        _, output_file_name = os.path.split(file_path)
         output_file_name = os.path.splitext(output_file_name)[0] + "_0.post.res"
         output_file_path = os.path.join(file_path,output_file_name)
 

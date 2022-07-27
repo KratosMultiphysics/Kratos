@@ -87,7 +87,6 @@ protected:
         BoundedMatrix<double, TDim, TDim> CAbsMatrix; // damping part of absorbing matrix;
         BoundedMatrix<double, TDim, TDim> KAbsMatrix; // stiffness part of absorbing matrix;
     };
-    
 
     // Member Variables
     

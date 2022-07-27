@@ -36,7 +36,6 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLhsMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo)
 {
     int n_dof = TNumNodes * TDim;
-    BoundedMatrix<double, TNumNodes* TDim, TNumNodes* TDim> rAbsKMatrix = ZeroMatrix(n_dof, n_dof);
 
     //Previous definitions
     GeometryType& Geom = this->GetGeometry();
@@ -63,8 +62,8 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixTy
     this->GetVariables(rVariables, CurrentProcessInfo);
     this->CalculateNodalStiffnessMatrix(rVariables, CurrentProcessInfo, Geom);
 
-    BoundedMatrix<double, TDim, TDim>             KMatrix = ZeroMatrix(TDim, TDim);
-    BoundedMatrix<double, TDim, TNumNodes* TDim> AuxAbsKMatrix = ZeroMatrix(TDim, TNumNodes * TDim);
+    BoundedMatrix<double, TDim, TNumNodes* TDim> AuxAbsKMatrix;
+    BoundedMatrix<double, TNumNodes* TDim, TNumNodes* TDim> rAbsKMatrix = ZeroMatrix(n_dof, n_dof);
 
     //Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -107,7 +106,6 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& CurrentProcessInfo)
 {
     int n_dof = TNumNodes * TDim;
-    BoundedMatrix<double, TNumNodes* TDim, TNumNodes* TDim> rAbsMatrix = ZeroMatrix(n_dof, n_dof);
 
     //Previous definitions
     GeometryType& Geom = this->GetGeometry();
@@ -132,7 +130,8 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
     this->GetVariables(rVariables, CurrentProcessInfo);
     this->CalculateNodalDampingMatrix(rVariables, CurrentProcessInfo, Geom);
 
-    BoundedMatrix<double, TDim, TNumNodes* TDim> AuxAbsMatrix = ZeroMatrix(TDim, TNumNodes * TDim);
+    BoundedMatrix<double, TDim, TNumNodes* TDim> AuxAbsMatrix;
+    BoundedMatrix<double, TNumNodes* TDim, TNumNodes* TDim> rAbsMatrix = ZeroMatrix(n_dof, n_dof);
 
     //Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
