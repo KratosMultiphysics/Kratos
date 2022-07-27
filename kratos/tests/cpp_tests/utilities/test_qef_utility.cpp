@@ -255,6 +255,7 @@ namespace Testing {
     } 
     
     KRATOS_TEST_CASE_IN_SUITE(QEFmovedCenter, KratosCoreFastSuite) {
+        //A voxel with one node inside the volume but centered at (1,1,1)
         std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
         GeometryPtrType pVoxel = GenerateUncenteredHexahedra3D8(distances);
 
@@ -276,6 +277,33 @@ namespace Testing {
         KRATOS_CHECK_NEAR(point[0], 1.75, 1e-8);
         KRATOS_CHECK_NEAR(point[1], 1.5, 1e-8);
         KRATOS_CHECK_NEAR(point[2], 1.0, 1e-8);     
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(QEF2dofMovedCenter, KratosCoreFastSuite) {
+        std::vector<double> distances{1, 1, -1, -1, 1, 1, -1, -1};   
+        GeometryPtrType pVoxel = GenerateUncenteredHexahedra3D8(distances);
+
+        std::vector<std::vector<double>> triangle1{{2,1.5,2.05},{2.05,1.5,1.95},{1.95,1.5,1.95}};  
+        std::vector<std::vector<double>> triangle2{{2,1.5,0.05},{2.05,1.5,-0.05},{1.95,1.5,-0.05}}; 
+        std::vector<std::vector<double>> triangle3{{0,1.5,0.05},{0.05,1.5,-0.05},{-0.05,1.5,-0.05}}; 
+        std::vector<std::vector<double>> triangle4{{0,1.5,2.05},{0.05,1.5,1.95},{-0.05,1.5,1.95}}; 
+        
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
+        GeometryPtrType pTriangle3 = GenerateTriangle3D3(triangle3);
+        GeometryPtrType pTriangle4 = GenerateTriangle3D3(triangle4);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1); 
+        array1.push_back(pTriangle2);
+        array1.push_back(pTriangle3);
+        array1.push_back(pTriangle4);
+
+        array_1d<double,3> point = QEF::QEF_point(*pVoxel,array1);
+
+        KRATOS_CHECK_NEAR(point[0], 1.0, 1e-8);
+        KRATOS_CHECK_NEAR(point[1], 1.5, 1e-8);
+        KRATOS_CHECK_NEAR(point[2], 1.0, 1e-8);  
     }
 
 }  // namespace Testing.
