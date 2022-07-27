@@ -10,6 +10,7 @@ import time
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtilities
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -273,9 +274,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.surface_smoothing_process = self._set_surface_smoothing_process()
 
-        print("Contact Angle Evaluator Const 1")
         self.contact_angle_evaluator = self._set_contact_angle_evaluator()
-        print("Contact Angle Evaluator Const 2")
 
         #print("Smoothing")
         #print(time.time())
@@ -313,6 +312,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["formulation"]["dynamic_tau"].GetDouble())
 
+        self.manual_output = self._set_manual_GiD_output()
+        
         with open("ZeroDistance_Structured.log", "w") as SdistLogFile:
             SdistLogFile.write( "time_step" + "\t" + "XZeroMin" + "\t" + "XZeroMax" + "\t" + "ZZero" + "\n" )
 
@@ -389,7 +390,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #        KratosMultiphysics.Logger.PrintInfo("Inlet", vel_inlet)
 
             if (TimeStep % 40000 == 0):
-                print("Parallel Redistancing Started")
+                print("Parallel Redistancing: Started")
                 print(time.time())
                 layers = 100#int(4000/100000*self.main_model_part.NumberOfElements())
                 (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances( #
@@ -401,7 +402,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
                 print(time.time())
-                print("Parallel Redistancing Finished")
+                print("Parallel Redistancing: Finished")
 
             print("Calculating curvature for elliptic redistiancing and contact angle distribution, prior to smoothing: Start")
             (self.distance_gradient_process).Execute() # Always check if calculated above
@@ -409,17 +410,17 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             print("Calculating curvature for elliptic redistiancing and contact angle distribution, prior to smoothing: End")
 
             # Evaluating the average nodal contact angle: First location: works fine with dewetting
-            print("Contact Angle Evaluator: Start")
+            print("Contact Angle Evaluator: Started")
             (self.contact_angle_evaluator).Execute()
 
             # Store current level-set to check for wetting/dewetting used in contact_angle_evaluator
             for node in self.main_model_part.Nodes:
                 old_distance = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
                 node.SetValue(KratosCFD.DISTANCE_AUX, old_distance)
-            print("Contact Angle Evaluator: End")
+            print("Contact Angle Evaluator: Finished")
 
             if (TimeStep % 4 == 0):
-                print("Smoothing Started")
+                print("Smoothing: Started")
                 print(time.time())
 
                 #(self.distance_gradient_process).Execute() # Always check if calculated above
@@ -429,11 +430,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
                 print(time.time())
-                print("Smoothing Finished")
+                print("Smoothing: Finished")
 
             # Recompute the distance field according to the new level-set position
             if (TimeStep % 4 == 0):
-                print("Elliptic Redistancing Started")
+                print("Elliptic Redistancing: Started")
                 print(time.time())
 
                 #(self.distance_gradient_process).Execute() # Always check if calculated above
@@ -443,7 +444,18 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
                     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
-                print("Elliptic Redistancing Finished")
+                print("Elliptic Redistancing: Finished")
+                print(time.time())
+
+                print("Writing Reinitialized Levelset: Started")
+                print(time.time())
+
+                self.manual_output.ExecuteInitializeSolutionStep()
+                #if self.manual_output.IsOutputStep(): #Not needed, manually controlled here!!?
+                self.manual_output.PrintOutput()
+                self.manual_output.ExecuteFinalizeSolutionStep()
+
+                print("Writing Reinitialized Levelset: Finished")
                 print(time.time())
 
             #########################################
@@ -854,6 +866,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 KratosMultiphysics.Logger.PrintInfo("accelerationLimitationUtility, TIMESTEP= ", TimeStep)
                 (self.accelerationLimitationUtility).Execute()
 
+    
+    def Finalize(self):
+        self.manual_output.ExecuteFinalize()
+        return super().Finalize()
+    
     # TODO: Remove this method as soon as the subproperties are available
     def _SetPhysicalProperties(self):
         import os
@@ -1152,3 +1169,36 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         contact_angle_evaluator = KratosCFD.ContactAngleEvaluator(self.main_model_part)
 
         return contact_angle_evaluator
+
+    def _set_manual_GiD_output(self):
+        #visualize results.
+        gid_output = GiDOutputProcess(self.main_model_part,
+                                    "reinitialized_levelset",
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration": {
+                                                "gidpost_flags"       : {
+                                                    "GiDPostMode"           : "GiD_PostBinary",
+                                                    "WriteDeformedMeshFlag" : "WriteDeformed",
+                                                    "WriteConditionsFlag"   : "WriteConditions",
+                                                    "MultiFileFlag"         : "SingleFile"
+                                                },
+                                                "file_label"          : "time",
+                                                "output_control_type" : "time",
+                                                "output_frequency"    : 1.0e-6,
+                                                "body_output"         : true,
+                                                "node_output"         : false,
+                                                "skin_output"         : false,
+                                                "plane_output"        : [],
+                                                "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","DISTANCE_GRADIENT"],
+                                                "gauss_point_results" : []
+                                            }
+                                        }
+                                        """)
+                                    )
+
+        gid_output.ExecuteInitialize()
+        gid_output.ExecuteBeforeSolutionLoop()
+        gid_output.PrintOutput()
+
+        return gid_output
