@@ -35,7 +35,6 @@ Condition::Pointer UPwLysmerAbsorbingCondition<TDim,TNumNodes>::Create(IndexType
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLhsMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo)
 {
-    int n_dof = TNumNodes * TDim;
 
     //Previous definitions
     GeometryType& Geom = this->GetGeometry();
@@ -55,15 +54,15 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixTy
     Geom.Jacobian(JContainer, rIntegrationMethod);
 
     //Condition variables
-    BoundedMatrix<double, TDim, TNumNodes* TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
+    BoundedMatrix<double, TDim, N_DOF> Nu = ZeroMatrix(TDim, N_DOF);
 
     NormalLysmerAbsorbingVariables rVariables;
 
     this->GetVariables(rVariables, CurrentProcessInfo);
     this->CalculateNodalStiffnessMatrix(rVariables, CurrentProcessInfo, Geom);
 
-    BoundedMatrix<double, TDim, TNumNodes* TDim> AuxAbsKMatrix;
-    BoundedMatrix<double, TNumNodes* TDim, TNumNodes* TDim> rAbsKMatrix = ZeroMatrix(n_dof, n_dof);
+    BoundedMatrix<double, TDim, N_DOF> AuxAbsKMatrix;
+    BoundedMatrix<double, N_DOF, N_DOF> rAbsKMatrix = ZeroMatrix(N_DOF, N_DOF);
 
     //Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -85,16 +84,15 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixTy
     rVariables.UMatrix = rAbsKMatrix;
 
     // assemble left hand side vector
-    const SizeType ConditionSize = TNumNodes * TDim + TNumNodes;
-    noalias(rLhsMatrix) = ZeroMatrix(ConditionSize);
-    if (rLhsMatrix.size1() != ConditionSize)
-        rLhsMatrix.resize(ConditionSize, ConditionSize, false);
+    noalias(rLhsMatrix) = ZeroMatrix(CONDITION_SIZE);
+    if (rLhsMatrix.size1() != CONDITION_SIZE)
+        rLhsMatrix.resize(CONDITION_SIZE, CONDITION_SIZE, false);
 
-    noalias(rLhsMatrix) = ZeroMatrix(ConditionSize, ConditionSize);
+    noalias(rLhsMatrix) = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
     this->CalculateAndAddLHS(rLhsMatrix, rVariables);
 
     // no righthand side contribution
-    rRightHandSideVector = ZeroVector(ConditionSize);
+    rRightHandSideVector = ZeroVector(CONDITION_SIZE);
 }
 
 /// <summary>
@@ -105,7 +103,6 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixTy
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& CurrentProcessInfo)
 {
-    int n_dof = TNumNodes * TDim;
 
     //Previous definitions
     GeometryType& Geom = this->GetGeometry();
@@ -124,14 +121,14 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
     Geom.Jacobian(JContainer, rIntegrationMethod);
 
     //Condition variables
-    BoundedMatrix<double, TDim, TNumNodes* TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
+    BoundedMatrix<double, TDim, N_DOF> Nu = ZeroMatrix(TDim, N_DOF);
 
     NormalLysmerAbsorbingVariables rVariables;
     this->GetVariables(rVariables, CurrentProcessInfo);
     this->CalculateNodalDampingMatrix(rVariables, CurrentProcessInfo, Geom);
 
-    BoundedMatrix<double, TDim, TNumNodes* TDim> AuxAbsMatrix;
-    BoundedMatrix<double, TNumNodes* TDim, TNumNodes* TDim> rAbsMatrix = ZeroMatrix(n_dof, n_dof);
+    BoundedMatrix<double, TDim, N_DOF> AuxAbsMatrix;
+    BoundedMatrix<double, N_DOF, N_DOF> rAbsMatrix = ZeroMatrix(N_DOF, N_DOF);
 
     //Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -152,11 +149,10 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
 
 
     // assemble right hand side vector
-    const SizeType ConditionSize = TNumNodes * TDim + TNumNodes;
-    noalias(rDampingMatrix) = ZeroMatrix(ConditionSize);
-    if (rDampingMatrix.size1() != ConditionSize)
-        rDampingMatrix.resize(ConditionSize, ConditionSize, false);
-    rDampingMatrix = ZeroMatrix(ConditionSize, ConditionSize);
+    noalias(rDampingMatrix) = ZeroMatrix(CONDITION_SIZE);
+    if (rDampingMatrix.size1() != CONDITION_SIZE)
+        rDampingMatrix.resize(CONDITION_SIZE, CONDITION_SIZE, false);
+    rDampingMatrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
 
     this->CalculateAndAddLHS(rDampingMatrix, rVariables);
 }
@@ -175,10 +171,9 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetFirstDerivativesVector(Vec
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF = TNumNodes * TDim + TNumNodes;
 
-    if (rValues.size() != N_DOF)
-        rValues.resize(N_DOF, false);
+    if (rValues.size() != CONDITION_SIZE)
+        rValues.resize(CONDITION_SIZE, false);
 
     if (TDim == 2) {
         unsigned int index = 0;
@@ -212,7 +207,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetFirstDerivativesVector(Vec
 /// <param name="Geom"></param>
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
-CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, Element::GeometryType& Geom)
+CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, const Element::GeometryType& Geom)
 {
     array_1d<double, 2> rDampingConstants;
 
@@ -254,7 +249,7 @@ CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const Pr
 /// <param name="Geom"></param>
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
-CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, Element::GeometryType& Geom)
+CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, const Element::GeometryType& Geom)
 {
     array_1d<double, 2> rStiffnessConstants;
 
@@ -301,9 +296,9 @@ GetNeighbourElementVariables(
     
     double rho_s = 0;
     double rho_w = 0;
-    double E = 0;
+    double Ec = 0;
+    double G = 0;
     double n = 0;
-    double nu = 0;
     double rMeanDegreeOfSaturation = 0;
 
     // get mean degree of saturation of all integration points in all neighbour elements
@@ -318,13 +313,23 @@ GetNeighbourElementVariables(
     int nValues = 0;
     for (unsigned int i = 0; i < neighbours.size(); ++i) {
         
-        auto const rPropNeighbour = neighbours[i].GetProperties();
+        auto rPropNeighbour = neighbours[i].GetProperties();
 
+        // get Ec and G from constitutive matrix
+        Matrix ConstitutiveMatrix;
+        ConstitutiveLaw::Pointer pConstitutiveLaw = rPropNeighbour[CONSTITUTIVE_LAW];
+        ConstitutiveLaw::Parameters ConstitutiveParameters(neighbours[i].GetGeometry(), rPropNeighbour, rCurrentProcessInfo);
+
+        pConstitutiveLaw->CalculateValue(ConstitutiveParameters, CONSTITUTIVE_MATRIX, ConstitutiveMatrix);
+
+        const int G_index = ConstitutiveMatrix.size1() -1;
+        Ec = ConstitutiveMatrix(0, 0);
+        G = ConstitutiveMatrix(G_index, G_index);
+
+        // get density and porosity from element
         rho_s = rho_s + rPropNeighbour[DENSITY_SOLID];
         rho_w = rho_w + rPropNeighbour[DENSITY_WATER];
         n = n + rPropNeighbour[POROSITY];
-        E = E + rPropNeighbour[YOUNG_MODULUS];
-        nu = nu + rPropNeighbour[POISSON_RATIO];
 
         neighbours[i].CalculateOnIntegrationPoints(DEGREE_OF_SATURATION, SaturationVector, rCurrentProcessInfo);
 
@@ -337,8 +342,8 @@ GetNeighbourElementVariables(
     }
 
     // calculate mean of neighbour element variables
-    rVariables.E = E / nElements;
-    rVariables.nu = nu / nElements;
+    rVariables.Ec = Ec / nElements;
+    rVariables.G = G / nElements;
 
     n = n / nElements;
     rho_s = rho_s / nElements;
@@ -357,10 +362,6 @@ GetVariables(
 {
     // gets average of variables as stored in neighbour elements
     this->GetNeighbourElementVariables(rVariables, rCurrentProcessInfo);
-
-    // calculate P wave modulus and shear wave modulus
-    rVariables.Ec = rVariables.E * (1 - rVariables.nu) / ((1 + rVariables.nu) * (1 - 2 * rVariables.nu));
-    rVariables.G = rVariables.E / (2 * (1 + rVariables.nu));
 
     // calculate pressure wave and shear wave velocity
     rVariables.vp = sqrt(rVariables.Ec / rVariables.rho);

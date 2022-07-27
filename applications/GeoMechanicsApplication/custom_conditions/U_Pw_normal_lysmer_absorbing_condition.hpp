@@ -69,16 +69,17 @@ public:
 
 protected:
 
+    static constexpr SizeType N_DOF = TNumNodes * TDim;
+    static constexpr SizeType CONDITION_SIZE = TNumNodes * TDim + TNumNodes;
+
     struct NormalLysmerAbsorbingVariables
     {
         double IntegrationCoefficient;
         array_1d<double,TNumNodes> Np;
-        BoundedMatrix<double, TNumNodes* TDim, TNumNodes* TDim> UMatrix;
-        double E; // youngs modulus
-        double nu; // poison ratio
+        BoundedMatrix<double, N_DOF, N_DOF> UMatrix;
         double rho; // density of soil mixture
         double Ec; // p wave modulus
-        double G; // shear wave modulus
+        double G; // shear modulus
         double vp; // p wave velocity
         double vs; // shear wave velocity
         double p_factor; // p wave relaxation factor
@@ -105,9 +106,9 @@ protected:
 
     void GetVariables(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
 
-    void CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, Element::GeometryType& Geom);
+    void CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, const Element::GeometryType& Geom);
     
-    void CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, Element::GeometryType& Geom);
+    void CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, const Element::GeometryType& Geom);
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
