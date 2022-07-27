@@ -151,33 +151,31 @@ public:
             AtB = AtB + prod(mNormal,mAux);
             BtB = BtB + prod(mAux,mAux); 
         }
-
+        /*
         std::cout << "AtA: " << std::endl;
         write(AtA);
-        std:: cout << std::endl;
+        std:: cout << std::endl; */
 
         //Find the eigenvalues and eigenvectors to AtA
         MatrixType mEigenvectors;
         MatrixType mEigenvalues;
 
         const bool converged = MathUtils<double>::GaussSeidelEigenSystem(AtA, mEigenvectors, mEigenvalues);
-
+        /*
         std::cout << "VAPS: " << std::endl;
         write(mEigenvalues);
         std:: cout << std::endl;
         std::cout << "VEPS: " << std::endl;
         write(mEigenvectors);
-        std:: cout << std::endl;
+        std:: cout << std::endl; */
 
         //construct D
         MatrixType D(3,3,0);
-        for (int i : {0,1,2}) {
-            if (mEigenvalues(i,i) < 1e-12) D(i,i) = 0;
-            else D(i,i) = check(1.0/mEigenvalues(i,i), 1e-12);
-        }
+        for (int i : {0,1,2}) mEigenvalues(i,i) < 1e-12 ? D(i,i) = 0 : D(i,i) = check(1.0/mEigenvalues(i,i), 1e-12);
+        /*
         std::cout << "D: " << std::endl;
         write(D);
-        std:: cout << std::endl;
+        std:: cout << std::endl; */
 
         MatrixType AtAInverse;  
         MathUtils<double>::BDBtProductOperation(AtAInverse, D, mEigenvectors);
