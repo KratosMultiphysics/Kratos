@@ -11,12 +11,9 @@
 //
 //
 //System inlcudes
-#include <iostream>
 
 // Project includes
 #include "custom_utilities/tetrahedra10_mesh_converter_utility.h"
-#include "geometries/triangle_3d_3.h"
-
 
 
 namespace Kratos {
