@@ -147,7 +147,7 @@ namespace Testing {
         array1.push_back(pTriangle2);
         array1.push_back(pTriangle3);
 
-        array_1d<double,3> point = QEF::QEF_point(*pVoxel,array1);
+        array_1d<double,3> point = QEF::QEFPoint(*pVoxel,array1);
 
         KRATOS_CHECK_NEAR(point[0], 0.75, 1e-8);
         KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
@@ -176,7 +176,7 @@ namespace Testing {
         array1.push_back(pTriangle3);
         array1.push_back(pTriangle4);
 
-        array_1d<double,3> point = QEF::QEF_point(*pVoxel,array1);
+        array_1d<double,3> point = QEF::QEFPoint(*pVoxel,array1);
 
         KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
         KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
@@ -205,7 +205,7 @@ namespace Testing {
         array1.push_back(pTriangle3);
         array1.push_back(pTriangle4);
 
-        array_1d<double,3> point = QEF::QEF_point(*pVoxel,array1);
+        array_1d<double,3> point = QEF::QEFPoint(*pVoxel,array1);
 
         KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
         KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
@@ -247,7 +247,7 @@ namespace Testing {
         array1.push_back(pTriangle8);
 
         //Call the point utility
-        array_1d<double,3> point = QEF::QEF_point(*pVoxel,array1);
+        array_1d<double,3> point = QEF::QEFPoint(*pVoxel,array1);
 
         KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
         KRATOS_CHECK_NEAR(point[1], 0.0, 1e-8);
@@ -272,7 +272,7 @@ namespace Testing {
         array1.push_back(pTriangle2);
         array1.push_back(pTriangle3);
 
-        array_1d<double,3> point = QEF::QEF_point(*pVoxel,array1);
+        array_1d<double,3> point = QEF::QEFPoint(*pVoxel,array1);
 
         KRATOS_CHECK_NEAR(point[0], 1.75, 1e-8);
         KRATOS_CHECK_NEAR(point[1], 1.5, 1e-8);
@@ -299,7 +299,7 @@ namespace Testing {
         array1.push_back(pTriangle3);
         array1.push_back(pTriangle4);
 
-        array_1d<double,3> point = QEF::QEF_point(*pVoxel,array1);
+        array_1d<double,3> point = QEF::QEFPoint(*pVoxel,array1);
 
         KRATOS_CHECK_NEAR(point[0], 1.0, 1e-8);
         KRATOS_CHECK_NEAR(point[1], 1.5, 1e-8);

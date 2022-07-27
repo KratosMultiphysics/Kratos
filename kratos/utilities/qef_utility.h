@@ -106,7 +106,7 @@ public:
      * @return The Point (coordinates) of the x-point of the voxel
      */  
     template<class TGeometryType, class TGeometryArrayType>
-    static array_1d<double,3> QEF_point (
+    static array_1d<double,3> QEFPoint (
         const TGeometryType& rVoxel,  
         const TGeometryArrayType& rTriangles     
     ) {
@@ -116,7 +116,7 @@ public:
         MatrixType mCenter(3,1);
         column(mCenter,0) = center;
         GeometryArrayType edges = rVoxel.GenerateEdges();
-        
+
         //Initialize the corresponding matrixes
         MatrixType AtA(3,3,0);  //3x3 matrix initialized to 0
         MatrixType AtB(3,1,0);  //3x1 matrix
@@ -202,14 +202,7 @@ public:
      * @param rEnds references to the nodes at both sides of the edge
      * @return Approximated volume 
      */  
-    static array_1d<double,3> CalculateNormal(const GeometryType& triangle) {
-        PointsArrayType nodes = triangle.Points();
-        array_1d<double,3> u = nodes[1] - nodes[0];
-        array_1d<double,3> v = nodes[2] - nodes[0];
-        array_1d<double,3> normal;
-        MathUtils<double>::CrossProduct<array_1d<double,3>,array_1d<double,3>,array_1d<double,3>>(normal,u,v);
-        return normal;
-    }
+    static array_1d<double,3> CalculateNormal(const GeometryType& triangle);
     
 private:
 
