@@ -510,7 +510,8 @@ protected:
         // Get the unknown variable from Kratos components
         const auto &rUnknownVariable = EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable();
 
-        //auxiliary containers of nodes
+        // Temporary container of nodes
+        // This is intentionally done to add the nodes at once and avoid the sort at each CreateNewNode call
         std::unordered_map<unsigned int, Node<3>::Pointer> map_of_nodes;
 
         // Loop the base model part elements
@@ -595,11 +596,11 @@ protected:
             }
         }
 
-        rModelPart.Elements().Unique();
 
-        //populate the modelpart with all the nodes in NodesMap
+        // Populate the modelpart with all the nodes in NodesMap
+        // Note that a temporary vector is created from the set to add all nodes at once
         PointerVectorSet<Node<3>> tmp;
-        tmp.reserve(rModelPart.Elements().size()*2);
+        tmp.reserve(rModelPart.NumberOfElements()*2);
         for(auto& item: map_of_nodes){
             tmp.push_back(item.second);
         }
@@ -739,7 +740,7 @@ private:
         std::unordered_map<unsigned int, Node<3>::Pointer>& rNodesMap
         ) const
     {
-        const auto& pvar_list = rModelPart.pGetNodalSolutionStepVariablesList();
+        const auto& rp_var_list = rModelPart.pGetNodalSolutionStepVariablesList();
         unsigned int buffer_size = rModelPart.GetBufferSize();
         
         // Loop the edge nodes
