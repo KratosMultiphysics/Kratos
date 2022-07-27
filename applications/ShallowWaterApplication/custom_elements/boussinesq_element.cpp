@@ -18,10 +18,14 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "boussinesq_element.h"
 #include "utilities/geometry_utilities.h"
+
+
+// Application includes
+#include "boussinesq_element.h"
 #include "custom_utilities/phase_function.h"
 #include "shallow_water_application_variables.h"
+
 
 namespace Kratos
 {
@@ -30,7 +34,7 @@ template<std::size_t TNumNodes>
 const Parameters BoussinesqElement<TNumNodes>::GetSpecifications() const
 {
     const Parameters specifications = Parameters(R"({
-        "required_variables"         : ["VELOCITY","FREE_SURFACE_ELEVATION","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY","VELOCITY_LAPLACIAN","VELOCITY_H_LAPLACIAN"],
+        "required_variables"         : ["VELOCITY","FREE_SURFACE_ELEVATION","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY","DISPERSION_H","DISPERSION_V"],
         "required_dofs"              : ["VELOCITY_X","VELOCITY_Y","FREE_SURFACE_ELEVATION"],
         "compatible_geometries"      : ["Triangle2D3"],
         "element_integrates_in_time" : false
@@ -69,12 +73,13 @@ void BoussinesqElement<TNumNodes>::GetNodalData(ElementData& rData, const Geomet
 {
     for (std::size_t i = 0; i < TNumNodes; i++)
     {
-        rData.nodal_f[i] = rGeometry[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, Step);
-        rData.nodal_w[i] = rGeometry[i].FastGetSolutionStepValue(VERTICAL_VELOCITY, Step);
-        rData.nodal_z[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY, Step);
-        rData.nodal_v[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY, Step);
-        rData.nodal_v_lap[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN, Step);
-        rData.nodal_q_lap[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN, Step);
+        rData.nodal_f[i]  = rGeometry[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, Step);
+        rData.nodal_w[i]  = rGeometry[i].FastGetSolutionStepValue(VERTICAL_VELOCITY, Step);
+        rData.nodal_z[i]  = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY, Step);
+        rData.nodal_v[i]  = rGeometry[i].FastGetSolutionStepValue(VELOCITY, Step);
+        rData.nodal_a[i]  = rGeometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
+        rData.nodal_Jh[i] = rGeometry[i].FastGetSolutionStepValue(DISPERSION_H, Step);
+        rData.nodal_Ju[i] = rGeometry[i].FastGetSolutionStepValue(DISPERSION_V, Step);
     }
 }
 
@@ -82,10 +87,12 @@ void BoussinesqElement<TNumNodes>::GetNodalData(ElementData& rData, const Geomet
 template<std::size_t TNumNodes>
 void BoussinesqElement<TNumNodes>::UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN)
 {
-    const double eta = inner_prod(rData.nodal_f, rN);
-    const double H = -inner_prod(rData.nodal_z, rN);
+    const double lumping_factor = 1.0 / static_cast<double>(TNumNodes);
+    array_1d<double,TNumNodes> constant_N(TNumNodes, lumping_factor);
+    const double eta = inner_prod(rData.nodal_f, constant_N);
+    const double H = -inner_prod(rData.nodal_z, constant_N);
     const double g = rData.gravity;
-    const array_1d<double,3> v = WaveElementType::VectorProduct(rData.nodal_v, rN);
+    const array_1d<double,3> v = WaveElementType::VectorProduct(rData.nodal_v, constant_N);
 
     rData.depth = std::max(0.0, H);
     rData.height = H + eta;
@@ -179,14 +186,6 @@ void BoussinesqElement<TNumNodes>::AlgebraicResidual(
     const array_1d<double,TNumNodes>& rN,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX) const
 {
-    // constants
-    const double beta = -0.531;
-    const double C1 = 0.5 * std::pow(beta, 2) - 0.166666666666;
-    const double C3 = beta + 0.5;
-    const double H = rData.depth;
-    const double H3 = std::pow(H, 3);
-    const double H2 = std::pow(H, 2);
-
     // Spatial derivatives
     rFreeSurfaceGradient = prod(rData.nodal_f, rDN_DX);
     const double v_divergence = WaveElementType::VectorDivergence(rData.nodal_v, rDN_DX);
@@ -195,8 +194,7 @@ void BoussinesqElement<TNumNodes>::AlgebraicResidual(
     const double vertical_vel = inner_prod(rData.nodal_w, rN);
     const double wave_f = rData.height * v_divergence;
     const double convection_f = rData.velocity[0] * rFreeSurfaceGradient[0] + rData.velocity[1] * rFreeSurfaceGradient[1];
-    double dispersion_f = C1 * H3 * WaveElementType::VectorDivergence(rData.nodal_v_lap, rDN_DX);
-    dispersion_f       += C3 * H2 * WaveElementType::VectorDivergence(rData.nodal_q_lap, rDN_DX);
+    double dispersion_f = WaveElementType::VectorDivergence(rData.nodal_Jh, rDN_DX);
     rMassResidual = vertical_vel + wave_f + convection_f + dispersion_f;
 }
 
@@ -209,24 +207,10 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
     const double Weight)
 {
-    // Constants
-    const double beta = -0.531;
-    const double C1 = 0.5 * std::pow(beta, 2) - 0.166666666666;
-    const double C3 = beta + 0.5;
-    const double H = rData.depth;
-    const double H3 = std::pow(H, 3);
-    const double H2 = std::pow(H, 2);
-
-    // Projected auxiliary field
-    array_1d<array_1d<double,3>,TNumNodes> nodal_Jf;
-    for (std::size_t i = 0; i < TNumNodes; ++i) {
-        nodal_Jf[i] = C1 * H3 * rData.nodal_v_lap[i] + C3 * H2 * rData.nodal_q_lap[i];
-    }
-
     // Stabilization constants
     const double l = StabilizationParameter(rData);
-    const array_1d<double,3> A1i3 = column(rData.A1, 2);
-    const array_1d<double,3> A2i3 = column(rData.A2, 2);
+    const array_1d<double,3> A1i3 = row(rData.A1, 2); // row(A) means column(A^T)
+    const array_1d<double,3> A2i3 = row(rData.A2, 2); // row(A) means column(A^T)
 
     // Adding the contribution of the dispersive fields
     for (std::size_t i = 0; i < TNumNodes; ++i)
@@ -244,25 +228,39 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
                 g2_ij = rN[i] * rDN_DX(j,1);
             }
 
-            /// Gradient contribution
-            rVector[3*i + 2] -= Weight*g1_ij*nodal_Jf[j][0];
-            rVector[3*i + 2] -= Weight*g2_ij*nodal_Jf[j][1];
+            /// Gradient dispersion contribution to mass conservation
+            rVector[3*i + 2] -= Weight*g1_ij*rData.nodal_Jh[j][0];
+            rVector[3*i + 2] -= Weight*g2_ij*rData.nodal_Jh[j][1];
 
             /// Stabilization x-x
             d_ij = rDN_DX(i,0) * rDN_DX(j,0);
-            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A1i3*nodal_Jf[j][0], 3*i);
+            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A1i3*rData.nodal_Jh[j][0], 3*i);
 
             /// Stabilization y-y
             d_ij = rDN_DX(i,1) * rDN_DX(j,1);
-            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A2i3*nodal_Jf[j][1], 3*i);
+            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A2i3*rData.nodal_Jh[j][1], 3*i);
 
             /// Stabilization x-y
             d_ij = rDN_DX(i,0) * rDN_DX(j,1);
-            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A1i3*nodal_Jf[j][1], 3*i);
+            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A1i3*rData.nodal_Jh[j][1], 3*i);
 
             /// Stabilization y-x
             d_ij = rDN_DX(i,1) * rDN_DX(j,0);
-            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A2i3*nodal_Jf[j][0], 3*i);
+            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A2i3*rData.nodal_Jh[j][0], 3*i);
+
+            // /// Dispersion contribution to momentum conservation
+            // const double n_ij = WaveElementType::ShapeFunctionProduct(rN, i, j);
+            // MathUtils<double>::AddVector(rVector, -Weight*n_ij*rData.nodal_Ju[j], 3*i);
+
+            // /// Stabilization x
+            // g1_ij = rDN_DX(i,0) * rN[j];
+            // array_1d<double,3> A1Ju = prod(trans(rData.A1),rData.nodal_Ju[j]);
+            // MathUtils<double>::AddVector(rVector, -Weight*l*g1_ij*A1Ju, 3*i);
+
+            // /// Stabilization y
+            // g2_ij = rDN_DX(i,1) * rN[j];
+            // array_1d<double,3> A2Ju = prod(trans(rData.A2),rData.nodal_Ju[j]);
+            // MathUtils<double>::AddVector(rVector, -Weight*l*g2_ij*A2Ju, 3*i);
         }
     }
 }
@@ -301,11 +299,13 @@ void BoussinesqElement<TNumNodes>::AddMassTerms(
 
             /// Stabilization x
             const double g1_ij = rDN_DX(i,0) * rN[j];
-            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g1_ij*rData.A1, 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g1_ij*trans(rData.A1), 3*i, 3*j);
+            // MathUtils<double>::AddMatrix(rMatrix, Weight*l*g1_ij*rData.A1, 3*i, 3*j);
 
             /// Stabilization y
             const double g2_ij = rDN_DX(i,1) * rN[j];
-            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*rData.A2, 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*trans(rData.A2), 3*i, 3*j);
+            // MathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*rData.A2, 3*i, 3*j);
 
             /// Dispersive term
             derivatives_j[0] = rDN_DX(j,0);
@@ -319,32 +319,47 @@ void BoussinesqElement<TNumNodes>::AddMassTerms(
 
 
 template<std::size_t TNumNodes>
-void BoussinesqElement<TNumNodes>::AddAuxiliaryLaplacian(
-    LocalMatrixType& rVelocityLaplacian,
-    LocalMatrixType& rMomentumLaplacian,
+void BoussinesqElement<TNumNodes>::AddDispersionProjection(
+    LocalVectorType& rDispersionH,
+    LocalVectorType& rDispersionU,
     const ElementData& rData,
     const array_1d<double,TNumNodes>& rN,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
     const double Weight)
 {
-    array_1d<double,3> gradients_vector_i;
-    array_1d<double,3> gradients_vector_j;
+    // Constants
+    const double beta = -0.531;
+    const double C1 = 0.5 * std::pow(beta, 2) - 0.166666666666;
+    const double C2 = 0.5 * std::pow(beta, 2);
+    const double C4 = beta;
+    const double C3 = beta + 0.5;
+    const double H = rData.depth;
+    const double H2 = std::pow(H, 2);
+    const double H3 = std::pow(H, 3);
+
+    array_1d<double,3> gradients_vector_i = ZeroVector(3);
+    array_1d<double,3> gradients_vector_j = ZeroVector(3);
+    BoundedMatrix<double,3,3> K;
+    array_1d<double,3> Jh;
+    array_1d<double,3> Ju;
 
     for (std::size_t i = 0; i < TNumNodes; ++i)
     {
         gradients_vector_i[0] = rDN_DX(i,0);
         gradients_vector_i[1] = rDN_DX(i,1);
-        gradients_vector_i[2] = 0.0;
 
         for (std::size_t j = 0; j < TNumNodes; ++j)
         {
             gradients_vector_j[0] = rDN_DX(j,0);
             gradients_vector_j[1] = rDN_DX(j,1);
-            gradients_vector_j[2] = 0.0;
+            noalias(K) = -outer_prod(gradients_vector_i, gradients_vector_j); 
             const double depth = std::max(0.0, -rData.nodal_z[j]);
 
-            MathUtils<double>::AddMatrix(rVelocityLaplacian, -Weight*outer_prod(gradients_vector_i, gradients_vector_j), 3*i, 3*j);
-            MathUtils<double>::AddMatrix(rMomentumLaplacian, -Weight*depth*outer_prod(gradients_vector_i, gradients_vector_j), 3*i, 3*j);
+            Jh = (C1*H3 + C3*H2*depth) * prod(K, rData.nodal_v[j]);
+            Ju = (C2*H2 + C4*H*depth) * prod(K, rData.nodal_a[j]);
+
+            MathUtils<double>::AddVector(rDispersionH, Weight*Jh, 3*i);
+            MathUtils<double>::AddVector(rDispersionU, Weight*Ju, 3*i);
         }
     }
 }
@@ -366,8 +381,8 @@ void BoussinesqElement<TNumNodes>::InitializeNonLinearIteration(const ProcessInf
     WaveElementType::CalculateGeometryData(r_geometry, weights, N_container, DN_DX_container);
 
     // Auxiliary field
-    LocalMatrixType laplacian = ZeroMatrix(mLocalSize, mLocalSize);
-    LocalMatrixType H_laplacian = ZeroMatrix(mLocalSize, mLocalSize);
+    LocalVectorType dispersion_h = ZeroVector(mLocalSize);
+    LocalVectorType dispersion_u = ZeroVector(mLocalSize);
 
     const std::size_t num_gauss_points = weights.size();
     for (std::size_t g = 0; g < num_gauss_points; ++g)
@@ -377,28 +392,22 @@ void BoussinesqElement<TNumNodes>::InitializeNonLinearIteration(const ProcessInf
         const BoundedMatrix<double,TNumNodes,2> DN_DX = DN_DX_container[g];
 
         UpdateGaussPointData(data, N);
-
-        AddAuxiliaryLaplacian(laplacian, H_laplacian, data, N, DN_DX, weight);
+        AddDispersionProjection(dispersion_h, dispersion_u, data, N, DN_DX, weight);
     }
 
-    // Calculate the laplacian vector
-    const LocalVectorType& vel_vector = this->GetUnknownVector(data);
-    LocalVectorType vel_laplacian_vector = prod(laplacian, vel_vector);
-    LocalVectorType vel_H_laplacian_vector = prod(H_laplacian, vel_vector);
-
     // Add the elemental contribution to the nodes
-    array_1d<double,3> vel_laplacian = ZeroVector(3);
-    array_1d<double,3> vel_H_laplacian = ZeroVector(3);
+    array_1d<double,3> nodal_dispersion_h = ZeroVector(3);
+    array_1d<double,3> nodal_dispersion_u = ZeroVector(3);
     for (std::size_t i = 0; i < TNumNodes; ++i)
     {
         std::size_t block = 3 * i;
-        vel_laplacian[0] = vel_laplacian_vector[block];
-        vel_laplacian[1] = vel_laplacian_vector[block + 1];
-        vel_H_laplacian[0] = vel_H_laplacian_vector[block];
-        vel_H_laplacian[1] = vel_H_laplacian_vector[block + 1];
+        nodal_dispersion_h[0] = dispersion_h[block];
+        nodal_dispersion_h[1] = dispersion_h[block + 1];
+        nodal_dispersion_u[0] = dispersion_u[block];
+        nodal_dispersion_u[1] = dispersion_u[block + 1];
         r_geometry[i].SetLock();
-        r_geometry[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) += vel_laplacian;
-        r_geometry[i].FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN) += vel_H_laplacian;
+        r_geometry[i].FastGetSolutionStepValue(DISPERSION_H) += nodal_dispersion_h;
+        r_geometry[i].FastGetSolutionStepValue(DISPERSION_V) += nodal_dispersion_u;
         r_geometry[i].UnSetLock();
     }
 }
@@ -413,7 +422,7 @@ void BoussinesqElement<TNumNodes>::AddRightHandSide(
     const Vector& rWeights)
 {
     LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
-    LocalVectorType dummy; // since the free surface is a primary variable, the bottom artificial viscosity must not be substracted.
+    LocalVectorType dummy; // since the free surface is a primary variable, the bottom artificial viscosity must not be subtracted.
 
     const std::size_t num_gauss_points = rWeights.size();
 

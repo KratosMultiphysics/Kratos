@@ -35,8 +35,8 @@ void InitializeModelPart(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(HEIGHT);
     rModelPart.AddNodalSolutionStepVariable(FREE_SURFACE_ELEVATION);
     rModelPart.AddNodalSolutionStepVariable(VERTICAL_VELOCITY);
-    rModelPart.AddNodalSolutionStepVariable(VELOCITY_LAPLACIAN);
-    rModelPart.AddNodalSolutionStepVariable(VELOCITY_H_LAPLACIAN);
+    rModelPart.AddNodalSolutionStepVariable(DISPERSION_H);
+    rModelPart.AddNodalSolutionStepVariable(DISPERSION_V);
     rModelPart.AddNodalSolutionStepVariable(TOPOGRAPHY);
     rModelPart.AddNodalSolutionStepVariable(MANNING);
 
@@ -105,8 +105,8 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D3N_FlatBottom, ShallowWaterApplicat
         element->GetGeometry()[i].FastGetSolutionStepValue(TOPOGRAPHY) = topography[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = free_surface[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY) = velocity[i];
-        element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = velocity_laplacian[i];
-        element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN) = velocity_laplacian[i];
+        element->GetGeometry()[i].FastGetSolutionStepValue(DISPERSION_H) = velocity_laplacian[i];
+        element->GetGeometry()[i].FastGetSolutionStepValue(DISPERSION_V) = velocity_laplacian[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION) = acceleration[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VERTICAL_VELOCITY) = vertical_velocity[i];
     }
@@ -184,8 +184,8 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D4N_FlatBottom, ShallowWaterApplicat
         element->GetGeometry()[i].FastGetSolutionStepValue(TOPOGRAPHY) = topography[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = free_surface[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY) = velocity[i];
-        element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = velocity_laplacian[i];
-        element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN) = velocity_laplacian[i];
+        element->GetGeometry()[i].FastGetSolutionStepValue(DISPERSION_H) = velocity_laplacian[i];
+        element->GetGeometry()[i].FastGetSolutionStepValue(DISPERSION_V) = velocity_laplacian[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION) = acceleration[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VERTICAL_VELOCITY) = vertical_velocity[i];
     }

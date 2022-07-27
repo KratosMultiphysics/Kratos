@@ -316,8 +316,8 @@ protected:
         array_1d<array_1d<double,3>,TNumNodes> nodal_v;
         array_1d<array_1d<double,3>,TNumNodes> nodal_q;
         array_1d<array_1d<double,3>,TNumNodes> nodal_a;
-        array_1d<array_1d<double,3>,TNumNodes> nodal_v_lap;
-        array_1d<array_1d<double,3>,TNumNodes> nodal_q_lap;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_Jh;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_Ju;
 
         FrictionLaw::Pointer p_bottom_friction;
     };

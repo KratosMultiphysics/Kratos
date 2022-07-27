@@ -339,8 +339,8 @@ public:
         if (mProjectDispersiveField) {
             const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
             block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
-                rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = ZeroVector(3);
-                rNode.FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN) = ZeroVector(3);
+                rNode.FastGetSolutionStepValue(DISPERSION_H) = ZeroVector(3);
+                rNode.FastGetSolutionStepValue(DISPERSION_V) = ZeroVector(3);
             });
             block_for_each(rModelPart.Elements(), [&](Element& rElement){
                 rElement.InitializeNonLinearIteration(r_process_info);
@@ -350,8 +350,8 @@ public:
             });
             block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
                 const double nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
-                rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) /= nodal_area;
-                rNode.FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN) /= nodal_area;
+                rNode.FastGetSolutionStepValue(DISPERSION_H) /= nodal_area;
+                rNode.FastGetSolutionStepValue(DISPERSION_V) /= nodal_area;
             });
             ApplyLaplacianBoundaryConditions(rModelPart);
         }
@@ -595,12 +595,12 @@ protected:
     {
         block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
             if (rNode.IsFixed(VELOCITY_X)) {
-                rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_X) = 0.0;
-                rNode.FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN_X) = 0.0;
+                rNode.FastGetSolutionStepValue(DISPERSION_H_X) = 0.0;
+                rNode.FastGetSolutionStepValue(DISPERSION_V_X) = 0.0;
             }
             if (rNode.IsFixed(VELOCITY_Y)) {
-                rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_Y) = 0.0;
-                rNode.FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN_Y) = 0.0;
+                rNode.FastGetSolutionStepValue(DISPERSION_H_Y) = 0.0;
+                rNode.FastGetSolutionStepValue(DISPERSION_V_Y) = 0.0;
             }
         });
     }

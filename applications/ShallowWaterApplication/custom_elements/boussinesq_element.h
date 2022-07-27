@@ -214,9 +214,17 @@ protected:
         const ShapeFunctionsGradientsType& rDN_DXContainer,
         const Vector& rWeights);
 
-    void AddAuxiliaryLaplacian(
-        LocalMatrixType& rVelocityLaplacian,
-        LocalMatrixType& rMomentumLaplacian,
+    // void AddAuxiliaryLaplacian(
+    //     LocalMatrixType& rVelocityLaplacian,
+    //     LocalMatrixType& rMomentumLaplacian,
+    //     const ElementData& rData,
+    //     const array_1d<double,TNumNodes>& rN,
+    //     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+    //     const double Weight = 1.0);
+
+    void AddDispersionProjection(
+        LocalVectorType& rDispersionH,
+        LocalVectorType& rDispersionU,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
