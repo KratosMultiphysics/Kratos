@@ -554,7 +554,7 @@ void exactinit(int verbose, int noexact, int nofilter, REAL maxx, REAL maxy,
 #ifdef SINGLE
   _control87(_PC_24, _MCW_PC); /* Set FPU control word for single precision. */
 #else /* not SINGLE */
-  _control87(_PC_53, _MCW_PC); /* Set FPU control word for double precision. */
+  //_control87(_PC_53, _MCW_PC); /* Set FPU control word for double precision. (COMMENTED BY RRANGEL TO AVOID CRASHING HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!) */
 #endif /* not SINGLE */
 #endif /* CPU86 */
 #ifdef LINUX
