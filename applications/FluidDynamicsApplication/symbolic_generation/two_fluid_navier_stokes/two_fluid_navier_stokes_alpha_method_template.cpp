@@ -108,6 +108,78 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
 }
 
 template <>
+void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointLHSOutletPenaltyContribution(
+    TwoFluidNavierStokesAlphaMethodData<2, 3> &rData,
+    MatrixType &rLHS)
+{
+    double c_penalty = 10.0;
+    const double mu = rData.EffectiveViscosity;
+    const double max_spectral_radius = rData.MaxSprectraRadius;
+    double kappa = c_penalty * mu;
+    double gauss_weight = rData.Weight;
+    const auto &N = rData.N;
+    const auto &DN = rData.DN_DX;
+    const auto &v = rData.Velocity;
+    const auto &vn = rData.Velocity_OldStep1;
+
+    //substitute_outlet_penalty_contribution_lhs_2D
+}
+
+template <>
+void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGaussPointLHSOutletPenaltyContribution(
+    TwoFluidNavierStokesAlphaMethodData<3, 4> &rData,
+    MatrixType &rLHS)
+{
+    double c_penalty = 10.0;
+    const double mu = rData.EffectiveViscosity;
+    const double max_spectral_radius = rData.MaxSprectraRadius;
+    double kappa = c_penalty * mu;
+    double gauss_weight = rData.Weight;
+    const auto &N = rData.N;
+    const auto &DN = rData.DN_DX;
+    const auto &v = rData.Velocity;
+    const auto &vn = rData.Velocity_OldStep1;
+
+    //substitute_outlet_penalty_contribution_lhs_3D
+}
+
+template <>
+void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointRHSOutletPenaltyContribution(
+    TwoFluidNavierStokesAlphaMethodData<2, 3> &rData,
+    VectorType &rRHS)
+{
+    double c_penalty = 10.0;
+    const double mu = rData.EffectiveViscosity;
+    const double max_spectral_radius = rData.MaxSprectraRadius;
+    double kappa = c_penalty * mu;
+    double gauss_weight = rData.Weight;
+    const auto &N = rData.N;
+    const auto &DN = rData.DN_DX;
+    const auto &v = rData.Velocity;
+    const auto &vn = rData.Velocity_OldStep1;
+
+    //substitute_outlet_penalty_contribution_rhs_2D
+}
+
+template <>
+void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGaussPointRHSOutletPenaltyContribution(
+    TwoFluidNavierStokesAlphaMethodData<3, 4> &rData,
+    VectorType &rRHS)
+{
+    double c_penalty = 10.0;
+    const double mu = rData.EffectiveViscosity;
+    const double max_spectral_radius = rData.MaxSprectraRadius;
+    double kappa = c_penalty * mu;
+    double gauss_weight = rData.Weight;
+    const auto &N = rData.N;
+    const auto &DN = rData.DN_DX;
+    const auto &v = rData.Velocity;
+    const auto &vn = rData.Velocity_OldStep1;
+
+    //substitute_outlet_penalty_contribution_rhs_3D
+}
+
+template <>
 void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointLHSContribution(
     TwoFluidNavierStokesAlphaMethodData<2, 3> &rData,
     MatrixType &rLHS)
@@ -146,6 +218,11 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
 
     // Add intermediate results to local system
     noalias(rLHS) += lhs * rData.Weight;
+
+    // Add outlet penalty contribution
+    if (this->Is(OUTLET) && !rData.IsCut()) {
+        TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointLHSOutletPenaltyContribution(rData, rLHS);
+    }
 }
 
 template <>
@@ -188,6 +265,11 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
 
     // Add intermediate results to local system
     noalias(rLHS) += lhs * rData.Weight;
+
+    // Add outlet penalty contribution
+    if (this->Is(OUTLET)) {
+        TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGaussPointLHSOutletPenaltyContribution(rData, rLHS);
+    }
 }
 
 template <>
@@ -229,13 +311,17 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
 
     // Mass correction term
     const double volume_error_ratio = rData.VolumeError;
-    const double not_stabilization_cut_elements_momentum=rData.NotStabilizationCutElementsMomentum;
-    const double not_stabilization_cut_elements_mass=rData.NotStabilizationCutElementsMass;
     auto &rhs = rData.rhs;
 
     //substitute_rhs_2D
 
     noalias(rRHS) += rData.Weight * rhs;
+
+    // Add outlet penalty contribution
+    if (this->Is(OUTLET) && !rData.IsCut())
+    {
+        TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointRHSOutletPenaltyContribution(rData, rRHS);
+    }
 }
 
 template <>
@@ -280,6 +366,12 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     //substitute_rhs_3D
 
     noalias(rRHS) += rData.Weight * rhs;
+
+    // Add outlet penalty contribution
+    if (this->Is(OUTLET) && !rData.IsCut())
+    {
+        TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGaussPointRHSOutletPenaltyContribution(rData, rRHS);
+    }
 }
 
 template <>
@@ -324,8 +416,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
 
     // Mass correction term
     const double volume_error_ratio = rData.VolumeError;
-    const double not_stabilization_cut_elements_momentum=rData.NotStabilizationCutElementsMomentum;
-    const double not_stabilization_cut_elements_mass=rData.NotStabilizationCutElementsMass;
+
     auto &V = rData.V;
     auto &H = rData.H;
     auto &Kee = rData.Kee;
@@ -542,6 +633,7 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::PressureGradientStabilizatio
     noalias(rKeeTot) += kee;
     noalias(rRHSeeTot) += rhs_enr;
 }
+
 template <class TElementData>
 void TwoFluidNavierStokesAlphaMethod<TElementData>::save(Serializer &rSerializer) const
 {

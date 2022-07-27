@@ -35,7 +35,7 @@ int TwoFluidNavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& 
     if (check != 0) {
         return check;
     } else {
-        // Checks on nodes        
+        // Checks on nodes
         const auto& r_geom = BaseType::GetGeometry();
         for (const auto& r_node : r_geom) {
             if(r_node.SolutionStepsDataHas(DYNAMIC_VISCOSITY) == false){
@@ -47,6 +47,49 @@ int TwoFluidNavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& 
     }
 
     KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void TwoFluidNavierStokesWallCondition<TDim, TNumNodes>::ComputeLHSNeumannContribution(
+    BoundedMatrix<double, TNumNodes *(TDim + 1), TNumNodes *(TDim + 1)> &lhs_gauss,
+    const ConditionDataStruct &data)
+{
+    // // Add Neumann BC contribution
+    // if (this->Is(OUTLET)) {
+    //     const unsigned int block_size = TDim + 1;
+    //     for (unsigned int i = 0; i < TNumNodes; ++i){
+    //         unsigned int row = i * block_size;
+    //         for (unsigned int j = 0; j < TNumNodes; ++j){
+    //             unsigned int col = j * block_size;
+    //             for (unsigned int d = 0; d < TDim; ++d){
+    //                 lhs_gauss(row + d, col + TDim) += data.wGauss * data.N[i] * data.N[j] * data.Normal[d]; // Same EXTERNAL_PRESSURE sign
+    //             }
+    //         }
+    //     }
+    // }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void TwoFluidNavierStokesWallCondition<TDim, TNumNodes>::ComputeRHSNeumannContribution(
+    array_1d<double, TNumNodes *(TDim + 1)> &rhs_gauss,
+    const ConditionDataStruct &data)
+{
+    const unsigned int block_size = TDim + 1;
+    const GeometryType &rGeom = this->GetGeometry();
+
+    // Add Neumann BC contribution
+    if (this->Is(OUTLET)) {
+        for (unsigned int i = 0; i < TNumNodes; ++i){
+            unsigned int row = i * block_size;
+            for (unsigned int j = 0; j < TNumNodes; ++j){
+                const double p_j = rGeom[j].FastGetSolutio<nStepValue(PRESSURE, 1);
+                // const double p_j = rGeom[j].FastGetSolutio<nStepValue(PRESSURE);
+                for (unsigned int d = 0; d < TDim; ++d){
+                    rhs_gauss[row + d] -= data.wGauss * data.N[i] * data.N[j] * p_j * data.Normal[d]; // Same EXTERNAL_PRESSURE sign
+                }
+            }
+        }
+    }
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>

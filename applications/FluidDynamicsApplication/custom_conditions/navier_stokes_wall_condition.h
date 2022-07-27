@@ -335,7 +335,11 @@ protected:
 
     void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 
-    void ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
+    virtual void ComputeLHSNeumannContribution(
+        BoundedMatrix<double, TNumNodes *(TDim + 1), TNumNodes *(TDim + 1)> &lhs,
+        const ConditionDataStruct &data);
+
+    virtual void ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 
     void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 

@@ -75,7 +75,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "dynamic_tau": 1.0,
                 "surface_tension": false,
                 "mass_source":false,
-                "energy_preserving":false
+                "energy_preserving":false,
+                "energy_fm_ale_tradicional":false
             },
             "energy_preserving_settings":{
                 "particle_layer_thickness":0.0,
@@ -111,7 +112,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def __init__(self, model, custom_settings):
         # TODO: DO SOMETHING IN HERE TO REMOVE THE "time_order" FROM THE DEFAULT SETTINGS BUT KEEPING THE BACKWARDS COMPATIBILITY
-
         if custom_settings.Has("levelset_convection_settings"):
             if custom_settings["levelset_convection_settings"].Has("levelset_splitting"):
                 custom_settings["levelset_convection_settings"].RemoveValue("levelset_splitting")
@@ -183,6 +183,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if self.settings["formulation"].Has("energy_preserving"):
             self.energy_preserving = self.settings["formulation"]["energy_preserving"].GetBool()
 
+
+
         if self.energy_preserving:
             if self.settings.Has("energy_preserving_settings"):
                 if self.settings["energy_preserving_settings"].Has("particle_layer_thickness"):
@@ -192,6 +194,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 raise Exception(
                     "In order to preserve energy particle_layer_thickness and particle_searching_factor settings have to be indicated")
+        self.energy_fm_ale_tradicional=False
+        if self.settings["formulation"].Has("energy_fm_ale_tradicional"):
+            self.energy_fm_ale_tradicional=self.settings["formulation"]["energy_fm_ale_tradicional"].GetBool()
+
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
@@ -199,8 +205,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self.settings["distance_reading_settings"]["distance_file_name"].SetString(self.settings["model_import_settings"]["input_filename"].GetString()+".post.res")
 
         #FIXME: Traditional FM-ALE
-        self.traditional=True
-        if self.traditional:
+        if self.energy_fm_ale_tradicional:
             self.__GetFmAleVirtualModelPart()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesTwoFluidsSolver finished.")
@@ -311,7 +316,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #FIXME: Traditional FM-ALE
         # Initialize the FM-ALE utility
 
-        if self.traditional:
+        if self.energy_fm_ale_tradicional:
             if not self.energy_preserving:
                 self.__GetFmAleUtility().Initialize(self.main_model_part)
 
@@ -323,7 +328,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         new_time = super().AdvanceInTime(current_time)
 
         # Save the current step and time in the virtual model part process info
-        if self.traditional:
+        if self.energy_fm_ale_tradicional:
             if not self.energy_preserving:
                 self.__GetFmAleVirtualModelPart().ProcessInfo[KratosMultiphysics.STEP] += 1
                 self.__GetFmAleVirtualModelPart().ProcessInfo[KratosMultiphysics.TIME] = new_time
@@ -407,7 +412,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     self.particle_layer_thickness,
                     self.particle_searching_factor)
             else:
-                if self.traditional:
+                if self.energy_fm_ale_tradicional:
                     # FIXME: Traditional FM-ALE operations
                     self.__SetVirtualMeshValues()  # Set the virtual mesh values from the background mesh
                     self.__DoFmAleOperations()  # Perform the FM-ALE operations

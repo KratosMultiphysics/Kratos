@@ -376,7 +376,7 @@ void CalculateEffectiveViscosityAtGaussPoint()
     }
     if (IsCut()){
         this->EffectiveViscosity = DynamicViscosity + viscosityint;
-        KRATOS_WATCH(this->EffectiveViscosity)
+
     }
 
 

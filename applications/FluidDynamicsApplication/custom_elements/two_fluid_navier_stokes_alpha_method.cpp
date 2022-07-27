@@ -108,6 +108,477 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
 }
 
 template <>
+void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointLHSOutletPenaltyContribution(
+    TwoFluidNavierStokesAlphaMethodData<2, 3> &rData,
+    MatrixType &rLHS)
+{
+    double c_penalty = 0.0;
+    const double mu = rData.EffectiveViscosity;
+    const double max_spectral_radius = rData.MaxSprectraRadius;
+    double kappa = c_penalty * mu;
+    double gauss_weight = rData.Weight;
+    const auto &N = rData.N;
+    const auto &DN = rData.DN_DX;
+    const auto &v = rData.Velocity;
+    const auto &vn = rData.Velocity_OldStep1;
+
+        const double crLHS0 = gauss_weight*kappa/(max_spectral_radius + 1);
+    const double crLHS1 = -pow(DN(0,0), 2)*crLHS0;
+    const double crLHS2 = DN(0,0)*crLHS0;
+    const double crLHS3 = -DN(1,0)*crLHS2;
+    const double crLHS4 = -DN(2,0)*crLHS2;
+    const double crLHS5 = -pow(DN(1,0), 2)*crLHS0;
+    const double crLHS6 = -DN(1,0)*DN(2,0)*crLHS0;
+    const double crLHS7 = -pow(DN(2,0), 2)*crLHS0;
+    rLHS(0,0)+=crLHS1;
+    rLHS(0,1)+=0;
+    rLHS(0,2)+=0;
+    rLHS(0,3)+=crLHS3;
+    rLHS(0,4)+=0;
+    rLHS(0,5)+=0;
+    rLHS(0,6)+=crLHS4;
+    rLHS(0,7)+=0;
+    rLHS(0,8)+=0;
+    rLHS(1,0)+=0;
+    rLHS(1,1)+=crLHS1;
+    rLHS(1,2)+=0;
+    rLHS(1,3)+=0;
+    rLHS(1,4)+=crLHS3;
+    rLHS(1,5)+=0;
+    rLHS(1,6)+=0;
+    rLHS(1,7)+=crLHS4;
+    rLHS(1,8)+=0;
+    rLHS(2,0)+=0;
+    rLHS(2,1)+=0;
+    rLHS(2,2)+=0;
+    rLHS(2,3)+=0;
+    rLHS(2,4)+=0;
+    rLHS(2,5)+=0;
+    rLHS(2,6)+=0;
+    rLHS(2,7)+=0;
+    rLHS(2,8)+=0;
+    rLHS(3,0)+=crLHS3;
+    rLHS(3,1)+=0;
+    rLHS(3,2)+=0;
+    rLHS(3,3)+=crLHS5;
+    rLHS(3,4)+=0;
+    rLHS(3,5)+=0;
+    rLHS(3,6)+=crLHS6;
+    rLHS(3,7)+=0;
+    rLHS(3,8)+=0;
+    rLHS(4,0)+=0;
+    rLHS(4,1)+=crLHS3;
+    rLHS(4,2)+=0;
+    rLHS(4,3)+=0;
+    rLHS(4,4)+=crLHS5;
+    rLHS(4,5)+=0;
+    rLHS(4,6)+=0;
+    rLHS(4,7)+=crLHS6;
+    rLHS(4,8)+=0;
+    rLHS(5,0)+=0;
+    rLHS(5,1)+=0;
+    rLHS(5,2)+=0;
+    rLHS(5,3)+=0;
+    rLHS(5,4)+=0;
+    rLHS(5,5)+=0;
+    rLHS(5,6)+=0;
+    rLHS(5,7)+=0;
+    rLHS(5,8)+=0;
+    rLHS(6,0)+=crLHS4;
+    rLHS(6,1)+=0;
+    rLHS(6,2)+=0;
+    rLHS(6,3)+=crLHS6;
+    rLHS(6,4)+=0;
+    rLHS(6,5)+=0;
+    rLHS(6,6)+=crLHS7;
+    rLHS(6,7)+=0;
+    rLHS(6,8)+=0;
+    rLHS(7,0)+=0;
+    rLHS(7,1)+=crLHS4;
+    rLHS(7,2)+=0;
+    rLHS(7,3)+=0;
+    rLHS(7,4)+=crLHS6;
+    rLHS(7,5)+=0;
+    rLHS(7,6)+=0;
+    rLHS(7,7)+=crLHS7;
+    rLHS(7,8)+=0;
+    rLHS(8,0)+=0;
+    rLHS(8,1)+=0;
+    rLHS(8,2)+=0;
+    rLHS(8,3)+=0;
+    rLHS(8,4)+=0;
+    rLHS(8,5)+=0;
+    rLHS(8,6)+=0;
+    rLHS(8,7)+=0;
+    rLHS(8,8)+=0;
+
+}
+
+template <>
+void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGaussPointLHSOutletPenaltyContribution(
+    TwoFluidNavierStokesAlphaMethodData<3, 4> &rData,
+    MatrixType &rLHS)
+{
+    double c_penalty = 10.0;
+    const double mu = rData.EffectiveViscosity;
+    const double max_spectral_radius = rData.MaxSprectraRadius;
+    double kappa = c_penalty * mu;
+    double gauss_weight = rData.Weight;
+    const auto &N = rData.N;
+    const auto &DN = rData.DN_DX;
+    const auto &v = rData.Velocity;
+    const auto &vn = rData.Velocity_OldStep1;
+
+        const double crLHS0 = gauss_weight*kappa/(max_spectral_radius + 1);
+    const double crLHS1 = -pow(DN(0,0), 2)*crLHS0;
+    const double crLHS2 = DN(0,0)*crLHS0;
+    const double crLHS3 = -DN(1,0)*crLHS2;
+    const double crLHS4 = -DN(2,0)*crLHS2;
+    const double crLHS5 = -DN(3,0)*crLHS2;
+    const double crLHS6 = -pow(DN(1,0), 2)*crLHS0;
+    const double crLHS7 = DN(1,0)*crLHS0;
+    const double crLHS8 = -DN(2,0)*crLHS7;
+    const double crLHS9 = -DN(3,0)*crLHS7;
+    const double crLHS10 = -pow(DN(2,0), 2)*crLHS0;
+    const double crLHS11 = -DN(2,0)*DN(3,0)*crLHS0;
+    const double crLHS12 = -pow(DN(3,0), 2)*crLHS0;
+    rLHS(0,0)+=crLHS1;
+    rLHS(0,1)+=0;
+    rLHS(0,2)+=0;
+    rLHS(0,3)+=0;
+    rLHS(0,4)+=crLHS3;
+    rLHS(0,5)+=0;
+    rLHS(0,6)+=0;
+    rLHS(0,7)+=0;
+    rLHS(0,8)+=crLHS4;
+    rLHS(0,9)+=0;
+    rLHS(0,10)+=0;
+    rLHS(0,11)+=0;
+    rLHS(0,12)+=crLHS5;
+    rLHS(0,13)+=0;
+    rLHS(0,14)+=0;
+    rLHS(0,15)+=0;
+    rLHS(1,0)+=0;
+    rLHS(1,1)+=crLHS1;
+    rLHS(1,2)+=0;
+    rLHS(1,3)+=0;
+    rLHS(1,4)+=0;
+    rLHS(1,5)+=crLHS3;
+    rLHS(1,6)+=0;
+    rLHS(1,7)+=0;
+    rLHS(1,8)+=0;
+    rLHS(1,9)+=crLHS4;
+    rLHS(1,10)+=0;
+    rLHS(1,11)+=0;
+    rLHS(1,12)+=0;
+    rLHS(1,13)+=crLHS5;
+    rLHS(1,14)+=0;
+    rLHS(1,15)+=0;
+    rLHS(2,0)+=0;
+    rLHS(2,1)+=0;
+    rLHS(2,2)+=crLHS1;
+    rLHS(2,3)+=0;
+    rLHS(2,4)+=0;
+    rLHS(2,5)+=0;
+    rLHS(2,6)+=crLHS3;
+    rLHS(2,7)+=0;
+    rLHS(2,8)+=0;
+    rLHS(2,9)+=0;
+    rLHS(2,10)+=crLHS4;
+    rLHS(2,11)+=0;
+    rLHS(2,12)+=0;
+    rLHS(2,13)+=0;
+    rLHS(2,14)+=crLHS5;
+    rLHS(2,15)+=0;
+    rLHS(3,0)+=0;
+    rLHS(3,1)+=0;
+    rLHS(3,2)+=0;
+    rLHS(3,3)+=0;
+    rLHS(3,4)+=0;
+    rLHS(3,5)+=0;
+    rLHS(3,6)+=0;
+    rLHS(3,7)+=0;
+    rLHS(3,8)+=0;
+    rLHS(3,9)+=0;
+    rLHS(3,10)+=0;
+    rLHS(3,11)+=0;
+    rLHS(3,12)+=0;
+    rLHS(3,13)+=0;
+    rLHS(3,14)+=0;
+    rLHS(3,15)+=0;
+    rLHS(4,0)+=crLHS3;
+    rLHS(4,1)+=0;
+    rLHS(4,2)+=0;
+    rLHS(4,3)+=0;
+    rLHS(4,4)+=crLHS6;
+    rLHS(4,5)+=0;
+    rLHS(4,6)+=0;
+    rLHS(4,7)+=0;
+    rLHS(4,8)+=crLHS8;
+    rLHS(4,9)+=0;
+    rLHS(4,10)+=0;
+    rLHS(4,11)+=0;
+    rLHS(4,12)+=crLHS9;
+    rLHS(4,13)+=0;
+    rLHS(4,14)+=0;
+    rLHS(4,15)+=0;
+    rLHS(5,0)+=0;
+    rLHS(5,1)+=crLHS3;
+    rLHS(5,2)+=0;
+    rLHS(5,3)+=0;
+    rLHS(5,4)+=0;
+    rLHS(5,5)+=crLHS6;
+    rLHS(5,6)+=0;
+    rLHS(5,7)+=0;
+    rLHS(5,8)+=0;
+    rLHS(5,9)+=crLHS8;
+    rLHS(5,10)+=0;
+    rLHS(5,11)+=0;
+    rLHS(5,12)+=0;
+    rLHS(5,13)+=crLHS9;
+    rLHS(5,14)+=0;
+    rLHS(5,15)+=0;
+    rLHS(6,0)+=0;
+    rLHS(6,1)+=0;
+    rLHS(6,2)+=crLHS3;
+    rLHS(6,3)+=0;
+    rLHS(6,4)+=0;
+    rLHS(6,5)+=0;
+    rLHS(6,6)+=crLHS6;
+    rLHS(6,7)+=0;
+    rLHS(6,8)+=0;
+    rLHS(6,9)+=0;
+    rLHS(6,10)+=crLHS8;
+    rLHS(6,11)+=0;
+    rLHS(6,12)+=0;
+    rLHS(6,13)+=0;
+    rLHS(6,14)+=crLHS9;
+    rLHS(6,15)+=0;
+    rLHS(7,0)+=0;
+    rLHS(7,1)+=0;
+    rLHS(7,2)+=0;
+    rLHS(7,3)+=0;
+    rLHS(7,4)+=0;
+    rLHS(7,5)+=0;
+    rLHS(7,6)+=0;
+    rLHS(7,7)+=0;
+    rLHS(7,8)+=0;
+    rLHS(7,9)+=0;
+    rLHS(7,10)+=0;
+    rLHS(7,11)+=0;
+    rLHS(7,12)+=0;
+    rLHS(7,13)+=0;
+    rLHS(7,14)+=0;
+    rLHS(7,15)+=0;
+    rLHS(8,0)+=crLHS4;
+    rLHS(8,1)+=0;
+    rLHS(8,2)+=0;
+    rLHS(8,3)+=0;
+    rLHS(8,4)+=crLHS8;
+    rLHS(8,5)+=0;
+    rLHS(8,6)+=0;
+    rLHS(8,7)+=0;
+    rLHS(8,8)+=crLHS10;
+    rLHS(8,9)+=0;
+    rLHS(8,10)+=0;
+    rLHS(8,11)+=0;
+    rLHS(8,12)+=crLHS11;
+    rLHS(8,13)+=0;
+    rLHS(8,14)+=0;
+    rLHS(8,15)+=0;
+    rLHS(9,0)+=0;
+    rLHS(9,1)+=crLHS4;
+    rLHS(9,2)+=0;
+    rLHS(9,3)+=0;
+    rLHS(9,4)+=0;
+    rLHS(9,5)+=crLHS8;
+    rLHS(9,6)+=0;
+    rLHS(9,7)+=0;
+    rLHS(9,8)+=0;
+    rLHS(9,9)+=crLHS10;
+    rLHS(9,10)+=0;
+    rLHS(9,11)+=0;
+    rLHS(9,12)+=0;
+    rLHS(9,13)+=crLHS11;
+    rLHS(9,14)+=0;
+    rLHS(9,15)+=0;
+    rLHS(10,0)+=0;
+    rLHS(10,1)+=0;
+    rLHS(10,2)+=crLHS4;
+    rLHS(10,3)+=0;
+    rLHS(10,4)+=0;
+    rLHS(10,5)+=0;
+    rLHS(10,6)+=crLHS8;
+    rLHS(10,7)+=0;
+    rLHS(10,8)+=0;
+    rLHS(10,9)+=0;
+    rLHS(10,10)+=crLHS10;
+    rLHS(10,11)+=0;
+    rLHS(10,12)+=0;
+    rLHS(10,13)+=0;
+    rLHS(10,14)+=crLHS11;
+    rLHS(10,15)+=0;
+    rLHS(11,0)+=0;
+    rLHS(11,1)+=0;
+    rLHS(11,2)+=0;
+    rLHS(11,3)+=0;
+    rLHS(11,4)+=0;
+    rLHS(11,5)+=0;
+    rLHS(11,6)+=0;
+    rLHS(11,7)+=0;
+    rLHS(11,8)+=0;
+    rLHS(11,9)+=0;
+    rLHS(11,10)+=0;
+    rLHS(11,11)+=0;
+    rLHS(11,12)+=0;
+    rLHS(11,13)+=0;
+    rLHS(11,14)+=0;
+    rLHS(11,15)+=0;
+    rLHS(12,0)+=crLHS5;
+    rLHS(12,1)+=0;
+    rLHS(12,2)+=0;
+    rLHS(12,3)+=0;
+    rLHS(12,4)+=crLHS9;
+    rLHS(12,5)+=0;
+    rLHS(12,6)+=0;
+    rLHS(12,7)+=0;
+    rLHS(12,8)+=crLHS11;
+    rLHS(12,9)+=0;
+    rLHS(12,10)+=0;
+    rLHS(12,11)+=0;
+    rLHS(12,12)+=crLHS12;
+    rLHS(12,13)+=0;
+    rLHS(12,14)+=0;
+    rLHS(12,15)+=0;
+    rLHS(13,0)+=0;
+    rLHS(13,1)+=crLHS5;
+    rLHS(13,2)+=0;
+    rLHS(13,3)+=0;
+    rLHS(13,4)+=0;
+    rLHS(13,5)+=crLHS9;
+    rLHS(13,6)+=0;
+    rLHS(13,7)+=0;
+    rLHS(13,8)+=0;
+    rLHS(13,9)+=crLHS11;
+    rLHS(13,10)+=0;
+    rLHS(13,11)+=0;
+    rLHS(13,12)+=0;
+    rLHS(13,13)+=crLHS12;
+    rLHS(13,14)+=0;
+    rLHS(13,15)+=0;
+    rLHS(14,0)+=0;
+    rLHS(14,1)+=0;
+    rLHS(14,2)+=crLHS5;
+    rLHS(14,3)+=0;
+    rLHS(14,4)+=0;
+    rLHS(14,5)+=0;
+    rLHS(14,6)+=crLHS9;
+    rLHS(14,7)+=0;
+    rLHS(14,8)+=0;
+    rLHS(14,9)+=0;
+    rLHS(14,10)+=crLHS11;
+    rLHS(14,11)+=0;
+    rLHS(14,12)+=0;
+    rLHS(14,13)+=0;
+    rLHS(14,14)+=crLHS12;
+    rLHS(14,15)+=0;
+    rLHS(15,0)+=0;
+    rLHS(15,1)+=0;
+    rLHS(15,2)+=0;
+    rLHS(15,3)+=0;
+    rLHS(15,4)+=0;
+    rLHS(15,5)+=0;
+    rLHS(15,6)+=0;
+    rLHS(15,7)+=0;
+    rLHS(15,8)+=0;
+    rLHS(15,9)+=0;
+    rLHS(15,10)+=0;
+    rLHS(15,11)+=0;
+    rLHS(15,12)+=0;
+    rLHS(15,13)+=0;
+    rLHS(15,14)+=0;
+    rLHS(15,15)+=0;
+
+}
+
+template <>
+void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointRHSOutletPenaltyContribution(
+    TwoFluidNavierStokesAlphaMethodData<2, 3> &rData,
+    VectorType &rRHS)
+{
+    double c_penalty = 0.0;
+
+    const double mu = rData.EffectiveViscosity;
+    const double max_spectral_radius = rData.MaxSprectraRadius;
+    double kappa = c_penalty * mu;
+    double gauss_weight = rData.Weight;
+    const auto &N = rData.N;
+    const auto &DN = rData.DN_DX;
+    const auto &v = rData.Velocity;
+    const auto &vn = rData.Velocity_OldStep1;
+
+        const double crRHS0 = 1.0/(max_spectral_radius + 1);
+    const double crRHS1 = DN(0,0)*(crRHS0*(v(0,0) - vn(0,0)) + vn(0,0)) + DN(1,0)*(crRHS0*(v(1,0) - vn(1,0)) + vn(1,0)) + DN(2,0)*(crRHS0*(v(2,0) - vn(2,0)) + vn(2,0));
+    const double crRHS2 = gauss_weight*kappa;
+    const double crRHS3 = DN(0,0)*crRHS2;
+    const double crRHS4 = DN(0,0)*(crRHS0*(v(0,1) - vn(0,1)) + vn(0,1)) + DN(1,0)*(crRHS0*(v(1,1) - vn(1,1)) + vn(1,1)) + DN(2,0)*(crRHS0*(v(2,1) - vn(2,1)) + vn(2,1));
+    const double crRHS5 = DN(1,0)*crRHS2;
+    const double crRHS6 = DN(2,0)*crRHS2;
+    rRHS[0]+=crRHS1*crRHS3;
+    rRHS[1]+=crRHS3*crRHS4;
+    rRHS[2]+=0;
+    rRHS[3]+=crRHS1*crRHS5;
+    rRHS[4]+=crRHS4*crRHS5;
+    rRHS[5]+=0;
+    rRHS[6]+=crRHS1*crRHS6;
+    rRHS[7]+=crRHS4*crRHS6;
+    rRHS[8]+=0;
+}
+
+template <>
+void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGaussPointRHSOutletPenaltyContribution(
+    TwoFluidNavierStokesAlphaMethodData<3, 4> &rData,
+    VectorType &rRHS)
+{
+    double c_penalty = 10.0;
+    const double mu = rData.EffectiveViscosity;
+    const double max_spectral_radius = rData.MaxSprectraRadius;
+    double kappa = c_penalty * mu;
+    double gauss_weight = rData.Weight;
+    const auto &N = rData.N;
+    const auto &DN = rData.DN_DX;
+    const auto &v = rData.Velocity;
+    const auto &vn = rData.Velocity_OldStep1;
+
+        const double crRHS0 = 1.0/(max_spectral_radius + 1);
+    const double crRHS1 = DN(0,0)*(crRHS0*(v(0,0) - vn(0,0)) + vn(0,0)) + DN(1,0)*(crRHS0*(v(1,0) - vn(1,0)) + vn(1,0)) + DN(2,0)*(crRHS0*(v(2,0) - vn(2,0)) + vn(2,0)) + DN(3,0)*(crRHS0*(v(3,0) - vn(3,0)) + vn(3,0));
+    const double crRHS2 = gauss_weight*kappa;
+    const double crRHS3 = DN(0,0)*crRHS2;
+    const double crRHS4 = DN(0,0)*(crRHS0*(v(0,1) - vn(0,1)) + vn(0,1)) + DN(1,0)*(crRHS0*(v(1,1) - vn(1,1)) + vn(1,1)) + DN(2,0)*(crRHS0*(v(2,1) - vn(2,1)) + vn(2,1)) + DN(3,0)*(crRHS0*(v(3,1) - vn(3,1)) + vn(3,1));
+    const double crRHS5 = DN(0,0)*(crRHS0*(v(0,2) - vn(0,2)) + vn(0,2)) + DN(1,0)*(crRHS0*(v(1,2) - vn(1,2)) + vn(1,2)) + DN(2,0)*(crRHS0*(v(2,2) - vn(2,2)) + vn(2,2)) + DN(3,0)*(crRHS0*(v(3,2) - vn(3,2)) + vn(3,2));
+    const double crRHS6 = DN(1,0)*crRHS2;
+    const double crRHS7 = DN(2,0)*crRHS2;
+    const double crRHS8 = DN(3,0)*crRHS2;
+    rRHS[0]+=crRHS1*crRHS3;
+    rRHS[1]+=crRHS3*crRHS4;
+    rRHS[2]+=crRHS3*crRHS5;
+    rRHS[3]+=0;
+    rRHS[4]+=crRHS1*crRHS6;
+    rRHS[5]+=crRHS4*crRHS6;
+    rRHS[6]+=crRHS5*crRHS6;
+    rRHS[7]+=0;
+    rRHS[8]+=crRHS1*crRHS7;
+    rRHS[9]+=crRHS4*crRHS7;
+    rRHS[10]+=crRHS5*crRHS7;
+    rRHS[11]+=0;
+    rRHS[12]+=crRHS1*crRHS8;
+    rRHS[13]+=crRHS4*crRHS8;
+    rRHS[14]+=crRHS5*crRHS8;
+    rRHS[15]+=0;
+
+}
+
+template <>
 void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointLHSContribution(
     TwoFluidNavierStokesAlphaMethodData<2, 3> &rData,
     MatrixType &rLHS)
@@ -358,6 +829,11 @@ lhs(8,8)=clhs86*(clhs125 + clhs129);
 
     // Add intermediate results to local system
     noalias(rLHS) += lhs * rData.Weight;
+
+    // Add outlet penalty contribution
+    if (this->Is(OUTLET) && !rData.IsCut()) {
+        TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointLHSOutletPenaltyContribution(rData, rLHS);
+    }
 }
 
 template <>
@@ -1013,6 +1489,11 @@ lhs(15,15)=clhs218*(clhs344 + clhs353 + clhs355);
 
     // Add intermediate results to local system
     noalias(rLHS) += lhs * rData.Weight;
+
+    // Add outlet penalty contribution
+    if (this->Is(OUTLET)) {
+        TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGaussPointLHSOutletPenaltyContribution(rData, rLHS);
+    }
 }
 
 template <>
@@ -1131,6 +1612,12 @@ rhs[8]=-DN(2,0)*crhs55 - DN(2,1)*crhs56 + N[2]*crhs53;
 
 
     noalias(rRHS) += rData.Weight * rhs;
+
+    // Add outlet penalty contribution
+    if (this->Is(OUTLET) && !rData.IsCut())
+    {
+        TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointRHSOutletPenaltyContribution(rData, rRHS);
+    }
 }
 
 template <>
@@ -1285,6 +1772,12 @@ rhs[15]=-DN(3,0)*crhs78 - DN(3,1)*crhs80 - DN(3,2)*crhs81 + N[3]*crhs76;
 
 
     noalias(rRHS) += rData.Weight * rhs;
+
+    // Add outlet penalty contribution
+    if (this->Is(OUTLET) && !rData.IsCut())
+    {
+        TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGaussPointRHSOutletPenaltyContribution(rData, rRHS);
+    }
 }
 
 template <>
@@ -1329,6 +1822,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
 
     // Mass correction term
     const double volume_error_ratio = rData.VolumeError;
+
     auto &V = rData.V;
     auto &H = rData.H;
     auto &Kee = rData.Kee;
@@ -1877,6 +2371,7 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::PressureGradientStabilizatio
     noalias(rKeeTot) += kee;
     noalias(rRHSeeTot) += rhs_enr;
 }
+
 template <class TElementData>
 void TwoFluidNavierStokesAlphaMethod<TElementData>::save(Serializer &rSerializer) const
 {

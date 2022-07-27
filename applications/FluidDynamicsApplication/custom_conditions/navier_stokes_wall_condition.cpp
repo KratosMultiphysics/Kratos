@@ -366,6 +366,9 @@ const ConditionDataStruct& data)
     const unsigned int LocalSize = TDim+1;
     lhs_gauss = ZeroMatrix(TNumNodes*LocalSize, TNumNodes*LocalSize);
 
+    // Gauss pt. Neumann BC contribution
+    this->ComputeLHSNeumannContribution(lhs_gauss, data);
+
     // contribution to avoid tangential components in the residual (BEHR2004)
     // Adding the BEHR2004 contribution if a slip BC is detected
     // Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
@@ -392,7 +395,7 @@ const ConditionDataStruct& data)
 
     // Gauss pt. outlet inflow prevention contribution
     if (this->Is(OUTLET)){
-        this->ComputeRHSOutletInflowContribution(rhs_gauss, data);
+        // this->ComputeRHSOutletInflowContribution(rhs_gauss, data);
     }
 
     // contribution to avoid tangential components in the residual (BEHR2004)
@@ -406,7 +409,12 @@ const ConditionDataStruct& data)
     }
 }
 
-
+template <unsigned int TDim, unsigned int TNumNodes>
+void NavierStokesWallCondition<TDim, TNumNodes>::ComputeLHSNeumannContribution(
+    BoundedMatrix<double, TNumNodes *(TDim + 1), TNumNodes *(TDim + 1)> &lhs,
+    const ConditionDataStruct &data)
+{
+}
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs_gauss,

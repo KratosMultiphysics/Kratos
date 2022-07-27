@@ -136,7 +136,7 @@ public:
     ///@{
 
     /// Create a new element of this type
-    /**
+    /**<
     * Returns a pointer to a new TwoFluidNavierStokesAlphaMethod element, created using given input.
     * @param NewId the ID of the new element
     * @param ThisNodes the nodes of the new element
@@ -178,7 +178,7 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-        
+
     ///@}
     ///@name Friends
     ///@{
@@ -217,6 +217,9 @@ protected:
         const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
         MatrixType& rKeeTot,
 		VectorType& rRHSeeTot) override;
+
+
+
 
     /**
      * @brief Computes the LHS Gauss pt. contribution
@@ -261,6 +264,15 @@ protected:
      * @param rData Data container with the input velocity and gradients and output strain rate vector
      */
     void CalculateStrainRate(TElementData& rData) const override;
+
+
+    void ComputeGaussPointRHSOutletPenaltyContribution(
+        TElementData& rData,
+        VectorType& rRHS);
+
+    void ComputeGaussPointLHSOutletPenaltyContribution(
+        TElementData &rData,
+        MatrixType &rLHS);
 
     ///@}
     ///@name Protected  Access

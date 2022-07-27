@@ -230,6 +230,14 @@ public:
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
+    void ComputeLHSNeumannContribution(
+        BoundedMatrix<double, TNumNodes *(TDim + 1), TNumNodes *(TDim + 1)> &lhs,
+        const ConditionDataStruct &data) override;
+
+    void ComputeRHSNeumannContribution(
+        array_1d<double, TNumNodes *(TDim + 1)> &rhs,
+        const ConditionDataStruct &data) override;
+
     ///@}
     ///@name Access
     ///@{

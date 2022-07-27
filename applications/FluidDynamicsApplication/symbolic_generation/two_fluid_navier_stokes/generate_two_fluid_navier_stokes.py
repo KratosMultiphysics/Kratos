@@ -320,31 +320,61 @@ for dim in dim_vector:
     Kee_out = OutputMatrix_CollectingFactors(Kee,"Kee",mode)
     rhs_ee_out = OutputVector_CollectingFactors(rhs_ee,"rhs_ee",mode)
 
-
-
-
-
+    # Add the outlet penalty contribution for the alpha scheme element
+    if time_integration == "alpha_method":
+        # Define auxiliary symbols for penalty term
+        kappa = sympy.Symbol('kappa', positive=True)
+        gauss_weight = sympy.Symbol('gauss_weight', positive=True)
+        # Define the Galerkin functional for the penalty term
+        rv_galerkin_penalty_term = -gauss_weight * kappa * grad_w * grad_v.transpose()
+        # Do differentiation
+        rhs_pen, lhs_pen = Compute_RHS_and_LHS(rv_galerkin_penalty_term, testfunc, dofs, do_simplifications)
+        # Output penalty term
+        rhs_outlet_penalty_out = OutputVector_CollectingFactors(rhs_pen, "rRHS", mode, indentation_level=1, replace_indices=True, assignment_op="+=")
+        lhs_outlet_penalty_out = OutputMatrix_CollectingFactors(lhs_pen, "rLHS", mode, indentation_level=1, replace_indices=True, assignment_op="+=")
 
     #####################################################################
     #####################################################################
 
-    if(dim == 2):
-        outstring = outstring.replace("//substitute_lhs_2D", lhs_out)
-        outstring = outstring.replace("//substitute_rhs_2D", rhs_out)
+    # if(dim == 2):
+    #     outstring = outstring.replace("//substitute_lhs_2D", lhs_out)
+    #     outstring = outstring.replace("//substitute_rhs_2D", rhs_out)
 
-        outstring = outstring.replace("//substitute_enrichment_V_2D", V_out)
-        outstring = outstring.replace("//substitute_enrichment_H_2D", H_out)
-        outstring = outstring.replace("//substitute_enrichment_Kee_2D", Kee_out)
-        outstring = outstring.replace("//substitute_enrichment_rhs_ee_2D", rhs_ee_out)
+    #     outstring = outstring.replace("//substitute_enrichment_V_2D", V_out)
+    #     outstring = outstring.replace("//substitute_enrichment_H_2D", H_out)
+    #     outstring = outstring.replace("//substitute_enrichment_Kee_2D", Kee_out)
+    #     outstring = outstring.replace("//substitute_enrichment_rhs_ee_2D", rhs_ee_out)
 
-    elif(dim == 3):
-        outstring = outstring.replace("//substitute_lhs_3D", lhs_out)
-        outstring = outstring.replace("//substitute_rhs_3D", rhs_out)
+    #     if time_integration == "alpha_method":
+    #         outstring = outstring.replace("//substitute_lhs_2D_outlet_penalty_contribution", lhs_outlet_penalty_out)
+    #         outstring = outstring.replace("//substitute_rhs_2D_outlet_penalty_contribution", rhs_outlet_penalty_out)
 
-        outstring = outstring.replace("//substitute_enrichment_V_3D", V_out)
-        outstring = outstring.replace("//substitute_enrichment_H_3D", H_out)
-        outstring = outstring.replace("//substitute_enrichment_Kee_3D", Kee_out)
-        outstring = outstring.replace("//substitute_enrichment_rhs_ee_3D", rhs_ee_out)
+    # elif(dim == 3):
+    #     outstring = outstring.replace("//substitute_lhs_3D", lhs_out)
+    #     outstring = outstring.replace("//substitute_rhs_3D", rhs_out)
+
+    #     outstring = outstring.replace("//substitute_enrichment_V_3D", V_out)
+    #     outstring = outstring.replace("//substitute_enrichment_H_3D", H_out)
+    #     outstring = outstring.replace("//substitute_enrichment_Kee_3D", Kee_out)
+    #     outstring = outstring.replace("//substitute_enrichment_rhs_ee_3D", rhs_ee_out)
+
+    #     if time_integration == "alpha_method":
+    #         outstring = outstring.replace("//substitute_lhs_3D_outlet_penalty_contribution", lhs_outlet_penalty_out)
+    #         outstring = outstring.replace("//substitute_rhs_3D_outlet_penalty_contribution", rhs_outlet_penalty_out)
+
+    outstring = outstring.replace(f"//substitute_lhs_{dim}D", lhs_out)
+    outstring = outstring.replace(f"//substitute_rhs_{dim}D", rhs_out)
+
+    outstring = outstring.replace(f"//substitute_enrichment_V_{dim}D", V_out)
+    outstring = outstring.replace(f"//substitute_enrichment_H_{dim}D", H_out)
+    outstring = outstring.replace(f"//substitute_enrichment_Kee_{dim}D", Kee_out)
+    outstring = outstring.replace(f"//substitute_enrichment_rhs_ee_{dim}D", rhs_ee_out)
+
+    if time_integration == "alpha_method":
+        outstring = outstring.replace(f"//substitute_outlet_penalty_contribution_lhs_{dim}D", lhs_outlet_penalty_out)
+        outstring = outstring.replace(f"//substitute_outlet_penalty_contribution_rhs_{dim}D", rhs_outlet_penalty_out)
+
+
 
 #We write in the file
 out = open(output_filename,'w')
