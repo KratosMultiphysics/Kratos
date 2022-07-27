@@ -203,7 +203,7 @@ namespace Kratos
              )
             {
                 // Find the origin model part node in the virtual mesh
-                Vector aux_N(4);
+                Vector aux_N(TDim+1);
                 Element::Pointer p_elem = nullptr;
                 const bool is_found = bin_based_point_locator.FindPointOnMesh(
                     rNode.Coordinates(), 
