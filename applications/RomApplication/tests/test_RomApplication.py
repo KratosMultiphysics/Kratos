@@ -12,6 +12,7 @@ from test_randomized_singular_value_decomposition import TestRandomizedSVD
 from test_empirical_cubature_method import TestEmpiricalCubatureMethod
 from test_calculate_rom_basis_output_process import TestCalculateRomBasisOutputProcess
 from test_compressible_potiential_rom import TestCompressiblePotentialRom
+from test_randomized_singular_value_decomposition_mpi import TestRandomizedSVDMPI
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -39,7 +40,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TestRandomizedSVD('test_radomized_svd'))
     smallSuite.addTest(TestEmpiricalCubatureMethod('test_empirical_cubature_method'))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCompressiblePotentialRom]))
-
+    smallSuite.addTest(TestRandomizedSVDMPI('test_radomized_svd_mpi'))
 
     # Create a test suit that contains all the tests from every testCase
     # in the list:
