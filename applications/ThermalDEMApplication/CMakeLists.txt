@@ -3,12 +3,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosThermalDEMApplication ****")
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
+## kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication) ## UNCOMMENT TO GET TETGEN FROM DELAUNAY_MESHING APPLICATION
 
 ## Dependecies on other applications
 include(pybind11Tools)
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/ThermalDEMApplication )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/DEMApplication )
+## include_directories( ${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication ) ## UNCOMMENT TO GET TETGEN FROM DELAUNAY_MESHING APPLICATION
 
 ## Set a default value for triangle and tetgen in case the user does not set it
 ## to avoid problems with the define linkage block. By default we will compile the lib
@@ -19,7 +21,8 @@ endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
 if(NOT DEFINED ${INCLUDE_TETGEN})
   set(INCLUDE_TETGEN ON)
-  set(TETGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/tetgen")
+  set(TETGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/tetgen")                                  ## USE IT TO GET TETGEN FROM THERMAL_DEM APPLICATION
+  ## set(TETGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication/external_libraries/tetgen") ## USE IT TO GET TETGEN FROM DELAUNAY_MESHING APPLICATION
 endif(NOT DEFINED ${INCLUDE_TETGEN})
 
 set(MESHER_LIBRARIES "")
@@ -28,6 +31,7 @@ if(${INCLUDE_TRIANGLE} MATCHES ON)
   list(APPEND MESHER_LIBRARIES triangle)
 endif(${INCLUDE_TRIANGLE} MATCHES ON)
 
+## USE BELOW CODE TO GET TETGEN FROM THERMAL_DEM APPLICATION
 if(${INCLUDE_TETGEN} MATCHES ON)
   set(EXTERNAL_LIBRARIES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries")
   #INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/custom_cmake/Tetgen.cmake")
@@ -50,6 +54,12 @@ if(${INCLUDE_TETGEN} MATCHES ON)
   add_library(tetgen STATIC ${TETGEN_SOURCES} ${UNOPTIMIZED_PREDICATES})
   list(APPEND MESHER_LIBRARIES tetgen)
 endif(${INCLUDE_TETGEN} MATCHES ON)
+
+## USE BELOW CODE TO GET TETGEN FROM DELAUNAY_MESHING APPLICATION
+## if(${INCLUDE_TETGEN} MATCHES ON)
+##   include_directories(${TETGEN_DIR})
+##   list(APPEND MESHER_LIBRARIES tetgen)
+## endif(${INCLUDE_TETGEN} MATCHES ON)
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   list(APPEND MESHER_LIBRARIES m)
