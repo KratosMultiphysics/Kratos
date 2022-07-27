@@ -28,6 +28,8 @@ void GenericFindElementalNeighboursProcess::ExecuteInitialize()
     FindGlobalNodalElementalNeighboursProcess nodal_neigh_proc(mrModelPart);
     nodal_neigh_proc.Execute();
 
+    const int current_rank = mrModelPart.GetCommunicator().GetDataCommunicator().Rank();
+
     //main loop
     block_for_each(mrModelPart.Elements(), [&](Element & rElement) {
         //creating temp face conditions
@@ -51,7 +53,7 @@ void GenericFindElementalNeighboursProcess::ExecuteInitialize()
 
         //looping faces of element to find neighb element sharing the same face
         for(unsigned int i_boundary=0; i_boundary<nBoundaries; i_boundary++){
-            rElemNeighbours(i_boundary) = CheckForNeighbourElems(elem_boundaries[i_boundary], rElement);
+            rElemNeighbours(i_boundary) = CheckForNeighbourElems(elem_boundaries[i_boundary], rElement, current_rank);
         }
     });
 
@@ -60,7 +62,8 @@ void GenericFindElementalNeighboursProcess::ExecuteInitialize()
 
 
 GlobalPointer<Element> GenericFindElementalNeighboursProcess::CheckForNeighbourElems (const Geometry<Node<3> >& rBoundaryGeom,
-                                                                                      Element & rElement)
+                                                                                      Element & rElement,
+                                                                                      const int CurrentRank)
 {
     //creating a a vector of all the elem pointers
     //therefore the elem of interest will be repeated as many times as nodes in the faces are
@@ -80,7 +83,8 @@ GlobalPointer<Element> GenericFindElementalNeighboursProcess::CheckForNeighbourE
     const unsigned int nCompleteList = PointersOfAllBoundaryNodes.size();
     for( unsigned int j = 0 ; j < nCandidates; j++){ 
         unsigned int repetitions = 1 ; //the current one must be added
-        if(PointersOfAllBoundaryNodes[j].Id()!=main_elem_id){ //ignoring main node
+        if(PointersOfAllBoundaryNodes(j).GetRank() != CurrentRank ||
+           PointersOfAllBoundaryNodes[j].Id()!=main_elem_id){ //ignoring main node
             for( unsigned int k = nCandidates ; k < nCompleteList; k++){ //starting from pointers belonging to the next node
                 if(  PointersOfAllBoundaryNodes(j).get() == PointersOfAllBoundaryNodes(k).get() ){
                     repetitions++;
