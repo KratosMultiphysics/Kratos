@@ -80,9 +80,9 @@ ForwardIterator PaddedWindowFind(
  *  - Function containing x:          exp
  */
 bool ExpressionDependsOnSpace(std::string const& expression) {
-    constexpr auto const& variables = "xyzXYZ";
     return PaddedWindowFind(expression.cbegin(), expression.cend(), '\0', 
-        [&] (char lead, char middle, char last) {
+        [] (char lead, char middle, char last) {
+            constexpr auto const& variables = "xyzXYZ";
             if(std::find(std::begin(variables), std::end(variables), middle) == std::end(variables)) {
                 return false; // Middle character is not xyzXYZ
             }
