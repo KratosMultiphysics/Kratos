@@ -12,6 +12,7 @@ class FluidDynamicsAnalysisROM(FluidDynamicsAnalysis):
 
     def __init__(self,model,project_parameters, path = '.', hyper_reduction_element_selector = None):
         KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[DEPRECATED CLASS] \x1b[0m',"\'FluidDynamicsAnalysisROM\'", "class is deprecated. Use the \'RomAnalysis\' one instead.")
+        self.path = path
         super().__init__(model,project_parameters)
         if hyper_reduction_element_selector != None :
             if hyper_reduction_element_selector == "EmpiricalCubature":
@@ -23,7 +24,7 @@ class FluidDynamicsAnalysisROM(FluidDynamicsAnalysis):
                 raise Exception(err_msg)
         else:
             self.hyper_reduction_element_selector = None
-        self.path = path
+
 
 
     #### Internal functions ####
