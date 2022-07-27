@@ -752,7 +752,7 @@ private:
                 auto p_node_copy = Kratos::make_intrusive< Node<3> >( p_i_node->Id(), 
                                                                       p_i_node->Coordinates()
                                                                       );
-                p_node_copy->SetSolutionStepVariablesList(pvar_list);
+                p_node_copy->SetSolutionStepVariablesList(rp_var_list);
                 p_node_copy->SetBufferSize(buffer_size);
 
                 rNodesMap[p_i_node->Id()] = p_node_copy;
