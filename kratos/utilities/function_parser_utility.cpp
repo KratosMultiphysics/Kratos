@@ -12,7 +12,10 @@
 //
 
 // System includes
-#include <regex>
+#include <algorithm>
+#include <array>
+#include <cctype>
+#include <iterator>
 
 // External includes
 #include "tinyexpr/tinyexpr/tinyexpr.h"
@@ -24,29 +27,69 @@
 namespace Kratos
 {
 
-// A check only to check that the x is not part of exp
-inline bool CheckThereIsNotx(const std::string& rString)
+/***********************************************************************************/
+/***********************************************************************************/
+
+/**
+ * Ternary version of adjacent_find, with padding.
+ * 
+ * Scans a sequence with a 3-window, passing it to a predicate.
+ * The window is padded such that every element of the sequence
+ * is the middle element of the window once.
+ * Returns the iterator to the middle of the first window to
+ * fulfill the predicate.
+ */
+template<typename ForwardIterator, typename TernaryPredicate>
+ForwardIterator PaddedWindowFind(
+    ForwardIterator Begin,
+    ForwardIterator End,
+    typename std::iterator_traits<ForwardIterator>::value_type Padding,
+    TernaryPredicate&& Pred)
 {
-    const auto first_x = rString.find(std::string("x"));
-    if (first_x != std::string::npos) {
-        const std::string exp_string = "exp";
-        const char e_char = exp_string[0];
-        const char x_char = exp_string[1];
-        const char p_char = exp_string[2];
-        for(std::size_t i = first_x; i < rString.size(); ++i) {
-            if(rString[i] == x_char) {
-                if (!(rString[i - 1] == e_char && rString[i + 1] == p_char)) {
-                    return false;
-                }
-            }
-        }
+    // Edge case: length 0
+    if(Begin == End) {
+        return End;
+    }
+    
+    auto wmiddle = std::next(Begin); // Middle of the window
+    
+    // Edge case: length 1
+    if(wmiddle == End) {
+        return Pred(Padding, *Begin, Padding) ? Begin : End;
     }
 
-    return true;
+    if(Pred(Padding, *Begin, *wmiddle)) return Begin;
+    
+    auto wlast = std::next(wmiddle); // Last element of the window
+    while(wlast != End) {
+        if(Pred(*Begin, *wmiddle, *wlast)) return wmiddle;
+        std::advance(Begin, 1);
+        std::advance(wmiddle, 1);
+        std::advance(wlast, 1);
+    }
+    // wlast points to end, so it is replaced with padding
+    return Pred(*Begin, *wmiddle, Padding) ? wmiddle : End;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+
+/** 
+* CHECKING IF THE FUNCTION DEPENDS ON SPACE f(var in {x,y,z,X,Y,Z})
+ * Appearances of these letters that are not a dependence in space:
+ *  - Variable containing the letter: Starts with a letter, followed by letters, numbers, or underscores
+ *  - Hex number:                     Starts with 0x, followed by numbers or abcdefABCDEF
+ *  - Function containing x:          exp
+ */
+bool ExpressionDependsOnSpace(std::string const& expression) {
+    constexpr auto const& variables = "xyzXYZ";
+    return PaddedWindowFind(expression.cbegin(), expression.cend(), '\0', 
+        [&] (char lead, char middle, char last) {
+            if(std::find(std::begin(variables), std::end(variables), middle) == std::end(variables)) {
+                return false; // Middle character is not xyzXYZ
+            }
+            return !std::isalnum(lead) && !std::isalnum(last);
+        }
+    ) != expression.cend();
+}
 
 BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFunctionBody)
     : mFunctionBody(rFunctionBody)
@@ -61,19 +104,7 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFun
     InitializeParser();
 
     // Check if it depends on space
-#if !(defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 9))))
-    const std::regex space_regex("\\b[xyz]\\b", std::regex_constants::icase);
-    mDependsOnSpace = std::regex_search(mFunctionBody, space_regex);
-#else
-    if (CheckThereIsNotx(mFunctionBody)                           &&
-        mFunctionBody.find(std::string("y")) == std::string::npos &&
-        mFunctionBody.find(std::string("z")) == std::string::npos &&
-        mFunctionBody.find(std::string("X")) == std::string::npos &&
-        mFunctionBody.find(std::string("Y")) == std::string::npos &&
-        mFunctionBody.find(std::string("Z")) == std::string::npos) {
-        mDependsOnSpace = false;
-    }
-#endif
+    mDependsOnSpace = ExpressionDependsOnSpace(mFunctionBody);
 }
 
 /***********************************************************************************/

@@ -67,6 +67,24 @@ KRATOS_TEST_CASE_IN_SUITE(GenericFunctionUtility1, KratosCoreFastSuite)
     KRATOS_CHECK_STRING_EQUAL(function6.FunctionBody(), "(1.0)*(50*(exp(t)-2))");
     KRATOS_CHECK_DOUBLE_EQUAL(function6.CallFunction(0.0,0.0,0.0,0.0), -50);
 
+    {
+        auto fun = GenericFunctionUtility("2 + 0xB0B0");
+        KRATOS_CHECK_IS_FALSE(fun.DependsOnSpace());
+    }
+    {
+        auto fun = GenericFunctionUtility("3*y");
+        KRATOS_CHECK(fun.DependsOnSpace());
+    }
+    {
+        auto fun = GenericFunctionUtility("Z");
+        KRATOS_CHECK(fun.DependsOnSpace());
+    }
+    {
+        auto fun = GenericFunctionUtility("x + 0x34321");
+        KRATOS_CHECK(fun.DependsOnSpace());
+    }
+    
+
     KRATOS_CHECK_EXCEPTION_IS_THROWN(GenericFunctionUtility("NotAValidExpression"), "Error: \nParsing error in function: NotAValidExpression\nError occurred near here :                   ^ (char [18])\nCheck your locale (e.g. if \".\" or \",\" is used as decimal point)");
 }
 
