@@ -749,9 +749,9 @@ private:
             // Check if the node has been already added
             if (!p_i_node->Is(VISITED)) {
                 p_i_node->Set(VISITED, true);
-                auto p_node_copy = Kratos::make_intrusive< Node<3> >( p_i_node->Id(), 
-                                                                      p_i_node->Coordinates()
-                                                                      );
+                auto p_node_copy = Kratos::make_intrusive< Node<3> >(
+                    p_i_node->Id(), 
+                    p_i_node->Coordinates());
                 p_node_copy->SetSolutionStepVariablesList(rp_var_list);
                 p_node_copy->SetBufferSize(buffer_size);
 
