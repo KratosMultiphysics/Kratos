@@ -151,6 +151,7 @@ namespace Kratos
 
     void FixedMeshALEUtilities::ComputeMeshMovement(const double DeltaTime)
     {
+
         // Initialize the PRESSURE and VELOCITY virtual mesh values
         this->InitializeVirtualMeshValues();
 
@@ -165,6 +166,7 @@ namespace Kratos
 
         // Set the mesh moving strategy
         this->SolveMeshMovementStrategy(DeltaTime);
+
     }
 
     void FixedMeshALEUtilities::UndoMeshMovement()
@@ -192,13 +194,24 @@ namespace Kratos
 
         // Search the origin model part nodes in the virtual mesh elements and
         // interpolate the values in the virtual element to the origin model part node
-        block_for_each( rOriginModelPart.Nodes(),
-            [&]( Node<3>& rNode )
+
+        unsigned int max_results=10000;
+        double search_tol = 1e-5;
+        block_for_each( rOriginModelPart.Nodes(), typename BinBasedFastPointLocator<TDim>::ResultContainerType(max_results),
+            [&]( Node<3>& rNode,
+                 typename BinBasedFastPointLocator<TDim>::ResultContainerType& search_results
+             )
             {
                 // Find the origin model part node in the virtual mesh
-                Vector aux_N;
+                Vector aux_N(4);
                 Element::Pointer p_elem = nullptr;
-                const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(rNode.Coordinates(), aux_N, p_elem);
+                const bool is_found = bin_based_point_locator.FindPointOnMesh(
+                    rNode.Coordinates(), 
+                    aux_N, 
+                    p_elem,
+                    search_results.begin(), 
+                    max_results,
+                    search_tol);                  
 
                 // Check if the node is found
                 if (is_found){
