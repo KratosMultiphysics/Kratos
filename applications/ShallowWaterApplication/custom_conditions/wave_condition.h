@@ -276,10 +276,6 @@ protected:
         double height;
         array_1d<double,3> velocity;
 
-        BoundedMatrix<double,3,3> A1; // TODO: Remove
-        BoundedMatrix<double,3,3> A2; // TODO: Remove
-        array_1d<double,3> b1;        // TODO: Remove
-        array_1d<double,3> b2;        // TODO: Remove
         double v_neumann;
         double h_dirichlet;
         array_1d<double,3> flux;
@@ -319,14 +315,8 @@ protected:
         const array_1d<array_1d<double,3>,TNumNodes>& rV,
         const array_1d<double,TNumNodes>& rN);
 
-    void AddWaveTerms(
-        LocalMatrixType& rMatrix,
-        LocalVectorType& rVector,
-        const ConditionData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const double Weight = 1.0);
 
-    virtual void AddFluxTerms(
+    void AddFluxTerms(
         LocalVectorType& rVector,
         const ConditionData& rData,
         const array_1d<double,TNumNodes>& rN,

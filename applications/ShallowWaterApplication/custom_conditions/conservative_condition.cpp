@@ -73,34 +73,6 @@ void ConservativeCondition<TNumNodes>::CalculateGaussPointData(
     rData.height = h;
     rData.velocity = v;
 
-    rData.A1(0,0) = 2*v[0];
-    rData.A1(0,1) = 0;
-    rData.A1(0,2) = -v[0]*v[0] + c2;
-    rData.A1(1,0) = v[1];
-    rData.A1(1,1) = v[0];
-    rData.A1(1,2) = -v[0]*v[1];
-    rData.A1(2,0) = 1;
-    rData.A1(2,1) = 0;
-    rData.A1(2,2) = 0;
-
-    rData.A2(0,0) = v[1];
-    rData.A2(0,1) = v[0];
-    rData.A2(0,2) = -v[0]*v[1];
-    rData.A2(1,0) = 0;
-    rData.A2(1,1) = 2*v[1];
-    rData.A2(1,2) = -v[1]*v[1] + c2;
-    rData.A2(2,0) = 0;
-    rData.A2(2,1) = 1;
-    rData.A2(2,2) = 0;
-
-    rData.b1[0] = c2;
-    rData.b1[1] = 0;
-    rData.b1[2] = 0;
-
-    rData.b2[0] = 0;
-    rData.b2[1] = c2;
-    rData.b2[2] = 0;
-
     auto integration_point = this->GetGeometry().IntegrationPoints()[PointIndex];
     rData.normal = this->GetGeometry().UnitNormal(integration_point);
 }

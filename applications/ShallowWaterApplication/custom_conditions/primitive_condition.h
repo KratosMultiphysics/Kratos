@@ -179,12 +179,6 @@ protected:
         const IndexType PointIndex,
         const array_1d<double,TNumNodes>& rN) override;
 
-    void AddFluxTerms(
-        LocalVectorType& rVector,
-        const ConditionData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const double Weight = 1.0) override;
-
     ///@}
 
 private:

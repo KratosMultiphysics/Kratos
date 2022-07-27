@@ -76,46 +76,6 @@ void BoussinesqCondition<TNumNodes>::CalculateGaussPointData(
     rData.height = H + eta;
     rData.velocity = v;
 
-    /**
-     * A_1 = {{  u_1     0    g  },
-     *        {   0     u_1   0  },
-     *        {H + eta   0   u_1}}
-     */
-    rData.A1(0,0) = v[0];
-    rData.A1(0,1) = 0;
-    rData.A1(0,2) = g;
-    rData.A1(1,0) = 0;
-    rData.A1(1,1) = v[0];
-    rData.A1(1,2) = 0;
-    rData.A1(2,0) = H + eta;
-    rData.A1(2,1) = 0;
-    rData.A1(2,2) = v[0];
-
-    /*
-     * A_2 = {{ u_2     0      0  },
-     *        {  0     u_2     g  },
-     *        {  0   H + eta  u_2}}
-     */
-    rData.A2(0,0) = v[1];
-    rData.A2(0,1) = 0;
-    rData.A2(0,2) = 0;
-    rData.A2(1,0) = 0;
-    rData.A2(1,1) = v[1];
-    rData.A2(1,2) = g;
-    rData.A2(2,0) = 0;
-    rData.A2(2,1) = H + eta;
-    rData.A2(2,2) = v[1];
-
-    /// b_1
-    rData.b1[0] = 0;
-    rData.b1[1] = 0;
-    rData.b1[2] = v[0];
-
-    /// b_2
-    rData.b2[0] = 0;
-    rData.b2[1] = 0;
-    rData.b2[2] = v[1];
-
     // Calculate the normal vector
     auto integration_point = this->GetGeometry().IntegrationPoints()[PointIndex];
     rData.normal = this->GetGeometry().UnitNormal(integration_point);

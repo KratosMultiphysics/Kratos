@@ -45,11 +45,6 @@ void PrimitiveCondition<TNumNodes>::CalculateGaussPointData(
     rData.height = h;
     rData.velocity = v;
 
-    rData.A1 = ZeroMatrix(3, 3);
-    rData.A2 = ZeroMatrix(3, 3);
-    rData.b1 = ZeroVector(3);
-    rData.b2 = ZeroVector(3);
-
     if (this->Is(SLIP)) {
         rData.v_neumann = 0.0;
         rData.h_dirichlet = h;
@@ -84,38 +79,6 @@ void PrimitiveCondition<TNumNodes>::CalculateGaussPointData(
     /// Assembly of the flux
     rData.flux = conv_flux + press_flux;
 }
-
-
-template<std::size_t TNumNodes>
-void PrimitiveCondition<TNumNodes>::AddFluxTerms(
-    LocalVectorType& rVector,
-    const ConditionData& rData,
-    const array_1d<double,TNumNodes>& rN,
-    const double Weight)
-{
-    const double penalty_factor = 1.0 * rData.length;
-    const auto n = rData.normal;
-
-    for (IndexType i = 0; i < TNumNodes; ++i)
-    {
-        double n_i;
-        if (rData.integrate_by_parts) {
-            n_i = rN[i];
-        } else {
-            n_i = 0.0;
-        }
-
-        /// Flux contribution
-        MathUtils<double>::AddVector(rVector, -Weight * n_i * rData.flux, 3*i);
-
-        /// Penalty stabilization
-        double i_velocity_penalty = inner_prod(n, rData.nodal_v[i]) - rData.v_neumann;
-        rVector[3*i    ] -= n[0] * Weight * penalty_factor * i_velocity_penalty;
-        rVector[3*i + 1] -= n[1] * Weight * penalty_factor * i_velocity_penalty;
-        rVector[3*i + 2] -=        Weight * penalty_factor * (rData.nodal_h[i] - rData.h_dirichlet);
-    }
-}
-
 
 template class PrimitiveCondition<2>;
 
