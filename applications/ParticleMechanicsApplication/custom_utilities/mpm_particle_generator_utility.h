@@ -60,7 +60,7 @@ namespace MPMParticleGeneratorUtility
         IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);
 
     /// Get integration method and shape function values for the given element
-    void DetermineIntegrationMethod(const GeometryType& rGeom, const SizeType ParticlesPerElement,
+    void DetermineConditionIntegrationMethod(const GeometryType& rGeom, const SizeType ParticlesPerElement,
         IndexType& rNumPointsPerSpan);
 
     /**
