@@ -254,7 +254,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);  
     } 
     
-    KRATOS_TEST_CASE_IN_SUITE(QEFmovedCenter, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(QEF0dofmovedCenter, KratosCoreFastSuite) {
         //A voxel with one node inside the volume but centered at (1,1,1)
         std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
         GeometryPtrType pVoxel = GenerateUncenteredHexahedra3D8(distances);

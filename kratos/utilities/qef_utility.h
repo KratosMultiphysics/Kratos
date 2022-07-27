@@ -59,7 +59,7 @@ namespace Kratos
  * This methods should be reimplemented in order to use this class as template
  * @author Ariadna Cortés
  */
-class QEF
+class KRATOS_API(KRATOS_CORE) QEF
 {
 public:
 
@@ -116,6 +116,7 @@ public:
         MatrixType mCenter(3,1);
         column(mCenter,0) = center;
         GeometryArrayType edges = rVoxel.GenerateEdges();
+        
         //Initialize the corresponding matrixes
         MatrixType AtA(3,3,0);  //3x3 matrix initialized to 0
         MatrixType AtB(3,1,0);  //3x1 matrix
@@ -193,14 +194,7 @@ public:
      * @param rEnds references to the nodes at both sides of the edge
      * @return Approximated volume 
      */  
-    static array_1d<double,3> CalculateCenter(const GeometryType& rVoxel) {
-        PointsArrayType nodes = rVoxel.Points();
-        double x = (nodes[0].X() + nodes[1].X())/2.0;
-        double y = (nodes[1].Y() + nodes[2].Y())/2.0;
-        double z = (nodes[0].Z() + nodes[4].Z())/2.0;
-        array_1d<double,3> center({x,y,z});
-        return center;
-    }
+    static array_1d<double,3> CalculateCenter(const GeometryType& rVoxel);
 
     /**
      * @brief Aproximates the portion of the edge that represents volume
