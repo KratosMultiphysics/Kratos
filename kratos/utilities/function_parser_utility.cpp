@@ -27,16 +27,12 @@
 namespace Kratos
 {
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 /**
- * Ternary version of adjacent_find, with padding.
- * 
- * Scans a sequence with a 3-window, passing it to a predicate.
+ * @brief Ternary version of adjacent_find, with padding.
+ * @details Scans a sequence with a 3-window, passing it to a predicate.
  * The window is padded such that every element of the sequence
  * is the middle element of the window once.
- * Returns the iterator to the middle of the first window to
+ * @return Returns the iterator to the middle of the first window to
  * fulfill the predicate.
  */
 template<typename ForwardIterator, typename TernaryPredicate>
@@ -44,7 +40,8 @@ ForwardIterator PaddedWindowFind(
     ForwardIterator Begin,
     ForwardIterator End,
     typename std::iterator_traits<ForwardIterator>::value_type Padding,
-    TernaryPredicate&& Pred)
+    TernaryPredicate&& Pred
+    )
 {
     // Edge case: length 0
     if(Begin == End) {
@@ -71,16 +68,15 @@ ForwardIterator PaddedWindowFind(
     return Pred(*Begin, *wmiddle, Padding) ? wmiddle : End;
 }
 
-
 /** 
-* CHECKING IF THE FUNCTION DEPENDS ON SPACE f(var in {x,y,z,X,Y,Z})
- * Appearances of these letters that are not a dependence in space:
+ * @brief CHECKING IF THE FUNCTION DEPENDS ON SPACE f(var in {x,y,z,X,Y,Z})
+ * @details Appearances of these letters that are not a dependence in space:
  *  - Variable containing the letter: Starts with a letter, followed by letters, numbers, or underscores
  *  - Hex number:                     Starts with 0x, followed by numbers or abcdefABCDEF
  *  - Function containing x:          exp
  */
-bool ExpressionDependsOnSpace(std::string const& expression) {
-    return PaddedWindowFind(expression.cbegin(), expression.cend(), '\0', 
+bool ExpressionDependsOnSpace(std::string const& rExpression) {
+    return PaddedWindowFind(rExpression.cbegin(), rExpression.cend(), '\0', 
         [] (char lead, char middle, char last) {
             constexpr auto const& variables = "xyzXYZ";
             if(std::find(std::begin(variables), std::end(variables), middle) == std::end(variables)) {
@@ -88,8 +84,11 @@ bool ExpressionDependsOnSpace(std::string const& expression) {
             }
             return !std::isalnum(lead) && !std::isalnum(last);
         }
-    ) != expression.cend();
+    ) != rExpression.cend();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFunctionBody)
     : mFunctionBody(rFunctionBody)
