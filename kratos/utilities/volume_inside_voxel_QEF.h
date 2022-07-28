@@ -107,6 +107,18 @@ public:
         double volume = 0;
         GeometryArrayType edges = rVoxel.GenerateEdges();
         PointsArrayType nodes = rVoxel.Points();
+
+        array_1d<double,3> qef = QEF::QEFPoint(rVoxel,rTriangles); 
+        //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
+        bool nodeInside = false; 
+
+        for (int i = 0; i < nodes.size(); i++) {
+            if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
+                nodeInside = true;
+                TreatNode(i, rVoxel, rTriangles);
+            } 
+        }
+        if (!nodeInside) return EdgesPortionApproximation(rVoxel,rTriangles);
         
         return volume;
     }
