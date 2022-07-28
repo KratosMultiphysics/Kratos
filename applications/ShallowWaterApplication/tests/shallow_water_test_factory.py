@@ -97,3 +97,14 @@ class TestSolitaryWaveBenchmark(ShallowWaterTestFactory):
 class TestMeshMovingStrategy(ShallowWaterTestFactory):
     execution_directory = "nightly_tests"
     execution_file = "mesh_moving_strategy"
+
+class TestDamBreakValidation(ShallowWaterTestFactory):
+    execution_directory = "validation_tests"
+    execution_file = "dam_break_validation"
+    need_scipy = True
+
+class TestMacDonaldShockValidation(ShallowWaterTestFactory):
+    execution_directory = "validation_tests"
+    execution_file = "mac_donald_shock_validation"
+    need_scipy = True
+    need_numpy = True
