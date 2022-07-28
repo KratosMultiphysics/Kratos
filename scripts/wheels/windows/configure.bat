@@ -44,6 +44,7 @@ CALL :add_app %KRATOS_APP_DIR%\ChimeraApplication;
 CALL :add_app %KRATOS_APP_DIR%\MultilevelMonteCarloApplication;
 CALL :add_app %KRATOS_APP_DIR%\StatisticsApplication;
 CALL :add_app %KRATOS_APP_DIR%\RomApplication;
+CALL :add_app %KRATOS_APP_DIR%\ShallowWaterApplication;
 
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
