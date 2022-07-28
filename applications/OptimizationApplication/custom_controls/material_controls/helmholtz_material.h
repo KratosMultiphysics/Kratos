@@ -162,19 +162,16 @@ public:
 
         opt_itr++;
 
-        if (opt_itr % 10 == 0 && beta <25.0)
+        if (opt_itr % 20 == 0 && beta <20.0)
             beta *=1.5;
-        if(beta>25.0)
-            beta = 25.0;
+        if(beta>20.0)
+            beta = 20.0;
         
         std::cout<<"++++++++++++++++++++++ beta : "<<beta<<" ++++++++++++++++++++++"<<std::endl;
 
         ComputeFilteredDensity();
         ComputePhyiscalDensity();
         ComputeYoungModulus();
-
-        // if(opt_itr==1)
-        //     beta = 5;
         
 
     };  
@@ -477,14 +474,17 @@ private:
     double ProjectForward(double x,Vector x_limits,Vector y_limits,double beta){
 
         double x1,x2,y1,y2;
+        int index_x1 = 0;
         if(x>=x_limits[x_limits.size()-1]){
             x1=x_limits[x_limits.size()-2];
+            index_x1 = x_limits.size()-2;
             x2=x_limits[x_limits.size()-1];
             y1=y_limits[y_limits.size()-2];
             y2=y_limits[y_limits.size()-1];
         }
         else if(x<=x_limits[0]){
             x1=x_limits[0];
+            index_x1 = 0;
             x2=x_limits[1];
             y1=y_limits[0];
             y2=y_limits[1];
@@ -496,12 +496,23 @@ private:
                     y1 = y_limits[i];
                     y2 = y_limits[i+1];
                     x1 = x_limits[i];
+                    index_x1 = i;
                     x2 = x_limits[i+1];
                     break;
                 }            
         }        
         
         double pow_val = -2.0*beta*(x-(x1+x2)/2);
+
+        if(index_x1>0){
+            double prev_x1,prev_x2,prev_y1,prev_y2;
+            prev_x1 = x_limits[index_x1-1];
+            prev_x2 = x_limits[index_x1];
+            prev_y1 = y_limits[index_x1-1];
+            prev_y2 = y_limits[index_x1];
+            double prev_pow_val = -2.0*beta*(x1-(prev_x1+prev_x2)/2);
+            y1 = (prev_y2-prev_y1)/(1+std::exp(prev_pow_val)) + prev_y1;     
+        }
 
         // if(pow_val<-600)
         //     pow_val = -600;

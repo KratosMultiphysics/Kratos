@@ -32,7 +32,6 @@ class OptimizationAlgorithm:
         self.objectives = self.opt_settings["objectives"].GetStringArray()
         self.objectives_weights = self.opt_settings["objectives_weights"].GetVector()
 
-
         # constraints
         self.constraints = self.opt_settings["constraints"].GetStringArray()
         self.constraints_types = self.opt_settings["constraints_types"].GetStringArray()
@@ -138,12 +137,16 @@ class OptimizationAlgorithm:
         self.opt_parameters.AddEmptyArray("objectives")
         self.opt_parameters.AddEmptyArray("constraints")
         self.opt_parameters.AddInt("opt_itr",0)
+        self.opt_parameters.AddBool("opt_converged",False)
         for response in self.responses_controlled_objects.keys():
             response_settings = Parameters()
             response_settings.AddString("name",response)
             response_settings.AddString("response_type",self.responses_types[response])
             response_settings.AddString("variable_name",self.responses_var_names[response])
             response_settings.AddDouble("value",0.0)
+            response_settings.AddDouble("weight",1.0)
+            response_settings.AddDouble("init_value",0.0)
+            response_settings.AddDouble("prev_itr_value",0.0)
             response_settings.AddEmptyArray("controlled_objects")
             response_settings.AddEmptyArray("control_types")
             response_settings.AddEmptyArray("control_gradient_names")
@@ -231,15 +234,6 @@ class OptimizationAlgorithm:
             controlling_model_part_vtkIO.ExecuteBeforeSolutionLoop()
             self.root_model_parts_vtkIOs[root_model_part] = controlling_model_part_vtkIO
 
-        self.constraints_hist = {}
-        self.objectives_hist = {}
-
-        for objective in self.objectives:
-            self.objectives_hist[objective] = []
-
-        for constraint in self.constraints:
-            self.constraints_hist[constraint] = []
-
     # --------------------------------------------------------------------------
     def RunOptimizationLoop( self ):
         raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> RunOptimizationLoop << .")
@@ -252,23 +246,25 @@ class OptimizationAlgorithm:
     # --------------------------------------------------------------------------
     def SetResponseValue( self,response,value ):
 
-        for objective in self.objectives:
-            if objective == response:
-                self.objectives_hist[objective].append(value)
-                break
-
-        for constraint in self.constraints:
-            if constraint == response:
-                self.constraints_hist[constraint].append(value)
-                break
-
         for objective in self.opt_parameters["objectives"]:
             if objective["name"].GetString() == response:
-                objective["value"].SetDouble(value)  
+                objective["prev_itr_value"].SetDouble(objective["value"].GetDouble())
+                objective["value"].SetDouble(value)
+                if self.opt_parameters["opt_itr"].GetInt()<2:
+                   objective["init_value"].SetDouble(value)   
+                
+                return  
 
         for constraint in self.opt_parameters["constraints"]:
             if constraint["name"].GetString() == response:
+                constraint["prev_itr_value"].SetDouble(constraint["value"].GetDouble())
                 constraint["value"].SetDouble(value) 
+                if self.opt_parameters["opt_itr"].GetInt()<2:
+                    constraint["init_value"].SetDouble(value)
+                    valid_types = ["initial_value_equality","smaller_than_initial_value","bigger_than_initial_value"]
+                    if constraint["type"].GetString() in valid_types:
+                        constraint["ref_value"].SetDouble(value)
+                return        
 
     # --------------------------------------------------------------------------
     def _InitializeCSVLogger(self):
@@ -277,15 +273,19 @@ class OptimizationAlgorithm:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
             row.append("{:>4s}".format("itr"))
-            for itr in range(len(self.objectives)):
-                row.append("{:>4s}".format("f: "+str(self.objectives[itr])))
+            for objective in self.opt_parameters["objectives"]:
+                row.append("{:>4s}".format("f: "+str(objective["name"].GetString())))
                 row.append("{:>4s}".format("abs[%]"))
                 row.append("{:>4s}".format("rel[%]"))
 
-            for itr in range(len(self.constraints)):
-                row.append("{:>4s}".format("c: "+str(self.constraints[itr])))
+            for constraint in self.opt_parameters["constraints"]:
+                row.append("{:>4s}".format("g: "+str(constraint["name"].GetString())))
                 row.append("{:>4s}".format("ref_val "))
                 row.append("{:>4s}".format("ref_diff[%]"))
+                row.append("{:>4s}".format("weight"))
+
+            for control in self.opt_parameters["controls"]:
+                row.append("{:>4s}".format("c: "+str(control["name"].GetString()))+" step")
 
             historyWriter.writerow(row)
 
@@ -296,16 +296,20 @@ class OptimizationAlgorithm:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
             row.append("{:>4d}".format(self.optimization_iteration))
-            for objective,objective_hist_values in self.objectives_hist.items():
-                objectivs_current_value = objective_hist_values[self.optimization_iteration-1]
+
+
+            for objective in self.opt_parameters["objectives"]:
+                objectivs_current_value = objective["value"].GetDouble()
                 objective_initial_value = objectivs_current_value
                 objective_previous_value = objectivs_current_value
+
                 if self.optimization_iteration>1:                
-                    objective_initial_value = objective_hist_values[0]
-                    objective_previous_value = objective_hist_values[self.optimization_iteration-2]
+                    objective_initial_value = objective["init_value"].GetDouble() 
+                    objective_previous_value = objective["prev_itr_value"].GetDouble() 
+
                 rel_change = 100 * (objectivs_current_value-objective_previous_value)/objective_previous_value
                 abs_change = 100 * (objectivs_current_value-objective_initial_value)/objective_initial_value
-                Logger.Print("  ===== objective: ",objective)
+                Logger.Print("  ===== objective: ",objective["name"].GetString())
                 Logger.Print("                   current value: ",objectivs_current_value)
                 Logger.Print("                   rel_change: ",rel_change)
                 Logger.Print("                   abs_change: ",abs_change)
@@ -313,20 +317,29 @@ class OptimizationAlgorithm:
                 row.append(" {:> .5E}".format(abs_change))
                 row.append(" {:> .5E}".format(rel_change)) 
 
-            constraint_index = 0
-            for constraint,constraint_hist_values in self.constraints_hist.items():
-                constraint_current_value = constraint_hist_values[self.optimization_iteration-1]
-                constraint_ref_val = self.constraints_ref_values[constraint_index]
+            for constraint in self.opt_parameters["constraints"]:
+                constraint_current_value = constraint["value"].GetDouble() 
+                constraint_ref_val = constraint["ref_value"].GetDouble()
+                constraint_weight = constraint["weight"].GetDouble()
                 abs_change = 100 * abs(constraint_current_value-constraint_ref_val)/abs(constraint_ref_val)
 
-                Logger.Print("  ===== constraint: ",constraint)
+                Logger.Print("  ===== constraint: ",constraint["name"].GetString())
                 Logger.Print("                   current value: ",constraint_current_value)
-                Logger.Print("                   abs_change: ",abs_change)
+                Logger.Print("                   ref value: ",constraint_ref_val)
+                Logger.Print("                   change: ",abs_change)
+                Logger.Print("                   weight: ",constraint_weight)
 
                 row.append(" {:> .5E}".format(constraint_current_value))
                 row.append(" {:> .5E}".format(constraint_ref_val))
                 row.append(" {:> .5E}".format(abs_change))
-                constraint_index = constraint_index + 1
+                row.append(" {:> .5E}".format(constraint_weight))
+
+
+            for control in self.opt_parameters["controls"]:
+                control_current_step = control["max_update"].GetDouble() 
+                Logger.Print("  ===== control: ",control["name"].GetString())
+                Logger.Print("                   current step: ",control_current_step)
+                row.append(" {:> .5E}".format(control_current_step))
 
             historyWriter.writerow(row)
 

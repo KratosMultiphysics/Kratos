@@ -234,7 +234,11 @@ public:
                 AddElementVariableValuesVector(elem_i,HELMHOLTZ_SOURCE_SHAPE,int_vals);
             }
 
+            BuiltinTimer solve_timer;
+
             mpStrategies[model_i]->Solve();
+
+            KRATOS_INFO("ImplicitVertexMorphing:MapControlUpdate:") << " +++++++++ Finished solve in " << solve_timer.ElapsedSeconds() << " s. +++++++++ " << std::endl;
 
             //filling the solution
             SetVariable1ToVarible2(mpVMModePart,HELMHOLTZ_VARS_SHAPE,rDestinationVariable); 
@@ -266,7 +270,9 @@ public:
             SetVariable1ToVarible2(mpVMModePart,rDerivativeVariable,HELMHOLTZ_SOURCE_SHAPE);
 
             //now solve 
+            BuiltinTimer solve_timer;
             mpStrategies[model_i]->Solve();
+            KRATOS_INFO("ImplicitVertexMorphing:MapFirstDerivative") << " +++++++++ Finished solving in " << solve_timer.ElapsedSeconds() << " s. +++++++++ " << std::endl;
 
             SetVariable1ToVarible2(mpVMModePart,HELMHOLTZ_VARS_SHAPE,rMappedDerivativeVariable);
         }
@@ -522,11 +528,18 @@ private:
 
             
             if(only_suf_param){
-                for (int i = 0; i < (int)r_controlling_object.Conditions().size(); i++) {
-                    ModelPart::ConditionsContainerType::iterator it = r_controlling_object.ConditionsBegin() + i;
-                    Element::Pointer p_element = new HelmholtzSurfShapeElement(it->Id(), it->pGetGeometry(), p_vm_model_part_property);
+                // for (int i = 0; i < (int)r_controlling_object.Conditions().size(); i++) {
+                //     ModelPart::ConditionsContainerType::iterator it = r_controlling_object.ConditionsBegin() + i;
+                //     Element::Pointer p_element = new HelmholtzSurfShapeElement(it->Id(), it->pGetGeometry(), p_vm_model_part_property);
+                //     rmesh_elements.push_back(p_element);
+                // }  
+
+                for (int i = 0; i < (int)root_model_part.Elements().size(); i++) {
+                    ModelPart::ElementsContainerType::iterator it = root_model_part.ElementsBegin() + i;
+                    Element::Pointer p_element = new HelmholtzSurfShapeElement(it->Id(), it->pGetGeometry(), p_vm_model_part_property);                
                     rmesh_elements.push_back(p_element);
-                }  
+                }
+
             }
             else{
                 for (int i = 0; i < (int)root_model_part.Elements().size(); i++) {

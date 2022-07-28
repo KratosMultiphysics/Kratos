@@ -73,18 +73,21 @@ void MapperVertexMorphingImprovedIntegration::ComputeWeightForAllNeighbors(  Mod
             // Computation of weight according specified weighting function
             // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
             double Aij = mpFilterFunction->ComputeWeight(node_j.Coordinates(),node_i.Coordinates());
-            array_3d& node_j_damp = node_j.GetValue(DAMPING_FACTOR);
-            array_3d& node_i_damp = node_i.GetValue(DAMPING_FACTOR);
+            // array_3d& node_j_damp = node_j.GetValue(DAMPING_FACTOR);
+            // array_3d& node_i_damp = node_i.GetValue(DAMPING_FACTOR);
 
-            if(node_i_damp[0]<0.00000000001){
-                list_of_weights[j_itr] = 0.0;
-                sum_of_weights = 1.0;
-            }
-            else
-            {
-                list_of_weights[j_itr] += Aij  * pow(node_j_damp[0],4);
-                sum_of_weights += (Aij * nodalAreas[node_j.GetValue(MAPPING_ID)]);
-            }            
+            list_of_weights[j_itr] += (Aij * nodalAreas[node_j.GetValue(MAPPING_ID)]);
+            sum_of_weights += (Aij * nodalAreas[node_j.GetValue(MAPPING_ID)]);            
+
+            // if(node_i_damp[0]<0.00000000001){
+            //     list_of_weights[j_itr] = 0.0;
+            //     sum_of_weights = 1.0;
+            // }
+            // else
+            // {
+            //     list_of_weights[j_itr] += Aij  * pow(node_j_damp[0],4);
+            //     sum_of_weights += (Aij * nodalAreas[node_j.GetValue(MAPPING_ID)]);
+            // }            
         }
     }
 }
@@ -105,7 +108,7 @@ void MapperVertexMorphingImprovedIntegration::Map( const Variable<array_3d> &rOr
 
 void MapperVertexMorphingImprovedIntegration::InverseMap( const Variable<array_3d> &rDestinationVariable, const Variable<array_3d> &rOriginVariable)
 {
-    MapperVertexMorphing::Map(rDestinationVariable,rOriginVariable);
+    MapperVertexMorphing::InverseMap(rDestinationVariable,rOriginVariable);
 }
 
 void MapperVertexMorphingImprovedIntegration::InverseMap( const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable)
