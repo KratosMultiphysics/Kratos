@@ -16,15 +16,8 @@
 // System includes
 
 /* Project includes */
-#include "includes/node.h"
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
-#include "containers/model.h"
-#include "includes/element.h"
-#include "includes/condition.h"
-#include "includes/checks.h"
-#include "testing/testing.h"
 #include "geometries/tetrahedra_3d_10.h"
-#include "geometries/triangle_3d_6.h"
 
 namespace Kratos
 {
