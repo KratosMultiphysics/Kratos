@@ -36,31 +36,31 @@
             "courant_number"           : 2.0
         }
     },
-    "output_processes" : {
-        "output_process_list" : [{
-            "kratos_module"        : "KratosMultiphysics",
-            "python_module"        : "gid_output_process",
-            "process_name"         : "GidOutputProcess",
-            "Parameters"           : {
-                "model_part_name"        : "model_part",
-                "output_name"            : "mac_donald_shock_validation",
-                "postprocess_parameters" : {
-                    "result_file_configuration" : {
-                        "output_control_type"   : "step",
-                        "output_interval"       : 1,
-                        "body_output"           : true,
-                        "node_output"           : false,
-                        "skin_output"           : false,
-                        "plane_output"          : [],
-                        "nodal_results"         : ["MOMENTUM","VELOCITY","FREE_SURFACE_ELEVATION","TOPOGRAPHY"],
-                        "gauss_point_results"   : [],
-                        "nodal_nonhistorical_results" : ["EXACT_FREE_SURFACE"]
-                    },
-                    "point_data_configuration"  :  []
-                }
-            }
-        }]
-    },
+    // "output_processes" : {
+    //     "output_process_list" : [{
+    //         "kratos_module"        : "KratosMultiphysics",
+    //         "python_module"        : "gid_output_process",
+    //         "process_name"         : "GidOutputProcess",
+    //         "Parameters"           : {
+    //             "model_part_name"        : "model_part",
+    //             "output_name"            : "mac_donald_shock_validation",
+    //             "postprocess_parameters" : {
+    //                 "result_file_configuration" : {
+    //                     "output_control_type"   : "step",
+    //                     "output_interval"       : 1,
+    //                     "body_output"           : true,
+    //                     "node_output"           : false,
+    //                     "skin_output"           : false,
+    //                     "plane_output"          : [],
+    //                     "nodal_results"         : ["MOMENTUM","VELOCITY","FREE_SURFACE_ELEVATION","TOPOGRAPHY"],
+    //                     "gauss_point_results"   : [],
+    //                     "nodal_nonhistorical_results" : ["EXACT_FREE_SURFACE"]
+    //                 },
+    //                 "point_data_configuration"  :  []
+    //             }
+    //         }
+    //     }]
+    // },
     "processes" : {
         "topography_process_list"           : [],
         "initial_conditions_process_list"   : [],
