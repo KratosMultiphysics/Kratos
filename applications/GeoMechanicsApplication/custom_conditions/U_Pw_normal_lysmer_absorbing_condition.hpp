@@ -80,11 +80,17 @@ protected:
         double rho; // density of soil mixture
         double Ec; // p wave modulus
         double G; // shear modulus
+        double n; // porosity
         double vp; // p wave velocity
         double vs; // shear wave velocity
         double p_factor; // p wave relaxation factor
         double s_factor; // s wave relaxation factor
         double virtual_thickness;
+        vector<double> EcNodes;
+        vector<double> GNodes;
+        vector<double> SaturationNodes;
+        vector<double> rhoNodes;
+
         BoundedMatrix<double, TDim, TDim> CAbsMatrix; // damping part of absorbing matrix;
         BoundedMatrix<double, TDim, TDim> KAbsMatrix; // stiffness part of absorbing matrix;
     };
@@ -113,7 +119,8 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+    typedef std::unordered_multimap<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > hashmap;
+
     // Member Variables
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
