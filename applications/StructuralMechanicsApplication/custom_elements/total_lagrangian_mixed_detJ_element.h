@@ -390,16 +390,46 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    IntegrationMethod mThisIntegrationMethod; /// Currently selected integration methods
-
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
-
     ///@}
     ///@name Protected Operators
     ///@{
 
     ///@}
     ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    Vector mMinShearModulusVector; /// Gauss pt. minimum historical shear modulus
+
+    IntegrationMethod mThisIntegrationMethod; /// Currently selected integration methods
+
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
     ///@{
 
     /**
@@ -461,34 +491,6 @@ protected:
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2) const;
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
 
     /**
      * @brief Calculate the kinematics

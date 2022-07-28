@@ -1,5 +1,6 @@
 import sympy
 from KratosMultiphysics import *
+from KratosMultiphysics import kratos_utilities
 from KratosMultiphysics.sympy_fe_utilities import *
 
 # Symbolic generation settings
@@ -8,7 +9,8 @@ dim_vect = [2, 3]
 do_simplifications = False
 output_filename = "total_lagrangian_mixed_detJ_element.cpp"
 template_filename = "total_lagrangian_mixed_detJ_element_template.cpp"
-outstring = open(template_filename).read()
+# outstring = open(template_filename).read()
+tokens_filenames = []
 
 for dim in dim_vect:
     n_nodes = dim + 1  # So far only simplex elements are considered
@@ -101,7 +103,7 @@ for dim in dim_vect:
     mom_aux_scalar = (tau_th / dim) * ((1+th_gauss)**sympy.Rational(2-dim,dim)) * (1.0/j_gauss**sympy.Rational(2,dim))
     mom_stab = DoubleContraction(grad_w_gauss, mom_aux_scalar * (1 + th_gauss - j_gauss) * tmp)
 
-    mass_first = q_gauss[0] * (1.0+th_gauss - j_gauss)
+    mass_first = (1.0 - tau_th) * q_gauss[0] * (1.0+th_gauss - j_gauss)
     mass_aux_scalar = (tau_u / dim) * ((j_gauss / (1.0+th_gauss))**sympy.Rational(dim-2,dim))
     mass_stab_1 = (mass_aux_scalar * grad_q_gauss * tmp * grad_th_gauss)[0]
     mass_stab_2 = (tau_u * grad_q_gauss * cofF_gauss.transpose() * b_gauss)[0]
@@ -177,20 +179,37 @@ for dim in dim_vect:
                     lhs[i, j] = sympy.simplify(lhs[i, j])
     lhs_out = OutputMatrix_CollectingFactors(w_g*lhs, "rLeftHandSideMatrix", mode, indentation_level=2, assignment_op="+=")
 
-    # Replace the computed RHS and LHS in the template outstring
-    outstring = outstring.replace(f"//substitute_rhs_{dim}D_{n_nodes}N", rhs_out)
-    outstring = outstring.replace(f"//substitute_lhs_{dim}D_{n_nodes}N", lhs_out)
-
-    # Replace the equivalent deformation gradient in the template outstring
+    # Calculate the output equivalent deformation gradient
     Fmod_gauss_out = OutputMatrix_CollectingFactors(Fmod_gauss, "r_eq_def_gradient", mode, indentation_level=1)
     det_Fmod_gauss_out = OutputScalar_CollectingFactors(Fmod_gauss.det(), "r_det_eq_def_gradient", mode, indentation_level=0)
-    outstring = outstring.replace(f"//substitute_def_gradient_{dim}D_{n_nodes}N", Fmod_gauss_out)
-    outstring = outstring.replace(f"//substitute_det_def_gradient_{dim}D_{n_nodes}N", det_Fmod_gauss_out)
 
-    # Replace the equivalent strain in the template outstring
+    # Calculate the output equivalent strain
     Emod_gauss_out = OutputVector_CollectingFactors(StrainToVoigt(Emod_gauss), "r_eq_green_strain", mode, indentation_level=1)
-    outstring = outstring.replace(f"//substitute_green_strain_{dim}D_{n_nodes}N", Emod_gauss_out)
+
+    # Temporary save the automatic differentiation outputs
+    tokens_dict = {
+        f"substitute_rhs_{dim}D_{n_nodes}N" : rhs_out,
+        f"substitute_lhs_{dim}D_{n_nodes}N" : lhs_out,
+        f"substitute_def_gradient_{dim}D_{n_nodes}N" : Fmod_gauss_out,
+        f"substitute_det_def_gradient_{dim}D_{n_nodes}N" : det_Fmod_gauss_out,
+        f"substitute_green_strain_{dim}D_{n_nodes}N" : Emod_gauss_out}
+    for token_key, token_val in tokens_dict.items():
+        tokens_filenames.append(token_key)
+        with open(f"{token_key}.sym",'w+') as token_file:
+            token_file.write(token_val)
 
 # Write the modified template
-with open(output_filename, 'w') as f:
-    f.write(outstring)
+with open(template_filename, 'r') as template_file:
+    with open(output_filename, 'w') as output_file:
+        for line in template_file:
+            has_token = False
+            for token_key in tokens_filenames:
+                if token_key in line:
+                    has_token = True
+                    with open(f"{token_key}.sym", 'r') as token_file:
+                        output_file.writelines(token_file.readlines())
+            if not has_token:
+                output_file.write(line)
+
+for token_key in tokens_filenames:
+    kratos_utilities.DeleteFileIfExisting(f"{token_key}.sym")

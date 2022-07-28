@@ -237,6 +237,9 @@ void TotalLagrangianMixedDetJElement<TDim>::Initialize(const ProcessInfo &rCurre
 
         // Initialize material
         InitializeMaterial();
+
+        // Allocate the minimum shear modulus vector
+        mMinShearModulusVector = Vector(r_integration_points.size(), std::numeric_limits<double>::max());
     }
 
     KRATOS_CATCH( "" )
@@ -377,7 +380,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
 
     // Calculate stabilization constant
     const double c_tau_u = 2.0;
-    const double c_tau_th = 4.0;
+    const double c_tau_th = 0.1;
     const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
     const double aux_tau = c_tau_u * std::pow(h,2) / 2.0;
 
@@ -412,8 +415,9 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
         // Calculate the stabilization constants
-        double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
-        double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        const double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        const double mu = std::min(CalculateShearModulus(constitutive_variables.ConstitutiveMatrix), mMinShearModulusVector[i_gauss]); // 2nd Lame constant (shear modulus)
+        mMinShearModulusVector[i_gauss] = mu; // Save the current 2nd Lame constant for the next iteration checks (note that we use the minimum historical value)
         const double tau_u = aux_tau / mu;
         const double tau_th = (c_tau_th * mu) / (mu + kappa);
 
@@ -469,7 +473,7 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
 
     // Calculate stabilization constant
     const double c_tau_u = 2.0;
-    const double c_tau_th = 4.0;
+    const double c_tau_th = 0.1;
     const double h = ElementSizeCalculator<3,NumNodes>::AverageElementSize(r_geometry);
     const double aux_tau = c_tau_u * std::pow(h,2) / 2.0;
 
@@ -503,9 +507,10 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
         // Note that this already includes the density computed in the reference configuration
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
-        // Calculate the stabilization constant
-        double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
-        double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        // Calculate the stabilization constants
+        const double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        const double mu = std::min(CalculateShearModulus(constitutive_variables.ConstitutiveMatrix), mMinShearModulusVector[i_gauss]); // 2nd Lame constant (shear modulus)
+        mMinShearModulusVector[i_gauss] = mu; // Save the current 2nd Lame constant for the next iteration checks (note that we use the minimum historical value)
         const double tau_u = aux_tau / mu;
         const double tau_th = (c_tau_th * mu) / (mu + kappa);
 
@@ -554,7 +559,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
 
     // Calculate stabilization constant
     const double c_tau_u = 2.0;
-    const double c_tau_th = 4.0;
+    const double c_tau_th = 0.1;
     const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
     const double aux_tau = c_tau_u * std::pow(h,2) / 2.0;
 
@@ -588,9 +593,10 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
         // Note that this already includes the density computed in the reference configuration
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
-        // Calculate the stabilization constant
-        double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
-        double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        // Calculate the stabilization constants
+        const double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        const double mu = std::min(CalculateShearModulus(constitutive_variables.ConstitutiveMatrix), mMinShearModulusVector[i_gauss]); // 2nd Lame constant (shear modulus)
+        mMinShearModulusVector[i_gauss] = mu; // Save the current 2nd Lame constant for the next iteration checks (note that we use the minimum historical value)
         const double tau_u = aux_tau / mu;
         const double tau_th = (c_tau_th * mu) / (mu + kappa);
 
@@ -637,7 +643,7 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
 
     // Calculate stabilization constant
     const double c_tau_u = 2.0;
-    const double c_tau_th = 4.0;
+    const double c_tau_th = 0.1;
     const double h = ElementSizeCalculator<3,NumNodes>::AverageElementSize(r_geometry);
     const double aux_tau = c_tau_u * std::pow(h,2) / 2.0;
 
@@ -671,9 +677,10 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
         // Note that this already includes the density computed in the reference configuration
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
-        // Calculate the stabilization constant
-        double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
-        double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        // Calculate the stabilization constants
+        const double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        const double mu = std::min(CalculateShearModulus(constitutive_variables.ConstitutiveMatrix), mMinShearModulusVector[i_gauss]); // 2nd Lame constant (shear modulus)
+        mMinShearModulusVector[i_gauss] = mu; // Save the current 2nd Lame constant for the next iteration checks (note that we use the minimum historical value)
         const double tau_u = aux_tau / mu;
         const double tau_th = (c_tau_th * mu) / (mu + kappa);
 
@@ -720,7 +727,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
 
     // Calculate stabilization constant
     const double c_tau_u = 2.0;
-    const double c_tau_th = 4.0;
+    const double c_tau_th = 0.1;
     const double h = ElementSizeCalculator<2,NumNodes>::AverageElementSize(r_geometry);
     const double aux_tau = c_tau_u * std::pow(h,2) / 2.0;
 
@@ -754,9 +761,10 @@ void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
         // Note that this already includes the density computed in the reference configuration
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
-        // Calculate the stabilization constant
-        double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
-        double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        // Calculate the stabilization constants
+        const double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        const double mu = std::min(CalculateShearModulus(constitutive_variables.ConstitutiveMatrix), mMinShearModulusVector[i_gauss]); // 2nd Lame constant (shear modulus)
+        mMinShearModulusVector[i_gauss] = mu; // Save the current 2nd Lame constant for the next iteration checks (note that we use the minimum historical value)
         const double tau_u = aux_tau / mu;
         const double tau_th = (c_tau_th * mu) / (mu + kappa);
 
@@ -803,7 +811,7 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
 
     // Calculate stabilization constant
     const double c_tau_u = 2.0;
-    const double c_tau_th = 4.0;
+    const double c_tau_th = 0.1;
     const double h = ElementSizeCalculator<3,NumNodes>::AverageElementSize(r_geometry);
     const double aux_tau = c_tau_u * std::pow(h,2) / 2.0;
 
@@ -837,9 +845,10 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
         // Note that this already includes the density computed in the reference configuration
         b_gauss = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, i_gauss);
 
-        // Calculate the stabilization constant
-        double mu = CalculateShearModulus(constitutive_variables.ConstitutiveMatrix); // 2nd Lame constant (shear modulus)
-        double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        // Calculate the stabilization constants
+        const double kappa = CalculateBulkModulus(constitutive_variables.ConstitutiveMatrix); // Equivalent bulk modulus
+        const double mu = std::min(CalculateShearModulus(constitutive_variables.ConstitutiveMatrix), mMinShearModulusVector[i_gauss]); // 2nd Lame constant (shear modulus)
+        mMinShearModulusVector[i_gauss] = mu; // Save the current 2nd Lame constant for the next iteration checks (note that we use the minimum historical value)
         const double tau_u = aux_tau / mu;
         const double tau_th = (c_tau_th * mu) / (mu + kappa);
 
