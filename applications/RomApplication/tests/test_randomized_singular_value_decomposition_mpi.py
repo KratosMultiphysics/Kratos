@@ -24,6 +24,13 @@ class TestRandomizedSVDMPI(KratosUnittest.TestCase):
 
     @KratosUnittest.skipUnless(numpy_and_mpi4py_available, "numpy and mpi4py are required for TSQR MPI")
     def test_radomized_svd_mpi(self):
+        """This algorithm it's being tested for a given tolerance which must be always fullfilled according to random theory
+        Inside MPI algorithm, random matrices are being seeded ("0") since the mpi algorithm requires it
+        for all cases. In addition, note that it's being compared by assertLess to a given tolerance, 
+        this must be satisfied for random theory in all cases. 
+        Referring to Brunton's book "There is an extensive literature on random matrix theory, 
+        where the above stereotypes (this case) are almost certainly true, meaning that they are
+        true with high probability"""
         comm = MPI.COMM_WORLD      # Communications macro
         svd_truncation_tolerance = 1e-6
         rank = comm.Get_rank()
