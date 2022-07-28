@@ -200,7 +200,7 @@ rm GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
 sh -c 'echo deb https://apt.repos.intel.com/mkl all main > /etc/apt/sources.list.d/intel-mkl.list'
 apt-get update -y
 # install specific version of intel-mkl
-apt-get install -y intel-mkl-2020.0-088
+apt-get install -y intel-mkl-2020.4-912
 exit
 ```
 
