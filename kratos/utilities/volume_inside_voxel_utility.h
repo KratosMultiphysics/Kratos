@@ -105,10 +105,10 @@ public:
     ) {
         double volume = 0;
         PointsArrayType nodes = rVoxel.Points();
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < nodes.size(); i++) {
             //std::cout << "Node " << i << " is at " << nodes[i] << std::endl;
             if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
-                volume+=0.125; //heyho
+                volume+=(1.0/nodes.size()); //heyho
             } 
         }
         return volume;
@@ -124,14 +124,14 @@ public:
         double volume = 0;
         GeometryArrayType edges = rVoxel.GenerateEdges();
         PointsArrayType nodes = rVoxel.Points();
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i < edges.size(); i++) {
             PointsArrayType ends = edges[i].Points();
             if(ends[0].GetSolutionStepValue(DISTANCE) > 0 && ends[1].GetSolutionStepValue(DISTANCE) > 0) {
-                volume+=1.0/12;
+                volume+=1.0/edges.size();
             } else if(
                 ends[0].GetSolutionStepValue(DISTANCE) > 0 && ends[1].GetSolutionStepValue(DISTANCE) < 0 || 
                 ends[0].GetSolutionStepValue(DISTANCE) < 0 && ends[1].GetSolutionStepValue(DISTANCE) > 0 ) {
-                volume+=1.0/24;
+                volume+=1.0/(edges.size()*2);
             }
         }
         return volume;
@@ -143,7 +143,9 @@ public:
      * @param rTriangles references to the triangles which intersect the voxel at some edge.
      * @return Approximated volume 
      * @note This approximation finds the portion of each edge that is part of the volume (using
-     * intersection point with triangles of the mesh)
+     * intersection point with triangles of the mesh). Even if this class is templated for both 
+     * parameters, it will only work with intersecting TRIANGLES, since the utility used to compute
+     * the intersection does not allow templating.
      */  
     template<class TGeometryType, class TGeometryArrayType>
     static double EdgesPortionApproximation(
@@ -154,7 +156,7 @@ public:
         GeometryArrayType edges = rVoxel.GenerateEdges();
         std::vector<double> Distances;
 
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i < edges.size(); i++) {
             Distances.push_back(0);
             PointsArrayType ends = edges[i].Points();
             //std::cout << "Edge " << i << " has nodes " << ends[0] << " " << ends[1] << std::endl;
@@ -171,7 +173,7 @@ public:
             Distances.push_back(Distance(ends[0],ends[1]));
             std::sort(Distances.begin(),Distances.end());       //WOULD A SET BE MORE EFFICIENT?     
             double edgePortion = VolumeInsideVoxelUtility::EdgeFilledPortion(Distances, ends);
-            volume += edgePortion/12;  
+            volume += edgePortion/edges.size();  
             Distances.clear();              
         }
         return volume;

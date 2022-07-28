@@ -18,7 +18,6 @@
 #include "geometries/triangle_3d_3.h"
 #include "includes/checks.h"
 #include "testing/testing.h"
-#include "utilities/intersection_utilities.h"
 #include "utilities/volume_inside_voxel_utility.h"
 
 namespace Kratos {
