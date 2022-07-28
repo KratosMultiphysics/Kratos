@@ -213,6 +213,9 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
         case 10: //3D T10P4
             mpPressureGeometry = GeometryType::Pointer( new Tetrahedra3D4< Node<3> >(rGeom(0), rGeom(1), rGeom(2), rGeom(3)) );
             break;
+        case 15: //2D T15P3
+            mpPressureGeometry = GeometryType::Pointer(new Triangle2D3< Node<3> >(rGeom(0), rGeom(1), rGeom(2)));
+            break;
         case 20: //3D H20P8
             mpPressureGeometry = GeometryType::Pointer( new Hexahedra3D8< Node<3> >(rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5), rGeom(6), rGeom(7)) );
             break;
@@ -874,6 +877,25 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
             ThreadSafeNodeWrite(rGeom[7],WATER_PRESSURE, 0.5 * (p0 + p3) );
             ThreadSafeNodeWrite(rGeom[8],WATER_PRESSURE, 0.5 * (p1 + p3) );
             ThreadSafeNodeWrite(rGeom[9],WATER_PRESSURE, 0.5 * (p2 + p3) );
+            break;
+        }
+        case 15: //2D T15P3
+        {
+            const double p0 = rGeom[0].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p1 = rGeom[1].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p2 = rGeom[2].FastGetSolutionStepValue(WATER_PRESSURE);
+            ThreadSafeNodeWrite(rGeom[3], WATER_PRESSURE, 0.25 * (3.0 * p0 + p1));
+            ThreadSafeNodeWrite(rGeom[4], WATER_PRESSURE, 0.50 * (p0 + p1));
+            ThreadSafeNodeWrite(rGeom[5], WATER_PRESSURE, 0.25 * (p0 + 3.0 * p1));
+            ThreadSafeNodeWrite(rGeom[6], WATER_PRESSURE, 0.25 * (3.0 * p1 + p2));
+            ThreadSafeNodeWrite(rGeom[7], WATER_PRESSURE, 0.50 * (p1 + p2));
+            ThreadSafeNodeWrite(rGeom[8], WATER_PRESSURE, 0.25 * (p1 + 3.0 * p2));
+            ThreadSafeNodeWrite(rGeom[9], WATER_PRESSURE, 0.25 * (3.0 * p2 + p0));
+            ThreadSafeNodeWrite(rGeom[10], WATER_PRESSURE, 0.50 * (p2 + p0));
+            ThreadSafeNodeWrite(rGeom[11], WATER_PRESSURE, 0.25 * (p2 + 3.0 * p0));
+            ThreadSafeNodeWrite(rGeom[12], WATER_PRESSURE, 0.25 * (2.0 * p0 + p1 + p2));
+            ThreadSafeNodeWrite(rGeom[13], WATER_PRESSURE, 0.50 * (2.0 * p1 + p2 + p0));
+            ThreadSafeNodeWrite(rGeom[14], WATER_PRESSURE, 0.25 * (2.0 * p2 + p0 + p1));
             break;
         }
         case 20: //3D H20P8
@@ -2515,7 +2537,30 @@ void SmallStrainUPwDiffOrderElement::
 GeometryData::IntegrationMethod
     SmallStrainUPwDiffOrderElement::GetIntegrationMethod() const
 {
-    return GeometryData::IntegrationMethod::GI_GAUSS_2;
+    GeometryData::IntegrationMethod GI_GAUSS;
+    const GeometryType& rGeom = GetGeometry();
+    const SizeType TNumNodes = rGeom.PointsNumber();
+    //
+    switch (TNumNodes) {
+    case 3:
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        break;
+    case 6:
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        break;
+    case 10:
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_3;
+        break;
+    case 15:
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_5;
+        break;
+    default:
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        break;
+    }
+
+    //return GeometryData::IntegrationMethod::GI_GAUSS_2;
+    return GI_GAUSS;
 }
 
 //----------------------------------------------------------------------------------------

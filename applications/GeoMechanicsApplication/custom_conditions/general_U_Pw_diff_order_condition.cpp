@@ -75,6 +75,9 @@ void GeneralUPwDiffOrderCondition::Initialize(const ProcessInfo& rCurrentProcess
         case 3: //2D L3P2
             mpPressureGeometry = GeometryType::Pointer( new Line2D2< Node<3> >(rGeom(0), rGeom(1)) );
             break;
+        case 5: //2D L5P2
+            mpPressureGeometry = GeometryType::Pointer(new Line2D2< Node<3> >(rGeom(0), rGeom(1)));
+            break;
         case 6: //3D T6P3
             mpPressureGeometry = GeometryType::Pointer( new Triangle3D3< Node<3> >(rGeom(0), rGeom(1), rGeom(2)) );
             break;

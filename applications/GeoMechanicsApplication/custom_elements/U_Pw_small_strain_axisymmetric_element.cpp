@@ -88,5 +88,6 @@ template class UPwSmallStrainAxisymmetricElement<2,4>;
 template class UPwSmallStrainAxisymmetricElement<2,6>;
 template class UPwSmallStrainAxisymmetricElement<2,8>;
 template class UPwSmallStrainAxisymmetricElement<2,9>;
+template class UPwSmallStrainAxisymmetricElement<2,15>;
 
 } // Namespace Kratos

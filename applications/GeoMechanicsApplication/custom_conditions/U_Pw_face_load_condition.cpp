@@ -109,6 +109,21 @@ void UPwFaceLoadCondition<2,3>::
 
 //----------------------------------------------------------------------------------------
 template< >
+void UPwFaceLoadCondition<2, 5>::
+CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
+    const Matrix& Jacobian,
+    const double& Weight)
+{
+    double dx_dxi = Jacobian(0, 0);
+    double dy_dxi = Jacobian(1, 0);
+
+    double ds = sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
+
+    rIntegrationCoefficient = ds * Weight;
+}
+
+//----------------------------------------------------------------------------------------
+template< >
 void UPwFaceLoadCondition<3,3>::
     CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
                                     const Matrix& Jacobian,
@@ -155,6 +170,7 @@ void UPwFaceLoadCondition<3,4>::
 
 template class UPwFaceLoadCondition<2,2>;
 template class UPwFaceLoadCondition<2,3>;
+template class UPwFaceLoadCondition<2,5>;
 
 template class UPwFaceLoadCondition<3,3>;
 template class UPwFaceLoadCondition<3,4>;
