@@ -13,7 +13,7 @@ try:
 except:
     numpy_and_mpi4py_available  = False
 
-def synthetic_matrix(degree, rows = 40,repetitions=4):
+def synthetic_matrix(degree, rows = 36,repetitions=4):
     TestMatrix = np.zeros((rows,degree))
     x = np.linspace(0,1,rows)
     for i in range(degree):
@@ -23,7 +23,7 @@ def synthetic_matrix(degree, rows = 40,repetitions=4):
 class TestRandomizedSVDMPI(KratosUnittest.TestCase):
 
     @KratosUnittest.skipUnless(numpy_and_mpi4py_available, "numpy and mpi4py are required for TSQR MPI")
-    def test_radomized_svd(self):
+    def test_radomized_svd_mpi(self):
         comm = MPI.COMM_WORLD      # Communications macro
         svd_truncation_tolerance = 1e-6
         rank = comm.Get_rank()
@@ -70,7 +70,6 @@ class TestRandomizedSVDMPI(KratosUnittest.TestCase):
             Randomized_Reconstruction = U_local@np.diag(s)@v.T #reconstruct matrix
 
             #check that the difference of the reconstruction is below tolerance
-            print(np.linalg.norm(Randomized_Reconstruction - TestMatrix))
             self.assertLess( np.linalg.norm(Randomized_Reconstruction - TestMatrix), svd_truncation_tolerance*np.linalg.norm(TestMatrix))
 
     # Cleaning
