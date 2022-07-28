@@ -299,7 +299,7 @@ namespace Kratos
 
       IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
       //full quadrature integration:
-      mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+      mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 

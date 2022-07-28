@@ -18,14 +18,14 @@ class SetTopographyProcess(KM.Process):
                 "model_part_name"      : "please_specify_model_part_name",
                 "interval"             : [0.0, 1e30],
                 "constrained"          : false,
-                "value"                : "z",
+                "value"                : 0.0,
                 "set_mesh_z_to_zero"   : true
             }
             """
             )
         if settings.Has("value"):
-            if settings["value"].IsDouble():
-                default_settings["value"].SetDouble(0.0)
+            if settings["value"].IsString():
+                default_settings["value"].SetString("z")
         settings.ValidateAndAssignDefaults(default_settings)
         settings.AddEmptyValue("variable_name").SetString("TOPOGRAPHY")
 

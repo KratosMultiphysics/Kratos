@@ -116,6 +116,9 @@ namespace Kratos
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(BACKGROUND_NORMAL);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(OUT_OF_PLANE_DELTA);
 
+    // For face angle response
+    KRATOS_CREATE_VARIABLE(bool, CONSIDER_FACE_ANGLE);
+
     // Eof variables
 
     KratosShapeOptimizationApplication::KratosShapeOptimizationApplication() :
@@ -218,6 +221,9 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BACKGROUND_COORDINATE);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BACKGROUND_NORMAL);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(OUT_OF_PLANE_DELTA);
+
+        // For face angle response
+        KRATOS_REGISTER_VARIABLE(CONSIDER_FACE_ANGLE);
  	}
 
 }  // namespace Kratos.

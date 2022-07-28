@@ -161,15 +161,12 @@ public:
 
         // We initailize the contact force
         auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
 
         // We save the current WEIGHTED_GAP in the buffer and reset the CONTACT_FORCE
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
-            it_node->SetValue(CONTACT_FORCE, zero_array);
-            it_node->FastGetSolutionStepValue(WEIGHTED_GAP, 1) = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-        }
+        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            rNode.SetValue(CONTACT_FORCE, zero_array);
+            rNode.FastGetSolutionStepValue(WEIGHTED_GAP, 1) = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
+        });
 
         // Compute weighted gap
         ComputeWeightedGap(rModelPart);
@@ -246,103 +243,94 @@ public:
 
             // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
             auto& r_nodes_array = r_contact_model_part.Nodes();
-            const auto it_node_begin = r_nodes_array.begin();
 
             // If frictionaless or mesh tying
             if (rModelPart.IsNot(SLIP)) {
-                #pragma omp parallel for reduction(+:is_active_set_converged)
-                for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-                    auto it_node = it_node_begin + i;
-
-                    if (it_node->Is(SLAVE)) {
+                is_active_set_converged = block_for_each<SumReduction<IndexType>>(r_nodes_array, [&](NodeType& rNode) {
+                    if (rNode.Is(SLAVE)) {
                         // The contact force corresponds with the reaction in the normal direction
-                        const array_1d<double, 3>& r_total_force = it_node->FastGetSolutionStepValue(REACTION);
+                        const array_1d<double, 3>& r_total_force = rNode.FastGetSolutionStepValue(REACTION);
 
-                        const double nodal_area = it_node->Has(NODAL_AREA) ? it_node->GetValue(NODAL_AREA) : 1.0;
-                        const double gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP)/nodal_area;
-                        const array_1d<double, 3>& r_normal = it_node->FastGetSolutionStepValue(NORMAL);
+                        const double nodal_area = rNode.Has(NODAL_AREA) ? rNode.GetValue(NODAL_AREA) : 1.0;
+                        const double gap = rNode.FastGetSolutionStepValue(WEIGHTED_GAP)/nodal_area;
+                        const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
                         const double contact_force = inner_prod(r_total_force, r_normal);
-                        const double contact_pressure = contact_force/it_node->GetValue(NODAL_MAUX);
+                        const double contact_pressure = contact_force/rNode.GetValue(NODAL_MAUX);
 
                         if (contact_pressure < auxiliar_check || gap < 0.0) { // NOTE: This could be conflictive (< or <=)
                             // We save the contact force
-                            it_node->SetValue(CONTACT_FORCE, contact_force/it_node->GetValue(NODAL_PAUX) * r_normal);
-                            it_node->SetValue(NORMAL_CONTACT_STRESS, contact_pressure);
-                            if (it_node->IsNot(ACTIVE)) {
-                                it_node->Set(ACTIVE, true);
-                                is_active_set_converged += 1;
+                            rNode.SetValue(CONTACT_FORCE, contact_force/rNode.GetValue(NODAL_PAUX) * r_normal);
+                            rNode.SetValue(NORMAL_CONTACT_STRESS, contact_pressure);
+                            if (rNode.IsNot(ACTIVE)) {
+                                rNode.Set(ACTIVE, true);
+                                return 1;
                             }
                         } else {
-                            if (it_node->Is(ACTIVE)) {
-                                it_node->Set(ACTIVE, false);
-                                is_active_set_converged += 1;
+                            if (rNode.Is(ACTIVE)) {
+                                rNode.Set(ACTIVE, false);
+                                return 1;
                             }
                         }
                     }
-                }
+                    return 0;
+                });
             } else { // If frictional
-                #pragma omp parallel for reduction(+:is_active_set_converged, is_slip_converged)
-                for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-                    auto it_node = it_node_begin + i;
-
-                    if (it_node->Is(SLAVE)) {
+                using TwoReduction = CombinedReduction<SumReduction<IndexType>, SumReduction<IndexType>>;
+                std::tie(is_active_set_converged, is_slip_converged) = block_for_each<TwoReduction>(r_nodes_array, [&](NodeType& rNode) {
+                    if (rNode.Is(SLAVE)) {
                         const double auxiliar_check = young_modulus > 0.0 ? -(reaction_check_stiffness_factor * young_modulus) : 0.0;
                         // The contact force corresponds with the reaction in the normal direction
-                        const array_1d<double, 3>& r_total_force = it_node->FastGetSolutionStepValue(REACTION);
+                        const array_1d<double, 3>& r_total_force = rNode.FastGetSolutionStepValue(REACTION);
 
-                        const double nodal_area = it_node->Has(NODAL_AREA) ? it_node->GetValue(NODAL_AREA) : 1.0;
-                        const double gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP)/nodal_area;
-                        const array_1d<double, 3>& r_normal = it_node->FastGetSolutionStepValue(NORMAL);
+                        const double nodal_area = rNode.Has(NODAL_AREA) ? rNode.GetValue(NODAL_AREA) : 1.0;
+                        const double gap = rNode.FastGetSolutionStepValue(WEIGHTED_GAP)/nodal_area;
+                        const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
                         const double contact_force = inner_prod(r_total_force, r_normal);
-                        const double normal_contact_pressure = contact_force/it_node->GetValue(NODAL_MAUX);
+                        const double normal_contact_pressure = contact_force/rNode.GetValue(NODAL_MAUX);
 
                         if (normal_contact_pressure < auxiliar_check || gap < 0.0) { // NOTE: This could be conflictive (< or <=)
                             // We save the contact force
-                            it_node->SetValue(CONTACT_FORCE, r_total_force/it_node->GetValue(NODAL_PAUX));
-                            it_node->SetValue(NORMAL_CONTACT_STRESS, normal_contact_pressure);
-                            if (it_node->IsNot(ACTIVE)) {
-                                it_node->Set(ACTIVE, true);
-                                is_active_set_converged += 1;
+                            rNode.SetValue(CONTACT_FORCE, r_total_force/rNode.GetValue(NODAL_PAUX));
+                            rNode.SetValue(NORMAL_CONTACT_STRESS, normal_contact_pressure);
+                            if (rNode.IsNot(ACTIVE)) {
+                                rNode.Set(ACTIVE, true);
+                                return std::make_tuple(1,0);
                             }
 
                             // The friction coefficient
-                            const double tangential_contact_pressure = norm_2(r_total_force - contact_force * r_normal)/it_node->GetValue(NODAL_MAUX);
-                            const bool is_slip = it_node->Is(SLIP);
-                            const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
+                            const double tangential_contact_pressure = norm_2(r_total_force - contact_force * r_normal)/rNode.GetValue(NODAL_MAUX);
+                            const bool is_slip = rNode.Is(SLIP);
+                            const double mu = rNode.GetValue(FRICTION_COEFFICIENT);
 
                             if (tangential_contact_pressure <= - mu * contact_force) { // STICK CASE // TODO: Check the <=
-                                it_node->SetValue(TANGENTIAL_CONTACT_STRESS, tangential_contact_pressure);
+                                rNode.SetValue(TANGENTIAL_CONTACT_STRESS, tangential_contact_pressure);
                                 if (is_slip) {
-                                    it_node->Set(SLIP, false);
-                                    is_slip_converged += 1;
+                                    rNode.Set(SLIP, false);
+                                    return std::make_tuple(0,1);
                                 }
                             } else { // SLIP CASE
-                                it_node->SetValue(TANGENTIAL_CONTACT_STRESS, - mu * contact_force);
+                                rNode.SetValue(TANGENTIAL_CONTACT_STRESS, - mu * contact_force);
                                 if (!is_slip) {
-                                    it_node->Set(SLIP, true);
-                                    is_slip_converged += 1;
+                                    rNode.Set(SLIP, true);
+                                    return std::make_tuple(0,1);
                                 }
                             }
                         } else {
-                            if (it_node->Is(ACTIVE)) {
-                                it_node->Set(ACTIVE, false);
-                                it_node->Reset(SLIP);
-                                is_active_set_converged += 1;
+                            if (rNode.Is(ACTIVE)) {
+                                rNode.Set(ACTIVE, false);
+                                rNode.Reset(SLIP);
+                                return std::make_tuple(1,0);
                             }
                         }
                     }
-                }
+                    return std::make_tuple(0,0);
+                });
             }
 
             // We set the constraints active and inactive in function of the active set
             auto& r_conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
-            auto it_cond_begin = r_conditions_array.begin();
-
-            #pragma omp parallel for
-            for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-                auto it_cond = it_cond_begin + i;
-
-                const auto& r_slave_geometry = it_cond->GetGeometry().GetGeometryPart(CouplingGeometryType::Master);
+            block_for_each(r_conditions_array, [&](Condition& rCond) {
+                const auto& r_slave_geometry = rCond.GetGeometry().GetGeometryPart(CouplingGeometryType::Master);
                 std::size_t counter = 0;
                 for (auto& r_node : r_slave_geometry) {
                     if (r_node.IsNot(ACTIVE)) {
@@ -352,10 +340,10 @@ public:
 
                 // In case of traction we deactivate
                 if (counter == r_slave_geometry.size()) {
-                    it_cond->Set(ACTIVE, false);
+                    rCond.Set(ACTIVE, false);
                     // We deactivate the constraints on inactive conditions
-                    if (it_cond->Has(CONSTRAINT_POINTER)) {
-                        auto p_const = it_cond->GetValue(CONSTRAINT_POINTER);
+                    if (rCond.Has(CONSTRAINT_POINTER)) {
+                        auto p_const = rCond.GetValue(CONSTRAINT_POINTER);
 
                         // In case of traction we deactivate
                         p_const->Set(ACTIVE, false);
@@ -363,7 +351,7 @@ public:
                         KRATOS_ERROR << "Contact conditions must have defined CONSTRAINT_POINTER" << std::endl;
                     }
                 }
-            }
+            });
 
             // We save to the process info if the active set has converged
             const bool active_set_converged = (is_active_set_converged == 0 ? true : false);

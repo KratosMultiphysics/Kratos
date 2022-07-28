@@ -25,6 +25,7 @@
 #include "processes/process.h"
 #include "includes/fill_communicator.h"
 #include "includes/global_pointer_variables.h"
+#include "includes/kratos_filesystem.h"
 
 //Other utilities
 #include "utilities/function_parser_utility.h"
@@ -61,6 +62,8 @@
 #include "utilities/sub_model_part_entities_boolean_operation_utility.h"
 #include "utilities/model_part_combination_utilities.h"
 #include "utilities/single_import_model_part.h"
+#include "utilities/rve_periodicity_utility.h"
+#include "utilities/communication_coloring_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -97,6 +100,7 @@ void SetOnProcessInfo(
 //timer
 void PrintTimingInformation(Timer& rTimer)
 {
+    KRATOS_WARNING("[DEPRECATED] Timer.PrintTimingInformation") << "This will be removed at end of 2022. Please, call this function without arguments." << std::endl;
     rTimer.PrintTimingInformation();
 }
 
@@ -247,6 +251,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("SetPrintOnScreen", &Timer::SetPrintOnScreen)
         .def_static("GetPrintIntervalInformation", &Timer::GetPrintIntervalInformation)
         .def_static("SetPrintIntervalInformation", &Timer::SetPrintIntervalInformation)
+        .def_static("PrintTimingInformation", [](){Timer::PrintTimingInformation();})
         .def_static("PrintTimingInformation", PrintTimingInformation)
         .def("__str__", PrintObject<Timer>)
         ;
@@ -260,7 +265,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
-        .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactAreaIntegration)
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<2,2>& rExactMortarIntegrationUtility, ModelPart& rMainModelPart, Condition::Pointer pSlaveCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(rMainModelPart, pSlaveCond);})
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<2,2>& rExactMortarIntegrationUtility, Condition::Pointer pSlaveCond, Condition::Pointer pMasterCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(pSlaveCond, pMasterCond);})
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<2,2>::GetConsiderDelaunator)
         ;
 
     py::class_<ExactMortarIntegrationUtility<3,3>>(m,"ExactMortarIntegrationUtility3D3N")
@@ -271,7 +278,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
-        .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,3>& rExactMortarIntegrationUtility, ModelPart& rMainModelPart, Condition::Pointer pSlaveCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(rMainModelPart, pSlaveCond);})
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,3>& rExactMortarIntegrationUtility, Condition::Pointer pSlaveCond, Condition::Pointer pMasterCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(pSlaveCond, pMasterCond);})
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<3,3>::GetConsiderDelaunator)
         .def("TestIODebug",&ExactMortarIntegrationUtility<3,3>::TestIODebug)
         ;
 
@@ -283,7 +292,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
-        .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,4>& rExactMortarIntegrationUtility, ModelPart& rMainModelPart, Condition::Pointer pSlaveCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(rMainModelPart, pSlaveCond);})
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,4>& rExactMortarIntegrationUtility, Condition::Pointer pSlaveCond, Condition::Pointer pMasterCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(pSlaveCond, pMasterCond);})
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<3,4>::GetConsiderDelaunator)
         .def("TestIODebug",&ExactMortarIntegrationUtility<3,4>::TestIODebug)
         ;
 
@@ -295,7 +306,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3,false,4>::TestGetExactIntegration)
-        .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3,false,4>::TestGetExactAreaIntegration)
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,3,false,4>& rExactMortarIntegrationUtility, ModelPart& rMainModelPart, Condition::Pointer pSlaveCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(rMainModelPart, pSlaveCond);})
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,3,false,4>& rExactMortarIntegrationUtility, Condition::Pointer pSlaveCond, Condition::Pointer pMasterCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(pSlaveCond, pMasterCond);})
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<3,3,false,4>::GetConsiderDelaunator)
         .def("TestIODebug",&ExactMortarIntegrationUtility<3,3,false,4>::TestIODebug)
         ;
 
@@ -307,7 +320,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactIntegration)
-        .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactAreaIntegration)
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,4,false,3>& rExactMortarIntegrationUtility, ModelPart& rMainModelPart, Condition::Pointer pSlaveCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(rMainModelPart, pSlaveCond);})
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,4,false,3>& rExactMortarIntegrationUtility, Condition::Pointer pSlaveCond, Condition::Pointer pMasterCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(pSlaveCond, pMasterCond);})
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<3,4,false,3>::GetConsiderDelaunator)
         .def("TestIODebug",&ExactMortarIntegrationUtility<3,4,false,3>::TestIODebug)
         ;
 
@@ -576,18 +591,23 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     // SpecificationsUtilities
     auto mod_spec_utils = m.def_submodule("SpecificationsUtilities");
-    mod_spec_utils.def("AddMissingVariables", &SpecificationsUtilities::AddMissingVariables );
-    mod_spec_utils.def("AddMissingDofs", &SpecificationsUtilities::AddMissingDofs );
-    mod_spec_utils.def("DetermineFlagsUsed", &SpecificationsUtilities::DetermineFlagsUsed );
-    mod_spec_utils.def("DetermineTimeIntegration", &SpecificationsUtilities::DetermineTimeIntegration );
-    mod_spec_utils.def("DetermineFramework", &SpecificationsUtilities::DetermineFramework );
-    mod_spec_utils.def("DetermineSymmetricLHS", &SpecificationsUtilities::DetermineSymmetricLHS );
-    mod_spec_utils.def("DeterminePositiveDefiniteLHS", &SpecificationsUtilities::DeterminePositiveDefiniteLHS );
-    mod_spec_utils.def("DetermineIfCompatibleGeometries", &SpecificationsUtilities::DetermineIfCompatibleGeometries );
-    mod_spec_utils.def("DetermineIfRequiresTimeIntegration", &SpecificationsUtilities::DetermineIfRequiresTimeIntegration );
-    mod_spec_utils.def("CheckCompatibleConstitutiveLaws", &SpecificationsUtilities::CheckCompatibleConstitutiveLaws );
-    mod_spec_utils.def("CheckGeometricalPolynomialDegree", &SpecificationsUtilities::CheckGeometricalPolynomialDegree );
-    mod_spec_utils.def("GetDocumention", &SpecificationsUtilities::GetDocumention );
+    mod_spec_utils.def("AddMissingVariables",                     &SpecificationsUtilities::AddMissingVariables );
+    mod_spec_utils.def("AddMissingVariablesFromEntitiesList",     &SpecificationsUtilities::AddMissingVariablesFromEntitiesList );
+    mod_spec_utils.def("AddMissingDofs",                          &SpecificationsUtilities::AddMissingDofs );
+    mod_spec_utils.def("AddMissingDofsFromEntitiesList",          &SpecificationsUtilities::AddMissingDofsFromEntitiesList );
+    mod_spec_utils.def("DetermineFlagsUsed",                      &SpecificationsUtilities::DetermineFlagsUsed );
+    mod_spec_utils.def("DetermineTimeIntegration",                &SpecificationsUtilities::DetermineTimeIntegration );
+    mod_spec_utils.def("DetermineFramework",                      &SpecificationsUtilities::DetermineFramework );
+    mod_spec_utils.def("DetermineSymmetricLHS",                   &SpecificationsUtilities::DetermineSymmetricLHS );
+    mod_spec_utils.def("DeterminePositiveDefiniteLHS",            &SpecificationsUtilities::DeterminePositiveDefiniteLHS );
+    mod_spec_utils.def("DetermineIfCompatibleGeometries",         &SpecificationsUtilities::DetermineIfCompatibleGeometries );
+    mod_spec_utils.def("DetermineIfRequiresTimeIntegration",      &SpecificationsUtilities::DetermineIfRequiresTimeIntegration );
+    mod_spec_utils.def("CheckCompatibleConstitutiveLaws",         &SpecificationsUtilities::CheckCompatibleConstitutiveLaws );
+    mod_spec_utils.def("CheckGeometricalPolynomialDegree",        &SpecificationsUtilities::CheckGeometricalPolynomialDegree );
+    mod_spec_utils.def("GetDocumention",                          &SpecificationsUtilities::GetDocumention );
+    mod_spec_utils.def("GetDofsListFromSpecifications",           &SpecificationsUtilities::GetDofsListFromSpecifications);
+    mod_spec_utils.def("GetDofsListFromElementsSpecifications",   &SpecificationsUtilities::GetDofsListFromElementsSpecifications);
+    mod_spec_utils.def("GetDofsListFromConditionsSpecifications", &SpecificationsUtilities::GetDofsListFromConditionsSpecifications);
 
     // PropertiesUtilities
     auto mod_prop_utils = m.def_submodule("PropertiesUtilities");
@@ -689,6 +709,22 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     auto single_model_part_import = m.def_submodule("SingleImportModelPart");
     single_model_part_import.def("Import", &SingleImportModelPart::Import );
 
+    // RVE periodicity utility
+    py::class_<RVEPeriodicityUtility>(m,"RVEPeriodicityUtility")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, std::size_t>())
+        .def("AssignPeriodicity",&RVEPeriodicityUtility::AssignPeriodicity)
+        .def("Finalize",&RVEPeriodicityUtility::Finalize)
+        ;
+
+    py::class_<MPIColoringUtilities>(m, "MPIColoringUtilities")
+        .def(py::init<>())
+        .def("ComputeRecvList", &MPIColoringUtilities::ComputeRecvList)
+        .def("ComputeCommunicationScheduling", &MPIColoringUtilities::ComputeCommunicationScheduling)
+        ;
+
+    auto fs_extensions = m.def_submodule("FilesystemExtensions");
+    fs_extensions.def("MPISafeCreateDirectories", &FilesystemExtensions::MPISafeCreateDirectories );
 }
 
 } // namespace Python.

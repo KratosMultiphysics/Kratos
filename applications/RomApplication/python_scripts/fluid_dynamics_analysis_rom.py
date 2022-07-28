@@ -9,6 +9,7 @@ import json
 class FluidDynamicsAnalysisROM(FluidDynamicsAnalysis):
 
     def __init__(self,model,project_parameters):
+        KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[DEPRECATED CLASS] \x1b[0m',"\'FluidDynamicsAnalysisROM\'", "class is deprecated. Use the \'RomAnalysis\' one instead.")
         super().__init__(model,project_parameters)
 
     #### Internal functions ####

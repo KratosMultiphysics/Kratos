@@ -12,6 +12,8 @@
 
 // System includes
 #include <algorithm>
+#include <thread>
+#include <chrono>
 
 // External includes
 #include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
@@ -119,6 +121,16 @@ std::vector<std::string> ListDirectory(const std::string& rPath)
         result.push_back(current_directory.path().string());
     }
     return result;
+}
+
+void MPISafeCreateDirectories(const std::string& rPath)
+{
+    if (!ghc::filesystem::exists(rPath)) {
+        ghc::filesystem::create_directories(rPath);
+    }
+    if (!ghc::filesystem::exists(rPath)) { // wait for the path to appear in the filesystem
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
 }
 
 } // namespace FilesystemExtensions

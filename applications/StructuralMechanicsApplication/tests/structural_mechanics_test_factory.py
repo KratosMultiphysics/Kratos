@@ -239,6 +239,9 @@ class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
 class InitialStateElasticityTest(StructuralMechanicsTestFactory):
     file_name = "InitialStateElasticity/initial_state_test"
 
+class InitialStrainShellQ4ThickTest(StructuralMechanicsTestFactory):
+    file_name = "InitialStateElasticity/initial_strain_shell_Q4_thick_test"
+
 class ShellT3IsotropicLinearStaticStructScordelisLoRoofTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof"
 

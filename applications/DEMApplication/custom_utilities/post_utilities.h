@@ -4,6 +4,8 @@
 #include "utilities/timer.h"
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "custom_utilities/create_and_destroy.h"
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_elements/Particle_Contact_Element.h"

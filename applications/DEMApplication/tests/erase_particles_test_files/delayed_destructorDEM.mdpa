@@ -1,0 +1,30 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Nodes
+    13 0.0 0.0 0.5
+End Nodes
+
+
+Begin Elements SphericParticle3D// GUI group identifier: DEM
+       33          0    13 
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: DEM
+         13 0       0.05
+End NodalData
+
+Begin SubModelPart DEMParts_DEM // Group DEM // Subtree DEMParts
+    Begin SubModelPartNodes
+           13
+    End SubModelPartNodes
+    Begin SubModelPartElements
+           33
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

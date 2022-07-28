@@ -127,6 +127,7 @@ void TransformNeighbourCoorsToClosestInPeriodicDomain(const ProcessInfo& r_proce
                                                     const double coors[3],
                                                     double neighbour_coors[3]);
 
+
 virtual bool CalculateRelativePositionsOrSkipContact(ParticleDataBuffer & data_buffer);
 
 void Initialize(const ProcessInfo& r_process_info) override;
@@ -148,6 +149,9 @@ virtual void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
 virtual void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
 virtual void FinalizeStressTensor(const ProcessInfo& r_process_info, double& rRepresentative_Volume){};
 virtual void SymmetrizeStressTensor();
+virtual void ComputeStrainTensor(const ProcessInfo& r_process_info);
+virtual void ComputeDifferentialStrainTensor(const ProcessInfo& r_process_info);
+virtual void SymmetrizeDifferentialStrainTensor();
 virtual void CorrectRepresentativeVolume(double& rRepresentative_Volume/*, bool& is_smaller_than_sphere*/);
 virtual void ComputeReactions();
 virtual void PrepareForPrinting(const ProcessInfo& r_process_info);
@@ -157,7 +161,6 @@ virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const
 virtual void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info) override;
 virtual void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation, const ProcessInfo& r_process_info);
 virtual void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
-virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info);
 
 virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
 virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme);
@@ -179,7 +182,9 @@ virtual void RenewData();
 virtual void SendForcesToFEM();
 int   GetClusterId();
 void  SetClusterId(const int Id);
-
+double GetInitializationTime() const;
+double GetProgrammedDestructionTime() const;
+void SetProgrammedDestructionTime(const double time);
 virtual double GetRadius();
 virtual void   SetRadius(double radius);
 virtual void   SetRadius();
@@ -200,7 +205,6 @@ virtual double GetDensity();
 void   SetDensityFromProperties(double* density);
 virtual int    GetParticleMaterial();
 void   SetParticleMaterialFromProperties(int* particle_material);
-
 
 array_1d<double, 3>& GetForce();
 
@@ -241,6 +245,7 @@ std::vector<SphericParticle*>     mNeighbourElements;
 std::vector<int>                  mContactingNeighbourIds;
 std::vector<int>                  mContactingFaceNeighbourIds;
 std::vector<DEMWall*>             mNeighbourRigidFaces;
+std::vector<DEMWall*>             mNeighbourNonContactRigidFaces;
 std::vector<DEMWall*>             mNeighbourPotentialRigidFaces;
 
 std::vector<array_1d<double, 4> > mContactConditionWeights;
@@ -256,12 +261,17 @@ array_1d<double, 3> mContactMoment; //SLS
 
 BoundedMatrix<double, 3, 3>* mStressTensor;
 BoundedMatrix<double, 3, 3>* mSymmStressTensor;
+BoundedMatrix<double, 3, 3>* mStrainTensor;
+BoundedMatrix<double, 3, 3>* mDifferentialStrainTensor;
 
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
 virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalContactForce[3]);
-DEMDiscontinuumConstitutiveLaw* pGetDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour);
-DEMDiscontinuumConstitutiveLaw* pGetDiscontinuumConstitutiveLawWithFEMNeighbour(Condition* neighbour);
+
+std::unique_ptr<DEMDiscontinuumConstitutiveLaw> pCloneDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour);
+
+std::unique_ptr<DEMDiscontinuumConstitutiveLaw> pCloneDiscontinuumConstitutiveLawWithFEMNeighbour(Condition* neighbour);
+
 
 protected:
 
@@ -349,6 +359,10 @@ virtual double GetInitialDeltaWithFEM(int index);
 
 virtual void ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces);
 
+virtual void StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, SphericParticle* other_element, double GlobalContactForce[3], bool sliding);
+
+virtual void StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, DEMWall* other_element, double GlobalContactForce[3], bool sliding);
+
 virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
                                                             const ProcessInfo& r_process_info,
                                                             double LocalElasticContactForce[3],
@@ -363,7 +377,6 @@ virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::P
                                                             double LocalCoordSystem[3][3],
                                                             double OldLocalCoordSystem[3][3],
                                                             array_1d<double, 3>& neighbour_elastic_contact_force);
-
 
 virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                                 double LocalCoordSystem[3][3],
@@ -422,7 +435,10 @@ virtual void AddWallContributionToStressTensor(const double GlobalElasticContact
 virtual void RotateOldContactForces(const double LocalCoordSystem[3][3], const double OldLocalCoordSystem[3][3], array_1d<double, 3>& mNeighbourElasticContactForces) final;
 virtual void ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment);
 
-DEMDiscontinuumConstitutiveLaw* mDiscontinuumConstitutiveLaw;
+std::unique_ptr<DEMDiscontinuumConstitutiveLaw> mDiscontinuumConstitutiveLaw;
+
+double mInitializationTime;
+double mProgrammedDestructionTime=-1.0; // set to a negative value, so that when marked TO_ERASE, elimination is by default.
 double mRadius;
 double mSearchRadius;
 double mRealMass;
@@ -451,6 +467,7 @@ virtual void save(Serializer& rSerializer) const override
     rSerializer.save("mContactingNeighbourIds", mContactingNeighbourIds);
     rSerializer.save("mContactingFaceNeighbourIds", mContactingFaceNeighbourIds);
     rSerializer.save("mNeighbourRigidFaces", mNeighbourRigidFaces);
+    rSerializer.save("mNeighbourNonContactRigidFaces", mNeighbourNonContactRigidFaces);
     rSerializer.save("mNeighbourPotentialRigidFaces", mNeighbourPotentialRigidFaces);
     rSerializer.save("mContactConditionWeights", mContactConditionWeights);
     rSerializer.save("mContactConditionContactTypes", mContactConditionContactTypes);
@@ -466,6 +483,8 @@ virtual void save(Serializer& rSerializer) const override
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
         rSerializer.save("mStressTensor", mStressTensor);
         rSerializer.save("mSymmStressTensor", mSymmStressTensor);
+        rSerializer.save("mStrainTensor", mStrainTensor);
+        rSerializer.save("mDifferentialStrainTensor", mDifferentialStrainTensor);        
     }
 
     // protected members
@@ -490,6 +509,7 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mContactingNeighbourIds", mContactingNeighbourIds);
     rSerializer.load("mContactingFaceNeighbourIds", mContactingFaceNeighbourIds);
     rSerializer.load("mNeighbourRigidFaces", mNeighbourRigidFaces);
+    rSerializer.load("mNeighbourNonContactRigidFaces", mNeighbourNonContactRigidFaces);
     rSerializer.load("mNeighbourPotentialRigidFaces", mNeighbourPotentialRigidFaces);
     rSerializer.load("mContactConditionWeights", mContactConditionWeights);
     rSerializer.load("mContactConditionContactTypes", mContactConditionContactTypes);
@@ -503,7 +523,7 @@ virtual void load(Serializer& rSerializer) override
 
     int aux_int=0;
     rSerializer.load("HasStressTensor", aux_int);
-    if(aux_int) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
+    if (aux_int) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
         mStressTensor = new BoundedMatrix<double, 3, 3>(3,3);
         *mStressTensor = ZeroMatrix(3,3);
@@ -511,6 +531,12 @@ virtual void load(Serializer& rSerializer) override
         *mSymmStressTensor = ZeroMatrix(3,3);
         rSerializer.load("mStressTensor", mStressTensor);
         rSerializer.load("mSymmStressTensor", mSymmStressTensor);
+        mStrainTensor = new BoundedMatrix<double, 3, 3>(3,3);
+        *mStrainTensor = ZeroMatrix(3,3);
+        rSerializer.load("mStrainTensor", mStrainTensor);
+        mDifferentialStrainTensor = new BoundedMatrix<double, 3, 3>(3,3);
+        *mDifferentialStrainTensor = ZeroMatrix(3,3);
+        rSerializer.load("mDifferentialStrainTensor", mDifferentialStrainTensor);
     }
 
     // protected members

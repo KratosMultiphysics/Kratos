@@ -1537,7 +1537,7 @@ namespace Kratos
       Triangle2D3<Node<3> > Triangle(rVertices);
 
       DenseVector<Matrix> J;
-      J = Triangle.Jacobian( J, GeometryData::GI_GAUSS_1, DeltaPosition );
+      J = Triangle.Jacobian( J, GeometryData::IntegrationMethod::GI_GAUSS_1, DeltaPosition );
 
       //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
       Matrix InvJ;
@@ -1545,7 +1545,7 @@ namespace Kratos
 
       MathUtils<double>::InvertMatrix2( J[0], InvJ, detJ);
 
-      const Matrix& DN_De = Triangle.ShapeFunctionLocalGradient(0,GeometryData::GI_GAUSS_1);
+      const Matrix& DN_De = Triangle.ShapeFunctionLocalGradient(0,GeometryData::IntegrationMethod::GI_GAUSS_1);
       DN_DX = prod( DN_De, InvJ );
 
     }
@@ -1554,14 +1554,14 @@ namespace Kratos
       Tetrahedra3D4<Node<3> > Tetrahedron(rVertices);
 
       DenseVector<Matrix> J;
-      J = Tetrahedron.Jacobian( J, GeometryData::GI_GAUSS_1, DeltaPosition );
+      J = Tetrahedron.Jacobian( J, GeometryData::IntegrationMethod::GI_GAUSS_1, DeltaPosition );
 
       //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
       Matrix InvJ;
       double detJ;
       MathUtils<double>::InvertMatrix3( J[0], InvJ, detJ);
 
-      const Matrix& DN_De = Tetrahedron.ShapeFunctionLocalGradient(0,GeometryData::GI_GAUSS_1);
+      const Matrix& DN_De = Tetrahedron.ShapeFunctionLocalGradient(0,GeometryData::IntegrationMethod::GI_GAUSS_1);
       DN_DX = prod( DN_De, InvJ );
     }
 

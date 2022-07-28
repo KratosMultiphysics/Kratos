@@ -17,8 +17,9 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/kratos_components.h"
+#include "includes/element.h"
 #include "includes/condition.h"
+#include "includes/kratos_components.h"
 
 
 namespace Kratos {

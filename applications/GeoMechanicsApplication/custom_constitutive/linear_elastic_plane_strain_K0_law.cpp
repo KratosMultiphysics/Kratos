@@ -92,13 +92,34 @@ void LinearPlaneStrainK0Law::GetLawFeatures(Features& rFeatures)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LinearPlaneStrainK0Law::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+void LinearPlaneStrainK0Law::
+    CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
+    const double &E = r_material_properties[YOUNG_MODULUS];
+    double NU = r_material_properties[POISSON_RATIO];
+
+    const double& K0ValueXX = r_material_properties[K0_VALUE_XX];
+    const double& K0ValueYY = r_material_properties[K0_VALUE_YY];
+    const double& K0ValueZZ = r_material_properties[K0_VALUE_ZZ];
+
+    double K0 = 0.0;
+    const int &K0MainDirection = r_material_properties[K0_MAIN_DIRECTION];
+    if (K0MainDirection == VOIGT_INDEX_XX) {
+        K0 = 0.5*(K0ValueYY + K0ValueZZ);
+    } else if (K0MainDirection == VOIGT_INDEX_YY) {
+        K0 = 0.5*(K0ValueXX + K0ValueZZ);
+    } else {
+         KRATOS_ERROR << "undefined K0_MAIN_DIRECTION in LinearElasticPlaneStrainK02DLaw: " << K0MainDirection << std::endl;
+    }
+
+    NU = K0 / (K0 + 1.0);
+    NU = std::max(NU, 0.0);
+
+    const double limit = 0.005;
+    if (NU < (0.5 + limit) && NU > (0.5 - limit)) NU = 0.5 - limit;
 
     this->CheckClearElasticMatrix(C);
 
@@ -121,7 +142,7 @@ void LinearPlaneStrainK0Law::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::
 
     C(INDEX_2D_PLANE_STRAIN_XY, INDEX_2D_PLANE_STRAIN_XY) = c3;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -131,7 +152,7 @@ void LinearPlaneStrainK0Law::CalculatePK2Stress(const Vector& rStrainVector,
                                                 Vector& rStressVector,
                                                 ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     Matrix C;
@@ -139,25 +160,22 @@ void LinearPlaneStrainK0Law::CalculatePK2Stress(const Vector& rStrainVector,
     noalias(rStressVector) = prod(C, rStrainVector);
 
     // apply K0 procedure:
-    const double& K0ValueXX    = r_material_properties[K0_VALUE_XX];
-    const double& K0ValueYY    = r_material_properties[K0_VALUE_YY];
-    const int& K0MainDirection = r_material_properties[K0_MAIN_DIRECTION];
+    const double& K0ValueXX = r_material_properties[K0_VALUE_XX];
+    const double& K0ValueYY = r_material_properties[K0_VALUE_YY];
+    const double& K0ValueZZ = r_material_properties[K0_VALUE_ZZ];
 
-    if (K0MainDirection == VOIGT_INDEX_XX)
-    {
+    const int& K0MainDirection = r_material_properties[K0_MAIN_DIRECTION];
+    if (K0MainDirection == VOIGT_INDEX_XX) {
         rStressVector[INDEX_2D_PLANE_STRAIN_YY] = K0ValueYY * rStressVector[INDEX_2D_PLANE_STRAIN_XX];
-        rStressVector[INDEX_2D_PLANE_STRAIN_ZZ] = rStressVector[INDEX_2D_PLANE_STRAIN_YY];
-    }
-    else if (K0MainDirection == VOIGT_INDEX_YY)
-    {
+        rStressVector[INDEX_2D_PLANE_STRAIN_ZZ] = K0ValueZZ * rStressVector[INDEX_2D_PLANE_STRAIN_XX];
+    } else if (K0MainDirection == VOIGT_INDEX_YY) {
         rStressVector[INDEX_2D_PLANE_STRAIN_XX] = K0ValueXX * rStressVector[INDEX_2D_PLANE_STRAIN_YY];
-        rStressVector[INDEX_2D_PLANE_STRAIN_ZZ] = rStressVector[INDEX_2D_PLANE_STRAIN_XX];
-    }
-    else
-    {
+        rStressVector[INDEX_2D_PLANE_STRAIN_ZZ] = K0ValueZZ * rStressVector[INDEX_2D_PLANE_STRAIN_YY];
+    } else {
          KRATOS_ERROR << "undefined K0_MAIN_DIRECTION in LinearElasticPlaneStrainK02DLaw: " << K0MainDirection << std::endl;
     }
-    KRATOS_CATCH("");
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/

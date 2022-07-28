@@ -17,8 +17,8 @@ class MeshSolverStructuralSimilarity(MeshSolverBase):
         super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[MeshSolverStructuralSimilarity]:: Construction finished")
 
-    def _create_mesh_motion_solving_strategy(self):
-        linear_solver = self.get_linear_solver()
+    def _CreateSolutionStrategy(self):
+        linear_solver = self._GetLinearSolver()
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
         compute_reactions = self.settings["compute_reactions"].GetBool()
         poisson_ratio = self.settings["poisson_ratio"].GetDouble()

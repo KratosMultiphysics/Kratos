@@ -261,12 +261,12 @@ public:
             // The nodes array
             auto& r_nodes_array = rModelPart.Nodes();
 
-            // First iterator
-            const auto it_dof_begin = rDofSet.begin();
-
             // Auxiliar values
-            std::size_t dof_id = 0;
-            double residual_dof_value = 0.0, dof_value = 0.0, dof_incr = 0.0;
+            struct AuxValues {
+                std::size_t dof_id = 0;
+                double residual_dof_value = 0.0, dof_value = 0.0, dof_incr = 0.0;
+            };
+            const bool pure_slip = mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP);
 
             // The number of active dofs
             const std::size_t number_active_dofs = rb.size();
@@ -279,58 +279,48 @@ public:
             const auto* p_check_disp = (mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ROTATION_DOF_IS_CONSIDERED)) ? &check_with_rot : &check_without_rot;
 
             // Loop over Dofs
-            #pragma omp parallel for firstprivate(dof_id, residual_dof_value, dof_value, dof_incr) reduction(+:disp_residual_solution_norm,rot_residual_solution_norm,normal_lm_solution_norm,normal_lm_increase_norm,disp_dof_num,rot_dof_num,lm_dof_num, lm_stick_dof_num, lm_slip_dof_num)
-            for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-                auto it_dof = it_dof_begin + i;
-
-                dof_id = it_dof->EquationId();
+            using ThirteenReduction = CombinedReduction<SumReduction<double>, SumReduction<double>, SumReduction<double>, SumReduction<double>, SumReduction<double>, SumReduction<double>, SumReduction<double>, SumReduction<double>, SumReduction<IndexType>, SumReduction<IndexType>, SumReduction<IndexType>, SumReduction<IndexType>, SumReduction<IndexType>>;
+            std::tie(disp_residual_solution_norm,rot_residual_solution_norm,normal_lm_solution_norm,normal_lm_increase_norm,tangent_lm_slip_solution_norm,tangent_lm_slip_increase_norm, tangent_lm_stick_solution_norm,tangent_lm_stick_increase_norm,disp_dof_num,rot_dof_num,lm_dof_num, lm_slip_dof_num, lm_stick_dof_num) = block_for_each<ThirteenReduction>(rDofSet, AuxValues(), [this,&number_active_dofs,p_check_disp,&pure_slip,&r_nodes_array,&rb,&rDx](Dof<double>& rDof, AuxValues& aux_values) {
+                aux_values.dof_id = rDof.EquationId();
+                aux_values.dof_id = rDof.EquationId();
 
                 // Check dof id is solved
-                if (dof_id < number_active_dofs) {
-                    if (mActiveDofs[dof_id] == 1) {
-                        const auto& r_curr_var = it_dof->GetVariable();
+                if (aux_values.dof_id < number_active_dofs) {
+                    if (mActiveDofs[aux_values.dof_id] == 1) {
+                        const auto& r_curr_var = rDof.GetVariable();
                         if (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X || r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y || r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) {
                             // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
-                            const auto it_node = r_nodes_array.find(it_dof->Id());
+                            const auto it_node = r_nodes_array.find(rDof.Id());
 
-                            dof_value = it_dof->GetSolutionStepValue(0);
-                            dof_incr = rDx[dof_id];
+                            aux_values.dof_value = rDof.GetSolutionStepValue(0);
+                            aux_values.dof_incr = rDx[aux_values.dof_id];
 
                             const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
                             if (mu < std::numeric_limits<double>::epsilon()) {
-                                normal_lm_solution_norm += std::pow(dof_value, 2);
-                                normal_lm_increase_norm += std::pow(dof_incr, 2);
+                                return std::make_tuple(0.0,0.0,std::pow(aux_values.dof_value, 2),std::pow(aux_values.dof_incr, 2),0.0,0.0,0.0,0.0,0,0,1,0,0);
                             } else {
                                 const double normal = it_node->FastGetSolutionStepValue(NORMAL)[r_curr_var.GetComponentIndex()];
-                                const double normal_dof_value = dof_value * normal;
-                                const double normal_dof_incr = dof_incr * normal;
+                                const double normal_dof_value = aux_values.dof_value * normal;
+                                const double normal_dof_incr = aux_values.dof_incr * normal;
 
-                                normal_lm_solution_norm += std::pow(normal_dof_value, 2);
-                                normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                                if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
-                                    tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
-                                    tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
-                                    ++lm_slip_dof_num;
+                                if (it_node->Is(SLIP) || pure_slip) {
+                                    return std::make_tuple(0.0,0.0,std::pow(normal_dof_value, 2),std::pow(normal_dof_incr, 2),std::pow(aux_values.dof_value - normal_dof_value, 2),std::pow(aux_values.dof_incr - normal_dof_incr, 2),0.0,0.0,0,0,1,1,0);
                                 } else {
-                                    tangent_lm_stick_solution_norm += std::pow(dof_value - normal_dof_value, 2);
-                                    tangent_lm_stick_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
-                                    ++lm_stick_dof_num;
+                                    return std::make_tuple(0.0,0.0,std::pow(normal_dof_value, 2),std::pow(normal_dof_incr, 2),0.0,0.0,std::pow(aux_values.dof_value - normal_dof_value, 2),std::pow(aux_values.dof_incr - normal_dof_incr, 2),0,0,1,0,1);
                                 }
                             }
-                            ++lm_dof_num;
                         } else if ((*p_check_disp)(r_curr_var)) {
-                            residual_dof_value = rb[dof_id];
-                            disp_residual_solution_norm += std::pow(residual_dof_value, 2);
-                            ++disp_dof_num;
+                            aux_values.residual_dof_value = rb[aux_values.dof_id];
+                            return std::make_tuple(std::pow(aux_values.residual_dof_value, 2),0.0,0.0,0.0,0.0,0.0,0.0,0.0,1,0,0,0,0);
                         } else { // We will assume is rotation dof
                             KRATOS_DEBUG_ERROR_IF_NOT((r_curr_var == ROTATION_X) || (r_curr_var == ROTATION_Y) || (r_curr_var == ROTATION_Z)) << "Variable must be a ROTATION and it is: " << r_curr_var.Name() << std::endl;
-                            residual_dof_value = rb[dof_id];
-                            rot_residual_solution_norm += std::pow(residual_dof_value, 2);
-                            ++rot_dof_num;
+                            aux_values.residual_dof_value = rb[aux_values.dof_id];
+                            return std::make_tuple(0.0,std::pow(aux_values.residual_dof_value, 2),0.0,0.0,0.0,0.0,0.0,0.0,0,1,0,0,0);
                         }
                     }
                 }
-            }
+                return std::make_tuple(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0,0,0,0);
+            });
 
             if(normal_lm_increase_norm < Tolerance) normal_lm_increase_norm = 1.0;
             if(tangent_lm_stick_increase_norm < Tolerance) tangent_lm_stick_increase_norm = 1.0;

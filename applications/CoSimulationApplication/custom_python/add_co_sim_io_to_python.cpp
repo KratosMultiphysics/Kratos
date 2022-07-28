@@ -24,18 +24,19 @@
 #include "custom_utilities/co_sim_io_conversion_utilities.h"
 
 // CoSimIO
-#include "custom_external_libraries/co_sim_io/co_sim_io.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/co_sim_io.hpp"
 
-#include "custom_external_libraries/co_sim_io/python/connection_status_to_python.hpp"
-#include "custom_external_libraries/co_sim_io/python/info_to_python.hpp"
-#include "custom_external_libraries/co_sim_io/python/vector_to_python.hpp"
-#include "custom_external_libraries/co_sim_io/python/version_to_python.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/python/connection_status_to_python.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/python/info_to_python.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/python/vector_to_python.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/python/version_to_python.hpp"
 
 namespace Kratos {
 namespace Python {
 
-// BIG TODO: make OMP parallel most loops
-// TOD use elements or conditions?? => how to switch?
+// TODO use elements or conditions?? => how to switch?
+// TODO using initial or current coordinates?? => how to switch?
+
 namespace CoSimIO_Wrappers { // helpers namespace
 
 // creating static buffers such that memory does not constantly have to be reallocated during the data-exchange
@@ -67,7 +68,8 @@ void ExportMesh(
 
 void ImportMesh(
     CoSimIO::Info& rInfo,
-    ModelPart& rModelPart)
+    ModelPart& rModelPart,
+    const DataCommunicator& rDataComm)
 {
     KRATOS_TRY
 
@@ -77,14 +79,9 @@ void ImportMesh(
         rInfo,
         co_sim_io_model_part);
 
-    CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, rModelPart);
+    CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, rModelPart, rDataComm);
 
     KRATOS_CATCH("")
-}
-
-void ImportDataSizeCheck(const std::size_t ExpectedSize, const std::size_t ImportedSize)
-{
-    KRATOS_ERROR_IF(ExpectedSize != ImportedSize) << "Expected to import " << ExpectedSize << " values but got " << ImportedSize << " values instead!" << std::endl;
 }
 
 void ExportData_ModelPart_Scalar(
@@ -95,7 +92,8 @@ void ExportData_ModelPart_Scalar(
 {
     KRATOS_TRY
 
-    AuxiliarModelPartUtilities(rModelPart).GetScalarData<double>(rVariable, (Kratos::DataLocation)DataLoc, DataBuffers::vector_doubles);
+    CoSimIOConversionUtilities::GetData(rModelPart, DataBuffers::vector_doubles, rVariable, DataLoc);
+
     CoSimIO::ExportData(rInfo, DataBuffers::vector_doubles);
 
     KRATOS_CATCH("")
@@ -111,7 +109,8 @@ void ImportData_ModelPart_Scalar(
 
     CoSimIO::ImportData(rInfo, DataBuffers::vector_doubles);
 
-    AuxiliarModelPartUtilities(rModelPart).SetScalarData<double>(rVariable, (Kratos::DataLocation)DataLoc, DataBuffers::vector_doubles);
+    CoSimIOConversionUtilities::SetData(rModelPart, DataBuffers::vector_doubles, rVariable, DataLoc);
+
     KRATOS_CATCH("")
 }
 
@@ -121,9 +120,11 @@ void ExportData_ModelPart_Vector(
     const Variable< array_1d<double, 3> >& rVariable,
     const DataLocation DataLoc)
 {
+
     KRATOS_TRY
 
-    AuxiliarModelPartUtilities(rModelPart).GetVectorData< array_1d<double, 3> >(rVariable, (Kratos::DataLocation)DataLoc, DataBuffers::vector_doubles);
+    CoSimIOConversionUtilities::GetData(rModelPart, DataBuffers::vector_doubles, rVariable, DataLoc);
+
     CoSimIO::ExportData(rInfo, DataBuffers::vector_doubles);
 
     KRATOS_CATCH("")
@@ -139,7 +140,8 @@ void ImportData_ModelPart_Vector(
 
     CoSimIO::ImportData(rInfo, DataBuffers::vector_doubles);
 
-    AuxiliarModelPartUtilities(rModelPart).SetVectorData< array_1d<double, 3> >(rVariable, (Kratos::DataLocation)DataLoc, DataBuffers::vector_doubles);
+    CoSimIOConversionUtilities::SetData(rModelPart, DataBuffers::vector_doubles, rVariable, DataLoc);
+
     KRATOS_CATCH("")
 }
 
@@ -210,7 +212,6 @@ void  AddCoSimIOToPython(pybind11::module& m)
         .value("Condition",         DataLocation::Condition)
         .value("ModelPart",         DataLocation::ModelPart)
         ;
-
 }
 
 }  // namespace Python.

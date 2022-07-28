@@ -529,38 +529,38 @@ protected:
                 rData.N_pos_side,
                 rData.DN_DX_pos_side,
                 rData.w_gauss_pos_side,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             // Call the negative side modified shape functions calculator
             p_ausas_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
                 rData.N_neg_side,
                 rData.DN_DX_neg_side,
                 rData.w_gauss_neg_side,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             // Call the positive side interface modified shape functions calculator
             p_ausas_modified_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
                 rData.N_pos_int,
                 rData.DN_DX_pos_int,
                 rData.w_gauss_pos_int,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             // Call the negative side interface modified shape functions calculator
             p_ausas_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
                 rData.N_neg_int,
                 rData.DN_DX_neg_int,
                 rData.w_gauss_neg_int,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             // Call the positive side Gauss pts. unit normal calculator
             p_ausas_modified_sh_func->ComputePositiveSideInterfaceAreaNormals(
                 rData.pos_int_unit_normals,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             // Call the negative side Gauss pts. unit normal calculator
             p_ausas_modified_sh_func->ComputeNegativeSideInterfaceAreaNormals(
                 rData.neg_int_unit_normals,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             // Normalize the obtained positive and negative sides area normals
             const double tol = std::pow(1e-3*rData.h, TDim-1); // Tolerance to avoid the unit normal to blow up
@@ -581,15 +581,15 @@ protected:
 
         } else {
             // Fill the shape functions container
-            rData.N_gauss = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            rData.N_gauss = r_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             // Fill the shape functions gradient container
             Vector det_jacobian;
-            r_geom.ShapeFunctionsIntegrationPointsGradients(rData.DN_DX_gauss, det_jacobian, GeometryData::GI_GAUSS_2);
+            r_geom.ShapeFunctionsIntegrationPointsGradients(rData.DN_DX_gauss, det_jacobian, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             // Fill the Gauss pts. weights container
-            const unsigned int n_gauss = r_geom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
-            const InteGrationPointsType& rIntegrationPoints = r_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+            const unsigned int n_gauss = r_geom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2);
+            const InteGrationPointsType& rIntegrationPoints = r_geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
             rData.w_gauss.resize(n_gauss, false);
             for (unsigned int i_gauss = 0; i_gauss<n_gauss; ++i_gauss) {
                 rData.w_gauss[i_gauss] = det_jacobian[i_gauss] * rIntegrationPoints[i_gauss].Weight();

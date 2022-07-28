@@ -16,6 +16,7 @@
 ~scripts/standard_configure.sh
 ~scripts/standard_configure_MINGW.bat
 ~scripts/standard_configure.bat
+scripts/*.out
 scripts/*.sh
 scripts/*.bat
 build/*
@@ -74,3 +75,7 @@ bin/*
 
 # Most used editor files
 *.vscode
+/compile_commands.json
+
+# External downloaded libs (TPL downloaded libs, etc...)
+external_libraries/tetgen/*

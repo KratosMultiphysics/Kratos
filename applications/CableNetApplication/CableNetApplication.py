@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division
 
 # Application dependent names and paths
 from KratosMultiphysics import _ImportApplication
+import KratosMultiphysics.StructuralMechanicsApplication
 from KratosCableNetApplication import *
 application = KratosCableNetApplication()
 application_name = "KratosCableNetApplication"

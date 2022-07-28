@@ -17,6 +17,7 @@
 // Project includes
 #include "contact_structural_mechanics_application_variables.h"
 #include "custom_utilities/interface_preprocess.h"
+#include "utilities/parallel_utilities.h"
 
 /* Geometries */
 #include "geometries/line_2d_2.h"
@@ -148,13 +149,11 @@ void InterfacePreprocessCondition::CheckAndCreateProperties(ModelPart& rInterfac
 
         // Now we iterate over the conditions
         if (counter > 0) {
-            ConditionsArrayType& conditions_array = rInterfacePart.Conditions();
+            ConditionsArrayType& r_conditions_array = rInterfacePart.Conditions();
 
-            #pragma omp parallel for
-            for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
-                auto it_cond = conditions_array.begin() + i;
-                it_cond->SetProperties(p_new_prop);
-            }
+            block_for_each(r_conditions_array, [&](Condition& rCond) {
+                rCond.SetProperties(p_new_prop);
+            });
         } else {
             KRATOS_ERROR << "It was not possible to add a property" << std::endl;
         }

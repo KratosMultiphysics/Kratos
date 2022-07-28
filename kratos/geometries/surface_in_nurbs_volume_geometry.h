@@ -502,7 +502,7 @@ private:
 template<int TWorkingSpaceDimension, class TVolumeContainerPointType>
 const GeometryData SurfaceInNurbsVolumeGeometry<TWorkingSpaceDimension, TVolumeContainerPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
 
 template<int TWorkingSpaceDimension, class TVolumeContainerPointType>

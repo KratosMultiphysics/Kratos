@@ -100,9 +100,9 @@ namespace Kratos
     //***********************************************************************************
     //***********************************************************************************
 
-    GeometryData::IntegrationMethod SurfaceLoadFromDEMCondition3D::GetIntegrationMethod()
+    GeometryData::IntegrationMethod SurfaceLoadFromDEMCondition3D::GetIntegrationMethod() const
     {
-        return GeometryData::GI_GAUSS_2;
+        return GeometryData::IntegrationMethod::GI_GAUSS_2;
         //return this->GetGeometry().GetDefaultIntegrationMethod();
     }
 

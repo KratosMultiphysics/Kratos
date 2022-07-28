@@ -24,6 +24,8 @@ from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 
+import math
+
 # ==============================================================================
 class AlgorithmGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
@@ -100,6 +102,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
         self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.mapper_settings)
         self.mapper.Initialize()
+        self.model_part_controller.InitializeDamping()
 
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
@@ -191,7 +194,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         if self.objectives[0]["lumped_integration"].GetBool():
             self.lumped_integration_utility.Integrate(KSO.DF1DX)
 
-        self.model_part_controller.DampNodalVariableIfSpecified(KSO.DF1DX)
+        self.model_part_controller.DampNodalSensitivityVariableIfSpecified(KSO.DF1DX)
 
         # project and damp constraint gradients
         for constraint in self.constraints:
@@ -208,7 +211,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             if constraint["lumped_integration"].GetBool():
                 self.lumped_integration_utility.Integrate(gradient_variable)
 
-            self.model_part_controller.DampNodalVariableIfSpecified(gradient_variable)
+            self.model_part_controller.DampNodalSensitivityVariableIfSpecified(gradient_variable)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
@@ -224,7 +227,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.__computeControlPointUpdate()
 
         self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
-        self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
+        self.model_part_controller.DampNodalUpdateVariableIfSpecified(KSO.SHAPE_UPDATE)
 
         if self.step_size_in_geometry_space:
             norm_shape_update = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SHAPE_UPDATE)
@@ -254,7 +257,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
         KM.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
         N = KM.Matrix()
-        self.optimization_utilities.AssembleMatrix(self.design_surface, N, g_a_variables)  # TODO check if gradients are 0.0! - in cpp
+        self.optimization_utilities.AssembleMatrix(self.design_surface, N, g_a_variables)
 
         settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
         solver = dense_linear_solver_factory.ConstructSolver(settings)
@@ -309,9 +312,13 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     def __isConstraintActive(self, constraint):
         identifier = constraint["identifier"].GetString()
         constraint_value = self.communicator.getStandardizedValue(identifier)
-        if constraint["type"].GetString() == "=":
-            return True
-        elif constraint_value >= 0:
+        if constraint["type"].GetString() == "=" or constraint_value >= 0:
+            gradient_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(
+                self.design_surface, self.constraint_gradient_variables[identifier]["mapped_gradient"]
+            )
+            if math.isclose(gradient_norm, 0.0, abs_tol=1e-16):
+                KM.Logger.PrintWarning("ShapeOpt", f"Gradient for constraint {identifier} is 0.0 - will not be considered!")
+                return False
             return True
         else:
             return False

@@ -97,6 +97,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.mapper_settings)
         self.mapper.Initialize()
 
+        self.model_part_controller.InitializeDamping()
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
 
@@ -164,7 +165,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             self.model_part_controller.ComputeUnitSurfaceNormals()
             self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DF1DX)
 
-        self.model_part_controller.DampNodalVariableIfSpecified(KSO.DF1DX)
+        self.model_part_controller.DampNodalSensitivityVariableIfSpecified(KSO.DF1DX)
 
     # --------------------------------------------------------------------------
     def __adjustStepSize(self):
@@ -215,7 +216,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.optimization_utilities.ComputeControlPointUpdate(self.design_surface, self.step_size, normalize)
 
         self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
-        self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
+        self.model_part_controller.DampNodalUpdateVariableIfSpecified(KSO.SHAPE_UPDATE)
 
         if self.step_size_in_geometry_space:
             norm_shape_update = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SHAPE_UPDATE)

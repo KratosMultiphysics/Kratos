@@ -180,12 +180,10 @@ protected:
      */
     static inline void SwitchFlagNodes(NodesArrayType& rNodes)
     {
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(rNodes.size()); ++i) {
-            auto it_node = rNodes.begin() + i;
-            it_node->Flip(SLAVE);
-            it_node->Flip(MASTER);
-        }
+        block_for_each(rNodes, [&](NodeType& rNode) {
+            rNode.Flip(SLAVE);
+            rNode.Flip(MASTER);
+        });
     }
 
     /**

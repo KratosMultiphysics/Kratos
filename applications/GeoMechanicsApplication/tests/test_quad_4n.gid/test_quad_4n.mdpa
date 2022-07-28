@@ -16,7 +16,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UPwSmallStrainFICElement2D4N
+Begin Elements UPwSmallStrainElement2D4N
   1  1  7 4 3 5
   2  1  9 8 4 7
   3  1  4 2 1 3

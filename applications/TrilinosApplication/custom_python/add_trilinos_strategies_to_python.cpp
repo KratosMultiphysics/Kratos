@@ -64,6 +64,8 @@ void AddStrategies(pybind11::module& m)
     //Builder and Solver
 
     // Builder and solver base class
+    typedef typename ModelPart::DofsArrayType DofsArrayType;
+
     py::class_< TrilinosBuilderAndSolverType, typename TrilinosBuilderAndSolverType::Pointer >(m, "TrilinosResidualBasedBuilderAndSolver")
     .def(py::init<TrilinosLinearSolverType::Pointer> () )
     .def( "SetCalculateReactionsFlag", &TrilinosBuilderAndSolverType::SetCalculateReactionsFlag )
@@ -81,7 +83,7 @@ void AddStrategies(pybind11::module& m)
     .def( "BuildRHSAndSolve", &TrilinosBuilderAndSolverType::BuildRHSAndSolve )
     .def( "ApplyDirichletConditions", &TrilinosBuilderAndSolverType::ApplyDirichletConditions )
     .def( "SetUpDofSet", &TrilinosBuilderAndSolverType::SetUpDofSet )
-    .def( "GetDofSet", &TrilinosBuilderAndSolverType::GetDofSet, py::return_value_policy::reference_internal )
+    .def( "GetDofSet",  [](TrilinosBuilderAndSolverType& self) -> DofsArrayType& {return self.GetDofSet();}, py::return_value_policy::reference_internal)
     .def( "SetUpSystem", &TrilinosBuilderAndSolverType::SetUpSystem )
     .def( "ResizeAndInitializeVectors", &TrilinosBuilderAndSolverType::ResizeAndInitializeVectors )
     .def( "InitializeSolutionStep", &TrilinosBuilderAndSolverType::InitializeSolutionStep )

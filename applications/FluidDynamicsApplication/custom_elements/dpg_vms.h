@@ -575,19 +575,19 @@ public:
 //         double enriched_rhs = 0.0;
         array_1d<double,3> bf = ZeroVector(3);
 
-        double positive_volume = 0.0;
-        double negative_volume = 0.0;
+        //double positive_volume = 0.0;
+        //double negative_volume = 0.0;
         //do integration
         for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
         {
             //assigning the gauss data
             for (unsigned int k = 0; k < TNumNodes; k++)
                 N[k] = Ngauss(igauss, k);
-            double wGauss = volumes[igauss];
-            if(signs[igauss] > 0)
-                positive_volume += wGauss;
-            else
-                negative_volume += wGauss;
+            const double wGauss = volumes[igauss];
+            // if(signs[igauss] > 0)
+            //     positive_volume += wGauss;
+            // else
+            //     negative_volume += wGauss;
             // Calculate this element's fluid properties
             double Density;
             this->EvaluateInPoint(Density, DENSITY, N);

@@ -8,10 +8,10 @@ class CoSimulationIO:
     """Baseclass defining the interface for the input and output methods
     for the communication with external solvers
     """
-    def __init__(self, settings, model, solver_name, data_commnicator):
+    def __init__(self, settings, model, solver_name, data_communicator):
         self.model = model
         self.solver_name = solver_name # name of the owning solver
-        self.data_commnicator = data_commnicator # data-comm of the solver that it does IO for (not the parent coupling solver)
+        self.data_communicator = data_communicator # data-comm of the solver that it does IO for (not the parent coupling solver)
 
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(self._GetDefaultParameters())

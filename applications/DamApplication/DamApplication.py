@@ -3,6 +3,8 @@ from __future__ import print_function, absolute_import, division
 
 # Application dependent names and paths
 from KratosMultiphysics import _ImportApplication
+import KratosMultiphysics.StructuralMechanicsApplication
+import KratosMultiphysics.PoromechanicsApplication
 from KratosDamApplication import *
 application = KratosDamApplication()
 application_name = "KratosDamApplication"

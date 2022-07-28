@@ -1,16 +1,20 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.6960 64-bit) (preloaded format=pdflatex 2019.2.18)  27 AUG 2019 17:56
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.7140 64-bit) (preloaded format=pdflatex 2019.8.22)  13 OCT 2021 10:02
 entering extended mode
 **./Kratos_Verification.tex
 (Kratos_Verification.tex
 LaTeX2e <2018-12-01>
-(C:/resources/latex\tex/latex/deltares\deltares_manual_style.cls
+
+(C:\Users\galavi\AppData\Roaming\MiKTeX\2.9\tex/latex/deltares\deltares_manual_
+style.cls
 Document Class: deltares_manual_style 2011/07/26 v0.1 Deltares Manual style cla
 ss
-) (C:/resources/latex\tex/latex/deltares\deltares_manual.cls
+)
+(C:\Users\galavi\AppData\Roaming\MiKTeX\2.9\tex/latex/deltares\deltares_manual.
+cls
 Document Class: deltares_manual 2014/04/01 v1.0 Standard LaTeX document class
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\report.cls"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\report.cls"
 Document Class: report 2018/09/03 v1.4i Standard LaTeX document class
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\size11.clo"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\size11.clo"
 File: size11.clo 2018/09/03 v1.4i Standard LaTeX file (size option)
 )
 \c@part=\count80
@@ -26,106 +30,105 @@ File: size11.clo 2018/09/03 v1.4i Standard LaTeX file (size option)
 \belowcaptionskip=\skip42
 \bibindent=\dimen102
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/psnfss\helvet.st
-y"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/psnfss\helvet.sty
+"
 Package: helvet 2005/04/12 PSNFSS-v9.2a (WaS) 
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\keyval.
-sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\keyval.s
+ty"
 Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
 \KV@toks@=\toks14
 ))
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/sectsty\sectsty.
-sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/sectsty\sectsty.s
+ty"
 Package: sectsty 2002/02/25 v2.0.2 Commands to change all sectional heading sty
 les
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\inputenc.st
-y"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\inputenc.sty
+"
 Package: inputenc 2018/08/11 v1.3c Input encoding file
 \inpenc@prehook=\toks15
 \inpenc@posthook=\toks16
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\fontenc.sty
-"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\fontenc.sty"
 Package: fontenc 2018/08/11 v2.0j Standard LaTeX package
- ("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\t1enc.def"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\t1enc.def"
 File: t1enc.def 2018/08/11 v2.0j Standard LaTeX file
 LaTeX Font Info:    Redeclaring font encoding T1 on input line 48.
 ))
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\graphic
-x.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\graphicx
+.sty"
 Package: graphicx 2017/06/01 v1.1a Enhanced LaTeX Graphics (DPC,SPQR)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\graphic
-s.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\graphics
+.sty"
 Package: graphics 2017/06/25 v1.2c Standard LaTeX Graphics (DPC,SPQR)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\trig.st
-y"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\trig.sty
+"
 Package: trig 2016/01/03 v1.10 sin cos tan (DPC)
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics-cfg\gra
-phics.cfg"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics-cfg\grap
+hics.cfg"
 File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
 )
 Package graphics Info: Driver file: pdftex.def on input line 99.
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics-def\pdf
-tex.def"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics-def\pdft
+ex.def"
 File: pdftex.def 2018/01/08 v1.0l Graphics/color driver for pdftex
 ))
 \Gin@req@height=\dimen103
 \Gin@req@width=\dimen104
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\epstopd
-f.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\epstopdf
+.sty"
 Package: epstopdf 2016/05/15 v2.6 Conversion with epstopdf on the fly (HO)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\epstopd
-f-base.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\epstopdf
+-base.sty"
 Package: epstopdf-base 2016/05/15 v2.6 Base part for package epstopdf
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\infwa
-rerr.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\infwar
+err.sty"
 Package: infwarerr 2016/05/16 v1.4 Providing info/warning/error messages (HO)
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\grfext.
-sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\grfext.s
+ty"
 Package: grfext 2016/05/16 v1.2 Manage graphics extensions (HO)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\kvdef
-inekeys.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\kvdefi
+nekeys.sty"
 Package: kvdefinekeys 2016/05/16 v1.4 Define keys (HO)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\ltxcm
-ds.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\ltxcmd
+s.sty"
 Package: ltxcmds 2016/05/16 v1.23 LaTeX kernel commands for general use (HO)
 )))
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\kvoptio
-ns.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\kvoption
+s.sty"
 Package: kvoptions 2016/05/16 v3.12 Key value format for package options (HO)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\kvset
-keys.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\kvsetk
+eys.sty"
 Package: kvsetkeys 2016/05/16 v1.17 Key value parser (HO)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\etexc
-mds.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\etexcm
+ds.sty"
 Package: etexcmds 2016/05/16 v1.6 Avoid name clashes with e-TeX commands (HO)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\iflua
-tex.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\ifluat
+ex.sty"
 Package: ifluatex 2016/05/16 v1.4 Provides the ifluatex switch (HO)
 Package ifluatex Info: LuaTeX not detected.
 ))))
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\pdfte
-xcmds.sty"
-Package: pdftexcmds 2018/09/10 v0.29 Utility functions of pdfTeX for LuaTeX (HO
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\pdftex
+cmds.sty"
+Package: pdftexcmds 2019/07/25 v0.30 Utility functions of pdfTeX for LuaTeX (HO
 )
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\ifpdf
-.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\ifpdf.
+sty"
 Package: ifpdf 2018/09/07 v3.3 Provides the ifpdf switch
 )
 Package pdftexcmds Info: LuaTeX not detected.
@@ -140,33 +143,32 @@ Package grfext Info: Graphics extension search list:
 G,.JBIG2,.JB2,.eps]
 (grfext)             \AppendGraphicsExtensions on input line 456.
 ))
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\color.s
-ty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\color.st
+y"
 Package: color 2016/07/10 v1.1e Standard LaTeX Color (DPC)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics-cfg\col
-or.cfg"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics-cfg\colo
+r.cfg"
 File: color.cfg 2016/01/02 v1.6 sample color configuration
 )
 Package color Info: Driver file: pdftex.def on input line 147.
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/frcursive\frcurs
-ive.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/frcursive\frcursi
+ve.sty"
 Package: frcursive 2004/02/01 v1.2 support package for French Cursive
 \seyesThickness=\skip43
 \seyes@box=\box27
 \seyes@ln=\skip44
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/float\float.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/float\float.sty"
 Package: float 2001/11/08 v1.3d Float enhancements (AL)
 \c@float@type=\count89
 \float@exts=\toks17
 \float@box=\box28
 \@float@everytoks=\toks18
 \@floatcapt=\box29
-)
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\textcomp.st
-y"
+) ("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\textcomp.s
+ty"
 Package: textcomp 2018/08/11 v2.0j Standard LaTeX package
 Package textcomp Info: Sub-encoding information:
 (textcomp)               5 = only ISO-Adobe without \textcurrency
@@ -180,12 +182,11 @@ Package textcomp Info: Sub-encoding information:
 (textcomp)             Family '?' is the default used for unknown fonts.
 (textcomp)             See the documentation for details.
 Package textcomp Info: Setting ? sub-encoding to TS1/1 on input line 79.
-
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\ts1enc.def"
+ ("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\ts1enc.def"
 File: ts1enc.def 2001/06/05 v3.0e (jk/car/fm) Standard LaTeX file
 Now handling font encoding TS1 ...
 ... processing UTF-8 mapping file for font encoding TS1
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\ts1enc.dfu"
+ ("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\ts1enc.dfu"
 File: ts1enc.dfu 2018/10/05 v1.2f UTF-8 support for inputenc
    defining Unicode char U+00A2 (decimal 162)
    defining Unicode char U+00A3 (decimal 163)
@@ -322,14 +323,13 @@ Package textcomp Info: Setting pplj sub-encoding to TS1/3 on input line 407.
 Package textcomp Info: Setting ptmx sub-encoding to TS1/4 on input line 408.
 Package textcomp Info: Setting ptmj sub-encoding to TS1/4 on input line 409.
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/pdfpages\pdfpage
-s.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/pdfpages\pdfpages
+.sty"
 Package: pdfpages 2017/10/31 v0.5l Insert pages of external PDF documents (AM)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\ifthen.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\ifthen.sty"
 Package: ifthen 2014/09/29 v1.1c Standard LaTeX ifthen package (DPC)
-) ("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\calc.sty
-"
+) ("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\calc.sty"
 Package: calc 2017/05/25 v4.3 Infix arithmetic (KKT,FJ)
 \calc@Acount=\count90
 \calc@Bcount=\count91
@@ -342,19 +342,19 @@ LaTeX Info: Redefining \addtolength on input line 81.
 \calc@Ccount=\count92
 \calc@Cskip=\skip47
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/eso-pic\eso-pic.
-sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/eso-pic\eso-pic.s
+ty"
 Package: eso-pic 2018/04/12 v2.0h eso-pic (RN)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\atbeg
-shi.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\atbegs
+hi.sty"
 Package: atbegshi 2016/06/09 v1.18 At begin shipout hook (HO)
 ))
 \AM@pagewidth=\dimen107
 \AM@pageheight=\dimen108
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/pdfpages\pppdfte
-x.def"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/pdfpages\pppdftex
+.def"
 File: pppdftex.def 2017/10/31 v0.5l Pdfpages driver for pdfTeX (AM)
 )
 \AM@pagebox=\box30
@@ -363,51 +363,49 @@ File: pppdftex.def 2017/10/31 v0.5l Pdfpages driver for pdfTeX (AM)
 \c@AM@survey=\count93
 \AM@templatesizebox=\box31
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/babel\babel.st
-y"
-Package: babel 2018/11/13 3.27 The Babel package
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/babel\babel.sty
+"
+Package: babel 2019/07/19 3.33 The Babel package
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/babel\switch.d
-ef"
-File: switch.def 2018/11/13 3.27 Babel switching mechanism
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/babel\switch.de
+f"
+File: switch.def 2019/07/19 3.33 Babel switching mechanism
 )
 *************************************
 * Local config file bblopts.cfg used
 *
-
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/arabi\bblopts.cf
-g"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/arabi\bblopts.cfg
+"
 File: bblopts.cfg 2005/09/08 v0.1 add Arabic and Farsi to "declared" options of
  babel
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/babel-english\en
-glish.ldf"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/babel-english\eng
+lish.ldf"
 Language: english 2017/06/06 v3.3r English support from the babel system
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/babel\babel.de
-f"
-File: babel.def 2018/11/13 3.27 Babel common definitions
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/babel\babel.def
+"
+File: babel.def 2019/07/19 3.33 Babel common definitions
 \babel@savecnt=\count94
 \U@D=\dimen109
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/babel\txtbabel
-.def")
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/babel\txtbabel.
+def")
 \bbl@dirlevel=\count95
 )
 \l@canadian = a dialect from \language\l@american 
 \l@australian = a dialect from \language\l@british 
 \l@newzealand = a dialect from \language\l@british 
 ))
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/svn-multi\svn-mu
-lti.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/svn-multi\svn-mul
+ti.sty"
 Package: svn-multi 2011/08/30 v2.4d SVN Keywords for multi-file LaTeX documents
 
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\tabularx.s
-ty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\tabularx.st
+y"
 Package: tabularx 2016/02/03 v2.11b `tabularx' package (DPC)
-
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\array.sty"
+ ("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\array.sty"
 Package: array 2018/12/30 v2.4k Tabular extension package (FMi)
 \col@sep=\dimen110
 \ar@mcellbox=\box32
@@ -425,8 +423,8 @@ Package: array 2018/12/30 v2.4k Tabular extension package (FMi)
 \TX@cols=\count96
 \TX@ftn=\toks22
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\longtable.
-sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\longtable.s
+ty"
 Package: longtable 2014/10/28 v4.11 Multi-page Table package (DPC)+ FMi change
 \LTleft=\skip50
 \LTright=\skip51
@@ -444,15 +442,15 @@ Package: longtable 2014/10/28 v4.11 Multi-page Table package (DPC)+ FMi change
 \c@LT@chunks=\count101
 \LT@p@ftn=\toks23
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\verbatim.s
-ty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\verbatim.st
+y"
 Package: verbatim 2014/10/28 v1.5q LaTeX2e package for verbatim enhancements
 \every@verbatim=\toks24
 \verbatim@line=\toks25
 \verbatim@in@stream=\read1
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/fancyvrb\fancyvr
-b.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/fancyvrb\fancyvrb
+.sty"
 Package: fancyvrb 2019/01/15
  Style option: `fancyvrb' v3.2a <2019/01/15> (tvz)
 \FV@CodeLineNo=\count102
@@ -462,8 +460,8 @@ Package: fancyvrb 2019/01/15
 \FV@StepNumber=\count104
 \FV@OutFile=\write3
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/wrapfig\wrapfig.
-sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/wrapfig\wrapfig.s
+ty"
 \wrapoverhang=\dimen118
 \WF@size=\dimen119
 \c@WF@wrappedlines=\count105
@@ -471,12 +469,12 @@ sty"
 \WF@everypar=\toks26
 Package: wrapfig 2003/01/31  v 3.6
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/caption\caption.
-sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/caption\caption.s
+ty"
 Package: caption 2018/10/06 v3.3-154 Customizing captions (AR)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/caption\caption3
-.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/caption\caption3.
+sty"
 Package: caption3 2018/09/12 v1.8c caption3 kernel (AR)
 Package caption3 Info: TeX engine: e-TeX on input line 64.
 \captionmargin=\dimen120
@@ -492,35 +490,35 @@ Package caption3 Info: TeX engine: e-TeX on input line 64.
 Package caption Info: float package is loaded.
 Package caption Info: longtable package is loaded.
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/caption\ltcaptio
-n.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/caption\ltcaption
+.sty"
 Package: ltcaption 2018/08/26 v1.4-95 longtable captions (AR)
 )
 Package caption Info: wrapfig package is loaded.
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/caption\subcapti
-on.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/caption\subcaptio
+n.sty"
 Package: subcaption 2018/05/01 v1.1-162 Sub-captions (AR)
 \c@subfigure=\count108
 \c@subtable=\count109
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/url\url.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/url\url.sty"
 \Urlmuskip=\muskip10
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/moreverb\morever
-b.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/moreverb\moreverb
+.sty"
 Package: moreverb 2008/06/03 v2.3a `more' verbatim facilities
 \tab@position=\count110
 \tab@size=\count111
 \listing@line=\count112
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/moresize\moresiz
-e.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/moresize\moresize
+.sty"
 Package: moresize 1999/07/26 v1.9 (more font sizes)
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\rotatin
-g.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\rotating
+.sty"
 Package: rotating 2016/08/11 v2.16d rotated objects in LaTeX
 \c@r@tfl@t=\count113
 \rotFPtop=\skip54
@@ -528,55 +526,55 @@ Package: rotating 2016/08/11 v2.16d rotated objects in LaTeX
 \rot@float@box=\box40
 \rot@mess@toks=\toks27
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\nameref
-.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\nameref.
+sty"
 Package: nameref 2016/05/21 v2.44 Cross-referencing by name of section
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\refcoun
-t.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\refcount
+.sty"
 Package: refcount 2016/05/16 v3.5 Data extraction from label references (HO)
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\getti
-tlestring.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\gettit
+lestring.sty"
 Package: gettitlestring 2016/05/16 v1.5 Cleanup title references (HO)
 )
 \c@section@level=\count114
 LaTeX Info: Redefining \ref on input line 355.
 LaTeX Info: Redefining \pageref on input line 355.
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/import\import.st
-y"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/import\import.sty
+"
 Package: import 2009/03/23  v 5.1
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/marginnote\margi
-nnote.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/marginnote\margin
+note.sty"
 Package: marginnote 2018/08/09 v1.4b non floating margin notes for LaTeX
 \c@mn@abspage=\count115
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amstext.
-sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amstext.s
+ty"
 Package: amstext 2000/06/29 v2.01 AMS text
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsgen.s
-ty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsgen.st
+y"
 File: amsgen.sty 1999/11/30 v2.0 generic functions
 \@emptytoks=\toks28
 \ex@=\dimen127
 ))
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsmath.
-sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsmath.s
+ty"
 Package: amsmath 2018/12/01 v2.17b AMS math features
 \@mathmargin=\skip56
 
 For additional information on amsmath, use the `?' option.
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsbsy.s
-ty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsbsy.st
+y"
 Package: amsbsy 1999/11/29 v1.2d Bold Symbols
 \pmbraise@=\dimen128
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsopn.s
-ty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsopn.st
+y"
 Package: amsopn 2016/03/08 v2.02 operator names
 )
 \inf@bad=\count116
@@ -617,20 +615,20 @@ LaTeX Font Info:    Redeclaring font encoding OMS on input line 730.
 LaTeX Info: Redefining \[ on input line 2844.
 LaTeX Info: Redefining \] on input line 2845.
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsfonts\amssymb
-.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsfonts\amssymb.
+sty"
 Package: amssymb 2013/01/14 v3.01 AMS font symbols
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsfonts\amsfont
-s.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsfonts\amsfonts
+.sty"
 Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
 \symAMSa=\mathgroup4
 \symAMSb=\mathgroup5
 LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
 (Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
 ))
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/paralist\paralis
-t.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/paralist\paralist
+.sty"
 Package: paralist 2017/01/22 v2.7 Extended list environments
 \pltopsep=\skip59
 \plpartopsep=\skip60
@@ -638,22 +636,22 @@ Package: paralist 2017/01/22 v2.7 Extended list environments
 \plparsep=\skip62
 \pl@lab=\toks33
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/siunitx\siunitx.
-sty"
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/l3kernel\expl3.s
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/siunitx\siunitx.s
 ty"
-Package: expl3 2019-05-07 L3 programming layer (loader) 
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/l3kernel\expl3.st
+y"
+Package: expl3 2019-08-14 L3 programming layer (loader) 
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/l3kernel\expl3-c
-ode.tex"
-Package: expl3 2019-05-07 L3 programming layer (code)
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/l3kernel\expl3-co
+de.tex"
+Package: expl3 2019-08-14 L3 programming layer (code)
 \c_max_int=\count128
 \l_tmpa_int=\count129
 \l_tmpb_int=\count130
 \g_tmpa_int=\count131
 \g_tmpb_int=\count132
 \g__kernel_prg_map_int=\count133
-\c__ior_term_ior=\count134
+\c__ior_term_noprompt_ior=\count134
 \c_log_iow=\count135
 \l_iow_line_count_int=\count136
 \l__iow_line_target_int=\count137
@@ -704,51 +702,53 @@ Package: expl3 2019-05-07 L3 programming layer (code)
 \l__sort_A_int=\count163
 \l__sort_B_int=\count164
 \l__sort_C_int=\count165
-\l__tl_analysis_normal_int=\count166
-\l__tl_analysis_index_int=\count167
-\l__tl_analysis_nesting_int=\count168
-\l__tl_analysis_type_int=\count169
-\l__regex_internal_a_int=\count170
-\l__regex_internal_b_int=\count171
-\l__regex_internal_c_int=\count172
-\l__regex_balance_int=\count173
-\l__regex_group_level_int=\count174
-\l__regex_mode_int=\count175
-\c__regex_cs_in_class_mode_int=\count176
-\c__regex_cs_mode_int=\count177
-\l__regex_catcodes_int=\count178
-\l__regex_default_catcodes_int=\count179
-\c__regex_catcode_D_int=\count180
-\c__regex_catcode_S_int=\count181
-\c__regex_catcode_L_int=\count182
-\c__regex_catcode_O_int=\count183
-\c__regex_catcode_A_int=\count184
-\c__regex_all_catcodes_int=\count185
-\l__regex_show_lines_int=\count186
-\l__regex_min_state_int=\count187
-\l__regex_max_state_int=\count188
-\l__regex_left_state_int=\count189
-\l__regex_right_state_int=\count190
-\l__regex_capturing_group_int=\count191
-\l__regex_min_pos_int=\count192
-\l__regex_max_pos_int=\count193
-\l__regex_curr_pos_int=\count194
-\l__regex_start_pos_int=\count195
-\l__regex_success_pos_int=\count196
-\l__regex_curr_char_int=\count197
-\l__regex_curr_catcode_int=\count198
-\l__regex_last_char_int=\count199
-\l__regex_case_changed_char_int=\count266
-\l__regex_curr_state_int=\count267
-\l__regex_step_int=\count268
-\l__regex_min_active_int=\count269
-\l__regex_max_active_int=\count270
-\l__regex_replacement_csnames_int=\count271
-\l__regex_match_count_int=\count272
-\l__regex_min_submatch_int=\count273
-\l__regex_submatch_int=\count274
-\l__regex_zeroth_submatch_int=\count275
-\g__regex_trace_regex_int=\count276
+\l__str_internal_int=\count166
+\c__str_replacement_char_int=\count167
+\l__tl_analysis_normal_int=\count168
+\l__tl_analysis_index_int=\count169
+\l__tl_analysis_nesting_int=\count170
+\l__tl_analysis_type_int=\count171
+\l__regex_internal_a_int=\count172
+\l__regex_internal_b_int=\count173
+\l__regex_internal_c_int=\count174
+\l__regex_balance_int=\count175
+\l__regex_group_level_int=\count176
+\l__regex_mode_int=\count177
+\c__regex_cs_in_class_mode_int=\count178
+\c__regex_cs_mode_int=\count179
+\l__regex_catcodes_int=\count180
+\l__regex_default_catcodes_int=\count181
+\c__regex_catcode_D_int=\count182
+\c__regex_catcode_S_int=\count183
+\c__regex_catcode_L_int=\count184
+\c__regex_catcode_O_int=\count185
+\c__regex_catcode_A_int=\count186
+\c__regex_all_catcodes_int=\count187
+\l__regex_show_lines_int=\count188
+\l__regex_min_state_int=\count189
+\l__regex_max_state_int=\count190
+\l__regex_left_state_int=\count191
+\l__regex_right_state_int=\count192
+\l__regex_capturing_group_int=\count193
+\l__regex_min_pos_int=\count194
+\l__regex_max_pos_int=\count195
+\l__regex_curr_pos_int=\count196
+\l__regex_start_pos_int=\count197
+\l__regex_success_pos_int=\count198
+\l__regex_curr_char_int=\count199
+\l__regex_curr_catcode_int=\count266
+\l__regex_last_char_int=\count267
+\l__regex_case_changed_char_int=\count268
+\l__regex_curr_state_int=\count269
+\l__regex_step_int=\count270
+\l__regex_min_active_int=\count271
+\l__regex_max_active_int=\count272
+\l__regex_replacement_csnames_int=\count273
+\l__regex_match_count_int=\count274
+\l__regex_min_submatch_int=\count275
+\l__regex_submatch_int=\count276
+\l__regex_zeroth_submatch_int=\count277
+\g__regex_trace_regex_int=\count278
 \c_empty_box=\box43
 \l_tmpa_box=\box44
 \l_tmpb_box=\box45
@@ -793,53 +793,53 @@ Package: expl3 2019-05-07 L3 programming layer (code)
 \l__coffin_display_x_dim=\dimen166
 \l__coffin_display_y_dim=\dimen167
 \g__file_internal_ior=\read3
-\l__seq_internal_a_int=\count277
-\l__seq_internal_b_int=\count278
-\c__deprecation_minus_one=\count279
+\l__seq_internal_a_int=\count279
+\l__seq_internal_b_int=\count280
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/l3kernel\l3pdfmo
-de.def"
-File: l3pdfmode.def 2019-04-06 v L3 Experimental driver: PDF mode
-\l__driver_color_stack_int=\count280
-\l__driver_pdf_tmp_box=\box61
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/l3backend\l3backe
+nd-pdfmode.def"
+File: l3backend-pdfmode.def 2019-04-06 v L3 Experimental backend support: PDF m
+ode
+\l__kernel_color_stack_int=\count281
+\l__pdf_internal_box=\box61
 ))
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/l3packages/xpars
-e\xparse.sty"
-Package: xparse 2019-05-03 L3 Experimental document command parser
-\l__xparse_current_arg_int=\count281
-\g__xparse_grabber_int=\count282
-\l__xparse_m_args_int=\count283
-\l__xparse_v_nesting_int=\count284
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/l3packages/xparse
+\xparse.sty"
+Package: xparse 2019-05-28 L3 Experimental document command parser
+\l__xparse_current_arg_int=\count282
+\g__xparse_grabber_int=\count283
+\l__xparse_m_args_int=\count284
+\l__xparse_v_nesting_int=\count285
 )
 Package: siunitx 2018/05/17 v2.7s A comprehensive (SI) units package
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/l3packages/l3key
-s2e\l3keys2e.sty"
-Package: l3keys2e 2019-05-03 LaTeX2e option processing using LaTeX3 keys
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/l3packages/l3keys
+2e\l3keys2e.sty"
+Package: l3keys2e 2019-05-28 LaTeX2e option processing using LaTeX3 keys
 )
 \l__siunitx_tmp_box=\box62
 \l__siunitx_tmp_dim=\dimen168
-\l__siunitx_tmp_int=\count285
-\l__siunitx_number_mantissa_length_int=\count286
-\l__siunitx_number_uncert_length_int=\count287
-\l__siunitx_round_int=\count288
-\l__siunitx_process_decimal_int=\count289
-\l__siunitx_process_uncertainty_int=\count290
-\l__siunitx_process_fixed_int=\count291
-\l__siunitx_process_integer_min_int=\count292
-\l__siunitx_process_precision_int=\count293
-\l__siunitx_group_min_int=\count294
+\l__siunitx_tmp_int=\count286
+\l__siunitx_number_mantissa_length_int=\count287
+\l__siunitx_number_uncert_length_int=\count288
+\l__siunitx_round_int=\count289
+\l__siunitx_process_decimal_int=\count290
+\l__siunitx_process_uncertainty_int=\count291
+\l__siunitx_process_fixed_int=\count292
+\l__siunitx_process_integer_min_int=\count293
+\l__siunitx_process_precision_int=\count294
+\l__siunitx_group_min_int=\count295
 \l__siunitx_angle_marker_box=\box63
 \l__siunitx_angle_unit_box=\box64
 \l__siunitx_angle_marker_dim=\dimen169
 \l__siunitx_angle_unit_dim=\dimen170
-\l__siunitx_unit_int=\count295
-\l__siunitx_unit_denominator_int=\count296
-\l__siunitx_unit_numerator_int=\count297
-\l__siunitx_unit_prefix_int=\count298
-\l__siunitx_unit_prefix_base_int=\count299
-\l__siunitx_unit_prefix_gram_int=\count300
-\l__siunitx_number_product_int=\count301
+\l__siunitx_unit_int=\count296
+\l__siunitx_unit_denominator_int=\count297
+\l__siunitx_unit_numerator_int=\count298
+\l__siunitx_unit_prefix_int=\count299
+\l__siunitx_unit_prefix_base_int=\count300
+\l__siunitx_unit_prefix_gram_int=\count301
+\l__siunitx_number_product_int=\count302
 \c__siunitx_one_fill_skip=\skip69
 \l__siunitx_table_unit_align_skip=\skip70
 \l__siunitx_table_exponent_dim=\dimen171
@@ -858,101 +858,100 @@ Package: l3keys2e 2019-05-03 LaTeX2e option processing using LaTeX3 keys
 \l__siunitx_table_number_align_skip=\skip71
 \l__siunitx_table_text_align_skip=\skip72
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/translator\trans
-lator.sty"
-Package: translator 2018/01/04 v1.12 Easy translation of strings in LaTeX
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/translator\transl
+ator.sty"
+Package: translator 2019-05-31 v1.12a Easy translation of strings in LaTeX
 ))
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\xspace.sty
-"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\xspace.sty"
 Package: xspace 2014/10/28 v1.13 Space after command names (DPC,MH)
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/colortbl\colortb
-l.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/colortbl\colortbl
+.sty"
 Package: colortbl 2018/12/12 v1.0d Color table columns (DPC)
 \everycr=\toks34
 \minrowclearance=\skip73
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/lastpage\lastpag
-e.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/lastpage\lastpage
+.sty"
 Package: lastpage 2015/03/29 v1.2m Refers to last page's name (HMM; JPG)
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/etoolbox\etoolbo
-x.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/etoolbox\etoolbox
+.sty"
 Package: etoolbox 2018/08/19 v2.5f e-TeX tools for LaTeX (JAW)
-\etb@tempcnta=\count302
+\etb@tempcnta=\count303
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/nomencl\nomencl.
-sty"
-Package: nomencl 2019/02/08 v5.1 Nomenclature package
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/nomencl\nomencl.s
+ty"
+Package: nomencl 2019/05/05 v5.2 Nomenclature package
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/xkeyval\xkeyval.
-sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/xkeyval\xkeyval.s
+ty"
 Package: xkeyval 2014/12/03 v2.7a package option processing (HA)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/xkeyval\xkeyva
-l.tex"
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/xkeyval\xkvuti
-ls.tex"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/xkeyval\xkeyval
+.tex"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/xkeyval\xkvutil
+s.tex"
 \XKV@toks=\toks35
 \XKV@tempa@toks=\toks36
 )
-\XKV@depth=\count303
+\XKV@depth=\count304
 File: xkeyval.tex 2014/12/03 v2.7a key=value parser (HA)
 ))
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/koma-script\tocb
-asic.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/koma-script\tocba
+sic.sty"
 Package: tocbasic 2019/02/01 v3.26b KOMA-Script package (handling toc-files)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/koma-script\scrb
-ase.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/koma-script\scrba
+se.sty"
 Package: scrbase 2019/02/01 v3.26b KOMA-Script package (KOMA-Script-independent
  basics and keyval usage)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/koma-script\scrl
-file.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/koma-script\scrlf
+ile.sty"
 Package: scrlfile 2019/02/01 v3.26b KOMA-Script package (loading files)
 ))
 \scr@dte@tocline@numberwidth=\skip74
 \scr@dte@tocline@numbox=\box69
 )
-Package tocbasic Info: setting babel extension for `nlo' on input line 24.
-Package tocbasic Info: setting babel extension for `nls' on input line 25.
+Package tocbasic Info: setting babel extension for `nlo' on input line 155.
+Package tocbasic Info: setting babel extension for `nls' on input line 156.
 \nomlabelwidth=\dimen180
 \nom@tempdim=\dimen181
 \nomitemsep=\skip75
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/nomentbl\nomentb
-l.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/nomentbl\nomentbl
+.sty"
 Package: nomentbl 2006/04/14 v0.4 Nomenclature in a longtable environment
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\bookmar
-k.sty"
-Package: bookmark 2016/05/17 v1.26 PDF bookmarks (HO)
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\bookmark
+.sty"
+Package: bookmark 2019/06/04 v1.27 PDF bookmarks (HO)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\pdfes
-cape.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\pdfesc
+ape.sty"
 Package: pdfescape 2016/05/16 v1.14 Implements pdfTeX's escape features (HO)
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/ifxetex\ifxete
-x.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/ifxetex\ifxetex
+.sty"
 Package: ifxetex 2010/09/12 v0.6 Provides ifxetex conditional
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\ifvte
-x.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\ifvtex
+.sty"
 Package: ifvtex 2016/05/16 v1.6 Detect VTeX and its facilities (HO)
 Package ifvtex Info: VTeX not detected.
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\hyperre
-f.sty"
-Package: hyperref 2018/11/30 v6.88e Hypertext links for LaTeX
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\hyperref
+.sty"
+Package: hyperref 2019/06/12 v6.88h Hypertext links for LaTeX
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\hobsu
-b-hyperref.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\hobsub
+-hyperref.sty"
 Package: hobsub-hyperref 2016/05/16 v1.14 Bundle oberdiek, subset hyperref (HO)
 
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\hobsu
-b-generic.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\hobsub
+-generic.sty"
 Package: hobsub-generic 2016/05/16 v1.14 Bundle oberdiek, subset generic (HO)
 Package: hobsub 2016/05/16 v1.14 Construct package bundles (HO)
 Package hobsub Info: Skipping package `infwarerr' (already loaded).
@@ -980,89 +979,89 @@ Package hobsub Info: Skipping package `atbegshi' (already loaded).
 Package hobsub Info: Skipping package `refcount' (already loaded).
 Package: hycolor 2016/05/16 v1.8 Color options for hyperref/bookmark (HO)
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\auxhook
-.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\auxhook.
+sty"
 Package: auxhook 2016/05/16 v1.4 Hooks for auxiliary files (HO)
 )
 \@linkdim=\dimen182
-\Hy@linkcounter=\count304
-\Hy@pagecounter=\count305
+\Hy@linkcounter=\count305
+\Hy@pagecounter=\count306
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\pd1enc.
-def"
-File: pd1enc.def 2018/11/30 v6.88e Hyperref: PDFDocEncoding definition (HO)
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\pd1enc.d
+ef"
+File: pd1enc.def 2019/06/12 v6.88h Hyperref: PDFDocEncoding definition (HO)
 Now handling font encoding PD1 ...
 ... no UTF-8 mapping file for font encoding PD1
 )
-\Hy@SavedSpaceFactor=\count306
+\Hy@SavedSpaceFactor=\count307
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/00miktex\hyperre
-f.cfg"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/00miktex\hyperref
+.cfg"
 File: hyperref.cfg 2002/06/06 v1.2 hyperref configuration of TeXLive
 )
-Package hyperref Info: Hyper figures OFF on input line 4519.
-Package hyperref Info: Link nesting OFF on input line 4524.
-Package hyperref Info: Hyper index ON on input line 4527.
-Package hyperref Info: Plain pages OFF on input line 4534.
-Package hyperref Info: Backreferencing OFF on input line 4539.
+Package hyperref Info: Hyper figures OFF on input line 4550.
+Package hyperref Info: Link nesting OFF on input line 4555.
+Package hyperref Info: Hyper index ON on input line 4558.
+Package hyperref Info: Plain pages OFF on input line 4565.
+Package hyperref Info: Backreferencing OFF on input line 4570.
 Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
-Package hyperref Info: Bookmarks ON on input line 4772.
-\c@Hy@tempcnt=\count307
-LaTeX Info: Redefining \url on input line 5125.
+Package hyperref Info: Bookmarks ON on input line 4803.
+\c@Hy@tempcnt=\count308
+LaTeX Info: Redefining \url on input line 5156.
 \XeTeXLinkMargin=\dimen183
-\Fld@menulength=\count308
+\Fld@menulength=\count309
 \Field@Width=\dimen184
 \Fld@charsize=\dimen185
-Package hyperref Info: Hyper figures OFF on input line 6380.
-Package hyperref Info: Link nesting OFF on input line 6385.
-Package hyperref Info: Hyper index ON on input line 6388.
-Package hyperref Info: backreferencing OFF on input line 6395.
-Package hyperref Info: Link coloring OFF on input line 6400.
-Package hyperref Info: Link coloring with OCG OFF on input line 6405.
-Package hyperref Info: PDF/A mode OFF on input line 6410.
-LaTeX Info: Redefining \ref on input line 6450.
-LaTeX Info: Redefining \pageref on input line 6454.
-\Hy@abspage=\count309
-\c@Item=\count310
-\c@Hfootnote=\count311
+Package hyperref Info: Hyper figures OFF on input line 6411.
+Package hyperref Info: Link nesting OFF on input line 6416.
+Package hyperref Info: Hyper index ON on input line 6419.
+Package hyperref Info: backreferencing OFF on input line 6426.
+Package hyperref Info: Link coloring OFF on input line 6431.
+Package hyperref Info: Link coloring with OCG OFF on input line 6436.
+Package hyperref Info: PDF/A mode OFF on input line 6441.
+LaTeX Info: Redefining \ref on input line 6481.
+LaTeX Info: Redefining \pageref on input line 6485.
+\Hy@abspage=\count310
+\c@Item=\count311
+\c@Hfootnote=\count312
 )
 Package hyperref Info: Driver (autodetected): hpdftex.
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\hpdftex
-.def"
-File: hpdftex.def 2018/11/30 v6.88e Hyperref driver for pdfTeX
-\Fld@listcount=\count312
-\c@bookmark@seq@number=\count313
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\hpdftex.
+def"
+File: hpdftex.def 2019/06/12 v6.88h Hyperref driver for pdfTeX
+\Fld@listcount=\count313
+\c@bookmark@seq@number=\count314
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\rerunfi
-lecheck.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\rerunfil
+echeck.sty"
 Package: rerunfilecheck 2016/05/16 v1.8 Rerun checks for auxiliary files (HO)
 Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 82.
 )
 \Hy@SectionHShift=\skip76
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\bkm-pdf
-tex.def"
-File: bkm-pdftex.def 2016/05/17 v1.26 bookmark driver for pdfTeX (HO)
-\BKM@id=\count314
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\bkm-pdft
+ex.def"
+File: bkm-pdftex.def 2019/06/04 v1.27 bookmark driver for pdfTeX (HO)
+\BKM@id=\count315
 ))
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/currfile\currfil
-e.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/currfile\currfile
+.sty"
 Package: currfile 2015/04/23 v0.7c Provides the file path elements of the curre
 nt input file
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/filehook\filehoo
-k.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/filehook\filehook
+.sty"
 Package: filehook 2011/10/12 v0.5d Hooks for input files
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/filehook\filehoo
-k-scrlfile.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/filehook\filehook
+-scrlfile.sty"
 Package: filehook-scrlfile 2011/01/03 v0.1 filehook patch for scrlfile package
 Package filehook Info: Package 'scrlfile' detected and compensated for on input
  line 102.
 ))
-\c@currfiledepth=\count315
+\c@currfiledepth=\count316
 )
 
 Package hyperref Warning: Option `destlabel' has already been used,
@@ -1076,15 +1075,15 @@ Package hyperref Info: Option `bookmarksnumbered' set `true' on input line 141.
 
 Package hyperref Info: Option `colorlinks' set `true' on input line 141.
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\transpa
-rent.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\transpar
+ent.sty"
 Package: transparent 2018/11/18 v1.3 Transparency via pdfTeX's color stack (HO)
 
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/fancyhdr\fancyhd
-r.sty"
-Package: fancyhdr 2019/01/31 v3.10 Extensive control of page headers and footer
-s
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/fancyhdr\fancyhdr
+.sty"
+Package: fancyhdr 2021/01/28 v4.0.1 Extensive control of page headers and foote
+rs
 \f@nch@headwidth=\skip77
 \f@nch@O@elh=\skip78
 \f@nch@O@erh=\skip79
@@ -1097,28 +1096,27 @@ s
 )
 \maxfoottitlewidth=\skip86
 \foottitlewidth=\skip87
-\c@n_sp_blocks=\count316
-\c@n_sp_items=\count317
+\c@n_sp_blocks=\count317
+\c@n_sp_items=\count318
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\makeidx.sty
-"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\makeidx.sty"
 Package: makeidx 2014/09/29 v1.0m Standard LaTeX package
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/idxlayout\idxlay
-out.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/idxlayout\idxlayo
+ut.sty"
 Package: idxlayout 2012/03/30 v0.4d Configurable index layout
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\multicol.s
-ty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\multicol.st
+y"
 Package: multicol 2018/12/27 v1.8v multicolumn formatting (FMi)
-\c@tracingmulticols=\count318
+\c@tracingmulticols=\count319
 \mult@box=\box70
 \multicol@leftmargin=\dimen186
-\c@unbalance=\count319
-\c@collectmore=\count320
-\doublecol@number=\count321
-\multicoltolerance=\count322
-\multicolpretolerance=\count323
+\c@unbalance=\count320
+\c@collectmore=\count321
+\doublecol@number=\count322
+\multicoltolerance=\count323
+\multicolpretolerance=\count324
 \full@width=\dimen187
 \page@free=\dimen188
 \premulticols=\dimen189
@@ -1149,28 +1147,28 @@ Package: multicol 2018/12/27 v1.8v multicolumn formatting (FMi)
 \@tempa=\box91
 \@tempa=\box92
 \@tempa=\box93
-\c@columnbadness=\count324
-\c@finalcolumnbadness=\count325
+\c@columnbadness=\count325
+\c@finalcolumnbadness=\count326
 \last@try=\dimen192
 \multicolovershoot=\dimen193
 \multicolundershoot=\dimen194
 \mult@nat@firstbox=\box94
 \colbreak@box=\box95
-\mc@col@check@num=\count326
+\mc@col@check@num=\count327
 )
-\c@idxcols=\count327
+\c@idxcols=\count328
 \indexcolsep=\skip90
 \indexrule=\skip91
 \ila@indentunit=\skip92
 \ila@initsep=\skip93
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/natbib\natbib.st
-y"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/natbib\natbib.sty
+"
 Package: natbib 2010/09/13 8.31b (PWD, AO)
 \bibhang=\skip94
 \bibsep=\skip95
 LaTeX Info: Redefining \cite on input line 694.
-\c@NAT@ctr=\count328
+\c@NAT@ctr=\count329
 )
 runsystem(makeindex -q Kratos_Verification.nlo -s deltares_nomentbl.ist -o Krat
 os_Verification.nls)...executed (allowed).
@@ -1181,22 +1179,22 @@ os_Verification.nls)...executed (allowed).
 Package nomencl Info: Writing nomenclature file Kratos_Verification.nlo on inpu
 t line 1877.
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/enumitem\enumite
-m.sty"
-Package: enumitem 2019/02/04 v3.8 Customized lists
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/enumitem\enumitem
+.sty"
+Package: enumitem 2019/06/20 v3.9 Customized lists
 \labelindent=\skip96
 \enit@outerparindent=\dimen195
 \enit@toks=\toks37
 \enit@inbox=\box96
-\enit@count@id=\count329
-\enitdp@description=\count330
+\enit@count@id=\count330
+\enitdp@description=\count331
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/xcolor\xcolor.st
-y"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/xcolor\xcolor.sty
+"
 Package: xcolor 2016/05/11 v2.12 LaTeX color extensions (UK)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics-cfg\col
-or.cfg"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics-cfg\colo
+r.cfg"
 File: color.cfg 2016/01/02 v1.6 sample color configuration
 )
 Package xcolor Info: Driver file: pdftex.def on input line 225.
@@ -1211,22 +1209,24 @@ Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1369.
 Package xcolor Info: Model `Gray' substituted by `gray' on input line 1370.
 Package xcolor Info: Model `wave' substituted by `hsb' on input line 1371.
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tabulary\tabular
-y.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tabulary\tabulary
+.sty"
 Package: tabulary 2014/06/11 v0.10 tabulary package (DPC)
-\TY@count=\count331
+\TY@count=\count332
 \TY@linewidth=\dimen196
 \tymin=\dimen197
 \tymax=\dimen198
 \TY@tablewidth=\dimen199
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/placeins\placein
-s.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/placeins\placeins
+.sty"
 Package: placeins 2005/04/18  v 2.2
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/ms\ragged2e.sty"
-Package: ragged2e 2009/05/21 v2.1 ragged2e Package (MS)
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/ms\everysel.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/ragged2e\ragged2e
+.sty"
+Package: ragged2e 2019/07/28 v2.2 ragged2e Package (MS)
+
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/ms\everysel.sty"
 Package: everysel 2011/10/28 v1.2 EverySelectfont Package (MS)
 )
 \CenteringLeftskip=\skip97
@@ -1285,43 +1285,42 @@ LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 43.
 LaTeX Font Info:    ... okay on input line 43.
 LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 43.
 LaTeX Font Info:    Try loading font information for TS1+cmr on input line 43.
- ("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\ts1cmr.fd"
+ ("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\ts1cmr.fd"
 File: ts1cmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    ... okay on input line 43.
 LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 43.
 LaTeX Font Info:    ... okay on input line 43.
 LaTeX Font Info:    Try loading font information for T1+phv on input line 43.
-
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/psnfss\t1phv.fd"
+ ("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/psnfss\t1phv.fd"
 File: t1phv.fd 2001/06/04 scalable font definitions for T1/phv.
 )
 LaTeX Font Info:    Font shape `T1/phv/m/n' will be
 (Font)              scaled to size 10.07397pt on input line 43.
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/context/base\supp-pdf.
-mkii"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/context/base/mkii\supp-
+pdf.mkii"
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count332
+\scratchcounter=\count333
 \scratchdimen=\dimen256
 \scratchbox=\box97
-\nofMPsegments=\count333
-\nofMParguments=\count334
+\nofMPsegments=\count334
+\nofMParguments=\count335
 \everyMPshowfont=\toks38
-\MPscratchCnt=\count335
+\MPscratchCnt=\count336
 \MPscratchDim=\dimen257
-\MPnumerator=\count336
-\makeMPintoPDFobject=\count337
+\MPnumerator=\count337
+\makeMPintoPDFobject=\count338
 \everyMPtoPDFconversion=\toks39
 )
 \AtBeginShipoutBox=\box98
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\pdflsca
-pe.sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\pdflscap
+e.sty"
 Package: pdflscape 2016/05/14 v0.11 Display of landscape pages in PDF (HO)
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\lscape.
-sty"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\lscape.s
+ty"
 Package: lscape 2000/10/22 v3.01 Landscape Pages (DPC)
 )
 Package pdflscape Info: Auto-detected driver: pdftex on input line 81.
@@ -1331,12 +1330,12 @@ Package caption Info: hyperref package is loaded.
 Package caption Info: rotating package is loaded.
 Package caption Info: End \AtBeginDocument code.
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/translator\trans
-lator-basic-dictionary-English.dict"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/translator\transl
+ator-basic-dictionary-English.dict"
 Dictionary: translator-basic-dictionary, Language: English 
 )
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/siunitx\siunitx-
-abbreviations.cfg"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/siunitx\siunitx-a
+bbreviations.cfg"
 File: siunitx-abbreviations.cfg 2017/11/26 v2.7k siunitx: Abbreviated units
 )
 Package lastpage Info: Please have a look at the pageslts package at
@@ -1350,13 +1349,11 @@ LaTeX Info: Redefining \nameref on input line 43.
 LaTeX Info: Redefining \selectfont on input line 43.
 LaTeX Font Info:    Try loading font information for U+msa on input line 43.
 
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsfonts\umsa.fd
-"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsfonts\umsa.fd"
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
 LaTeX Font Info:    Try loading font information for U+msb on input line 43.
-
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsfonts\umsb.fd
+ ("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsfonts\umsb.fd
 "
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
@@ -1385,7 +1382,7 @@ LaTeX Font Info:    Font shape `T1/phv/b/n' will be
  [1
 
 
-{C:/Users/noordam/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
+{C:/Users/galavi/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
 LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <10.95> not available
 (Font)              Font shape `T1/phv/b/n' tried instead on input line 53.
 LaTeX Font Info:    Font shape `T1/phv/b/n' will be
@@ -1405,8 +1402,7 @@ Overfull \hbox (18.0pt too wide) in paragraph at lines 53--53
  []
 
 LaTeX Font Info:    Try loading font information for TS1+phv on input line 53.
-("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/psnfss\ts1phv.fd
-"
+("C:\Users\galavi\AppData\Local\Programs\MiKTeX 2.9\tex/latex/psnfss\ts1phv.fd"
 File: ts1phv.fd 2001/06/04 scalable font definitions for TS1/phv.
 )
 LaTeX Font Info:    Font shape `TS1/phv/m/n' will be
@@ -1737,29 +1733,29 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 26164 strings out of 492946
- 477672 string characters out of 3125378
- 587254 words of memory out of 3000000
- 29563 multiletter control sequences out of 15000+200000
+ 26703 strings out of 492895
+ 489281 string characters out of 3123268
+ 602033 words of memory out of 3000000
+ 30119 multiletter control sequences out of 15000+200000
  586407 words of font info for 85 fonts, out of 3000000 for 9000
  1143 hyphenation exceptions out of 8191
- 55i,12n,77p,828b,764s stack positions out of 5000i,500n,10000p,200000b,50000s
-{C:/Users/noordam/AppData/Local/Programs/MiKTeX 2.9/fonts/enc/dvips/base/8r.e
-nc}<C:/Users/noordam/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfo
-nts/cm/cmbsy10.pfb><C:/Users/noordam/AppData/Local/Programs/MiKTeX 2.9/fonts/ty
-pe1/public/amsfonts/cm/cmex10.pfb><C:/Users/noordam/AppData/Local/Programs/MiKT
-eX 2.9/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Users/noordam/AppData/Loca
-l/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi8.pfb><C:/Users/noorda
-m/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr12.pfb><C
-:/Users/noordam/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/c
-m/cmr8.pfb><C:/Users/noordam/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/publ
-ic/amsfonts/cm/cmsy10.pfb><C:/Users/noordam/AppData/Local/Programs/MiKTeX 2.9/f
-onts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/noordam/AppData/Local/Program
-s/MiKTeX 2.9/fonts/type1/urw/helvetic/uhvb8a.pfb><C:/Users/noordam/AppData/Loca
-l/Programs/MiKTeX 2.9/fonts/type1/urw/helvetic/uhvbo8a.pfb><C:/Users/noordam/Ap
-pData/Local/Programs/MiKTeX 2.9/fonts/type1/urw/helvetic/uhvr8a.pfb><C:/Users/n
-oordam/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/urw/helvetic/uhvro8a.pfb>
-Output written on Kratos_Verification.pdf (23 pages, 309513 bytes).
+ 55i,12n,77p,828b,766s stack positions out of 5000i,500n,10000p,200000b,50000s
+{C:/Users/galavi/AppData/Local/Programs/MiKTeX 2.9/fonts/enc/dvips/base/8r.en
+c}<C:/Users/galavi/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfont
+s/cm/cmbsy10.pfb><C:/Users/galavi/AppData/Local/Programs/MiKTeX 2.9/fonts/type1
+/public/amsfonts/cm/cmex10.pfb><C:/Users/galavi/AppData/Local/Programs/MiKTeX 2
+.9/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Users/galavi/AppData/Local/Pro
+grams/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi8.pfb><C:/Users/galavi/AppD
+ata/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/User
+s/galavi/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr8.
+pfb><C:/Users/galavi/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfo
+nts/cm/cmsy10.pfb><C:/Users/galavi/AppData/Local/Programs/MiKTeX 2.9/fonts/type
+1/public/amsfonts/cm/cmsy8.pfb><C:/Users/galavi/AppData/Local/Programs/MiKTeX 2
+.9/fonts/type1/urw/helvetic/uhvb8a.pfb><C:/Users/galavi/AppData/Local/Programs/
+MiKTeX 2.9/fonts/type1/urw/helvetic/uhvbo8a.pfb><C:/Users/galavi/AppData/Local/
+Programs/MiKTeX 2.9/fonts/type1/urw/helvetic/uhvr8a.pfb><C:/Users/galavi/AppDat
+a/Local/Programs/MiKTeX 2.9/fonts/type1/urw/helvetic/uhvro8a.pfb>
+Output written on Kratos_Verification.pdf (23 pages, 310590 bytes).
 PDF statistics:
  378 PDF objects out of 1000 (max. 8388607)
  74 named destinations out of 1000 (max. 500000)

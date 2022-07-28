@@ -234,10 +234,10 @@ public:
 //        noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
 //        const GeometryType& rGeom = this->GetGeometry();
-//        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+//        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
 //        const unsigned int NumGauss = IntegrationPoints.size();
 
-//        MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+//        MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
 //        double Area;
 //        array_1d<double, TNumNodes> N;

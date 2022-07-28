@@ -127,7 +127,7 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbeddedL
         positive_side_sh_func,
         positive_side_sh_func_gradients,
         positive_side_weights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Computing local velocity
     const array_1d<double, Dim>& local_velocity = PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(*this);
@@ -168,10 +168,9 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateKuttaWake
 
     MatrixType laplacian_matrix = ZeroMatrix(2 * NumNodes, 2 * NumNodes);
 
-    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{this->GetGeometry()};
 
     // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
     data.distances = PotentialFlowUtilities::GetWakeDistances<Dim, NumNodes>(*this);
 
     const double density = BaseType::ComputeDensity(rCurrentProcessInfo);

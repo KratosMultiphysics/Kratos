@@ -79,7 +79,8 @@ class FaceAngleResponseFunction(ResponseFunctionInterface):
             "main_direction": [0.0, 0.0, 1.0],
             "min_angle": 0.0,
             "gradient_mode": "finite_differencing",
-            "step_size": 1e-6
+            "step_size": 1e-6,
+            "consider_only_initially_feasible": false
         }""")
         return this_defaults
 

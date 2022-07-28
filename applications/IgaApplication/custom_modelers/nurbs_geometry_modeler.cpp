@@ -156,14 +156,18 @@ namespace Kratos
         Vector WeightsRefined(points.size(),1.0);
 
         // Add geometry to model part
-        const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
-        SizeType last_geometry_id = 0;
-        if( number_of_geometries > 0 ){
-            for( auto it = r_model_part.GeometriesBegin(); it!= r_model_part.GeometriesEnd(); ++it){
-                last_geometry_id = it->Id();
+        if( mParameters.Has("geometry_name") ){
+            p_surface_geometry->SetId(mParameters["geometry_name"].GetString());
+        } else {
+            const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
+            SizeType last_geometry_id = 0;
+            if( number_of_geometries > 0 ){
+                for( auto it = r_model_part.GeometriesBegin(); it!= r_model_part.GeometriesEnd(); ++it){
+                    last_geometry_id = it->Id();
+                }
             }
+            p_surface_geometry->SetId(last_geometry_id+1);
         }
-        p_surface_geometry->SetId(last_geometry_id+1);
         r_model_part.AddGeometry(p_surface_geometry);
 
         // Perform knot refinement.
@@ -302,14 +306,18 @@ namespace Kratos
         }
 
         // Add geometry to model part
-        const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
-        SizeType last_geometry_id = 0;
-        if( number_of_geometries > 0 ){
-            for( auto it = r_model_part.GeometriesBegin(); it!= r_model_part.GeometriesEnd(); ++it){
-                last_geometry_id = it->Id();
+        if( mParameters.Has("geometry_name") ){
+            p_volume_geometry->SetId(mParameters["geometry_name"].GetString());
+        } else {
+            const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
+            SizeType last_geometry_id = 0;
+            if( number_of_geometries > 0 ){
+                for( auto it = r_model_part.GeometriesBegin(); it!= r_model_part.GeometriesEnd(); ++it){
+                    last_geometry_id = it->Id();
+                }
             }
+            p_volume_geometry->SetId(last_geometry_id+1);
         }
-        p_volume_geometry->SetId(last_geometry_id+1);
         r_model_part.AddGeometry(p_volume_geometry);
 
         // Perform knot refinement.
