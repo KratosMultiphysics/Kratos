@@ -93,12 +93,12 @@ namespace Kratos
       std::cout << "FindNodalHProcess in PfemFluidDynamicsApplication" << std::endl;
       // Check if variables are available
 
-      // initialize to zero 
+      // initialize to zero
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
         if (i_node->Is(RIGID))
         {
-          i_node->FastGetSolutionStepValue(NODAL_H) = std::numeric_limits<double>::max();
+          i_node->FastGetSolutionStepValue(NODAL_H) = 0;
         }
       }
 
@@ -110,16 +110,19 @@ namespace Kratos
 
         for (IndexType k = 0; k < number_of_nodes - 1; ++k)
         {
-          double &r_h1 = r_geom[k].FastGetSolutionStepValue(NODAL_H);
-          for (IndexType l = k + 1; l < number_of_nodes; ++l)
+          if (r_geom[k].Is(RIGID))
           {
-            if (r_geom[k].Is(RIGID) && r_geom[l].Is(RIGID))
+            double &r_h1 = r_geom[k].FastGetSolutionStepValue(NODAL_H);
+            for (IndexType l = k + 1; l < number_of_nodes; ++l)
             {
-              double hedge = norm_2(r_geom[l].Coordinates() - r_geom[k].Coordinates());
-              double &r_h2 = r_geom[l].FastGetSolutionStepValue(NODAL_H);
-              // Get minimum between the existent value and the considered edge length
-              r_geom[k].FastGetSolutionStepValue(NODAL_H) = std::min(r_h1, hedge);
-              r_geom[l].FastGetSolutionStepValue(NODAL_H) = std::min(r_h2, hedge);
+              if (r_geom[l].Is(RIGID))
+              {
+                double hedge = norm_2(r_geom[l].Coordinates() - r_geom[k].Coordinates());
+                double &r_h2 = r_geom[l].FastGetSolutionStepValue(NODAL_H);
+                // Get minimum between the existent value and the considered edge length
+                r_geom[k].FastGetSolutionStepValue(NODAL_H) = std::max(r_h1, hedge);
+                r_geom[l].FastGetSolutionStepValue(NODAL_H) = std::max(r_h2, hedge);
+              }
             }
           }
         }
