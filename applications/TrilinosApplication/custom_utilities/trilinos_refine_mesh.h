@@ -745,7 +745,7 @@ public:
             Calculate_Triangle_Edges(geom, p_edge_ids, edge_ids, aux);
 
             ///* crea las nuevas conectividades
-            create_element = Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
+            create_element = TriangleSplit::Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
 
             ///* crea los nuevos elementos
             if (create_element == true)
@@ -1346,7 +1346,7 @@ protected:
                 Calculate_Triangle_Edges(geom, p_edge_ids, edge_ids, aux);
 
                 ///* crea las nuevas conectividades
-                create_Condition = Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
+                create_Condition = TriangleSplit::Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
 
                 ///* crea los nuevos Conditionos
                 if (create_Condition == true)
