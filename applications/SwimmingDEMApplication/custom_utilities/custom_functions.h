@@ -22,7 +22,6 @@
 #include "includes/model_part.h"
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
-#include "processes/find_elements_neighbours_process.h"
 #include "processes/find_nodal_neighbours_process.h"
 
 //Database includes
@@ -187,7 +186,7 @@ double CalculateDomainVolume(ModelPart& r_fluid_model_part)
     for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
-            added_volume += CalculateElementalVolume(it->GetGeometry());
+            added_volume += it->GetGeometry().DomainSize();
         }
     }
 
@@ -315,7 +314,7 @@ double CalculateGlobalFluidVolume(ModelPart& r_fluid_model_part)
             }
 
             else {
-                element_fluid_volume = CalculateElementalVolume(geom);
+                element_fluid_volume = geom.DomainSize();
             }
 
             added_fluid_volume += element_fluid_volume;
@@ -714,37 +713,26 @@ double CalculateDiameter(const double x0, const double y0, const double z0,
 
 double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >& geom, const Variable<double>& r_var, double& vol)
 {
-    array_1d<double, 4> N;
-    double x0 = geom[0].X();
-    double y0 = geom[0].Y();
-    double z0 = geom[0].Z();
-    double x1 = geom[1].X();
-    double y1 = geom[1].Y();
-    double z1 = geom[1].Z();
-    double x2 = geom[2].X();
-    double y2 = geom[2].Y();
-    double z2 = geom[2].Z();
-    double x3 = geom[3].X();
-    double y3 = geom[3].Y();
-    double z3 = geom[3].Z();
 
-    double xc = 0.25 * (x0 + x1 + x2 + x3);
-    double yc = 0.25 * (y0 + y1 + y2 + y3);
-    double zc = 0.25 * (z0 + z1 + z2 + z3);
-
-    vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+    vol = geom.DomainSize();
 
     KRATOS_ERROR_IF(std::abs(vol) == 0.0) << "Element with zero area found. Its geometry is given by "<< geom << std::endl;
 
-    N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
-    N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
-    N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc);
-    N[3] = CalculateVol(x3, y3, z3, x0, y0, z0, x2, y2, z2, xc, yc, zc);
+    const std::size_t n_nodes = geom.PointsNumber();
+    const auto& integration_points = geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const IndexType number_of_gauss_points = integration_points.size();
 
-    double value_at_gauss_point = N[0] * geom[0].FastGetSolutionStepValue(r_var);
+    const Matrix& N_container = geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    Vector N;
 
-    for (unsigned int i = 1; i != 4; ++i){
-        value_at_gauss_point += N[i] * geom[i].FastGetSolutionStepValue(r_var, 0);
+    for (IndexType g = 0; g < number_of_gauss_points; ++g) {
+        N = row(N_container, g);
+    }
+
+    double value_at_gauss_point = 0.0;
+
+    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
+        value_at_gauss_point += N[i_node] * geom[i_node].FastGetSolutionStepValue(r_var, 0);
     }
 
     return value_at_gauss_point;
@@ -755,37 +743,26 @@ double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >&
 
 array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry<Node < 3 > >& geom, const Variable<array_1d <double, 3> >& r_var, double& vol)
 {
-    array_1d<double, 4> N;
-    double x0 = geom[0].X();
-    double y0 = geom[0].Y();
-    double z0 = geom[0].Z();
-    double x1 = geom[1].X();
-    double y1 = geom[1].Y();
-    double z1 = geom[1].Z();
-    double x2 = geom[2].X();
-    double y2 = geom[2].Y();
-    double z2 = geom[2].Z();
-    double x3 = geom[3].X();
-    double y3 = geom[3].Y();
-    double z3 = geom[3].Z();
 
-    double xc = 0.25 * (x0 + x1 + x2 + x3);
-    double yc = 0.25 * (y0 + y1 + y2 + y3);
-    double zc = 0.25 * (z0 + z1 + z2 + z3);
-
-    vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+    vol = geom.DomainSize();
 
     KRATOS_ERROR_IF(std::abs(vol) == 0.0) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
 
-    N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
-    N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
-    N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc);
-    N[3] = CalculateVol(x3, y3, z3, x0, y0, z0, x2, y2, z2, xc, yc, zc);
+    const std::size_t n_nodes = geom.PointsNumber();
+    const auto& integration_points = geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const IndexType number_of_gauss_points = integration_points.size();
+
+    const Matrix& N_container = geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    Vector N;
+
+    for (IndexType g = 0; g < number_of_gauss_points; ++g) {
+        N = row(N_container, g);
+    }
 
     array_1d <double, 3> value_at_gauss_point = N[0] * geom[0].FastGetSolutionStepValue(r_var);
 
-    for (unsigned int i = 1; i != 4; ++i){
-        value_at_gauss_point += N[i] * geom[i].FastGetSolutionStepValue(r_var);
+    for (unsigned int i_node = 1; i_node < n_nodes; ++i_node){
+        value_at_gauss_point += N[i_node] * geom[i_node].FastGetSolutionStepValue(r_var);
     }
 
     return value_at_gauss_point;
@@ -796,37 +773,33 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry
 
 array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMass(const Geometry<Node < 3 > >& geom, const Variable<array_1d <double, 3> >& r_var, double& vol)
 {
-    array_1d<double, 4> N;
-    double x0 = geom[0].X();
-    double y0 = geom[0].Y();
-    double z0 = geom[0].Z();
-    double x1 = geom[1].X();
-    double y1 = geom[1].Y();
-    double z1 = geom[1].Z();
-    double x2 = geom[2].X();
-    double y2 = geom[2].Y();
-    double z2 = geom[2].Z();
-    double x3 = geom[3].X();
-    double y3 = geom[3].Y();
-    double z3 = geom[3].Z();
 
-    double xc = 0.25 * (x0 + x1 + x2 + x3);
-    double yc = 0.25 * (y0 + y1 + y2 + y3);
-    double zc = 0.25 * (z0 + z1 + z2 + z3);
-
-    vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+    vol = geom.DomainSize();
 
     KRATOS_ERROR_IF(std::abs(vol) == 0.0) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
 
-    N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
-    N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
-    N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc);
-    N[3] = CalculateVol(x3, y3, z3, x0, y0, z0, x2, y2, z2, xc, yc, zc);
+    const std::size_t n_nodes = geom.PointsNumber();
+    const auto& integration_points = geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const IndexType number_of_gauss_points = integration_points.size();
 
-    array_1d <double, 3> value_at_gauss_point = N[0] * geom[0].FastGetSolutionStepValue(r_var) * geom[0].FastGetSolutionStepValue(DENSITY) * geom[0].FastGetSolutionStepValue(FLUID_FRACTION);
+    const Matrix& N_container = geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-    for (unsigned int i = 1; i != 4; ++i){
-        value_at_gauss_point += N[i] * geom[i].FastGetSolutionStepValue(r_var) * geom[i].FastGetSolutionStepValue(DENSITY) * geom[i].FastGetSolutionStepValue(FLUID_FRACTION);
+    Vector detJ_vector(number_of_gauss_points);
+    geom.DeterminantOfJacobian(detJ_vector, GeometryData::IntegrationMethod::GI_GAUSS_2);
+    Vector N;
+
+    double integration_weight;
+
+    array_1d <double, 3> value_at_gauss_point = {};
+
+    for (IndexType g = 0; g < number_of_gauss_points; ++g) {
+        N = row(N_container, g);
+        integration_weight = integration_points[g].Weight() * detJ_vector[g];
+
+
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
+            value_at_gauss_point += integration_weight * N[i_node] * geom[i_node].FastGetSolutionStepValue(r_var) * geom[i_node].FastGetSolutionStepValue(DENSITY) * geom[i_node].FastGetSolutionStepValue(FLUID_FRACTION);
+        }
     }
 
     return value_at_gauss_point;

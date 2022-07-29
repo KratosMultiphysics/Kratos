@@ -44,10 +44,6 @@ class ApplyAbsorbingBoundaryProcess(KM.Process):
                 variable = KM.KratosGlobals.GetVariable(variable_name)
                 self.variables_to_fix.append(variable)
 
-    def ExecuteInitialize(self):
-        """Initialize the wave theory. The topography must be already set."""
-        self.wave = WaveTheoryFactory(self.boundary_part, self.settings["wave_specifications"])
-
     def Check(self):
         """Check the correctness of the input."""
         self.distance_process.Check()
@@ -56,8 +52,9 @@ class ApplyAbsorbingBoundaryProcess(KM.Process):
         """Calculate the distances and the damping parameters."""
         self.distance_process.ExecuteBeforeSolutionLoop()
 
-        absorbing_distance = self.wave.wavelength * self.settings["relative_distance"].GetDouble()
-        dissipation_factor = self.wave.frequency * self.settings["relative_damping"].GetDouble()
+        wave = WaveTheoryFactory(self.boundary_part, self.settings["wave_specifications"])
+        absorbing_distance = wave.wavelength * self.settings["relative_distance"].GetDouble()
+        dissipation_factor = wave.frequency * self.settings["relative_damping"].GetDouble()
 
         self.model_part.ProcessInfo.SetValue(SW.ABSORBING_DISTANCE, absorbing_distance)
         self.model_part.ProcessInfo.SetValue(SW.DISSIPATION, dissipation_factor)

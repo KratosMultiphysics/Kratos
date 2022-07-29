@@ -224,7 +224,7 @@ class FracStepSolver:
             self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part)
             #this is needed if we want to also store the conditions a node belongs to
             self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,2, 10)
-            self.elem_neighbor_finder = FindElementalNeighboursProcess(model_part, 2, 10)	
+            self.elem_neighbor_finder = GenericFindElementalNeighboursProcess(model_part)	
             
         elif (domain_size == 3):
             #self.Mesher = TetGenModeler()
@@ -235,7 +235,7 @@ class FracStepSolver:
             self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part)
             #this is needed if we want to also store the conditions a node belongs to
             self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,3, 20)
-            self.elem_neighbor_finder = FindElementalNeighboursProcess(model_part, 20, 30)
+            self.elem_neighbor_finder = GenericFindElementalNeighboursProcess(model_part)
      
         self.mark_fluid_process = MarkFluidProcess(model_part);
 
@@ -385,7 +385,7 @@ class FracStepSolver:
 
 
         (self.fluid_neigh_finder).Execute();
-        (self.elem_neighbor_finder).Execute()
+        (self.elem_neighbor_finder).ExecuteInitialize()
         (self.condition_neigh_finder).Execute();
 
         (self.Pfem2_apply_bc_process).Execute();

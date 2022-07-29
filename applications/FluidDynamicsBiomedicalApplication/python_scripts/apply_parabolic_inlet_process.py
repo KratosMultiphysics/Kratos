@@ -1,5 +1,7 @@
 # Importing the Kratos Library
+from typing import Type
 import KratosMultiphysics
+from KratosMultiphysics.read_csv_table_utility import ReadCsvTableUtility
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsBiomedicalApplication as KratosBio
@@ -19,11 +21,13 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
 
         # Set default settings
-        # Note the trick to allow both sacalar and function values of the parabola maximum value
+        # Note the trick to allow scalar, function and table values of the parabola maximum value
         default_settings = self.GetDefaultParameters()
         if settings.Has("parabola_vertex_value"):
             if settings["parabola_vertex_value"].IsString():
                 default_settings["parabola_vertex_value"].SetString("0.0")
+            elif settings["parabola_vertex_value"].IsDouble():
+                default_settings["parabola_vertex_value"].SetDouble(0.0)
         else:
             raise Exception("'parabola_vertex_value' not found. It needs to be user-provided.")
 
@@ -40,14 +44,22 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
         if not settings["wall_model_part_name"].GetString():
             raise ValueError("'wall_model_part' needs to be provided for 'parabolic' inlet distribution.")
 
-        # Set the maximum value input
+        # Set the maximum value input data
         self.max_value_is_numeric = False
+        self.max_value_is_function = False
+        self.max_value_is_table = False
         if settings["parabola_vertex_value"].IsNumber():
             self.max_value_is_numeric = True
             self.max_value = settings["parabola_vertex_value"].GetDouble()
-        else:
+        elif settings["parabola_vertex_value"].IsString():
+            self.max_value_is_function = True
             self.function_string = settings["parabola_vertex_value"].GetString()
             self.max_value_function = KratosMultiphysics.GenericFunctionUtility(self.function_string, settings["local_axes"])
+        else:
+            self.max_value_is_table = True
+            inlet_model_part = model.GetModelPart(settings["inlet_model_part_name"].GetString())
+            self.table = ReadCsvTableUtility(settings["parabola_vertex_value"]).Read(inlet_model_part)
+        self.value_is_flow_rate = settings["value_is_flow_rate"].GetBool()
 
         # Save model and settings containers
         self.model = model
@@ -58,7 +70,8 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""{
             "wall_model_part_name": "",
             "inlet_model_part_name": "",
-            "parabola_vertex_value" : 0.0,
+            "parabola_vertex_value" : {},
+            "value_is_flow_rate" : false,
             "interval" : [0.0,"End"],
             "local_axes" : {},
             "parallel_distance_max_levels" : 25
@@ -83,24 +96,47 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
             domain_size,
             KratosBio.INLET_NORMAL)
 
+        # Create an auxiliary volumetric model part with the elements attached to the inlet
+        # On top of accelerating the wall distance calculation, this prevents missbehaviors in presence of complex geometries
+        aux_inlet_model_part = KratosBio.ParabolicProfileUtilities.CreateAndFillInletAuxiliaryVolumeModelPart(inlet_model_part)
+
         # Prepare skin for wall distance calculation
         max_levels = self.settings["parallel_distance_max_levels"].GetInt()
         wall_model_part = self.model.GetModelPart(self.settings["wall_model_part_name"].GetString())
-        root_model_part = wall_model_part.GetRootModelPart()
-        KratosBio.ParabolicProfileUtilities.CalculateWallParallelDistance(wall_model_part, root_model_part, max_levels)
+        KratosBio.ParabolicProfileUtilities.CalculateWallParallelDistance(wall_model_part, aux_inlet_model_part, max_levels)
+
+        # Calculate the inlet area to do the flow rate to velocity conversion
+        if self.value_is_flow_rate:
+            inlet_model_part = self.model.GetModelPart(self.settings["inlet_model_part_name"].GetString())
+            self.inlet_area = KratosBio.ParabolicProfileUtilities.CalculateInletArea(inlet_model_part)
+            if self.inlet_area < 1.0e-12:
+                KratosMultiphysics.Logger.PrintWarning(f"Inlet area {self.inlet_area} is close to zero in model part {inlet_model_part.FullName()}")
 
     def ExecuteBeforeSolutionLoop(self):
         self.ExecuteInitializeSolutionStep()
 
     def ExecuteInitializeSolutionStep(self):
+        # Set the max value factor as the area quotient if the max value is a flow rate
+        # Otherwise, if the max value is already a velocity set the max value factor to one
+        if self.value_is_flow_rate:
+            max_value_factor = 1.0/self.inlet_area
+        else:
+            max_value_factor = 1.0
+
+        # Set the parabolic inlet values
         inlet_model_part = self.model.GetModelPart(self.settings["inlet_model_part_name"].GetString())
         current_time = inlet_model_part.ProcessInfo[KratosMultiphysics.TIME]
         if self.interval.IsInInterval(current_time):
             self.step_is_active = True
             if self.max_value_is_numeric:
-                KratosBio.ParabolicProfileUtilities.ImposeParabolicInlet(inlet_model_part, self.max_value)
+                KratosBio.ParabolicProfileUtilities.ImposeParabolicInlet(inlet_model_part, self.max_value, max_value_factor)
+            elif self.max_value_is_function:
+                KratosBio.ParabolicProfileUtilities.ImposeParabolicInlet(inlet_model_part, self.max_value_function, max_value_factor)
+            elif self.max_value_is_table:
+                current_max_value = self.table.GetValue(current_time)
+                KratosBio.ParabolicProfileUtilities.ImposeParabolicInlet(inlet_model_part, current_max_value, max_value_factor)
             else:
-                KratosBio.ParabolicProfileUtilities.ImposeParabolicInlet(inlet_model_part, self.max_value_function)
+                raise TypeError("Wrong maximum value data type.")
 
     def ExecuteFinalizeSolutionStep(self):
         # Here we free all of the nodes in the inlet
