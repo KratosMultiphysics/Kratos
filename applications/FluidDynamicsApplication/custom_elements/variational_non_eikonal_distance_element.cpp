@@ -297,12 +297,12 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
     const double scale = 1.0e0; // For very small (micrometric) elements
 
-    const double penalty_phi0 = scale*1.0e6/element_size; // For Nitsche's method we need 1/h
+    const double penalty_phi0 = scale*1.0e4/element_size; // For Nitsche's method we need 1/h
 
     if(mean_curvature > 0.5/element_size)   // Sharp corners
         mean_curvature = 0.5/element_size;
 
-    const double source_coeff = 1.0*scale*mean_curvature;
+    const double source_coeff = 1.5*scale*mean_curvature;
 
     if(rLeftHandSideMatrix.size1() != num_dof)
         rLeftHandSideMatrix.resize(num_dof,num_dof,false); //resizing the system in case it does not have the right size
