@@ -3,14 +3,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosThermalDEMApplication ****")
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
-kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication)
+## kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication) ## UNCOMMENT TO GET TETGEN FROM DELAUNAY_MESHING APPLICATION
 
 ## Dependecies on other applications
 include(pybind11Tools)
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/ThermalDEMApplication )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/DEMApplication )
-include_directories( ${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication )
+## include_directories( ${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication ) ## UNCOMMENT TO GET TETGEN FROM DELAUNAY_MESHING APPLICATION
 
 ## Set a default value for triangle and tetgen in case the user does not set it
 ## to avoid problems with the define linkage block. By default we will compile the lib
@@ -21,7 +21,8 @@ endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
 if(NOT DEFINED ${INCLUDE_TETGEN})
   set(INCLUDE_TETGEN ON)
-  set(TETGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication/external_libraries/tetgen")
+  set(TETGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/tetgen")                                  ## USE IT TO GET TETGEN FROM THERMAL_DEM APPLICATION
+  ## set(TETGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication/external_libraries/tetgen") ## USE IT TO GET TETGEN FROM DELAUNAY_MESHING APPLICATION
 endif(NOT DEFINED ${INCLUDE_TETGEN})
 
 set(MESHER_LIBRARIES "")
@@ -30,10 +31,35 @@ if(${INCLUDE_TRIANGLE} MATCHES ON)
   list(APPEND MESHER_LIBRARIES triangle)
 endif(${INCLUDE_TRIANGLE} MATCHES ON)
 
+## USE BELOW CODE TO GET TETGEN FROM THERMAL_DEM APPLICATION
 if(${INCLUDE_TETGEN} MATCHES ON)
+  set(EXTERNAL_LIBRARIES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries")
+  #INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/custom_cmake/Tetgen.cmake")
   include_directories(${TETGEN_DIR})
+  add_definitions(-DINCLUDE_TETGEN)
+  add_definitions(-DTETLIBRARY)
+  add_definitions(-DTETGEN150)
+  add_definitions(-w)
+  #perform platform specific defintions
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    add_definitions(-DCPU86)
+    add_definitions(-DNO_TIMER)
+  else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    add_definitions(-DLINUX)
+  endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(TETGEN_SOURCES ${TETGEN_DIR}/tetgen.cxx)
+  set(UNOPTIMIZED_PREDICATES ${TETGEN_DIR}/predicates.cxx)
+  SET_SOURCE_FILES_PROPERTIES(${UNOPTIMIZED_PREDICATES} PROPERTIES COMPILE_FLAGS -O0)
+  SET_SOURCE_FILES_PROPERTIES(${TETGEN_SOURCES} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
+  add_library(tetgen STATIC ${TETGEN_SOURCES} ${UNOPTIMIZED_PREDICATES})
   list(APPEND MESHER_LIBRARIES tetgen)
 endif(${INCLUDE_TETGEN} MATCHES ON)
+
+## USE BELOW CODE TO GET TETGEN FROM DELAUNAY_MESHING APPLICATION
+## if(${INCLUDE_TETGEN} MATCHES ON)
+##   include_directories(${TETGEN_DIR})
+##   list(APPEND MESHER_LIBRARIES tetgen)
+## endif(${INCLUDE_TETGEN} MATCHES ON)
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   list(APPEND MESHER_LIBRARIES m)
@@ -62,8 +88,8 @@ set( KRATOS_THERMAL_DEM_APPLICATION_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/nusselt_hanz_marshall.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/nusselt_li_mason.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/nusselt_whitaker.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/friction/friction_model.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/friction/friction_coulomb.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generation/generation_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generation/generation_dissipation.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/radiation/radiation_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/radiation/radiation_continuum_krause.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/radiation/radiation_continuum_zhou.cpp
