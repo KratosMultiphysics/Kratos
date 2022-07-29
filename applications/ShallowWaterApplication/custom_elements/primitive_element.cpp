@@ -25,7 +25,6 @@
 namespace Kratos
 {
 
-
 template<std::size_t TNumNodes>
 void PrimitiveElement<TNumNodes>::UpdateGaussPointData(
     ElementData& rData,
@@ -64,12 +63,10 @@ void PrimitiveElement<TNumNodes>::UpdateGaussPointData(
     /// b_1
     rData.b1 = ZeroVector(3);
     rData.b1[0] = rData.gravity;
-    rData.b1[2] = v[0];
 
     /// b_2
     rData.b2 = ZeroVector(3);
     rData.b2[1] = rData.gravity;
-    rData.b2[2] = v[1];
 }
 
 template class PrimitiveElement<3>;

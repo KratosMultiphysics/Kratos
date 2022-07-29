@@ -10,10 +10,6 @@ def CreateSolver(model, custom_settings):
 
 class PrimitiveSolver(WaveSolver):
 
-    def _SetProcessInfo(self):
-        super()._SetProcessInfo()
-        self.main_model_part.ProcessInfo.SetValue(SW.INTEGRATE_BY_PARTS, True)
-
     def _GetFormulationSettings(self):
         order = self.settings["time_integration_order"].GetInt()
         element_name = "PrimitiveElement"

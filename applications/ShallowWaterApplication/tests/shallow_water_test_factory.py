@@ -50,6 +50,10 @@ class TestConservativeFluxCorrected2D3NElement(ShallowWaterTestFactory):
     execution_directory = "elements_tests"
     execution_file = "conservative_flux_corrected_2d_3n"
 
+class TestPrimitive2D3NElement(ShallowWaterTestFactory):
+    execution_directory = "elements_tests"
+    execution_file = "primitive_2d_3n"
+
 class TestBoussinesq2D3NElement(ShallowWaterTestFactory):
     execution_directory = "elements_tests"
     execution_file = "boussinesq_2d_3n"

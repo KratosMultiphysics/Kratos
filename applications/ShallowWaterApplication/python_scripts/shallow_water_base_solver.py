@@ -48,6 +48,7 @@ class ShallowWaterBaseSolver(PythonSolver):
             "compute_reactions"        : false,
             "reform_dofs_at_each_step" : false,
             "move_mesh_flag"           : false,
+            "integrate_by_parts"       : false,
             "linear_solver_settings"   : {
                 "solver_type"              : "amgcl"
             },
@@ -156,6 +157,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KM.STEP, 0)
         self.main_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, self.settings["domain_size"].GetInt())
         self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, self.settings["gravity"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(SW.INTEGRATE_BY_PARTS, self.settings["integrate_by_parts"].GetBool())
 
     def _ImportMaterials(self):
     # Add the properties from json file to model parts.

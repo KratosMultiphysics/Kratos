@@ -11,6 +11,7 @@ from shallow_water_test_factory import TestSemiLagrangianShallowWaterElement
 from shallow_water_test_factory import TestConservativeResidualViscosity2D3NElement
 from shallow_water_test_factory import TestConservativeGradientJump2D3NElement
 from shallow_water_test_factory import TestConservativeFluxCorrected2D3NElement
+from shallow_water_test_factory import TestPrimitive2D3NElement
 from shallow_water_test_factory import TestBoussinesq2D3NElement
 from shallow_water_test_factory import TestSetTopographyProcess
 from shallow_water_test_factory import TestVisualizationMeshProcess
@@ -46,6 +47,7 @@ def AssembleTestSuites():
     smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestConservativeResidualViscosity2D3NElement))
     smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestConservativeGradientJump2D3NElement))
     smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestConservativeFluxCorrected2D3NElement))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestPrimitive2D3NElement))
     smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestBoussinesq2D3NElement))
     smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestSetTopographyProcess))
     smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestVisualizationMeshProcess))
