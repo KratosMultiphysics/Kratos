@@ -318,12 +318,13 @@ namespace Kratos
                         {
                             if (numfreesurf == 0 && numisolated == 0)
                             {
-                                meanMeshSize = rigidWallMeshSize;
+                                meanMeshSize *= 0.5;
+                                meanMeshSize += 0.5 * rigidWallMeshSize;
                             }
                             else
                             {
-                                meanMeshSize *= 0.5;
-                                meanMeshSize += 0.5 * rigidWallMeshSize;
+                                meanMeshSize *= 0.75;
+                                meanMeshSize += 0.25 * rigidWallMeshSize;
                             }
                         }
                     }
@@ -371,14 +372,14 @@ namespace Kratos
                         {
                             Alpha *= 1.25;
                         }
-                        else if (numisolated == 0 && previouslyIsolatedNodes == 0 && numfreesurf < nds && previouslyFreeSurfaceNodes < nds)
-                        {
-                            Alpha *= 1.05;
-                        }
-                        else
-                        {
-                            Alpha *= 0.95;
-                        }
+                        // else if (numisolated == 0 && previouslyIsolatedNodes == 0 && numfreesurf < nds && previouslyFreeSurfaceNodes < nds)
+                        // {
+                        //     Alpha *= 1.05;
+                        // // }
+                        // else
+                        // {
+                        //     Alpha *= 0.95;
+                        // }
                         // else if (numfreesurf < nds && numisolated < nds && previouslyIsolatedNodes < 3 && previouslyFreeSurfaceNodes < nds && sumPreviouslyIsolatedFreeSurf < nds && sumIsolatedFreeSurf < nds)
                         // {
                         //     Alpha *= 1.05;
@@ -400,10 +401,10 @@ namespace Kratos
                             }
                         }
                     }
-                    if (firstMesh == true)
-                    {
-                        Alpha *= 1.05;
-                    }
+                    // if (firstMesh == true)
+                    // {
+                    //     Alpha *= 1.05;
+                    // }
 
                     if (numinlet > 0)
                     {
