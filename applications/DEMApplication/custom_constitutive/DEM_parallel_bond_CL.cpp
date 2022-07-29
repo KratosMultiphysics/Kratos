@@ -767,7 +767,11 @@ void DEM_parallel_bond::CalculateMoments(SphericContinuumParticle* element,
 {
     KRATOS_TRY
 
-    ComputeParticleRotationalMoments(element, 
+    int failure_type = element->mIniNeighbourFailureId[i_neighbor_count];
+    //int continuum_ini_neighbors_size = element->mContinuumInitialNeighborsSize;
+
+    if (failure_type == 0) {
+            ComputeParticleRotationalMoments(element, 
                                     neighbor, 
                                     equiv_young, 
                                     distance, 
@@ -778,6 +782,7 @@ void DEM_parallel_bond::CalculateMoments(SphericContinuumParticle* element,
                                     equiv_poisson, 
                                     indentation, 
                                     LocalElasticContactForce);
+    }
                             
     double LocalUnbondElasticContactForce[3] = {0.0};
     double GlobalUnbondElasticContactForce[3] = {0.0};

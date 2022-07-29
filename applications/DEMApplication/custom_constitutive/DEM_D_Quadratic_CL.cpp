@@ -22,7 +22,7 @@ namespace Kratos {
     }
 
     std::string DEM_D_Quadratic::GetTypeOfLaw() {
-        std::string type_of_law = "Quadratic";
+        std::string type_of_law = "Hertz";
         return type_of_law;
     }
 

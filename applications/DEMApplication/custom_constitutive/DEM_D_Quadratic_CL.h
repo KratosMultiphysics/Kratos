@@ -23,7 +23,7 @@ namespace Kratos{
 
     public:
 
-        using DEMDiscontinuumConstitutiveLaw::CalculateNormalForce;
+        //using DEMDiscontinuumConstitutiveLaw::CalculateNormalForce;
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Quadratic);
 
@@ -48,6 +48,7 @@ namespace Kratos{
 
     private:
 
+        /*
         friend class Serializer;
 
         virtual void save(Serializer& rSerializer) const override {
@@ -59,6 +60,7 @@ namespace Kratos{
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName",myMember);
         }
+        */
 
     }; //CLASS DEM_D_QUADRATIC
 

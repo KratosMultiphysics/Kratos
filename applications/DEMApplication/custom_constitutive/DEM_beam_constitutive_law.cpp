@@ -316,7 +316,11 @@ namespace Kratos {
     {
         KRATOS_TRY
 
-        ComputeParticleRotationalMoments(element, 
+        int failure_type = element->mIniNeighbourFailureId[i_neighbor_count];
+        //int continuum_ini_neighbors_size = element->mContinuumInitialNeighborsSize;
+
+        if (failure_type == 0) {
+                ComputeParticleRotationalMoments(element, 
                                         neighbor, 
                                         equiv_young, 
                                         distance, 
@@ -326,7 +330,8 @@ namespace Kratos {
                                         ViscoLocalRotationalMoment, 
                                         equiv_poisson, 
                                         indentation, 
-                                        LocalElasticContactForce);              
+                                        LocalElasticContactForce);
+        }              
 
         DemContact::ComputeParticleContactMoments(normalLocalContactForce,
                                                 GlobalElasticContactForces,
