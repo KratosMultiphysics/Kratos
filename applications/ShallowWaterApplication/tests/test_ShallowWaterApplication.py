@@ -46,6 +46,7 @@ def AssembleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
+    smallSuite.addTests(cppSuite)
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestConservativeResidualViscosity2D3NElement]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestConservativeGradientJump2D3NElement]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestConservativeFluxCorrected2D3NElement]))
