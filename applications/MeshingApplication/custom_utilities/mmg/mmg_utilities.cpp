@@ -2983,20 +2983,23 @@ void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallIsoSurface(Parameters Configurati
 
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::SetNumberOfLocalParameters(IndexType NumberOfLocalParameter) {
-    if ( MMG3D_Set_iparameter(mMmgMesh,mMmgMet, MMG2D_IPARAM_numberOfLocalParam, NumberOfLocalParameter) != 1)
+//mmg2d does not support it for versions below 5.5
+#if MMG_VERSION_GE(5,5)
+    if ( MMG2D_Set_iparameter(mMmgMesh, mMmgMet, MMG2D_IPARAM_numberOfLocalParam, NumberOfLocalParameter) != 1)
         KRATOS_ERROR << "Unable to set the number of local parameters" << std::endl;
+#endif
 }
 
 
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::SetNumberOfLocalParameters(IndexType NumberOfLocalParameter) {
-    if ( MMG3D_Set_iparameter(mMmgMesh,mMmgMet,MMG3D_IPARAM_numberOfLocalParam, NumberOfLocalParameter) != 1)
+    if ( MMG3D_Set_iparameter(mMmgMesh, mMmgMet, MMG3D_IPARAM_numberOfLocalParam, NumberOfLocalParameter) != 1)
         KRATOS_ERROR << "Unable to set the number of local parameters" << std::endl;
 }
 
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::SetNumberOfLocalParameters(IndexType NumberOfLocalParameter) {
-    if ( MMG3D_Set_iparameter(mMmgMesh,mMmgMet,MMGS_IPARAM_numberOfLocalParam, NumberOfLocalParameter) != 1)
+    if ( MMGS_Set_iparameter(mMmgMesh, mMmgMet, MMGS_IPARAM_numberOfLocalParam, NumberOfLocalParameter) != 1)
         KRATOS_ERROR << "Unable to set the number of local parameters" << std::endl;
 }
 
@@ -3010,9 +3013,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetLocalParameter(
                                     double HMin,
                                     double HMax,
                                     double HausdorffValue) {
-
+//mmg2d does not support it for versions below 5.5
+#if MMG_VERSION_GE(5,5)
     if ( MMG2D_Set_localParameter(mMmgMesh, mMmgMet, MMG5_Edg, rColor, HMin, HMax, HausdorffValue) != 1)
         KRATOS_ERROR << "Unable to set local parameter" << std::endl;
+#endif
 }
 
 
