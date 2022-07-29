@@ -137,6 +137,7 @@ class OptimizationAlgorithm:
         self.opt_parameters.AddEmptyArray("objectives")
         self.opt_parameters.AddEmptyArray("constraints")
         self.opt_parameters.AddInt("opt_itr",0)
+        self.opt_parameters.AddInt("num_active_consts",0)
         self.opt_parameters.AddBool("opt_converged",False)
         for response in self.responses_controlled_objects.keys():
             response_settings = Parameters()
@@ -176,6 +177,7 @@ class OptimizationAlgorithm:
                 index = self.constraints.index(response)
                 response_settings.AddString("type",self.constraints_types[index])
                 response_settings.AddDouble("ref_value",self.constraints_ref_values[index])
+                response_settings.AddBool("is_active",True)
                 self.opt_parameters["constraints"].Append(response_settings)
             else:
                 raise RuntimeError("OptimizationAlgorithm:__init__:error in compile settings for c++ optimizer")
@@ -253,7 +255,7 @@ class OptimizationAlgorithm:
                 if self.opt_parameters["opt_itr"].GetInt()<2:
                    objective["init_value"].SetDouble(value)   
                 
-                return  
+                return  True
 
         for constraint in self.opt_parameters["constraints"]:
             if constraint["name"].GetString() == response:
@@ -264,7 +266,23 @@ class OptimizationAlgorithm:
                     valid_types = ["initial_value_equality","smaller_than_initial_value","bigger_than_initial_value"]
                     if constraint["type"].GetString() in valid_types:
                         constraint["ref_value"].SetDouble(value)
-                return        
+
+                ref_value = constraint["ref_value"].GetDouble()
+
+                type = constraint["type"].GetString()
+                is_active = False
+                if type == "equality" or type == "initial_value_equality":
+                    is_active = True
+                elif (type == "smaller_than" or type == "smaller_than_initial_value") and value>ref_value:
+                    is_active = True
+                elif (type == "bigger_than" or type == "bigger_than_initial_value")  and value<ref_value:
+                    is_active = True
+
+                self.num_active_consts += 1
+
+                constraint["is_active"].SetBool(is_active)
+
+                return is_active       
 
     # --------------------------------------------------------------------------
     def _InitializeCSVLogger(self):

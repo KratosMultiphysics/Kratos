@@ -136,36 +136,7 @@ public:
     void CalculateSolutionStep() override {
 
         int opt_itr = mrSettings["opt_itr"].GetInt();
-
-        // analyze the constraints
-        int num_active_constraints = 0;
-        double sum_violations = 0.0;
-        for(auto& constraint : mrSettings["constraints"]){
-            auto ref_value = constraint["ref_value"].GetDouble();
-            auto value = constraint["value"].GetDouble();
-            auto prev_value = constraint["prev_itr_value"].GetDouble();
-            if(opt_itr>1){
-                double rel_change = 100 * (abs(value-ref_value)-abs(prev_value-ref_value))/abs(prev_value-ref_value);
-                sum_violations += rel_change;
-            }
-            auto type = constraint["type"].GetString();
-            Vector constraint_gradients = ZeroVector(mTotalNumControlVars);
-            bool is_active = false;
-            if(type == "equality" || type == "initial_value_equality")
-                is_active = true;
-            else if((type == "smaller_than" || type == "smaller_than_initial_value") && value>ref_value)
-                is_active = true;
-            else if((type == "bigger_than"|| type == "bigger_than_initial_value")  && value<ref_value)
-                is_active = true;
-
-            if(is_active)
-                num_active_constraints++;
-            
-            if (!constraint.Has("is_active"))
-                constraint.AddBool("is_active",is_active);
-            else
-                constraint["is_active"].SetBool(is_active);            
-        }
+        int num_active_constraints = mrSettings["num_active_consts"].GetInt();
 
         Vector mObjectiveGradients = ZeroVector(mTotalNumControlVars);
         double objective_value = 0.0;

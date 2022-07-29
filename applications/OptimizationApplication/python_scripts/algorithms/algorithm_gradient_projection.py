@@ -77,29 +77,32 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             for control in self.controls:
                 self.controls_controller.UpdateControl(control,False)            
 
-
+            self.num_active_consts = 0
             # evaluate all analysis-based responses
             for analysis in self.analyses_responses.keys():
                 self.analyses_controller.RunAnalysis(analysis)
                 for response in self.analyses_responses[analysis]:
                     response_value = self.responses_controller.CalculateResponseValue(response)
-                    self.SetResponseValue(response,response_value)
-                    self.responses_controller.CalculateResponseGradientsForTypesAndObjects(response,self.responses_control_types[response],self.responses_controlled_objects[response])
+                    calc_response_grad = self.SetResponseValue(response,response_value)
+                    if calc_response_grad: 
+                        self.responses_controller.CalculateResponseGradientsForTypesAndObjects(response,self.responses_control_types[response],self.responses_controlled_objects[response])
 
             # evaluate all analysis-free responses  
             for response in self.analysis_free_responses:
                 response_value = self.responses_controller.CalculateResponseValue(response)
-                self.SetResponseValue(response,response_value)
-                self.responses_controller.CalculateResponseGradientsForTypesAndObjects(response,self.responses_control_types[response],self.responses_controlled_objects[response])                
+                calc_response_grad = self.SetResponseValue(response,response_value)
+                if calc_response_grad:
+                    self.responses_controller.CalculateResponseGradientsForTypesAndObjects(response,self.responses_control_types[response],self.responses_controlled_objects[response])                
             
             self._WriteCurrentResponseValuesToCSVFile()
+            self.opt_parameters["num_active_consts"].SetInt(self.num_active_consts)
 
             # calculate control gradients
             for control in self.controls_response_gradient_names.keys():
                 for itr in range(len(self.controls_response_gradient_names[control])):
                     self.controls_controller.MapControlFirstDerivative(control,KM.KratosGlobals.GetVariable(self.controls_response_gradient_names[control][itr]),KM.KratosGlobals.GetVariable(self.controls_response_control_gradient_names[control][itr]),False)
 
-            # calcuate 
+            # calcuate
             self.opt_algorithm.CalculateSolutionStep() 
 
             # compute controls
