@@ -21,6 +21,7 @@
 #include "includes/properties.h"
 #include "custom_elements/boussinesq_element.h"
 #include "shallow_water_application_variables.h"
+#include "includes/math_utils.h"
 
 namespace Kratos {
 
@@ -104,7 +105,7 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D3N_FlatBottom, ShallowWaterApplicat
     for (std::size_t i = 0; i < element->GetGeometry().size(); i++)
     {
         element->GetGeometry()[i].FastGetSolutionStepValue(TOPOGRAPHY) = topography[i];
-        element->GetGeometry()[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = free_surface[i];
+        element->GetGeometry()[i].FastGetSolutionStepValue(HEIGHT) = free_surface[i] - topography[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY) = velocity[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(DISPERSION_H) = dispersion[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(DISPERSION_V) = dispersion[i];
@@ -123,10 +124,10 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D3N_FlatBottom, ShallowWaterApplicat
     element->CalculateLocalSystem(LHS, RHS, r_process_info);
     element->GetFirstDerivativesVector(derivatives);
 
-    // Matrix inv_M;
-    // double det_M;
-    // MathUtils<double>::InvertMatrix(M, inv_M, det_M);
-    // KRATOS_WATCH_CERR(prod(inv_M, RHS))
+    Matrix inv_M;
+    double det_M;
+    MathUtils<double>::InvertMatrix(M, inv_M, det_M);
+    KRATOS_WATCH_CERR(prod(inv_M, RHS))
 
     double tolerance = 1e-6;
     Vector increment = prod(M,derivatives) -RHS;
@@ -189,7 +190,7 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D4N_FlatBottom, ShallowWaterApplicat
     for (std::size_t i = 0; i < element->GetGeometry().size(); i++)
     {
         element->GetGeometry()[i].FastGetSolutionStepValue(TOPOGRAPHY) = topography[i];
-        element->GetGeometry()[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = free_surface[i];
+        element->GetGeometry()[i].FastGetSolutionStepValue(HEIGHT) = free_surface[i] - topography[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY) = velocity[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(DISPERSION_H) = dispersion[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(DISPERSION_V) = dispersion[i];
@@ -208,10 +209,10 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D4N_FlatBottom, ShallowWaterApplicat
     element->CalculateLocalSystem(LHS, RHS, r_process_info);
     element->GetFirstDerivativesVector(derivatives);
 
-    // Matrix inv_M;
-    // double det_M;
-    // MathUtils<double>::InvertMatrix(M, inv_M, det_M);
-    // KRATOS_WATCH_CERR(prod(inv_M, RHS))
+    Matrix inv_M;
+    double det_M;
+    MathUtils<double>::InvertMatrix(M, inv_M, det_M);
+    KRATOS_WATCH_CERR(prod(inv_M, RHS))
 
     double tolerance = 1e-6;
     Vector increment = prod(M,derivatives) -RHS;
