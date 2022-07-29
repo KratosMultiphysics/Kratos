@@ -24,7 +24,7 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
     def AddDofs(self):
         KM.VariableUtils().AddDof(KM.VELOCITY_X, self.main_model_part)
         KM.VariableUtils().AddDof(KM.VELOCITY_Y, self.main_model_part)
-        KM.VariableUtils().AddDof(SW.FREE_SURFACE_ELEVATION, self.main_model_part)
+        KM.VariableUtils().AddDof(SW.HEIGHT, self.main_model_part)
         KM.Logger.PrintInfo(self.__class__.__name__, "Boussinesq equations DOFs added correctly.")
 
     def AddVariables(self):
@@ -38,18 +38,9 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
         self.main_model_part.AddNodalSolutionStepVariable(SW.FIRST_DERIVATIVE_WEIGHTS)  # Gradient recovery
         self.main_model_part.AddNodalSolutionStepVariable(SW.SECOND_DERIVATIVE_WEIGHTS) # Laplacian recovery
 
-    def AdvanceInTime(self, current_time):
-        current_time = super().AdvanceInTime(current_time)
-        if self._TimeBufferIsInitialized():
-            current_time_step = self.GetComputingModelPart().ProcessInfo.GetValue(KM.DELTA_TIME)
-            previous_time_step = self.GetComputingModelPart().ProcessInfo.GetPreviousTimeStepInfo().GetValue(KM.DELTA_TIME)
-            if current_time_step - previous_time_step > 1e-10:
-                KM.Logger.PrintWarning(self.__class__.__name__, "The Adams Moulton scheme requires a constant time step.")
-        return current_time
-
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.main_model_part)
+        SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
 
     def _SetProcessInfo(self):
         super()._SetProcessInfo()
@@ -60,7 +51,7 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
     def _CreateScheme(self):
         if self.settings["time_integration_scheme"].GetString().lower() == "bdf":
             scheme_settings = KM.Parameters()
-            scheme_settings.AddStringArray("solution_variables", ["VELOCITY","FREE_SURFACE_ELEVATION"])
+            scheme_settings.AddStringArray("solution_variables", ["VELOCITY","HEIGHT"])
             scheme_settings.AddValue("integration_order", self.settings["time_integration_order"])
             scheme_settings.AddBool("project_dispersive_field", True)
             return SW.ShallowWaterResidualBasedBDFScheme(scheme_settings)

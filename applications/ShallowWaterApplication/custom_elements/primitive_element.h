@@ -178,6 +178,8 @@ protected:
         ElementData& rData,
         const array_1d<double,TNumNodes>& rN) override;
 
+    double StabilizationParameter(const ElementData& rData) const override;
+
     ///@}
 
 private:

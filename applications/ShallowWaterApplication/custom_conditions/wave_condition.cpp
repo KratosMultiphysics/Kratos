@@ -35,7 +35,7 @@ template<std::size_t TNumNodes>
 const Parameters WaveCondition<TNumNodes>::GetSpecifications() const
 {
     const Parameters specifications = Parameters(R"({
-        "required_variables"         : ["VELOCITY","HEIGHT","FREE_SURFACE_ELEVATION","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY"],
+        "required_variables"         : ["VELOCITY","HEIGHT","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY"],
         "required_dofs"              : ["VELOCITY_X","VELOCITY_Y","HEIGHT"],
         "compatible_geometries"      : ["Line2D2"],
         "element_integrates_in_time" : false

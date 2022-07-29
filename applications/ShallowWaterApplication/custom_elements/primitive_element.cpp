@@ -31,8 +31,10 @@ void PrimitiveElement<TNumNodes>::UpdateGaussPointData(
     const array_1d<double,TNumNodes>& rN)
 {
     const double h = inner_prod(rData.nodal_h, rN);
+    const double H = -inner_prod(rData.nodal_z, rN);
     const array_1d<double,3> v = BaseType::VectorProduct(rData.nodal_v, rN);
 
+    rData.depth = std::max(0.0, H);
     rData.height = h;
     rData.velocity = v;
 
@@ -67,6 +69,16 @@ void PrimitiveElement<TNumNodes>::UpdateGaussPointData(
     /// b_2
     rData.b2 = ZeroVector(3);
     rData.b2[1] = rData.gravity;
+}
+
+
+template<std::size_t TNumNodes>
+double PrimitiveElement<TNumNodes>::StabilizationParameter(const ElementData& rData) const
+{
+    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * std::abs(rData.height));
+    const double epsilon = 1e-6;
+    const double w = BaseType::WetFraction(rData);
+    return w * rData.length * rData.stab_factor / (eigenvalue + epsilon);
 }
 
 template class PrimitiveElement<3>;

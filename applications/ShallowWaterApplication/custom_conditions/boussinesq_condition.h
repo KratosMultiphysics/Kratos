@@ -20,7 +20,7 @@
 
 
 // Project includes
-#include "wave_condition.h"
+#include "primitive_condition.h"
 
 namespace Kratos
 {
@@ -45,7 +45,7 @@ namespace Kratos
  * @author Miguel Maso Sotomayor
  */
 template<std::size_t TNumNodes>
-class BoussinesqCondition : public WaveCondition<TNumNodes>
+class BoussinesqCondition : public PrimitiveCondition<TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -57,21 +57,21 @@ public:
 
     typedef Geometry<NodeType> GeometryType;
 
-    typedef WaveCondition<TNumNodes> WaveConditionType;
+    typedef PrimitiveCondition<TNumNodes> BaseType;
 
-    typedef typename WaveConditionType::NodesArrayType NodesArrayType;
+    typedef typename BaseType::NodesArrayType NodesArrayType;
 
-    typedef typename WaveConditionType::PropertiesType PropertiesType;
+    typedef typename BaseType::PropertiesType PropertiesType;
 
-    typedef typename WaveConditionType::EquationIdVectorType EquationIdVectorType;
+    typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
 
-    typedef typename WaveConditionType::DofsVectorType DofsVectorType;
+    typedef typename BaseType::DofsVectorType DofsVectorType;
 
-    typedef typename WaveConditionType::ConditionData ConditionData;
+    typedef typename BaseType::ConditionData ConditionData;
 
-    typedef typename WaveConditionType::LocalVectorType LocalVectorType;
+    typedef typename BaseType::LocalVectorType LocalVectorType;
 
-    typedef typename WaveConditionType::LocalMatrixType LocalMatrixType;
+    typedef typename BaseType::LocalMatrixType LocalMatrixType;
 
     ///@}
     ///@name Pointer definition
@@ -86,22 +86,22 @@ public:
     /**
      * @brief Default constructor
      */
-    BoussinesqCondition() : WaveConditionType(){}
+    BoussinesqCondition() : BaseType(){}
 
     /**
      * @brief Constructor using an array of nodes
      */
-    BoussinesqCondition(IndexType NewId, const NodesArrayType& ThisNodes) : WaveConditionType(NewId, ThisNodes){}
+    BoussinesqCondition(IndexType NewId, const NodesArrayType& ThisNodes) : BaseType(NewId, ThisNodes){}
 
     /**
      * @brief Constructor using Geometry
      */
-    BoussinesqCondition(IndexType NewId, GeometryType::Pointer pGeometry) : WaveConditionType(NewId, pGeometry){}
+    BoussinesqCondition(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry){}
 
     /**
      * @brief Constructor using Geometry and Properties
      */
-    BoussinesqCondition(IndexType NewId, GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties) : WaveConditionType(NewId, pGeometry, pProperties){}
+    BoussinesqCondition(IndexType NewId, GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties) : BaseType(NewId, pGeometry, pProperties){}
 
     /**
      * @brief Destructor
@@ -197,20 +197,20 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-    static constexpr IndexType mLocalSize = WaveConditionType::mLocalSize;
+    static constexpr IndexType mLocalSize = BaseType::mLocalSize;
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-    const Variable<double>& GetUnknownComponent(int Index) const override;
+    // const Variable<double>& GetUnknownComponent(int Index) const override;
 
-    LocalVectorType GetUnknownVector(ConditionData& rData) override;
+    // LocalVectorType GetUnknownVector(ConditionData& rData) override;
 
-    void CalculateGaussPointData(
-        ConditionData& rData,
-        const IndexType PointIndex,
-        const array_1d<double,TNumNodes>& rN) override;
+    // void CalculateGaussPointData(
+    //     ConditionData& rData,
+    //     const IndexType PointIndex,
+    //     const array_1d<double,TNumNodes>& rN) override;
 
     void AddDispersionProjection(
         LocalVectorType& rDispersionH,

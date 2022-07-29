@@ -19,7 +19,6 @@
 // External includes
 
 // Project includes
-#include "utilities/entities_utilities.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "processes/calculate_nodal_area_process.h"
 
@@ -183,7 +182,7 @@ public:
         // Apply the prediction
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
             array_1d<double,3>& velocity = rNode.FastGetSolutionStepValue(VELOCITY);
-            double& free_surface = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
+            double& height = rNode.FastGetSolutionStepValue(HEIGHT);
             const array_1d<double,3>& prediction = rNode.FastGetSolutionStepValue(RHS);
             const double inv_mass = 1.0 / rNode.FastGetSolutionStepValue(NODAL_AREA);
             if (rNode.IsFixed(VELOCITY_X) == false) {
@@ -192,12 +191,35 @@ public:
             if (rNode.IsFixed(VELOCITY_Y) == false) {
                 velocity[1] += delta_time * inv_mass * prediction[1];
             }
-            if (rNode.IsFixed(FREE_SURFACE_ELEVATION) == false) {
-                free_surface += delta_time * inv_mass * prediction[2];
+            if (rNode.IsFixed(HEIGHT) == false) {
+                height += delta_time * inv_mass * prediction[2];
             }
         });
 
         KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.Predict");
+    }
+
+    /**
+     * @brief It initializes time step solution. Only for reasons if the time step solution is restarted
+     * @param rModelPart The model of the problem to solve
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
+
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        const double dt_0 = r_process_info[DELTA_TIME];
+        const double dt_1 = r_process_info.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+        KRATOS_ERROR_IF(std::abs(dt_0 - dt_1) > 1e-10*(dt_0 + dt_1))
+        << "ResidualBasedAdamsMoultonScheme. The time step must be constant.\nPrevious time step : " << dt_1 << "\nCurrent time step : " << dt_0 << std::endl;
     }
 
     /**
@@ -427,7 +449,7 @@ protected:
         const double dt_inv = 1.0 / rModelPart.GetProcessInfo()[DELTA_TIME];
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
             PredictDerivative(rNode, VELOCITY, ACCELERATION, dt_inv);
-            PredictDerivative(rNode, FREE_SURFACE_ELEVATION, VERTICAL_VELOCITY, dt_inv);
+            PredictDerivative(rNode, HEIGHT, VERTICAL_VELOCITY, dt_inv);
         });
     }
 
@@ -477,7 +499,7 @@ protected:
         const double dt_inv = 1.0 / rModelPart.GetProcessInfo()[DELTA_TIME];
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
             UpdateDerivative(rNode, VELOCITY, ACCELERATION, dt_inv);
-            UpdateDerivative(rNode, FREE_SURFACE_ELEVATION, VERTICAL_VELOCITY, dt_inv);
+            UpdateDerivative(rNode, HEIGHT, VERTICAL_VELOCITY, dt_inv);
         });
     }
 

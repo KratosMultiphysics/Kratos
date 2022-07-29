@@ -29,60 +29,12 @@ template<std::size_t TNumNodes>
 const Parameters BoussinesqCondition<TNumNodes>::GetSpecifications() const
 {
     const Parameters specifications = Parameters(R"({
-        "required_variables"         : ["VELOCITY","FREE_SURFACE_ELEVATION","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY","DISPERSION_H","DISPERSION_V"],
-        "required_dofs"              : ["VELOCITY_X","VELOCITY_Y","FREE_SURFACE_ELEVATION"],
+        "required_variables"         : ["VELOCITY","HEIGHT","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY","DISPERSION_H","DISPERSION_V"],
+        "required_dofs"              : ["VELOCITY_X","VELOCITY_Y","HEIGHT"],
         "compatible_geometries"      : ["Line2D4"],
         "element_integrates_in_time" : false
     })");
     return specifications;
-}
-
-template<std::size_t TNumNodes>
-const Variable<double>& BoussinesqCondition<TNumNodes>::GetUnknownComponent(int Index) const
-{
-    switch (Index) {
-        case 0: return VELOCITY_X;
-        case 1: return VELOCITY_Y;
-        case 2: return FREE_SURFACE_ELEVATION;
-        default: KRATOS_ERROR << "BoussinesqCondition::GetUnknownComponent index out of bounds." << std::endl;
-    }
-}
-
-template<std::size_t TNumNodes>
-typename BoussinesqCondition<TNumNodes>::LocalVectorType BoussinesqCondition<TNumNodes>::GetUnknownVector(ConditionData& rData)
-{
-    std::size_t index = 0;
-    array_1d<double,mLocalSize> unknown;
-    for (std::size_t i = 0; i < TNumNodes; ++i) {
-        unknown[index++] = rData.nodal_v[i][0];
-        unknown[index++] = rData.nodal_v[i][1];
-        unknown[index++] = rData.nodal_f[i];
-    }
-    return unknown;
-}
-
-template<std::size_t TNumNodes>
-void BoussinesqCondition<TNumNodes>::CalculateGaussPointData(
-    ConditionData& rData,
-    const IndexType PointIndex,
-    const array_1d<double,TNumNodes>& rN)
-{
-    const double eta = inner_prod(rData.nodal_f, rN);
-    const double H = -inner_prod(rData.nodal_z, rN);
-    const double g = rData.gravity;
-    const array_1d<double,3> v = WaveConditionType::VectorProduct(rData.nodal_v, rN);
-
-    rData.depth = H;
-    rData.height = H + eta;
-    rData.velocity = v;
-
-    // Calculate the normal vector
-    auto integration_point = this->GetGeometry().IntegrationPoints()[PointIndex];
-    rData.normal = this->GetGeometry().UnitNormal(integration_point);
-
-    rData.flux = ZeroVector(3);
-    rData.v_neumann = 0.0;
-    rData.h_dirichlet = 0.0;
 }
 
 
@@ -207,7 +159,7 @@ void BoussinesqCondition<TNumNodes>::InitializeNonLinearIteration(const ProcessI
 
     // Struct to pass around the data
     ConditionData data;
-    WaveConditionType::InitializeData(data, rCurrentProcessInfo);
+    BaseType::InitializeData(data, rCurrentProcessInfo);
 
     // Geometrical data
     auto& parent_geom = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry();
@@ -229,7 +181,7 @@ void BoussinesqCondition<TNumNodes>::InitializeNonLinearIteration(const ProcessI
         const auto point = g_points[g];
         const array_1d<double,TNumNodes> N = row(N_container, g);
 
-        CalculateGaussPointData(data, g, N);
+        this->CalculateGaussPointData(data, g, N);
         CalculateShapeFunctionDerivatives(DN_DX, parent_geom, point);
         AddDispersionProjection(dispersion_h, dispersion_u, parent_geom, data, N, DN_DX, weight);
     }
@@ -266,7 +218,7 @@ void BoussinesqCondition<TNumNodes>::InitializeNonLinearIteration(const ProcessI
 
 //     // Struct to pass around the data
 //     ConditionData data;
-//     WaveConditionType::InitializeData(data, rCurrentProcessInfo);
+//     BaseType::InitializeData(data, rCurrentProcessInfo);
 
 //     // Geometrical data
 //     Matrix DN_DX;           // Gradients of the parent element
