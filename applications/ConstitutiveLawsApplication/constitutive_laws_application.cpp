@@ -376,6 +376,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainDplusDminusDamageDruckerPragerMohrCoulomb2D", mSmallStrainDplusDminusDamageDruckerPragerMohrCoulomb2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("DamageDPlusDMinusPlaneStressMasonry2DLaw", mDamageDPlusDMinusPlaneStressMasonry2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("DamageDPlusDMinusMasonry3DLaw", mDamageDPlusDMinusMasonry3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("MasonryOrthotropicDamagePlaneStress2DLaw", mMasonryOrthotropicDamagePlaneStress2DLaw);
 
     // Orthotropic Damage
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageRankine3D", mSmallStrainOrthotropicDamageRankine3D);
@@ -510,9 +511,12 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_VARIABLE(YIELD_STRAIN_COMPRESSION)
     KRATOS_REGISTER_VARIABLE(SHEAR_COMPRESSION_REDUCTOR)
     KRATOS_REGISTER_VARIABLE(TRIAXIAL_COMPRESSION_COEFFICIENT)
-	KRATOS_REGISTER_VARIABLE(INTEGRATION_IMPLEX)
+    KRATOS_REGISTER_VARIABLE(INTEGRATION_IMPLEX)
     KRATOS_REGISTER_VARIABLE(TENSION_YIELD_MODEL)
+    KRATOS_REGISTER_VARIABLE(PROJECTION_OPERATOR)
     KRATOS_REGISTER_VARIABLE(PLASTIC_DAMAGE_PROPORTION)
+    KRATOS_REGISTER_VARIABLE(YIELD_STRESS_SHEAR_TENSION)
+    KRATOS_REGISTER_VARIABLE(YIELD_STRESS_SHEAR_COMPRESSION)
 
     // For anisotropy + orthotrophy
     // The ratios between the yield strength in the isotropic space and the anisotropic space
