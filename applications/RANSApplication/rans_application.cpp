@@ -357,6 +357,15 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKOmegaSSTNewtonian2DLaw", mRansKOmegaSSTNewtonian2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("RansKOmegaSSTNewtonian3DLaw", mRansKOmegaSSTNewtonian3DLaw);
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansFrozenTurbulenceKEpsilonNewtonian2DLaw", mRansFrozenTurbulenceKEpsilonNewtonian2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansFrozenTurbulenceKEpsilonNewtonian3DLaw", mRansFrozenTurbulenceKEpsilonNewtonian3DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansFrozenTurbulenceKOmegaNewtonian2DLaw", mRansFrozenTurbulenceKOmegaNewtonian2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansFrozenTurbulenceKOmegaNewtonian3DLaw", mRansFrozenTurbulenceKOmegaNewtonian3DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansFrozenTurbulenceKOmegaSSTNewtonian2DLaw", mRansFrozenTurbulenceKOmegaSSTNewtonian2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansFrozenTurbulenceKOmegaSSTNewtonian3DLaw", mRansFrozenTurbulenceKOmegaSSTNewtonian3DLaw);
+
     // registering stabilization validation adjoint elements
     KRATOS_REGISTER_ELEMENT("RansCircularConvectionRFCAdjoint2D3N", mRansCircularConvectionRFCAdjoint2D3N);
     KRATOS_REGISTER_ELEMENT("RansDiffusionRFCAdjoint2D3N", mRansDiffusionRFCAdjoint2D3N);

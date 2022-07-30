@@ -79,6 +79,7 @@
 #include "custom_constitutive/rans_k_epsilon_newtonian_law.h"
 #include "custom_constitutive/rans_k_omega_newtonian_law.h"
 #include "custom_constitutive/rans_k_omega_sst_newtonian_law.h"
+#include "custom_constitutive/rans_frozen_turbulence_newtonian_law.h"
 
 // adjoint elements
 #include "custom_elements/scalar_equation_adjoint_element.h"
@@ -309,6 +310,15 @@ private:
 
     const RansKOmegaSSTNewtonianLaw<2, Newtonian2DLaw> mRansKOmegaSSTNewtonian2DLaw;
     const RansKOmegaSSTNewtonianLaw<3, Newtonian3DLaw> mRansKOmegaSSTNewtonian3DLaw;
+
+    const RansFrozenTurbulenceNewtonianLaw<RansKEpsilonNewtonianLaw<Newtonian2DLaw>> mRansFrozenTurbulenceKEpsilonNewtonian2DLaw;
+    const RansFrozenTurbulenceNewtonianLaw<RansKEpsilonNewtonianLaw<Newtonian3DLaw>> mRansFrozenTurbulenceKEpsilonNewtonian3DLaw;
+
+    const RansFrozenTurbulenceNewtonianLaw<RansKOmegaNewtonianLaw<Newtonian2DLaw>> mRansFrozenTurbulenceKOmegaNewtonian2DLaw;
+    const RansFrozenTurbulenceNewtonianLaw<RansKOmegaNewtonianLaw<Newtonian3DLaw>> mRansFrozenTurbulenceKOmegaNewtonian3DLaw;
+
+    const RansFrozenTurbulenceNewtonianLaw<RansKOmegaSSTNewtonianLaw<2, Newtonian2DLaw>> mRansFrozenTurbulenceKOmegaSSTNewtonian2DLaw;
+    const RansFrozenTurbulenceNewtonianLaw<RansKOmegaSSTNewtonianLaw<3, Newtonian3DLaw>> mRansFrozenTurbulenceKOmegaSSTNewtonian3DLaw;
 
     // stabilization validation adjoint elements
     const ScalarEquationAdjointElement<2, 3, StabilizationValidationElementData::CircularConvectionRFCAdjointElementData> mRansCircularConvectionRFCAdjoint2D3N;
