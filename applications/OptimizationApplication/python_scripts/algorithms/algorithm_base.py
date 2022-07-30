@@ -30,7 +30,7 @@ class OptimizationAlgorithm:
 
         # objectives
         self.objectives = self.opt_settings["objectives"].GetStringArray()
-        self.objectives_weights = self.opt_settings["objectives_weights"].GetVector()
+        self.objectives_improvements = self.opt_settings["objectives_improvements"].GetVector()
 
         # constraints
         self.constraints = self.opt_settings["constraints"].GetStringArray()
@@ -44,7 +44,13 @@ class OptimizationAlgorithm:
 
         # controls
         self.controls = opt_settings["controls"].GetStringArray()
-        self.controls_maximum_updates = opt_settings["controls_maximum_updates"].GetVector()
+        self.objectives_controls_weights = opt_settings["objectives_controls_weights"].GetVector()
+        self.constraints_controls_weights = opt_settings["constraints_controls_weights"].GetVector()
+
+        # algorithm_settings
+        self.max_iterations = self.opt_settings["algorithm_settings"]["max_iterations"].GetInt()
+        self.projection_step_size = self.opt_settings["algorithm_settings"]["projection_step_size"].GetDouble()
+        self.correction_step_size = self.opt_settings["algorithm_settings"]["correction_step_size"].GetDouble()
 
         # compile settings for responses
         self.responses_controls = {}
@@ -137,6 +143,9 @@ class OptimizationAlgorithm:
         self.opt_parameters.AddEmptyArray("objectives")
         self.opt_parameters.AddEmptyArray("constraints")
         self.opt_parameters.AddInt("opt_itr",0)
+        self.opt_parameters.AddInt("max_opt_itr",self.max_iterations)
+        self.opt_parameters.AddDouble("projection_step_size",self.projection_step_size)
+        self.opt_parameters.AddDouble("correction_step_size",self.correction_step_size)
         self.opt_parameters.AddInt("num_active_consts",0)
         self.opt_parameters.AddBool("opt_converged",False)
         for response in self.responses_controlled_objects.keys():
@@ -171,7 +180,7 @@ class OptimizationAlgorithm:
 
             if response in self.objectives:
                 index = self.objectives.index(response)
-                response_settings.AddDouble("objective_weight",self.objectives_weights[index])
+                response_settings.AddDouble("objective_improvement",self.objectives_improvements[index])
                 self.opt_parameters["objectives"].Append(response_settings)
             elif response in self.constraints:
                 index = self.constraints.index(response)
@@ -185,7 +194,8 @@ class OptimizationAlgorithm:
         self.opt_parameters.AddEmptyArray("controls")
         for control in self.controls:
             control_index = self.controls.index(control)
-            control_max_update = self.controls_maximum_updates[control_index]
+            control_objectives_weight = self.objectives_controls_weights[control_index]
+            control_constraints_weight = self.constraints_controls_weights[control_index]
             control_type = self.controls_controller.GetControlType(control)
             control_update_name = self.controls_controller.GetControlUpdateName(control)
             control_variable_name = self.controls_controller.GetControlVariableName(control)
@@ -194,7 +204,8 @@ class OptimizationAlgorithm:
             control_settings.AddString("type",control_type)
             control_settings.AddString("update_name",control_update_name)
             control_settings.AddString("variable_name",control_variable_name)
-            control_settings.AddDouble("max_update",control_max_update)
+            control_settings.AddDouble("objectives_weight",control_objectives_weight)
+            control_settings.AddDouble("constraints_weight",control_constraints_weight)
             if control_type == "shape":
                 control_settings.AddInt("size",3)
             elif control_type == "thickness":
@@ -295,6 +306,7 @@ class OptimizationAlgorithm:
                 row.append("{:>4s}".format("f: "+str(objective["name"].GetString())))
                 row.append("{:>4s}".format("abs[%]"))
                 row.append("{:>4s}".format("rel[%]"))
+                row.append("{:>4s}".format("weight"))
 
             for constraint in self.opt_parameters["constraints"]:
                 row.append("{:>4s}".format("g: "+str(constraint["name"].GetString())))
@@ -302,8 +314,9 @@ class OptimizationAlgorithm:
                 row.append("{:>4s}".format("ref_diff[%]"))
                 row.append("{:>4s}".format("weight"))
 
-            for control in self.opt_parameters["controls"]:
-                row.append("{:>4s}".format("c: "+str(control["name"].GetString()))+" step")
+
+            row.append("{:>4s}".format("projection_step_size"))
+            row.append("{:>4s}".format("correction_step_size"))
 
             historyWriter.writerow(row)
 
@@ -318,6 +331,7 @@ class OptimizationAlgorithm:
 
             for objective in self.opt_parameters["objectives"]:
                 objectivs_current_value = objective["value"].GetDouble()
+                objectivs_weight = objective["weight"].GetDouble()
                 objective_initial_value = objectivs_current_value
                 objective_previous_value = objectivs_current_value
 
@@ -327,13 +341,16 @@ class OptimizationAlgorithm:
 
                 rel_change = 100 * (objectivs_current_value-objective_previous_value)/objective_previous_value
                 abs_change = 100 * (objectivs_current_value-objective_initial_value)/objective_initial_value
+                Logger.Print("\n")
                 Logger.Print("  ===== objective: ",objective["name"].GetString())
                 Logger.Print("                   current value: ",objectivs_current_value)
                 Logger.Print("                   rel_change: ",rel_change)
                 Logger.Print("                   abs_change: ",abs_change)
+                Logger.Print("                   weight: ",objectivs_weight)
                 row.append(" {:> .5E}".format(objectivs_current_value))
                 row.append(" {:> .5E}".format(abs_change))
                 row.append(" {:> .5E}".format(rel_change)) 
+                row.append(" {:> .5E}".format(objectivs_weight))
 
             for constraint in self.opt_parameters["constraints"]:
                 constraint_current_value = constraint["value"].GetDouble() 
@@ -353,11 +370,10 @@ class OptimizationAlgorithm:
                 row.append(" {:> .5E}".format(constraint_weight))
 
 
-            for control in self.opt_parameters["controls"]:
-                control_current_step = control["max_update"].GetDouble() 
-                Logger.Print("  ===== control: ",control["name"].GetString())
-                Logger.Print("                   current step: ",control_current_step)
-                row.append(" {:> .5E}".format(control_current_step))
+            Logger.Print("  ===== projection_step_size: ",self.opt_parameters["projection_step_size"].GetDouble())
+            Logger.Print("  ===== correction_step_size: ",self.opt_parameters["correction_step_size"].GetDouble())
+            row.append(" {:> .5E}".format(self.opt_parameters["projection_step_size"].GetDouble()))
+            row.append(" {:> .5E}".format(self.opt_parameters["correction_step_size"].GetDouble()))
 
             historyWriter.writerow(row)
 

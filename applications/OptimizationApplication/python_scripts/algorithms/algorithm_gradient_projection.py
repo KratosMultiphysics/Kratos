@@ -28,17 +28,6 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __init__(self,name,opt_settings,model,model_parts_controller,analyses_controller,responses_controller,controls_controller):
         super().__init__(name,opt_settings,model,model_parts_controller,analyses_controller,responses_controller,controls_controller)
-        default_algorithm_settings = Parameters("""
-        {
-            "max_iterations"     : 100,
-            "relative_tolerance" : 1e-3,
-            "alpha": 0.3
-        }""")
-
-        self.opt_settings["algorithm_settings"].RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
-        self.algorithm_settings = self.opt_settings["algorithm_settings"]
-        self.max_iterations = self.algorithm_settings["max_iterations"].GetInt()
-        self.opt_parameters.AddDouble("alpha",self.opt_settings["algorithm_settings"]["alpha"].GetDouble())
 
         # check if constraint list is empty or not 
         if not len(self.constraints)>0:

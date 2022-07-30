@@ -69,10 +69,10 @@ public:
         //resize the required vectors
         mSearchDirection = ZeroVector(mTotalNumControlVars);
 
-        mSumObjectiveWeights = 0.0;
+        mSumObjectivesImprovements = 0.0;
         for(auto& objetive : mrSettings["objectives"]){
-            double weight = objetive["objective_weight"].GetDouble();
-            mSumObjectiveWeights +=  std::abs(weight);
+            double objective_improvement = objetive["objective_improvement"].GetDouble();
+            mSumObjectivesImprovements +=  std::abs(objective_improvement);
             objetive.AddEmptyArray("controlled_objects_start_index");
             objetive.AddEmptyArray("controlled_objects_size");
             for(int objective_control_i = 0; objective_control_i<objetive["controls"].size(); objective_control_i++){
@@ -144,14 +144,39 @@ public:
         for(auto& objetive : mrSettings["objectives"]){
             objective_value = objetive["value"].GetDouble();
             auto objective_prev_value = objetive["prev_itr_value"].GetDouble();
+            double objective_weight = objetive["weight"].GetDouble();
+            double objective_improvement = objetive["objective_improvement"].GetDouble();
 
             if(opt_itr>1){
                 double rel_change = 100 * (objective_value - objective_prev_value) / objective_prev_value;
                 sum_obj_improvement += rel_change;
+                double scale = 1.0;
+                if(rel_change<0.0){
+                    double ratio = objective_improvement/abs(rel_change);
+                    if(ratio>1.2)
+                        ratio = 1.2;
+                    if(ratio<0.8)
+                        ratio = 0.8;                    
+                    scale = ratio;
+                }
+                // else
+                //     scale = 1.2;
+                
+                objective_weight *= scale;
+                objetive["weight"].SetDouble(objective_weight);
             }
 
-            double weight = objetive["objective_weight"].GetDouble();            
+        
             for(int objective_control_i = 0; objective_control_i<objetive["controls"].size(); objective_control_i++){
+                auto objective_control_i_name = objetive["controls"][objective_control_i].GetString();
+                double objective_control_weight = 1.0;
+
+                for(auto& control : mrSettings["controls"]){
+                    auto control_name = control["name"].GetString();
+                    if(control_name==objective_control_i_name)
+                        objective_control_weight = control["objectives_weight"].GetDouble();
+                }
+
                 int objective_controlled_object_start_index = objetive["controlled_objects_start_index"][objective_control_i].GetInt();
                 int objective_controlled_object_size = objetive["controlled_objects_size"][objective_control_i].GetInt();
                 auto objective_control_gradient_name = objetive["control_gradient_names"][objective_control_i].GetString();
@@ -169,23 +194,23 @@ public:
                         L2_norm += nodal_gradient * nodal_gradient;
                     }
                 }
-                L2_norm = std::sqrt(L2_norm);         
+                // L2_norm = std::sqrt(L2_norm);         
 
                 int node_index=0;
                 for(auto& node : objective_controlled_obj_model_part.Nodes()){
                     if (objective_controlled_object_size==3){
                         const auto & nodal_gradient = node.FastGetSolutionStepValue(KratosComponents<Variable<array_1d<double,3>>>::Get(objective_control_gradient_name));
                         for(int i=0; i<objective_controlled_object_size; i++)
-                            mObjectiveGradients[objective_controlled_object_start_index+objective_controlled_object_size*node_index+i] = nodal_gradient(i) * ((weight/mSumObjectiveWeights) * (1.0/L2_norm));
+                            mObjectiveGradients[objective_controlled_object_start_index+objective_controlled_object_size*node_index+i] = nodal_gradient(i) * ((objective_weight*objective_control_weight) * (1.0/L2_norm));
                     }
                     else if (objective_controlled_object_size==1) {
                         const auto & nodal_gradient = node.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(objective_control_gradient_name));
-                        mObjectiveGradients[objective_controlled_object_start_index+node_index] = nodal_gradient * ((weight/mSumObjectiveWeights) * (1.0/L2_norm));
+                        mObjectiveGradients[objective_controlled_object_start_index+node_index] = nodal_gradient * ((objective_weight*objective_control_weight) * (1.0/L2_norm));
                     } 
                     node_index++;
                 }             
             }
-        }
+        }        
 
         mObjectiveGradients *= (1.0/norm_2(mObjectiveGradients));
 
@@ -198,11 +223,14 @@ public:
 
                 double current_violation = (constraint["value"].GetDouble()-constraint["ref_value"].GetDouble())/constraint["ref_value"].GetDouble();
                 double previous_violation = (constraint["prev_itr_value"].GetDouble()-constraint["ref_value"].GetDouble())/constraint["ref_value"].GetDouble();
+                double relative_change = (constraint["value"].GetDouble()-constraint["prev_itr_value"].GetDouble())/constraint["prev_itr_value"].GetDouble();
                 double weight = constraint["weight"].GetDouble();
                 // set the weight
                 if(opt_itr>1){
                     if((std::abs(current_violation)>std::abs(previous_violation)) && (100 * std::abs(previous_violation)>1.0))
                         weight *= 1.25;
+                    else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(current_violation)>1.0) && (100 * std::abs(relative_change)<1.0))
+                        weight *= 1.25;                        
                     else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(current_violation)<1.0))
                         weight *= 0.75;                        
                     else if((100 * std::abs(current_violation)<1.0) && (sum_obj_improvement>0))
@@ -218,6 +246,15 @@ public:
 
                 active_constraints_violations[constraint_index] = weight * (constraint["value"].GetDouble()-constraint["ref_value"].GetDouble()) / constraint["ref_value"].GetDouble();                
                 for(int constraint_control_i = 0; constraint_control_i<constraint["controls"].size(); constraint_control_i++){
+                    auto constraint_control_i_name = constraint["controls"][constraint_control_i].GetString();
+                    double constraint_control_weight = 1.0;
+
+                    for(auto& control : mrSettings["controls"]){
+                        auto control_name = control["name"].GetString();
+                        if(control_name==constraint_control_i_name)
+                            constraint_control_weight = control["constraints_weight"].GetDouble();
+                    }
+
                     int constraint_controlled_object_start_index = constraint["controlled_objects_start_index"][constraint_control_i].GetInt();
                     int constraint_controlled_object_size = constraint["controlled_objects_size"][constraint_control_i].GetInt();
                     auto constraint_control_gradient_name = constraint["control_gradient_names"][constraint_control_i].GetString();
@@ -240,21 +277,43 @@ public:
                         } 
                         node_index++;
                     }
-                    L2_norm = std::sqrt(L2_norm);
+                    // L2_norm = std::sqrt(L2_norm);
                     // now do the l2_norm scaling
                     for (int i=0;i<constraint_controlled_object_size*constraint_controlled_obj_model_part.Nodes().size();i++)
-                        active_constraints_gradients(constraint_index,constraint_controlled_object_start_index+i) *= (1.0/L2_norm);
+                        active_constraints_gradients(constraint_index,constraint_controlled_object_start_index+i) *= (constraint_control_weight/L2_norm);
                 }
                 constraint_index++;                
             }
         }
 
+        for(int cons_i=0;cons_i<num_active_constraints;cons_i++)
+            noalias(row(active_constraints_gradients,cons_i)) = row(active_constraints_gradients,cons_i)/norm_2(row(active_constraints_gradients,cons_i));        
+
+
+        auto projection_step_size = mrSettings["projection_step_size"].GetDouble();
+        auto correction_step_size = mrSettings["correction_step_size"].GetDouble();
+        
+        
+        if(opt_itr>1){
+            double scale = 1.0;
+            if(sum_obj_improvement<0.0){
+                double ratio = mSumObjectivesImprovements/abs(sum_obj_improvement);
+                if(ratio>1.2)
+                    ratio = 1.2;
+                if(ratio<0.8)
+                    ratio = 0.8;
+                scale = ratio;
+            }
+            // else
+            //     scale = 1.2;
+
+            projection_step_size *= scale;
+            mrSettings["projection_step_size"].SetDouble(projection_step_size);
+        }
+
+        
         if(num_active_constraints>0)
         {
-
-            for(int cons_i=0;cons_i<num_active_constraints;cons_i++)
-                noalias(row(active_constraints_gradients,cons_i)) = row(active_constraints_gradients,cons_i)/norm_2(row(active_constraints_gradients,cons_i));
-
             // compute feasible self.lin_solversearch direction
             Matrix NTN = prod(active_constraints_gradients,trans(active_constraints_gradients));
             Matrix I = IdentityMatrix(active_constraints_gradients.size1());
@@ -262,8 +321,10 @@ public:
 
             mrSolver.Solve(NTN, NTN_inv, I); // solve with identity to get the inverse
 
-            mSearchDirection = - (mObjectiveGradients - prod(trans(active_constraints_gradients), Vector(prod(NTN_inv, Vector(prod(active_constraints_gradients, mObjectiveGradients))))));
-            mSearchDirection += - prod(trans(active_constraints_gradients), Vector(prod(NTN_inv,active_constraints_violations)));
+            Vector projection = - (mObjectiveGradients - prod(trans(active_constraints_gradients), Vector(prod(NTN_inv, Vector(prod(active_constraints_gradients, mObjectiveGradients))))));
+            Vector correction = - prod(trans(active_constraints_gradients), Vector(prod(NTN_inv,active_constraints_violations)));
+
+            mSearchDirection = (projection_step_size * projection / norm_2(projection)) + (correction_step_size * correction);
    
         }
         else{
@@ -271,44 +332,30 @@ public:
         }
             
 
-        mSearchDirection /= norm_2(mSearchDirection);
+        // mSearchDirection /= norm_2(mSearchDirection);
+
+
+
 
         // compute and set the updates
         int index = 0;
         for(auto& control : mrSettings["controls"]){
             int control_size = control["size"].GetInt();
             auto control_update_name = control["update_name"].GetString();
-            auto control_max_update = control["max_update"].GetDouble();
-
-            double sum_changes = sum_obj_improvement ;
-            double scale = 1.0;
-
-            if(sum_changes<0.0){
-                double ratio = 1.0/abs(sum_changes);
-                if(ratio>1.2)
-                    ratio = 1.2;
-                if(ratio<0.8)
-                    ratio = 0.8;
-                scale = ratio;
-            }
-
-            control_max_update *= scale;
-
-            control["max_update"].SetDouble(control_max_update);
 
             for(auto& control_obj : control["controlling_objects"]){
                 ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
                 for(auto& node : r_controlling_object.Nodes()){
                     if (control_size==3){
                         auto & nodal_update = node.FastGetSolutionStepValue(KratosComponents<Variable<array_1d<double,3>>>::Get(control_update_name));
-                        nodal_update(0) = control_max_update * mSearchDirection[index];
-                        nodal_update(1) = control_max_update * mSearchDirection[index+1];
-                        nodal_update(2) = control_max_update * mSearchDirection[index+2];
+                        nodal_update(0) = mSearchDirection[index];
+                        nodal_update(1) = mSearchDirection[index+1];
+                        nodal_update(2) = mSearchDirection[index+2];
                         index += 3;
                     }
                     else if (control_size==1){
                         auto & nodal_update = node.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(control_update_name));
-                        nodal_update = control_max_update * mSearchDirection[index];
+                        nodal_update = mSearchDirection[index];
                         index += 1;
                     }
                 }
@@ -322,7 +369,7 @@ public:
     Vector mSearchDirection;
     LinearSolver<DenseSpace, DenseSpace>& mrSolver;
     int mTotalNumControlVars;
-    double mSumObjectiveWeights;
+    double mSumObjectivesImprovements;
 
 
 }; // Class OptimizationAlgorithm
