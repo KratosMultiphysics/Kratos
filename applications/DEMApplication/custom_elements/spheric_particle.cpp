@@ -309,11 +309,11 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
             array_1d<double, 3>& rolling_resistance_moment = this_node.FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
             rolling_resistance_moment.clear();
 
-            //ComputeRollingFriction(rolling_resistance_moment, RollingResistance, data_buffer.mDt);
-            ComputeRollingFriction(rolling_resistance_moment, RollingResistance, data_buffer.mDt, data_buffer.mpOtherParticle, contact_force);
+            ComputeRollingFriction(rolling_resistance_moment, RollingResistance, data_buffer.mDt);
+            //ComputeRollingFriction(rolling_resistance_moment, RollingResistance, data_buffer.mDt, data_buffer.mpOtherParticle, contact_force);
         }
-    }
-    */
+    }*/
+    
 
     array_1d<double,3>& total_forces = this_node.FastGetSolutionStepValue(TOTAL_FORCES);
     array_1d<double,3>& total_moment = this_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
@@ -325,6 +325,9 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
     total_moment[0] = mContactMoment[0] + additionally_applied_moment[0];
     total_moment[1] = mContactMoment[1] + additionally_applied_moment[1];
     total_moment[2] = mContactMoment[2] + additionally_applied_moment[2];
+
+    //for debug
+    //KRATOS_WATCH(total_moment)
 
     ApplyGlobalDampingToContactForcesAndMoments(total_forces, total_moment);
 
@@ -877,9 +880,9 @@ void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resist
 
         Properties& properties_of_this_contact = GetProperties().GetSubProperties(p_neighbor->GetProperties().Id());
 
-        mContactMoment[0] -= element1AngularVelocity_normalise[0] * fabs(LocalContactForce[0]) * bond_center_point_to_element1_mass_center_distance * properties_of_this_contact[ROLLING_FRICTION]; 
+        mContactMoment[0] -= element1AngularVelocity_normalise[0] * fabs(LocalContactForce[2]) * bond_center_point_to_element1_mass_center_distance * properties_of_this_contact[ROLLING_FRICTION]; 
 
-        mContactMoment[1] -= element1AngularVelocity_normalise[1] * fabs(LocalContactForce[1]) * bond_center_point_to_element1_mass_center_distance * properties_of_this_contact[ROLLING_FRICTION]; 
+        mContactMoment[1] -= element1AngularVelocity_normalise[1] * fabs(LocalContactForce[2]) * bond_center_point_to_element1_mass_center_distance * properties_of_this_contact[ROLLING_FRICTION]; 
 
         mContactMoment[2] -= element1AngularVelocity_normalise[2] * fabs(LocalContactForce[2]) * bond_center_point_to_element1_mass_center_distance * properties_of_this_contact[ROLLING_FRICTION]; 
 
@@ -906,11 +909,18 @@ void SphericParticle::ComputeRollingFrictionWithWall(double dt, double LocalCont
 
         Properties& properties_of_this_contact = GetProperties().GetSubProperties(wall->GetProperties().Id());
 
-        mContactMoment[0] -= element1AngularVelocity_normalise[0] * fabs(LocalContactForce[0]) * arm_length * properties_of_this_contact[ROLLING_FRICTION]; 
+        mContactMoment[0] -= element1AngularVelocity_normalise[0] * fabs(LocalContactForce[2]) * arm_length * properties_of_this_contact[ROLLING_FRICTION]; 
 
-        mContactMoment[1] -= element1AngularVelocity_normalise[1] * fabs(LocalContactForce[1]) * arm_length * properties_of_this_contact[ROLLING_FRICTION]; 
+        mContactMoment[1] -= element1AngularVelocity_normalise[1] * fabs(LocalContactForce[2]) * arm_length * properties_of_this_contact[ROLLING_FRICTION]; 
 
         mContactMoment[2] -= element1AngularVelocity_normalise[2] * fabs(LocalContactForce[2]) * arm_length * properties_of_this_contact[ROLLING_FRICTION]; 
+
+        //for debug
+        //KRATOS_WATCH(-1 * element1AngularVelocity_normalise[0] * fabs(LocalContactForce[0]) * arm_length * properties_of_this_contact[ROLLING_FRICTION])
+        //KRATOS_WATCH(-1 * element1AngularVelocity_normalise[1] * fabs(LocalContactForce[1]) * arm_length * properties_of_this_contact[ROLLING_FRICTION])
+        //KRATOS_WATCH(-1 * element1AngularVelocity_normalise[2] * fabs(LocalContactForce[2]) * arm_length * properties_of_this_contact[ROLLING_FRICTION])
+        //KRATOS_WATCH(element1AngularVelocity)
+        //KRATOS_WATCH("----------------------------------")
 
     } 
 }
@@ -1188,7 +1198,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 ComputeMomentsWithWalls(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], wall, indentation, i); //WARNING: sending itself as the neighbor!!
-
+                
                 if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {                
                     ComputeRollingFrictionWithWall(data_buffer.mDt, LocalContactForce, wall, indentation);
                 }
