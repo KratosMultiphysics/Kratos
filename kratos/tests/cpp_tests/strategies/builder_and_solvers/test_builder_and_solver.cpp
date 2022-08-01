@@ -142,6 +142,63 @@ namespace Kratos
         }
 
         /**
+         * @brief It generates a truss structure with an expected solution with an element with null contribution
+         */
+        static inline void BasicTestBuilderAndSolverDisplacementWithZeroContribution(ModelPart& rModelPart)
+        {
+            rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
+            rModelPart.AddNodalSolutionStepVariable(VELOCITY);
+            rModelPart.AddNodalSolutionStepVariable(ACCELERATION);
+            rModelPart.AddNodalSolutionStepVariable(REACTION);
+            rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+
+            NodeType::Pointer pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+            NodeType::Pointer pnode3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
+
+            auto p_prop_1 = rModelPart.CreateNewProperties(1, 0);
+            p_prop_1->SetValue(YOUNG_MODULUS, 206900000000.0);
+            p_prop_1->SetValue(NODAL_AREA, 0.01);
+
+            auto p_prop_2 = rModelPart.CreateNewProperties(2, 0);
+            p_prop_2->SetValue(YOUNG_MODULUS, 0.0);
+            p_prop_2->SetValue(NODAL_AREA, 0.0);
+
+            GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode1, pnode2})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop_1));
+            GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop_2));
+
+            /// Add dof
+            for (auto& node : rModelPart.Nodes()) {
+                node.AddDof(DISPLACEMENT_X, REACTION_X);
+                node.AddDof(DISPLACEMENT_Y, REACTION_Y);
+                node.AddDof(DISPLACEMENT_Z, REACTION_Z);
+            }
+
+            /// Initialize elements
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+            for (auto& elem : rModelPart.Elements()) {
+                elem.Initialize(r_process_info);
+                elem.InitializeSolutionStep(r_process_info);
+            }
+
+            // Set initial solution
+            for (auto& node : rModelPart.Nodes()) {
+                (node.FastGetSolutionStepValue(DISPLACEMENT)).clear();
+                (node.FastGetSolutionStepValue(DISPLACEMENT, 1)).clear();
+                (node.FastGetSolutionStepValue(DISPLACEMENT, 2)).clear();
+            }
+
+            // Fix dofs
+            for (auto& node : rModelPart.Nodes()) {
+                node.Fix(DISPLACEMENT_Y);
+                node.Fix(DISPLACEMENT_Z);
+            }
+            pnode1->Fix(DISPLACEMENT_X);
+        }
+
+        /**
          * @brief It generates a truss structure with an expected solution
          */
         static inline void ExtendedTestBuilderAndSolverDisplacement(ModelPart& rModelPart, const bool WithConstraint = false)
