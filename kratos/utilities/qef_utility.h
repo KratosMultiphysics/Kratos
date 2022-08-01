@@ -127,7 +127,6 @@ public:
             VectorType vNormal = normal; 
             MatrixType mNormal(3,1);
             column(mNormal,0) = normal;
-            //write(mNormal);
 
             //We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
             //but possible), only one will be taken into account to create the matrixes.
@@ -135,48 +134,30 @@ public:
             array_1d<double,3> intersection;
             VectorType vIntersection;
             int j = 0;
-            while(!result) { 
+            while(!result && j < edges.size()) { 
                 PointsArrayType ends = edges[j++].Points();
                 result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
                 vIntersection = intersection;
-                KRATOS_ERROR_IF(j > edges.size()) 
-                << "Incorrect parameters: Given mesh elements do not intersect with given voxel" << std::endl;
             }
-
-            //Fill the matrixes with the corresponding information from the intersection and normal
-            MatrixType mNormalTrans = trans(mNormal);
-            MatrixType help = prod(mNormal,mNormalTrans);
-            AtA = AtA + help;
-            double aux = MathUtils<double>::Dot(normal,intersection);
-            MatrixType mAux(1,1,aux);
-            AtB = AtB + prod(mNormal,mAux);
-            BtB = BtB + prod(mAux,mAux); 
+            if (result) {
+                //Fill the matrixes with the corresponding information from the intersection and normal
+                MatrixType mNormalTrans = trans(mNormal);
+                MatrixType help = prod(mNormal,mNormalTrans);
+                AtA = AtA + help;
+                double aux = MathUtils<double>::Dot(normal,intersection);
+                MatrixType mAux(1,1,aux);
+                AtB = AtB + prod(mNormal,mAux);
+                BtB = BtB + prod(mAux,mAux); 
+            }
         }
-        /*
-        std::cout << "AtA: " << std::endl;
-        write(AtA);
-        std:: cout << std::endl; */
 
         //Find the eigenvalues and eigenvectors to AtA
         MatrixType mEigenvectors;
         MatrixType mEigenvalues;
-
         const bool converged = MathUtils<double>::GaussSeidelEigenSystem(AtA, mEigenvectors, mEigenvalues);
-        /*
-        std::cout << "VAPS: " << std::endl;
-        write(mEigenvalues);
-        std:: cout << std::endl;
-        std::cout << "VEPS: " << std::endl;
-        write(mEigenvectors);
-        std:: cout << std::endl; */
 
-        //construct D
         MatrixType D(3,3,0);
         for (int i : {0,1,2}) mEigenvalues(i,i) < 1e-12 ? D(i,i) = 0 : D(i,i) = check(1.0/mEigenvalues(i,i), 1e-12);
-        /*
-        std::cout << "D: " << std::endl;
-        write(D);
-        std:: cout << std::endl; */
 
         MatrixType AtAInverse;  
         MathUtils<double>::BDBtProductOperation(AtAInverse, D, mEigenvectors);

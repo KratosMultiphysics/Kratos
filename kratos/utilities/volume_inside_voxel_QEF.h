@@ -125,6 +125,40 @@ public:
         
         return volume;
     }
+
+    /**
+     * @brief Aproximates the actual volume inside the voxel 
+     * @param rVoxel references to the voxel whose actual volume will be approximated
+     * @param rTriangles references to the triangles which intersect the voxel at some edge.
+     * @return Approximated volume 
+     * @note This approximation finds the portion of each edge that is part of the volume (using
+     * intersection point with triangles of the mesh). Even if this class is templated for both 
+     * parameters, it will only work with intersecting TRIANGLES, since the utility used to compute
+     * the intersection does not allow templating.
+     */ 
+    template<class TGeometryType, class TGeometryArrayType>
+    static double FacesPortionQEFApproximation(
+        const TGeometryType& rVoxel,  
+        const TGeometryArrayType& rTriangles     
+    ) {
+        double volume = 0;
+        GeometryArrayType Faces = rVoxel.GenerateFaces()
+
+        array_1d<double,3> qef = QEF::QEFPoint(rVoxel,rTriangles); 
+        //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
+
+        for(int i = 0; i < Faces.size2(); i++) {
+            double Portion = GetPortionByQEF(Faces[i],rTriangles);
+            double dist = NormalizedDistanceToQEF(Nodes, NodesInFaces, qef, i);
+            
+            double PartialVolume = Portion*abs(dist)/3.0;   //Volume of a piramid
+            volume += PartialVolume;
+        }
+        //if (volume == 0) return EdgesPortionApproximation(rVoxel,rTriangles);
+        
+        return volume;
+    }
+
 private:
 
     ///@name Private static Member Variables
@@ -143,9 +177,10 @@ private:
     ///@{
     
     /**
-     * @brief Approximates the portion of a face that actually corresponds to volume (assigning each node 
+     * @brief Approximates the portion of a face that actually corresponds to area (assigning each node 
      * 1/numberOfNodes portion if it is inside the volume)
-     * @param rFace Reference to the face whos portion must be calculated
+     * @param Nodes The nodes of the geometry
+     * @param NodesInFaces matrix containing the index of the nodes of the geometry that belong to each faces
      * @return 
      * */
     static double GetPortion(PointsArrayType& Nodes,const DenseMatrix<unsigned int>& NodesInFaces, int& face) 
@@ -157,6 +192,31 @@ private:
         return Portion;
     }
 
+    /**
+     * @brief Approximates the portion of a face that actually corresponds to area (assigning each node 
+     * 1/numberOfNodes portion if it is inside the volume)
+     * @param Nodes The nodes of the geometry
+     * @param NodesInFaces matrix containing the index of the nodes of the geometry that belong to each faces
+     * @return 
+     * */
+    template<class TGeometryType, class TGeometryArrayType>
+    static double GetPortionByQEF(TGeometryType& rFace, TGeometryArrayType& rTriangles) 
+    {
+        double Portion = 0;
+        array_1d<double,3> FaceQEF = QEF::QEFPoint(rFace,rTriangles); 
+
+        //implementation??
+
+        return Portion;
+    }
+
+    /**
+     * @brief Calculates the distance from a face (given by its nodes) and the given point, normalized 
+     * to the size of the face side.
+     * @param Nodes The nodes of the geometry
+     * @param NodesInFaces matrix containing the index of the nodes of the geometry that belong to each faces
+     * @return Distance from the face to the specified point
+     * */
     static double NormalizedDistanceToQEF(
         PointsArrayType& Nodes,
         const DenseMatrix<unsigned int>& NodesInFaces, 

@@ -211,23 +211,6 @@ public:
         return std::sqrt( length );
     }
     
-private:
-
-    ///@name Private static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
     /**
      * @brief Aproximates the portion of the edge that represents volume
      * @param rDistances references to a sorted vector containing the distances of each intersecting point with the edge
@@ -264,6 +247,24 @@ private:
         }
         return portion;
     }
+
+private:
+
+    ///@name Private static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
 
 }; /* Class VoxelInsideVolumeUtility */
 
