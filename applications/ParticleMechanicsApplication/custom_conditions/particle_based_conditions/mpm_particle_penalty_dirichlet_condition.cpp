@@ -205,13 +205,6 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
             rRightHandSideVector *= m_penalty * this->GetIntegrationWeight();
         }
     }
-    else{
-        // To improve stability: use identity matrix to avoid nonzero diagonal LHS matrix
-        if ( CalculateStiffnessMatrixFlag == true )
-        {
-            noalias(rLeftHandSideMatrix) = IdentityMatrix(matrix_size);
-        }
-    }
 
     KRATOS_CATCH( "" )
 }
