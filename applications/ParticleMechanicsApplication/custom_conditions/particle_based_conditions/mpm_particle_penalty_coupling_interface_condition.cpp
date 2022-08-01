@@ -104,21 +104,6 @@ void MPMParticlePenaltyCouplingInterfaceCondition::FinalizeNonLinearIteration(co
 }
 
 
-void MPMParticlePenaltyCouplingInterfaceCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep(rCurrentProcessInfo);
-
-    // Estimating the contact forces at the boundary
-    if (Is(INTERFACE))
-    {
-        this->CalculateInterfaceContactForce( rCurrentProcessInfo );
-    }
-
-    KRATOS_CATCH( "" )
-}
-
 //************************************************************************************
 //************************************************************************************
 
@@ -163,7 +148,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateNodalContactForce( c
     }
 
     noalias(rRightHandSideVector) -= (prod(prod(trans(shape_function), shape_function), gap_function));
-        rRightHandSideVector *= m_penalty * this->GetIntegrationWeight();
+    rRightHandSideVector *= m_penalty * this->GetIntegrationWeight();
 
     // Calculate nodal forces
     Vector nodal_force = ZeroVector(3);
@@ -189,9 +174,9 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateNodalContactForce( c
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForce( const ProcessInfo& rCurrentProcessInfo )
+void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForce(array_1d<double, 3 >& rVariable, const ProcessInfo& rCurrentProcessInfo )
 {
-    GeometryType& r_geometry = GetGeometry();
+    GeometryType& r_geometry = GetGeometry();  
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
     // Prepare variables
@@ -200,7 +185,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
     MPMShapeFunctionPointValues(Variables.N);
 
     // Interpolate the force to mpc_force assuming linear shape function
-    array_1d<double, 3 > mpc_force = ZeroVector(3);
+    rVariable = ZeroVector(3);
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         // Check whether there is material point inside the node
@@ -210,7 +195,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
 
         if (nodal_mass > std::numeric_limits<double>::epsilon() && nodal_area > std::numeric_limits<double>::epsilon())
         {
-            mpc_force += Variables.N[i] * nodal_force * r_mpc_area / nodal_area;
+            rVariable += Variables.N[i] * nodal_force * r_mpc_area / nodal_area;
         }
     }
 
@@ -218,22 +203,18 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
     if (Is(CONTACT))
     {
         // Apply only in the normal direction
-        const double normal_force = MathUtils<double>::Dot(mpc_force, m_unit_normal);
+        const double normal_force = MathUtils<double>::Dot(rVariable, m_unit_normal);
 
         // This check is done to avoid sticking forces
         if (normal_force > 0.0)
-            mpc_force = -1.0 * normal_force * m_unit_normal;
+            rVariable = -1.0 * normal_force * m_unit_normal;
         else
-            mpc_force = ZeroVector(3);
+            rVariable = ZeroVector(3);
     }
     // Apply a sticking contact
     else{
-        mpc_force *= -1.0;
+        rVariable *= -1.0;
     }
-
-    // Set Contact Force
-    m_contact_force = mpc_force;
-
 }
 
 int MPMParticlePenaltyCouplingInterfaceCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
@@ -256,8 +237,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateOnIntegrationPoints(
         rValues.resize(1);
 
     if (rVariable == MPC_CONTACT_FORCE) {
-        this->CalculateInterfaceContactForce(rCurrentProcessInfo);
-        rValues[0] = m_contact_force;
+        this->CalculateInterfaceContactForce(rValues[0], rCurrentProcessInfo);
     }
     else {
         MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(
@@ -274,13 +254,8 @@ void MPMParticlePenaltyCouplingInterfaceCondition::SetValuesOnIntegrationPoints(
         << "Only 1 value per integration point allowed! Passed values vector size: "
         << rValues.size() << std::endl;
 
-    if (rVariable == MPC_CONTACT_FORCE) {
-        m_contact_force = rValues[0];
-    }
-    else {
-        MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(
-            rVariable, rValues, rCurrentProcessInfo);
-    }
+    MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(
+        rVariable, rValues, rCurrentProcessInfo);
 }
 
 } // Namespace Kratos

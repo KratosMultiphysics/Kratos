@@ -525,7 +525,6 @@ namespace MPMParticleGeneratorUtility
                                     if (is_interface)
                                     {
                                         p_condition->Set(INTERFACE);
-                                        p_condition->SetValuesOnIntegrationPoints(MPC_CONTACT_FORCE,  mpc_contact_force , process_info);
                                     }
 
                                     // Add the MP Condition to the model part

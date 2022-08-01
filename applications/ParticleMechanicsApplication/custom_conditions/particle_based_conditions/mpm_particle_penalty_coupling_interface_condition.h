@@ -94,11 +94,6 @@ public:
      */
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * Called at the end of each solution step
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Operations
@@ -200,7 +195,7 @@ protected:
 
     virtual void CalculateNodalContactForce( const ProcessInfo& rCurrentProcessInfo );
 
-    virtual void CalculateInterfaceContactForce( const ProcessInfo& rCurrentProcessInfo );
+    virtual void CalculateInterfaceContactForce(array_1d<double, 3 >& rVariable, const ProcessInfo& rCurrentProcessInfo );
 
     ///@}
     ///@name Protected  Access
