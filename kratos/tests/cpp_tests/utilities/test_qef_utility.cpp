@@ -183,6 +183,63 @@ namespace Testing {
         KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);        
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(QEF0dofExtremeCase, KratosCoreFastSuite) {
+        //A voxel crossed by a straight plane with only 1 nodes inside the volume (not good case approximation)
+        std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
+        GeometryPtrType pVoxel = QEFGenerateHexahedra3D8(distances);
+
+        //Generate the intersecting triangles
+        std::vector<std::vector<double>> triangle1{{-1,0.5,-0.95},{-0.95,0.5,-1.05},{-1.05,0.5,-1.05}}; 
+        std::vector<std::vector<double>> triangle2{{-1,-0.95,0},{-0.95,-1.05,0},{-1.05,-1.05,0}}; 
+        std::vector<std::vector<double>> triangle3{{0.9999,-0.95,-1},{0.9999,-1.05,-0.95},{0.9999,-1.05,-1.05}}; 
+
+        
+        
+        GeometryPtrType pTriangle1 = QEFGenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = QEFGenerateTriangle3D3(triangle2);
+        GeometryPtrType pTriangle3 = QEFGenerateTriangle3D3(triangle3);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1); 
+        array1.push_back(pTriangle2);
+        array1.push_back(pTriangle3);
+
+        array_1d<double,3> point = QEF::QEFPoint(*pVoxel,array1);
+
+        KRATOS_CHECK_NEAR(point[0], 0.9999, 1e-8);
+        KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
+        KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);        
+    }
+
+     KRATOS_TEST_CASE_IN_SUITE(QEF1dofExtremeCase, KratosCoreFastSuite) {
+        //A voxel crossed by a straight plane with only 2 nodes inside the volume (not good case approximation)
+        std::vector<double> distances{1, 1, -1, -1, -1, -1, -1, -1};   
+        GeometryPtrType pVoxel = QEFGenerateHexahedra3D8(distances);
+
+        //Generate the intersecting triangles
+        std::vector<std::vector<double>> triangle1{{-1,0.5,-0.95},{-0.95,0.5,-1.05},{-1.05,0.5,-1.05}}; 
+        std::vector<std::vector<double>> triangle2{{-1,-0.95,0.9999},{-0.95,-1.05,0.9999},{-1.05,-1.05,0.9999}}; 
+        std::vector<std::vector<double>> triangle3{{1,-0.95,0.9999},{1.05,-1.05,0.9999},{0.95,-1.05,0.9999}}; 
+        std::vector<std::vector<double>> triangle4{{1,0.5,-0.95},{1.05,0.5,-1.05},{0.95,0.5,-1.05}}; 
+        
+        GeometryPtrType pTriangle1 = QEFGenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = QEFGenerateTriangle3D3(triangle2);
+        GeometryPtrType pTriangle3 = QEFGenerateTriangle3D3(triangle3);
+        GeometryPtrType pTriangle4 = QEFGenerateTriangle3D3(triangle4);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1); 
+        array1.push_back(pTriangle2);
+        array1.push_back(pTriangle3);
+        array1.push_back(pTriangle4);
+
+        array_1d<double,3> point = QEF::QEFPoint(*pVoxel,array1);
+
+        KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
+        KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
+        KRATOS_CHECK_NEAR(point[2], 0.9999, 1e-8);        
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(QEF2dof, KratosCoreFastSuite) {
         //A voxel crossed by a straight plane with 4 nodes inside the volume
         std::vector<double> distances{1, 1, -1, -1, 1, 1, -1, -1};   

@@ -100,25 +100,28 @@ public:
      * the intersection does not allow templating.
      */ 
     template<class TGeometryType, class TGeometryArrayType>
-    static double QEFApproximation(
+    static double SimpleNodesQEFApproximation(
         const TGeometryType& rVoxel,  
         const TGeometryArrayType& rTriangles     
     ) {
         double volume = 0;
         GeometryArrayType edges = rVoxel.GenerateEdges();
-        PointsArrayType nodes = rVoxel.Points();
+        PointsArrayType Nodes = rVoxel.Points();
 
         array_1d<double,3> qef = QEF::QEFPoint(rVoxel,rTriangles); 
         //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
-        bool nodeInside = false; 
+        
+        DenseMatrix<unsigned int> NodesInFaces(4,6);
+        rVoxel.NodesInFaces(NodesInFaces);
 
-        for (int i = 0; i < nodes.size(); i++) {
-            if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
-                nodeInside = true;
-                TreatNode(i, rVoxel, rTriangles);
-            } 
+        for(int i = 0; i < NodesInFaces.size2(); i++) {
+            double Portion = GetPortion(Nodes,NodesInFaces,i);
+            double dist = NormalizedDistanceToQEF(Nodes, NodesInFaces, qef, i);
+            
+            double PartialVolume = Portion*abs(dist)/3.0;   //Volume of a piramid
+            volume += PartialVolume;
         }
-        if (!nodeInside) return EdgesPortionApproximation(rVoxel,rTriangles);
+        //if (volume == 0) return EdgesPortionApproximation(rVoxel,rTriangles);
         
         return volume;
     }
@@ -138,6 +141,41 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    
+    /**
+     * @brief Approximates the portion of a face that actually corresponds to volume (assigning each node 
+     * 1/numberOfNodes portion if it is inside the volume)
+     * @param rFace Reference to the face whos portion must be calculated
+     * @return 
+     * */
+    static double GetPortion(PointsArrayType& Nodes,const DenseMatrix<unsigned int>& NodesInFaces, int& face) 
+    {
+        double Portion = 0;
+        for(int i = 0; i < NodesInFaces.size1(); i++) {
+            if( Nodes[NodesInFaces(i,face)].GetSolutionStepValue(DISTANCE) > 0) Portion += 1.0/4;
+        }
+        return Portion;
+    }
+
+    static double NormalizedDistanceToQEF(
+        PointsArrayType& Nodes,
+        const DenseMatrix<unsigned int>& NodesInFaces, 
+        const array_1d<double,3>& Point, int& face) 
+    {
+        array_1d<double, 3> edge1 = Nodes[NodesInFaces(1,face)] - Nodes[NodesInFaces(0,face)];
+        array_1d<double, 3> edge2 = Nodes[NodesInFaces(2,face)] - Nodes[NodesInFaces(0,face)];
+        array_1d<double, 3> mNormal;
+        MathUtils<double>::UnitCrossProduct(mNormal, edge1, edge2);
+
+        const double mConstant =  inner_prod(mNormal, Nodes[NodesInFaces(0,face)]);
+        double Side = Distance(Nodes[NodesInFaces(1,face)],Nodes[NodesInFaces(0,face)]);
+        double Distance = inner_prod(mNormal,Point) - mConstant;
+
+        //std:: cout << "Plane Vector 1: " << edge1 <<std::endl << "Plain Vector 2: " << edge2 << std::endl;
+        //std::cout << "Normal vector: " << mNormal <<std::endl;
+
+        return Distance/Side;
+    }
 
 }; /* Class VoxelInsideVolumeQEF */
 

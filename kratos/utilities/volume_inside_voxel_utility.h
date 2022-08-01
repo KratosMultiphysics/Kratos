@@ -178,6 +178,38 @@ public:
         }
         return volume;
     }
+
+    /**
+     * @brief Returns the distance between two 3D points.
+     * @param rPoint0 reference to the first point
+     * @param rPoint1 reference to the second point
+     * @return Distance 
+     */  
+    static double Distance(const NodeType& Point0, const NodeType& Point1) {
+        const double lx = Point0.X() - Point1.X();
+        const double ly = Point0.Y() - Point1.Y();
+        const double lz = Point0.Z() - Point1.Z();
+
+        const double length = lx * lx + ly * ly + lz * lz;
+
+        return std::sqrt( length );
+    }
+
+    /**
+     * @brief Returns the distance between two 3D points.
+     * @param rPoint0 reference to the first point
+     * @param rPoint1 reference an array of 3 coordinates representing the second point
+     * @return Distance 
+     */  
+    static double Distance(const NodeType& Point0, const array_1d<double,3>& Point1) {
+        const double lx = Point0.X() - Point1[0];
+        const double ly = Point0.Y() - Point1[1];
+        const double lz = Point0.Z() - Point1[2];
+
+        const double length = lx * lx + ly * ly + lz * lz;
+
+        return std::sqrt( length );
+    }
     
 private:
 
@@ -231,37 +263,6 @@ private:
             } else inside = true;             
         }
         return portion;
-    }
-
-    /**
-     * @brief Returns the distance between two 3D points.
-     * @param rPoint0 reference to the first point
-     * @param rPoint1 reference to the second point
-     * @return Distance 
-     */  
-    static double Distance(const NodeType& Point0, const NodeType& Point1) {
-        const double lx = Point0.X() - Point1.X();
-        const double ly = Point0.Y() - Point1.Y();
-        const double lz = Point0.Z() - Point1.Z();
-
-        const double length = lx * lx + ly * ly + lz * lz;
-
-        return std::sqrt( length );
-    }
-    /**
-     * @brief Returns the distance between two 3D points.
-     * @param rPoint0 reference to the first point
-     * @param rPoint1 reference an array of 3 coordinates representing the second point
-     * @return Distance 
-     */  
-    static double Distance(const NodeType& Point0, const array_1d<double,3>& Point1) {
-        const double lx = Point0.X() - Point1[0];
-        const double ly = Point0.Y() - Point1[1];
-        const double lz = Point0.Z() - Point1[2];
-
-        const double length = lx * lx + ly * ly + lz * lz;
-
-        return std::sqrt( length );
     }
 
 }; /* Class VoxelInsideVolumeUtility */

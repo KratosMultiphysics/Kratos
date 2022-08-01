@@ -71,16 +71,48 @@ namespace Testing {
         Element::Pointer pTriangle = triangles.CreateNewElement("Element3D3N", 1, {1, 2, 3}, p_properties_1);
         return pTriangle->pGetGeometry();
     } 
+
+    //Basic cases tests (all nodes inside/ouside)
+    KRATOS_TEST_CASE_IN_SUITE(QEFSimpleNodesFull, KratosCoreFastSuite) {
+        //A voxel crossed by a straight plane with only 2 nodes inside th volume (Bad case approximation)
+        std::vector<double> distances{1, 1, 1, 1, 1, 1, 1, 1};   
+        GeometryPtrType pVoxel = QEFVolumeGenerateHexahedra3D8(distances);
+
+        GeometryArrayType array1;
+
+        //Call the volume utility
+        double volume = VolumeInsideVoxelQEF::SimpleNodesQEFApproximation<Geometry<NodeType>>(*pVoxel,array1);
+        const double ExpectedVolume = 1.0; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
+        /*in this case the volume expected to be returned by the method approximation is actually very close 
+        to the real volume of the test case, but this will normally not happen*/
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(QEFSimpleNodesEmpty, KratosCoreFastSuite) {
+        //A voxel crossed by a straight plane with only 2 nodes inside th volume (Bad case approximation)
+        std::vector<double> distances{1, 1, 1, 1, 1, 1, 1, 1};   
+        GeometryPtrType pVoxel = QEFVolumeGenerateHexahedra3D8(distances);
+
+        GeometryArrayType array1;
+
+        //Call the volume utility
+        double volume = VolumeInsideVoxelQEF::SimpleNodesQEFApproximation<Geometry<NodeType>>(*pVoxel,array1);
+        const double ExpectedVolume = 1.0; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
+        /*in this case the volume expected to be returned by the method approximation is actually very close 
+        to the real volume of the test case, but this will normally not happen*/
+    }
+
     //A couple of test regarding the real efficiency and limitations of this method
 
-    KRATOS_TEST_CASE_IN_SUITE(QEFVolumeInsideVoxel0, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(QEFSimpleNodes0, KratosCoreFastSuite) {
         std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
         GeometryPtrType pVoxel = QEFVolumeGenerateHexahedra3D8(distances);
 
         //Generate the intersecting triangles
         std::vector<std::vector<double>> triangle1{{-1,0.5,-0.95},{-0.95,0.5,-1.05},{-1.05,0.5,-1.05}}; 
         std::vector<std::vector<double>> triangle2{{-1,-0.95,0},{-0.95,-1.05,0},{-1.05,-1.05,0}}; 
-        std::vector<std::vector<double>> triangle3{{0.75,-0.95,-1},{0.75,-1.05,-0.95},{0.75,-1.05,-1.05}}; 
+        std::vector<std::vector<double>> triangle3{{-0.5,-0.95,-1},{-0.5,-1.05,-0.95},{-0.5,-1.05,-1.05}}; 
 
         
         
@@ -94,13 +126,43 @@ namespace Testing {
         array1.push_back(pTriangle3);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelQEF::QEFApproximation<Geometry<NodeType>>(*pVoxel,array1);
-        const double ExpectedVolume = 3.0/8; 
+        double volume = VolumeInsideVoxelQEF::SimpleNodesQEFApproximation<Geometry<NodeType>>(*pVoxel,array1);
+        const double ExpectedVolume = 1.0/8; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);      
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(QEFVolumeInsideVoxel1, KratosCoreFastSuite) {
-        //A voxel crossed by a straight plane with only 2 nodes inside th volume (good case approximation)
+     KRATOS_TEST_CASE_IN_SUITE(QEFSimpleNodes1, KratosCoreFastSuite) {
+        //A voxel crossed by a straight plane with only 2 nodes inside the volume (ood case approximation)
+        std::vector<double> distances{1, 1, -1, -1, -1, -1, -1, -1};   
+        GeometryPtrType pVoxel = QEFVolumeGenerateHexahedra3D8(distances);
+
+        //Generate the intersecting triangles
+        std::vector<std::vector<double>> triangle1{{-1,0.0,-0.95},{-0.95,0.0,-1.05},{-1.05,0.0,-1.05}}; 
+        std::vector<std::vector<double>> triangle2{{-1,-0.95,0},{-0.95,-1.05,0},{-1.05,-1.05,0}}; 
+        std::vector<std::vector<double>> triangle3{{1,-0.95,0},{1.05,-1.05,0},{0.95,-1.05,0}}; 
+        std::vector<std::vector<double>> triangle4{{1,0.0,-0.95},{1.05,0.0,-1.05},{0.95,0.0,-1.05}}; 
+        
+        GeometryPtrType pTriangle1 = QEFVolumeGenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = QEFVolumeGenerateTriangle3D3(triangle2);
+        GeometryPtrType pTriangle3 = QEFVolumeGenerateTriangle3D3(triangle3);
+        GeometryPtrType pTriangle4 = QEFVolumeGenerateTriangle3D3(triangle4);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1); 
+        array1.push_back(pTriangle2);
+        array1.push_back(pTriangle3);
+        array1.push_back(pTriangle4);
+
+        //Call the volume utility
+        double volume = VolumeInsideVoxelQEF::SimpleNodesQEFApproximation<Geometry<NodeType>>(*pVoxel,array1);
+        const double ExpectedVolume = 0.25; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
+        /*in this case the volume returned by the method approximation exactly the same to the real volume of the 
+        test case, since this is a perfect choosen case*/
+    }
+    
+    KRATOS_TEST_CASE_IN_SUITE(QEFSimpleNodes2, KratosCoreFastSuite) {
+        //A voxel crossed by a straight plane with only 2 nodes inside th volume (Bad case approximation)
         std::vector<double> distances{1, 1, -1, -1, -1, -1, -1, -1};   
         GeometryPtrType pVoxel = QEFVolumeGenerateHexahedra3D8(distances);
 
@@ -122,43 +184,14 @@ namespace Testing {
         array1.push_back(pTriangle4);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelQEF::QEFApproximation<Geometry<NodeType>>(*pVoxel,array1);
+        double volume = VolumeInsideVoxelQEF::SimpleNodesQEFApproximation<Geometry<NodeType>>(*pVoxel,array1);
         const double ExpectedVolume = 3.0/8; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
-        /*in this case the volume expected to be returned by the method approximation is actually very close 
-        to the real volume of the test case, but this will normally not happen*/
-    }
-     KRATOS_TEST_CASE_IN_SUITE(QEFVolumeInsideVoxel2, KratosCoreFastSuite) {
-        //A voxel crossed by a straight plane with only 2 nodes inside the volume (not good case approximation)
-        std::vector<double> distances{1, 1, -1, -1, -1, -1, -1, -1};   
-        GeometryPtrType pVoxel = QEFVolumeGenerateHexahedra3D8(distances);
-
-        //Generate the intersecting triangles
-        std::vector<std::vector<double>> triangle1{{-1,0.5,-0.95},{-0.95,0.5,-1.05},{-1.05,0.5,-1.05}}; 
-        std::vector<std::vector<double>> triangle2{{-1,-0.95,0},{-0.95,-1.05,0},{-1.05,-1.05,0}}; 
-        std::vector<std::vector<double>> triangle3{{1,-0.95,0},{1.05,-1.05,0},{0.95,-1.05,0}}; 
-        std::vector<std::vector<double>> triangle4{{1,0.5,-0.95},{1.05,0.5,-1.05},{0.95,0.5,-1.05}}; 
-        
-        GeometryPtrType pTriangle1 = QEFVolumeGenerateTriangle3D3(triangle1);
-        GeometryPtrType pTriangle2 = QEFVolumeGenerateTriangle3D3(triangle2);
-        GeometryPtrType pTriangle3 = QEFVolumeGenerateTriangle3D3(triangle3);
-        GeometryPtrType pTriangle4 = QEFVolumeGenerateTriangle3D3(triangle4);
-
-        GeometryArrayType array1;
-        array1.push_back(pTriangle1); 
-        array1.push_back(pTriangle2);
-        array1.push_back(pTriangle3);
-        array1.push_back(pTriangle4);
-
-        //Call the volume utility
-        double volume = VolumeInsideVoxelQEF::QEFApproximation<Geometry<NodeType>>(*pVoxel,array1);
-        const double ExpectedVolume = 0.291; 
-        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
-        /*in this case the volume returned by the method approximation is not close to the real volume of the 
-        test case, since we would expect a real volume circa 0.1875 */
+         /*in this case the volume returned by the method approximation is not close to the real volume of the 
+        test case, since we would expect a real volume circa 0.75 */
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(QEFVolumeInsideVoxel3, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(QEFSimpleNodes3, KratosCoreFastSuite) {
         //A voxel crossed by a straight plane with 4 nodes inside the volume
         std::vector<double> distances{1, 1, -1, -1, 1, 1, -1, -1};   
         GeometryPtrType pVoxel = QEFVolumeGenerateHexahedra3D8(distances);
@@ -181,7 +214,7 @@ namespace Testing {
         array1.push_back(pTriangle4);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelQEF::QEFApproximation<Geometry<NodeType>>(*pVoxel,array1);
+        double volume = VolumeInsideVoxelQEF::SimpleNodesQEFApproximation<Geometry<NodeType>>(*pVoxel,array1);
         const double ExpectedVolume = 7.0/12; //0.5833
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
         /*in this case the volume returned by the method approximation is not close to the real volume of the 
@@ -223,8 +256,8 @@ namespace Testing {
         array1.push_back(pTriangle8);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelQEF::QEFApproximation<Geometry<NodeType>>(*pVoxel,array1);
-        const double ExpectedVolume = 2.0/12; //0.1666
+        double volume = VolumeInsideVoxelQEF::SimpleNodesQEFApproximation<Geometry<NodeType>>(*pVoxel,array1);
+        const double ExpectedVolume = 0; //no nodes inside
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
         /*in this case the volume returned by the method approximation is not close to the real volume of the 
         test case, since we would expect a real volume circa 0.5 */
