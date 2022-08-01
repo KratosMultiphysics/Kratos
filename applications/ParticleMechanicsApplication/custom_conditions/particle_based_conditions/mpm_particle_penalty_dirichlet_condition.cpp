@@ -79,8 +79,8 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
         const unsigned int number_of_nodes = r_geometry.PointsNumber();
         GeneralVariables Variables;
 
-        // Calculating shape function
-        MPMShapeFunctionPointValues(Variables.N);
+        // Calculating shape function: for normal direction small cut modification should not be considered!
+        MPMParticleBaseCondition::MPMShapeFunctionPointValues(Variables.N);
 
         // Here MPC contribution of normal vector are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
