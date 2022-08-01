@@ -1314,6 +1314,8 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
             "no_swap_mesh"                        : false,
             "normal_regularization_mesh"          : false,
             "deactivate_detect_angle"             : false,
+            "force_angle_detection_value"         : false,
+            "angle_detection_value"               : 45.0,
             "force_gradation_value"               : false,
             "mesh_optimization_only"              : false,
             "gradation_value"                     : 1.3

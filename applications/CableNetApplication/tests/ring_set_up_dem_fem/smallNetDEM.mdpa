@@ -29,6 +29,9 @@ Begin SubModelPart 1 // GUI conditionid DEM-VelocityIC group identifier: spherer
   Begin SubModelPartNodes
   188
   End SubModelPartNodes
+  Begin SubModelPartElements
+  1
+  End SubModelPartElements
 End SubModelPart
 
 Begin Table 0 TIME VELOCITY

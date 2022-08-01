@@ -42,8 +42,7 @@ class ConvergenceOutputProcess(KM.Process):
         else:
             self.integrate_over_all_the_domain = False
 
-        self.file = self._InitializeOutputFile()
-        self.file.flush() # Since this process will reuse the existing files, we need to ensure the file construction is finished. Otherwise problems may arise if the first analysis didn't finish.
+        self._InitializeOutputFile()
 
 
     def ExecuteInitialize(self):
@@ -68,11 +67,6 @@ class ConvergenceOutputProcess(KM.Process):
         self._WriteAverageError()
 
 
-    def ExecuteFinalize(self):
-        """Close the file."""
-        self.file.close()
-
-
     def Check(self):
         """Check the correctness of the input parameters."""
         for variable in self.variables:
@@ -82,7 +76,7 @@ class ConvergenceOutputProcess(KM.Process):
         low_corner = self.settings["low_corner"].GetVector()
         high_corner = self.settings["high_corner"].GetVector()
         if not low_corner.Size() == high_corner.Size():
-            raise Exception("The low and high corners does not have the same dimension")
+            raise Exception("The low and high corners do not have the same dimension")
 
         if low_corner.Size() == 0:
             pass
@@ -96,12 +90,25 @@ class ConvergenceOutputProcess(KM.Process):
 
 
     def _InitializeOutputFile(self):
-        path = Path(self.settings["file_name"].GetString()).with_suffix('.dat')
-        file = open(path, "a+")
-        if path.stat().st_size == 0:
-            header = self._GetHeader()
-            file.write(header)
-        return file
+        file_path = Path(self.settings["file_name"].GetString()).with_suffix('.dat')
+        file_path.touch(exist_ok=True)
+        header = self._GetHeader()
+        if file_path.stat().st_size == 0:
+            with open(file_path, 'w') as file:
+                file.write(header)
+        else:
+            existing_header = ''
+            with open(file_path, 'r') as file:
+                for i in range(2):
+                    existing_header += file.readline()
+            if existing_header != header:
+                msg = self.__class__.__name__ + ": "
+                msg += "The specified fields mismatch\n"
+                msg += "Existing header:\n"
+                msg += existing_header
+                msg += "Specified header:\n"
+                msg += header
+                raise Exception(msg)
 
 
     def _GetHeader(self):
@@ -113,19 +120,19 @@ class ConvergenceOutputProcess(KM.Process):
             high_corner = KM.Point(self.settings["high_corner"].GetVector())
             header += "over rectangle {} x {}\n".format(list(low_corner), list(high_corner))
 
-        header += "#label \t num_nodes \t num_elems \t time_step \t time \t computational_time"
+        header += "label num_nodes num_elems time_step time computational_time"
         for variable in self.variables:
-            header += '\t' + variable.Name()
+            header += ' ' + variable.Name()
         header += '\n'
         return header
 
 
     def _WriteAverageError(self):
-        data  = self.settings["analysis_label"].GetString() + '\t'
-        data += str(self.model_part.NumberOfNodes()) + '\t'
-        data += str(self.model_part.NumberOfElements()) + '\t'
-        data += str(self.model_part.ProcessInfo[KM.DELTA_TIME]) + '\t'
-        data += str(self.model_part.ProcessInfo[KM.TIME]) + '\t'
+        data  = self.settings["analysis_label"].GetString() + ' '
+        data += str(self.model_part.NumberOfNodes()) + ' '
+        data += str(self.model_part.NumberOfElements()) + ' '
+        data += str(self.model_part.ProcessInfo[KM.DELTA_TIME]) + ' '
+        data += str(self.model_part.ProcessInfo[KM.TIME]) + ' '
         data += str(time.time() - self.start_time)
 
         if not self.integrate_over_all_the_domain:
@@ -137,8 +144,9 @@ class ConvergenceOutputProcess(KM.Process):
                 value = SW.ShallowWaterUtilities().ComputeL2NormNonHistorical(self.model_part, variable)
             else:
                 value = SW.ShallowWaterUtilities().ComputeL2NormNonHistorical(self.model_part, variable, low_corner, high_corner)
-            data += '\t{}'.format(value)
+            data += ' {}'.format(value)
         data += '\n'
 
-        self.file.write(data)
-        self.file.flush()
+        file_path = Path(self.settings["file_name"].GetString()).with_suffix('.dat')
+        with open(file_path, 'a') as file:
+            file.write(data)
