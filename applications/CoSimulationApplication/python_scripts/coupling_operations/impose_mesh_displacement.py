@@ -1,6 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication as KMC
+import KratosMultiphysics.MeshMovingApplication as KMM
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
@@ -55,7 +56,7 @@ class ImposeMeshDisplacementOperation(CoSimulationCouplingOperation):
             axis = [1,0,0]
 
         # Apply displacement to mesh
-        KM.MeshMovingApplication.MoveModelPart(
+        KMM.MoveModelPart(
             model_part,
             axis,                 # rotation axis
             angle,                # rotation angle
