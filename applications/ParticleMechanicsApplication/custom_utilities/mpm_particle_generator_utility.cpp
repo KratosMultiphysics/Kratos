@@ -331,7 +331,7 @@ namespace MPMParticleGeneratorUtility
 
                             if (geo_type != GeometryData::KratosGeometryType::Kratos_Point2D  && geo_type != GeometryData::KratosGeometryType::Kratos_Point3D)
                             {
-                                DetermineConditionIntegrationMethod(r_geometry, particles_per_condition,
+                                DetermineGeometryIntegrationMethod(r_geometry, particles_per_condition,
                                 number_of_points_per_span);
                             
                                 auto integration_info = IntegrationInfo(r_geometry.LocalSpaceDimension(), number_of_points_per_span, IntegrationInfo::QuadratureMethod::GAUSS);
@@ -903,7 +903,7 @@ namespace MPMParticleGeneratorUtility
         if (!IsEqualVolumes) rN = rGeom.ShapeFunctionsValues(rIntegrationMethod);
     }
 
-    void DetermineConditionIntegrationMethod(const GeometryType& rGeom, const SizeType ParticlesPerCondition,
+    void DetermineGeometryIntegrationMethod(const GeometryType& rGeom, const SizeType ParticlesPerCondition,
         IndexType& rNumPointsPerSpan)
     {
         const GeometryData::KratosGeometryType geo_type = rGeom.GetGeometryType();
@@ -911,34 +911,17 @@ namespace MPMParticleGeneratorUtility
 
         if (geo_type == GeometryData::KratosGeometryType::Kratos_Line2D2  || geo_type == GeometryData::KratosGeometryType::Kratos_Line3D2)
         {
-            switch (ParticlesPerCondition)
-            {
-            case 1:
-                rNumPointsPerSpan = 1;
-                break;
-            case 2:
-                rNumPointsPerSpan = 2;
-                break;
-            case 3:
-                rNumPointsPerSpan = 3;
-                break;
-            case 4:
-                rNumPointsPerSpan = 4;
-                break;
-            case 5:
-                rNumPointsPerSpan = 5;
-                break;
-            default:
+            if (ParticlesPerCondition>0 && ParticlesPerCondition<6)
+                rNumPointsPerSpan = ParticlesPerCondition;
+            else{
                 rNumPointsPerSpan = 1;
                 std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(ParticlesPerCondition);
                 warning_msg += " is not available for Line" + std::to_string(domain_size) + "D.\n";
                 warning_msg += "Available options are: 1 (default), 2, 3, 4, 5.\n";
                 warning_msg += "The default number of particle: 1 is currently assumed.";
                 KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
-                break;
             }
-
-
+            
         }
         else if (geo_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
         {

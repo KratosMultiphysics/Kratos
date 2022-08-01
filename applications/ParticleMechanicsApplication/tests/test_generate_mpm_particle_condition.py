@@ -33,7 +33,7 @@ class TestGenerateMPMParticleCondition(KratosUnittest.TestCase):
             condition.SetValue(KratosParticle.MPC_BOUNDARY_CONDITION_TYPE, 1)
             if (geometry_element == "Point"):
                 condition.SetValue(KratosParticle.MPC_IS_NEUMANN, True)
-                condition.SetValue(KratosParticle.POINT_LOAD, [1.0,0,0])
+                condition.SetValue(KratosParticle.POINT_LOAD, [0.0,0,0])
 
 
 
