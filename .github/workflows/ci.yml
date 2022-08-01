@@ -13,6 +13,9 @@ concurrency:
   cancel-in-progress: true
 
 
+permissions:
+  contents: read
+
 jobs:
   ubuntu:
     runs-on: ubuntu-latest
@@ -31,7 +34,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Build
       shell: bash
@@ -124,14 +127,14 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.8'
 
     - name: Download boost
       run: |
-        $url = "https://sourceforge.net/projects/boost/files/boost/1.74.0/boost_1_74_0.tar.gz/download"
+        $url = "https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.gz"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
         7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
@@ -162,11 +165,11 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-centos7-python35:latest
+      image: kratosmultiphysics/kratos-image-ci-centos7:latest
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Build
       run: |
@@ -177,7 +180,7 @@ jobs:
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3.5 kratos/python_scripts/run_tests.py -l nightly -c python3.5
+        python3.8 kratos/python_scripts/run_tests.py -l nightly -c python3.8
 
 
   ubuntu-core-without-unity:
@@ -197,11 +200,11 @@ jobs:
         CCACHE_MAXSIZE: 500M
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Cache Build
       id: cache-build
-      uses: actions/cache@v1
+      uses: actions/cache@v3
       with:
         path: ~/.ccache
         key: ${{ runner.os }}-no-unity-ccache-${{ github.sha }}
@@ -309,14 +312,14 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.8'
 
     - name: Download boost
       run: |
-        $url = "https://sourceforge.net/projects/boost/files/boost/1.74.0/boost_1_74_0.tar.gz/download"
+        $url = "https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.gz"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
         7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
@@ -383,7 +386,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Build
       shell: bash

@@ -5,12 +5,6 @@ from KratosMultiphysics.process_factory import KratosProcessFactory
 import os
 
 try:
-    import numpy
-    missing_numpy = False
-except ImportError:
-    missing_numpy = True
-
-try:
     import scipy
     missing_scipy = False
 except ImportError:
@@ -22,7 +16,7 @@ def GetFilePath(fileName):
 
 class TestWaveGeneratorProcess(KratosUnittest.TestCase):
 
-    @KratosUnittest.skipIf(missing_numpy or missing_scipy, "Missing python libraries (numpy/scipy)")
+    @KratosUnittest.skipIf(missing_scipy, "Missing python libraries (scipy)")
     def test_wave_generator_process_by_direction(self):
         model = KM.Model()
         settings = KM.Parameters("""{
@@ -72,7 +66,7 @@ class TestWaveGeneratorProcess(KratosUnittest.TestCase):
         SolutionLoopForProcesses(model, settings["process_list"], end_time)
 
 
-    @KratosUnittest.skipIf(missing_numpy or missing_scipy, "Missing python libraries (numpy/scipy)")
+    @KratosUnittest.skipIf(missing_scipy, "Missing python libraries (scipy)")
     def test_wave_generator_process_by_normal(self):
         model = KM.Model()
         settings = KM.Parameters("""{
@@ -114,7 +108,7 @@ class TestWaveGeneratorProcess(KratosUnittest.TestCase):
         SolutionLoopForProcesses(model, settings["process_list"], end_time)
 
 
-    @KratosUnittest.skipIf(missing_numpy or missing_scipy, "Missing python libraries (numpy/scipy)")
+    @KratosUnittest.skipIf(missing_scipy, "Missing python libraries (scipy)")
     def test_wave_generator_process_with_topography(self):
         model = KM.Model()
         settings = KM.Parameters("""{
