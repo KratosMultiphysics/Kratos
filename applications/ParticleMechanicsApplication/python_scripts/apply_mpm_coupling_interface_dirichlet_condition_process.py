@@ -7,10 +7,10 @@ from math import sqrt
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyMPMCouplingInterfaceConditionProcess(Model, settings["Parameters"])
+    return ApplyMPMCouplingInterfaceDirichletConditionProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditionProcess):
+class ApplyMPMCouplingInterfaceDirichletConditionProcess(ApplyMPMParticleDirichletConditionProcess):
     def __init__(self, Model, settings ):
 
         default_parameters = KratosMultiphysics.Parameters( """
@@ -28,7 +28,7 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
         self.model_part_name = settings["model_part_name"].GetString()
 
         # Initiate base class - Dirichlet condition
-        super(ApplyMPMCouplingInterfaceConditionProcess, self).__init__(Model, settings)
+        super(ApplyMPMCouplingInterfaceDirichletConditionProcess, self).__init__(Model, settings)
 
         # Set INTERFACE flag active
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, True, self.model_part.Conditions)
@@ -41,11 +41,11 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
         mpm_material_model_part_name = "MPM_Material." + self.model_part_name
         self.model_part = self.model[mpm_material_model_part_name]
 
-        ### Translate conditions with INTERFACE flag into a new model part "MPM_Coupling_Interface" responsible for coupling with structure
+        ### Translate conditions with INTERFACE flag into a new model part "MPM_Coupling_Dirichlet_Interface" responsible for coupling with structure
         # Create coupling model part
-        if not self.model.HasModelPart("MPM_Coupling_Interface"):
-            self.model.CreateModelPart("MPM_Coupling_Interface")
-        self.coupling_model_part = self.model.GetModelPart("MPM_Coupling_Interface").CreateSubModelPart(self.model_part_name)
+        if not self.model.HasModelPart("MPM_Coupling_Dirichlet_Interface"):
+            self.model.CreateModelPart("MPM_Coupling_Dirichlet_Interface")
+        self.coupling_model_part = self.model.GetModelPart("MPM_Coupling_Dirichlet_Interface").CreateSubModelPart(self.model_part_name)
 
         # Prepare coupling model part
         self._prepare_coupling_model_part(self.coupling_model_part)

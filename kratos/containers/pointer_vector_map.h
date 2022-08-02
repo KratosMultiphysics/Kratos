@@ -483,19 +483,40 @@ public:
         return mData;
     }
 
+    /**
+     * @brief Get the maximum size of buffer used in the container.
+     */
+    size_type GetMaxBufferSize() const 
+    {
+        return mMaxBufferSize;
+    }
 
-    /** Set the maximum size of buffer used in the container.
-
-    This container uses a buffer which keep data unsorted. After
-    buffer size arrived to the MaxBufferSize it will sort all
-    container and empties buffer.
-
-    @param NewSize Is the new buffer maximum size. */
-    void SetMaxBufferSize(size_type NewSize)
+    /** 
+     * @brief Set the maximum size of buffer used in the container.
+     * @details This container uses a buffer which keep data unsorted. After buffer size arrived to the MaxBufferSize it will sort all container and empties buffer.
+     * @param NewSize Is the new buffer maximum size. 
+     */
+    void SetMaxBufferSize(const size_type NewSize)
     {
         mMaxBufferSize = NewSize;
     }
 
+    /**
+     * @brief Get the sorted part size of buffer used in the container.
+     */
+    size_type GetSortedPartSize() const 
+    {
+        return mSortedPartSize;
+    }
+
+    /** 
+     * @brief Set the sorted part size of buffer used in the container.
+     * @param NewSize Is the new buffer maximum size. 
+     */
+    void SetSortedPartSize(const size_type NewSize)
+    {
+        mSortedPartSize = NewSize;
+    }
 
     ///@}
     ///@name Inquiry
