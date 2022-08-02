@@ -142,14 +142,14 @@ public:
         const TGeometryArrayType& rTriangles     
     ) {
         double volume = 0;
-        GeometryArrayType Faces = rVoxel.GenerateFaces()
+        GeometryArrayType Faces = rVoxel.GenerateFaces();
 
         array_1d<double,3> qef = QEF::QEFPoint(rVoxel,rTriangles); 
         //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
 
-        for(int i = 0; i < Faces.size2(); i++) {
-            double Portion = GetPortionByQEF(Faces[i],rTriangles);
-            double dist = NormalizedDistanceToQEF(Nodes, NodesInFaces, qef, i);
+        for(int i = 0; i < Faces.size(); i++) {
+            double Portion = EdgesPortionApproximation(Faces[i],rTriangles);
+            double dist = NormalizedDistanceToQEF(Faces[i], qef, i);
             
             double PartialVolume = Portion*abs(dist)/3.0;   //Volume of a piramid
             volume += PartialVolume;
@@ -193,24 +193,6 @@ private:
     }
 
     /**
-     * @brief Approximates the portion of a face that actually corresponds to area (assigning each node 
-     * 1/numberOfNodes portion if it is inside the volume)
-     * @param Nodes The nodes of the geometry
-     * @param NodesInFaces matrix containing the index of the nodes of the geometry that belong to each faces
-     * @return 
-     * */
-    template<class TGeometryType, class TGeometryArrayType>
-    static double GetPortionByQEF(TGeometryType& rFace, TGeometryArrayType& rTriangles) 
-    {
-        double Portion = 0;
-        array_1d<double,3> FaceQEF = QEF::QEFPoint(rFace,rTriangles); 
-
-        //implementation??
-
-        return Portion;
-    }
-
-    /**
      * @brief Calculates the distance from a face (given by its nodes) and the given point, normalized 
      * to the size of the face side.
      * @param Nodes The nodes of the geometry
@@ -229,6 +211,33 @@ private:
 
         const double mConstant =  inner_prod(mNormal, Nodes[NodesInFaces(0,face)]);
         double Side = Distance(Nodes[NodesInFaces(1,face)],Nodes[NodesInFaces(0,face)]);
+        double Distance = inner_prod(mNormal,Point) - mConstant;
+
+        //std:: cout << "Plane Vector 1: " << edge1 <<std::endl << "Plain Vector 2: " << edge2 << std::endl;
+        //std::cout << "Normal vector: " << mNormal <<std::endl;
+
+        return Distance/Side;
+    }
+
+    /**
+     * @brief Calculates the distance from a face (given by its nodes) and the given point, normalized 
+     * to the size of the face side.
+     * @param Nodes The nodes of the geometry
+     * @param NodesInFaces matrix containing the index of the nodes of the geometry that belong to each faces
+     * @return Distance from the face to the specified point
+     * */
+    static double NormalizedDistanceToQEF(
+        GeometryType& rFace, 
+        const array_1d<double,3>& Point, int& face) 
+    {
+        PointsArrayType Nodes = rFace.Points();
+        array_1d<double, 3> edge1 = Nodes[1]- Nodes[0];
+        array_1d<double, 3> edge2 = Nodes[2] - Nodes[0];
+        array_1d<double, 3> mNormal;
+        MathUtils<double>::UnitCrossProduct(mNormal, edge1, edge2);
+
+        const double mConstant =  inner_prod(mNormal, Nodes[0]);
+        double Side = Distance(Nodes[1],Nodes[0]);
         double Distance = inner_prod(mNormal,Point) - mConstant;
 
         //std:: cout << "Plane Vector 1: " << edge1 <<std::endl << "Plain Vector 2: " << edge2 << std::endl;
