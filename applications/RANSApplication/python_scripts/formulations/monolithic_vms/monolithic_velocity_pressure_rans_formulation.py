@@ -116,6 +116,10 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
                 "use_orthogonal_subscales": false,
                 "dynamic_tau": 0.01
             },
+            "use_frozen_turbulence" : false,
+            "additional_frozen_turbulence_constants": {
+                "a1"  : 0.31
+            },
             "wall_function_settings": {}
         }""")
 
@@ -155,6 +159,12 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         if (self.flow_solver_formulation.element_name == "VMS"):
             base_model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
             base_model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
+
+        if (self.GetParameters()["use_frozen_turbulence"].GetBool()):
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Frozen turbulence assumption is used. Adding respective variables.")
+            base_model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
+            base_model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE)
+            base_model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step variables.")
 
@@ -310,6 +320,12 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         process_info = self.GetBaseModelPart().ProcessInfo
         process_info.SetValue(KratosRANS.VON_KARMAN, von_karman)
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, settings["c_mu"].GetDouble())
+
+        if (self.GetParameters()["use_frozen_turbulence"].GetBool()):
+            process_info.SetValue(KratosRANS.TURBULENCE_RANS_A1, self.GetParameters()["additional_frozen_turbulence_constants"]["a1"].GetDouble())
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Frozen turbulence assumption is used. Added respective constants.")
+
+        Kratos.Logger.PrintWarning(self.__class__.__name__, "Constants are applied.")
 
     def SetWallFunctionSettings(self, settings=None):
         formulation_settings = self.GetParameters()["wall_function_settings"]
