@@ -179,6 +179,24 @@ public:
         return volume;
     }
 
+     /**
+     * @brief Aproximates the actual volume inside the voxel 
+     * @param rVoxel references to the voxel whose actual volume will be approximated
+     * @param rTriangles references to the triangles which intersect the voxel at some edge.
+     * @return Approximated volume 
+     * @note This approximation finds the portion of each node that represents volume (using
+     * intersection points with triangles of the mesh). Even if this class is templated for both 
+     * parameters, it will only work with intersecting TRIANGLES, since the utility used to compute
+     * the intersection does not allow templating.
+     */  
+    template<class TGeometryType, class TGeometryArrayType>
+    static double NodesGeometricalApproximation(
+        const TGeometryType& rVoxel,  
+        const TGeometryArrayType& rTriangles     
+    ) {
+        return 0;    
+    }
+
     /**
      * @brief Returns the distance between two 3D points.
      * @param rPoint0 reference to the first point
