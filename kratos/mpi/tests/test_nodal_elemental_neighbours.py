@@ -6,32 +6,30 @@ from KratosMultiphysics.testing.utilities import ReadModelPart
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
 
-class TestNodalElementalNeighbours(KratosUnittest.TestCase):
-
-    def test_global_neighbour_pointers(self):
-
-        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
-
-        current_model = KratosMultiphysics.Model()
-        main_model_part = current_model.CreateModelPart("main_model_part")
-        main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]=2
+class TestNodalEntityNeighbours(KratosUnittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.current_model = KratosMultiphysics.Model()
+        cls.main_model_part = cls.current_model.CreateModelPart("main_model_part")
+        cls.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]=2
 
         ## Add variables to the model part
-        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+        cls.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        cls.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        cls.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        cls.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
         ## Serial partition of the original .mdpa file
         input_filename = GetFilePath("test_mpi_communicator")
-        ReadModelPart(input_filename, main_model_part)
+        ReadModelPart(input_filename, cls.main_model_part)
 
+    def test_global_elemental_neighbour_pointers(self):
         #compute nodal neighbours
-        neighbour_finder = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(kratos_comm, main_model_part)
+        neighbour_finder = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.main_model_part)
         neighbour_finder.Execute()
 
         #obtain the ids of all the neighbours
-        found_ids = neighbour_finder.GetNeighbourIds(main_model_part.Nodes)
+        found_ids = neighbour_finder.GetNeighbourIds(self.main_model_part.Nodes)
 
         reference_ids = {
             1 : [1,2],
@@ -45,9 +43,34 @@ class TestNodalElementalNeighbours(KratosUnittest.TestCase):
             9 : [7,8]
         }
 
-        #do the check
+        self.__CheckNeighbourIds(found_ids, reference_ids)
+
+    def test_global_condition_neighbour_pointers(self):
+        #compute nodal neighbours
+        neighbour_finder = KratosMultiphysics.FindGlobalNodalConditionNeighboursProcess(self.main_model_part)
+        neighbour_finder.Execute()
+
+        #obtain the ids of all the neighbours
+        found_ids = neighbour_finder.GetNeighbourIds(self.main_model_part.Nodes)
+
+        reference_ids = {
+            9: [4, 5],
+            8: [5, 6],
+            7: [6, 7],
+            6: [3, 4],
+            5: [],
+            4: [7, 8],
+            3: [2, 3],
+            2: [1, 2],
+            1: [1, 8]
+        }
+
+        self.__CheckNeighbourIds(found_ids, reference_ids)
+
+    def __CheckNeighbourIds(self, found_ids, reference_ids):
         for key,values in found_ids.items():
             ref_values = reference_ids[key]
+            self.assertEqual(len(ref_values), len(values))
             for i in range(len(ref_values)):
                 self.assertEqual(values[i],ref_values[i])
 
