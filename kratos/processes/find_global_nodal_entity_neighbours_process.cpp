@@ -17,9 +17,14 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/condition.h"
+#include "includes/element.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 #include "utilities/compute_neighbour_list_functor.h"
+#include "utilities/communication_coloring_utilities.h"
+#include "utilities/pointer_communicator.h"
+#include "utilities/global_pointer_utilities.h"
 
 // Include base h
 #include "processes/find_global_nodal_entity_neighbours_process.h"
@@ -28,15 +33,31 @@ namespace Kratos
 {
 
 template <>
+ModelPart::ConditionsContainerType& FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>::GetContainer()
+{
+    return this->mrModelPart.Conditions();
+}
+
+template <>
 ModelPart::ElementsContainerType& FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>::GetContainer()
 {
     return this->mrModelPart.Elements();
 }
 
-template <>
-ModelPart::ConditionsContainerType& FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>::GetContainer()
+template<>
+FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>::FindGlobalNodalEntityNeighboursProcess(
+    ModelPart& rModelPart)
+    : mrModelPart(rModelPart),
+      mrOutputVariable(NEIGHBOUR_CONDITIONS)
 {
-    return this->mrModelPart.Conditions();
+}
+
+template<>
+FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>::FindGlobalNodalEntityNeighboursProcess(
+    ModelPart& rModelPart)
+    : mrModelPart(rModelPart),
+      mrOutputVariable(NEIGHBOUR_ELEMENTS)
+{
 }
 
 template<class TContainerType>

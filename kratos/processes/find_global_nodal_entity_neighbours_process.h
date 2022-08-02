@@ -22,17 +22,13 @@
 // External includes
 
 // Project includes
-// Clear the includes.
 #include "includes/define.h"
 #include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/global_pointer_variables.h"
 #include "utilities/communication_coloring_utilities.h"
 #include "utilities/pointer_communicator.h"
 #include "includes/mpi_serializer.h"
-#include "utilities/compute_neighbour_list_functor.h"
 #include "utilities/global_pointer_utilities.h"
 
 namespace Kratos
@@ -75,7 +71,10 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Constructor.
+    FindGlobalNodalEntityNeighboursProcess(
+        ModelPart& rModelPart);
+
     FindGlobalNodalEntityNeighboursProcess(
         ModelPart& rModelPart,
         const Variable<GlobalEntityPointersVectorType>& rOutputVariable);
