@@ -263,6 +263,36 @@ namespace Testing {
         test case, since we would expect a real volume circa 0.5 */
     } 
 
+    //Basic cases tests (all nodes inside/ouside)
+    KRATOS_TEST_CASE_IN_SUITE(QEFFacesPortionFull, KratosCoreFastSuite) {
+        //A voxel crossed by a straight plane with only 2 nodes inside th volume (Bad case approximation)
+        std::vector<double> distances{1, 1, 1, 1, 1, 1, 1, 1};   
+        GeometryPtrType pVoxel = QEFVolumeGenerateHexahedra3D8(distances);
+
+        GeometryArrayType array1;
+
+        //Call the volume utility
+        double volume = VolumeInsideVoxelQEF::FacesPortionQEFApproximation<Geometry<NodeType>>(*pVoxel,array1);
+        const double ExpectedVolume = 1.0; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
+        /*in this case the volume expected to be returned by the method approximation is actually very close 
+        to the real volume of the test case, but this will normally not happen*/
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(QEFFacesPortionEmpty, KratosCoreFastSuite) {
+        //A voxel crossed by a straight plane with only 2 nodes inside th volume (Bad case approximation)
+        std::vector<double> distances{1, 1, 1, 1, 1, 1, 1, 1};   
+        GeometryPtrType pVoxel = QEFVolumeGenerateHexahedra3D8(distances);
+
+        GeometryArrayType array1;
+
+        //Call the volume utility
+        double volume = VolumeInsideVoxelQEF::FacesPortionQEFApproximation<Geometry<NodeType>>(*pVoxel,array1);
+        const double ExpectedVolume = 1.0; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
+        /*in this case the volume expected to be returned by the method approximation is actually very close 
+        to the real volume of the test case, but this will normally not happen*/
+    }
 
 } //namespace testing
 } //namespace kratos
