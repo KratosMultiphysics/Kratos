@@ -21,7 +21,7 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
 
 
     def setUp(self):
-        #KratosUtils.DeleteFileIfExisting("test_point_set_output.h5")
+        KratosUtils.DeleteFileIfExisting("test_point_set_output.h5")
         self.communicator.Barrier()
 
 
@@ -30,7 +30,7 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
         # so if you need to validate the results, comment the line
         # below.
         self.communicator.Barrier()
-        #KratosUtils.DeleteFileIfExisting("test_point_set_output.h5")
+        KratosUtils.DeleteFileIfExisting("test_point_set_output.h5")
 
 
     def test_PointSetOutputProcessWrite(self):
