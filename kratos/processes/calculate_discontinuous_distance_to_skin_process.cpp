@@ -21,7 +21,7 @@
 // Project includes
 #include "geometries/plane_3d.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
-#include "processes/find_global_nodal_elemental_neighbours_process.h"
+#include "processes/find_global_nodal_entity_neighbours_process.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/intersection_utilities.h"
 #include "utilities/parallel_utilities.h"
@@ -871,7 +871,7 @@ namespace Kratos
         KRATOS_TRY;
 
         if (!mAreNeighboursComputed) {
-            FindGlobalNodalElementalNeighboursProcess find_nodal_elems_process(mrVolumePart);
+            FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elems_process(mrVolumePart);
             find_nodal_elems_process.Execute();
             mAreNeighboursComputed = true;
         }
