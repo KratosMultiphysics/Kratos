@@ -260,14 +260,14 @@ class TestFindMatchingFiles(KratosUnittest.TestCase):
 class TestCreateXdmfTemporalGridFromMultifile(KratosUnittest.TestCase):
 
     def setUp(self):
-        with h5py.File("kratos.h5") as f0:
+        with h5py.File("kratos.h5", "w") as f0:
             f0.create_dataset(
             "/ModelPart/Nodes/Local/Coordinates", (15, 3), "float64")
             elem2d4n = f0.create_group("/ModelPart/Xdmf/Elements/Element2D4N")
             elem2d4n.attrs["Dimension"] = 2
             elem2d4n.attrs["NumberOfNodes"] = 4
             elem2d4n.create_dataset("Connectivities", (10, 4), "int32")
-        with h5py.File("kratos-1.0.h5") as f1:
+        with h5py.File("kratos-1.0.h5", "w") as f1:
             f1.create_dataset(
             "/Results/NodalSolutionStepData/VELOCITY", (15, 3), "float64")
 
