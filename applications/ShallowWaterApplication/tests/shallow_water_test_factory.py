@@ -112,3 +112,9 @@ class TestMacDonaldShockValidation(ShallowWaterTestFactory):
     execution_file = "mac_donald_shock_validation"
     need_scipy = True
     need_numpy = True
+
+class TestSolitaryWaveValidation(ShallowWaterTestFactory):
+    execution_directory = "validation_tests"
+    execution_file = "solitary_wave_validation"
+    need_scipy = True
+    need_numpy = True

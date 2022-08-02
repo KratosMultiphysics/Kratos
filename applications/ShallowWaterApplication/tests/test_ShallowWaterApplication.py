@@ -24,6 +24,7 @@ from shallow_water_test_factory import TestSolitaryWaveBenchmark
 from shallow_water_test_factory import TestMeshMovingStrategy
 from shallow_water_test_factory import TestDamBreakValidation
 from shallow_water_test_factory import TestMacDonaldShockValidation
+from shallow_water_test_factory import TestSolitaryWaveValidation
 from processes_tests.test_line_graph_output_process import TestLineGraphOutputProcess
 from processes_tests.test_derivatives_recovery_process import TestDerivativesRecoveryProcess
 from processes_tests.test_wave_generator_process import TestWaveGeneratorProcess
@@ -73,6 +74,7 @@ def AssembleTestSuites():
     validationSuite.addTests(nightlySuite)
     validationSuite.addTests(TestLoader().loadTestsFromTestCase(TestDamBreakValidation))
     validationSuite.addTests(TestLoader().loadTestsFromTestCase(TestMacDonaldShockValidation))
+    validationSuite.addTests(TestLoader().loadTestsFromTestCase(TestSolitaryWaveValidation))
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
