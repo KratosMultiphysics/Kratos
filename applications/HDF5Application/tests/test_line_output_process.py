@@ -32,7 +32,9 @@ class TestLineOutputProcess(UnitTest.TestCase):
         parameters = self.parameters
         number_of_steps = 10
 
-        process = LineOutputProcessFactory(parameters, model)
+        process_parameters = KratosMultiphysics.Parameters()
+        process_parameters.AddValue("Parameters", parameters)
+        process = LineOutputProcessFactory(process_parameters, model)
         process.ExecuteInitialize()
 
         for i_step in range(number_of_steps):
