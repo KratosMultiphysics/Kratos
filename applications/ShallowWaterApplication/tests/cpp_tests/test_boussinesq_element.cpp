@@ -21,7 +21,7 @@
 #include "includes/properties.h"
 #include "custom_elements/boussinesq_element.h"
 #include "shallow_water_application_variables.h"
-#include "includes/math_utils.h"
+// #include "utilities/math_utils.h"
 
 namespace Kratos {
 
@@ -94,12 +94,12 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D3N_FlatBottom, ShallowWaterApplicat
     dispersion[0] = array_1d<double,3>({0.0, 0.0, 0.0});
     dispersion[1] = array_1d<double,3>({0.01, 0.0, 0.0});
     dispersion[2] = array_1d<double,3>({0.0, 0.0, 0.0});
-    acceleration[0] = array_1d<double,3>({0.212862, 0.0, 0.0});
-    acceleration[1] = array_1d<double,3>({0.212867, 0.0, 0.0});
-    acceleration[2] = array_1d<double,3>({0.212861, 0.0, 0.0});
-    vertical_velocity[0] = 0.100667;
-    vertical_velocity[1] = 0.100667;
-    vertical_velocity[2] = 0.100667;
+    acceleration[0] = array_1d<double,3>({0.213822,-0.00237072, 0.0});
+    acceleration[1] = array_1d<double,3>({0.208574, 0.00000000, 0.0});
+    acceleration[2] = array_1d<double,3>({0.216193, 0.00237072, 0.0});
+    vertical_velocity[0] = 0.102002;
+    vertical_velocity[1] = 0.097998;
+    vertical_velocity[2] = 0.102002;
 
     // Set the nodal values
     for (std::size_t i = 0; i < element->GetGeometry().size(); i++)
@@ -124,10 +124,10 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D3N_FlatBottom, ShallowWaterApplicat
     element->CalculateLocalSystem(LHS, RHS, r_process_info);
     element->GetFirstDerivativesVector(derivatives);
 
-    Matrix inv_M;
-    double det_M;
-    MathUtils<double>::InvertMatrix(M, inv_M, det_M);
-    KRATOS_WATCH_CERR(prod(inv_M, RHS))
+    // Matrix inv_M;
+    // double det_M;
+    // MathUtils<double>::InvertMatrix(M, inv_M, det_M);
+    // KRATOS_WATCH_CERR(prod(inv_M, RHS))
 
     double tolerance = 1e-6;
     Vector increment = prod(M,derivatives) -RHS;
@@ -177,14 +177,14 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D4N_FlatBottom, ShallowWaterApplicat
     dispersion[1] = array_1d<double,3>({0.0, 0.0, 0.0});
     dispersion[2] = array_1d<double,3>({0.0, 0.05, 0.0});
     dispersion[3] = array_1d<double,3>({0.0, 0.05, 0.0});
-    acceleration[0] = array_1d<double,3>({0.0, 0.211195, 0.0});
-    acceleration[1] = array_1d<double,3>({0.0, 0.211195, 0.0});
-    acceleration[2] = array_1d<double,3>({0.0, 0.211195, 0.0});
-    acceleration[3] = array_1d<double,3>({0.0, 0.211195, 0.0});
-    vertical_velocity[0] = 0.06;
-    vertical_velocity[1] = 0.06;
-    vertical_velocity[2] = 0.06;
-    vertical_velocity[3] = 0.06;
+    acceleration[0] = array_1d<double,3>({-0.002258, 0.213936, 0.0});
+    acceleration[1] = array_1d<double,3>({ 0.002258, 0.213936, 0.0});
+    acceleration[2] = array_1d<double,3>({ 0.002256, 0.208458, 0.0});
+    acceleration[3] = array_1d<double,3>({-0.002256, 0.208458, 0.0});
+    vertical_velocity[0] = 0.0620025;
+    vertical_velocity[1] = 0.0620025;
+    vertical_velocity[2] = 0.0579975;
+    vertical_velocity[3] = 0.0579975;
 
     // Set the nodal values
     for (std::size_t i = 0; i < element->GetGeometry().size(); i++)
@@ -209,10 +209,10 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D4N_FlatBottom, ShallowWaterApplicat
     element->CalculateLocalSystem(LHS, RHS, r_process_info);
     element->GetFirstDerivativesVector(derivatives);
 
-    Matrix inv_M;
-    double det_M;
-    MathUtils<double>::InvertMatrix(M, inv_M, det_M);
-    KRATOS_WATCH_CERR(prod(inv_M, RHS))
+    // Matrix inv_M;
+    // double det_M;
+    // MathUtils<double>::InvertMatrix(M, inv_M, det_M);
+    // KRATOS_WATCH_CERR(prod(inv_M, RHS))
 
     double tolerance = 1e-6;
     Vector increment = prod(M,derivatives) -RHS;
