@@ -127,7 +127,7 @@ namespace Testing {
     }
 
     KRATOS_TEST_CASE_IN_SUITE(QEF0dof, KratosCoreFastSuite) {
-        //A voxel crossed by a straight plane with only 1 nodes inside the volume (not good case approximation)
+        //A voxel crossed by a straight plane with only 1 nodes inside the volume 
         std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
         GeometryPtrType pVoxel = QEFGenerateHexahedra3D8(distances);
 
@@ -155,7 +155,7 @@ namespace Testing {
     }
 
      KRATOS_TEST_CASE_IN_SUITE(QEF1dof, KratosCoreFastSuite) {
-        //A voxel crossed by a straight plane with only 2 nodes inside the volume (not good case approximation)
+        //A voxel crossed by a straight plane with only 2 nodes inside the volume
         std::vector<double> distances{1, 1, -1, -1, -1, -1, -1, -1};   
         GeometryPtrType pVoxel = QEFGenerateHexahedra3D8(distances);
 
@@ -184,7 +184,7 @@ namespace Testing {
     }
 
     KRATOS_TEST_CASE_IN_SUITE(QEF0dofExtremeCase, KratosCoreFastSuite) {
-        //A voxel crossed by a straight plane with only 1 nodes inside the volume (not good case approximation)
+        //A voxel crossed by a straight plane with only 1 nodes inside the volume 
         std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
         GeometryPtrType pVoxel = QEFGenerateHexahedra3D8(distances);
 
