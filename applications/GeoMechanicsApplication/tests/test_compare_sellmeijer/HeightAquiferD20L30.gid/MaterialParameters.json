@@ -95,6 +95,7 @@
                     "MINIMUM_RELATIVE_PERMEABILITY": 0.000000001,
                     "PIPE_D_70": 0.0003,
                     "PIPE_START_ELEMENT": 624,
+					"PIPE_MODEL_FACTOR": 1,
                     "PIPE_MODIFIED_D": false
                 },
                 "Tables": {}

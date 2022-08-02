@@ -101,10 +101,6 @@ public:
 
     void CalculateLength(const GeometryType& Geom);
 
-    double pipe_height;
-
-    double pipe_length;
-
 protected:
     
      void CalculateAll( MatrixType& rLeftHandSideMatrix,
@@ -122,6 +118,8 @@ protected:
          const ProcessInfo& rCurrentProcessInfo) override;
 
     double CalculateParticleDiameter(const PropertiesType& Prop);
+
+    double pipe_initialised = false;
     
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

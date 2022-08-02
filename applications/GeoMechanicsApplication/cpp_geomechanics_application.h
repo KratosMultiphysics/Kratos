@@ -42,7 +42,6 @@
 
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 
-
 using namespace std;
 
 #pragma region NodeVariables
@@ -50,32 +49,38 @@ using namespace std;
 class NodeOperation
 {
 public:
-	virtual ~NodeOperation() = default;
-	virtual void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    virtual ~NodeOperation() = default;
+    virtual void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
-class NodeDISPLACEMENT : public NodeOperation {
+class NodeDISPLACEMENT : public NodeOperation
+{
 public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
-class NodeTOTAL_DISPLACEMENT : public NodeOperation {
+class NodeTOTAL_DISPLACEMENT : public NodeOperation
+{
 public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
-class NodeWATER_PRESSURE : public NodeOperation {
+class NodeWATER_PRESSURE : public NodeOperation
+{
 public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
-class NodeNORMAL_FLUID_FLUX : public NodeOperation {
+class NodeNORMAL_FLUID_FLUX : public NodeOperation
+{
 public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
-class NodeVOLUME_ACCELERATION : public NodeOperation {
+class NodeVOLUME_ACCELERATION : public NodeOperation
+{
 public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
-class NodeHYDRAULIC_DISCHARGE : public NodeOperation {
+class NodeHYDRAULIC_DISCHARGE : public NodeOperation
+{
 public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
 #pragma endregion NodeVariables
 
@@ -83,47 +88,57 @@ public:
 class GaussOperation
 {
 public:
-    virtual void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    virtual void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
-class GaussFLUID_FLUX_VECTOR : public GaussOperation {
+class GaussFLUID_FLUX_VECTOR : public GaussOperation
+{
 public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
-class GaussHYDRAULIC_HEAD : public GaussOperation {
+class GaussHYDRAULIC_HEAD : public GaussOperation
+{
 public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
-class GaussLOCAL_FLUID_FLUX_VECTOR : public GaussOperation {
+class GaussLOCAL_FLUID_FLUX_VECTOR : public GaussOperation
+{
 public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
-class GaussLOCAL_PERMEABILITY_MATRIX : public GaussOperation {
+class GaussLOCAL_PERMEABILITY_MATRIX : public GaussOperation
+{
 public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
-class GaussPERMEABILITY_MATRIX : public GaussOperation {
+class GaussPERMEABILITY_MATRIX : public GaussOperation
+{
 public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
-class GaussDEGREE_OF_SATURATION : public GaussOperation {
+class GaussDEGREE_OF_SATURATION : public GaussOperation
+{
 public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
-class GaussDERIVATIVE_OF_SATURATION : public GaussOperation {
+class GaussDERIVATIVE_OF_SATURATION : public GaussOperation
+{
 public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
-class GaussRELATIVE_PERMEABILITY : public GaussOperation {
+class GaussRELATIVE_PERMEABILITY : public GaussOperation
+{
 public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
-class GaussPIPE_ACTIVE : public GaussOperation {
+class GaussPIPE_ACTIVE : public GaussOperation
+{
 public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
-class GaussPIPE_HEIGHT : public GaussOperation {
+class GaussPIPE_HEIGHT : public GaussOperation
+{
 public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
 #pragma endregion GaussVariables
 
@@ -132,11 +147,12 @@ namespace Kratos
     class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosExecute
     {
     public:
+        KratosExecute(){};
+        ~KratosExecute(){};
 
-        KratosExecute() {};
-		~KratosExecute() {};
-
-        int geoflow(string workingDirectory, string parameterName, double minCriticalHead, double maxCriticalHead, double stepCriticalHead);
+        int geoflow(string workingDirectory, string parameterName,
+                    double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
+                    string criticalHeadBoundaryModelPartName);
         int geosettlement(string workingDirectory, string parameterName);
 
         typedef Node<3> NodeType;
@@ -146,44 +162,45 @@ namespace Kratos
 
         // The direct solver
         typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-        typedef SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType > SkylineLUFactorizationSolverType;
+        typedef SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType> SkylineLUFactorizationSolverType;
 
         // The convergence criteria type
-        typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
+        typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;
         typedef MixedGenericCriteria<SparseSpaceType, LocalSpaceType> MixedGenericCriteriaType;
         typedef typename MixedGenericCriteriaType::ConvergenceVariableListType ConvergenceVariableListType;
 
         // The builder ans solver type
-        typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-        typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
+        typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
+        typedef ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ResidualBasedBlockBuilderAndSolverType;
 
         // The time scheme
-        typedef Scheme< SparseSpaceType, LocalSpaceType >  SchemeType;
-        typedef BackwardEulerQuasistaticPwScheme< SparseSpaceType, LocalSpaceType > BackwardEulerQuasistaticPwSchemeType;
+        typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
+        typedef BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> BackwardEulerQuasistaticPwSchemeType;
 
         // The strategies
-        typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >
+        typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
             ImplicitSolvingStrategyType;
 
-        typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >
+        typedef ResidualBasedNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
             ResidualBasedNewtonRaphsonStrategyType;
 
-        typedef GeoMechanicsNewtonRaphsonErosionProcessStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >
+        typedef GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
             GeoMechanicsNewtonRaphsonErosionProcessStrategyType;
 
         // Dof arrays
         typedef PointerVectorSet<Dof<double>, SetIdentityFunction<Dof<double>>, std::less<SetIdentityFunction<Dof<double>>::result_type>,
-            std::equal_to<SetIdentityFunction<Dof<double>>::result_type>, Dof<double>* > DofsArrayType;
+                                 std::equal_to<SetIdentityFunction<Dof<double>>::result_type>, Dof<double> *>
+            DofsArrayType;
 
         ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
         LinearSolverType::Pointer setup_solver_dgeoflow();
-        GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart& model_part);
-        void parseMesh(ModelPart& model_part, string filepath);
-        void parseMaterial(Model& model, string filepath);
+        GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart &model_part);
+        void parseMesh(ModelPart &model_part, string filepath);
+        void parseMaterial(Model &model, string filepath);
 
         Parameters openProjectParamsFile(string filepath);
-        std::vector<std::shared_ptr<Process>> parseProcess(ModelPart& model_part, Parameters projFile);
-        void outputGiD(Model& model, ModelPart& model_part, Parameters parameters, string workingDirectory);
+        std::vector<std::shared_ptr<Process>> parseProcess(ModelPart &model_part, Parameters projFile);
+        void outputGiD(Model &model, ModelPart &model_part, Parameters parameters, string workingDirectory);
 
     private:
         int echoLevel = 1;
@@ -192,10 +209,15 @@ namespace Kratos
 
         void SetEchoLevel(int level);
 
-        int mainExecution(ModelPart& model_part,
-            std::vector<std::shared_ptr<Process>> processes,
-            KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
-            double time, double delta_time, double number_iterations);
+        shared_ptr<Process> FindRiverBoundaryByName(std::string criticalHeadBoundaryModelPartName,
+                                                    std::vector<std::shared_ptr<Process>> processes);
 
+        shared_ptr<Process> FindRiverBoundaryAutomatically(KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
+                                                           std::vector<std::shared_ptr<Process>> processes);
+
+        int mainExecution(ModelPart &model_part,
+                          std::vector<std::shared_ptr<Process>> processes,
+                          KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
+                          double time, double delta_time, double number_iterations);
     };
 }
