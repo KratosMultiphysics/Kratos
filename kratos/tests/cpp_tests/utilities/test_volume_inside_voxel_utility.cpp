@@ -73,6 +73,27 @@ namespace Testing {
         return pTriangle->pGetGeometry();
     } 
 
+    GeometryPtrType GenerateQuadrilateral3D4(std::vector<std::vector<double>>& rNodes, const std::vector<double>& rDistances)
+    {
+        Model my_model;
+        ModelPart& Quadrilater = my_model.CreateModelPart("Quadrilater"); 
+        Quadrilater.AddNodalSolutionStepVariable(DISTANCE);  
+
+        Quadrilater.CreateNewNode(1, rNodes[0][0], rNodes[0][1], rNodes[0][2]);
+        Quadrilater.CreateNewNode(2, rNodes[1][0], rNodes[1][1], rNodes[1][2]);
+        Quadrilater.CreateNewNode(3, rNodes[2][0], rNodes[2][1], rNodes[2][2]);
+        Quadrilater.CreateNewNode(4, rNodes[3][0], rNodes[3][1], rNodes[3][2]);
+        Properties::Pointer p_properties_1(new Properties(0)); 
+        Condition::Pointer pElement = Quadrilater.CreateNewCondition("SurfaceCondition3D4N", 1, {1, 2, 3, 4}, p_properties_1);
+        GeometryPtrType pQuadrilater = pElement->pGetGeometry();
+
+        PointsArrayType nodes = pQuadrilater->Points();   
+        for (int i = 0; i < 4; i++) {
+            nodes[i].FastGetSolutionStepValue(DISTANCE) = rDistances[i];
+        }
+        return pQuadrilater;
+    } 
+
     KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelNodes, KratosCoreFastSuite) 
     {
 
@@ -392,6 +413,38 @@ namespace Testing {
         /*in this case the volume returned by the method approximation is not close to the real volume of the 
         test case, since we would expect a real volume circa 0.5 */
     } 
+
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortionQuadrilateral, KratosCoreFastSuite) {
+
+        std::vector<std::vector<double>> quad{{1,1,-1},{-1,1,-1},{-1,-1,1}, {1,-1,1}};  
+        std::vector<double> distances{-1, -1, -1, -1}; 
+        GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+
+        std::vector<std::vector<double>> triangle1{{-0.5,-1,0.95},{-0.5,-0.95,1.05},{-0.5,-1.05,1.05}};
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1);
+        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pFace,array1);
+        const double ExpectedVolume = 0; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortionQuadrilateral2, KratosCoreFastSuite) {
+        std::vector<std::vector<double>> quad{{1,1,-1},{-1,1,-1},{-1,-1,1}, {1,-1,1}};  
+        std::vector<double> distances{1, -1, -1, -1}; 
+        GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+        
+        std::vector<std::vector<double>> triangle1{{0.5,1,-0.95},{0.5,0.95,-1.05},{0.5,1.05,-1.05}};
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1);
+        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pFace,array1);
+        const double ExpectedVolume = 0.25/4; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+
+    }
 
 }  // namespace Testing.
 }  // namespace Kratos.
