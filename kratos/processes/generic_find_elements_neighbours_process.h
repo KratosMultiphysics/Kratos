@@ -157,7 +157,8 @@ private:
 
 
     GlobalPointer<Element> CheckForNeighbourElems (const Geometry<Node<3> >& rBoundaryGeom,
-                                                   Element & rElement);
+                                                   Element & rElement,
+                                                   const int Rank);
 
 
     ///@}
