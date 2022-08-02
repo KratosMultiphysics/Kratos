@@ -150,3 +150,22 @@ def Create(settings, data_comm):
     io.file_driver = settings['file_driver']
     io.echo_level = settings['echo_level']
     return io
+
+class OpenHDF5File(object):
+    """@brief A context responsible for managing the lifetime of HDF5 files."""
+
+    def __init__(self, file_parameters: KratosMultiphysics.Parameters, model_part: KratosMultiphysics.ModelPart):
+        self.__parameters = ParametersWrapper(file_parameters)
+        self.__model_part = model_part
+        self.__io: _FileIO = None
+        self.__file: KratosHDF5.HDF5File = None
+
+    def __enter__(self) -> KratosHDF5.HDF5File:
+        self.__io = Create(self.__parameters, self.__model_part.GetCommunicator().GetDataCommunicator())
+        self.__file = self.__io.Get(self.__model_part)
+        return self.__file
+
+    def __exit__(self, exit_type, exit_value, exit_traceback) -> None:
+        ##! @todo Force close the HDF5File to emulate the RAII of the C++ version.
+        self.__io = None
+        self.__file = None
