@@ -41,7 +41,7 @@ namespace Kratos {
     const double contact_radius  = particle->mContactRadiusAdjusted;
 
     // Compute heat flux
-    return 4.0 * Globals::Pi * fluid_conductivity * (1.0 - 0.5 * pow(contact_radius / avg_radius, 2.0) * (avg_radius - contact_radius)) * temp_grad / (1.0 - Globals::Pi / 4.0);
+    return 2.0 * Globals::Pi * fluid_conductivity * temp_grad * (1.0 - 0.5 * pow(contact_radius / avg_radius, 2.0)) * (avg_radius - contact_radius) / (1.0 - Globals::Pi / 4.0);
 
     KRATOS_CATCH("")
   }
