@@ -38,7 +38,9 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
         number_of_steps = 10
 
         # Write coordinates and variables
-        point_set_output_process = PointSetOutputProcessFactory(parameters, model)
+        process_parameters = KratosMultiphysics.Parameters()
+        process_parameters.AddValue("Parameters", parameters)
+        point_set_output_process = PointSetOutputProcessFactory(process_parameters, model)
         point_set_output_process.ExecuteInitialize()
 
         for i_step in range(number_of_steps):
