@@ -162,7 +162,7 @@ public:
      * @param rRightHandSideVector Conditional right hand side vector
      * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the condition
      */
-    // void CalculateLocalSystem(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -203,15 +203,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    // const Variable<double>& GetUnknownComponent(int Index) const override;
-
-    // LocalVectorType GetUnknownVector(ConditionData& rData) override;
-
-    // void CalculateGaussPointData(
-    //     ConditionData& rData,
-    //     const IndexType PointIndex,
-    //     const array_1d<double,TNumNodes>& rN) override;
-
     void AddDispersionProjection(
         LocalVectorType& rDispersionH,
         LocalVectorType& rDispersionU,
@@ -221,13 +212,13 @@ protected:
         const Matrix& rDN_DX,
         const double Weight = 1.0);
 
-    // void AddMomentumDispersionTerms(
-    //     LocalVectorType& rLaplacianBoundary,
-    //     const GeometryType& rParentGeometry,
-    //     const ConditionData& rData,
-    //     const array_1d<double,TNumNodes>& rN,
-    //     const Matrix& rDN_DX,
-    //     const double Weight = 1.0);
+    void AddMomentumDispersionTerms(
+        LocalVectorType& rLaplacianBoundary,
+        const GeometryType& rParentGeometry,
+        const ConditionData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const Matrix& rDN_DX,
+        const double Weight = 1.0);
 
     void CalculateShapeFunctionDerivatives(
         Matrix& rDN_DX,
