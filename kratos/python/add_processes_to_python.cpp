@@ -18,6 +18,8 @@
 // Project includes
 #include "includes/define_python.h"
 #include "includes/kratos_parameters.h"
+#include "includes/condition.h"
+#include "includes/element.h"
 
 #include "processes/process.h"
 #include "processes/output_process.h"
@@ -30,7 +32,7 @@
 #include "processes/find_conditions_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_for_entities_process.h"
-#include "processes/find_global_nodal_elemental_neighbours_process.h"
+#include "processes/find_global_nodal_entity_neighbours_process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/node_erase_process.h" // TODO: To be removed
@@ -175,18 +177,27 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("GetNeighbourIds",&FindGlobalNodalNeighboursForConditionsProcess::GetNeighbourIds)
     ;
 
-    py::class_<FindGlobalNodalElementalNeighboursProcess, FindGlobalNodalElementalNeighboursProcess::Pointer, Process>
-        (m,"FindGlobalNodalElementalNeighboursProcess")
-    .def(py::init([](const DataCommunicator& rDataComm, ModelPart& rModelPart) {
-        KRATOS_WARNING("FindGlobalNodalElementalNeighboursProcess") << "Using deprecated constructor. Please use constructor without DataCommunicator.";
-        return Kratos::make_shared<FindGlobalNodalElementalNeighboursProcess>(rModelPart);
-    }))
-    .def(py::init([](ModelPart& rModelPart) {
-        return Kratos::make_shared<FindGlobalNodalElementalNeighboursProcess>(rModelPart);
-    }))
-    .def("ClearNeighbours",&FindGlobalNodalElementalNeighboursProcess::ClearNeighbours)
-    .def("GetNeighbourIds",&FindGlobalNodalElementalNeighboursProcess::GetNeighbourIds)
-    ;
+    using FindGlobalNodalElementalNeighboursProcessType = FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>;
+    py::class_<FindGlobalNodalElementalNeighboursProcessType, typename FindGlobalNodalElementalNeighboursProcessType::Pointer, Process>(m,"FindGlobalNodalElementalNeighboursProcess")
+        .def(py::init([](const DataCommunicator& rDataComm, ModelPart& rModelPart) {
+            KRATOS_WARNING("FindGlobalNodalElementalNeighboursProcess") << "Using deprecated constructor. Please use constructor without DataCommunicator.";
+            return Kratos::make_shared<FindGlobalNodalElementalNeighboursProcessType>(rModelPart, NEIGHBOUR_ELEMENTS);
+        }))
+        .def(py::init([](ModelPart& rModelPart) {
+            return Kratos::make_shared<FindGlobalNodalElementalNeighboursProcessType>(rModelPart, NEIGHBOUR_ELEMENTS);
+        }))
+        .def("ClearNeighbours",&FindGlobalNodalElementalNeighboursProcessType::ClearNeighbours)
+        .def("GetNeighbourIds",&FindGlobalNodalElementalNeighboursProcessType::GetNeighbourIds)
+        ;
+
+    using FindGlobalNodalConditionNeighboursProcessType = FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>;
+    py::class_<FindGlobalNodalConditionNeighboursProcessType, typename FindGlobalNodalConditionNeighboursProcessType::Pointer, Process>(m,"FindGlobalNodalConditionNeighboursProcess")
+        .def(py::init([](ModelPart& rModelPart) {
+            return Kratos::make_shared<FindGlobalNodalConditionNeighboursProcessType>(rModelPart, NEIGHBOUR_CONDITIONS);
+        }))
+        .def("ClearNeighbours",&FindGlobalNodalConditionNeighboursProcessType::ClearNeighbours)
+        .def("GetNeighbourIds",&FindGlobalNodalConditionNeighboursProcessType::GetNeighbourIds)
+        ;
 
     py::class_<FindIntersectedGeometricalObjectsProcess, FindIntersectedGeometricalObjectsProcess::Pointer, Process>
         (m, "FindIntersectedGeometricalObjectsProcess")
