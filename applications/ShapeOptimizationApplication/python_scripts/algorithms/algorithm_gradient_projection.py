@@ -345,6 +345,118 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.optimization_utilities.AssignScalarToVariable(self.design_surface, heat_max_mapped_relaxed, KSO.HEATMAP_MAX_MAPPED_RELAXED)
         WriteListToNodalVariable(heat_max_mapped, self.design_surface, KSO.HEATMAP_MAX_MAPPED, 1)
 
+        # Heatmap L2 Mapped
+        heat_L2_mapped = []
+
+        df_dc = ReadNodalVariableToList(self.design_surface, KSO.DF1DX_MAPPED)
+        df_dc_norm = cm.Norm2(df_dc)
+        if df_dc_norm != 0.0:
+            df_dc_normalized = cm.ScalarVectorProduct(1/df_dc_norm, df_dc)
+        else:
+            df_dc_normalized = [0] * len(df_dc)
+
+        dc1_dc = ReadNodalVariableToList(self.design_surface, KSO.DC1DX_MAPPED)
+        dc1_dc_norm = cm.Norm2(dc1_dc)
+        if dc1_dc_norm != 0.0:
+            dc1_dc_normalized = cm.ScalarVectorProduct(1/dc1_dc_norm, dc1_dc)
+        else:
+            dc1_dc_normalized = [0] * len(dc1_dc)
+
+        dc2_dc = ReadNodalVariableToList(self.design_surface, KSO.DC2DX_MAPPED)
+        dc2_dc_norm = cm.Norm2(dc2_dc)
+        if dc2_dc_norm != 0.0:
+            dc2_dc_normalized = cm.ScalarVectorProduct(1/dc2_dc_norm, dc2_dc)
+        else:
+            dc2_dc_normalized = [0] * len(dc2_dc)
+
+        dc3_dc = ReadNodalVariableToList(self.design_surface, KSO.DC3DX_MAPPED)
+        dc3_dc_norm = cm.Norm2(dc3_dc)
+        if dc3_dc_norm != 0.0:
+            dc3_dc_normalized = cm.ScalarVectorProduct(1/dc3_dc_norm, dc3_dc)
+        else:
+            dc3_dc_normalized = [0] * len(dc3_dc)
+
+        for i in range(len(self.design_surface.Nodes)):
+            df_dc_i = df_dc_normalized[3*i:3*i+3]
+            df_dc_i_norm = cm.Norm2(df_dc_i)
+            dc1_dc_i = dc1_dc_normalized[3*i:3*i+3]
+            dc1_dc_i_norm = cm.Norm2(dc1_dc_i)
+            dc2_dc_i = dc2_dc_normalized[3*i:3*i+3]
+            dc2_dc_i_norm = cm.Norm2(dc2_dc_i)
+            dc3_dc_i = dc3_dc_normalized[3*i:3*i+3]
+            dc3_dc_i_norm = cm.Norm2(dc3_dc_i)
+
+            heat_L2_mapped_i = max(df_dc_i_norm, dc1_dc_i_norm, dc2_dc_i_norm, dc3_dc_i_norm)
+            heat_L2_mapped.append(heat_L2_mapped_i)
+
+        # Heatmap L2 Mapped Relaxed
+        prev_heat_L2_mapped = KM.Vector()
+        self.optimization_utilities.AssembleScalar(self.design_surface, prev_heat_L2_mapped, KSO.HEATMAP_L2_MAPPED)
+        heat_L2_mapped_relaxed = KM.Vector()
+        self.optimization_utilities.AssembleScalar(self.design_surface, heat_L2_mapped_relaxed, KSO.HEATMAP_L2_MAPPED_RELAXED)
+        relax_coeff = 0.5
+        for i in range(len(self.design_surface.Nodes)):
+            heat_L2_mapped_relaxed[i] = relax_coeff * heat_L2_mapped[i] + (1 - relax_coeff) * prev_heat_L2_mapped[i]
+
+        self.optimization_utilities.AssignScalarToVariable(self.design_surface, heat_L2_mapped_relaxed, KSO.HEATMAP_L2_MAPPED_RELAXED)
+        WriteListToNodalVariable(heat_L2_mapped, self.design_surface, KSO.HEATMAP_L2_MAPPED, 1)
+
+        # Heatmap Value Norm Mapped
+        f = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
+        c1 = self.communicator.getStandardizedValue(self.constraints[0]["identifier"].GetString())
+        c2 = self.communicator.getStandardizedValue(self.constraints[1]["identifier"].GetString())
+        c3 = self.communicator.getStandardizedValue(self.constraints[2]["identifier"].GetString())
+
+        heat_value_mapped = []
+
+        df_dc = ReadNodalVariableToList(self.design_surface, KSO.DF1DX_MAPPED)
+        if f != 0.0:
+            df_dc_normalized = cm.ScalarVectorProduct(abs(1/f), df_dc)
+        else:
+            df_dc_normalized = [0] * len(df_dc)
+
+        dc1_dc = ReadNodalVariableToList(self.design_surface, KSO.DC1DX_MAPPED)
+        if c1 != 0.0:
+            dc1_dc_normalized = cm.ScalarVectorProduct(abs(1/c1), dc1_dc)
+        else:
+            dc1_dc_normalized = [0] * len(dc1_dc)
+
+        dc2_dc = ReadNodalVariableToList(self.design_surface, KSO.DC2DX_MAPPED)
+        if c2 != 0.0:
+            dc2_dc_normalized = cm.ScalarVectorProduct(abs(1/c2), dc2_dc)
+        else:
+            dc2_dc_normalized = [0] * len(dc2_dc)
+
+        dc3_dc = ReadNodalVariableToList(self.design_surface, KSO.DC3DX_MAPPED)
+        if c3 != 0.0:
+            dc3_dc_normalized = cm.ScalarVectorProduct(abs(1/c3), dc3_dc)
+        else:
+            dc3_dc_normalized = [0] * len(dc3_dc)
+
+        for i in range(len(self.design_surface.Nodes)):
+            df_dc_i = df_dc_normalized[3*i:3*i+3]
+            df_dc_i_norm = cm.Norm2(df_dc_i)
+            dc1_dc_i = dc1_dc_normalized[3*i:3*i+3]
+            dc1_dc_i_norm = cm.Norm2(dc1_dc_i)
+            dc2_dc_i = dc2_dc_normalized[3*i:3*i+3]
+            dc2_dc_i_norm = cm.Norm2(dc2_dc_i)
+            dc3_dc_i = dc3_dc_normalized[3*i:3*i+3]
+            dc3_dc_i_norm = cm.Norm2(dc3_dc_i)
+
+            heat_value_mapped_i = max(df_dc_i_norm, dc1_dc_i_norm, dc2_dc_i_norm, dc3_dc_i_norm)
+            heat_value_mapped.append(heat_value_mapped_i)
+
+        # Heatmap Max Mapped Relaxed
+        prev_heat_value_mapped = KM.Vector()
+        self.optimization_utilities.AssembleScalar(self.design_surface, prev_heat_value_mapped, KSO.HEATMAP_VALUE_MAPPED)
+        heat_value_mapped_relaxed = KM.Vector()
+        self.optimization_utilities.AssembleScalar(self.design_surface, heat_value_mapped_relaxed, KSO.HEATMAP_VALUE_MAPPED_RELAXED)
+        relax_coeff = 0.5
+        for i in range(len(self.design_surface.Nodes)):
+            heat_value_mapped_relaxed[i] = relax_coeff * heat_value_mapped[i] + (1 - relax_coeff) * prev_heat_value_mapped[i]
+
+        self.optimization_utilities.AssignScalarToVariable(self.design_surface, heat_value_mapped_relaxed, KSO.HEATMAP_VALUE_MAPPED_RELAXED)
+        WriteListToNodalVariable(heat_value_mapped, self.design_surface, KSO.HEATMAP_VALUE_MAPPED, 1)
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):

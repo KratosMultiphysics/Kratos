@@ -21,7 +21,7 @@ from KratosMultiphysics.ShapeOptimizationApplication.algorithms.algorithm_base i
 from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
-from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable, WriteListToNodalVariable
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable, WriteListToNodalVariable, ReadNodalVariableToList
 from KratosMultiphysics.ShapeOptimizationApplication.utilities import custom_math as cm
 
 # ==============================================================================
@@ -159,11 +159,13 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __computeSensitivityHeatmap(self):
-        df_c = []
-        df_x = []
-        for node in self.design_surface.Nodes:
-            df_x.append(node.GetSolutionStepValue(KSO.DF1DX))
-            df_c.append(node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
+        df_x = ReadNodalVariableToList(self.design_surface, KSO.DF1DX)
+        df_c = ReadNodalVariableToList(self.design_surface, KSO.DF1DX_MAPPED)
+        # df_c = []
+        # df_x = []
+        # for node in self.design_surface.Nodes:
+        #     df_x.append(node.GetSolutionStepValue(KSO.DF1DX))
+        #     df_c.append(node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
 
         d_c = []
         inv_hessian_diag_c = []
@@ -174,7 +176,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         max_step = 10000 * self.step_size
         min_step = 0.0001 * self.step_size
         for i in range(len(self.design_surface.Nodes)):
-            y_i = cm.Minus(self.df_prev_c[i], df_c[i])
+            y_i = cm.Minus(self.df_prev_c[i], df_c[3*i:3*i+3])
             d_i = self.d_prev_c[i]
             if cm.Dot(y_i, y_i) < 1e-9:
                 inv_hessian_i = max_step
@@ -185,7 +187,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
                 inv_hessian_i = max_step
             if inv_hessian_i < min_step:
                 inv_hessian_i = min_step
-            s_c = cm.ScalarVectorProduct(-inv_hessian_i, df_c[i])
+            s_c = cm.ScalarVectorProduct(-inv_hessian_i, df_c[3*i:3*i+3])
             d_c.append(s_c[0])
             d_c.append(s_c[1])
             d_c.append(s_c[2])
@@ -195,7 +197,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             hessian_diag_c.append(hessian_diag_c_i)
 
 
-            y_i = cm.Minus(self.df_prev_x[i], df_x[i])
+            y_i = cm.Minus(self.df_prev_x[i], df_x[3*i:3*i+3])
             d_i = self.d_prev_x[i]
             if cm.Dot(y_i, y_i) < 1e-9:
                 inv_hessian_i = max_step
@@ -206,7 +208,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
                 inv_hessian_i = max_step
             if inv_hessian_i < min_step:
                 inv_hessian_i = min_step
-            s_x = cm.ScalarVectorProduct(-inv_hessian_i, df_x[i])
+            s_x = cm.ScalarVectorProduct(-inv_hessian_i, df_x[3*i:3*i+3])
             d_x.append(s_x[0])
             d_x.append(s_x[1])
             d_x.append(s_x[2])
@@ -214,7 +216,6 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
             hessian_diag_x_i = 1/inv_hessian_i
             hessian_diag_x.append(hessian_diag_x_i)
-
         WriteListToNodalVariable(inv_hessian_diag_c, self.design_surface, KSO.INV_HESSIAN_DF1DX_MAPPED, 1)
         WriteListToNodalVariable(hessian_diag_c, self.design_surface, KSO.HESSIAN_DF1DX_MAPPED, 1)
         WriteListToNodalVariable(d_c, self.design_surface, KSO.HEATMAP_DF1DX_MAPPED, 3)
@@ -222,6 +223,48 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         WriteListToNodalVariable(inv_hessian_diag_x, self.design_surface, KSO.INV_HESSIAN_DF1DX, 1)
         WriteListToNodalVariable(hessian_diag_x, self.design_surface, KSO.HESSIAN_DF1DX, 1)
         WriteListToNodalVariable(d_x, self.design_surface, KSO.HEATMAP_DF1DX, 3)
+
+        # Vanderplaats: Sensitivity of the optimum design to problem parameters
+        df_dp = []
+        for i in range(3*len(self.design_surface.Nodes)):
+            if abs(df_x[i]) > 1e-4:
+                df_dp.append(cm.Dot(df_x, cm.ScalarVectorProduct(-1, df_x)) / (-df_x[i]))
+            else:
+                df_dp.append(0)
+
+        WriteListToNodalVariable(df_dp, self.design_surface, KSO.SENS_HEATMAP_DESIGN_3D, 3)
+
+        # Vanderplaats: Sensitivity of the optimum design to problem parameters
+        df_dp = []
+        for i in range(3*len(self.design_surface.Nodes)):
+            if abs(df_c[i]) > 1e-4:
+                df_dp.append(cm.Dot(df_c, cm.ScalarVectorProduct(-1, df_c)) / (-df_c[i]))
+            else:
+                df_dp.append(0)
+
+        WriteListToNodalVariable(df_dp, self.design_surface, KSO.SENS_HEATMAP_CONTROL_3D, 3)
+
+        # Vanderplaats: Sensitivity of the optimum design to problem parameters
+        df_dp = []
+        for i in range(len(self.design_surface.Nodes)):
+            norm = cm.Norm2(df_x[3*i:3*i+3])
+            if norm > 1e-4:
+                df_dp.append(abs(cm.Dot(df_x, cm.ScalarVectorProduct(-1, df_x))) / norm)
+            else:
+                df_dp.append(0)
+
+        WriteListToNodalVariable(df_dp, self.design_surface, KSO.SENS_HEATMAP_DESIGN_1D, 1)
+
+        # Vanderplaats: Sensitivity of the optimum design to problem parameters
+        df_dp = []
+        for i in range(len(self.design_surface.Nodes)):
+            norm = cm.Norm2(df_c[3*i:3*i+3])
+            if norm > 1e-4:
+                df_dp.append(abs(cm.Dot(df_c, cm.ScalarVectorProduct(-1, df_c))) / norm)
+            else:
+                df_dp.append(0)
+
+        WriteListToNodalVariable(df_dp, self.design_surface, KSO.SENS_HEATMAP_CONTROL_1D, 1)
 
     # --------------------------------------------------------------------------
     def __initializeNewShape(self):
