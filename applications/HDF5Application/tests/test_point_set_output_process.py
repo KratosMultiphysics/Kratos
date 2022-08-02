@@ -7,20 +7,21 @@ from KratosMultiphysics.testing.utilities import ReadModelPart
 # HDF5 imports
 from KratosMultiphysics import HDF5Application as HDF5
 from KratosMultiphysics.HDF5Application.point_set_output_process import Factory as PointSetOutputProcessFactory
+from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
 
 # STL imports
 import math
 import pathlib
 
 
+
 class TestPointSetOutputProcess(UnitTest.TestCase):
 
     communicator = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
-    file_name = "test_point_set_output.h5"
 
 
     def setUp(self):
-        KratosUtils.DeleteFileIfExisting(self.file_name)
+        #KratosUtils.DeleteFileIfExisting("test_point_set_output.h5")
         self.communicator.Barrier()
 
 
@@ -29,13 +30,13 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
         # so if you need to validate the results, comment the line
         # below.
         self.communicator.Barrier()
-        KratosUtils.DeleteFileIfExisting(self.file_name)
+        #KratosUtils.DeleteFileIfExisting("test_point_set_output.h5")
 
 
     def test_PointSetOutputProcessWrite(self):
         model, model_part = self.MakeModel()
         parameters = self.parameters
-        number_of_steps = 10
+        number_of_steps = 5
 
         # Write coordinates and variables
         process_parameters = KratosMultiphysics.Parameters()
@@ -62,42 +63,32 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
         # Open output file
         file_parameters = parameters["file_parameters"].Clone()
         file_parameters.AddString("file_access_mode","read_only")
-        if self.communicator.IsDistributed():
-            File = KratosMultiphysics.HDF5Application.HDF5FileParallel
-            file_parameters.AddString("file_driver", "mpio")
-        else:
-            File = KratosMultiphysics.HDF5Application.HDF5FileSerial
-
-        file = File(file_parameters)
-
-        # Check output file structure
-        root = "/test_point_set_output_{}".format(parameters["model_part_name"].GetString())
-        self.assertTrue(file.IsGroup(root))
-        self.assertTrue(file.IsDataSet(root + "/POSITION"))
+        with OpenHDF5File(file_parameters, model_part) as file:
+            # Check output file structure
+            root = "/test_point_set_output_{}".format(parameters["model_part_name"].GetString())
+            self.assertTrue(file.IsGroup(root))
+            self.assertTrue(file.IsDataSet(root + "/POSITION"))
 
 
     @property
     def parameters(self) -> KratosMultiphysics.Parameters:
         parameters = KratosMultiphysics.Parameters("""{
             "model_part_name"      : "main",
-            "positions"            : [],
+            "positions"            : [[0.0, 0.0, 0.0],
+                                      [0.2, 0.2, 0.0],
+                                      [0.4, 0.4, 0.0],
+                                      [0.6, 0.6, 0.0],
+                                      [0.8, 0.8, 0.0],
+                                      [1.0, 1.0, 0.0]],
             "output_variables"     : ["DISPLACEMENT_X", "VELOCITY"],
             "output_frequency"     : 3,
             "coordinates_prefix"   : "/test_point_set_output_<model_part_name>",
             "variables_prefix"     : "/test_point_set_output_<model_part_name>/test_step_<step>",
             "file_parameters"      : {
-                "file_name"        : ""
+                "file_name"        : "test_point_set_output.h5",
+                "file_access_mode" : "read_write"
             }
         }""")
-        parameters["file_parameters"]["file_name"].SetString(self.file_name)
-
-        # Create sample points across the the element row
-        positions = parameters["positions"]
-        number_of_points = 50
-        for i_point in range(number_of_points):
-            s = float(i_point) / (number_of_points - 1)
-            position = KratosMultiphysics.Vector([s, s, 0.0])
-            positions.Append(position)
 
         return parameters
 
