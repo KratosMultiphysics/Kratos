@@ -134,7 +134,7 @@ jobs:
 
     - name: Download boost
       run: |
-        $url = "https://sourceforge.net/projects/boost/files/boost/1.74.0/boost_1_74_0.tar.gz/download"
+        $url = "https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.gz"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
         7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
@@ -165,7 +165,7 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-centos7-python35:latest
+      image: kratosmultiphysics/kratos-image-ci-centos7:latest
       options: --user 1001
 
     steps:
@@ -180,7 +180,7 @@ jobs:
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3.5 kratos/python_scripts/run_tests.py -l nightly -c python3.5
+        python3.8 kratos/python_scripts/run_tests.py -l nightly -c python3.8
 
 
   ubuntu-core-without-unity:
@@ -319,7 +319,7 @@ jobs:
 
     - name: Download boost
       run: |
-        $url = "https://sourceforge.net/projects/boost/files/boost/1.74.0/boost_1_74_0.tar.gz/download"
+        $url = "https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.gz"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
         7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null

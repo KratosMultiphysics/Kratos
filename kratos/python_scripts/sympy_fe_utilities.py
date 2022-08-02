@@ -24,6 +24,31 @@ def DefineSymmetricMatrix(name, m, n):
     return sympy.Matrix(m, n, lambda i, j:
         sympy.var("{name}_{i}_{j}".format(name=name, i=min(i,j), j=max(i,j))))
 
+def DefineSymmetricFourthOrderTensor(name, m, n, o, p):
+    """
+    This method defines a symbolic symmetric 4th order tensor.
+
+    Keyword arguments:
+    - name -- Name of variables.
+    - m -- 1st dimension.
+    - n -- 2nd dimension.
+    - o -- 3rd dimension.
+    - p -- 4th dimension.
+    """
+    if m != n:
+        raise ValueError("Provided sizes do not respect first simmetry.")
+    if o != p:
+        raise ValueError("Provided sizes do not respect second simmetry.")
+
+    tensor = sympy.MutableDenseNDimArray(sympy.zeros(m**4),shape=(m,n,o,p))
+    for i in range(m):
+        for j in range(n):
+            for k in range(o):
+                for l in range(p):
+                    tensor[i,j,k,l] = sympy.var("{name}_{m}_{n}_{o}_{p}".format(name=name, m=min(i,j), n=max(i,j), o=min(k,l), p=max(k,l)))
+
+    return tensor
+
 def DefineVector( name, m):
     """
     This method defines a symbolic vector.
@@ -68,13 +93,111 @@ def StrainToVoigt(M):
     - M -- The strain matrix
     """
     if M.shape[0] == 2:
-        vm = sympy.Matrix(3, 1, lambda _: 0.0)
+        vm = sympy.Matrix(3, 1, lambda i,j: 0.0)
         vm[0,0] = M[0,0]
         vm[1,0] = M[1,1]
         vm[2,0] = 2.0*M[0,1]
     elif M.shape[0] == 3:
-        raise NotImplementedError()
+        vm = sympy.Matrix(6, 1, lambda i,j : 0.0)
+        vm[0,0] = M[0,0]
+        vm[1,0] = M[1,1]
+        vm[2,0] = M[2,2]
+        vm[3,0] = 2.0*M[0,1]
+        vm[4,0] = 2.0*M[1,2]
+        vm[5,0] = 2.0*M[0,2]
+
     return vm
+
+def MatrixToVoigt(M):
+    """
+    This method transform a symmetric matrix to Voigt notation.
+
+    Keyword arguments:
+    - M -- The input matrix
+    """
+    if M.shape[0] == 2:
+        vm = sympy.Matrix(3, 1, lambda i,j : 0.0)
+        vm[0,0] = M[0,0]
+        vm[1,0] = M[1,1]
+        vm[2,0] = M[0,1]
+    elif M.shape[0] == 3:
+        vm = sympy.Matrix(6, 1, lambda i,j : 0.0)
+        vm[0,0] = M[0,0]
+        vm[1,0] = M[1,1]
+        vm[2,0] = M[2,2]
+        vm[3,0] = M[0,1]
+        vm[4,0] = M[1,2]
+        vm[5,0] = M[0,2]
+
+    return vm
+
+def ConvertTensorToVoigtMatrix(C):
+    """
+    This method converts a 4th order tensor given to a matrix in Voigt notation.
+
+    Keyword arguments:
+    - C -- The 4th order tensor to be converted to Voigt notation
+    """
+    # Get input Voigt matrix strain size
+    dim = C.shape[0]
+    if dim != C.shape[1] or dim != C.shape[2] or dim != C.shape[3]:
+        raise ValueError(f"Input 4th order tensor is not valid. Shape is ({dim},{C.shape[1]},{C.shape[2]},{C.shape[3]})")
+
+    # Set the tensor to Voigt indices conversion dictionary from the input strain size
+    conversion = _GetTensorToVoigtConversionIndices(dim)
+
+    # Set and fill the Voigt notation matrix
+    strain_size = 3 if dim == 2 else 6
+    C_mat = sympy.zeros(strain_size,strain_size)
+    for i in range(strain_size):
+        index_1 = conversion[i]
+        for j in range(strain_size):
+            index_2 = conversion[j]
+            C_mat[i,j] = C[index_1[0],index_1[1],index_2[0],index_2[1]]
+
+    return C_mat
+
+def ConvertVoigtMatrixToTensor(C):
+    """
+    This method converts a matrix given in Voigt notation in a 4th order tensor.
+
+    Keyword arguments:
+    - C -- The matrix in Voigt notation to be converted to 4th order tensor
+    """
+    # Get input Voigt matrix strain size
+    strain_size = C.shape[0]
+    if strain_size != C.shape[1]:
+        raise ValueError("Input Voigt matrix is not square. Shape is ({},{})".format(strain_size, C.shape[1]))
+
+    # Set the Voigt to tensor indices conversion dictionary from the input strain size
+    conversion = _GetVoigtToTensorConversionIndices(strain_size)
+    dim = 2 if strain_size == 3 else 3
+
+    # Set and fill the symmetric fourth order tensor
+    C_tensor = sympy.MutableDenseNDimArray(sympy.zeros(dim**4),shape=(dim,dim,dim,dim))
+    for i in range(dim):
+        for j in range(dim):
+            index_1 = conversion[(i,j)]
+            for k in range(dim):
+                for l in range(dim):
+                    index_2 = conversion[(k,l)]
+                    C_tensor[i,j,k,l] = C[index_1,index_2]
+
+    return C_tensor
+
+def DoubleContraction(A,B):
+    """
+    This method performs the double contraction A:B.
+
+    Keyword arguments:
+    - A -- Left tensor
+    - B -- Right tensor
+    """
+    rank_A = len(A.shape)
+    AB = sympy.tensorproduct(A,B)
+    tmp = sympy.tensorcontraction(AB, (rank_A-1,rank_A+1))
+    output = sympy.tensorcontraction(tmp, (rank_A-2,rank_A-1))
+    return output
 
 def MatrixB(DN):
     """
@@ -218,6 +341,46 @@ def SubstituteScalarValue(where_to_substitute, what_to_substitute, substituted_v
         where_to_substitute[lll] = tmp
     return where_to_substitute
 
+def SubstituteMatrixValueByVoigtSymbols(where_to_substitute, what_to_substitute, substituted_value, is_strain):
+    """
+    This method substitutes values into a matrix.
+    Note that this is intended to be used to substitute matrix indices by their corresponding Voigt ones
+
+    Keyword arguments:
+    - where_to_substitute -- Coordinates where to substitute
+    - what_to_substitute -- Components to substitute
+    - substituted_value -- Variable to substitute
+    - is_strain -- Flag indicating if substituted_value is a strain
+    """
+
+    # Check the array to which the substitution is applied
+    strain_size = where_to_substitute.shape[0]
+    if (where_to_substitute.shape[1] != 1 and where_to_substitute.shape[1] != strain_size):
+        raise Exception("Input array is not square (constitutive tensor in Voigt notation) not vector (stress vector in Voigt notation).")
+
+    # Get the Voigt to tensor conversion indices
+    conversion = _GetVoigtToTensorConversionIndices(strain_size)
+
+    # Set the factor to be applied to each substitution term
+    if is_strain:
+        factor_func = lambda i,j : 1.0 if i==j else 2.0
+    else:
+        factor_func = lambda i,j : 1.0
+
+    # Do the substitution
+    dim = 2 if strain_size == 3 else 3
+    for lll in range(where_to_substitute.shape[0]):
+        for kkk in range(where_to_substitute.shape[1]):
+            tmp = where_to_substitute[lll, kkk]
+            for i in range(dim):
+                for j in range(dim):
+                    factor = factor_func(i, j)
+                    voigt_index = conversion[(i, j)]
+                    tmp = tmp.subs(what_to_substitute[i, j], factor * substituted_value[voigt_index])
+            where_to_substitute[lll, kkk] = tmp
+
+    return where_to_substitute
+
 def Compute_RHS(functional, testfunc, do_simplifications=False):
     """
     This computes the RHS vector.
@@ -318,6 +481,52 @@ def _ReplaceIndices(language, expression):
     expression = re.sub(pattern, replacement, expression)
 
     return expression
+
+def _GetVoigtToTensorConversionIndices(strain_size):
+    if strain_size == 3:
+        conversion = {
+            (0, 0): 0,
+            (1, 1): 1,
+            (0, 1): 2,
+            (1, 0): 2
+        }
+    elif strain_size == 6:
+        conversion = {
+            (0, 0) : 0,
+            (1, 1) : 1,
+            (2, 2) : 2,
+            (0, 1) : 3,
+            (1, 0) : 3,
+            (1, 2) : 4,
+            (2, 1) : 4,
+            (2, 0) : 5,
+            (0, 2) : 5
+        }
+    else:
+        raise ValueError("Wrong strain size {}.".format(strain_size))
+
+    return conversion
+
+def _GetTensorToVoigtConversionIndices(dim):
+    if dim == 2:
+        conversion = {
+            0: (0, 0),
+            1: (1, 1),
+            2: (0, 1)
+        }
+    elif dim == 3:
+        conversion = {
+            0: (0, 0),
+            1: (1, 1),
+            2: (2, 2),
+            3: (0, 1),
+            4: (1, 2),
+            5: (0, 2)
+        }
+    else:
+        raise ValueError("Wrong dimension {} in input tensor.".format(dim))
+
+    return conversion
 
 def OutputScalar(scalar_expression, name, language, indentation_level=0, replace_indices=True, assignment_op="="):
     """

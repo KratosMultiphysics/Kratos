@@ -10,7 +10,7 @@ def Factory(parameters: KratosMultiphysics.Parameters,
             model: KratosMultiphysics.Model):
     if not isinstance(parameters, KratosMultiphysics.Parameters):
         raise Exception("expecting input parameters of type KratosMultiphysics.Parameters, but got {}".format(type(parameters)))
-    return PointSetOutputProcess(model, parameters)
+    return PointSetOutputProcess(model, parameters["Parameters"])
 
 
 
