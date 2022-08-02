@@ -18,8 +18,6 @@
 // Project includes
 #include "includes/define_python.h"
 #include "includes/kratos_parameters.h"
-#include "includes/condition.h"
-#include "includes/element.h"
 
 #include "processes/process.h"
 #include "processes/output_process.h"
@@ -181,20 +179,16 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<FindGlobalNodalElementalNeighboursProcessType, typename FindGlobalNodalElementalNeighboursProcessType::Pointer, Process>(m,"FindGlobalNodalElementalNeighboursProcess")
         .def(py::init([](const DataCommunicator& rDataComm, ModelPart& rModelPart) {
             KRATOS_WARNING("FindGlobalNodalElementalNeighboursProcess") << "Using deprecated constructor. Please use constructor without DataCommunicator.";
-            return Kratos::make_shared<FindGlobalNodalElementalNeighboursProcessType>(rModelPart, NEIGHBOUR_ELEMENTS);
+            return Kratos::make_shared<FindGlobalNodalElementalNeighboursProcessType>(rModelPart);
         }))
-        .def(py::init([](ModelPart& rModelPart) {
-            return Kratos::make_shared<FindGlobalNodalElementalNeighboursProcessType>(rModelPart, NEIGHBOUR_ELEMENTS);
-        }))
+        .def(py::init<ModelPart&>())
         .def("ClearNeighbours",&FindGlobalNodalElementalNeighboursProcessType::ClearNeighbours)
         .def("GetNeighbourIds",&FindGlobalNodalElementalNeighboursProcessType::GetNeighbourIds)
         ;
 
     using FindGlobalNodalConditionNeighboursProcessType = FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>;
     py::class_<FindGlobalNodalConditionNeighboursProcessType, typename FindGlobalNodalConditionNeighboursProcessType::Pointer, Process>(m,"FindGlobalNodalConditionNeighboursProcess")
-        .def(py::init([](ModelPart& rModelPart) {
-            return Kratos::make_shared<FindGlobalNodalConditionNeighboursProcessType>(rModelPart, NEIGHBOUR_CONDITIONS);
-        }))
+        .def(py::init<ModelPart&>())
         .def("ClearNeighbours",&FindGlobalNodalConditionNeighboursProcessType::ClearNeighbours)
         .def("GetNeighbourIds",&FindGlobalNodalConditionNeighboursProcessType::GetNeighbourIds)
         ;
