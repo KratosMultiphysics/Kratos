@@ -110,6 +110,7 @@ class RigidBodySolver:
         # Create all the processes stated in the project parameters
         self._list_of_processes = input_check._CreateListOfProcesses(self.model, project_parameters, self.main_model_part)
         self._list_of_output_processes = input_check._CreateListOfOutputProcesses(self.model, project_parameters)
+        self._list_of_processes.extend(self._list_of_output_processes)
 
 
     def _InitializeSolutionVariables(self, solver_settings):
