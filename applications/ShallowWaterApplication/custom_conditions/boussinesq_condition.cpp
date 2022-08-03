@@ -88,40 +88,6 @@ void BoussinesqCondition<TNumNodes>::AddDispersionProjection(
 
 
 template<std::size_t TNumNodes>
-void BoussinesqCondition<TNumNodes>::AddMomentumDispersionTerms(
-    LocalVectorType& rLaplacianBoundary,
-    const GeometryType& rParentGeometry,
-    const ConditionData& rData,
-    const array_1d<double,TNumNodes>& rN,
-    const Matrix& rDN_DX,
-    const double Weight)
-{
-    // Constants
-    const double beta = -0.531;
-    const double C2 = 0.5 * std::pow(beta, 2);
-    const double C4 = beta;
-    const double H = rData.depth;
-    const double H2 = std::pow(H, 2);
-
-    double Ju = 0.0;
-    std::size_t elem_num_nodes = rParentGeometry.size();
-    for (IndexType i = 0; i < elem_num_nodes; ++i) {
-        const array_1d<double,3> acceleration = rParentGeometry[i].FastGetSolutionStepValue(ACCELERATION);
-        const double depth  = -rParentGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY);
-        const double div_a  =  rDN_DX(i,0) * acceleration[0] + rDN_DX(i,1) * acceleration[1];
-        const double div_Ha = (rDN_DX(i,0) * acceleration[0] + rDN_DX(i,1) * acceleration[1]) * depth;
-        Ju += C2 * H2 * div_a + C4 * H * div_Ha;
-    }
-
-    for (IndexType i = 0; i < TNumNodes; ++i)
-    {
-        const array_1d<double,3> normal_i = rData.normal * rN[i];
-        MathUtils<double>::AddVector(rLaplacianBoundary, -Weight*normal_i*Ju, 3*i);
-    }
-}
-
-
-template<std::size_t TNumNodes>
 void BoussinesqCondition<TNumNodes>::CalculateShapeFunctionDerivatives(
     Matrix& rDN_DX,
     const GeometryType& rParentGeometry,
@@ -200,52 +166,6 @@ void BoussinesqCondition<TNumNodes>::InitializeNonLinearIteration(const ProcessI
         r_geom[i].FastGetSolutionStepValue(DISPERSION_V) += nodal_dispersion_u;
         r_geom[i].UnSetLock();
     }
-}
-
-
-template<std::size_t TNumNodes>
-void BoussinesqCondition<TNumNodes>::CalculateLocalSystem(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
-{
-    if(rLeftHandSideMatrix.size1() != 0)
-        rLeftHandSideMatrix.resize(0, 0, false);
-
-    if(rRightHandSideVector.size() != mLocalSize)
-        rRightHandSideVector.resize(mLocalSize, false);
-
-    // Geometries
-    auto& r_geom = this->GetGeometry();
-    auto& r_parent_geom = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry();
-
-    // Struct to pass around the data
-    ConditionData data;
-    BaseType::InitializeData(data, rCurrentProcessInfo);
-
-    // Geometrical data
-    Matrix DN_DX;           // Gradients of the parent element
-    Vector weights;         // Line integration data
-    Matrix N_container;     // Line integration data
-    this->CalculateGeometryData(r_geom, weights, N_container);
-    const std::size_t num_gauss_points = weights.size();
-    const auto& g_points = r_geom.IntegrationPoints();
-
-    // Boundary term for the auxiliary fields
-    LocalVectorType rhs = ZeroVector(mLocalSize);
-
-    // Gauss point contribution
-    for (IndexType g = 0; g < num_gauss_points; ++g)
-    {
-        const double weight = weights[g];
-        const auto point = g_points[g];
-        const array_1d<double,TNumNodes> N = row(N_container, g);
-
-        this->CalculateGaussPointData(data, g, N);
-        CalculateShapeFunctionDerivatives(DN_DX, r_parent_geom, point);
-        AddMomentumDispersionTerms(rhs, r_parent_geom, data, N, DN_DX, weight);
-        this->AddFluxTerms(rhs, data, N, weight);
-    }
-
-    // noalias(rLeftHandSideMatrix) = ZeroMatrix(mLocalSize, mLocalSize);
-    noalias(rRightHandSideVector) = rhs;
 }
 
 

@@ -157,6 +157,7 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
             d_ij = rDN_DX(i,1) * rDN_DX(j,0);
             MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A2i3*rData.nodal_Jh[j][0], 3*i);
 
+            // TODO: Check the intermediate projection, this should improve the stability properties
             // /// Dispersion contribution to momentum conservation
             // const double n_ij = BaseType::ShapeFunctionProduct(rN, i, j);
             // MathUtils<double>::AddVector(rVector, -Weight*n_ij*rData.nodal_Ju[j], 3*i);
