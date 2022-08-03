@@ -96,11 +96,13 @@ namespace Kratos {
             KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateViscoDampingCoeff) shouldn't be accessed, use derived class instead"<<std::endl;
         };
 
+        /*
         virtual void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
 
         };
+        */
 
-        virtual void CheckBondFailure(const int i_neighbour_count, 
+        virtual void CheckFailure(const int i_neighbour_count, 
                                     SphericContinuumParticle* element1, 
                                     SphericContinuumParticle* element2,
                                     double& contact_sigma,

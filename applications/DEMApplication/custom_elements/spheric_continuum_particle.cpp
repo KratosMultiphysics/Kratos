@@ -324,7 +324,7 @@ namespace Kratos {
             if (i < (int)mContinuumInitialNeighborsSize) {
 
                 // A check bond failure function for Parallel bond model is in below
-                mContinuumConstitutiveLawArray[i]->CheckFailure(i, this, neighbour_iterator);
+                //mContinuumConstitutiveLawArray[i]->CheckFailure(i, this, neighbour_iterator);
 
                 mContinuumConstitutiveLawArray[i]->CalculateForces(r_process_info,
                                                                 OldLocalElasticContactForce,
@@ -427,7 +427,7 @@ namespace Kratos {
 
             //*******************Bond failure check*********************
             if (i < (int)mContinuumInitialNeighborsSize) {
-                mContinuumConstitutiveLawArray[i]->CheckBondFailure(i, this, neighbour_iterator, contact_sigma, contact_tau, LocalElasticContactForce, 
+                mContinuumConstitutiveLawArray[i]->CheckFailure(i, this, neighbour_iterator, contact_sigma, contact_tau, LocalElasticContactForce, 
                                                                     ViscoDampingLocalContactForce, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
             }
 

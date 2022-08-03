@@ -862,29 +862,29 @@ void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resist
 
 void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt, SphericParticle* p_neighbor, double LocalContactForce[3])
 {
-    array_1d<double, 3> element1AngularVelocity;
-    noalias(element1AngularVelocity) = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-    if (element1AngularVelocity[0] || element1AngularVelocity[1] || element1AngularVelocity[2]){
+    array_1d<double, 3> elementRelAngularVelocity;
+    noalias(elementRelAngularVelocity) = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) - p_neighbor->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+    if (elementRelAngularVelocity[0] || elementRelAngularVelocity[1] || elementRelAngularVelocity[2]){
         array_1d<double, 3> other_to_me_vect;
         noalias(other_to_me_vect) = GetGeometry()[0].Coordinates() - p_neighbor->GetGeometry()[0].Coordinates();
         double bond_center_point_to_element1_mass_center_distance = DEM_MODULUS_3(other_to_me_vect) / 2; //Here, this only works for sphere particles
         
-        double element1AngularVelocity_modulus = sqrt(element1AngularVelocity[0] * element1AngularVelocity[0] + 
-                                                element1AngularVelocity[1] * element1AngularVelocity[1] +
-                                                element1AngularVelocity[2] * element1AngularVelocity[2]);
+        double elementRelAngularVelocity_modulus = sqrt(elementRelAngularVelocity[0] * elementRelAngularVelocity[0] + 
+                                                elementRelAngularVelocity[1] * elementRelAngularVelocity[1] +
+                                                elementRelAngularVelocity[2] * elementRelAngularVelocity[2]);
 
-        array_1d<double, 3> element1AngularVelocity_normalise;
-        element1AngularVelocity_normalise[0] = element1AngularVelocity[0] / element1AngularVelocity_modulus;
-        element1AngularVelocity_normalise[1] = element1AngularVelocity[1] / element1AngularVelocity_modulus;
-        element1AngularVelocity_normalise[2] = element1AngularVelocity[2] / element1AngularVelocity_modulus;
+        array_1d<double, 3> elementRelAngularVelocity_normalise;
+        elementRelAngularVelocity_normalise[0] = elementRelAngularVelocity[0] / elementRelAngularVelocity_modulus;
+        elementRelAngularVelocity_normalise[1] = elementRelAngularVelocity[1] / elementRelAngularVelocity_modulus;
+        elementRelAngularVelocity_normalise[2] = elementRelAngularVelocity[2] / elementRelAngularVelocity_modulus;
 
         Properties& properties_of_this_contact = GetProperties().GetSubProperties(p_neighbor->GetProperties().Id());
 
-        mContactMoment[0] -= element1AngularVelocity_normalise[0] * fabs(LocalContactForce[2]) * bond_center_point_to_element1_mass_center_distance * properties_of_this_contact[ROLLING_FRICTION]; 
+        mContactMoment[0] -= elementRelAngularVelocity_normalise[0] * fabs(LocalContactForce[2]) * bond_center_point_to_element1_mass_center_distance * properties_of_this_contact[ROLLING_FRICTION]; 
 
-        mContactMoment[1] -= element1AngularVelocity_normalise[1] * fabs(LocalContactForce[2]) * bond_center_point_to_element1_mass_center_distance * properties_of_this_contact[ROLLING_FRICTION]; 
+        mContactMoment[1] -= elementRelAngularVelocity_normalise[1] * fabs(LocalContactForce[2]) * bond_center_point_to_element1_mass_center_distance * properties_of_this_contact[ROLLING_FRICTION]; 
 
-        mContactMoment[2] -= element1AngularVelocity_normalise[2] * fabs(LocalContactForce[2]) * bond_center_point_to_element1_mass_center_distance * properties_of_this_contact[ROLLING_FRICTION]; 
+        mContactMoment[2] -= elementRelAngularVelocity_normalise[2] * fabs(LocalContactForce[2]) * bond_center_point_to_element1_mass_center_distance * properties_of_this_contact[ROLLING_FRICTION]; 
 
     } 
 }

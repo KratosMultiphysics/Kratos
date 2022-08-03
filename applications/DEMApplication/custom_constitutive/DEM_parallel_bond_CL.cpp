@@ -939,7 +939,7 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
 // Bond failure checking
 //*************************************
 
-void DEM_parallel_bond::CheckBondFailure(const int i_neighbour_count, 
+void DEM_parallel_bond::CheckFailure(const int i_neighbour_count, 
                                         SphericContinuumParticle* element1, 
                                         SphericContinuumParticle* element2,
                                         double& contact_sigma,

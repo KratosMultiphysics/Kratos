@@ -47,7 +47,7 @@ namespace Kratos{
         //TODO:CHECK
         virtual double GetYoungModulusForComputingRotationalMoments(const double& equiv_young);
 
-        virtual void CheckBondFailure(const int i_neighbour_count, 
+        virtual void CheckFailure(const int i_neighbour_count, 
                             SphericContinuumParticle* element1, 
                             SphericContinuumParticle* element2,
                             double& contact_sigma,
