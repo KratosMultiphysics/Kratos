@@ -189,10 +189,26 @@ public:
      * parameters, it will only work with intersecting TRIANGLES, since the utility used to compute
      * the intersection does not allow templating.
      */  
-    template<class TGeometryType, class TGeometryArrayType>
     static double NodesGeometricalApproximation(
-        const TGeometryType& rVoxel,  
-        const TGeometryArrayType& rTriangles     
+        const GeometryType& rVoxel,  
+        const GeometryArrayType& rTriangles     
+    ) {
+        return 0;    
+    }
+
+    /**
+     * @brief Aproximates the actual volume inside the voxel 
+     * @param rVoxel references to the voxel whose actual volume will be approximated
+     * @param rTriangles references to the triangles which intersect the voxel at some edge.
+     * @return Approximated volume 
+     * @note This approximation finds the portion of each node that represents volume (using
+     * intersection points with triangles of the mesh). Even if this class is templated for both 
+     * parameters, it will only work with intersecting TRIANGLES, since the utility used to compute
+     * the intersection does not allow templating.
+     */  
+    static double NodesGeometrical2D(
+        const GeometryType& rVoxel,  
+        const GeometryArrayType& rTriangles     
     ) {
         return 0;    
     }
