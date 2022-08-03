@@ -26,7 +26,7 @@
 #include "testing/testing.h"
 
 // Application includes
-#include "custom_elements/total_lagrangian_mixed_detJ_element.h"
+#include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 
 namespace Kratos
 {

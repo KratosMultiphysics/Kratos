@@ -77,7 +77,7 @@
 
 /* Adding the mixed solid elements */
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
-#include "custom_elements/total_lagrangian_mixed_detJ_element.h"
+#include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 #include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
 
 /* CONDITIONS */

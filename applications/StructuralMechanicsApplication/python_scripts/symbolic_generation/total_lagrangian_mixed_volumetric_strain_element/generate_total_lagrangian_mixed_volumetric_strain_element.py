@@ -7,9 +7,8 @@ from KratosMultiphysics.sympy_fe_utilities import *
 mode = "c"
 dim_vect = [2, 3]
 do_simplifications = False
-output_filename = "total_lagrangian_mixed_detJ_element.cpp"
-template_filename = "total_lagrangian_mixed_detJ_element_template.cpp"
-# outstring = open(template_filename).read()
+output_filename = "total_lagrangian_mixed_volumetric_strain_element.cpp"
+template_filename = "total_lagrangian_mixed_volumetric_strain_element_template.cpp"
 tokens_filenames = []
 
 for dim in dim_vect:
