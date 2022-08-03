@@ -206,7 +206,7 @@ public:
         const GeometryType& rFace,  
         const GeometryArrayType& rTriangles     
     ) {
-        double volume = 0;
+        double area = 0;
         GeometryArrayType edges = rFace.GenerateEdges();
         PointsArrayType nodes = rFace.Points(); 
         std::vector<std::pair<double,double>> MinDistanceToNode(edges.size(),{0.5,0.5}); 
@@ -248,15 +248,15 @@ public:
         std::vector<std::vector<double>> neighbours{{3,1},{0,2},{1,3},{0,2}};  
         for(int i = 0; i < nodes.size(); i++ ) {
             double factor = GetFactor(nodes, neighbours,i);
-            double PartialVolume;
+            double PartialArea;
             if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
-                PartialVolume = factor*MinDistanceToNode[(i+3)%4].second*MinDistanceToNode[i].first;
+                PartialArea = factor*MinDistanceToNode[(i+3)%4].second*MinDistanceToNode[i].first;
             } else  {
-                PartialVolume = 1.0/nodes.size() - factor*MinDistanceToNode[(i+3)%4].second*MinDistanceToNode[i].first;
+                PartialArea = 1.0/nodes.size() - factor*MinDistanceToNode[(i+3)%4].second*MinDistanceToNode[i].first;
             }
-            volume += PartialVolume;
+            area += PartialArea;
         }
-        return volume;    
+        return area;    
     }
 
     /**

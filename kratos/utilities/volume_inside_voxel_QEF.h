@@ -99,10 +99,9 @@ public:
      * parameters, it will only work with intersecting TRIANGLES, since the utility used to compute
      * the intersection does not allow templating.
      */ 
-    template<class TGeometryType, class TGeometryArrayType>
     static double SimpleNodesQEFApproximation(
-        const TGeometryType& rVoxel,  
-        const TGeometryArrayType& rTriangles     
+        const GeometryType& rVoxel,  
+        const GeometryArrayType& rTriangles     
     ) {
         double volume = 0;
         GeometryArrayType edges = rVoxel.GenerateEdges();
@@ -132,19 +131,16 @@ public:
      * @param rTriangles references to the triangles which intersect the voxel at some edge.
      * @return Approximated volume 
      * @note This approximation finds the portion of each edge that is part of the volume (using
-     * intersection point with triangles of the mesh). Even if this class is templated for both 
-     * parameters, it will only work with intersecting TRIANGLES, since the utility used to compute
-     * the intersection does not allow templating.
+     * intersection point with triangles of the mesh).
      */ 
-    template<class TGeometryType, class TGeometryArrayType>
     static double FacesPortionQEFApproximation(
-        const TGeometryType& rVoxel,  
-        const TGeometryArrayType& rTriangles     
+        const GeometryType& rVoxel,  
+        const GeometryArrayType& rTriangles     
     ) {
         double volume = 0;
         GeometryArrayType Faces = rVoxel.GenerateFaces();
 
-        array_1d<double,3> qef = QEF::QEFPoint(rVoxel,rTriangles); 
+        array_1d<double,3> qef = QEF::QEFPoint(rVoxel,rTriangles);
         //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
 
         for(int i = 0; i < Faces.size(); i++) {
@@ -153,6 +149,29 @@ public:
             
             double PartialVolume = Portion*abs(dist)/3.0;   //Volume of a piramid
             volume += PartialVolume;
+        }
+        //if (volume == 0) return EdgesPortionApproximation(rVoxel,rTriangles);
+        
+        return volume;
+    }
+
+    static double GeometricalQEFApproximation(
+        const GeometryType& rVoxel,  
+        const GeometryArrayType& rTriangles     
+    ) {
+        double volume = 0;
+        GeometryArrayType Faces = rVoxel.GenerateFaces();
+
+        array_1d<double,3> qef = QEF::QEFPoint(rVoxel,rTriangles); 
+        //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
+
+        for(int i = 0; i < Faces.size(); i++) {
+            double Portion = NodesGeometrical2D(Faces[i],rTriangles);
+            double dist = NormalizedDistanceToQEF(Faces[i], qef, i);
+            
+            double PartialVolume = Portion*abs(dist)/3.0;   //Volume of a piramid
+            volume += PartialVolume;
+            
         }
         //if (volume == 0) return EdgesPortionApproximation(rVoxel,rTriangles);
         
