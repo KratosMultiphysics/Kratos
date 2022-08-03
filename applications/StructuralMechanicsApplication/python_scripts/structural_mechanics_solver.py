@@ -113,7 +113,6 @@ class MechanicalSolver(PythonSolver):
             "pressure_dofs": false,
             "displacement_control": false,
             "reform_dofs_at_each_step": false,
-            "line_search": false,
             "use_old_stiffness_in_first_iteration": false,
             "compute_reactions": true,
             "solving_strategy_settings": {
