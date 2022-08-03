@@ -10,7 +10,6 @@ from KratosMultiphysics.HDF5Application.point_set_output_process import Factory 
 from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
 
 # STL imports
-import math
 import pathlib
 
 
@@ -30,13 +29,13 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
         # so if you need to validate the results, comment the line
         # below.
         self.communicator.Barrier()
-        KratosUtils.DeleteFileIfExisting("test_point_set_output.h5")
+        #KratosUtils.DeleteFileIfExisting("test_point_set_output.h5")
 
 
     def test_PointSetOutputProcessWrite(self):
         model, model_part = self.MakeModel()
         parameters = self.parameters
-        number_of_steps = 5
+        number_of_steps = 10
 
         # Write coordinates and variables
         process_parameters = KratosMultiphysics.Parameters()
@@ -62,24 +61,18 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
 
         # Open output file
         file_parameters = parameters["file_parameters"].Clone()
-        file_parameters.AddString("file_access_mode","read_only")
+        file_parameters["file_access_mode"].SetString("read_only")
         with OpenHDF5File(file_parameters, model_part) as file:
             # Check output file structure
             root = "/test_point_set_output_{}".format(parameters["model_part_name"].GetString())
             self.assertTrue(file.IsGroup(root))
             self.assertTrue(file.IsDataSet(root + "/POSITION"))
 
-
     @property
     def parameters(self) -> KratosMultiphysics.Parameters:
         parameters = KratosMultiphysics.Parameters("""{
             "model_part_name"      : "main",
-            "positions"            : [[0.0, 0.0, 0.0],
-                                      [0.2, 0.2, 0.0],
-                                      [0.4, 0.4, 0.0],
-                                      [0.6, 0.6, 0.0],
-                                      [0.8, 0.8, 0.0],
-                                      [1.0, 1.0, 0.0]],
+            "positions"            : [[0.0, 0.0, 0.0]],
             "output_variables"     : ["DISPLACEMENT_X", "VELOCITY"],
             "output_frequency"     : 3,
             "coordinates_prefix"   : "/test_point_set_output_<model_part_name>",
