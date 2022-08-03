@@ -107,24 +107,24 @@ class ComputeYPlusProcessTest(UnitTest.TestCase):
         factory = KratosProcessFactory(self.model)
         process_list = factory.ConstructListOfProcesses(settings)
 
-        time_steps = [1.0, 1.5, 2.0, 2.5]
         for process in process_list:
             process.Check()
-
-        step = 1
-        for time_step in time_steps:
+            
+        time_steps = [1.0, 1.5, 2.0, 2.5]
+        for step, time_step in enumerate(time_steps, 1):
             self.model_part.ProcessInfo[Kratos.TIME] = time_step
             self.model_part.ProcessInfo[Kratos.STEP] = step
-            step += 1
 
-            process.ExecuteInitializeSolutionStep()
-            process.ExecuteFinalizeSolutionStep()
-            if process.IsOutputStep():
-                process.PrintOutput()
+            for process in process_list:
+                process.ExecuteInitializeSolutionStep()
+                process.ExecuteFinalizeSolutionStep()
+                if process.IsOutputStep():
+                    process.PrintOutput()
 
         for process in process_list:
             process.ExecuteFinalize()
 
+    def tearDown(self):
         kratos_utilities.DeleteFileIfExisting("test_y_plus.dat")
 
     @staticmethod
