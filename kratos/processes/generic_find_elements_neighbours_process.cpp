@@ -62,7 +62,7 @@ void GenericFindElementalNeighboursProcess::Execute()
 
 void GenericFindElementalNeighboursProcess::ExecuteInitialize()
 {
-    KRATOS_WARNING("GenericFindElementalNeighboursProcess") << "'ExecuteInitialize' method is deprecated. Call 'Execute' instead." << std::endl;
+    KRATOS_WARNING("GenericFindElementalNeighboursProcess") << "'ExecuteInitialize' call is deprecated. Use 'Execute' instead." << std::endl;
     Execute();
 }
 
