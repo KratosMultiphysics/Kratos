@@ -19,7 +19,6 @@
 #include "includes/checks.h"
 #include "utilities/normal_calculation_utils.h"
 #include "utilities/parallel_utilities.h"
-#include "utilities/variable_utils.h"
 #include "includes/variables.h"
 
 // Application includes
@@ -61,6 +60,9 @@ ComputeYPlusProcess::ComputeYPlusProcess(
 
     mIsNormalsCalculated = false;
 
+    KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mOutputVariableName))
+            << mOutputVariableName << " is not found in scalar variables list.\n";
+
     KRATOS_CATCH("");
 }
 
@@ -86,10 +88,7 @@ void ComputeYPlusProcess::ExecuteFinalizeSolutionStep()
 {
     KRATOS_TRY
 
-    CalculateConditionReactions();
-
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-
     auto& r_output_variable = KratosComponents<Variable<double>>::Get(mOutputVariableName);
 
     block_for_each(r_model_part.Conditions(), [&](ConditionType& rCondition) {
@@ -109,23 +108,44 @@ void ComputeYPlusProcess::ExecuteFinalizeSolutionStep()
 
         const double y = inner_prod(condition_center - parent_center, r_condition_unit_normal);
 
+        // calculate condition reaction
+        array_1d<double, 3> reaction{0.0, 0.0, 0.0};
+        for (const auto& r_node : r_condition_geometry) {
+            const double nodal_area = norm_2(r_node.FastGetSolutionStepValue(NORMAL));
+            noalias(reaction) += r_node.FastGetSolutionStepValue(REACTION) / nodal_area;
+        }
+        const double condition_area = r_condition_geometry.Area();
+        reaction *= (condition_area / r_condition_geometry.PointsNumber());
+
+
+
         // get fluid properties from parent element
         const auto& r_properties = r_parent_element.GetProperties();
         const double density = r_properties[DENSITY];
         const double kinmeatic_viscosity = r_properties[DYNAMIC_VISCOSITY] / density;
 
-        // calculate reaction
-        const array_1d<double, 3>& r_reaction = rCondition.GetValue(REACTION);
-        const array_1d<double, 3>& perpendicular_reaction = r_condition_unit_normal * inner_prod(r_reaction, r_condition_unit_normal);
-        const array_1d<double, 3>& tangential_reaction = r_reaction - perpendicular_reaction;
+        // calculate y+
+        const array_1d<double, 3>& perpendicular_reaction = r_condition_unit_normal * inner_prod(reaction, r_condition_unit_normal);
+        const array_1d<double, 3>& tangential_reaction = reaction - perpendicular_reaction;
 
-        const double shear_stress = norm_2(tangential_reaction) / r_condition_geometry.Area();
+        const double shear_stress = norm_2(tangential_reaction) / condition_area;
         const double u_tau = std::sqrt(shear_stress / density);
 
         rCondition.SetValue(r_output_variable, u_tau * y / kinmeatic_viscosity);
     });
 
-    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)<< "Calculated y_plus in " << r_model_part.FullName() << ".\n";
+    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Calculated y_plus and stored under "
+            << mOutputVariableName << " in conditions of " << r_model_part.FullName() << ".\n";
+
+    if (mIsOutputStoredInElements) {
+        block_for_each(r_model_part.Conditions(), [&](ConditionType& rCondition) {
+            rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0].SetValue(r_output_variable, rCondition.GetValue(r_output_variable));
+        });
+
+        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)<< "Calculated y_plus and stored under "
+                << mOutputVariableName << " in parent elements of conditions of "
+                << r_model_part.FullName() << ".\n";
+    }
 
     KRATOS_CATCH("");
 }
@@ -145,17 +165,32 @@ int ComputeYPlusProcess::Check()
                     << r_model_part.FullName() << ".\n";
 
     block_for_each(r_model_part.Conditions(), [](const ConditionType& rCondition) {
-        KRATOS_ERROR_IF_NOT(rCondition.Has(NEIGHBOUR_ELEMENTS)) << "NEIGHBOUR_ELEMENTS is not present in condition with id " << rCondition.Id() << ".\n";
-        KRATOS_ERROR_IF_NOT(rCondition.GetValue(NEIGHBOUR_ELEMENTS).size() == 1) << "NEIGHBOUR_ELEMENTS does not have the unique parent element for condition with id " << rCondition.Id() << ".\n";
+        KRATOS_ERROR_IF_NOT(rCondition.Has(NEIGHBOUR_ELEMENTS))
+                << "NEIGHBOUR_ELEMENTS is not present in condition with id "
+                << rCondition.Id() << ".\n";
+        KRATOS_ERROR_IF_NOT(rCondition.GetValue(NEIGHBOUR_ELEMENTS).size() == 1)
+                << "NEIGHBOUR_ELEMENTS does not have the unique parent element for condition with id "
+                << rCondition.Id() << ".\n";
 
         const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
         const auto& r_properties = r_parent_element.GetProperties();
 
-        KRATOS_ERROR_IF_NOT(r_properties.Has(DENSITY)) << "DENSITY is not present in the properties of the parent element with id " << r_parent_element.Id() << " for the condition with id " << rCondition.Id() << ".\n";
-        KRATOS_ERROR_IF_NOT(r_properties[DENSITY] > 0.0) << "DENSITY is not greater than zero in the properties of the parent element with id " << r_parent_element.Id() << " for the condition with id " << rCondition.Id() << ".\n";
-
-        KRATOS_ERROR_IF_NOT(r_properties.Has(DYNAMIC_VISCOSITY)) << "DYNAMIC_VISCOSITY is not present in the properties of the parent element with id " << r_parent_element.Id() << " for the condition with id " << rCondition.Id() << ".\n";
-        KRATOS_ERROR_IF_NOT(r_properties[DYNAMIC_VISCOSITY] > 0.0) << "DYNAMIC_VISCOSITY is not greater than zero in the properties of the parent element with id " << r_parent_element.Id() << " for the condition with id " << rCondition.Id() << ".\n";
+        KRATOS_ERROR_IF_NOT(r_properties.Has(DENSITY))
+                << "DENSITY is not present in the properties of the parent element with id "
+                << r_parent_element.Id() << " for the condition with id "
+                << rCondition.Id() << ".\n";
+        KRATOS_ERROR_IF_NOT(r_properties[DENSITY] > 0.0)
+                << "DENSITY is not greater than zero in the properties of the parent element with id "
+                << r_parent_element.Id() << " for the condition with id "
+                << rCondition.Id() << ".\n";
+        KRATOS_ERROR_IF_NOT(r_properties.Has(DYNAMIC_VISCOSITY))
+                << "DYNAMIC_VISCOSITY is not present in the properties of the parent element with id "
+                << r_parent_element.Id() << " for the condition with id "
+                << rCondition.Id() << ".\n";
+        KRATOS_ERROR_IF_NOT(r_properties[DYNAMIC_VISCOSITY] > 0.0)
+                << "DYNAMIC_VISCOSITY is not greater than zero in the properties of the parent element with id "
+                << r_parent_element.Id() << " for the condition with id "
+                << rCondition.Id() << ".\n";
     });
 
     return 0;
@@ -175,29 +210,6 @@ void ComputeYPlusProcess::PrintInfo(std::ostream& rOStream) const
 
 void ComputeYPlusProcess::PrintData(std::ostream& rOStream) const
 {
-}
-
-void ComputeYPlusProcess::CalculateConditionReactions()
-{
-    KRATOS_TRY
-
-    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-
-    VariableUtils().SetNonHistoricalVariableToZero(REACTION, r_model_part.Conditions());
-
-    block_for_each(r_model_part.Conditions(), [](ConditionType& rCondition) {
-        auto& r_reaction = rCondition.GetValue(REACTION);
-
-        const auto& r_geometry = rCondition.GetGeometry();
-        const double area_fraction = r_geometry.Area() / r_geometry.PointsNumber();
-
-        for (const auto& r_node : r_geometry) {
-            const double nodal_area = norm_2(r_node.FastGetSolutionStepValue(NORMAL));
-            noalias(r_reaction) += area_fraction * r_node.FastGetSolutionStepValue(REACTION) / nodal_area;
-        }
-    });
-
-    KRATOS_CATCH("");
 }
 
 } // namespace Kratos.

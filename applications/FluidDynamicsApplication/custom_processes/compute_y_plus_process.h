@@ -32,7 +32,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(RANS_APPLICATION) ComputeYPlusProcess : public Process
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ComputeYPlusProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -107,12 +107,6 @@ private:
     int mEchoLevel;
 
     bool mIsNormalsCalculated;
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    void CalculateConditionReactions();
 
     ///@}
 
