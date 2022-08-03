@@ -321,7 +321,11 @@ namespace Testing {
 
         //Call the Faces Portion utility
         double volume = VolumeInsideVoxelQEF::FacesPortionQEFApproximation(*pVoxel,array1);
-        const double ExpectedVolume = 0.11458; 
+        double ExpectedVolume = 0.11458; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);  
+
+        volume = VolumeInsideVoxelQEF::GeometricalQEFApproximation(*pVoxel,array1);
+        ExpectedVolume = 0.067; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);      
     }
 
