@@ -17,6 +17,7 @@ from sympy import false
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 from KratosMultiphysics.LinearSolversApplication import dense_linear_solver_factory
+import KratosMultiphysics.eigen_solver_factory as eigen_solver_factory
 
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication.utilities import custom_math as cm
@@ -396,8 +397,37 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
 
         KM.Logger.PrintInfo("ShapeOpt", "Assemble vector of objective gradient.")
         nabla_f = KM.Vector()
-        s = KM.Vector()
         self.optimization_utilities.AssembleVector(self.design_surface, nabla_f, KSO.DF1DX_MAPPED)
+
+        "active subspace strategy"
+        model_part = self.design_surface
+        total_nodes = len(model_part.Nodes)
+        number_of_active_nodes = int(total_nodes * self.max_shape_fraction)
+
+        # TODO: fix compilierung mit DUSE_EIGEN_FEAST=ON
+        # eigen_settings = KM.Parameters(
+        #     '''{
+        #             "solver_type" : "feast",
+        #             "symmetric": true,
+        #             "search_highest_eigenvalues": true,
+        #             "number_of_eigenvalues": 0
+        #         }''')
+        eigen_settings = KM.Parameters(
+            '''{
+                    "solver_type" : "spectra_sym_g_eigs_shift",
+                    "number_of_eigenvalues": 1,
+                    "shift": 0.0
+                }''')
+        eigen_settings["number_of_eigenvalues"].SetDouble(total_nodes - number_of_active_nodes)
+        KM.Logger.PrintInfo("ShapeOpt", "Construct solver.")
+        eigen_solver = eigen_solver_factory.ConstructSolver(eigen_settings)
+
+        active_nodes = KM.Vector()
+        startTime = timer.time()
+        self.optimization_utilities.ConstructActiveSubspace(nabla_f, active_nodes, eigen_solver)
+        KM.Logger.PrintInfo("ShapeFractionOptimization", "Time needed for calculating the active subspace = ",round(timer.time() - startTime,2),"s")
+
+        s = KM.Vector()
 
         if len(g_a) == 0:
             KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
