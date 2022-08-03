@@ -227,6 +227,9 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                           const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
       * @brief This is called during the assembling process in order to calculate the elemental mass matrix
       * @param rMassMatrix the elemental mass matrix
@@ -310,7 +313,7 @@ public:
      * @return specifications The required specifications/requirements
      */
     const Parameters GetSpecifications() const override;
-    
+
     /// Turn back information as a string.
     std::string Info() const override
     {

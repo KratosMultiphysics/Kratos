@@ -50,6 +50,8 @@
 #include "custom_response_functions/adjoint_elements/adjoint_solid_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_small_displacement_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_spring_damper_element_3D2N.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_membrane_element.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cable_element_3D2N.h"
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
@@ -396,6 +398,7 @@ private:
     // Adding adjoint elements
     const AdjointFiniteDifferencingShellElement<ShellThinElement3D3N<ShellKinematics::LINEAR>> mAdjointFiniteDifferencingShellThinElement3D3N;
     const AdjointFiniteDifferenceCrBeamElement<CrBeamElementLinear3D2N> mAdjointFiniteDifferenceCrBeamElementLinear3D2N;
+    const AdjointFiniteDifferenceCrBeamElement<CrBeamElement3D2N> mAdjointFiniteDifferenceCrBeamElement3D2N;
     const AdjointFiniteDifferenceTrussElement<TrussElement3D2N> mAdjointFiniteDifferenceTrussElement3D2N;
     const AdjointFiniteDifferenceTrussElementLinear<TrussElementLinear3D2N> mAdjointFiniteDifferenceTrussLinearElement3D2N;
     const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D3N;
@@ -407,6 +410,9 @@ private:
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D6N;
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D8N;
     const AdjointFiniteDifferenceSpringDamperElement<SpringDamperElement3D2N>  mAdjointFiniteDifferenceSpringDamperElement3D2N;
+    const AdjointFiniteDifferencingMembraneElement<MembraneElement> mAdjointFiniteDifferencingMembraneElement3D3N;
+    const AdjointFiniteDifferencingMembraneElement<MembraneElement> mAdjointFiniteDifferencingMembraneElement3D4N;
+    const AdjointFiniteDifferenceCableElement<CableElement3D2N> mAdjointFiniteDifferenceCableElement3D2N;
 
     /* CONDITIONS*/
     // Point load

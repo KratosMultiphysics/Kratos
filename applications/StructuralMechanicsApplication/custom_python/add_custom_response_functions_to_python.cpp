@@ -19,6 +19,7 @@
 
 // Processes
 #include "custom_response_functions/adjoint_processes/replace_multiple_elements_and_conditions_process.h"
+#include "custom_response_functions/adjoint_processes/replace_elements_with_serialized_elements_process.h"
 
 // Response Functions
 #include "custom_response_functions/response_utilities/strain_energy_response_function_utility.h"
@@ -65,6 +66,10 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
     py::class_<ReplaceMultipleElementsAndConditionsProcess, ReplaceMultipleElementsAndConditionsProcess::Pointer , Process>
         (m, "ReplaceMultipleElementsAndConditionsProcess")
         .def(py::init<ModelPart&, Parameters>());
+
+    py::class_<ReplaceElementsWithSerializedElementsProcess, ReplaceElementsWithSerializedElementsProcess::Pointer , Process>
+        (m, "ReplaceElementsWithSerializedElementsProcess")
+        .def(py::init<ModelPart&, ModelPart&>());
 
     // Response Functions
     py::class_<AdjointLocalStressResponseFunction, AdjointLocalStressResponseFunction::Pointer, AdjointResponseFunction>

@@ -52,6 +52,7 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                 {
                     "ShellThinElement3D3N"           : "AdjointFiniteDifferencingShellThinElement3D3N",
                     "CrLinearBeamElement3D2N"        : "AdjointFiniteDifferenceCrBeamElementLinear3D2N",
+                    "CrBeamElement3D2N"              : "AdjointFiniteDifferenceCrBeamElement3D2N",
                     "TrussLinearElement3D2N"         : "AdjointFiniteDifferenceTrussLinearElement3D2N",
                     "TrussElement3D2N"               : "AdjointFiniteDifferenceTrussElement3D2N",
                     "TotalLagrangianElement2D3N"     : "TotalLagrangianAdjointElement2D3N",
@@ -62,7 +63,10 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                     "SmallDisplacementElement3D4N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D4N",
                     "SmallDisplacementElement3D6N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D6N",
                     "SmallDisplacementElement3D8N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D8N",
-                    "SpringDamperElement3D2N"        : "AdjointFiniteDifferenceSpringDamperElement3D2N"
+                    "SpringDamperElement3D2N"        : "AdjointFiniteDifferenceSpringDamperElement3D2N",
+                    "MembraneElement3D3N"            : "AdjointFiniteDifferencingMembraneElement3D3N",
+                    "MembraneElement3D4N"            : "AdjointFiniteDifferencingMembraneElement3D4N",
+                    "CableElement3D2N"               : "AdjointFiniteDifferenceCableElement3D2N"
                 },
                 "condition_name_table" :
                 {

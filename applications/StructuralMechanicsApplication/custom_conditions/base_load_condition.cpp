@@ -248,6 +248,19 @@ void BaseLoadCondition::CalculateRightHandSide(
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+void BaseLoadCondition::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    VectorType temp;
+    CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
 void BaseLoadCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,

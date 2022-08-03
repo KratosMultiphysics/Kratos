@@ -372,13 +372,13 @@ public:
      * Calculates the stress-design variable derivative of the given rStressVariable.
      * this is done by finite differencing of the Calculate function of the primal element
      */
-    void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, const Variable<Vector>& rStressVariable,
+    virtual void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, const Variable<Vector>& rStressVariable,
                                         Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
     /**
      * Calculates the stress-design variable derivative of the given rStressVariable.
      * this is done by finite differencing of the Calculate function of the primal element
      */
-    void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable,
+    virtual void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable,
                                             const Variable<Vector>& rStressVariable,
                                              Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
     /**
@@ -391,6 +391,14 @@ public:
     const Element::Pointer pGetPrimalElement() const
     {
         return mpPrimalElement;
+    }
+
+    /**
+     * Sets the pointer to the primal element.
+     */
+    void SetPrimalElement(Element::Pointer pPrimalElement)
+    {
+        mpPrimalElement = pPrimalElement;
     }
     ///@}
 

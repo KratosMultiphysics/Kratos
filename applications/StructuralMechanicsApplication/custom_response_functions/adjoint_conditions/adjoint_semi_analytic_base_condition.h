@@ -164,8 +164,9 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 				       const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateLeftHandSide(rLeftHandSideMatrix,
-					rCurrentProcessInfo);
+        MatrixType tmp;
+        mpPrimalCondition->CalculateLeftHandSide(tmp, rCurrentProcessInfo);
+        rLeftHandSideMatrix = trans(tmp);
     }
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,

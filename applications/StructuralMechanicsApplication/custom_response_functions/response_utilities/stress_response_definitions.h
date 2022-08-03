@@ -52,7 +52,17 @@ enum class TracedStressType
     MZY,
     MZZ,
     PK2,
-    VON_MISES_STRESS
+    VON_MISES_STRESS,
+    PK2_STRESS_X,
+    PK2_STRESS_Y,
+    PK2_STRESS_XY,
+    CAUCHY_STRESS_X,
+    CAUCHY_STRESS_Y,
+    CAUCHY_STRESS_XY,
+    PRINCIPAL_PK2_STRESS_1,
+    PRINCIPAL_PK2_STRESS_2,
+    PRINCIPAL_CAUCHY_STRESS_1,
+    PRINCIPAL_CAUCHY_STRESS_2
 };
 
 enum class StressTreatment
@@ -133,6 +143,10 @@ private:
                             Vector& rOutput,
                             const ProcessInfo& rCurrentProcessInfo);
 
+    static void CalculateStressOnGPMembrane(Element& rElement,
+                            const TracedStressType rTracedStressType,
+                            Vector& rOutput,
+                            const ProcessInfo& rCurrentProcessInfo);
 };  // class StressCalculation.
 
 }  // namespace Kratos.

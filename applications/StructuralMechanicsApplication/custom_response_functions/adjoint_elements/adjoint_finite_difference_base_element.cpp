@@ -20,10 +20,13 @@
 #include "includes/checks.h"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/cr_beam_element_linear_3D2N.hpp"
+#include "custom_elements/cr_beam_element_3D2N.hpp"
 #include "custom_elements/truss_element_3D2N.hpp"
 #include "custom_elements/truss_element_linear_3D2N.hpp"
 #include "custom_elements/small_displacement.h"
 #include "custom_elements/spring_damper_element_3D2N.hpp"
+#include "custom_elements/membrane_element.hpp"
+#include "custom_elements/cable_element_3D2N.hpp"
 
 
 namespace Kratos
@@ -311,7 +314,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
         const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
         const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
         const SizeType local_size = number_of_nodes * num_dofs_per_node;
-        rOutput = ZeroMatrix(0, local_size);
+        rOutput = ZeroMatrix(1, local_size);
     }
 
     KRATOS_CATCH("")
@@ -657,10 +660,13 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::load(Serializer& rSer
 
 template class AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N<ShellKinematics::LINEAR>>;
 template class AdjointFiniteDifferencingBaseElement<CrBeamElementLinear3D2N>;
+template class AdjointFiniteDifferencingBaseElement<CrBeamElement3D2N>;
 template class AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
 template class AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;
 template class AdjointFiniteDifferencingBaseElement<SmallDisplacement>;
 template class AdjointFiniteDifferencingBaseElement<SpringDamperElement3D2N>;
+template class AdjointFiniteDifferencingBaseElement<MembraneElement>;
+template class AdjointFiniteDifferencingBaseElement<CableElement3D2N>;
 
 } // namespace Kratos
 

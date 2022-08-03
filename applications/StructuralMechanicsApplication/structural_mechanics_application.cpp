@@ -176,6 +176,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       // Adding the adjoint elements
       mAdjointFiniteDifferencingShellThinElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mAdjointFiniteDifferenceCrBeamElementLinear3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+      mAdjointFiniteDifferenceCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mAdjointFiniteDifferenceTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mAdjointFiniteDifferenceTrussLinearElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mTotalLagrangianAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
@@ -187,6 +188,9 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mAdjointFiniteDifferencingSmallDisplacementElement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
       mAdjointFiniteDifferencingSmallDisplacementElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
       mAdjointFiniteDifferenceSpringDamperElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+      mAdjointFiniteDifferencingMembraneElement3D3N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mAdjointFiniteDifferencingMembraneElement3D4N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mAdjointFiniteDifferenceCableElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
 
       /* CONDITIONS */
       // Adding point load conditions
@@ -440,15 +444,27 @@ void KratosStructuralMechanicsApplication::Register() {
     // Variables for output of sensitivities
     KRATOS_REGISTER_VARIABLE( CROSS_AREA_SENSITIVITY );
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_LOAD_SENSITIVITY );
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LINE_LOAD_SENSITIVITY );
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( SURFACE_LOAD_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( PRESSURE_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( POSITIVE_FACE_PRESSURE_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( NEGATIVE_FACE_PRESSURE_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( I22_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( I33_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( THICKNESS_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_X_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_Y_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( AREA_EFFECTIVE_Y_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( AREA_EFFECTIVE_Z_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( IS_ADJOINT );
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_DISPLACEMENT_STIFFNESS_SENSITIVITY);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_ROTATIONAL_STIFFNESS_SENSITIVITY);
+    KRATOS_REGISTER_VARIABLE( TRUSS_PRESTRESS_PK2_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( PRESTRESS_VECTOR_X_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( PRESTRESS_VECTOR_Y_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( PRESTRESS_VECTOR_ISOTROPIC_XY_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_XY_SENSITIVITY );
 
     // Variables to for computing parts of sensitivity analysis
     KRATOS_REGISTER_VARIABLE( TRACED_STRESS_TYPE );
@@ -596,6 +612,7 @@ void KratosStructuralMechanicsApplication::Register() {
     //Register the adjoint elements
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingShellThinElement3D3N", mAdjointFiniteDifferencingShellThinElement3D3N )
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceCrBeamElementLinear3D2N", mAdjointFiniteDifferenceCrBeamElementLinear3D2N )
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceCrBeamElement3D2N", mAdjointFiniteDifferenceCrBeamElement3D2N )
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceTrussElement3D2N", mAdjointFiniteDifferenceTrussElement3D2N)
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceTrussLinearElement3D2N", mAdjointFiniteDifferenceTrussLinearElement3D2N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement2D3N", mTotalLagrangianAdjoint2D3N)
@@ -607,6 +624,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D6N", mAdjointFiniteDifferencingSmallDisplacementElement3D6N)
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D8N", mAdjointFiniteDifferencingSmallDisplacementElement3D8N)
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceSpringDamperElement3D2N", mAdjointFiniteDifferenceSpringDamperElement3D2N)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingMembraneElement3D3N", mAdjointFiniteDifferencingMembraneElement3D3N)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingMembraneElement3D4N", mAdjointFiniteDifferencingMembraneElement3D4N)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceCableElement3D2N", mAdjointFiniteDifferenceCableElement3D2N)
 
     // Register the conditions
     // Point loads

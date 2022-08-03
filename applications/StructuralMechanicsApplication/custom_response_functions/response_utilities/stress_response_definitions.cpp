@@ -53,7 +53,17 @@ namespace StressResponseDefinitions
             { "MZY", TracedStressType::MZY },
             { "MZZ", TracedStressType::MZZ },
             { "PK2", TracedStressType::PK2 },
-            { "VON_MISES_STRESS", TracedStressType::VON_MISES_STRESS }
+            { "VON_MISES_STRESS", TracedStressType::VON_MISES_STRESS },
+            { "PK2_STRESS_X", TracedStressType::PK2_STRESS_X },
+            { "PK2_STRESS_Y", TracedStressType::PK2_STRESS_Y },
+            { "PK2_STRESS_XY", TracedStressType::PK2_STRESS_XY },
+            { "CAUCHY_STRESS_X", TracedStressType::CAUCHY_STRESS_X },
+            { "CAUCHY_STRESS_Y", TracedStressType::CAUCHY_STRESS_Y },
+            { "CAUCHY_STRESS_XY", TracedStressType::CAUCHY_STRESS_XY },
+            { "PRINCIPAL_PK2_STRESS_1", TracedStressType::PRINCIPAL_PK2_STRESS_1 },
+            { "PRINCIPAL_PK2_STRESS_2", TracedStressType::PRINCIPAL_PK2_STRESS_2 },
+            { "PRINCIPAL_CAUCHY_STRESS_1", TracedStressType::PRINCIPAL_CAUCHY_STRESS_1 },
+            { "PRINCIPAL_CAUCHY_STRESS_2", TracedStressType::PRINCIPAL_CAUCHY_STRESS_2 }
         };
 
         auto stress_type_it = traced_stress_type_map.find(Str);
@@ -138,6 +148,10 @@ void StressCalculation::CalculateStressOnGP(Element& rElement,
         StressCalculation::CalculateStressOnGPLinearTruss(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);
     else if((name_current_element == "SmallDisplacementElement3D4N") || (name_current_element == "SmallDisplacementElement3D6N" ) || (name_current_element == "SmallDisplacementElement3D8N" ))
         StressCalculation::CalculateStressOnGPSmallDisplacement(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);
+    else if(name_current_element == "CableElement3D2N")
+        StressCalculation::CalculateStressOnGPTruss(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);
+    else if((name_current_element == "MembraneElement3D3N") || (name_current_element == "MembraneElement3D4N" ))
+        StressCalculation::CalculateStressOnGPMembrane(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);
     else
         KRATOS_ERROR << "Stress calculation on GP not yet implemented for " << name_current_element << std::endl;
 
@@ -480,6 +494,83 @@ void StressCalculation::CalculateStressOnGPSmallDisplacement(Element& rElement,
         }
         default:
             KRATOS_ERROR << "Invalid stress type! Stress type not supported for this element!" << std::endl;
+    }
+}
+
+void StressCalculation::CalculateStressOnGPMembrane(Element& rElement,
+                        const TracedStressType rTracedStressType,
+                        Vector& rOutput,
+                        const ProcessInfo& rCurrentProcessInfo)
+{
+    std::vector< Vector > tmp_stress_vector(rOutput.size());
+    int direction_index = 0;
+    switch (rTracedStressType)
+    {
+        case TracedStressType::PK2_STRESS_X:
+        {
+            rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, tmp_stress_vector, rCurrentProcessInfo);
+            break;
+        }
+        case TracedStressType::PK2_STRESS_Y:
+        {
+            rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, tmp_stress_vector, rCurrentProcessInfo);
+            direction_index = 1;
+            break;
+        }
+        case TracedStressType::PK2_STRESS_XY:
+        {
+            rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, tmp_stress_vector, rCurrentProcessInfo);
+            direction_index = 2;
+            break;
+        }
+        case TracedStressType::CAUCHY_STRESS_X:
+        {
+            rElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, tmp_stress_vector, rCurrentProcessInfo);
+            break;
+        }
+        case TracedStressType::CAUCHY_STRESS_Y:
+        {
+            rElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, tmp_stress_vector, rCurrentProcessInfo);
+            direction_index = 1;
+            break;
+        }
+        case TracedStressType::CAUCHY_STRESS_XY:
+        {
+            rElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, tmp_stress_vector, rCurrentProcessInfo);
+            direction_index = 2;
+            break;
+        }
+        case TracedStressType::PRINCIPAL_PK2_STRESS_1:
+        {
+            rElement.CalculateOnIntegrationPoints(PRINCIPAL_PK2_STRESS_VECTOR, tmp_stress_vector, rCurrentProcessInfo);
+            break;
+        }
+        case TracedStressType::PRINCIPAL_PK2_STRESS_2:
+        {
+            rElement.CalculateOnIntegrationPoints(PRINCIPAL_PK2_STRESS_VECTOR, tmp_stress_vector, rCurrentProcessInfo);
+            direction_index = 1;
+            break;
+        }
+        case TracedStressType::PRINCIPAL_CAUCHY_STRESS_1:
+        {
+            rElement.CalculateOnIntegrationPoints(PRINCIPAL_CAUCHY_STRESS_VECTOR, tmp_stress_vector, rCurrentProcessInfo);
+            break;
+        }
+        case TracedStressType::PRINCIPAL_CAUCHY_STRESS_2:
+        {
+            rElement.CalculateOnIntegrationPoints(PRINCIPAL_CAUCHY_STRESS_VECTOR, tmp_stress_vector, rCurrentProcessInfo);
+            direction_index = 1;
+            break;
+        }
+        default:
+            KRATOS_ERROR << "Invalid stress type! Stress type not supported for this element!" << std::endl;
+    }
+
+    if (rOutput.size() != tmp_stress_vector.size()) {
+        rOutput.resize(tmp_stress_vector.size());
+    }
+    for (size_t i=0; i<tmp_stress_vector.size(); i++) {
+        rOutput[i] = tmp_stress_vector[i][direction_index];
     }
 }
 
