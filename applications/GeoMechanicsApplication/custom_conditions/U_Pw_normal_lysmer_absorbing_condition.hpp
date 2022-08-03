@@ -116,6 +116,7 @@ protected:
     
     void CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, const Element::GeometryType& Geom);
     
+    Matrix CalculateExtrapolationMatrixNeighbour(const Element& NeighbourElement);
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
