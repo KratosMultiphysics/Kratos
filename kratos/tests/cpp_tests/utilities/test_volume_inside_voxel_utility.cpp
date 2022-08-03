@@ -602,9 +602,9 @@ namespace Testing {
         std::vector<double> distances{1, -1, -1, -1}; 
         GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
         
-        std::vector<std::vector<double>> triangle1{{0.5,1,0.05},{0.5,0.95,-0.05},{0.5,1.05,-0.05}};
-        std::vector<std::vector<double>> triangle2{{1,0.25,0.05},{0.95,0.25,-0.05},{1.05,0.25,-0.05}};
-        std::vector<std::vector<double>> triangle3{{0.5,-1,0.05},{0.5,-1.05,-0.05},{0.5,-0.95,-0.05}};
+        std::vector<std::vector<double>> triangle1{{0,1,0.05},{0,0.95,-0.05},{0,1.05,-0.05}};
+        std::vector<std::vector<double>> triangle2{{1,0.5,0.05},{0.95,0.5,-0.05},{1.05,0.5,-0.05}};
+        std::vector<std::vector<double>> triangle3{{0,-1,0.05},{0,-1.05,-0.05},{0,-0.95,-0.05}};
         std::vector<std::vector<double>> triangle4{{0.95,1,0.05},{0.95,0.95,-0.05},{0.95,1.05,-0.05}};
         std::vector<std::vector<double>> triangle5{{0.95,-1,0.05},{0.95,-1.05,-0.05},{0.95,-0.95,-0.05}};
         GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
@@ -620,18 +620,49 @@ namespace Testing {
         double ExpectedVolume = 1.0/16; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
 
+        //Two nodes inside the volume
+        distances = {-1, 1, 1, -1}; 
+        pFace = GenerateQuadrilateral3D4(quad,distances);
+
         array1.clear();
         array1.push_back(pTriangle1);
         array1.push_back(pTriangle3);
         volume = VolumeInsideVoxelUtility::NodesGeometrical2D(*pFace,array1);
-        ExpectedVolume = 1.0/4; 
+        ExpectedVolume = 2.0/4; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
 
         array1.clear();
         array1.push_back(pTriangle4);
         array1.push_back(pTriangle5);
         volume = VolumeInsideVoxelUtility::NodesGeometrical2D(*pFace,array1);
-        ExpectedVolume = 0.95; 
+        ExpectedVolume = 0.975; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+
+        //Three nodes inside the volume
+        distances = {-1, 1, 1, 1}; 
+        pFace = GenerateQuadrilateral3D4(quad,distances);
+
+        array1.clear();
+        array1.push_back(pTriangle2);
+        array1.push_back(pTriangle1);
+        volume = VolumeInsideVoxelUtility::NodesGeometrical2D(*pFace,array1);
+        ExpectedVolume = 15.0/16; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+
+        //Full quadrilateral with no intersections
+        distances = {1, 1, 1, 1}; 
+        pFace = GenerateQuadrilateral3D4(quad,distances);
+
+        array1.clear();
+        volume = VolumeInsideVoxelUtility::NodesGeometrical2D(*pFace,array1);
+        ExpectedVolume = 1.0; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+
+        //Empty quadrilateral
+        distances = {-1, -1, -1, -1}; 
+        pFace = GenerateQuadrilateral3D4(quad,distances);
+        volume = VolumeInsideVoxelUtility::NodesGeometrical2D(*pFace,array1);
+        ExpectedVolume = 0.0; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
     }
 }  // namespace Testing.

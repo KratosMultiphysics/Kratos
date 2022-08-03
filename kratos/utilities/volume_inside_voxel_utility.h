@@ -197,20 +197,66 @@ public:
     }
 
     /**
-     * @brief Aproximates the actual volume inside the voxel 
-     * @param rVoxel references to the voxel whose actual volume will be approximated
-     * @param rTriangles references to the triangles which intersect the voxel at some edge.
-     * @return Approximated volume 
-     * @note This approximation finds the portion of each node that represents volume (using
-     * intersection points with triangles of the mesh). Even if this class is templated for both 
-     * parameters, it will only work with intersecting TRIANGLES, since the utility used to compute
-     * the intersection does not allow templating.
+     * @brief Aproximates the actual area inside a quadrilateral 
+     * @param rFace references to the quadrilateral3D4 whose actual area will be approximated
+     * @param rTriangles references to the triangles which intersect the quadrilateral at some edge.
+     * @return Approximated area 
      */  
     static double NodesGeometrical2D(
-        const GeometryType& rVoxel,  
+        const GeometryType& rFace,  
         const GeometryArrayType& rTriangles     
     ) {
-        return 0;    
+        double volume = 0;
+        GeometryArrayType edges = rFace.GenerateEdges();
+        PointsArrayType nodes = rFace.Points(); 
+        std::vector<std::pair<double,double>> MinDistanceToNode(edges.size(),{0.5,0.5}); 
+        //each pair represents an edge and contains as first() the minimum distance between
+        //ends[1] and an intersection and as second() the minimum distance between ends[1] and an intersection 
+
+        std::vector<double> Length(edges.size()); 
+        for(int i = 0; i < edges.size(); i++) {
+            PointsArrayType ends = edges[i].Points();
+            double l = Distance(ends[0], ends[1]);
+            Length[i] = l;
+        }
+
+        for (int i = 0; i < rTriangles.size(); i++) {
+            //We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
+            //but possible), only one will be taken into account to create the matrixes.
+            int result = 0; 
+            array_1d<double,3> intersection;
+            int j = 0;
+            while(!result && j < edges.size()) { 
+                PointsArrayType ends = edges[j].Points();
+                result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
+
+                if (result) {
+                    double dist = Distance(ends[0], intersection);
+                    if ( dist < (MinDistanceToNode[j].first*Length[j])) {
+                        MinDistanceToNode[j].first = dist/Length[j];
+                    } 
+
+                    double dist2 = Distance(ends[1], intersection);
+                    if (dist2 < (MinDistanceToNode[j].second*Length[j])) {
+                        MinDistanceToNode[j].second = dist2/Length[j];
+                    } 
+                }
+                j++;
+            }
+        }
+
+        std::vector<std::vector<double>> neighbours{{3,1},{0,2},{1,3},{0,2}};  
+        for(int i = 0; i < nodes.size(); i++ ) {
+            double factor = GetFactor(nodes, neighbours,i);
+            double PartialVolume;
+            if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
+                PartialVolume = factor*MinDistanceToNode[(i+3)%4].second*MinDistanceToNode[i].first;
+            } else  {
+                PartialVolume = 1.0/nodes.size() - factor*MinDistanceToNode[(i+3)%4].second*MinDistanceToNode[i].first;
+            }
+            volume += PartialVolume;
+        }
+        return volume;    
     }
 
     /**
@@ -299,6 +345,15 @@ private:
     ///@name Private Operations
     ///@{
 
+    static double GetFactor(const PointsArrayType& nodes, const std::vector<std::vector<double>>& neighbours,const int node) {
+
+        if( nodes[node].GetSolutionStepValue(DISTANCE) > 0 && nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 &&
+            nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0 || nodes[node].GetSolutionStepValue(DISTANCE) < 0 && 
+            nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 && nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0) {
+                return 0.5;
+            }
+        return 1;
+    }
 
 }; /* Class VoxelInsideVolumeUtility */
 
