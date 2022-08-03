@@ -328,8 +328,8 @@ private:
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D8N;
 
-    const TotalLagrangianMixedDetJElement<2> mTotalLagrangianMixedDetJElement2D3N;
-    const TotalLagrangianMixedDetJElement<3> mTotalLagrangianMixedDetJElement3D4N;
+    const TotalLagrangianMixedVolumetricStrainElement<2> mTotalLagrangianMixedVolumetricStrainElement2D3N;
+    const TotalLagrangianMixedVolumetricStrainElement<3> mTotalLagrangianMixedVolumetricStrainElement3D4N;
 
     const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement2D3N;
     const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement2D4N;

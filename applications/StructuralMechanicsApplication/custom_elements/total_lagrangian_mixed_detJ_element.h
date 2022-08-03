@@ -11,8 +11,8 @@
 //                   Guglielmo Scovazzi
 //
 
-#if !defined(KRATOS_TOTAL_LAGRANGIAN_MIXED_DETJ_ELEMENT_H_INCLUDED )
-#define  KRATOS_TOTAL_LAGRANGIAN_MIXED_DETJ_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_TOTAL_LAGRANGIAN_MIXED_VOLUMETRIC_STRAIN_ELEMENT_H_INCLUDED )
+#define  KRATOS_TOTAL_LAGRANGIAN_MIXED_VOLUMETRIC_STRAIN_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -49,7 +49,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class TotalLagrangianMixedDetJElement
+ * @class TotalLagrangianMixedVolumetricStrainElement
  * @ingroup StructuralMechanicsApplication
  * @brief Small displacement with strain based mixed formulation element
  * @details This implements a total Lagrangian element formulation with an extra Jacobian determinant nodal DOF
@@ -58,7 +58,7 @@ namespace Kratos
  * @author Guglielmo Scovazzi
  */
 template<std::size_t TDim>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangianMixedDetJElement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangianMixedVolumetricStrainElement
     : public Element
 {
 
@@ -155,26 +155,26 @@ public:
     /// The definition of the sizetype
     using SizeType = BaseType::SizeType;
 
-    // Counted pointer of TotalLagrangianMixedDetJElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( TotalLagrangianMixedDetJElement );
+    // Counted pointer of TotalLagrangianMixedVolumetricStrainElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( TotalLagrangianMixedVolumetricStrainElement );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    TotalLagrangianMixedDetJElement()
+    TotalLagrangianMixedVolumetricStrainElement()
     {};
 
     // Constructor using an array of nodes
-    TotalLagrangianMixedDetJElement(
+    TotalLagrangianMixedVolumetricStrainElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {};
 
     // Constructor using an array of nodes with properties
-    TotalLagrangianMixedDetJElement(
+    TotalLagrangianMixedVolumetricStrainElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -182,14 +182,14 @@ public:
     {};
 
     // Copy constructor
-    TotalLagrangianMixedDetJElement(TotalLagrangianMixedDetJElement const& rOther)
+    TotalLagrangianMixedVolumetricStrainElement(TotalLagrangianMixedVolumetricStrainElement const& rOther)
         : BaseType(rOther)
         , mThisIntegrationMethod(rOther.mThisIntegrationMethod)
         , mConstitutiveLawVector(rOther.mConstitutiveLawVector)
     {};
 
     // Destructor
-    ~TotalLagrangianMixedDetJElement() override
+    ~TotalLagrangianMixedVolumetricStrainElement() override
     {};
 
     ///@}
@@ -631,7 +631,7 @@ private:
 
     void load( Serializer& rSerializer ) override;
 
-}; // class TotalLagrangianMixedDetJElement.
+}; // class TotalLagrangianMixedVolumetricStrainElement.
 
 ///@}
 ///@name Type Definitions
@@ -644,4 +644,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_TOTAL_LAGRANGIAN_MIXED_DETJ_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_TOTAL_LAGRANGIAN_MIXED_VOLUMETRIC_STRAIN_ELEMENT_H_INCLUDED  defined

@@ -32,7 +32,7 @@ namespace Kratos
 /***********************************************************************************/
 
 template<>
-double TotalLagrangianMixedDetJElement<2>::CalculateShearModulus(const Matrix &rC) const
+double TotalLagrangianMixedVolumetricStrainElement<2>::CalculateShearModulus(const Matrix &rC) const
 {
     return 0.2*(rC(0,0) - 2.0*rC(0,1) + rC(1,1) + rC(2,2));
 }
@@ -41,7 +41,7 @@ double TotalLagrangianMixedDetJElement<2>::CalculateShearModulus(const Matrix &r
 /***********************************************************************************/
 
 template<>
-double TotalLagrangianMixedDetJElement<3>::CalculateShearModulus(const Matrix &rC) const
+double TotalLagrangianMixedVolumetricStrainElement<3>::CalculateShearModulus(const Matrix &rC) const
 {
     return (4.0 / 33.0)*(rC(0,0) - rC(0,1) - rC(0,2) + rC(1,1) - rC(1,2) + rC(2,2) + (3.0/4.0)*(rC(3,3) + rC(4,4) + rC(5,5)));
 }
@@ -50,7 +50,7 @@ double TotalLagrangianMixedDetJElement<3>::CalculateShearModulus(const Matrix &r
 /***********************************************************************************/
 
 template<std::size_t TDim>
-double TotalLagrangianMixedDetJElement<TDim>::CalculateBulkModulus(const Matrix &rC) const
+double TotalLagrangianMixedVolumetricStrainElement<TDim>::CalculateBulkModulus(const Matrix &rC) const
 {
     double bulk_modulus = 0.0;
     for (SizeType i = 0; i < TDim; ++i) {
@@ -65,37 +65,37 @@ double TotalLagrangianMixedDetJElement<TDim>::CalculateBulkModulus(const Matrix 
 /***********************************************************************************/
 
 template<std::size_t TDim>
-Element::Pointer TotalLagrangianMixedDetJElement<TDim>::Create(
+Element::Pointer TotalLagrangianMixedVolumetricStrainElement<TDim>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<TotalLagrangianMixedDetJElement<TDim>>(NewId, GetGeometry().Create(ThisNodes), pProperties );
+    return Kratos::make_intrusive<TotalLagrangianMixedVolumetricStrainElement<TDim>>(NewId, GetGeometry().Create(ThisNodes), pProperties );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<std::size_t TDim>
-Element::Pointer TotalLagrangianMixedDetJElement<TDim>::Create(
+Element::Pointer TotalLagrangianMixedVolumetricStrainElement<TDim>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<TotalLagrangianMixedDetJElement<TDim>>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<TotalLagrangianMixedVolumetricStrainElement<TDim>>(NewId, pGeom, pProperties);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<std::size_t TDim>
-Element::Pointer TotalLagrangianMixedDetJElement<TDim>::Clone(
+Element::Pointer TotalLagrangianMixedVolumetricStrainElement<TDim>::Clone(
     IndexType NewId,
     NodesArrayType const& rThisNodes) const
 {
     KRATOS_TRY
 
-    TotalLagrangianMixedDetJElement::Pointer p_new_elem = Kratos::make_intrusive<TotalLagrangianMixedDetJElement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    TotalLagrangianMixedVolumetricStrainElement::Pointer p_new_elem = Kratos::make_intrusive<TotalLagrangianMixedVolumetricStrainElement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 
@@ -114,7 +114,7 @@ Element::Pointer TotalLagrangianMixedDetJElement<TDim>::Clone(
 /***********************************************************************************/
 
 template<>
-void TotalLagrangianMixedDetJElement<2>::EquationIdVector(
+void TotalLagrangianMixedVolumetricStrainElement<2>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -142,7 +142,7 @@ void TotalLagrangianMixedDetJElement<2>::EquationIdVector(
 /***********************************************************************************/
 
 template<>
-void TotalLagrangianMixedDetJElement<3>::EquationIdVector(
+void TotalLagrangianMixedVolumetricStrainElement<3>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -171,7 +171,7 @@ void TotalLagrangianMixedDetJElement<3>::EquationIdVector(
 /***********************************************************************************/
 
 template<>
-void TotalLagrangianMixedDetJElement<2>::GetDofList(
+void TotalLagrangianMixedVolumetricStrainElement<2>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -195,7 +195,7 @@ void TotalLagrangianMixedDetJElement<2>::GetDofList(
 /***********************************************************************************/
 
 template<>
-void TotalLagrangianMixedDetJElement<3>::GetDofList(
+void TotalLagrangianMixedVolumetricStrainElement<3>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -220,7 +220,7 @@ void TotalLagrangianMixedDetJElement<3>::GetDofList(
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void TotalLagrangianMixedDetJElement<TDim>::Initialize(const ProcessInfo &rCurrentProcessInfo)
+void TotalLagrangianMixedVolumetricStrainElement<TDim>::Initialize(const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -249,7 +249,7 @@ void TotalLagrangianMixedDetJElement<TDim>::Initialize(const ProcessInfo &rCurre
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void TotalLagrangianMixedDetJElement<TDim>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void TotalLagrangianMixedVolumetricStrainElement<TDim>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -293,7 +293,7 @@ void TotalLagrangianMixedDetJElement<TDim>::InitializeSolutionStep(const Process
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void TotalLagrangianMixedDetJElement<TDim>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void TotalLagrangianMixedVolumetricStrainElement<TDim>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -339,7 +339,7 @@ void TotalLagrangianMixedDetJElement<TDim>::FinalizeSolutionStep(const ProcessIn
 /***********************************************************************************/
 
 template<>
-void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
+void TotalLagrangianMixedVolumetricStrainElement<2>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -432,7 +432,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLocalSystem(
 /***********************************************************************************/
 
 template<>
-void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
+void TotalLagrangianMixedVolumetricStrainElement<3>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -525,7 +525,7 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLocalSystem(
 /***********************************************************************************/
 
 template<>
-void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
+void TotalLagrangianMixedVolumetricStrainElement<2>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -609,7 +609,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateLeftHandSide(
 /***********************************************************************************/
 
 template<>
-void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
+void TotalLagrangianMixedVolumetricStrainElement<3>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -693,7 +693,7 @@ void TotalLagrangianMixedDetJElement<3>::CalculateLeftHandSide(
 /***********************************************************************************/
 
 template<>
-void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
+void TotalLagrangianMixedVolumetricStrainElement<2>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -777,7 +777,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateRightHandSide(
 /***********************************************************************************/
 
 template<>
-void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
+void TotalLagrangianMixedVolumetricStrainElement<3>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -861,7 +861,7 @@ void TotalLagrangianMixedDetJElement<3>::CalculateRightHandSide(
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void TotalLagrangianMixedDetJElement<TDim>::InitializeMaterial()
+void TotalLagrangianMixedVolumetricStrainElement<TDim>::InitializeMaterial()
 {
     KRATOS_TRY
 
@@ -886,7 +886,7 @@ void TotalLagrangianMixedDetJElement<TDim>::InitializeMaterial()
 /***********************************************************************************/
 
 template<std::size_t TDim>
-bool TotalLagrangianMixedDetJElement<TDim>::UseElementProvidedStrain() const
+bool TotalLagrangianMixedVolumetricStrainElement<TDim>::UseElementProvidedStrain() const
 {
     return true;
 }
@@ -895,7 +895,7 @@ bool TotalLagrangianMixedDetJElement<TDim>::UseElementProvidedStrain() const
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void TotalLagrangianMixedDetJElement<TDim>::SetConstitutiveVariables(
+void TotalLagrangianMixedVolumetricStrainElement<TDim>::SetConstitutiveVariables(
     KinematicVariables& rThisKinematicVariables,
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
@@ -917,7 +917,7 @@ void TotalLagrangianMixedDetJElement<TDim>::SetConstitutiveVariables(
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void TotalLagrangianMixedDetJElement<TDim>::CalculateConstitutiveVariables(
+void TotalLagrangianMixedVolumetricStrainElement<TDim>::CalculateConstitutiveVariables(
     KinematicVariables& rThisKinematicVariables,
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
@@ -936,7 +936,7 @@ void TotalLagrangianMixedDetJElement<TDim>::CalculateConstitutiveVariables(
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void TotalLagrangianMixedDetJElement<TDim>::CalculateKinematicVariables(
+void TotalLagrangianMixedVolumetricStrainElement<TDim>::CalculateKinematicVariables(
     KinematicVariables& rThisKinematicVariables,
     const IndexType PointNumber,
     const GeometryType::IntegrationMethod& rIntegrationMethod) const
@@ -976,7 +976,7 @@ void TotalLagrangianMixedDetJElement<TDim>::CalculateKinematicVariables(
 /***********************************************************************************/
 
 template<>
-void TotalLagrangianMixedDetJElement<2>::CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const
+void TotalLagrangianMixedVolumetricStrainElement<2>::CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const
 {
     // Define references to the auxiliary symbols
     const auto& N = rThisKinematicVariables.N;
@@ -993,7 +993,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateEquivalentStrain(KinematicVari
 /***********************************************************************************/
 
 template<>
-void TotalLagrangianMixedDetJElement<3>::CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const
+void TotalLagrangianMixedVolumetricStrainElement<3>::CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const
 {
     // Define references to the auxiliary symbols
     const auto& N = rThisKinematicVariables.N;
@@ -1010,7 +1010,7 @@ void TotalLagrangianMixedDetJElement<3>::CalculateEquivalentStrain(KinematicVari
 /***********************************************************************************/
 
 template<>
-void TotalLagrangianMixedDetJElement<2>::CalculateEquivalentF(KinematicVariables& rThisKinematicVariables) const
+void TotalLagrangianMixedVolumetricStrainElement<2>::CalculateEquivalentF(KinematicVariables& rThisKinematicVariables) const
 {
     // Define references to the auxiliary symbols
     const auto& N = rThisKinematicVariables.N;
@@ -1029,7 +1029,7 @@ void TotalLagrangianMixedDetJElement<2>::CalculateEquivalentF(KinematicVariables
 /***********************************************************************************/
 
 template<>
-void TotalLagrangianMixedDetJElement<3>::CalculateEquivalentF(KinematicVariables& rThisKinematicVariables) const
+void TotalLagrangianMixedVolumetricStrainElement<3>::CalculateEquivalentF(KinematicVariables& rThisKinematicVariables) const
 {
     // Define references to the auxiliary symbols
     const auto& N = rThisKinematicVariables.N;
@@ -1048,11 +1048,11 @@ void TotalLagrangianMixedDetJElement<3>::CalculateEquivalentF(KinematicVariables
 /***********************************************************************************/
 
 template<std::size_t TDim>
-int  TotalLagrangianMixedDetJElement<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
+int  TotalLagrangianMixedVolumetricStrainElement<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    int check = TotalLagrangianMixedDetJElement::BaseType::Check(rCurrentProcessInfo);
+    int check = TotalLagrangianMixedVolumetricStrainElement::BaseType::Check(rCurrentProcessInfo);
 
     // Base check
     check = StructuralMechanicsElementUtilities::SolidElementCheck(*this, rCurrentProcessInfo, mConstitutiveLawVector);
@@ -1074,7 +1074,7 @@ int  TotalLagrangianMixedDetJElement<TDim>::Check(const ProcessInfo& rCurrentPro
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void TotalLagrangianMixedDetJElement<TDim>::CalculateOnIntegrationPoints(
+void TotalLagrangianMixedVolumetricStrainElement<TDim>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
@@ -1099,7 +1099,7 @@ void TotalLagrangianMixedDetJElement<TDim>::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void TotalLagrangianMixedDetJElement<TDim>::CalculateOnIntegrationPoints(
+void TotalLagrangianMixedVolumetricStrainElement<TDim>::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
@@ -1170,7 +1170,7 @@ void TotalLagrangianMixedDetJElement<TDim>::CalculateOnIntegrationPoints(
             CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
 
             // Calculate Green-Lagrange strain
-            TotalLagrangianMixedDetJElement<TDim>::CalculateEquivalentStrain(kinematic_variables);
+            TotalLagrangianMixedVolumetricStrainElement<TDim>::CalculateEquivalentStrain(kinematic_variables);
 
             // Check sizes and save the output stress
             if (rOutput[i_gauss].size() != StrainSize) {
@@ -1187,7 +1187,7 @@ void TotalLagrangianMixedDetJElement<TDim>::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 
 template<std::size_t TDim>
-const Parameters TotalLagrangianMixedDetJElement<TDim>::GetSpecifications() const
+const Parameters TotalLagrangianMixedVolumetricStrainElement<TDim>::GetSpecifications() const
 {
     const Parameters specifications = Parameters(R"({
         "time_integration"           : ["static"],
@@ -1230,9 +1230,9 @@ const Parameters TotalLagrangianMixedDetJElement<TDim>::GetSpecifications() cons
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void TotalLagrangianMixedDetJElement<TDim>::save(Serializer& rSerializer) const
+void TotalLagrangianMixedVolumetricStrainElement<TDim>::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TotalLagrangianMixedDetJElement::BaseType);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TotalLagrangianMixedVolumetricStrainElement::BaseType);
     int IntMethod = int(this->GetIntegrationMethod());
     rSerializer.save("IntegrationMethod",IntMethod);
     rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
@@ -1242,9 +1242,9 @@ void TotalLagrangianMixedDetJElement<TDim>::save(Serializer& rSerializer) const
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void TotalLagrangianMixedDetJElement<TDim>::load(Serializer& rSerializer)
+void TotalLagrangianMixedVolumetricStrainElement<TDim>::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TotalLagrangianMixedDetJElement::BaseType);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TotalLagrangianMixedVolumetricStrainElement::BaseType);
     int IntMethod;
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
@@ -1255,7 +1255,7 @@ void TotalLagrangianMixedDetJElement<TDim>::load(Serializer& rSerializer)
 /***********************************************************************************/
 
 // Explicit template instantiations
-template class TotalLagrangianMixedDetJElement<2>;
-template class TotalLagrangianMixedDetJElement<3>;
+template class TotalLagrangianMixedVolumetricStrainElement<2>;
+template class TotalLagrangianMixedVolumetricStrainElement<3>;
 
 } // Namespace Kratos

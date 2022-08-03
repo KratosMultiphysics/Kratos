@@ -37,7 +37,7 @@ namespace Testing
     /**
     * Checks the Total Lagrangian mixed Jacobian determinant 2D3N element RHS and LHS
     */
-    KRATOS_TEST_CASE_IN_SUITE(TotalLagrangianMixedDetJElement2D3N, KratosStructuralMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TotalLagrangianMixedVolumetricStrainElement2D3N, KratosStructuralMechanicsFastSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -59,7 +59,7 @@ namespace Testing
         auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
         auto p_node_3 = r_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.0);
         std::vector<ModelPart::IndexType> element_nodes {1,2,3};
-        auto p_element = r_model_part.CreateNewElement("TotalLagrangianMixedDetJElement2D3N", 1, element_nodes, p_elem_prop);
+        auto p_element = r_model_part.CreateNewElement("TotalLagrangianMixedVolumetricStrainElement2D3N", 1, element_nodes, p_elem_prop);
 
         // Set a fake displacement and volumetric strain field to compute the residual
         array_1d<double, 3> aux_disp = ZeroVector(3);
@@ -89,7 +89,7 @@ namespace Testing
     /**
     * Checks the Total Lagrangian mixed Jacobian determinant 3D4N element RHS and LHS
     */
-    KRATOS_TEST_CASE_IN_SUITE(TotalLagrangianMixedDetJElement3D4N, KratosStructuralMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TotalLagrangianMixedVolumetricStrainElement3D4N, KratosStructuralMechanicsFastSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -112,7 +112,7 @@ namespace Testing
         auto p_node_3 = r_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.0);
         auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , 0.0 , 1.0);
         std::vector<ModelPart::IndexType> element_nodes {1,2,3,4};
-        auto p_element = r_model_part.CreateNewElement("TotalLagrangianMixedDetJElement3D4N", 1, element_nodes, p_elem_prop);
+        auto p_element = r_model_part.CreateNewElement("TotalLagrangianMixedVolumetricStrainElement3D4N", 1, element_nodes, p_elem_prop);
 
         // Set a fake displacement and volumetric strain field to compute the residual
         array_1d<double, 3> aux_disp = ZeroVector(3);
@@ -145,7 +145,7 @@ namespace Testing
     /**
      * This test implements the simple patch test example in Bonet and Wood book
      */
-    KRATOS_TEST_CASE_IN_SUITE(TotalLagrangianMixedDetJElementBonetPatch, KratosStructuralMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TotalLagrangianMixedVolumetricStrainElementBonetPatch, KratosStructuralMechanicsFastSuite)
     {
         // Set the test model part
         Model current_model;
@@ -170,7 +170,7 @@ namespace Testing
 		{
 			"number_of_divisions" : 2,
             "create_skin_sub_model_part" : false,
-			"element_name" : "TotalLagrangianMixedDetJElement2D3N"
+			"element_name" : "TotalLagrangianMixedVolumetricStrainElement2D3N"
 		})");
 		StructuredMeshGeneratorProcess(square_geometry, r_model_part, mesher_parameters).Execute();
 
@@ -282,7 +282,7 @@ namespace Testing
         };
 
         // // Set GiD output
-        // GidIO<> gid_io_str("/media/alm/Data/Works/papers/mixed_disp_J2/TestTotalLagrangianMixedDetJElementBonetPatch", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        // GidIO<> gid_io_str("/media/alm/Data/Works/papers/mixed_disp_J2/TestTotalLagrangianMixedVolumetricStrainElementBonetPatch", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
 		// gid_io_str.InitializeMesh(0);
 		// gid_io_str.WriteMesh(r_model_part.GetMesh());
 		// gid_io_str.FinalizeMesh();
