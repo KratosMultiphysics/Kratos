@@ -23,10 +23,8 @@ def Factory(settings, Model):
 
     if process_settings["save_output_files_in_folder"].GetBool():
         folder_name = process_settings["folder_name"].GetString()
-        # make sure to remove old results
-        kratos_utils.DeleteDirectoryIfExisting(folder_name)       
-        # make sure that the path to the desired output folder exists
-        KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(str(folder_name))
+        kratos_utils.DeleteDirectoryIfExisting(folder_name) # make sure to remove old results
+        os.mkdir(folder_name)
 
     if process_settings.Has("computing_model_part_name"):
         computing_model_part = Model[process_settings["computing_model_part_name"].GetString()]
