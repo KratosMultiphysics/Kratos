@@ -5,9 +5,6 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as KSM
 
-# Other imports
-import os
-
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
