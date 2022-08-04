@@ -32,7 +32,7 @@ class YPlusOutputProcess(Kratos.OutputProcess):
         default_settings = Kratos.Parameters("""
             {
                 "model_part_name"                  : "",
-                "interval"                         : [0.0, 1e30],
+                "interval"                         : [0.0, "End"],
                 "y_plus_output_limit"              : 1000.0,
                 "print_to_screen"                  : false,
                 "print_format"                     : ".8f",
