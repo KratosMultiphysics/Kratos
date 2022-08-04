@@ -148,7 +148,7 @@ public:
         : BaseType(pNewLinearSystemSolver)
     {
         // Setting flags
-        BaseType::mScalingDiagonal = BaseType::SCALING_DIAGONAL::NO_SCALING;
+        BaseType::mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
         BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, false);
         mConstraintFactorConsidered = CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
         mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
