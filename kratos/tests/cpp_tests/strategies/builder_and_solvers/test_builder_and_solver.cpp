@@ -435,12 +435,12 @@ namespace Kratos
             constexpr double tolerance = 1e-8;
             KRATOS_CHECK(rA.size1() == 6);
             KRATOS_CHECK(rA.size2() == 6);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 2069000000.0000000000000000)/rA(0,0)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 1.0000000000000000)/rA(1,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 2069000000.0000000000000000)/rA(2,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1.0000000000000000)/rA(3,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 1.0000000000000000)/rA(4,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1.0000000000000000)/rA(5,5)), tolerance);
+            KRATOS_CHECK_RELATIVE_NEAR(rA(0,0), 2069000000.0000000000000000, tolerance);    
+            KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0000000000000000, tolerance);
+            KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 2069000000.0000000000000000, tolerance);
+            KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0000000000000000, tolerance);
+            KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 1.0000000000000000, tolerance);
+            KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0000000000000000, tolerance);
             for (unsigned int i = 0; i < 6; ++i) { // Checking non-zero entries in diagonal
                 KRATOS_CHECK_GREATER_EQUAL(std::abs(rA(i,i)), tolerance);
             }
