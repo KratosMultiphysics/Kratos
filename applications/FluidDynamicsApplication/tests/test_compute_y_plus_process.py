@@ -82,6 +82,7 @@ class ComputeYPlusProcessTest(UnitTest.TestCase):
 
             self.assertAlmostEqual(y_plus_based_tangential_reaction_magnitude/analytical_tangential_reaction_magnitude - 1.0, 0.0, 5)
 
+    @UnitTest.skipIfApplicationsNotAvailable("StatisticsApplication")
     def testYPlusOutputProcess(self):
         settings = Kratos.Parameters(r'''
         [
