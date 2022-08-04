@@ -1539,6 +1539,9 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& rVa
     else if (rVariable == MP_VOLUME) {
         rValues[0] = mMP.volume;
     }
+    else if (rVariable == ERROR_RATIO) {
+        rValues[0] = mMP.error;
+    }
     else if (rVariable == MP_POTENTIAL_ENERGY) {
         rValues[0] = MPMEnergyCalculationUtility::CalculatePotentialEnergy(*this);
     }
@@ -1635,6 +1638,9 @@ void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<double>& rVa
     }
     else if (rVariable == MP_VOLUME) {
         mMP.volume = rValues[0];
+    }
+    else if (rVariable == ERROR_RATIO) {
+        mMP.error = rValues[0];
     }
     else
     {
