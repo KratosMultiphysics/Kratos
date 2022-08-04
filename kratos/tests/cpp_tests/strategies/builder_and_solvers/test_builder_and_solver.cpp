@@ -663,7 +663,7 @@ namespace Kratos
         /**
          * Checks if the elimination builder and solver performs correctly the assemble of the system
          */
-        KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementEliminationBuilderAndSolverWithZeroContribution, KratosCoreFastSuite2)
+        KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementEliminationBuilderAndSolverWithZeroContribution, KratosCoreFastSuite)
         {
             Model current_model;
             ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
