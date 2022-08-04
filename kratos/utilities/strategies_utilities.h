@@ -124,12 +124,9 @@ public:
     template<class TSparseSpace>
     static double GetMaxDiagonal(typename TSparseSpace::MatrixType& rA)
     {
-        const std::size_t size = TSparseSpace::Size1(rA);
-        std::vector<double> abs_diagonal_values(size);
-        IndexPartition<std::size_t>(size).for_each([&](std::size_t i) {
-            abs_diagonal_values[i] = std::abs(rA(i,i));
+        return IndexPartition<std::size_t>(TSparseSpace::Size1(rA)).for_each<MaxReduction<double>>([&](std::size_t i) {
+            return std::abs(rA(i,i));
         });
-        return block_for_each<MaxReduction<double>>(abs_diagonal_values, [&](double& rValue) { return rValue; });
     }
 
     /**
@@ -140,12 +137,9 @@ public:
     template<class TSparseSpace>
     static double GetMinDiagonal(typename TSparseSpace::MatrixType& rA)
     {
-        const std::size_t size = TSparseSpace::Size1(rA);
-        std::vector<double> abs_diagonal_values(size);
-        IndexPartition<std::size_t>(size).for_each([&](std::size_t i) {
-            abs_diagonal_values[i] = std::abs(rA(i,i));
+        return IndexPartition<std::size_t>(TSparseSpace::Size1(rA)).for_each<MinReduction<double>>([&](std::size_t i) {
+            return std::abs(rA(i,i));
         });
-        return block_for_each<MinReduction<double>>(abs_diagonal_values, [&](double& rValue) { return rValue; });
     }
 
     ///@}
