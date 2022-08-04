@@ -96,6 +96,33 @@ namespace Kratos {
       ));
     }
 
+    /** Generates a sample Triangle3D3.
+    * Generates a triangle defined by three random points in the space.
+    * @return  Pointer to a Triangle3D3
+    */
+    Triangle3D3<PointType>::Pointer GenerateTriangle3D3(
+    PointPtrType PointA = GeneratePoint<PointType>(),
+    PointPtrType PointB = GeneratePoint<PointType>(),
+    PointPtrType PointC = GeneratePoint<PointType>()) {
+        return Triangle3D3<PointType>::Pointer(new Triangle3D3<PointType>(
+        PointA,
+        PointB,
+        PointC
+        ));
+    }
+
+    /** Generates a sample Triangle3D3.
+    * Generates an equilateral triangle with vertices at each axis.
+    * @return  Pointer to a Triangle3D3
+    */
+    Triangle3D3<PointType>::Pointer GenerateEquilateralTriangle3D3() {
+        return Triangle3D3<PointType>::Pointer(new Triangle3D3<PointType>(
+        GeneratePoint<PointType>(1.0, 0.0, 0.0),
+        GeneratePoint<PointType>(0.0, 1.0, 0.0),
+        GeneratePoint<PointType>(0.0, 0.0, 1.0)
+        ));
+    }
+
     /** Checks if the number of edges is correct.
      * Checks if the number of edges is correct.
      */
@@ -500,6 +527,9 @@ namespace Kratos {
       KRATOS_CHECK_IS_FALSE(intersection_far_geom);
 
       /* 2D intersection */
+      auto p_geomTriangleInside = GenerateEquilateralTriangle3D3();
+      const bool intersection_geomTriangleInside = p_tetrahedron->HasIntersection(*p_geomTriangleInside);
+      KRATOS_CHECK(intersection_geomTriangleInside);
 
       /* 1D intersection */
 
