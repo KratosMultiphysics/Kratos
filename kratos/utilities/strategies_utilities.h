@@ -124,31 +124,12 @@ public:
     template<class TSparseSpace>
     static double GetMaxDiagonal(typename TSparseSpace::MatrixType& rA)
     {
-//         // NOTE: Reduction failing in MSVC
-//         double max_diag = 0.0;
-//         #pragma omp parallel for reduction(max:max_diag)
-//         for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
-//             max_diag = std::max(max_diag, std::abs(rA(i,i)));
-//         }
-//         return max_diag;
-
-        // Creating a buffer for parallel vector fill
-        const int num_threads = ParallelUtilities::GetNumThreads();
-        Vector max_vector(num_threads, 0.0);
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
-            const int id = OpenMPUtils::ThisThread();
-            const double abs_value_ii = std::abs(rA(i,i));
-            if (abs_value_ii > max_vector[id])
-                max_vector[id] = abs_value_ii;
-        }
-
-        double max_diag = 0.0;
-        for(int i = 0; i < num_threads; ++i) {
-            max_diag = std::max(max_diag, max_vector[i]);
-        }
-        return max_diag;
+        const std::size_t size = TSparseSpace::Size1(rA);
+        std::vector<double> abs_diagonal_values(size);
+        IndexPartition<std::size_t>(size).for_each([&](std::size_t i) {
+            abs_diagonal_values[i] = std::abs(rA(i,i));
+        });
+        return block_for_each<MaxReduction<double>>(abs_diagonal_values, [&](double& rValue) { return rValue; });
     }
 
     /**
@@ -159,31 +140,12 @@ public:
     template<class TSparseSpace>
     static double GetMinDiagonal(typename TSparseSpace::MatrixType& rA)
     {
-//         // NOTE: Reduction failing in MSVC
-//         double min_diag = std::numeric_limits<double>::max();
-//         #pragma omp parallel for reduction(min:min_diag)
-//         for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
-//             min_diag = std::min(min_diag, std::abs(rA(i,i)));
-//         }
-//         return min_diag;
-
-        // Creating a buffer for parallel vector fill
-        const int num_threads = ParallelUtilities::GetNumThreads();
-        Vector min_vector(num_threads, std::numeric_limits<double>::max());
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
-            const int id = OpenMPUtils::ThisThread();
-            const double abs_value_ii = std::abs(rA(i,i));
-            if (abs_value_ii < min_vector[id])
-                min_vector[id] = abs_value_ii;
-        }
-
-        double min_diag = std::numeric_limits<double>::max();
-        for(int i = 0; i < num_threads; ++i) {
-            min_diag = std::min(min_diag, min_vector[i]);
-        }
-        return min_diag;
+        const std::size_t size = TSparseSpace::Size1(rA);
+        std::vector<double> abs_diagonal_values(size);
+        IndexPartition<std::size_t>(size).for_each([&](std::size_t i) {
+            abs_diagonal_values[i] = std::abs(rA(i,i));
+        });
+        return block_for_each<MinReduction<double>>(abs_diagonal_values, [&](double& rValue) { return rValue; });
     }
 
     ///@}
