@@ -1001,7 +1001,9 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name" : "elimination_builder_and_solver"
+            "name"                                 : "elimination_builder_and_solver",
+            "block_builder"                        : false,
+            "diagonal_values_for_dirichlet_dofs"   : "use_max_diagonal"
         })");
 
         // Getting base class default parameters
