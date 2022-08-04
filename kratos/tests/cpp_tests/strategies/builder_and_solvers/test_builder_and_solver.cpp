@@ -689,27 +689,27 @@ namespace Kratos
                 KRATOS_CHECK_GREATER_EQUAL(std::abs(rA(i,i)), tolerance);
             }
 
-            // // Testing scale
-            // Parameters parameters = Parameters(R"(
-            // {
-            //     "diagonal_values_for_dirichlet_dofs" : "defined_in_process_info"
-            // })" );
-            // r_model_part.GetProcessInfo().SetValue(BUILD_SCALE_FACTOR, 2.26648e+10);
-            // BuilderAndSolverType::Pointer p_builder_and_solver_scale = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
+            // Testing scale
+            Parameters parameters = Parameters(R"(
+            {
+                "diagonal_values_for_dirichlet_dofs" : "defined_in_process_info"
+            })" );
+            r_model_part.GetProcessInfo().SetValue(BUILD_SCALE_FACTOR, 2.26648e+10);
+            BuilderAndSolverType::Pointer p_builder_and_solver_scale = BuilderAndSolverType::Pointer( new ResidualBasedEliminationBuilderAndSolverType(p_solver, parameters) );
 
-            // const SparseSpaceType::MatrixType& rA_scale = BuildSystem(r_model_part, p_scheme, p_builder_and_solver_scale);
+            const SparseSpaceType::MatrixType& rA_scale = BuildSystem(r_model_part, p_scheme, p_builder_and_solver_scale);
 
-            // // // To create the solution of reference
-            // // DebugLHS(rA_scale);
+            // // To create the solution of reference
+            // DebugLHS(rA_scale);
 
-            // // The solution check
-            // KRATOS_CHECK(rA_scale.size1() == 2);
-            // KRATOS_CHECK(rA_scale.size2() == 2);
-            // KRATOS_CHECK_RELATIVE_NEAR(rA_scale(0,0), 2069000000.0, tolerance);
-            // KRATOS_CHECK_RELATIVE_NEAR(rA_scale(1,1), 2.26648e+10, tolerance);
-            // for (unsigned int i = 0; i < 2; ++i) { // Checking non-zero entries in diagonal
-            //     KRATOS_CHECK_GREATER_EQUAL(std::abs(rA_scale(i,i)), tolerance);
-            // }
+            // The solution check
+            KRATOS_CHECK(rA_scale.size1() == 2);
+            KRATOS_CHECK(rA_scale.size2() == 2);
+            KRATOS_CHECK_RELATIVE_NEAR(rA_scale(0,0), 2069000000.0, tolerance);
+            KRATOS_CHECK_RELATIVE_NEAR(rA_scale(1,1), 2.26648e+10, tolerance);
+            for (unsigned int i = 0; i < 2; ++i) { // Checking non-zero entries in diagonal
+                KRATOS_CHECK_GREATER_EQUAL(std::abs(rA_scale(i,i)), tolerance);
+            }
         }
 
         /**
