@@ -80,8 +80,8 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
     // Prepare variables
     GeneralVariables Variables;
 
-    // Calculating shape function
-    MPMShapeFunctionPointValues(Variables.N);
+    // Calculating shape function --> the normal vectors should not be affected by the small cut!
+    MPMParticleBaseCondition::MPMShapeFunctionPointValues(Variables.N);
 
     // Get NODAL_AREA from MPC_Area
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -123,7 +123,7 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
             r_geometry[i].UnSetLock();
         }
     }
-
+    
 
 }
 
@@ -238,10 +238,17 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
 
     bool apply_constraints = true;
+    double necessary_nodes=2;
 
+    // avoid overconstrained systems for unstructured triangles
+    const GeometryData::KratosGeometryType geo_type = GetGeometry().GetGeometryParent(0).GetGeometryType();
+    if (geo_type == GeometryData::Kratos_Triangle2D3)
+        necessary_nodes=3;
+    else if (geo_type == GeometryData::Kratos_Tetrahedra3D4 || geo_type == GeometryData::Kratos_Hexahedra3D8)
+        necessary_nodes=4;
 
     if (Is(CONTACT))
-    {
+    {   
         // NOTE: the unit_normal_vector is assumed always pointing outside the boundary
         array_1d<double, 3 > field_displacement = ZeroVector(3);
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -251,30 +258,28 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
                 field_displacement[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
             }
         }
-
+            
         const double penetration = MathUtils<double>::Dot((field_displacement - m_imposed_displacement), m_unit_normal);
         // If penetrates, apply constraint, otherwise no
         if (penetration > 0.0)
         {
             apply_constraints = false;
-
+            
         }
-
+        necessary_nodes=number_of_nodes;
     }
     
-    // int counter = 0;
-    // for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    // {
-    //     if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
-    //         counter +=1;
-    //     }
-    // }
+    int counter = 0;
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) >= std::numeric_limits<double>::epsilon()){
+            counter +=1;
+        }
+    }
 
-    // // avoid singular matrices if BC is in an empty background element
-    // // at least 1 node has to be connected to the body
-    
-    // if (counter >= (number_of_nodes-1))
-    //     apply_constraints = false;
+    // avoid singular matrices --> 2 nodes of the element should be conntected to the body to statisfy the inf-sub condition
+    if (counter < necessary_nodes)
+        apply_constraints = false;
     
 
     if (apply_constraints)
