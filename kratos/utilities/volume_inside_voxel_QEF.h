@@ -159,23 +159,22 @@ public:
         const GeometryType& rVoxel,  
         const GeometryArrayType& rTriangles     
     ) {
-        double volume = 0;
+        double Volume = 0;
         GeometryArrayType Faces = rVoxel.GenerateFaces();
 
-        array_1d<double,3> qef = QEF::QEFPoint(rVoxel,rTriangles); 
+        array_1d<double,3> QEF = QEF::QEFPoint(rVoxel,rTriangles); 
         //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
 
         for(int i = 0; i < Faces.size(); i++) {
             double Portion = NodesGeometrical2D(Faces[i],rTriangles);
-            double dist = NormalizedDistanceToQEF(Faces[i], qef, i);
+            double Dist = NormalizedDistanceToQEF(Faces[i], QEF, i);
             
-            double PartialVolume = Portion*abs(dist)/3.0;   //Volume of a piramid
-            volume += PartialVolume;
+            double PartialVolume = Portion*abs(Dist)/3.0;   //Volume of a piramid
+            Volume += PartialVolume;
             
         }
-        //if (volume == 0) return EdgesPortionApproximation(rVoxel,rTriangles);
-        
-        return volume;
+
+        return Volume;
     }
 
 private:

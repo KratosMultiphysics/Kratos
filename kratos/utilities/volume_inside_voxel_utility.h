@@ -115,23 +115,23 @@ public:
     }
 
     /*This method is completly useless since it does the same calculation as the previous 
-    one but in a different way. Helps to illustrate use of edges
+    one but in a different way. Helps to illustrate use of Edges
     */
     template<class TGeometryType>
     static double EdgesApproximation(
         const TGeometryType& rVoxel        
     ) {
         double volume = 0;
-        GeometryArrayType edges = rVoxel.GenerateEdges();
+        GeometryArrayType Edges = rVoxel.GenerateEdges();
         PointsArrayType nodes = rVoxel.Points();
-        for (int i = 0; i < edges.size(); i++) {
-            PointsArrayType ends = edges[i].Points();
+        for (int i = 0; i < Edges.size(); i++) {
+            PointsArrayType ends = Edges[i].Points();
             if(ends[0].GetSolutionStepValue(DISTANCE) > 0 && ends[1].GetSolutionStepValue(DISTANCE) > 0) {
-                volume+=1.0/edges.size();
+                volume+=1.0/Edges.size();
             } else if(
                 ends[0].GetSolutionStepValue(DISTANCE) > 0 && ends[1].GetSolutionStepValue(DISTANCE) < 0 || 
                 ends[0].GetSolutionStepValue(DISTANCE) < 0 && ends[1].GetSolutionStepValue(DISTANCE) > 0 ) {
-                volume+=1.0/(edges.size()*2);
+                volume+=1.0/(Edges.size()*2);
             }
         }
         return volume;
@@ -153,12 +153,12 @@ public:
         const TGeometryArrayType& rTriangles     
     ) {
         double volume = 0;
-        GeometryArrayType edges = rVoxel.GenerateEdges();
+        GeometryArrayType Edges = rVoxel.GenerateEdges();
         std::vector<double> Distances;
 
-        for (int i = 0; i < edges.size(); i++) {
+        for (int i = 0; i < Edges.size(); i++) {
             Distances.push_back(0);
-            PointsArrayType ends = edges[i].Points();
+            PointsArrayType ends = Edges[i].Points();
             //std::cout << "Edge " << i << " has nodes " << ends[0] << " " << ends[1] << std::endl;
 
             for (auto triangle : rTriangles) {
@@ -173,7 +173,7 @@ public:
             Distances.push_back(Distance(ends[0],ends[1]));
             std::sort(Distances.begin(),Distances.end());       //WOULD A SET BE MORE EFFICIENT?     
             double edgePortion = VolumeInsideVoxelUtility::EdgeFilledPortion(Distances, ends);
-            volume += edgePortion/edges.size();  
+            volume += edgePortion/Edges.size();  
             Distances.clear();              
         }
         return volume;
@@ -206,16 +206,16 @@ public:
         const GeometryType& rFace,  
         const GeometryArrayType& rTriangles     
     ) {
-        double area = 0;
-        GeometryArrayType edges = rFace.GenerateEdges();
-        PointsArrayType nodes = rFace.Points(); 
-        std::vector<std::pair<double,double>> MinDistanceToNode(edges.size(),{0.5,0.5}); 
+        double Area = 0;
+        GeometryArrayType Edges = rFace.GenerateEdges();
+        PointsArrayType Nodes = rFace.Points(); 
+        std::vector<std::pair<double,double>> MinDistanceToNode(Edges.size(),{0.5,0.5}); 
         //each pair represents an edge and contains as first() the minimum distance between
         //ends[1] and an intersection and as second() the minimum distance between ends[1] and an intersection 
 
-        std::vector<double> Length(edges.size()); 
-        for(int i = 0; i < edges.size(); i++) {
-            PointsArrayType ends = edges[i].Points();
+        std::vector<double> Length(Edges.size()); 
+        for(int i = 0; i < Edges.size(); i++) {
+            PointsArrayType ends = Edges[i].Points();
             double l = Distance(ends[0], ends[1]);
             Length[i] = l;
         }
@@ -223,40 +223,40 @@ public:
         for (int i = 0; i < rTriangles.size(); i++) {
             //We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
             //but possible), only one will be taken into account to create the matrixes.
-            int result = 0; 
-            array_1d<double,3> intersection;
+            int Result = 0; 
+            array_1d<double,3> Intersection;
             int j = 0;
-            while(!result && j < edges.size()) { 
-                PointsArrayType ends = edges[j].Points();
-                result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
+            while(!Result && j < Edges.size()) { 
+                PointsArrayType ends = Edges[j].Points();
+                Result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],Intersection);
 
-                if (result) {
-                    double dist = Distance(ends[0], intersection);
-                    if ( dist < (MinDistanceToNode[j].first*Length[j])) {
-                        MinDistanceToNode[j].first = dist/Length[j];
+                if (Result) {
+                    double Dist = Distance(ends[0], Intersection);
+                    if ( Dist < (MinDistanceToNode[j].first*Length[j])) {
+                        MinDistanceToNode[j].first = Dist/Length[j];
                     } 
 
-                    double dist2 = Distance(ends[1], intersection);
-                    if (dist2 < (MinDistanceToNode[j].second*Length[j])) {
-                        MinDistanceToNode[j].second = dist2/Length[j];
+                    double Dist2 = Distance(ends[1], Intersection);
+                    if (Dist2 < (MinDistanceToNode[j].second*Length[j])) {
+                        MinDistanceToNode[j].second = Dist2/Length[j];
                     } 
                 }
                 j++;
             }
         }
 
-        std::vector<std::vector<double>> neighbours{{3,1},{0,2},{1,3},{0,2}};  
-        for(int i = 0; i < nodes.size(); i++ ) {
-            double factor = GetFactor(nodes, neighbours,i);
+        std::vector<std::vector<double>> Neighbours{{3,1},{0,2},{1,3},{0,2}};  
+        for(int i = 0; i < Nodes.size(); i++ ) {
+            double Factor = GetFactor(Nodes, Neighbours,i);
             double PartialArea;
-            if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
-                PartialArea = factor*MinDistanceToNode[(i+3)%4].second*MinDistanceToNode[i].first;
+            if (Nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
+                PartialArea = Factor*MinDistanceToNode[(i+3)%4].second*MinDistanceToNode[i].first;
             } else  {
-                PartialArea = 1.0/nodes.size() - factor*MinDistanceToNode[(i+3)%4].second*MinDistanceToNode[i].first;
+                PartialArea = 1.0/Nodes.size() - Factor*MinDistanceToNode[(i+3)%4].second*MinDistanceToNode[i].first;
             }
-            area += PartialArea;
+            Area += PartialArea;
         }
-        return area;    
+        return Area;    
     }
 
     /**
