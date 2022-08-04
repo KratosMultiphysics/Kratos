@@ -64,6 +64,8 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(SW.HEIGHT)
         self.main_model_part.AddNodalSolutionStepVariable(KM.MOMENTUM)
         self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(SW.FREE_SURFACE_ELEVATION)
         self.main_model_part.AddNodalSolutionStepVariable(SW.BATHYMETRY)
         self.main_model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY)
@@ -160,7 +162,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(SW.INTEGRATE_BY_PARTS, self.settings["integrate_by_parts"].GetBool())
 
     def _ImportMaterials(self):
-    # Add the properties from json file to model parts.
+        # Add the properties from json file to model parts.
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
             material_settings = KM.Parameters("""{"Parameters": {} }""")
