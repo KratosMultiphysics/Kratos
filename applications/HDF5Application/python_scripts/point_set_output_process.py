@@ -78,7 +78,12 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
         }""")
         io_parameters["prefix"].SetString(coordinates_path)
         with OpenHDF5File(self.__GetCurrentFileParameters(), self.model_part) as file:
-            HDF5Application.VertexContainerCoordinateIO(io_parameters, file).Write(self.vertices)
+            # Skip writing if the analysis is restarted and the group already exists.
+            if self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] and file.HasPath(coordinates_path):
+                KratosMultiphysics.Logger.PrintWarning("[PointSetOutputProcess] Path exists", f"Skip writing vertex coordinates to group: {coordinates_path}")
+            else:
+                HDF5Application.VertexContainerCoordinateIO(io_parameters, file).Write(self.vertices)
+
 
 
     def PrintOutput(self):
@@ -93,7 +98,11 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
         file_parameters["file_access_mode"].SetString("read_write")
 
         with OpenHDF5File(file_parameters, self.model_part) as file:
-            HDF5Application.VertexContainerVariableIO(io_parameters, file).Write(self.vertices)
+            # Skip writing if the analysis is restarted and the group already exists.
+            if self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] and file.HasPath(prefix):
+                KratosMultiphysics.Logger.PrintWarning("[PointSetOutputProcess] Path exists", f"Skip writing vertex data to group: {prefix}")
+            else:
+                HDF5Application.VertexContainerVariableIO(io_parameters, file).Write(self.vertices)
 
 
     @staticmethod
