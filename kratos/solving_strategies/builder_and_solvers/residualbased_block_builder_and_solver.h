@@ -1231,7 +1231,7 @@ protected:
     std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
     std::vector<IndexType> mMasterIds; /// The equation ids of the master
     std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave dofs
-    double mScaleFactor = 1.0;         /// The manuallyset scale factor
+    double mScaleFactor = 1.0;         /// The manually set scale factor
 
     SCALING_DIAGONAL mScalingDiagonal; /// We identify the scaling considered for the dirichlet dofs
     Flags mOptions;                    /// Some flags used internally

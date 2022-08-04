@@ -78,9 +78,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Definition of the flags
-    KRATOS_DEFINE_LOCAL_FLAG( SILENT_WARNINGS );
-
     /// Pointer definition of ResidualBasedEliminationBuilderAndSolverWithConstraints
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedEliminationBuilderAndSolver);
 
@@ -1043,10 +1040,9 @@ protected:
    std::vector<omp_lock_t> mLockArray; /// TODO: DISCUSS TO REMOVE THIS AS IN THE BlockBuilderAndSolver
 #endif
 
-    double mScaleFactor = 1.0;         /// The manuallyset scale factor
+    double mScaleFactor = 1.0;         /// The manually set scale factor
 
     SCALING_DIAGONAL mScalingDiagonal; /// We identify the scaling considered for the dirichlet dofs
-    Flags mOptions;                    /// Some flags used internally
 
     ///@}
     ///@name Protected Operators
@@ -1369,7 +1365,6 @@ protected:
         } else { // Otherwise we will assume we impose a numerical value
             mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL;
         }
-        mOptions.Set(SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
     }
 
     ///@}
@@ -1513,10 +1508,6 @@ private:
 
 ///@name Type Definitions
 ///@{
-
-// Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
-template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-const Kratos::Flags ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::SILENT_WARNINGS(Kratos::Flags::Create(0));
 
 ///@}
 

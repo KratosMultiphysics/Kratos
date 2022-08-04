@@ -692,8 +692,7 @@ namespace Kratos
             // // Testing scale
             // Parameters parameters = Parameters(R"(
             // {
-            //     "diagonal_values_for_dirichlet_dofs" : "defined_in_process_info",
-            //     "silent_warnings"                    : false
+            //     "diagonal_values_for_dirichlet_dofs" : "defined_in_process_info"
             // })" );
             // r_model_part.GetProcessInfo().SetValue(BUILD_SCALE_FACTOR, 2.26648e+10);
             // BuilderAndSolverType::Pointer p_builder_and_solver_scale = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
