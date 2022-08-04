@@ -150,7 +150,6 @@ public:
             double PartialVolume = Portion*abs(dist)/3.0;   //Volume of a piramid
             volume += PartialVolume;
         }
-        //if (volume == 0) return EdgesPortionApproximation(rVoxel,rTriangles);
         
         return volume;
     }
