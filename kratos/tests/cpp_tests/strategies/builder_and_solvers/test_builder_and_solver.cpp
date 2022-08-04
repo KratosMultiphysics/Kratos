@@ -460,16 +460,16 @@ namespace Kratos
             // DebugLHS(rA_scale);
 
             // The solution check
-            KRATOS_CHECK(rA.size1() == 6);
-            KRATOS_CHECK(rA.size2() == 6);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 2069000000.0000000000000000)/rA(0,0)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 22664800000.0000000000000000)/rA(1,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 2069000000.0000000000000000)/rA(2,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 22664800000.0000000000000000)/rA(3,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 22664800000.0000000000000000)/rA(4,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 22664800000.0000000000000000)/rA(5,5)), tolerance);
+            KRATOS_CHECK(rA_scale.size1() == 6);
+            KRATOS_CHECK(rA_scale.size2() == 6);
+            KRATOS_CHECK_RELATIVE_NEAR(rA_scale(0,0), 2069000000.0000000000000000, tolerance);
+            KRATOS_CHECK_RELATIVE_NEAR(rA_scale(1,1), 22664800000.0000000000000000, tolerance);
+            KRATOS_CHECK_RELATIVE_NEAR(rA_scale(2,2), 2069000000.0000000000000000, tolerance);
+            KRATOS_CHECK_RELATIVE_NEAR(rA_scale(3,3), 22664800000.0000000000000000, tolerance);
+            KRATOS_CHECK_RELATIVE_NEAR(rA_scale(4,4), 22664800000.0000000000000000, tolerance);
+            KRATOS_CHECK_RELATIVE_NEAR(rA_scale(5,5), 22664800000.0000000000000000, tolerance);
             for (unsigned int i = 0; i < 6; ++i) { // Checking non-zero entries in diagonal
-                KRATOS_CHECK_GREATER_EQUAL(std::abs(rA(i,i)), tolerance);
+                KRATOS_CHECK_GREATER_EQUAL(std::abs(rA_scale(i,i)), tolerance);
             }
         }
 
