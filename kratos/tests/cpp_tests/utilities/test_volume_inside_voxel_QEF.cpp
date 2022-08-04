@@ -357,9 +357,9 @@ namespace Testing {
         GeometryPtrType pVoxel = QEFVolumeGenerateHexahedra3D8(distances);
 
         //Generate the intersecting triangles
-        std::vector<std::vector<double>> triangle1{{-1,0.4-0.5,-0.95},{-0.95,0.45-0.5,-1.05},{-1.05,0.55-0.5,-1.05}}; 
-        std::vector<std::vector<double>> triangle2{{-1,-0.95,-0.1},{-0.95,-1.05,-0.05},{-1.05,-1.05,0.05}}; 
-        std::vector<std::vector<double>> triangle3{{-0.6+0.5,-0.95,-1},{-0.55+0.5,-1.05,-0.95},{-0.45+0.5,-1.05,-1.05}}; 
+        std::vector<std::vector<double>> triangle1{{-1,-0.05,-0.95},{-0.95,0,-1.05},{-1.05,0.1,-1.05}}; 
+        std::vector<std::vector<double>> triangle2{{-1,-0.95,-0.05},{-0.95,-1.05,0},{-1.05,-1.05,0.1}}; 
+        std::vector<std::vector<double>> triangle3{{-0.05,-0.95,-1},{0,-1.05,-0.95},{0.1,-1.05,-1.05}}; 
         
         GeometryPtrType pTriangle1 = QEFVolumeGenerateTriangle3D3(triangle1);
         GeometryPtrType pTriangle2 = QEFVolumeGenerateTriangle3D3(triangle2);
@@ -370,16 +370,16 @@ namespace Testing {
         Array1.push_back(pTriangle2); 
         Array1.push_back(pTriangle3);
 
-        /*static array_1d<double,3> QEF = QEF::QEFPoint(*pVoxel, Array1);
-        KRATOS_CHECK_NEAR(QEF[0],-0.68,0.01);
-        KRATOS_CHECK_NEAR(QEF[1],-0.68,0.01);
-        KRATOS_CHECK_NEAR(QEF[2],-0.68,0.01);*/
+        static array_1d<double,3> QEF = QEF::QEFPoint(*pVoxel, Array1);
+        KRATOS_CHECK_NEAR(QEF[0],-0.6667,0.01);
+        KRATOS_CHECK_NEAR(QEF[1],-0.6667,0.01);
+        KRATOS_CHECK_NEAR(QEF[2],-0.6667,0.01);
 
         double Volume = VolumeInsideVoxelQEF::GeometricalQEFApproximation(*pVoxel,Array1);
-        double ExpectedVolume = 0.018; //no nodes inside
+        double ExpectedVolume = 0.02083; //no nodes inside
         KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001);
 
-        //Note: the real expected Volume assumed in this case was circa 0.0156     
+        //Exact expected result  
     }
 
     KRATOS_TEST_CASE_IN_SUITE(QEFApproximationsUseCase2, KratosCoreFastSuite) {
@@ -452,6 +452,37 @@ namespace Testing {
         KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001); 
         //Exact expected result
     }
+
+    KRATOS_TEST_CASE_IN_SUITE(QEFApproximationsUseCase4, KratosCoreFastSuite) {
+        //voxel crossed by a plane with only 1 node inside the Volume
+        std::vector<double> distances{-1, 1, 1, 1, 1, 1, 1, 1};   
+        GeometryPtrType pVoxel = QEFVolumeGenerateHexahedra3D8(distances);
+
+        //Generate the intersecting triangles
+        std::vector<std::vector<double>> triangle1{{-1,-0.05,-0.95},{-0.95,0,-1.05},{-1.05,0.1,-1.05}}; 
+        std::vector<std::vector<double>> triangle2{{-1,-0.95,-0.05},{-0.95,-1.05,0},{-1.05,-1.05,0.1}}; 
+        std::vector<std::vector<double>> triangle3{{-0.05,-0.95,-1},{0,-1.05,-0.95},{0.1,-1.05,-1.05}}; 
+        
+        GeometryPtrType pTriangle1 = QEFVolumeGenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = QEFVolumeGenerateTriangle3D3(triangle2);
+        GeometryPtrType pTriangle3 = QEFVolumeGenerateTriangle3D3(triangle3);
+
+        GeometryArrayType Array1;
+        Array1.push_back(pTriangle1); 
+        Array1.push_back(pTriangle2); 
+        Array1.push_back(pTriangle3);
+
+        static array_1d<double,3> QEF = QEF::QEFPoint(*pVoxel, Array1);
+        KRATOS_CHECK_NEAR(QEF[0],-0.6667,0.01);
+        KRATOS_CHECK_NEAR(QEF[1],-0.6667,0.01);
+        KRATOS_CHECK_NEAR(QEF[2],-0.6667,0.01);
+
+        double Volume = VolumeInsideVoxelQEF::GeometricalQEFApproximation(*pVoxel,Array1);
+        double ExpectedVolume = 1 - 0.02083; //no nodes inside
+        KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001);
+
+        //Exact expected result
+    } 
 
 } //namespace testing
 } //namespace kratos
