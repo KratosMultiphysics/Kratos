@@ -661,6 +661,59 @@ namespace Kratos
         }
 
         /**
+         * Checks if the elimination builder and solver performs correctly the assemble of the system
+         */
+        KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementEliminationBuilderAndSolverWithZeroContribution, KratosCoreFastSuite2)
+        {
+            Model current_model;
+            ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+
+            BasicTestBuilderAndSolverDisplacementWithZeroContribution(r_model_part);
+
+            SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
+            LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+            BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedEliminationBuilderAndSolverType(p_solver) );
+
+            const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+
+            // // To create the solution of reference
+            // DebugLHS(rA);
+
+            // The solution check
+            constexpr double tolerance = 1e-8;
+            KRATOS_CHECK(rA.size1() == 2);
+            KRATOS_CHECK(rA.size2() == 2);
+            KRATOS_CHECK_RELATIVE_NEAR(rA(0,0), 2069000000.0000000000000000, tolerance);    
+            KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0000000000000000, tolerance);
+            for (unsigned int i = 0; i < 2; ++i) { // Checking non-zero entries in diagonal
+                KRATOS_CHECK_GREATER_EQUAL(std::abs(rA(i,i)), tolerance);
+            }
+
+            // // Testing scale
+            // Parameters parameters = Parameters(R"(
+            // {
+            //     "diagonal_values_for_dirichlet_dofs" : "defined_in_process_info",
+            //     "silent_warnings"                    : false
+            // })" );
+            // r_model_part.GetProcessInfo().SetValue(BUILD_SCALE_FACTOR, 2.26648e+10);
+            // BuilderAndSolverType::Pointer p_builder_and_solver_scale = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
+
+            // const SparseSpaceType::MatrixType& rA_scale = BuildSystem(r_model_part, p_scheme, p_builder_and_solver_scale);
+
+            // // // To create the solution of reference
+            // // DebugLHS(rA_scale);
+
+            // // The solution check
+            // KRATOS_CHECK(rA_scale.size1() == 2);
+            // KRATOS_CHECK(rA_scale.size2() == 2);
+            // KRATOS_CHECK_RELATIVE_NEAR(rA_scale(0,0), 2069000000.0000000000000000, tolerance);
+            // KRATOS_CHECK_RELATIVE_NEAR(rA_scale(1,1), 2.26648e+10, tolerance);
+            // for (unsigned int i = 0; i < 2; ++i) { // Checking non-zero entries in diagonal
+            //     KRATOS_CHECK_GREATER_EQUAL(std::abs(rA_scale(i,i)), tolerance);
+            // }
+        }
+
+        /**
          * Checks if the elimination builder and solver (with constraints) performs correctly the assemble of the system
          */
         KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementEliminationBuilderAndSolverWithConstraints, KratosCoreFastSuite)
