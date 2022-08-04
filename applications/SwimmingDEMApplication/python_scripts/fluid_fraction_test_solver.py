@@ -42,7 +42,7 @@ class FluidFractionTestSolver(BaseSolver):
 
     def CalculateL2ErrorNorm(self):
         self.velocity_L2_error_norm, self.pressure_L2_error_norm, self.error_model_part = self.error_norm_calculator.CalculateL2Norm()
-        return self.velocity_L2_error_norm, self.velocity_L2_error_norm, self.error_model_part
+        return self.velocity_L2_error_norm, self.pressure_L2_error_norm, self.error_model_part
 
     def CalculateH1ErrorSemiNorm(self):
         self.velocity_H1_error_seminorm, self.pressure_H1_error_seminorm = self.error_norm_calculator.CalculateH1SemiNorm()

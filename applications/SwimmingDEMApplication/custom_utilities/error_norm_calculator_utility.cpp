@@ -97,7 +97,7 @@ double ErrorNormCalculator::GetL2VectorErrorNorm(ModelPart& r_model_part, const 
     return std::sqrt(result/total_area);
 }
 
-double ErrorNormCalculator::GetL2ScalarErrorNorm(ModelPart& r_model_part)
+double ErrorNormCalculator::GetL2ScalarErrorNorm(ModelPart& r_model_part, const Variable<double>& rVariable)
 {
     double total_area = 0.0, result = 0.0;
     ProcessInfo process_info = r_model_part.GetProcessInfo();
@@ -119,7 +119,7 @@ double ErrorNormCalculator::GetL2ScalarErrorNorm(ModelPart& r_model_part)
         Vector gauss_weights;
         r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives,DetJ,integration_method);
 
-        rElement.CalculateOnIntegrationPoints(PRESSURE,computed_scalar,process_info);
+        rElement.CalculateOnIntegrationPoints(rVariable,computed_scalar,process_info);
 
         exact_scalar = mExactScalar[id_elem-1];
 
@@ -136,7 +136,8 @@ double ErrorNormCalculator::GetL2ScalarErrorNorm(ModelPart& r_model_part)
             result += gauss_weights[g] * scalar_error[g];
         }
     });
-    return std::sqrt(result/total_area);
+
+    return std::sqrt(fabs(result/total_area));
 }
 
 double ErrorNormCalculator::GetH1ScalarErrorSemiNorm(ModelPart& r_model_part)
@@ -202,7 +203,6 @@ double ErrorNormCalculator::GetH1VectorErrorSemiNorm(ModelPart& r_model_part)
         const auto& integration_points = r_geometry.IntegrationPoints(integration_method);
         const auto& r_number_integration_points = r_geometry.IntegrationPointsNumber(integration_method);
         const int id_elem = rElement.Id();
-
         DenseVector<Matrix> exact_vector_gradient;
         std::vector<Matrix> computed_vector_gradient;
         std::vector<double> vector_gradient_error(r_number_integration_points,0.0);

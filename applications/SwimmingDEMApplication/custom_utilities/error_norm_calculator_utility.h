@@ -54,7 +54,7 @@ void ComputeDofsErrors(ModelPart& r_model_part);
 
 double GetL2VectorErrorNorm(ModelPart& r_model_part, const Variable<array_1d<double,3>>& rVariable);
 
-double GetL2ScalarErrorNorm(ModelPart& r_model_part);
+double GetL2ScalarErrorNorm(ModelPart& r_model_part, const Variable<double>& rVariable);
 
 double GetH1ScalarErrorSemiNorm(ModelPart& r_model_part);
 

@@ -94,7 +94,7 @@ void Initialize(
     this->FillFromHistoricalNodalData(Acceleration, ACCELERATION, r_geometry);
     this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
 
-    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
+    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::AverageElementSize(r_geometry);
 }
 
 void UpdateSecondDerivativesValues(const ShapeFunctionsSecondDerivativesType& rDDN_DDX)
