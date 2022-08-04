@@ -121,6 +121,25 @@ void MPMLagrangianMovingParticle::InitializeSolutionStep( const ProcessInfo& rCu
             KRATOS_CATCH( "" )
         }
 
+    void MPMLagrangianMovingParticle::MPMShapeFunctionPointValues( Vector& rResult ) const
+    {
+        KRATOS_TRY
+
+        MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult);
+        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        auto r_geometry = GetGeometry();
+
+        // Nodes with zero mass are not connected to the body--> zero shape function result in zero line and columns in stiffness matrix
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
+                rResult[i]=0.0;
+            }
+        }
+
+        KRATOS_CATCH( "" )
+    }
+
     void MPMLagrangianMovingParticle::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
     {
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();

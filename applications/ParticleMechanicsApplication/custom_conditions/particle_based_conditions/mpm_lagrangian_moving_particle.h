@@ -176,6 +176,8 @@ protected:
      */
     double GetPointLoadIntegrationWeight() override;
 
+    virtual void MPMShapeFunctionPointValues(Vector& rResult) const override;
+
 
     /**
      * Called at the end of eahc solution step
