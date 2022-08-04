@@ -62,10 +62,10 @@ public:
      * @param rA The LHS matrix
      * @return The scale norm
      */
-    template<class TSystemMatrixType>
+    template<class TSparseSpace>
     static double GetScaleNorm(
         ModelPart& rModelPart,
-        TSystemMatrixType& rA,
+        typename TSparseSpace::MatrixType& rA,
         const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING
         )
     {
@@ -92,8 +92,8 @@ public:
      * @param rA The LHS matrix
      * @return The diagonal norm
      */
-    template<class TSystemMatrixType>
-    static double GetDiagonalNorm(TSystemMatrixType& rA)
+    template<class TSparseSpace>
+    static double GetDiagonalNorm(typename TSparseSpace::MatrixType& rA)
     {
         double diagonal_norm = 0.0;
         diagonal_norm = IndexPartition<std::size_t>(TSparseSpace::Size1(rA)).for_each<SumReduction<double>>([&](std::size_t Index){
@@ -108,8 +108,8 @@ public:
      * @param rA The LHS matrix
      * @return The diagonal  max value
      */
-    template<class TSystemMatrixType>
-    static double GetAveragevalueDiagonal(TSystemMatrixType& rA)
+    template<class TSparseSpace>
+    static double GetAveragevalueDiagonal(typename TSparseSpace::MatrixType& rA)
     {
         return 0.5 * (GetMaxDiagonal(rA) + GetMinDiagonal(rA));
     }
@@ -119,8 +119,8 @@ public:
      * @param rA The LHS matrix
      * @return The diagonal  max value
      */
-    template<class TSystemMatrixType>
-    static double GetMaxDiagonal(TSystemMatrixType& rA)
+    template<class TSparseSpace>
+    static double GetMaxDiagonal(typename TSparseSpace::MatrixType& rA)
     {
 //         // NOTE: Reduction failing in MSVC
 //         double max_diag = 0.0;
@@ -154,8 +154,8 @@ public:
      * @param rA The LHS matrix
      * @return The diagonal min value
      */
-    template<class TSystemMatrixType>
-    static double GetMinDiagonal(TSystemMatrixType& rA)
+    template<class TSparseSpace>
+    static double GetMinDiagonal(typename TSparseSpace::MatrixType& rA)
     {
 //         // NOTE: Reduction failing in MSVC
 //         double min_diag = std::numeric_limits<double>::max();
