@@ -431,7 +431,6 @@ namespace Kratos {
       KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), Globals::Pi *0.5, TOLERANCE);
     }
 
-
     /** Checks if the min solid angle quality metric is correctly calculated.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
@@ -442,7 +441,6 @@ namespace Kratos {
 
       KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.339836909, TOLERANCE);
     }
-
 
     /** Checks if the dihedral angles are correctly calculated.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
@@ -461,7 +459,6 @@ namespace Kratos {
       KRATOS_CHECK_NEAR(dihedral_angles[5],  0.955316618, TOLERANCE);
 
     }
-
 
     /** Checks if the solid angles are correctly calculated.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
