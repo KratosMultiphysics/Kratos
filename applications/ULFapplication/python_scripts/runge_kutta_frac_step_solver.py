@@ -171,7 +171,7 @@ class RungeKuttaFracStepSolver:
             node.Set(TO_ERASE, False)
 
         (self.fluid_neigh_finder).Execute();
-        (self.elem_neighbor_finder).ExecuteInitialize()
+        (self.elem_neighbor_finder).Execute()
         (self.condition_neigh_finder).Execute();
 
         (self.mark_free_surface_process).Execute();
