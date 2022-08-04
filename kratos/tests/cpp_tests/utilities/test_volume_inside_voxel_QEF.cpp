@@ -113,6 +113,7 @@ namespace Testing {
     }
 
     //A couple of test regarding the real efficiency and limitations of this method
+
     KRATOS_TEST_CASE_IN_SUITE(QEFApproximations1, KratosCoreFastSuite) {
         //voxel crossed by a plane with only 1 node inside the Volume
         std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
@@ -347,6 +348,110 @@ namespace Testing {
         /*in this case the Volume returned by the method approximation is not close to the real Volume of the 
         test case, since we would expect a real Volume circa 0.5. Anyways, it is better that the previous methods */
     } 
+
+    //A couple of test showing most common use cases (exact approximation)
+
+    KRATOS_TEST_CASE_IN_SUITE(QEFApproximationsUseCase1, KratosCoreFastSuite) {
+        //voxel crossed by a plane with only 1 node inside the Volume
+        std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
+        GeometryPtrType pVoxel = QEFVolumeGenerateHexahedra3D8(distances);
+
+        //Generate the intersecting triangles
+        std::vector<std::vector<double>> triangle1{{-1,0.4-0.5,-0.95},{-0.95,0.45-0.5,-1.05},{-1.05,0.55-0.5,-1.05}}; 
+        std::vector<std::vector<double>> triangle2{{-1,-0.95,-0.1},{-0.95,-1.05,-0.05},{-1.05,-1.05,0.05}}; 
+        std::vector<std::vector<double>> triangle3{{-0.6+0.5,-0.95,-1},{-0.55+0.5,-1.05,-0.95},{-0.45+0.5,-1.05,-1.05}}; 
+        
+        GeometryPtrType pTriangle1 = QEFVolumeGenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = QEFVolumeGenerateTriangle3D3(triangle2);
+        GeometryPtrType pTriangle3 = QEFVolumeGenerateTriangle3D3(triangle3);
+
+        GeometryArrayType Array1;
+        Array1.push_back(pTriangle1); 
+        Array1.push_back(pTriangle2); 
+        Array1.push_back(pTriangle3);
+
+        /*static array_1d<double,3> QEF = QEF::QEFPoint(*pVoxel, Array1);
+        KRATOS_CHECK_NEAR(QEF[0],-0.68,0.01);
+        KRATOS_CHECK_NEAR(QEF[1],-0.68,0.01);
+        KRATOS_CHECK_NEAR(QEF[2],-0.68,0.01);*/
+
+        double Volume = VolumeInsideVoxelQEF::GeometricalQEFApproximation(*pVoxel,Array1);
+        double ExpectedVolume = 0.018; //no nodes inside
+        KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001);
+
+        //Note: the real expected Volume assumed in this case was circa 0.0156     
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(QEFApproximationsUseCase2, KratosCoreFastSuite) {
+        //A voxel crossed by a straight plane with only 2 nodes inside the Volume
+        std::vector<double> distances{1, 1, -1, -1, -1, -1, -1, -1};   
+        GeometryPtrType pVoxel = QEFVolumeGenerateHexahedra3D8(distances);
+
+        //Generate the intersecting triangles
+        std::vector<std::vector<double>> triangle1{{-1,-0.05,-0.95},{-0.95,0.05,-1.05},{-1.05,0.05,-1.05}}; 
+        std::vector<std::vector<double>> triangle2{{-1,-0.95,-0.05},{-0.95,-1.05,0.05},{-1.05,-1.05,0.05}}; 
+        std::vector<std::vector<double>> triangle3{{1,-0.95,-0.05},{1.05,-1.05,0.05},{0.95,-1.05,0.05}}; 
+        std::vector<std::vector<double>> triangle4{{1,-0.05,-0.95},{1.05,0.05,-1.05},{0.95,0.05,-1.05}}; 
+        
+        GeometryPtrType pTriangle1 = QEFVolumeGenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = QEFVolumeGenerateTriangle3D3(triangle2);
+        GeometryPtrType pTriangle3 = QEFVolumeGenerateTriangle3D3(triangle3);
+        GeometryPtrType pTriangle4 = QEFVolumeGenerateTriangle3D3(triangle4);
+
+        GeometryArrayType Array1;
+        Array1.push_back(pTriangle1); 
+        Array1.push_back(pTriangle2);
+        Array1.push_back(pTriangle3);
+        Array1.push_back(pTriangle4);
+
+        
+        /*array_1d<double,3> normal = QEF::CalculateNormal(*pTriangle1);
+        KRATOS_WATCH(normal);
+        array_1d<double,3> normal2 = QEF::CalculateNormal(*pTriangle2);
+        KRATOS_WATCH(normal2);
+        array_1d<double,3> normal3 = QEF::CalculateNormal(*pTriangle3);
+        KRATOS_WATCH(normal3);
+        array_1d<double,3> normal4 = QEF::CalculateNormal(*pTriangle4);
+        KRATOS_WATCH(normal4);*/
+
+        double Volume = VolumeInsideVoxelQEF::GeometricalQEFApproximation(*pVoxel,Array1);
+        double ExpectedVolume = 0.125; 
+        KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001); 
+        //Exact expected result
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(QEFApproximationsUseCase3, KratosCoreFastSuite) {
+        //A voxel crossed by a shifted plane with 4 nodes inside the Volume
+        std::vector<double> distances{1, 1, 1, 1, -1, -1, -1, -1};   
+        GeometryPtrType pVoxel = QEFVolumeGenerateHexahedra3D8(distances);
+
+        //Generate the intersecting triangles
+        std::vector<std::vector<double>> triangle1{{-1,-0.95+2,-0.025-0.5},{-0.95,-1.05+2,0.025-0.5},{-1.05,-1.05+2,0.025-0.5}}; 
+        std::vector<std::vector<double>> triangle2{{-1,-0.95,-0.025+0.5},{-0.95,-1.05,0.025+0.5},{-1.05,-1.05,0.025+0.5}}; 
+        std::vector<std::vector<double>> triangle3{{1,-0.95,-0.025+0.5},{1.05,-1.05,0.025+0.5},{0.95,-1.05,0.025+0.5}}; 
+        std::vector<std::vector<double>> triangle4{{1,-0.95+2,-0.025-0.5},{1.05,-1.05+2,0.025-0.5},{0.95,-1.05+2,0.025-0.5}}; 
+        
+        GeometryPtrType pTriangle1 = QEFVolumeGenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = QEFVolumeGenerateTriangle3D3(triangle2);
+        GeometryPtrType pTriangle3 = QEFVolumeGenerateTriangle3D3(triangle3);
+        GeometryPtrType pTriangle4 = QEFVolumeGenerateTriangle3D3(triangle4);
+
+        GeometryArrayType Array1;
+        Array1.push_back(pTriangle1); 
+        Array1.push_back(pTriangle2);
+        Array1.push_back(pTriangle3);
+        Array1.push_back(pTriangle4);
+
+        static array_1d<double,3> QEF = QEF::QEFPoint(*pVoxel, Array1);
+        KRATOS_CHECK_NEAR(QEF[0],0,0.001);
+        KRATOS_CHECK_NEAR(QEF[1],0,0.001);
+        KRATOS_CHECK_NEAR(QEF[2],0,0.001);
+
+        double Volume = VolumeInsideVoxelQEF::GeometricalQEFApproximation(*pVoxel,Array1);
+        double ExpectedVolume = 0.5; 
+        KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001); 
+        //Exact expected result
+    }
 
 } //namespace testing
 } //namespace kratos
