@@ -391,8 +391,8 @@ namespace Kratos
 
             const SparseSpaceType::MatrixType& rA_scale = BuildSystem(r_model_part, p_scheme, p_builder_and_solver_scale);
 
-            KRATOS_CHECK(rA.size1() == 6);
-            KRATOS_CHECK(rA.size2() == 6);
+            KRATOS_CHECK(rA_scale.size1() == 6);
+            KRATOS_CHECK(rA_scale.size2() == 6);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(0,0) - 2069000000.000000000)/rA(0,0)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(1,1) - 2.26648e+10)/rA_scale(1,1)), 1.0e-4);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(2,2) - 4138000000.000000000)/rA(2,2)), tolerance);
