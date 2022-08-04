@@ -95,7 +95,6 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixTy
     rVariables.UMatrix = rAbsKMatrix;
 
     // assemble left hand side vector
-    noalias(rLhsMatrix) = ZeroMatrix(CONDITION_SIZE);
     if (rLhsMatrix.size1() != CONDITION_SIZE)
         rLhsMatrix.resize(CONDITION_SIZE, CONDITION_SIZE, false);
 
@@ -103,7 +102,9 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixTy
     this->CalculateAndAddLHS(rLhsMatrix, rVariables);
 
     // no righthand side contribution
-    rRightHandSideVector = ZeroVector(CONDITION_SIZE);
+    if (rRightHandSideVector.size() != CONDITION_SIZE)
+        rRightHandSideVector.resize(CONDITION_SIZE, false);
+    noalias(rRightHandSideVector) = ZeroVector(CONDITION_SIZE);
 }
 
 /// <summary>
@@ -157,7 +158,6 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
         rVariables.vp = sqrt(rVariables.Ec / rVariables.rho);
         rVariables.vs = sqrt(rVariables.G / rVariables.rho);
 
-
         this->CalculateNodalDampingMatrix(rVariables, CurrentProcessInfo, Geom);
 
         // calculate displacement shape function matrix
@@ -175,11 +175,10 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
     rVariables.UMatrix = rAbsMatrix;
 
 
-    // assemble right hand side vector
-    noalias(rDampingMatrix) = ZeroMatrix(CONDITION_SIZE);
+    // assemble left hand side vector
     if (rDampingMatrix.size1() != CONDITION_SIZE)
         rDampingMatrix.resize(CONDITION_SIZE, CONDITION_SIZE, false);
-    rDampingMatrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
+    noalias(rDampingMatrix) = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
 
     this->CalculateAndAddLHS(rDampingMatrix, rVariables);
 }
@@ -243,7 +242,6 @@ CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const Pr
     CalculateRotationMatrix(rotationMatrix, Geom);
 
     const int local_perpendicular_direction = TDim - 1;
-
 
     // calculate constant traction vector part
     rDampingConstants[0] = rVariables.vs * rVariables.rho * rVariables.s_factor;
@@ -324,23 +322,40 @@ Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes >::CalculateExtrapolationMatr
         if (rNumNodesNeighbour == 3)
         {
             GeoElementUtilities::CalculateExtrapolationMatrixTriangle(rExtrapolationMatrix, rIntegrationMethodNeighbour);
+            return rExtrapolationMatrix;
         }
         else if (rNumNodesNeighbour == 4)
         {
             GeoElementUtilities::CalculateExtrapolationMatrixQuad(rExtrapolationMatrix, rIntegrationMethodNeighbour);
+            return rExtrapolationMatrix;
         }
+       
     }
     if (TDim == 3)
     {
         if (rNumNodesNeighbour == 4)
         {
             GeoElementUtilities::CalculateExtrapolationMatrixTetra(rExtrapolationMatrix, rIntegrationMethodNeighbour);
+            return rExtrapolationMatrix;
         }
         else if (rNumNodesNeighbour == 8)
         {
             GeoElementUtilities::CalculateExtrapolationMatrixHexa(rExtrapolationMatrix, rIntegrationMethodNeighbour);
+            return rExtrapolationMatrix;
+        }
+
+    }
+
+    // if no extrapolation matrix is implemented, take average values at gauss points
+    double averaging_factor = 1 / NumGPointsNeighbour;
+    for (unsigned int node = 0; node < rNumNodesNeighbour; ++node)
+    {
+        for (unsigned int GPoint = 0; GPoint < NumGPointsNeighbour; ++GPoint)
+        {
+            rExtrapolationMatrix(node, GPoint) = averaging_factor;
         }
     }
+
     return rExtrapolationMatrix;
 }
 
@@ -355,32 +370,20 @@ GetNeighbourElementVariables(
     NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     
-    //double rho_s = 0;
-    //double rho_w = 0;
     double Ec = 0;
     double G = 0;
-    //double n = 0;
     double rMeanDegreeOfSaturation = 0;
 
-    // get mean degree of saturation of all integration points in all neighbour elements
-    
-    
     // get neighbour elements
     auto neighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
-    
-    int nElements = neighbours.size();
-    
     GeometryType& rGeom = this->GetGeometry();
-    GeometryData::IntegrationMethod rIntegrationMethod = this->GetIntegrationMethod();
-    const Matrix& NContainer = rGeom.ShapeFunctionsValues(rIntegrationMethod);
 
-    std::vector<double> rEcNodes(TNumNodes, 0);
-    //std::vector<double> rGNodes;
-    //rEcNodes.resize(rNumNodesNeighbour);
-    std::vector<double> rGNodes(TNumNodes, 0);
-    std::vector<double> rSaturationNodes(TNumNodes, 0);
-    std::vector<double> rRhoNodes(TNumNodes, 0);
-
+    int nElements = neighbours.size();
+    if (neighbours.size() == 0)
+    {
+        KRATOS_ERROR << "Condition: " <<this->Id()<<" does not have neighbour elements" <<  std::endl;
+    }
+ 
     rVariables.EcNodes.resize(TNumNodes);
     rVariables.GNodes.resize(TNumNodes);
     rVariables.rhoNodes.resize(TNumNodes);
@@ -388,8 +391,7 @@ GetNeighbourElementVariables(
     // only get values from first neighbour
     int nValues = 0;
 
-    Element rNeighbour = neighbours[0];
-
+    Element& rNeighbour = neighbours[0];
     auto rPropNeighbour = rNeighbour.GetProperties();
 
     const GeometryType& rNeighbourGeom = rNeighbour.GetGeometry();
@@ -399,114 +401,42 @@ GetNeighbourElementVariables(
     const IndexType rNumNodesNeighbour = rNeighbourGeom.size();
     const IndexType NumGPointsNeighbour = rNeighbourGeom.IntegrationPointsNumber(rIntegrationMethodNeighbour);
 
-
     // get density and porosity from element
     double rho_s = rPropNeighbour[DENSITY_SOLID];
     double rho_w = rPropNeighbour[DENSITY_WATER];
     double n = rPropNeighbour[POROSITY];
 
     std::vector<double> SaturationVector;
-    vector<double> rDensityVector(NumGPointsNeighbour);
-    vector<double> rConfinedStiffness(NumGPointsNeighbour);
-    vector<double> rShearStiffness(NumGPointsNeighbour);
-        
+    vector<double> DensityVector(NumGPointsNeighbour);
+    vector<double> ConfinedStiffness(NumGPointsNeighbour);
+    vector<double> ShearStiffness(NumGPointsNeighbour);
 
+    std::vector<double> stdConfinedStiffness(NumGPointsNeighbour);
+    std::vector<double> stdShearStiffness(NumGPointsNeighbour);
+
+    // get parameters at neighbour element integration points
     rNeighbour.CalculateOnIntegrationPoints(DEGREE_OF_SATURATION, SaturationVector, rCurrentProcessInfo);
+    rNeighbour.CalculateOnIntegrationPoints(CONFINED_STIFFNESS, stdConfinedStiffness, rCurrentProcessInfo);
+    rNeighbour.CalculateOnIntegrationPoints(SHEAR_STIFFNESS, stdShearStiffness, rCurrentProcessInfo);
+       
+    for (unsigned int GPoint = 0; GPoint < NumGPointsNeighbour; ++GPoint) {
 
-    // get Ec and G from constitutive matrix
-    Matrix ConstitutiveMatrix;
-        
-    const ConstitutiveLaw::Pointer pConstitutiveLaw = rPropNeighbour[CONSTITUTIVE_LAW];
-    std::vector<ConstitutiveLaw::Pointer> constitutiveLawVector;
-    rNeighbour.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutiveLawVector, rCurrentProcessInfo);
-        
+        // transform std vectors to boost vectors
+        ConfinedStiffness[GPoint] = stdConfinedStiffness[GPoint];
+        ShearStiffness[GPoint] = stdShearStiffness[GPoint];
 
-    for (unsigned int GPoint = 0; GPoint < constitutiveLawVector.size(); ++GPoint) {
-
-
-        ConstitutiveLaw::Features rLawFeatures;
-        constitutiveLawVector[GPoint]->GetLawFeatures(rLawFeatures);
-        Flags lawOptions = rLawFeatures.GetOptions();
-
-        ConstitutiveLaw::Parameters ConstitutiveParameters(rNeighbourGeom, rPropNeighbour, rCurrentProcessInfo);
-
-        constitutiveLawVector[GPoint]->CalculateValue(ConstitutiveParameters, CONSTITUTIVE_MATRIX, ConstitutiveMatrix);
-
-        if (TDim == 2)
-        {
-            int rEcIdx;
-            int rGIdx;
-            //ConstitutiveLaw::AXISYMMETRIC_LAW;
-            bool tmp11 = lawOptions.Is(ConstitutiveLaw::INFINITESIMAL_STRAINS);
-
-            if (lawOptions.Is(ConstitutiveLaw::PLANE_STRAIN_LAW))
-            {
-                //ConstitutiveLaw::INFINITESIMAL_STRAINS;
-                rEcIdx = INDEX_2D_PLANE_STRAIN_XX;
-            }
-            else if (lawOptions.Is(ConstitutiveLaw::PLANE_STRESS_LAW))
-            {
-                rEcIdx = INDEX_2D_PLANE_STRESS_XX;
-            }
-            else
-            {
-                KRATOS_ERROR << "In 2D, lysmer absorbing boundary is only valid in plane strain" << std::endl;
-            }
-            //const int EcIdx = ConstitutiveLaw::PLANE_STRAIN_LAW ? INDEX_2D_PLANE_STRAIN_XX : ConstitutiveLaw::PLANE_STRESS_LAW ? INDEX_2D_PLANE_STRESS_XX : "i is over 0"
-
-            Ec = ConstitutiveMatrix(rEcIdx, rEcIdx);
-            G = ConstitutiveMatrix(INDEX_2D_PLANE_STRAIN_XY, INDEX_2D_PLANE_STRAIN_XY);
-
-        }
-        else if (TDim == 3)
-        {
-            Ec = ConstitutiveMatrix(INDEX_3D_XX, INDEX_3D_XX);
-            G = ConstitutiveMatrix(INDEX_3D_XZ, INDEX_3D_XZ);
-        }
-        else
-        {
-            KRATOS_ERROR << "Lysmer absorbing boundary is only valid in a 2D or 3D space" << std::endl;
-        }
-
-        // calculate density of mixture
-        double rho = (SaturationVector[GPoint] * rPropNeighbour[POROSITY] * rPropNeighbour[DENSITY_WATER]) + (1.0 - rPropNeighbour[POROSITY]) * rPropNeighbour[DENSITY_SOLID];
-
-        rDensityVector[GPoint] = rho;
-        rConfinedStiffness[GPoint] = Ec;
-        rShearStiffness[GPoint] = G;
-
+        // calculate density mixture
+        DensityVector[GPoint] = (SaturationVector[GPoint] * rPropNeighbour[POROSITY] * rPropNeighbour[DENSITY_WATER]) + (1.0 - rPropNeighbour[POROSITY]) * rPropNeighbour[DENSITY_SOLID];
     }
 
     Matrix rExtrapolationMatrix = CalculateExtrapolationMatrixNeighbour(rNeighbour);
-    /*Matrix rExtrapolationMatrix = ZeroMatrix(rNumNodesNeighbour, NumGPointsNeighbour);
+   
+    // project parameters on neighbour nodes
+    vector<double> EcNodesNeighbour = prod(rExtrapolationMatrix, ConfinedStiffness);
+    vector<double> GNodesNeighbour = prod(rExtrapolationMatrix, ShearStiffness);
+    vector<double> rhoNodesNeighbour = prod(rExtrapolationMatrix, DensityVector);
 
-    if (TDim == 2)
-    {
-        if (rNumNodesNeighbour == 3)
-        {
-            GeoElementUtilities::CalculateExtrapolationMatrixTriangle(rExtrapolationMatrix, rIntegrationMethodNeighbour);
-        }
-        else if (rNumNodesNeighbour == 4)
-        {
-            GeoElementUtilities::CalculateExtrapolationMatrixQuad(rExtrapolationMatrix, rIntegrationMethodNeighbour);
-        }
-    }
-    if (TDim == 3)
-    {
-        if (rNumNodesNeighbour == 4)
-        {
-            GeoElementUtilities::CalculateExtrapolationMatrixTetra(rExtrapolationMatrix, rIntegrationMethodNeighbour);
-        }
-        else if (rNumNodesNeighbour == 8)
-        {
-            GeoElementUtilities::CalculateExtrapolationMatrixHexa(rExtrapolationMatrix, rIntegrationMethodNeighbour);
-        }
-    }*/
-
-    auto EcNodesNeighbour = prod(rExtrapolationMatrix, rConfinedStiffness);
-    auto GNodesNeighbour = prod(rExtrapolationMatrix, rShearStiffness);
-    auto rhoNodesNeighbour = prod(rExtrapolationMatrix, rDensityVector);
-
+    // add parameters to condition nodes
     for (unsigned int k = 0; k < rNumNodesNeighbour; ++k)
     {
         for (unsigned int node = 0; node < TNumNodes; ++node)
@@ -529,10 +459,6 @@ GetVariables(
 {
     // gets average of variables as stored in neighbour elements
     this->GetNeighbourElementVariables(rVariables, rCurrentProcessInfo);
-
-    // calculate pressure wave and shear wave velocity
-    //rVariables.vp = sqrt(rVariables.Ec / rVariables.rho);
-    //rVariables.vs = sqrt(rVariables.G / rVariables.rho);
 
     // get condition specific variables
     Vector absorbing_factors = this->GetValue(ABSORBING_FACTORS);

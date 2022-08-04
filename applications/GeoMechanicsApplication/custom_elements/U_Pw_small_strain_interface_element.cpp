@@ -645,7 +645,107 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             if (rVariable == DERIVATIVE_OF_SATURATION) rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(RetentionParameters);
             if (rVariable == RELATIVE_PERMEABILITY )   rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
         }
-    } else {
+    } 
+    else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
+        
+        // set the correct index of the variable in the constitutive matrix
+        size_t variable_index;
+        if (rVariable == CONFINED_STIFFNESS)
+        {
+            if (TDim == 2)
+            {
+                variable_index = INDEX_2D_INTERFACE_ZZ;
+            }
+            else if (TDim == 3)
+            {
+                variable_index = INDEX_3D_INTERFACE_ZZ;
+            }
+            else
+            {
+                KRATOS_ERROR << "CONFINED_STIFFNESS can not be retrieved for dim " << TDim << " in element: " << this->Id() << std::endl;
+            }
+        }
+        else if (rVariable == SHEAR_STIFFNESS)
+        {
+            if (TDim == 2)
+            {
+                variable_index = INDEX_2D_INTERFACE_XZ;
+            }
+            else if (TDim == 3)
+            {
+                variable_index = INDEX_3D_INTERFACE_XZ;
+            }
+            else
+            {
+                KRATOS_ERROR << "SHEAR_STIFFNESS can not be retrieved for dim " << TDim << " in element: " << this->Id() << std::endl;
+            }
+        }
+
+        InterfaceElementVariables Variables;
+        const PropertiesType& rProp = this->GetProperties();
+        const GeometryType& rGeom = this->GetGeometry();
+        const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
+        this->InitializeElementVariables(Variables,
+            rGeom,
+            rProp,
+            rCurrentProcessInfo);
+
+        //Containers of variables at all integration points
+        const Matrix& NContainer = rGeom.ShapeFunctionsValues(mThisIntegrationMethod);
+        const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer =
+            rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+        GeometryType::JacobiansType JContainer(NumGPoints);
+        rGeom.Jacobian(JContainer, mThisIntegrationMethod);        
+
+        // set constitutive parameters
+        if (rValues.size() != mConstitutiveLawVector.size())
+            rValues.resize(mConstitutiveLawVector.size());
+        
+        ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, rProp, rCurrentProcessInfo);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+
+        //Auxiliary variables
+        const double& MinimumJointWidth = rProp[MINIMUM_JOINT_WIDTH];
+        array_1d<double, TDim> RelDispVector;
+        SFGradAuxVariables SFGradAuxVars;
+
+        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
+            
+            //Compute Np, StrainVector, JointWidth, GradNpT
+            noalias(Variables.Np) = row(NContainer, GPoint);
+            InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu, NContainer, GPoint);
+            noalias(RelDispVector) = prod(Variables.Nu, Variables.DisplacementVector);
+            noalias(Variables.StrainVector) = prod(Variables.RotationMatrix, RelDispVector);
+
+            this->CheckAndCalculateJointWidth(Variables.JointWidth,
+                ConstitutiveParameters,
+                Variables.StrainVector[TDim - 1],
+                MinimumJointWidth,
+                GPoint);
+
+            this->CalculateShapeFunctionsGradients< Matrix >(Variables.GradNpT,
+                SFGradAuxVars,
+                JContainer[GPoint],
+                Variables.RotationMatrix,
+                DN_DeContainer[GPoint],
+                NContainer,
+                Variables.JointWidth,
+                GPoint);
+
+            //Compute constitutive tensor
+            noalias(Variables.StressVector) = mStressVector[GPoint];
+            ConstitutiveParameters.SetStressVector(Variables.StressVector);
+
+            mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+
+            // get variable from constitutive matrix
+            rValues[GPoint] = Variables.ConstitutiveMatrix(variable_index, variable_index);
+        }
+    }
+    else {
         //Variables computed on Lobatto points
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
