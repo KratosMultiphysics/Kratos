@@ -527,9 +527,13 @@ namespace Kratos {
       KRATOS_CHECK_IS_FALSE(intersection_far_geom);
 
       /* 2D intersection */
-      auto p_geomTriangleInside = GenerateEquilateralTriangle3D3();
-      const bool intersection_geomTriangleInside = p_tetrahedron->HasIntersection(*p_geomTriangleInside);
+      auto p_triangle_inside = GenerateEquilateralTriangle3D3();
+      const bool intersection_geomTriangleInside = p_tetrahedron->HasIntersection(*p_triangle_inside);
       KRATOS_CHECK(intersection_geomTriangleInside);
+
+      auto p_far_triangle = GenerateTriangle3D3(PointA, PointB, PointC);
+      const bool intersection_far_triangle = p_tetrahedron->HasIntersection(*p_far_triangle);
+      KRATOS_CHECK_IS_FALSE(intersection_far_triangle);
 
       /* 1D intersection */
 
