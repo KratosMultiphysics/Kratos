@@ -204,14 +204,6 @@ protected:
         const Matrix& rDN_DX,
         const double Weight = 1.0);
 
-    void AddMomentumDispersionTerms(
-        LocalVectorType& rLaplacianBoundary,
-        const GeometryType& rParentGeometry,
-        const ConditionData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const Matrix& rDN_DX,
-        const double Weight = 1.0);
-
     void CalculateShapeFunctionDerivatives(
         Matrix& rDN_DX,
         const GeometryType& rParentGeometry,
