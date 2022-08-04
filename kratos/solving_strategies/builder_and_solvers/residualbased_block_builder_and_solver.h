@@ -995,7 +995,7 @@ public:
         std::size_t* Acol_indices = rA.index2_data().begin();
 
         // The diagonal considered
-        mScaleFactor = StrategiesUtilities::GetScaleNorm<TSystemMatrixType>(rModelPart, rA, mScalingDiagonal);
+        mScaleFactor = StrategiesUtilities::GetScaleNorm<TSparseSpace>(rModelPart, rA, mScalingDiagonal);
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
@@ -1109,7 +1109,7 @@ public:
             SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
             auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
 
-            const double max_diag = StrategiesUtilities::GetMaxDiagonal<TSystemMatrixType>(rA);
+            const double max_diag = StrategiesUtilities::GetMaxDiagonal<TSparseSpace>(rA);
 
             // Apply diagonal values on slaves
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
