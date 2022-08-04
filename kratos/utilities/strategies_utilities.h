@@ -80,12 +80,12 @@ public:
                 return r_current_process_info.GetValue(BUILD_SCALE_FACTOR);
             }
             case SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL:
-                return GetDiagonalNorm(rA)/static_cast<double>(rA.size1());
+                return GetDiagonalNorm<TSparseSpace>(rA)/static_cast<double>(rA.size1());
             case SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL:
-                return GetMaxDiagonal(rA);
+                return GetMaxDiagonal<TSparseSpace>(rA);
 //                 return TSparseSpace::TwoNorm(rA)/static_cast<double>(rA.size1());
             default:
-                return GetMaxDiagonal(rA);
+                return GetMaxDiagonal<TSparseSpace>(rA);
         }
     }
 
@@ -113,7 +113,7 @@ public:
     template<class TSparseSpace>
     static double GetAveragevalueDiagonal(typename TSparseSpace::MatrixType& rA)
     {
-        return 0.5 * (GetMaxDiagonal(rA) + GetMinDiagonal(rA));
+        return 0.5 * (GetMaxDiagonal<TSparseSpace>(rA) + GetMinDiagonal<TSparseSpace>(rA));
     }
 
     /**
