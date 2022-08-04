@@ -44,6 +44,10 @@
 
 namespace Kratos
 {
+
+/************************************* CONSTRUCTOR *********************************/
+/***********************************************************************************/
+
 template<MMGLibrary TMMGLibrary>
 MmgIO<TMMGLibrary>::MmgIO(
     std::string const& rFilename,
