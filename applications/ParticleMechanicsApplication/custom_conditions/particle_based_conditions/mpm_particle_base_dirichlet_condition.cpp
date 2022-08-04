@@ -33,7 +33,24 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( const ProcessInf
     // NOTE: This only consider translational velocity and acceleration: no angular
     m_imposed_displacement += (m_imposed_velocity * delta_time) + (0.5 * m_imposed_acceleration * delta_time * delta_time);
 
-    
+    // Prepare variables
+    GeneralVariables Variables;
+    MPMShapeFunctionPointValues(Variables.N);
+
+    // Get NODAL_AREA from MPC_Area
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    const double & r_mpc_area = this->GetIntegrationWeight();
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (r_geometry[i].SolutionStepsDataHas(NODAL_AREA))
+        {
+            r_geometry[i].SetLock();
+            r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0) += Variables.N[i] * r_mpc_area;
+            r_geometry[i].UnSetLock();
+        }
+        else break;
+    }
 
 }
 
@@ -109,18 +126,31 @@ void MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rRe
 
     // Additional check to modify zero shape function values
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const GeometryType& r_geometry = GetGeometry();
 
     double denominator = 1.0;
     const double small_cut_instability_tolerance = 0.01;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        if (rResult[i] < small_cut_instability_tolerance){
+        if (rResult[i] < small_cut_instability_tolerance/2){
+            denominator -= rResult[i];
+            rResult[i] = 0;
+        }
+        else if (rResult[i] < small_cut_instability_tolerance){
             denominator += (small_cut_instability_tolerance - rResult[i]);
             rResult[i] = small_cut_instability_tolerance;
         }
     }
 
     rResult = rResult / denominator;
+
+    // Nodes with zero mass are not connected to the body--> zero shape function result in zero line and columns in stiffness matrix
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
+            rResult[i]=0.0;
+        }
+    }
 
     KRATOS_CATCH( "" )
 }

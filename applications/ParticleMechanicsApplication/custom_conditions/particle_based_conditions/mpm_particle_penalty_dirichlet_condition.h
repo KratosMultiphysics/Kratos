@@ -89,15 +89,11 @@ public:
      */
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
     /**
      * Called at the end of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Operations
@@ -156,6 +152,7 @@ protected:
     ///@{
 
     array_1d<double, 3> m_unit_normal;
+    double m_penalty = 0.0;
 
     ///@}
     ///@name Protected Operators
@@ -208,9 +205,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    double m_penalty = 0.0;
-    VectorType m_rhs;
-    array_1d<double, 3> m_contact_force;
+    
 
     ///@}
     ///@name Private Operators
