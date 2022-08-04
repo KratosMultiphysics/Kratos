@@ -49,7 +49,6 @@ class LineOutputProcess(KratosMultiphysics.OutputProcess):
             "file_parameters"       : {
                 "file_name"         : "",
                 "file_access_mode"  : "read_write",
-                "file_driver"       : "sec2",
                 "echo_level"        : 0
             }
         }""")
