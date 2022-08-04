@@ -59,9 +59,58 @@ public:
     ///@{
 
     /**
+     * @brief This method checks and corrects the zero diagonal values
+     * @details This method returns the scale norm considering for scaling the diagonal
+     * @param rModelPart The problem model part
+     * @param rA The LHS matrix
+     * @param rb The RHS vector
+     * @param ScalingDiagonal The type of caling diagonal considered
+     * @return The scale norm
+     */
+    template<class TSparseSpace>
+    static double CheckAndCorrectZeroDiagonalValues(
+        ModelPart& rModelPart,
+        typename TSparseSpace::MatrixType& rA,
+        typename TSparseSpace::VectorType& rb,
+        const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING
+        )
+    {
+        const std::size_t system_size = rA.size1();
+
+        double* Avalues = rA.value_data().begin();
+        std::size_t* Arow_indices = rA.index1_data().begin();
+
+        // The diagonal considered
+        const double scale_factor = GetScaleNorm<TSparseSpace>(rModelPart, rA, ScalingDiagonal);
+
+        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
+            bool empty = true;
+
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index + 1];
+
+            for (std::size_t j = col_begin; j < col_end; ++j) {
+                if(Avalues[j] != 0.0) {
+                    empty = false;
+                    break;
+                }
+            }
+
+            if(empty) {
+                rA(Index, Index) = scale_factor;
+                rb[Index] = 0.0;
+            }
+        });
+
+        return scale_factor;
+    }
+
+    /**
      * @brief This method returns the scale norm considering for scaling the diagonal
      * @param rModelPart The problem model part
      * @param rA The LHS matrix
+     * @param ScalingDiagonal The type of caling diagonal considered
      * @return The scale norm
      */
     template<class TSparseSpace>
