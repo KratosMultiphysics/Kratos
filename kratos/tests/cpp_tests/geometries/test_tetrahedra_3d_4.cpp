@@ -409,12 +409,6 @@ namespace Kratos {
       KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.769800, TOLERANCE);
     }
 
-
-
-
-
-
-
     /** Checks if the min dihedral angle quality metric is correctly calculated.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
