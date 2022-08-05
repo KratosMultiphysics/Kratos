@@ -437,7 +437,7 @@ public:
         std::size_t* Acol_indices = rA.index2_data().begin();
 
         // The diagonal considered
-        BaseType::mScaleFactor = StrategiesUtilities::GetScaleNorm<TSparseSpace>(rModelPart, rA);
+        BaseType::mScaleFactor = StrategiesUtilities::GetScaleNorm<TSparseSpace>(rModelPart, rA, BaseType::mScalingDiagonal);
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
