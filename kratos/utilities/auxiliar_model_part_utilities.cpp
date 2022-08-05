@@ -47,7 +47,7 @@ void AuxiliarModelPartUtilities::AddElementsWithNodes(
 {
     KRATOS_TRY
     mrModelPart.AddElements(rElementIds, ThisIndex);
-    if(mrModelPart.IsSubModelPart()) { // Does nothing if we are on the top model part
+    if(mrModelPart.IsSubModelPart()) { // Does nothing if we are on the root model part, the root model part already contains all the nodes
         // Obtain from the root model part the corresponding list of nodes
         ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
         std::unordered_set<IndexType> set_of_node_ids;
@@ -74,7 +74,10 @@ void AuxiliarModelPartUtilities::AddElementsWithNodes(
             p_current_part->AddNodes(list_of_nodes);
             p_current_part = &(p_current_part->GetParentModelPart());
         }
+    } else {
+        KRATOS_WARNING("AuxiliarModelPartUtilities") << "Does nothing appart of adding the elements as we are on the root model part, the root model part already contains all the nodes" << std::endl;
     }
+
     KRATOS_CATCH("");
 }
 
@@ -132,7 +135,10 @@ void AuxiliarModelPartUtilities::AddConditionsWithNodes(
             p_current_part->AddNodes(list_of_nodes);
             p_current_part = &(p_current_part->GetParentModelPart());
         }
+    } else {
+        KRATOS_WARNING("AuxiliarModelPartUtilities") << "Does nothing appart of adding the conditions as we are on the root model part, the root model part already contains all the nodes" << std::endl;
     }
+
     KRATOS_CATCH("");
 }
 
