@@ -65,35 +65,39 @@ void CreateSubModelPartHierarchy(ModelPart& rModelPart, const std::string& rMode
 
 } // anonymous namespace
 
-void DistributedModelPartInitializer::Execute()
+void DistributedModelPartInitializer::CopySubModelPartStructure()
 {
-    const auto & r_data_comm = ParallelEnvironment::GetDataCommunicator("World");
-    ModelPartCommunicatorUtilities::SetMPICommunicator(mrModelPart, r_data_comm);
-
     std::string model_part_hierarchy;
     int size_model_part_hierarchy;
 
-    if (r_data_comm.Rank() == mSourceRank) {
+    if (mrDataComm.Rank() == mSourceRank) {
         GetSubModelPartHierarchy(mrModelPart, model_part_hierarchy);
         size_model_part_hierarchy = model_part_hierarchy.size();
     }
 
     // broadcast size to allocate memory
-    r_data_comm.Broadcast(size_model_part_hierarchy, mSourceRank);
+    mrDataComm.Broadcast(size_model_part_hierarchy, mSourceRank);
 
-    if (r_data_comm.Rank() != mSourceRank) {
+    if (mrDataComm.Rank() != mSourceRank) {
         model_part_hierarchy.resize(size_model_part_hierarchy);
     }
 
     // broadcast ModelPart hierarchy
-    r_data_comm.Broadcast(model_part_hierarchy, mSourceRank);
+    mrDataComm.Broadcast(model_part_hierarchy, mSourceRank);
 
-    if (r_data_comm.Rank() != mSourceRank) {
+    if (mrDataComm.Rank() != mSourceRank) {
         CreateSubModelPartHierarchy(mrModelPart, model_part_hierarchy);
     }
+}
+
+void DistributedModelPartInitializer::Execute()
+{
+    ModelPartCommunicatorUtilities::SetMPICommunicator(mrModelPart, mrDataComm);
+
+    CopySubModelPartStructure();
 
     // Compute communicaton plan and fill communicator meshes correctly
-    ParallelFillCommunicator(mrModelPart, r_data_comm).Execute();
+    ParallelFillCommunicator(mrModelPart, mrDataComm).Execute();
 }
 
 }  // namespace Kratos.
