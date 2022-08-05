@@ -57,7 +57,6 @@ class MechanicalSolver(PythonSolver):
 
 
         settings_have_use_block_builder = custom_settings.Has("block_builder")
-
         if settings_have_use_block_builder:
             kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "block_builder", please move it to "builder_and_solver_settings" as "use_block_builder"')
             if not custom_settings.Has("builder_and_solver_settings"):
@@ -65,6 +64,15 @@ class MechanicalSolver(PythonSolver):
 
             custom_settings["builder_and_solver_settings"].AddValue("use_block_builder", custom_settings["block_builder"])
             custom_settings.RemoveValue("block_builder")
+
+        settings_have_line_search = custom_settings.Has("line_search")
+        if settings_have_line_search:
+            kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "line_search", please move it to "solving_strategy_settings" as "type"')
+            if not custom_settings.Has("solving_strategy_settings"):
+                custom_settings.AddEmptyValue("solving_strategy_settings")
+
+            custom_settings["solving_strategy_settings"].AddValue("type", custom_settings["line_search"])
+            custom_settings.RemoveValue("line_search")
 
         self._validate_settings_in_baseclass=True # To be removed eventually
         super().__init__(model, custom_settings)
@@ -448,11 +456,6 @@ class MechanicalSolver(PythonSolver):
         if analysis_type == "linear":
             mechanical_solution_strategy = self._create_linear_strategy()
         elif analysis_type == "non_linear":
-            # Deprecation checks
-            if self.settings.Has("line_search"):
-                kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "line_search", please move it to "solving_strategy_settings" as "type"')
-                if self.settings["line_search"].GetBool():
-                    self.settings["solving_strategy_settings"]["type"].SetString("line_search")
             # Create strategy
             if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
                 mechanical_solution_strategy = self._create_newton_raphson_strategy()
