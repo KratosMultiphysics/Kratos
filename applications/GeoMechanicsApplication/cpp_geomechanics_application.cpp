@@ -744,9 +744,9 @@ namespace Kratos
                     break;
                 }
 
-                else if (abs(currentHead - maxCriticalHead) < 1e-9)
+                else if (maxCriticalHead - currentHead < 1e-9)
                 {
-                    KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head undetermined: Max search head reached: " << maxCriticalHead << std::endl;
+                    KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head undetermined at " << currentHead << ", max search head reached: " << maxCriticalHead << std::endl;
                     break;
                 }
 
