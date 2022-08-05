@@ -674,5 +674,25 @@ namespace Testing {
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
     }
 
+     KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelNodesGeometricalCases2D8, KratosCoreFastSuite) { 
+        //Quadrilater with one node inside the volume (different cases)
+        std::vector<std::vector<double>> quad{{5,3,0},{0,3,0},{0,0,0}, {5,0,0}};  
+        std::vector<double> distances{1, -1, -1, -1}; 
+        GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+        
+        std::vector<std::vector<double>> triangle1{{1,3,0.05},{1,2.95,-0.05},{1,3.05,-0.05}};
+        std::vector<std::vector<double>> triangle2{{5,1.5,0.05},{4.95,1.5,-0.05},{5.05,1.5,-0.05}};
+
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1);
+        array1.push_back(pTriangle2);
+        double volume = VolumeInsideVoxelUtility::NodesGeometricalCases2D(*pFace,array1);
+        double ExpectedVolume = 0.2; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+    }
+
 }  // namespace Testing.
 }  // namespace Kratos.
