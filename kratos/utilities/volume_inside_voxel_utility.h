@@ -179,23 +179,6 @@ public:
         return volume;
     }
 
-     /**
-     * @brief Aproximates the actual volume inside the voxel 
-     * @param rVoxel references to the voxel whose actual volume will be approximated
-     * @param rTriangles references to the triangles which intersect the voxel at some edge.
-     * @return Approximated volume 
-     * @note This approximation finds the portion of each node that represents volume (using
-     * intersection points with triangles of the mesh). Even if this class is templated for both 
-     * parameters, it will only work with intersecting TRIANGLES, since the utility used to compute
-     * the intersection does not allow templating.
-     */  
-    static double NodesGeometricalApproximation(
-        const GeometryType& rVoxel,  
-        const GeometryArrayType& rTriangles     
-    ) {
-        return 0;    
-    }
-
     /**
      * @brief Aproximates the actual area inside a quadrilateral 
      * @param rFace references to the quadrilateral3D4 whose actual area will be approximated
@@ -255,6 +238,78 @@ public:
                 PartialArea = 1.0/Nodes.size() - Factor*MinDistanceToNode[(i+3)%4].second*MinDistanceToNode[i].first;
             }
             Area += PartialArea;
+        }
+        return Area;    
+    }
+
+    /**
+     * @brief Aproximates the actual area inside a quadrilateral 
+     * @param rFace references to the quadrilateral3D4 whose actual area will be approximated
+     * @param rTriangles references to the triangles which intersect the quadrilateral at some edge.
+     * @return Approximated area 
+     */  
+    static double NodesGeometricalCases2D(
+        const GeometryType& rFace,  
+        const GeometryArrayType& rTriangles     
+    ) {
+        double Area = 0;
+        GeometryArrayType Edges = rFace.GenerateEdges();
+        PointsArrayType Nodes = rFace.Points(); 
+        std::vector<std::pair<double,double>> MinDistanceToNode(Edges.size(),{1,1}); 
+        
+        int NodesInside = 0;
+        for (int i = 0; i < Nodes.size(); i++)  if (Nodes[i].GetSolutionStepValue(DISTANCE) > 0) NodesInside++;
+
+        std::vector<double> Length(Edges.size()); 
+        for(int i = 0; i < Edges.size(); i++) {
+            PointsArrayType ends = Edges[i].Points();
+            double l = Distance(ends[0], ends[1]);
+            Length[i] = l;
+        }
+
+        for (int i = 0; i < rTriangles.size(); i++) {
+            int Result = 0; 
+            array_1d<double,3> Intersection;
+            int j = 0;
+            while(!Result && j < Edges.size()) { 
+                PointsArrayType ends = Edges[j].Points();
+                Result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],Intersection);
+
+                if (Result) {
+                    double Dist = Distance(ends[0], Intersection);
+                    if ( Dist < (MinDistanceToNode[j].first*Length[j])) {
+                        MinDistanceToNode[j].first = Dist/Length[j];
+                    } 
+
+                    double Dist2 = Distance(ends[1], Intersection);
+                    if (Dist2 < (MinDistanceToNode[j].second*Length[j])) {
+                        MinDistanceToNode[j].second = Dist2/Length[j];
+                    } 
+                }
+                j++;
+            }
+        }
+        for(int i: {0,1,2,3} ) std::cout << std:: endl << MinDistanceToNode[i].first << " " << MinDistanceToNode[i].second;
+        std::cout << std:: endl ;
+
+        std::vector<std::vector<double>> Neighbours{{3,1},{0,2},{1,3},{2,0}};  
+        for(int i = 0; i < Nodes.size(); i++ ) {
+            double Case = GetCase(Nodes, Neighbours,i);
+            double PartialArea;
+            KRATOS_WATCH(Case);
+            if (Nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
+                if (Case == 0) PartialArea = (1.0/2)*MinDistanceToNode[(i+3)%4].second*MinDistanceToNode[i].first;
+                else if (Case == 1) PartialArea = MinDistanceToNode[(i+3)%4].second*std::min(0.5,MinDistanceToNode[i].first);
+                else if (Case == 2) PartialArea = std::min(0.5,MinDistanceToNode[(i+3)%4].second)*MinDistanceToNode[i].first;
+                else if (Case == 3) PartialArea = std::min(0.5,MinDistanceToNode[(i+3)%4].second)*std::min(0.5,MinDistanceToNode[i].first);
+            } else  {
+                if (Case == 0) PartialArea = 0;
+                if (Case == 1) PartialArea = 1.0/Nodes.size() - 0.5*std::min(0.5,MinDistanceToNode[i].first);
+                if (Case == 2) PartialArea = 1.0/Nodes.size() - 0.5*std::min(0.5,MinDistanceToNode[(i+3)%4].second);
+                if (Case == 3) PartialArea = 1.0/Nodes.size() - std::min(0.5,MinDistanceToNode[(i+3)%4].second)*std::min(0.5,MinDistanceToNode[i].first);
+            }
+            Area += PartialArea;
+            KRATOS_WATCH(PartialArea);
         }
         return Area;    
     }
@@ -353,6 +408,41 @@ private:
                 return 0.5;
             }
         return 1;
+    }
+    
+    static int GetCase(const PointsArrayType& nodes, const std::vector<std::vector<double>>& neighbours,const int node) {
+        if (nodes[node].GetSolutionStepValue(DISTANCE) > 0 ) {
+            if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 &&
+            nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0) {
+                return 0;
+            }
+            else if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 &&
+            nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0) {
+                return 1;
+            }
+            else if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 &&
+            nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0) {
+                return 2;
+            } 
+            else  {
+                return 3;
+            }
+        }
+        else {
+            if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 && 
+            nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0) {
+                return 0;
+            }
+            else if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 && 
+            nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0) {
+                return 1;
+            }
+            else if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 && 
+            nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0) {
+                return 2;
+            }
+            else return 3;
+        }
     }
 
 }; /* Class VoxelInsideVolumeUtility */
