@@ -120,6 +120,12 @@ int UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" );
 }
 
+template< unsigned int TDim, unsigned int TNumNodes >
+GeometryData::IntegrationMethod UPwSmallStrainInterfaceElement<TDim, TNumNodes>::GetIntegrationMethod() const 
+{
+    return mThisIntegrationMethod;
+}
+
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
@@ -633,6 +639,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
         // create general parametes of retention law
         RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
+
+        if (rValues.size() != NumGPoints)
+            rValues.resize(NumGPoints);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {

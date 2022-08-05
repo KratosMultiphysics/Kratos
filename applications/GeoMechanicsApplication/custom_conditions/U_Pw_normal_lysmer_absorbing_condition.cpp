@@ -307,6 +307,12 @@ CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const 
         rVariables.KAbsMatrix(idim, idim) = abs(rVariables.KAbsMatrix(idim, idim));
     }
 }
+
+/// <summary>
+/// Calculates the extrapolation matrix for neighbour elements. Values from integration points are extrapolated to the nodes
+/// </summary>
+/// <param name="NeighbourElement"></param>
+/// <returns></returns>
 template< unsigned int TDim, unsigned int TNumNodes >
 Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes >::CalculateExtrapolationMatrixNeighbour(const Element& NeighbourElement)
 {
@@ -317,6 +323,7 @@ Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes >::CalculateExtrapolationMatr
 
     Matrix rExtrapolationMatrix = ZeroMatrix(rNumNodesNeighbour, NumGPointsNeighbour);
 
+    // Calculate extrapolation matrix for 2d elements
     if (TDim == 2)
     {
         if (rNumNodesNeighbour == 3)
@@ -331,6 +338,7 @@ Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes >::CalculateExtrapolationMatr
         }
        
     }
+    // Calculate extrapolation matrix for 3d elements
     if (TDim == 3)
     {
         if (rNumNodesNeighbour == 4)
@@ -370,15 +378,10 @@ GetNeighbourElementVariables(
     NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     
-    double Ec = 0;
-    double G = 0;
-    double rMeanDegreeOfSaturation = 0;
-
     // get neighbour elements
     auto neighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
     GeometryType& rGeom = this->GetGeometry();
 
-    int nElements = neighbours.size();
     if (neighbours.size() == 0)
     {
         KRATOS_ERROR << "Condition: " <<this->Id()<<" does not have neighbour elements" <<  std::endl;
@@ -389,8 +392,6 @@ GetNeighbourElementVariables(
     rVariables.rhoNodes.resize(TNumNodes);
 
     // only get values from first neighbour
-    int nValues = 0;
-
     Element& rNeighbour = neighbours[0];
     auto rPropNeighbour = rNeighbour.GetProperties();
 
@@ -441,6 +442,7 @@ GetNeighbourElementVariables(
     {
         for (unsigned int node = 0; node < TNumNodes; ++node)
         {
+            // add parameter if neighbour node id and condition node id are the same
             if (rNeighbourGeom[k].Id() == rGeom[node].Id())
             {
                 rVariables.EcNodes[node] = EcNodesNeighbour(k);
@@ -451,13 +453,17 @@ GetNeighbourElementVariables(
     }   
 }
 
-
+/// <summary>
+/// Gets condition variables
+/// </summary>
+/// <param name="rVariables"></param>
+/// <param name="rCurrentProcessInfo"></param>
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
 GetVariables(
     NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    // gets average of variables as stored in neighbour elements
+    // gets variables from neighbour elements
     this->GetNeighbourElementVariables(rVariables, rCurrentProcessInfo);
 
     // get condition specific variables
