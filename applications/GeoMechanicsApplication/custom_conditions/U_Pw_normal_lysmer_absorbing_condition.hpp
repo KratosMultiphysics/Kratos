@@ -98,11 +98,9 @@ protected:
     // Member Variables
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-        const ProcessInfo& CurrentProcessInfo) override;
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& CurrentProcessInfo) override;
 
-    void CalculateLocalSystem(MatrixType& rLhsMatrix, VectorType& rRightHandSideVector,
-        const ProcessInfo& CurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLhsMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
     
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, NormalLysmerAbsorbingVariables& rVariables);
 
@@ -113,9 +111,9 @@ protected:
     void GetVariables(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
 
     void CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, const Element::GeometryType& Geom);
-    
+
     void CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, const Element::GeometryType& Geom);
-    
+
     Matrix CalculateExtrapolationMatrixNeighbour(const Element& NeighbourElement);
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -75,7 +75,6 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixTy
             rVariables.G += NContainer(GPoint, node) * rVariables.GNodes[node];
         }
 
-
         this->CalculateNodalStiffnessMatrix(rVariables, CurrentProcessInfo, Geom);
 
         // calculate displacement shape function matrix
@@ -85,7 +84,6 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixTy
         this->CalculateIntegrationCoefficient(rVariables.IntegrationCoefficient,
             JContainer[GPoint],
             IntegrationPoints[GPoint].Weight());
-
 
         // set stiffness part of absorbing matrix
         AuxAbsKMatrix = prod(rVariables.KAbsMatrix, Nu);
@@ -284,11 +282,9 @@ CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const 
 
     const int local_perpendicular_direction = TDim - 1;
 
-
     // calculate constant traction vector part
     rStiffnessConstants[0] = rVariables.G / rVariables.virtual_thickness;
     rStiffnessConstants[1] = rVariables.Ec / rVariables.virtual_thickness;
-
 
     BoundedMatrix<double, TDim, TDim>             localKMatrix = ZeroMatrix(TDim, TDim);
     BoundedMatrix<double, TDim, TDim>             auxLocalKMatrix = ZeroMatrix(TDim, TDim);
@@ -363,7 +359,6 @@ Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes >::CalculateExtrapolationMatr
             rExtrapolationMatrix(node, GPoint) = averaging_factor;
         }
     }
-
     return rExtrapolationMatrix;
 }
 
@@ -472,7 +467,6 @@ GetVariables(
     rVariables.s_factor = absorbing_factors(1);
     rVariables.virtual_thickness = this->GetValue(VIRTUAL_THICKNESS);
 }
-
 
 
 template< unsigned int TDim, unsigned int TNumNodes >

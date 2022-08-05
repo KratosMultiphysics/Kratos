@@ -321,8 +321,3 @@ def find_closest_index_greater_than_value(input_list, value):
         if value < list_value:
             return index
     return None
-
-
-if __name__ == "__main__":
-    file_path = r"C:\Users\noordam\Documenten\Kratos\applications\GeoMechanicsApplication\test_examples\simple_dike_test.gid"
-    run_kratos(file_path)
