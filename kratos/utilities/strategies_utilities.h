@@ -146,9 +146,19 @@ public:
     template<class TSparseSpace>
     static double GetDiagonalNorm(typename TSparseSpace::MatrixType& rA)
     {
-        double diagonal_norm = 0.0;
-        diagonal_norm = IndexPartition<std::size_t>(TSparseSpace::Size1(rA)).for_each<SumReduction<double>>([&](std::size_t Index){
-            return std::pow(rA(Index,Index), 2);
+        double* Avalues = rA.value_data().begin();
+        std::size_t* Arow_indices = rA.index1_data().begin();
+        std::size_t* Acol_indices = rA.index2_data().begin();
+
+        const double diagonal_norm = IndexPartition<std::size_t>(TSparseSpace::Size1(rA)).for_each<SumReduction<double>>([&](std::size_t Index){
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index+1];
+            for (std::size_t j = col_begin; j < col_end; ++j) {
+                if (Acol_indices[j] == Index ) {
+                    return std::pow(Avalues[j], 2);
+                }
+            }
+            return 0.0;
         });
 
         return std::sqrt(diagonal_norm);
