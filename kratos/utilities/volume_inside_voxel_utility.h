@@ -260,6 +260,13 @@ public:
         int NodesInside = 0;
         for (int i = 0; i < Nodes.size(); i++)  if (Nodes[i].GetSolutionStepValue(DISTANCE) > 0) NodesInside++;
 
+        if(NodesInside == 3) {
+            for (int i = 0; i < Nodes.size(); i++)  Nodes[i].GetSolutionStepValue(DISTANCE) = (-1)*Nodes[i].GetSolutionStepValue(DISTANCE);
+            double Area = NodesGeometricalCases2D(rFace,rTriangles);
+            for (int i = 0; i < Nodes.size(); i++)  Nodes[i].GetSolutionStepValue(DISTANCE) = (-1)*Nodes[i].GetSolutionStepValue(DISTANCE);
+            return 1-Area;
+        }
+
         std::vector<double> Length(Edges.size()); 
         for(int i = 0; i < Edges.size(); i++) {
             PointsArrayType ends = Edges[i].Points();
