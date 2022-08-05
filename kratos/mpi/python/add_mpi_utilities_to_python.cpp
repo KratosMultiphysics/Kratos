@@ -91,7 +91,8 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<DistributedModelPartInitializer>(m, "DistributedModelPartInitializer")
-        .def(py::init<ModelPart&, int>())
+        .def(py::init<ModelPart&, const DataCommunicator&, int>())
+        .def("CopySubModelPartStructure", &DistributedModelPartInitializer::CopySubModelPartStructure)
         .def("Execute", &DistributedModelPartInitializer::Execute)
         ;
 
