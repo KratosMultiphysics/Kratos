@@ -105,69 +105,10 @@ public:
      * @param rTriangles references to the triangles which intersect the voxel at some edge.
      * @return The Point (coordinates) of the x-point of the voxel
      */  
-    template<class TGeometryType, class TGeometryArrayType>
     static array_1d<double,3> QEFPoint (
-        const TGeometryType& rVoxel,  
-        const TGeometryArrayType& rTriangles     
-    ) {
-        array_1d<double,3> xPoint;
-        array_1d<double,3> center = CalculateCenter(rVoxel);
-        VectorType vCenter = center; 
-        MatrixType mCenter(3,1);
-        column(mCenter,0) = center;
-        GeometryArrayType edges = rVoxel.GenerateEdges();
-
-        //Initialize the corresponding matrixes
-        MatrixType AtA(3,3,0);  //3x3 matrix initialized to 0
-        MatrixType AtB(3,1,0);  //3x1 matrix
-        MatrixType BtB(1,1,0);  //1x1 matrix
-
-        for (int i = 0; i < rTriangles.size(); i++) {
-            array_1d<double,3> normal = CalculateNormal(rTriangles[i]);
-            VectorType vNormal = normal; 
-            MatrixType mNormal(3,1);
-            column(mNormal,0) = normal;
-
-            //We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
-            //but possible), only one will be taken into account to create the matrixes.
-            int result = 0; 
-            array_1d<double,3> intersection;
-            VectorType vIntersection;
-            int j = 0;
-            while(!result && j < edges.size()) { 
-                PointsArrayType ends = edges[j++].Points();
-                result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
-                vIntersection = intersection;
-            }
-            if (result) {
-                //Fill the matrixes with the corresponding information from the intersection and normal
-                MatrixType mNormalTrans = trans(mNormal);
-                MatrixType help = prod(mNormal,mNormalTrans);
-                AtA = AtA + help;
-                double aux = MathUtils<double>::Dot(normal,intersection);
-                MatrixType mAux(1,1,aux);
-                AtB = AtB + prod(mNormal,mAux);
-                BtB = BtB + prod(mAux,mAux); 
-            }
-        }
-
-        //Find the eigenvalues and eigenvectors to AtA
-        MatrixType mEigenvectors;
-        MatrixType mEigenvalues;
-        const bool converged = MathUtils<double>::GaussSeidelEigenSystem(AtA, mEigenvectors, mEigenvalues);
-
-        MatrixType D(3,3,0);
-        for (int i : {0,1,2}) mEigenvalues(i,i) < 1e-12 ? D(i,i) = 0 : D(i,i) = check(1.0/mEigenvalues(i,i), 1e-12);
-
-        MatrixType AtAInverse;  
-        MathUtils<double>::BDBtProductOperation(AtAInverse, D, mEigenvectors);
-       
-        MatrixType AtAc = prod(AtA,mCenter);
-        MatrixType solution = prod(AtAInverse, AtB - AtAc) + mCenter;        
-        xPoint = column(solution,0);
-
-        return xPoint;
-    }
+        const GeometryType& rVoxel,  
+        const GeometryArrayType& rTriangles     
+    );
 
     /**
      * @brief Aproximates the portion of the edge that represents volume
@@ -202,18 +143,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    static void write(MatrixType& A) {
-        for (int i = 0; i < A.size1(); i++) {
-            for (int j = 0; j < A.size2(); j++) {
-                std::cout << A(i,j) << " ";
-            }
-            std::cout << std::endl;
-        }
-    }
-
-    static double check(const double& d, const double& epsilon) {
-        return d > epsilon ? d : 0;
-    }
+    static double check(const double& d, const double& epsilon) { return d > epsilon ? d : 0; }
 
 }; /* Class VoxelInsideVolumeUtility */
 

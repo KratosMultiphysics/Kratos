@@ -170,12 +170,13 @@ public:
             
             double PartialVolume = Portion*abs(Dist)/3.0;   //Volume of a piramid
             Volume += PartialVolume;
-            
+            //KRATOS_WATCH(PartialVolume);    
         }
-
+        
+        if (Volume > 1) return NodesApproximation(rVoxel); //if our approximation fails, use a simpler one with nearly no additional cost
+        KRATOS_ERROR_IF(Volume < 0) << "Volume of a mesh element less than 0" << std::endl;
         return Volume;
     }
-
 private:
 
     ///@name Private static Member Variables
