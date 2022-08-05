@@ -177,6 +177,31 @@ public:
         KRATOS_ERROR_IF(Volume < 0) << "Volume of a mesh element less than 0" << std::endl;
         return Volume;
     }
+
+    static double GeometricalCasesQEFApproximation(
+        const GeometryType& rVoxel,  
+        const GeometryArrayType& rTriangles     
+    ) {
+        double Volume = 0;
+        GeometryArrayType Faces = rVoxel.GenerateFaces();
+
+        array_1d<double,3> QEF = QEF::QEFPoint(rVoxel,rTriangles); 
+        //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
+
+        for(int i = 0; i < Faces.size(); i++) {
+            double Portion = NodesGeometricalCases2D(Faces[i],rTriangles);
+            double Dist = NormalizedDistanceToQEF(Faces[i], QEF, i);
+            
+            double PartialVolume = Portion*abs(Dist)/3.0;   //Volume of a piramid
+            Volume += PartialVolume;
+            //KRATOS_WATCH(PartialVolume);    
+        }
+        
+        if (Volume > 1) return NodesApproximation(rVoxel); //if our approximation fails, use a simpler one with nearly no additional cost
+        KRATOS_ERROR_IF(Volume < 0) << "Volume of a mesh element less than 0" << std::endl;
+        return Volume;
+    }
+
 private:
 
     ///@name Private static Member Variables
@@ -257,9 +282,6 @@ private:
         const double mConstant =  inner_prod(mNormal, Nodes[0]);
         double Side = Distance(Nodes[1],Nodes[0]);
         double Distance = inner_prod(mNormal,Point) - mConstant;
-
-        //std:: cout << "Plane Vector 1: " << edge1 <<std::endl << "Plain Vector 2: " << edge2 << std::endl;
-        //std::cout << "Normal vector: " << mNormal <<std::endl;
 
         return Distance/Side;
     }
