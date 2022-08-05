@@ -71,7 +71,8 @@ class MechanicalSolver(PythonSolver):
             if not custom_settings.Has("solving_strategy_settings"):
                 custom_settings.AddEmptyValue("solving_strategy_settings")
 
-            custom_settings["solving_strategy_settings"].AddValue("type", "line_search")
+            custom_settings["solving_strategy_settings"].AddEmptyValue("type")
+            custom_settings["solving_strategy_settings"]["type"].SetString("line_search")
             custom_settings.RemoveValue("line_search")
 
         self._validate_settings_in_baseclass=True # To be removed eventually
