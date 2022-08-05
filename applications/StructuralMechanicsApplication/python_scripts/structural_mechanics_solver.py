@@ -68,11 +68,12 @@ class MechanicalSolver(PythonSolver):
         settings_have_line_search = custom_settings.Has("line_search")
         if settings_have_line_search:
             kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "line_search", please move it to "solving_strategy_settings" as "type"')
-            if not custom_settings.Has("solving_strategy_settings"):
-                custom_settings.AddEmptyValue("solving_strategy_settings")
+            if custom_settings["line_search"].GetBool():
+                if not custom_settings.Has("solving_strategy_settings"):
+                    custom_settings.AddEmptyValue("solving_strategy_settings")
 
-            custom_settings["solving_strategy_settings"].AddEmptyValue("type")
-            custom_settings["solving_strategy_settings"]["type"].SetString("line_search")
+                custom_settings["solving_strategy_settings"].AddEmptyValue("type")
+                custom_settings["solving_strategy_settings"]["type"].SetString("line_search")
             custom_settings.RemoveValue("line_search")
 
         self._validate_settings_in_baseclass=True # To be removed eventually
