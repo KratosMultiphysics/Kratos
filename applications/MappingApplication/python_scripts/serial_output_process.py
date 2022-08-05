@@ -82,6 +82,8 @@ class SerialOutputProcess(KM.OutputProcess):
             if self.data_comm.Rank() != self.destination_rank:
                 KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(self.model_part_destination, data_comm_destination)
 
+            KratosMPI.DistributedModelPartInitializer(self.model_part_destination, self.data_comm, self.destination_rank).CopySubModelPartStructure()
+
             self.mapper = MPIMapperFactory.CreateMapper(
                 model_part_origin,
                 self.model_part_destination,
