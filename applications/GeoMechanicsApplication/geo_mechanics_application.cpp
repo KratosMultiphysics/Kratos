@@ -240,8 +240,8 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mAxisymmetricUPwNormalFaceLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<NodeType >( Condition::GeometryType::PointsArrayType(2)))),
     mAxisymmetricLineNormalLoadDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<NodeType >( Condition::GeometryType::PointsArrayType(3)))),
     mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<NodeType >( Condition::GeometryType::PointsArrayType(3)))),
-	
-	mUPwLysmerAbsorbingCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
+
+    mUPwLysmerAbsorbingCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
     mUPwLysmerAbsorbingCondition2D3N(0, Condition::GeometryType::Pointer(new Line2D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
     mUPwLysmerAbsorbingCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3 <NodeType >(Condition::GeometryType::PointsArrayType(3)))),
     mUPwLysmerAbsorbingCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4 <NodeType >(Condition::GeometryType::PointsArrayType(4))))
@@ -450,8 +450,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION( "AxisymmetricUPwNormalFaceLoadCondition2D2N",            mAxisymmetricUPwNormalFaceLoadCondition2D2N )
     KRATOS_REGISTER_CONDITION( "AxisymmetricLineNormalLoadDiffOrderCondition2D3N",      mAxisymmetricLineNormalLoadDiffOrderCondition2D3N )
     KRATOS_REGISTER_CONDITION( "AxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N", mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N )
-	
-	KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition2D2N", mUPwLysmerAbsorbingCondition2D2N)
+
+    KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition2D2N", mUPwLysmerAbsorbingCondition2D2N)
     KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition2D3N", mUPwLysmerAbsorbingCondition2D3N)
     KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition3D3N", mUPwLysmerAbsorbingCondition3D3N)
     KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition3D4N", mUPwLysmerAbsorbingCondition3D4N)

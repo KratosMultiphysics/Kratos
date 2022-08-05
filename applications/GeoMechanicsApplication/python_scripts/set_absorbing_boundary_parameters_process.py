@@ -24,3 +24,4 @@ class SetAbsorbingBoundaryParametersProcess(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
         self.process.ExecuteInitialize()
+        
