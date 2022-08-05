@@ -37,7 +37,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwLysmerAbsorbingCondition);
     
     typedef std::size_t IndexType;
-	typedef Properties PropertiesType;
+    typedef Properties PropertiesType;
     typedef Node <3> NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
