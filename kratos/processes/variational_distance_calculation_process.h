@@ -125,14 +125,18 @@ public:
         typename TLinearSolver::Pointer pLinearSolver,
         unsigned int MaxIterations = 10,
         Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse(),
-        std::string AuxPartName = "RedistanceCalculationPart" )
+        std::string AuxPartName = "RedistanceCalculationPart",
+        double Coefficient1 = 0.01,
+        double Coefficient2 = 0.1)
     :
         mDistancePartIsInitialized(false),
         mMaxIterations(MaxIterations),
         mrModel( rBaseModelPart.GetModel() ),
         mrBaseModelPart (rBaseModelPart),
         mOptions( Options ),
-        mAuxModelPartName( AuxPartName )
+        mAuxModelPartName( AuxPartName ),
+        mCoefficient1(Coefficient1),
+        mCoefficient2(Coefficient2)
     {
         KRATOS_TRY
 
@@ -163,14 +167,18 @@ public:
         BuilderSolverPointerType pBuilderAndSolver,
         unsigned int MaxIterations = 10,
         Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse(),
-        std::string AuxPartName = "RedistanceCalculationPart" )
+        std::string AuxPartName = "RedistanceCalculationPart",
+        double Coefficient1 = 0.01,
+        double Coefficient2 = 0.1)
     :
         mDistancePartIsInitialized(false),
         mMaxIterations(MaxIterations),
         mrModel( rBaseModelPart.GetModel() ),
         mrBaseModelPart (rBaseModelPart),
         mOptions( Options ),
-        mAuxModelPartName( AuxPartName )
+        mAuxModelPartName( AuxPartName ),
+        mCoefficient1(Coefficient1),
+        mCoefficient2(Coefficient2)
     {
         KRATOS_TRY
 
@@ -222,18 +230,18 @@ public:
 
         block_for_each(r_distance_model_part.Nodes(), [](Node<3>& rNode){
             double& d = rNode.FastGetSolutionStepValue(DISTANCE);
-            double& fix_flag = rNode.FastGetSolutionStepValue(FLAG_VARIABLE);
 
             // Free the DISTANCE values
-            fix_flag = 1.0;
             rNode.Free(DISTANCE);
+            // Set the fix flag to 0
+            rNode.Set(BLOCKED, false);
 
             // Save the distances
             rNode.SetValue(DISTANCE, d);
 
             if(d == 0){
                 d = 1.0e-15;
-                fix_flag = -1.0;
+                rNode.Set(BLOCKED, true);
                 rNode.Fix(DISTANCE);
             } else {
                 if(d > 0.0){
@@ -278,12 +286,11 @@ public:
 
                 for(unsigned int i = 0; i < TDim+1; ++i){
                     double &d = geom[i].FastGetSolutionStepValue(DISTANCE);
-                    double &fix_flag = geom[i].FastGetSolutionStepValue(FLAG_VARIABLE);
                     geom[i].SetLock();
                     if(std::abs(d) > std::abs(distances[i])){
                         d = distances[i];
                     }
-                    fix_flag = -1.0;
+                    geom[i].Set(BLOCKED, true);
                     geom[i].Fix(DISTANCE);
                     geom[i].UnSetLock();
                 }
@@ -337,6 +344,8 @@ public:
 
         // Unfix the distances
         VariableUtils().ApplyFixity(DISTANCE, false, r_distance_model_part.Nodes());
+        VariableUtils().SetFlag(BOUNDARY, false, r_distance_model_part.Nodes());
+        VariableUtils().SetFlag(BLOCKED, false, r_distance_model_part.Nodes());
 
         KRATOS_CATCH("")
     }
@@ -402,6 +411,9 @@ protected:
     Flags mOptions;
     std::string mAuxModelPartName;
 
+    double mCoefficient1;
+    double mCoefficient2;
+
     typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
 
     ///@}
@@ -432,7 +444,6 @@ protected:
 
         // Check that required nodal variables are present
         VariableUtils().CheckVariableExists<Variable<double > >(DISTANCE, mrBaseModelPart.Nodes());
-        VariableUtils().CheckVariableExists<Variable<double > >(FLAG_VARIABLE, mrBaseModelPart.Nodes());
     }
 
     void InitializeSolutionStrategy(BuilderSolverPointerType pBuilderAndSolver)
@@ -491,6 +502,9 @@ protected:
         }
 
         rBaseModelPart.GetCommunicator().SynchronizeOrNodalFlags(BOUNDARY);
+
+        r_distance_model_part.GetProcessInfo().SetValue(VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST, mCoefficient1);
+        r_distance_model_part.GetProcessInfo().SetValue(VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND, mCoefficient2);
 
         mDistancePartIsInitialized = true;
 
@@ -582,15 +596,14 @@ private:
             int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
 
             // Synchronize the fixity flag variable to minium
-            // (-1.0 means fixed and 1.0 means free)
-            r_communicator.SynchronizeCurrentDataToMin(FLAG_VARIABLE);
+            // (true means fixed and false means free)
+            r_communicator.SynchronizeOrNodalFlags(BLOCKED);
 
             // Set the fixity according to the synchronized flag
             #pragma omp parallel for
             for(int i_node = 0; i_node < nnodes; ++i_node){
                 auto it_node = r_distance_model_part.NodesBegin() + i_node;
-                const double &r_fix_flag = it_node->FastGetSolutionStepValue(FLAG_VARIABLE);
-                if (r_fix_flag == -1.0){
+                if (it_node->Is(BLOCKED)){
                     it_node->Fix(DISTANCE);
                 }
             }

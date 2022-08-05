@@ -900,6 +900,51 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertAlmostEqual(node.Y, node.Y0 + 4.0 * float(node.Id))
             self.assertAlmostEqual(node.Z, node.Z0 + 5.0 * float(node.Id))
 
+    def testAddDofsList(self):
+        # Set the test model part
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        # Set the DOFs list to be set
+        dofs_list = ["VELOCITY_X","VELOCITY_Y","DISPLACEMENT_Z"]
+
+        # Update current position
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_list, model_part)
+
+        # Check that the nodes have the DOFs added
+        for node in model_part.Nodes:
+            self.assertTrue(node.HasDofFor(KratosMultiphysics.VELOCITY_X))
+            self.assertTrue(node.HasDofFor(KratosMultiphysics.VELOCITY_Y))
+            self.assertTrue(node.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z))
+
+    def testAddDofsWithReactionList(self):
+        # Set the test model part
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        # Set the DOFs list to be set
+        dofs_with_reaction_list = [["VELOCITY_X","REACTION_X"],["VELOCITY_Y","REACTION_Y"],["DISPLACEMENT_Z","REACTION_Z"]]
+
+        # Update current position
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_with_reaction_list, model_part)
+
+        # Check that the nodes have the DOFs added
+        for node in model_part.Nodes:
+            self.assertTrue(node.HasDofFor(KratosMultiphysics.VELOCITY_X))
+            self.assertTrue(node.HasDofFor(KratosMultiphysics.VELOCITY_Y))
+            self.assertTrue(node.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z))
+
     def test_distribute_condition_variable(self):
         current_model = KratosMultiphysics.Model()
 

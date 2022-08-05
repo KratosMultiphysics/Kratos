@@ -39,6 +39,7 @@ class NavierStokesCompressibleExplicitSolverTest(KratosUnittest.TestCase):
         self.assertIn("WrongValue", str(context.exception))
         self.assertIn("RK4", str(context.exception))
         self.assertIn("RK3-TVD", str(context.exception))
+        self.assertIn("forward_euler", str(context.exception))
 
     @classmethod
     def GetSettings(cls, n_dimensions):
@@ -56,7 +57,7 @@ class NavierStokesCompressibleExplicitSolverTest(KratosUnittest.TestCase):
                 "echo_level": 1,
                 "time_order": 2,
                 "move_mesh_flag": false,
-                "time_scheme" : "RK4",
+                "time_scheme" : "forward_euler",
                 "compute_reactions": false,
                 "reform_dofs_at_each_step" : false,
                 "assign_neighbour_elements_to_conditions": true,

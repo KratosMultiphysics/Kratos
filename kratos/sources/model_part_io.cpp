@@ -654,8 +654,7 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
     // 2. Fill the auxiliary vector by reading elemental and conditional connectivities
     ResetInput();
     std::string word;
-    while(true)
-    {
+    while(true) {
         ReadWord(word);
         if(mpStream->eof())
             break;
@@ -672,8 +671,7 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
             FillNodalConnectivitiesFromElementBlock(rAuxConnectivities);
         } else if (word == "Conditions") {
             FillNodalConnectivitiesFromConditionBlock(rAuxConnectivities);
-        }
-        else {
+        } else {
             SkipBlock(word);
         }
     }
@@ -688,15 +686,14 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
     }
 
     // 3. Sort each entry in the auxiliary connectivities vector, remove duplicates
-    SizeType num_entries = 0;
-    for (ConnectivitiesContainerType::iterator it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++)
-    {
+    //SizeType num_entries = 0;
+    for (auto it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++) {
         std::sort(it->begin(),it->end());
         std::vector<SizeType>::iterator unique_end = std::unique(it->begin(),it->end());
         it->resize(unique_end - it->begin());
-        num_entries += it->size();
+        //num_entries += it->size();
     }
-    SizeType num_nodes = rAuxConnectivities.size();
+    const SizeType num_nodes = rAuxConnectivities.size();
 
     /*// 4. Write connectivity data in CSR format
     SizeType num_nodes = rAuxConnectivities.size();
@@ -707,8 +704,7 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
     SizeType i = 0;
     SizeType aux_index = 0;
 
-    for (ConnectivitiesContainerType::iterator it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++)
-    {
+    for (auto it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++) {
         for (std::vector<SizeType>::iterator entry_it = it->begin(); entry_it != it->end(); entry_it++)
             (*NodeConnectivities)[aux_index++] = (*entry_it - 1); // substract 1 to make Ids start from 0
         (*NodeIndices)[i++] = aux_index;
@@ -727,8 +723,7 @@ std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
     //Fill the auxiliary vector by reading elemental and conditional connectivities
     ResetInput();
     std::string word;
-    while(true)
-    {
+    while(true) {
         ReadWord(word);
         if(mpStream->eof())
             break;
@@ -760,15 +755,12 @@ std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
     // }
 
     // Sort each entry in the auxiliary connectivities vector, remove duplicates
-    SizeType num_entries = 0;
-    for (ConnectivitiesContainerType::iterator it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++)
-    {
+    for (auto it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++) {
         std::sort(it->begin(),it->end());
         std::vector<SizeType>::iterator unique_end = std::unique(it->begin(),it->end());
         it->resize(unique_end - it->begin());
-        num_entries += it->size();
     }
-    SizeType num_nodes = rAuxConnectivities.size();
+    const SizeType num_nodes = rAuxConnectivities.size();
 
     return num_nodes;
     KRATOS_CATCH("")

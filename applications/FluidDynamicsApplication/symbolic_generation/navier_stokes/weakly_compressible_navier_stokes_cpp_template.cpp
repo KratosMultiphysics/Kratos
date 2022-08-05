@@ -101,9 +101,7 @@ const Parameters WeaklyCompressibleNavierStokes<TElementData>::GetSpecifications
         },
         "required_polynomial_degree_of_geometry" : 1,
         "documentation"   :
-            "This implements a weakly compressible Navier-Stokes element with quasi-static Variational MultiScales (VMS) stabilization.
-            Note that this formulation allows a weak coupling with a custom Equation of State that updates the nodal DENSITY from the obtained PRESSURE values.
-            Also note that no viscous behavior is hardcoded, meaning that any fluid constitutive model can be used through a constitutive law."
+            "This implements a weakly compressible Navier-Stokes element with quasi-static Variational MultiScales (VMS) stabilization. Note that this formulation allows a weak coupling with a custom Equation of State that updates the nodal DENSITY from the obtained PRESSURE values. Also note that no viscous behavior is hardcoded, meaning that any fluid constitutive model can be used through a constitutive law."
     })");
 
     if (Dim == 2) {

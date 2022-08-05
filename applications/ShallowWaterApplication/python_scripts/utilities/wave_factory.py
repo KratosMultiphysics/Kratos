@@ -2,12 +2,20 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
 import KratosMultiphysics.ShallowWaterApplication.utilities.wave_theory_utilities as wave_theory
 import KratosMultiphysics.ShallowWaterApplication.utilities.solitary_wave_utilities as solitary_wave
-import numbers
 
 
-def WaveTheoryFactory(depth, settings, process_info):
-    if not settings.Has("wave_theory"):
-        raise Exception("Missing 'wave_theory' field in the project parameters.")
+def WaveTheoryFactory(model_part, settings):
+    default_settings = KM.Parameters("""{
+        "wave_theory"               : "boussinesq",
+        "period"                    : 0.0,
+        "wavelength"                : 0.0,
+        "amplitude"                 : 0.0,
+        "depth"                     : 0.0,
+        "get_depth_from_model_part" : true,
+        "x_shift"                   : 0.0,
+        "t_shift"                   : 0.0
+    }""")
+    settings.ValidateAndAssignDefaults(default_settings)
 
     wave_modules = {
         "boussinesq"      : wave_theory.BoussinesqTheory,
@@ -15,18 +23,25 @@ def WaveTheoryFactory(depth, settings, process_info):
         "shallow_theory"  : wave_theory.ShallowTheory,
     }
     wave_module = wave_modules[settings["wave_theory"].GetString()]
-    gravity = process_info.GetValue(KM.GRAVITY_Z)
-    depth = _CheckDepth(depth)
-    period = _CheckAndGetIfAvailable(settings, process_info, "period", SW.PERIOD)
-    wavelength = _CheckAndGetIfAvailable(settings, process_info, "wavelength", SW.WAVELENGTH)
-    amplitude = _CheckAndGetIfAvailable(settings, process_info, "amplitude", SW.AMPLITUDE)
+    gravity = model_part.ProcessInfo[KM.GRAVITY_Z]
+    depth = _GetDepth(settings, model_part)
+    period = settings["period"].GetDouble()
+    wavelength = settings["wavelength"].GetDouble()
+    amplitude = settings["amplitude"].GetDouble()
 
     return wave_module(depth, gravity, period=period, wavelength=wavelength, amplitude=amplitude)
 
 
-def SolitaryWaveFactory(depth, settings, process_info):
-    if not settings.Has("wave_theory"):
-        raise Exception("Missing 'wave_theory' field in the project parameters.")
+def SolitaryWaveFactory(model_part, settings):
+    default_settings = KM.Parameters("""{
+        "wave_theory"               : "boussinesq",
+        "amplitude"                 : 0.0,
+        "depth"                     : 0.0,
+        "get_depth_from_model_part" : true,
+        "x_shift"                   : 0.0,
+        "t_shift"                   : 0.0
+    }""")
+    settings.ValidateAndAssignDefaults(default_settings)
 
     wave_modules = {
         "goring"      : solitary_wave.GoringSolution,
@@ -34,28 +49,17 @@ def SolitaryWaveFactory(depth, settings, process_info):
         "boussinesq"  : solitary_wave.BoussinesqSolution,
     }
     wave_module = wave_modules[settings["wave_theory"].GetString()]
-    gravity = process_info.GetValue(KM.GRAVITY_Z)
-    depth = _CheckDepth(depth)
-    amplitude = _CheckAndGetIfAvailable(settings, process_info, "amplitude", SW.AMPLITUDE)
+    gravity = model_part.ProcessInfo[KM.GRAVITY_Z]
+    depth = _GetDepth(settings, model_part)
+    amplitude = settings["amplitude"].GetDouble()
 
     return wave_module(depth, gravity, amplitude=amplitude)
 
 
-def _CheckAndGetIfAvailable(parameters, process_info, name, variable):
-    if parameters.Has(name):
-        return parameters[name].GetDouble()
-    elif process_info.Has(variable):
-        return process_info.GetValue(variable)
-    else:
-        return 0
-
-
-def _CheckDepth(depth):
-    if isinstance(depth, KM.ModelPart):
-        sum_depths = -KM.VariableUtils().SumHistoricalNodeScalarVariable(SW.TOPOGRAPHY, depth, 0)
-        mean_depth = sum_depths / depth.NumberOfNodes()
+def _GetDepth(settings, model_part):
+    if settings["get_depth_from_model_part"].GetBool():
+        sum_depths = -KM.VariableUtils().SumHistoricalNodeScalarVariable(SW.TOPOGRAPHY, model_part, 0)
+        mean_depth = sum_depths / model_part.NumberOfNodes()
         return mean_depth
-    elif isinstance(depth, numbers.Number):
-        return depth
     else:
-        raise Exception("'depth' argument must be a model part or a numeric value.")
+        return settings["depth"].GetDouble()

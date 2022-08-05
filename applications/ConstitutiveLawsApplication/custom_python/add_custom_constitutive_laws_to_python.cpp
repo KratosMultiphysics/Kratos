@@ -28,6 +28,7 @@
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_quasi_incompressible_isochoric_neo_hookean_3d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
 #include "custom_constitutive/small_strain_j2_plasticity_3d.h"
@@ -143,6 +144,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     py::class_< HyperElasticIsotropicNeoHookean3D, typename HyperElasticIsotropicNeoHookean3D::Pointer, ConstitutiveLaw >
     (m, "HyperElastic3DLaw").def(py::init<>() )
+    ;
+
+    py::class_< HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D, typename HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::Pointer, ConstitutiveLaw >
+    (m, "HyperElasticQuasiIncompressibleNeoHookean3DLaw").def(py::init<>() )
     ;
 
     py::class_< HyperElasticIsotropicNeoHookeanPlaneStrain2D, typename HyperElasticIsotropicNeoHookeanPlaneStrain2D::Pointer, ConstitutiveLaw >
@@ -1464,22 +1469,22 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     py::class_< AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>>,
     typename AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>>::Pointer,
     ConstitutiveLaw >
-    (m,"AssociativePlasticDamageModel3DVonMisesVonMises").def(py::init<>());
+    (m,"AssociativePlasticDamageModel3DVonMises").def(py::init<>());
 
     py::class_< AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>,
     typename AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>::Pointer,
     ConstitutiveLaw >
-    (m,"AssociativePlasticDamageModel3DDruckerPragerDruckerPrager").def(py::init<>());
+    (m,"AssociativePlasticDamageModel3DDruckerPrager").def(py::init<>());
 
     py::class_< AssociativePlasticDamageModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>,
     typename AssociativePlasticDamageModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>::Pointer,
     ConstitutiveLaw >
-    (m,"AssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb").def(py::init<>());
+    (m,"AssociativePlasticDamageModel3DModifiedMohrCoulomb").def(py::init<>());
 
     py::class_< AssociativePlasticDamageModel <RankineYieldSurface<RankinePlasticPotential<6>>>,
     typename AssociativePlasticDamageModel <RankineYieldSurface<RankinePlasticPotential<6>>>::Pointer,
     ConstitutiveLaw >
-    (m,"AssociativePlasticDamageModel3DRankineRankine").def(py::init<>());
+    (m,"AssociativePlasticDamageModel3DRankine").def(py::init<>());
 }
 
 }  // namespace Python.

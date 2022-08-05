@@ -94,7 +94,7 @@ public:
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
             mOutFile.resize(nNodes);
 
-            for (int i = 0; i<nNodes; ++i) {
+            for (std::size_t i = 0; i<nNodes; ++i) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
                 const int nodeId = it->Id();
@@ -130,7 +130,7 @@ public:
             const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
-            for (int i = 0; i<nNodes; ++i) {
+            for (std::size_t i = 0; i<nNodes; ++i) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
                 const double value = it->FastGetSolutionStepValue(var);
@@ -148,7 +148,7 @@ public:
     {
         KRATOS_TRY
 
-        for (unsigned int i = 0; i < mOutFile.size(); ++i) {
+        for (std::size_t i = 0; i < mOutFile.size(); ++i) {
             mOutFile[i].close();
         }
 

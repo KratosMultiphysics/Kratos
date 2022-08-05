@@ -290,11 +290,7 @@ const Parameters EmbeddedFluidElementDiscontinuous<TBaseElement>::GetSpecificati
         },
         "required_polynomial_degree_of_geometry" : 1,
         "documentation"   :
-            "This element implements a Cut-FEM type (a.k.a. embedded) for a discontinuous (element-based) levelset representation.
-            The formulation implemented by this element is specially conceived to work with thin-walled bodies as it is capable to represent the velocity and pressure discontinuities.
-            Note that this element is understood to act as un upper-layer implementing the Cut-FEM terms of a template TBaseElement implementing the Navier-Stokeks contribution.
-            A Navier-Slip boundary condition is imposed in the levelset intersections using the Nitsche's method.
-            The element is able to account for the relative velocity of moving objects by defining the EMBEDDED_VELOCITY variable (this would require switching on the FM-ALE algorithm)."
+            "This element implements a Cut-FEM type (a.k.a. embedded) for a discontinuous (element-based) levelset representation. The formulation implemented by this element is specially conceived to work with thin-walled bodies as it is capable to represent the velocity and pressure discontinuities. Note that this element is understood to act as un upper-layer implementing the Cut-FEM terms of a template TBaseElement implementing the Navier-Stokeks contribution. A Navier-Slip boundary condition is imposed in the levelset intersections using the Nitsche's method. The element is able to account for the relative velocity of moving objects by defining the EMBEDDED_VELOCITY variable (this would require switching on the FM-ALE algorithm)."
     })");
 
     if (Dim == 2) {

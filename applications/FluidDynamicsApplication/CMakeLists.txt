@@ -47,10 +47,11 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/stokes_3D_twofluid.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/navier_stokes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_ausas_navier_stokes.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes2D.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes3D.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes_explicit.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes_explicit_2D3N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes_explicit_2D4N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes_explicit_3D4N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_fluid_navier_stokes.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_fluid_navier_stokes_alpha_method.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms_adjoint_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/distance_smoothing_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/weakly_compressible_navier_stokes.cpp
@@ -82,16 +83,17 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/herschel_bulkley_3d_law.cpp
 
   # processes
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_compressible_navier_stokes_boundary_conditions_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/boussinesq_force_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/calulate_levelset_consistent_nodal_gradient_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_pressure_coefficient_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/distance_modification_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/distance_smoothing_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/embedded_skin_visualization_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mass_conservation_check_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/two_fluids_inlet_process.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/distance_smoothing_process.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/calulate_levelset_consistent_nodal_gradient_process.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_capturing_physics_based_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_capturing_entropy_viscosity_process.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_compressible_navier_stokes_boundary_conditions_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_capturing_physics_based_process.cpp
 )
 
 ## define python interface sources
@@ -160,10 +162,10 @@ install(TARGETS KratosFluidDynamicsCore DESTINATION libs )
 install(TARGETS KratosFluidDynamicsApplication DESTINATION libs )
 
 ## If trilinos is avaliable, switch on the Fluid trilinos extension
-if(${USE_MPI})
+if((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
   message("Enabling trilinos extension for KratosFluidDynamicsApplication")
   add_subdirectory(trilinos_extension)
-endif(${USE_MPI})
+endif((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
 
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosFluidDynamicsCore" PARENT_SCOPE)

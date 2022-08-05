@@ -248,9 +248,9 @@ void GeneralUPwDiffOrderCondition::
     this->InitializeConditionVariables(Variables,rCurrentProcessInfo);
 
     //Loop over integration points
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+    for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
     {
         //compute element kinematics (Np)
         this->CalculateKinematics(Variables,PointNumber);
@@ -259,7 +259,10 @@ void GeneralUPwDiffOrderCondition::
         this->CalculateConditionVector(Variables,PointNumber);
 
         //Calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( Variables, PointNumber, integration_points[PointNumber].Weight() );
+        Variables.IntegrationCoefficient = 
+            this->CalculateIntegrationCoefficient(PointNumber,
+                                                  Variables.JContainer,
+                                                  IntegrationPoints);
 
         //Contributions to the left hand side
         if ( CalculateLHSMatrixFlag )
@@ -274,7 +277,6 @@ void GeneralUPwDiffOrderCondition::
 }
 
 //----------------------------------------------------------------------------------------
-
 void GeneralUPwDiffOrderCondition::
     InitializeConditionVariables(ConditionVariables& rVariables,
                                  const ProcessInfo& rCurrentProcessInfo)
@@ -326,8 +328,11 @@ void GeneralUPwDiffOrderCondition::CalculateConditionVector(ConditionVariables& 
 }
 
 //----------------------------------------------------------------------------------------
+double GeneralUPwDiffOrderCondition::
+    CalculateIntegrationCoefficient(const IndexType PointNumber,
+                                    const GeometryType::JacobiansType& JContainer,
+                                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 
-void GeneralUPwDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight)
 {
     KRATOS_TRY
 

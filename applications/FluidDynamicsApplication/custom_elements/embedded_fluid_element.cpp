@@ -280,11 +280,7 @@ const Parameters EmbeddedFluidElement<TBaseElement>::GetSpecifications() const
         },
         "required_polynomial_degree_of_geometry" : 1,
         "documentation"   :
-            "This element implements a Cut-FEM type (a.k.a. embedded) for a continuous (nodal-based) levelset representation.
-            Note that this element is understood to act as un upper-layer implementing the Cut-FEM terms of a template TBaseElement implementing the Navier-Stokeks contribution.
-            Also note that two wall behaviors of the implicit surface can be modelled. If SLIP flag is true, a Navier-Slip boundary condition is imposed using the Nitsche's method.
-            If the SLIP flag is false, a standard no-slip (pure stick) boundary condition is enforced using a modified Nitsche method.
-            The element is able to account for the relative velocity of moving objects by defining the EMBEDDED_VELOCITY variable (this would require switching on the FM-ALE algorithm)."
+            "This element implements a Cut-FEM type (a.k.a. embedded) for a continuous (nodal-based) levelset representation. Note that this element is understood to act as un upper-layer implementing the Cut-FEM terms of a template TBaseElement implementing the Navier-Stokeks contribution. Also note that two wall behaviors of the implicit surface can be modelled. If SLIP flag is true, a Navier-Slip boundary condition is imposed using the Nitsche's method. If the SLIP flag is false, a standard no-slip (pure stick) boundary condition is enforced using a modified Nitsche method. The element is able to account for the relative velocity of moving objects by defining the EMBEDDED_VELOCITY variable (this would require switching on the FM-ALE algorithm)."
     })");
 
     if (Dim == 2) {

@@ -17,7 +17,7 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_utilities/comparison_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.hpp"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
@@ -35,7 +35,7 @@ public:
 
     typedef std::size_t IndexType;
     typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
+    typedef Node<3> NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
@@ -80,14 +80,20 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "U-Pw small strain different order axisymmetric Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        buffer << "Small strain axisymmetric U-Pw Element with different order #" 
+               << this->Id()
+               << "\nConstitutive law: "
+               << mConstitutiveLawVector[0]->Info();
         return buffer.str();
     }
 
     // Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "U-Pw small strain different order axisymmetric Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "Small strain axisymmetric U-Pw Element with different order #" 
+                 << this->Id()
+                 << "\nConstitutive law: "
+                 << mConstitutiveLawVector[0]->Info();
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -103,8 +109,8 @@ protected:
                            const Vector &Np ) override;
 
     double CalculateIntegrationCoefficient( const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                            const IndexType& PointNumber,
-                                            const double& detJ) override;
+                                            unsigned int PointNumber,
+                                            double detJ) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

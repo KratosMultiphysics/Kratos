@@ -40,10 +40,12 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTrussElementBase : public Element
 protected:
 
     ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+    static constexpr SizeType NDof = TDim * TNumNodes;
+    static constexpr SizeType DIM = TDim;
+    static constexpr SizeType NUM_NODES = TNumNodes;
 
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoTrussElementBase);
-
 
     typedef Element BaseType;
     typedef BaseType::GeometryType GeometryType;
