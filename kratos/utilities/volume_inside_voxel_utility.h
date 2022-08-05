@@ -296,14 +296,11 @@ public:
                 j++;
             }
         }
-        for(int i: {0,1,2,3} ) std::cout << std:: endl << MinDistanceToNode[i].first << " " << MinDistanceToNode[i].second;
-        std::cout << std:: endl ;
-
+        
         std::vector<std::vector<double>> Neighbours{{3,1},{0,2},{1,3},{2,0}};  
         for(int i = 0; i < Nodes.size(); i++ ) {
             double Case = GetCase(Nodes, Neighbours,i);
             double PartialArea;
-            KRATOS_WATCH(Case);
             if (Nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
                 if (Case == 0) PartialArea = (1.0/2)*MinDistanceToNode[(i+3)%4].second*MinDistanceToNode[i].first;
                 else if (Case == 1) PartialArea = MinDistanceToNode[(i+3)%4].second*std::min(0.5,MinDistanceToNode[i].first);
@@ -316,7 +313,6 @@ public:
                 if (Case == 3) PartialArea = 1.0/Nodes.size() - std::min(0.5,MinDistanceToNode[(i+3)%4].second)*std::min(0.5,MinDistanceToNode[i].first);
             }
             Area += PartialArea;
-            KRATOS_WATCH(PartialArea);
         }
         return Area;    
     }
