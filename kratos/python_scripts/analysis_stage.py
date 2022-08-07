@@ -107,7 +107,7 @@ class AnalysisStage(object):
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
             self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
 
-        ## If the echo level is high enough, print the complete list of settings used to run the simualtion
+        ## If the echo level is high enough, print the complete list of settings used to run the simulation
         if self.echo_level > 1:
             with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
                 parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
@@ -295,7 +295,7 @@ class AnalysisStage(object):
                 { proces_specific_params }
             ]
         }
-        The order of intialization can be specified by setting it in "initialization_order"
+        The order of initialization can be specified by setting it in "initialization_order"
         if e.g. the "boundary_processes" should be constructed before the "initial_processes", then
         initialization_order should be a list containing ["boundary_processes", "initial_processes"]
         see the functions _GetOrderOfProcessesInitialization and _GetOrderOfOutputProcessesInitialization

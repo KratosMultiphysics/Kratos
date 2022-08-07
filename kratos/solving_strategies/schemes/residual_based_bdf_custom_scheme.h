@@ -447,7 +447,7 @@ protected:
 
     /**
      * @brief Updating first time derivative (velocity)
-     * @param itNode the node interator
+     * @param itNode the node iterator
      */
     inline void UpdateFirstDerivative(NodesArrayType::iterator itNode) override
     {
@@ -464,7 +464,7 @@ protected:
 
     /**
      * @brief Updating second time derivative (acceleration)
-     * @param itNode the node interator
+     * @param itNode the node iterator
      */
     inline void UpdateSecondDerivative(NodesArrayType::iterator itNode) override
     {

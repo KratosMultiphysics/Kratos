@@ -90,7 +90,7 @@ def __ModuleInitDetail():
 
 KratosGlobals = __ModuleInitDetail()
 
-# print the process id e.g. for attatching a debugger
+# print the process id e.g. for attaching a debugger
 if KratosGlobals.Kernel.BuildType() != "Release":
     Logger.PrintInfo("Process Id", os.getpid())
 

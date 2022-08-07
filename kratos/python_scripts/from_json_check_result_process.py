@@ -19,7 +19,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
     Only the member variables listed below should be accessed directly.
 
     Public member variables:
-    model -- the model contaning the model_parts
+    model -- the model containing the model_parts
     settings -- Kratos parameters containing solver settings.
     """
 
@@ -28,14 +28,14 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
 
         Keyword arguments:
         self -- It signifies an instance of a class.
-        model -- the model contaning the model_parts
+        model -- the model containing the model_parts
         settings -- Kratos parameters containing solver settings.
         """
         KratosMultiphysics.Process.__init__(self)
         self.process = KratosMultiphysics.FromJSONCheckResultProcess(model, params)
 
     def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
+        """ This method is executed at the beginning to initialize the process
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -60,7 +60,7 @@ class LegacyFromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittes
     Only the member variables listed below should be accessed directly.
 
     Public member variables:
-    model -- the model contaning the model_parts
+    model -- the model containing the model_parts
     settings -- Kratos parameters containing solver settings.
     """
 
@@ -69,7 +69,7 @@ class LegacyFromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittes
 
         Keyword arguments:
         self -- It signifies an instance of a class.
-        model -- the model contaning the model_parts
+        model -- the model containing the model_parts
         settings -- Kratos parameters containing solver settings.
         """
         KratosMultiphysics.Process.__init__(self)
@@ -97,7 +97,7 @@ class LegacyFromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittes
         self.model  = model
 
     def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
+        """ This method is executed at the beginning to initialize the process
 
         Keyword arguments:
         self -- It signifies an instance of a class.

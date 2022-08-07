@@ -59,7 +59,7 @@ namespace Kratos
 
 Detail class definition.
 
-This is a specialization of the standard buliding strategy to the case in which a single variable is to be used in the
+This is a specialization of the standard building strategy to the case in which a single variable is to be used in the
 building.
 
 the creation of the DofList and the construction of the system matrix is in this case much faster
@@ -347,7 +347,7 @@ public:
             BaseType::mDofSet.push_back( iii->pGetDof(rVar) );
         }
 
-        //throws an execption if there are no Degrees of freedom involved in the analysis
+        //throws an exception if there are no Degrees of freedom involved in the analysis
         if (BaseType::mDofSet.size()==0)
             KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
 
@@ -427,7 +427,7 @@ public:
             if(A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
             {
                 //KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
-                KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
+                KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permitted."<<std::endl;
                 A.resize(BaseType::mEquationSystemSize,BaseType::mEquationSystemSize,true);
 #ifdef _OPENMP
                 ParallelConstructGraph(A);
@@ -576,7 +576,7 @@ protected:
                     }
                 }
 
-                //sorting the indices and elminating the duplicates
+                //sorting the indices and eliminating the duplicates
                 std::sort(indices.begin(),indices.end());
                 typename std::vector<int>::iterator new_end = std::unique(indices.begin(),indices.end());
 
@@ -657,7 +657,7 @@ protected:
                         }
                     }
 
-                    //sorting the indices and elminating the duplicates
+                    //sorting the indices and eliminating the duplicates
                     std::sort(indices.begin(),indices.end());
                     typename std::vector<int>::iterator new_end = std::unique(indices.begin(),indices.end());
                     indices.erase(new_end,indices.end());

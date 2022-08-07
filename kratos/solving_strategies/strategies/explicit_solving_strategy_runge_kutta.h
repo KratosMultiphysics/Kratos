@@ -46,7 +46,7 @@ namespace Kratos
  * @details:
  * Formulation:
  *
- * - The diferential equation is u_t = f(t, u)
+ * - The differential equation is u_t = f(t, u)
  *
  * The Runge-Kutta method is, for i = 0...N substeps:
  * - k^(i) = f(t + c_i*dt, u^(i-1))              -> Where u^(0) := u^n

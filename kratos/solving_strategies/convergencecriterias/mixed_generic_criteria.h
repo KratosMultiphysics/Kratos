@@ -155,7 +155,7 @@ public:
         return Kratos::make_shared<ClassType>(ThisParameters);
     }
 
-    /// Compute relative and absoute error.
+    /// Compute relative and absolute error.
     /**
      * @param rModelPart Reference to the ModelPart containing the fluid problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)

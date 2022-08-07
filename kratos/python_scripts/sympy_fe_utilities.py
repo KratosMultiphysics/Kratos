@@ -36,9 +36,9 @@ def DefineSymmetricFourthOrderTensor(name, m, n, o, p):
     - p -- 4th dimension.
     """
     if m != n:
-        raise ValueError("Provided sizes do not respect first simmetry.")
+        raise ValueError("Provided sizes do not respect first symmetry.")
     if o != p:
-        raise ValueError("Provided sizes do not respect second simmetry.")
+        raise ValueError("Provided sizes do not respect second symmetry.")
 
     tensor = sympy.MutableDenseNDimArray(sympy.zeros(m**4),shape=(m,n,o,p))
     for i in range(m):
@@ -615,7 +615,7 @@ def OutputSymbolicVariable(expression, language, replace_indices=True):
     This function generates code from an expression..
 
     Keyword arguments:
-    - expression -- The expression to geneate code from
+    - expression -- The expression to generate code from
     - language -- The language of output
     - indentation_level -- The number of tabulations considered
     - max_index -- The maximum index
