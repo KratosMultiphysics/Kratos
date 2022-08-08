@@ -675,7 +675,7 @@ namespace Testing {
     }
 
      KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelNodesGeometricalCases2D8, KratosCoreFastSuite) { 
-        //Quadrilater with one node inside the volume (different cases)
+        //QUADRILATERAL with one node inside the volume 
         std::vector<std::vector<double>> quad{{5,3,0},{0,3,0},{0,0,0}, {5,0,0}};  
         std::vector<double> distances{1, -1, -1, -1}; 
         GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
