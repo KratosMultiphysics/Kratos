@@ -65,6 +65,7 @@ KRATOS_DEFINE_RANGE(TIterator, const); // class Range (const version)
 #undef KRATOS_DEFINE_RANGE
 
 
+namespace Detail {
 template <class T>
 struct IsConstPointer
 {};
@@ -82,6 +83,7 @@ struct IsConstIterator
 {
     static constexpr const bool value = IsConstPointer<typename std::iterator_traits<TIterator>::pointer>::value;
 };
+} // namespace Detail
 
 
 /**
@@ -95,10 +97,10 @@ public:
     using value_type = typename TIterator::value_type::first_type;
 
     /// const key_type* if const_iterator else key_type*
-    using pointer = typename std::conditional<IsConstIterator<TIterator>::value,const value_type*,value_type*>::type;
+    using pointer = typename std::conditional<Detail::IsConstIterator<TIterator>::value,const value_type*,value_type*>::type;
 
     /// const key_type& if const_iterator else key_type&
-    using reference = typename std::conditional<IsConstIterator<TIterator>::value,const value_type&,value_type&>::type;
+    using reference = typename std::conditional<Detail::IsConstIterator<TIterator>::value,const value_type&,value_type&>::type;
 
     using difference_type = typename TIterator::difference_type;
 
