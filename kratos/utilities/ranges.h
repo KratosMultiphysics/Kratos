@@ -46,10 +46,18 @@ private:                                                                     \
     ITERATOR_TYPE mEnd;                                                      \
 }
 
+/**
+ *  @brief Class representing a view into a subrange of a container.
+ *  @tparam TIterator Iterator type of the target container.
+ */
 template <class TIterator, class IsConstRange = void>
 class Range
 KRATOS_DEFINE_RANGE(TIterator, ); // class Range (non-const version)
 
+/**
+ *  @brief Class representing a view into a subrange of an immutable container.
+ *  @tparam TIterator Iterator type of the target container.
+ */
 template <class TIterator>
 class Range<TIterator, typename std::enable_if<std::is_const<TIterator>::value>::type>
 KRATOS_DEFINE_RANGE(TIterator, const); // class Range (const version)
@@ -76,6 +84,10 @@ struct IsConstIterator
 };
 
 
+/**
+ *  @brief Iterator providing access to the keys of an std::map or std::unordered_map.
+ *  @tparam TIterator Iterator type of the map.
+ */
 template <class TIterator>
 class MapKeyIterator
 {
@@ -119,6 +131,10 @@ private:
 }; // class MapKeyIterator
 
 
+/**
+ *  @brief Create a view on the keys of an std::map or std::unordered_map.
+ *  @note This is a convenience function to avoid having to specify template parameters.
+ */
 template <class TMap>
 Range<MapKeyIterator<typename TMap::const_iterator>> MakeConstMapKeyRange(const TMap& rMap)
 {
