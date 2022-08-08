@@ -338,6 +338,18 @@ public:
                 points.push_back(c);
                 PartialArea = factor*TetraVolume(points)/FaceArea;
             } else  {
+                NodePtrType Max_left(new Node<3>(1, Nodes[i].X() + 0.5*v_left[0], Nodes[i].Y() + 0.5*v_left[1], Nodes[i].Z() + 0.5*v_left[2]));
+                NodePtrType Max_right(new Node<3>(2, Nodes[i].X() + 0.5*v_right[0], Nodes[i].Y() + 0.5*v_right[1], Nodes[i].Z() + 0.5*v_right[2]));
+                NodePtrType Max_c(new Node<3>(2, Nodes[i].X() + 0.5*v_left[0] + 0.5*v_right[0], 
+                                                    Nodes[i].Y() + 0.5*v_left[1] + 0.5*v_right[1], 
+                                                    Nodes[i].Z() + 0.5*v_left[2] + 0.5*v_right[2]));
+                PointsArrayType points;
+                points.push_back(Max_left);
+                points.push_back(&Nodes[i]);
+                points.push_back(Max_right);
+                points.push_back(Max_c);
+                double max_volume = TetraVolume(points)/FaceArea;
+
                 if (Case == 1) {
                     left = 0.5;
                     right = std::min(0.5,MinDistanceToNode[i].first);
@@ -355,14 +367,15 @@ public:
                 NodePtrType c(new Node<3>(2, Nodes[i].X() + left*v_left[0] + right*v_right[0], 
                                                     Nodes[i].Y() + left*v_left[1] + right*v_right[1], 
                                                     Nodes[i].Z() + left*v_left[2] + right*v_right[2]));
-                PointsArrayType points;
+                points.clear();
                 points.push_back(Int_left);
                 points.push_back(&Nodes[i]);
                 points.push_back(Int_right);
                 points.push_back(c);
-                if (Case != 0) PartialArea =  1.0/Nodes.size() -factor*TetraVolume(points)/FaceArea;
+                if (Case != 0) PartialArea =  max_volume -factor*TetraVolume(points)/FaceArea;
                 else PartialArea = 0;
             }
+            KRATOS_WATCH(PartialArea);
             Area += PartialArea;
         }
         return Area;    
