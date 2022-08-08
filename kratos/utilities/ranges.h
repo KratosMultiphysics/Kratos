@@ -46,24 +46,6 @@ private:                                                                     \
     ITERATOR_TYPE mEnd;                                                      \
 }
 
-/**
- *  @brief Class representing a view into a subrange of a container.
- *  @tparam TIterator Iterator type of the target container.
- */
-template <class TIterator, class IsConstRange = void>
-class Range
-KRATOS_DEFINE_RANGE(TIterator, ); // class Range (non-const version)
-
-/**
- *  @brief Class representing a view into a subrange of an immutable container.
- *  @tparam TIterator Iterator type of the target container.
- */
-template <class TIterator>
-class Range<TIterator, typename std::enable_if<std::is_const<TIterator>::value>::type>
-KRATOS_DEFINE_RANGE(TIterator, const); // class Range (const version)
-
-#undef KRATOS_DEFINE_RANGE
-
 
 namespace Detail {
 template <class T>
@@ -84,6 +66,25 @@ struct IsConstIterator
     static constexpr const bool value = IsConstPointer<typename std::iterator_traits<TIterator>::pointer>::value;
 };
 } // namespace Detail
+
+
+/**
+ *  @brief Class representing a view into a subrange of a container.
+ *  @tparam TIterator Iterator type of the target container.
+ */
+template <class TIterator, class IsConstRange = void>
+class Range
+KRATOS_DEFINE_RANGE(TIterator, ); // class Range (non-const version)
+
+/**
+ *  @brief Class representing a view into a subrange of an immutable container.
+ *  @tparam TIterator Iterator type of the target container.
+ */
+template <class TIterator>
+class Range<TIterator, typename std::enable_if<Detail::IsConstIterator<TIterator>::value>::type>
+KRATOS_DEFINE_RANGE(TIterator, const); // class Range (const version)
+
+#undef KRATOS_DEFINE_RANGE
 
 
 /**
