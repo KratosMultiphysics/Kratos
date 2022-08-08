@@ -99,19 +99,7 @@ public:
      * @note This approximation assigns a fraction of volume (1/8) to each node of the
      * voxel, and counts it as volume if the node is inside the object (NodeDistance > 0)
      */  
-    static double NodesApproximation(
-        const GeometryType& rVoxel        
-    ) {
-        double volume = 0;
-        PointsArrayType nodes = rVoxel.Points();
-        for (int i = 0; i < nodes.size(); i++) {
-            //std::cout << "Node " << i << " is at " << nodes[i] << std::endl;
-            if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
-                volume+=(1.0/nodes.size()); //heyho
-            } 
-        }
-        return volume;
-    }
+    static double NodesApproximation(const GeometryType& rVoxel);
 
     /*This method is completly useless since it does the same calculation as the previous 
     one but in a different way. Helps to illustrate use of Edges
