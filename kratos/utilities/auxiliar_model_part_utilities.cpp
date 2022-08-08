@@ -55,8 +55,8 @@ void AuxiliarModelPartUtilities::AddElementsWithNodes(
             auto it_elem = p_root_model_part->Elements().find(rElementIds[i]);
             if(it_elem!=p_root_model_part->ElementsEnd()) {
                 const auto& r_geom = it_elem->GetGeometry();
-                for (IndexType i = 0; i < r_geom.size(); ++i) {
-                    set_of_node_ids.insert(r_geom[i].Id());
+                for (IndexType j = 0; j < r_geom.size(); ++j) {
+                    set_of_node_ids.insert(r_geom[j].Id());
                 }
             } else {
                 KRATOS_ERROR << "The element with Id " << rElementIds[i] << " does not exist in the root model part";
@@ -116,8 +116,8 @@ void AuxiliarModelPartUtilities::AddConditionsWithNodes(
             auto it_cond = p_root_model_part->Conditions().find(rConditionIds[i]);
             if(it_cond!=p_root_model_part->ConditionsEnd()) {
                 const auto& r_geom = it_cond->GetGeometry();
-                for (IndexType i = 0; i < r_geom.size(); ++i) {
-                    set_of_node_ids.insert(r_geom[i].Id());
+                for (IndexType j = 0; j < r_geom.size(); ++j) {
+                    set_of_node_ids.insert(r_geom[j].Id());
                 }
             } else {
                 KRATOS_ERROR << "The condition with Id " << rConditionIds[i] << " does not exist in the root model part";
