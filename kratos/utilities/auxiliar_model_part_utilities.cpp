@@ -50,30 +50,7 @@ void AuxiliarModelPartUtilities::AddElementsWithNodes(
     if(mrModelPart.IsSubModelPart()) { // Does nothing if we are on the root model part, the root model part already contains all the nodes
         // Obtain from the root model part the corresponding list of nodes
         ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
-        std::unordered_set<IndexType> set_of_node_ids;
-        for(IndexType i=0; i<rElementIds.size(); ++i) {
-            auto it_elem = p_root_model_part->Elements().find(rElementIds[i]);
-            if(it_elem!=p_root_model_part->ElementsEnd()) {
-                const auto& r_geom = it_elem->GetGeometry();
-                for (IndexType j = 0; j < r_geom.size(); ++j) {
-                    set_of_node_ids.insert(r_geom[j].Id());
-                }
-            } else {
-                KRATOS_ERROR << "The element with Id " << rElementIds[i] << " does not exist in the root model part";
-            }
-        }
-
-        // Adding nodes
-        std::vector<IndexType> list_of_nodes;
-        list_of_nodes.insert(list_of_nodes.end(), set_of_node_ids.begin(), set_of_node_ids.end());
-        mrModelPart.AddNodes(list_of_nodes);
-
-        // Add to all of the leaves
-        ModelPart* p_current_part = &mrModelPart;
-        while(p_current_part->IsSubModelPart()) {
-            p_current_part->AddNodes(list_of_nodes);
-            p_current_part = &(p_current_part->GetParentModelPart());
-        }
+        AuxiliaryAddEntitiesWithNodes<ModelPart::ElementsContainerType>(p_root_model_part->Elements(), rElementIds, ThisIndex);
     } else {
         KRATOS_WARNING("AuxiliarModelPartUtilities") << "Does nothing appart of adding the elements as we are on the root model part, the root model part already contains all the nodes" << std::endl;
     }
@@ -109,32 +86,8 @@ void AuxiliarModelPartUtilities::AddConditionsWithNodes(
     KRATOS_TRY
     mrModelPart.AddConditions(rConditionIds, ThisIndex);
     if(mrModelPart.IsSubModelPart()) { // Does nothing if we are on the top model part
-        // Obtain from the root model part the corresponding list of nodes
         ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
-        std::unordered_set<IndexType> set_of_node_ids;
-        for(IndexType i=0; i<rConditionIds.size(); ++i) {
-            auto it_cond = p_root_model_part->Conditions().find(rConditionIds[i]);
-            if(it_cond!=p_root_model_part->ConditionsEnd()) {
-                const auto& r_geom = it_cond->GetGeometry();
-                for (IndexType j = 0; j < r_geom.size(); ++j) {
-                    set_of_node_ids.insert(r_geom[j].Id());
-                }
-            } else {
-                KRATOS_ERROR << "The condition with Id " << rConditionIds[i] << " does not exist in the root model part";
-            }
-        }
-
-        // Adding nodes
-        std::vector<IndexType> list_of_nodes;
-        list_of_nodes.insert(list_of_nodes.end(), set_of_node_ids.begin(), set_of_node_ids.end());
-        mrModelPart.AddNodes(list_of_nodes);
-
-        // Add to all of the leaves
-        ModelPart* p_current_part = &mrModelPart;
-        while(p_current_part->IsSubModelPart()) {
-            p_current_part->AddNodes(list_of_nodes);
-            p_current_part = &(p_current_part->GetParentModelPart());
-        }
+        AuxiliaryAddEntitiesWithNodes<ModelPart::ConditionsContainerType>(p_root_model_part->Conditions(), rConditionIds, ThisIndex);
     } else {
         KRATOS_WARNING("AuxiliarModelPartUtilities") << "Does nothing appart of adding the conditions as we are on the root model part, the root model part already contains all the nodes" << std::endl;
     }

@@ -818,6 +818,51 @@ private:
     }
 
     /**
+     * @brief Inserts a list of entities and the belonging nodes to a submodelpart provided their Id. Does nothing if applied to the top model part
+	 * @param rEntitiesContainer The entities to be added
+     * @param rEntitiesIds The ids of the entities
+     * @param ThisIndex The mesh index
+     */
+    template<class TEntitiesContainer>
+    void AuxiliaryAddEntitiesWithNodes(
+        TEntitiesContainer& rEntitiesContainer,
+        const std::vector<IndexType>& rEntitiesIds,
+        IndexType ThisIndex = 0
+        )
+    {
+        KRATOS_TRY
+        
+		// Obtain from the root model part the corresponding list of nodes
+		const auto it_ent_end = rEntitiesContainer.end();
+		std::unordered_set<IndexType> set_of_node_ids;
+		for(IndexType i=0; i<rEntitiesIds.size(); ++i) {
+			auto it_ent = rEntitiesContainer.find(rEntitiesIds[i]);
+			if(it_ent!=it_ent_end) {
+				const auto& r_geom = it_ent->GetGeometry();
+				for (IndexType j = 0; j < r_geom.size(); ++j) {
+					set_of_node_ids.insert(r_geom[j].Id());
+				}
+			} else {
+				KRATOS_ERROR << "The entity with Id " << rEntitiesIds[i] << " does not exist in the root model part";
+			}
+		}
+
+		// Adding nodes
+		std::vector<IndexType> list_of_nodes;
+		list_of_nodes.insert(list_of_nodes.end(), set_of_node_ids.begin(), set_of_node_ids.end());
+		mrModelPart.AddNodes(list_of_nodes);
+
+		// Add to all of the leaves
+		ModelPart* p_current_part = &mrModelPart;
+		while(p_current_part->IsSubModelPart()) {
+			p_current_part->AddNodes(list_of_nodes);
+			p_current_part = &(p_current_part->GetParentModelPart());
+		}
+
+		KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Inserts a list of pointers to elements and the belonging nodes
      * @param rEntitiesContainer The entities to be added
      * @param ItElementsBegin The begin iterator
