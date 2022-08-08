@@ -140,42 +140,12 @@ public:
         )
     {
         KRATOS_TRY
-        ModelPart::ElementsContainerType aux;
-        ModelPart::ElementsContainerType aux_root;
+
+        // Using auxiliay method
         ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
-        std::unordered_set<IndexType> set_of_nodes;
-
-        for(TIteratorType it_elem = ItElementsBegin; it_elem!=ItElementsEnd; ++it_elem) {
-            auto it_elem_found = p_root_model_part->Elements().find(it_elem->Id());
-            if(it_elem_found == p_root_model_part->ElementsEnd()) { // Element does not exist in the top model part
-                aux_root.push_back( *(it_elem.base()) );
-                aux.push_back( *(it_elem.base()) );
-                const auto& r_geom = it_elem->GetGeometry();
-                for (IndexType i = 0; i < r_geom.size(); ++i) {
-                    set_of_nodes.insert(r_geom[i].Id());
-                }
-            } else { // If it_elem does exist verify it_elem is the same element
-                if(&(*it_elem_found) != &(*it_elem)) { //check if the pointee coincides
-                    KRATOS_ERROR << "Attempting to add a new element wit_elemh Id :" << it_elem_found->Id() << ", unfortunately a (different) element wit_elemh the same Id already exists" << std::endl;
-                } else {
-                    aux.push_back( *(it_elem.base()) );
-                    const auto& r_geom = it_elem->GetGeometry();
-                    for (IndexType i = 0; i < r_geom.size(); ++i) {
-                        set_of_nodes.insert(r_geom[i].Id());
-                    }
-                }
-            }
-        }
-
-        // Adding nodes
         std::vector<IndexType> list_of_nodes;
-        list_of_nodes.insert(list_of_nodes.end(), set_of_nodes.begin(), set_of_nodes.end());
-        mrModelPart.AddNodes(list_of_nodes);
-
-        for(auto it_elem = aux_root.begin(); it_elem!=aux_root.end(); ++it_elem) {
-            p_root_model_part->Elements().push_back( *(it_elem.base()) );
-        }
-        p_root_model_part->Elements().Unique();
+        ModelPart::ElementsContainerType aux;
+        AuxiliaryAddEntitiesWithNodes<ModelPart::ElementsContainerType, TIteratorType>(p_root_model_part->Elements(), aux, list_of_nodes, ItElementsBegin, ItElementsEnd, ThisIndex);
 
         // Add to all of the leaves
         ModelPart* p_current_part = &mrModelPart;
@@ -226,42 +196,12 @@ public:
         )
     {
         KRATOS_TRY
-        ModelPart::ConditionsContainerType aux;
-        ModelPart::ConditionsContainerType aux_root;
+
+        // Using auxiliay method
         ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
-        std::unordered_set<IndexType> set_of_nodes;
-
-        for(TIteratorType it_cond = ItConditionsBegin; it_cond!=ItConditionsEnd; ++it_cond) {
-            auto it_cond_found = p_root_model_part->Conditions().find(it_cond->Id());
-            if(it_cond_found == p_root_model_part->ConditionsEnd()) { // Condition does not exist in the top model part
-                aux_root.push_back( *(it_cond.base()) );
-                aux.push_back( *(it_cond.base()) );
-                const auto& r_geom = it_cond->GetGeometry();
-                for (IndexType i = 0; i < r_geom.size(); ++i) {
-                    set_of_nodes.insert(r_geom[i].Id());
-                }
-            } else { // If it_cond does exist verify it_cond is the same condition
-                if(&(*it_cond_found) != &(*it_cond)) { //check if the pointee coincides
-                    KRATOS_ERROR << "Attempting to add a new condition wit_condh Id :" << it_cond_found->Id() << ", unfortunately a (different) condition wit_condh the same Id already exists" << std::endl;
-                } else {
-                    aux.push_back( *(it_cond.base()) );
-                    const auto& r_geom = it_cond->GetGeometry();
-                    for (IndexType i = 0; i < r_geom.size(); ++i) {
-                        set_of_nodes.insert(r_geom[i].Id());
-                    }
-                }
-            }
-        }
-
-        // Adding nodes
         std::vector<IndexType> list_of_nodes;
-        list_of_nodes.insert(list_of_nodes.end(), set_of_nodes.begin(), set_of_nodes.end());
-        mrModelPart.AddNodes(list_of_nodes);
-
-        for(auto it_cond = aux_root.begin(); it_cond!=aux_root.end(); ++it_cond) {
-            p_root_model_part->Conditions().push_back( *(it_cond.base()) );
-        }
-        p_root_model_part->Conditions().Unique();
+        ModelPart::ConditionsContainerType aux;
+        AuxiliaryAddEntitiesWithNodes<ModelPart::ConditionsContainerType, TIteratorType>(p_root_model_part->Conditions(), aux, list_of_nodes, ItConditionsBegin, ItConditionsEnd, ThisIndex);
 
         // Add to all of the leaves
         ModelPart* p_current_part = &mrModelPart;
@@ -875,6 +815,62 @@ private:
         KRATOS_ERROR_IF(rContainerSize != rSize) << "mismatch in size! Expected size: " << rContainerSize << std::endl;
     }
 
+    /**
+     * @brief Inserts a list of pointers to elements and the belonging nodes
+     * @param rEntitiesContainer The entities to be added
+     * @param ItElementsBegin The begin iterator
+     * @param ItElementsEnd The end iterator
+     * @param ThisIndex The mesh index
+     */
+    template<class TEntitiesContainer, class TIteratorType>
+    void AuxiliaryAddEntitiesWithNodes(
+        TEntitiesContainer& rEntitiesContainer,
+        TEntitiesContainer& rAux,
+        std::vector<IndexType>& rListOfNodes,
+        TIteratorType ItEntitiesBegin,
+        TIteratorType ItEntitiesEnd,
+        IndexType ThisIndex = 0
+        )
+    {
+        KRATOS_TRY
+        
+        TEntitiesContainer aux_root;
+        std::unordered_set<IndexType> set_of_nodes;
+        
+        const auto it_ent_end = rEntitiesContainer.end();
+        for(TIteratorType it_ent = ItEntitiesBegin; it_ent!=ItEntitiesEnd; ++it_ent) {
+            auto it_ent_found = rEntitiesContainer.find(it_ent->Id());
+            if(it_ent_found == it_ent_end) { // Entity does not exist in the top model part
+                aux_root.push_back( *(it_ent.base()) );
+                rAux.push_back( *(it_ent.base()) );
+                const auto& r_geom = it_ent->GetGeometry();
+                for (IndexType i = 0; i < r_geom.size(); ++i) {
+                    set_of_nodes.insert(r_geom[i].Id());
+                }
+            } else { // If it_ent does exist verify it_ent is the same entity
+                if(&(*it_ent_found) != &(*it_ent)) { //check if the pointee coincides
+                    KRATOS_ERROR << "Attempting to add a new entity wit_enth Id :" << it_ent_found->Id() << ", unfortunately a (different) entity wit_enth the same Id already exists" << std::endl;
+                } else {
+                    rAux.push_back( *(it_ent.base()) );
+                    const auto& r_geom = it_ent->GetGeometry();
+                    for (IndexType i = 0; i < r_geom.size(); ++i) {
+                        set_of_nodes.insert(r_geom[i].Id());
+                    }
+                }
+            }
+        }
+
+        // Adding nodes
+        rListOfNodes.insert(rListOfNodes.end(), set_of_nodes.begin(), set_of_nodes.end());
+        mrModelPart.AddNodes(rListOfNodes);
+
+        for(auto it_ent = aux_root.begin(); it_ent!=aux_root.end(); ++it_ent) {
+            rEntitiesContainer.push_back( *(it_ent.base()) );
+        }
+        rEntitiesContainer.Unique();
+
+        KRATOS_CATCH("")
+    }
 
     ///@}
     ///@name Private  Access
