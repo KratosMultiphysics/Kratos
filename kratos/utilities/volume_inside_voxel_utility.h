@@ -255,6 +255,7 @@ public:
         double Area = 0;
         GeometryArrayType Edges = rFace.GenerateEdges();
         PointsArrayType Nodes = rFace.Points(); 
+        double FaceArea = TetraVolume(Nodes);
         std::vector<std::pair<double,double>> MinDistanceToNode(Edges.size(),{1,1}); 
         
         int NodesInside = 0;
@@ -299,13 +300,43 @@ public:
 
         std::vector<std::vector<double>> Neighbours{{3,1},{0,2},{1,3},{2,0}};  
         for(int i = 0; i < Nodes.size(); i++ ) {
+            array_1d<double,3> v_left{Nodes[i].X() -Nodes[Neighbours[i][0]].X(), Nodes[i].Y() -Nodes[Neighbours[i][0]].Y(), Nodes[i].Z() -Nodes[Neighbours[i][0]].Z()};
+            array_1d<double,3> v_right{Nodes[i].X() -Nodes[Neighbours[i][1]].X(), Nodes[i].Y() -Nodes[Neighbours[i][1]].Y(), Nodes[i].Z() -Nodes[Neighbours[i][1]].Z()};
+
             double Case = GetCase(Nodes, Neighbours,i);
             double PartialArea;
+            double factor = 1;
+            double left = 0;
+            double right = 0;
             if (Nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
-                if (Case == 0) PartialArea = (1.0/2)*MinDistanceToNode[(i+3)%4].second*MinDistanceToNode[i].first;
-                else if (Case == 1) PartialArea = MinDistanceToNode[(i+3)%4].second*std::min(0.5,MinDistanceToNode[i].first);
-                else if (Case == 2) PartialArea = std::min(0.5,MinDistanceToNode[(i+3)%4].second)*MinDistanceToNode[i].first;
-                else if (Case == 3) PartialArea = std::min(0.5,MinDistanceToNode[(i+3)%4].second)*std::min(0.5,MinDistanceToNode[i].first);
+                if (Case == 0) {
+                    factor = 0.5;
+                    left = MinDistanceToNode[(i+3)%4].second;
+                    right = MinDistanceToNode[i].first;
+                }
+                else if (Case == 1)  {
+                    left = MinDistanceToNode[(i+3)%4].second;
+                    right = std::min(0.5,MinDistanceToNode[i].first);
+                }
+                else if (Case == 2) {
+                    left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
+                    right = MinDistanceToNode[i].first;
+                }
+                else if (Case == 3) {
+                    left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
+                    right = std::min(0.5,MinDistanceToNode[i].first);
+                }
+                NodePtrType Int_left(new Node<3>(1, Nodes[i].X() + left*v_left[0], Nodes[i].Y() + left*v_left[1], Nodes[i].Z() + left*v_left[2]));
+                NodePtrType Int_right(new Node<3>(2, Nodes[i].X() + right*v_right[0], Nodes[i].Y() + right*v_right[1], Nodes[i].Z() + right*v_right[2]));
+                NodePtrType c(new Node<3>(2, Nodes[i].X() + left*v_left[0] + right*v_right[0], 
+                                                    Nodes[i].Y() + left*v_left[1] + right*v_right[1], 
+                                                    Nodes[i].Z() + left*v_left[2] + right*v_right[2]));
+                PointsArrayType points;
+                points.push_back(Int_left);
+                points.push_back(&Nodes[i]);
+                points.push_back(Int_right);
+                points.push_back(c);
+                PartialArea = factor*TetraVolume(points)/FaceArea;
             } else  {
                 if (Case == 0) PartialArea = 0;
                 if (Case == 1) PartialArea = 1.0/Nodes.size() - 0.5*std::min(0.5,MinDistanceToNode[i].first);
