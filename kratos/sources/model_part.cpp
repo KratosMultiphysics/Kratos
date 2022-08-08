@@ -2014,7 +2014,7 @@ ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
 ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
 {
     SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part \"" << Name() << "\"" << std::endl;
+    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
 
     return *i;
 }
@@ -2022,7 +2022,7 @@ ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
 ModelPart* ModelPart::pGetSubModelPart(std::string const& SubModelPartName)
 {
     SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part \"" << Name() << "\"" << std::endl;
+    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
 
     return (i.base()->second).get();
 }
