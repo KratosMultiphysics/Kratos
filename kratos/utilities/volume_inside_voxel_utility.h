@@ -338,10 +338,30 @@ public:
                 points.push_back(c);
                 PartialArea = factor*TetraVolume(points)/FaceArea;
             } else  {
-                if (Case == 0) PartialArea = 0;
-                if (Case == 1) PartialArea = 1.0/Nodes.size() - 0.5*std::min(0.5,MinDistanceToNode[i].first);
-                if (Case == 2) PartialArea = 1.0/Nodes.size() - 0.5*std::min(0.5,MinDistanceToNode[(i+3)%4].second);
-                if (Case == 3) PartialArea = 1.0/Nodes.size() - std::min(0.5,MinDistanceToNode[(i+3)%4].second)*std::min(0.5,MinDistanceToNode[i].first);
+                if (Case == 1) {
+                    left = 0.5;
+                    right = std::min(0.5,MinDistanceToNode[i].first);
+                }
+                if (Case == 2) {
+                    left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
+                    right = 0.5;
+                }
+                if (Case == 3) {
+                    left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
+                    right = std::min(0.5,MinDistanceToNode[i].first);
+                }
+                NodePtrType Int_left(new Node<3>(1, Nodes[i].X() + left*v_left[0], Nodes[i].Y() + left*v_left[1], Nodes[i].Z() + left*v_left[2]));
+                NodePtrType Int_right(new Node<3>(2, Nodes[i].X() + right*v_right[0], Nodes[i].Y() + right*v_right[1], Nodes[i].Z() + right*v_right[2]));
+                NodePtrType c(new Node<3>(2, Nodes[i].X() + left*v_left[0] + right*v_right[0], 
+                                                    Nodes[i].Y() + left*v_left[1] + right*v_right[1], 
+                                                    Nodes[i].Z() + left*v_left[2] + right*v_right[2]));
+                PointsArrayType points;
+                points.push_back(Int_left);
+                points.push_back(&Nodes[i]);
+                points.push_back(Int_right);
+                points.push_back(c);
+                if (Case != 0) PartialArea =  1.0/Nodes.size() -factor*TetraVolume(points)/FaceArea;
+                else PartialArea = 0;
             }
             Area += PartialArea;
         }
