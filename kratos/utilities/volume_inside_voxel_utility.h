@@ -99,9 +99,8 @@ public:
      * @note This approximation assigns a fraction of volume (1/8) to each node of the
      * voxel, and counts it as volume if the node is inside the object (NodeDistance > 0)
      */  
-    template<class TGeometryType>
     static double NodesApproximation(
-        const TGeometryType& rVoxel        
+        const GeometryType& rVoxel        
     ) {
         double volume = 0;
         PointsArrayType nodes = rVoxel.Points();
@@ -117,9 +116,8 @@ public:
     /*This method is completly useless since it does the same calculation as the previous 
     one but in a different way. Helps to illustrate use of Edges
     */
-    template<class TGeometryType>
     static double EdgesApproximation(
-        const TGeometryType& rVoxel        
+        const GeometryType& rVoxel        
     ) {
         double volume = 0;
         GeometryArrayType Edges = rVoxel.GenerateEdges();
@@ -147,10 +145,9 @@ public:
      * parameters, it will only work with intersecting TRIANGLES, since the utility used to compute
      * the intersection does not allow templating.
      */  
-    template<class TGeometryType, class TGeometryArrayType>
     static double EdgesPortionApproximation(
-        const TGeometryType& rVoxel,  
-        const TGeometryArrayType& rTriangles     
+        const GeometryType& rVoxel,  
+        const GeometryArrayType& rTriangles     
     ) {
         double volume = 0;
         GeometryArrayType Edges = rVoxel.GenerateEdges();
