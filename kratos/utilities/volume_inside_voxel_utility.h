@@ -296,7 +296,7 @@ public:
                 j++;
             }
         }
-        
+
         std::vector<std::vector<double>> Neighbours{{3,1},{0,2},{1,3},{2,0}};  
         for(int i = 0; i < Nodes.size(); i++ ) {
             double Case = GetCase(Nodes, Neighbours,i);
@@ -347,6 +347,20 @@ public:
         const double length = lx * lx + ly * ly + lz * lz;
 
         return std::sqrt( length );
+    }
+
+    /**
+     * @brief Returns the volume enclosed by a set of points
+     * @param rPoints the array of points
+     * @return Volume/area inside this points
+     */  
+    static double TetraVolume(const PointsArrayType& rPoints) {
+        GeometryPtrType pGeom =Kratos::make_shared<Quadrilateral3D4<NodeType>>(rPoints);
+        return pGeom->Volume();
+    }
+    static double TriangleVolume(const PointsArrayType& rPoints) {
+        GeometryPtrType pGeom =Kratos::make_shared<Triangle3D3<NodeType>>(rPoints);
+        return pGeom->Volume();
     }
     
     /**
