@@ -53,6 +53,10 @@ enum class DataLocation {
 ///@name  Functions
 ///@{
 
+///@}
+///@name Kratos Classes
+///@{
+
 /**
  * @class AuxiliarModelPartUtilities
  * @ingroup KratosCore
