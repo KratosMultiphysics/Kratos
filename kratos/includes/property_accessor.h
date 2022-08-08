@@ -79,6 +79,14 @@ public:
         mValue = Value;
     }
 
+    /// Assignment operator.
+    PropertyAccessor& operator=(const PropertyAccessor& rOther)
+    {
+        mValue = rOther.mValue;
+        mListOfAccessors = rOther.mListOfAccessors;
+        return *this;
+    }
+
     /**
      * @brief This method add a new acessor to a certain variable name
      */
