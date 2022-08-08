@@ -28,6 +28,7 @@
 #include "containers/flags.h"
 #include "containers/variable.h"
 #include "utilities/quaternion.h"
+#include "utilities/ranges.h"
 
 namespace Kratos
 {
@@ -56,6 +57,8 @@ public:
 
     typedef std::map<std::string, const TComponentType* > ComponentsContainerType;
     typedef typename ComponentsContainerType::value_type ValueType;
+
+    using NameRange = Range<MapKeyIterator<typename ComponentsContainerType::const_iterator>>;
 
     ///@}
     ///@name Life Cycle
@@ -109,6 +112,11 @@ public:
     static ComponentsContainerType * pGetComponents()
     {
         return &msComponents;
+    }
+
+    static NameRange GetComponentNames()
+    {
+        return MakeConstMapKeyRange(msComponents);
     }
 
     static void Register()
@@ -268,6 +276,8 @@ public:
     typedef std::map<std::string, VariableData* > ComponentsContainerType;
     typedef ComponentsContainerType::value_type ValueType;
 
+    using NameRange = Range<MapKeyIterator<typename ComponentsContainerType::const_iterator>>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -329,6 +339,11 @@ public:
     static ComponentsContainerType * pGetComponents()
     {
         return &msComponents;
+    }
+
+    static NameRange GetComponentNames()
+    {
+        return MakeConstMapKeyRange(msComponents);
     }
 
     static void Register()
