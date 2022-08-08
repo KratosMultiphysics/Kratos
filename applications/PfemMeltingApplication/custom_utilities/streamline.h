@@ -130,7 +130,7 @@ namespace Kratos
 									noalias(current_position) += small_dt*veulerian;
 
 									pparticle->Set(TO_ERASE, false);
-									
+
 									//iparticle->FastGetSolutionStepValue(EMBEDDED_VELOCITY)=veulerian;
 								} //if (is_found == true)
 								else
@@ -141,9 +141,9 @@ namespace Kratos
 										acc[1] = -10.0;
 										acc[2] =  0.0;*/
 
-										noalias(current_position) += small_dt * iparticle->FastGetSolutionStepValue(VELOCITY);									
+										noalias(current_position) += small_dt * iparticle->FastGetSolutionStepValue(VELOCITY);
 										pparticle->Set(TO_ERASE, false);
-										iparticle->FastGetSolutionStepValue(IS_INTERFACE) = 1.0;	
+										iparticle->FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
 		  							}//else
 	      					}//for
 
@@ -161,7 +161,7 @@ namespace Kratos
 void RungeKutta4ElementbasedSI(ModelPart& rModelPart, unsigned int substeps)
     {
 	double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
-        dt *=0.5; 
+        dt *=0.5;
 	BinBasedFastPointLocator<TDim> SearchStructure(rModelPart);
 	SearchStructure.UpdateSearchDatabase();
 
@@ -276,7 +276,7 @@ if(iparticle->FastGetSolutionStepValue(IS_STRUCTURE) == 0.0) {
 	       if(iparticle->FastGetSolutionStepValue(IS_STRUCTURE) == 0.0)
 		{
 
-		//is_found1=false;	
+		//is_found1=false;
 		if(is_found1==true)
 			if(is_found2==true)
 				if(is_found3==true)
@@ -609,7 +609,7 @@ void RungeKutta4KernelbasedSI(ModelPart& rModelPart, unsigned int substeps)
 void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
     {
 	double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
-        dt *=0.5; 
+        dt *=0.5;
 	BinBasedFastPointLocator<TDim> SearchStructure(rModelPart);
 	SearchStructure.UpdateSearchDatabase();
 
@@ -677,12 +677,12 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
         //elements_to_solve.reserve(ThisModelPart.Elements().size());
 
         VariableUtils().SetFlag(TO_ERASE, false, ThisModelPart.Elements());
-        
+
         VariableUtils().SetFlag(TO_ERASE, false, ThisModelPart.Nodes());
         //VariableUtils().SetFlag(INTERFACE, 0, ThisModelPart.Nodes());
         //rDestinationModelPart.RemoveNodesFromAllLevels(TO_ERASE);
         //rDestinationModelPart.RemoveElementsFromAllLevels(TO_ERASE);
-        
+
         if(domain_size == 2)
         {
 	    KRATOS_ERROR<<"error: this part is emptyyyy";
@@ -697,24 +697,24 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
 		{
 		    in->FastGetSolutionStepValue(RADIATIVE_INTENSITY) = 0.00;
 		}
-		
-	      bool erase_node=false;	
+
+	      bool erase_node=false;
              for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); i!=ThisModelPart.ElementsEnd(); i++)
 		    {
 		        //calculating shape functions values
 		        Geometry< Node<3> >& geom = i->GetGeometry();
 
-                       
+
 		        //counting number of structural nodes
 		        vol = GeometryUtils::CalculateVolume3D(geom);
- 
-//	     	        if(vol <= 0 or vol<= 0.00000000000001)  
-     	     	        //if(vol <= 0 or vol<= 0.0001*vol_r)  
-     	     	        //if(vol <= 0 or vol<= 0.001*vol_r)  
-     	     	        
+
+//	     	        if(vol <= 0 or vol<= 0.00000000000001)
+     	     	        //if(vol <= 0 or vol<= 0.0001*vol_r)
+     	     	        //if(vol <= 0 or vol<= 0.001*vol_r)
+
      	     	        /////
-     	     	        
-			//erase_node=false;								
+
+			//erase_node=false;
                     	//for (unsigned int k = 0; k < geom.size(); k++)
 			//{
             		//array_1d<double,3> delta_disp = geom[k].FastGetSolutionStepValue(DISPLACEMENT);
@@ -733,32 +733,32 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
 
 
      	     	        /////
-     	     	        if(vol<= 0.01*vol_r or vol> 2.5*vol_r )//or erase_node==true)  //0.001
-     	     	        
+     	     	        if(vol<= 0.01*vol_r || vol> 2.5*vol_r )//or erase_node==true)  //0.001
+
 	     	        {
 	     	        	inverted=true;
-	     	            	        
+
 	     	        	i->Set(TO_ERASE, true);
 
 	     	        	geom[0].FastGetSolutionStepValue(RADIATIVE_INTENSITY)=1.0;
 				geom[1].FastGetSolutionStepValue(RADIATIVE_INTENSITY)=1.0;
 				geom[2].FastGetSolutionStepValue(RADIATIVE_INTENSITY)=1.0;
 				geom[3].FastGetSolutionStepValue(RADIATIVE_INTENSITY)=1.0;
-				
+
 				auto& r_nodes_current_element = i->GetGeometry();
 
     				auto& pNode0 = r_nodes_current_element[0];
     				auto& pNode1 = r_nodes_current_element[1];
     				auto& pNode2 = r_nodes_current_element[2];
     				auto& pNode3 = r_nodes_current_element[3];
-    				
+
 				// Neighbour elements of each node of the current element
 				GlobalPointersVector<Element>& r_neigh_node_0 = pNode0.GetValue(NEIGHBOUR_ELEMENTS);
 				GlobalPointersVector<Element>& r_neigh_node_1 = pNode1.GetValue(NEIGHBOUR_ELEMENTS);
 				GlobalPointersVector<Element>& r_neigh_node_2 = pNode2.GetValue(NEIGHBOUR_ELEMENTS);
 				GlobalPointersVector<Element>& r_neigh_node_3 = pNode3.GetValue(NEIGHBOUR_ELEMENTS);
 
-           				    
+
 				nodal_neighbours.push_back(r_neigh_node_0);
 				nodal_neighbours.push_back(r_neigh_node_1);
 				nodal_neighbours.push_back(r_neigh_node_2);
@@ -772,14 +772,14 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
 		    		bool all_neigh_1 =false;
 		    		bool all_neigh_2 =false;
 		    		bool all_neigh_3 =false;
-		    		
+
 				//first node
            			 for (unsigned int neigh_elem = 0; neigh_elem < nodal_neighbours.size(); neigh_elem++) { //loop for nodes
             			// Nodes of the neigh element
-            				for (unsigned int elem = 0; elem < nodal_neighbours[neigh_elem].size(); elem++) //loop for elements 
+            				for (unsigned int elem = 0; elem < nodal_neighbours[neigh_elem].size(); elem++) //loop for elements
             				{
             				Element& parent = nodal_neighbours[neigh_elem][elem];
-            			
+
             				/*auto& Node0 = parent.GetGeometry()[0];
     					auto& Node1 = parent.GetGeometry()[1];
     					auto& Node2 = parent.GetGeometry()[2];
@@ -788,7 +788,7 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
 		    			is_inside_1 = false;
 		    			is_inside_2 = false;
 		    			is_inside_3 = false;
-		    			
+
             				is_inside_0 = CalculatePosition(parent.GetGeometry(),pNode0[0],pNode0[1],pNode0[2],N); //observe if node is inside the neighbours!
             				is_inside_1 = CalculatePosition(parent.GetGeometry(),pNode1[0],pNode1[1],pNode1[2],N);
             				is_inside_2 = CalculatePosition(parent.GetGeometry(),pNode2[0],pNode2[1],pNode2[2],N);
@@ -797,37 +797,37 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
             				if(is_inside_1 == true) parent.Set(TO_ERASE, true);
             				if(is_inside_2 == true) parent.Set(TO_ERASE, true);
             				if(is_inside_3 == true) parent.Set(TO_ERASE, true);*/
-            				
+
             				if(is_inside_0 == true) {all_neigh_0=true; pNode0.Set(TO_ERASE, true);}
             				if(is_inside_1 == true) {all_neigh_1=true;pNode1.Set(TO_ERASE, true);}
             				if(is_inside_2 == true) {all_neigh_2=true;pNode2.Set(TO_ERASE, true);}
             				if(is_inside_3 == true) {all_neigh_3=true;pNode3.Set(TO_ERASE, true);}
-            				
+
             				//KRATOS_WATCH("--------------------------->")
             				//KRATOS_WATCH("--------------------------->")
             				//KRATOS_WATCH("--------------------------->")
-          				//KRATOS_WATCH("NODOSSSS PADRESSSSSSSSSSSSSSSSSSS")    				
+          				//KRATOS_WATCH("NODOSSSS PADRESSSSSSSSSSSSSSSSSSS")
             				//KRATOS_WATCH(pNode0)
             				//KRATOS_WATCH(pNode1)
             				//KRATOS_WATCH(pNode2)
             				//KRATOS_WATCH(pNode3)
-            				//KRATOS_WATCH("ELEMENTOOOOOOOOOO VECINOOOOOOOOOOOO")   
+            				//KRATOS_WATCH("ELEMENTOOOOOOOOOO VECINOOOOOOOOOOOO")
             				//KRATOS_WATCH(parent.GetGeometry())
                 			}
 
                 		}
                 		if(all_neigh_0==true)
                 		{
-                		for (unsigned int elem = 0; elem < nodal_neighbours[0].size(); elem++) //loop for elements 
+                		for (unsigned int elem = 0; elem < nodal_neighbours[0].size(); elem++) //loop for elements
             				{
             					Element& parent = nodal_neighbours[0][elem];
             					parent.Set(TO_ERASE, true);
             				}
                 		}
-                		
+
                 		if(all_neigh_1==true)
                 		{
-                		for (unsigned int elem = 0; elem < nodal_neighbours[1].size(); elem++) //loop for elements 
+                		for (unsigned int elem = 0; elem < nodal_neighbours[1].size(); elem++) //loop for elements
             				{
             					Element& parent = nodal_neighbours[1][elem];
             					parent.Set(TO_ERASE, true);
@@ -835,7 +835,7 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
                 		}
                 		if(all_neigh_2==true)
                 		{
-                		for (unsigned int elem = 0; elem < nodal_neighbours[2].size(); elem++) //loop for elements 
+                		for (unsigned int elem = 0; elem < nodal_neighbours[2].size(); elem++) //loop for elements
             				{
             					Element& parent = nodal_neighbours[2][elem];
             					parent.Set(TO_ERASE, true);
@@ -843,25 +843,25 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
                 		}
                 		if(all_neigh_3==true)
                 		{
-                		for (unsigned int elem = 0; elem < nodal_neighbours[3].size(); elem++) //loop for elements 
+                		for (unsigned int elem = 0; elem < nodal_neighbours[3].size(); elem++) //loop for elements
             				{
             					Element& parent = nodal_neighbours[3][elem];
             					parent.Set(TO_ERASE, true);
             				}
                 		}
 				//KRATOS_THROW_ERROR(std::logic_error,"pressure calculation 3D not implemented","");
-				
-					
+
+
 			nodal_neighbours.clear();
 	     	        }
 	     	        //KRATOS_THROW_ERROR(std::logic_error,"pressure calculation 3D not implemented","");
 		    }
 	}
-	
+
 	  ThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
           ThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
-	
-	
+
+
 	return inverted;
 
         KRATOS_CATCH("")
@@ -878,7 +878,7 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
 	double totvol=0.0;
 	array_1d<double,TDim+1> N;
 
-        
+
         if(domain_size == 2)
         {
 	    KRATOS_ERROR<<"error: this part is emptyyyy";
@@ -894,17 +894,17 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
 
 		        //counting number of structural nodes
 		        vol = GeometryUtils::CalculateVolume3D(geom);
-                       totvol += vol;  
+                       totvol += vol;
 		    }
 	}
-	
-	
-	
+
+
+
 	return totvol;
 
         KRATOS_CATCH("")
     }
-    
+
 
     private:
       inline double SPHCubicKernel(const double sigma, const double r, const double hmax)
@@ -922,11 +922,11 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
         else
             return 0.0;
     }
-    
+
  inline bool CalculatePosition(
         Geometry<Node < 3 > >&geom,
         const double xc,
-         const double yc, 
+         const double yc,
          const double zc,
         array_1d<double, 4 > & N
         )
