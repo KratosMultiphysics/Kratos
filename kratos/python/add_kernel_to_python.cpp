@@ -16,6 +16,8 @@
 // Project includes
 #include "includes/define_python.h"
 #include "includes/kernel.h"
+#include "includes/kratos_components.h"
+#include "utilities/ranges.h"
 #include "python/add_kernel_to_python.h"
 
 // System includes
@@ -74,6 +76,16 @@ std::string GetVariableNames(Kernel& rKernel)
     std::stringstream buffer;
     kratos_components.PrintData(buffer);
     return buffer.str();
+}
+
+template <class TVariable>
+pybind11::list GetComponentNames()
+{
+    pybind11::list flag_names;
+    for (const auto& r_name : KratosComponents<TVariable>::GetComponentNames()) {
+        flag_names.append(r_name);
+    }
+    return flag_names;
 }
 
 void RegisterInPythonKernelVariables()
@@ -178,6 +190,7 @@ void AddKernelToPython(pybind11::module& m)
         .def("GetMatrixVariableNames", GetVariableNames<Variable<Matrix> >)
         .def("GetStringVariableNames", GetVariableNames<Variable<std::string> >)
         .def("GetFlagsVariableNames", GetVariableNames<Variable<Flags> >)
+        .def_static("GetFlagNames", GetComponentNames<Flags>)
         .def("__str__", PrintObject<Kernel>)
         .def("HasConstitutiveLaw", HasConstitutiveLaw)
         .def("GetConstitutiveLaw", GetConstitutiveLaw, py::return_value_policy::reference_internal)
