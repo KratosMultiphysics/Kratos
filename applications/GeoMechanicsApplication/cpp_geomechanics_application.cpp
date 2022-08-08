@@ -720,6 +720,12 @@ namespace Kratos
 
             while (true)
             {
+                if (maxCriticalHead - currentHead < -1e-9)
+                {
+                    KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head undetermined at " << criticalHead - stepCriticalHead << ", max search head reached: " << maxCriticalHead << std::endl;
+                    break;
+                }
+
                 KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Searching at head: " << currentHead << std::endl;
                 int error = mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
 
@@ -741,12 +747,6 @@ namespace Kratos
                         pipingSuccess = true;
                         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head found: " << criticalHead << std::endl;
                     }
-                    break;
-                }
-
-                else if (maxCriticalHead - currentHead < -1e-9)
-                {
-                    KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head undetermined at " << criticalHead << ", max search head reached: " << maxCriticalHead << std::endl;
                     break;
                 }
 
