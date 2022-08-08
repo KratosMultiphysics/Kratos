@@ -164,7 +164,39 @@ public:
     }
 
     /**
-     * This sets the build level
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                         : "implicit_solving_strategy",
+            "build_level"                  : 2
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "implicit_solving_strategy";
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    /**
+     * @brief This sets the build level
      * @param Level The build level
      * @details
      * {
@@ -195,31 +227,21 @@ public:
     }
 
     /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     * @return The default parameters
+     * @brief This method sets the flag mStiffnessMatrixIsBuilt
+     * @param StiffnessMatrixIsBuilt The flag that tells if the stiffness matrix is built
      */
-    Parameters GetDefaultParameters() const override
+    void SetStiffnessMatrixIsBuilt(const bool StiffnessMatrixIsBuilt)
     {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"                         : "implicit_solving_strategy",
-            "build_level"                  : 2
-        })");
-
-        // Getting base class default parameters
-        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
-        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
-
-        return default_parameters;
+        mStiffnessMatrixIsBuilt = StiffnessMatrixIsBuilt;
     }
 
     /**
-     * @brief Returns the name of the class as used in the settings (snake_case format)
-     * @return The name of the class
+     * @brief This method gets the flag mStiffnessMatrixIsBuilt
+     * @return mStiffnessMatrixIsBuilt: The flag that tells if the stiffness matrix is built
      */
-    static std::string Name()
+    bool GetStiffnessMatrixIsBuilt() const
     {
-        return "implicit_solving_strategy";
+        return mStiffnessMatrixIsBuilt;
     }
 
     ///@}
@@ -239,8 +261,8 @@ protected:
     ///@{
 
     // Settings for the rebuilding of the stiffness matrix
-    int mRebuildLevel;
-    bool mStiffnessMatrixIsBuilt;
+    int mRebuildLevel;            /// The current rebuild level
+    bool mStiffnessMatrixIsBuilt; /// A flag indicating if the stiffness matrix has been built
 
     ///@}
     ///@name Protected member Variables
