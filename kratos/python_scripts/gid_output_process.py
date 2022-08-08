@@ -246,10 +246,17 @@ class GiDOutputProcess(KM.OutputProcess):
             self.__write_mesh(label)
             self.__initialize_results(label)
             self.__write_nodal_results(label)
+            self.__write_gp_results(label)
             self.__write_nonhistorical_nodal_results(label)
             self.__write_nodal_flags(label)
             self.__write_elemental_conditional_flags(label)
             self.__finalize_results()
+
+            if self.output_label_is_time:
+                file_label = 0.0
+            else:
+                file_label = 0
+            self.__write_step_to_list(file_label)
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeSolutionLoop()
