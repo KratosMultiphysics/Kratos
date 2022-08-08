@@ -470,7 +470,7 @@ namespace Kratos
             array_1d<double, 3> current_global_coords;
 
             //Newton iteration:
-            for (IndexType k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++) {
+            for (IndexType k = 0; k < MaxIteratioNumberPointLocalCoordinates; ++k) {
                 noalias(current_global_coords) = zero_array;
                 this->GlobalCoordinates(current_global_coords, rResult);
 
@@ -756,21 +756,21 @@ namespace Kratos
         {
             if (rResult.size() != 5) rResult.resize(5, false);
             //
-            double xcor = rCoordinates[0];
-            double fx1 = xcor - 1.0;
-            double fx2 = xcor + 1.0;
-            double fx3 = fx1 * fx2;
-            double gx1 = 2.0 * xcor - 1.0;
-            double gx2 = 2.0 * xcor + 1.0;
-            double gx3 = gx1 * gx2;
-            double cof1 = 1.0 / 6.0;
-            double cof2 = 8.0 * cof1;
+            const double xi = rCoordinates[0];
+            const double fx1 = xi - 1.0;
+            const double fx2 = xi + 1.0;
+            const double fx3 = fx1 * fx2;
+            const double gx1 = 2.0 * xi - 1.0;
+            const double gx2 = 2.0 * xi + 1.0;
+            const double gx3 = gx1 * gx2;
+            const double cof1 = 1.0 / 6.0;
+            const double cof2 = 8.0 * cof1;
             //
-            rResult[0] = xcor * fx1 * gx3 * cof1;
-            rResult[1] = xcor * fx2 * gx3 * cof1;
-            rResult[2] = -xcor * fx3 * gx1 * cof2;
+            rResult[0] = xi * fx1 * gx3 * cof1;
+            rResult[1] = xi * fx2 * gx3 * cof1;
+            rResult[2] = -xi * fx3 * gx1 * cof2;
             rResult[3] = fx3 * gx3;
-            rResult[4] = -xcor * fx3 * gx2 * cof2;
+            rResult[4] = -xi * fx3 * gx2 * cof2;
             //
             return rResult;
         }
@@ -788,39 +788,40 @@ namespace Kratos
          */
         double ShapeFunctionValue(IndexType ShapeFunctionIndex, const CoordinatesArrayType& rPoint) const override
         {
+            const double xi = rPoint[0];
+            const double fx1 = xi - 1.0;
+            const double fx2 = xi + 1.0;
+            const double fx3 = fx1 * fx2;
+            const double gx1 = 2.0 * xi - 1.0;
+            const double gx2 = 2.0 * xi + 1.0;
+            const double gx3 = gx1 * gx2;
+            const double cof1 = 1.0 / 6.0;
+            const double cof2 = 8.0 * cof1;
             double shape = 0.0;
-            double xcor = rPoint[0];
-            double fx1 = xcor - 1.0;
-            double fx2 = xcor + 1.0;
-            double fx3 = fx1 * fx2;
-            double gx1 = 2.0 * xcor - 1.0;
-            double gx2 = 2.0 * xcor + 1.0;
-            double gx3 = gx1 * gx2;
-            double cof1 = 1.0 / 6.0;
-            double cof2 = 8.0 * cof1;
             //
             switch (ShapeFunctionIndex)
             {
             case 0:
-                shape = xcor * fx1 * gx3 * cof1;
-                return(shape);
+                shape = xi * fx1 * gx3 * cof1;
+                 break;
             case 1:
-                shape = xcor * fx2 * gx3 * cof1;
-                return(shape);
+                shape = xi * fx2 * gx3 * cof1;
+                break;
             case 2:
-                shape = -xcor * fx3 * gx1 * cof2;
-                return(shape);
+                shape = -xi * fx3 * gx1 * cof2;
+                break;
             case 3:
                 shape = fx3 * gx3;
-                return(shape);
+                break;
             case 4:
-                shape = -xcor * fx3 * gx2 * cof2;
-                return(shape);
+                shape = -xi * fx3 * gx2 * cof2;
+                break;
             default:
                 KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
+                break;
             }
             //
-            return 0;
+            return shape;
         }
 
         // ========================================================================================
@@ -941,21 +942,21 @@ namespace Kratos
             if (rResult.size1() != 5 || rResult.size2() != 1) rResult.resize(5, 1, false);
             noalias(rResult) = ZeroMatrix(5, 1);
             //
-            double xcor = rPoint[0];
-            double fx1 = xcor - 1.0;
-            double fx2 = xcor + 1.0;
-            double fx3 = fx1 * fx2;
-            double gx1 = 2.0 * xcor - 1.0;
-            double gx2 = 2.0 * xcor + 1.0;
-            double gx3 = gx1 * gx2;
-            double cof1 = 1.0 / 6.0;
-            double cof2 = 8.0 * cof1;
+            const double xi = rPoint[0];
+            const double fx1 = xi - 1.0;
+            const double fx2 = xi + 1.0;
+            const double fx3 = fx1 * fx2;
+            const double gx1 = 2.0 * xi - 1.0;
+            const double gx2 = 2.0 * xi + 1.0;
+            const double gx3 = gx1 * gx2;
+            const double cof1 = 1.0 / 6.0;
+            const double cof2 = 8.0 * cof1;
             //
-            rResult(0, 0) = gx3 * gx1 * cof1 + xcor * xcor * fx1 * cof2;
-            rResult(1, 0) = gx3 * gx2 * cof1 + xcor * xcor * fx2 * cof2;
-            rResult(2, 0) = -(gx1 * (gx3 - fx3 - 1.0) + 2.0 * xcor * fx3) * cof2;
-            rResult(3, 0) = 2.0 * xcor * (gx3 + 4.0 * fx3);
-            rResult(4, 0) = -(gx2 * (gx3 - fx3 - 1.0) + 2.0 * xcor * fx3) * cof2;
+            rResult(0, 0) = gx3 * gx1 * cof1 + xi * xi * fx1 * cof2;
+            rResult(1, 0) = gx3 * gx2 * cof1 + xi * xi * fx2 * cof2;
+            rResult(2, 0) = -(gx1 * (gx3 - fx3 - 1.0) + 2.0 * xi * fx3) * cof2;
+            rResult(3, 0) = 2.0 * xi * (gx3 + 4.0 * fx3);
+            rResult(4, 0) = -(gx2 * (gx3 - fx3 - 1.0) + 2.0 * xi * fx3) * cof2;
             return(rResult);
         }
 
@@ -993,21 +994,21 @@ namespace Kratos
             if (rResult.size1() != 5 || rResult.size2() != 1) rResult.resize(5, 1, false);
             noalias(rResult) = ZeroMatrix(5, 1);
             //
-            double xcor = rPoint[0];
-            double fx1 = xcor - 1.0;
-            double fx2 = xcor + 1.0;
-            double fx3 = fx1 * fx2;
-            double gx1 = 2.0 * xcor - 1.0;
-            double gx2 = 2.0 * xcor + 1.0;
-            double gx3 = gx1 * gx2;
-            double cof1 = 1.0 / 6.0;
-            double cof2 = 8.0 * cof1;
+            const double xi = rPoint[0];
+            const double fx1 = xi - 1.0;
+            const double fx2 = xi + 1.0;
+            const double fx3 = fx1 * fx2;
+            const double gx1 = 2.0 * xi - 1.0;
+            const double gx2 = 2.0 * xi + 1.0;
+            const double gx3 = gx1 * gx2;
+            const double cof1 = 1.0 / 6.0;
+            const double cof2 = 8.0 * cof1;
             //
-            rResult(0, 0) = gx3 * gx1 * cof1 + xcor * xcor * fx1 * cof2;
-            rResult(1, 0) = gx3 * gx2 * cof1 + xcor * xcor * fx2 * cof2;
-            rResult(2, 0) = -(gx1 * (gx3 - fx3 - 1.0) + 2.0 * xcor * fx3) * cof2;
-            rResult(3, 0) = 2.0 * xcor * (gx3 + 4.0 * fx3);
-            rResult(4, 0) = -(gx2 * (gx3 - fx3 - 1.0) + 2.0 * xcor * fx3) * cof2;
+            rResult(0, 0) = gx3 * gx1 * cof1 + xi * xi * fx1 * cof2;
+            rResult(1, 0) = gx3 * gx2 * cof1 + xi * xi * fx2 * cof2;
+            rResult(2, 0) = -(gx1 * (gx3 - fx3 - 1.0) + 2.0 * xi * fx3) * cof2;
+            rResult(3, 0) = 2.0 * xi * (gx3 + 4.0 * fx3);
+            rResult(4, 0) = -(gx2 * (gx3 - fx3 - 1.0) + 2.0 * xi * fx3) * cof2;
             return rResult;
         }
 
@@ -1110,31 +1111,24 @@ namespace Kratos
             int integration_points_number = IntegrationPoints.size();
             Matrix shape_function_values(integration_points_number, 5);
             //
-            double xcor = 0.0;
-            double fx1 = 0.0;
-            double fx2 = 0.0;
-            double fx3 = 0.0;
-            double gx1 = 0.0;
-            double gx2 = 0.0;
-            double gx3 = 0.0;
-            double cof1 = 1.0 / 6.0;
-            double cof2 = 8.0 * cof1;
+            const double cof1 = 1.0 / 6.0;
+            const double cof2 = 8.0 * cof1;
             //
             for (int pnt = 0; pnt < integration_points_number; pnt++)
             {
-                xcor = IntegrationPoints[pnt].X();
-                fx1 = xcor - 1.0;
-                fx2 = xcor + 1.0;
-                fx3 = fx1 * fx2;
-                gx1 = 2.0 * xcor - 1.0;
-                gx2 = 2.0 * xcor + 1.0;
-                gx3 = gx1 * gx2;
+                double xi = IntegrationPoints[pnt].X();
+                double fx1 = xi - 1.0;
+                double fx2 = xi + 1.0;
+                double fx3 = fx1 * fx2;
+                double gx1 = 2.0 * xi - 1.0;
+                double gx2 = 2.0 * xi + 1.0;
+                double gx3 = gx1 * gx2;
                 //
-                shape_function_values(pnt, 0) = xcor * fx1 * gx3 * cof1;
-                shape_function_values(pnt, 1) = xcor * fx2 * gx3 * cof1;
-                shape_function_values(pnt, 2) = -xcor * fx3 * gx1 * cof2;
+                shape_function_values(pnt, 0) = xi * fx1 * gx3 * cof1;
+                shape_function_values(pnt, 1) = xi * fx2 * gx3 * cof1;
+                shape_function_values(pnt, 2) = -xi * fx3 * gx1 * cof2;
                 shape_function_values(pnt, 3) = fx3 * gx3;
-                shape_function_values(pnt, 4) = -xcor * fx3 * gx2 * cof2;
+                shape_function_values(pnt, 4) = -xi * fx3 * gx2 * cof2;
             }
             return shape_function_values;
         }
@@ -1148,32 +1142,25 @@ namespace Kratos
             const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[static_cast<int>(ThisMethod)];
             ShapeFunctionsGradientsType DN_De(IntegrationPoints.size());
             std::fill(DN_De.begin(), DN_De.end(), Matrix(5, 1));
-
-            double xcor = 0.0;
-            double fx1 = 0.0;
-            double fx2 = 0.0;
-            double fx3 = 0.0;
-            double gx1 = 0.0;
-            double gx2 = 0.0;
-            double gx3 = 0.0;
-            double cof1 = 1.0 / 6.0;
-            double cof2 = 8.0 * cof1;
-
+            //
+            const double cof1 = 1.0 / 6.0;
+            const double cof2 = 8.0 * cof1;
+            //
             for (unsigned int pnt = 0; pnt < IntegrationPoints.size(); pnt++)
             {
-                xcor = IntegrationPoints[pnt].X();
-                fx1 = xcor - 1.0;
-                fx2 = xcor + 1.0;
-                fx3 = fx1 * fx2;
-                gx1 = 2.0 * xcor - 1.0;
-                gx2 = 2.0 * xcor + 1.0;
-                gx3 = gx1 * gx2;
+                double xi = IntegrationPoints[pnt].X();
+                double fx1 = xi - 1.0;
+                double fx2 = xi + 1.0;
+                double fx3 = fx1 * fx2;
+                double gx1 = 2.0 * xi - 1.0;
+                double gx2 = 2.0 * xi + 1.0;
+                double gx3 = gx1 * gx2;
                 //
-                DN_De[pnt](0, 0) = gx3 * gx1 * cof1 + xcor * xcor * fx1 * cof2;
-                DN_De[pnt](1, 0) = gx3 * gx2 * cof1 + xcor * xcor * fx2 * cof2;
-                DN_De[pnt](2, 0) = -(gx1 * (gx3 - fx3 - 1.0) + 2.0 * xcor * fx3) * cof2;
-                DN_De[pnt](3, 0) = 2.0 * xcor * (gx3 + 4.0 * fx3);
-                DN_De[pnt](4, 0) = -(gx2 * (gx3 - fx3 - 1.0) + 2.0 * xcor * fx3) * cof2;
+                DN_De[pnt](0, 0) = gx3 * gx1 * cof1 + xi * xi * fx1 * cof2;
+                DN_De[pnt](1, 0) = gx3 * gx2 * cof1 + xi * xi * fx2 * cof2;
+                DN_De[pnt](2, 0) = -(gx1 * (gx3 - fx3 - 1.0) + 2.0 * xi * fx3) * cof2;
+                DN_De[pnt](3, 0) = 2.0 * xi * (gx3 + 4.0 * fx3);
+                DN_De[pnt](4, 0) = -(gx2 * (gx3 - fx3 - 1.0) + 2.0 * xi * fx3) * cof2;
             }
             return DN_De;
         }

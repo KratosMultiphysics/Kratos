@@ -649,27 +649,27 @@ namespace Kratos
         {
             if (rResult.size() != 15) rResult.resize(15, false);
             //
-            double cof1 = 128.0 / 3.0;
-            double cof2 = 32.0 / 3.0;
-            double xai = rCoordinates[0];
-            double eta = rCoordinates[1];
-            double zta = 1.0 - xai - eta;
+            const double cof1 = 128.0 / 3.0;
+            const double cof2 = 32.0 / 3.0;
+            const double xi = rCoordinates[0];
+            const double et = rCoordinates[1];
+            const double zt = 1.0 - xi - et;
             //
-            rResult[0]  = zta * (zta - 0.25) * (zta - 0.5) * (zta - 0.75) * cof2;
-            rResult[1]  = xai * (xai - 0.25) * (xai - 0.5) * (xai - 0.75) * cof2;
-            rResult[2]  = eta * (eta - 0.25) * (eta - 0.5) * (eta - 0.75) * cof2;
-            rResult[3]  = xai * zta * (zta - 0.25) * (zta - 0.5) * cof1;
-            rResult[4]  = xai * zta * (zta - 0.25) * (xai - 0.25) * 64.0;
-            rResult[5]  = xai * zta * (xai - 0.25) * (xai - 0.5) * cof1;
-            rResult[6]  = xai * eta * (xai - 0.25) * (xai - 0.5) * cof1;
-            rResult[7]  = xai * eta * (xai - 0.25) * (eta - 0.25) * 64.0;
-            rResult[8]  = xai * eta * (eta - 0.25) * (eta - 0.5) * cof1;
-            rResult[9]  = eta * zta * (eta - 0.25) * (eta - 0.5) * cof1;
-            rResult[10] = eta * zta * (eta - 0.25) * (zta - 0.25) * 64.0;
-            rResult[11] = eta * zta * (zta - 0.25) * (zta - 0.5) * cof1;
-            rResult[12] = xai * eta * zta * (zta - 0.25) * 128.0;
-            rResult[13] = xai * eta * zta * (xai - 0.25) * 128.0;
-            rResult[14] = xai * eta * zta * (eta - 0.25) * 128.0;
+            rResult[0]  = zt * (zt - 0.25) * (zt - 0.5) * (zt - 0.75) * cof2;
+            rResult[1]  = xi * (xi - 0.25) * (xi - 0.5) * (xi - 0.75) * cof2;
+            rResult[2]  = et * (et - 0.25) * (et - 0.5) * (et - 0.75) * cof2;
+            rResult[3]  = xi * zt * (zt - 0.25) * (zt - 0.50) * cof1;
+            rResult[4]  = xi * zt * (zt - 0.25) * (xi - 0.25) * 64.0;
+            rResult[5]  = xi * zt * (xi - 0.25) * (xi - 0.50) * cof1;
+            rResult[6]  = xi * et * (xi - 0.25) * (xi - 0.50) * cof1;
+            rResult[7]  = xi * et * (xi - 0.25) * (et - 0.25) * 64.0;
+            rResult[8]  = xi * et * (et - 0.25) * (et - 0.50) * cof1;
+            rResult[9]  = et * zt * (et - 0.25) * (et - 0.50) * cof1;
+            rResult[10] = et * zt * (et - 0.25) * (zt - 0.25) * 64.0;
+            rResult[11] = et * zt * (zt - 0.25) * (zt - 0.50) * cof1;
+            rResult[12] = xi * et * zt * (zt - 0.25) * 128.0;
+            rResult[13] = xi * et * zt * (xi - 0.25) * 128.0;
+            rResult[14] = xi * et * zt * (et - 0.25) * 128.0;
             //
             return rResult;
         }
@@ -688,64 +688,65 @@ namespace Kratos
         double ShapeFunctionValue(IndexType ShapeFunctionIndex,
             const CoordinatesArrayType& rPoint) const override
         {
-            double cof1 = 128.0 / 3.0;
-            double cof2 = 32.0 / 3.0;
-            double xai = rPoint[0];
-            double eta = rPoint[1];
-            double zta = 1.0 - xai - eta;
+            const double cof1 = 128.0 / 3.0;
+            const double cof2 = 32.0 / 3.0;
+            const double xi = rPoint[0];
+            const double et = rPoint[1];
+            const double zt = 1.0 - xi - et;
             double shape = 0.0;
             //
             switch (ShapeFunctionIndex) {
             case 0:
-                shape = zta * (zta - 0.25) * (zta - 0.5) * (zta - 0.75) * cof2;
-                return(shape);
+                shape = zt * (zt - 0.25) * (zt - 0.5) * (zt - 0.75) * cof2;
+                break;
             case 1:
-                shape = xai * (xai - 0.25) * (xai - 0.5) * (xai - 0.75) * cof2;
-                return(shape);
+                shape = xi * (xi - 0.25) * (xi - 0.5) * (xi - 0.75) * cof2;
+                break;
             case 2:
-                shape = eta * (eta - 0.25) * (eta - 0.5) * (eta - 0.75) * cof2;
-                return(shape);
+                shape = et * (et - 0.25) * (et - 0.5) * (et - 0.75) * cof2;
+                break;
             case 3:
-                shape = xai * zta * (zta - 0.25) * (zta - 0.5) * cof1;
-                return(shape);
+                shape = xi * zt * (zt - 0.25) * (zt - 0.5) * cof1;
+                break;
             case 4:
-                shape = xai * zta * (zta - 0.25) * (xai - 0.25) * 64.0;
-                return(shape);
+                shape = xi * zt * (zt - 0.25) * (xi - 0.25) * 64.0;
+                break;
             case 5:
-                shape = xai * zta * (xai - 0.25) * (xai - 0.5) * cof1;
-                return(shape);
+                shape = xi * zt * (xi - 0.25) * (xi - 0.5) * cof1;
+                break;
             case 6:
-                shape = xai * eta * (xai - 0.25) * (xai - 0.5) * cof1;
-                return(shape);
+                shape = xi * et * (xi - 0.25) * (xi - 0.5) * cof1;
+                break;
             case 7:
-                shape = xai * eta * (xai - 0.25) * (eta - 0.25) * 64.0;
-                return(shape);
+                shape = xi * et * (xi - 0.25) * (et - 0.25) * 64.0;
+                break;
             case 8:
-                shape = xai * eta * (eta - 0.25) * (eta - 0.5) * cof1;
-                return(shape);
+                shape = xi * et * (et - 0.25) * (et - 0.5) * cof1;
+                break;
             case 9:
-                shape = eta * zta * (eta - 0.25) * (eta - 0.5) * cof1;
-                return(shape);
+                shape = et * zt * (et - 0.25) * (et - 0.5) * cof1;
+                break;
             case 10:
-                shape = eta * zta * (eta - 0.25) * (zta - 0.25) * 64.0;
-                return(shape);
+                shape = et * zt * (et - 0.25) * (zt - 0.25) * 64.0;
+                break;
             case 11:
-                shape = eta * zta * (zta - 0.25) * (zta - 0.5) * cof1;
-                return(shape);
+                shape = et * zt * (zt - 0.25) * (zt - 0.5) * cof1;
+                break;
             case 12:
-                shape = xai * eta * zta * (zta - 0.25) * 128.0;
-                return(shape);
+                shape = xi * et * zt * (zt - 0.25) * 128.0;
+                break;
             case 13:
-                shape = xai * eta * zta * (xai - 0.25) * 128.0;
-                return(shape);
+                shape = xi * et * zt * (xi - 0.25) * 128.0;
+                break;
             case 14:
-                shape = xai * eta * zta * (eta - 0.25) * 128.0;
-                return(shape);
+                shape = xi * et * zt * (et - 0.25) * 128.0;
+                break;
             default:
                 KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
+                break;
             }
             //
-            return 0;
+            return shape;
         }
 
         // ========================================================================================
@@ -904,7 +905,7 @@ namespace Kratos
             const int integration_points_number = msGeometryData.IntegrationPointsNumber(ThisMethod);
             ShapeFunctionsGradientsType Result(integration_points_number);
             //
-            for (int pnt = 0; pnt < integration_points_number; pnt++)
+            for (int pnt = 0; pnt < integration_points_number; ++pnt)
             {
                 Result[pnt] = localGradients[pnt];
             }
@@ -946,63 +947,63 @@ namespace Kratos
         Matrix& ShapeFunctionsLocalGradients(Matrix& rResult, const CoordinatesArrayType& rPoint) const override
         {
             rResult.resize(15, 2, false);
-            double x1 = rPoint[0];
-            double x2 = x1 * x1;
-            double x3 = x2 * x1;
-            double y1 = rPoint[1];
-            double y2 = y1 * y1;
-            double y3 = y2 * y1;
-            double tC1 = 1.0 - x1 - y1;
-            double tC2 = tC1 * tC1;
-            double tC3 = tC2 * tC1;
+            const double xi1 = rPoint[0];
+            const double xi2 = xi1 * xi1;
+            const double xi3 = xi2 * xi1;
+            const double et1 = rPoint[1];
+            const double et2 = et1 * et1;
+            const double et3 = et2 * et1;
+            const double zt1 = 1.0 - xi1 - et1;
+            const double zt2 = zt1 * zt1;
+            const double zt3 = zt2 * zt1;
 
             //// noalias(rResult) = ZeroMatrix(15, 2);
             rResult = ZeroMatrix(15, 2);
             //
-            rResult(0, 0) = -(128.0 * tC3 - 144.0 * tC2 + 44.0 * tC1 - 3.0) / 3.0;
-            rResult(0, 1) = -(128.0 * tC3 - 144.0 * tC2 + 44.0 * tC1 - 3.0) / 3.0;
+            rResult(0, 0) = -(128.0 * zt3 - 144.0 * zt2 + 44.0 * zt1 - 3.0) / 3.0;
+            rResult(0, 1) = -(128.0 * zt3 - 144.0 * zt2 + 44.0 * zt1 - 3.0) / 3.0;
 
-            rResult(1, 0) = (128.0 * x3 - 144.0 * x2 + 44.0 * x1 - 3.0) / 3.0;
+            rResult(1, 0) = (128.0 * xi3 - 144.0 * xi2 + 44.0 * xi1 - 3.0) / 3.0;
             rResult(1, 1) = 0.0;
 
             rResult(2, 0) = 0.0;
-            rResult(2, 1) = (128.0 * y3 - 144.0 * y2 + 44.0 * y1 - 3.0) / 3.0;
+            rResult(2, 1) = (128.0 * et3 - 144.0 * et2 + 44.0 * et1 - 3.0) / 3.0;
 
-            rResult(3, 0) = -128.0 * (tC2 - 0.5 * tC1 + 1.0 / 24.0) * x1 + (128.0 * tC3 - 96.0 * tC2 + 16.0 * tC1) / 3.0;
-            rResult(3, 1) = -16.0 * x1 * (24.0 * tC2 - 12.0 * tC1 + 1.0) / 3.0;
+            rResult(3, 0) = -128.0 * (zt2 - 0.5 * zt1 + 1.0 / 24.0) * xi1 + (128.0 * zt3 - 96.0 * zt2 + 16.0 * zt1) / 3.0;
+            rResult(3, 1) = -16.0 * xi1 * (24.0 * zt2 - 12.0 * zt1 + 1.0) / 3.0;
 
-            rResult(4, 0) = -128.0 * (x1 - 0.25) * (tC1 - 0.125) * x1 + 128.0 * (x1 - 0.125) * (tC1 - 0.25) * tC1;
-            rResult(4, 1) = -4.0 * x1 * (4.0 * x1 - 1.0) * (8.0 * tC1 - 1.0);
+            rResult(4, 0) = -128.0 * (xi1 - 0.25) * (zt1 - 0.125) * xi1 + 128.0 * (xi1 - 0.125) * (zt1 - 0.25) * zt1;
+            rResult(4, 1) = -4.0 * xi1 * (4.0 * xi1 - 1.0) * (8.0 * zt1 - 1.0);
 
-            rResult(5, 0) = -(128.0 * x3 - 96.0 * x2 + 16.0 * x1) / 3.0 + 128.0 * (x2 - 0.5 * x1 + 1.0 / 24.0) * tC1;
-            rResult(5, 1) = -16.0 * x1 * (8.0 * x2 - 6.0 * x1 + 1.0) / 3.0;
+            rResult(5, 0) = -(128.0 * xi3 - 96.0 * xi2 + 16.0 * xi1) / 3.0 + 128.0 * (xi2 - 0.5 * xi1 + 1.0 / 24.0) * zt1;
+            rResult(5, 1) = -16.0 * xi1 * (8.0 * xi2 - 6.0 * xi1 + 1.0) / 3.0;
 
-            rResult(6, 0) = 16.0 * y1 * (24.0 * x2 - 12.0 * x1 + 1.0) / 3.0;
-            rResult(6, 1) = (128.0 * x3 - 96.0 * x2 + 16.0 * x1) / 3.0;
+            rResult(6, 0) = 16.0 * et1 * (24.0 * xi2 - 12.0 * xi1 + 1.0) / 3.0;
+            rResult(6, 1) = (128.0 * xi3 - 96.0 * xi2 + 16.0 * xi1) / 3.0;
 
-            rResult(7, 0) = 4.0 * (8.0 * x1 - 1.0) * (4.0 * y1 - 1.0) * y1;
-            rResult(7, 1) = 4.0 * (4.0 * x1 - 1.0) * (8.0 * y1 - 1.0) * x1;
+            rResult(7, 0) = 4.0 * (8.0 * xi1 - 1.0) * (4.0 * et1 - 1.0) * et1;
+            rResult(7, 1) = 4.0 * (4.0 * xi1 - 1.0) * (8.0 * et1 - 1.0) * xi1;
 
-            rResult(8, 0) = (128.0 * y3 - 96.0 * y2 + 16.0 * y1) / 3.0;
-            rResult(8, 1) = 16.0 * x1 * (24.0 * y2 - 12.0 * y1 + 1.0) / 3.0;
+            rResult(8, 0) = (128.0 * et3 - 96.0 * et2 + 16.0 * et1) / 3.0;
+            rResult(8, 1) = 16.0 * xi1 * (24.0 * et2 - 12.0 * et1 + 1.0) / 3.0;
 
-            rResult(9, 0) = -16.0 * y1 * (8.0 * y2 - 6.0 * y1 + 1.0) / 3.0;
-            rResult(9, 1) = -(128.0 * y3 - 96.0 * y2 + 16.0 * y1) / 3.0 + 128.0 * (y2 - 0.5 * y1 + 1.0 / 24.0) * tC1;
+            rResult(9, 0) = -16.0 * et1 * (8.0 * et2 - 6.0 * et1 + 1.0) / 3.0;
+            rResult(9, 1) = -(128.0 * et3 - 96.0 * et2 + 16.0 * et1) / 3.0 + 128.0 * (et2 - 0.5 * et1 + 1.0 / 24.0) * zt1;
 
-            rResult(10, 0) = -4.0 * y1 * (4.0 * y1 - 1.0) * (8.0 * tC1 - 1.0);
-            rResult(10, 1) = -128.0 * (y1 - 0.25) * (tC1 - 0.125) * y1 + 128.0 * (y1 - 0.125) * tC1 * (tC1 - 0.25);
+            rResult(10, 0) = -4.0 * et1 * (4.0 * et1 - 1.0) * (8.0 * zt1 - 1.0);
+            rResult(10, 1) = -128.0 * (et1 - 0.25) * (zt1 - 0.125) * et1 + 128.0 * (et1 - 0.125) * zt1 * (zt1 - 0.25);
 
-            rResult(11, 0) = -16.0 * y1 * (24.0 * tC2 - 12.0 * tC1 + 1.0) / 3.0;
-            rResult(11, 1) = -128.0 * (tC2 - 0.5 * tC1 + 1.0 / 24.0) * y1 + (128.0 * tC3 - 96.0 * tC2 + 16.0 * tC1) / 3.0;
+            rResult(11, 0) = -16.0 * et1 * (24.0 * zt2 - 12.0 * zt1 + 1.0) / 3.0;
+            rResult(11, 1) = -128.0 * (zt2 - 0.5 * zt1 + 1.0 / 24.0) * et1 + (128.0 * zt3 - 96.0 * zt2 + 16.0 * zt1) / 3.0;
 
-            rResult(12, 0) = 256.0 * y1 * (-x1 * (tC1 - 0.125) + 0.5 * tC2 - 0.125 * tC1);
-            rResult(12, 1) = 256.0 * x1 * (-y1 * (tC1 - 0.125) + 0.5 * tC2 - 0.125 * tC1);
+            rResult(12, 0) = 256.0 * et1 * (-xi1 * (zt1 - 0.125) + 0.5 * zt2 - 0.125 * zt1);
+            rResult(12, 1) = 256.0 * xi1 * (-et1 * (zt1 - 0.125) + 0.5 * zt2 - 0.125 * zt1);
 
-            rResult(13, 0) = -32.0 * y1 * (4.0 * x2 - x1) + 256.0 * (x1 - 0.125) * y1 * tC1;
-            rResult(13, 1) = 128.0 * (x1 - 0.25) * (-y1 + tC1) * x1;
+            rResult(13, 0) = -32.0 * et1 * (4.0 * xi2 - xi1) + 256.0 * (xi1 - 0.125) * et1 * zt1;
+            rResult(13, 1) = 128.0 * (xi1 - 0.25) * (-et1 + zt1) * xi1;
 
-            rResult(14, 0) = 128.0 * (y1 - 0.25) * y1 * (-x1 + tC1);
-            rResult(14, 1) = -32.0 * x1 * (4.0 * y2 - y1) + 256.0 * (y1 - 0.125) * tC1 * x1;
+            rResult(14, 0) = 128.0 * (et1 - 0.25) * et1 * (-xi1 + zt1);
+            rResult(14, 1) = -32.0 * xi1 * (4.0 * et2 - et1) + 256.0 * (et1 - 0.125) * zt1 * xi1;
             //
             return rResult;
         }
@@ -1022,65 +1023,64 @@ namespace Kratos
         virtual Matrix& ShapeFunctionsGradients(Matrix& rResult, CoordinatesArrayType& rPoint)
         {
             rResult.resize(15, 2, false);
-            double x1 = rPoint[0];
-            double x2 = x1 * x1;
-            double x3 = x2 * x1;
-            double y1 = rPoint[1];
-            double y2 = y1 * y1;
-            double y3 = y2 * y1;
-            double cor3 = 1.0 - x1 - y1;
-            double tC1 = cor3;
-            double tC2 = tC1 * tC1;
-            double tC3 = tC2 * tC1;
+            const double xi1 = rPoint[0];
+            const double xi2 = xi1 * xi1;
+            const double xi3 = xi2 * xi1;
+            const double et1 = rPoint[1];
+            const double et2 = et1 * et1;
+            const double et3 = et2 * et1;
+            const double zt1 = 1.0 - xi1 - et1;
+            const double zt2 = zt1 * zt1;
+            const double zt3 = zt2 * zt1;
 
             //// noalias(rResult) = ZeroMatrix(15, 2);
             rResult = ZeroMatrix(15, 2);
 
 
-            rResult(0, 0) = -(128.0 * tC3 - 144.0 * tC2 + 44.0 * tC1 - 3.0) / 3.0;
-            rResult(0, 1) = -(128.0 * tC3 - 144.0 * tC2 + 44.0 * tC1 - 3.0) / 3.0;
+            rResult(0, 0) = -(128.0 * zt3 - 144.0 * zt2 + 44.0 * zt1 - 3.0) / 3.0;
+            rResult(0, 1) = -(128.0 * zt3 - 144.0 * zt2 + 44.0 * zt1 - 3.0) / 3.0;
 
-            rResult(1, 0) = (128.0 * x3 - 144.0 * x2 + 44.0 * x1 - 3.0) / 3.0;
+            rResult(1, 0) = (128.0 * xi3 - 144.0 * xi2 + 44.0 * xi1 - 3.0) / 3.0;
             rResult(1, 1) = 0.0;
 
             rResult(2, 0) = 0.0;
-            rResult(2, 1) = (128.0 * y3 - 144.0 * y2 + 44.0 * y1 - 3.0) / 3.0;
+            rResult(2, 1) = (128.0 * et3 - 144.0 * et2 + 44.0 * et1 - 3.0) / 3.0;
 
-            rResult(3, 0) = -128.0 * (tC2 - 0.5 * tC1 + 1.0 / 24.0) * x1 + (128.0 * tC3 - 96.0 * tC2 + 16.0 * tC1) / 3.0;
-            rResult(3, 1) = -16.0 * x1 * (24.0 * tC2 - 12.0 * tC1 + 1.0) / 3.0;
+            rResult(3, 0) = -128.0 * (zt2 - 0.5 * zt1 + 1.0 / 24.0) * xi1 + (128.0 * zt3 - 96.0 * zt2 + 16.0 * zt1) / 3.0;
+            rResult(3, 1) = -16.0 * xi1 * (24.0 * zt2 - 12.0 * zt1 + 1.0) / 3.0;
 
-            rResult(4, 0) = -128.0 * (x1 - 0.25) * (tC1 - 0.125) * x1 + 128.0 * (x1 - 0.125) * (tC1 - 0.25) * tC1;
-            rResult(4, 1) = -4.0 * x1 * (4.0 * x1 - 1.0) * (8.0 * tC1 - 1.0);
+            rResult(4, 0) = -128.0 * (xi1 - 0.25) * (zt1 - 0.125) * xi1 + 128.0 * (xi1 - 0.125) * (zt1 - 0.25) * zt1;
+            rResult(4, 1) = -4.0 * xi1 * (4.0 * xi1 - 1.0) * (8.0 * zt1 - 1.0);
 
-            rResult(5, 0) = -(128.0 * x3 - 96.0 * x2 + 16.0 * x1) / 3.0 + 128.0 * (x2 - 0.5 * x1 + 1.0 / 24.0) * tC1;
-            rResult(5, 1) = -16.0 * x1 * (8.0 * x2 - 6.0 * x1 + 1.0) / 3.0;
+            rResult(5, 0) = -(128.0 * xi3 - 96.0 * xi2 + 16.0 * xi1) / 3.0 + 128.0 * (xi2 - 0.5 * xi1 + 1.0 / 24.0) * zt1;
+            rResult(5, 1) = -16.0 * xi1 * (8.0 * xi2 - 6.0 * xi1 + 1.0) / 3.0;
 
-            rResult(6, 0) = 16.0 * y1 * (24.0 * x2 - 12.0 * x1 + 1.0) / 3.0;
-            rResult(6, 1) = (128.0 * x3 - 96.0 * x2 + 16.0 * x1) / 3.0;
+            rResult(6, 0) = 16.0 * et1 * (24.0 * xi2 - 12.0 * xi1 + 1.0) / 3.0;
+            rResult(6, 1) = (128.0 * xi3 - 96.0 * xi2 + 16.0 * xi1) / 3.0;
 
-            rResult(7, 0) = 4.0 * (8.0 * x1 - 1.0) * (4.0 * y1 - 1.0) * y1;
-            rResult(7, 1) = 4.0 * (4.0 * x1 - 1.0) * (8.0 * y1 - 1.0) * x1;
+            rResult(7, 0) = 4.0 * (8.0 * xi1 - 1.0) * (4.0 * et1 - 1.0) * et1;
+            rResult(7, 1) = 4.0 * (4.0 * xi1 - 1.0) * (8.0 * et1 - 1.0) * xi1;
 
-            rResult(8, 0) = (128.0 * y3 - 96.0 * y2 + 16.0 * y1) / 3.0;
-            rResult(8, 1) = 16.0 * x1 * (24.0 * y2 - 12.0 * y1 + 1.0) / 3.0;
+            rResult(8, 0) = (128.0 * et3 - 96.0 * et2 + 16.0 * et1) / 3.0;
+            rResult(8, 1) = 16.0 * xi1 * (24.0 * et2 - 12.0 * et1 + 1.0) / 3.0;
 
-            rResult(9, 0) = -16.0 * y1 * (8.0 * y2 - 6.0 * y1 + 1.0) / 3.0;
-            rResult(9, 1) = -(128.0 * y3 - 96.0 * y2 + 16.0 * y1) / 3.0 + 128.0 * (y2 - 0.5 * y1 + 1.0 / 24.0) * tC1;
+            rResult(9, 0) = -16.0 * et1 * (8.0 * et2 - 6.0 * et1 + 1.0) / 3.0;
+            rResult(9, 1) = -(128.0 * et3 - 96.0 * et2 + 16.0 * et1) / 3.0 + 128.0 * (et2 - 0.5 * et1 + 1.0 / 24.0) * zt1;
 
-            rResult(10, 0) = -4.0 * y1 * (4.0 * y1 - 1.0) * (8.0 * tC1 - 1.0);
-            rResult(10, 1) = -128.0 * (y1 - 0.25) * (tC1 - 0.125) * y1 + 128.0 * (y1 - 0.125) * tC1 * (tC1 - 0.25);
+            rResult(10, 0) = -4.0 * et1 * (4.0 * et1 - 1.0) * (8.0 * zt1 - 1.0);
+            rResult(10, 1) = -128.0 * (et1 - 0.25) * (zt1 - 0.125) * et1 + 128.0 * (et1 - 0.125) * zt1 * (zt1 - 0.25);
 
-            rResult(11, 0) = -16.0 * y1 * (24.0 * tC2 - 12.0 * tC1 + 1.0) / 3.0;
-            rResult(11, 1) = -128.0 * (tC2 - 0.5 * tC1 + 1.0 / 24.0) * y1 + (128.0 * tC3 - 96.0 * tC2 + 16.0 * tC1) / 3.0;
+            rResult(11, 0) = -16.0 * et1 * (24.0 * zt2 - 12.0 * zt1 + 1.0) / 3.0;
+            rResult(11, 1) = -128.0 * (zt2 - 0.5 * zt1 + 1.0 / 24.0) * et1 + (128.0 * zt3 - 96.0 * zt2 + 16.0 * zt1) / 3.0;
 
-            rResult(12, 0) = 256.0 * y1 * (-x1 * (tC1 - 0.125) + 0.5 * tC2 - 0.125 * tC1);
-            rResult(12, 1) = 256.0 * x1 * (-y1 * (tC1 - 0.125) + 0.5 * tC2 - 0.125 * tC1);
+            rResult(12, 0) = 256.0 * et1 * (-xi1 * (zt1 - 0.125) + 0.5 * zt2 - 0.125 * zt1);
+            rResult(12, 1) = 256.0 * xi1 * (-et1 * (zt1 - 0.125) + 0.5 * zt2 - 0.125 * zt1);
 
-            rResult(13, 0) = -32.0 * y1 * (4.0 * x2 - x1) + 256.0 * (x1 - 0.125) * y1 * tC1;
-            rResult(13, 1) = 128.0 * (x1 - 0.25) * (-y1 + tC1) * x1;
+            rResult(13, 0) = -32.0 * et1 * (4.0 * xi2 - xi1) + 256.0 * (xi1 - 0.125) * et1 * zt1;
+            rResult(13, 1) = 128.0 * (xi1 - 0.25) * (-et1 + zt1) * xi1;
 
-            rResult(14, 0) = 128.0 * (y1 - 0.25) * y1 * (-x1 + tC1);
-            rResult(14, 1) = -32.0 * x1 * (4.0 * y2 - y1) + 256.0 * (y1 - 0.125) * tC1 * x1;
+            rResult(14, 0) = 128.0 * (et1 - 0.25) * et1 * (-xi1 + zt1);
+            rResult(14, 1) = -32.0 * xi1 * (4.0 * et2 - et1) + 256.0 * (et1 - 0.125) * zt1 * xi1;
 
             return rResult;
         }
@@ -1100,12 +1100,10 @@ namespace Kratos
                 ShapeFunctionsGradientsType temp(this->PointsNumber());
                 rResult.swap(temp);
             }
-            double x1 = rPoint[0];
-            double x2 = x1 * x1;
-            double x3 = x2 * x1;
-            double y1 = rPoint[1];
-            double y2 = y1 * y1;
-            double y3 = y2 * y1;
+            const double xi1 = rPoint[0];
+            const double xi2 = xi1 * xi1;
+            const double et1 = rPoint[1];
+            const double et2 = et1 * et1;
             //
             rResult[0].resize(2, 2, false);
             rResult[1].resize(2, 2, false);
@@ -1123,12 +1121,12 @@ namespace Kratos
             rResult[13].resize(2, 2, false);
             rResult[14].resize(2, 2, false);
             //
-            rResult[0](0, 0) = 128.0 * (x2 + y2) - 160.0 * (x1 + y1) + 256.0 * x1 * y1 + 140.0 / 3.0;
-            rResult[0](0, 1) = 128.0 * (x2 + y2) - 160.0 * (x1 + y1) + 256.0 * x1 * y1 + 140.0 / 3.0;
-            rResult[0](1, 0) = 128.0 * (x2 + y2) - 160.0 * (x1 + y1) + 256.0 * x1 * y1 + 140.0 / 3.0;
-            rResult[0](1, 1) = 128.0 * (x2 + y2) - 160.0 * (x1 + y1) + 256.0 * x1 * y1 + 140.0 / 3.0;
+            rResult[0](0, 0) = 128.0 * (xi2 + et2) - 160.0 * (xi1 + et1) + 256.0 * xi1 * et1 + 140.0 / 3.0;
+            rResult[0](0, 1) = 128.0 * (xi2 + et2) - 160.0 * (xi1 + et1) + 256.0 * xi1 * et1 + 140.0 / 3.0;
+            rResult[0](1, 0) = 128.0 * (xi2 + et2) - 160.0 * (xi1 + et1) + 256.0 * xi1 * et1 + 140.0 / 3.0;
+            rResult[0](1, 1) = 128.0 * (xi2 + et2) - 160.0 * (xi1 + et1) + 256.0 * xi1 * et1 + 140.0 / 3.0;
             //
-            rResult[1](0, 0) = 128.0 * x2 - 96.0 * x1 + 44.0 / 3.0;
+            rResult[1](0, 0) = 128.0 * xi2 - 96.0 * xi1 + 44.0 / 3.0;
             rResult[1](0, 1) = 0.0;
             rResult[1](1, 0) = 0.0;
             rResult[1](1, 1) = 0.0;
@@ -1136,67 +1134,67 @@ namespace Kratos
             rResult[2](0, 0) = 0.0;
             rResult[2](0, 1) = 0.0;
             rResult[2](1, 0) = 0.0;
-            rResult[2](1, 1) = 128.0 * y2 - 96.0 * y1 + 44.0 / 3.0;
+            rResult[2](1, 1) = 128.0 * et2 - 96.0 * et1 + 44.0 / 3.0;
             //
-            rResult[3](0, 0) = -512.0 * x2 - 768.0 * x1 * y1 - 256.0 * y2 + 576.0 * x1 + 384.0 * y1 - 416.0 / 3.0;
-            rResult[3](0, 1) = -384.0 * x2 - 512.0 * x1 * y1 - 128.0 * y2 + 384.0 * x1 + 192.0 * y1 - 208.0 / 3.0;
-            rResult[3](1, 0) = -384.0 * x2 - 512.0 * x1 * y1 - 128.0 * y2 + 384.0 * x1 + 192.0 * y1 - 208.0 / 3.0;
-            rResult[3](1, 1) = 64.0 * x1 * (3.0 - 4.0 * x1 - 4.0 * y1);
+            rResult[3](0, 0) = -512.0 * xi2 - 768.0 * xi1 * et1 - 256.0 * et2 + 576.0 * xi1 + 384.0 * et1 - 416.0 / 3.0;
+            rResult[3](0, 1) = -384.0 * xi2 - 512.0 * xi1 * et1 - 128.0 * et2 + 384.0 * xi1 + 192.0 * et1 - 208.0 / 3.0;
+            rResult[3](1, 0) = -384.0 * xi2 - 512.0 * xi1 * et1 - 128.0 * et2 + 384.0 * xi1 + 192.0 * et1 - 208.0 / 3.0;
+            rResult[3](1, 1) = 64.0 * xi1 * (3.0 - 4.0 * xi1 - 4.0 * et1);
             //
-            rResult[4](0, 0) = 768.0 * x2 + 768.0 * (y1 - 1.0) * x1 + 128.0 * y2 - 288.0 * y1 + 152.0;
-            rResult[4](0, 1) = 384.0 * x2 + (256.0 * y1 - 288.0) * x1 - 32.0 * y1 + 28.0;
-            rResult[4](1, 0) = 384.0 * x2 + (256.0 * y1 - 288.0) * x1 - 32.0 * y1 + 28.0;
-            rResult[4](1, 1) = 32.0 * x1 * (4.0 * x1 - 1.0);
+            rResult[4](0, 0) = 768.0 * xi2 + 768.0 * (et1 - 1.0) * xi1 + 128.0 * et2 - 288.0 * et1 + 152.0;
+            rResult[4](0, 1) = 384.0 * xi2 + (256.0 * et1 - 288.0) * xi1 - 32.0 * et1 + 28.0;
+            rResult[4](1, 0) = 384.0 * xi2 + (256.0 * et1 - 288.0) * xi1 - 32.0 * et1 + 28.0;
+            rResult[4](1, 1) = 32.0 * xi1 * (4.0 * xi1 - 1.0);
             //
-            rResult[5](0, 0) = -512.0 * x2 + 448.0 * x1 - 256.0 * x1 * y1 + 64.0 * y1 - 224.0 / 3.0;
-            rResult[5](0, 1) = -128.0 * x2 + 64.0 * x1 - 16.0 / 3.0;
-            rResult[5](1, 0) = -128.0 * x2 + 64.0 * x1 - 16.0 / 3.0;
+            rResult[5](0, 0) = -512.0 * xi2 + 448.0 * xi1 - 256.0 * xi1 * et1 + 64.0 * et1 - 224.0 / 3.0;
+            rResult[5](0, 1) = -128.0 * xi2 + 64.0 * xi1 - 16.0 / 3.0;
+            rResult[5](1, 0) = -128.0 * xi2 + 64.0 * xi1 - 16.0 / 3.0;
             rResult[5](1, 1) = 0.0;
             //
-            rResult[6](0, 0) = 64.0 * y1 * (4.0 * x1 - 1.0);
-            rResult[6](0, 1) = 128.0 * x2 - 64.0 * x1 + 16.0 / 3.0;
-            rResult[6](1, 0) = 128.0 * x2 - 64.0 * x1 + 16.0 / 3.0;
+            rResult[6](0, 0) = 64.0 * et1 * (4.0 * xi1 - 1.0);
+            rResult[6](0, 1) = 128.0 * xi2 - 64.0 * xi1 + 16.0 / 3.0;
+            rResult[6](1, 0) = 128.0 * xi2 - 64.0 * xi1 + 16.0 / 3.0;
             rResult[6](1, 1) = 0.0;
             //
-            rResult[7](0, 0) = 32.0 * y1 * (4.0 * y1 - 1.0);
-            rResult[7](0, 1) = 32.0 * x1 * (8.0 * y1 - 1.0) - 32.0 * y1 + 4.0;
-            rResult[7](1, 0) = 32.0 * x1 * (8.0 * y1 - 1.0) - 32.0 * y1 + 4.0;
-            rResult[7](1, 1) = 32.0 * x1 * (4.0 * x1 - 1.0);
+            rResult[7](0, 0) = 32.0 * et1 * (4.0 * et1 - 1.0);
+            rResult[7](0, 1) = 32.0 * xi1 * (8.0 * et1 - 1.0) - 32.0 * et1 + 4.0;
+            rResult[7](1, 0) = 32.0 * xi1 * (8.0 * et1 - 1.0) - 32.0 * et1 + 4.0;
+            rResult[7](1, 1) = 32.0 * xi1 * (4.0 * xi1 - 1.0);
             //
             rResult[8](0, 0) = 0.0;
-            rResult[8](0, 1) = 128.0 * y2 - 64.0 * y1 + 16.0 / 3.0;
-            rResult[8](1, 0) = 128.0 * y2 - 64.0 * y1 + 16.0 / 3.0;
-            rResult[8](1, 1) = (256.0 * y1 - 64.0) * x1;
+            rResult[8](0, 1) = 128.0 * et2 - 64.0 * et1 + 16.0 / 3.0;
+            rResult[8](1, 0) = 128.0 * et2 - 64.0 * et1 + 16.0 / 3.0;
+            rResult[8](1, 1) = (256.0 * et1 - 64.0) * xi1;
             //
             rResult[9](0, 0) = 0.0;
-            rResult[9](0, 1) = -128.0 * y2 + 64.0 * y1 - 16.0 / 3.0;
-            rResult[9](1, 0) = -128.0 * y2 + 64.0 * y1 - 16.0 / 3.0;;
-            rResult[9](1, 1) = 448.0 * y1 - 224.0 / 3.0 - 256.0 * x1 * y1 + 64.0 * x1 - 512.0 * y2;
+            rResult[9](0, 1) = -128.0 * et2 + 64.0 * et1 - 16.0 / 3.0;
+            rResult[9](1, 0) = -128.0 * et2 + 64.0 * et1 - 16.0 / 3.0;;
+            rResult[9](1, 1) = 448.0 * et1 - 224.0 / 3.0 - 256.0 * xi1 * et1 + 64.0 * xi1 - 512.0 * et2;
             //
-            rResult[10](0, 0) = 128.0 * y2 - 32.0 * y1;
-            rResult[10](0, 1) = 384.0 * y2 + (256.0 * x1 - 288.0) * y1 - 32.0 * x1 + 28;
-            rResult[10](1, 0) = 384.0 * y2 + (256.0 * x1 - 288.0) * y1 - 32.0 * x1 + 28;
-            rResult[10](1, 1) = 128.0 * x2 + (768.0 * y1 - 288.0) * x1 + 768.0 * y2 - 768.0 * y1 + 152.0;
+            rResult[10](0, 0) = 128.0 * et2 - 32.0 * et1;
+            rResult[10](0, 1) = 384.0 * et2 + (256.0 * xi1 - 288.0) * et1 - 32.0 * xi1 + 28.0;
+            rResult[10](1, 0) = 384.0 * et2 + (256.0 * xi1 - 288.0) * et1 - 32.0 * xi1 + 28.0;
+            rResult[10](1, 1) = 128.0 * xi2 + (768.0 * et1 - 288.0) * xi1 + 768.0 * et2 - 768.0 * et1 + 152.0;
             //
-            rResult[11](0, 0) = -64.0 * y1 * (-3.0 + 4.0 * x1 + 4.0 * y1);
-            rResult[11](0, 1) = -384.0 * y2 + (-512 * x1 + 384.0) * y1 - 128.0 * x2 + 192.0 * x1 - 208.0 / 3.0;
-            rResult[11](1, 0) = -384.0 * y2 + (-512 * x1 + 384.0) * y1 - 128.0 * x2 + 192.0 * x1 - 208.0 / 3.0;
-            rResult[11](1, 1) = -512.0 * y2 + (-768.0 * x1 + 576.0) * y1 - 256.0 * x2 + 384.0 * x1 - 416.0 / 3.0;
+            rResult[11](0, 0) = -64.0 * et1 * (-3.0 + 4.0 * xi1 + 4.0 * et1);
+            rResult[11](0, 1) = -384.0 * et2 + (-512.0 * xi1 + 384.0) * et1 - 128.0 * xi2 + 192.0 * xi1 - 208.0 / 3.0;
+            rResult[11](1, 0) = -384.0 * et2 + (-512.0 * xi1 + 384.0) * et1 - 128.0 * xi2 + 192.0 * xi1 - 208.0 / 3.0;
+            rResult[11](1, 1) = -512.0 * et2 + (-768.0 * xi1 + 576.0) * et1 - 256.0 * xi2 + 384.0 * xi1 - 416.0 / 3.0;
             //
-            rResult[12](0, 0) = 64.0 * y1 * (12.0 * x1 + 8.0 * y1 - 7.0);
-            rResult[12](0, 1) = 384.0 * x2 + (1024.0 * y1 - 448.0) * x1 + 384.0 * y2 - 448.0 * y1 + 96.0;
-            rResult[12](1, 0) = 384.0 * x2 + (1024.0 * y1 - 448.0) * x1 + 384.0 * y2 - 448.0 * y1 + 96.0;
-            rResult[12](1, 1) = 64.0 * x1 * (8.0 * x1 + 12.0 * y1 - 7.0);
+            rResult[12](0, 0) = 64.0 * et1 * (12.0 * xi1 + 8.0 * et1 - 7.0);
+            rResult[12](0, 1) = 384.0 * xi2 + (1024.0 * et1 - 448.0) * xi1 + 384.0 * et2 - 448.0 * et1 + 96.0;
+            rResult[12](1, 0) = 384.0 * xi2 + (1024.0 * et1 - 448.0) * xi1 + 384.0 * et2 - 448.0 * et1 + 96.0;
+            rResult[12](1, 1) = 64.0 * xi1 * (8.0 * xi1 + 12.0 * et1 - 7.0);
             //
-            rResult[13](0, 0) = -64.0 * y1 * (12.0 * x1 + 4.0 * y1 - 5.0);
-            rResult[13](0, 1) = -384.0 * x2 + (-512.0 * y1 + 320.0) * x1 + 64.0 * y1 - 32.0;
-            rResult[13](1, 0) = -384.0 * x2 + (-512.0 * y1 + 320.0) * x1 + 64.0 * y1 - 32.0;
-            rResult[13](1, 1) = -256.0 * x2 + 64.0 * x1;
+            rResult[13](0, 0) = -64.0 * et1 * (12.0 * xi1 + 4.0 * et1 - 5.0);
+            rResult[13](0, 1) = -384.0 * xi2 + (-512.0 * et1 + 320.0) * xi1 + 64.0 * et1 - 32.0;
+            rResult[13](1, 0) = -384.0 * xi2 + (-512.0 * et1 + 320.0) * xi1 + 64.0 * et1 - 32.0;
+            rResult[13](1, 1) = -256.0 * xi2 + 64.0 * xi1;
             //
-            rResult[14](0, 0) = -256.0 * y2 + 64.0 * y1;
-            rResult[14](0, 1) = -384.0 * y2 + (-512.0 * x1 + 320.0) * y1 + 64.0 * x1 - 32.0;
-            rResult[14](1, 0) = -384.0 * y2 + (-512.0 * x1 + 320.0) * y1 + 64.0 * x1 - 32.0;
-            rResult[14](1, 1) = -64.0 * x1 * (4.0 * x1 + 12.0 * y1 - 5.0);
+            rResult[14](0, 0) = -256.0 * et2 + 64.0 * et1;
+            rResult[14](0, 1) = -384.0 * et2 + (-512.0 * xi1 + 320.0) * et1 + 64.0 * xi1 - 32.0;
+            rResult[14](1, 0) = -384.0 * et2 + (-512.0 * xi1 + 320.0) * et1 + 64.0 * xi1 - 32.0;
+            rResult[14](1, 1) = -64.0 * xi1 * (4.0 * xi1 + 12.0 * et1 - 5.0);
             //
             return rResult;
         }
@@ -1508,29 +1506,30 @@ namespace Kratos
             //setting up return matrix
             Matrix shape_function_values(integration_points_number, points_number);
             //loop over all integration points
+            const double cof1 = 128.0 / 3.0;
+            const double cof2 = 32.0  / 3.0;
+            //
             for (int pnt = 0; pnt < integration_points_number; pnt++)
             {
-                double cof1 = 128.0 / 3.0;
-                double cof2 = 32.0  / 3.0;
-                double xcor = integration_points[pnt].X();
-                double ycor = integration_points[pnt].Y();
-                double cor3 = 1.0 - xcor - ycor;
+                double xi = integration_points[pnt].X();
+                double et = integration_points[pnt].Y();
+                double zt = 1.0 - xi - et;
                 //
-                shape_function_values(pnt, 0) = cor3 * (cor3 - 0.25) * (cor3 - 0.5) * (cor3 - 0.75) * cof2;
-                shape_function_values(pnt, 1) = xcor * (xcor - 0.25) * (xcor - 0.5) * (xcor - 0.75) * cof2;
-                shape_function_values(pnt, 2) = ycor * (ycor - 0.25) * (ycor - 0.5) * (ycor - 0.75) * cof2;
-                shape_function_values(pnt, 3) = xcor * cor3 * (cor3 - 0.25) * (cor3 - 0.5) * cof1;
-                shape_function_values(pnt, 4) = xcor * cor3 * (cor3 - 0.25) * (xcor - 0.25) * 64.0;
-                shape_function_values(pnt, 5) = xcor * cor3 * (xcor - 0.25) * (xcor - 0.5) * cof1;
-                shape_function_values(pnt, 6) = xcor * ycor * (xcor - 0.25) * (xcor - 0.5) * cof1;
-                shape_function_values(pnt, 7) = xcor * ycor * (xcor - 0.25) * (ycor - 0.25) * 64.0;
-                shape_function_values(pnt, 8) = xcor * ycor * (ycor - 0.25) * (ycor - 0.5) * cof1;
-                shape_function_values(pnt, 9) = ycor * cor3 * (ycor - 0.25) * (ycor - 0.5) * cof1;
-                shape_function_values(pnt, 10) = ycor * cor3 * (ycor - 0.25) * (cor3 - 0.25) * 64.0;
-                shape_function_values(pnt, 11) = ycor * cor3 * (cor3 - 0.25) * (cor3 - 0.5) * cof1;
-                shape_function_values(pnt, 12) = xcor * ycor * cor3 * (cor3 - 0.25) * 128.0;
-                shape_function_values(pnt, 13) = xcor * ycor * cor3 * (xcor - 0.25) * 128.0;
-                shape_function_values(pnt, 14) = xcor * ycor * cor3 * (ycor - 0.25) * 128.0;
+                shape_function_values(pnt, 0)  = zt * (zt - 0.25) * (zt - 0.50) * (zt - 0.75) * cof2;
+                shape_function_values(pnt, 1)  = xi * (xi - 0.25) * (xi - 0.50) * (xi - 0.75) * cof2;
+                shape_function_values(pnt, 2)  = et * (et - 0.25) * (et - 0.50) * (et - 0.75) * cof2;
+                shape_function_values(pnt, 3)  = xi * zt * (zt - 0.25) * (zt - 0.50) * cof1;
+                shape_function_values(pnt, 4)  = xi * zt * (zt - 0.25) * (xi - 0.25) * 64.0;
+                shape_function_values(pnt, 5)  = xi * zt * (xi - 0.25) * (xi - 0.50) * cof1;
+                shape_function_values(pnt, 6)  = xi * et * (xi - 0.25) * (xi - 0.50) * cof1;
+                shape_function_values(pnt, 7)  = xi * et * (xi - 0.25) * (et - 0.25) * 64.0;
+                shape_function_values(pnt, 8)  = xi * et * (et - 0.25) * (et - 0.50) * cof1;
+                shape_function_values(pnt, 9)  = et * zt * (et - 0.25) * (et - 0.50) * cof1;
+                shape_function_values(pnt, 10) = et * zt * (et - 0.25) * (zt - 0.25) * 64.0;
+                shape_function_values(pnt, 11) = et * zt * (zt - 0.25) * (zt - 0.50) * cof1;
+                shape_function_values(pnt, 12) = xi * et * zt * (zt - 0.25) * 128.0;
+                shape_function_values(pnt, 13) = xi * et * zt * (xi - 0.25) * 128.0;
+                shape_function_values(pnt, 14) = xi * et * zt * (et - 0.25) * 128.0;
             }
             return shape_function_values;
         }
@@ -1557,68 +1556,68 @@ namespace Kratos
             ShapeFunctionsGradientsType d_shape_f_values(integration_points_number);
             //initialising container
             //std::fill(d_shape_f_values.begin(), d_shape_f_values.end(), Matrix(4,2));
+            //
             //loop over all integration points
-
             for (int pnt = 0; pnt < integration_points_number; pnt++)
             {
                 Matrix result(15, 2);
-                double x1 = integration_points[pnt].X();
-                double x2 = x1 * x1;
-                double x3 = x2 * x1;
-                double y1 = integration_points[pnt].Y();
-                double y2 = y1 * y1;
-                double y3 = y2 * y1;
-                double tC1 = 1.0 - x1 - y1;
-                double tC2 = tC1 * tC1;
-                double tC3 = tC2 * tC1;
+                double xi1 = integration_points[pnt].X();
+                double xi2 = xi1 * xi1;
+                double xi3 = xi2 * xi1;
+                double et1 = integration_points[pnt].Y();
+                double et2 = et1 * et1;
+                double et3 = et2 * et1;
+                double zt1 = 1.0 - xi1 - et1;
+                double zt2 = zt1 * zt1;
+                double zt3 = zt2 * zt1;
 
                 //// noalias(result) = ZeroMatrix(15, 2);
                 result = ZeroMatrix(15, 2);
                 //
-                result(0, 0) = -(128.0 * tC3 - 144.0 * tC2 + 44.0 * tC1 - 3.0) / 3.0;
-                result(0, 1) = -(128.0 * tC3 - 144.0 * tC2 + 44.0 * tC1 - 3.0) / 3.0;
+                result(0, 0) = -(128.0 * zt3 - 144.0 * zt2 + 44.0 * zt1 - 3.0) / 3.0;
+                result(0, 1) = -(128.0 * zt3 - 144.0 * zt2 + 44.0 * zt1 - 3.0) / 3.0;
                 //
-                result(1, 0) = (128.0 * x3 - 144.0 * x2 + 44.0 * x1 - 3.0) / 3.0;
+                result(1, 0) = (128.0 * xi3 - 144.0 * xi2 + 44.0 * xi1 - 3.0) / 3.0;
                 result(1, 1) = 0.0;
                 //
                 result(2, 0) = 0.0;
-                result(2, 1) = (128.0 * y3 - 144.0 * y2 + 44.0 * y1 - 3.0) / 3.0;
+                result(2, 1) = (128.0 * et3 - 144.0 * et2 + 44.0 * et1 - 3.0) / 3.0;
                 //
-                result(3, 0) = -128.0 * (tC2 - 0.5 * tC1 + 1.0 / 24.0) * x1 + (128.0 * tC3 - 96.0 * tC2 + 16.0 * tC1) / 3.0;
-                result(3, 1) = -16.0 * x1 * (24.0 * tC2 - 12.0 * tC1 + 1.0) / 3.0;
+                result(3, 0) = -128.0 * (zt2 - 0.5 * zt1 + 1.0 / 24.0) * xi1 + (128.0 * zt3 - 96.0 * zt2 + 16.0 * zt1) / 3.0;
+                result(3, 1) = -16.0 * xi1 * (24.0 * zt2 - 12.0 * zt1 + 1.0) / 3.0;
                 //
-                result(4, 0) = -128.0 * (x1 - 0.25) * (tC1 - 0.125) * x1 + 128.0 * (x1 - 0.125) * (tC1 - 0.25) * tC1;
-                result(4, 1) = -4.0 * x1 * (4.0 * x1 - 1.0) * (8.0 * tC1 - 1.0);
+                result(4, 0) = -128.0 * (xi1 - 0.25) * (zt1 - 0.125) * xi1 + 128.0 * (xi1 - 0.125) * (zt1 - 0.25) * zt1;
+                result(4, 1) = -4.0 * xi1 * (4.0 * xi1 - 1.0) * (8.0 * zt1 - 1.0);
                 //
-                result(5, 0) = -(128.0 * x3 - 96.0 * x2 + 16.0 * x1) / 3.0 + 128.0 * (x2 - 0.5 * x1 + 1.0 / 24.0) * tC1;
-                result(5, 1) = -16.0 * x1 * (8.0 * x2 - 6.0 * x1 + 1.0) / 3.0;
+                result(5, 0) = -(128.0 * xi3 - 96.0 * xi2 + 16.0 * xi1) / 3.0 + 128.0 * (xi2 - 0.5 * xi1 + 1.0 / 24.0) * zt1;
+                result(5, 1) = -16.0 * xi1 * (8.0 * xi2 - 6.0 * xi1 + 1.0) / 3.0;
                 //
-                result(6, 0) = 16.0 * y1 * (24.0 * x2 - 12.0 * x1 + 1.0) / 3.0;
-                result(6, 1) = (128.0 * x3 - 96.0 * x2 + 16.0 * x1) / 3.0;
+                result(6, 0) = 16.0 * et1 * (24.0 * xi2 - 12.0 * xi1 + 1.0) / 3.0;
+                result(6, 1) = (128.0 * xi3 - 96.0 * xi2 + 16.0 * xi1) / 3.0;
                 //
-                result(7, 0) = 4.0 * (8.0 * x1 - 1.0) * (4.0 * y1 - 1.0) * y1;
-                result(7, 1) = 4.0 * (4.0 * x1 - 1.0) * (8.0 * y1 - 1.0) * x1;
+                result(7, 0) = 4.0 * (8.0 * xi1 - 1.0) * (4.0 * et1 - 1.0) * et1;
+                result(7, 1) = 4.0 * (4.0 * xi1 - 1.0) * (8.0 * et1 - 1.0) * xi1;
                 //
-                result(8, 0) = (128.0 * y3 - 96.0 * y2 + 16.0 * y1) / 3.0;
-                result(8, 1) = 16.0 * x1 * (24.0 * y2 - 12.0 * y1 + 1.0) / 3.0;
+                result(8, 0) = (128.0 * et3 - 96.0 * et2 + 16.0 * et1) / 3.0;
+                result(8, 1) = 16.0 * xi1 * (24.0 * et2 - 12.0 * et1 + 1.0) / 3.0;
                 //
-                result(9, 0) = -16.0 * y1 * (8.0 * y2 - 6.0 * y1 + 1.0) / 3.0;
-                result(9, 1) = -(128.0 * y3 - 96.0 * y2 + 16.0 * y1) / 3.0 + 128.0 * (y2 - 0.5 * y1 + 1.0 / 24.0) * tC1;
+                result(9, 0) = -16.0 * et1 * (8.0 * et2 - 6.0 * et1 + 1.0) / 3.0;
+                result(9, 1) = -(128.0 * et3 - 96.0 * et2 + 16.0 * et1) / 3.0 + 128.0 * (et2 - 0.5 * et1 + 1.0 / 24.0) * zt1;
                 //
-                result(10, 0) = -4.0 * y1 * (4.0 * y1 - 1.0) * (8.0 * tC1 - 1.0);
-                result(10, 1) = -128.0 * (y1 - 0.25) * (tC1 - 0.125) * y1 + 128.0 * (y1 - 0.125) * tC1 * (tC1 - 0.25);
+                result(10, 0) = -4.0 * et1 * (4.0 * et1 - 1.0) * (8.0 * zt1 - 1.0);
+                result(10, 1) = -128.0 * (et1 - 0.25) * (zt1 - 0.125) * et1 + 128.0 * (et1 - 0.125) * zt1 * (zt1 - 0.25);
                 //
-                result(11, 0) = -16.0 * y1 * (24.0 * tC2 - 12.0 * tC1 + 1.0) / 3.0;
-                result(11, 1) = -128.0 * (tC2 - 0.5 * tC1 + 1.0 / 24.0) * y1 + (128.0 * tC3 - 96.0 * tC2 + 16.0 * tC1) / 3.0;
+                result(11, 0) = -16.0 * et1 * (24.0 * zt2 - 12.0 * zt1 + 1.0) / 3.0;
+                result(11, 1) = -128.0 * (zt2 - 0.5 * zt1 + 1.0 / 24.0) * et1 + (128.0 * zt3 - 96.0 * zt2 + 16.0 * zt1) / 3.0;
                 //
-                result(12, 0) = 256.0 * y1 * (-x1 * (tC1 - 0.125) + 0.5 * tC2 - 0.125 * tC1);
-                result(12, 1) = 256.0 * x1 * (-y1 * (tC1 - 0.125) + 0.5 * tC2 - 0.125 * tC1);
+                result(12, 0) = 256.0 * et1 * (-xi1 * (zt1 - 0.125) + 0.5 * zt2 - 0.125 * zt1);
+                result(12, 1) = 256.0 * xi1 * (-et1 * (zt1 - 0.125) + 0.5 * zt2 - 0.125 * zt1);
                 //
-                result(13, 0) = -32.0 * y1 * (4.0 * x2 - x1) + 256.0 * (x1 - 0.125) * y1 * tC1;
-                result(13, 1) = 128.0 * (x1 - 0.25) * (-y1 + tC1) * x1;
+                result(13, 0) = -32.0 * et1 * (4.0 * xi2 - xi1) + 256.0 * (xi1 - 0.125) * et1 * zt1;
+                result(13, 1) = 128.0 * (xi1 - 0.25) * (-et1 + zt1) * xi1;
                 //
-                result(14, 0) = 128.0 * (y1 - 0.25) * y1 * (-x1 + tC1);
-                result(14, 1) = -32.0 * x1 * (4.0 * y2 - y1) + 256.0 * (y1 - 0.125) * tC1 * x1;
+                result(14, 0) = 128.0 * (et1 - 0.25) * et1 * (-xi1 + zt1);
+                result(14, 1) = -32.0 * xi1 * (4.0 * et2 - et1) + 256.0 * (et1 - 0.125) * zt1 * xi1;
                 //
                 d_shape_f_values[pnt] = result;
             }
