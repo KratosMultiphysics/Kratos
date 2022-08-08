@@ -118,7 +118,7 @@ public:
      * @param ThisIndex The mesh index
      */
     void AddElementsWithNodes(
-        std::vector<IndexType> const& rElementIds,
+        const std::vector<IndexType>& rElementIds,
         IndexType ThisIndex = 0
         );
 
@@ -202,7 +202,7 @@ public:
      * @param ThisIndex The mesh index
      */
     void AddConditionsWithNodes(
-        std::vector<IndexType> const& rConditionIds,
+        const std::vector<IndexType>& rConditionIds,
         IndexType ThisIndex = 0
         );
 

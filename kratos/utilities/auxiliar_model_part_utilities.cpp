@@ -41,7 +41,7 @@ void AuxiliarModelPartUtilities::AddElementWithNodes(
 /***********************************************************************************/
 
 void AuxiliarModelPartUtilities::AddElementsWithNodes(
-    std::vector<IndexType> const& rElementIds,
+    const std::vector<IndexType>& rElementIds,
     IndexType ThisIndex
     )
 {
@@ -102,7 +102,7 @@ void AuxiliarModelPartUtilities::AddConditionWithNodes(
 /***********************************************************************************/
 
 void AuxiliarModelPartUtilities::AddConditionsWithNodes(
-    std::vector<IndexType> const& rConditionIds,
+    const std::vector<IndexType>& rConditionIds,
     IndexType ThisIndex
     )
 {
