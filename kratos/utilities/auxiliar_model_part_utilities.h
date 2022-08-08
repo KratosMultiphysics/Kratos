@@ -131,6 +131,7 @@ public:
      * @param ItElementsBegin The begin iterator
      * @param ItElementsEnd The end iterator
      * @param ThisIndex The mesh index
+     * @tparam TIteratorType The class of iterator considered
      */
     template<class TIteratorType >
     void AddElementsWithNodes(
@@ -187,6 +188,7 @@ public:
      * @param ItConditionsBegin The begin iterator
      * @param ItConditionsEnd The end iterator
      * @param ThisIndex The mesh index
+     * @tparam TIteratorType The class of iterator considered
      */
     template<class TIteratorType >
     void AddConditionsWithNodes(
@@ -821,6 +823,8 @@ private:
      * @param ItElementsBegin The begin iterator
      * @param ItElementsEnd The end iterator
      * @param ThisIndex The mesh index
+     * @tparam TEntitiesContainer The class of entities considered
+     * @tparam TIteratorType The class of iterator considered
      */
     template<class TEntitiesContainer, class TIteratorType>
     void AuxiliaryAddEntitiesWithNodes(
