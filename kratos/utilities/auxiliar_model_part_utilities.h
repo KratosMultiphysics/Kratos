@@ -124,6 +124,8 @@ public:
 
     /**
      * @brief Inserts a list of pointers to elements and the belonging nodes
+     * @param ItElementsBegin The begin iterator
+     * @param ItElementsEnd The end iterator
      * @param ThisIndex The mesh index
      */
     template<class TIteratorType >
@@ -208,6 +210,8 @@ public:
 
     /**
      * @brief Inserts a list of pointers to conditions and the belonging nodes
+     * @param ItConditionsBegin The begin iterator
+     * @param ItConditionsEnd The end iterator
      * @param ThisIndex The mesh index
      */
     template<class TIteratorType >
