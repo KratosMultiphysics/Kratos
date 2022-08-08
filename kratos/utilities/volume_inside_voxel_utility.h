@@ -375,7 +375,6 @@ public:
                 if (Case != 0) PartialArea =  max_volume -factor*TetraVolume(points)/FaceArea;
                 else PartialArea = 0;
             }
-            KRATOS_WATCH(PartialArea);
             Area += PartialArea;
         }
         return Area;    
