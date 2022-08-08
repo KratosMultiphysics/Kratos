@@ -201,10 +201,8 @@ void TriRegenerateMeshVMS(TriGenPFEMModelerVMS& Mesher, char* ElementName, char*
 void  AddMeshersToPython(pybind11::module& m)
 {
 
-#pragma message "A ****************************************************************************************"
 #ifdef USE_TETGEN_NONFREE_TPL
     // Class that allows 3D adaptive remeshing (inserting and erasing nodes)
-    #pragma message "B ****************************************************************************************"
     py::class_<TetGenPfemModeler, TetGenPfemModeler::Pointer >(m, "TetGenPfemModeler")
     .def(py::init< >())
     .def("ReGenerateMesh",TetRegenerateMesh)

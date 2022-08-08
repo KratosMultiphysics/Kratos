@@ -112,7 +112,6 @@ namespace Kratos
             }
         }
 
-
         //Some auxilary definitions
         BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
         BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
@@ -130,7 +129,6 @@ namespace Kratos
                  for(unsigned int k=0; k<TDim; k++)
                     vel_gauss[k] += N[i]*(Variables.v[i][k]*Variables.theta + Variables.vold[i][k]*(1.0-Variables.theta));
             }
-
             const double norm_vel = norm_2(vel_gauss);
             array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, vel_gauss);
 
@@ -143,8 +141,8 @@ namespace Kratos
             //terms which multiply the gradient of phi
             noalias(aux2) += (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, a_dot_grad);
             noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
-
         }
+
         //adding the second and third term in the formulation
         noalias(rLeftHandSideMatrix)  = (Variables.dt_inv*Variables.density*Variables.specific_heat + Variables.theta*Variables.beta*Variables.div_v)*aux1;
         noalias(rRightHandSideVector) = (Variables.dt_inv*Variables.density*Variables.specific_heat - (1.0-Variables.theta)*Variables.beta*Variables.div_v)*prod(aux1,Variables.phi_old);
@@ -263,9 +261,6 @@ namespace Kratos
 				  rVariables.v[i] = GetGeometry()[i].FastGetSolutionStepValue(rVelocityVar);
 				  rVariables.vold[i] = GetGeometry()[i].FastGetSolutionStepValue(rVelocityVar,1);
 				  //active_convection=true;
-
-                                  
-
 			}
 
 			if (IsDefinedMeshVelocityVariable)
@@ -273,7 +268,6 @@ namespace Kratos
 				  const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
 				  rVariables.v[i] -= GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar);
 				  rVariables.vold[i] -= GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar,1);
-				  
 				  //active_convection=true;
 			}
 

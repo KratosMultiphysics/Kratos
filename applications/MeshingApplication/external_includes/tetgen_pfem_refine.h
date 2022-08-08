@@ -156,7 +156,6 @@ namespace Kratos
 			PointVector res(max_results);
 			DistanceVector res_distances(max_results);
 			Node<3> work_point(0,0.0,0.0,0.0);
-			//KRATOS_WATCH(h_factor)
  			//if the remove_node switch is activated, we check if the nodes got too close
 			if (rem_nodes==true)
 			{
@@ -238,7 +237,6 @@ namespace Kratos
 
 
 			double first_part_time = auxiliary.elapsed();
-			//std::cout << "mesh generation time = " << first_part_time << std::endl;
 
 			//generate Kratos Tetrahedra3D4
 			int el_number = out.numberoftetrahedra;
@@ -390,13 +388,11 @@ namespace Kratos
 					{
 						if( radius  < prescribed_h * alpha_param * 5.0 )
 						{
-//std::cout << "element not deleted" <<std::endl;
 							preserved_list[el] = true; //preserve!!
 							number_of_preserved_elems += 1;
 						}
 						else
 						{
-//std::cout << "sliver removed" << std::endl;
 							preserved_list[el] = false;
 
 						}
@@ -406,7 +402,6 @@ namespace Kratos
 				}
 
 			}
-			//std::cout << "time for passing alpha shape" << alpha_shape_time.elapsed() << std::endl;
 
 			//freeing unnecessary memory
 			in.deinitialize();
@@ -426,7 +421,6 @@ namespace Kratos
 				in2.pointlist[base+1] = (nodes_begin + i)->Y();
 				in2.pointlist[base+2] = (nodes_begin + i)->Z();
 			}
-			//std::cout << "qui" << std::endl;
 			in2.numberoftetrahedra = number_of_preserved_elems;
 			in2.tetrahedronlist = new int[in2.numberoftetrahedra * 4];
 			in2.tetrahedronvolumelist = new double[in2.numberoftetrahedra];
@@ -516,7 +510,6 @@ namespace Kratos
 
 			//q - creates quality mesh, with the default radius-edge ratio set to 2.0
 
- 			//std::cout << "mesh recreation time" << mesh_recreation_time.elapsed() << std::endl;
 
 
 			//PAVEL
@@ -577,7 +570,6 @@ namespace Kratos
 				}
 			}
 
-			//std::cout << "During refinement we added " << outnew.numberofpoints-n_points_before_refinement<< "nodes " <<std::endl;
 
 
 			bucket_size = 50;
@@ -758,7 +750,6 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				(ThisModelPart.Elements()).push_back(p_element);
 
 			}
-			//std::cout << "time for adding elems" << adding_elems.elapsed() << std::endl;;
 			ThisModelPart.Elements().Sort();
 
 			boost::timer adding_neighb;
@@ -782,7 +773,6 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 						neighb(i) = Element::WeakPointer();
 				}
 			}
-			//std::cout << "time for adding neigbours" << adding_neighb.elapsed() << std::endl;;
 
 
 
@@ -797,7 +787,6 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				in->FastGetSolutionStepValue(IS_BOUNDARY) = 0;
 			}
 
-                        //std::cout << "reset the boundary flag" << adding_neighb.elapsed() << std::endl;;
 			//***********************************************************************************
 			//***********************************************************************************
 			boost::timer adding_faces;
@@ -844,7 +833,6 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			}
 			outnew.deinitialize();
 			outnew.initialize();
-			//std::cout << "time for adding faces" << adding_faces.elapsed() << std::endl;;
 
 
 
@@ -870,7 +858,6 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 
 
 			double second_part_time = auxiliary.elapsed();
-			//std::cout << "second part time = " << second_part_time - first_part_time << std::endl;
 
 
 			KRATOS_CATCH("")
