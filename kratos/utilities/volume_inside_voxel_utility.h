@@ -413,16 +413,12 @@ public:
     }
 
     /**
-     * @brief Returns the volume enclosed by a set of points
+     * @brief Returns the volume enclosed by a set of 4 points
      * @param rPoints the array of points
      * @return Volume/area inside this points
      */  
     static double TetraVolume(const PointsArrayType& rPoints) {
         GeometryPtrType pGeom =Kratos::make_shared<Quadrilateral3D4<NodeType>>(rPoints);
-        return pGeom->Volume();
-    }
-    static double TriangleVolume(const PointsArrayType& rPoints) {
-        GeometryPtrType pGeom =Kratos::make_shared<Triangle3D3<NodeType>>(rPoints);
         return pGeom->Volume();
     }
     
