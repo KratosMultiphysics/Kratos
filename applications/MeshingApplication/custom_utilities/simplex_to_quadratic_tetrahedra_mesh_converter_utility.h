@@ -18,6 +18,7 @@
 /* Project includes */
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
 #include "geometries/tetrahedra_3d_10.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -76,10 +77,14 @@ public:
     * @param interpolate_internal_variables: Boolean that defines if to interpolate or not the internal variables
     */
     void LocalConvertTetrahedra10Mesh(bool refine_on_reference, bool interpolate_internal_variables) {
-            for (auto element : mModelPart.Elements()) element.SetValue(SPLIT_ELEMENT,true);
-            for (auto condition : mModelPart.Conditions()) condition.SetValue(SPLIT_ELEMENT,true);
-            LocalRefineMesh(refine_on_reference, interpolate_internal_variables);
-        } 
+        block_for_each(mModelPart.Elements(), [&](Element element) {
+            element.SetValue(SPLIT_ELEMENT,true);
+        });
+        block_for_each(mModelPart.Conditions(), [&](Condition condition) {
+            condition.SetValue(SPLIT_ELEMENT,true);
+        });
+        LocalRefineMesh(refine_on_reference, interpolate_internal_variables);
+    } 
   
 private:
     ///@name Private static Member Variables
