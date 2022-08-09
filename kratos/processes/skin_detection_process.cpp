@@ -25,8 +25,7 @@ SkinDetectionProcess<TDim>::SkinDetectionProcess(
     ModelPart& rModelPart,
     Parameters ThisParameters
     ) : mrModelPart(rModelPart),
-        mThisParameters(ThisParameters),
-        mIsDstributed(rModelPart.IsDistributed())
+        mThisParameters(ThisParameters)
 {
     mThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 }
@@ -39,6 +38,12 @@ void SkinDetectionProcess<TDim>::Execute()
 {
     KRATOS_TRY;
 
+    // First assign MPI flags if needed
+    if (mrModelPart.IsDistributed()) {
+        VariableUtils().SetFlag(MPI_BOUNDARY, true, mrModelPart.GetCommunicator().GhostMesh().Nodes());
+    }
+
+    // Generate face maps
     HashMapVectorIntType inverse_face_map;
     HashMapVectorIntIdsType properties_face_map;
     this->GenerateFaceMaps(inverse_face_map, properties_face_map);
