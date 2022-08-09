@@ -7,16 +7,23 @@ from KratosMultiphysics.HDF5Application.core import operations
 from KratosMultiphysics.HDF5Application.core import file_io
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
-import pathlib
+import typing
 from unittest.mock import call, patch, MagicMock
 
 
 def _SurrogateModelPart():
-    model_part = MagicMock(spec=KratosMultiphysics.ModelPart)
-    model_part.ProcessInfo = {KratosMultiphysics.TIME: 1.23456789,
-                              KratosMultiphysics.DELTA_TIME: 0.1}
-    model_part.Name = 'model_part'
+    model = KratosMultiphysics.Model()
+    model_part = model.CreateModelPart("model_part")
+    model_part.ProcessInfo[KratosMultiphysics.TIME] = 1.23456789
+    model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = 0.1
     return model_part
+
+
+def _Advance(model_part: KratosMultiphysics.ModelPart, finalize_functor: typing.Callable, delta_times: "list[float]" = []) -> None:
+    for dt in delta_times:
+        model_part.ProcessInfo[KratosMultiphysics.STEP] = model_part.ProcessInfo[KratosMultiphysics.STEP] + 1
+        model_part.ProcessInfo[KratosMultiphysics.TIME] = model_part.ProcessInfo[KratosMultiphysics.TIME] + dt
+        finalize_functor()
 
 
 class TestFileIO(KratosUnittest.TestCase):
@@ -628,8 +635,6 @@ class TestControllers(KratosUnittest.TestCase):
         self.assertEqual(controller.io, io)
         self.assertEqual(controller.time_frequency, 1.0)
         self.assertEqual(controller.step_frequency, 1)
-        self.assertEqual(controller.current_time, 0.0)
-        self.assertEqual(controller.current_step, 0)
 
     def test_TemporalController_CreateWithParameters(self):
         model_part = _SurrogateModelPart()
@@ -653,8 +658,7 @@ class TestControllers(KratosUnittest.TestCase):
             io = file_io.Create(ParametersWrapper(), data_comm)
             controller = controllers.Factory(
                 model_part, io, controller_settings)
-            for i in range(10):
-                controller()
+            _Advance(model_part, lambda: controller(), delta_times = [0.1 for _ in range(10)])
             io.Get.assert_called_with(model_part)
             self.assertEqual(io.Get.call_count, 5)
 
@@ -669,8 +673,7 @@ class TestControllers(KratosUnittest.TestCase):
             io = file_io.Create(ParametersWrapper(), data_comm)
             controller = controllers.Factory(
                 model_part, io, controller_settings)
-            for i in range(10):
-                controller()
+            _Advance(model_part, lambda: controller(), delta_times = [0.1 for _ in range(10)])
             io.Get.assert_called_with(model_part)
             self.assertEqual(io.Get.call_count, 2)
 
@@ -685,8 +688,7 @@ class TestControllers(KratosUnittest.TestCase):
             io = file_io.Create(ParametersWrapper(), data_comm)
             controller = controllers.Factory(
                 model_part, io, controller_settings)
-            for _ in range(10):
-                controller()
+            _Advance(model_part, lambda: controller(), delta_times = [0.1 for _ in range(10)])
             io.Get.assert_called_with(model_part)
             self.assertEqual(io.Get.call_count, 5)
 
@@ -704,8 +706,7 @@ class TestControllers(KratosUnittest.TestCase):
             model_part, io, controller_settings)
         controller.Add(operation)
         with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5FileSerial', autospec=True):
-            for _ in range(10):
-                controller()
+            _Advance(model_part, lambda: controller(), delta_times = [0.1 for _ in range(10)])
             self.assertEqual(operation.call_count, 10)
 
 
@@ -805,7 +806,7 @@ class TestFactory(KratosUnittest.TestCase):
                 MockedModelPartIO.reset_mock() # discard initial calls
 
                 # No writes should be performed here
-                for step in range(4):
+                for step in range(1,5):
                     model_part.CloneTimeStep(step)
                     model_part.ProcessInfo[KratosMultiphysics.STEP] = step
                     process.ExecuteFinalizeSolutionStep()
