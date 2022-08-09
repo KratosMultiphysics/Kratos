@@ -10,7 +10,6 @@ license: HDF5Application/license.txt
 
 
 # Kratos imports
-from tokenize import Single
 import KratosMultiphysics
 from . import file_io
 
@@ -58,7 +57,8 @@ class DefaultController(Controller):
         self.ExecuteOperations()
 
 
-class TemporalController(Controller):
+
+class RefController(Controller):
     """!@brief Frequency-based controller.
     @detail Controls execution according to the 'time_frequency' and 'step_frequency'
     specified in the json settings.
@@ -89,6 +89,9 @@ class TemporalController(Controller):
             return True
         return False
 
+    def ExecuteOperations(self) -> None:
+        pass
+
     def __call__(self) -> None:
         # TODO: separately keeping track of steps and time internally is not a good
         # idea. What happens if the solution process involves jumping back and forth
@@ -100,13 +103,66 @@ class TemporalController(Controller):
             self.ExecuteOperations()
             self.current_time = 0.0
             self.current_step = 0
+
+
+class TemporalController(Controller):
+    """!@brief Frequency-based controller.
+        @detail Controls execution according to the 'time_frequency' and 'step_frequency'
+                specified in the json settings.
+    """
+
+    def __init__(self, model_part: KratosMultiphysics.ModelPart, io: file_io._FileIO, settings: KratosMultiphysics.Parameters):
+        super().__init__(model_part, io)
+        settings.SetDefault('time_frequency', 1.0)
+        settings.SetDefault('step_frequency', 1)
+        self.time_frequency: float = settings['time_frequency']
+        self.step_frequency: int = settings['step_frequency']
+        self.__last_execute_time: float = None # the model part might not be initialized yet
+
+    def IsExecuteStep(self) -> bool:
+        """!@brief Return true if the current step/time is a multiple of the output frequency.
+            @detail Relative errors are compared against an epsilon, which is much larger than
+                    the machine epsilon, and include a lower bound based on
+                    https://github.com/chromium/chromium, cc::IsNearlyTheSame.
+        """
+        # Initialize if necessary
+        if self.__last_execute_time == None:
+            self.__last_execute_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME] - self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+
+        step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
+        elapsed_time = abs(self.model_part.ProcessInfo[KratosMultiphysics.TIME] - self.__last_execute_time)
+
+        # Check step
+        ##! @todo Separate step and time based criteria (@matekelemen)
+        if step % self.step_frequency == 0:
+            return True
+
+        # Check time
+        ##! @todo Separate step and time based criteria (@matekelemen)
+        if elapsed_time > self.time_frequency:
+            return True
+
+        # Check time (roundoff errors)
+        eps = 1e-6
+        tol = eps * max(abs(elapsed_time), abs(self.time_frequency), eps)
+        if abs(elapsed_time - self.time_frequency) < tol:
+            return True
+        return False
+
+    def ExecuteOperations(self) -> None:
+        super().ExecuteOperations()
+        self.__last_execute_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+    def __call__(self) -> None:
+        if self.IsExecuteStep():
+            self.ExecuteOperations()
 ##!@}
 
 
 def Factory(model_part: KratosMultiphysics.ModelPart, io: file_io._FileIO, settings: KratosMultiphysics.Parameters) -> Controller:
     """!@brief Return the controller specified by the setting 'controller_type'.
-    @detail Empty settings will contain default values after returning from the
-    function call.
+        @detail Empty settings will contain default values after returning from the
+                function call.
     """
     settings.SetDefault('controller_type', 'default_controller')
     controller_type = settings['controller_type']
