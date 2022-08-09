@@ -107,7 +107,7 @@ namespace Kratos {
 
         for(int i = 0; i < Faces.size(); i++) {
             double Portion = HexaVolume2D(Faces[i],rTriangles);
-            double Dist = NormalizedDistanceToQEF(Faces[i], QEF, i); 
+            double Dist = NormalizedDistanceToQEF(Faces[i], QEF, i);
             
             double PartialVolume = Portion*abs(Dist)/3.0;   //Volume of a piramid
             Volume += PartialVolume;
@@ -161,13 +161,15 @@ namespace Kratos {
         PointsArrayType Nodes = rFace.Points();
         array_1d<double, 3> edge1 = Nodes[1]- Nodes[0];
         array_1d<double, 3> edge2 = Nodes[2] - Nodes[0];
+        
+        /* The elements used are assumed to have a correct hexahedra form. Therefore, the next check is not needed
         if (MathUtils<double>::Dot3(edge1,edge2) - MathUtils<double>::Norm3(edge1)*MathUtils<double>::Norm3(edge2) < 10e-8) {
             edge2 = Nodes[3] - Nodes[0];
-        }
+        } */
 
         array_1d<double, 3> mNormal;
         MathUtils<double>::UnitCrossProduct(mNormal, edge1, edge2);
-
+        
         const double mConstant =  inner_prod(mNormal, Nodes[0]);
         double Side = Distance(Nodes[1],Nodes[0]);
         double Distance = inner_prod(mNormal,Point) - mConstant;
