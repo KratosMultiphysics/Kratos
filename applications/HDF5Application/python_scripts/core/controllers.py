@@ -57,54 +57,6 @@ class DefaultController(Controller):
         self.ExecuteOperations()
 
 
-
-class RefController(Controller):
-    """!@brief Frequency-based controller.
-    @detail Controls execution according to the 'time_frequency' and 'step_frequency'
-    specified in the json settings.
-    """
-
-    def __init__(self, model_part: KratosMultiphysics.ModelPart, io: file_io._FileIO, settings: KratosMultiphysics.Parameters):
-        super().__init__(model_part, io)
-        settings.SetDefault('time_frequency', 1.0)
-        settings.SetDefault('step_frequency', 1)
-        self.time_frequency = settings['time_frequency']
-        self.step_frequency = settings['step_frequency']
-        self.current_time = 0.0
-        self.current_step = 0
-
-    def IsExecuteStep(self) -> bool:
-        """!@brief Return true if the current step/time is a multiple of the output frequency.
-        @detail Relative errors are compared against an epsilon, which is much larger than
-        the machine epsilon, and include a lower bound based on
-        https://github.com/chromium/chromium, cc::IsNearlyTheSame.
-        """
-        if self.current_step == self.step_frequency:
-            return True
-        if self.current_time > self.time_frequency:
-            return True
-        eps = 1e-6
-        tol = eps * max(abs(self.current_time), abs(self.time_frequency), eps)
-        if abs(self.current_time - self.time_frequency) < tol:
-            return True
-        return False
-
-    def ExecuteOperations(self) -> None:
-        pass
-
-    def __call__(self) -> None:
-        # TODO: separately keeping track of steps and time internally is not a good
-        # idea. What happens if the solution process involves jumping back and forth
-        # in time (restarts, checkpointing)? @matekelemen
-        delta_time = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        self.current_time += delta_time
-        self.current_step += 1
-        if self.IsExecuteStep():
-            self.ExecuteOperations()
-            self.current_time = 0.0
-            self.current_step = 0
-
-
 class TemporalController(Controller):
     """!@brief Frequency-based controller.
         @detail Controls execution according to the 'time_frequency' and 'step_frequency'
