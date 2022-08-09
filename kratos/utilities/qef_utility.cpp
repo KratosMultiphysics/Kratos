@@ -81,10 +81,14 @@ namespace Kratos {
 
     array_1d<double,3> QEF::CalculateCenter(const GeometryType& rVoxel) {
         PointsArrayType nodes = rVoxel.Points();
-        double x = (nodes[0].X() + nodes[1].X())/2.0;
-        double y = (nodes[1].Y() + nodes[2].Y())/2.0;
-        double z = (nodes[0].Z() + nodes[4].Z())/2.0;
-        array_1d<double,3> center({x,y,z});
+        double x, y, z;
+        x = y = z = 0;
+        for(int i = 0; i < nodes.size(); i++) {
+            x += nodes[i].X();
+            y += nodes[i].Y();
+            z += nodes[i].Z();
+        }
+        array_1d<double,3> center({x/nodes.size(),y/nodes.size(),z/nodes.size()});
         return center;
     }
 
