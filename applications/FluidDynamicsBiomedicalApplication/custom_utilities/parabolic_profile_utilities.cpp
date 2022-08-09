@@ -205,7 +205,7 @@ void ParabolicProfileUtilities::ImposeParabolicInlet(
 template<class TInputType>
 void ParabolicProfileUtilities::ImposeParabolicProfile(
     ModelPart &rModelPart,
-    const TInputType & rMaxParabolaValue,
+    const TInputType& rMaxParabolaValue,
     const double MaxValueFactor)
 {
     // Get time value from model part ProcessInfo
