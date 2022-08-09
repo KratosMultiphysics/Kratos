@@ -1,10 +1,14 @@
+# Core imports
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtils
 from KratosMultiphysics import KratosUnittest as UnitTest
+
+# HDF5 imports
 from KratosMultiphysics.HDF5Application.line_output_process import Factory as LineOutputProcessFactory
 from KratosMultiphysics.testing.utilities import ReadModelPart
+from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
 
-import math
+# STD imports
 import pathlib
 
 
@@ -55,19 +59,12 @@ class TestLineOutputProcess(UnitTest.TestCase):
 
         # Open output file
         file_parameters = parameters["file_parameters"].Clone()
-        file_parameters.AddString("file_access_mode","read_only")
-        if self.communicator.IsDistributed():
-            File = KratosMultiphysics.HDF5Application.HDF5FileParallel
-            file_parameters.AddString("file_driver", "mpio")
-        else:
-            File = KratosMultiphysics.HDF5Application.HDF5FileSerial
-
-        file = File(file_parameters)
-
-        # Check output file structure
-        root = "/test_line_output_{}".format(parameters["model_part_name"].GetString())
-        self.assertTrue(file.IsGroup(root))
-        self.assertTrue(file.IsDataSet(root + "/POSITION"))
+        file_parameters.AddString("file_access_mode", "read_only")
+        with OpenHDF5File(file_parameters, model_part) as file:
+            # Check output file structure
+            root = "/test_line_output_{}".format(parameters["model_part_name"].GetString())
+            self.assertTrue(file.IsGroup(root))
+            self.assertTrue(file.IsDataSet(root + "/POSITION"))
 
 
     @property
