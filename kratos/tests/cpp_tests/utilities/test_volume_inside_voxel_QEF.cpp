@@ -69,7 +69,7 @@ namespace Testing {
         Element::Pointer pTriangle = triangles.CreateNewElement("Element3D3N", 1, {1, 2, 3}, p_properties_1);
         return pTriangle->pGetGeometry();
     } 
-    
+
     /******************************************************************************************************
      ******************************************************************************************************/
 
@@ -378,7 +378,8 @@ namespace Testing {
         double Volume = VolumeInsideVoxelQEF::VoxelVolumeQEFApproximation(*pVoxel,Array1);
         double ExpectedVolume = 0.02083; //no nodes inside
         KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001);
-
+        Volume = VolumeInsideVoxelQEF::HexaVolumeQEFApproximation(*pVoxel,Array1);
+        KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001);
         //Exact expected result  
     }
 
@@ -404,19 +405,11 @@ namespace Testing {
         Array1.push_back(pTriangle3);
         Array1.push_back(pTriangle4);
 
-        
-        /*array_1d<double,3> normal = QEF::CalculateNormal(*pTriangle1);
-        KRATOS_WATCH(normal);
-        array_1d<double,3> normal2 = QEF::CalculateNormal(*pTriangle2);
-        KRATOS_WATCH(normal2);
-        array_1d<double,3> normal3 = QEF::CalculateNormal(*pTriangle3);
-        KRATOS_WATCH(normal3);
-        array_1d<double,3> normal4 = QEF::CalculateNormal(*pTriangle4);
-        KRATOS_WATCH(normal4);*/
-
         double Volume = VolumeInsideVoxelQEF::VoxelVolumeQEFApproximation(*pVoxel,Array1);
         double ExpectedVolume = 0.125; 
         KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001); 
+        Volume = VolumeInsideVoxelQEF::HexaVolumeQEFApproximation(*pVoxel,Array1);
+        KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001);
         //Exact expected result
     }
 
@@ -442,13 +435,10 @@ namespace Testing {
         Array1.push_back(pTriangle3);
         Array1.push_back(pTriangle4);
 
-        static array_1d<double,3> QEF = QEF::QEFPoint(*pVoxel, Array1);
-        KRATOS_CHECK_NEAR(QEF[0],0,0.001);
-        KRATOS_CHECK_NEAR(QEF[1],0,0.001);
-        KRATOS_CHECK_NEAR(QEF[2],0,0.001);
-
         double Volume = VolumeInsideVoxelQEF::VoxelVolumeQEFApproximation(*pVoxel,Array1);
         double ExpectedVolume = 0.5; 
+        KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001); 
+        Volume = VolumeInsideVoxelQEF::HexaVolumeQEFApproximation(*pVoxel,Array1);
         KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001); 
         //Exact expected result
     }
@@ -472,13 +462,10 @@ namespace Testing {
         Array1.push_back(pTriangle2); 
         Array1.push_back(pTriangle3);
 
-        static array_1d<double,3> QEF = QEF::QEFPoint(*pVoxel, Array1);
-        KRATOS_CHECK_NEAR(QEF[0],-0.6667,0.01);
-        KRATOS_CHECK_NEAR(QEF[1],-0.6667,0.01);
-        KRATOS_CHECK_NEAR(QEF[2],-0.6667,0.01);
-
         double Volume = VolumeInsideVoxelQEF::VoxelVolumeQEFApproximation(*pVoxel,Array1);
-        double ExpectedVolume = 1 - 0.02083; //no nodes inside
+        double ExpectedVolume = 1 - 0.02083; 
+        KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001);
+        Volume = VolumeInsideVoxelQEF::HexaVolumeQEFApproximation(*pVoxel,Array1);
         KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001);
 
         //Exact expected result
@@ -505,6 +492,9 @@ namespace Testing {
 
         double Volume = VolumeInsideVoxelQEF::VoxelVolumeQEFApproximation(*pVoxel,Array1);
         double ExpectedVolume = 0.045; 
+        KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001);
+        Volume = VolumeInsideVoxelQEF::HexaVolumeQEFApproximation(*pVoxel,Array1);
+        ExpectedVolume = 0.036;
         KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001);
 
         //The expected result for this case would be circa 0.036
@@ -536,6 +526,10 @@ namespace Testing {
 
         double Volume = VolumeInsideVoxelQEF::VoxelVolumeQEFApproximation(*pVoxel,Array1);
         double ExpectedVolume = 0.2083; 
+        KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001);
+
+        Volume = VolumeInsideVoxelQEF::HexaVolumeQEFApproximation(*pVoxel,Array1);
+        ExpectedVolume = 0.1666; 
         KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001);
 
         //The expected result for this case would be 1/6 = 0.1667
