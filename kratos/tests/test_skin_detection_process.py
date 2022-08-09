@@ -117,5 +117,34 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         gid_output.ExecuteFinalizeSolutionStep()
         gid_output.ExecuteFinalize()
 
+    def _post_process_mpi(self, model_part):
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        gid_output = GiDOutputProcess(model_part,
+                                    "gid_output_"+str(rank),
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration" : {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostBinary",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },
+                                                "nodal_results": ["PARTITION_INDEX"],
+                                                "nodal_flags_results" : ["INTERFACE","ACTIVE"]
+                                            }
+                                        }
+                                        """)
+                                    )
+
+        gid_output.ExecuteInitialize()
+        gid_output.ExecuteBeforeSolutionLoop()
+        gid_output.ExecuteInitializeSolutionStep()
+        gid_output.PrintOutput()
+        gid_output.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalize()
+
 if __name__ == '__main__':
     KratosUnittest.main()
