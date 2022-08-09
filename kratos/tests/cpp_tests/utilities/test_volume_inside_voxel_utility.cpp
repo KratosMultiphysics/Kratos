@@ -22,7 +22,8 @@
 
 namespace Kratos {
 namespace Testing {
-
+namespace {
+    
     typedef Node<3> NodeType;
     typedef Node<3>::Pointer NodePtrType;
     typedef Geometry<NodeType> GeometryType;
@@ -93,7 +94,7 @@ namespace Testing {
         }
         return pQuadrilater;
     } 
-
+ 
     /******************************************************************************************************
      ******************************************************************************************************/
 
@@ -751,6 +752,6 @@ namespace Testing {
         double ExpectedVolume = 0.772; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
     }
-
+}  //unnamed namespace
 }  // namespace Testing.
 }  // namespace Kratos.
