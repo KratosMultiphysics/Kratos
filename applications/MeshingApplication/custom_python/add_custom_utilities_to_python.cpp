@@ -26,7 +26,7 @@
 #include "custom_utilities/local_refine_triangle_mesh.hpp"
 #include "custom_utilities/local_refine_prism_mesh.hpp"
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
-#include "custom_utilities/tetrahedra10_mesh_converter_utility.h"
+#include "custom_utilities/simplex_to_quadratic_tetrahedra_mesh_converter_utility.h"
 
 
 #ifdef  USE_TETGEN_NONFREE_TPL
