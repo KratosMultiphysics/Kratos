@@ -22,6 +22,7 @@
 namespace Kratos {
 namespace Testing {
 
+namespace {
     //Type definitions 
     typedef Node<3> NodeType;
     typedef Node<3>::Pointer NodePtrType;
@@ -46,6 +47,7 @@ namespace Testing {
 
         return std::sqrt( length );
     }
+} //unnamed namespace
 
     KRATOS_TEST_CASE_IN_SUITE(Tet10RefinementUtility, KratosMeshingApplicationFastSuite)
     {

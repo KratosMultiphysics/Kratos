@@ -239,11 +239,11 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
-        ModelPart& mModelPart;
+
     ///@}
     ///@name Protected member Variables
     ///@{
-
+        ModelPart& mModelPart;
     ///@}
     ///@name Protected Operators
     ///@{
