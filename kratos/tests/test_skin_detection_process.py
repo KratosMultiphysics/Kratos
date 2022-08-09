@@ -51,31 +51,6 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
 
         self.assertEqual(model_part.GetSubModelPart("Skin_Part").NumberOfConditions(), model_part.NumberOfConditions())
 
-    def _post_process(self, model_part):
-        gid_output = GiDOutputProcess(model_part,
-                                    "gid_output",
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_flags_results" : ["INTERFACE","ACTIVE"]
-                                            }
-                                        }
-                                        """)
-                                    )
-
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
-
     def test_SubModelPartSkinDetectionProcess(self):
         current_model = KratosMultiphysics.Model()
 
@@ -104,7 +79,6 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         for node in model_part.Nodes:
             self.assertEqual(node.Is(KratosMultiphysics.INTERFACE), node.Is(KratosMultiphysics.ACTIVE))
 
-
     def test_NotOnSubModelPartSkinDetectionProcess(self):
         current_model = KratosMultiphysics.Model()
 
@@ -126,6 +100,31 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         #self._post_process(model_part)
 
         self.assertEqual(model_part.NumberOfConditions(), 112)
+
+    def _post_process(self, model_part):
+        gid_output = GiDOutputProcess(model_part,
+                                    "gid_output",
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration" : {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostBinary",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },
+                                                "nodal_flags_results" : ["INTERFACE","ACTIVE"]
+                                            }
+                                        }
+                                        """)
+                                    )
+
+        gid_output.ExecuteInitialize()
+        gid_output.ExecuteBeforeSolutionLoop()
+        gid_output.ExecuteInitializeSolutionStep()
+        gid_output.PrintOutput()
+        gid_output.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalize()
 
 if __name__ == '__main__':
     KratosUnittest.main()
