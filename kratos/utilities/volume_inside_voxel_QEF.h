@@ -111,9 +111,20 @@ public:
      */ 
     static double FacesPortionQEFApproximation(const GeometryType& rVoxel, const GeometryArrayType& rTriangles);
 
-    //PLEASE DONT USE THIS METHOD. Use GeometricalCasesQEFApproximation instead
+    /**
+     * @brief Aproximates the actual volume inside the voxel 
+     * @param rVoxel references to the voxel whose actual volume will be approximated
+     * @param rTriangles references to the triangles which intersect the voxel at some edge.
+     * @return Approximated volume 
+     */
     static double VoxelVolumeQEFApproximation(const GeometryType& rVoxel,const GeometryArrayType& rTriangles);
 
+    /**
+     * @brief Aproximates the actual volume inside the hexa (can have shifted angles!) 
+     * @param rVoxel references to the hexa whose actual volume will be approximated
+     * @param rTriangles references to the triangles which intersect the hexa at some edge.
+     * @return Approximated volume 
+     */
     static double HexaVolumeQEFApproximation(const GeometryType& rVoxel, const GeometryArrayType& rTriangles);
 
 private:
