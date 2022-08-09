@@ -62,12 +62,12 @@ void SkinDetectionProcess<TDim>::Execute()
         std::vector<VectorIndexType> faces_to_remove;
         bool to_remove;
         for (auto& r_map : inverse_face_map) {
-            to_remove = false;
+            to_remove = true;
             const VectorIndexType& r_vector_ids = r_map.first;
             const VectorIndexType& r_nodes_face = r_map.second;
             for (auto& r_index : r_nodes_face) {
-                if (set_node_ids_ghost.find(r_index) != set_node_ids_ghost.end()) {
-                    to_remove = true;
+                if (set_node_ids_ghost.find(r_index) == set_node_ids_ghost.end()) {
+                    to_remove = false;
                     continue;
                 }
             }
@@ -75,6 +75,7 @@ void SkinDetectionProcess<TDim>::Execute()
                 faces_to_remove.push_back(r_vector_ids);
             }            
         }
+
         for (auto& r_face_to_remove : faces_to_remove) {
             inverse_face_map.erase(r_face_to_remove);
         }
