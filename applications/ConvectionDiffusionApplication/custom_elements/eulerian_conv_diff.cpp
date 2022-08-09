@@ -135,7 +135,7 @@ namespace Kratos
             const double tau = this->CalculateTau(Variables,norm_vel,h);
 
             //terms multiplying dphi/dt (aux1)
-            noalias(aux1) += (1.0+tau*Variables.beta*Variables.div_v)* 0.25 * IdentityMatrix(4, 4); //outer_prod(N, N); //0.25 * IdentityMatrix(4, 4);
+            noalias(aux1) += (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, N);
             noalias(aux1) +=  tau*outer_prod(a_dot_grad, N);
 
             //terms which multiply the gradient of phi

@@ -19,7 +19,7 @@ set( KRATOS_PFEM_MELTING_APPLICATION_CORE_SOURCES
     #${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/custom_elements/vms.cpp  #TODO: this should REALLY
 )
 
-  
+
 
 ## define python interface sources
 set( KRATOS_PFEM_MELTING_PYTHON_INTERFACE_SOURCES
@@ -39,7 +39,7 @@ set( KRATOS_PFEM_MELTING_PYTHON_INTERFACE_SOURCES
 ###############################################################
 ## ConvectionDiffusionApplication core library (C++ parts)
 add_library( KratosPfemMeltingCore SHARED ${KRATOS_PFEM_MELTING_APPLICATION_CORE_SOURCES} ${KRATOS_PFEM_MELTING_TESTING_SOURCES} )
-target_link_libraries( KratosPfemMeltingCore PUBLIC KratosFluidDynamicsCore KratosCore )
+target_link_libraries( KratosPfemMeltingCore PUBLIC KratosFluidDynamicsCore KratosConvectionDiffusionCore KratosCore )
 set_target_properties( KratosPfemMeltingCore PROPERTIES COMPILE_DEFINITIONS "PFEM_MELTING_APPLICATION=EXPORT,API")
 
 ## FluidDynamicsApplication python module

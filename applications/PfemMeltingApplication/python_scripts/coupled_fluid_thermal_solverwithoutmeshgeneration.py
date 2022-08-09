@@ -70,15 +70,15 @@ class PfemCoupledFluidThermalSolver(BaseClass):
             self.thermal_solver.main_model_part.CreateSubModelPart("thermal_computing_domain")
 
         if self.domain_size == 2:
-            self.modeler.GenerateModelPart(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part, "EulerianConvDiff2D", "ThermalFace2D2N")
+            self.modeler.GenerateModelPart(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part, "EulerianConvDiffLumped2D", "ThermalFace2D2N")
         else:
-            self.modeler.GenerateModelPart(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part,"EulerianConvDiff3D","ThermalFace3D3N")
+            self.modeler.GenerateModelPart(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part,"EulerianConvDiffLumped3D","ThermalFace3D3N")
 
     def filling_submodelparts_aux(self):
         if self.domain_size == 2:
-            self.modeler.GenerateModelPart(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part, "EulerianConvDiff2D", "ThermalFace2D2N")
+            self.modeler.GenerateModelPart(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part, "EulerianConvDiffLumped2D", "ThermalFace2D2N")
         else:
-            self.modeler.GenerateModelPart(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part,"EulerianConvDiff3D","ThermalFace3D3N")
+            self.modeler.GenerateModelPart(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part,"EulerianConvDiffLumped3D","ThermalFace3D3N")
 
     def ReMesh(self):
         for node in self.fluid_solver.main_model_part.Nodes:

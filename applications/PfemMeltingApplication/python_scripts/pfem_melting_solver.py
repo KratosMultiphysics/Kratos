@@ -354,22 +354,22 @@ class PfemMeltingSolver(PythonSolver):
 
     def import_materials(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
-        
+
         if (materials_filename != ""):
             print("@@@@@@@@@@@@@@@@@@@@@@@@22")
             print(materials_filename)
-            
+
             # Add constitutive laws and material properties from json file to model parts.
             material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
             material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
             KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
-            
+
             # We set the properties that are nodal
             self._assign_nodally_properties()
             materials_imported = True
         else:
             materials_imported = False
-        
+
         return materials_imported
 
     def is_restarted(self):
@@ -487,14 +487,14 @@ class PfemMeltingSolver(PythonSolver):
         if element_name == "EulerianConvDiff":
             if domain_size == 2:
                 if num_nodes_elements == 3:
-                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D")
+                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiffLumped2D")
                 else:
-                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D4N")
+                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D4N") #TODO: check if this is lumped or not
             else:
                 if num_nodes_elements == 4:
-                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D")
+                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiffLumped3D")
                 else:
-                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D8N")
+                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D8N") #TODO: check if this is lumped or not
         elif element_name in ("LaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit"):
             name_string = "{0}{1}D{2}N".format(element_name,domain_size, num_nodes_elements)
             self.settings["element_replace_settings"]["element_name"].SetString(name_string)
@@ -555,8 +555,8 @@ class PfemMeltingSolver(PythonSolver):
 
     def _create_convection_diffusion_solution_strategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
-        
-        
+
+
         if analysis_type == "linear":
             convection_diffusion_solution_strategy = self._create_linear_strategy()
         elif analysis_type == "non_linear":
@@ -574,7 +574,7 @@ class PfemMeltingSolver(PythonSolver):
         computing_model_part = self.GetComputingModelPart()
         convection_diffusion_scheme = self.get_solution_scheme()
         builder_and_solver = self.get_builder_and_solver()
-        
+
         return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
                                                               convection_diffusion_scheme,
                                                               builder_and_solver,
@@ -588,7 +588,7 @@ class PfemMeltingSolver(PythonSolver):
         convection_diffusion_scheme = self.get_solution_scheme()
         convection_diffusion_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
-        
+
         return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
                                         convection_diffusion_scheme,
                                         convection_diffusion_convergence_criterion,
@@ -603,7 +603,7 @@ class PfemMeltingSolver(PythonSolver):
         convection_diffusion_scheme = self.get_solution_scheme()
         convection_diffusion_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
-        
+
         return KratosMultiphysics.LineSearchStrategy(computing_model_part,
                             convection_diffusion_scheme,
                             convection_diffusion_convergence_criterion,

@@ -1,7 +1,7 @@
-// KRATOS 
-// _____   __               __  __      _ _   _             
-//|  __ \ / _|             |  \/  |    | | | (_)            
-//| |__) | |_ ___ _ __ ___ | \  / | ___| | |_ _ _ __   __ _ 
+// KRATOS
+// _____   __               __  __      _ _   _
+//|  __ \ / _|             |  \/  |    | | | (_)
+//| |__) | |_ ___ _ __ ___ | \  / | ___| | |_ _ _ __   __ _
 //|  ___/|  _/ _ \ '_ ` _ \| |\/| |/ _ \ | __| | '_ \ / _` |
 //| |    | ||  __/ | | | | | |  | |  __/ | |_| | | | | (_| |
 //|_|    |_| \___|_| |_| |_|_|  |_|\___|_|\__|_|_| |_|\__, |
@@ -34,7 +34,6 @@
 
 #include "../applications/FluidDynamicsApplication/fluid_dynamics_application.h"
 #include "../applications/FluidDynamicsApplication/fluid_dynamics_application_variables.h"
-#include "../applications/FluidDynamicsApplication/custom_elements/vms.h"
 
 #include "../applications/FluidDynamicsApplication/custom_constitutive/bingham_3d_law.h"
 #include "../applications/FluidDynamicsApplication/custom_constitutive/euler_2d_law.h"
@@ -50,6 +49,8 @@
 #include "custom_elements/lagrangian_vms.h"
 //#include "custom_elements/HypoElasticSolid.h"
 #include "custom_elements/hypo.h"
+#include "custom_elements/eulerian_conv_diff_lumped.h"
+
 namespace Kratos
 {
 
@@ -211,9 +212,12 @@ private:
     const LagrangianFluidVMS<3,4> mLagrangianFluidVMS3D;
     //const HYPOELASTICSOLID<2,3> mHYPOELASTICSOLID2D;
     //const HYPOELASTICSOLID<3,4> mHYPOELASTICSOLID3D;
-    
+
     const HYPO<2,3> mHYPO2D;
     const HYPO<3,4> mHYPO3D;
+
+    const EulerianConvectionDiffusionLumpedElement<2,3> mEulerianConvDiffLumped2D;
+    const EulerianConvectionDiffusionLumpedElement<3,4> mEulerianConvDiffLumped3D;
 
     ///@}
     ///@name Private Operations

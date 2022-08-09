@@ -251,12 +251,12 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         if self.domain_size == 2:
             self.modeler.GenerateModelPart(self.fluid_solver.main_model_part,
                                       self.thermal_solver.main_model_part,
-                                      "EulerianConvDiff2D",
+                                      "EulerianConvDiffLumped2D",
                                       "ThermalFace2D2N")
         else:
             self.modeler.GenerateModelPart(self.fluid_solver.main_model_part,
                                       self.thermal_solver.main_model_part,
-                                      "EulerianConvDiff3D",
+                                      "EulerianConvDiffLumped3D",
                                       "ThermalFace3D3N")
 
         # Set the saved convection diffusion settings to the new thermal model part
@@ -359,9 +359,9 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         thermal_computing_domain.Nodes.clear()
 
         if self.domain_size == 2:
-            self.modeler.GenerateModelPart(self.fluid_solver.main_model_part, thermal_computing_domain, "EulerianConvDiff2D", "ThermalFace2D2N")
+            self.modeler.GenerateModelPart(self.fluid_solver.main_model_part, thermal_computing_domain, "EulerianConvDiffLumped2D", "ThermalFace2D2N")
         else:
-            self.modeler.GenerateModelPart(self.fluid_solver.main_model_part, thermal_computing_domain,"EulerianConvDiff3D","ThermalFace3D3N")
+            self.modeler.GenerateModelPart(self.fluid_solver.main_model_part, thermal_computing_domain,"EulerianConvDiffLumped3D","ThermalFace3D3N")
 
         self.thermal_solver.main_model_part.Conditions.clear()
 
