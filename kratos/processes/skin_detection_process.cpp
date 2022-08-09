@@ -245,7 +245,7 @@ void SkinDetectionProcess<TDim>::CreateConditions(
     for (auto& r_map : rInverseFaceMap) {
         condition_id += 1;
 
-        const VectorIndexType& nodes_face = r_map.second;
+        const VectorIndexType& r_nodes_face = r_map.second;
 
         Properties::Pointer p_prop = nullptr;
         const IndexType property_id = rPropertiesFaceMap[r_map.first];
@@ -255,12 +255,12 @@ void SkinDetectionProcess<TDim>::CreateConditions(
              p_prop = rMainModelPart.CreateNewProperties(property_id);
          }
 
-        for (auto& r_index : nodes_face) {
+        for (auto& r_index : r_nodes_face) {
             rNodesInTheSkin.insert(r_index);
         }
 
-        const std::string complete_name = rConditionName + std::to_string(TDim) + "D" + std::to_string(nodes_face.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
-        auto p_cond = rMainModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop);
+        const std::string complete_name = rConditionName + std::to_string(TDim) + "D" + std::to_string(r_nodes_face.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
+        auto p_cond = rMainModelPart.CreateNewCondition(complete_name, condition_id, r_nodes_face, p_prop);
         rSkinModelPart.AddCondition(p_cond);
         p_cond->Set(INTERFACE, true);
         p_cond->Initialize(r_process_info);
