@@ -25,7 +25,8 @@ SkinDetectionProcess<TDim>::SkinDetectionProcess(
     ModelPart& rModelPart,
     Parameters ThisParameters
     ) : mrModelPart(rModelPart),
-        mThisParameters(ThisParameters)
+        mThisParameters(ThisParameters),
+        mIsDstributed(rModelPart.IsDistributed())
 {
     mThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 }

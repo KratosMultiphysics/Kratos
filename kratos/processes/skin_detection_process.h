@@ -286,6 +286,7 @@ private:
 
     ModelPart& mrModelPart;     /// The main model part
     Parameters mThisParameters; /// The parameters (can be used for general pourposes)
+    bool mIsDstributed = false; /// If the the mesh is distributed in MPI
 
     ///@}
     ///@name Private Operators
