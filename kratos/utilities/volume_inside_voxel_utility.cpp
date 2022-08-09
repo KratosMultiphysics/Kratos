@@ -87,7 +87,7 @@ namespace Kratos {
     /***********************************************************************************
      **********************************************************************************/
 
-    double VolumeInsideVoxelUtility::NodesGeometrical2D(
+    double VolumeInsideVoxelUtility::VoxelVolume2D(
         const GeometryType& rFace,  
         const GeometryArrayType& rTriangles     
     ) {
@@ -147,7 +147,7 @@ namespace Kratos {
     /***********************************************************************************
      **********************************************************************************/
 
-    double VolumeInsideVoxelUtility::NodesGeometricalCases2D(
+    double VolumeInsideVoxelUtility::HexaVolume2D(
         const GeometryType& rFace,  
         const GeometryArrayType& rTriangles     
     ) {
@@ -162,7 +162,7 @@ namespace Kratos {
 
         if(NodesInside == 3) {
             for (int i = 0; i < Nodes.size(); i++)  Nodes[i].GetSolutionStepValue(DISTANCE) = (-1)*Nodes[i].GetSolutionStepValue(DISTANCE);
-            double Area = NodesGeometricalCases2D(rFace,rTriangles);
+            double Area = HexaVolume2D(rFace,rTriangles);
             for (int i = 0; i < Nodes.size(); i++)  Nodes[i].GetSolutionStepValue(DISTANCE) = (-1)*Nodes[i].GetSolutionStepValue(DISTANCE);
             return 1-Area;
         }

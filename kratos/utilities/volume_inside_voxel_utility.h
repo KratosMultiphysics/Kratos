@@ -119,12 +119,13 @@ public:
     static double EdgesPortionApproximation(const GeometryType& rVoxel, const GeometryArrayType& rTriangles);
 
     /**
-     * @brief Aproximates the actual area inside a quadrilateral 
+     * @brief Aproximates the actual area inside a quadrilateral with 90º angles
      * @param rFace references to the quadrilateral3D4 whose actual area will be approximated
      * @param rTriangles references to the triangles which intersect the quadrilateral at some edge.
      * @return Approximated area 
+     * @note this method is cheaper than HexaVolume2D, but won't work correctly with != 90º angles
      */  
-    static double NodesGeometrical2D(const GeometryType& rFace, const GeometryArrayType& rTriangles);
+    static double VoxelVolume2D(const GeometryType& rFace, const GeometryArrayType& rTriangles);
 
     /**
      * @brief Aproximates the actual area inside a quadrilateral 
@@ -132,7 +133,7 @@ public:
      * @param rTriangles references to the triangles which intersect the quadrilateral at some edge.
      * @return Approximated area 
      */  
-    static double NodesGeometricalCases2D(const GeometryType& rFace,const GeometryArrayType& rTriangles);
+    static double HexaVolume2D(const GeometryType& rFace,const GeometryArrayType& rTriangles);
 
     /**
      * @brief Returns the distance between two 3D points.
