@@ -19,8 +19,10 @@
 
 // Project includes
 #include "utilities/string_utilities.h"
-#include "model_part_communicator_utilities.h"
+#include "includes/parallel_environment.h"
+
 #include "parallel_fill_communicator.h"
+#include "model_part_communicator_utilities.h"
 #include "distributed_model_part_initializer.h"
 
 
@@ -65,9 +67,8 @@ void CreateSubModelPartHierarchy(ModelPart& rModelPart, const std::string& rMode
 
 void DistributedModelPartInitializer::Execute()
 {
-    ModelPartCommunicatorUtilities::SetMPICommunicator(mrModelPart);
-
-    const auto& r_data_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
+    const auto & r_data_comm = ParallelEnvironment::GetDataCommunicator("World");
+    ModelPartCommunicatorUtilities::SetMPICommunicator(mrModelPart, r_data_comm);
 
     std::string model_part_hierarchy;
     int size_model_part_hierarchy;
@@ -92,7 +93,7 @@ void DistributedModelPartInitializer::Execute()
     }
 
     // Compute communicaton plan and fill communicator meshes correctly
-    ParallelFillCommunicator(mrModelPart).Execute();
+    ParallelFillCommunicator(mrModelPart, r_data_comm).Execute();
 }
 
 }  // namespace Kratos.
