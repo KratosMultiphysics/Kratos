@@ -101,7 +101,7 @@ private:
     * Creates a new tetrahedra3D10
     * @return the reference to the new tetrahedra
     */
-    Tetrahedra3D10<Node<3>> GenerateTetrahedra(const ModelPart& rThisModelPart, const std::vector<int>& rNodeIds) {
+    Tetrahedra3D10<Node<3>> GenerateTetrahedra(ModelPart& rThisModelPart, const std::vector<int>& rNodeIds) {
         unsigned int i0 = rNodeIds[0];
         unsigned int i1 = rNodeIds[1];
         unsigned int i2 = rNodeIds[2];
@@ -132,7 +132,7 @@ private:
     * Creates a new triangle3D6
     * @return the reference to the new triangle
     */
-    Triangle3D6<Node<3>> GenerateTriangle3D6(ModelPart& rThisModelPart, array_1d<int, 6>& rNodeIds) {
+    Triangle3D6<Node<3>> GenerateTriangle3D6(ModelPart& rThisModelPart, const array_1d<int, 6>& rNodeIds) {
         unsigned int i0   = rNodeIds[0];
         unsigned int i1   = rNodeIds[1];
         unsigned int i2   = rNodeIds[2];
@@ -167,15 +167,15 @@ private:
     ) override
     {
         auto& rElements = rThisModelPart.Elements();
-        auto it_begin = rElements.ptr_begin();
-        auto it_end = rElements.ptr_end();
+        ElementsArrayType::iterator it_begin = rElements.ptr_begin();
+        ElementsArrayType::iterator it_end = rElements.ptr_end();
 
         const auto& rCurrentProcessInfo = rThisModelPart.GetProcessInfo();
         int edge_ids[6];
         std::vector<int> node_ids;
 
         const Element& rElem = KratosComponents<Element>::Get("Element3D10N");
-        for (auto it = it_begin; it != it_end; ++it)
+        for (ElementsArrayType::iterator& it = it_begin; it != it_end; ++it)
         {
             GlobalPointersVector< Element >& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
             rChildElements.resize(0);
@@ -250,15 +250,15 @@ private:
 
         if(rConditions.size() > 0)
         {
-            auto it_begin = rConditions.ptr_begin();
-            auto it_end = rConditions.ptr_end();
+            ConditionsArrayType::iterator it_begin = rConditions.ptr_begin();
+            ConditionsArrayType::iterator it_end = rConditions.ptr_end();
             int  edge_ids[3];
             array_1d<int, 6> node_ids;
 
             const auto& rCurrentProcessInfo = rThisModelPart.GetProcessInfo();
             const Condition& rCond = KratosComponents<Condition>::Get("SurfaceCondition3D6N");
 
-            for (auto it = it_begin; it != it_end; ++it)
+            for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
             {
                 CalculateEdgesFaces(it->GetGeometry(), Coord, edge_ids, node_ids);
 
