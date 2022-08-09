@@ -99,43 +99,12 @@ public:
      * @note This approximation assigns a fraction of volume (1/8) to each node of the
      * voxel, and counts it as volume if the node is inside the object (NodeDistance > 0)
      */  
-    template<class TGeometryType>
-    static double NodesApproximation(
-        const TGeometryType& rVoxel        
-    ) {
-        double volume = 0;
-        PointsArrayType nodes = rVoxel.Points();
-        for (int i = 0; i < 8; i++) {
-            //std::cout << "Node " << i << " is at " << nodes[i] << std::endl;
-            if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
-                volume+=0.125; //heyho
-            } 
-        }
-        return volume;
-    }
+    static double NodesApproximation(const GeometryType& rVoxel);
 
     /*This method is completly useless since it does the same calculation as the previous 
-    one but in a different way. Helps to illustrate use of edges
+    one but in a different way. Helps to illustrate use of Edges
     */
-    template<class TGeometryType>
-    static double EdgesApproximation(
-        const TGeometryType& rVoxel        
-    ) {
-        double volume = 0;
-        GeometryArrayType edges = rVoxel.GenerateEdges();
-        PointsArrayType nodes = rVoxel.Points();
-        for (int i = 0; i < 12; i++) {
-            PointsArrayType ends = edges[i].Points();
-            if(ends[0].GetSolutionStepValue(DISTANCE) > 0 && ends[1].GetSolutionStepValue(DISTANCE) > 0) {
-                volume+=1.0/12;
-            } else if(
-                ends[0].GetSolutionStepValue(DISTANCE) > 0 && ends[1].GetSolutionStepValue(DISTANCE) < 0 || 
-                ends[0].GetSolutionStepValue(DISTANCE) < 0 && ends[1].GetSolutionStepValue(DISTANCE) > 0 ) {
-                volume+=1.0/24;
-            }
-        }
-        return volume;
-    }
+    static double EdgesApproximation(const GeometryType& rVoxel);
     
     /**
      * @brief Aproximates the actual volume inside the voxel 
@@ -143,40 +112,52 @@ public:
      * @param rTriangles references to the triangles which intersect the voxel at some edge.
      * @return Approximated volume 
      * @note This approximation finds the portion of each edge that is part of the volume (using
-     * intersection point with triangles of the mesh)
+     * intersection point with triangles of the mesh). Even if this class is templated for both 
+     * parameters, it will only work with intersecting TRIANGLES, since the utility used to compute
+     * the intersection does not allow templating.
      */  
-    template<class TGeometryType, class TGeometryArrayType>
-    static double EdgesPortionApproximation(
-        const TGeometryType& rVoxel,  
-        const TGeometryArrayType& rTriangles     
-    ) {
-        double volume = 0;
-        GeometryArrayType edges = rVoxel.GenerateEdges();
-        std::vector<double> Distances;
+    static double EdgesPortionApproximation(const GeometryType& rVoxel, const GeometryArrayType& rTriangles);
 
-        for (int i = 0; i < 12; i++) {
-            Distances.push_back(0);
-            PointsArrayType ends = edges[i].Points();
-            //std::cout << "Edge " << i << " has nodes " << ends[0] << " " << ends[1] << std::endl;
+    /**
+     * @brief Aproximates the actual area inside a quadrilateral with 90º angles
+     * @param rFace references to the quadrilateral3D4 whose actual area will be approximated
+     * @param rTriangles references to the triangles which intersect the quadrilateral at some edge.
+     * @return Approximated area 
+     * @note this method is cheaper than HexaVolume2D, but won't work correctly with != 90º angles
+     */  
+    static double VoxelVolume2D(const GeometryType& rFace, const GeometryArrayType& rTriangles);
 
-            for (auto triangle : rTriangles) {
-                array_1d<double,3> intersection;
-                int result = IntersectionUtilities::ComputeTriangleLineIntersection(triangle,ends[0],ends[1],intersection);
-                
-                if(result == 1) {
-                    double Dist = Distance(ends[0], intersection);
-                    Distances.push_back(Dist);
-                }  
-            } 
-            Distances.push_back(Distance(ends[0],ends[1]));
-            std::sort(Distances.begin(),Distances.end());       //WOULD A SET BE MORE EFFICIENT?     
-            double edgePortion = VolumeInsideVoxelUtility::EdgeFilledPortion(Distances, ends);
-            volume += edgePortion/12;  
-            Distances.clear();              
-        }
-        return volume;
-    }
-    
+    /**
+     * @brief Aproximates the actual area inside a quadrilateral 
+     * @param rFace references to the quadrilateral3D4 whose actual area will be approximated
+     * @param rTriangles references to the triangles which intersect the quadrilateral at some edge.
+     * @return Approximated area 
+     */  
+    static double HexaVolume2D(const GeometryType& rFace,const GeometryArrayType& rTriangles);
+
+    /**
+     * @brief Returns the distance between two 3D points.
+     * @param rPoint0 reference to the first point
+     * @param rPoint1 reference an array of 3 coordinates representing the second point
+     * @return Distance 
+     */  
+    static double Distance(const NodeType& Point0, const array_1d<double,3>& Point1);
+
+    /**
+     * @brief Returns the volume enclosed by a set of 4 points
+     * @param rPoints the array of points
+     * @return Volume/area inside this points
+     */  
+    static double TetraVolume(const PointsArrayType& rPoints);
+
+    /**
+     * @brief Aproximates the portion of the edge that represents volume
+     * @param rDistances references to a sorted vector containing the distances of each intersecting point with the edge
+     * @param rEnds references to the nodes at both sides of the edge
+     * @return Approximated volume 
+     */  
+    static const double EdgeFilledPortion(std::vector<double>& Distances, const PointsArrayType& rEnds);
+
 private:
 
     ///@name Private static Member Variables
@@ -194,73 +175,9 @@ private:
     ///@name Private Operations
     ///@{
 
-    /**
-     * @brief Aproximates the portion of the edge that represents volume
-     * @param rDistances references to a sorted vector containing the distances of each intersecting point with the edge
-     * @param rEnds references to the nodes at both sides of the edge
-     * @return Approximated volume 
-     */  
-    static const double EdgeFilledPortion(std::vector<double>& Distances, const PointsArrayType& rEnds) {
-        double Length = Distances[Distances.size() - 1];
-        double portion = 0; 
-        bool inside;       
+    static double GetFactor(const PointsArrayType& nodes, const std::vector<std::vector<double>>& neighbours,const int node);
 
-        //casuistics: Both nodes inside, both nodes outside, one node inside and one outside
-        if (rEnds[0].GetSolutionStepValue(DISTANCE) > 0 && rEnds[1].GetSolutionStepValue(DISTANCE) > 0) {
-            bool inside = true;
-            if(Distances.size() % 2 == 1) Distances.pop_back();
-            if (Distances.size() == 2) return 1;
-        } else if (rEnds[0].GetSolutionStepValue(DISTANCE) > 0 && rEnds[1].GetSolutionStepValue(DISTANCE) < 0) {
-            if(Distances.size() % 2 == 0) Distances.pop_back();
-            inside = true;
-        } else if (rEnds[0].GetSolutionStepValue(DISTANCE) < 0 && rEnds[1].GetSolutionStepValue(DISTANCE) > 0) {
-            if(Distances.size() % 2 == 0) Distances.pop_back();
-            inside = false;
-        } else {    //rEnds[0].GetSolutionStepValue(DISTANCE) < 0 && rEnds[1].GetSolutionStepValue(DISTANCE) < 0
-            if (Distances.size() % 2 == 1) Distances.pop_back();
-            if (Distances.size() == 2) return 0;
-            inside = false;
-        }
-
-        for(int i = 1; i < Distances.size(); i++) {
-            if (inside) {
-                portion += abs(Distances[i]-Distances[i-1])/Length;
-                inside = false;
-            } else inside = true;             
-        }
-        return portion;
-    }
-
-    /**
-     * @brief Returns the distance between two 3D points.
-     * @param rPoint0 reference to the first point
-     * @param rPoint1 reference to the second point
-     * @return Distance 
-     */  
-    static double Distance(const NodeType& Point0, const NodeType& Point1) {
-        const double lx = Point0.X() - Point1.X();
-        const double ly = Point0.Y() - Point1.Y();
-        const double lz = Point0.Z() - Point1.Z();
-
-        const double length = lx * lx + ly * ly + lz * lz;
-
-        return std::sqrt( length );
-    }
-    /**
-     * @brief Returns the distance between two 3D points.
-     * @param rPoint0 reference to the first point
-     * @param rPoint1 reference an array of 3 coordinates representing the second point
-     * @return Distance 
-     */  
-    static double Distance(const NodeType& Point0, const array_1d<double,3>& Point1) {
-        const double lx = Point0.X() - Point1[0];
-        const double ly = Point0.Y() - Point1[1];
-        const double lz = Point0.Z() - Point1[2];
-
-        const double length = lx * lx + ly * ly + lz * lz;
-
-        return std::sqrt( length );
-    }
+    static int GetCase(const PointsArrayType& nodes, const std::vector<std::vector<double>>& neighbours,const int node);
 
 }; /* Class VoxelInsideVolumeUtility */
 

@@ -18,12 +18,12 @@
 #include "geometries/triangle_3d_3.h"
 #include "includes/checks.h"
 #include "testing/testing.h"
-#include "utilities/intersection_utilities.h"
 #include "utilities/volume_inside_voxel_utility.h"
 
 namespace Kratos {
 namespace Testing {
-
+namespace {
+    
     typedef Node<3> NodeType;
     typedef Node<3>::Pointer NodePtrType;
     typedef Geometry<NodeType> GeometryType;
@@ -74,6 +74,30 @@ namespace Testing {
         return pTriangle->pGetGeometry();
     } 
 
+    GeometryPtrType GenerateQuadrilateral3D4(std::vector<std::vector<double>>& rNodes, const std::vector<double>& rDistances)
+    {
+        Model my_model;
+        ModelPart& Quadrilater = my_model.CreateModelPart("Quadrilater"); 
+        Quadrilater.AddNodalSolutionStepVariable(DISTANCE);  
+
+        Quadrilater.CreateNewNode(1, rNodes[0][0], rNodes[0][1], rNodes[0][2]);
+        Quadrilater.CreateNewNode(2, rNodes[1][0], rNodes[1][1], rNodes[1][2]);
+        Quadrilater.CreateNewNode(3, rNodes[2][0], rNodes[2][1], rNodes[2][2]);
+        Quadrilater.CreateNewNode(4, rNodes[3][0], rNodes[3][1], rNodes[3][2]);
+        Properties::Pointer p_properties_1(new Properties(0)); 
+        Condition::Pointer pElement = Quadrilater.CreateNewCondition("SurfaceCondition3D4N", 1, {1, 2, 3, 4}, p_properties_1);
+        GeometryPtrType pQuadrilater = pElement->pGetGeometry();
+
+        PointsArrayType nodes = pQuadrilater->Points();   
+        for (int i = 0; i < 4; i++) {
+            nodes[i].FastGetSolutionStepValue(DISTANCE) = rDistances[i];
+        }
+        return pQuadrilater;
+    } 
+ 
+    /******************************************************************************************************
+     ******************************************************************************************************/
+
     KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelNodes, KratosCoreFastSuite) 
     {
 
@@ -85,8 +109,8 @@ namespace Testing {
         GeometryPtrType pVoxel2 = GenerateHexahedra3D8(distances2);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelUtility::NodesApproximation<Geometry<NodeType>>(*pVoxel); 
-        double volume2 = VolumeInsideVoxelUtility::NodesApproximation<Geometry<NodeType>>(*pVoxel2); 
+        double volume = VolumeInsideVoxelUtility::NodesApproximation(*pVoxel); 
+        double volume2 = VolumeInsideVoxelUtility::NodesApproximation(*pVoxel2); 
 
         //Expected output of the function
         const double ExpectedVolume1 = 0.125;
@@ -95,6 +119,9 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(volume, ExpectedVolume1);
         KRATOS_CHECK_EQUAL(volume2, ExpectedVolume2);
     }
+
+    /******************************************************************************************************
+     ******************************************************************************************************/
 
     KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdges, KratosCoreFastSuite) 
     {
@@ -107,8 +134,8 @@ namespace Testing {
         GeometryPtrType pVoxel2 = GenerateHexahedra3D8(distances2);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelUtility::EdgesApproximation<Geometry<NodeType>>(*pVoxel); 
-        double volume2 = VolumeInsideVoxelUtility::EdgesApproximation<Geometry<NodeType>>(*pVoxel2); 
+        double volume = VolumeInsideVoxelUtility::EdgesApproximation(*pVoxel); 
+        double volume2 = VolumeInsideVoxelUtility::EdgesApproximation(*pVoxel2); 
 
         //Expected output of the function
         const double ExpectedVolume1 = 3.0/24;
@@ -118,13 +145,16 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(volume2, ExpectedVolume2);
     }
 
+    /******************************************************************************************************
+     ******************************************************************************************************/
+
     KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortion, KratosCoreFastSuite) {
 
         //Both nodes of an edge are outside
         std::vector<double> distances{-1, -1, -1, -1, -1, -1, -1, -1};   
         GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
         GeometryArrayType array;
-        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array); 
+        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
         double ExpectedVolume = 0; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
@@ -132,7 +162,7 @@ namespace Testing {
         std::vector<std::vector<double>> triangle1{{0.5,-1,-0.95},{0.5,-0.95,-1.05},{0.5,-1.05,-1.05}};
         GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
         array.push_back(pTriangle1);
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array); 
+        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
@@ -141,7 +171,7 @@ namespace Testing {
         distances = {1, -1, -1, -1, -1, -1, -1, -1};   
         pVoxel = GenerateHexahedra3D8(distances);
         array = {};
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array); 
+        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
@@ -149,7 +179,7 @@ namespace Testing {
         distances = {1, -1, -1, -1, -1, -1, -1, -1};   
         pVoxel = GenerateHexahedra3D8(distances);
         array.push_back(pTriangle1);
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array); 
+        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0.75/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
@@ -160,19 +190,19 @@ namespace Testing {
         std::vector<std::vector<double>> triangle2{{0,-1,-0.95},{0,-0.95,-1.05},{0,-1.05,-1.05}};
         GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
         array.push_back(pTriangle2);
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array); 
+        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0.5/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
         //Both nodes are outside and there are 2 intersection points
         distances = {-1, -1, -1, -1, -1, -1, -1, -1};   
         pVoxel = GenerateHexahedra3D8(distances);
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array); 
+        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0.25/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
         //Both nodes are outside and there are 3 intersection points (meaning one is tangential)
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array); 
+        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
         std::vector<std::vector<double>> triangle3{{-0.5,-1,-0.95},{-0.5,-0.95,-1.05},{-0.5,-1.05,-1.05}};
         GeometryPtrType pTriangle3 = GenerateTriangle3D3(triangle3);
         array.push_back(pTriangle3);
@@ -182,7 +212,7 @@ namespace Testing {
         /* One node is outside and the other inside and there are three intersection point */
         distances = {1, -1, -1, -1, -1, -1, -1, -1};   
         pVoxel = GenerateHexahedra3D8(distances);
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array); 
+        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0.5/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
@@ -190,49 +220,43 @@ namespace Testing {
         distances = {1, 1, -1, -1, -1, -1, -1, -1};   
         pVoxel = GenerateHexahedra3D8(distances);
         array = {};
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array); 
+        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 1.0/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
         //Both nodes are inside and there is an intersection point (tangential)
         array.push_back(pTriangle1);
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array); 
+        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 1.0/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
         //Both nodes are inside and there are 2 intersection points
         array.push_back(pTriangle2);
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array); 
+        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0.75/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
         //Both nodes are inside and there are 3 intersection points (meaning one is tangential)
         array.push_back(pTriangle3);
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array); 
+        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0.5/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortion2, KratosCoreFastSuite) 
-    {   
-        //Just a simple general-case test
-        //Generate the HEXAHEDRA3D8
+    //A couple of test regarding the real efficiency and limitations of this method
+
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortion2, KratosCoreFastSuite) {
         std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
         GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
 
         //Generate the intersecting triangles
-        std::vector<std::vector<double>> triangle1{{0.5,-1,-0.95},{0.5,-0.95,-1.05},{0.5,-1.05,-1.05}};
-        std::vector<std::vector<double>> triangle2{{-1,-0.95,0.0},{-0.95,-1.05,0.0},{-1.05,-1.05,0.0}}; 
-        std::vector<std::vector<double>> triangle3{{-1,0.0,-0.95},{-0.95,0.0,-1.05},{-1.05,0.0,-1.05}}; 
-        std::vector<std::vector<double>> triangle4{{0.5,1,-0.95},{0.5,1.05,-1.05},{0.5,0.95,-1.05}};
-        std::vector<std::vector<double>> triangle5{{-0.5,1,-0.95},{-0.5,1.05,-1.05},{-0.5,0.95,-1.05}};
-        std::vector<std::vector<double>> triangle6{{-0.5,1,1.05},{-0.5,1.05,0.95},{-0.5,0.95,0.95}};
+        std::vector<std::vector<double>> triangle1{{-1,0.5,-0.95},{-0.95,0.5,-1.05},{-1.05,0.5,-1.05}}; 
+        std::vector<std::vector<double>> triangle2{{-1,-0.95,0},{-0.95,-1.05,0},{-1.05,-1.05,0}}; 
+        std::vector<std::vector<double>> triangle3{{-0.5,-0.95,-1},{-0.5,-1.05,-0.95},{-0.5,-1.05,-1.05}}; 
+        
         GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
         GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
         GeometryPtrType pTriangle3 = GenerateTriangle3D3(triangle3);
-        GeometryPtrType pTriangle4 = GenerateTriangle3D3(triangle4);
-        GeometryPtrType pTriangle5 = GenerateTriangle3D3(triangle5);
-        GeometryPtrType pTriangle6 = GenerateTriangle3D3(triangle6);
 
         GeometryArrayType array1;
         array1.push_back(pTriangle1); 
@@ -240,29 +264,11 @@ namespace Testing {
         array1.push_back(pTriangle3);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array1); 
-
-        //with two intersection between ouside nodes
-        array1.push_back(pTriangle4);
-        array1.push_back(pTriangle5);
-        double volume2 = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array1); 
-
-        //with a tangent intersection
-        array1.push_back(pTriangle6);
-        double volume3 = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array1); 
-
-        //Expected output of the function at each case
-        const double ExpectedVolume1 = 0.1458; 
-        const double ExpectedVolume2 = 0.1875; 
-        const double ExpectedVolume3 = 0.1875; //tangential intersections are ignored
-        
-        KRATOS_CHECK_NEAR(volume, ExpectedVolume1, 0.001);
-        KRATOS_CHECK_NEAR(volume2, ExpectedVolume2, 0.001);
-        KRATOS_CHECK_NEAR(volume3, ExpectedVolume3, 0.001);
+        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array1);
+        const double ExpectedVolume = 1.0/8; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);      
     }
-
-    //A couple of test regarding the real efficiency and limitations of this method
-
+    
     KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortion3, KratosCoreFastSuite) {
         //A voxel crossed by a straight plane with only 2 nodes inside th volume (good case approximation)
         std::vector<double> distances{1, 1, -1, -1, -1, -1, -1, -1};   
@@ -286,7 +292,7 @@ namespace Testing {
         array1.push_back(pTriangle4);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array1);
+        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array1);
         const double ExpectedVolume = 3.0/8; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
         /*in this case the volume expected to be returned by the method approximation is actually very close 
@@ -315,10 +321,10 @@ namespace Testing {
         array1.push_back(pTriangle4);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array1);
+        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array1);
         const double ExpectedVolume = 0.291; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
-        /*in this case the volume returned by the method approximation is not close to the real volume of the 
+        /*in this case the volume returned by the method approximation is not clse to the real volume of the 
         test case, since we would expect a real volume circa 0.1875 */
     }
 
@@ -345,7 +351,7 @@ namespace Testing {
         array1.push_back(pTriangle4);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array1);
+        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array1);
         const double ExpectedVolume = 7.0/12; //0.5833
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
         /*in this case the volume returned by the method approximation is not close to the real volume of the 
@@ -387,12 +393,365 @@ namespace Testing {
         array1.push_back(pTriangle8);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation<Geometry<NodeType>>(*pVoxel,array1);
+        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array1);
         const double ExpectedVolume = 2.0/12; //0.1666
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
         /*in this case the volume returned by the method approximation is not close to the real volume of the 
         test case, since we would expect a real volume circa 0.5 */
     } 
 
+    /******************************************************************************************************
+     ******************************************************************************************************/
+
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortionQuadrilateral, KratosCoreFastSuite) {
+
+        std::vector<std::vector<double>> quad{{1,1,-1},{-1,1,-1},{-1,-1,1}, {1,-1,1}};  
+        std::vector<double> distances{-1, -1, -1, -1}; 
+        GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+
+        std::vector<std::vector<double>> triangle1{{-0.5,-1,0.95},{-0.5,-0.95,1.05},{-0.5,-1.05,1.05}};
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1);
+        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pFace,array1);
+        const double ExpectedVolume = 0; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortionQuadrilateral2, KratosCoreFastSuite) {
+        std::vector<std::vector<double>> quad{{1,1,-1},{-1,1,-1},{-1,-1,1}, {1,-1,1}};  
+        std::vector<double> distances{1, -1, -1, -1}; 
+        GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+        
+        std::vector<std::vector<double>> triangle1{{0.5,1,-0.95},{0.5,0.95,-1.05},{0.5,1.05,-1.05}};
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1);
+        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pFace,array1);
+        const double ExpectedVolume = 0.25/4; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+
+    }
+
+     /******************************************************************************************************
+     ******************************************************************************************************/
+
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelVoxelVolume2D, KratosCoreFastSuite) { 
+        //Quadrilater with one node inside the volume (different cases)
+        std::vector<std::vector<double>> quad{{1,1,0},{-1,1,0},{-1,-1,0}, {1,-1,0}};  
+        std::vector<double> distances{1, -1, -1, -1}; 
+        GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+        
+        std::vector<std::vector<double>> triangle1{{0,1,0.05},{0,0.95,-0.05},{0,1.05,-0.05}};
+        std::vector<std::vector<double>> triangle2{{1,0.5,0.05},{0.95,0.5,-0.05},{1.05,0.5,-0.05}};
+        std::vector<std::vector<double>> triangle3{{0,-1,0.05},{0,-1.05,-0.05},{0,-0.95,-0.05}};
+        std::vector<std::vector<double>> triangle4{{0.95,1,0.05},{0.95,0.95,-0.05},{0.95,1.05,-0.05}};
+        std::vector<std::vector<double>> triangle5{{0.95,-1,0.05},{0.95,-1.05,-0.05},{0.95,-0.95,-0.05}};
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
+        GeometryPtrType pTriangle3 = GenerateTriangle3D3(triangle3);
+        GeometryPtrType pTriangle4 = GenerateTriangle3D3(triangle4);
+        GeometryPtrType pTriangle5 = GenerateTriangle3D3(triangle5);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1);
+        array1.push_back(pTriangle2);
+        double volume = VolumeInsideVoxelUtility::VoxelVolume2D(*pFace,array1);
+        double ExpectedVolume = 1.0/16; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+
+        //Two nodes inside the volume
+        distances = {-1, 1, 1, -1}; 
+        pFace = GenerateQuadrilateral3D4(quad,distances);
+
+        array1.clear();
+        array1.push_back(pTriangle1);
+        array1.push_back(pTriangle3);
+        volume = VolumeInsideVoxelUtility::VoxelVolume2D(*pFace,array1);
+        ExpectedVolume = 2.0/4; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+
+        array1.clear();
+        array1.push_back(pTriangle4);
+        array1.push_back(pTriangle5);
+        volume = VolumeInsideVoxelUtility::VoxelVolume2D(*pFace,array1);
+        ExpectedVolume = 0.975; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+
+        //Three nodes inside the volume
+        distances = {-1, 1, 1, 1}; 
+        pFace = GenerateQuadrilateral3D4(quad,distances);
+
+        array1.clear();
+        array1.push_back(pTriangle2);
+        array1.push_back(pTriangle1);
+        volume = VolumeInsideVoxelUtility::VoxelVolume2D(*pFace,array1);
+        ExpectedVolume = 15.0/16; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+
+        //Full quadrilateral with no intersections
+        distances = {1, 1, 1, 1}; 
+        pFace = GenerateQuadrilateral3D4(quad,distances);
+
+        array1.clear();
+        volume = VolumeInsideVoxelUtility::VoxelVolume2D(*pFace,array1);
+        ExpectedVolume = 1.0; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+
+        //Empty quadrilateral
+        distances = {-1, -1, -1, -1}; 
+        pFace = GenerateQuadrilateral3D4(quad,distances);
+        volume = VolumeInsideVoxelUtility::VoxelVolume2D(*pFace,array1);
+        ExpectedVolume = 0.0; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+    }
+
+    /******************************************************************************************************
+     ******************************************************************************************************/
+
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelHexaVolume2D0, KratosCoreFastSuite) { 
+        GeometryArrayType array1;
+        std::vector<std::vector<double>> quad{{1,1,0},{-1,1,0},{-1,-1,0}, {1,-1,0}};  
+       
+        //Full quadrilateral with no intersections
+        std::vector<double> distances{1, 1, 1, 1}; 
+        GeometryPtrType  pFace = GenerateQuadrilateral3D4(quad,distances);
+
+        double volume = VolumeInsideVoxelUtility::HexaVolume2D(*pFace,array1);
+        double ExpectedVolume = 1.0; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+
+        //Empty quadrilateral
+        distances = {-1, -1, -1, -1}; 
+        pFace = GenerateQuadrilateral3D4(quad,distances);
+        volume = VolumeInsideVoxelUtility::HexaVolume2D(*pFace,array1);
+        ExpectedVolume = 0.0; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelHexaVolume2D1, KratosCoreFastSuite) { 
+        //Quadrilater with one node inside the volume (different cases)
+        std::vector<std::vector<double>> quad{{1,1,0},{-1,1,0},{-1,-1,0}, {1,-1,0}};  
+        std::vector<double> distances{1, -1, -1, -1}; 
+        GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+        
+        std::vector<std::vector<double>> triangle1{{0,1,0.05},{0,0.95,-0.05},{0,1.05,-0.05}};
+        std::vector<std::vector<double>> triangle2{{1,0.5,0.05},{0.95,0.5,-0.05},{1.05,0.5,-0.05}};
+
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1);
+        array1.push_back(pTriangle2);
+        double volume = VolumeInsideVoxelUtility::HexaVolume2D(*pFace,array1);
+        double ExpectedVolume = 1.0/16; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelHexaVolume2D2, KratosCoreFastSuite) { 
+        //Quadrilater with one node inside the volume (different cases)
+        std::vector<std::vector<double>> quad{{1,1,0},{-1,1,0},{-1,-1,0}, {1,-1,0}};  
+        std::vector<double> distances{1, -1, -1, -1}; 
+        GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+        
+        std::vector<std::vector<double>> triangle1{{-0.99,1,0.05},{-0.99,0.95,-0.05},{-0.99,1.05,-0.05}};
+        std::vector<std::vector<double>> triangle2{{1,-0.99,0.05},{0.95,-0.99,-0.05},{1.05,-0.99,-0.05}};
+
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1);
+        array1.push_back(pTriangle2);
+        double volume = VolumeInsideVoxelUtility::HexaVolume2D(*pFace,array1);
+        double ExpectedVolume = 0.495; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
+    }
+
+     KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelHexaVolume2D3, KratosCoreFastSuite) { 
+        //Quadrilater with one node inside the volume (different cases)
+        std::vector<std::vector<double>> quad{{1,1,0},{-1,1,0},{-1,-1,0}, {1,-1,0}};          
+        std::vector<std::vector<double>> triangle1{{0,1,0.05},{0,0.95,-0.05},{0,1.05,-0.05}};
+        std::vector<std::vector<double>> triangle3{{0,-1,0.05},{0,-1.05,-0.05},{0,-0.95,-0.05}};
+
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle3 = GenerateTriangle3D3(triangle3);
+
+        //Two nodes inside the volume
+        std::vector<double> distances{-1, 1, 1, -1}; 
+         GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1);
+        array1.push_back(pTriangle3);
+        double volume = VolumeInsideVoxelUtility::HexaVolume2D(*pFace,array1);
+        double ExpectedVolume = 2.0/4; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+    }
+
+     KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelHexaVolume2D4, KratosCoreFastSuite) { 
+        //Two nodes inside the volume
+        std::vector<std::vector<double>> quad{{1,1,0},{-1,1,0},{-1,-1,0}, {1,-1,0}};  
+        std::vector<std::vector<double>> triangle4{{0.95,1,0.05},{0.95,0.95,-0.05},{0.95,1.05,-0.05}};
+        std::vector<std::vector<double>> triangle5{{0.95,-1,0.05},{0.95,-1.05,-0.05},{0.95,-0.95,-0.05}};
+        GeometryPtrType pTriangle4 = GenerateTriangle3D3(triangle4);
+        GeometryPtrType pTriangle5 = GenerateTriangle3D3(triangle5);
+
+        std::vector<double> distances{-1, 1, 1, -1}; 
+         GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle4);
+        array1.push_back(pTriangle5);
+        double volume = VolumeInsideVoxelUtility::HexaVolume2D(*pFace,array1);
+        double ExpectedVolume = 0.975; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelHexaVolume2D5, KratosCoreFastSuite) { 
+        //Two nodes inside the volume
+        std::vector<std::vector<double>> quad{{1,1,0},{-1,1,0},{-1,-1,0}, {1,-1,0}};  
+        std::vector<std::vector<double>> triangle4{{0.99999,1,0.05},{0.9999,0.95,-0.05},{0.9999,1.05,-0.05}};
+        std::vector<std::vector<double>> triangle5{{-0.5,-1,0.05},{-0.5,-1.05,-0.05},{-0.5,-0.95,-0.05}};
+        GeometryPtrType pTriangle4 = GenerateTriangle3D3(triangle4);
+        GeometryPtrType pTriangle5 = GenerateTriangle3D3(triangle5);
+
+        std::vector<double> distances{-1, 1, 1, -1}; 
+         GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle4);
+        array1.push_back(pTriangle5);
+        double volume = VolumeInsideVoxelUtility::HexaVolume2D(*pFace,array1);
+        double ExpectedVolume = 0.625; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelHexaVolume2D6, KratosCoreFastSuite) { 
+        //Two nodes inside the volume
+        std::vector<std::vector<double>> quad{{1,1,0},{-1,1,0},{-1,-1,0}, {1,-1,0}};  
+        std::vector<std::vector<double>> triangle1{{0,1,0.05},{0,0.95,-0.05},{0,1.05,-0.05}};
+        std::vector<std::vector<double>> triangle2{{-1,0.5,0.05},{-1.05,0.5,-0.05},{-0.95,0.5,-0.05}};
+        std::vector<std::vector<double>> triangle3{{0,-1,0.05},{0,-1.05,-0.05},{0,-0.95,-0.05}};
+        std::vector<std::vector<double>> triangleaux{{1,0.5,0.05},{0.95,0.5,-0.05},{1.05,0.5,-0.05}};
+
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
+        GeometryPtrType pTriangle3 = GenerateTriangle3D3(triangle3);
+        GeometryPtrType pTriangleaux = GenerateTriangle3D3(triangleaux);
+
+        std::vector<double> distances{1, -1, 1, -1}; 
+         GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1);
+        array1.push_back(pTriangle2);
+        array1.push_back(pTriangle3);
+        array1.push_back(pTriangleaux);
+        double volume = VolumeInsideVoxelUtility::HexaVolume2D(*pFace,array1);
+        double ExpectedVolume = 0.25; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
+    }
+
+     KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelHexaVolume2D7, KratosCoreFastSuite) { 
+        //three nodes inside the volume
+        std::vector<std::vector<double>> quad{{1,1,0},{-1,1,0},{-1,-1,0}, {1,-1,0}};  
+        std::vector<std::vector<double>> triangle1{{0,1,0.05},{0,0.95,-0.05},{0,1.05,-0.05}};
+        std::vector<std::vector<double>> triangle2{{1,0.5,0.05},{0.95,0.5,-0.05},{1.05,0.5,-0.05}};
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1);
+        array1.push_back(pTriangle2);
+        std::vector<double> distances{-1, 1, 1, 1}; 
+        GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+
+        double volume = VolumeInsideVoxelUtility::HexaVolume2D(*pFace,array1);
+        double ExpectedVolume = 15.0/16; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelHexaVolume2D8, KratosCoreFastSuite) { 
+        //QUADRILATERAL with one node inside the volume 
+        std::vector<std::vector<double>> quad{{5,3,0},{0,3,0},{0,0,0}, {5,0,0}};  
+        std::vector<double> distances{1, -1, -1, -1}; 
+        GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+        
+        std::vector<std::vector<double>> triangle1{{1,3,0.05},{1,2.95,-0.05},{1,3.05,-0.05}};
+        std::vector<std::vector<double>> triangle2{{5,1.5,0.05},{4.95,1.5,-0.05},{5.05,1.5,-0.05}};
+
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1);
+        array1.push_back(pTriangle2);
+        double volume = VolumeInsideVoxelUtility::HexaVolume2D(*pFace,array1);
+        double ExpectedVolume = 0.2; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelHexaVolume2D9, KratosCoreFastSuite) { 
+        //Quadrilater with one node inside the volume (different cases)
+        std::vector<std::vector<double>> quad{{1,1,0},{-1,1,0},{-3,-3,0}, {1,-1,0}};  
+        std::vector<double> distances{1, -1, -1, -1}; 
+        GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+        
+        std::vector<std::vector<double>> triangle1{{0,1,0.05},{0,0.95,-0.05},{0,1.05,-0.05}};
+        std::vector<std::vector<double>> triangle2{{1,0.5,0.05},{0.95,0.5,-0.05},{1.05,0.5,-0.05}};
+
+        GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
+        GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle1);
+        array1.push_back(pTriangle2);
+        double volume = VolumeInsideVoxelUtility::HexaVolume2D(*pFace,array1);
+        double ExpectedVolume = 1.0/32; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
+    }
+
+     KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelHexaVolume2D10, KratosCoreFastSuite) { 
+        //Two nodes inside the volume
+        std::vector<std::vector<double>> quad{{2,1,0},{-1,1,0},{-1,-1,0}, {1.5,-1,0}};  
+        std::vector<std::vector<double>> triangle4{{0.95,1,0.05},{0.95,0.95,-0.05},{0.95,1.05,-0.05}};
+        std::vector<std::vector<double>> triangle5{{0.95,-1,0.05},{0.95,-1.05,-0.05},{0.95,-0.95,-0.05}};
+        GeometryPtrType pTriangle4 = GenerateTriangle3D3(triangle4);
+        GeometryPtrType pTriangle5 = GenerateTriangle3D3(triangle5);
+
+        std::vector<double> distances{-1, 1, 1, -1}; 
+         GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle4);
+        array1.push_back(pTriangle5);
+        double volume = VolumeInsideVoxelUtility::HexaVolume2D(*pFace,array1);
+        double ExpectedVolume = 0.709; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelHexaVolume2D11, KratosCoreFastSuite) { 
+        //Two nodes inside the volume
+        std::vector<std::vector<double>> quad{{2,1,0},{-2,1,0},{-1.5,-1,0}, {1.5,-1,0}};  
+        std::vector<std::vector<double>> triangle4{{0.95,1,0.05},{0.95,0.95,-0.05},{0.95,1.05,-0.05}};
+        std::vector<std::vector<double>> triangle5{{0.95,-1,0.05},{0.95,-1.05,-0.05},{0.95,-0.95,-0.05}};
+        GeometryPtrType pTriangle4 = GenerateTriangle3D3(triangle4);
+        GeometryPtrType pTriangle5 = GenerateTriangle3D3(triangle5);
+
+        std::vector<double> distances{-1, 1, 1, -1}; 
+         GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
+
+        GeometryArrayType array1;
+        array1.push_back(pTriangle4);
+        array1.push_back(pTriangle5);
+        double volume = VolumeInsideVoxelUtility::HexaVolume2D(*pFace,array1);
+        double ExpectedVolume = 0.772; 
+        KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
+    }
+}  //unnamed namespace
 }  // namespace Testing.
 }  // namespace Kratos.
