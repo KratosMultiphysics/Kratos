@@ -75,8 +75,10 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         ## Get domain size
         self.domain_size = self.settings["domain_size"].GetInt()
 
-        from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
-        self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
+        #from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
+        #self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
+        import KratosMultiphysics.PfemMeltingApplication.fluid_solver_customized
+        self.fluid_solver = KratosMultiphysics.PfemMeltingApplication.fluid_solver_customized.FluidSolverCustomized(model, self.settings["fluid_solver_settings"])
 
         from KratosMultiphysics.ConvectionDiffusionApplication import python_solvers_wrapper_convection_diffusion
 

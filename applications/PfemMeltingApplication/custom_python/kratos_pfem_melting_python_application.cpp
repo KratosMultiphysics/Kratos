@@ -25,6 +25,7 @@
 //#include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_strategies_to_python.h"
 //#include "custom_python/add_custom_response_functions_to_python.h"
 
 namespace Kratos
@@ -46,6 +47,7 @@ PYBIND11_MODULE(KratosPfemMeltingApplication,m)
     //AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
+    AddCustomStrategiesToPython(m);
     //AddCustomResponseFunctionsToPython(m);
 
     // Registering variables in python
@@ -62,20 +64,20 @@ PYBIND11_MODULE(KratosPfemMeltingApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_SIGMA_XX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_SIGMA_XY)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_SIGMA_XZ)
-    
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_SIGMA_YX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_SIGMA_YY)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_SIGMA_YZ)
-    
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_SIGMA_ZX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_SIGMA_ZY)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_SIGMA_ZZ)
-    
-    
+
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HISTORICAL_SIGMA_XX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HISTORICAL_SIGMA_XY)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HISTORICAL_SIGMA_XZ)
-    
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HISTORICAL_SIGMA_YX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HISTORICAL_SIGMA_YY)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HISTORICAL_SIGMA_YZ)
@@ -83,8 +85,8 @@ PYBIND11_MODULE(KratosPfemMeltingApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HISTORICAL_SIGMA_ZX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HISTORICAL_SIGMA_ZY)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HISTORICAL_SIGMA_ZZ)
-    
-    
+
+
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,INITIAL_POSITION)
 
