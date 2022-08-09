@@ -87,19 +87,7 @@ public:
     virtual ~AuxiliarModelPartUtilities()= default;
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
+    ///@name Operators
     ///@{
 
     ///@}
@@ -697,6 +685,22 @@ public:
         }
 
     }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
 
     /// Turn back information as a string.
     virtual std::string Info() const
