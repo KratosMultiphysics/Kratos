@@ -112,9 +112,9 @@ public:
     static double FacesPortionQEFApproximation(const GeometryType& rVoxel, const GeometryArrayType& rTriangles);
 
     //PLEASE DONT USE THIS METHOD. Use GeometricalCasesQEFApproximation instead
-    static double GeometricalQEFApproximation(const GeometryType& rVoxel,const GeometryArrayType& rTriangles);
+    static double VoxelVolumeQEFApproximation(const GeometryType& rVoxel,const GeometryArrayType& rTriangles);
 
-    static double GeometricalCasesQEFApproximation(const GeometryType& rVoxel, const GeometryArrayType& rTriangles);
+    static double HexaVolumeQEFApproximation(const GeometryType& rVoxel, const GeometryArrayType& rTriangles);
 
 private:
 

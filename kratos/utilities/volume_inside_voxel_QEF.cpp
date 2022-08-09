@@ -68,7 +68,7 @@ namespace Kratos {
     /***********************************************************************************
      **********************************************************************************/
 
-    double VolumeInsideVoxelQEF::GeometricalQEFApproximation(
+    double VolumeInsideVoxelQEF::VoxelVolumeQEFApproximation(
         const GeometryType& rVoxel,  
         const GeometryArrayType& rTriangles     
     ) {
@@ -79,7 +79,7 @@ namespace Kratos {
         //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
 
         for(int i = 0; i < Faces.size(); i++) {
-            double Portion = NodesGeometrical2D(Faces[i],rTriangles);
+            double Portion = VoxelVolume2D(Faces[i],rTriangles);
             double Dist = NormalizedDistanceToQEF(Faces[i], QEF, i);
             
             double PartialVolume = Portion*abs(Dist)/3.0;   //Volume of a piramid
@@ -95,7 +95,7 @@ namespace Kratos {
     /***********************************************************************************
      **********************************************************************************/
 
-    double VolumeInsideVoxelQEF::GeometricalCasesQEFApproximation(
+    double VolumeInsideVoxelQEF::HexaVolumeQEFApproximation(
         const GeometryType& rVoxel,  
         const GeometryArrayType& rTriangles     
     ) {
@@ -106,7 +106,7 @@ namespace Kratos {
         //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
 
         for(int i = 0; i < Faces.size(); i++) {
-            double Portion = NodesGeometricalCases2D(Faces[i],rTriangles);
+            double Portion = HexaVolume2D(Faces[i],rTriangles);
             double Dist = NormalizedDistanceToQEF(Faces[i], QEF, i);
             
             double PartialVolume = Portion*abs(Dist)/3.0;   //Volume of a piramid
@@ -170,5 +170,5 @@ namespace Kratos {
 
         return Distance/Side;
     }
-    
+
 } //Namespace Kratos
