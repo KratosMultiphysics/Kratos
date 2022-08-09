@@ -13,7 +13,6 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/parallel_environment.h"
 #include "includes/variables.h"
 #include "mpi/utilities/distributed_model_part_initializer.h"
 
@@ -26,7 +25,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_NoSubModel
     ModelPart& main_model_part = current_model.CreateModelPart("main");
     main_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
-    DistributedModelPartInitializer(main_model_part, ParallelEnvironment::GetDataCommunicator("World"), 0).Execute();
+    DistributedModelPartInitializer(main_model_part, Testing::GetDefaultDataCommunicator(), 0).Execute();
 
     KRATOS_CHECK(main_model_part.IsDistributed());
 
@@ -46,7 +45,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_NoSubModel
         main_model_part.CreateNewNode(i+1, 0,0,0); // coords don't matter for this test
     }
 
-    DistributedModelPartInitializer(main_model_part, ParallelEnvironment::GetDataCommunicator("World"), 0).Execute();
+    DistributedModelPartInitializer(main_model_part, Testing::GetDefaultDataCommunicator(), 0).Execute();
 
     KRATOS_CHECK(main_model_part.IsDistributed());
 
@@ -60,13 +59,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_1_SubModel
     ModelPart& main_model_part = current_model.CreateModelPart("main");
     main_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
-    const DataCommunicator& r_world = ParallelEnvironment::GetDataCommunicator("World");
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
 
     if (r_world.Rank() == 0) {
         main_model_part.CreateSubModelPart("sub");
     }
 
-    DistributedModelPartInitializer(main_model_part, ParallelEnvironment::GetDataCommunicator("World"), 0).Execute();
+    DistributedModelPartInitializer(main_model_part, Testing::GetDefaultDataCommunicator(), 0).Execute();
 
     KRATOS_CHECK(main_model_part.IsDistributed());
 
@@ -88,7 +87,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_1_SubModel
         main_model_part.CreateNewNode(i+1, 0,0,0); // coords don't matter for this test
     }
 
-    const DataCommunicator& r_world = ParallelEnvironment::GetDataCommunicator("World");
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
 
     if (r_world.Rank() == 0) {
         auto& r_sub_mp = main_model_part.CreateSubModelPart("sub");
@@ -98,7 +97,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_1_SubModel
         }
     }
 
-    DistributedModelPartInitializer(main_model_part, ParallelEnvironment::GetDataCommunicator("World"), 0).Execute();
+    DistributedModelPartInitializer(main_model_part, Testing::GetDefaultDataCommunicator(), 0).Execute();
 
     KRATOS_CHECK(main_model_part.IsDistributed());
 
@@ -114,14 +113,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_2_SubModel
     ModelPart& main_model_part = current_model.CreateModelPart("main");
     main_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
-    const DataCommunicator& r_world = ParallelEnvironment::GetDataCommunicator("World");
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
 
     if (r_world.Rank() == 0) {
         main_model_part.CreateSubModelPart("sub");
         main_model_part.CreateSubModelPart("another_sub");
     }
 
-    DistributedModelPartInitializer(main_model_part, ParallelEnvironment::GetDataCommunicator("World"), 0).Execute();
+    DistributedModelPartInitializer(main_model_part, Testing::GetDefaultDataCommunicator(), 0).Execute();
 
     KRATOS_CHECK(main_model_part.IsDistributed());
 
@@ -137,7 +136,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_2_SubSubMo
     ModelPart& main_model_part = current_model.CreateModelPart("main");
     main_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
-    const DataCommunicator& r_world = ParallelEnvironment::GetDataCommunicator("World");
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
 
     if (r_world.Rank() == 0) {
         ModelPart& smp_1 = main_model_part.CreateSubModelPart("sub");
@@ -145,7 +144,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_2_SubSubMo
         main_model_part.CreateSubModelPart("another_sub");
     }
 
-    DistributedModelPartInitializer(main_model_part, ParallelEnvironment::GetDataCommunicator("World"), 0).Execute();
+    DistributedModelPartInitializer(main_model_part, Testing::GetDefaultDataCommunicator(), 0).Execute();
 
     KRATOS_CHECK(main_model_part.IsDistributed());
 
