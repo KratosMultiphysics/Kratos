@@ -69,6 +69,8 @@ class TemporalController(Controller):
         settings.SetDefault('step_frequency', 1)
         self.time_frequency: float = settings['time_frequency']
         self.step_frequency: int = settings['step_frequency']
+
+        ##! @todo Make output frequency consistent across restarts (@matekelemen)
         self.__last_execute_time: float = None # the model part might not be initialized yet
 
     def IsExecuteStep(self) -> bool:
