@@ -38,15 +38,47 @@ void SkinDetectionProcess<TDim>::Execute()
 {
     KRATOS_TRY;
 
-    // First assign MPI flags if needed
+    // First assign MPI ids if needed
+    std::unordered_set<IndexType> set_node_ids_ghost;
     if (mrModelPart.IsDistributed()) {
-        VariableUtils().SetFlag(MPI_BOUNDARY, true, mrModelPart.GetCommunicator().GhostMesh().Nodes());
+        const auto& r_nodes_ghost = mrModelPart.GetCommunicator().GhostMesh().Nodes();
+        const std::size_t number_of_ghost_nodes = r_nodes_ghost.size();
+        const auto it_ghost_node_begin = r_nodes_ghost.begin();
+        std::vector<IndexType> node_ids_ghost(number_of_ghost_nodes);
+        IndexPartition<std::size_t>(number_of_ghost_nodes).for_each(
+        [&node_ids_ghost, it_ghost_node_begin](std::size_t i) {
+            node_ids_ghost[i] = (it_ghost_node_begin + i)->Id();
+        });
+        std::copy(node_ids_ghost.begin(), node_ids_ghost.end(), std::inserter(set_node_ids_ghost, set_node_ids_ghost.end()));
     }
 
     // Generate face maps
     HashMapVectorIntType inverse_face_map;
     HashMapVectorIntIdsType properties_face_map;
     this->GenerateFaceMaps(inverse_face_map, properties_face_map);
+
+    // Filter ghost nodes
+    if (set_node_ids_ghost.size() > 0) {
+        std::vector<VectorIndexType> faces_to_remove;
+        bool to_remove;
+        for (auto& r_map : inverse_face_map) {
+            to_remove = false;
+            const VectorIndexType& r_vector_ids = r_map.first;
+            const VectorIndexType& r_nodes_face = r_map.second;
+            for (auto& r_index : r_nodes_face) {
+                if (set_node_ids_ghost.find(r_index) != set_node_ids_ghost.end()) {
+                    to_remove = true;
+                    continue;
+                }
+            }
+            if (to_remove) {
+                faces_to_remove.push_back(r_vector_ids);
+            }            
+        }
+        for (auto& r_face_to_remove : faces_to_remove) {
+            inverse_face_map.erase(r_face_to_remove);
+        }
+    }
 
     // Generate skin conditions
     ModelPart& r_work_model_part = this->SetUpAuxiliaryModelPart();
