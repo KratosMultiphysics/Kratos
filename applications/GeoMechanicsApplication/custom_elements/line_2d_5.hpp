@@ -54,9 +54,9 @@ namespace Kratos
      * @brief An five node 2D line geometry with quadratic shape functions
      * @details The node ordering corresponds with:
      *      0-----2----3----4----1
-     * @author Riccardo Rossi
-     * @author Janosch Stascheit
-     * @author Felix Nagel
+     * @author Mohamed Nabi
+     * @author 
+     * @author 
      */
     template<class TPointType>
 
@@ -157,8 +157,6 @@ namespace Kratos
         ///@name Life Cycle
         ///@{
 
-        // ========================================================================================
-        // ========================================================================================
         Line2D5(const PointType& Point01, const PointType& Point02, const PointType& Point03,
                 const PointType& Point04, const PointType& Point05) 
                 : BaseType(PointsArrayType(), &msGeometryData)
@@ -170,8 +168,6 @@ namespace Kratos
             BaseType::Points().push_back(typename PointType::Pointer(new PointType(Point05)));
         }
 
-        // ========================================================================================
-        // ========================================================================================
         Line2D5(typename PointType::Pointer pPoint01, typename PointType::Pointer pPoint02,
                 typename PointType::Pointer pPoint03, typename PointType::Pointer pPoint04,
                 typename PointType::Pointer pPoint05) : BaseType(PointsArrayType(), &msGeometryData)
@@ -183,16 +179,12 @@ namespace Kratos
             BaseType::Points().push_back(pPoint05);
         }
 
-        // ========================================================================================
-        // ========================================================================================
         explicit Line2D5(const PointsArrayType& rThisPoints) : BaseType(rThisPoints, &msGeometryData)
         {
             KRATOS_ERROR_IF(BaseType::PointsNumber() != 5) << "Invalid points number. Expected 5, given "
                 << BaseType::PointsNumber() << std::endl;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /// Constructor with Geometry Id
         explicit Line2D5(const IndexType GeometryId, const PointsArrayType& rThisPoints) 
             : BaseType(GeometryId, rThisPoints, &msGeometryData)
@@ -201,8 +193,6 @@ namespace Kratos
                 << this->PointsNumber() << std::endl;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /// Constructor with Geometry Name
         explicit Line2D5(const std::string& rGeometryName, const PointsArrayType& rThisPoints)
             : BaseType(rGeometryName, rThisPoints, &msGeometryData)
@@ -211,8 +201,6 @@ namespace Kratos
                 << this->PointsNumber() << std::endl;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /** Copy constructor.
          * Construct this geometry as a copy of given geometry.
          * @note This copy constructor don't copy the points and new
@@ -224,8 +212,6 @@ namespace Kratos
         {
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /** Copy constructor from a geometry with other point type.
          * Construct this geometry as a copy of given geometry which
          * has different type of points. The given goemetry's
@@ -241,30 +227,23 @@ namespace Kratos
         {
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /// Destructor. Do nothing!!!
         ~Line2D5() override {}
 
-        // ========================================================================================
-        // ========================================================================================
         GeometryData::KratosGeometryFamily GetGeometryFamily() const override
         {
             return GeometryData::KratosGeometryFamily::Kratos_Linear;
         }
 
-        // ========================================================================================
-        // ========================================================================================
 //        GeometryData::KratosGeometryType GetGeometryType() const override
 //        {
 //            return GeometryData::KratosGeometryType::Kratos_Line2D5;
 //        }
 
-        // ========================================================================================
-        // ========================================================================================
         ///@}
         ///@name Operators
         ///@{
+        
         /** Assignment operator.
          * @note This operator don't copy the points and this
          * geometry shares points with given source geometry. It's
@@ -279,8 +258,6 @@ namespace Kratos
             return *this;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /** Assignment operator for geometries with different point type.
          * @note This operator don't copy the points and this
          * geometry shares points with given source geometry. It's
@@ -296,11 +273,10 @@ namespace Kratos
             return *this;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         ///@}
         ///@name Operations
         ///@{
+        
         /**
          * @brief Creates a new geometry pointer
          * @param NewGeometryId the ID of the new geometry
@@ -313,8 +289,6 @@ namespace Kratos
             return typename BaseType::Pointer(new Line2D5(NewGeometryId, rThisPoints));
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * @brief Creates a new geometry pointer
          * @param NewGeometryId the ID of the new geometry
@@ -328,8 +302,6 @@ namespace Kratos
             return p_geometry;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * @brief Lumping factors for the calculation of the lumped mass matrix
          * @param rResult Vector containing the lumping factors
@@ -351,18 +323,16 @@ namespace Kratos
             return rResult;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         ///@}
         ///@name Informations
         ///@{
+        
         /** This method calculate and return Length or charactereistic 
          * length of this geometry depending to it's dimension. For one 
          * dimensional geometry for example Line it returns length of it 
          * and for the other geometries it gives Characteristic length 
          * otherwise.
-         * @return double value contains length or Characteristic 
-         * length
+         * @return double value contains length or Characteristic length.
          * @see Area()
          * @see Volume()
          * @see DomainSize()
@@ -382,41 +352,36 @@ namespace Kratos
             return length;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /** This method calculate and return area or surface area of
-        this geometry depending to it's dimension. For one dimensional
-        geometry it returns length, for two dimensional it gives area
-        and for three dimensional geometries it gives surface area.
-        @return double value contains area or surface
-        area.
-        @see Length()
-        @see Volume()
-        @see DomainSize()
-        */
+         * this geometry depending to it's dimension. For one dimensional
+         * geometry it returns length, for two dimensional it gives area
+         * and for three dimensional geometries it gives surface area.
+         * 
+         * @return double value contains area or surface area.
+         * @see Length()
+         * @see Volume()
+         * @see DomainSize()
+         */
         double Area() const override
         {
             return Length();
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /** This method calculate and return length, area or volume of
-        this geometry depending to it's dimension. For one dimensional
-        geometry it returns its length, for two dimensional it gives area
-        and for three dimensional geometries it gives its volume.
-        @return double value contains length, area or volume.
-        @see Length()
-        @see Area()
-        @see Volume()
-        */
+         * this geometry depending to it's dimension. For one dimensional
+         * geometry it returns its length, for two dimensional it gives area
+         * and for three dimensional geometries it gives its volume.
+         * 
+         * @return double value contains length, area or volume.
+         * @see Length()
+         * @see Area()
+         * @see Volume()
+         */
         double DomainSize() const override
         {
             return Length();
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * @brief Returns whether given arbitrary point is inside the Geometry and the respective
          * local point for the given global point
@@ -435,8 +400,6 @@ namespace Kratos
             return false;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * @brief Returns the local coordinates of a given arbitrary point
          * @param rResult The vector containing the local coordinates of the point
@@ -462,12 +425,12 @@ namespace Kratos
             Matrix invJ = ZeroMatrix(1, 1);
 
             // Starting with xi = 0
-            if (rResult.size() != 5)
-                rResult.resize(5, false);
-            rResult = ZeroVector(5);
+            if (rResult.size() != 5) rResult.resize(5, false);
+            noalias(rResult) = ZeroVector(5);
             double delta_xi = 0.0;
             const array_1d<double, 5> zero_array = ZeroVector(5);
             array_1d<double, 3> current_global_coords;
+            array_1d<double, 1> res;
 
             //Newton iteration:
             for (IndexType k = 0; k < MaxIteratioNumberPointLocalCoordinates; ++k) {
@@ -482,7 +445,8 @@ namespace Kratos
                 noalias(DN) = prod(X, shape_functions_gradients);
 
                 noalias(J) = prod(trans(DN), DN);
-                const array_1d<double, 1> res = prod(trans(DN), current_global_coords);
+                
+                noalias(res) = prod(trans(DN), current_global_coords);
 
                 // The inverted jacobian matrix
                 invJ(0, 0) = 1.0 / J(0, 0);
@@ -502,11 +466,10 @@ namespace Kratos
             return rResult;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         ///@}
         ///@name Jacobian
         ///@{
+        
         /** Jacobians for given method. This method 
          * calculate jacobians matrices in all integrations points of 
          * given integration method.
@@ -545,8 +508,6 @@ namespace Kratos
             return rResult;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /** Jacobians for given  method. This method
          * calculate jacobians matrices in all integrations points of
          * given integration method.
@@ -591,8 +552,6 @@ namespace Kratos
             return rResult;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /** Jacobian in specific integration point of given integration
          * method. This method calculate jacobian matrix in given
          * integration point of given integration method.
@@ -632,16 +591,11 @@ namespace Kratos
             return rResult;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /** Jacobian in given point. This method calculate jacobian
          * matrix in given point.
          *
-         * @param rPoint point which jacobians has to
-         * be calculated in it.
-         *
+         * @param rPoint point which jacobians has to be calculated in it.
          * @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
-         *
          * @see DeterminantOfJacobian
          * @see InverseOfJacobian
          */
@@ -663,8 +617,6 @@ namespace Kratos
             return rResult;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * @brief Determinant of jacobians for given integration method.
          * @details This method calculate determinant of jacobian in all integrations points of given integration method.
@@ -685,8 +637,6 @@ namespace Kratos
             return rResult;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * @brief Determinant of jacobian in specific integration point of given integration method. This method calculate determinant of jacobian in given integration point of given integration method.
          * @param IntegrationPointIndex index of integration point which jacobians has to be calculated in it.
@@ -703,8 +653,6 @@ namespace Kratos
             return std::sqrt(std::pow(J(0, 0), 2) + std::pow(J(1, 0), 2));
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * @brief Determinant of jacobian in given point. This method calculate determinant of jacobian matrix in given point.
          * @param rPoint point which determinant of jacobians has to be calculated in it.
@@ -719,8 +667,6 @@ namespace Kratos
             return std::sqrt(std::pow(J(0, 0), 2) + std::pow(J(1, 0), 2));
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /** EdgesNumber
          * @return SizeType containes number of this geometry edges.
          */
@@ -729,8 +675,6 @@ namespace Kratos
             return 4;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /** FacesNumber
          * @return SizeType containes number of this geometry edges/faces.
          */
@@ -739,11 +683,10 @@ namespace Kratos
             return EdgesNumber();
         }
 
-        // ========================================================================================
-        // ========================================================================================
         ///@}
         ///@name Shape Function
         ///@{
+        
         /**
          * @brief This method gives all non-zero shape functions values evaluated at the rCoordinates provided
          * @note There is no control if the return vector is empty or not!
@@ -775,8 +718,6 @@ namespace Kratos
             return rResult;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * @brief This method gives value of given shape function evaluated in given point.
          * @param rPoint Point of evaluation of the shape function. This point must be in local coordinate.
@@ -786,7 +727,7 @@ namespace Kratos
          * @see ShapeFunctionsLocalGradients
          * @see ShapeFunctionLocalGradient
          */
-        double ShapeFunctionValue(IndexType ShapeFunctionIndex, const CoordinatesArrayType& rPoint) const override
+        double ShapeFunctionValue(const IndexType ShapeFunctionIndex, const CoordinatesArrayType& rPoint) const override
         {
             const double xi = rPoint[0];
             const double fx1 = xi - 1.0;
@@ -824,43 +765,37 @@ namespace Kratos
             return shape;
         }
 
-        // ========================================================================================
-        // ========================================================================================
-
         ///@}
         ///@name Shape Function Integration Points Gradient
         ///@{
+        
         void ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult,
             IntegrationMethod ThisMethod) const override
         {
             KRATOS_ERROR << "Jacobian is not square" << std::endl;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         void ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult,
             Vector& rDeterminantsOfJacobian, IntegrationMethod ThisMethod) const override
         {
             KRATOS_ERROR << "Jacobian is not square" << std::endl;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         ///@}
         ///@name Input and output
         ///@{
+        
         /** Turn back information as a string.
-        @return String contains information about this geometry.
-        @see PrintData()
-        @see PrintInfo()
-        */
+         *
+         * @return String contains information about this geometry.
+         * @see PrintData()
+         * @see PrintInfo()
+         */
         std::string Info() const override
         {
             return "1 dimensional line with 5 nodes in 2D space";
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /** Print information about this object.
          * @param rOStream Stream to print into it.
          * @see PrintData()
@@ -871,8 +806,6 @@ namespace Kratos
             rOStream << "1 dimensional line with 5 nodes in 2D space";
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /** Print geometry's data into given stream. Prints it's points 
          * by the order they stored in the geometry and then center point of geometry.
          * @param rOStream Stream to print into it.
@@ -888,26 +821,22 @@ namespace Kratos
             rOStream << "    Jacobian\t : " << jacobian;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /** Calculates the local gradients for all integration points for given integration method
          */
-        virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients(IntegrationMethod ThisMethod)
+        virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients(IntegrationMethod& ThisMethod)
         {
             ShapeFunctionsGradientsType localGradients 
                 = CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
             const int integration_points_number = msGeometryData.IntegrationPointsNumber(ThisMethod);
             ShapeFunctionsGradientsType Result(integration_points_number);
             //
-            for (int pnt = 0; pnt < integration_points_number; pnt++)
+            for (int pnt = 0; pnt < integration_points_number; ++pnt)
             {
                 Result[pnt] = localGradients[pnt];
             }
             return Result;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * Calculates the local gradients for all integration points for the default integration method
          */
@@ -919,15 +848,13 @@ namespace Kratos
             const int integration_points_number = msGeometryData.IntegrationPointsNumber(ThisMethod);
             ShapeFunctionsGradientsType Result(integration_points_number);
             //
-            for (int pnt = 0; pnt < integration_points_number; pnt++)
+            for (int pnt = 0; pnt < integration_points_number; ++pnt)
             {
                 Result[pnt] = localGradients[pnt];
             }
             return Result;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * Calculates the gradients in terms of local coordinates
          * of all shape functions in a given point.
@@ -957,11 +884,9 @@ namespace Kratos
             rResult(2, 0) = -(gx1 * (gx3 - fx3 - 1.0) + 2.0 * xi * fx3) * cof2;
             rResult(3, 0) = 2.0 * xi * (gx3 + 4.0 * fx3);
             rResult(4, 0) = -(gx2 * (gx3 - fx3 - 1.0) + 2.0 * xi * fx3) * cof2;
-            return(rResult);
+            return rResult;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * returns the local coordinates of all nodes of the current geometry
          * @param rResult a Matrix object that will be overwritten by the result
@@ -979,8 +904,6 @@ namespace Kratos
             return rResult;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * returns the shape function gradients in an arbitrary point,
          * given in local coordinates
@@ -989,7 +912,7 @@ namespace Kratos
          * shape functions in given point
          * @param rPoint the given point the gradients are calculated in
          */
-        virtual Matrix& ShapeFunctionsGradients(Matrix& rResult, CoordinatesArrayType& rPoint)
+        virtual Matrix& ShapeFunctionsGradients(Matrix& rResult, const CoordinatesArrayType& rPoint)
         {
             if (rResult.size1() != 5 || rResult.size2() != 1) rResult.resize(5, 1, false);
             noalias(rResult) = ZeroMatrix(5, 1);
@@ -1016,43 +939,35 @@ namespace Kratos
         ///@name Friends
         ///@{
 
-
         ///@}
 
     protected:
         ///@name Protected static Member Variables
         ///@{
 
-
         ///@}
         ///@name Protected member Variables
         ///@{
-
 
         ///@}
         ///@name Protected Operators
         ///@{
 
-
         ///@}
         ///@name Protected Operations
         ///@{
-
 
         ///@}
         ///@name Protected  Access
         ///@{
 
-
         ///@}
         ///@name Protected Inquiry
         ///@{
 
-
         ///@}
         ///@name Protected LifeCycle
         ///@{
-
 
         ///@}
 
@@ -1068,61 +983,52 @@ namespace Kratos
         ///@name Member Variables
         ///@{
 
-
         ///@}
         ///@name Serialization
         ///@{
 
         friend class Serializer;
 
-        // ========================================================================================
-        // ========================================================================================
         void save(Serializer& rSerializer) const override
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
         }
 
-        // ========================================================================================
-        // ========================================================================================
         void load(Serializer& rSerializer) override
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
         }
 
-        // ========================================================================================
-        // ========================================================================================
         Line2D5() : BaseType(PointsArrayType(), &msGeometryData) {}
 
         ///@}
         ///@name Private Operators
         ///@{
 
-
         ///@}
         ///@name Private Operations
         ///@{
-        // ========================================================================================
-        // ========================================================================================
+
         static Matrix CalculateShapeFunctionsIntegrationPointsValues(typename BaseType::IntegrationMethod ThisMethod)
         {
             const IntegrationPointsContainerType& all_integration_points = AllIntegrationPoints();
             const IntegrationPointsArrayType& IntegrationPoints
                 = all_integration_points[static_cast<int>(ThisMethod)];
-            int integration_points_number = IntegrationPoints.size();
+            const int integration_points_number = IntegrationPoints.size();
             Matrix shape_function_values(integration_points_number, 5);
             //
             const double cof1 = 1.0 / 6.0;
             const double cof2 = 8.0 * cof1;
             //
-            for (int pnt = 0; pnt < integration_points_number; pnt++)
+            for (int pnt = 0; pnt < integration_points_number; ++pnt)
             {
-                double xi = IntegrationPoints[pnt].X();
-                double fx1 = xi - 1.0;
-                double fx2 = xi + 1.0;
-                double fx3 = fx1 * fx2;
-                double gx1 = 2.0 * xi - 1.0;
-                double gx2 = 2.0 * xi + 1.0;
-                double gx3 = gx1 * gx2;
+                const double xi = IntegrationPoints[pnt].X();
+                const double fx1 = xi - 1.0;
+                const double fx2 = xi + 1.0;
+                const double fx3 = fx1 * fx2;
+                const double gx1 = 2.0 * xi - 1.0;
+                const double gx2 = 2.0 * xi + 1.0;
+                const double gx3 = gx1 * gx2;
                 //
                 shape_function_values(pnt, 0) = xi * fx1 * gx3 * cof1;
                 shape_function_values(pnt, 1) = xi * fx2 * gx3 * cof1;
@@ -1133,8 +1039,6 @@ namespace Kratos
             return shape_function_values;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         static ShapeFunctionsGradientsType CalculateShapeFunctionsIntegrationPointsLocalGradients(
             typename BaseType::IntegrationMethod ThisMethod)
         {
@@ -1146,15 +1050,15 @@ namespace Kratos
             const double cof1 = 1.0 / 6.0;
             const double cof2 = 8.0 * cof1;
             //
-            for (unsigned int pnt = 0; pnt < IntegrationPoints.size(); pnt++)
+            for (unsigned int pnt = 0; pnt < IntegrationPoints.size(); ++pnt)
             {
-                double xi = IntegrationPoints[pnt].X();
-                double fx1 = xi - 1.0;
-                double fx2 = xi + 1.0;
-                double fx3 = fx1 * fx2;
-                double gx1 = 2.0 * xi - 1.0;
-                double gx2 = 2.0 * xi + 1.0;
-                double gx3 = gx1 * gx2;
+                const double xi = IntegrationPoints[pnt].X();
+                const double fx1 = xi - 1.0;
+                const double fx2 = xi + 1.0;
+                const double fx3 = fx1 * fx2;
+                const double gx1 = 2.0 * xi - 1.0;
+                const double gx2 = 2.0 * xi + 1.0;
+                const double gx3 = gx1 * gx2;
                 //
                 DN_De[pnt](0, 0) = gx3 * gx1 * cof1 + xi * xi * fx1 * cof2;
                 DN_De[pnt](1, 0) = gx3 * gx2 * cof1 + xi * xi * fx2 * cof2;
@@ -1165,61 +1069,40 @@ namespace Kratos
             return DN_De;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         static const IntegrationPointsContainerType AllIntegrationPoints()
         {
-            IntegrationPointsContainerType integration_points = { {
-                    Quadrature<LineGaussLegendreIntegrationPoints1, 
-                    1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                    Quadrature<LineGaussLegendreIntegrationPoints2, 
-                    1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                    Quadrature<LineGaussLegendreIntegrationPoints3, 
-                    1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                    Quadrature<LineGaussLegendreIntegrationPoints4, 
-                    1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                    Quadrature<LineGaussLegendreIntegrationPoints5, 
-                    1, IntegrationPoint<3> >::GenerateIntegrationPoints()
+            IntegrationPointsContainerType integration_points = {{
+                    Quadrature<LineGaussLegendreIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                    Quadrature<LineGaussLegendreIntegrationPoints2, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                    Quadrature<LineGaussLegendreIntegrationPoints3, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                    Quadrature<LineGaussLegendreIntegrationPoints4, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                    Quadrature<LineGaussLegendreIntegrationPoints5, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
                 }
             };
             return integration_points;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues()
         {
-            ShapeFunctionsValuesContainerType shape_functions_values = { {
-                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                        GeometryData::IntegrationMethod::GI_GAUSS_1),
-                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                        GeometryData::IntegrationMethod::GI_GAUSS_2),
-                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                        GeometryData::IntegrationMethod::GI_GAUSS_3),
-                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                        GeometryData::IntegrationMethod::GI_GAUSS_4),
-                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                        GeometryData::IntegrationMethod::GI_GAUSS_5)
+            ShapeFunctionsValuesContainerType shape_functions_values = {{
+                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_1),
+                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_2),
+                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_3),
+                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_4),
+                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_5)
                 }
             };
             return shape_functions_values;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         static const ShapeFunctionsLocalGradientsContainerType AllShapeFunctionsLocalGradients()
         {
-            ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = { {
-                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                        GeometryData::IntegrationMethod::GI_GAUSS_1),
-                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                        GeometryData::IntegrationMethod::GI_GAUSS_2),
-                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                        GeometryData::IntegrationMethod::GI_GAUSS_3),
-                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                        GeometryData::IntegrationMethod::GI_GAUSS_4),
-                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                        GeometryData::IntegrationMethod::GI_GAUSS_5)
+            ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {{
+                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_1),
+                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_2),
+                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_3),
+                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_4),
+                    Line2D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_5)
                 }
             };
             return shape_functions_local_gradients;
@@ -1229,11 +1112,9 @@ namespace Kratos
         ///@name Private  Access
         ///@{
 
-
         ///@}
         ///@name Private Inquiry
         ///@{
-
 
         ///@}
         ///@name Private Friends
@@ -1245,8 +1126,6 @@ namespace Kratos
         ///@name Un accessible methods
         ///@{
 
-
-
         ///@}
 
     }; // Class Geometry
@@ -1256,33 +1135,26 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
 
-
     ///@}
     ///@name Input and output
     ///@{
 
-    // ========================================================================================
-    // ========================================================================================
     /// input stream function
     template<class TPointType>
     inline std::istream& operator >> (std::istream& rIStream, Line2D3<TPointType>& rThis);
 
-    // ========================================================================================
-    // ========================================================================================
     /// output stream function
-//    template<class TPointType>
-//    inline std::ostream& operator << (std::ostream& rOStream, const Line2D3<TPointType>& rThis)
-//    {
-//        rThis.PrintInfo(rOStream);
-//        rOStream << std::endl;
-//        rThis.PrintData(rOStream);
-//        return rOStream;
-//    }
+    template<class TPointType>
+    inline std::ostream& operator << (std::ostream& rOStream, const Line2D5<TPointType>& rThis)
+    {
+        rThis.PrintInfo(rOStream);
+        rOStream << std::endl;
+        rThis.PrintData(rOStream);
+        return rOStream;
+    }
 
     ///@}
 
-    // ========================================================================================
-    // ========================================================================================
     template<class TPointType>
     const GeometryData Line2D5<TPointType>::msGeometryData(
         &msGeometryDimension,
@@ -1291,8 +1163,6 @@ namespace Kratos
         Line2D5<TPointType>::AllShapeFunctionsValues(),
         AllShapeFunctionsLocalGradients());
 
-    // ========================================================================================
-    // ========================================================================================
     template<class TPointType>
     const GeometryDimension Line2D5<TPointType>::msGeometryDimension(2, 2, 1);
 

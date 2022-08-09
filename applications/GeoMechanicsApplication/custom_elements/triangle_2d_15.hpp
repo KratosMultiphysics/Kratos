@@ -59,7 +59,7 @@ namespace Kratos
      *          9  8
      *          |   `\
      *          10 14 7
-     *          |      '\
+     *          |      `\
      *          11 12 13 6
      *          |         `\
      *          0--3--4--5--1
@@ -205,8 +205,6 @@ namespace Kratos
         ///@name Life Cycle
         ///@{
         
-        // ========================================================================================
-        // ========================================================================================
         Triangle2D15(const PointType& Point01, const PointType& Point02, const PointType& Point03,
             const PointType& Point04, const PointType& Point05, const PointType& Point06,
             const PointType& Point07, const PointType& Point08, const PointType& Point09,
@@ -214,25 +212,24 @@ namespace Kratos
             const PointType& Point13, const PointType& Point14, const PointType& Point15)
             : BaseType(PointsArrayType(), &msGeometryData)
         {
-            this->Points().push_back(typename PointType::Pointer(new PointType(Point01)));
-            this->Points().push_back(typename PointType::Pointer(new PointType(Point02)));
-            this->Points().push_back(typename PointType::Pointer(new PointType(Point03)));
-            this->Points().push_back(typename PointType::Pointer(new PointType(Point04)));
-            this->Points().push_back(typename PointType::Pointer(new PointType(Point05)));
-            this->Points().push_back(typename PointType::Pointer(new PointType(Point06)));
-            this->Points().push_back(typename PointType::Pointer(new PointType(Point07)));
-            this->Points().push_back(typename PointType::Pointer(new PointType(Point08)));
-            this->Points().push_back(typename PointType::Pointer(new PointType(Point09)));
-            this->Points().push_back(typename PointType::Pointer(new PointType(Point10)));
-            this->Points().push_back(typename PointType::Pointer(new PointType(Point11)));
-            this->Points().push_back(typename PointType::Pointer(new PointType(Point12)));
-            this->Points().push_back(typename PointType::Pointer(new PointType(Point13)));
-            this->Points().push_back(typename PointType::Pointer(new PointType(Point14)));
-            this->Points().push_back(typename PointType::Pointer(new PointType(Point15)));
+            auto& r_points = this->Points();
+            r_points.push_back(typename PointType::Pointer(new PointType(Point01)));
+            r_points.push_back(typename PointType::Pointer(new PointType(Point02)));
+            r_points.push_back(typename PointType::Pointer(new PointType(Point03)));
+            r_points.push_back(typename PointType::Pointer(new PointType(Point04)));
+            r_points.push_back(typename PointType::Pointer(new PointType(Point05)));
+            r_points.push_back(typename PointType::Pointer(new PointType(Point06)));
+            r_points.push_back(typename PointType::Pointer(new PointType(Point07)));
+            r_points.push_back(typename PointType::Pointer(new PointType(Point08)));
+            r_points.push_back(typename PointType::Pointer(new PointType(Point09)));
+            r_points.push_back(typename PointType::Pointer(new PointType(Point10)));
+            r_points.push_back(typename PointType::Pointer(new PointType(Point11)));
+            r_points.push_back(typename PointType::Pointer(new PointType(Point12)));
+            r_points.push_back(typename PointType::Pointer(new PointType(Point13)));
+            r_points.push_back(typename PointType::Pointer(new PointType(Point14)));
+            r_points.push_back(typename PointType::Pointer(new PointType(Point15)));
         }
 
-        // ========================================================================================
-        // ========================================================================================
         Triangle2D15(typename PointType::Pointer pPoint01, typename PointType::Pointer pPoint02,
                      typename PointType::Pointer pPoint03, typename PointType::Pointer pPoint04,
                      typename PointType::Pointer pPoint05, typename PointType::Pointer pPoint06,
@@ -242,25 +239,24 @@ namespace Kratos
                      typename PointType::Pointer pPoint13, typename PointType::Pointer pPoint14,
                      typename PointType::Pointer pPoint15) : BaseType(PointsArrayType(), &msGeometryData)
         {
-            this->Points().push_back(pPoint01);
-            this->Points().push_back(pPoint02);
-            this->Points().push_back(pPoint03);
-            this->Points().push_back(pPoint04);
-            this->Points().push_back(pPoint05);
-            this->Points().push_back(pPoint06);
-            this->Points().push_back(pPoint07);
-            this->Points().push_back(pPoint08);
-            this->Points().push_back(pPoint09);
-            this->Points().push_back(pPoint10);
-            this->Points().push_back(pPoint11);
-            this->Points().push_back(pPoint12);
-            this->Points().push_back(pPoint13);
-            this->Points().push_back(pPoint14);
-            this->Points().push_back(pPoint15);
+            auto& r_points = this->Points();
+            r_points.push_back(pPoint01);
+            r_points.push_back(pPoint02);
+            r_points.push_back(pPoint03);
+            r_points.push_back(pPoint04);
+            r_points.push_back(pPoint05);
+            r_points.push_back(pPoint06);
+            r_points.push_back(pPoint07);
+            r_points.push_back(pPoint08);
+            r_points.push_back(pPoint09);
+            r_points.push_back(pPoint10);
+            r_points.push_back(pPoint11);
+            r_points.push_back(pPoint12);
+            r_points.push_back(pPoint13);
+            r_points.push_back(pPoint14);
+            r_points.push_back(pPoint15);
         }
 
-        // ========================================================================================
-        // ========================================================================================
         Triangle2D15(const PointsArrayType& ThisPoints) : BaseType(ThisPoints, &msGeometryData)
         {
             if (this->PointsNumber() != 15) {
@@ -269,8 +265,6 @@ namespace Kratos
             }
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /// Constructor with Geometry Id
         explicit Triangle2D15(const IndexType GeometryId, const PointsArrayType& rThisPoints)
             : BaseType(GeometryId, rThisPoints, &msGeometryData)
@@ -279,8 +273,6 @@ namespace Kratos
                 << this->PointsNumber() << std::endl;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /// Constructor with Geometry Name
         explicit Triangle2D15(const std::string& rGeometryName, const PointsArrayType& rThisPoints)
             : BaseType(rGeometryName, rThisPoints, &msGeometryData)
@@ -289,8 +281,6 @@ namespace Kratos
                 << this->PointsNumber() << std::endl;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * Copy constructor. 
          * Construct this geometry as a copy of given geometry.
@@ -304,8 +294,6 @@ namespace Kratos
         {
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * Copy constructor from a geometry with other point type. 
          * Construct this geometry as a copy of given geometry which 
@@ -323,29 +311,21 @@ namespace Kratos
         {
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * Destructor. Does nothing!!!
          */
         ~Triangle2D15() override {}
 
-        // ========================================================================================
-        // ========================================================================================
         GeometryData::KratosGeometryFamily GetGeometryFamily() const override
         {
             return GeometryData::KratosGeometryFamily::Kratos_Triangle;
         }
 
-        // ========================================================================================
-        // ========================================================================================
 //        GeometryData::KratosGeometryType GetGeometryType() const override
 //        {
 //            return GeometryData::KratosGeometryType::Kratos_Triangle2D15;
 //        }
 
-        // ========================================================================================
-        // ========================================================================================
         ///@}
         ///@name Operators
         ///@{
@@ -367,8 +347,6 @@ namespace Kratos
             return *this;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * Assignment operator for geometries with different point type.
          *
@@ -387,8 +365,6 @@ namespace Kratos
             return *this;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         ///@}
         ///@name Operations
         ///@{
@@ -403,8 +379,6 @@ namespace Kratos
             return typename BaseType::Pointer(new Triangle2D15(rThisPoints));
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * @brief Creates a new geometry pointer
          * @param NewGeometryId the ID of the new geometry
@@ -417,8 +391,6 @@ namespace Kratos
             return typename BaseType::Pointer(new Triangle2D15(NewGeometryId, rThisPoints));
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * @brief Creates a new geometry pointer
          * @param rGeometry reference to an existing geometry
@@ -431,8 +403,6 @@ namespace Kratos
             return p_geometry;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * @brief Creates a new geometry pointer
          * @param NewGeometryId the ID of the new geometry
@@ -447,8 +417,6 @@ namespace Kratos
             return p_geometry;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /// Returns number of points per direction.
         SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override
         {
@@ -459,8 +427,6 @@ namespace Kratos
                 << LocalDirectionIndex << std::endl;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * returns the local coordinates of all nodes of the current geometry
          * @param rResult a Matrix object that will be overwritten by the result
@@ -469,8 +435,7 @@ namespace Kratos
         Matrix& PointsLocalCoordinates(Matrix& rResult) const override
         {
             rResult.resize(15, 2, false);
-            noalias(rResult) = ZeroMatrix(15, 2);
-
+            //
             rResult(0, 0) = 0.00;
             rResult(0, 1) = 0.00;
             //
@@ -519,8 +484,6 @@ namespace Kratos
             return rResult;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         ///@}
         ///@name Information
         ///@{
@@ -542,11 +505,9 @@ namespace Kratos
          */
         double Length() const override
         {
-            return sqrt(fabs(Area()));
+            return std::sqrt(std::abs(Area()));
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /** This method calculates and returns area or surface area of
          * this geometry depending to it's dimension. For one dimensional
          * geometry it returns zero, for two dimensional it gives area
@@ -564,15 +525,13 @@ namespace Kratos
             this->DeterminantOfJacobian(temp, msGeometryData.DefaultIntegrationMethod());
             const IntegrationPointsArrayType& integration_points = this->IntegrationPoints(msGeometryData.DefaultIntegrationMethod());
             double area = 0.00;
-            for (unsigned int i = 0; i < integration_points.size(); i++)
+            for (unsigned int i = 0; i < integration_points.size(); ++i)
             {
                 area += temp[i] * integration_points[i].Weight();
             }
             return area;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * This method calculates and returns the volume of this geometry.
          * This method calculates and returns the volume of this geometry.
@@ -592,8 +551,6 @@ namespace Kratos
             return Area();
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /** This method calculates and returns length, area or volume of
          * this geometry depending to it's dimension. For one dimensional
          * geometry it returns its length, for two dimensional it gives area
@@ -609,8 +566,6 @@ namespace Kratos
             return Area();
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * @brief Returns whether given arbitrary point is inside the Geometry and the respective
          * local point for the given global point
@@ -633,8 +588,6 @@ namespace Kratos
             return false;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         ///@}
         ///@name Shape Function
         ///@{
@@ -674,8 +627,6 @@ namespace Kratos
             return rResult;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * Calculates the value of a given shape function at a given point.
          *
@@ -749,8 +700,6 @@ namespace Kratos
             return shape;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         ///@}
         ///@name Input and output
         ///@{
@@ -767,21 +716,17 @@ namespace Kratos
             return "2 dimensional triangle with fifteen nodes in 2D space";
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * Print information about this object.
          * @param rOStream Stream to print into it.
          * @see PrintData()
          * @see Info()
          */
-        void PrintInfo(std::ostream& rOStream)     const override
+        void PrintInfo(std::ostream& rOStream) const override
         {
             rOStream << "2 dimensional triangle with fifteen nodes in 2D space";
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * Print geometry's data into given stream.
          * Prints it's points
@@ -802,8 +747,6 @@ namespace Kratos
             rOStream << "    Jacobian in the origin\t : " << jacobian;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         ///@}
         ///@name Edge
         ///@{
@@ -824,8 +767,6 @@ namespace Kratos
             return 3;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * @brief This method gives you all edges of this geometry.
          * @details This method will gives you all the edges with one dimension less than this geometry.
@@ -843,15 +784,11 @@ namespace Kratos
             return edges;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         SizeType FacesNumber() const override
         {
             return 3;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         //Connectivities of faces required
         void NumberNodesInFaces(DenseVector<unsigned int>& NumberNodesInFaces) const override
         {
@@ -861,8 +798,6 @@ namespace Kratos
             NumberNodesInFaces[2] = 5;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         void NodesInFaces(DenseMatrix<unsigned int>& NodesInFaces) const override
         {
             // faces in columns
@@ -892,8 +827,6 @@ namespace Kratos
             NodesInFaces(5, 2) = 1;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * Calculates the local gradients for all integration points for
          * given integration method
@@ -912,8 +845,6 @@ namespace Kratos
             return Result;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * Calculates the local gradients for all integration points for the
          * default integration method
@@ -926,15 +857,13 @@ namespace Kratos
             const int integration_points_number = msGeometryData.IntegrationPointsNumber(ThisMethod);
             ShapeFunctionsGradientsType Result(integration_points_number);
             //
-            for (int pnt = 0; pnt < integration_points_number; pnt++)
+            for (int pnt = 0; pnt < integration_points_number; ++pnt)
             {
                 Result[pnt] = localGradients[pnt];
             }
             return Result;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * Calculates the gradients in terms of local coordinates
          * of all shape functions in a given point.
@@ -956,61 +885,57 @@ namespace Kratos
             const double zt1 = 1.0 - xi1 - et1;
             const double zt2 = zt1 * zt1;
             const double zt3 = zt2 * zt1;
-
-            //// noalias(rResult) = ZeroMatrix(15, 2);
-            rResult = ZeroMatrix(15, 2);
+            //
+            noalias(rResult) = ZeroMatrix(15, 2);
             //
             rResult(0, 0) = -(128.0 * zt3 - 144.0 * zt2 + 44.0 * zt1 - 3.0) / 3.0;
             rResult(0, 1) = -(128.0 * zt3 - 144.0 * zt2 + 44.0 * zt1 - 3.0) / 3.0;
-
+            //
             rResult(1, 0) = (128.0 * xi3 - 144.0 * xi2 + 44.0 * xi1 - 3.0) / 3.0;
             rResult(1, 1) = 0.0;
-
+            //
             rResult(2, 0) = 0.0;
             rResult(2, 1) = (128.0 * et3 - 144.0 * et2 + 44.0 * et1 - 3.0) / 3.0;
-
+            //
             rResult(3, 0) = -128.0 * (zt2 - 0.5 * zt1 + 1.0 / 24.0) * xi1 + (128.0 * zt3 - 96.0 * zt2 + 16.0 * zt1) / 3.0;
             rResult(3, 1) = -16.0 * xi1 * (24.0 * zt2 - 12.0 * zt1 + 1.0) / 3.0;
-
+            //
             rResult(4, 0) = -128.0 * (xi1 - 0.25) * (zt1 - 0.125) * xi1 + 128.0 * (xi1 - 0.125) * (zt1 - 0.25) * zt1;
             rResult(4, 1) = -4.0 * xi1 * (4.0 * xi1 - 1.0) * (8.0 * zt1 - 1.0);
-
+            //
             rResult(5, 0) = -(128.0 * xi3 - 96.0 * xi2 + 16.0 * xi1) / 3.0 + 128.0 * (xi2 - 0.5 * xi1 + 1.0 / 24.0) * zt1;
             rResult(5, 1) = -16.0 * xi1 * (8.0 * xi2 - 6.0 * xi1 + 1.0) / 3.0;
-
+            //
             rResult(6, 0) = 16.0 * et1 * (24.0 * xi2 - 12.0 * xi1 + 1.0) / 3.0;
             rResult(6, 1) = (128.0 * xi3 - 96.0 * xi2 + 16.0 * xi1) / 3.0;
-
+            //
             rResult(7, 0) = 4.0 * (8.0 * xi1 - 1.0) * (4.0 * et1 - 1.0) * et1;
             rResult(7, 1) = 4.0 * (4.0 * xi1 - 1.0) * (8.0 * et1 - 1.0) * xi1;
-
+            //
             rResult(8, 0) = (128.0 * et3 - 96.0 * et2 + 16.0 * et1) / 3.0;
             rResult(8, 1) = 16.0 * xi1 * (24.0 * et2 - 12.0 * et1 + 1.0) / 3.0;
-
+            //
             rResult(9, 0) = -16.0 * et1 * (8.0 * et2 - 6.0 * et1 + 1.0) / 3.0;
             rResult(9, 1) = -(128.0 * et3 - 96.0 * et2 + 16.0 * et1) / 3.0 + 128.0 * (et2 - 0.5 * et1 + 1.0 / 24.0) * zt1;
-
+            //
             rResult(10, 0) = -4.0 * et1 * (4.0 * et1 - 1.0) * (8.0 * zt1 - 1.0);
             rResult(10, 1) = -128.0 * (et1 - 0.25) * (zt1 - 0.125) * et1 + 128.0 * (et1 - 0.125) * zt1 * (zt1 - 0.25);
-
+            //
             rResult(11, 0) = -16.0 * et1 * (24.0 * zt2 - 12.0 * zt1 + 1.0) / 3.0;
             rResult(11, 1) = -128.0 * (zt2 - 0.5 * zt1 + 1.0 / 24.0) * et1 + (128.0 * zt3 - 96.0 * zt2 + 16.0 * zt1) / 3.0;
-
+            //
             rResult(12, 0) = 256.0 * et1 * (-xi1 * (zt1 - 0.125) + 0.5 * zt2 - 0.125 * zt1);
             rResult(12, 1) = 256.0 * xi1 * (-et1 * (zt1 - 0.125) + 0.5 * zt2 - 0.125 * zt1);
-
+            //
             rResult(13, 0) = -32.0 * et1 * (4.0 * xi2 - xi1) + 256.0 * (xi1 - 0.125) * et1 * zt1;
             rResult(13, 1) = 128.0 * (xi1 - 0.25) * (-et1 + zt1) * xi1;
-
+            //
             rResult(14, 0) = 128.0 * (et1 - 0.25) * et1 * (-xi1 + zt1);
             rResult(14, 1) = -32.0 * xi1 * (4.0 * et2 - et1) + 256.0 * (et1 - 0.125) * zt1 * xi1;
             //
             return rResult;
         }
 
-
-        // ========================================================================================
-        // ========================================================================================
         /**
          * returns the shape function gradients in an arbitrary point,
          * given in local coordinates
@@ -1020,7 +945,7 @@ namespace Kratos
          * shape functions in given point
          * @param rPoint the given point the gradients are calculated in
          */
-        virtual Matrix& ShapeFunctionsGradients(Matrix& rResult, CoordinatesArrayType& rPoint)
+        virtual Matrix& ShapeFunctionsGradients(Matrix& rResult, const CoordinatesArrayType& rPoint)
         {
             rResult.resize(15, 2, false);
             const double xi1 = rPoint[0];
@@ -1032,61 +957,57 @@ namespace Kratos
             const double zt1 = 1.0 - xi1 - et1;
             const double zt2 = zt1 * zt1;
             const double zt3 = zt2 * zt1;
-
-            //// noalias(rResult) = ZeroMatrix(15, 2);
-            rResult = ZeroMatrix(15, 2);
-
-
+            //
+            noalias(rResult) = ZeroMatrix(15, 2);
+            //
             rResult(0, 0) = -(128.0 * zt3 - 144.0 * zt2 + 44.0 * zt1 - 3.0) / 3.0;
             rResult(0, 1) = -(128.0 * zt3 - 144.0 * zt2 + 44.0 * zt1 - 3.0) / 3.0;
-
+            //
             rResult(1, 0) = (128.0 * xi3 - 144.0 * xi2 + 44.0 * xi1 - 3.0) / 3.0;
             rResult(1, 1) = 0.0;
-
+            //
             rResult(2, 0) = 0.0;
             rResult(2, 1) = (128.0 * et3 - 144.0 * et2 + 44.0 * et1 - 3.0) / 3.0;
-
+            //
             rResult(3, 0) = -128.0 * (zt2 - 0.5 * zt1 + 1.0 / 24.0) * xi1 + (128.0 * zt3 - 96.0 * zt2 + 16.0 * zt1) / 3.0;
             rResult(3, 1) = -16.0 * xi1 * (24.0 * zt2 - 12.0 * zt1 + 1.0) / 3.0;
-
+            //
             rResult(4, 0) = -128.0 * (xi1 - 0.25) * (zt1 - 0.125) * xi1 + 128.0 * (xi1 - 0.125) * (zt1 - 0.25) * zt1;
             rResult(4, 1) = -4.0 * xi1 * (4.0 * xi1 - 1.0) * (8.0 * zt1 - 1.0);
-
+            //
             rResult(5, 0) = -(128.0 * xi3 - 96.0 * xi2 + 16.0 * xi1) / 3.0 + 128.0 * (xi2 - 0.5 * xi1 + 1.0 / 24.0) * zt1;
             rResult(5, 1) = -16.0 * xi1 * (8.0 * xi2 - 6.0 * xi1 + 1.0) / 3.0;
-
+            //
             rResult(6, 0) = 16.0 * et1 * (24.0 * xi2 - 12.0 * xi1 + 1.0) / 3.0;
             rResult(6, 1) = (128.0 * xi3 - 96.0 * xi2 + 16.0 * xi1) / 3.0;
-
+            //
             rResult(7, 0) = 4.0 * (8.0 * xi1 - 1.0) * (4.0 * et1 - 1.0) * et1;
             rResult(7, 1) = 4.0 * (4.0 * xi1 - 1.0) * (8.0 * et1 - 1.0) * xi1;
-
+            //
             rResult(8, 0) = (128.0 * et3 - 96.0 * et2 + 16.0 * et1) / 3.0;
             rResult(8, 1) = 16.0 * xi1 * (24.0 * et2 - 12.0 * et1 + 1.0) / 3.0;
-
+            //
             rResult(9, 0) = -16.0 * et1 * (8.0 * et2 - 6.0 * et1 + 1.0) / 3.0;
             rResult(9, 1) = -(128.0 * et3 - 96.0 * et2 + 16.0 * et1) / 3.0 + 128.0 * (et2 - 0.5 * et1 + 1.0 / 24.0) * zt1;
-
+            //
             rResult(10, 0) = -4.0 * et1 * (4.0 * et1 - 1.0) * (8.0 * zt1 - 1.0);
             rResult(10, 1) = -128.0 * (et1 - 0.25) * (zt1 - 0.125) * et1 + 128.0 * (et1 - 0.125) * zt1 * (zt1 - 0.25);
-
+            //
             rResult(11, 0) = -16.0 * et1 * (24.0 * zt2 - 12.0 * zt1 + 1.0) / 3.0;
             rResult(11, 1) = -128.0 * (zt2 - 0.5 * zt1 + 1.0 / 24.0) * et1 + (128.0 * zt3 - 96.0 * zt2 + 16.0 * zt1) / 3.0;
-
+            //
             rResult(12, 0) = 256.0 * et1 * (-xi1 * (zt1 - 0.125) + 0.5 * zt2 - 0.125 * zt1);
             rResult(12, 1) = 256.0 * xi1 * (-et1 * (zt1 - 0.125) + 0.5 * zt2 - 0.125 * zt1);
-
+            //
             rResult(13, 0) = -32.0 * et1 * (4.0 * xi2 - xi1) + 256.0 * (xi1 - 0.125) * et1 * zt1;
             rResult(13, 1) = 128.0 * (xi1 - 0.25) * (-et1 + zt1) * xi1;
-
+            //
             rResult(14, 0) = 128.0 * (et1 - 0.25) * et1 * (-xi1 + zt1);
             rResult(14, 1) = -32.0 * xi1 * (4.0 * et2 - et1) + 256.0 * (et1 - 0.125) * zt1 * xi1;
-
+            //
             return rResult;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * returns the second order derivatives of all shape functions
          * in given arbitrary pointers
@@ -1199,8 +1120,6 @@ namespace Kratos
             return rResult;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * returns the third order derivatives of all shape functions
          * in given arbitrary pointers
@@ -1214,7 +1133,7 @@ namespace Kratos
                 ShapeFunctionsThirdDerivativesType temp(this->PointsNumber());
                 rResult.swap(temp);
             }
-            for (IndexType i = 0; i < rResult.size(); i++)
+            for (IndexType i = 0; i < rResult.size(); ++i)
             {
                 DenseVector<Matrix> temp(this->PointsNumber());
                 rResult[i].swap(temp);
@@ -1254,7 +1173,7 @@ namespace Kratos
             double fx3 = 256.0 * rPoint[0] + 256.0 * rPoint[1] - 160.0;
             double fx2y = fx3;
             double fxy2 = fx3;
-            double fy3 = fx3;
+            double fy3  = fx3;
             rResult[0][0](0, 0) = fx3;  // dx3
             rResult[0][0](0, 1) = fx2y; // dx2 dy
             rResult[0][0](1, 0) = fx2y; // dx2 dy
@@ -1453,40 +1372,31 @@ namespace Kratos
         ///@{
 
         friend class Serializer;
-        // ========================================================================================
-        // ========================================================================================
+
         void save(Serializer& rSerializer) const override
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
         }
 
-        // ========================================================================================
-        // ========================================================================================
         void load(Serializer& rSerializer) override
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
         }
 
-        // ========================================================================================
-        // ========================================================================================
         Triangle2D15() : BaseType(PointsArrayType(), &msGeometryData) {}
 
         ///@}
         ///@name Member Variables
         ///@{
 
-
         ///@}
         ///@name Private Operators
         ///@{
-
 
         ///@}
         ///@name Private Operations
         ///@{
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * Calculates the values of all shape function in all integration points.
          * Integration points are expected to be given in local coordinates
@@ -1505,15 +1415,15 @@ namespace Kratos
             const int points_number = 15;
             //setting up return matrix
             Matrix shape_function_values(integration_points_number, points_number);
-            //loop over all integration points
+            //
             const double cof1 = 128.0 / 3.0;
             const double cof2 = 32.0  / 3.0;
-            //
-            for (int pnt = 0; pnt < integration_points_number; pnt++)
+            //loop over all integration points
+            for (int pnt = 0; pnt < integration_points_number; ++pnt)
             {
-                double xi = integration_points[pnt].X();
-                double et = integration_points[pnt].Y();
-                double zt = 1.0 - xi - et;
+                const double xi = integration_points[pnt].X();
+                const double et = integration_points[pnt].Y();
+                const double zt = 1.0 - xi - et;
                 //
                 shape_function_values(pnt, 0)  = zt * (zt - 0.25) * (zt - 0.50) * (zt - 0.75) * cof2;
                 shape_function_values(pnt, 1)  = xi * (xi - 0.25) * (xi - 0.50) * (xi - 0.75) * cof2;
@@ -1534,8 +1444,6 @@ namespace Kratos
             return shape_function_values;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         /**
          * Calculates the local gradients of all shape functions
          * in all integration points.
@@ -1554,25 +1462,22 @@ namespace Kratos
             //number of integration points
             const int integration_points_number = integration_points.size();
             ShapeFunctionsGradientsType d_shape_f_values(integration_points_number);
-            //initialising container
-            //std::fill(d_shape_f_values.begin(), d_shape_f_values.end(), Matrix(4,2));
             //
             //loop over all integration points
-            for (int pnt = 0; pnt < integration_points_number; pnt++)
+            for (int pnt = 0; pnt < integration_points_number; ++pnt)
             {
                 Matrix result(15, 2);
-                double xi1 = integration_points[pnt].X();
-                double xi2 = xi1 * xi1;
-                double xi3 = xi2 * xi1;
-                double et1 = integration_points[pnt].Y();
-                double et2 = et1 * et1;
-                double et3 = et2 * et1;
-                double zt1 = 1.0 - xi1 - et1;
-                double zt2 = zt1 * zt1;
-                double zt3 = zt2 * zt1;
-
-                //// noalias(result) = ZeroMatrix(15, 2);
-                result = ZeroMatrix(15, 2);
+                const double xi1 = integration_points[pnt].X();
+                const double xi2 = xi1 * xi1;
+                const double xi3 = xi2 * xi1;
+                const double et1 = integration_points[pnt].Y();
+                const double et2 = et1 * et1;
+                const double et3 = et2 * et1;
+                const double zt1 = 1.0 - xi1 - et1;
+                const double zt2 = zt1 * zt1;
+                const double zt3 = zt2 * zt1;
+                //
+                noalias(result) = ZeroMatrix(15, 2);
                 //
                 result(0, 0) = -(128.0 * zt3 - 144.0 * zt2 + 44.0 * zt1 - 3.0) / 3.0;
                 result(0, 1) = -(128.0 * zt3 - 144.0 * zt2 + 44.0 * zt1 - 3.0) / 3.0;
@@ -1624,8 +1529,6 @@ namespace Kratos
             return d_shape_f_values;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         static const IntegrationPointsContainerType AllIntegrationPoints()
         {
             IntegrationPointsContainerType integration_points =
@@ -1641,8 +1544,6 @@ namespace Kratos
             return integration_points;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues()
         {
             ShapeFunctionsValuesContainerType shape_functions_values =
@@ -1658,8 +1559,6 @@ namespace Kratos
             return shape_functions_values;
         }
 
-        // ========================================================================================
-        // ========================================================================================
         static const ShapeFunctionsLocalGradientsContainerType
             AllShapeFunctionsLocalGradients()
         {
@@ -1680,11 +1579,9 @@ namespace Kratos
         ///@name Private  Access
         ///@{
 
-
         ///@}
         ///@name Private Inquiry
         ///@{
-
 
         ///@}
         ///@name Private Friends
@@ -1696,7 +1593,6 @@ namespace Kratos
         ///@name Un accessible methods
         ///@{
 
-
         ///@}
     }; // Class Geometry
 
@@ -1704,19 +1600,16 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
 
-    // ========================================================================================
-    // ========================================================================================
     ///@}
     ///@name Input and output
     ///@{
+
     /**
      * input stream functions
      */
     template<class TPointType>
     inline std::istream& operator >> (std::istream& rIStream, Triangle2D15<TPointType>& rThis);
 
-    // ========================================================================================
-    // ========================================================================================
     /**
      * output stream functions
      */
@@ -1731,8 +1624,6 @@ namespace Kratos
 
     ///@}
 
-    // ========================================================================================
-    // ========================================================================================
     template<class TPointType> const
         GeometryData Triangle2D15<TPointType>::msGeometryData(
             &msGeometryDimension,
@@ -1742,8 +1633,6 @@ namespace Kratos
             AllShapeFunctionsLocalGradients()
         );
 
-    // ========================================================================================
-    // ========================================================================================
     template<class TPointType>
     const GeometryDimension Triangle2D15<TPointType>::msGeometryDimension(2, 2, 2);
 
