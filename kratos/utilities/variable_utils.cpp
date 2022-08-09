@@ -371,6 +371,79 @@ void VariableUtils::WeightedAccumulateVariableOnNodes(
     KRATOS_CATCH("");
 }
 
+    ///This function returns the CURRENT coordinates of all the nodes in a consecutive vector.
+    ///in case Dimension == 1 the vector is in the form (X X X ....)
+    ///in case Dimension == 2 the vector is in the form (X Y X Y X Y ....)
+    ///in case Dimension == 3 the vector is in the form (X Y Z X Y Z ....)
+    KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetCurrentPositionsVector(
+        const ModelPart::NodesContainerType& rNodes, 
+        unsigned int Dimension)
+    {
+        KRATOS_ERROR_IF((Dimension>3)) << " only Dimension<=3 is admitted by the function" << std::endl;
+        Vector pos(rNodes.size()*Dimension);
+
+        IndexPartition<unsigned int>(rNodes.size()).for_each(
+        [&](unsigned int i){
+            auto& coords = (rNodes.begin()+i)->Coordinates();
+            for(unsigned int k=0; k<Dimension; k++)
+                pos[i*Dimension+k] = coords[k];
+            }
+        );
+        return pos;
+    }
+
+    KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetInitialPositionsVector(
+        const ModelPart::NodesContainerType& rNodes, 
+        unsigned int Dimension)
+    {
+        KRATOS_ERROR_IF((Dimension>3)) << " only Dimension<=3 is admitted by the function" << std::endl;
+        Vector pos(rNodes.size()*Dimension);
+
+        IndexPartition<unsigned int>(rNodes.size()).for_each(
+        [&](unsigned int i){
+            auto& coords = (rNodes.begin()+i)->GetInitialPosition();
+            for(unsigned int k=0; k<Dimension; k++)
+                pos[i*Dimension+k] = coords[k];
+            }
+        );
+        return pos;
+    }
+
+    KRATOS_API(KRATOS_CORE) void VariableUtils::SetCurrentPositionsVector(
+        const ModelPart::NodesContainerType& rNodes, 
+        const Vector& rPositions)
+    {
+        KRATOS_ERROR_IF(rPositions.size()%rNodes.size()!=0) << "incompatible number of nodes and position data" << std::endl;
+
+        unsigned int Dimension = rPositions.size()/rNodes.size();
+
+        IndexPartition<unsigned int>(rNodes.size()).for_each(
+        [&](unsigned int i){
+            auto& coords = (rNodes.begin()+i)->Coordinates();
+            for(unsigned int k=0; k<Dimension; k++)
+                coords[k] = rPositions[i*Dimension+k];
+            }
+        );
+    }
+
+    KRATOS_API(KRATOS_CORE) void VariableUtils::SetInitialPositionsVector(
+        const ModelPart::NodesContainerType& rNodes, 
+        const Vector& rPositions)
+    {
+        KRATOS_ERROR_IF(rPositions.size()%rNodes.size()!=0) << "incompatible number of nodes and position data" << std::endl;
+
+        unsigned int Dimension = rPositions.size()/rNodes.size();
+
+        IndexPartition<unsigned int>(rNodes.size()).for_each(
+        [&](unsigned int i){
+            auto& coords = (rNodes.begin()+i)->GetInitialPosition();
+            for(unsigned int k=0; k<Dimension; k++)
+                coords[k] = rPositions[i*Dimension+k];
+            }
+        );
+    }
+
+
 // template instantiations
 template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ConditionsContainerType, int>(
     ModelPart&, const Variable<double>&, const Variable<int>&, const bool);

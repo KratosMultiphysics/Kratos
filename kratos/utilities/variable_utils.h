@@ -1389,6 +1389,33 @@ public:
         const IndexType BufferPosition = 0
         );
 
+    ///This function returns the CURRENT coordinates of all the nodes in a consecutive vector.
+    ///in case Dimension == 1 the vector is in the form (X X X ....)
+    ///in case Dimension == 2 the vector is in the form (X Y X Y X Y ....)
+    ///in case Dimension == 3 the vector is in the form (X Y Z X Y Z ....)
+    Vector GetCurrentPositionsVector(
+        const ModelPart::NodesContainerType& rNodes, 
+        unsigned int Dimension);
+
+    ///This function returns the INITIAL coordinates of all the nodes in a consecutive vector.
+    ///in case Dimension == 1 the vector is in the form (X0 X0 X0 ....)
+    ///in case Dimension == 2 the vector is in the form (X0 Y0 X0 Y0 X0 Y0 ....)
+    ///in case Dimension == 3 the vector is in the form (X0 Y0 Z0 X0 Y0 Z0 ....)
+    Vector GetInitialPositionsVector(
+        const ModelPart::NodesContainerType& rNodes, 
+        unsigned int Dimension);
+
+    ///This function sets the coordinates of the nodes to the values contained in a vector, with a form
+    ///similar to the one described in the functions Get*PositionsVector
+    void SetCurrentPositionsVector(
+        const ModelPart::NodesContainerType& rNodes, 
+        const Vector& rPositions);
+
+    void SetInitialPositionsVector(
+        const ModelPart::NodesContainerType& rNodes, 
+        const Vector& rPositions);
+
+
     ///@}
     ///@name Acces
     ///@{

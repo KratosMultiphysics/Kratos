@@ -452,6 +452,63 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("ApplyFixity", ApplyFixity<Variable<double>>)
         .def("ApplyFixity", ApplyFlaggedFixity<Variable<double>>)
         .def("ApplyVector", &VariableUtils::ApplyVector<Variable<double>>)
+        .def("ApplyVector", []( VariableUtils& rVariableUtils, 
+                                const Variable<array_1d<double,3>>& rVar,
+                                unsigned int Dim,
+                                const Vector& rData,
+                                ModelPart::NodesContainerType& rNodes
+                                )
+                {
+                    if(rNodes.size() != 0 && rNodes.size()*Dim == rData.size()) {
+                        // First we do a check
+                        rVariableUtils.CheckVariableExists(rVar, rNodes);
+
+                        IndexPartition<std::size_t>(rNodes.size()).for_each([&](std::size_t index){
+                            auto it_node = rNodes.begin() + index;
+                            auto& v = it_node->FastGetSolutionStepValue(rVar);
+                            for(unsigned int k=0; k<Dim; k++)
+                                v[k] = rData[index*Dim+k];
+                        });
+                    } else
+                        KRATOS_ERROR  << "There is a mismatch between the size of data array and the number of nodes ";
+                })
+        .def("GetSolutionStepValuesVector", []( VariableUtils& rVariableUtils, 
+                                const Variable<array_1d<double,3>>& rVar,
+                                unsigned int Dimension,
+                                unsigned int Step,
+                                ModelPart::NodesContainerType& rNodes
+                                )
+                {
+                    Vector out(rNodes.size()*Dimension);
+
+                    IndexPartition<unsigned int>(rNodes.size()).for_each(
+                        [&](unsigned int i){
+                            auto& v = (rNodes.begin()+i)->FastGetSolutionStepValue(rVar,Step);
+                            for(unsigned int k=0; k<Dimension; k++)
+                                out[i*Dimension+k] = v[k];
+                            }
+                        );
+                    return out;
+                })
+        .def("SetSolutionStepValuesVector", []( VariableUtils& rVariableUtils, 
+                                const Variable<array_1d<double,3>>& rVar,
+                                unsigned int Step,
+                                const Vector& rData,
+                                ModelPart::NodesContainerType& rNodes
+                                )
+                {
+                    KRATOS_ERROR_IF(rData.size()%rNodes.size()!=0) << "incompatible number of nodes and position data" << std::endl;
+
+                    unsigned int Dimension = rData.size()/rNodes.size();
+
+                    IndexPartition<unsigned int>(rNodes.size()).for_each(
+                        [&](unsigned int i){
+                            auto& v = (rNodes.begin()+i)->FastGetSolutionStepValue(rVar,Step);
+                            for(unsigned int k=0; k<Dimension; k++)
+                                v[k] = rData[i*Dimension+k];
+                            }
+                        );
+                })
         .def("SumHistoricalNodeScalarVariable", &VariableUtils::SumHistoricalVariable<double>)
         .def("SumHistoricalNodeVectorVariable", &VariableUtils::SumHistoricalVariable<array_1d<double, 3>>)
         .def("SumNonHistoricalNodeScalarVariable", &VariableUtils::SumNonHistoricalNodeScalarVariable<Variable<double>>)
@@ -469,7 +526,12 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("UpdateInitialToCurrentConfiguration", &VariableUtils::UpdateInitialToCurrentConfiguration)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
-        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition);
+        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition)
+        .def("GetCurrentPositionsVector", &VariableUtils::GetCurrentPositionsVector)
+        .def("GetInitialPositionsVector", &VariableUtils::GetInitialPositionsVector)
+        .def("SetCurrentPositionsVector", &VariableUtils::SetCurrentPositionsVector)
+        .def("SetInitialPositionsVector", &VariableUtils::SetInitialPositionsVector)
+        ;
 
     AddCopyModelPartFlaggedInterface<bool>(python_variable_utils);
     AddCopyModelPartFlaggedInterface<double>(python_variable_utils);
