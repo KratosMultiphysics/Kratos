@@ -236,7 +236,7 @@ namespace Kratos
 			tetrahedralize(tetgen_options, &in, &out); //with option to remove slivers
 
 
-			double first_part_time = auxiliary.elapsed();
+			//double first_part_time = auxiliary.elapsed();
 
 			//generate Kratos Tetrahedra3D4
 			int el_number = out.numberoftetrahedra;
@@ -857,7 +857,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			*/
 
 
-			double second_part_time = auxiliary.elapsed();
+			//double second_part_time = auxiliary.elapsed();
 
 
 			KRATOS_CATCH("")
@@ -1125,7 +1125,6 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			const double x2 = c3[0]; const double y2 = c3[1]; const double z2 = c3[2];
 			const double x3 = c4[0]; const double y3 = c4[1]; const double z3 = c4[2];
 
-// 			KRATOS_WATCH("111111111111111111111");
 			//calculate min side lenght
 			//(use xc as a auxiliary vector) !!!!!!!!!!!!
 			double aux;

@@ -75,7 +75,8 @@ namespace Kratos
 				array_1d<double, 3 > veulerian;
 				//double temperature=0.0;
 				array_1d<double, 3 > acc_particle;
-				array_1d<double, TDim + 1 > N;
+				///array_1d<double, TDim + 1 > N;
+				Vector N; N.resize(TDim + 1);
 				const int max_results = 10000;
 				typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
@@ -172,7 +173,8 @@ void RungeKutta4ElementbasedSI(ModelPart& rModelPart, unsigned int substeps)
 
         array_1d<double, 3 > v1,v2,v3,v4,vtot,x;
 
-	array_1d<double, TDim + 1 > N;
+	//array_1d<double, TDim + 1 > N;
+	Vector N; N.resize(TDim + 1);
 
 	const int max_results = 10000;
 
@@ -622,7 +624,7 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
 
 	//array_1d<double, TDim + 1 > N;
 
-	const int max_results = 10000;
+	//const int max_results = 10000;
 
 	//typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
@@ -670,7 +672,7 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
         bool inverted=false;
 	double vol=0.0;
 	array_1d<double,TDim+1> N;
-        double dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
+        //double dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
 	//defining work arrays
         //PointerVector< Element > elements_to_solve;
         std::vector<GlobalPointersVector<Element>> nodal_neighbours;
@@ -698,7 +700,7 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
 		    in->FastGetSolutionStepValue(RADIATIVE_INTENSITY) = 0.00;
 		}
 
-	      bool erase_node=false;
+	      //bool erase_node=false;
              for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); i!=ThisModelPart.ElementsEnd(); i++)
 		    {
 		        //calculating shape functions values
@@ -706,7 +708,7 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
 
 
 		        //counting number of structural nodes
-		        vol = GeometryUtils::CalculateVolume3D(geom);
+		        vol = geom.Volume();
 
 //	     	        if(vol <= 0 or vol<= 0.00000000000001)
      	     	        //if(vol <= 0 or vol<= 0.0001*vol_r)
@@ -873,7 +875,7 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
         KRATOS_TRY
 
         //set to zero the nodal area
-        bool inverted=false;
+        //bool inverted=false;
 	double vol=0.0;
 	double totvol=0.0;
 	array_1d<double,TDim+1> N;
@@ -893,7 +895,7 @@ void MovingParticles(ModelPart& rModelPart, unsigned int substeps)
 		        Geometry< Node<3> >& geom = i->GetGeometry();
 
 		        //counting number of structural nodes
-		        vol = GeometryUtils::CalculateVolume3D(geom);
+		        vol = geom.Volume();
                        totvol += vol;
 		    }
 	}

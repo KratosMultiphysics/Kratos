@@ -73,7 +73,7 @@ public:
 
         mParameters=rParameters;
 
-        int i=0;
+        size_t i=0;
 
         if(rParameters["laser_profile"]["shape"].GetString()=="custom")	{
             auto values = rParameters["laser_profile"]["values"];

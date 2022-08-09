@@ -291,39 +291,39 @@ public:
 
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
     	//noalias(rRightHandSideVector) = ZeroVector(6);
-    	//KRATOS_THROW_ERROR(std::logic_error,"not dereeeeeeeeeeeeeeeeeeeeeeecha",""); 	
+    	//KRATOS_THROW_ERROR(std::logic_error,"not dereeeeeeeeeeeeeeeeeeeeeeecha","");
 /*    KRATOS_WATCH("SOLIDOOOOOOOOOOOOOOOOOOOOOOOOOO")
     KRATOS_WATCH("SOLIDOOOOOOOOOOOOOOOOOOOOOOOOOO")
     KRATOS_WATCH("SOLIDOOOOOOOOOOOOOOOOOOOOOOOOOO")*/
-    
+
         // Calculate this element's geometric parameters
         double Area;
         array_1d<double, TNumNodes> N;
         BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
-	
+
         // Calculate this element's fluid properties
         double Density;
         this->EvaluateInPoint(Density, DENSITY, N);
-        
+
         //KRATOS_WATCH("DENSITY")
         //KRATOS_WATCH(Density)
 
         // Calculate Momentum RHS contribution
         //this->AddMomentumRHS(rRightHandSideVector, Density, N, Area);
 
-      
+
         //writing the body force
 	    const array_1d<double,3>& body_force = 0.333333333*(this->GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE)+ this->GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE) + this->GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE));
 	    //const array_1d<double,3>& body_force = GetProperties()[BODY_FORCE];
-	    
+
 	    if(TDim==2){
 	    for(unsigned int i = 0; i<TNumNodes; i++)
 	    {
 		rRightHandSideVector[i*2] = body_force[0]* Density * 0.3333333333333;
 		rRightHandSideVector[i*2+1] = body_force[1] * Density * 0.3333333333333;
-		
+
 	    }}
 	    else{
 	    for(unsigned int i = 0; i<TNumNodes; i++)
@@ -334,12 +334,12 @@ public:
 		        rRightHandSideVector[d] += 0.25 * Density * rBodyForce[d];
 		    }
             }
-        
+
 	    }
 
 	    if(TDim==2)
-	    {	
-	    //get the value of Cauchy stress at the Gauss point. It is given by: 
+	    {
+	    //get the value of Cauchy stress at the Gauss point. It is given by:
 		    const BoundedMatrix<double,2,2> & CauchyStress=this->GetValue(CAUCHY_STRESS_TENSOR);
 
 		    //KRATOS_WATCH(CauchyStress)
@@ -358,9 +358,9 @@ public:
 		    rRightHandSideVector[5] -= DN_DX(2,1)*CauchyStress(1,1) + DN_DX(2,0)*CauchyStress(0,1) ;
 
 		    rRightHandSideVector*=Area;
-		    
+
 		    */
-		    
+
 		    double SXX= 0.333333333 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX) + 0.333333333 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX)+0.333333333 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX);
 		    double SXY= 0.333333333 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY) + 0.333333333 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY)+0.333333333 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY);
 		    //double SXZ= 0.333333333 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ) + 0.333333333 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ)+0.333333333 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ);
@@ -373,9 +373,9 @@ public:
 		    //double SZY= 0.333333333 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY) + 0.333333333 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY)+0.333333333 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY);
 		    //double SZZ= 0.333333333 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ) + 0.333333333 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ)+0.333333333 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ);
 
-		    
+
 		    rRightHandSideVector[0] -= DN_DX(0,0)*SXX + DN_DX(0,1)*SXY;
-		    
+
 		    //0  +   dN1/dy*SigmaY + 0 + dN1/dx*TauXY
 		    rRightHandSideVector[1] -= DN_DX(0,0)*SYX + DN_DX(0,1)*SYY;
 
@@ -392,11 +392,11 @@ public:
 		    rRightHandSideVector[5] -= DN_DX(2,0)*SYX + DN_DX(2,1)*SYY;
 
 		    rRightHandSideVector*=Area;
-		    
-		    
-		    
-		    
-    	    }	
+
+
+
+
+    	    }
 	else{
 		    const BoundedMatrix<double,3,3> & CauchyStress=this->GetValue(CAUCHY_STRESS_TENSOR);
 	            //KRATOS_WATCH(CauchyStress)
@@ -422,21 +422,21 @@ public:
 		    rRightHandSideVector[6] -= DN_DX(2,0)*CauchyStress(0,0) + DN_DX(2,1)*CauchyStress(0,1) + DN_DX(2,2)*CauchyStress(0,2) ;
 		    //0  +   dN3/dy*SigmaY + 0 + dN3/dx*TauXY
 		    rRightHandSideVector[7] -= DN_DX(2,0)*CauchyStress(1,0) + DN_DX(2,1)*CauchyStress(1,1) + DN_DX(2,2)*CauchyStress(1,2) ;
-		    
+
 		    rRightHandSideVector[8] -= DN_DX(2,0)*CauchyStress(2,0) + DN_DX(2,1)*CauchyStress(2,1) + DN_DX(2,2)*CauchyStress(2,2) ;
-		    
+
 		     //dN3/dx*SigmaX + 0 + dN3/dy*TauXY
 		    rRightHandSideVector[9] -= DN_DX(3,0)*CauchyStress(0,0) + DN_DX(3,1)*CauchyStress(0,1) + DN_DX(3,2)*CauchyStress(0,2) ;
 		    //0  +   dN3/dy*SigmaY + 0 + dN3/dx*TauXY
 		    rRightHandSideVector[10] -= DN_DX(3,0)*CauchyStress(1,0) + DN_DX(3,1)*CauchyStress(1,1) + DN_DX(3,2)*CauchyStress(1,2) ;
-		    
+
 		    rRightHandSideVector[11] -= DN_DX(3,0)*CauchyStress(2,0) + DN_DX(3,1)*CauchyStress(2,1) + DN_DX(3,2)*CauchyStress(2,2) ;
-		    
+
 		    */
-		    		    
+
 
 		    //dN1/dx*SigmaX + 0 + dN1/dy*TauXY
-		    
+
 		    double SXX= 0.25 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX) + 0.25 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX)+0.25 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX)+0.25 * this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX);
 		    double SXY= 0.25 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY) + 0.25 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY)+0.25 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY)+0.25 * this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY);
 		    double SXZ= 0.25 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ) + 0.25 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ)+0.25 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ)+0.25 * this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ);
@@ -449,10 +449,10 @@ public:
 		    double SZY= 0.25 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY) + 0.25 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY)+0.25 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY)+0.25 * this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY);
 		    double SZZ= 0.25 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ) + 0.25 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ)+0.25 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ)+0.25 * this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ);
 
-		    
+
 		    //rRightHandSideVector[0] -= DN_DX(0,0)*this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX) + DN_DX(0,1)*this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY) + DN_DX(0,2)*this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ);
 		    rRightHandSideVector[0] -= DN_DX(0,0)*SXX + DN_DX(0,1)*SXY + DN_DX(0,2)*SXZ;
-		    
+
 		    //0  +   dN1/dy*SigmaY + 0 + dN1/dx*TauXY
 		    //rRightHandSideVector[1] -= DN_DX(0,0)*this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_YX) + DN_DX(0,1)*this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_YY) + DN_DX(0,2)*this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_YZ);
 		    rRightHandSideVector[1] -= DN_DX(0,0)*SYX + DN_DX(0,1)*SYY + DN_DX(0,2)*SYZ;
@@ -483,10 +483,10 @@ public:
 		    //rRightHandSideVector[7] -= DN_DX(2,0)*this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_YX) + DN_DX(2,1)*this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_YY) + DN_DX(2,2)*this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_YZ) ;
 		    rRightHandSideVector[7] -= DN_DX(2,0)*SYX + DN_DX(2,1)*SYY + DN_DX(2,2)*SYZ ;
 
-		    
+
 		    //rRightHandSideVector[8] -= DN_DX(2,0)*this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZX) + DN_DX(2,1)*this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY) + DN_DX(2,2)*this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ) ;
 		    rRightHandSideVector[8] -= DN_DX(2,0)*SZX + DN_DX(2,1)*SZY + DN_DX(2,2)*SZZ;
-		    
+
 		     //dN3/dx*SigmaX + 0 + dN3/dy*TauXY
 		    //rRightHandSideVector[9] -= DN_DX(3,0)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX) + DN_DX(3,1)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY) + DN_DX(3,2)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ) ;
 		    rRightHandSideVector[9] -= DN_DX(3,0)*SXX + DN_DX(3,1)*SXY + DN_DX(3,2)*SXZ ;
@@ -494,15 +494,15 @@ public:
 		    //0  +   dN3/dy*SigmaY + 0 + dN3/dx*TauXY
 		    //rRightHandSideVector[10] -= DN_DX(3,0)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_YX) + DN_DX(3,1)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_YY) + DN_DX(3,2)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_YZ) ;
 		    rRightHandSideVector[10] -= DN_DX(3,0)*SYX + DN_DX(3,1)*SYY + DN_DX(3,2)*SYZ ;
-		    
+
 		    //rRightHandSideVector[11] -= DN_DX(3,0)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZX) + DN_DX(3,1)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY) + DN_DX(3,2)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ) ;
 		    rRightHandSideVector[11] -= DN_DX(3,0)*SZX + DN_DX(3,1)*SZY + DN_DX(3,2)*SZZ ;
 
 		    rRightHandSideVector*=Area;
-	
-	
+
+
 	}
-        
+
     }
 
 
@@ -563,7 +563,7 @@ public:
             rMassMatrix(index,index) = nodal_mass;
         }
     }
-    
+
     */
     //KRATOS_WATCH(rMassMatrix)
 
@@ -597,10 +597,10 @@ public:
         rDampingMatrix.resize(LocalSize, LocalSize, false);
 
     noalias(rDampingMatrix) = ZeroMatrix(LocalSize, LocalSize);
-        
+
 
     if(TDim==2)
-    {	
+    {
 	    //fill in the damping matrix
 	    BoundedMatrix<double,3,6> msB;
 	    BoundedMatrix<double,3,3> ms_constitutive_matrix;
@@ -620,15 +620,15 @@ public:
 	    double NU = this->GetProperties()[POISSON_RATIO];//  GetProperties()[POISSON_RATIO];
 	    double E = this->GetProperties()[YOUNG_MODULUS];
 
-	 
+
 
 	    double dt = rCurrentProcessInfo[DELTA_TIME];
 	    //Lame constants. note that for the hypoelastic solid the Lame constants must be multiplied by the timestep
-	    //const 
+	    //const
 	    double MU=0.5*dt*E/(1.0+NU);
-	    //const 
+	    //const
 	    double LAMBDA=NU*E*dt/((1.0+NU)*(1.0-2.0*NU));
-	    //const 
+	    //const
 	    double KAPPA=LAMBDA+0.6666666*MU;
 
 	    //SHEAR CONTRIBUTION TO THE "DAMPING" MATRIX
@@ -658,7 +658,7 @@ public:
 	    ms_temp = prod( ms_constitutive_matrix , msB);
 	    noalias(rDampingMatrix) = prod( trans(msB) , ms_temp);
 
-	    
+
 	    //now we reuse the constitutive tensor
 	    ms_constitutive_matrix(0,0) = KAPPA;
 	    ms_constitutive_matrix(0,1) = KAPPA ;
@@ -674,7 +674,7 @@ public:
 	    ms_temp = prod( ms_constitutive_matrix , msB);
 	    //ms_temp*=dt;
 	    rDampingMatrix+= prod( trans(msB) , ms_temp);
-	    
+
 	    rDampingMatrix *= Area;
 
 	    //Now calculate an additional contribution to the residual: r -= rDampingMatrix * (v)
@@ -689,7 +689,7 @@ public:
 	    noalias(rRightHandSideVector) -= prod(rDampingMatrix, Vel);
     }
     else{
-    
+
     	    //fill in the damping matrix
 	    BoundedMatrix<double,6,12> msB = ZeroMatrix(6,12);
 	    BoundedMatrix<double,6,6> ms_constitutive_matrix;
@@ -711,16 +711,16 @@ public:
 
 	    /*KRATOS_WATCH(NU)
 	    KRATOS_WATCH(E)*/
-	    
-	    
-	    
+
+
+
 	    double dt = rCurrentProcessInfo[DELTA_TIME];
 	    //Lame constants. note that for the hypoelastic solid the Lame constants must be multiplied by the timestep
-	    //const 
+	    //const
 	    double MU=0.5*dt*E/(1.0+NU);
-	    //const 
+	    //const
 	    double LAMBDA=NU*E*dt/((1.0+NU)*(1.0-2.0*NU));
-	    //const 
+	    //const
 	    double KAPPA=LAMBDA+0.6666666*MU;
 
 	    //SHEAR CONTRIBUTION TO THE "DAMPING" MATRIX
@@ -780,13 +780,13 @@ public:
     ms_constitutive_matrix(5,3) = 0.0;
     ms_constitutive_matrix(5,4) = 0.0;
     ms_constitutive_matrix(5,5) = MU;
-    
+
 	    //calculating volumetric contribution
 	    ms_temp = prod( ms_constitutive_matrix , msB);
 	    //ms_temp*=dt;
 	    rDampingMatrix+= prod( trans(msB) , ms_temp);
-	    
-	    //rDampingMatrix *= Area;	
+
+	    //rDampingMatrix *= Area;
 	    //constitutive tensor
 	    ms_constitutive_matrix(0,0) = KAPPA;
 	    ms_constitutive_matrix(0,1) = KAPPA ;
@@ -834,7 +834,7 @@ public:
 	    ms_temp = prod( ms_constitutive_matrix , msB);
 	    //ms_temp*=dt;
 	    rDampingMatrix+= prod( trans(msB) , ms_temp);
-	    
+
 	    rDampingMatrix *= Area;
 
 	    //Now calculate an additional contribution to the residual: r -= rDampingMatrix * (v)
@@ -842,7 +842,7 @@ public:
 	    Vel[0]  = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X);
 	    Vel[1]  = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y);
 	    Vel[2]  = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z);
-	    
+
 	    Vel[3]  = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY_X);
 	    Vel[4]  = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY_Y);
 	    Vel[5]  = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY_Z);
@@ -856,9 +856,9 @@ public:
 	    Vel[11] = this->GetGeometry()[3].FastGetSolutionStepValue(VELOCITY_Z);
 
 	    noalias(rRightHandSideVector) -= prod(rDampingMatrix, Vel);*/
-	    
+
     }
-    
+
     VectorType U = ZeroVector(LocalSize);
     int LocalIndex = 0;
 
@@ -875,8 +875,8 @@ public:
     }
 
     noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
-        
-    	
+
+
     //KRATOS_WATCH(rDampingMatrix)
     //KRATOS_WATCH(rRightHandSideVector)
     KRATOS_CATCH("")
@@ -901,7 +901,7 @@ public:
 
     void Calculate(const Variable<double>& rVariable,
                            double& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo) 
+                           const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == NODAL_AREA)
         {
@@ -914,15 +914,15 @@ public:
             // Carefully write results to nodal variables, to avoid parallelism problems
             for (unsigned int i = 0; i < TNumNodes; ++i)
             {
-            	
+
                 this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
                 this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS) += Area * N[i];
-                
+
                 this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
             }
         }
     }
-    
+
     /// Implementation of Calculate to compute the local OSS projections.
     /**
      * If rVariable == ADVPROJ, This function computes the OSS projection
@@ -937,7 +937,7 @@ public:
      */
 /*    void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & rOutput,
-                           const ProcessInfo& rCurrentProcessInfo) 
+                           const ProcessInfo& rCurrentProcessInfo)
 {
 
 
@@ -950,20 +950,13 @@ public:
     virtual void Calculate(const Variable<Matrix >& rVariable,
                            Matrix& Output,
                            const ProcessInfo& rCurrentProcessInfo)
-                           
+
                            */
-    virtual void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo)
-     {                      
-                           
-	double pepe=0;
-	//KRATOS_THROW_ERROR(std::logic_error,"not dereeeeeeeeeeeeeeeeeeeeeeecha","");
+    virtual void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo) override
+     {
+
   if(rVariable == CAUCHY_STRESS_TENSOR)
     {
-        /*KRATOS_WATCH("222222222222222222222222222222222")
-	KRATOS_WATCH("222222222222222222222222222222222")
-	KRATOS_WATCH("222222222222222222222222222222222")
-	KRATOS_WATCH("222222222222222222222222222222222")	*/
-	//KRATOS_THROW_ERROR(std::logic_error,"not dereeeeeeeeeeeeeeeeeeeeeeecha","");
     if(TDim==2)
     {
 	    BoundedMatrix<double,2,2> CauchyStress=ZeroMatrix(2,2);
@@ -974,7 +967,7 @@ public:
 	    const array_1d<double,3>& v0 = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 	    const array_1d<double,3>& v1 = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
 	    const array_1d<double,3>& v2 = this->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
-	    
+
 	    double Area;
 	    BoundedMatrix<double,3,2> msDN_Dx;
 	    array_1d<double,3> msN; //dimension = number of nodes
@@ -983,15 +976,13 @@ public:
 	    double NU = this->GetProperties()[POISSON_RATIO];
 	    double E = this->GetProperties()[YOUNG_MODULUS];
 
-	    /*KRATOS_WATCH(NU)
-	    KRATOS_WATCH(E)*/
 	    double dt = rCurrentProcessInfo[DELTA_TIME];
 	    //Lame constants. note that for the hypoelastic solid the Lame constants must be multiplied by the timestep
-	    //const 
+	    //const
 	    double MU=0.5*dt*E/(1.0+NU);
-	    //const 
+	    //const
 	    double LAMBDA=NU*E*dt/((1.0+NU)*(1.0-2.0*NU));
-	    //const 
+	    //const
 	    double KAPPA=LAMBDA+0.6666666*MU;
 
 
@@ -1003,7 +994,6 @@ public:
 
 	    CauchyStress*=MU;
 
-	    //KRATOS_WATCH(CauchyStress)
 	    //adding the volumetric part
 	    double div_v = msDN_Dx(0,0)*v0[0] + msDN_Dx(0,1)*v0[1];
 	    div_v+=       msDN_Dx(1,0)*v1[0] + msDN_Dx(1,1)*v1[1];
@@ -1011,22 +1001,16 @@ public:
 
 	    CauchyStress(0,0)+=KAPPA*div_v;
 	    CauchyStress(1,1)+=KAPPA*div_v;
-	    //KRATOS_WATCH(CauchyStress) 
-	    //HistoricalCauchyStress=this->GetValue(CAUCHY_STRESS_TENSOR);
-	    //KRATOS_WATCH(HistoricalCauchyStress)
-	    //CauchyStress+=HistoricalCauchyStress;
-	    //KRATOS_WATCH(CauchyStress)
 
 	    this->SetValue(CAUCHY_STRESS_TENSOR, CauchyStress);
-	    //Output=CauchyStress;
 	}
     else{
-    
+
 	double Area;
         array_1d<double, TNumNodes> N;
         BoundedMatrix<double, TNumNodes, TDim> msDN_Dx;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), msDN_Dx, N, Area);
- 
+
         BoundedMatrix<double,3,3> CauchyStress=ZeroMatrix(3,3);
 	//BoundedMatrix<double,3,3> HistoricalCauchyStress=ZeroMatrix(3,3);
 	/*KRATOS_WATCH("222222222222222222222222222222222")
@@ -1039,8 +1023,8 @@ public:
 	const array_1d<double,3>& v0 = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 	const array_1d<double,3>& v1 = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
 	const array_1d<double,3>& v2 = this->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
-        const array_1d<double,3>& v3 = this->GetGeometry()[3].FastGetSolutionStepValue(VELOCITY);	    
- 
+        const array_1d<double,3>& v3 = this->GetGeometry()[3].FastGetSolutionStepValue(VELOCITY);
+
         double NU = this->GetProperties()[POISSON_RATIO];
 	double E = this->GetProperties()[YOUNG_MODULUS];
         //NU = 3.000000e-01;
@@ -1048,12 +1032,12 @@ public:
 
 	double dt = rCurrentProcessInfo[DELTA_TIME];
 	//Lame constants. note that for the hypoelastic solid the Lame constants must be multiplied by the timestep
-	//const 
+	//const
 	double MU=0.5*dt*E/(1.0+NU);
-	
-	//const 
+
+	//const
 	double LAMBDA=NU*E*dt/((1.0+NU)*(1.0-2.0*NU));
-	//const 
+	//const
 	double KAPPA=LAMBDA+0.6666666*MU;
         //KRATOS_WATCH(CauchyStress)
         CauchyStress(0,0)=2.0* (msDN_Dx(0,0)*v0[0]+msDN_Dx(1,0)*v1[0]+msDN_Dx(2,0)*v2[0]+msDN_Dx(3,0)*v3[0]);
@@ -1072,8 +1056,8 @@ public:
 
        CauchyStress*=MU;
 
-       //KRATOS_WATCH(CauchyStress)	
-       
+       //KRATOS_WATCH(CauchyStress)
+
        //KRATOS_WATCH(CauchyStress)
        //adding the volumetric part
        double div_v = msDN_Dx(0,0)*v0[0] + msDN_Dx(0,1)*v0[1] + msDN_Dx(0,2)*v0[2];
@@ -1084,24 +1068,24 @@ public:
        CauchyStress(0,0)+=KAPPA*div_v;
        CauchyStress(1,1)+=KAPPA*div_v;
        CauchyStress(2,2)+=KAPPA*div_v;
-	    //KRATOS_WATCH(CauchyStress) 
-       //KRATOS_WATCH(HistoricalCauchyStress)    	
+	    //KRATOS_WATCH(CauchyStress)
+       //KRATOS_WATCH(HistoricalCauchyStress)
        //HistoricalCauchyStress=this->GetValue(CAUCHY_STRESS_TENSOR);
        //KRATOS_WATCH(HistoricalCauchyStress)
        //CauchyStress+=HistoricalCauchyStress;
        //KRATOS_WATCH(CauchyStress)
 
-       this->SetValue(CAUCHY_STRESS_TENSOR, CauchyStress);	    
-       //KRATOS_WATCH(CauchyStress) 
- 
+       this->SetValue(CAUCHY_STRESS_TENSOR, CauchyStress);
+       //KRATOS_WATCH(CauchyStress)
+
     }
-    
-    
-    
-    
-    
+
+
+
+
+
     }
-    else 
+    else
        KRATOS_ERROR << "Wrong variable. Calculate function of hypoelastic element is meant to compute Cauchy stress only." << std::endl;
 
 
@@ -1171,9 +1155,7 @@ public:
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override
-    {
-     double pepe;
-    }
+    {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
     void CalculateOnIntegrationPoints(
@@ -1400,16 +1382,16 @@ protected:
      * @param rShapeDeriv Shape function derivatives evaluated on integration point
      * @param Weight Area (or volume) times integration point weight
      */
-    
+
 
     /// Add a the contribution from a single integration point to the velocity contribution
-   
+
     /// Assemble the contribution from an integration point to the element's residual.
     /** Note that the dynamic term is not included in the momentum equation.
      *  If OSS_SWITCH = 1, we don't take into account the 'dynamic' stabilization
      *  terms, as it they belong to the finite element space.
      */
-   
+
 
     /// Assemble the contribution from an integration point to the element's residual.
     /**
@@ -1421,7 +1403,7 @@ protected:
      * @param rShapeDeriv Shape function derivatives evaluated at integration point
      * @param Weight Integration point weight (as a fraction of area or volume)
      */
-    
+
 
     /// Assemble the contribution from an integration point to the element's residual.
     /**
@@ -1433,7 +1415,7 @@ protected:
      * @param rShapeDeriv Shape function derivatives evaluated at integration point
      * @param Weight Integration point weight (as a fraction of area or volume)
      */
-    
+
 
 
     /**
@@ -1451,7 +1433,7 @@ protected:
      * @param rProcessInfo ProcessInfo instance passed from the ModelPart.
      * @return Effective viscosity, in dynamic units (Pa*s or equivalent).
      */
-   
+
 
 
     /**
@@ -1599,7 +1581,7 @@ protected:
      * @param rShapeDeriv Elemental shape function derivatives
      * @param Weight Effective viscosity, in dynamic units, weighted by the integration point area
      */
-   
+
 
     /// Calculate the strain rate matrix
     /**

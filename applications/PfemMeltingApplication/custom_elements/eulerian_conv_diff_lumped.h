@@ -29,7 +29,15 @@ template< unsigned int TDim, unsigned int TNumNodes>
 class EulerianConvectionDiffusionLumpedElement
     : public EulerianConvectionDiffusionElement<TDim,TNumNodes>
 {
+
 public:
+    typedef Node < 3 > NodeType;
+    typedef Geometry <NodeType>   GeometryType;
+    typedef Properties PropertiesType;
+    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    typedef Vector VectorType;
+    typedef Matrix MatrixType;
+
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EulerianConvectionDiffusionLumpedElement);
 
@@ -59,7 +67,7 @@ public:
         PropertiesType::Pointer pProperties
         ) const override
     {
-        return Kratos::make_intrusive<EulerianConvectionDiffusionLumpedElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<EulerianConvectionDiffusionLumpedElement>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
     Element::Pointer Create(
@@ -82,7 +90,7 @@ public:
             rRightHandSideVector.resize(TNumNodes, false); //false says not to preserve existing storage!!
 
         //Element variables
-        ElementVariables Variables;
+        typename EulerianConvectionDiffusionElement<TDim, TNumNodes>::ElementVariables Variables;
         this->InitializeEulerianElement(Variables,rCurrentProcessInfo);
 
         // Compute the geometry
@@ -176,7 +184,7 @@ public:
 
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Info() << Id();
+        rOStream << Info() << this->Id();
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

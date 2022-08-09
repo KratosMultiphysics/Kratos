@@ -805,7 +805,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				{
 					int index = outnew.neighborlist[base+i];
 					if(index > 0)
-						neighb(i) = GlobalPointer<Element>(&*(el_begin + index-1)); 
+						neighb(i) = GlobalPointer<Element>(&*(el_begin + index-1));
 					else
 						neighb(i) = Element::WeakPointer();
 				}
@@ -1166,7 +1166,6 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			const double x2 = c3[0]; const double y2 = c3[1]; const double z2 = c3[2];
 			const double x3 = c4[0]; const double y3 = c4[1]; const double z3 = c4[2];
 
-// 			KRATOS_WATCH("111111111111111111111");
 			//calculate min side lenght
 			//(use xc as a auxiliary vector) !!!!!!!!!!!!
 			double aux;

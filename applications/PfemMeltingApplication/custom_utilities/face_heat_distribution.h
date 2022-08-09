@@ -177,17 +177,21 @@ namespace Kratos
         KRATOS_TRY
 
 	  //defintions for spatial search
-	double volume0, volume1, rho;
+	      double volume0, volume1;
+        //double rho;
         double volume_total=0, volume_total1=0; double arrehnius0=0.0; double arrhenius1=0.0;
-        double sum_of_ARR=0.0; double sum_of_ARRpartial=0.0; double heat_of_combustion=0.0; double face_heat_flux=0.0;
+        double sum_of_ARR=0.0;
+        double sum_of_ARRpartial=0.0;
+        //double heat_of_combustion=0.0;
+        double face_heat_flux=0.0;
 
-        double density=0.0;
-        double activation_energy=0.0;
-        double arrhenius_coefficient=0.0;
-        double heat_of_vaporization=0.0;
-        double temperature=0.0;
-        double R=8.31; //universal gas constant
-        double aux_var_polymer=0.0;
+        //double density=0.0;
+       // double activation_energy=0.0;
+        //double arrhenius_coefficient=0.0;
+        //double heat_of_vaporization=0.0;
+        //double temperature=0.0;
+        //double R=8.31; //universal gas constant
+        //double aux_var_polymer=0.0;
 
 
 
@@ -199,7 +203,7 @@ namespace Kratos
 			{
 		        volume0 = node_it->FastGetSolutionStepValue(RADIATIVE_INTENSITY,0);
 		        volume1 = node_it->FastGetSolutionStepValue(RADIATIVE_INTENSITY,1);
-			rho = node_it->FastGetSolutionStepValue(DENSITY);
+			      //rho = node_it->FastGetSolutionStepValue(DENSITY);
 			volume_total = volume_total + volume0 ;
 		        volume_total1 = volume_total1 + volume1 ;
 			if( node_it->FastGetSolutionStepValue(DENSITY)<limit)
@@ -211,7 +215,7 @@ namespace Kratos
 				}
 			}
 	  }
-	heat_of_combustion=abs(sum_of_ARR-sum_of_ARRpartial);
+	//heat_of_combustion=abs(sum_of_ARR-sum_of_ARRpartial);
 
 	for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin(); node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
 	  {

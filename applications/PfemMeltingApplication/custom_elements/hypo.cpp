@@ -224,9 +224,7 @@ void HYPO<2>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double,3> >& rVariable,
     std::vector<array_1d<double,3> >& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
-{
-    const unsigned int Dim(2),NumNodes(3);
-    }
+{}
 
 /**
  * @see VMS::CalculateOnIntegrationPoints
@@ -236,10 +234,7 @@ void HYPO<3>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double,3> >& rVariable,
     std::vector<array_1d<double,3> >& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
-{
-    const unsigned int Dim(3),NumNodes(4);
-
-}
+{}
 
 
 template<>

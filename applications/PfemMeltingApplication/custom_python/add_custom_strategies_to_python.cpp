@@ -47,10 +47,6 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-    typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
-    typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
-
     py::class_<
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulentWithNoNodeDisplacement<SparseSpaceType, LocalSpaceType>,
         typename ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulentWithNoNodeDisplacement<SparseSpaceType, LocalSpaceType>::Pointer,

@@ -50,18 +50,14 @@ namespace Kratos {
             unsigned int DomainSize)
         : ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace, TDenseSpace>(NewAlphaBossak,
                                                                                                 MoveMeshStrategy,
-                                                                                                DomainSize) {
-                                                                                                    KRATOS_WATCH("11111")
-                                                                                                }
+                                                                                                DomainSize) {}
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulentWithNoNodeDisplacement(
             double NewAlphaBossak,
             unsigned int DomainSize,
             const Variable<int>& rPeriodicIdVar)
         : ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace, TDenseSpace>(NewAlphaBossak,
                                                                                                 DomainSize,
-                                                                                                rPeriodicIdVar) {
-                                                                                                    KRATOS_WATCH("22222")
-                                                                                                }
+                                                                                                rPeriodicIdVar) {}
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulentWithNoNodeDisplacement(
             double NewAlphaBossak,
             double MoveMeshStrategy,
@@ -70,9 +66,7 @@ namespace Kratos {
         : ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace, TDenseSpace>(NewAlphaBossak,
                                                                                                 MoveMeshStrategy,
                                                                                                 DomainSize,
-                                                                                                rSlipFlag) {
-                                                                                                    KRATOS_WATCH("33333")
-                                                                                                }
+                                                                                                rSlipFlag) {}
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulentWithNoNodeDisplacement(
             double NewAlphaBossak,
             double MoveMeshStrategy,
@@ -81,9 +75,7 @@ namespace Kratos {
         : ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace, TDenseSpace>(NewAlphaBossak,
                                                                                                 MoveMeshStrategy,
                                                                                                 DomainSize,
-                                                                                                pTurbulenceModel) {
-                                                                                                    KRATOS_WATCH("44444")
-                                                                                                }
+                                                                                                pTurbulenceModel) {}
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulentWithNoNodeDisplacement(
             double NewAlphaBossak,
             double MoveMeshStrategy,
@@ -104,7 +96,6 @@ namespace Kratos {
                                 const array_1d<double, 3 > & OldAcceleration,
                                 const array_1d<double, 3 > & CurrentAcceleration) override
         {
-            KRATOS_WATCH("Skipping displacement update")
             return;
         }
     };
