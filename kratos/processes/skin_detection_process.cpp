@@ -39,17 +39,20 @@ void SkinDetectionProcess<TDim>::Execute()
     KRATOS_TRY;
 
     // First assign MPI ids if needed
-    std::unordered_set<IndexType> set_node_ids_ghost;
+    std::unordered_set<IndexType> set_node_ids_interface;
     if (mrModelPart.IsDistributed()) {
-        const auto& r_nodes_ghost = mrModelPart.GetCommunicator().GhostMesh().Nodes();
-        const std::size_t number_of_ghost_nodes = r_nodes_ghost.size();
-        const auto it_ghost_node_begin = r_nodes_ghost.begin();
-        std::vector<IndexType> node_ids_ghost(number_of_ghost_nodes);
-        IndexPartition<std::size_t>(number_of_ghost_nodes).for_each(
-        [&node_ids_ghost, it_ghost_node_begin](std::size_t i) {
-            node_ids_ghost[i] = (it_ghost_node_begin + i)->Id();
+        auto& r_communicator = mrModelPart.GetCommunicator();
+        // const auto rank = r_communicator.GetDataCommunicator().Rank();
+        const auto& r_nodes_interface = r_communicator.InterfaceMesh().Nodes();
+        const std::size_t number_of_interface_nodes = r_nodes_interface.size();
+        const auto it_interface_node_begin = r_nodes_interface.begin();
+        std::vector<IndexType> node_ids_interface(number_of_interface_nodes);
+        IndexPartition<std::size_t>(number_of_interface_nodes).for_each(
+        [&node_ids_interface, it_interface_node_begin](std::size_t i) {
+            auto it_interface_node = it_interface_node_begin + i;
+            node_ids_interface[i] = it_interface_node->Id();
         });
-        std::copy(node_ids_ghost.begin(), node_ids_ghost.end(), std::inserter(set_node_ids_ghost, set_node_ids_ghost.end()));
+        std::copy(node_ids_interface.begin(), node_ids_interface.end(), std::inserter(set_node_ids_interface, set_node_ids_interface.end()));
     }
 
     // Generate face maps
@@ -57,8 +60,8 @@ void SkinDetectionProcess<TDim>::Execute()
     HashMapVectorIntIdsType properties_face_map;
     this->GenerateFaceMaps(inverse_face_map, properties_face_map);
 
-    // Filter ghost nodes
-    if (set_node_ids_ghost.size() > 0) {
+    // Filter local nodes
+    if (set_node_ids_interface.size() > 0) {
         std::vector<VectorIndexType> faces_to_remove;
         bool to_remove;
         for (auto& r_map : inverse_face_map) {
@@ -66,7 +69,7 @@ void SkinDetectionProcess<TDim>::Execute()
             const VectorIndexType& r_vector_ids = r_map.first;
             const VectorIndexType& r_nodes_face = r_map.second;
             for (auto& r_index : r_nodes_face) {
-                if (set_node_ids_ghost.find(r_index) == set_node_ids_ghost.end()) {
+                if (set_node_ids_interface.find(r_index) == set_node_ids_interface.end()) {
                     to_remove = false;
                     continue;
                 }
