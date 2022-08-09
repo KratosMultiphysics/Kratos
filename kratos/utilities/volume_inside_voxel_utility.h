@@ -147,6 +147,7 @@ public:
      * @brief Returns the volume enclosed by a set of 4 points
      * @param rPoints the array of points
      * @return Volume/area inside this points
+     * @note This function should no be implemented in this way, it is too expensive for an actually easy work
      */  
     static double TetraVolume(const PointsArrayType& rPoints);
 
