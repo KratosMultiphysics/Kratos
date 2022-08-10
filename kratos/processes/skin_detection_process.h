@@ -156,11 +156,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -188,7 +186,6 @@ public:
     ///@{
 
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -280,7 +277,6 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
@@ -316,11 +312,9 @@ private:
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
