@@ -402,6 +402,7 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
         const auto rank = r_data_communicator.Rank();
         const auto size = r_data_communicator.Size();
         
+        // TODO: The proper thing to do will be to use the neighbour ranks of the current rank, but for debugging first we start with passing all the info to rank 0 and passs back to the rest of ranks
         // Now we will send to rank 0 the faces_to_remove. We define a scope, so everything will be removed at the end, except the clean up of the faces_to_remove
         {
             // Rest of the processes
