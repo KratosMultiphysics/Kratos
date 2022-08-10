@@ -60,7 +60,7 @@ ModelPart& CreateRansKEpsilonVMSKBasedEpsilonUBased2D2NModelPart(
 {
     const auto& set_variable_values = [&](ModelPart& rModelPart) {
         rVelocitySetMethod(rModelPart);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 50.0, 100.0, 0);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 0.0, 0.0, 0);
         FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 0);
         FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 0);
         FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 0);
@@ -72,7 +72,7 @@ ModelPart& CreateRansKEpsilonVMSKBasedEpsilonUBased2D2NModelPart(
         FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, NORMAL, 2.0, 3.0, 0);
 
         FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 5.0, 10.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 50.0, 100.0, 1);
+        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 0.0, 0.0, 1);
         FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 1);
         FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 1);
         FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 1);
@@ -212,7 +212,7 @@ void RunRansKEpsilonQSVMSRFCAdjointTest(
         const int number_of_conditions = rModelPart.NumberOfConditions();
         for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond) {
             auto& r_cond = *(rModelPart.ConditionsBegin() + i_cond);
-            if (RansCalculationUtilities::IsWallFunctionActive(r_cond)) {
+            if (RansCalculationUtilities::IsWallFunctionActive(r_cond.GetGeometry())) {
                 const auto& r_parent_element = r_cond.GetValue(NEIGHBOUR_ELEMENTS)[0];
                 const auto& r_element_properties = r_parent_element.GetProperties();
                 const double rho = r_element_properties[DENSITY];

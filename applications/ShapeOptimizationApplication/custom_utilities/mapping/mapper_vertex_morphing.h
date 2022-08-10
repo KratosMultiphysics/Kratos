@@ -92,7 +92,8 @@ public:
     MapperVertexMorphing( ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Parameters MapperSettings )
         : mrOriginModelPart(rOriginModelPart),
           mrDestinationModelPart(rDestinationModelPart),
-          mMapperSettings(MapperSettings)
+          mMapperSettings(MapperSettings),
+          mFilterRadius(MapperSettings["filter_radius"].GetDouble())
     {
     }
 
@@ -392,11 +393,20 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    // --------------------------------------------------------------------------
     virtual void InitializeComputationOfMappingMatrix()
     {
         mpSearchTree.reset();
         mMappingMatrix.clear();
     }
+
+    // --------------------------------------------------------------------------
+    double GetVertexMorphingRadius(const NodeType& rNode) const override
+    {
+        return mFilterRadius;
+    }
+
+    // --------------------------------------------------------------------------
 
     ///@}
     ///@name Protected  Access
@@ -433,6 +443,7 @@ private:
     SparseMatrixType mMappingMatrix;
     std::vector<Vector> mValuesOrigin;
     std::vector<Vector> mValuesDestination;
+    double mFilterRadius;
 
     ///@}
     ///@name Private Operators
@@ -459,9 +470,7 @@ private:
     void CreateFilterFunction()
     {
         std::string filter_type = mMapperSettings["filter_function_type"].GetString();
-        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
-
-        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type, filter_radius));
+        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type));
     }
 
     // --------------------------------------------------------------------------
@@ -478,7 +487,7 @@ private:
         mValuesDestination[0] = ZeroVector(destination_node_number);
         mValuesDestination[1] = ZeroVector(destination_node_number);
         mValuesDestination[2] = ZeroVector(destination_node_number);
-        
+
         mMappingMatrix.resize(destination_node_number,origin_node_number,false);
     }
 
@@ -503,7 +512,6 @@ private:
     // --------------------------------------------------------------------------
     void ComputeMappingMatrix()
     {
-        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
         unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 
         for(auto& node_i : mrDestinationModelPart.Nodes())
@@ -511,7 +519,7 @@ private:
             NodeVector neighbor_nodes( max_number_of_neighbors );
             std::vector<double> resulting_squared_distances( max_number_of_neighbors );
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             filter_radius,
+                                                                             GetVertexMorphingRadius(node_i),
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(),
                                                                              max_number_of_neighbors );
@@ -539,7 +547,7 @@ private:
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            double weight = mpFilterFunction->compute_weight( origin_node.Coordinates(), neighbor_node.Coordinates() );
+            double weight = mpFilterFunction->compute_weight( origin_node.Coordinates(), neighbor_node.Coordinates(), GetVertexMorphingRadius(origin_node) );
 
             list_of_weights[neighbor_itr] = weight;
             sum_of_weights += weight;

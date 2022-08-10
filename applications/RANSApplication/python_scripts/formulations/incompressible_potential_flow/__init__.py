@@ -187,3 +187,6 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
 
     def GetMaxCouplingIterations(self):
         return 0
+
+    def GetSolvingVariables(self):
+        return [KratosRANS.VELOCITY_POTENTIAL]

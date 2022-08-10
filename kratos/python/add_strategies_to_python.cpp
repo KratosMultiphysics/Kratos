@@ -265,6 +265,8 @@ namespace Kratos
                 .def("FinalizeSolutionStep", &BaseSchemeType::FinalizeSolutionStep)
                 .def("InitializeNonLinIteration", &BaseSchemeType::InitializeNonLinIteration)
                 .def("FinalizeNonLinIteration", &BaseSchemeType::FinalizeNonLinIteration)
+                .def("CalculateSystemContributions", [](BaseSchemeType& self, Element& rCurrentElement, LocalSpaceType::MatrixType& rLHS_Contribution, LocalSpaceType::VectorType& rRHS_Contribution, Element::EquationIdVectorType& rEquationId, const ProcessInfo& rCurrentProcessInfo) { self.CalculateSystemContributions(rCurrentElement, rLHS_Contribution, rRHS_Contribution, rEquationId, rCurrentProcessInfo); })
+                .def("CalculateSystemContributions", [](BaseSchemeType& self, Condition& rCurrentElement, LocalSpaceType::MatrixType& rLHS_Contribution, LocalSpaceType::VectorType& rRHS_Contribution, Condition::EquationIdVectorType& rEquationId, const ProcessInfo& rCurrentProcessInfo) { self.CalculateSystemContributions(rCurrentElement, rLHS_Contribution, rRHS_Contribution, rEquationId, rCurrentProcessInfo); })
                 .def("Predict", &BaseSchemeType::Predict)
                 .def("Update", &BaseSchemeType::Update)
                 .def("CalculateOutputData", &BaseSchemeType::CalculateOutputData)
@@ -651,6 +653,8 @@ namespace Kratos
                 .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
                 .def("SetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::SetUseOldStiffnessInFirstIterationFlag)
                 .def("GetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
+                .def("SetReformDofSetAtEachStepFlag", &ResidualBasedNewtonRaphsonStrategyType::SetReformDofSetAtEachStepFlag)
+                .def("GetReformDofSetAtEachStepFlag", &ResidualBasedNewtonRaphsonStrategyType::GetReformDofSetAtEachStepFlag)
                 ;
 
             py::class_< AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,

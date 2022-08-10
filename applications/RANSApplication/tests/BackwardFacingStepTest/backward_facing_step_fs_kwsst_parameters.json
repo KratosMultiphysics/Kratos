@@ -33,10 +33,6 @@
         "material_import_settings": {
             "materials_filename": "backward_facing_step_material_properties.json"
         },
-        "wall_function_settings": {
-            "wall_function_region_type": "logarithmic_region_only",
-            "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
-        },
         "formulation_settings": {
             "formulation_name": "fractional_step_k_omega_sst",
             "incompressible_potential_flow_initialization_settings": {},
@@ -61,6 +57,10 @@
                     "solver_type": "amgcl",
                     "tolerance": 1e-12,
                     "smoother_type": "damped_jacobi"
+                },
+                "wall_function_settings": {
+                    "wall_function_region_type": "logarithmic_region_only",
+                    "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
                 }
             },
             "k_omega_sst_solver_settings": {
@@ -87,6 +87,10 @@
                         "solver_type": "amgcl",
                         "tolerance": 1e-9,
                         "verbosity": 0
+                    },
+                    "wall_function_settings": {
+                        "wall_function_region_type": "logarithmic_region_only",
+                        "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
                     }
                 },
                 "echo_level": 0,
@@ -95,8 +99,7 @@
                     "absolute_tolerance": 1e-5,
                     "max_iterations": 1
                 },
-                "wall_distance_calculation_settings":
-                {
+                "wall_distance_calculation_settings": {
                     "max_levels": 10
                 },
                 "auxiliar_process_list": []
@@ -220,11 +223,11 @@
                 "process_name": "FromJsonCheckResultProcess",
                 "Parameters": {
                     "check_variables": [
-                            "VELOCITY_X",
-                            "VELOCITY_Y",
-                            "PRESSURE",
-                            "TURBULENT_KINETIC_ENERGY",
-                            "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE"
+                        "VELOCITY_X",
+                        "VELOCITY_Y",
+                        "PRESSURE",
+                        "TURBULENT_KINETIC_ENERGY",
+                        "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE"
                     ],
                     "input_file_name": "backward_facing_step_fs_kwsst_flow_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_results.json",
                     "model_part_name": "FluidModelPart.Parts_fluid",
@@ -243,11 +246,11 @@
             "process_name": "FromJsonCheckResultProcess",
             "Parameters": {
                 "check_variables": [
-                        "VELOCITY_X",
-                        "VELOCITY_Y",
-                        "PRESSURE",
-                        "TURBULENT_KINETIC_ENERGY",
-                        "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE"
+                    "VELOCITY_X",
+                    "VELOCITY_Y",
+                    "PRESSURE",
+                    "TURBULENT_KINETIC_ENERGY",
+                    "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE"
                 ],
                 "input_file_name": "backward_facing_step_fs_kwsst_flow_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
@@ -263,11 +266,11 @@
             "process_name": "JsonOutputProcess",
             "Parameters": {
                 "output_variables": [
-                        "VELOCITY_X",
-                        "VELOCITY_Y",
-                        "PRESSURE",
-                        "TURBULENT_KINETIC_ENERGY",
-                        "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE"
+                    "VELOCITY_X",
+                    "VELOCITY_Y",
+                    "PRESSURE",
+                    "TURBULENT_KINETIC_ENERGY",
+                    "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE"
                 ],
                 "output_file_name": "backward_facing_step_fs_kwsst_flow_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",

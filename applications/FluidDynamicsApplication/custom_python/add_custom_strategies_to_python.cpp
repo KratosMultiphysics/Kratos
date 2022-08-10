@@ -47,6 +47,10 @@
 #include "custom_strategies/schemes/simple_steady_sensitivity_builder_scheme.h"
 #include "custom_strategies/schemes/velocity_bossak_sensitivity_builder_scheme.h"
 
+// lss schemes
+#include "custom_strategies/schemes/lss_bossak_forward_scheme.h"
+#include "custom_strategies/schemes/lss_bossak_backward_scheme.h"
+
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -105,6 +109,7 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<double, double, unsigned int, double, Process::Pointer>())
     .def(py::init<double, double, unsigned int>())                        // constructor without a turbulence model
     .def(py::init<double, unsigned int, const Kratos::Variable<int> &>()) // constructor without a turbulence model for periodic boundary conditions
+    .def("CalculateReactions", &ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<SparseSpaceType, LocalSpaceType>::CalculateReactions)
     ;
 
     typedef ResidualBasedSimpleSteadyScheme<SparseSpaceType, LocalSpaceType> ResidualBasedSimpleSteadySchemeType;
@@ -132,12 +137,15 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     py::class_<SimpleSteadyAdjointSchemeType, typename SimpleSteadyAdjointSchemeType::Pointer, BaseSchemeType>
         (m, "SimpleSteadyAdjointScheme")
         .def(py::init<AdjointResponseFunction::Pointer, const std::size_t, const std::size_t>())
+        .def(py::init<AdjointResponseFunction::Pointer, const std::size_t, const std::size_t, ElementRefinementProcess::Pointer>())
         ;
 
     using  VelocityBossakAdjointSchemeType = VelocityBossakAdjointScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<VelocityBossakAdjointSchemeType, typename VelocityBossakAdjointSchemeType::Pointer, BaseSchemeType>
         (m, "VelocityBossakAdjointScheme")
         .def(py::init<Parameters, AdjointResponseFunction::Pointer, const std::size_t, const std::size_t>())
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer, const std::size_t, const std::size_t, ElementRefinementProcess::Pointer>())
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer, const std::size_t, const std::size_t, ElementRefinementProcess::Pointer, const std::size_t>())
         ;
 
     using SimpleSteadySensitivityBuilderSchemeType = SimpleSteadySensitivityBuilderScheme;
@@ -150,6 +158,18 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     py::class_<VelocityBossakSensitivityBuilderSchemeType, typename VelocityBossakSensitivityBuilderSchemeType::Pointer, SensitivityBuilderScheme>
         (m, "VelocityBossakSensitivityBuilderScheme")
         .def(py::init<const double, const std::size_t, const std::size_t>())
+        ;
+
+    using  LeastSquaresShadowingBossakForwardSchemeType = LSSBossakForwardScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<LeastSquaresShadowingBossakForwardSchemeType, typename LeastSquaresShadowingBossakForwardSchemeType::Pointer, BaseSchemeType>
+        (m, "LSSBossakForwardScheme")
+        .def(py::init<AdjointResponseFunction::Pointer, FluidLSSSensitivity::Pointer, FluidLSSVariableUtilities::Pointer, const double, const double, const double, const IndexType, const IndexType, const IndexType>())
+        ;
+
+    using  LeastSquaresShadowingBossakBackwardSchemeType = LSSBossakBackwardScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<LeastSquaresShadowingBossakBackwardSchemeType, typename LeastSquaresShadowingBossakBackwardSchemeType::Pointer, BaseSchemeType>
+        (m, "LSSBossakBackwardScheme")
+        .def(py::init<FluidLSSVariableUtilities::Pointer, const Variable<Vector>&, const double, const std::size_t, const std::size_t, const std::size_t>())
         ;
 
 }

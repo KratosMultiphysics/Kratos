@@ -84,12 +84,14 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rDofSet, [](DofType& pDof) {
-            if (pDof.IsFree()) {
-                const double value = pDof.GetSolutionStepValue(1);
-                pDof.GetSolutionStepValue() = value;
-            }
-        });
+        if (rModelPart.GetBufferSize() > 1) {
+            block_for_each(rDofSet, [](DofType& pDof) {
+                if (pDof.IsFree()) {
+                    const double value = pDof.GetSolutionStepValue(1);
+                    pDof.GetSolutionStepValue() = value;
+                }
+            });
+        }
 
         KRATOS_CATCH("");
     }
@@ -187,6 +189,10 @@ public:
         KRATOS_CATCH("");
     }
 
+    void InitializeDofUpdater() {
+        mpDofUpdater->InitializeAitken();
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -235,16 +241,18 @@ protected:
         KRATOS_CATCH("");
     }
 
+    using DofUpdaterType = RelaxedDofUpdater<TSparseSpace>;
+    using DofUpdaterPointerType = typename DofUpdaterType::UniquePointer;
+
+    DofUpdaterPointerType mpDofUpdater;
+
     ///@}
 
 private:
     ///@name Member Variables
     ///@{
 
-    using DofUpdaterType = RelaxedDofUpdater<TSparseSpace>;
-    using DofUpdaterPointerType = typename DofUpdaterType::UniquePointer;
 
-    DofUpdaterPointerType mpDofUpdater;
 
     ///@}
 };

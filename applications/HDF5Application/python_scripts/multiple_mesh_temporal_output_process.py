@@ -25,43 +25,46 @@ def Factory(settings, Model):
     """Return a process for multiple mesh temporal output with HDF5.
 
     The input settings are given in the following table:
-    +-------------------------------------+------------+---------------------------------+
-    | Setting                             | Type       | Default Value                   |
-    +-------------------------------------+------------+---------------------------------+
-    | "model_part_name"                   | String     | ""                              |
-    +-------------------------------------+------------+---------------------------------+
-    | "file_settings"                     | Parameters | "file_name": "<model_part_name>"|
-    |                                     |            | "time_format": "0.4f"           |
-    |                                     |            | "file_access_mode": "exclusive" |
-    |                                     |            | "max_files_to_keep": "unlimited"|
-    |                                     |            | "echo_level":  0                |
-    +-------------------------------------+------------+---------------------------------+
-    | "output_time_settings"              | Parameters | "time_frequency": 1.0           |
-    |                                     |            | "step_frequency": 1             |
-    +-------------------------------------+------------+---------------------------------+
-    | "model_part_output_settings"        | Parameters | "prefix": "/ModelData"          |
-    +-------------------------------------+------------+---------------------------------+
-    | "nodal_solution_step_data_settings" | Parameters | "prefix": "/ResultsData"        |
-    |                                     |            | "list_of_variables": []         |
-    +-------------------------------------+------------+---------------------------------+
-    | "nodal_data_value_settings"         | Parameters | "prefix": "/ResultsData"        |
-    |                                     |            | "list_of_variables": []         |
-    +-------------------------------------+------------+---------------------------------+
-    | "element_data_value_settings"       | Parameters | "prefix": "/ResultsData"        |
-    |                                     |            | "list_of_variables": []         |
-    +-------------------------------------+------------+---------------------------------+
-    | "nodal_flag_value_settings"         | Parameters | "prefix": "/ResultsData"        |
-    |                                     |            | "list_of_variables": []         |
-    +-------------------------------------+------------+---------------------------------+
-    | "element_flag_value_settings"       | Parameters | "prefix": "/ResultsData"        |
-    |                                     |            | "list_of_variables": []         |
-    +-------------------------------------+------------+---------------------------------+
-    | "condition_flag_value_settings"     | Parameters | "prefix": "/ResultsData"        |
-    |                                     |            | "list_of_variables": []         |
-    +-------------------------------------+------------+---------------------------------+
-    | "condition_data_value_settings"     | Parameters | "prefix": "/ResultsData"        |
-    |                                     |            | "list_of_variables": []         |
-    +-------------------------------------+------------+---------------------------------+
+    +-------------------------------------+------------+-----------------------------------------------+
+    | Setting                             | Type       | Default Value                                 |
+    +-------------------------------------+------------+-----------------------------------------------+
+    | "model_part_name"                   | String     | ""                                            |
+    +-------------------------------------+------------+-----------------------------------------------+
+    | "file_settings"                     | Parameters | "file_name": "<model_part_name>"              |
+    |                                     |            | "time_format": "0.4f"                         |
+    |                                     |            | "file_access_mode": "exclusive"               |
+    |                                     |            | "max_files_to_keep": "unlimited"              |
+    |                                     |            | "echo_level":  0                              |
+    +-------------------------------------+------------+-----------------------------------------------+
+    | "output_time_settings"              | Parameters | "time_frequency": 1.0                         |
+    |                                     |            | "step_frequency": 1                           |
+    +-------------------------------------+------------+-----------------------------------------------+
+    | "model_part_output_settings"        | Parameters | "prefix": "/ModelData"                        |
+    |                                     |            | "mesh_update_indication_variable_name": "None"|
+    |                                     |            | "mesh_update_indication_variable_value": 1.0  |
+    +-------------------------------------+------------+-----------------------------------------------+
+    | "nodal_solution_step_data_settings" | Parameters | "prefix": "/ResultsData"                      |
+    |                                     |            | "list_of_variables": []                       |
+    |                                     |            | "step": 0                                     |
+    +-------------------------------------+------------+-----------------------------------------------+
+    | "nodal_data_value_settings"         | Parameters | "prefix": "/ResultsData"                      |
+    |                                     |            | "list_of_variables": []                       |
+    +-------------------------------------+------------+-----------------------------------------------+
+    | "element_data_value_settings"       | Parameters | "prefix": "/ResultsData"                      |
+    |                                     |            | "list_of_variables": []                       |
+    +-------------------------------------+------------+-----------------------------------------------+
+    | "nodal_flag_value_settings"         | Parameters | "prefix": "/ResultsData"                      |
+    |                                     |            | "list_of_variables": []                       |
+    +-------------------------------------+------------+-----------------------------------------------+
+    | "element_flag_value_settings"       | Parameters | "prefix": "/ResultsData"                      |
+    |                                     |            | "list_of_variables": []                       |
+    +-------------------------------------+------------+-----------------------------------------------+
+    | "condition_flag_value_settings"     | Parameters | "prefix": "/ResultsData"                      |
+    |                                     |            | "list_of_variables": []                       |
+    +-------------------------------------+------------+-----------------------------------------------+
+    | "condition_data_value_settings"     | Parameters | "prefix": "/ResultsData"                      |
+    |                                     |            | "list_of_variables": []                       |
+    +-------------------------------------+------------+-----------------------------------------------+
     """
     core_settings = CreateCoreSettings(settings["Parameters"])
     return MultipleMeshTemporalOutputProcessFactory(core_settings, Model)

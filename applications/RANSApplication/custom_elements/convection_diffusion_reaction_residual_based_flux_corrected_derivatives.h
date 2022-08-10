@@ -148,7 +148,8 @@ public:
             const Matrix& rdNdX,
             const double WDerivative,
             const double DetJDerivative,
-            const Matrix& rdNdXDerivative);
+            const Matrix& rdNdXDerivative,
+            const double MassTermsDerivativesWeight = 1.0);
 
         void CalculateResidualsDerivativeContributionsAfterGaussPointPointLoop(
             VectorN& rResidualDerivative,

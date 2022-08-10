@@ -74,6 +74,8 @@ public:
     using CurrentElementType =
         ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>;
 
+    using ArrayD = array_1d<double, TDim>;   // added for Chimera_RANS: mesh_velocity datatype
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ConvectionDiffusionReactionResidualBasedFluxCorrectedElement
@@ -160,7 +162,7 @@ public:
     {
         KRATOS_TRY
         return Kratos::make_intrusive<CurrentElementType>(
-            NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
+            NewId, this->GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -194,7 +196,7 @@ public:
     {
         KRATOS_TRY
         return Kratos::make_intrusive<CurrentElementType>(
-            NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
+            NewId, this->GetGeometry().Create(ThisNodes), this->pGetProperties());
         KRATOS_CATCH("");
     }
 

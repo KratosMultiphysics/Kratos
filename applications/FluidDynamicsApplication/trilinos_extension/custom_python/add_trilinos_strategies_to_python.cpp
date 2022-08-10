@@ -70,12 +70,15 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     py::class_<TrilinosSimpleSteadyAdjointSchemeType, typename TrilinosSimpleSteadyAdjointSchemeType::Pointer, BaseSchemeType>
         (m, "TrilinosSimpleSteadyAdjointScheme")
         .def(py::init<AdjointResponseFunction::Pointer, const std::size_t, const std::size_t>())
+        .def(py::init<AdjointResponseFunction::Pointer, const std::size_t, const std::size_t, ElementRefinementProcess::Pointer>())
         ;
 
     using TrilinosVelocityBossakAdjointSchemeType = VelocityBossakAdjointScheme<TrilinosSparseSpace, UblasLocalSpace>;
     py::class_<TrilinosVelocityBossakAdjointSchemeType, typename TrilinosVelocityBossakAdjointSchemeType::Pointer, BaseSchemeType>
         (m, "TrilinosVelocityBossakAdjointScheme")
         .def(py::init<Parameters, AdjointResponseFunction::Pointer, const std::size_t, const std::size_t>())
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer, const std::size_t, const std::size_t, ElementRefinementProcess::Pointer>())
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer, const std::size_t, const std::size_t, ElementRefinementProcess::Pointer, const std::size_t>())
         ;
 
 }

@@ -56,7 +56,14 @@ class ComputeDragProcess(KratosMultiphysics.Process):
         else:
             self.model_part = model[self.params["model_part_name"].GetString()]
 
+        self.initialized = False
+
     def ExecuteInitialize(self):
+
+        if not self.initialized:
+            self.initialized = True
+        else:
+            return
 
         self.interval = KratosMultiphysics.Vector(2)
         self.interval[0] = self.params["interval"][0].GetDouble()

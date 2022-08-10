@@ -22,7 +22,7 @@
 #include "containers/model.h"
 
 // Application includes
-#include "rans_formulation_process.h"
+#include "rans_point_execution_formulation_process.h"
 
 namespace Kratos
 {
@@ -40,11 +40,13 @@ namespace Kratos
  */
 
 class KRATOS_API(RANS_APPLICATION) RansComputeReactionsProcess
-: public RansFormulationProcess
+: public RansPointExecutionFormulationProcess
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    using BaseType = RansPointExecutionFormulationProcess;
 
     using IndexType = std::size_t;
 
@@ -72,6 +74,7 @@ public:
     RansComputeReactionsProcess(
         Model& rModel,
         const std::string& rModelPartName,
+        const std::vector<std::string>& rExecutionPoints,
         const int EchoLevel);
 
     /// Destructor.
@@ -88,10 +91,6 @@ public:
     ///@{
 
     int Check() override;
-
-    void ExecuteInitializeSolutionStep() override;
-
-    void ExecuteFinalizeSolutionStep() override;
 
     const Parameters GetDefaultParameters() const override;
 
@@ -142,6 +141,8 @@ private:
     template<unsigned int TDim>
     void CalculateReactions(
         ModelPart& rModelPart) const;
+
+    void ExecuteOperation() override;
 
     ///@}
 };

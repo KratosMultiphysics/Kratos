@@ -42,16 +42,23 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     // add schemes
     using SteadyScalarSchemeType = SteadyScalarScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<SteadyScalarSchemeType, typename SteadyScalarSchemeType::Pointer, BaseSchemeType>(m, "SteadyScalarScheme")
-        .def(py::init<const double>());
+        .def(py::init<const double>())
+        .def("InitializeDofUpdater", &SteadyScalarSchemeType::InitializeDofUpdater);
 
     using AlgebraicFluxCorrectedSteadyScalarSchemeType = AlgebraicFluxCorrectedSteadyScalarScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<AlgebraicFluxCorrectedSteadyScalarSchemeType, typename AlgebraicFluxCorrectedSteadyScalarSchemeType::Pointer, BaseSchemeType>(m, "AlgebraicFluxCorrectedSteadyScalarScheme")
         .def(py::init<const double, const Flags&>())
-        .def(py::init<const double, const Flags&, const Variable<int>&>());
+        .def(py::init<const double, const Flags&, const Variable<int>&>())
+        .def("InitializeDofUpdater", &AlgebraicFluxCorrectedSteadyScalarSchemeType::InitializeDofUpdater);
 
     using BossakRelaxationScalarSchemeType = BossakRelaxationScalarScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<BossakRelaxationScalarSchemeType, typename BossakRelaxationScalarSchemeType::Pointer, BaseSchemeType>(m, "BossakRelaxationScalarScheme")
-        .def(py::init<const double, const double, const Variable<double>&>());
+        .def(py::init<const double, const double, const Variable<double>&>())
+        .def(py::init<const double, const double, const Variable<double>&, VtkOutput::Pointer>())
+        .def(py::init<const double, const double, const Variable<double>&, const double, const double>())
+        .def(py::init<const double, const double, const Variable<double>&, const double, const double, VtkOutput::Pointer>())
+        .def("InitializeDofUpdater", &BossakRelaxationScalarSchemeType::InitializeDofUpdater)
+        .def("UpdateScalarRateVariables", &BossakRelaxationScalarSchemeType::UpdateScalarRateVariables);
 
 }
 

@@ -123,14 +123,19 @@ def AssembleTestSuites():
     validationSuite.addTest(AdjointVMSSensitivity2D('testSlipSteadyNormCylinder'))
     validationSuite.addTest(AdjointQSVMSSensitivity2D('testCylinder'))
     validationSuite.addTest(AdjointQSVMSSensitivity2D('testSteadyCylinder'))
-    validationSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
+    # validationSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
 
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(nightSuite)
+    allSuite.addTests(validationSuite)
 
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssembleTestSuites())
+    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS
+    KratosMultiphysics.Tester.RunTestSuite("FluidDynamicsApplicationFastSuite1")
+    # KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(
+    #     KratosMultiphysics.Logger.Severity.WARNING)
+    # KratosUnittest.runTests(AssembleTestSuites())

@@ -1,6 +1,9 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSApplication as KratosRANS
 
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+from KratosMultiphysics.process_factory import KratosProcessFactory
+
 class RansFormulation:
     def __init__(self, base_computing_model_part, settings):
         """RansFormulation base class
@@ -56,6 +59,12 @@ class RansFormulation:
         else:
             msg = str(process).rstrip() + " is not a RansFormulationProcess. Please use only RansFormulationProcess objects."
             raise Exception(msg)
+
+    def AddProcessesList(self, kratos_parameters_processes_list):
+        factory = KratosProcessFactory(self.GetBaseModelPart().GetModel())
+        self.auxiliar_process_list = factory.ConstructListOfProcesses(kratos_parameters_processes_list)
+        for process in self.auxiliar_process_list:
+            self.AddProcess(process)
 
     def AddVariables(self):
         """Recursively calls AddVariables methods of existing formulations in this formulaton
@@ -312,9 +321,14 @@ class RansFormulation:
         else:
             raise Exception(self.__class__.__name__ + " needs to use \"SetTimeSchemeSettings\" first before calling \"GetTimeSchemeSettings\".")
 
-    def SetWallFunctionSettings(self, settings):
+    def SetWallFunctionSettings(self, settings=None):
+        """Sets wall function settings recursively
+        """
+        if settings is not None:
+            IssueDeprecationWarning(self.__class__.__name__, "SetWallFunctionSettings with parameters argument is deprecated. Please update formulation to use the same method without any input arguments.")
+            self.__wall_function_settings = settings
+
         self.__ExecuteRansFormulationMethods("SetWallFunctionSettings", [settings])
-        self.__wall_function_settings = settings
 
     def GetWallFunctionSettings(self):
         """Returns wall function settings
@@ -322,6 +336,7 @@ class RansFormulation:
         Returns:
             Kratos.Parameters: Wall function settings used for formulations
         """
+        IssueDeprecationWarning(self.__class__.__name__, "GetWallFunctionSettings is deprecated. Use formulation specific settings.")
         if (hasattr(self, "_RansFormulation__wall_function_settings")):
             return self.__wall_function_settings
         else:
@@ -384,6 +399,18 @@ class RansFormulation:
         """
         return self.__list_of_formulations
 
+    def GetSolvingVariables(self):
+        """Returns list of variables being solved in this formulation
+
+        Returns:
+            List(RansFormulation): List of variables
+        """
+        variables = []
+        for formulation in self.__list_of_formulations:
+            variables.extend(formulation.GetSolvingVariables())
+
+        return variables
+
     def GetProcessList(self):
         """Returns list of processes used in this formulation
 
@@ -403,6 +430,13 @@ class RansFormulation:
             return self.GetStrategy().GetModelPart()
         return None
 
+    def DeleteModelPartsRecursively(self):
+        for formulation in self.__list_of_formulations:
+            formulation.DeleteModelPartsRecursively()
+
+        if (self.GetModelPart() is not None):
+            self.GetModelPart().GetModel().DeleteModelPart(self.GetModelPart().FullName())
+
     def GetStrategy(self):
         """Returns strategy used in this formulation, if used any.
 
@@ -419,7 +453,7 @@ class RansFormulation:
         """
         info = "\n" + self.__class__.__name__
         if (self.GetModelPart() is not None):
-            info += "\n   Model part    : " + str(self.GetModelPart().Name)
+            info += "\n   Model part    : " + str(self.GetModelPart().FullName())
 
         if (self.GetMaxCouplingIterations() != 0):
             info += "\n   Max iterations: " + str(self.GetMaxCouplingIterations())
