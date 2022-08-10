@@ -48,8 +48,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 // External includes
-//#include <boost/python.hpp>
-
 
 // Project includes
 #include "includes/define.h"

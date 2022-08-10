@@ -54,10 +54,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if defined(KRATOS_PYTHON)
 // External includes
-//#include <boost/python.hpp>
-
 
 // Project includes
+
 //#include "includes/define.h"
 #include "includes/define_python.h"
 #include "pfem_2_application.h"
