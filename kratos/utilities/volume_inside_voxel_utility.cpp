@@ -64,7 +64,6 @@ namespace Kratos {
         for (int i = 0; i < Edges.size(); i++) {
             Distances.push_back(0);
             PointsArrayType ends = Edges[i].Points();
-            //std::cout << "Edge " << i << " has nodes " << ends[0] << " " << ends[1] << std::endl;
 
             for (auto triangle : rTriangles) {
                 array_1d<double,3> intersection;
@@ -106,11 +105,12 @@ namespace Kratos {
         }
 
         for (int i = 0; i < rTriangles.size(); i++) {
-            //We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
-            //but possible), only one will be taken into account to create the matrixes.
             int Result = 0; 
             array_1d<double,3> Intersection;
             int j = 0;
+
+            /*We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
+            but possible), only one will be taken into account to create the matrixes. */
             while(!Result && j < Edges.size()) { 
                 PointsArrayType ends = Edges[j].Points();
                 Result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],Intersection);
@@ -158,12 +158,18 @@ namespace Kratos {
         std::vector<std::pair<double,double>> MinDistanceToNode(Edges.size(),{1,1}); 
         
         int NodesInside = 0;
-        for (int i = 0; i < Nodes.size(); i++)  if (Nodes[i].GetSolutionStepValue(DISTANCE) > 0) NodesInside++;
+        for (int i = 0; i < Nodes.size(); i++) {
+            if (Nodes[i].GetSolutionStepValue(DISTANCE) > 0) NodesInside++;
+        }
 
         if(NodesInside == 3) {
-            for (int i = 0; i < Nodes.size(); i++)  Nodes[i].GetSolutionStepValue(DISTANCE) = (-1)*Nodes[i].GetSolutionStepValue(DISTANCE);
+            for (int i = 0; i < Nodes.size(); i++)  {
+                Nodes[i].GetSolutionStepValue(DISTANCE) = (-1)*Nodes[i].GetSolutionStepValue(DISTANCE);
+            }
             double Area = HexaVolume2D(rFace,rTriangles);
-            for (int i = 0; i < Nodes.size(); i++)  Nodes[i].GetSolutionStepValue(DISTANCE) = (-1)*Nodes[i].GetSolutionStepValue(DISTANCE);
+            for (int i = 0; i < Nodes.size(); i++) {
+                Nodes[i].GetSolutionStepValue(DISTANCE) = (-1)*Nodes[i].GetSolutionStepValue(DISTANCE);
+            }
             return 1-Area;
         }
 

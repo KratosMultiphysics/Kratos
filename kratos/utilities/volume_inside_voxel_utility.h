@@ -130,6 +130,7 @@ public:
      * @param rFace references to the quadrilateral3D4 whose actual area will be approximated
      * @param rTriangles references to the triangles which may intersect the quadrilateral at some edge.
      * @return Approximated area 
+     * @note Attention: This method is quite expensive 
      */  
     static double HexaVolume2D(const GeometryType& rFace,const GeometryArrayType& rTriangles);
 
