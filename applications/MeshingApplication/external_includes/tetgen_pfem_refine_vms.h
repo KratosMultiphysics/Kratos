@@ -118,7 +118,7 @@ namespace Kratos
 			if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_FLUID)==false )
 				KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_FLUID---- variable!!!!!! ERROR","");
 
-			KRATOS_WATCH(" ENTERED TETGENMESHSUITE PFEM of Meshing Application")
+			KRATOS_WATCH(" ENTERED TETGENMESHSUITE PFEM VMS of Meshing Application")
 
 			//clearing elements
 

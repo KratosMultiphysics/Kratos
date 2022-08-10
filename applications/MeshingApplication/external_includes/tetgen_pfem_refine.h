@@ -734,7 +734,7 @@ namespace Kratos
 					);
 
 
-#ifdef _DEBUG
+/*#ifdef _DEBUG //This part was crashing in Win and showing errors in Linux valgrind (conditional jump depends on uninitialized values)
 ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				if( *(ModelNodes).find( outnew.tetrahedronlist[base]).base() == *(ThisModelPart.Nodes().end()).base() )
 					KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
@@ -744,7 +744,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 					KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
 				if( *(ModelNodes).find( outnew.tetrahedronlist[base+3]).base() == *(ThisModelPart.Nodes().end()).base() )
 					KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
-#endif
+#endif*/
 
 				Element::Pointer p_element = rReferenceElement.Create(id, geom, properties);
 				(ThisModelPart.Elements()).push_back(p_element);
