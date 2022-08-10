@@ -312,6 +312,19 @@ private:
         HashMapVectorIntType& rInverseFaceMap
         );
 
+    /**
+     * @brief This method generate a hash for a vector of integers
+     * @param rVector The vector to generate the hash
+     * @return The hash generated
+     */
+    std::size_t GenerateHashVectorInteger(const std::vector<std::size_t>& rVector) const {
+        std::size_t seed = rVector.size();
+        for(auto& i : rVector) {
+            seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+        return seed;
+    }
+
     ///@}
     ///@name Private  Access
     ///@{
