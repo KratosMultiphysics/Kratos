@@ -48,28 +48,7 @@ void SkinDetectionProcess<TDim>::Execute()
     this->GenerateFaceMaps(inverse_face_map, properties_face_map);
 
     // Filter local nodes
-    if (set_node_ids_interface.size() > 0) {
-        std::vector<VectorIndexType> faces_to_remove;
-        bool to_remove;
-        for (auto& r_map : inverse_face_map) {
-            to_remove = true;
-            const VectorIndexType& r_vector_ids = r_map.first;
-            const VectorIndexType& r_nodes_face = r_map.second;
-            for (auto& r_index : r_nodes_face) {
-                if (set_node_ids_interface.find(r_index) == set_node_ids_interface.end()) {
-                    to_remove = false;
-                    continue;
-                }
-            }
-            if (to_remove) {
-                faces_to_remove.push_back(r_vector_ids);
-            }            
-        }
-
-        for (auto& r_face_to_remove : faces_to_remove) {
-            inverse_face_map.erase(r_face_to_remove);
-        }
-    }
+    this->FilterMPIInterfaceNodes(set_node_ids_interface, inverse_face_map);
 
     // Generate skin conditions
     ModelPart& r_work_model_part = this->SetUpAuxiliaryModelPart();
@@ -384,6 +363,39 @@ void SkinDetectionProcess<TDim>::GenerateSetNodeIdsInterface(std::unordered_set<
             node_ids_interface[i] = it_interface_node->Id();
         });
         std::copy(node_ids_interface.begin(), node_ids_interface.end(), std::inserter(rSetNodeIdsInterface, rSetNodeIdsInterface.end()));
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
+    const std::unordered_set<IndexType>& rSetNodeIdsInterface,
+    HashMapVectorIntType& rInverseFaceMap
+    )
+{
+    if (rSetNodeIdsInterface.size() > 0) {
+        std::vector<VectorIndexType> faces_to_remove;
+        bool to_remove;
+        for (auto& r_map : rInverseFaceMap) {
+            to_remove = true;
+            const VectorIndexType& r_vector_ids = r_map.first;
+            const VectorIndexType& r_nodes_face = r_map.second;
+            for (auto& r_index : r_nodes_face) {
+                if (rSetNodeIdsInterface.find(r_index) == rSetNodeIdsInterface.end()) {
+                    to_remove = false;
+                    continue;
+                }
+            }
+            if (to_remove) {
+                faces_to_remove.push_back(r_vector_ids);
+            }            
+        }
+
+        for (auto& r_face_to_remove : faces_to_remove) {
+            rInverseFaceMap.erase(r_face_to_remove);
+        }
     }
 }
 
