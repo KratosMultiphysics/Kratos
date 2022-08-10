@@ -103,12 +103,12 @@ namespace {
             KRATOS_CHECK_NEAR(volumes[elem.Id()], vol ,0.001);
 
             auto points = geom->Points();
-            KRATOS_CHECK_NEAR(Distance(points[0],points[1]), Distance(points[0],points[4]) + Distance(points[4],points[1]), 10e-6 );
-            KRATOS_CHECK_NEAR(Distance(points[1],points[2]), Distance(points[1],points[5]) + Distance(points[5],points[2]), 10e-6 );
-            KRATOS_CHECK_NEAR(Distance(points[2],points[3]), Distance(points[2],points[9]) + Distance(points[9],points[3]), 10e-6 );
-            KRATOS_CHECK_NEAR(Distance(points[3],points[0]), Distance(points[3],points[7]) + Distance(points[7],points[0]), 10e-6 );
-            KRATOS_CHECK_NEAR(Distance(points[0],points[2]), Distance(points[0],points[6]) + Distance(points[6],points[0]), 10e-6 );
-            KRATOS_CHECK_NEAR(Distance(points[1],points[3]), Distance(points[1],points[8]) + Distance(points[8],points[1]), 10e-6 );
+            KRATOS_CHECK_NEAR(Distance(points[0],points[1]), Distance(points[0],points[4]) + Distance(points[4],points[1]), 10e-4 );
+            KRATOS_CHECK_NEAR(Distance(points[1],points[2]), Distance(points[1],points[5]) + Distance(points[5],points[2]), 10e-4 );
+            KRATOS_CHECK_NEAR(Distance(points[2],points[3]), Distance(points[2],points[9]) + Distance(points[9],points[3]), 10e-4 );
+            KRATOS_CHECK_NEAR(Distance(points[3],points[0]), Distance(points[3],points[7]) + Distance(points[7],points[0]), 10e-4 );
+            KRATOS_CHECK_NEAR(Distance(points[0],points[2]), Distance(points[0],points[6]) + Distance(points[6],points[0]), 10e-4 );
+            KRATOS_CHECK_NEAR(Distance(points[1],points[3]), Distance(points[1],points[8]) + Distance(points[8],points[1]), 10e-4 );
         }
 
         for(auto cond : modelpart.Conditions()) {
@@ -119,9 +119,9 @@ namespace {
             KRATOS_CHECK_NEAR(volumes[3], vol ,0.001);
 
             auto points = geom->Points();
-            KRATOS_CHECK_NEAR(Distance(points[0],points[1]), Distance(points[0],points[3]) + Distance(points[3],points[1]), 10e-6 );
-            KRATOS_CHECK_NEAR(Distance(points[1],points[2]), Distance(points[1],points[4]) + Distance(points[4],points[2]), 10e-6 );
-            KRATOS_CHECK_NEAR(Distance(points[2],points[0]), Distance(points[2],points[5]) + Distance(points[5],points[0]), 10e-6 );
+            KRATOS_CHECK_NEAR(Distance(points[0],points[1]), Distance(points[0],points[3]) + Distance(points[3],points[1]), 10e-4 );
+            KRATOS_CHECK_NEAR(Distance(points[1],points[2]), Distance(points[1],points[4]) + Distance(points[4],points[2]), 10e-4 );
+            KRATOS_CHECK_NEAR(Distance(points[2],points[0]), Distance(points[2],points[5]) + Distance(points[5],points[0]), 10e-4 );
 
         }
 
