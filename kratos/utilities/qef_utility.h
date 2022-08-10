@@ -19,7 +19,6 @@
 // External includes
 
 // Project includes
-#include "containers/model.h"
 #include "includes/ublas_interface.h"
 #include "includes/geometrical_object.h"
 #include "includes/node.h"

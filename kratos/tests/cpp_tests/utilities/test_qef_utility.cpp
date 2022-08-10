@@ -12,6 +12,7 @@
 //
 
 // Project includes
+#include "containers/model.h"
 #include "includes/checks.h"
 #include "testing/testing.h"
 #include "utilities/qef_utility.h"
