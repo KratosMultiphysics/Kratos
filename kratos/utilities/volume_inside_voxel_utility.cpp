@@ -38,8 +38,8 @@ namespace Kratos {
             if(ends[0].GetSolutionStepValue(DISTANCE) > 0 && ends[1].GetSolutionStepValue(DISTANCE) > 0) {
                 volume+=1.0/Edges.size();
             } else if(
-                ends[0].GetSolutionStepValue(DISTANCE) > 0 && ends[1].GetSolutionStepValue(DISTANCE) < 0 || 
-                ends[0].GetSolutionStepValue(DISTANCE) < 0 && ends[1].GetSolutionStepValue(DISTANCE) > 0 ) {
+                (ends[0].GetSolutionStepValue(DISTANCE) > 0 && ends[1].GetSolutionStepValue(DISTANCE) < 0) || 
+                (ends[0].GetSolutionStepValue(DISTANCE) < 0 && ends[1].GetSolutionStepValue(DISTANCE) > 0) ) {
                 volume+=1.0/(Edges.size()*2);
             }
         }
@@ -340,9 +340,9 @@ namespace Kratos {
 
     double VolumeInsideVoxelUtility::GetFactor(const PointsArrayType& nodes, const std::vector<std::vector<double>>& neighbours,const int node) {
 
-        if( nodes[node].GetSolutionStepValue(DISTANCE) > 0 && nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 &&
-            nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0 || nodes[node].GetSolutionStepValue(DISTANCE) < 0 && 
-            nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 && nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0) {
+        if( (nodes[node].GetSolutionStepValue(DISTANCE) > 0 && nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 &&
+            nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0) || (nodes[node].GetSolutionStepValue(DISTANCE) < 0 && 
+            nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 && nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0)) {
                 return 0.5;
             }
         return 1;
