@@ -14,7 +14,6 @@
 // Project includes
 #include "containers/model.h"
 #include "includes/element.h"
-#include "geometries/hexahedra_3d_8.h"
 #include "geometries/triangle_3d_3.h"
 #include "includes/checks.h"
 #include "testing/testing.h"
@@ -95,7 +94,7 @@ namespace {
         return pQuadrilater;
     } 
     }  //unnamed namespace
-     
+
     /******************************************************************************************************
      ******************************************************************************************************/
 
