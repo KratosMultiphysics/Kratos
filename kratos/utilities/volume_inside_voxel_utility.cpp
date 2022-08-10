@@ -31,16 +31,16 @@ namespace Kratos {
 
     double VolumeInsideVoxelUtility::EdgesApproximation(const GeometryType& rVoxel) {
         double volume = 0;
-        GeometryArrayType Edges = rVoxel.GenerateEdges();
+        GeometryArrayType edges = rVoxel.GenerateEdges();
         PointsArrayType nodes = rVoxel.Points();
-        for (int i = 0; i < Edges.size(); i++) {
-            PointsArrayType ends = Edges[i].Points();
+        for (int i = 0; i < edges.size(); i++) {
+            PointsArrayType ends = edges[i].Points();
             if(ends[0].GetSolutionStepValue(DISTANCE) > 0 && ends[1].GetSolutionStepValue(DISTANCE) > 0) {
-                volume+=1.0/Edges.size();
+                volume+=1.0/edges.size();
             } else if(
                 (ends[0].GetSolutionStepValue(DISTANCE) > 0 && ends[1].GetSolutionStepValue(DISTANCE) < 0) || 
                 (ends[0].GetSolutionStepValue(DISTANCE) < 0 && ends[1].GetSolutionStepValue(DISTANCE) > 0) ) {
-                volume+=1.0/(Edges.size()*2);
+                volume+=1.0/(edges.size()*2);
             }
         }
         return volume;
@@ -54,27 +54,27 @@ namespace Kratos {
         const GeometryArrayType& rTriangles     
     ) {
         double volume = 0;
-        GeometryArrayType Edges = rVoxel.GenerateEdges();
-        std::vector<double> Distances;
+        GeometryArrayType edges = rVoxel.GenerateEdges();
+        std::vector<double> distances;
 
-        for (int i = 0; i < Edges.size(); i++) {
-            Distances.push_back(0);
-            PointsArrayType ends = Edges[i].Points();
+        for (int i = 0; i < edges.size(); i++) {
+            distances.push_back(0);
+            PointsArrayType ends = edges[i].Points();
 
             for (auto& r_triangle : rTriangles) {
                 array_1d<double,3> intersection;
                 int result = IntersectionUtilities::ComputeTriangleLineIntersection(r_triangle,ends[0],ends[1],intersection);
                 
                 if(result == 1) {
-                    double Dist = Distance(ends[0], intersection);
-                    Distances.push_back(Dist);
+                    double dist = Distance(ends[0], intersection);
+                    distances.push_back(dist);
                 }  
             } 
-            Distances.push_back(Distance(ends[0],ends[1]));
-            std::sort(Distances.begin(),Distances.end());       //WOULD A SET BE MORE EFFICIENT?     
-            double edgePortion = VolumeInsideVoxelUtility::EdgeFilledPortion(Distances, ends);
-            volume += edgePortion/Edges.size();  
-            Distances.clear();              
+            distances.push_back(Distance(ends[0],ends[1]));
+            std::sort(distances.begin(),distances.end());       //WOULD A SET BE MORE EFFICIENT?     
+            double edgePortion = VolumeInsideVoxelUtility::EdgeFilledPortion(distances, ends);
+            volume += edgePortion/edges.size();  
+            distances.clear();              
         }
         return volume;
     }
@@ -86,58 +86,58 @@ namespace Kratos {
         const GeometryType& rFace,  
         const GeometryArrayType& rTriangles     
     ) {
-        double Area = 0;
-        GeometryArrayType Edges = rFace.GenerateEdges();
-        PointsArrayType Nodes = rFace.Points(); 
-        std::vector<std::pair<double,double>> MinDistanceToNode(Edges.size(),{0.5,0.5}); 
+        double area = 0;
+        GeometryArrayType edges = rFace.GenerateEdges();
+        PointsArrayType nodes = rFace.Points(); 
+        std::vector<std::pair<double,double>> min_distance_to_node(edges.size(),{0.5,0.5}); 
         //each pair represents an edge and contains as first() the minimum distance between
         //ends[1] and an intersection and as second() the minimum distance between ends[1] and an intersection 
 
-        std::vector<double> Length(Edges.size()); 
-        for(int i = 0; i < Edges.size(); i++) {
-            PointsArrayType ends = Edges[i].Points();
-            double l = Distance(ends[0], ends[1]);
-            Length[i] = l;
+        std::vector<double> length(edges.size()); 
+        for(int i = 0; i < edges.size(); i++) {
+            PointsArrayType ends = edges[i].Points();
+            const double l = Distance(ends[0], ends[1]);
+            length[i] = l;
         }
 
         for (int i = 0; i < rTriangles.size(); i++) {
-            int Result = 0; 
-            array_1d<double,3> Intersection;
+            int result = 0; 
+            array_1d<double,3> intersection;
             int j = 0;
 
             /*We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
             but possible), only one will be taken into account to create the matrixes. */
-            while(!Result && j < Edges.size()) { 
-                PointsArrayType ends = Edges[j].Points();
-                Result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],Intersection);
+            while(!result && j < edges.size()) { 
+                PointsArrayType ends = edges[j].Points();
+                result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
 
-                if (Result) {
-                    double Dist = Distance(ends[0], Intersection);
-                    if ( Dist < (MinDistanceToNode[j].first*Length[j])) {
-                        MinDistanceToNode[j].first = Dist/Length[j];
+                if (result) {
+                    const double dist = Distance(ends[0], intersection);
+                    if ( dist < (min_distance_to_node[j].first*length[j])) {
+                        min_distance_to_node[j].first = dist/length[j];
                     } 
 
-                    double Dist2 = Distance(ends[1], Intersection);
-                    if (Dist2 < (MinDistanceToNode[j].second*Length[j])) {
-                        MinDistanceToNode[j].second = Dist2/Length[j];
+                    const double dist2 = Distance(ends[1], intersection);
+                    if (dist2 < (min_distance_to_node[j].second*length[j])) {
+                        min_distance_to_node[j].second = dist2/length[j];
                     } 
                 }
                 j++;
             }
         }
 
-        std::vector<std::vector<double>> Neighbours{{3,1},{0,2},{1,3},{0,2}};  
-        for(int i = 0; i < Nodes.size(); i++ ) {
-            double Factor = GetFactor(Nodes, Neighbours,i);
-            double PartialArea;
-            if (Nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
-                PartialArea = Factor*MinDistanceToNode[(i+3)%4].second*MinDistanceToNode[i].first;
+        std::vector<std::vector<double>> neighbours{{3,1},{0,2},{1,3},{0,2}};  
+        for(int i = 0; i < nodes.size(); i++ ) {
+            const double factor = GetFactor(nodes, neighbours,i);
+            double partial_area;
+            if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
+                partial_area = factor*min_distance_to_node[(i+3)%4].second*min_distance_to_node[i].first;
             } else  {
-                PartialArea = 1.0/Nodes.size() - Factor*MinDistanceToNode[(i+3)%4].second*MinDistanceToNode[i].first;
+                partial_area = 1.0/nodes.size() - factor*min_distance_to_node[(i+3)%4].second*min_distance_to_node[i].first;
             }
-            Area += PartialArea;
+            area += partial_area;
         }
-        return Area;
+        return area;
     }
 
     /***********************************************************************************
@@ -147,137 +147,137 @@ namespace Kratos {
         const GeometryType& rFace,  
         const GeometryArrayType& rTriangles     
     ) {
-        double Area = 0;
-        GeometryArrayType Edges = rFace.GenerateEdges();
-        PointsArrayType Nodes = rFace.Points(); 
-        const double FaceArea = TetraVolume(Nodes);
-        std::vector<std::pair<double,double>> MinDistanceToNode(Edges.size(),{1,1}); 
+        double area = 0;
+        GeometryArrayType edges = rFace.GenerateEdges();
+        PointsArrayType nodes = rFace.Points(); 
+        const double face_area = TetraVolume(nodes);
+        std::vector<std::pair<double,double>> min_distance_to_node(edges.size(),{1,1}); 
         
-        int NodesInside = 0;
-        for (int i = 0; i < Nodes.size(); i++) {
-            if (Nodes[i].GetSolutionStepValue(DISTANCE) > 0) NodesInside++;
+        int nodes_inside = 0;
+        for (int i = 0; i < nodes.size(); i++) {
+            if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) nodes_inside++;
         }
 
-        if(NodesInside == 3) {
-            for (int i = 0; i < Nodes.size(); i++)  {
-                Nodes[i].GetSolutionStepValue(DISTANCE) = (-1)*Nodes[i].GetSolutionStepValue(DISTANCE);
+        if(nodes_inside == 3) {
+            for (int i = 0; i < nodes.size(); i++)  {
+                nodes[i].GetSolutionStepValue(DISTANCE) = (-1)*nodes[i].GetSolutionStepValue(DISTANCE);
             }
             const double area = HexaVolume2D(rFace,rTriangles);
-            for (int i = 0; i < Nodes.size(); i++) {
-                Nodes[i].GetSolutionStepValue(DISTANCE) = (-1)*Nodes[i].GetSolutionStepValue(DISTANCE);
+            for (int i = 0; i < nodes.size(); i++) {
+                nodes[i].GetSolutionStepValue(DISTANCE) = (-1)*nodes[i].GetSolutionStepValue(DISTANCE);
             }
             return 1-area;
         }
 
-        std::vector<double> Length(Edges.size()); 
-        for(int i = 0; i < Edges.size(); i++) {
-            PointsArrayType ends = Edges[i].Points();
+        std::vector<double> length(edges.size()); 
+        for(int i = 0; i < edges.size(); i++) {
+            PointsArrayType ends = edges[i].Points();
             const double l = Distance(ends[0], ends[1]);
-            Length[i] = l;
+            length[i] = l;
         }
 
         for (int i = 0; i < rTriangles.size(); i++) {
-            int Result = 0; 
-            array_1d<double,3> Intersection;
+            int result = 0; 
+            array_1d<double,3> intersection;
             int j = 0;
-            while(!Result && j < Edges.size()) { 
-                PointsArrayType ends = Edges[j].Points();
-                Result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],Intersection);
+            while(!result && j < edges.size()) { 
+                PointsArrayType ends = edges[j].Points();
+                result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
 
-                if (Result) {
-                    const double Dist = Distance(ends[0], Intersection);
-                    if ( Dist < (MinDistanceToNode[j].first*Length[j])) {
-                        MinDistanceToNode[j].first = Dist/Length[j];
+                if (result) {
+                    const double dist = Distance(ends[0], intersection);
+                    if ( dist < (min_distance_to_node[j].first*length[j])) {
+                        min_distance_to_node[j].first = dist/length[j];
                     } 
 
-                    const double Dist2 = Distance(ends[1], Intersection);
-                    if (Dist2 < (MinDistanceToNode[j].second*Length[j])) {
-                        MinDistanceToNode[j].second = Dist2/Length[j];
+                    const double dist2 = Distance(ends[1], intersection);
+                    if (dist2 < (min_distance_to_node[j].second*length[j])) {
+                        min_distance_to_node[j].second = dist2/length[j];
                     } 
                 }
                 j++;
             }
         }
 
-        std::vector<std::vector<double>> Neighbours{{3,1},{0,2},{1,3},{2,0}};  
-        for(int i = 0; i < Nodes.size(); i++ ) {
-            array_1d<double,3> v_left{Nodes[i].X() -Nodes[Neighbours[i][0]].X(), Nodes[i].Y() -Nodes[Neighbours[i][0]].Y(), Nodes[i].Z() -Nodes[Neighbours[i][0]].Z()};
-            array_1d<double,3> v_right{Nodes[i].X() -Nodes[Neighbours[i][1]].X(), Nodes[i].Y() -Nodes[Neighbours[i][1]].Y(), Nodes[i].Z() -Nodes[Neighbours[i][1]].Z()};
+        std::vector<std::vector<double>> neighbours{{3,1},{0,2},{1,3},{2,0}};  
+        for(int i = 0; i < nodes.size(); i++ ) {
+            array_1d<double,3> v_left{nodes[i].X() -nodes[neighbours[i][0]].X(), nodes[i].Y() -nodes[neighbours[i][0]].Y(), nodes[i].Z() -nodes[neighbours[i][0]].Z()};
+            array_1d<double,3> v_right{nodes[i].X() -nodes[neighbours[i][1]].X(), nodes[i].Y() -nodes[neighbours[i][1]].Y(), nodes[i].Z() -nodes[neighbours[i][1]].Z()};
 
-            double Case = GetCase(Nodes, Neighbours,i);
-            double PartialArea;
+            double Case = GetCase(nodes, neighbours,i);
+            double partial_area;
             double factor = 1;
             double left = 0;
             double right = 0;
-            if (Nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
+            if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
                 if (Case == 0) {
                     factor = 0.5;
-                    left = MinDistanceToNode[(i+3)%4].second;
-                    right = MinDistanceToNode[i].first;
+                    left = min_distance_to_node[(i+3)%4].second;
+                    right = min_distance_to_node[i].first;
                 } else if (Case == 1)  {
-                    left = MinDistanceToNode[(i+3)%4].second;
-                    right = std::min(0.5,MinDistanceToNode[i].first);
+                    left = min_distance_to_node[(i+3)%4].second;
+                    right = std::min(0.5,min_distance_to_node[i].first);
                 } else if (Case == 2) {
-                    left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
-                    right = MinDistanceToNode[i].first;
+                    left = std::min(0.5,min_distance_to_node[(i+3)%4].second);
+                    right = min_distance_to_node[i].first;
                 } else if (Case == 3) {
-                    left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
-                    right = std::min(0.5,MinDistanceToNode[i].first);
+                    left = std::min(0.5,min_distance_to_node[(i+3)%4].second);
+                    right = std::min(0.5,min_distance_to_node[i].first);
                 }
-                NodePtrType Int_left(new Node<3>(1, Nodes[i].X() + left*v_left[0], Nodes[i].Y() + left*v_left[1], Nodes[i].Z() + left*v_left[2]));
-                NodePtrType Int_right(new Node<3>(2, Nodes[i].X() + right*v_right[0], Nodes[i].Y() + right*v_right[1], Nodes[i].Z() + right*v_right[2]));
-                NodePtrType c(new Node<3>(2, Nodes[i].X() + left*v_left[0] + right*v_right[0], 
-                                                    Nodes[i].Y() + left*v_left[1] + right*v_right[1], 
-                                                    Nodes[i].Z() + left*v_left[2] + right*v_right[2]));
+                NodePtrType int_left(new Node<3>(1, nodes[i].X() + left*v_left[0], nodes[i].Y() + left*v_left[1], nodes[i].Z() + left*v_left[2]));
+                NodePtrType int_right(new Node<3>(2, nodes[i].X() + right*v_right[0], nodes[i].Y() + right*v_right[1], nodes[i].Z() + right*v_right[2]));
+                NodePtrType c(new Node<3>(2, nodes[i].X() + left*v_left[0] + right*v_right[0], 
+                                                    nodes[i].Y() + left*v_left[1] + right*v_right[1], 
+                                                    nodes[i].Z() + left*v_left[2] + right*v_right[2]));
                 PointsArrayType points;
-                points.push_back(Int_left);
-                points.push_back(&Nodes[i]);
-                points.push_back(Int_right);
+                points.push_back(int_left);
+                points.push_back(&nodes[i]);
+                points.push_back(int_right);
                 points.push_back(c);
-                PartialArea = factor*TetraVolume(points)/FaceArea;
+                partial_area = factor*TetraVolume(points)/face_area;
             } else {
-                NodePtrType Max_left(new Node<3>(1, Nodes[i].X() + 0.5*v_left[0], Nodes[i].Y() + 0.5*v_left[1], Nodes[i].Z() + 0.5*v_left[2]));
-                NodePtrType Max_right(new Node<3>(2, Nodes[i].X() + 0.5*v_right[0], Nodes[i].Y() + 0.5*v_right[1], Nodes[i].Z() + 0.5*v_right[2]));
-                NodePtrType Max_c(new Node<3>(2, Nodes[i].X() + 0.5*v_left[0] + 0.5*v_right[0], 
-                                                    Nodes[i].Y() + 0.5*v_left[1] + 0.5*v_right[1], 
-                                                    Nodes[i].Z() + 0.5*v_left[2] + 0.5*v_right[2]));
+                NodePtrType max_left(new Node<3>(1, nodes[i].X() + 0.5*v_left[0], nodes[i].Y() + 0.5*v_left[1], nodes[i].Z() + 0.5*v_left[2]));
+                NodePtrType max_right(new Node<3>(2, nodes[i].X() + 0.5*v_right[0], nodes[i].Y() + 0.5*v_right[1], nodes[i].Z() + 0.5*v_right[2]));
+                NodePtrType max_c(new Node<3>(2, nodes[i].X() + 0.5*v_left[0] + 0.5*v_right[0], 
+                                                    nodes[i].Y() + 0.5*v_left[1] + 0.5*v_right[1], 
+                                                    nodes[i].Z() + 0.5*v_left[2] + 0.5*v_right[2]));
                 PointsArrayType points;
-                points.push_back(Max_left);
-                points.push_back(&Nodes[i]);
-                points.push_back(Max_right);
-                points.push_back(Max_c);
-                double max_volume = TetraVolume(points)/FaceArea;
+                points.push_back(max_left);
+                points.push_back(&nodes[i]);
+                points.push_back(max_right);
+                points.push_back(max_c);
+                const double max_volume = TetraVolume(points)/face_area;
 
                 if (Case == 1) {
                     left = 0.5;
-                    right = std::min(0.5,MinDistanceToNode[i].first);
+                    right = std::min(0.5,min_distance_to_node[i].first);
                 } else if (Case == 2) {
-                    left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
+                    left = std::min(0.5,min_distance_to_node[(i+3)%4].second);
                     right = 0.5;
                 } else if (Case == 3) {
-                    left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
-                    right = std::min(0.5,MinDistanceToNode[i].first);
+                    left = std::min(0.5,min_distance_to_node[(i+3)%4].second);
+                    right = std::min(0.5,min_distance_to_node[i].first);
                 }
-                NodePtrType Int_left(new Node<3>(1, Nodes[i].X() + left*v_left[0], Nodes[i].Y() + left*v_left[1], Nodes[i].Z() + left*v_left[2]));
-                NodePtrType Int_right(new Node<3>(2, Nodes[i].X() + right*v_right[0], Nodes[i].Y() + right*v_right[1], Nodes[i].Z() + right*v_right[2]));
-                NodePtrType c(new Node<3>(2, Nodes[i].X() + left*v_left[0] + right*v_right[0], 
-                                                    Nodes[i].Y() + left*v_left[1] + right*v_right[1], 
-                                                    Nodes[i].Z() + left*v_left[2] + right*v_right[2]));
+                NodePtrType int_left(new Node<3>(1, nodes[i].X() + left*v_left[0], nodes[i].Y() + left*v_left[1], nodes[i].Z() + left*v_left[2]));
+                NodePtrType int_right(new Node<3>(2, nodes[i].X() + right*v_right[0], nodes[i].Y() + right*v_right[1], nodes[i].Z() + right*v_right[2]));
+                NodePtrType c(new Node<3>(2, nodes[i].X() + left*v_left[0] + right*v_right[0], 
+                                                    nodes[i].Y() + left*v_left[1] + right*v_right[1], 
+                                                    nodes[i].Z() + left*v_left[2] + right*v_right[2]));
                 points.clear();
-                points.push_back(Int_left);
-                points.push_back(&Nodes[i]);
-                points.push_back(Int_right);
+                points.push_back(int_left);
+                points.push_back(&nodes[i]);
+                points.push_back(int_right);
                 points.push_back(c);
 
                 if (Case != 0) {
-                    PartialArea =  max_volume -factor*TetraVolume(points)/FaceArea;
+                    partial_area =  max_volume -factor*TetraVolume(points)/face_area;
                 } else {
-                    PartialArea = 0;
+                    partial_area = 0;
                 }
             }
-            Area += PartialArea;
+            area += partial_area;
         }
-        return Area;    
+        return area;    
     }
 
     /***********************************************************************************
@@ -305,7 +305,7 @@ namespace Kratos {
      **********************************************************************************/
 
     double VolumeInsideVoxelUtility::EdgeFilledPortion(std::vector<double>& Distances, const PointsArrayType& rEnds) {
-        const double Length = Distances[Distances.size() - 1];
+        const double length = Distances[Distances.size() - 1];
         double portion = 0; 
         bool inside = true;       
 
@@ -326,7 +326,7 @@ namespace Kratos {
 
         for(int i = 1; i < Distances.size(); i++) {
             if (inside) {
-                portion += abs(Distances[i]-Distances[i-1])/Length;
+                portion += abs(Distances[i]-Distances[i-1])/length;
                 inside = false;
             } else inside = true;             
         }
