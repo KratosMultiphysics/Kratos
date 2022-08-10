@@ -157,7 +157,7 @@ public:
      * @param rEnds references to the nodes at both sides of the edge
      * @return Approximated Portion of edge that contains volume 
      */  
-    static const double EdgeFilledPortion(std::vector<double>& Distances, const PointsArrayType& rEnds);
+    static double EdgeFilledPortion(std::vector<double>& Distances, const PointsArrayType& rEnds);
 
 private:
 
