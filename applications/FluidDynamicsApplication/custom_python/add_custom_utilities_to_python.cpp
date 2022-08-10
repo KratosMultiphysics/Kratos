@@ -45,6 +45,7 @@
 #include "custom_utilities/fluid_lss_variable_utilities.h"
 #include "custom_utilities/fluid_lss_sensitivity.h"
 #include "custom_utilities/fluid_lss_shape_sensitivity.h"
+#include "custom_utilities/fluid_model_part_preprocessing_utilities.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -244,6 +245,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<FluidLSSShapeSensitivity, FluidLSSShapeSensitivity::Pointer, FluidLSSSensitivity>(m, "FluidLSSShapeSensitivity")
         .def(py::init<Parameters, const std::size_t>())
         ;
+
+    py::class_<FluidModelPartPreProcessingUtilities>(m, "FluidModelPartPreProcessingUtilities")
+        .def_static("CreateModelPartForCommenInterface", &FluidModelPartPreProcessingUtilities::CreateModelPartForCommenInterface)
+        .def_static("GetElementIdsWithAllNodesOnBoundaries", &FluidModelPartPreProcessingUtilities::GetElementIdsWithAllNodesOnBoundaries)
+        .def_static("BreakElements", &FluidModelPartPreProcessingUtilities::BreakElements)
+        ;
+
+
 }
 
 }  // namespace Python.
