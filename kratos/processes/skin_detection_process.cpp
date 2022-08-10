@@ -400,11 +400,12 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
         auto& r_communicator = mrModelPart.GetCommunicator();
         auto& r_data_communicator = r_communicator.GetDataCommunicator();
         const auto rank = r_data_communicator.Rank();
-        const auto size = r_data_communicator.Size();
+        const auto world_size = r_data_communicator.Size();
         
         // TODO: The proper thing to do will be to use the neighbour ranks of the current rank, but for debugging first we start with passing all the info to rank 0 and passs back to the rest of ranks
         // Now we will send to rank 0 the faces_to_remove. We define a scope, so everything will be removed at the end, except the clean up of the faces_to_remove
         {
+            int tag = 1;
             // Rest of the processes
             if (rank != 0) {
                 // We generate the hash of the faces to use the communicator to send
@@ -418,7 +419,7 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
                 }
 
                 // We send the faces_to_remove_hash to the main process
-                // r_data_communicator->SendRecvImpl();
+                r_data_communicator.Send(faces_to_remove_hash, 0, tag);
 
             } else { // Main process
                 std::unordered_map<std::size_t, bool> faces_mpi_counter;
@@ -432,6 +433,10 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
                 }
 
                 // Now we receive the faces_to_remove from the rest of the processes
+                for (int i_rank = 1; i_rank < world_size; ++i_rank) {
+                    std::vector<std::size_t> rec_faces_to_remove_hash;
+                    r_data_communicator.Recv(rec_faces_to_remove_hash, i_rank, tag);
+                }
             }
         }
 
