@@ -229,11 +229,11 @@ namespace Kratos {
                 NodePtrType c(new Node<3>(2, nodes[i].X() + left*v_left[0] + right*v_right[0], 
                                                     nodes[i].Y() + left*v_left[1] + right*v_right[1], 
                                                     nodes[i].Z() + left*v_left[2] + right*v_right[2]));
-                PointsArrayType points;
-                points.push_back(int_left);
-                points.push_back(&nodes[i]);
-                points.push_back(int_right);
-                points.push_back(c);
+                PointsArrayType points(4);
+                points(0) = int_left;
+                points(1) = &nodes[i];
+                points(2) = int_right;
+                points(3) = c;
                 partial_area = factor*TetraVolume(points)/face_area;
             } else {
                 NodePtrType max_left(new Node<3>(1, nodes[i].X() + 0.5*v_left[0], nodes[i].Y() + 0.5*v_left[1], nodes[i].Z() + 0.5*v_left[2]));
@@ -241,11 +241,11 @@ namespace Kratos {
                 NodePtrType max_c(new Node<3>(2, nodes[i].X() + 0.5*v_left[0] + 0.5*v_right[0], 
                                                     nodes[i].Y() + 0.5*v_left[1] + 0.5*v_right[1], 
                                                     nodes[i].Z() + 0.5*v_left[2] + 0.5*v_right[2]));
-                PointsArrayType points;
-                points.push_back(max_left);
-                points.push_back(&nodes[i]);
-                points.push_back(max_right);
-                points.push_back(max_c);
+                PointsArrayType points(4);
+                points(0) = max_left;
+                points(1) = &nodes[i];
+                points(2) = max_right;
+                points(3) = max_c;
                 const double max_volume = TetraVolume(points)/face_area;
 
                 if (Case == 1) {
@@ -263,11 +263,10 @@ namespace Kratos {
                 NodePtrType c(new Node<3>(2, nodes[i].X() + left*v_left[0] + right*v_right[0], 
                                                     nodes[i].Y() + left*v_left[1] + right*v_right[1], 
                                                     nodes[i].Z() + left*v_left[2] + right*v_right[2]));
-                points.clear();
-                points.push_back(int_left);
-                points.push_back(&nodes[i]);
-                points.push_back(int_right);
-                points.push_back(c);
+                points(0) = int_left;
+                points(1) = &nodes[i];
+                points(2) = int_right;
+                points(3) = c;
 
                 if (Case != 0) {
                     partial_area =  max_volume -factor*TetraVolume(points)/face_area;
