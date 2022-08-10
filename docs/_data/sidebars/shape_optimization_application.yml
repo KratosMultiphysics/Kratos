@@ -25,34 +25,58 @@ entries:
   - title: Technologies
     output: web
     folderitems:
+    - title: Objectives
+      url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/Objectives.html
+      output: web
+    - title: Constraints
+      url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/Constraints.html
+      output: web
     - title: Vertex morphing
       url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/Vertex_morphing.html
       output: web
-    - title: Objectives and constraints
-      url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/Objectives_and_constraints.html
-      output: web
       subfolders:
-      - title: List of response functions
+      - title: Algorithms
         output: web
         subfolderitems:
-        - title: Angle of attack
-          url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/List_of_response_functions/Angle_of_attack.html
+        - title: Steepest Descent
+          url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/Algorithms/steepest_descent.html
           output: web
-        - title: Face angle
-          url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/List_of_response_functions/Face_angle.html
+        - title: Penalized Projection
+          url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/Algorithms/penalized_projection.html
           output: web
-        - title: Mesh based packaging
-          url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/List_of_response_functions/Mesh_based_packaging.html
+        - title: Gradient Projection
+          url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/Algorithms/gradient_projection.html
           output: web
-        - title: Plane based packaging
-          url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/List_of_response_functions/Plane_based_packaging.html
-          output: web
-        - title: Surface normal shape change
-          url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/List_of_response_functions/Surface_normal_shape_change.html
-          output: web
-        - title: Total volume
-          url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/List_of_response_functions/Total_volume.html
-          output: web
+  - title: Interfaces
+    output: web
+    folderitems:
+    - title: Analyzer interface
+      url: https://github.com/KratosMultiphysics/Kratos/blob/master/applications/ShapeOptimizationApplication/python_scripts/analyzers/analyzer_base.py
+      output: web
+    - title: Response function interface
+      url: https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/response_functions/response_function_interface.py
+      output: web
+  - title: List of Response Functions
+    output: web
+    folderitems:
+    - title: Angle of attack
+      url: /Kratos/pages/Applications/Shape_Optimization_Application/List of Response Functions/Angle_of_attack.html
+      output: web
+    - title: Face angle
+      url: /Kratos/pages/Applications/Shape_Optimization_Application/List of Response Functions/Face_angle.html
+      output: web
+    - title: Mesh based packaging
+      url: /Kratos/pages/Applications/Shape_Optimization_Application/List of Response Functions/Mesh_based_packaging.html
+      output: web
+    - title: Plane based packaging
+      url: /Kratos/pages/Applications/Shape_Optimization_Application/List of Response Functions/Plane_based_packaging.html
+      output: web
+    - title: Surface normal shape change
+      url: /Kratos/pages/Applications/Shape_Optimization_Application/List of Response Functions/Surface_normal_shape_change.html
+      output: web
+    - title: Total volume
+      url: /Kratos/pages/Applications/Shape_Optimization_Application/List of Response Functions/Total_volume.html
+      output: web
   - title: Examples
     output: web
     folderitems:
