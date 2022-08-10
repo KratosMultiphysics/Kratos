@@ -376,6 +376,7 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
     )
 {
     if (rSetNodeIdsInterface.size() > 0) {
+        // First determine with the nodes in the MPI interface wich faces are potentially removable
         std::vector<VectorIndexType> faces_to_remove;
         bool to_remove;
         for (auto& r_map : rInverseFaceMap) {
@@ -393,6 +394,33 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
             }            
         }
 
+        // Not all the faces are going to be removed, only the ones which are repeated in different processes. So we need to filter then. This is a complex MPI process. 
+
+        // First we determine the rank and the size of the world
+        auto& r_communicator = mrModelPart.GetCommunicator();
+        auto& r_data_communicator = r_communicator.GetDataCommunicator();
+        const auto rank = r_data_communicator.Rank();
+        const auto size = r_data_communicator.Size();
+        
+        // Now we will send to rank 0 the faces_to_remove. We define a scope, so everything will be removed at the end, except the clean up of the faces_to_remove
+        {
+            // Rest of the processes
+            if (rank != 0) {
+                // We send the faces_to_remove to the main process
+
+            } else { // Main process
+                std::unordered_map<VectorIndexType, bool, VectorIndexHasherType, VectorIndexComparorType > faces_mpi_counter;
+
+                // We add the current process info
+                for (auto& r_face_to_remove : faces_to_remove) {
+                    faces_mpi_counter.insert(std::pair<VectorIndexType, bool>({r_face_to_remove, false}));
+                }
+
+                // Now we receive the faces_to_remove from the rest of the processes
+            }
+        }
+
+        // Finally we remove the MPi interface faces
         for (auto& r_face_to_remove : faces_to_remove) {
             rInverseFaceMap.erase(r_face_to_remove);
         }
