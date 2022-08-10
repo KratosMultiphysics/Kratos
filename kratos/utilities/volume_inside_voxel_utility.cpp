@@ -307,16 +307,14 @@ namespace Kratos {
     double VolumeInsideVoxelUtility::EdgeFilledPortion(std::vector<double>& Distances, const PointsArrayType& rEnds) {
         const double Length = Distances[Distances.size() - 1];
         double portion = 0; 
-        bool inside;       
+        bool inside = true;       
 
         //casuistics: Both nodes inside, both nodes outside, one node inside and one outside
         if (rEnds[0].GetSolutionStepValue(DISTANCE) > 0 && rEnds[1].GetSolutionStepValue(DISTANCE) > 0) {
-            bool inside = true;
             if(Distances.size() % 2 == 1) Distances.pop_back();
             if (Distances.size() == 2) return 1;
         } else if (rEnds[0].GetSolutionStepValue(DISTANCE) > 0 && rEnds[1].GetSolutionStepValue(DISTANCE) < 0) {
             if(Distances.size() % 2 == 0) Distances.pop_back();
-            inside = true;
         } else if (rEnds[0].GetSolutionStepValue(DISTANCE) < 0 && rEnds[1].GetSolutionStepValue(DISTANCE) > 0) {
             if(Distances.size() % 2 == 0) Distances.pop_back();
             inside = false;
