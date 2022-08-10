@@ -160,11 +160,11 @@ namespace Kratos {
 
         if(nodes_inside == 3) {
             for (int i = 0; i < nodes.size(); i++)  {
-                nodes[i].GetSolutionStepValue(DISTANCE) = (-1)*nodes[i].GetSolutionStepValue(DISTANCE);
+                nodes[i].GetSolutionStepValue(DISTANCE) = -nodes[i].GetSolutionStepValue(DISTANCE);
             }
             const double area = HexaVolume2D(rFace,rTriangles);
             for (int i = 0; i < nodes.size(); i++) {
-                nodes[i].GetSolutionStepValue(DISTANCE) = (-1)*nodes[i].GetSolutionStepValue(DISTANCE);
+                nodes[i].GetSolutionStepValue(DISTANCE) = -nodes[i].GetSolutionStepValue(DISTANCE);
             }
             return 1-area;
         }
@@ -325,7 +325,7 @@ namespace Kratos {
 
         for(int i = 1; i < Distances.size(); i++) {
             if (inside) {
-                portion += abs(Distances[i]-Distances[i-1])/length;
+                portion += std::abs(Distances[i]-Distances[i-1])/length;
                 inside = false;
             } else inside = true;             
         }
@@ -342,36 +342,40 @@ namespace Kratos {
             nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 && nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0)) {
                 return 0.5;
             }
-        return 1;
+        return 1.0;
     }
 
     /***********************************************************************************
      **********************************************************************************/
 
-    int VolumeInsideVoxelUtility::GetCase(const PointsArrayType& nodes, const std::vector<std::vector<double>>& neighbours,const int node) {
-        if (nodes[node].GetSolutionStepValue(DISTANCE) > 0 ) {
-            if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 &&
-                nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0) {
+    int VolumeInsideVoxelUtility::GetCase(
+        const PointsArrayType& rNodes,
+        const std::vector<std::vector<double>>& rNeighbours,
+        const int NodeIndex) 
+    {
+        if (rNodes[NodeIndex].GetSolutionStepValue(DISTANCE) > 0 ) {
+            if (rNodes[rNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) < 0 &&
+                rNodes[rNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) < 0) {
                 return 0;
-            } else if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 &&
-                nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0) {
+            } else if (rNodes[rNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) < 0 &&
+                rNodes[rNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0) {
                 return 1;
-            } else if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 &&
-                nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0) {
+            } else if (rNodes[rNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0 &&
+                rNodes[rNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) < 0) {
                 return 2;
             } else  {
                 return 3;
             }
         }
         else {
-            if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 && 
-                nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0) {
+            if (rNodes[rNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0 && 
+                rNodes[rNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0) {
                 return 0;
-            } else if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 && 
-                nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0) {
+            } else if (rNodes[rNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0 && 
+                rNodes[rNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) < 0) {
                 return 1;
-            } else if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 && 
-                nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0) {
+            } else if (rNodes[rNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) < 0 && 
+                rNodes[rNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0) {
                 return 2;
             } else return 3;
         }
