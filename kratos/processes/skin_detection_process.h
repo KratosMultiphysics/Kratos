@@ -295,6 +295,11 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method generates a set with the ids of the nodes of the interface
+     * @param  rSetNodeIdsInterface The set of ids of the nodes of the interface
+     */
+    void GenerateSetNodeIdsInterface(std::unordered_set<IndexType>& rSetNodeIdsInterface);
 
     ///@}
     ///@name Private  Access

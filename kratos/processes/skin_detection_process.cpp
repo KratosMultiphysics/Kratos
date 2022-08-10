@@ -40,20 +40,7 @@ void SkinDetectionProcess<TDim>::Execute()
 
     // First assign MPI ids if needed
     std::unordered_set<IndexType> set_node_ids_interface;
-    if (mrModelPart.IsDistributed()) {
-        auto& r_communicator = mrModelPart.GetCommunicator();
-        // const auto rank = r_communicator.GetDataCommunicator().Rank();
-        const auto& r_nodes_interface = r_communicator.InterfaceMesh().Nodes();
-        const std::size_t number_of_interface_nodes = r_nodes_interface.size();
-        const auto it_interface_node_begin = r_nodes_interface.begin();
-        std::vector<IndexType> node_ids_interface(number_of_interface_nodes);
-        IndexPartition<std::size_t>(number_of_interface_nodes).for_each(
-        [&node_ids_interface, it_interface_node_begin](std::size_t i) {
-            auto it_interface_node = it_interface_node_begin + i;
-            node_ids_interface[i] = it_interface_node->Id();
-        });
-        std::copy(node_ids_interface.begin(), node_ids_interface.end(), std::inserter(set_node_ids_interface, set_node_ids_interface.end()));
-    }
+    this->GenerateSetNodeIdsInterface(set_node_ids_interface);
 
     // Generate face maps
     HashMapVectorIntType inverse_face_map;
@@ -375,6 +362,28 @@ void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& r
 
             sub_model_part.AddConditions(conditions_ids);
         }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+void SkinDetectionProcess<TDim>::GenerateSetNodeIdsInterface(std::unordered_set<IndexType>& rSetNodeIdsInterface)
+{
+    if (mrModelPart.IsDistributed()) {
+        auto& r_communicator = mrModelPart.GetCommunicator();
+        // const auto rank = r_communicator.GetDataCommunicator().Rank();
+        const auto& r_nodes_interface = r_communicator.InterfaceMesh().Nodes();
+        const std::size_t number_of_interface_nodes = r_nodes_interface.size();
+        const auto it_interface_node_begin = r_nodes_interface.begin();
+        std::vector<IndexType> node_ids_interface(number_of_interface_nodes);
+        IndexPartition<std::size_t>(number_of_interface_nodes).for_each(
+        [&node_ids_interface, it_interface_node_begin](std::size_t i) {
+            auto it_interface_node = it_interface_node_begin + i;
+            node_ids_interface[i] = it_interface_node->Id();
+        });
+        std::copy(node_ids_interface.begin(), node_ids_interface.end(), std::inserter(rSetNodeIdsInterface, rSetNodeIdsInterface.end()));
     }
 }
 
