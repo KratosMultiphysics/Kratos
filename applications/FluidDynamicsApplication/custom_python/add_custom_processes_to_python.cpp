@@ -43,6 +43,7 @@
 #include "custom_processes/shock_capturing_physics_based_process.h"
 #include "custom_processes/spalart_allmaras_turbulence_model.h"
 #include "custom_processes/stokes_initialization_process.h"
+#include "custom_processes/compute_y_plus_process.h"
 
 #include "spaces/ublas_space.h"
 
@@ -179,6 +180,10 @@ void AddCustomProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<ComputePressureCoefficientProcess, ComputePressureCoefficientProcess::Pointer, Process>(m, "ComputePressureCoefficientProcess")
+    .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<ComputeYPlusProcess, ComputeYPlusProcess::Pointer, Process>(m, "ComputeYPlusProcess")
     .def(py::init<Model&, Parameters>())
     ;
 }
