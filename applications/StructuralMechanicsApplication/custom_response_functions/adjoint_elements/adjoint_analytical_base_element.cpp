@@ -14,7 +14,6 @@
 // External includes
 
 // Project includes
-#include "adjoint_finite_difference_base_element.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "custom_response_functions/response_utilities/finite_difference_utility.h"
 #include "includes/checks.h"
@@ -24,6 +23,9 @@
 #include "custom_elements/truss_element_linear_3D2N.hpp"
 #include "custom_elements/small_displacement.h"
 #include "custom_elements/spring_damper_element_3D2N.hpp"
+
+// Include base h
+#include "adjoint_analytical_base_element.h"
 
 
 namespace Kratos

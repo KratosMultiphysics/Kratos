@@ -114,6 +114,10 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
         elif response_type == "adjoint_kreisselmeier_aggregated_stress":
             import KratosMultiphysics.ShapeOptimizationApplication as KratosSOA
             self.response_function = KratosSOA.GaussPointKreisselmeierAggregationResponseFunction(self.settings["response_function_settings"]["adjoint_reponse_settings"], self.main_model_part)
+            for element in self.main_model_part.Elements:
+                element.SetValue(StructuralMechanicsApplication.TRACED_STRESS_TYPE, 25)
+        elif response_type == "adjoint_KS_max_stress":
+            self.response_function = StructuralMechanicsApplication.AdjointKSMaxStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         else:
             raise Exception("invalid response_type: " + response_type)
 

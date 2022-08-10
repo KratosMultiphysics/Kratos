@@ -12,6 +12,7 @@
 
 // System includes
 #include <string>
+#include <limits>
 
 // External includes
 
@@ -125,7 +126,7 @@ double GaussPointKreisselmeierAggregationResponseFunction::CalculateValue(ModelP
         mGaussPointValueScalingFactor = max_mean_gp_value;
     }
 
-    mSumKSPrefactors = block_for_each<SumReduction<double>>(r_critical_model_part.Elements(), [&](ModelPart::ElementType& rElement) -> double {
+    mSumKSPrefactors = block_for_each<SumReduction<double>>(r_critical_model_part.Elements(), [&](const ModelPart::ElementType& rElement) -> double {
         double& r_element_ks_prefactor = mKSPrefactors.find(rElement.Id())->second;
         r_element_ks_prefactor = std::exp(mRho * r_element_ks_prefactor / mGaussPointValueScalingFactor);
         return r_element_ks_prefactor;
@@ -145,43 +146,47 @@ void GaussPointKreisselmeierAggregationResponseFunction::CalculateFiniteDifferen
     const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY
-    auto& r_geometry = rElement.GetGeometry();
 
-    const IndexType number_of_nodes = r_geometry.PointsNumber();
-    const IndexType number_of_dofs_per_node = rDerivativeVariablePointersList.size();
-    const IndexType local_derivative_size = number_of_nodes * number_of_dofs_per_node;
+    Matrix output;
 
-    std::vector<double> ref_gp_values;
-    rElement.CalculateOnIntegrationPoints(*mpGaussPointValueScalarVariable, ref_gp_values, rProcessInfo);
+    CalculateFiniteDifferenceSensitivity(
+        output, rElement, [&](Vector &rValues)
+        {
+            std::vector<double> values;
+            rElement.CalculateOnIntegrationPoints(*mpGaussPointValueScalarVariable, values, rProcessInfo);
+            if (rValues.size() != values.size()) {
+                rValues.resize(values.size());
+            }
+            for (IndexType i = 0; i < values.size(); ++i) {
+                rValues[i] = values[i];
+            }
+        },
+        [&](ModelPart::NodeType &rNode, const Variable<double> &rVariable, const double Perturbation)
+        {
+            KRATOS_WATCH(rNode.Id());
+            KRATOS_WATCH(rVariable);
+            KRATOS_WATCH(Perturbation);
+            rNode.FastGetSolutionStepValue(rVariable) += Perturbation;
+        },
+        rDerivativeVariablePointersList, {2, 2, 2}, 1e-8, 100);
 
-    if (rOutput.size() != local_derivative_size) {
-        rOutput.resize(local_derivative_size, false);
+    if (rOutput.size() != output.size1()) {
+        rOutput.resize(output.size1(), false);
     }
 
     rOutput.clear();
 
-    #pragma omp critical
-    {
-        std::vector<double> gp_values;
-        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
-
-            auto& r_node = r_geometry[i_node];
-            for (IndexType i_var = 0; i_var < number_of_dofs_per_node; ++i_var) {
-                const auto p_variable = rDerivativeVariablePointersList[i_var];
-                double& variable_value = r_node.FastGetSolutionStepValue(*p_variable);
-
-                variable_value += mStepSize;
-                rElement.CalculateOnIntegrationPoints(*mpGaussPointValueScalarVariable, gp_values, rProcessInfo);
-                for (IndexType i = 0; i < gp_values.size(); ++i) {
-                    rOutput[i_node * number_of_dofs_per_node + i_var] += (gp_values[i] - ref_gp_values[i]) / mStepSize;
-                }
-
-                variable_value -= mStepSize;
-            }
+    for (IndexType i = 0; i < output.size1(); ++i) {
+        for (IndexType j = 0; j < output.size2(); ++j) {
+            rOutput[i] += output(i, j);
         }
     }
 
-    rOutput /= ref_gp_values.size();
+    rOutput /= output.size2();
+
+    KRATOS_WATCH(output);
+    KRATOS_WATCH(rOutput);
+    std::exit(-1);
 
     KRATOS_CATCH("");
 }
@@ -224,6 +229,8 @@ void GaussPointKreisselmeierAggregationResponseFunction::CalculateFiniteDifferen
                     rOutput(i_node * number_of_dofs_per_node + i_var) += (gp_values[i] - ref_gp_values[i]) / mStepSize;
                 }
 
+                gp_values.clear();
+
                 position -= mStepSize;
                 initial_position -= mStepSize;
             }
@@ -251,7 +258,7 @@ void GaussPointKreisselmeierAggregationResponseFunction::CalculateStateDerivativ
     if (mKSPrefactors.find(rAdjointElement.Id()) != mKSPrefactors.end() && rDerivativeVariablesList.size() != 0) {
         ModelPart::ElementType& r_element = *(mrModelPart.pGetElement(rAdjointElement.Id()));
         CalculateFiniteDifferenceStateVariableSensitivities(rResponseGradient, r_element, rDerivativeVariablesList, rProcessInfo);
-        rResponseGradient *= mKSPrefactors.find(r_element.Id())->second / (-mGaussPointValueScalingFactor * mSumKSPrefactors);
+        rResponseGradient *= mKSPrefactors.find(r_element.Id())->second / (mGaussPointValueScalingFactor * mSumKSPrefactors);
     } else {
         if(rResponseGradient.size() != rResidualGradient.size1()) {
             rResponseGradient.resize(rResidualGradient.size1(), false);
@@ -365,7 +372,7 @@ void GaussPointKreisselmeierAggregationResponseFunction::CalculatePartialSensiti
 
         if (mKSPrefactors.find(rAdjointElement.Id()) != mKSPrefactors.end()) {
             CalculateFiniteDifferenceShapeVariableSensitivities(rSensitivityGradient, rAdjointElement, rProcessInfo);
-            rSensitivityGradient *= mKSPrefactors.find(rAdjointElement.Id())->second / (-mGaussPointValueScalingFactor * mSumKSPrefactors);
+            rSensitivityGradient *= mKSPrefactors.find(rAdjointElement.Id())->second / (mGaussPointValueScalingFactor * mSumKSPrefactors);
         } else {
             if(rSensitivityGradient.size() != rSensitivityMatrix.size1()) {
                 rSensitivityGradient.resize(rSensitivityMatrix.size1(), false);

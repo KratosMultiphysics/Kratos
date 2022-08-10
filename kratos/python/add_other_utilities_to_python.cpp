@@ -578,6 +578,8 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     entities_utilities.def("InitializeConditions", &EntitiesUtilities::InitializeEntities<Condition> );
     entities_utilities.def("InitializeElements", &EntitiesUtilities::InitializeEntities<Element> );
     entities_utilities.def("InitializeMasterSlaveConstraints", &EntitiesUtilities::InitializeEntities<MasterSlaveConstraint> );
+    entities_utilities.def("InitializeSolutionStepAllEntities", &EntitiesUtilities::InitializeSolutionStepAllEntities);
+    entities_utilities.def("InitializeNonLinearIterationAllEntities", &EntitiesUtilities::InitializeNonLinearIterationAllEntities);
 
     // ConstraintUtilities
     auto constraint_utilities = m.def_submodule("ConstraintUtilities");

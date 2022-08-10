@@ -30,6 +30,8 @@ def CreateResponseFunction(response_id, response_settings, model):
 
     elif response_type == "adjoint_kreisselmeier_aggregated_stress":
         return structural_response.AdjointResponseFunction(response_id, response_settings, model)
+    elif response_type == "adjoint_KS_max_stress":
+        return structural_response.AdjointResponseFunction(response_id, response_settings, model)
 
     else:
         raise NameError("The type of the following response function is not specified: "+ response_id +

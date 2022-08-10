@@ -48,7 +48,7 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_2d_8.h"
 #include "geometries/quadrilateral_2d_9.h"
-
+#include "custom_response_functions/response_utilities/stress_response_definitions.h"
 namespace Kratos {
 
     // We define the node type
@@ -239,6 +239,9 @@ void KratosStructuralMechanicsApplication::Register() {
                     << "                 | |   |    |   | (    |   |   | |   (   | |\n"
                     << "           _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  \\__,_|_| MECHANICS\n"
                     << "Initializing KratosStructuralMechanicsApplication..." << std::endl;
+
+    KRATOS_INFO("") << "Traced stress type: " << static_cast<int>(StressResponseDefinitions::ConvertStringToTracedStressType("VON_MISES_STRESS")) << std::endl;
+
 
     // General pourpose
     KRATOS_REGISTER_VARIABLE(INTEGRATION_ORDER); // The integration order considered on the element

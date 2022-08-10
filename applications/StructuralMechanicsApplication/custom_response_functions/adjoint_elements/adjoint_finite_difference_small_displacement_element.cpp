@@ -86,7 +86,7 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Calculat
     rOutput.resize(num_dofs, number_integration_points, false);
     rOutput.clear();
 
-    std::vector<Matrix> partial_stress_derivatives;
+    std::vector<double> partial_stress_derivatives;
 
     for (IndexType i = 0; i < num_nodes; ++i)
     {
@@ -95,33 +95,33 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Calculat
         for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
         {
             this->mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 1.0;
-            this->mpPrimalElement->CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, partial_stress_derivatives, rCurrentProcessInfo);
+            this->mpPrimalElement->CalculateOnIntegrationPoints(VON_MISES_STRESS, partial_stress_derivatives, rCurrentProcessInfo);
 
             for(IndexType k = 0; k < number_integration_points; ++k)
             {
-                double sensitivity_entry_k = 0.0;
-                Matrix & PK2_k = stress_tensor[k];
+                // double sensitivity_entry_k = 0.0;
+                // Matrix & PK2_k = stress_tensor[k];
 
-                sensitivity_entry_k += 2*PK2_k(0,0)*partial_stress_derivatives[k](0,0);
-                sensitivity_entry_k += 2*PK2_k(1,1)*partial_stress_derivatives[k](1,1);
-                sensitivity_entry_k += 2*PK2_k(2,2)*partial_stress_derivatives[k](2,2);
+                // sensitivity_entry_k += 2*PK2_k(0,0)*partial_stress_derivatives[k](0,0);
+                // sensitivity_entry_k += 2*PK2_k(1,1)*partial_stress_derivatives[k](1,1);
+                // sensitivity_entry_k += 2*PK2_k(2,2)*partial_stress_derivatives[k](2,2);
 
-                sensitivity_entry_k -= PK2_k(1,1)*partial_stress_derivatives[k](0,0);
-                sensitivity_entry_k -= PK2_k(0,0)*partial_stress_derivatives[k](1,1);
+                // sensitivity_entry_k -= PK2_k(1,1)*partial_stress_derivatives[k](0,0);
+                // sensitivity_entry_k -= PK2_k(0,0)*partial_stress_derivatives[k](1,1);
 
-                sensitivity_entry_k -= PK2_k(0,0)*partial_stress_derivatives[k](2,2);
-                sensitivity_entry_k -= PK2_k(2,2)*partial_stress_derivatives[k](0,0);
+                // sensitivity_entry_k -= PK2_k(0,0)*partial_stress_derivatives[k](2,2);
+                // sensitivity_entry_k -= PK2_k(2,2)*partial_stress_derivatives[k](0,0);
 
-                sensitivity_entry_k -= PK2_k(1,1)*partial_stress_derivatives[k](2,2);
-                sensitivity_entry_k -= PK2_k(2,2)*partial_stress_derivatives[k](1,1);
+                // sensitivity_entry_k -= PK2_k(1,1)*partial_stress_derivatives[k](2,2);
+                // sensitivity_entry_k -= PK2_k(2,2)*partial_stress_derivatives[k](1,1);
 
-                sensitivity_entry_k += 6*PK2_k(0,1)*partial_stress_derivatives[k](0,1);
-                sensitivity_entry_k += 6*PK2_k(0,2)*partial_stress_derivatives[k](0,2);
-                sensitivity_entry_k += 6*PK2_k(1,2)*partial_stress_derivatives[k](1,2);
+                // sensitivity_entry_k += 6*PK2_k(0,1)*partial_stress_derivatives[k](0,1);
+                // sensitivity_entry_k += 6*PK2_k(0,2)*partial_stress_derivatives[k](0,2);
+                // sensitivity_entry_k += 6*PK2_k(1,2)*partial_stress_derivatives[k](1,2);
 
-                sensitivity_entry_k *= sensitivity_prefactors[k];
+                // sensitivity_entry_k *= sensitivity_prefactors[k];
 
-                rOutput(index+j, k) = sensitivity_entry_k;
+                rOutput(index+j, k) = partial_stress_derivatives[k];
             }
 
             this->mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 0.0;

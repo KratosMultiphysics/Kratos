@@ -418,6 +418,9 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             # response settings
             adjoint_parameters["solver_settings"].AddValue("response_function_settings", self.response_settings)
 
+            with open("automated_adjoint_parameters.json", "w") as file_output:
+                file_output.write(adjoint_parameters.PrettyPrintJsonString())
+
         else: # adjoint parameters file is explicitely given - do not change it.
             with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
                 adjoint_parameters = Parameters( parameter_file.read() )
@@ -432,6 +435,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             "adjoint_local_stress" : "LocalStress",
             "adjoint_max_stress" : "MaxStress",
             "adjoint_nodal_reaction" : "NodalReaction",
+            "adjoint_KS_max_stress" : "KSMaxStress",
             "adjoint_kreisselmeier_aggregated_stress": "KreisselmeierAggragatedStress"
         }
         response_type = self.response_settings["response_type"].GetString()
