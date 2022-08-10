@@ -2,7 +2,6 @@
 #define  KRATOS_FIXED_VELOCITY_CONDITION_3D_H_INCLUDED
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"

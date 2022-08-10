@@ -9,12 +9,10 @@
 #if !defined(KRATOS_FRACTIONAL_STEP_PFEM_2_2D_ELEM_H_INCLUDED)
 #define  KRATOS_FRACTIONAL_STEP_PFEM_2_2D_ELEM_H_INCLUDED
 
+
 // System includes
 
-
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"

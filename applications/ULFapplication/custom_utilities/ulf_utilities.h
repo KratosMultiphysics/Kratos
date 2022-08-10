@@ -72,7 +72,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/geometry_utilities.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "ULF_application.h"
-// #include "boost/smart_ptr.hpp"
 #include "utilities/openmp_utils.h"
 
 namespace Kratos

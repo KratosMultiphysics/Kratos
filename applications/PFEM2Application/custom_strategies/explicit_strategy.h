@@ -67,9 +67,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <omp.h>
 #endif
 
-#include "boost/smart_ptr.hpp"
-
-
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"

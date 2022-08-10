@@ -19,7 +19,6 @@
 #endif
 
 /* External includes */
-// #include "boost/smart_ptr.hpp"
 #include <pybind11/pybind11.h>
 #include "includes/define.h"
 #include "includes/define_python.h"
@@ -30,7 +29,6 @@
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/geometry_utilities.h"
 
-#include "boost/smart_ptr.hpp"
 #include "utilities/timer.h"
 
 namespace Kratos

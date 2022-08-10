@@ -11,14 +11,10 @@
 #define  KRATOS_SHARED_POINTS_MAPPER_H_INCLUDED
 
 
-
 // System includes
 #include <set>
 
-
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"

@@ -16,13 +16,9 @@
 #define  KRATOS_FLUID_2D_GLS_H_INCLUDED
 
 
-
 // System includes
 
-
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"

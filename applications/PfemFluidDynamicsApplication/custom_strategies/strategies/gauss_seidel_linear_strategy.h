@@ -17,8 +17,6 @@
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
-//#include "boost/timer.hpp"
 
 /* Project includes */
 #include "includes/define.h"

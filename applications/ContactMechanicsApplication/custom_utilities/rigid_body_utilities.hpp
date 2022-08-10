@@ -25,7 +25,6 @@
 #endif
 
 // External includes
-#include "boost/smart_ptr.hpp"
 #include "utilities/timer.h"
 
 // Project includes

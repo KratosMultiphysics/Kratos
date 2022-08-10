@@ -5,8 +5,8 @@
 #define  KRATOS_ADD_PROCESSES_TO_PYTHON_H_INCLUDED
 
 // System includes
+
 // External includes 
-//#include "boost/smart_ptr.hpp"
 #include <pybind11/pybind11.h>
 
 #include "includes/define_python.h"

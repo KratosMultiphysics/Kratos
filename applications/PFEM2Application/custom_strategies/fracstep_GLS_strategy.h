@@ -16,13 +16,9 @@
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
-
-
 #include "utilities/geometry_utilities.h"
-
 
 #include "pfem_2_application_variables.h"
 #include "includes/define.h"

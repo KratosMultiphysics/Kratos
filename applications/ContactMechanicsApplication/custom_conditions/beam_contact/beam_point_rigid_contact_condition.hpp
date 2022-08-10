@@ -10,11 +10,9 @@
 #define  KRATOS_BEAM_POINT_RIGID_CONTACT_CONDITION_H_INCLUDED
 
 
-
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"

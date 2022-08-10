@@ -10,12 +10,10 @@
 #if !defined(KRATOS_EXPLICIT_HAMILTON_STRATEGY)
 #define  KRATOS_EXPLICIT_HAMILTON_STRATEGY
 
+
 /* System includes */
 
-
 /* External includes */
-//#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "includes/model_part.h"

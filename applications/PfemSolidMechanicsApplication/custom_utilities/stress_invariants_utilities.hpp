@@ -22,10 +22,7 @@
 #include <cmath>
 #include <set>
 
-
 // External includes
-#include "boost/smart_ptr.hpp"
-//#include "utilities/timer.h"
 
 // Project includes
 #include "includes/define.h"

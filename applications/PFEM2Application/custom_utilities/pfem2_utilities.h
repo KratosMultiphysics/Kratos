@@ -14,17 +14,12 @@
 #define  KRATOS_ULF_UTILITIES_INCLUDED
 
 
-
-
-
-
 // System includes
 #include <string>
 #include <iostream>
 #include <algorithm>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -33,7 +28,6 @@
 #include "utilities/geometry_utilities.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "pfem_2_application_variables.h"
-#include "boost/smart_ptr.hpp"
 #include "includes/cfd_variables.h"
 #include "includes/deprecated_variables.h"
 

@@ -13,12 +13,9 @@
 
 /* System includes */
 
-
 /* External includes */
-// #include "boost/smart_ptr.hpp"
 #include <stdlib.h>
 #include <boost/timer.hpp>
-
 
 #include <pybind11/pybind11.h>
 #include "includes/define.h"
