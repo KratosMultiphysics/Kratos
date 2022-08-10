@@ -51,7 +51,7 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief Utilities to compute the real volume inside a voxel
  * @details This class provides static methods to compute (using different approximations) the portion of a 
- * voxel that is actually filled with volume.
+ * voxel that is actually filled with volume, according to the known triangle elements that intersect the voxel
  * @author Ariadna Cortés
  */
 class VolumeInsideVoxelUtility
@@ -98,12 +98,12 @@ public:
      * @return Approximated volume 
      * @note This approximation assigns a fraction of volume (1/8) to each node of the
      * voxel, and counts it as volume if the node is inside the object (NodeDistance > 0)
+     * This operation is VERY cheap
      */  
     static double NodesApproximation(const GeometryType& rVoxel);
 
     /*This method is completly useless since it does the same calculation as the previous 
-    one but in a different way. Helps to illustrate use of Edges
-    */
+    one but in a different way. Helps to illustrate use of Edges */
     static double EdgesApproximation(const GeometryType& rVoxel);
     
     /**
@@ -112,16 +112,14 @@ public:
      * @param rTriangles references to the triangles which intersect the voxel at some edge.
      * @return Approximated volume 
      * @note This approximation finds the portion of each edge that is part of the volume (using
-     * intersection point with triangles of the mesh). Even if this class is templated for both 
-     * parameters, it will only work with intersecting TRIANGLES, since the utility used to compute
-     * the intersection does not allow templating.
+     * intersection points with triangles of the mesh).
      */  
     static double EdgesPortionApproximation(const GeometryType& rVoxel, const GeometryArrayType& rTriangles);
 
     /**
      * @brief Aproximates the actual area inside a quadrilateral with 90º angles
      * @param rFace references to the quadrilateral3D4 whose actual area will be approximated
-     * @param rTriangles references to the triangles which intersect the quadrilateral at some edge.
+     * @param rTriangles references to the triangles which may intersect the quadrilateral at some edge.
      * @return Approximated area 
      * @note this method is cheaper than HexaVolume2D, but won't work correctly with != 90º angles
      */  
@@ -130,8 +128,9 @@ public:
     /**
      * @brief Aproximates the actual area inside a quadrilateral 
      * @param rFace references to the quadrilateral3D4 whose actual area will be approximated
-     * @param rTriangles references to the triangles which intersect the quadrilateral at some edge.
+     * @param rTriangles references to the triangles which may intersect the quadrilateral at some edge.
      * @return Approximated area 
+     * @note Attention: This method is quite expensive 
      */  
     static double HexaVolume2D(const GeometryType& rFace,const GeometryArrayType& rTriangles);
 
@@ -152,10 +151,11 @@ public:
     static double TetraVolume(const PointsArrayType& rPoints);
 
     /**
-     * @brief Aproximates the portion of the edge that represents volume
-     * @param rDistances references to a sorted vector containing the distances of each intersecting point with the edge
+     * @brief Aproximates the portion of the edge (Line3D2) that represents volume
+     * @param rDistances references to a sorted vector containing the relatve distances of each intersecting point 
+     * with the first node of the edge 
      * @param rEnds references to the nodes at both sides of the edge
-     * @return Approximated volume 
+     * @return Approximated Portion of edge that contains volume 
      */  
     static const double EdgeFilledPortion(std::vector<double>& Distances, const PointsArrayType& rEnds);
 
