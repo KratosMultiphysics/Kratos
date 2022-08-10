@@ -406,14 +406,28 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
         {
             // Rest of the processes
             if (rank != 0) {
-                // We send the faces_to_remove to the main process
+                // We generate the hash of the faces to use the communicator to send
+                std::unordered_map<std::size_t, VectorIndexType> faces_hash_map;
+                std::vector<std::size_t> faces_to_remove_hash;
+                faces_to_remove_hash.reserve(faces_to_remove.size());
+                for (auto& r_face_to_remove : faces_to_remove) {
+                    const std::size_t hash_face = GenerateHashVectorInteger(r_face_to_remove);
+                    faces_to_remove_hash.push_back(hash_face);
+                    faces_hash_map.insert(std::pair<std::size_t, VectorIndexType>({hash_face, r_face_to_remove}));
+                }
+
+                // We send the faces_to_remove_hash to the main process
+                // r_data_communicator->SendRecvImpl();
 
             } else { // Main process
-                std::unordered_map<VectorIndexType, bool, VectorIndexHasherType, VectorIndexComparorType > faces_mpi_counter;
+                std::unordered_map<std::size_t, bool> faces_mpi_counter;
+                std::unordered_map<std::size_t, VectorIndexType> faces_hash_map;
 
                 // We add the current process info
                 for (auto& r_face_to_remove : faces_to_remove) {
-                    faces_mpi_counter.insert(std::pair<VectorIndexType, bool>({r_face_to_remove, false}));
+                    const std::size_t hash_face = GenerateHashVectorInteger(r_face_to_remove);
+                    faces_mpi_counter.insert(std::pair<std::size_t, bool>({hash_face, false}));
+                    faces_hash_map.insert(std::pair<std::size_t, VectorIndexType>({hash_face, r_face_to_remove}));
                 }
 
                 // Now we receive the faces_to_remove from the rest of the processes
