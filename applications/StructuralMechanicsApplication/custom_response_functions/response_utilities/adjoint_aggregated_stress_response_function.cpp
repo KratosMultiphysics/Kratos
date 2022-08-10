@@ -24,7 +24,8 @@ namespace Kratos
     : AdjointStructuralResponseFunction(rAdjointModelPart, ResponseSettings),
       mrAdjointModelPart(rAdjointModelPart),
       mCriticalPartName(ResponseSettings["critical_part_name"].GetString()),
-      mRho(ResponseSettings["rho"].GetDouble())
+      mRho(ResponseSettings["rho"].GetDouble()),
+      mStressScalingFactor(ResponseSettings["stress_scaling_factor"].GetDouble())
     {
         mTracedStressType = StressResponseDefinitions::ConvertStringToTracedStressType(ResponseSettings["stress_type"].GetString());
         mStressTreatment = StressResponseDefinitions::ConvertStringToStressTreatment(ResponseSettings["stress_treatment"].GetString());

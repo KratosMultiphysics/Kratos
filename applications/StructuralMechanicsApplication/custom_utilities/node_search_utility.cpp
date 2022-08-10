@@ -10,6 +10,7 @@
 //
 
 // System includes
+#include <limits>
 
 // External includes
 
