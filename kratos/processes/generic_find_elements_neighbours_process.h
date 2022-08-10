@@ -89,8 +89,10 @@ public:
     ///@name Operations
     ///@{
 
+    void Execute() override;
+
     void ExecuteInitialize() override;
-    
+
 
     std::vector<bool> HasNeighboursInFaces(const Element&) ;
 
@@ -210,4 +212,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GENERIC_FIND_ELEMENTAL_NEIGHBOURS_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_GENERIC_FIND_ELEMENTAL_NEIGHBOURS_PROCESS_H_INCLUDED  defined
