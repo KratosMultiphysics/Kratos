@@ -190,11 +190,11 @@ namespace Kratos {
                         MinDistanceToNode[j].first = Dist/Length[j];
                     } 
 
+<<<<<<< HEAD
                     const double Dist2 = Distance(ends[1], Intersection);
+=======
+                    double Dist2 = Distance(ends[1], Intersection);
                     if (Dist2 < (MinDistanceToNode[j].second*Length[j])) {
-                        MinDistanceToNode[j].second = Dist2/Length[j];
-                    } 
-                }
                 j++;
             }
         }
@@ -214,6 +214,7 @@ namespace Kratos {
                     factor = 0.5;
                     left = MinDistanceToNode[(i+3)%4].second;
                     right = MinDistanceToNode[i].first;
+<<<<<<< HEAD
                 } else if (Case == 1)  {
                     left = MinDistanceToNode[(i+3)%4].second;
                     right = std::min(0.5,MinDistanceToNode[i].first);
@@ -221,6 +222,18 @@ namespace Kratos {
                     left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
                     right = MinDistanceToNode[i].first;
                 } else if (Case == 3) {
+=======
+                }
+                else if (Case == 1)  {
+                    left = MinDistanceToNode[(i+3)%4].second;
+                    right = std::min(0.5,MinDistanceToNode[i].first);
+                }
+                else if (Case == 2) {
+                    left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
+                    right = MinDistanceToNode[i].first;
+                }
+                else if (Case == 3) {
+>>>>>>> 631218ff5f69070a2be0486edcde55c520068116
                     left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
                     right = std::min(0.5,MinDistanceToNode[i].first);
                 }
@@ -235,7 +248,11 @@ namespace Kratos {
                 points.push_back(Int_right);
                 points.push_back(c);
                 PartialArea = factor*TetraVolume(points)/FaceArea;
+<<<<<<< HEAD
             } else {
+=======
+            } else  {
+>>>>>>> 631218ff5f69070a2be0486edcde55c520068116
                 NodePtrType Max_left(new Node<3>(1, Nodes[i].X() + 0.5*v_left[0], Nodes[i].Y() + 0.5*v_left[1], Nodes[i].Z() + 0.5*v_left[2]));
                 NodePtrType Max_right(new Node<3>(2, Nodes[i].X() + 0.5*v_right[0], Nodes[i].Y() + 0.5*v_right[1], Nodes[i].Z() + 0.5*v_right[2]));
                 NodePtrType Max_c(new Node<3>(2, Nodes[i].X() + 0.5*v_left[0] + 0.5*v_right[0], 
@@ -251,10 +268,19 @@ namespace Kratos {
                 if (Case == 1) {
                     left = 0.5;
                     right = std::min(0.5,MinDistanceToNode[i].first);
+<<<<<<< HEAD
                 } else if (Case == 2) {
                     left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
                     right = 0.5;
                 } else if (Case == 3) {
+=======
+                }
+                if (Case == 2) {
+                    left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
+                    right = 0.5;
+                }
+                if (Case == 3) {
+>>>>>>> 631218ff5f69070a2be0486edcde55c520068116
                     left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
                     right = std::min(0.5,MinDistanceToNode[i].first);
                 }
@@ -268,12 +294,17 @@ namespace Kratos {
                 points.push_back(&Nodes[i]);
                 points.push_back(Int_right);
                 points.push_back(c);
+<<<<<<< HEAD
 
                 if (Case != 0) {
                     PartialArea =  max_volume -factor*TetraVolume(points)/FaceArea;
                 } else {
                     PartialArea = 0;
                 }
+=======
+                if (Case != 0) PartialArea =  max_volume -factor*TetraVolume(points)/FaceArea;
+                else PartialArea = 0;
+>>>>>>> 631218ff5f69070a2be0486edcde55c520068116
             }
             Area += PartialArea;
         }
@@ -305,7 +336,11 @@ namespace Kratos {
      **********************************************************************************/
 
     const double VolumeInsideVoxelUtility::EdgeFilledPortion(std::vector<double>& Distances, const PointsArrayType& rEnds) {
+<<<<<<< HEAD
         const double Length = Distances[Distances.size() - 1];
+=======
+        double Length = Distances[Distances.size() - 1];
+>>>>>>> 631218ff5f69070a2be0486edcde55c520068116
         double portion = 0; 
         bool inside;       
 
@@ -354,6 +389,7 @@ namespace Kratos {
     int VolumeInsideVoxelUtility::GetCase(const PointsArrayType& nodes, const std::vector<std::vector<double>>& neighbours,const int node) {
         if (nodes[node].GetSolutionStepValue(DISTANCE) > 0 ) {
             if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 &&
+<<<<<<< HEAD
                 nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0) {
                 return 0;
             } else if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 &&
@@ -363,11 +399,26 @@ namespace Kratos {
                 nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0) {
                 return 2;
             } else  {
+=======
+            nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0) {
+                return 0;
+            }
+            else if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 &&
+            nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0) {
+                return 1;
+            }
+            else if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 &&
+            nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0) {
+                return 2;
+            } 
+            else  {
+>>>>>>> 631218ff5f69070a2be0486edcde55c520068116
                 return 3;
             }
         }
         else {
             if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 && 
+<<<<<<< HEAD
                 nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0) {
                 return 0;
             } else if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 && 
@@ -377,6 +428,20 @@ namespace Kratos {
                 nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0) {
                 return 2;
             } else return 3;
+=======
+            nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0) {
+                return 0;
+            }
+            else if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 && 
+            nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0) {
+                return 1;
+            }
+            else if (nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 && 
+            nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0) {
+                return 2;
+            }
+            else return 3;
+>>>>>>> 631218ff5f69070a2be0486edcde55c520068116
         }
     }
 }
