@@ -15,9 +15,7 @@
 
 namespace Kratos {
 
-    double VolumeInsideVoxelUtility::NodesApproximation(
-        const GeometryType& rVoxel        
-    ) {
+    double VolumeInsideVoxelUtility::NodesApproximation(const GeometryType& rVoxel) {
         double volume = 0;
         PointsArrayType nodes = rVoxel.Points();
         for (int i = 0; i < nodes.size(); i++) {
@@ -31,9 +29,7 @@ namespace Kratos {
     /***********************************************************************************
      **********************************************************************************/
 
-    double VolumeInsideVoxelUtility::EdgesApproximation(
-        const GeometryType& rVoxel        
-    ) {
+    double VolumeInsideVoxelUtility::EdgesApproximation(const GeometryType& rVoxel) {
         double volume = 0;
         GeometryArrayType Edges = rVoxel.GenerateEdges();
         PointsArrayType nodes = rVoxel.Points();
@@ -65,9 +61,9 @@ namespace Kratos {
             Distances.push_back(0);
             PointsArrayType ends = Edges[i].Points();
 
-            for (auto triangle : rTriangles) {
+            for (auto& r_triangle : rTriangles) {
                 array_1d<double,3> intersection;
-                int result = IntersectionUtilities::ComputeTriangleLineIntersection(triangle,ends[0],ends[1],intersection);
+                int result = IntersectionUtilities::ComputeTriangleLineIntersection(r_triangle,ends[0],ends[1],intersection);
                 
                 if(result == 1) {
                     double Dist = Distance(ends[0], intersection);
@@ -141,7 +137,7 @@ namespace Kratos {
             }
             Area += PartialArea;
         }
-        return Area;    
+        return Area;
     }
 
     /***********************************************************************************
@@ -154,7 +150,7 @@ namespace Kratos {
         double Area = 0;
         GeometryArrayType Edges = rFace.GenerateEdges();
         PointsArrayType Nodes = rFace.Points(); 
-        double FaceArea = TetraVolume(Nodes);
+        const double FaceArea = TetraVolume(Nodes);
         std::vector<std::pair<double,double>> MinDistanceToNode(Edges.size(),{1,1}); 
         
         int NodesInside = 0;
@@ -166,17 +162,17 @@ namespace Kratos {
             for (int i = 0; i < Nodes.size(); i++)  {
                 Nodes[i].GetSolutionStepValue(DISTANCE) = (-1)*Nodes[i].GetSolutionStepValue(DISTANCE);
             }
-            double Area = HexaVolume2D(rFace,rTriangles);
+            const double area = HexaVolume2D(rFace,rTriangles);
             for (int i = 0; i < Nodes.size(); i++) {
                 Nodes[i].GetSolutionStepValue(DISTANCE) = (-1)*Nodes[i].GetSolutionStepValue(DISTANCE);
             }
-            return 1-Area;
+            return 1-area;
         }
 
         std::vector<double> Length(Edges.size()); 
         for(int i = 0; i < Edges.size(); i++) {
             PointsArrayType ends = Edges[i].Points();
-            double l = Distance(ends[0], ends[1]);
+            const double l = Distance(ends[0], ends[1]);
             Length[i] = l;
         }
 
@@ -189,12 +185,12 @@ namespace Kratos {
                 Result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],Intersection);
 
                 if (Result) {
-                    double Dist = Distance(ends[0], Intersection);
+                    const double Dist = Distance(ends[0], Intersection);
                     if ( Dist < (MinDistanceToNode[j].first*Length[j])) {
                         MinDistanceToNode[j].first = Dist/Length[j];
                     } 
 
-                    double Dist2 = Distance(ends[1], Intersection);
+                    const double Dist2 = Distance(ends[1], Intersection);
                     if (Dist2 < (MinDistanceToNode[j].second*Length[j])) {
                         MinDistanceToNode[j].second = Dist2/Length[j];
                     } 
@@ -218,16 +214,13 @@ namespace Kratos {
                     factor = 0.5;
                     left = MinDistanceToNode[(i+3)%4].second;
                     right = MinDistanceToNode[i].first;
-                }
-                else if (Case == 1)  {
+                } else if (Case == 1)  {
                     left = MinDistanceToNode[(i+3)%4].second;
                     right = std::min(0.5,MinDistanceToNode[i].first);
-                }
-                else if (Case == 2) {
+                } else if (Case == 2) {
                     left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
                     right = MinDistanceToNode[i].first;
-                }
-                else if (Case == 3) {
+                } else if (Case == 3) {
                     left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
                     right = std::min(0.5,MinDistanceToNode[i].first);
                 }
@@ -242,7 +235,7 @@ namespace Kratos {
                 points.push_back(Int_right);
                 points.push_back(c);
                 PartialArea = factor*TetraVolume(points)/FaceArea;
-            } else  {
+            } else {
                 NodePtrType Max_left(new Node<3>(1, Nodes[i].X() + 0.5*v_left[0], Nodes[i].Y() + 0.5*v_left[1], Nodes[i].Z() + 0.5*v_left[2]));
                 NodePtrType Max_right(new Node<3>(2, Nodes[i].X() + 0.5*v_right[0], Nodes[i].Y() + 0.5*v_right[1], Nodes[i].Z() + 0.5*v_right[2]));
                 NodePtrType Max_c(new Node<3>(2, Nodes[i].X() + 0.5*v_left[0] + 0.5*v_right[0], 
@@ -258,12 +251,10 @@ namespace Kratos {
                 if (Case == 1) {
                     left = 0.5;
                     right = std::min(0.5,MinDistanceToNode[i].first);
-                }
-                if (Case == 2) {
+                } else if (Case == 2) {
                     left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
                     right = 0.5;
-                }
-                if (Case == 3) {
+                } else if (Case == 3) {
                     left = std::min(0.5,MinDistanceToNode[(i+3)%4].second);
                     right = std::min(0.5,MinDistanceToNode[i].first);
                 }
@@ -277,8 +268,12 @@ namespace Kratos {
                 points.push_back(&Nodes[i]);
                 points.push_back(Int_right);
                 points.push_back(c);
-                if (Case != 0) PartialArea =  max_volume -factor*TetraVolume(points)/FaceArea;
-                else PartialArea = 0;
+
+                if (Case != 0) {
+                    PartialArea =  max_volume -factor*TetraVolume(points)/FaceArea;
+                } else {
+                    PartialArea = 0;
+                }
             }
             Area += PartialArea;
         }
@@ -310,7 +305,7 @@ namespace Kratos {
      **********************************************************************************/
 
     const double VolumeInsideVoxelUtility::EdgeFilledPortion(std::vector<double>& Distances, const PointsArrayType& rEnds) {
-        double Length = Distances[Distances.size() - 1];
+        const double Length = Distances[Distances.size() - 1];
         double portion = 0; 
         bool inside;       
 
