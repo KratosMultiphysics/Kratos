@@ -606,7 +606,61 @@ void UPwBaseElement<TDim,TNumNodes>::
 
     KRATOS_CATCH( "" )
 }
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim, TNumNodes>::
+CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
 
+        KRATOS_ERROR << "calling the default CalculateOnIntegrationPoints (array_1d<double, 3>) method for a particular element ... illegal operation!!" << this->Id() << std::endl;
+
+    KRATOS_CATCH("")
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim, TNumNodes>::
+CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    std::vector<Matrix>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+        KRATOS_ERROR << "calling the default CalculateOnIntegrationPoints (Matrix) method for a particular element ... illegal operation!!" << this->Id() << std::endl;
+
+    KRATOS_CATCH("")
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim, TNumNodes>::
+CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+        KRATOS_ERROR << "calling the default CalculateOnIntegrationPoints (Vector) method for a particular element ... illegal operation!!" << this->Id() << std::endl;
+
+    KRATOS_CATCH("")
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim, TNumNodes>::
+CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+        KRATOS_ERROR << "calling the default CalculateOnIntegrationPoints (double) method for a particular element ... illegal operation!!" << this->Id() << std::endl;
+
+    KRATOS_CATCH("")
+}
 //-------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwBaseElement<TDim,TNumNodes>::
