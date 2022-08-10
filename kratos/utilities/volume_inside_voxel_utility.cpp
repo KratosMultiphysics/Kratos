@@ -17,7 +17,7 @@ namespace Kratos {
 
     double VolumeInsideVoxelUtility::NodesApproximation(const GeometryType& rVoxel) {
         double volume = 0;
-        PointsArrayType nodes = rVoxel.Points();
+        const PointsArrayType& nodes = rVoxel.Points();
         for (int i = 0; i < nodes.size(); i++) {
             if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
                 volume+=(1.0/nodes.size()); 
@@ -32,9 +32,9 @@ namespace Kratos {
     double VolumeInsideVoxelUtility::EdgesApproximation(const GeometryType& rVoxel) {
         double volume = 0;
         GeometryArrayType edges = rVoxel.GenerateEdges();
-        PointsArrayType nodes = rVoxel.Points();
+        const PointsArrayType& nodes = rVoxel.Points();
         for (int i = 0; i < edges.size(); i++) {
-            PointsArrayType ends = edges[i].Points();
+            PointsArrayType& ends = edges[i].Points();
             if(ends[0].GetSolutionStepValue(DISTANCE) > 0 && ends[1].GetSolutionStepValue(DISTANCE) > 0) {
                 volume+=1.0/edges.size();
             } else if(
@@ -59,7 +59,7 @@ namespace Kratos {
 
         for (int i = 0; i < edges.size(); i++) {
             distances.push_back(0);
-            PointsArrayType ends = edges[i].Points();
+            PointsArrayType& ends = edges[i].Points();
 
             for (auto& r_triangle : rTriangles) {
                 array_1d<double,3> intersection;
@@ -88,14 +88,14 @@ namespace Kratos {
     ) {
         double area = 0;
         GeometryArrayType edges = rFace.GenerateEdges();
-        PointsArrayType nodes = rFace.Points(); 
+        const PointsArrayType& nodes = rFace.Points(); 
         std::vector<std::pair<double,double>> min_distance_to_node(edges.size(),{0.5,0.5}); 
         //each pair represents an edge and contains as first() the minimum distance between
         //ends[1] and an intersection and as second() the minimum distance between ends[1] and an intersection 
 
         std::vector<double> length(edges.size()); 
         for(int i = 0; i < edges.size(); i++) {
-            PointsArrayType ends = edges[i].Points();
+            const PointsArrayType& ends = edges[i].Points();
             const double l = Distance(ends[0], ends[1]);
             length[i] = l;
         }
@@ -108,7 +108,7 @@ namespace Kratos {
             /*We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
             but possible), only one will be taken into account to create the matrixes. */
             while(!result && j < edges.size()) { 
-                PointsArrayType ends = edges[j].Points();
+                const PointsArrayType& ends = edges[j].Points();
                 result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
 
                 if (result) {
@@ -171,7 +171,7 @@ namespace Kratos {
 
         std::vector<double> length(edges.size()); 
         for(int i = 0; i < edges.size(); i++) {
-            PointsArrayType ends = edges[i].Points();
+            const PointsArrayType& ends = edges[i].Points();
             const double l = Distance(ends[0], ends[1]);
             length[i] = l;
         }
@@ -181,7 +181,7 @@ namespace Kratos {
             array_1d<double,3> intersection;
             int j = 0;
             while(!result && j < edges.size()) { 
-                PointsArrayType ends = edges[j].Points();
+                const PointsArrayType& ends = edges[j].Points();
                 result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
 
                 if (result) {
