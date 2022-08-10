@@ -101,10 +101,6 @@ public:
      * This operation is VERY cheap
      */  
     static double NodesApproximation(const GeometryType& rVoxel);
-
-    /*This method is completly useless since it does the same calculation as the previous 
-    one but in a different way. Helps to illustrate use of Edges */
-    static double EdgesApproximation(const GeometryType& rVoxel);
     
     /**
      * @brief Aproximates the actual volume inside the voxel 

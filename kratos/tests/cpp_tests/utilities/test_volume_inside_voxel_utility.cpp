@@ -122,30 +122,6 @@ namespace {
     /******************************************************************************************************
      ******************************************************************************************************/
 
-    KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdges, KratosCoreFastSuite) 
-    {
-        //Generate the HEXAHEDRA3D8
-        std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1,};   
-        GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
-
-        std::vector<double> distances2{1, -1, -0.5, -1, 8, -1, -23, 1,};   
-        GeometryPtrType pVoxel2 = GenerateHexahedra3D8(distances2);
-
-        //Call the volume utility
-        double volume = VolumeInsideVoxelUtility::EdgesApproximation(*pVoxel); 
-        double volume2 = VolumeInsideVoxelUtility::EdgesApproximation(*pVoxel2); 
-
-        //Expected output of the function
-        const double ExpectedVolume1 = 3.0/24;
-        const double ExpectedVolume2 = 0.375;
-        
-        KRATOS_CHECK_EQUAL(volume, ExpectedVolume1);
-        KRATOS_CHECK_EQUAL(volume2, ExpectedVolume2);
-    }
-
-    /******************************************************************************************************
-     ******************************************************************************************************/
-
     KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortion, KratosCoreFastSuite) 
     {
         //Both nodes of an edge are outside

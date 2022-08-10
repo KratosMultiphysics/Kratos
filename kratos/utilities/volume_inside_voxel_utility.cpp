@@ -29,26 +29,6 @@ namespace Kratos {
     /***********************************************************************************
      **********************************************************************************/
 
-    double VolumeInsideVoxelUtility::EdgesApproximation(const GeometryType& rVoxel) {
-        double volume = 0;
-        GeometryArrayType edges = rVoxel.GenerateEdges();
-        const PointsArrayType& nodes = rVoxel.Points();
-        for (int i = 0; i < edges.size(); i++) {
-            PointsArrayType& ends = edges[i].Points();
-            if(ends[0].GetSolutionStepValue(DISTANCE) > 0 && ends[1].GetSolutionStepValue(DISTANCE) > 0) {
-                volume+=1.0/edges.size();
-            } else if(
-                (ends[0].GetSolutionStepValue(DISTANCE) > 0 && ends[1].GetSolutionStepValue(DISTANCE) < 0) || 
-                (ends[0].GetSolutionStepValue(DISTANCE) < 0 && ends[1].GetSolutionStepValue(DISTANCE) > 0) ) {
-                volume+=1.0/(edges.size()*2);
-            }
-        }
-        return volume;
-    }
-
-    /***********************************************************************************
-     **********************************************************************************/
-
     double VolumeInsideVoxelUtility::EdgesPortionApproximation(
         const GeometryType& rVoxel,  
         const GeometryArrayType& rTriangles     
@@ -204,7 +184,7 @@ namespace Kratos {
             array_1d<double,3> v_left{nodes[i].X() -nodes[neighbours[i][0]].X(), nodes[i].Y() -nodes[neighbours[i][0]].Y(), nodes[i].Z() -nodes[neighbours[i][0]].Z()};
             array_1d<double,3> v_right{nodes[i].X() -nodes[neighbours[i][1]].X(), nodes[i].Y() -nodes[neighbours[i][1]].Y(), nodes[i].Z() -nodes[neighbours[i][1]].Z()};
 
-            double Case = GetCase(nodes, neighbours,i);
+            const double Case = GetCase(nodes, neighbours,i);
             double partial_area;
             double factor = 1;
             double left = 0;
