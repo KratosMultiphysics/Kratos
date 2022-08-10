@@ -7,7 +7,7 @@
 //  License:     BSD License
 //           Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ariadna Cortés
+//  Main authors:    Ariadna Cortes
 //
 //
 
