@@ -1247,7 +1247,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumVectorDouble, Kr
 // SendRecv ///////////////////////////////////////////////////////////////////
 
 namespace {
-template<typename T> void MPIDataCommunicatorSendRecvIntegralTypeTest()
+template<typename T> 
+void MPIDataCommunicatorSendRecvIntegralTypeTest()
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_size = mpi_world_communicator.Size();
@@ -1286,6 +1287,39 @@ template<typename T> void MPIDataCommunicatorSendRecvIntegralTypeTest()
         }
     }
 }
+
+template<typename T> 
+void MPIDataCommunicatorSendAndRecvIntegralTypeTest()
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+    T send_value(world_rank);
+    T recv_value(999);
+    std::vector<T> send_buffer{send_value, send_value};
+    std::vector<T> recv_buffer{999, 999};
+
+    if (world_size > 1) {
+        const T expected_recv = world_rank > 0 ? world_rank - 1 : world_size - 1;
+
+        // value two-buffer version
+        mpi_world_communicator.Send(send_value, send_rank, 0);
+        mpi_world_communicator.Recv(recv_value, recv_rank, 0);
+        KRATOS_CHECK_EQUAL(recv_value, expected_recv);
+
+        // vector two-buffer version
+        mpi_world_communicator.Send(send_buffer, send_rank, 0);
+        mpi_world_communicator.Recv(recv_buffer, recv_rank, 0);
+
+        for (int i = 0; i < 2; i++) {
+            KRATOS_CHECK_EQUAL(recv_buffer[i], expected_recv);
+        }
+    }
+}
+
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvInt, KratosMPICoreFastSuite)
@@ -1301,6 +1335,21 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvUnsignedInt, Kr
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvLongUnsignedInt, KratosMPICoreFastSuite)
 {
     MPIDataCommunicatorSendRecvIntegralTypeTest<long unsigned int>();
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendAndRecvInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicatorSendAndRecvIntegralTypeTest<int>();
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendAndRecvUnsignedInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicatorSendAndRecvIntegralTypeTest<unsigned int>();
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendAndRecvLongUnsignedInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicatorSendAndRecvIntegralTypeTest<long unsigned int>();
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvDouble, KratosMPICoreFastSuite)
