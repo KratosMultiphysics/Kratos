@@ -16,7 +16,7 @@
 #include "includes/checks.h"
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "custom_utilities/simplex_to_quadratic_tetrahedra_mesh_converter_utility.h"
+#include "custom_utilities/simple_to_quadratic_tetrahedra_mesh_converter_utility.h"
 
 
 namespace Kratos {

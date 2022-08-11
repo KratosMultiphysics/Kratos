@@ -73,17 +73,20 @@ public:
     * Replaces the geometry of the mesh of Tetrahedra3D4 elements. Resulting is a mesh of Tetrahedra3D10 created
     * by adding intermediate nodes to each Tetrahedra3D4. Does the same for conditions, replacing the Triangle3D3 
     * by Triangle3D6
-    * @param refine_on_reference: Boolean that defines if refine or not the mesh according to the reference
-    * @param interpolate_internal_variables: Boolean that defines if to interpolate or not the internal variables
+    * @param RefineOnReference: Boolean that defines if refine or not the mesh according to the reference
+    * @param InterpolateInternalVariables: Boolean that defines if to interpolate or not the internal variables
     */
-    void LocalConvertTetrahedra10Mesh(bool refine_on_reference, bool interpolate_internal_variables) {
+    void LocalConvertTetrahedra10Mesh(
+        bool RefineOnReference, 
+        bool InterpolateInternalVariables) 
+    {
         block_for_each(mModelPart.Elements(), [&](Element element) {
             element.SetValue(SPLIT_ELEMENT,true);
         });
         block_for_each(mModelPart.Conditions(), [&](Condition condition) {
             condition.SetValue(SPLIT_ELEMENT,true);
         });
-        LocalRefineMesh(refine_on_reference, interpolate_internal_variables);
+        LocalRefineMesh(RefineOnReference, InterpolateInternalVariables);
     } 
   
 private:
@@ -121,7 +124,7 @@ private:
         unsigned int i8 = rNodeIds[8];
         unsigned int i9 = rNodeIds[9];
 
-        Tetrahedra3D10<Node < 3 > > Geom(
+        Tetrahedra3D10<Node < 3 > > geom(
             rThisModelPart.Nodes()(i0),
             rThisModelPart.Nodes()(i1),
             rThisModelPart.Nodes()(i2),
@@ -133,7 +136,7 @@ private:
             rThisModelPart.Nodes()(i8),
             rThisModelPart.Nodes()(i9)
         );
-        return Geom;
+        return geom;
     }
 
     /**
@@ -151,7 +154,7 @@ private:
         unsigned int i4   = rNodeIds[4];
         unsigned int i5   = rNodeIds[5];
 
-        Triangle3D6<Node<3> > Geom(
+        Triangle3D6<Node<3> > geom(
                 rThisModelPart.Nodes()(i0),
                 rThisModelPart.Nodes()(i1),
                 rThisModelPart.Nodes()(i2),
@@ -159,7 +162,7 @@ private:
                 rThisModelPart.Nodes()(i4),
                 rThisModelPart.Nodes()(i5)
                 );
-        return Geom;
+        return geom;
     }
 
         /**
@@ -238,10 +241,10 @@ private:
         }
 
         //Recursively for all subModelParts
-        for (ModelPart::SubModelPartIterator iSubModelPart = rThisModelPart.SubModelPartsBegin();
-                iSubModelPart != rThisModelPart.SubModelPartsEnd(); iSubModelPart++)
+        for (ModelPart::SubModelPartIterator i_submodelpart = rThisModelPart.SubModelPartsBegin();
+                i_submodelpart != rThisModelPart.SubModelPartsEnd(); i_submodelpart++)
         {
-            ReplaceElementsInSubModelPart(*iSubModelPart);
+            ReplaceElementsInSubModelPart(*i_submodelpart);
         }
     }
 
@@ -281,18 +284,18 @@ private:
 
                 //Generate the new condition
                 Triangle3D6<Node<3> > geom = GenerateTriangle3D6 (rThisModelPart, node_ids);
-                Condition::Pointer pcond;
-                pcond = r_cond.Create(it->Id(), geom, it->pGetProperties());
-                pcond ->Initialize(r_current_process_info);
-                pcond ->InitializeSolutionStep(r_current_process_info);
-                pcond ->FinalizeSolutionStep(r_current_process_info);
+                Condition::Pointer p_cond;
+                p_cond = r_cond.Create(it->Id(), geom, it->pGetProperties());
+                p_cond ->Initialize(r_current_process_info);
+                p_cond ->InitializeSolutionStep(r_current_process_info);
+                p_cond ->FinalizeSolutionStep(r_current_process_info);
 
                 // Transfer condition variables
-                pcond->Data() = it->Data();
-                pcond->GetValue(SPLIT_ELEMENT) = false;
-                NewConditions.push_back(pcond);
+                p_cond->Data() = it->Data();
+                p_cond->GetValue(SPLIT_ELEMENT) = false;
+                NewConditions.push_back(p_cond);
 
-                r_child_conditions.push_back( Condition::WeakPointer( pcond ) );
+                r_child_conditions.push_back( Condition::WeakPointer( p_cond ) );
             }
 
             // Replace the conditions in SubModelParts
@@ -309,18 +312,18 @@ private:
     * @param rThisModelPart: The modelpart or submodelpart to replace the elements
     */
     void ReplaceConditionsInSubModelPart(ModelPart& rThisModelPart) {
-        for(auto& pCond : rThisModelPart.ConditionsArray()){
-            if( pCond->GetValue(SPLIT_ELEMENT) )
+        for(auto& p_cond : rThisModelPart.ConditionsArray()){
+            if( p_cond->GetValue(SPLIT_ELEMENT) )
             {
-                // GlobalPointersVector< Condition >& children = pCond->GetValue(NEIGHBOUR_CONDITIONS);
-                auto& children = pCond->GetValue(NEIGHBOUR_CONDITIONS);
-                pCond = children[0].shared_from_this();
+                // GlobalPointersVector< Condition >& children = p_cond->GetValue(NEIGHBOUR_CONDITIONS);
+                auto& children = p_cond->GetValue(NEIGHBOUR_CONDITIONS);
+                p_cond = children[0].shared_from_this();
             } 
         }
-        for (ModelPart::SubModelPartIterator iSubModelPart = rThisModelPart.SubModelPartsBegin();
-                iSubModelPart != rThisModelPart.SubModelPartsEnd(); iSubModelPart++)
+        for (ModelPart::SubModelPartIterator i_submodelpart = rThisModelPart.SubModelPartsBegin();
+                i_submodelpart != rThisModelPart.SubModelPartsEnd(); i_submodelpart++)
         {
-            ReplaceConditionsInSubModelPart(*iSubModelPart);
+            ReplaceConditionsInSubModelPart(*i_submodelpart);
         }
     }
 
@@ -341,4 +344,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_TET10_REFINEMENT_UTILITY  defined
+#endif // KRATOS_TETRAHEDRA10_MESH_CONVERTER_UTILITY  defined
