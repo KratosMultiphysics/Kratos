@@ -62,7 +62,7 @@ namespace Kratos {
     /***********************************************************************************
      **********************************************************************************/
 
-    double VolumeInsideVoxelUtility::VoxelVolume2D(
+    double VolumeInsideVoxelUtility::VoxelFaceArea(
         const GeometryType& rFace,  
         const GeometryArrayType& rTriangles     
     ) {
@@ -123,7 +123,7 @@ namespace Kratos {
     /***********************************************************************************
      **********************************************************************************/
 
-    double VolumeInsideVoxelUtility::HexaVolume2D(
+    double VolumeInsideVoxelUtility::HexahedraFaceArea(
         const GeometryType& rFace,  
         const GeometryArrayType& rTriangles     
     ) {
@@ -142,7 +142,7 @@ namespace Kratos {
             for (int i = 0; i < nodes.size(); i++)  {
                 nodes[i].GetSolutionStepValue(DISTANCE) = -nodes[i].GetSolutionStepValue(DISTANCE);
             }
-            const double area = HexaVolume2D(rFace,rTriangles);
+            const double area = HexahedraFaceArea(rFace,rTriangles);
             for (int i = 0; i < nodes.size(); i++) {
                 nodes[i].GetSolutionStepValue(DISTANCE) = -nodes[i].GetSolutionStepValue(DISTANCE);
             }

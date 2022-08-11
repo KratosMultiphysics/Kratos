@@ -117,9 +117,9 @@ public:
      * @param rFace references to the quadrilateral3D4 whose actual area will be approximated
      * @param rTriangles references to the triangles which may intersect the quadrilateral at some edge.
      * @return Approximated area 
-     * @note this method is cheaper than HexaVolume2D, but won't work correctly with != 90º angles
+     * @note this method is cheaper than HexahedraFaceArea, but won't work correctly with != 90º angles
      */  
-    static double VoxelVolume2D(const GeometryType& rFace, const GeometryArrayType& rTriangles);
+    static double VoxelFaceArea(const GeometryType& rFace, const GeometryArrayType& rTriangles);
 
     /**
      * @brief Aproximates the actual area inside a quadrilateral 
@@ -128,7 +128,7 @@ public:
      * @return Approximated area 
      * @note Attention: This method is quite expensive 
      */  
-    static double HexaVolume2D(const GeometryType& rFace,const GeometryArrayType& rTriangles);
+    static double HexahedraFaceArea(const GeometryType& rFace,const GeometryArrayType& rTriangles);
 
     /**
      * @brief Returns the distance between two 3D points.
