@@ -11,16 +11,18 @@
 //
 //
 
+// System includes
 #include <sstream>
 
+// External includes
 #include "mpi.h"
 
+// Project includes
 #include "containers/model.h"
 #include "includes/data_communicator.h"
 #include "includes/model_part.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 #include "mpi/utilities/debug_utilities.h"
-
 #include "testing/testing.h"
 
 namespace Kratos {
