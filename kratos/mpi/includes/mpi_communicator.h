@@ -583,6 +583,7 @@ enum class OperationType {
     Replace,
     SumValues,
     MinValues,
+    MaxValues,
     OrAccessedFlags,
     AndAccessedFlags,
     ReplaceAccessedFlags
