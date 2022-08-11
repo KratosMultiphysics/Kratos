@@ -177,44 +177,44 @@ private:
             bool interpolate_internal_variables
     ) override
     {
-        auto& rElements = rThisModelPart.Elements();
-        ElementsArrayType::iterator it_begin = rElements.ptr_begin();
-        ElementsArrayType::iterator it_end = rElements.ptr_end();
+        auto& r_elements = rThisModelPart.Elements();
+        ElementsArrayType::iterator it_begin = r_elements.ptr_begin();
+        ElementsArrayType::iterator it_end = r_elements.ptr_end();
 
-        const auto& rCurrentProcessInfo = rThisModelPart.GetProcessInfo();
+        const auto& r_current_process_info = rThisModelPart.GetProcessInfo();
         int edge_ids[6];
         std::vector<int> node_ids;
 
-        const Element& rElem = KratosComponents<Element>::Get("Element3D10N");
+        const Element& r_elem = KratosComponents<Element>::Get("Element3D10N");
         for (ElementsArrayType::iterator& it = it_begin; it != it_end; ++it)
         {
-            // GlobalPointersVector< Element >& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
-            auto& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
-            rChildElements.resize(0);
+            // GlobalPointersVector< Element >& r_child_elements = it->GetValue(NEIGHBOUR_ELEMENTS);
+            auto& r_child_elements = it->GetValue(NEIGHBOUR_ELEMENTS);
+            r_child_elements.resize(0);
 
             CalculateEdges(it->GetGeometry(), Coord, edge_ids, node_ids);
 
             // Generate the new Tetrahedra3D10 element
             Tetrahedra3D10<Node<3>> geom = GenerateTetrahedra(rThisModelPart, node_ids);
             Element::Pointer p_element;
-            p_element = rElem.Create(it->Id(), geom, it->pGetProperties());
-            p_element->Initialize(rCurrentProcessInfo);
-            p_element->InitializeSolutionStep(rCurrentProcessInfo);
-            p_element->FinalizeSolutionStep(rCurrentProcessInfo);
+            p_element = r_elem.Create(it->Id(), geom, it->pGetProperties());
+            p_element->Initialize(r_current_process_info);
+            p_element->InitializeSolutionStep(r_current_process_info);
+            p_element->FinalizeSolutionStep(r_current_process_info);
 
             // Setting the internal variables in the "child" elem (the element replacing the old one)
             if (interpolate_internal_variables == true)
             {
                 //This method only copies the current information to the new element
-                InterpolateInteralVariables(0, *it.base(), p_element, rCurrentProcessInfo);
+                InterpolateInteralVariables(0, *it.base(), p_element, r_current_process_info);
             }
-
+            
             // Transfer elemental variables to new element
             p_element->Data() = it->Data();
             p_element->GetValue(SPLIT_ELEMENT) = false;
             NewElements.push_back(p_element);
 
-            rChildElements.push_back( Element::WeakPointer(p_element) );
+            r_child_elements.push_back( Element::WeakPointer(p_element) );
         }
 
         // Now replace the elements in SubModelParts
@@ -259,40 +259,40 @@ private:
         KRATOS_TRY;
 
         PointerVector< Condition > NewConditions;
-        auto& rConditions = rThisModelPart.Conditions();
+        auto& r_conditions = rThisModelPart.Conditions();
 
-        if(rConditions.size() > 0)
+        if(r_conditions.size() > 0)
         {
-            ConditionsArrayType::iterator it_begin = rConditions.ptr_begin();
-            ConditionsArrayType::iterator it_end = rConditions.ptr_end();
+            ConditionsArrayType::iterator it_begin = r_conditions.ptr_begin();
+            ConditionsArrayType::iterator it_end = r_conditions.ptr_end();
             int  edge_ids[3];
             array_1d<int, 6> node_ids;
 
-            const auto& rCurrentProcessInfo = rThisModelPart.GetProcessInfo();
-            const Condition& rCond = KratosComponents<Condition>::Get("SurfaceCondition3D6N");
+            const auto& r_current_process_info = rThisModelPart.GetProcessInfo();
+            const Condition& r_cond = KratosComponents<Condition>::Get("SurfaceCondition3D6N");
 
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
             {
                 CalculateEdgesFaces(it->GetGeometry(), Coord, edge_ids, node_ids);
 
-                // GlobalPointersVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
-                auto& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
-                rChildConditions.resize(0);
+                // GlobalPointersVector< Condition >& r_child_conditions = it->GetValue(NEIGHBOUR_CONDITIONS);
+                auto& r_child_conditions = it->GetValue(NEIGHBOUR_CONDITIONS);
+                r_child_conditions.resize(0);
 
                 //Generate the new condition
                 Triangle3D6<Node<3> > geom = GenerateTriangle3D6 (rThisModelPart, node_ids);
                 Condition::Pointer pcond;
-                pcond = rCond.Create(it->Id(), geom, it->pGetProperties());
-                pcond ->Initialize(rCurrentProcessInfo);
-                pcond ->InitializeSolutionStep(rCurrentProcessInfo);
-                pcond ->FinalizeSolutionStep(rCurrentProcessInfo);
+                pcond = r_cond.Create(it->Id(), geom, it->pGetProperties());
+                pcond ->Initialize(r_current_process_info);
+                pcond ->InitializeSolutionStep(r_current_process_info);
+                pcond ->FinalizeSolutionStep(r_current_process_info);
 
                 // Transfer condition variables
                 pcond->Data() = it->Data();
                 pcond->GetValue(SPLIT_ELEMENT) = false;
                 NewConditions.push_back(pcond);
 
-                rChildConditions.push_back( Condition::WeakPointer( pcond ) );
+                r_child_conditions.push_back( Condition::WeakPointer( pcond ) );
             }
 
             // Replace the conditions in SubModelParts
