@@ -52,7 +52,7 @@ class PFEM2Process(KM.Process):
         neighbor_search = KM.FindNodalNeighboursProcess(self.model_part)
         neighbor_search.Execute()
         neighbor_elements_search = KM.GenericFindElementalNeighboursProcess(self.model_part)
-        neighbor_elements_search.ExecuteInitialize()
+        neighbor_elements_search.Execute()
 
         max_num_of_particles = 8 * dimension
         if dimension == 2:

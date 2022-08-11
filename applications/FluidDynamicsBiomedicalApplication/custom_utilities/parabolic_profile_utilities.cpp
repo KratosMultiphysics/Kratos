@@ -230,10 +230,10 @@ void ParabolicProfileUtilities::ImposeParabolicProfile(
         TLSType(const TInputType & parabolaValue) : mInlet(array_1d<double,3>()), mParabolaValue(parabolaValue) {};
     };
 
-    TLSType tsl(rMaxParabolaValue);
+    TLSType tls(rMaxParabolaValue);
 
     // Impose the parabolic profile values
-    block_for_each(rModelPart.Nodes(), tsl, [time, max_dist, MaxValueFactor](NodeType& rNode, TLSType& rTLSValue){
+    block_for_each(rModelPart.Nodes(), tls, [time, max_dist, MaxValueFactor](NodeType& rNode, TLSType& rTLSValue){
         //Calculate distance for each node
         const double wall_dist = rNode.GetValue(WALL_DISTANCE) < 0.0 ? 0.0 : rNode.GetValue(WALL_DISTANCE);
 
