@@ -1392,6 +1392,38 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvDouble, KratosM
     }
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendAndRecvDouble, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+    double send_value(2.0*world_rank);
+    double recv_value(-1.0);
+    std::vector<double> send_buffer{2.0*world_rank, 2.0*world_rank};
+    std::vector<double> recv_buffer{-1.0, -1.0};
+
+    if (world_size > 1)
+    {
+        const double expected_recv = world_rank > 0 ? 2.0*(world_rank - 1) : 2.0*(world_size - 1);
+
+        // value two-buffer version
+        mpi_world_communicator.Send(send_value, send_rank, 0);
+        mpi_world_communicator.Recv(recv_value, recv_rank, 0);
+        KRATOS_CHECK_EQUAL(recv_value, expected_recv);
+
+        // two-buffer version
+        mpi_world_communicator.Send(send_buffer, send_rank, 0);
+        mpi_world_communicator.Recv(recv_buffer, recv_rank, 0);
+
+        for (int i = 0; i < 2; i++) {
+            KRATOS_CHECK_EQUAL(recv_buffer[i], expected_recv);
+        }
+    }
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvString, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
@@ -1415,6 +1447,27 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvString, KratosM
         KRATOS_CHECK_EQUAL(return_buffer.size(), 12);
         KRATOS_CHECK_EQUAL(recv_buffer, send_buffer);
         KRATOS_CHECK_EQUAL(return_buffer, send_buffer);
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendAndRecvString, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+    std::string send_buffer("Hello world!");
+    std::string recv_buffer;
+    recv_buffer.resize(send_buffer.size()); // here we assume both send and recv buffers have the same size
+
+    if (world_size > 1) {
+        // two-buffer version
+        mpi_world_communicator.Send(send_buffer, send_rank, 0);
+        mpi_world_communicator.Recv(recv_buffer, recv_rank, 0);
+
+        KRATOS_CHECK_EQUAL(recv_buffer, send_buffer);
     }
 }
 
