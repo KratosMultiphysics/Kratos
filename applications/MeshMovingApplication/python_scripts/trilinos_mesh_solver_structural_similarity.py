@@ -19,7 +19,7 @@ class TrilinosMeshSolverStructuralSimilarity(TrilinosMeshSolverBase):
 
     #### Private functions ####
 
-    def _create_mesh_motion_solving_strategy(self):
+    def _CreateSolutionStrategy(self):
         linear_solver = self._GetLinearSolver()
         communicator = self.get_communicator()
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()

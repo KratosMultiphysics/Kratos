@@ -515,7 +515,12 @@ void  AddMeshToPython(pybind11::module& m)
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<vector<double> > >())
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<DenseMatrix<double> > >())
     .def("Initialize", &EntityInitialize<Element>)
-    //.def("CalculateLocalSystem", &Element::CalculateLocalSystem)
+    .def("EquationIdVector", [](const Element& self, const ProcessInfo& rProcessInfo){
+        Element::EquationIdVectorType ids;
+        self.EquationIdVector(ids,rProcessInfo);
+        return ids;
+    })
+    .def("CalculateLocalSystem", &Element::CalculateLocalSystem)
     .def("GetSpecifications", &Element::GetSpecifications)
     .def("Info", &Element::Info)
     .def("__str__", PrintObject<Element>)

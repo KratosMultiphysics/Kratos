@@ -736,7 +736,11 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::SearchPa
 
     NodesArrayType& p_dem_nodes = r_dem_model_part.GetCommunicator().LocalMesh().Nodes();
     NodesArrayType& p_fluid_nodes = r_fluid_model_part.GetCommunicator().LocalMesh().Nodes();
-    mpSpSearch->SearchNodesInRadiusExclusive(p_dem_nodes, p_fluid_nodes, mSearchRadii, mVectorsOfNeighNodes, mVectorsOfDistances);
+    mpSpSearch->SearchNodesInRadiusExclusive(p_dem_nodes,
+                                             p_fluid_nodes,
+                                             mSearchRadii,
+                                             mVectorsOfNeighNodes,
+                                             mVectorsOfDistances);
 
     // passing the neighbour's information to the particles
 
@@ -1483,7 +1487,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
             hydrodynamic_reaction += gentle_coupling_coeff * contribution;
 
             if (mTimeAveragingType == 0){
-                noalias(body_force) += hydrodynamic_reaction;
+                noalias(body_force) += gentle_coupling_coeff * contribution;
             }
 
             else {

@@ -30,6 +30,7 @@ import test_random_variable
 import test_DEM_search_tolerance
 import test_DEM_search_flags
 import test_erase_particles
+import test_search_nodes
 
 def AssembleTestSuites():
 
@@ -86,6 +87,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_no_delay"))
     smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_little_delay"))
     smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_with_delay"))
+    smallSuite.addTest(test_search_nodes.TestSearchNodes("test_SearchNodesInTargetModelPart"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']

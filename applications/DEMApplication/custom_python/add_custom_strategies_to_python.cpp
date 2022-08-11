@@ -106,9 +106,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
                                                  NodesContainerType & a,
                                                  NodesContainerType & b,
                                                  const py::list & radii,
-                                                 VectorResultNodesContainerType& d,
-                                                 VectorDistanceType& e,
-                                                 pybind11::list & lists_of_neighbors)
+                                                 VectorResultNodesContainerType & d,
+                                                 VectorDistanceType & e,
+                                                 pybind11::list & lists_of_neighbors,
+                                                 py::list & lists_of_distances)
         {
             std::vector<double> c;
             for (std::size_t i=0; i<radii.size(); ++i){
@@ -129,11 +130,14 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
             for (std::size_t i=0; i<d.size(); ++i){
                 pybind11::list neighbors;
+                pybind11::list distances;
                 for (std::size_t j=0; j<d[i].size(); ++j){
                     neighbors.append(d[i][j]->Id());
+                    distances.append(e[i][j]);
                 }
 
                 lists_of_neighbors.append(neighbors);
+                lists_of_distances.append(distances);
             }
         })
         ;
@@ -167,6 +171,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     py::class_<ContinuumExplicitSolverStrategy, ContinuumExplicitSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "ContinuumExplicitSolverStrategy")
         .def("ComputeCoordinationNumber", &ContinuumExplicitSolverStrategy::ComputeCoordinationNumber)
+        .def("RebuildListOfContinuumSphericParticles", &ContinuumExplicitSolverStrategy::RebuildListOfContinuumSphericParticles)
         .def(py::init< ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
         ;
 
@@ -178,7 +183,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
         ;
 
-    py::class_<VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>, VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>::Pointer, ExplicitSolverStrategy>(m, "ContinuumVelocityVerletSolverStrategy")
+    py::class_<VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>, VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>::Pointer, ContinuumExplicitSolverStrategy>(m, "ContinuumVelocityVerletSolverStrategy")
         .def(py::init<ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
         ;
 

@@ -83,7 +83,7 @@ class RungeKuttaFracStepSolver:
             self.Mesher = TriGenPFEMModeler()
             self.fluid_neigh_finder = FindNodalNeighboursProcess(self.model_part)
             self.condition_neigh_finder = FindConditionsNeighboursProcess(self.model_part,2, 10)
-            self.elem_neighbor_finder = FindElementalNeighboursProcess(self.model_part, 2, 10)
+            self.elem_neighbor_finder = GenericFindElementalNeighboursProcess(self.model_part)
 
         self.mark_fluid_process = MarkFluidProcess(self.model_part);
         self.UlfUtils = UlfUtils()

@@ -59,7 +59,6 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
         if discharge_penalty == 0.0:
             KM.Logger.PrintWarning(self.__class__.__name__, "Detected dry_discharge_penalty == 0.0")
 
-        self.main_model_part.ProcessInfo.SetValue(SW.PERMEABILITY, permeability)
         self.main_model_part.ProcessInfo.SetValue(SW.DRY_HEIGHT, dry_height)
         self.main_model_part.ProcessInfo.SetValue(SW.RELATIVE_DRY_HEIGHT, relative_dry_height)
         self.main_model_part.ProcessInfo.SetValue(SW.DRY_DISCHARGE_PENALTY, discharge_penalty)

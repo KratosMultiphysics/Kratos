@@ -130,7 +130,7 @@ void HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponseKirchhoff (Const
      // The deformation gradient
     const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
 
-    if(r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+    if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         this->CalculateAlmansiStrain(rValues, strain_vector);
     }
 
@@ -143,7 +143,6 @@ void HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponseKirchhoff (Const
         if (rValues.IsSetDeformationGradientF()) {
             this->CalculateGreenLagrangianStrain(rValues, strain_vector);
         }
-
         this->CalculateKirchhoffStress(strain_vector, stress_vector, deformation_gradient_f ,young_modulus, poisson_coefficient);
     }
 }
@@ -447,7 +446,8 @@ void HyperElasticIsotropicKirchhoff3D::CalculateConstitutiveMatrixPK2(
     )
 {
     rConstitutiveMatrix.clear();
-    rConstitutiveMatrix = ZeroMatrix(6,6);
+    if (rConstitutiveMatrix.size1() != 6 || rConstitutiveMatrix.size2() != 6)
+        rConstitutiveMatrix.resize(6, 6, false);
     const double c1 = YoungModulus / (( 1.00 + PoissonCoefficient ) * ( 1 - 2 * PoissonCoefficient ) );
     const double c2 = c1 * ( 1 - PoissonCoefficient );
     const double c3 = c1 * PoissonCoefficient;
@@ -479,9 +479,10 @@ void HyperElasticIsotropicKirchhoff3D::CalculateKirchhoffStress(
     )
 {
     CalculatePK2Stress( rStrainVector, rStressVector, YoungModulus, PoissonCoefficient );
-    Matrix stress_matrix = MathUtils<double>::StressVectorToTensor( rStressVector );
-    ContraVariantPushForward (stress_matrix,rDeformationGradientF); //Kirchhoff
-    rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
+    Matrix stress_matrix(3, 3);
+    noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor( rStressVector );
+    ContraVariantPushForward (stress_matrix, rDeformationGradientF); //Kirchhoff
+    noalias(rStressVector) = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
 }
 
 /***********************************************************************************/
@@ -496,14 +497,17 @@ void HyperElasticIsotropicKirchhoff3D::CalculatePK2Stress(
 {
     const double lame_lambda = (YoungModulus * PoissonCoefficient)/((1.0 + PoissonCoefficient)*(1.0 - 2.0 * PoissonCoefficient));
     const double lame_mu = YoungModulus/(2.0 * (1.0 + PoissonCoefficient));
-    const Matrix E_tensor=MathUtils<double>::StrainVectorToTensor(rStrainVector);
-    double E_trace = 0.0;
-    for (unsigned int i = 0; i < E_tensor.size1();i++) {
-      E_trace += E_tensor (i,i);
-    }
     const SizeType dimension = WorkingSpaceDimension();
-    Matrix stress_matrix = lame_lambda*E_trace*IdentityMatrix(dimension) + 2.0 * lame_mu * E_tensor;
-    rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
+
+    Matrix E_tensor(dimension, dimension), stress_matrix(dimension, dimension);
+    noalias(E_tensor) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+    double E_trace = 0.0;
+    for (unsigned int i = 0; i < E_tensor.size1(); ++i) {
+        E_trace += E_tensor(i, i);
+    }
+    
+    noalias(stress_matrix) = lame_lambda*E_trace*IdentityMatrix(dimension) + 2.0 * lame_mu * E_tensor;
+    noalias(rStressVector) = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
 
 //     // Other possibility
 //     SizeType size_system = GetStrainSize();
@@ -538,9 +542,12 @@ void HyperElasticIsotropicKirchhoff3D::CalculateGreenLagrangianStrain(
 {
     // 1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
+    const int dimension = WorkingSpaceDimension();
 
     // 2.-Compute e = 0.5*(inv(C) - I)
-    const Matrix C_tensor = prod(trans(F),F);
+    Matrix C_tensor;
+    C_tensor.resize(dimension, dimension, false);
+    noalias(C_tensor) = prod(trans(F),F);
     ConstitutiveLawUtilities<VoigtSize>::CalculateGreenLagrangianStrain(C_tensor, rStrainVector);
 }
 
@@ -554,9 +561,12 @@ void HyperElasticIsotropicKirchhoff3D::CalculateAlmansiStrain(
 {
     // 1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
+    const int dimension = WorkingSpaceDimension();
 
     // 2.-COmpute e = 0.5*(1-inv(B))
-    const Matrix B_tensor = prod(F,trans(F));
+    Matrix B_tensor;
+    B_tensor.resize(dimension, dimension, false);
+    noalias(B_tensor) = prod(F, trans(F));
     AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateAlmansiStrain(B_tensor, rStrainVector);
 }
 

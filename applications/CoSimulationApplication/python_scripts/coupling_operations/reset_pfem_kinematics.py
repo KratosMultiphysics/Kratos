@@ -18,8 +18,8 @@ class ResetPfemKinematics(CoSimulationCouplingOperation):
     - add tests
     - more cleanup
     """
-    def __init__(self, settings, solver_wrappers, process_info):
-        super().__init__(settings, process_info)
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
+        super().__init__(settings, process_info, data_communicator)
         model = solver_wrappers[self.settings["solver"].GetString()].model
         self.model_part_name = self.settings["model_part_name"].GetString()
         self.model_part = model[self.model_part_name]

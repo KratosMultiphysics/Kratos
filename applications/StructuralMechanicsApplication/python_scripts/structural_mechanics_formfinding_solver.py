@@ -52,10 +52,10 @@ class FormfindingMechanicalSolver(MechanicalSolver):
         if (self.settings["write_formfound_geometry_file"].GetBool()):
             StructuralMechanicsApplication.FormfindingStrategy.WriteFormFoundMdpa(self.GetComputingModelPart())
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._GetScheme()
         mechanical_convergence_criterion = self._GetConvergenceCriterion()

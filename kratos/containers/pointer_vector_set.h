@@ -11,11 +11,8 @@
 //
 //
 
-
 #if !defined(KRATOS_POINTER_VECTOR_SET_H_INCLUDED )
 #define  KRATOS_POINTER_VECTOR_SET_H_INCLUDED
-
-
 
 // System includes
 #include <vector>
@@ -31,7 +28,6 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "containers/set_identity_function.h"
-
 
 namespace Kratos
 {
@@ -131,7 +127,6 @@ public:
     /// Destructor.
     ~PointerVectorSet() {}
 
-
     ///@}
     ///@name Operators
     ///@{
@@ -148,27 +143,22 @@ public:
     {
         ptr_iterator sorted_part_end;
 
-        if(mData.size() - mSortedPartSize >= mMaxBufferSize)
-        {
+        if(mData.size() - mSortedPartSize >= mMaxBufferSize) {
             Sort();
             sorted_part_end = mData.end();
-        }
-        else
+        } else
             sorted_part_end	= mData.begin() + mSortedPartSize;
 
         ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
-        if (i == sorted_part_end)
-        {
+        if (i == sorted_part_end) {
             mSortedPartSize++;
             return **mData.insert(sorted_part_end, TPointerType(new TDataType(Key)));
         }
 
         if (!EqualKeyTo(Key)(*i))
-            if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
-            {
+            if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end()) {
                 mData.push_back(TPointerType(new TDataType(Key)));
                 return **(mData.end()-1);
-// 	  return **(--mData.end());
             }
 
         return **i;
@@ -178,27 +168,22 @@ public:
     {
         ptr_iterator sorted_part_end;
 
-        if(mData.size() - mSortedPartSize >= mMaxBufferSize)
-        {
+        if(mData.size() - mSortedPartSize >= mMaxBufferSize) {
             Sort();
             sorted_part_end = mData.end();
-        }
-        else
+        } else
             sorted_part_end	= mData.begin() + mSortedPartSize;
 
         ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
-        if (i == sorted_part_end)
-        {
+        if (i == sorted_part_end) {
             mSortedPartSize++;
             return *mData.insert(sorted_part_end, TPointerType(new TDataType(Key)));
         }
 
         if (!EqualKeyTo(Key)(*i))
-            if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
-            {
+            if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end()) {
                 mData.push_back(TPointerType(new TDataType(Key)));
                 return *(mData.end()-1);
-// 	  return *(--mData.end());
             }
 
         return *i;
@@ -355,55 +340,13 @@ public:
     {
         mData.push_back(x);
     }
+	
     void pop_back()
     {
-//KRATOS_WATCH("before mData.pop_back")
-//KRATOS_WATCH(**((mData.end()-1).base()))
         mData.pop_back();
-//KRATOS_WATCH("after mData.pop_back")
         if(mSortedPartSize>mData.size())
             mSortedPartSize = mData.size();
-//KRATOS_WATCH("finished pop_back")
     }
-
-//     template<class TOtherDataType>
-//     void push_back(TOtherDataType const& x)
-//     {
-//         push_back(TPointerType(new TOtherDataType(x)));
-//     }
-
-//     template<class TOtherDataType>
-//     iterator insert(iterator Position, const TOtherDataType& rData)
-//     {
-//         ptr_iterator sorted_part_end;
-//
-//         key_type key = KeyOf(rData);
-//
-//         if(mData.size() - mSortedPartSize >= mMaxBufferSize)
-//         {
-//             Sort();
-//             sorted_part_end = mData.end();
-//         }
-//         else
-//             sorted_part_end	= mData.begin() + mSortedPartSize;
-//
-//         ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, key, CompareKey()));
-//         if (i == sorted_part_end)
-//         {
-//             mSortedPartSize++;
-//             return mData.insert(sorted_part_end, TPointerType(new TOtherDataType(rData)));
-//         }
-//
-//         if (!EqualKeyTo(key)(*i))
-//             if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(key))) == mData.end())
-//             {
-//                 mData.push_back(TPointerType(new TOtherDataType(rData)));
-//                 //return iterator(--mData.end());
-//                 return iterator(mData.end()-1);
-//             }
-//         **i = rData;
-//         return i;
-//     }
 
     iterator insert(iterator Position, const TPointerType pData)
     {
@@ -411,27 +354,22 @@ public:
 
         key_type key = KeyOf(*pData);
 
-        if(mData.size() - mSortedPartSize >= mMaxBufferSize)
-        {
+        if(mData.size() - mSortedPartSize >= mMaxBufferSize) {
             Sort();
             sorted_part_end = mData.end();
-        }
-        else
+        } else
             sorted_part_end	= mData.begin() + mSortedPartSize;
 
         ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, key, CompareKey()));
-        if (i == sorted_part_end)
-        {
+        if (i == sorted_part_end) {
             mSortedPartSize++;
             return mData.insert(sorted_part_end, pData);
         }
 
         if (!EqualKeyTo(key)(*i))
-            if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(key))) == mData.end())
-            {
+            if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(key))) == mData.end()) {
                 mData.push_back(pData);
                 return iterator(mData.end()-1);
-// 	  return iterator(--mData.end());
             }
 
         *i = pData;
@@ -448,8 +386,8 @@ public:
 
     iterator erase(iterator pos)
     {
-		if (pos.base() == mData.end())
-			return mData.end();
+        if (pos.base() == mData.end())
+            return mData.end();
         iterator new_end = iterator( mData.erase( pos.base() ) );
         mSortedPartSize = mData.size();
         return new_end;
@@ -479,12 +417,10 @@ public:
     {
         ptr_iterator sorted_part_end;
 
-        if(mData.size() - mSortedPartSize >= mMaxBufferSize)
-        {
+        if(mData.size() - mSortedPartSize >= mMaxBufferSize) {
             Sort();
             sorted_part_end = mData.end();
-        }
-        else
+        } else
             sorted_part_end	= mData.begin() + mSortedPartSize;
 
         ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
@@ -530,14 +466,7 @@ public:
     void Unique()
     {
         typename TContainerType::iterator end_it = mData.end();
-//#ifndef _OPENMP
         std::sort(mData.begin(), mData.end(), CompareKey());
-//#else
-//	if(mData.size() > 2000)
-//	  omptl::sort(mData.begin(), mData.end(), CompareKey());
-//	else
-//	  std::sort(mData.begin(), mData.end(), CompareKey());
-//#endif
         typename TContainerType::iterator new_end_it = std::unique(mData.begin(), mData.end(), EqualKeyTo());
         mData.erase(new_end_it, end_it);
         mSortedPartSize = mData.size();
@@ -559,19 +488,40 @@ public:
         return mData;
     }
 
+    /**
+     * @brief Get the maximum size of buffer used in the container
+     */
+    size_type GetMaxBufferSize() const 
+    {
+        return mMaxBufferSize;
+    }
 
-    /** Set the maximum size of buffer used in the container.
-
-    This container uses a buffer which keep data unsorted. After
-    buffer size arrived to the MaxBufferSize it will sort all
-    container and empties buffer.
-
-    @param NewSize Is the new buffer maximum size. */
-    void SetMaxBufferSize(size_type NewSize)
+    /** 
+     * @brief Set the maximum size of buffer used in the container.
+     * @details This container uses a buffer which keep data unsorted. After buffer size arrived to the MaxBufferSize it will sort all container and empties buffer.
+     * @param NewSize Is the new buffer maximum size. 
+     */
+    void SetMaxBufferSize(const size_type NewSize)
     {
         mMaxBufferSize = NewSize;
     }
 
+    /**
+     * @brief Get the sorted part size of buffer used in the container. 
+     */
+    size_type GetSortedPartSize() const 
+    {
+        return mSortedPartSize;
+    }
+
+    /** 
+     * @brief Set the sorted part size of buffer used in the container.
+     * @param NewSize Is the new buffer maximum size. 
+     */
+    void SetSortedPartSize(const size_type NewSize)
+    {
+        mSortedPartSize = NewSize;
+    }
 
     ///@}
     ///@name Inquiry
@@ -613,51 +563,40 @@ public:
         std::copy(begin(), end(), std::ostream_iterator<TDataType>(rOStream, "\n "));
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
 
     class CompareKey : public std::binary_function<TPointerType, TPointerType, typename TCompareType::result_type>
@@ -692,12 +631,9 @@ private:
             return TEqualType()(TGetKeyType()(*a), TGetKeyType()(*b));
         }
     };
-//        static typename TCompareType::result_type CompareKey(TDataType const & a, TDataType const & b)
-//        {return TCompareType()(KeyOf(a), KeyOf(b));}
 
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -710,7 +646,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -731,13 +666,11 @@ private:
         return TGetKeyType()(i);
     }
 
-
     ///@}
     ///@name Serialization
     ///@{
 
     friend class Serializer;
-
 
     virtual void save(Serializer& rSerializer) const
     {
@@ -767,21 +700,17 @@ private:
         rSerializer.load("Max Buffer Size",mMaxBufferSize);
     }
 
-
     ///@}
     ///@name Private  Access
     ///@{
-
 
     ///@}
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
-
 
     ///@}
 
@@ -792,11 +721,9 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 template<class TDataType,
@@ -825,7 +752,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
-
 
 }  // namespace Kratos.
 

@@ -92,7 +92,7 @@ class ExplicitMechanicalSolver(MechanicalSolver):
             self.delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
 
     #### Specific internal functions ####
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         scheme_type = self.settings["scheme_type"].GetString()
 
         # Setting the Rayleigh damping parameters
@@ -114,7 +114,7 @@ class ExplicitMechanicalSolver(MechanicalSolver):
             raise Exception(err_msg)
         return mechanical_scheme
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._GetScheme()
 

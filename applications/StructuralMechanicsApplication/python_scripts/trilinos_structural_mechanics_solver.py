@@ -58,7 +58,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
 
     def Finalize(self):
         super().Finalize()
-        self.get_mechanical_solution_strategy().Clear() # needed for proper finalization of MPI
+        self._GetSolutionStrategy().Clear() # needed for proper finalization of MPI
 
     #### Specific internal functions ####
 
@@ -72,14 +72,14 @@ class TrilinosMechanicalSolver(MechanicalSolver):
     def _create_epetra_communicator(self):
         return TrilinosApplication.CreateEpetraCommunicator(self.main_model_part.GetCommunicator().GetDataCommunicator())
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         return trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         if self.settings["multi_point_constraints_used"].GetBool():
             raise Exception("MPCs not yet implemented in MPI")
 

@@ -154,6 +154,12 @@ public:
     }
 
     /**
+     * @brief Calculate the velocity laplacian projection
+     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the elements
+     */
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief Calculate the rhs according to the Adams-Moulton scheme
      * @param rRightHandSideVector Elemental right hand side vector
      * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the element
@@ -166,6 +172,16 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override;
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
 
     ///@}
     ///@name Input and output
@@ -194,6 +210,14 @@ protected:
     void AddRightHandSide(
         LocalVectorType& rRHS,
         ElementData& rData,
+        const Matrix& rNContainer,
+        const ShapeFunctionsGradientsType& rDN_DXContainer,
+        const Vector& rWeights);
+
+    void AddAuxiliaryLaplacian(
+        LocalMatrixType& rVelocityLaplacian,
+        LocalMatrixType& rMomentumLaplacian,
+        const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
@@ -202,14 +226,35 @@ protected:
 
     LocalVectorType GetUnknownVector(const ElementData& rData) const override;
 
-    LocalVectorType ConservativeVector(const LocalVectorType& rVector, const ElementData& rData) const;
+    void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0) override;
 
-    void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
+    void UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
 
     double StabilizationParameter(const ElementData& rData) const override;
 
+    void CalculateArtificialViscosity(
+        BoundedMatrix<double,3,3>& rViscosity,
+        BoundedMatrix<double,2,2>& rDiffusion,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX) override;
+
+    void AlgebraicResidual(
+        double& rMassResidual,
+        array_1d<double,2>& rFreeSurfaceGradient,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX) const;
+
     void AddDispersiveTerms(
         LocalVectorType& rVector,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0) override;
+
+    void AddMassTerms(
+        LocalMatrixType& rMatrix,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
