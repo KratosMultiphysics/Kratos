@@ -920,6 +920,40 @@ public:
         return true;
     }
 
+    bool SynchronizeCurrentDataToMax(Variable<double> const& ThisVariable) override
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        constexpr Operation<OperationType::MaxValues> max;
+        MPIInternals::NodalSolutionStepValueAccess<double> nodal_solution_step_access(ThisVariable);
+
+        // Calculate max on owner rank
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_solution_step_access, max);
+
+        // Synchronize result on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_solution_step_access, replace);
+
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalDataToMax(Variable<double> const& ThisVariable) override
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        constexpr Operation<OperationType::MaxValues> max;
+        MPIInternals::NodalDataAccess<double> nodal_data_access(ThisVariable);
+
+        // Calculate max on owner rank
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_data_access, max);
+
+        // Synchronize result on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_data_access, replace);
+
+        return true;
+    }
+
     bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable) override
     {
         constexpr MeshAccess<DistributedType::Local> local_meshes;
