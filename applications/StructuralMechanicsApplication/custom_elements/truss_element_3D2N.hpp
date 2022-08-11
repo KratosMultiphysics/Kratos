@@ -139,7 +139,7 @@ namespace Kratos
          * @brief This function calculates the transformation matrix to globalize vectors and/or matrices
          * @param rRotationMatrix The transformation matrix
          */
-        void CreateTransformationMatrix(BoundedMatrix<double,msLocalSize,msLocalSize>& rRotationMatrix);
+        void CreateTransformationMatrix(BoundedMatrix<double,msLocalSize,msLocalSize>& rRotationMatrix) const;
 
 
         void CalculateLocalSystem(
@@ -247,9 +247,13 @@ namespace Kratos
          * @param rReferenceCoordinates The current coordinates
          */
         virtual void WriteTransformationCoordinates(
-            BoundedVector<double,msLocalSize>& rReferenceCoordinates);
+            BoundedVector<double,msLocalSize>& rReferenceCoordinates) const;
 
         double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo);
+
+
+        virtual double ReturnReferenceLength() const;
+        virtual double ReturnCurrentLength() const;
 
         void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 

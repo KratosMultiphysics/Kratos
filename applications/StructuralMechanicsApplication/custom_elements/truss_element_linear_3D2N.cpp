@@ -189,7 +189,7 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
 
 void TrussElementLinear3D2N::WriteTransformationCoordinates(
     BoundedVector<double, TrussElement3D2N::msLocalSize>
-    & rReferenceCoordinates)
+    & rReferenceCoordinates) const
 {
     KRATOS_TRY;
     rReferenceCoordinates = ZeroVector(msLocalSize);
@@ -213,7 +213,7 @@ double TrussElementLinear3D2N::CalculateLinearStrain()
     CreateTransformationMatrix(transformation_matrix);
 
     current_disp = prod(Matrix(trans(transformation_matrix)),current_disp);
-    const double length_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double length_0 = ReturnReferenceLength();
     const double e = (current_disp[3]-current_disp[0])/length_0;
 
     return e;

@@ -107,7 +107,7 @@ public:
      * @param rReferenceCoordinates The original coordinates
      */
     void WriteTransformationCoordinates(
-        BoundedVector<double,msLocalSize>& rReferenceCoordinates) override;
+        BoundedVector<double,msLocalSize>& rReferenceCoordinates) const override;
 
     /**
      * @brief This function calculates the current linear-Lagrange strain

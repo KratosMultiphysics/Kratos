@@ -28,6 +28,7 @@
 #include "custom_elements/ring_element_3D.hpp"
 #include "custom_elements/weak_coupling_slide.hpp"
 #include "custom_elements/empirical_spring.hpp"
+#include "custom_elements/brake_element_3D2N.hpp"
 
 
 namespace Kratos {
@@ -185,6 +186,7 @@ private:
     const RingElement3D mRingElement3D4N;
     const RingElement3D mRingElement3D3N;
     const EmpiricalSpringElement3D2N mEmpiricalSpringElement3D2N;
+    const BrakeElement3D2N mBrakeElement3D2N;
 
     ///@}
     ///@name Private Operators

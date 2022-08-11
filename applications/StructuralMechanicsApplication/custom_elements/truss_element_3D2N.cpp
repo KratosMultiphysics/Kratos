@@ -169,7 +169,7 @@ void TrussElement3D2N::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
 {
     KRATOS_TRY;
     const double A = GetProperties()[CROSS_AREA];
-    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double L = ReturnReferenceLength();
     const double rho = GetProperties()[DENSITY];
     const BoundedMatrix<double, 3, 3> fill_matrix = A * L * rho* (IdentityMatrix(3)/6.0);
 
@@ -180,6 +180,17 @@ void TrussElement3D2N::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
 
     KRATOS_CATCH("");
 }
+
+double TrussElement3D2N::ReturnReferenceLength() const
+{
+    return StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+}
+
+double TrussElement3D2N::ReturnCurrentLength() const
+{
+    return StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+}
+
 
 BoundedVector<double, TrussElement3D2N::msLocalSize>
 TrussElement3D2N::CalculateBodyForces()
@@ -192,7 +203,7 @@ TrussElement3D2N::CalculateBodyForces()
 
     // creating necessary values
     const double A = GetProperties()[CROSS_AREA];
-    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double L = ReturnReferenceLength();
     const double rho = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
     double total_mass = A * L * rho;
@@ -359,7 +370,7 @@ void TrussElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOut
 void TrussElement3D2N::Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == STRAIN_ENERGY) {
-        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double L0 = ReturnReferenceLength();
         const double A = GetProperties()[CROSS_AREA];
 
         // material strain energy
@@ -426,8 +437,8 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         }
     }
     if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
-        const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double l = ReturnCurrentLength();
+        const double L0 = ReturnReferenceLength();
         rOutput[0] = l/L0;
     }
     KRATOS_CATCH("")
@@ -471,8 +482,8 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
 
 
-        const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double l = ReturnCurrentLength();
+        const double L0 = ReturnReferenceLength();
 
         temp_stress[0] += prestress;
         rOutput[0] = temp_stress;
@@ -545,7 +556,7 @@ int TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
                      << std::endl;
     }
 
-    KRATOS_ERROR_IF(StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this)
+    KRATOS_ERROR_IF(ReturnReferenceLength()
                     < std::numeric_limits<double>::epsilon())
             << "Element #" << Id() << " has a length of zero!" << std::endl;
 
@@ -558,8 +569,8 @@ double TrussElement3D2N::CalculateGreenLagrangeStrain() const
 {
 
     KRATOS_TRY
-    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double l = ReturnCurrentLength();
+    const double L = ReturnReferenceLength();
     const double e = ((l * l - L * L) / (2.00 * L * L));
     return e;
     KRATOS_CATCH("")
@@ -576,8 +587,8 @@ void TrussElement3D2N::UpdateInternalForces(
 
     CreateTransformationMatrix(transformation_matrix);
 
-    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-    const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double l = ReturnCurrentLength();
+    const double L0 = ReturnReferenceLength();
     const double A = GetProperties()[CROSS_AREA];
 
     double prestress = 0.00;
@@ -607,7 +618,7 @@ void TrussElement3D2N::UpdateInternalForces(
 
 void TrussElement3D2N::CreateTransformationMatrix(
     BoundedMatrix<double, TrussElement3D2N::msLocalSize,
-    TrussElement3D2N::msLocalSize>& rRotationMatrix)
+    TrussElement3D2N::msLocalSize>& rRotationMatrix) const
 {
 
     KRATOS_TRY
@@ -679,7 +690,7 @@ void TrussElement3D2N::CreateTransformationMatrix(
 
 void TrussElement3D2N::WriteTransformationCoordinates(
     BoundedVector<double, TrussElement3D2N::msLocalSize>
-    & rReferenceCoordinates)
+    & rReferenceCoordinates) const
 {
     KRATOS_TRY;
     rReferenceCoordinates = ZeroVector(msLocalSize);
@@ -801,8 +812,8 @@ void TrussElement3D2N::CalculateGeometricStiffnessMatrix(
     const double dx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
     const double dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
     const double dz = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
-    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double L = ReturnReferenceLength();
+    const double l = ReturnCurrentLength();
     double e_gL = (l * l - L * L) / (2.00 * L * L);
     const double L3 = L * L * L;
 
@@ -881,7 +892,7 @@ void TrussElement3D2N::CalculateElasticStiffnessMatrix(
     const double dx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
     const double dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
     const double dz = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
-    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double L = ReturnReferenceLength();
     const double L3 = L * L * L;
 
     const double EA = E * A;
@@ -1025,7 +1036,7 @@ void TrussElement3D2N::CalculateLumpedMassVector(
     }
 
     const double A = GetProperties()[CROSS_AREA];
-    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double L = ReturnReferenceLength();
     const double rho = GetProperties()[DENSITY];
 
     const double total_mass = A * L * rho;
