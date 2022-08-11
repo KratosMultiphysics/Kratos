@@ -104,9 +104,12 @@ private:
     
     /**
     * Creates a new tetrahedra3D10
-    * @return the reference to the new tetrahedra
+    * @return The new tetrahedra
     */
-    Tetrahedra3D10<Node<3>> GenerateTetrahedra(ModelPart& rThisModelPart, const std::vector<int>& rNodeIds) {
+    Tetrahedra3D10<Node<3>> GenerateTetrahedra(
+        ModelPart& rThisModelPart, 
+        const std::vector<int>& rNodeIds) 
+    {
         unsigned int i0 = rNodeIds[0];
         unsigned int i1 = rNodeIds[1];
         unsigned int i2 = rNodeIds[2];
@@ -135,9 +138,12 @@ private:
 
     /**
     * Creates a new triangle3D6
-    * @return the reference to the new triangle
+    * @return The new triangle
     */
-    Triangle3D6<Node<3>> GenerateTriangle3D6(ModelPart& rThisModelPart, const array_1d<int, 6>& rNodeIds) {
+    Triangle3D6<Node<3>> GenerateTriangle3D6(
+        ModelPart& rThisModelPart, 
+        const array_1d<int, 6>& rNodeIds) 
+    {
         unsigned int i0   = rNodeIds[0];
         unsigned int i1   = rNodeIds[1];
         unsigned int i2   = rNodeIds[2];
@@ -182,7 +188,8 @@ private:
         const Element& rElem = KratosComponents<Element>::Get("Element3D10N");
         for (ElementsArrayType::iterator& it = it_begin; it != it_end; ++it)
         {
-            GlobalPointersVector< Element >& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
+            // GlobalPointersVector< Element >& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
+            auto& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
             rChildElements.resize(0);
 
             CalculateEdges(it->GetGeometry(), Coord, edge_ids, node_ids);
@@ -224,7 +231,8 @@ private:
         for(auto& p_element : rThisModelPart.ElementsArray()){
             if( p_element->GetValue(SPLIT_ELEMENT) )
             {
-                GlobalPointersVector< Element >& children = p_element->GetValue(NEIGHBOUR_ELEMENTS);
+                // GlobalPointersVector< Element >& children = p_element->GetValue(NEIGHBOUR_ELEMENTS);
+                auto& children = p_element->GetValue(NEIGHBOUR_ELEMENTS);
                 p_element = children[0].shared_from_this();
             } 
         }
@@ -267,7 +275,8 @@ private:
             {
                 CalculateEdgesFaces(it->GetGeometry(), Coord, edge_ids, node_ids);
 
-                GlobalPointersVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
+                // GlobalPointersVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
+                auto& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
                 rChildConditions.resize(0);
 
                 //Generate the new condition
@@ -303,7 +312,8 @@ private:
         for(auto& pCond : rThisModelPart.ConditionsArray()){
             if( pCond->GetValue(SPLIT_ELEMENT) )
             {
-                GlobalPointersVector< Condition >& children = pCond->GetValue(NEIGHBOUR_CONDITIONS);
+                // GlobalPointersVector< Condition >& children = pCond->GetValue(NEIGHBOUR_CONDITIONS);
+                auto& children = pCond->GetValue(NEIGHBOUR_CONDITIONS);
                 pCond = children[0].shared_from_this();
             } 
         }
