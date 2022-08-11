@@ -660,7 +660,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataariableSyncToMin, 
     KRATOS_CHECK_EQUAL( r_ghost.GetValue(TEMPERATURE), expected_ghost);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataariableSyncToMax, KratosMPICoreFastSuite2)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataariableSyncToMax, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -685,13 +685,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataariableSyncToMax, 
     auto& r_local = r_model_part.Nodes()[local_id];
     auto& r_ghost = r_model_part.Nodes()[ghost_id];
 
-    const int expected_local = (rank > 0) ? 10.0*(rank-1) : 0.0;
-    const int expected_ghost = (rank + 1 < size) ? 10.0*rank : 0.0;
+    const int expected_local = (rank == 0) ? 10.0*(size-1) : 10.0*rank;
+    const int expected_ghost = (rank + 1 < size) ? 10.0*(rank+1) : 10.0*(size-1);
 
     r_comm.SynchronizeNonHistoricalDataToMax(TEMPERATURE);
     KRATOS_CHECK_EQUAL(r_center.GetValue(TEMPERATURE), 10.0*(size-1));
-    // KRATOS_CHECK_EQUAL(r_local.GetValue(TEMPERATURE), expected_local);
-    // KRATOS_CHECK_EQUAL(r_ghost.GetValue(TEMPERATURE), expected_ghost);
+    KRATOS_CHECK_EQUAL(r_local.GetValue(TEMPERATURE), expected_local);
+    KRATOS_CHECK_EQUAL(r_ghost.GetValue(TEMPERATURE), expected_ghost);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, KratosMPICoreFastSuite)
