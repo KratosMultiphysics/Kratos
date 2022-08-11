@@ -1643,6 +1643,22 @@ private:
         const typename TDatabaseAccess::SendType* pBuffer,
         TDatabaseAccess& rAccess,
         typename TDatabaseAccess::IteratorType ContainerIterator,
+        Operation<OperationType::MaxValues>)
+    {
+        using ValueType = typename TDatabaseAccess::ValueType;
+        ValueType& r_current = rAccess.GetValue(ContainerIterator);
+        ValueType recv_value(r_current); // creating by copy to have the correct size in dynamic types
+        MPIInternals::SendTools<ValueType>::ReadBuffer(pBuffer, recv_value);
+        if (recv_value > r_current) r_current = recv_value;
+
+        return MPIInternals::BufferAllocation<TDatabaseAccess>::GetSendSize(recv_value);
+    }
+
+    template<class TDatabaseAccess>
+    std::size_t ReduceValues(
+        const typename TDatabaseAccess::SendType* pBuffer,
+        TDatabaseAccess& rAccess,
+        typename TDatabaseAccess::IteratorType ContainerIterator,
         Operation<OperationType::MinValues>)
     {
         using ValueType = typename TDatabaseAccess::ValueType;
