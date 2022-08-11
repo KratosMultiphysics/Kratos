@@ -46,6 +46,8 @@
 #include "custom_constitutive/DEM_compound_constitutive_law.h"
 #include "custom_constitutive/DEM_compound_constitutive_law_for_PBM.h"
 #include "custom_constitutive/DEM_parallel_bond_CL.h"
+#include "custom_constitutive/DEM_rolling_friction_model.h"
+#include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
 
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_strategies/schemes/forward_euler_scheme.h"
@@ -62,9 +64,11 @@ KRATOS_CREATE_VARIABLE(GlobalPointersVector<Element>, NODE_TO_NEIGH_ELEMENT_POIN
 //constitutive law
 KRATOS_CREATE_VARIABLE(std::string, DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME)
 KRATOS_CREATE_VARIABLE(std::string, DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME)
+KRATOS_CREATE_VARIABLE(std::string, DEM_ROLLING_FRICTION_MODEL_NAME)
 KRATOS_CREATE_VARIABLE(DEMDiscontinuumConstitutiveLaw::Pointer, DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(DEMContinuumConstitutiveLaw::Pointer, DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(DEMBeamConstitutiveLaw::Pointer, DEM_BEAM_CONSTITUTIVE_LAW_POINTER)
+KRATOS_CREATE_VARIABLE(DEMRollingFrictionModel::Pointer, DEM_ROLLING_FRICTION_MODEL_POINTER)
 
 //scheme
 KRATOS_CREATE_VARIABLE(std::string, DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME)
@@ -533,9 +537,11 @@ void KratosDEMApplication::Register() {
     //constitutive law
     KRATOS_REGISTER_VARIABLE(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME)
     KRATOS_REGISTER_VARIABLE(DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME)
+    KRATOS_REGISTER_VARIABLE(DEM_ROLLING_FRICTION_MODEL_NAME)
     KRATOS_REGISTER_VARIABLE(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER)
     KRATOS_REGISTER_VARIABLE(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
     KRATOS_REGISTER_VARIABLE(DEM_BEAM_CONSTITUTIVE_LAW_POINTER)
+    KRATOS_REGISTER_VARIABLE(DEM_ROLLING_FRICTION_MODEL_POINTER)
 
     //scheme
     KRATOS_REGISTER_VARIABLE(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME)
@@ -990,6 +996,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEM_KDEM2D", DEM_KDEM2D());
     Serializer::Register("DEM_ExponentialHC", DEM_ExponentialHC());
     Serializer::Register("DEM_parallel_bond", DEM_parallel_bond());
+    Serializer::Register("DEMRollingFrictionModelConstantTorque", DEMRollingFrictionModelConstantTorque());
 
     Serializer::Register("ForwardEulerScheme", ForwardEulerScheme());
     Serializer::Register("SymplecticEulerScheme", SymplecticEulerScheme());

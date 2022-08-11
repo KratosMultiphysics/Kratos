@@ -718,6 +718,9 @@ class ExplicitStrategy():
         if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
             properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
 
+        rolling_friction_model = globals().get(properties[DEM_ROLLING_FRICTION_MODEL_NAME])()
+        rolling_friction_model.SetAPrototypeOfThisInProperties(properties, False)
+
     def ImportModelPart(self): #TODO: for the moment, provided for compatibility
         pass
 

@@ -2,7 +2,7 @@
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
-#if !defined(KRATOS_SPHERIC_PARTICLE_H_INCLUDED )
+#if !defined(KRATOS_SPHERIC_PARTICLE_H_INCLUDED)
 #define  KRATOS_SPHERIC_PARTICLE_H_INCLUDED
 
 // System includes
@@ -14,6 +14,7 @@
 #include "discrete_element.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
+#include "custom_constitutive/DEM_rolling_friction_model.h"
 #include "custom_conditions/RigidFace.h"
 #include "custom_conditions/dem_wall.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
@@ -272,6 +273,11 @@ std::unique_ptr<DEMDiscontinuumConstitutiveLaw> pCloneDiscontinuumConstitutiveLa
 
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> pCloneDiscontinuumConstitutiveLawWithFEMNeighbour(Condition* neighbour);
 
+std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModelWithNeighbour(SphericParticle* neighbour);
+
+std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModelWithFEMNeighbour(Condition* neighbour);
+
+
 virtual void ComputeRollingResistance(double& RollingResistance,
                                     const double& NormalLocalContactForce,
                                     const double& equiv_rolling_friction_coeff,
@@ -353,8 +359,8 @@ virtual void ComputeMomentsWithWalls(double normalLocalContactForce,
                             unsigned int i);
 
 //virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt) final;
-virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt, SphericParticle* p_neighbor, double LocalContactForce[3]) final;
-virtual void ComputeRollingFrictionWithWall(double dt, double LocalContactForce[3], Condition* const wall, double indentation) final;
+//virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt, SphericParticle* p_neighbor, double LocalContactForce[3]) final;
+//virtual void ComputeRollingFrictionWithWall(double dt, double LocalContactForce[3], Condition* const wall, double indentation) final;
 
 virtual double GetInitialDeltaWithFEM(int index);
 
@@ -438,6 +444,7 @@ virtual void RotateOldContactForces(const double LocalCoordSystem[3][3], const d
 virtual void ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment);
 
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> mDiscontinuumConstitutiveLaw;
+std::unique_ptr<DEMRollingFrictionModel> mRollingFrictionModel;
 
 double mInitializationTime;
 double mProgrammedDestructionTime=-1.0; // set to a negative value, so that when marked TO_ERASE, elimination is by default.

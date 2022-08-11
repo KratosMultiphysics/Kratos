@@ -10,6 +10,7 @@
 
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "custom_constitutive/DEM_continuum_constitutive_law.h"
+
 #include "custom_constitutive/DEM_compound_constitutive_law.h"
 #include "custom_constitutive/DEM_compound_constitutive_law_for_PBM.h"
 
@@ -23,6 +24,8 @@
 #include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
 #include "custom_constitutive/DEM_D_Stress_dependent_cohesive_CL.h"
 #include "custom_constitutive/DEM_D_Quadratic_CL.h"
+
+#include "custom_constitutive/DEM_rolling_friction_model.h"
 
 #include "custom_constitutive/DEM_D_Hertz_confined_CL.h"
 #include "custom_constitutive/DEM_D_Linear_confined_CL.h"
@@ -56,6 +59,8 @@
 #include "custom_constitutive/dem_kdem_2d_cl.h"
 #include "custom_constitutive/dem_kdem_fabric_2d_cl.h"
 #include "custom_constitutive/DEM_parallel_bond_CL.h"
+#include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
+
 
 namespace Kratos {
 namespace Python {
@@ -287,6 +292,23 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
     py::class_<Variable<DEMBeamConstitutiveLaw::Pointer>, Variable<DEMBeamConstitutiveLaw::Pointer>::Pointer>(m, "DEMBeamConstitutiveLawPointerVariable")
         .def("__str__", PrintObject<Variable<DEMBeamConstitutiveLaw::Pointer>>)
         ;
+
+    // DEM Rolling Friction Model:
+
+    py::class_<DEMRollingFrictionModel, DEMRollingFrictionModel::Pointer>(m, "DEMRollingFrictionModel")
+        .def(py::init<>())
+        .def("Clone", &DEMRollingFrictionModel::Clone)
+        .def("SetAPrototypeOfThisInProperties", &DEMRollingFrictionModel::SetAPrototypeOfThisInProperties)
+        //.def("GetTypeOfLaw", &DEMRollingFrictionModel::GetTypeOfLaw)
+        ;
+
+    py::class_<Variable<DEMRollingFrictionModel::Pointer>, Variable<DEMRollingFrictionModel::Pointer>::Pointer>(m, "DEMRollingFrictionModelPointerVariable")
+        .def("__str__", PrintObject<Variable<DEMRollingFrictionModel::Pointer>>)
+        ;
+
+    py::class_<DEMRollingFrictionModelConstantTorque, DEMRollingFrictionModelConstantTorque::Pointer, DEMRollingFrictionModel>(m, "DEMRollingFrictionModelConstantTorque")
+    .def(py::init<>())
+    ;
 }
 
 } // namespace Python.

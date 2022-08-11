@@ -140,6 +140,7 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     mClusterId = rOther.mClusterId;
     mGlobalDamping = rOther.mGlobalDamping;
     mDiscontinuumConstitutiveLaw = rOther.mDiscontinuumConstitutiveLaw->CloneUnique();
+    mRollingFrictionModel = rOther.mRollingFrictionModel->CloneUnique();
 
     if (rOther.mStressTensor != NULL) {
         mStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
@@ -859,7 +860,7 @@ void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resist
     }
     
 }*/
-
+/*
 void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt, SphericParticle* p_neighbor, double LocalContactForce[3])
 {
     array_1d<double, 3> elementRelAngularVelocity;
@@ -923,7 +924,7 @@ void SphericParticle::ComputeRollingFrictionWithWall(double dt, double LocalCont
         //KRATOS_WATCH("----------------------------------")
 
     } 
-}
+}*/
 
 void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::ParticleDataBuffer & data_buffer,
                                                     const ProcessInfo& r_process_info,
@@ -1001,7 +1002,8 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                     array_1d<double, 3>& rolling_resistance_moment = this_node.FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
                     rolling_resistance_moment.clear();
                     //ComputeRollingFriction(rolling_resistance_moment, RollingResistance, data_buffer.mDt);
-                    ComputeRollingFriction(rolling_resistance_moment, RollingResistance, data_buffer.mDt, data_buffer.mpOtherParticle, LocalContactForce);
+                    mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
+                    mRollingFrictionModel->ComputeRollingFriction(rolling_resistance_moment, RollingResistance, data_buffer.mDt, this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment);
                 }
             }
 
@@ -1199,8 +1201,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 ComputeMomentsWithWalls(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], wall, indentation, i); //WARNING: sending itself as the neighbor!!
                 
-                if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {                
-                    ComputeRollingFrictionWithWall(data_buffer.mDt, LocalContactForce, wall, indentation);
+                if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
+                    mRollingFrictionModel = pCloneRollingFrictionModelWithFEMNeighbour(wall);                
+                    mRollingFrictionModel->ComputeRollingFrictionWithWall(data_buffer.mDt, LocalContactForce, this, wall, indentation, mContactMoment);
                 }
             }
 
@@ -2026,6 +2029,16 @@ std::unique_ptr<DEMDiscontinuumConstitutiveLaw> SphericParticle::pCloneDiscontin
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> SphericParticle::pCloneDiscontinuumConstitutiveLawWithFEMNeighbour(Condition* neighbour) {
     Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour->GetProperties().Id());
     return properties_of_this_contact[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->CloneUnique();
+}
+
+std::unique_ptr<DEMRollingFrictionModel> SphericParticle::pCloneRollingFrictionModelWithNeighbour(SphericParticle* neighbour){
+    Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour->GetProperties().Id());
+    return properties_of_this_contact[DEM_ROLLING_FRICTION_MODEL_POINTER]->CloneUnique();
+}
+
+std::unique_ptr<DEMRollingFrictionModel> SphericParticle::pCloneRollingFrictionModelWithFEMNeighbour(Condition* neighbour){
+    Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour->GetProperties().Id());
+    return properties_of_this_contact[DEM_ROLLING_FRICTION_MODEL_POINTER]->CloneUnique();
 }
 
 void SphericParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {}
