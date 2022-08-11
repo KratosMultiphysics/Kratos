@@ -294,10 +294,9 @@ public:
     void Execute() override
     {
         KRATOS_TRY;
-
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         this->GenerateIntersectedEdgesElementsModelPart();
-
+        
         // Set the linear strategy to solve the regression problem
         this->SetLinearStrategy();
 
@@ -511,6 +510,10 @@ protected:
         // Get the unknown variable from Kratos components
         const auto &rUnknownVariable = EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable();
 
+        // Temporary container of nodes
+        // This is intentionally done to add the nodes at once and avoid the sort at each CreateNewNode call
+        std::unordered_map<unsigned int, Node<3>::Pointer> map_of_nodes;
+
         // Loop the base model part elements
         std::size_t new_elem_id = 1;
         for (unsigned int i_elem = 0; i_elem < mrBaseModelPart.NumberOfElements(); ++i_elem) {
@@ -567,12 +570,12 @@ protected:
                             i_edge_val /= n_int_obj;
 
                             // If not added yet, add the edge nodes
-                            this->AddEdgeNodes(r_i_edge_geom, rModelPart);
+                            this->AddEdgeNodes(r_i_edge_geom, rModelPart, map_of_nodes);
 
                             // Create a new element with the intersected edge geometry and fake properties
                             auto p_element = Kratos::make_intrusive<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(
                                 new_elem_id,
-                                this->pSetEdgeElementGeometry(rModelPart, r_i_edge_geom, i_edge_pair),
+                                this->pSetEdgeElementGeometry(map_of_nodes, r_i_edge_geom, i_edge_pair),
                                 rModelPart.pGetProperties(0));
 
                             // Save the edge values in the new element
@@ -592,6 +595,16 @@ protected:
                 }
             }
         }
+
+
+        // Populate the modelpart with all the nodes in NodesMap
+        // Note that a temporary vector is created from the set to add all nodes at once
+        PointerVectorSet<Node<3>> tmp;
+        tmp.reserve(rModelPart.NumberOfElements()*2);
+        for(auto& item: map_of_nodes){
+            tmp.push_back(item.second);
+        }
+        rModelPart.AddNodes(tmp.begin(), tmp.end());    
     }
 
     void SetLinearStrategy()
@@ -723,27 +736,38 @@ private:
 
     void AddEdgeNodes(
         const Geometry<Node<3>> &rEdgeGeometry,
-        ModelPart &rModelPart) const
+        ModelPart &rModelPart,
+        std::unordered_map<unsigned int, Node<3>::Pointer>& rNodesMap
+        ) const
     {
+        const auto& rp_var_list = rModelPart.pGetNodalSolutionStepVariablesList();
+        unsigned int buffer_size = rModelPart.GetBufferSize();
+        
         // Loop the edge nodes
         for (std::size_t i = 0; i < 2; ++i) {
             auto p_i_node = rEdgeGeometry(i);
             // Check if the node has been already added
             if (!p_i_node->Is(VISITED)) {
                 p_i_node->Set(VISITED, true);
-                rModelPart.CreateNewNode(p_i_node->Id(), *p_i_node);
+                auto p_node_copy = Kratos::make_intrusive< Node<3> >(
+                    p_i_node->Id(), 
+                    p_i_node->Coordinates());
+                p_node_copy->SetSolutionStepVariablesList(rp_var_list);
+                p_node_copy->SetBufferSize(buffer_size);
+
+                rNodesMap[p_i_node->Id()] = p_node_copy;
             }
         }
     }
 
     Element::GeometryType::Pointer pSetEdgeElementGeometry(
-        ModelPart &rModelPart,
+        std::unordered_map<unsigned int, Node<3>::Pointer>& rNodesMap,
         const Element::GeometryType &rCurrentEdgeGeometry,
         const std::pair<std::size_t, std::size_t> NewEdgeIds) const
     {
         Element::GeometryType::PointsArrayType points_array;
-        points_array.push_back(rModelPart.pGetNode(std::get<0>(NewEdgeIds)));
-        points_array.push_back(rModelPart.pGetNode(std::get<1>(NewEdgeIds)));
+        points_array.push_back(rNodesMap[std::get<0>(NewEdgeIds)]);
+        points_array.push_back(rNodesMap[std::get<1>(NewEdgeIds)]);
         return rCurrentEdgeGeometry.Create(points_array);
     }
 
