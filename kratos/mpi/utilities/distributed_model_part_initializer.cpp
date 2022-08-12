@@ -19,8 +19,6 @@
 
 // Project includes
 #include "utilities/string_utilities.h"
-#include "includes/parallel_environment.h"
-
 #include "parallel_fill_communicator.h"
 #include "model_part_communicator_utilities.h"
 #include "distributed_model_part_initializer.h"
