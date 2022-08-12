@@ -426,7 +426,7 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
 
                 // Now we receive from the rank 0
                 std::vector<std::size_t> final_faces_to_remove;
-                r_data_communicator.Send(final_faces_to_remove, destination_rank, tag_second_send);
+                r_data_communicator.Recv(final_faces_to_remove, destination_rank, tag_second_send);
 
                 // Finally filter the faces to be removed
                 faces_to_remove.clear();
