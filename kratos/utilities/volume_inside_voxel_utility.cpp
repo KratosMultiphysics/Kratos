@@ -46,11 +46,11 @@ namespace Kratos {
                 int result = IntersectionUtilities::ComputeTriangleLineIntersection(r_triangle,ends[0],ends[1],intersection);
                 
                 if(result == 1) {
-                    double dist = Distance(ends[0], intersection);
+                    double dist = norm_2(ends[0].Coordinates() - intersection);
                     distances.push_back(dist);
                 }  
             } 
-            distances.push_back(Distance(ends[0],ends[1]));
+            distances.push_back(norm_2(ends[0].Coordinates() - ends[1].Coordinates()));
             std::sort(distances.begin(),distances.end());       //WOULD A SET BE MORE EFFICIENT?     
             double edgePortion = VolumeInsideVoxelUtility::EdgeFilledPortion(distances, ends);
             volume += edgePortion/edges.size();  
@@ -76,7 +76,7 @@ namespace Kratos {
         std::vector<double> length(edges.size()); 
         for(std::size_t i = 0; i < edges.size(); i++) {
             const PointsArrayType& ends = edges[i].Points();
-            const double l = Distance(ends[0], ends[1]);
+            const double l = norm_2(ends[0].Coordinates() - ends[1].Coordinates());
             length[i] = l;
         }
 
@@ -92,12 +92,12 @@ namespace Kratos {
                 result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
 
                 if (result) {
-                    const double dist = Distance(ends[0], intersection);
+                    const double dist = norm_2(ends[0].Coordinates() - intersection);
                     if ( dist < (min_distance_to_node[j].first*length[j])) {
                         min_distance_to_node[j].first = dist/length[j];
                     } 
 
-                    const double dist2 = Distance(ends[1], intersection);
+                    const double dist2 = norm_2(ends[1].Coordinates() - intersection);
                     if (dist2 < (min_distance_to_node[j].second*length[j])) {
                         min_distance_to_node[j].second = dist2/length[j];
                     } 
@@ -152,7 +152,7 @@ namespace Kratos {
         std::vector<double> length(edges.size()); 
         for(std::size_t i = 0; i < edges.size(); i++) {
             const PointsArrayType& ends = edges[i].Points();
-            const double l = Distance(ends[0], ends[1]);
+            const double l = norm_2(ends[0].Coordinates() - ends[1].Coordinates());
             length[i] = l;
         }
 
@@ -165,12 +165,12 @@ namespace Kratos {
                 result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
 
                 if (result) {
-                    const double dist = Distance(ends[0], intersection);
+                    const double dist =  norm_2(ends[0].Coordinates() - intersection);
                     if ( dist < (min_distance_to_node[j].first*length[j])) {
                         min_distance_to_node[j].first = dist/length[j];
                     } 
 
-                    const double dist2 = Distance(ends[1], intersection);
+                    const double dist2 =  norm_2(ends[1].Coordinates() - intersection);
                     if (dist2 < (min_distance_to_node[j].second*length[j])) {
                         min_distance_to_node[j].second = dist2/length[j];
                     } 
@@ -257,19 +257,6 @@ namespace Kratos {
             area += partial_area;
         }
         return area;    
-    }
-
-    /***********************************************************************************
-     **********************************************************************************/
-
-    double VolumeInsideVoxelUtility::Distance(const NodeType& Point0, const array_1d<double,3>& Point1) {
-        const double lx = Point0.X() - Point1[0];
-        const double ly = Point0.Y() - Point1[1];
-        const double lz = Point0.Z() - Point1[2];
-
-        const double length = lx * lx + ly * ly + lz * lz;
-
-        return std::sqrt( length );
     }
 
     /***********************************************************************************

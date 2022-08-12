@@ -131,14 +131,6 @@ public:
     static double HexahedraFaceArea(const GeometryType& rFace,const GeometryArrayType& rTriangles);
 
     /**
-     * @brief Returns the distance between two 3D points.
-     * @param rPoint0 reference to the first point
-     * @param rPoint1 reference an array of 3 coordinates representing the second point
-     * @return Distance 
-     */  
-    static double Distance(const NodeType& Point0, const array_1d<double,3>& Point1);
-
-    /**
      * @brief Returns the volume enclosed by a set of 4 points
      * @param rPoints the array of points
      * @return Volume/area inside this points
