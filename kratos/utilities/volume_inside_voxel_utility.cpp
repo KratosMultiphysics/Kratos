@@ -303,13 +303,13 @@ namespace Kratos {
      **********************************************************************************/
 
     double VolumeInsideVoxelUtility::GetFactor(
-        const PointsArrayType& nodes, 
-        const int node) 
+        const PointsArrayType& rNodes, 
+        const int NodeIndex) 
     {
 
-        if( (nodes[node].GetSolutionStepValue(DISTANCE) > 0 && nodes[mNeighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 &&
-            nodes[mNeighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0) || (nodes[node].GetSolutionStepValue(DISTANCE) < 0 && 
-            nodes[mNeighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 && nodes[mNeighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0)) {
+        if( (rNodes[NodeIndex].GetSolutionStepValue(DISTANCE) > 0 && rNodes[mNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) < 0 &&
+            rNodes[mNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) < 0) || (rNodes[NodeIndex].GetSolutionStepValue(DISTANCE) < 0 && 
+            rNodes[mNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0 && rNodes[mNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0)) {
                 return 0.5;
             }
         return 1.0;
