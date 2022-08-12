@@ -69,7 +69,7 @@ namespace Kratos {
             if (mat_eigenvalues(i,i) < 1e-12) {
                 d(i,i) = 0; 
             } else {
-                d(i,i) = Check(1.0/mat_eigenvalues(i,i), 1e-12);
+                d(i,i) = 1.0/mat_eigenvalues(i,i) > 1.0e-12 ? 1.0/mat_eigenvalues(i,i) : 0.0;
             }
         }
 
@@ -90,16 +90,5 @@ namespace Kratos {
         array_1d<double,3> normal;
         MathUtils<double>::CrossProduct<array_1d<double,3>,array_1d<double,3>,array_1d<double,3>>(normal,u,v);
         return normal;
-    }
-
-    double QuadraticErrorFunction::Check(
-        const double D, 
-        const double Epsilon)
-    {
-        if (D > Epsilon)  {
-            return D;
-        } else {
-            return 0;
-        } 
     }
 }

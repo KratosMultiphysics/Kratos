@@ -131,11 +131,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    static double Check(
-        const double D, 
-        const double Epsilon
-    );
-
 }; /* Class VoxelInsideVolumeUtility */
 
 ///@name Type Definitions
