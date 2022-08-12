@@ -323,31 +323,15 @@ namespace Kratos {
         const std::vector<std::vector<double>>& rNeighbours,
         const int NodeIndex) 
     {
-        if (rNodes[NodeIndex].GetSolutionStepValue(DISTANCE) > 0 ) {
-            if (rNodes[rNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) < 0 &&
-                rNodes[rNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) < 0) {
-                return 0;
-            } else if (rNodes[rNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) < 0 &&
-                rNodes[rNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0) {
-                return 1;
-            } else if (rNodes[rNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0 &&
-                rNodes[rNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) < 0) {
-                return 2;
-            } else  {
-                return 3;
-            }
+        int me_inside = (int) rNodes[NodeIndex].GetSolutionStepValue(DISTANCE) > 0;
+        int left_inside = (int) (rNodes[rNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0);
+        int right_inside = (int) (rNodes[rNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0);
+
+        if (me_inside) {
+            return left_inside*2 + right_inside;
         }
         else {
-            if (rNodes[rNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0 && 
-                rNodes[rNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0) {
-                return 0;
-            } else if (rNodes[rNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0 && 
-                rNodes[rNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) < 0) {
-                return 1;
-            } else if (rNodes[rNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) < 0 && 
-                rNodes[rNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0) {
-                return 2;
-            } else return 3;
+            return (!left_inside)*2 + !right_inside;
         }
     }
 }
