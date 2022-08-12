@@ -106,9 +106,9 @@ namespace Kratos {
             }
         }
 
-        std::vector<std::vector<double>> neighbours{{3,1},{0,2},{1,3},{0,2}};  
+        //std::vector<std::vector<double>> mNeighbours{{3,1},{0,2},{1,3},{0,2}};  
         for(std::size_t i = 0; i < nodes.size(); i++ ) {
-            const double factor = GetFactor(nodes, neighbours,i);
+            const double factor = GetFactor(nodes,i);
             double partial_area;
             if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
                 partial_area = factor*min_distance_to_node[(i+3)%4].second*min_distance_to_node[i].first;
@@ -179,12 +179,12 @@ namespace Kratos {
             }
         }
 
-        std::vector<std::vector<double>> neighbours{{3,1},{0,2},{1,3},{2,0}};  
+        //std::size_t mNeighbours[4][2] = {{3,1},{0,2},{1,3},{2,0}};  
         for(std::size_t i = 0; i < nodes.size(); i++ ) {
-            array_1d<double,3> v_left{nodes[i].X() -nodes[neighbours[i][0]].X(), nodes[i].Y() -nodes[neighbours[i][0]].Y(), nodes[i].Z() -nodes[neighbours[i][0]].Z()};
-            array_1d<double,3> v_right{nodes[i].X() -nodes[neighbours[i][1]].X(), nodes[i].Y() -nodes[neighbours[i][1]].Y(), nodes[i].Z() -nodes[neighbours[i][1]].Z()};
+            array_1d<double,3> v_left{nodes[i].X() -nodes[mNeighbours[i][0]].X(), nodes[i].Y() -nodes[mNeighbours[i][0]].Y(), nodes[i].Z() -nodes[mNeighbours[i][0]].Z()};
+            array_1d<double,3> v_right{nodes[i].X() -nodes[mNeighbours[i][1]].X(), nodes[i].Y() -nodes[mNeighbours[i][1]].Y(), nodes[i].Z() -nodes[mNeighbours[i][1]].Z()};
 
-            const double Case = GetCase(nodes, neighbours,i);
+            const double Case = GetCase(nodes,i);
             double partial_area;
             double factor = 1;
             double left = 0;
@@ -302,14 +302,14 @@ namespace Kratos {
     /***********************************************************************************
      **********************************************************************************/
 
-    double VolumeInsideVoxelUtility::GetFactor(const PointsArrayType& nodes, 
-        const std::vector<std::vector<double>>& neighbours,
+    double VolumeInsideVoxelUtility::GetFactor(
+        const PointsArrayType& nodes, 
         const int node) 
     {
 
-        if( (nodes[node].GetSolutionStepValue(DISTANCE) > 0 && nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 &&
-            nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0) || (nodes[node].GetSolutionStepValue(DISTANCE) < 0 && 
-            nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 && nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0)) {
+        if( (nodes[node].GetSolutionStepValue(DISTANCE) > 0 && nodes[mNeighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 &&
+            nodes[mNeighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0) || (nodes[node].GetSolutionStepValue(DISTANCE) < 0 && 
+            nodes[mNeighbours[node][0]].GetSolutionStepValue(DISTANCE) > 0 && nodes[mNeighbours[node][1]].GetSolutionStepValue(DISTANCE) > 0)) {
                 return 0.5;
             }
         return 1.0;
@@ -320,12 +320,11 @@ namespace Kratos {
 
     int VolumeInsideVoxelUtility::GetCase(
         const PointsArrayType& rNodes,
-        const std::vector<std::vector<double>>& rNeighbours,
         const int NodeIndex) 
     {
         int me_inside = (int) rNodes[NodeIndex].GetSolutionStepValue(DISTANCE) > 0;
-        int left_inside = (int) (rNodes[rNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0);
-        int right_inside = (int) (rNodes[rNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0);
+        int left_inside = (int) (rNodes[mNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0);
+        int right_inside = (int) (rNodes[mNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0);
 
         if (me_inside) {
             return left_inside*2 + right_inside;

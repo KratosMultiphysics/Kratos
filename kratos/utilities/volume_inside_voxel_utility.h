@@ -151,7 +151,7 @@ private:
 
     ///@name Private static Member Variables
     ///@{
-
+    static constexpr std::size_t mNeighbours[4][2] = {{3,1},{0,2},{1,3},{2,0}};
     ///@}
     ///@name Private member Variables
     ///@{
@@ -164,9 +164,9 @@ private:
     ///@name Private Operations
     ///@{
 
-    static double GetFactor(const PointsArrayType& nodes, const std::vector<std::vector<double>>& neighbours,const int node);
+    static double GetFactor(const PointsArrayType& nodes, const int node);
 
-    static int GetCase(const PointsArrayType& nodes, const std::vector<std::vector<double>>& neighbours,const int node);
+    static int GetCase(const PointsArrayType& nodes, const int node);
 
 }; /* Class VoxelInsideVolumeUtility */
 
