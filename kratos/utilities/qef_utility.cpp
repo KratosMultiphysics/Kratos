@@ -30,12 +30,12 @@ namespace Kratos {
         GeometryArrayType edges = rVoxel.GenerateEdges();
 
         //Initialize the corresponding matrixes
-        MatrixType ata(3,3,0);  //3x3 matrix initialized to 0
-        MatrixType atb(3,1,0);  //3x1 matrix
+        BoundedMatrix<double,3,3>ata = ZeroMatrix(3,3);  
+        BoundedMatrix<double,3,1>atb = ZeroMatrix(3,1);
 
         for (std::size_t i = 0; i < rTriangles.size(); i++) {
             array_1d<double,3> normal = CalculateNormal(rTriangles[i]);
-            MatrixType mat_normal(3,1);
+            BoundedMatrix<double,3,1> mat_normal;
             column(mat_normal,0) = normal;
 
             //We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
