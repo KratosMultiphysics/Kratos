@@ -17,7 +17,7 @@ class TestDistributedModelPartInitializer(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KM.VISCOSITY)
 
         if KM.DataCommunicator.GetDefault().Rank() == 0:
-            KM.ModelPartIO(GetFilePath("test_mpi_communicator")).ReadModelPart(model_part)
+            KM.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_communicator")).ReadModelPart(model_part)
 
         DistributedModelPartInitializer(model_part, 0).Execute()
 
