@@ -34,6 +34,17 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+/**
+ * @namespace VolumeInsideVoxedDefinition
+ * @ingroup KratosCore
+ * @brief Neighbours definition
+ * @author Ariadna Cortes
+ */
+namespace VolumeInsideVoxedDefinition
+{
+    static constexpr std::size_t Neighbours[4][2] = {{3,1},{0,2},{1,3},{2,0}};
+}
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -52,7 +63,7 @@ namespace Kratos
  * @brief Utilities to compute the real volume inside a voxel
  * @details This class provides static methods to compute (using different approximations) the portion of a 
  * voxel that is actually filled with volume, according to the known triangle elements that intersect the voxel
- * @author Ariadna Cortés
+ * @author Ariadna Cortes
  */
 class VolumeInsideVoxelUtility
 {
@@ -151,8 +162,6 @@ private:
 
     ///@name Private static Member Variables
     ///@{
-
-    static constexpr std::size_t mNeighbours[4][2] = {{3,1},{0,2},{1,3},{2,0}};
 
     ///@}
     ///@name Private member Variables

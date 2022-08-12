@@ -106,7 +106,7 @@ namespace Kratos {
             }
         }
 
-        //std::vector<std::vector<double>> mNeighbours{{3,1},{0,2},{1,3},{0,2}};  
+        //std::vector<std::vector<double>> VolumeInsideVoxedDefinition::Neighbours{{3,1},{0,2},{1,3},{0,2}};  
         for(std::size_t i = 0; i < nodes.size(); i++ ) {
             const double factor = GetFactor(nodes,i);
             double partial_area;
@@ -179,10 +179,10 @@ namespace Kratos {
             }
         }
 
-        //std::size_t mNeighbours[4][2] = {{3,1},{0,2},{1,3},{2,0}};  
+        //std::size_t VolumeInsideVoxedDefinition::Neighbours[4][2] = {{3,1},{0,2},{1,3},{2,0}};  
         for(std::size_t i = 0; i < nodes.size(); i++ ) {
-            array_1d<double,3> v_left{nodes[i].X() -nodes[mNeighbours[i][0]].X(), nodes[i].Y() -nodes[mNeighbours[i][0]].Y(), nodes[i].Z() -nodes[mNeighbours[i][0]].Z()};
-            array_1d<double,3> v_right{nodes[i].X() -nodes[mNeighbours[i][1]].X(), nodes[i].Y() -nodes[mNeighbours[i][1]].Y(), nodes[i].Z() -nodes[mNeighbours[i][1]].Z()};
+            array_1d<double,3> v_left{nodes[i].X() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][0]].X(), nodes[i].Y() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][0]].Y(), nodes[i].Z() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][0]].Z()};
+            array_1d<double,3> v_right{nodes[i].X() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][1]].X(), nodes[i].Y() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][1]].Y(), nodes[i].Z() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][1]].Z()};
 
             const double Case = GetCase(nodes,i);
             double partial_area;
@@ -307,9 +307,9 @@ namespace Kratos {
         const int NodeIndex) 
     {
 
-        if( (rNodes[NodeIndex].GetSolutionStepValue(DISTANCE) > 0 && rNodes[mNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) < 0 &&
-            rNodes[mNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) < 0) || (rNodes[NodeIndex].GetSolutionStepValue(DISTANCE) < 0 && 
-            rNodes[mNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0 && rNodes[mNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0)) {
+        if( (rNodes[NodeIndex].GetSolutionStepValue(DISTANCE) > 0 && rNodes[VolumeInsideVoxedDefinition::Neighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) < 0 &&
+            rNodes[VolumeInsideVoxedDefinition::Neighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) < 0) || (rNodes[NodeIndex].GetSolutionStepValue(DISTANCE) < 0 && 
+            rNodes[VolumeInsideVoxedDefinition::Neighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0 && rNodes[VolumeInsideVoxedDefinition::Neighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0)) {
                 return 0.5;
             }
         return 1.0;
@@ -323,8 +323,8 @@ namespace Kratos {
         const int NodeIndex) 
     {
         int me_inside = (int) rNodes[NodeIndex].GetSolutionStepValue(DISTANCE) > 0;
-        int left_inside = (int) (rNodes[mNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0);
-        int right_inside = (int) (rNodes[mNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0);
+        int left_inside = (int) (rNodes[VolumeInsideVoxedDefinition::Neighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0);
+        int right_inside = (int) (rNodes[VolumeInsideVoxedDefinition::Neighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0);
 
         if (me_inside) {
             return left_inside*2 + right_inside;
