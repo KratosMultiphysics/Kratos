@@ -42,8 +42,8 @@ entries:
       - title: Compilation
         output: web
         subfolderitems:
-        - title: Compilation options
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/Compilation/Compilation-options.html
+        - title: Compilation Options
+          url: /pages/Kratos/For_Users/How_to_get_Kratos/Compilation/remote_Compilation_Options.html
           output: web
         - title: How to Compile Kratos in Debug mode
           url: /pages/Kratos/For_Users/How_to_get_Kratos/Compilation/How-to-Compile-Kratos-in-Debug-mode.html
