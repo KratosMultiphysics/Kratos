@@ -18,7 +18,7 @@ namespace Kratos {
     double VolumeInsideVoxelUtility::NodesApproximation(const GeometryType& rVoxel) {
         double volume = 0;
         const PointsArrayType& nodes = rVoxel.Points();
-        for (int i = 0; i < nodes.size(); i++) {
+        for (std::size_t i = 0; i < nodes.size(); i++) {
             if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
                 volume+=(1.0/nodes.size()); 
             } 
@@ -37,7 +37,7 @@ namespace Kratos {
         GeometryArrayType edges = rVoxel.GenerateEdges();
         std::vector<double> distances;
 
-        for (int i = 0; i < edges.size(); i++) {
+        for (std::size_t i = 0; i < edges.size(); i++) {
             distances.push_back(0);
             PointsArrayType& ends = edges[i].Points();
 
@@ -74,16 +74,16 @@ namespace Kratos {
         //ends[1] and an intersection and as second() the minimum distance between ends[1] and an intersection 
 
         std::vector<double> length(edges.size()); 
-        for(int i = 0; i < edges.size(); i++) {
+        for(std::size_t i = 0; i < edges.size(); i++) {
             const PointsArrayType& ends = edges[i].Points();
             const double l = Distance(ends[0], ends[1]);
             length[i] = l;
         }
 
-        for (int i = 0; i < rTriangles.size(); i++) {
+        for (std::size_t i = 0; i < rTriangles.size(); i++) {
             int result = 0; 
             array_1d<double,3> intersection;
-            int j = 0;
+            std::size_t j = 0;
 
             /*We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
             but possible), only one will be taken into account to create the matrixes. */
@@ -107,7 +107,7 @@ namespace Kratos {
         }
 
         std::vector<std::vector<double>> neighbours{{3,1},{0,2},{1,3},{0,2}};  
-        for(int i = 0; i < nodes.size(); i++ ) {
+        for(std::size_t i = 0; i < nodes.size(); i++ ) {
             const double factor = GetFactor(nodes, neighbours,i);
             double partial_area;
             if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
@@ -134,32 +134,32 @@ namespace Kratos {
         std::vector<std::pair<double,double>> min_distance_to_node(edges.size(),{1,1}); 
         
         int nodes_inside = 0;
-        for (int i = 0; i < nodes.size(); i++) {
+        for (std::size_t i = 0; i < nodes.size(); i++) {
             if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) nodes_inside++;
         }
 
         if(nodes_inside == 3) {
-            for (int i = 0; i < nodes.size(); i++)  {
+            for (std::size_t i = 0; i < nodes.size(); i++)  {
                 nodes[i].GetSolutionStepValue(DISTANCE) = -nodes[i].GetSolutionStepValue(DISTANCE);
             }
             const double area = HexahedraFaceArea(rFace,rTriangles);
-            for (int i = 0; i < nodes.size(); i++) {
+            for (std::size_t i = 0; i < nodes.size(); i++) {
                 nodes[i].GetSolutionStepValue(DISTANCE) = -nodes[i].GetSolutionStepValue(DISTANCE);
             }
             return 1-area;
         }
 
         std::vector<double> length(edges.size()); 
-        for(int i = 0; i < edges.size(); i++) {
+        for(std::size_t i = 0; i < edges.size(); i++) {
             const PointsArrayType& ends = edges[i].Points();
             const double l = Distance(ends[0], ends[1]);
             length[i] = l;
         }
 
-        for (int i = 0; i < rTriangles.size(); i++) {
+        for (std::size_t i = 0; i < rTriangles.size(); i++) {
             int result = 0; 
             array_1d<double,3> intersection;
-            int j = 0;
+            std::size_t j = 0;
             while(!result && j < edges.size()) { 
                 const PointsArrayType& ends = edges[j].Points();
                 result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
@@ -180,7 +180,7 @@ namespace Kratos {
         }
 
         std::vector<std::vector<double>> neighbours{{3,1},{0,2},{1,3},{2,0}};  
-        for(int i = 0; i < nodes.size(); i++ ) {
+        for(std::size_t i = 0; i < nodes.size(); i++ ) {
             array_1d<double,3> v_left{nodes[i].X() -nodes[neighbours[i][0]].X(), nodes[i].Y() -nodes[neighbours[i][0]].Y(), nodes[i].Z() -nodes[neighbours[i][0]].Z()};
             array_1d<double,3> v_right{nodes[i].X() -nodes[neighbours[i][1]].X(), nodes[i].Y() -nodes[neighbours[i][1]].Y(), nodes[i].Z() -nodes[neighbours[i][1]].Z()};
 
@@ -303,7 +303,7 @@ namespace Kratos {
             inside = false;
         }
 
-        for(int i = 1; i < Distances.size(); i++) {
+        for(std::size_t i = 1; i < Distances.size(); i++) {
             if (inside) {
                 portion += std::abs(Distances[i]-Distances[i-1])/length;
                 inside = false;
