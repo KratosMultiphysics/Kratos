@@ -83,7 +83,7 @@ namespace {
         GeometryPtrType geom3 = cond1->pGetGeometry();
         volumes[cond1->Id()] = geom3->Area(); 
 
-        c refineTetra(modelpart); 
+        SimpleToQuadraticTetrahedraMeshConverter refineTetra(modelpart); 
         refineTetra.LocalConvertSimpleToQuadraticTetrahedraMesh(false,false);
 
         KRATOS_CHECK_EQUAL(modelpart.Nodes().size(),14); //There are 14 nodes (10 for each tetra but 6 are shared)
