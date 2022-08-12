@@ -722,7 +722,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    array_type data_;
+    array_type data_{};
 
     ///@}
     ///@name Private Operators
