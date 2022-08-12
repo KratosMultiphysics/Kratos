@@ -116,10 +116,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("LocalRefineMesh", &LocalRefineTetrahedraMesh::LocalRefineMesh)
     ;
 
-    py::class_<Tetrahedra10MeshConverter >
-    (m,"Tetrahedra10MeshConverter")
+    py::class_<SimpleToQuadraticTetrahedraMeshConverter >
+    (m,"SimpleToQuadraticTetrahedraMeshConverter")
     .def(py::init<ModelPart&>())
-    .def("LocalConvertTetrahedra10Mesh", &Tetrahedra10MeshConverter::LocalConvertTetrahedra10Mesh)
+    .def("LocalConvertTetrahedra10Mesh", &SimpleToQuadraticTetrahedraMeshConverter::LocalConvertTetrahedra10Mesh)
     ;
 
 #ifdef USE_TETGEN_NONFREE_TPL

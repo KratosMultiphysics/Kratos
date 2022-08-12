@@ -10,8 +10,8 @@
 //  Main authors:    Ariadna Cortés
 //
 
-#if !defined(KRATOS_TETRAHEDRA10_MESH_CONVERTER_UTILITY)
-#define  KRATOS_TETRAHEDRA10_MESH_CONVERTER_UTILITY
+#if !defined(KRATOS_SIMPLE_TO_QUADRATIC_TETRAHEDRA_MESH_CONVERTER_UTILITY)
+#define  KRATOS_SIMPLE_TO_QUADRATIC_TETRAHEDRA_MESH_CONVERTER_UTILITY
 
 // System includes
 
@@ -36,7 +36,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class Tetrahedra10MeshConverter : public LocalRefineTetrahedraMesh
+class SimpleToQuadraticTetrahedraMeshConverter : public LocalRefineTetrahedraMesh
 {
 public:
 
@@ -52,13 +52,13 @@ public:
     ///@{
 
     /// Default constructors
-    Tetrahedra10MeshConverter(ModelPart& ModelPart) : LocalRefineTetrahedraMesh(ModelPart)
+    SimpleToQuadraticTetrahedraMeshConverter(ModelPart& ModelPart) : LocalRefineTetrahedraMesh(ModelPart)
     {
 
     }
 
     /// Destructor
-    ~Tetrahedra10MeshConverter() 
+    ~SimpleToQuadraticTetrahedraMeshConverter() 
     = default;
 
     ///@}
@@ -340,8 +340,8 @@ private:
     ///@{
     ///@}
 
-}; // Class Tetrahedra10MeshConverter
+}; // Class SimpleToQuadraticTetrahedraMeshConverter
 
 } // namespace Kratos.
 
-#endif // KRATOS_TETRAHEDRA10_MESH_CONVERTER_UTILITY  defined
+#endif // KRATOS_SIMPLE_TO_QUADRATIC_TETRAHEDRA_MESH_CONVERTER_UTILITY  defined
