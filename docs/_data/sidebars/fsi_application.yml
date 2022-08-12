@@ -7,5 +7,5 @@ entries:
     output: web
     folderitems:
     - title: 2D Mok benchmark
-      url: /Kratos/pages/Applications/Fluid-Structure_Interaction_Application/General/2D-Mok-benchmark.html
+      url: /pages/Applications/Fluid-Structure_Interaction_Application/General/2D-Mok-benchmark.html
       output: web

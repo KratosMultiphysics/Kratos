@@ -7,45 +7,45 @@ entries:
     output: web
     folderitems:
     - title: Multi objective optimization
-      url: /Kratos/pages/Applications/Shape_Optimization_Application/General/Multi_objective_optimization.html
+      url: /pages/Applications/Shape_Optimization_Application/General/Multi_objective_optimization.html
       output: web
     - title: Shape Optimization Application
-      url: /Kratos/pages/Applications/Shape_Optimization_Application/General/shape_optimization_application.html
+      url: /pages/Applications/Shape_Optimization_Application/General/shape_optimization_application.html
       output: web
       subfolders:
       - title: Sensitivity Analysis
         output: web
         subfolderitems:
         - title: Adjoint approach
-          url: /Kratos/pages/Applications/Shape_Optimization_Application/General/Sensitivity_Analysis/Adjoint_approach.html
+          url: /pages/Applications/Shape_Optimization_Application/General/Sensitivity_Analysis/Adjoint_approach.html
           output: web
         - title: Finite difference or direct approach
-          url: /Kratos/pages/Applications/Shape_Optimization_Application/General/Sensitivity_Analysis/Finite_difference_or_direct_approach.html
+          url: /pages/Applications/Shape_Optimization_Application/General/Sensitivity_Analysis/Finite_difference_or_direct_approach.html
           output: web
   - title: Technologies
     output: web
     folderitems:
     - title: Objectives
-      url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/Objectives.html
+      url: /pages/Applications/Shape_Optimization_Application/Technologies/Objectives.html
       output: web
     - title: Constraints
-      url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/Constraints.html
+      url: /pages/Applications/Shape_Optimization_Application/Technologies/Constraints.html
       output: web
     - title: Vertex morphing
-      url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/Vertex_morphing.html
+      url: /pages/Applications/Shape_Optimization_Application/Technologies/Vertex_morphing.html
       output: web
       subfolders:
       - title: Algorithms
         output: web
         subfolderitems:
         - title: Steepest Descent
-          url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/Algorithms/steepest_descent.html
+          url: /pages/Applications/Shape_Optimization_Application/Technologies/Algorithms/steepest_descent.html
           output: web
         - title: Penalized Projection
-          url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/Algorithms/penalized_projection.html
+          url: /pages/Applications/Shape_Optimization_Application/Technologies/Algorithms/penalized_projection.html
           output: web
         - title: Gradient Projection
-          url: /Kratos/pages/Applications/Shape_Optimization_Application/Technologies/Algorithms/gradient_projection.html
+          url: /pages/Applications/Shape_Optimization_Application/Technologies/Algorithms/gradient_projection.html
           output: web
   - title: Interfaces
     output: web
@@ -60,35 +60,35 @@ entries:
     output: web
     folderitems:
     - title: Angle of attack
-      url: /Kratos/pages/Applications/Shape_Optimization_Application/List of Response Functions/Angle_of_attack.html
+      url: /pages/Applications/Shape_Optimization_Application/List of Response Functions/Angle_of_attack.html
       output: web
     - title: Face angle
-      url: /Kratos/pages/Applications/Shape_Optimization_Application/List of Response Functions/Face_angle.html
+      url: /pages/Applications/Shape_Optimization_Application/List of Response Functions/Face_angle.html
       output: web
     - title: Mesh based packaging
-      url: /Kratos/pages/Applications/Shape_Optimization_Application/List of Response Functions/Mesh_based_packaging.html
+      url: /pages/Applications/Shape_Optimization_Application/List of Response Functions/Mesh_based_packaging.html
       output: web
     - title: Plane based packaging
-      url: /Kratos/pages/Applications/Shape_Optimization_Application/List of Response Functions/Plane_based_packaging.html
+      url: /pages/Applications/Shape_Optimization_Application/List of Response Functions/Plane_based_packaging.html
       output: web
     - title: Surface normal shape change
-      url: /Kratos/pages/Applications/Shape_Optimization_Application/List of Response Functions/Surface_normal_shape_change.html
+      url: /pages/Applications/Shape_Optimization_Application/List of Response Functions/Surface_normal_shape_change.html
       output: web
     - title: Total volume
-      url: /Kratos/pages/Applications/Shape_Optimization_Application/List of Response Functions/Total_volume.html
+      url: /pages/Applications/Shape_Optimization_Application/List of Response Functions/Total_volume.html
       output: web
   - title: Examples
     output: web
     folderitems:
     - title: Strain Energy Minimization 3D Shell
-      url: /Kratos/pages/Applications/Shape_Optimization_Application/Examples/remote_Strain_Energy_Minimization_3D_Shell.html
+      url: /pages/Applications/Shape_Optimization_Application/Examples/remote_Strain_Energy_Minimization_3D_Shell.html
       output: web
     - title: Bead Optimization Plate
-      url: /Kratos/pages/Applications/Shape_Optimization_Application/Examples/remote_Bead_Optimization_Plate.html
+      url: /pages/Applications/Shape_Optimization_Application/Examples/remote_Bead_Optimization_Plate.html
       output: web
     - title: Multi Constraint Optimization 3D Hook
-      url: /Kratos/pages/Applications/Shape_Optimization_Application/Examples/remote_Multi_Constraint_Optimization_3D_Hook.html
+      url: /pages/Applications/Shape_Optimization_Application/Examples/remote_Multi_Constraint_Optimization_3D_Hook.html
       output: web
     - title: Shape Update Optimization Stanford Bunny
-      url: /Kratos/pages/Applications/Shape_Optimization_Application/Examples/remote_Shape_Update_Optimization_Stanford_Bunny.html
+      url: /pages/Applications/Shape_Optimization_Application/Examples/remote_Shape_Update_Optimization_Stanford_Bunny.html
       output: web
