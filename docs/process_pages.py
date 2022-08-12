@@ -37,7 +37,7 @@ def CreateEntriesDicts(current_path: Path, navigation_level: int, max_navigation
             landing_url = menu_data["landing_page"]
         else:
             # check whether this dir has markdown files. If so throw an error stating it has reached maximum levels.
-            for itr_dir in current_path.iterdir():
+            for iter_dir in current_path.iterdir():
                 if iter_dir.is_file() and str(iter_dir).endswith(".md"):
                     raise Exception("Found pages in {:s} which is above the maximum supported levels in the navigation bar. Please move them to one of the parent folders.".format(str(current_path)))
             return []
