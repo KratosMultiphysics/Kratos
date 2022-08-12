@@ -27,7 +27,6 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/triangle_3d_3.h"
 #include "intersection_utilities.h"
-#include "../external_libraries/a_matrix/include/matrix.h"
 
 namespace Kratos
 { 
