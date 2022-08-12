@@ -405,9 +405,12 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
         // TODO: The proper thing to do will be to use the neighbour ranks of the current rank, but for debugging first we start with passing all the info to rank 0 and passs back to the rest of ranks
         // Now we will send to rank 0 the faces_to_remove. We define a scope, so everything will be removed at the end, except the clean up of the faces_to_remove
         {
-            int tag = 1;
+            const int tag_first_send = 1;
+            const int tag_second_send = 2;
             // Rest of the processes
             if (rank != 0) {
+                const int destination_rank = 0;
+
                 // We generate the hash of the faces to use the communicator to send
                 std::unordered_map<std::size_t, VectorIndexType> faces_hash_map;
                 std::vector<std::size_t> faces_to_remove_hash;
@@ -419,7 +422,13 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
                 }
 
                 // We send the faces_to_remove_hash to the main process
-                r_data_communicator.Send(faces_to_remove_hash, 0, tag);
+                r_data_communicator.Send(faces_to_remove_hash, destination_rank, tag_first_send);
+
+                // Now we receive from the rank 0
+                std::vector<std::size_t> final_faces_to_remove;
+                r_data_communicator.Send(final_faces_to_remove, destination_rank, tag_second_send);
+
+                // Finally filter the faces to be removed
 
             } else { // Main process
                 std::unordered_map<std::size_t, bool> faces_mpi_counter;
@@ -435,8 +444,31 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
                 // Now we receive the faces_to_remove from the rest of the processes
                 for (int i_rank = 1; i_rank < world_size; ++i_rank) {
                     std::vector<std::size_t> rec_faces_to_remove_hash;
-                    r_data_communicator.Recv(rec_faces_to_remove_hash, i_rank, tag);
+                    r_data_communicator.Recv(rec_faces_to_remove_hash, i_rank, tag_first_send);
+
+                    // Update the faces to be removed
+                    for (auto& r_hash_hash : rec_faces_to_remove_hash) {
+                        auto it_find_face = faces_mpi_counter.find(r_hash_hash);
+                        if (it_find_face != faces_mpi_counter.end()) {
+                            it_find_face->second = true;
+                        }
+                    }
                 }
+
+                // Now we create the vector of ids to be removed
+                std::vector<std::size_t> final_faces_to_remove;
+                for (auto& r_face_pair : faces_mpi_counter) {
+                    if (r_face_pair.second) {
+                        final_faces_to_remove.push_back(r_face_pair.first);
+                    }
+                }
+
+                // Now we send to the rest of processes
+                for (int i_rank = 1; i_rank < world_size; ++i_rank) {
+                    r_data_communicator.Send(final_faces_to_remove, i_rank, tag_second_send);
+                }
+
+                // Finally filter the faces to be removed
             }
         }
 
