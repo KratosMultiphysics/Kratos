@@ -76,7 +76,7 @@ public:
     * @param RefineOnReference: Boolean that defines if refine or not the mesh according to the reference
     * @param InterpolateInternalVariables: Boolean that defines if to interpolate or not the internal variables
     */
-    void LocalConvertTetrahedra10Mesh(
+    void LocalConvertSimpleToQuadraticTetrahedraMesh(
         bool RefineOnReference, 
         bool InterpolateInternalVariables) 
     {

@@ -119,7 +119,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<SimpleToQuadraticTetrahedraMeshConverter >
     (m,"SimpleToQuadraticTetrahedraMeshConverter")
     .def(py::init<ModelPart&>())
-    .def("LocalConvertTetrahedra10Mesh", &SimpleToQuadraticTetrahedraMeshConverter::LocalConvertTetrahedra10Mesh)
+    .def("LocalConvertSimpleToQuadraticTetrahedraMesh", &SimpleToQuadraticTetrahedraMeshConverter::LocalConvertSimpleToQuadraticTetrahedraMesh)
     ;
 
 #ifdef USE_TETGEN_NONFREE_TPL
