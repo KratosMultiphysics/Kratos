@@ -49,7 +49,7 @@ namespace {
     }
 } //unnamed namespace
 
-    KRATOS_TEST_CASE_IN_SUITE(Tet10RefinementUtility, KratosMeshingApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SimpleToQuadraticTetrahedraMeshConverter, KratosMeshingApplicationFastSuite)
     {
         Model MyModel;
         ModelPart& modelpart = MyModel.CreateModelPart("Tetrahedras"); 
