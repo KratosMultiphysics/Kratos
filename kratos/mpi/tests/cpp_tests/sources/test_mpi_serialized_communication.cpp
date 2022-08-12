@@ -11,12 +11,15 @@
 //
 //
 
+// System includes
+
+// External includes
 #include "mpi.h"
 
+// Project includes
 #include "containers/model.h"
 #include "includes/data_communicator.h"
 #include "includes/model_part.h"
-
 #include "testing/testing.h"
 
 namespace Kratos {
