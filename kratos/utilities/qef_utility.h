@@ -53,6 +53,7 @@ namespace Kratos
  * @class QEF (quadratic error function)
  * @ingroup KratosCore
  * @brief Utilities to compute the minimum error point in a 3D voxel intersected by a triangle mesh
+ * This implementation is based on the algorithm explained here: https://www.mattkeeter.com/projects/qef/
  * @author Ariadna Cortes
  */
 class KRATOS_API(KRATOS_CORE) QEF
