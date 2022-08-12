@@ -117,9 +117,6 @@ entries:
     - title: Python Tutorials
       url: /pages/Kratos/For_Users/Getting_started/tutorials.html
       output: web
-    - title: Running an example from GiD
-      url: /pages/Kratos/For_Users/Getting_started/Running-an-example-from-GiD.html
-      output: web
       subfolders:
       - title: File structure
         output: web
