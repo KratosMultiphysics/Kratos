@@ -102,8 +102,8 @@ namespace Kratos {
     }
 
     double QEF::Check(
-        const double& d, 
-        const double& epsilon)
+        const double d, 
+        const double epsilon)
     {
         if (d > epsilon)  {
             return d;

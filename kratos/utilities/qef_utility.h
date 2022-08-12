@@ -138,8 +138,8 @@ private:
     ///@{
 
     static double Check(
-        const double& d, 
-        const double& epsilon
+        const double d, 
+        const double epsilon
     );
 
 }; /* Class VoxelInsideVolumeUtility */
