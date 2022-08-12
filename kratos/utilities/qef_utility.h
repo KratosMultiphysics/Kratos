@@ -107,13 +107,6 @@ public:
     );
 
     /**
-     * @brief Calculates the center of a geometry
-     * @param rVoxel reference to the geometry
-     * @return Center (x,y,z)
-     */  
-    static array_1d<double,3> CalculateCenter(const GeometryType& rVoxel);
-
-    /**
      * @brief Calculates the normal vector to the surface of a 3D triangle 
      * @param rTriangle reference to the triangle
      * @return Normal vector (x,y,z)

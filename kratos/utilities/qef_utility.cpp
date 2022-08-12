@@ -24,7 +24,7 @@ namespace Kratos {
         const GeometryArrayType& rTriangles     
     ) {
         array_1d<double,3> x_point;
-        array_1d<double,3> center = CalculateCenter(rVoxel);
+        array_1d<double,3> center = rVoxel.Center().Coordinates();
         MatrixType m_center(3,1);
         column(m_center,0) = center;
         GeometryArrayType edges = rVoxel.GenerateEdges();
@@ -81,20 +81,6 @@ namespace Kratos {
         x_point = column(solution,0);
 
         return x_point;
-    }
-
-
-    array_1d<double,3> QEF::CalculateCenter(const GeometryType& rVoxel) {
-        PointsArrayType nodes = rVoxel.Points();
-        double x, y, z;
-        x = y = z = 0;
-        for(std::size_t i = 0; i < nodes.size(); i++) {
-            x += nodes[i].X();
-            y += nodes[i].Y();
-            z += nodes[i].Z();
-        }
-        array_1d<double,3> center({x/nodes.size(),y/nodes.size(),z/nodes.size()});
-        return center;
     }
 
     array_1d<double,3> QEF::CalculateNormal(const GeometryType& rTriangle) {

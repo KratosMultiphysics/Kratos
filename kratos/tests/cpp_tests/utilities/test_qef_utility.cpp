@@ -101,21 +101,6 @@ namespace Testing {
         } 
     } //unnamed namespace
 
-    KRATOS_TEST_CASE_IN_SUITE(CalculateCenter, KratosCoreFastSuite) 
-    {
-
-        //Generate the HEXAHEDRA3D8
-        std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1,};   
-        GeometryPtrType p_voxel = QEFGenerateHexahedra3D8(distances);
-
-        array_1d<double,3> center = QEF::CalculateCenter(*p_voxel);
-
-        //Expected output of the function
-        KRATOS_CHECK_EQUAL(center[0], 0.0);
-        KRATOS_CHECK_EQUAL(center[1], 0.0);
-        KRATOS_CHECK_EQUAL(center[2], 0.0);
-    }
-
     KRATOS_TEST_CASE_IN_SUITE(CalculateNormal, KratosCoreFastSuite) 
     {
 
