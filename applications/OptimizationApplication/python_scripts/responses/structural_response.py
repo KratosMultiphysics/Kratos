@@ -42,7 +42,7 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
             self.variable = "STRAIN_ENERGY_3"
 
         self.supported_control_types = ["shape","thickness","material"]
-        self.gradients_variables = {"shape":"D_"+self.variable+"_D_X","thickness":"D_"+self.variable+"_D_PT","material":"D_"+self.variable+"_D_PE"}         
+        self.gradients_variables = {"shape":"D_"+self.variable+"_D_X","thickness":"D_"+self.variable+"_D_PT","material":"D_"+self.variable+"_D_FD"}         
 
         if len(self.evaluated_model_parts) != 1:
             raise RuntimeError("StrainEnergyResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 
@@ -138,7 +138,7 @@ class MassResponseFunction(BaseResponseFunction):
             self.gradient_settings = self.response_settings["gradient_settings"]     
 
         self.supported_control_types = ["shape","thickness","material"]
-        self.gradients_variables = {"shape":"D_MASS_D_X","thickness":"D_MASS_D_PT","material":"D_MASS_D_PD"}
+        self.gradients_variables = {"shape":"D_MASS_D_X","thickness":"D_MASS_D_PT","material":"D_MASS_D_FD"}
 
         if len(self.evaluated_model_parts) != 1:
             raise RuntimeError("MassResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 

@@ -24,7 +24,9 @@ class HelmholtzMaterial(MaterialControl):
                     "beta":25,
                     "initial_density":0.000001,
                     "youngs_modules": [], 
-                    "physical_densities": [],    
+                    "physical_densities": [],
+                    "fixed_model_parts": [],
+                    "fixed_model_parts_densities": [],    
                     "linear_solver_settings" : {
                         "solver_type" : "amgcl",
                         "smoother_type":"ilu0",

@@ -194,7 +194,8 @@ public:
                         L2_norm += nodal_gradient * nodal_gradient;
                     }
                 }
-                // L2_norm = std::sqrt(L2_norm);         
+                // L2_norm = std::sqrt(L2_norm); 
+                L2_norm = 1.0;        
 
                 int node_index=0;
                 for(auto& node : objective_controlled_obj_model_part.Nodes()){
@@ -220,25 +221,32 @@ public:
         Vector active_constraints_violations(num_active_constraints,0.0);
         for(auto& constraint : mrSettings["constraints"]){
             if(constraint["is_active"].GetBool()){
-
+                auto const_type = constraint["type"].GetString();
                 double current_violation = (constraint["value"].GetDouble()-constraint["ref_value"].GetDouble())/constraint["ref_value"].GetDouble();
                 double previous_violation = (constraint["prev_itr_value"].GetDouble()-constraint["ref_value"].GetDouble())/constraint["ref_value"].GetDouble();
                 double relative_change = (constraint["value"].GetDouble()-constraint["prev_itr_value"].GetDouble())/constraint["prev_itr_value"].GetDouble();
                 double weight = constraint["weight"].GetDouble();
                 // set the weight
                 if(opt_itr>1){
+
                     if((std::abs(current_violation)>std::abs(previous_violation)) && (100 * std::abs(previous_violation)>1.0))
                         weight *= 1.25;
                     else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(current_violation)>1.0) && (100 * std::abs(relative_change)<1.0))
-                        weight *= 1.25;                        
-                    else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(current_violation)<1.0))
-                        weight *= 0.75;                        
-                    else if((100 * std::abs(current_violation)<1.0) && (sum_obj_improvement>0))
-                        weight *= 0.75;
-                    else if((current_violation>0.0) && (previous_violation<0))
-                        weight *= 0.5;
-                    else if((current_violation<0.0) && (previous_violation>0))
-                        weight *= 0.5;
+                        weight *= 1.25;
+                    else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(relative_change)<1.0) && ((const_type!="equality") && (const_type!="initial_value_equality")))
+                        weight *= 1.25;
+
+                    if ((const_type=="equality") || (const_type=="initial_value_equality"))
+                        if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(current_violation)<1.0))
+                            weight *= 0.75;                        
+                        else if((100 * std::abs(current_violation)<1.0) && (sum_obj_improvement>0))
+                            weight *= 0.75;
+                        else if((current_violation>0.0) && (previous_violation<0))
+                            weight *= 0.5;
+                        else if((current_violation<0.0) && (previous_violation>0))
+                            weight *= 0.5;
+
+
                     if(weight<1.0)
                         weight = 1.0;                        
                 } 
@@ -277,6 +285,7 @@ public:
                         } 
                         node_index++;
                     }
+                    L2_norm = 1.0;
                     // L2_norm = std::sqrt(L2_norm);
                     // now do the l2_norm scaling
                     for (int i=0;i<constraint_controlled_object_size*constraint_controlled_obj_model_part.Nodes().size();i++)
@@ -323,20 +332,17 @@ public:
 
             Vector projection = - (mObjectiveGradients - prod(trans(active_constraints_gradients), Vector(prod(NTN_inv, Vector(prod(active_constraints_gradients, mObjectiveGradients))))));
             Vector correction = - prod(trans(active_constraints_gradients), Vector(prod(NTN_inv,active_constraints_violations)));
+            double sin_alpha = norm_2(projection);
+            
+            mrSettings["sin_alpha"].SetDouble(sin_alpha);
 
             mSearchDirection = (projection_step_size * projection / norm_2(projection)) + (correction_step_size * correction);
    
         }
         else{
-            mSearchDirection = - mObjectiveGradients;
+            mSearchDirection = - projection_step_size * mObjectiveGradients / norm_2(mObjectiveGradients);
         }
             
-
-        // mSearchDirection /= norm_2(mSearchDirection);
-
-
-
-
         // compute and set the updates
         int index = 0;
         for(auto& control : mrSettings["controls"]){

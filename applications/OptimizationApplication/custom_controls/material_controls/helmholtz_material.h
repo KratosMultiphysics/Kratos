@@ -136,23 +136,34 @@ public:
         beta = mTechniqueSettings["beta"].GetDouble();        
         filtered_densities.resize(physical_densities.size());
         
-        for(int i=0;i<physical_densities.size();i++){
+        for(int i=0;i<physical_densities.size();i++)
             filtered_densities[i] = i;
-        }
+        
         double initial_filtered_density = ProjectBackward(initial_density,filtered_densities,physical_densities,beta);
         double initial_control_density = initial_filtered_density;
-        double initial_young_modulus = ProjectForward(initial_filtered_density,filtered_densities,youngs_modules,beta);
-
-        std::cout<<"initial_filtered_density : "<<initial_filtered_density<<std::endl;
-        std::cout<<"initial_young_modulus : "<<initial_young_modulus<<std::endl;
-
 
         for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
-            SetVariable(mpVMModelParts[model_i],CD,initial_filtered_density); 
             SetVariable(mpVMModelParts[model_i],FD,initial_filtered_density); 
-            SetVariable(mpVMModelParts[model_i],PD,initial_density); 
-            SetVariable(mpVMModelParts[model_i],YOUNG_MODULUS,initial_young_modulus);
-        }             
+            SetVariable(mpVMModelParts[model_i],PD,initial_density);
+        }  
+
+        const auto& fixed_model_parts =  mTechniqueSettings["fixed_model_parts"];
+        const auto& fixed_model_parts_densities = mTechniqueSettings["fixed_model_parts_densities"].GetVector();
+
+        for(int i=0; i<fixed_model_parts.size();i++)
+        {
+            const auto& model_part = mrModel.GetModelPart(fixed_model_parts[i].GetString());
+            auto model_part_phyisical_dens = fixed_model_parts_densities[i];
+            double model_part_filtered_dens = ProjectBackward(model_part_phyisical_dens,filtered_densities,physical_densities,beta);
+            for(auto& node_i : model_part.Nodes()){
+                auto& filtered_density = node_i.FastGetSolutionStepValue(FD);
+                auto& physical_density = node_i.FastGetSolutionStepValue(PD);
+                filtered_density = model_part_filtered_dens;
+                physical_density = model_part_phyisical_dens;
+            }                
+        }
+
+        ComputeInitialControlDensities();
 
         KRATOS_INFO("HelmholtzMaterial:Initialize") << "Finished initialization of material control "<<mControlName<<" in " << timer.ElapsedSeconds() << " s." << std::endl;
 
@@ -164,8 +175,8 @@ public:
 
         if (opt_itr % 20 == 0 && beta <20.0)
             beta *=1.5;
-        if(beta>20.0)
-            beta = 20.0;
+        if(beta>25.0)
+            beta = 25.0;
         
         std::cout<<"++++++++++++++++++++++ beta : "<<beta<<" ++++++++++++++++++++++"<<std::endl;
 
@@ -173,7 +184,6 @@ public:
         ComputePhyiscalDensity();
         ComputeYoungModulus();
         
-
     };  
     // --------------------------------------------------------------------------
     void MapControlUpdate(const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable) override{};
@@ -188,17 +198,7 @@ public:
         for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
-            //do the inverse projection and penalization
-            for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
-                const auto& filtered_density = node_i.FastGetSolutionStepValue(FD);
-                const auto& derivative = node_i.FastGetSolutionStepValue(rDerivativeVariable);
-                auto& helmholtz_source = node_i.FastGetSolutionStepValue(HELMHOLTZ_SOURCE_DENSITY);
-                if(rDerivativeVariable.Name()=="D_MASS_D_PD")
-                    helmholtz_source = ProjectFirstDerivative(derivative,filtered_density,filtered_densities,physical_densities,beta);
-                else
-                    helmholtz_source = ProjectFirstDerivative(derivative,filtered_density,filtered_densities,youngs_modules,beta);
-            }
-
+            SetVariable1ToVarible2(mpVMModePart,rDerivativeVariable,HELMHOLTZ_SOURCE_DENSITY);
             SetVariable(mpVMModePart,HELMHOLTZ_VAR_DENSITY,0.0);
 
             //now solve 
@@ -421,7 +421,82 @@ private:
             }
         }
 
+        // now apply dirichlet BC
+        const auto& fixed_model_parts =  mTechniqueSettings["fixed_model_parts"];
+
+        for(int i=0; i<fixed_model_parts.size();i++)
+        {
+            const auto& model_part = mrModel.GetModelPart(fixed_model_parts[i].GetString());
+            for(auto& node_i : model_part.Nodes())
+                node_i.Fix(HELMHOLTZ_VAR_DENSITY);
+        }        
+
     }
+
+    void ComputeInitialControlDensities(){
+
+        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        {
+            ModelPart* mpVMModePart = mpVMModelParts[model_i];
+            
+            ProcessInfo &rCurrentProcessInfo = (mpVMModePart)->GetProcessInfo();
+            
+            SetVariable(mpVMModePart,HELMHOLTZ_SOURCE_DENSITY,0.0);
+            SetVariable(mpVMModePart,CD,0.0);
+
+            // // calculate (K+M) * X element wise, here we treat CX as an auxilary 
+            rCurrentProcessInfo[COMPUTE_CONTROL_DENSITIES] = false;
+            for(auto& node_i : mpVMModePart->Nodes())
+            {
+                auto& r_nodal_variable_hl_vars = node_i.FastGetSolutionStepValue(HELMHOLTZ_VAR_DENSITY);
+                const auto& r_nodal_variable_fd = node_i.FastGetSolutionStepValue(FD);
+                r_nodal_variable_hl_vars = r_nodal_variable_fd;
+            }
+            
+            for(auto& elem_i : mpVMModePart->Elements())
+            {
+                VectorType rhs;
+                MatrixType lhs;
+                elem_i.Initialize(mpVMModePart->GetProcessInfo());
+                elem_i.CalculateLocalSystem(lhs,rhs,mpVMModePart->GetProcessInfo());
+                AddElementVariableValuesVector(elem_i,CD,rhs,-1.0);
+            }        
+
+            for(auto& cond_i : mpVMModePart->Conditions())
+            {
+                VectorType rhs;
+                MatrixType lhs;
+                cond_i.Initialize(mpVMModePart->GetProcessInfo());
+                cond_i.CalculateLocalSystem(lhs,rhs,mpVMModePart->GetProcessInfo());
+                AddConditionVariableValuesVector(cond_i,CD,rhs,-1.0);
+            }
+
+            
+            // here we fill the RHS of M * S = (K+M) * X
+            SetVariable1ToVarible2(mpVMModePart,CD,HELMHOLTZ_SOURCE_DENSITY);
+            SetVariable(mpVMModePart,HELMHOLTZ_VAR_DENSITY,0.0);
+
+            // apply BC on the RHS and unassign BC
+            for(auto& node_i : mpVMModePart->Nodes())
+            {
+                auto& r_nodal_variable_hl_var = node_i.FastGetSolutionStepValue(HELMHOLTZ_VAR_DENSITY);
+                if(node_i.IsFixed(HELMHOLTZ_VAR_DENSITY))
+                    r_nodal_variable_hl_var = node_i.FastGetSolutionStepValue(FD);           
+            }
+
+            
+            // here we compute S = M-1 * (K+M) * X
+            rCurrentProcessInfo[COMPUTE_CONTROL_DENSITIES] = true;   
+            mpStrategies[model_i]->Solve();
+            // here we clear/reset the problem for the clearaty's sake
+            mpStrategies[model_i]->GetStrategy()->Clear();
+            SetVariable1ToVarible2(mpVMModePart,HELMHOLTZ_VAR_DENSITY,CD);
+            rCurrentProcessInfo[COMPUTE_CONTROL_DENSITIES] = false;
+        }
+
+        // std::cout<<"Hi Reza you finished here "<<std::endl;
+
+    } 
 
     void ComputeFilteredDensity(){   
 
@@ -444,6 +519,14 @@ private:
                 VectorType int_vals = prod(mass_matrix,origin_values);
                 AddElementVariableValuesVector(elem_i,HELMHOLTZ_SOURCE_DENSITY,int_vals);
             }
+
+            //now we need to apply BCs 
+            for(auto& node_i : mpVMModelParts[model_i]->Nodes())
+            {
+                auto& r_nodal_variable_hl_var = node_i.FastGetSolutionStepValue(HELMHOLTZ_VAR_DENSITY);
+                if(node_i.IsFixed(HELMHOLTZ_VAR_DENSITY))
+                    r_nodal_variable_hl_var = node_i.FastGetSolutionStepValue(FD);           
+            }
             mpStrategies[model_i]->Solve();
             SetVariable1ToVarible2(mpVMModelParts[model_i],HELMHOLTZ_VAR_DENSITY,FD);
         }        
@@ -455,7 +538,9 @@ private:
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
                 const auto& filtered_density = node_i.FastGetSolutionStepValue(FD);
                 auto& physical_density = node_i.FastGetSolutionStepValue(PD);
+                auto& physical_density_der = node_i.FastGetSolutionStepValue(D_PD_D_FD);
                 physical_density = ProjectForward(filtered_density,filtered_densities,physical_densities,beta);
+                physical_density_der = FirstFilterDerivative(filtered_density,filtered_densities,physical_densities,beta);
             }
         }
     }
@@ -465,8 +550,10 @@ private:
             //now do the projection and then set the PD
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
                 const auto& filtered_density = node_i.FastGetSolutionStepValue(FD);
-                auto& youngs_modulus = node_i.FastGetSolutionStepValue(YOUNG_MODULUS);
+                auto& youngs_modulus = node_i.FastGetSolutionStepValue(PE);
+                auto& youngs_modulus_der = node_i.FastGetSolutionStepValue(D_PE_D_FD);
                 youngs_modulus = ProjectForward(filtered_density,filtered_densities,youngs_modules,beta);
+                youngs_modulus_der = FirstFilterDerivative(filtered_density,filtered_densities,youngs_modules,beta);
             }
         }
     }
@@ -553,7 +640,7 @@ private:
         return x;
     }
 
-    double ProjectFirstDerivative(double dfdy,double x,Vector x_limits,Vector y_limits,double beta){
+    double FirstFilterDerivative(double x,Vector x_limits,Vector y_limits,double beta){
 
         double dfdx = 0;
         double x1,x2,y1,y2;
@@ -587,12 +674,12 @@ private:
         // if(pow_val>600)
         //     pow_val = 600;
 
-        double dydx = (1.0/(1+std::exp(pow_val))) * (1.0/(1+std::exp(pow_val))) * 2.0 * beta * std::exp(pow_val);
+        double dydx = (y2-y1) * (1.0/(1+std::exp(pow_val))) * (1.0/(1+std::exp(pow_val))) * 2.0 * beta * std::exp(pow_val);
 
-        if (y2<y1)
-            dydx *=-1;
+        // if (y2<y1)
+        //     dydx *=-1;
 
-        return dfdy * dydx;
+        return dydx;
 
     }    
 

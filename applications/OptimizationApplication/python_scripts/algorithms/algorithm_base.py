@@ -147,6 +147,7 @@ class OptimizationAlgorithm:
         self.opt_parameters.AddDouble("projection_step_size",self.projection_step_size)
         self.opt_parameters.AddDouble("correction_step_size",self.correction_step_size)
         self.opt_parameters.AddInt("num_active_consts",0)
+        self.opt_parameters.AddDouble("sin_alpha",0)
         self.opt_parameters.AddBool("opt_converged",False)
         for response in self.responses_controlled_objects.keys():
             response_settings = Parameters()
@@ -289,7 +290,8 @@ class OptimizationAlgorithm:
                 elif (type == "bigger_than" or type == "bigger_than_initial_value")  and value<ref_value:
                     is_active = True
 
-                self.num_active_consts += 1
+                if is_active:
+                    self.num_active_consts += 1
 
                 constraint["is_active"].SetBool(is_active)
 
@@ -313,15 +315,18 @@ class OptimizationAlgorithm:
                 row.append("{:>4s}".format("ref_val "))
                 row.append("{:>4s}".format("ref_diff[%]"))
                 row.append("{:>4s}".format("weight"))
+                row.append("{:>4s}".format("is_active"))
 
 
             row.append("{:>4s}".format("projection_step_size"))
-            row.append("{:>4s}".format("correction_step_size"))
+            if self.opt_parameters["constraints"].size() > 0:
+                row.append("{:>4s}".format("correction_step_size"))
+                row.append("{:>4s}".format("sin_alpha"))
 
             historyWriter.writerow(row)
 
     # --------------------------------------------------------------------------
-    def _WriteCurrentResponseValuesToCSVFile( self ):
+    def _WriteCurrentOptItrToCSVFile( self ):
         
         with open(self.complete_log_file_name, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
@@ -356,6 +361,7 @@ class OptimizationAlgorithm:
                 constraint_current_value = constraint["value"].GetDouble() 
                 constraint_ref_val = constraint["ref_value"].GetDouble()
                 constraint_weight = constraint["weight"].GetDouble()
+                is_active = constraint["is_active"].GetBool()
                 abs_change = 100 * abs(constraint_current_value-constraint_ref_val)/abs(constraint_ref_val)
 
                 Logger.Print("  ===== constraint: ",constraint["name"].GetString())
@@ -363,17 +369,23 @@ class OptimizationAlgorithm:
                 Logger.Print("                   ref value: ",constraint_ref_val)
                 Logger.Print("                   change: ",abs_change)
                 Logger.Print("                   weight: ",constraint_weight)
+                Logger.Print("                   is_active: ",is_active)
 
                 row.append(" {:> .5E}".format(constraint_current_value))
                 row.append(" {:> .5E}".format(constraint_ref_val))
                 row.append(" {:> .5E}".format(abs_change))
                 row.append(" {:> .5E}".format(constraint_weight))
+                row.append(" {:> .5E}".format(is_active))
+                
 
-
-            Logger.Print("  ===== projection_step_size: ",self.opt_parameters["projection_step_size"].GetDouble())
-            Logger.Print("  ===== correction_step_size: ",self.opt_parameters["correction_step_size"].GetDouble())
+            Logger.Print("  ===== projection_step_size: ",self.opt_parameters["projection_step_size"].GetDouble())            
             row.append(" {:> .5E}".format(self.opt_parameters["projection_step_size"].GetDouble()))
-            row.append(" {:> .5E}".format(self.opt_parameters["correction_step_size"].GetDouble()))
+
+            if self.opt_parameters["constraints"].size() > 0 and self.opt_parameters["num_active_consts"].GetInt()>0:
+                Logger.Print("  ===== correction_step_size: ",self.opt_parameters["correction_step_size"].GetDouble())
+                row.append(" {:> .5E}".format(self.opt_parameters["correction_step_size"].GetDouble()))
+                Logger.Print("  ===== sin alpha: ",self.opt_parameters["sin_alpha"].GetDouble())
+                row.append(" {:> .5E}".format(self.opt_parameters["sin_alpha"].GetDouble()))
 
             historyWriter.writerow(row)
 

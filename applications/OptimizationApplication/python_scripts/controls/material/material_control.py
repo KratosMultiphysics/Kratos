@@ -22,7 +22,7 @@ class MaterialControl():
 
         self.control_variable_name = "CD"
         self.control_update_name = "D_CD"
-        self.output_names = ["CD","PD","FD","D_CD","YOUNG_MODULUS"]
+        self.output_names = ["CD","FD","PD","PE","D_CD","D_PD_D_FD","D_PE_D_FD"]
 
         # add vars
         for model_part_name in self.controlling_objects:

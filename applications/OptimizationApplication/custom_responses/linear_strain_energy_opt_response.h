@@ -289,12 +289,21 @@ public:
         lambda = 0.5*u;
 
         for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
-            auto& node_val = r_this_geometry[i_node].FastGetSolutionStepValue(YOUNG_MODULUS);
-            double current_val = node_val;
-            node_val = 1.0;
+            const auto& d_pe_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PE_D_FD);
+            auto& pe = r_this_geometry[i_node].FastGetSolutionStepValue(PE);
+            double current_pe = pe;
+            pe = 1.0;
             elem_i.CalculateRightHandSide(RHS, rCurrentProcessInfo);
-            node_val = current_val;
-            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += inner_prod(RHS,lambda);
+            pe = current_pe;
+            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pe_d_fd * inner_prod(RHS,lambda);
+
+            const auto& d_pd_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PD_D_FD);
+            auto& pd = r_this_geometry[i_node].FastGetSolutionStepValue(PD);
+            double current_pd = pd;
+            pd = 1.0;
+            elem_i.CalculateRightHandSide(RHS, rCurrentProcessInfo);
+            pd = current_pd;
+            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pd_d_fd * inner_prod(RHS,lambda);
         }
 
     };        

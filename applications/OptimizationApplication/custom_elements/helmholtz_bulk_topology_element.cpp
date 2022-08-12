@@ -65,6 +65,9 @@ void HelmholtzBulkTopologyElement::CalculateLocalSystem(MatrixType& rLeftHandSid
     KRATOS_TRY
 
 
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(COMPUTE_CONTROL_DENSITIES))
+      << "COMPUTE_CONTROL_DENSITIES not defined in the ProcessInfo!" << std::endl;  
+
     auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
 
@@ -87,7 +90,11 @@ void HelmholtzBulkTopologyElement::CalculateLocalSystem(MatrixType& rLeftHandSid
     MatrixType A;
     CalculateBulkStiffnessMatrix(A,rCurrentProcessInfo);
 
-    MatrixType K = M + A;
+    MatrixType K;
+    if(rCurrentProcessInfo[COMPUTE_CONTROL_DENSITIES])
+        K = M;
+    else
+        K = M + A;
 
     const unsigned int number_of_points = r_geometry.size();
     Vector nodal_vals(number_of_points);

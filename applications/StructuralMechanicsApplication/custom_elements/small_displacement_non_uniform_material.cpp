@@ -110,6 +110,12 @@ void SmallDisplacementNonUniformMaterial::CalculateAll(
     KRATOS_TRY;
 
     auto& r_geometry = this->GetGeometry();
+    KRATOS_ERROR_IF_NOT(r_geometry[0].SolutionStepsDataHas(PE))
+      << "elemen SmallDisplacementNonUniformMaterial expects PE data field !" << std::endl; 
+
+    KRATOS_ERROR_IF_NOT(r_geometry[0].SolutionStepsDataHas(PD))
+      << "elemen SmallDisplacementNonUniformMaterial expects PD data field !" << std::endl; 
+
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
     const SizeType strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
@@ -160,7 +166,7 @@ void SmallDisplacementNonUniformMaterial::CalculateAll(
     // Computing in all integrations points
     for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
         // Contribution to external forces
-        noalias(body_force) = this->GetBodyForce(integration_points, point_number);
+        noalias(body_force) = CalculateBodyForce(integration_points, point_number);
 
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
@@ -177,80 +183,49 @@ void SmallDisplacementNonUniformMaterial::CalculateAll(
 
         double this_young_modulus = 0;    
         for(unsigned int node_element = 0; node_element<number_of_nodes; node_element++)
-            this_young_modulus += r_geometry[node_element].FastGetSolutionStepValue(YOUNG_MODULUS) * this_kinematic_variables.N(node_element);
+            this_young_modulus += r_geometry[node_element].FastGetSolutionStepValue(PE) * this_kinematic_variables.N(node_element);
 
-        int_to_reference_weight *= this_young_modulus;
 
         if ( CalculateStiffnessMatrixFlag ) { // Calculation of the matrix is required
             // Contributions to stiffness matrix calculated on the reference config
-            this->CalculateAndAddKm( rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, int_to_reference_weight );
+            this->CalculateAndAddKm( rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, int_to_reference_weight * this_young_modulus);
         }
 
         if ( CalculateResidualVectorFlag ) { // Calculation of the matrix is required
-            this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, this_constitutive_variables.StressVector, int_to_reference_weight);
+
+            // Operation performed: rRightHandSideVector += ExtForce * IntegrationWeight
+            this->CalculateAndAddExtForceContribution( this_kinematic_variables.N, rCurrentProcessInfo, body_force, rRightHandSideVector, int_to_reference_weight );
+
+            // Operation performed: rRightHandSideVector -= IntForce * IntegrationWeight
+            noalias( rRightHandSideVector ) -= int_to_reference_weight * this_young_modulus * prod( trans( this_kinematic_variables.B ), this_constitutive_variables.StressVector );
+
         }
     }
 
     KRATOS_CATCH( "" )
 }
 
-void SmallDisplacementNonUniformMaterial::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+/***********************************************************************************/
+/***********************************************************************************/
+
+array_1d<double, 3> SmallDisplacementNonUniformMaterial::CalculateBodyForce(
+    const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+    const IndexType PointNumber
+    ) const
 {
-    if (rVariable == DENSITY_SENSITIVITY){
+    array_1d<double, 3> body_force;
+    for (IndexType i = 0; i < 3; ++i)
+        body_force[i] = 0.0;
 
-        auto& r_geometry = this->GetGeometry();
-        const SizeType number_of_nodes = r_geometry.size();
-        const SizeType dimension = r_geometry.WorkingSpaceDimension();
-        const SizeType mat_size = number_of_nodes * dimension;
-        const SizeType strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
-
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-        ConstitutiveVariables this_constitutive_variables(strain_size);
-
-        // Resizing as needed the rOutput
-        rOutput.resize( mat_size, number_of_nodes, false );
-
-        noalias( rOutput ) = ZeroMatrix(mat_size, number_of_nodes); 
-
-        // Reading integration points and local gradients
-        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
-
-        ConstitutiveLaw::Parameters Values(r_geometry,GetProperties(),rCurrentProcessInfo);
-
-        // Set constitutive law flags:
-        Flags& ConstitutiveLawOptions=Values.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-        // If strain has to be computed inside of the constitutive law with PK2
-        Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
-
-        // Some declarations
-        double int_to_reference_weight;
-        // Computing in all integrations points
-        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-
-            // Compute element kinematics B, F, DN_DX ...
-            CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-
-            // Compute material reponse
-            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
-
-            // Calculating weights for integration on the reference configuration
-            int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
-
-            if ( dimension == 2 && GetProperties().Has( THICKNESS ))
-                int_to_reference_weight *= GetProperties()[THICKNESS];
-
-
-            Vector this_residual = - int_to_reference_weight * prod( trans( this_kinematic_variables.B ), this_constitutive_variables.StressVector );
-
-            for(unsigned int node_element = 0; node_element<number_of_nodes; node_element++)
-                column(rOutput,node_element) += this_kinematic_variables.N(node_element) * this_residual;
-                
-        }
+    const auto& r_geometry = this->GetGeometry();
+    if( r_geometry[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
+        Vector N(r_geometry.size());
+        N = r_geometry.ShapeFunctionsValues(N, rIntegrationPoints[PointNumber].Coordinates());
+        for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node)
+            noalias(body_force) += N[i_node] * r_geometry[i_node].FastGetSolutionStepValue(PD) * r_geometry[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     }
+
+    return body_force;
 }
 
 /***********************************************************************************/

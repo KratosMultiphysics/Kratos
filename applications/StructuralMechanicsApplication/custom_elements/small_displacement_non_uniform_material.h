@@ -210,7 +210,10 @@ protected:
         const bool CalculateResidualVectorFlag
         ) override;
 
-    void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    array_1d<double, 3> CalculateBodyForce(
+        const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+        const IndexType PointNumber
+        ) const ;
 
     /**
      * @brief This functions updates the kinematics variables

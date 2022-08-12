@@ -197,7 +197,7 @@ public:
             if(control_type=="shape")
                 VariableUtils().SetHistoricalVariableToZero(D_MASS_D_X, controlled_model_part.Nodes());
             else if(control_type=="material")
-                VariableUtils().SetHistoricalVariableToZero(D_MASS_D_PD, controlled_model_part.Nodes());
+                VariableUtils().SetHistoricalVariableToZero(D_MASS_D_FD, controlled_model_part.Nodes());
             else if(control_type=="thickness")
                 VariableUtils().SetHistoricalVariableToZero(D_MASS_D_PT, controlled_model_part.Nodes());
 
@@ -295,8 +295,9 @@ public:
             Vector N_FEM_GPi = row( N_container, pointNumber);
             double integration_weight = integrationPoints[pointNumber].Weight() * r_this_geometry.DeterminantOfJacobian(pointNumber,r_this_geometry.GetDefaultIntegrationMethod());
             for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
-                auto& node_val = r_this_geometry[i_node].FastGetSolutionStepValue(D_MASS_D_PD);
-                node_val += integration_weight * N_FEM_GPi[i_node] * element_nodal_thickness[i_node];
+                auto& node_val = r_this_geometry[i_node].FastGetSolutionStepValue(D_MASS_D_FD);
+                auto& d_pd_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PD_D_FD);
+                node_val += integration_weight * N_FEM_GPi[i_node] * element_nodal_thickness[i_node] * d_pd_d_fd;
             }
         }
 

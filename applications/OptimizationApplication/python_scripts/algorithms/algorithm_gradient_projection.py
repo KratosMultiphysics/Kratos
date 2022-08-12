@@ -82,8 +82,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 calc_response_grad = self.SetResponseValue(response,response_value)
                 if calc_response_grad:
                     self.responses_controller.CalculateResponseGradientsForTypesAndObjects(response,self.responses_control_types[response],self.responses_controlled_objects[response])                
-            
-            self._WriteCurrentResponseValuesToCSVFile()
+                        
             self.opt_parameters["num_active_consts"].SetInt(self.num_active_consts)
 
             # calculate control gradients
@@ -93,6 +92,8 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
             # calcuate
             self.opt_algorithm.CalculateSolutionStep() 
+
+            self._WriteCurrentOptItrToCSVFile()
 
             # compute controls
             for control in self.controls:
