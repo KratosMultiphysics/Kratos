@@ -315,7 +315,10 @@ namespace Kratos {
     /***********************************************************************************
      **********************************************************************************/
 
-    double VolumeInsideVoxelUtility::GetFactor(const PointsArrayType& nodes, const std::vector<std::vector<double>>& neighbours,const int node) {
+    double VolumeInsideVoxelUtility::GetFactor(const PointsArrayType& nodes, 
+        const std::vector<std::vector<double>>& neighbours,
+        const int node) 
+    {
 
         if( (nodes[node].GetSolutionStepValue(DISTANCE) > 0 && nodes[neighbours[node][0]].GetSolutionStepValue(DISTANCE) < 0 &&
             nodes[neighbours[node][1]].GetSolutionStepValue(DISTANCE) < 0) || (nodes[node].GetSolutionStepValue(DISTANCE) < 0 && 
