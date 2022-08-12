@@ -41,12 +41,10 @@ namespace Kratos {
             //but possible), only one will be taken into account to create the matrixes.
             int result = 0; 
             array_1d<double,3> intersection;
-            VectorType v_intersection;
             std::size_t j = 0;
             while(!result && j < edges.size()) { 
                 PointsArrayType ends = edges[j++].Points();
                 result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
-                v_intersection = intersection;
             }
             if (result) {
                 //Fill the matrixes with the corresponding information from the intersection and normal
@@ -101,5 +99,16 @@ namespace Kratos {
         array_1d<double,3> normal;
         MathUtils<double>::CrossProduct<array_1d<double,3>,array_1d<double,3>,array_1d<double,3>>(normal,u,v);
         return normal;
+    }
+
+    double QEF::Check(
+        const double& d, 
+        const double& epsilon)
+    {
+        if (d > epsilon)  {
+            return d;
+        } else {
+            return 0;
+        } 
     }
 }

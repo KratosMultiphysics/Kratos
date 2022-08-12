@@ -54,7 +54,7 @@ namespace Kratos
  * @class QEF (quadratic error function)
  * @ingroup KratosCore
  * @brief Utilities to compute the minimum error point in a 3D voxel intersected by a triangle mesh
- * @author Ariadna Cortés
+ * @author Ariadna Cortes
  */
 class KRATOS_API(KRATOS_CORE) QEF
 {
@@ -71,7 +71,6 @@ public:
     typedef GeometryType::PointsArrayType PointsArrayType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
-
 
     /// Pointer definition of VoxelInsideVolume
     KRATOS_CLASS_POINTER_DEFINITION( QEF );
@@ -108,20 +107,18 @@ public:
     );
 
     /**
-     * @brief Aproximates the portion of the edge that represents volume
-     * @param rDistances references to a sorted vector containing the distances of each intersecting point with the edge
-     * @param rEnds references to the nodes at both sides of the edge
-     * @return Approximated volume 
+     * @brief Calculates the center of a geometry
+     * @param rVoxel reference to the geometry
+     * @return Center (x,y,z)
      */  
     static array_1d<double,3> CalculateCenter(const GeometryType& rVoxel);
 
     /**
-     * @brief Aproximates the portion of the edge that represents volume
-     * @param rDistances references to a sorted vector containing the distances of each intersecting point with the edge
-     * @param rEnds references to the nodes at both sides of the edge
-     * @return Approximated volume 
+     * @brief Calculates the normal vector to the surface of a 3D triangle 
+     * @param rTriangle reference to the triangle
+     * @return Normal vector (x,y,z)
      */  
-    static array_1d<double,3> CalculateNormal(const GeometryType& triangle);
+    static array_1d<double,3> CalculateNormal(const GeometryType& rTriangle);
     
 private:
 
@@ -140,7 +137,10 @@ private:
     ///@name Private Operations
     ///@{
 
-    static double Check(const double& d, const double& epsilon) { return d > epsilon ? d : 0; }
+    static double Check(
+        const double& d, 
+        const double& epsilon
+    );
 
 }; /* Class VoxelInsideVolumeUtility */
 
