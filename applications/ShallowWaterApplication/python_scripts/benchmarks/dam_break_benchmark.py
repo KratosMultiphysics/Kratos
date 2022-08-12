@@ -43,11 +43,11 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         if self.g <= 0:
             msg = label + "Gravity must be a positive value. Please, check the definition of GRAVITY_Z component in the ProcessInfo."
             raise Exception(msg)
-        elif self.hr <= 0:
-            msg = label + "Right height must be a positive value. Please, check the Parameters."
+        elif self.hr < 0:
+            msg = label + "Right height must be non-negative. Please, check the Parameters."
             raise Exception(msg)
-        elif self.hl <= 0:
-            msg = label + "Left height must be a positive value. Please, check the Parameters."
+        elif self.hl < 0:
+            msg = label + "Left height must be non-negative. Please, check the Parameters."
             raise Exception(msg)
 
 
@@ -106,13 +106,19 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
 
 
     def __xc(self, t):
-        return self.dam + t * 2 * self.cm**2 * (sqrt(self.g*self.hl) - self.cm) / (self.cm**2 - self.g * self.hr)
+        if self.hr > 0:
+            return self.dam + t * 2 * self.cm**2 * (sqrt(self.g*self.hl) - self.cm) / (self.cm**2 - self.g * self.hr)
+        else:
+            return self.__xb(t)
 
 
     def __cm(self):
-        cm0 = sqrt(self.g * 0.5 * (self.hl + self.hr))
-        cm = opt.newton(self.__cm_residual, cm0)
-        return cm
+        if self.hr > 0:
+            cm0 = sqrt(self.g * 0.5 * (self.hl + self.hr))
+            cm = opt.newton(self.__cm_residual, cm0)
+            return cm
+        else:
+            return 0.0
 
 
     def __cm_residual(self,cm):
