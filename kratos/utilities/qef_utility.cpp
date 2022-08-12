@@ -51,11 +51,11 @@ namespace Kratos {
             if (result) {
                 //Fill the matrixes with the corresponding information from the intersection and normal
                 MatrixType m_normal_trans = trans(m_normal);
-                ata = ata + prod(m_normal,m_normal_trans);
+                ata += prod(m_normal,m_normal_trans);
                 double aux = MathUtils<double>::Dot(normal,intersection);
                 MatrixType m_aux(1,1,aux);
-                atb = atb + prod(m_normal,m_aux);
-                btb = btb + prod(m_aux,m_aux); 
+                atb += prod(m_normal,m_aux);
+                btb += prod(m_aux,m_aux); 
             }
         }
 
