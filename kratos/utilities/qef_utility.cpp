@@ -19,7 +19,7 @@
 
 namespace Kratos {
 
-    array_1d<double,3> QEF::QEFPoint (
+    array_1d<double,3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
         const GeometryType& rVoxel,  
         const GeometryArrayType& rTriangles     
     ) {
@@ -62,6 +62,8 @@ namespace Kratos {
         MatrixType mat_eigenvalues;
         const bool converged = MathUtils<double>::GaussSeidelEigenSystem(ata, mat_eigenvectors, mat_eigenvalues);
 
+        KRATOS_WARNING_IF("QuadraticErrorFunctionPoint", !converged) << "Method for matrix eigenvalues didn't converge" << std::endl;
+
         MatrixType d(3,3,0);
         for (int i : {0,1,2}) {
             if (mat_eigenvalues(i,i) < 1e-12) {
@@ -81,7 +83,7 @@ namespace Kratos {
         return x_point;
     }
 
-    array_1d<double,3> QEF::CalculateNormal(const GeometryType& rTriangle) {
+    array_1d<double,3> QuadraticErrorFunction::CalculateNormal(const GeometryType& rTriangle) {
         PointsArrayType nodes = rTriangle.Points();
         array_1d<double,3> u = nodes[1] - nodes[0];
         array_1d<double,3> v = nodes[2] - nodes[0];
@@ -90,7 +92,7 @@ namespace Kratos {
         return normal;
     }
 
-    double QEF::Check(
+    double QuadraticErrorFunction::Check(
         const double D, 
         const double Epsilon)
     {

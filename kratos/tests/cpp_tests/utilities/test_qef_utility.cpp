@@ -33,7 +33,7 @@ namespace Testing {
         /*this functions are creating a model for each element used in the test in order to avoid trouble with repeated Ids.
         This is not optimal but since it is just a test (in real cases, funcions will be used with well-defined models)...
         */
-        GeometryPtrType QEFGenerateHexahedra3D8(const std::vector<double>& rDistances) 
+        GeometryPtrType QuadraticErrorFunctionGenerateHexahedra3D8(const std::vector<double>& rDistances) 
         { 
             Model my_model;
             ModelPart &voxel = my_model.CreateModelPart("Voxel");  
@@ -60,7 +60,7 @@ namespace Testing {
             return p_voxel;  
         }
 
-        GeometryPtrType QEFGenerateUncenteredHexahedra3D8(const std::vector<double>& rDistances) 
+        GeometryPtrType QuadraticErrorFunctionGenerateUncenteredHexahedra3D8(const std::vector<double>& rDistances) 
         { 
             Model my_model;
             ModelPart &voxel = my_model.CreateModelPart("Voxel");  
@@ -88,7 +88,7 @@ namespace Testing {
         }
 
         //rNodes is a 3*3 matrix representin de (x,y,z) coordinates of each of the 3 triangle nodes
-        GeometryPtrType QEFGenerateTriangle3D3(std::vector<std::vector<double>>& rNodes)
+        GeometryPtrType QuadraticErrorFunctionGenerateTriangle3D3(std::vector<std::vector<double>>& rNodes)
         {
             Model my_model;
             ModelPart& triangles = my_model.CreateModelPart("Triangle"); 
@@ -106,10 +106,10 @@ namespace Testing {
 
         //Generate a triangles
         std::vector<std::vector<double>> triangle1{{0,0,0},{1,0,0},{0,1,0}};    
-        GeometryPtrType p_triangle = QEFGenerateTriangle3D3(triangle1);
+        GeometryPtrType p_triangle = QuadraticErrorFunctionGenerateTriangle3D3(triangle1);
 
         //Call the normal utility
-        array_1d<double,3> normal = QEF::CalculateNormal(*p_triangle);
+        array_1d<double,3> normal = QuadraticErrorFunction::CalculateNormal(*p_triangle);
 
         //Expected output of the function
         KRATOS_CHECK_EQUAL(normal[0], 0.0);
@@ -117,10 +117,10 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(normal[2], 1.0);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(QEF0dof, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction0dof, KratosCoreFastSuite) {
         //A voxel crossed by a straight plane with only 1 nodes inside the volume 
         std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
-        GeometryPtrType p_voxel = QEFGenerateHexahedra3D8(distances);
+        GeometryPtrType p_voxel = QuadraticErrorFunctionGenerateHexahedra3D8(distances);
 
         //Generate the intersecting triangles
         std::vector<std::vector<double>> triangle1{{-1,0.5,-0.95},{-0.95,0.5,-1.05},{-1.05,0.5,-1.05}}; 
@@ -129,26 +129,26 @@ namespace Testing {
 
         
         
-        GeometryPtrType p_triangle1 = QEFGenerateTriangle3D3(triangle1);
-        GeometryPtrType p_triangle2 = QEFGenerateTriangle3D3(triangle2);
-        GeometryPtrType p_triangle3 = QEFGenerateTriangle3D3(triangle3);
+        GeometryPtrType p_triangle1 = QuadraticErrorFunctionGenerateTriangle3D3(triangle1);
+        GeometryPtrType p_triangle2 = QuadraticErrorFunctionGenerateTriangle3D3(triangle2);
+        GeometryPtrType p_triangle3 = QuadraticErrorFunctionGenerateTriangle3D3(triangle3);
 
         GeometryArrayType array1;
         array1.push_back(p_triangle1); 
         array1.push_back(p_triangle2);
         array1.push_back(p_triangle3);
 
-        array_1d<double,3> point = QEF::QEFPoint(*p_voxel,array1);
+        array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
 
         KRATOS_CHECK_NEAR(point[0], 0.75, 1e-8);
         KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
         KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);        
     }
 
-     KRATOS_TEST_CASE_IN_SUITE(QEF1dof, KratosCoreFastSuite) {
+     KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction1dof, KratosCoreFastSuite) {
         //A voxel crossed by a straight plane with only 2 nodes inside the volume
         std::vector<double> distances{1, 1, -1, -1, -1, -1, -1, -1};   
-        GeometryPtrType p_voxel = QEFGenerateHexahedra3D8(distances);
+        GeometryPtrType p_voxel = QuadraticErrorFunctionGenerateHexahedra3D8(distances);
 
         //Generate the intersecting triangles
         std::vector<std::vector<double>> triangle1{{-1,0.5,-0.95},{-0.95,0.5,-1.05},{-1.05,0.5,-1.05}}; 
@@ -156,10 +156,10 @@ namespace Testing {
         std::vector<std::vector<double>> triangle3{{1,-0.95,0},{1.05,-1.05,0},{0.95,-1.05,0}}; 
         std::vector<std::vector<double>> triangle4{{1,0.5,-0.95},{1.05,0.5,-1.05},{0.95,0.5,-1.05}}; 
         
-        GeometryPtrType p_triangle1 = QEFGenerateTriangle3D3(triangle1);
-        GeometryPtrType p_triangle2 = QEFGenerateTriangle3D3(triangle2);
-        GeometryPtrType p_triangle3 = QEFGenerateTriangle3D3(triangle3);
-        GeometryPtrType p_triangle4 = QEFGenerateTriangle3D3(triangle4);
+        GeometryPtrType p_triangle1 = QuadraticErrorFunctionGenerateTriangle3D3(triangle1);
+        GeometryPtrType p_triangle2 = QuadraticErrorFunctionGenerateTriangle3D3(triangle2);
+        GeometryPtrType p_triangle3 = QuadraticErrorFunctionGenerateTriangle3D3(triangle3);
+        GeometryPtrType p_triangle4 = QuadraticErrorFunctionGenerateTriangle3D3(triangle4);
 
         GeometryArrayType array1;
         array1.push_back(p_triangle1); 
@@ -167,17 +167,17 @@ namespace Testing {
         array1.push_back(p_triangle3);
         array1.push_back(p_triangle4);
 
-        array_1d<double,3> point = QEF::QEFPoint(*p_voxel,array1);
+        array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
 
         KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
         KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
         KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);        
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(QEF0dofExtremeCase, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction0dofExtremeCase, KratosCoreFastSuite) {
         //A voxel crossed by a straight plane with only 1 nodes inside the volume 
         std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
-        GeometryPtrType p_voxel = QEFGenerateHexahedra3D8(distances);
+        GeometryPtrType p_voxel = QuadraticErrorFunctionGenerateHexahedra3D8(distances);
 
         //Generate the intersecting triangles
         std::vector<std::vector<double>> triangle1{{-1,0.5,-0.95},{-0.95,0.5,-1.05},{-1.05,0.5,-1.05}}; 
@@ -186,26 +186,26 @@ namespace Testing {
 
         
         
-        GeometryPtrType p_triangle1 = QEFGenerateTriangle3D3(triangle1);
-        GeometryPtrType p_triangle2 = QEFGenerateTriangle3D3(triangle2);
-        GeometryPtrType p_triangle3 = QEFGenerateTriangle3D3(triangle3);
+        GeometryPtrType p_triangle1 = QuadraticErrorFunctionGenerateTriangle3D3(triangle1);
+        GeometryPtrType p_triangle2 = QuadraticErrorFunctionGenerateTriangle3D3(triangle2);
+        GeometryPtrType p_triangle3 = QuadraticErrorFunctionGenerateTriangle3D3(triangle3);
 
         GeometryArrayType array1;
         array1.push_back(p_triangle1); 
         array1.push_back(p_triangle2);
         array1.push_back(p_triangle3);
 
-        array_1d<double,3> point = QEF::QEFPoint(*p_voxel,array1);
+        array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
 
         KRATOS_CHECK_NEAR(point[0], 0.9999, 1e-8);
         KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
         KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);        
     }
 
-     KRATOS_TEST_CASE_IN_SUITE(QEF1dofExtremeCase, KratosCoreFastSuite) {
+     KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction1dofExtremeCase, KratosCoreFastSuite) {
         //A voxel crossed by a straight plane with only 2 nodes inside the volume (not good case approximation)
         std::vector<double> distances{1, 1, -1, -1, -1, -1, -1, -1};   
-        GeometryPtrType p_voxel = QEFGenerateHexahedra3D8(distances);
+        GeometryPtrType p_voxel = QuadraticErrorFunctionGenerateHexahedra3D8(distances);
 
         //Generate the intersecting triangles
         std::vector<std::vector<double>> triangle1{{-1,0.5,-0.95},{-0.95,0.5,-1.05},{-1.05,0.5,-1.05}}; 
@@ -213,10 +213,10 @@ namespace Testing {
         std::vector<std::vector<double>> triangle3{{1,-0.95,0.9999},{1.05,-1.05,0.9999},{0.95,-1.05,0.9999}}; 
         std::vector<std::vector<double>> triangle4{{1,0.5,-0.95},{1.05,0.5,-1.05},{0.95,0.5,-1.05}}; 
         
-        GeometryPtrType p_triangle1 = QEFGenerateTriangle3D3(triangle1);
-        GeometryPtrType p_triangle2 = QEFGenerateTriangle3D3(triangle2);
-        GeometryPtrType p_triangle3 = QEFGenerateTriangle3D3(triangle3);
-        GeometryPtrType p_triangle4 = QEFGenerateTriangle3D3(triangle4);
+        GeometryPtrType p_triangle1 = QuadraticErrorFunctionGenerateTriangle3D3(triangle1);
+        GeometryPtrType p_triangle2 = QuadraticErrorFunctionGenerateTriangle3D3(triangle2);
+        GeometryPtrType p_triangle3 = QuadraticErrorFunctionGenerateTriangle3D3(triangle3);
+        GeometryPtrType p_triangle4 = QuadraticErrorFunctionGenerateTriangle3D3(triangle4);
 
         GeometryArrayType array1;
         array1.push_back(p_triangle1); 
@@ -224,17 +224,17 @@ namespace Testing {
         array1.push_back(p_triangle3);
         array1.push_back(p_triangle4);
 
-        array_1d<double,3> point = QEF::QEFPoint(*p_voxel,array1);
+        array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
 
         KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
         KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
         KRATOS_CHECK_NEAR(point[2], 0.9999, 1e-8);        
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(QEF2dof, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction2dof, KratosCoreFastSuite) {
         //A voxel crossed by a straight plane with 4 nodes inside the volume
         std::vector<double> distances{1, 1, -1, -1, 1, 1, -1, -1};   
-        GeometryPtrType p_voxel = QEFGenerateHexahedra3D8(distances);
+        GeometryPtrType p_voxel = QuadraticErrorFunctionGenerateHexahedra3D8(distances);
 
         //Generate the intersecting triangles
         std::vector<std::vector<double>> triangle1{{1,0.5,1.05},{1.05,0.5,0.95},{0.95,0.5,0.95}};  
@@ -242,10 +242,10 @@ namespace Testing {
         std::vector<std::vector<double>> triangle3{{-1,0.5,-0.95},{-0.95,0.5,-1.05},{-1.05,0.5,-1.05}}; 
         std::vector<std::vector<double>> triangle4{{-1,0.5,1.05},{-0.95,0.5,0.95},{-1.05,0.5,0.95}}; 
         
-        GeometryPtrType p_triangle1 = QEFGenerateTriangle3D3(triangle1);
-        GeometryPtrType p_triangle2 = QEFGenerateTriangle3D3(triangle2);
-        GeometryPtrType p_triangle3 = QEFGenerateTriangle3D3(triangle3);
-        GeometryPtrType p_triangle4 = QEFGenerateTriangle3D3(triangle4);
+        GeometryPtrType p_triangle1 = QuadraticErrorFunctionGenerateTriangle3D3(triangle1);
+        GeometryPtrType p_triangle2 = QuadraticErrorFunctionGenerateTriangle3D3(triangle2);
+        GeometryPtrType p_triangle3 = QuadraticErrorFunctionGenerateTriangle3D3(triangle3);
+        GeometryPtrType p_triangle4 = QuadraticErrorFunctionGenerateTriangle3D3(triangle4);
 
         GeometryArrayType array1;
         array1.push_back(p_triangle1); 
@@ -253,17 +253,17 @@ namespace Testing {
         array1.push_back(p_triangle3);
         array1.push_back(p_triangle4);
 
-        array_1d<double,3> point = QEF::QEFPoint(*p_voxel,array1);
+        array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
 
         KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
         KRATOS_CHECK_NEAR(point[1], 0.5, 1e-8);
         KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);        
     } 
 
-    KRATOS_TEST_CASE_IN_SUITE(QEFdoublePlain, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunctiondoublePlain, KratosCoreFastSuite) {
         //A voxel crossed by two straight planes (enclosing half of the volume) with no nodes inside the volume
         std::vector<double> distances{-1, -1, -1, -1, -1, -1, -1, -1};   
-        GeometryPtrType p_voxel = QEFGenerateHexahedra3D8(distances);
+        GeometryPtrType p_voxel = QuadraticErrorFunctionGenerateHexahedra3D8(distances);
 
         //Generate the intersecting triangles
         std::vector<std::vector<double>> triangle1{{1,0.5,1.05},{1.05,0.5,0.95},{0.95,0.5,0.95}};  
@@ -275,14 +275,14 @@ namespace Testing {
         std::vector<std::vector<double>> triangle7{{-1,-0.5,-0.95},{-0.95,-0.5,-1.05},{-1.05,-0.5,-1.05}}; 
         std::vector<std::vector<double>> triangle8{{-1,-0.5,1.05},{-0.95,-0.5,0.95},{-1.05,-0.5,0.95}}; 
         
-        GeometryPtrType p_triangle1 = QEFGenerateTriangle3D3(triangle1);
-        GeometryPtrType p_triangle2 = QEFGenerateTriangle3D3(triangle2);
-        GeometryPtrType p_triangle3 = QEFGenerateTriangle3D3(triangle3);
-        GeometryPtrType p_triangle4 = QEFGenerateTriangle3D3(triangle4);
-        GeometryPtrType p_triangle5 = QEFGenerateTriangle3D3(triangle5);
-        GeometryPtrType p_triangle6 = QEFGenerateTriangle3D3(triangle6);
-        GeometryPtrType p_triangle7 = QEFGenerateTriangle3D3(triangle7);
-        GeometryPtrType p_triangle8 = QEFGenerateTriangle3D3(triangle8);
+        GeometryPtrType p_triangle1 = QuadraticErrorFunctionGenerateTriangle3D3(triangle1);
+        GeometryPtrType p_triangle2 = QuadraticErrorFunctionGenerateTriangle3D3(triangle2);
+        GeometryPtrType p_triangle3 = QuadraticErrorFunctionGenerateTriangle3D3(triangle3);
+        GeometryPtrType p_triangle4 = QuadraticErrorFunctionGenerateTriangle3D3(triangle4);
+        GeometryPtrType p_triangle5 = QuadraticErrorFunctionGenerateTriangle3D3(triangle5);
+        GeometryPtrType p_triangle6 = QuadraticErrorFunctionGenerateTriangle3D3(triangle6);
+        GeometryPtrType p_triangle7 = QuadraticErrorFunctionGenerateTriangle3D3(triangle7);
+        GeometryPtrType p_triangle8 = QuadraticErrorFunctionGenerateTriangle3D3(triangle8);
 
         GeometryArrayType array1;
         array1.push_back(p_triangle1); 
@@ -295,51 +295,51 @@ namespace Testing {
         array1.push_back(p_triangle8);
 
         //Call the point utility
-        array_1d<double,3> point = QEF::QEFPoint(*p_voxel,array1);
+        array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
 
         KRATOS_CHECK_NEAR(point[0], 0.0, 1e-8);
         KRATOS_CHECK_NEAR(point[1], 0.0, 1e-8);
         KRATOS_CHECK_NEAR(point[2], 0.0, 1e-8);  
     } 
     
-    KRATOS_TEST_CASE_IN_SUITE(QEF0dofmovedCenter, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction0dofmovedCenter, KratosCoreFastSuite) {
         //A voxel with one node inside the volume but centered at (1,1,1)
         std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
-        GeometryPtrType p_voxel = QEFGenerateUncenteredHexahedra3D8(distances);
+        GeometryPtrType p_voxel = QuadraticErrorFunctionGenerateUncenteredHexahedra3D8(distances);
 
         std::vector<std::vector<double>> triangle1{{0,1.5,0.05},{0.05,1.5,-0.05},{-0.05,1.5,-0.05}};
         std::vector<std::vector<double>> triangle2{{0,0.05,1},{0.05,-0.05,1},{-0.05,-0.05,1}};
         std::vector<std::vector<double>> triangle3{{1.75,0.05,0},{1.75,-0.05,0.05},{1.75,-0.05,-0.05}};
 
-        GeometryPtrType p_triangle1 = QEFGenerateTriangle3D3(triangle1);
-        GeometryPtrType p_triangle2 = QEFGenerateTriangle3D3(triangle2);
-        GeometryPtrType p_triangle3 = QEFGenerateTriangle3D3(triangle3);
+        GeometryPtrType p_triangle1 = QuadraticErrorFunctionGenerateTriangle3D3(triangle1);
+        GeometryPtrType p_triangle2 = QuadraticErrorFunctionGenerateTriangle3D3(triangle2);
+        GeometryPtrType p_triangle3 = QuadraticErrorFunctionGenerateTriangle3D3(triangle3);
 
         GeometryArrayType array1;
         array1.push_back(p_triangle1);
         array1.push_back(p_triangle2);
         array1.push_back(p_triangle3);
 
-        array_1d<double,3> point = QEF::QEFPoint(*p_voxel,array1);
+        array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
 
         KRATOS_CHECK_NEAR(point[0], 1.75, 1e-8);
         KRATOS_CHECK_NEAR(point[1], 1.5, 1e-8);
         KRATOS_CHECK_NEAR(point[2], 1.0, 1e-8);     
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(QEF2dofMovedCenter, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(QuadraticErrorFunction2dofMovedCenter, KratosCoreFastSuite) {
         std::vector<double> distances{1, 1, -1, -1, 1, 1, -1, -1};   
-        GeometryPtrType p_voxel = QEFGenerateUncenteredHexahedra3D8(distances);
+        GeometryPtrType p_voxel = QuadraticErrorFunctionGenerateUncenteredHexahedra3D8(distances);
 
         std::vector<std::vector<double>> triangle1{{2,1.5,2.05},{2.05,1.5,1.95},{1.95,1.5,1.95}};  
         std::vector<std::vector<double>> triangle2{{2,1.5,0.05},{2.05,1.5,-0.05},{1.95,1.5,-0.05}}; 
         std::vector<std::vector<double>> triangle3{{0,1.5,0.05},{0.05,1.5,-0.05},{-0.05,1.5,-0.05}}; 
         std::vector<std::vector<double>> triangle4{{0,1.5,2.05},{0.05,1.5,1.95},{-0.05,1.5,1.95}}; 
         
-        GeometryPtrType p_triangle1 = QEFGenerateTriangle3D3(triangle1);
-        GeometryPtrType p_triangle2 = QEFGenerateTriangle3D3(triangle2);
-        GeometryPtrType p_triangle3 = QEFGenerateTriangle3D3(triangle3);
-        GeometryPtrType p_triangle4 = QEFGenerateTriangle3D3(triangle4);
+        GeometryPtrType p_triangle1 = QuadraticErrorFunctionGenerateTriangle3D3(triangle1);
+        GeometryPtrType p_triangle2 = QuadraticErrorFunctionGenerateTriangle3D3(triangle2);
+        GeometryPtrType p_triangle3 = QuadraticErrorFunctionGenerateTriangle3D3(triangle3);
+        GeometryPtrType p_triangle4 = QuadraticErrorFunctionGenerateTriangle3D3(triangle4);
 
         GeometryArrayType array1;
         array1.push_back(p_triangle1); 
@@ -347,7 +347,7 @@ namespace Testing {
         array1.push_back(p_triangle3);
         array1.push_back(p_triangle4);
 
-        array_1d<double,3> point = QEF::QEFPoint(*p_voxel,array1);
+        array_1d<double,3> point = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*p_voxel,array1);
 
         KRATOS_CHECK_NEAR(point[0], 1.0, 1e-8);
         KRATOS_CHECK_NEAR(point[1], 1.5, 1e-8);
