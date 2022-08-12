@@ -4,10 +4,10 @@ import KratosMultiphysics
 from importlib import import_module
 
 def CreateSolverByParameters(model, solver_settings, parallelism):
-    
+
     if (type(model) != KratosMultiphysics.Model):
         raise Exception("input is expected to be provided as a Kratos Model object")
-     
+
     if (type(solver_settings) != KratosMultiphysics.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
@@ -17,21 +17,21 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     if (parallelism == "OpenMP"):
         # Coupled CFD-thermal solvers (volume coupling by Boussinesq approximation)
         if (solver_type == "thermally_coupledpfem2" or solver_type == "ThermallyCoupledPfem2"):
-            
+
             solver_module_name = "coupled_fluid_thermal_pfem2solver"
-            
-        elif (solver_type == "Withoutmesh"):
-            
+
+        elif (solver_type == "thermally_coupled_no_remesh"):
+
             solver_module_name = "coupled_fluid_thermal_solverwithoutmeshgeneration"
-            
+
         elif (solver_type == "WithoutmeshSolid"):
-            
+
             solver_module_name = "coupled_solid_thermal_solverwithoutmeshgeneration"
-            
+
         elif (solver_type == "WithmeshSolid"):
-            
+
             solver_module_name = "coupled_solid_thermal_solverwithmeshgeneration"
-            
+
         # Coupled mechanical-thermal solver
         # Wrong solver check
         else:
@@ -51,7 +51,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     module_full = 'KratosMultiphysics.PfemMeltingApplication.' + solver_module_name
     solver = import_module(module_full).CreateSolver(model, solver_settings)
-    
+
     return solver
 
 def CreateSolver(model, custom_settings):
