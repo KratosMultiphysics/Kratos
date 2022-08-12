@@ -18,83 +18,85 @@
 
 namespace Kratos {
 namespace Testing {
+    namespace {
 
-    typedef Node<3> NodeType;
-    typedef Node<3>::Pointer NodePtrType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef GeometryType::Pointer GeometryPtrType;
-    typedef GeometryType::GeometriesArrayType GeometryArrayType;
-    typedef GeometryType::PointsArrayType PointsArrayType;
+        typedef Node<3> NodeType;
+        typedef Node<3>::Pointer NodePtrType;
+        typedef Geometry<NodeType> GeometryType;
+        typedef GeometryType::Pointer GeometryPtrType;
+        typedef GeometryType::GeometriesArrayType GeometryArrayType;
+        typedef GeometryType::PointsArrayType PointsArrayType;
 
-    /*this functions are creating a model for each element used in the test in order to avoid trouble with repeated Ids.
-    This is not optimal but since it is just a test (in real cases, funcions will be used with well-defined models)...
-    */
-    GeometryPtrType QEFGenerateHexahedra3D8(const std::vector<double>& rDistances) 
-    { 
-        Model my_model;
-        ModelPart &voxel = my_model.CreateModelPart("Voxel");  
-        voxel.AddNodalSolutionStepVariable(DISTANCE);  
+        /*this functions are creating a model for each element used in the test in order to avoid trouble with repeated Ids.
+        This is not optimal but since it is just a test (in real cases, funcions will be used with well-defined models)...
+        */
+        GeometryPtrType QEFGenerateHexahedra3D8(const std::vector<double>& rDistances) 
+        { 
+            Model my_model;
+            ModelPart &voxel = my_model.CreateModelPart("Voxel");  
+            voxel.AddNodalSolutionStepVariable(DISTANCE);  
 
-        voxel.CreateNewNode(1, -1, -1, -1);
-        voxel.CreateNewNode(2,  1, -1, -1);
-        voxel.CreateNewNode(3, 1,  1, -1);
-        voxel.CreateNewNode(4, -1,  1, -1);
-        voxel.CreateNewNode(5, -1, -1,  1);
-        voxel.CreateNewNode(6, 1, -1,  1);
-        voxel.CreateNewNode(7, 1,  1,  1);
-        voxel.CreateNewNode(8, -1,  1,  1); 
-        Properties::Pointer p_properties_0(new Properties(0));
-        Element::Pointer pElement = voxel.CreateNewElement("Element3D8N", 1, {1, 2, 3, 4, 5, 6, 7, 8}, p_properties_0);  
-        GeometryPtrType pVoxel = pElement->pGetGeometry();
+            voxel.CreateNewNode(1, -1, -1, -1);
+            voxel.CreateNewNode(2,  1, -1, -1);
+            voxel.CreateNewNode(3, 1,  1, -1);
+            voxel.CreateNewNode(4, -1,  1, -1);
+            voxel.CreateNewNode(5, -1, -1,  1);
+            voxel.CreateNewNode(6, 1, -1,  1);
+            voxel.CreateNewNode(7, 1,  1,  1);
+            voxel.CreateNewNode(8, -1,  1,  1); 
+            Properties::Pointer p_properties_0(new Properties(0));
+            Element::Pointer pElement = voxel.CreateNewElement("Element3D8N", 1, {1, 2, 3, 4, 5, 6, 7, 8}, p_properties_0);  
+            GeometryPtrType pVoxel = pElement->pGetGeometry();
 
-        //Add the distances
-        PointsArrayType nodes = pVoxel->Points();   
-        
-        for (int i = 0; i < 8; i++) {
-            nodes[i].FastGetSolutionStepValue(DISTANCE) = rDistances[i];
+            //Add the distances
+            PointsArrayType nodes = pVoxel->Points();   
+            
+            for (int i = 0; i < 8; i++) {
+                nodes[i].FastGetSolutionStepValue(DISTANCE) = rDistances[i];
+            }
+            return pVoxel;  
         }
-        return pVoxel;  
-    }
-    GeometryPtrType QEFGenerateUncenteredHexahedra3D8(const std::vector<double>& rDistances) 
-    { 
-        Model my_model;
-        ModelPart &voxel = my_model.CreateModelPart("Voxel");  
-        voxel.AddNodalSolutionStepVariable(DISTANCE);  
+        GeometryPtrType QEFGenerateUncenteredHexahedra3D8(const std::vector<double>& rDistances) 
+        { 
+            Model my_model;
+            ModelPart &voxel = my_model.CreateModelPart("Voxel");  
+            voxel.AddNodalSolutionStepVariable(DISTANCE);  
 
-        voxel.CreateNewNode(1, 0, 0, 0);
-        voxel.CreateNewNode(2,  2, 0, 0);
-        voxel.CreateNewNode(3, 2,  2, 0);
-        voxel.CreateNewNode(4, 0,  2, 0);
-        voxel.CreateNewNode(5, 0, 0, 2);
-        voxel.CreateNewNode(6, 2, 0,  2);
-        voxel.CreateNewNode(7, 2,  2,  2);
-        voxel.CreateNewNode(8, 0,  2,  2); 
-        Properties::Pointer p_properties_0(new Properties(0));
-        Element::Pointer pElement = voxel.CreateNewElement("Element3D8N", 1, {1, 2, 3, 4, 5, 6, 7, 8}, p_properties_0);  
-        GeometryPtrType pVoxel = pElement->pGetGeometry();
+            voxel.CreateNewNode(1, 0, 0, 0);
+            voxel.CreateNewNode(2,  2, 0, 0);
+            voxel.CreateNewNode(3, 2,  2, 0);
+            voxel.CreateNewNode(4, 0,  2, 0);
+            voxel.CreateNewNode(5, 0, 0, 2);
+            voxel.CreateNewNode(6, 2, 0,  2);
+            voxel.CreateNewNode(7, 2,  2,  2);
+            voxel.CreateNewNode(8, 0,  2,  2); 
+            Properties::Pointer p_properties_0(new Properties(0));
+            Element::Pointer pElement = voxel.CreateNewElement("Element3D8N", 1, {1, 2, 3, 4, 5, 6, 7, 8}, p_properties_0);  
+            GeometryPtrType pVoxel = pElement->pGetGeometry();
 
-        //Add the distances
-        PointsArrayType nodes = pVoxel->Points();   
-        
-        for (int i = 0; i < 8; i++) {
-            nodes[i].FastGetSolutionStepValue(DISTANCE) = rDistances[i];
+            //Add the distances
+            PointsArrayType nodes = pVoxel->Points();   
+            
+            for (int i = 0; i < 8; i++) {
+                nodes[i].FastGetSolutionStepValue(DISTANCE) = rDistances[i];
+            }
+            return pVoxel;  
         }
-        return pVoxel;  
-    }
 
-    //rNodes is a 3*3 matrix representin de (x,y,z) coordinates of each of the 3 triangle nodes
-    GeometryPtrType QEFGenerateTriangle3D3(std::vector<std::vector<double>>& rNodes)
-    {
-        Model my_model;
-        ModelPart& triangles = my_model.CreateModelPart("Triangle"); 
-        triangles.CreateNewNode(1, rNodes[0][0], rNodes[0][1], rNodes[0][2]);
-        triangles.CreateNewNode(2, rNodes[1][0], rNodes[1][1], rNodes[1][2]);
-        triangles.CreateNewNode(3, rNodes[2][0], rNodes[2][1], rNodes[2][2]);
-        Properties::Pointer p_properties_1(new Properties(0)); 
-        Element::Pointer pTriangle = triangles.CreateNewElement("Element3D3N", 1, {1, 2, 3}, p_properties_1);
-        return pTriangle->pGetGeometry();
-    } 
-
+        //rNodes is a 3*3 matrix representin de (x,y,z) coordinates of each of the 3 triangle nodes
+        GeometryPtrType QEFGenerateTriangle3D3(std::vector<std::vector<double>>& rNodes)
+        {
+            Model my_model;
+            ModelPart& triangles = my_model.CreateModelPart("Triangle"); 
+            triangles.CreateNewNode(1, rNodes[0][0], rNodes[0][1], rNodes[0][2]);
+            triangles.CreateNewNode(2, rNodes[1][0], rNodes[1][1], rNodes[1][2]);
+            triangles.CreateNewNode(3, rNodes[2][0], rNodes[2][1], rNodes[2][2]);
+            Properties::Pointer p_properties_1(new Properties(0)); 
+            Element::Pointer pTriangle = triangles.CreateNewElement("Element3D3N", 1, {1, 2, 3}, p_properties_1);
+            return pTriangle->pGetGeometry();
+        } 
+    } //unnamed namespace
+    
     KRATOS_TEST_CASE_IN_SUITE(CalculateCenter, KratosCoreFastSuite) 
     {
 

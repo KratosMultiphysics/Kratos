@@ -65,7 +65,7 @@ namespace Kratos {
             if (m_eigenvalues(i,i) < 1e-12) {
                 d(i,i) = 0; 
             } else {
-                 d(i,i) = Check(1.0/m_eigenvalues(i,i), 1e-12);
+                d(i,i) = Check(1.0/m_eigenvalues(i,i), 1e-12);
             }
         }
 
