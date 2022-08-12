@@ -429,7 +429,13 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
                 r_data_communicator.Send(final_faces_to_remove, destination_rank, tag_second_send);
 
                 // Finally filter the faces to be removed
-
+                faces_to_remove.clear();
+                for (auto& r_face_to_remove : final_faces_to_remove) {
+                    auto it_find_face = faces_hash_map.find(r_face_to_remove);
+                    if (it_find_face != faces_hash_map.end()) {
+                        faces_to_remove.push_back(it_find_face->second);
+                    }
+                }
             } else { // Main process
                 std::unordered_map<std::size_t, bool> faces_mpi_counter;
                 std::unordered_map<std::size_t, VectorIndexType> faces_hash_map;
@@ -467,8 +473,15 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
                 for (int i_rank = 1; i_rank < world_size; ++i_rank) {
                     r_data_communicator.Send(final_faces_to_remove, i_rank, tag_second_send);
                 }
-
+                
                 // Finally filter the faces to be removed
+                faces_to_remove.clear();
+                for (auto& r_face_to_remove : final_faces_to_remove) {
+                    auto it_find_face = faces_hash_map.find(r_face_to_remove);
+                    if (it_find_face != faces_hash_map.end()) {
+                        faces_to_remove.push_back(it_find_face->second);
+                    }
+                }
             }
         }
 
