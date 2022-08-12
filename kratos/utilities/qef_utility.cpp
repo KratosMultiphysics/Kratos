@@ -21,7 +21,6 @@ namespace Kratos {
     ) {
         array_1d<double,3> x_point;
         array_1d<double,3> center = CalculateCenter(rVoxel);
-        VectorType v_center = center; 
         MatrixType m_center(3,1);
         column(m_center,0) = center;
         GeometryArrayType edges = rVoxel.GenerateEdges();
@@ -33,7 +32,6 @@ namespace Kratos {
 
         for (std::size_t i = 0; i < rTriangles.size(); i++) {
             array_1d<double,3> normal = CalculateNormal(rTriangles[i]);
-            VectorType v_normal = normal; 
             MatrixType m_normal(3,1);
             column(m_normal,0) = normal;
 
@@ -49,8 +47,7 @@ namespace Kratos {
             if (result) {
                 //Fill the matrixes with the corresponding information from the intersection and normal
                 MatrixType m_normal_trans = trans(m_normal);
-                MatrixType help = prod(m_normal,m_normal_trans);
-                ata = ata + help;
+                ata = ata + prod(m_normal,m_normal_trans);
                 double aux = MathUtils<double>::Dot(normal,intersection);
                 MatrixType m_aux(1,1,aux);
                 atb = atb + prod(m_normal,m_aux);
@@ -58,14 +55,18 @@ namespace Kratos {
             }
         }
 
-        //Find the eigenvalues and eigenvectors to AtA
+        //Find the eigenvalues and eigenvectors to ata
         MatrixType m_eigenvectors;
         MatrixType m_eigenvalues;
         const bool converged = MathUtils<double>::GaussSeidelEigenSystem(ata, m_eigenvectors, m_eigenvalues);
 
         MatrixType d(3,3,0);
         for (int i : {0,1,2}) {
-            m_eigenvalues(i,i) < 1e-12 ? d(i,i) = 0 : d(i,i) = Check(1.0/m_eigenvalues(i,i), 1e-12);
+            if (m_eigenvalues(i,i) < 1e-12) {
+                d(i,i) = 0; 
+            } else {
+                 d(i,i) = Check(1.0/m_eigenvalues(i,i), 1e-12);
+            }
         }
 
         MatrixType ata_inverse;  
@@ -102,11 +103,11 @@ namespace Kratos {
     }
 
     double QEF::Check(
-        const double d, 
-        const double epsilon)
+        const double D, 
+        const double Epsilon)
     {
-        if (d > epsilon)  {
-            return d;
+        if (D > Epsilon)  {
+            return D;
         } else {
             return 0;
         } 

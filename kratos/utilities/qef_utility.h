@@ -96,11 +96,12 @@ public:
     ///@{
     
     /**
-     * @brief Aproximates the actual volume inside the voxel 
+     * @brief Finds the QEF point of a voxel 
      * @param rVoxel references to the voxel whose x-point will be calculated
      * @param rTriangles references to the triangles which intersect the voxel at some edge.
-     * @return The Point (coordinates) of the x-point of the voxel
-     */  
+     * @return The QEF point (x,y,z) 
+     */
+
     static array_1d<double,3> QEFPoint (
         const GeometryType& rVoxel,  
         const GeometryArrayType& rTriangles     
@@ -138,8 +139,8 @@ private:
     ///@{
 
     static double Check(
-        const double d, 
-        const double epsilon
+        const double D, 
+        const double Epsilon
     );
 
 }; /* Class VoxelInsideVolumeUtility */
