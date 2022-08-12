@@ -140,7 +140,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    static double check(const double& d, const double& epsilon) { return d > epsilon ? d : 0; }
+    static double Check(const double& d, const double& epsilon) { return d > epsilon ? d : 0; }
 
 }; /* Class VoxelInsideVolumeUtility */
 

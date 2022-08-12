@@ -19,63 +19,65 @@ namespace Kratos {
         const GeometryType& rVoxel,  
         const GeometryArrayType& rTriangles     
     ) {
-        array_1d<double,3> xPoint;
+        array_1d<double,3> x_point;
         array_1d<double,3> center = CalculateCenter(rVoxel);
-        VectorType vCenter = center; 
-        MatrixType mCenter(3,1);
-        column(mCenter,0) = center;
+        VectorType v_center = center; 
+        MatrixType m_center(3,1);
+        column(m_center,0) = center;
         GeometryArrayType edges = rVoxel.GenerateEdges();
 
         //Initialize the corresponding matrixes
-        MatrixType AtA(3,3,0);  //3x3 matrix initialized to 0
-        MatrixType AtB(3,1,0);  //3x1 matrix
-        MatrixType BtB(1,1,0);  //1x1 matrix
+        MatrixType ata(3,3,0);  //3x3 matrix initialized to 0
+        MatrixType atb(3,1,0);  //3x1 matrix
+        MatrixType btb(1,1,0);  //1x1 matrix
 
-        for (int i = 0; i < rTriangles.size(); i++) {
+        for (std::size_t i = 0; i < rTriangles.size(); i++) {
             array_1d<double,3> normal = CalculateNormal(rTriangles[i]);
-            VectorType vNormal = normal; 
-            MatrixType mNormal(3,1);
-            column(mNormal,0) = normal;
+            VectorType v_normal = normal; 
+            MatrixType m_normal(3,1);
+            column(m_normal,0) = normal;
 
             //We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
             //but possible), only one will be taken into account to create the matrixes.
             int result = 0; 
             array_1d<double,3> intersection;
-            VectorType vIntersection;
-            int j = 0;
+            VectorType v_intersection;
+            std::size_t j = 0;
             while(!result && j < edges.size()) { 
                 PointsArrayType ends = edges[j++].Points();
                 result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
-                vIntersection = intersection;
+                v_intersection = intersection;
             }
             if (result) {
                 //Fill the matrixes with the corresponding information from the intersection and normal
-                MatrixType mNormalTrans = trans(mNormal);
-                MatrixType help = prod(mNormal,mNormalTrans);
-                AtA = AtA + help;
+                MatrixType m_normal_trans = trans(m_normal);
+                MatrixType help = prod(m_normal,m_normal_trans);
+                ata = ata + help;
                 double aux = MathUtils<double>::Dot(normal,intersection);
-                MatrixType mAux(1,1,aux);
-                AtB = AtB + prod(mNormal,mAux);
-                BtB = BtB + prod(mAux,mAux); 
+                MatrixType m_aux(1,1,aux);
+                atb = atb + prod(m_normal,m_aux);
+                btb = btb + prod(m_aux,m_aux); 
             }
         }
 
         //Find the eigenvalues and eigenvectors to AtA
-        MatrixType mEigenvectors;
-        MatrixType mEigenvalues;
-        const bool converged = MathUtils<double>::GaussSeidelEigenSystem(AtA, mEigenvectors, mEigenvalues);
+        MatrixType m_eigenvectors;
+        MatrixType m_eigenvalues;
+        const bool converged = MathUtils<double>::GaussSeidelEigenSystem(ata, m_eigenvectors, m_eigenvalues);
 
-        MatrixType D(3,3,0);
-        for (int i : {0,1,2}) mEigenvalues(i,i) < 1e-12 ? D(i,i) = 0 : D(i,i) = check(1.0/mEigenvalues(i,i), 1e-12);
+        MatrixType d(3,3,0);
+        for (int i : {0,1,2}) {
+            m_eigenvalues(i,i) < 1e-12 ? d(i,i) = 0 : d(i,i) = Check(1.0/m_eigenvalues(i,i), 1e-12);
+        }
 
-        MatrixType AtAInverse;  
-        MathUtils<double>::BDBtProductOperation(AtAInverse, D, mEigenvectors);
+        MatrixType ata_inverse;  
+        MathUtils<double>::BDBtProductOperation(ata_inverse, d, m_eigenvectors);
        
-        MatrixType AtAc = prod(AtA,mCenter);
-        MatrixType solution = prod(AtAInverse, AtB - AtAc) + mCenter;        
-        xPoint = column(solution,0);
+        MatrixType ata_c = prod(ata,m_center);
+        MatrixType solution = prod(ata_inverse, atb - ata_c) + m_center;        
+        x_point = column(solution,0);
 
-        return xPoint;
+        return x_point;
     }
 
 
@@ -83,7 +85,7 @@ namespace Kratos {
         PointsArrayType nodes = rVoxel.Points();
         double x, y, z;
         x = y = z = 0;
-        for(int i = 0; i < nodes.size(); i++) {
+        for(std::size_t i = 0; i < nodes.size(); i++) {
             x += nodes[i].X();
             y += nodes[i].Y();
             z += nodes[i].Z();
@@ -92,8 +94,8 @@ namespace Kratos {
         return center;
     }
 
-    array_1d<double,3> QEF::CalculateNormal(const GeometryType& triangle) {
-        PointsArrayType nodes = triangle.Points();
+    array_1d<double,3> QEF::CalculateNormal(const GeometryType& rTriangle) {
+        PointsArrayType nodes = rTriangle.Points();
         array_1d<double,3> u = nodes[1] - nodes[0];
         array_1d<double,3> v = nodes[2] - nodes[0];
         array_1d<double,3> normal;
