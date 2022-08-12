@@ -25,19 +25,18 @@ namespace Kratos {
     ) {
         array_1d<double,3> x_point;
         array_1d<double,3> center = rVoxel.Center().Coordinates();
-        MatrixType m_center(3,1);
-        column(m_center,0) = center;
+        MatrixType mat_center(3,1);
+        column(mat_center,0) = center;
         GeometryArrayType edges = rVoxel.GenerateEdges();
 
         //Initialize the corresponding matrixes
         MatrixType ata(3,3,0);  //3x3 matrix initialized to 0
         MatrixType atb(3,1,0);  //3x1 matrix
-        MatrixType btb(1,1,0);  //1x1 matrix
 
         for (std::size_t i = 0; i < rTriangles.size(); i++) {
             array_1d<double,3> normal = CalculateNormal(rTriangles[i]);
-            MatrixType m_normal(3,1);
-            column(m_normal,0) = normal;
+            MatrixType mat_normal(3,1);
+            column(mat_normal,0) = normal;
 
             //We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
             //but possible), only one will be taken into account to create the matrixes.
@@ -50,34 +49,33 @@ namespace Kratos {
             }
             if (result) {
                 //Fill the matrixes with the corresponding information from the intersection and normal
-                MatrixType m_normal_trans = trans(m_normal);
-                ata += prod(m_normal,m_normal_trans);
+                MatrixType mat_normal_trans = trans(mat_normal);
+                ata += prod(mat_normal,mat_normal_trans);
                 double aux = MathUtils<double>::Dot(normal,intersection);
-                MatrixType m_aux(1,1,aux);
-                atb += prod(m_normal,m_aux);
-                btb += prod(m_aux,m_aux); 
+                MatrixType mat_aux(1,1,aux);
+                atb += prod(mat_normal,mat_aux);
             }
         }
 
         //Find the eigenvalues and eigenvectors to ata
-        MatrixType m_eigenvectors;
-        MatrixType m_eigenvalues;
-        const bool converged = MathUtils<double>::GaussSeidelEigenSystem(ata, m_eigenvectors, m_eigenvalues);
+        MatrixType mat_eigenvectors;
+        MatrixType mat_eigenvalues;
+        const bool converged = MathUtils<double>::GaussSeidelEigenSystem(ata, mat_eigenvectors, mat_eigenvalues);
 
         MatrixType d(3,3,0);
         for (int i : {0,1,2}) {
-            if (m_eigenvalues(i,i) < 1e-12) {
+            if (mat_eigenvalues(i,i) < 1e-12) {
                 d(i,i) = 0; 
             } else {
-                d(i,i) = Check(1.0/m_eigenvalues(i,i), 1e-12);
+                d(i,i) = Check(1.0/mat_eigenvalues(i,i), 1e-12);
             }
         }
 
         MatrixType ata_inverse;  
-        MathUtils<double>::BDBtProductOperation(ata_inverse, d, m_eigenvectors);
+        MathUtils<double>::BDBtProductOperation(ata_inverse, d, mat_eigenvectors);
        
-        MatrixType ata_c = prod(ata,m_center);
-        MatrixType solution = prod(ata_inverse, atb - ata_c) + m_center;        
+        MatrixType ata_c = prod(ata,mat_center);
+        MatrixType solution = prod(ata_inverse, atb - ata_c) + mat_center;        
         x_point = column(solution,0);
 
         return x_point;
