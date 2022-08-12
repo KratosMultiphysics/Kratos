@@ -417,16 +417,18 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info,
                                                                SphericParticle::ParticleDataBuffer& data_buffer,
-                                                               DEMWall* neighbor,
                                                                double GlobalContactForceTotal[3],
                                                                double LocalContactForceDamping[3],
                                                                bool sliding) {
     KRATOS_TRY
 
-    SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, neighbor, GlobalContactForceTotal, LocalContactForceDamping, sliding);
+    SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceDamping, sliding);
 
     if (!mStoreContactParam || !mIsTimeToSolve)
       return;
+
+    // Get neighbor wall
+    DEMWall* neighbor = data_buffer.mpOtherRigidFace;
 
     // Local components of relavive velocity (normal and tangential)
     std::vector<double> LocalRelativeVelocity{ data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) };
