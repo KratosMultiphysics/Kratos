@@ -36,7 +36,11 @@ def CreateEntriesDicts(current_path: Path, navigation_level: int, max_navigation
         if "landing_page" in menu_data.keys():
             landing_url = menu_data["landing_page"]
         else:
-            raise RuntimeError("No landing page information found for leaf dir {0:s}. Please add it to {0:}/menu_info.json.".format(str(current_path)))
+            # check whether this dir has markdown files. If so throw an error stating it has reached maximum levels.
+            for itr_dir in current_path.iterdir():
+                if iter_dir.is_file() and str(iter_dir).endswith(".md"):
+                    raise Exception("Found pages in {:s} which is above the maximum supported levels in the navigation bar. Please move them to one of the parent folders.".format(str(current_path)))
+            return []
         landing_path = GetEntryPathFromString(landing_url, current_path)
         if landing_path.is_file():
             current_path_entry["path"] = landing_path
