@@ -46,3 +46,6 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" -DUSE_MPI=OF
 
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
+
+# generate pyi stub files
+$PYTHON_EXECUTABLE stub_generation.py ${KRATOS_SOURCE}/bin
