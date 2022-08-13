@@ -34,17 +34,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-/**
- * @namespace VolumeInsideVoxedDefinition
- * @ingroup KratosCore
- * @brief Neighbours definition
- * @author Ariadna Cortes
- */
-namespace VolumeInsideVoxedDefinition
-{
-    static constexpr std::size_t Neighbours[4][2] = {{3,1},{0,2},{1,3},{2,0}};
-}
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -78,7 +67,6 @@ public:
     typedef GeometryType::Pointer GeometryPtrType;
     typedef GeometryType::GeometriesArrayType GeometryArrayType;
     typedef GeometryType::PointsArrayType PointsArrayType;
-
 
     /// Pointer definition of VoxelInsideVolume
     KRATOS_CLASS_POINTER_DEFINITION( VolumeInsideVoxelUtility );
@@ -166,6 +154,8 @@ private:
     ///@}
     ///@name Private member Variables
     ///@{
+
+    static constexpr std::size_t mNeighbours[4][2] = {{3,1},{0,2},{1,3},{2,0}}; /// Neighbour list
 
     ///@}
     ///@name Private Operators
