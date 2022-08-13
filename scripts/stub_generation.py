@@ -14,8 +14,9 @@ def __generate_stub_files_for_module(cpp_lib_dir: str, cpp_lib_name: str) -> Non
     generate_stubs(options)
 
 def main():
-    cpp_lib_dir = str((Path(sys.argv[1]) / "libs").absolute())
-    sys.path.insert(0, sys.argv[1])
+    kratos_installation_path = Path(sys.argv[1])
+    cpp_lib_dir = str((kratos_installation_path / "libs").absolute())
+    sys.path.insert(0, str(kratos_installation_path.absolute()))
     sys.path.insert(0, cpp_lib_dir)
 
     # generate Kratos core cpp stubs files
