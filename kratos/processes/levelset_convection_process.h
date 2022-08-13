@@ -799,17 +799,8 @@ private:
     {
         mLevelSetConvectionSettings = ThisParameters;
 
-        // Convection element formulation settings
-        std::string element_type = ThisParameters["element_type"].GetString();
-        const auto element_list = GetConvectionElementsList();
-        if (std::find(element_list.begin(), element_list.end(), element_type) == element_list.end()) {
-            KRATOS_INFO("") << "Specified \'" << element_type << "\' is not in the available elements list. " <<
-            "Attempting to use custom specified element." << std::endl;
-            mConvectionElementType = element_type;
-        } else {
-            mConvectionElementType = GetConvectionElementName(element_type);
-        }
-        std::string element_register_name = mConvectionElementType + std::to_string(TDim) + "D" + std::to_string(TDim + 1) + "N";
+        std::string element_register_name = GetConvectionElementRegisteredName(ThisParameters);
+
         mpConvectionFactoryElement = &KratosComponents<Element>::Get(element_register_name);
         mElementRequiresLimiter =  ThisParameters["element_settings"].Has("include_anti_diffusivity_terms") ? ThisParameters["element_settings"]["include_anti_diffusivity_terms"].GetBool() : false;
 
@@ -843,6 +834,26 @@ private:
         // Limiter related settings
         mpLevelSetGradientVar = (mIsBfecc || mElementRequiresLevelSetGradient) ? &(KratosComponents<Variable<array_1d<double, 3>>>::Get(ThisParameters["levelset_gradient_variable_name"].GetString())) : nullptr;
         mEvaluateLimiter = (mIsBfecc || mElementRequiresLimiter) ? true : false;
+    }
+
+    std::string GetConvectionElementRegisteredName(Parameters ThisParameters)
+    {
+        // Convection element formulation settings
+        std::string element_type = ThisParameters["element_type"].GetString();
+        const auto element_list = GetConvectionElementsList();
+        if (std::find(element_list.begin(), element_list.end(), element_type) == element_list.end()) {
+            KRATOS_INFO("") << "Specified \'" << element_type << "\' is not in the available elements list. " <<
+            "Attempting to use custom specified element." << std::endl;
+            mConvectionElementType = element_type;
+        } else {
+            mConvectionElementType = GetConvectionElementName(element_type);
+        }
+        std::string element_register_name = mConvectionElementType + std::to_string(TDim) + "D" + std::to_string(TDim + 1) + "N";
+        if (!KratosComponents<Element>::Has(element_register_name)) {
+            KRATOS_ERROR << "Specified \'" << element_type << "\' is not in the available elements list: " << element_list 
+            << " and it is nor registered as a kratos element either. Please check your settings\n";
+        }
+        return element_register_name;
     }
 
     /**
@@ -897,8 +908,6 @@ private:
                 "requires_distance_gradient" : false,
                 "time_integration_theta" : 0.5
             })");
-        } else {
-            default_parameters = Parameters();
         }
 
         return default_parameters;
