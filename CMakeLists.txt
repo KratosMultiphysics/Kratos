@@ -1,6 +1,26 @@
 project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
-set (CMAKE_CXX_STANDARD 17)
+
+# Check for standard to use
+CHECK_CXX_COMPILER_FLAG(-std=c++17 HAVE_FLAG_STD_CXX17)
+IF(HAVE_FLAG_STD_CXX17)
+    # Have -std=c++17, use it
+    MESSAGE(STATUS "HAVE_FLAG_STD_CXX17 available")
+ELSE(HAVE_FLAG_STD_CXX17)
+    CHECK_CXX_COMPILER_FLAG(-std=c++1z HAVE_FLAG_STD_CXX1Z)
+    IF(HAVE_FLAG_STD_CXX1Z)
+        # Have -std=c++1z, use it
+        MESSAGE(STATUS "HAVE_FLAG_STD_CXX1Z available")
+    ELSE(HAVE_FLAG_STD_CXX1Z)
+        # And so on and on...
+        MESSAGE(FATAL_ERROR "No modern C++17 found, compilation may fail")
+#         MESSAGE(WARNING "No modern C++17 found, compilation may fail")
+    ENDIF(HAVE_FLAG_STD_CXX1Z)
+ENDIF(HAVE_FLAG_STD_CXX17)
+
+# Specify the C++17 standard
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Setting some policies
 # No recursive dereferencing
