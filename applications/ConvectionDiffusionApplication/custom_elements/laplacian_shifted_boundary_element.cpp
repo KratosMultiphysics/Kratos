@@ -121,7 +121,7 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateLocalSystem(
                 const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
                 const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
                 const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
-                const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+                const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
                 // Get the surrogate boundary average conductivity
                 double k_avg = 0.0;
@@ -201,7 +201,7 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateLeftHandSide(
                 const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
                 const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
                 const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
-                const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+                const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
                 // Get the surrogate boundary average conductivity
                 double k_avg = 0.0;
@@ -285,7 +285,7 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateRightHandSide(
                 const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
                 const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
                 const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
-                const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+                const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
                 // Get the surrogate boundary average conductivity
                 double k_avg = 0.0;
@@ -344,8 +344,8 @@ std::vector<std::size_t> LaplacianShiftedBoundaryElement<TDim>::GetSurrogateFace
     // Note that we relly on the fact that the neighbours are sorted according to the faces
     std::vector<std::size_t> surrogate_faces_ids;
     for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
-        auto& r_neigh_elem = r_neigh_elems[i_face];
-        if (r_neigh_elem.Is(BOUNDARY)) {
+        auto p_neigh_elem = r_neigh_elems(i_face).get();
+        if (p_neigh_elem != nullptr && p_neigh_elem->Is(BOUNDARY)) {
             surrogate_faces_ids.push_back(i_face);
         }
     }
