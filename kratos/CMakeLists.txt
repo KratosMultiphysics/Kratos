@@ -121,7 +121,6 @@ if(CMAKE_UNITY_BUILD MATCHES ON)
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/memory_info.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/testing/distributed_test_case.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
