@@ -23,9 +23,8 @@ def __add_sub_modules(cpp_module_path: Path):
 
             file_output.write("\n#   ---- end of includes of sub modules --- \n\n")
 
-            for cpp_sub_module_path in cpp_module_path.iterdir():
-                if cpp_sub_module_path.is_dir():
-                    __add_sub_modules(cpp_sub_module_path)
+        for cpp_sub_module_path in cpp_module_path.iterdir():
+            __add_sub_modules(cpp_sub_module_path)
 
 def __generate_stub_files_for_module(
         kratos_library_path: Path,
