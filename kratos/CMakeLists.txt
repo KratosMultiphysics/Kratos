@@ -86,6 +86,9 @@ if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
   set(KRATOS_EXTERNAL_LIBRARIES ${KRATOS_EXTERNAL_LIBRARIES} triangle)
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
+# older versions of GCC implemented std::filesystem in a separate extention, hence explicit linking
+# against this  extension is required. See the at the end of the official documentation:
+# https://en.cppreference.com/w/cpp/filesystem
 if(${CMAKE_COMPILER_IS_GNUCXX})
     if(${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 9.1)
         set(KRATOS_EXTERNAL_LIBRARIES ${KRATOS_EXTERNAL_LIBRARIES} -lstdc++fs)
