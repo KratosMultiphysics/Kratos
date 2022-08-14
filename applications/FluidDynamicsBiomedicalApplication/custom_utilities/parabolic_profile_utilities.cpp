@@ -205,12 +205,9 @@ void ParabolicProfileUtilities::ImposeParabolicInlet(
 template<class TInputType>
 void ParabolicProfileUtilities::ImposeParabolicProfile(
     ModelPart &rModelPart,
-    const TInputType & rMaxParabolaValue,
+    const TInputType& rMaxParabolaValue,
     const double MaxValueFactor)
 {
-    // STOP
-    std::cout << "\nPROCESS BEGIN\n" << std::endl;
-
     // Get time value from model part ProcessInfo
     const auto& r_process_info = rModelPart.GetProcessInfo();
     KRATOS_ERROR_IF_NOT(r_process_info.Has(TIME)) << "TIME is not present in '" << rModelPart.FullName() << "' ProcessInfo." << std::endl;
