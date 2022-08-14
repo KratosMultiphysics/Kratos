@@ -12,7 +12,7 @@ SET(ListFolders sources conditions constraints containers elements factories geo
 ## Kratos main source code
 SET(LIST_OF_SOURCE_EXCEPTIONS
     # kratos_version is excluded because I separated it to another CU so you didn't have to recompile the whole core every time the version changed, just relink it. In order to not pollute with more .dll / .so a separate .o is created and then using during the linking of KratosCore.dll
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_version.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_version.cpp
 
     # TPL sources are excluded from
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/cad_tessellation_modeler.cpp
@@ -40,7 +40,7 @@ FOREACH(subFolder ${ListFolders})
 ENDFOREACH(subFolder ${ListFolders})
 
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
-    SET(KRATOS_TPL_SOURCES 
+    SET(KRATOS_TPL_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/modeler/cad_tessellation_modeler.cpp
     )
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
@@ -121,7 +121,6 @@ if(CMAKE_UNITY_BUILD MATCHES ON)
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/memory_info.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_filesystem.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
