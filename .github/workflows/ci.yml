@@ -43,16 +43,11 @@ jobs:
           export CC=/usr/bin/gcc
           export CXX=/usr/bin/g++
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
-          export KRATOS_CMAKE_CXX_FLAGS="-std=c++17 -Werror -Wno-deprecated-declarations -Wignored-qualifiers"
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=/usr/bin/clang
           export CXX=/usr/bin/clang++
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
-          if [ ${{ matrix.build-type }} = FullDebug ]; then
-            export KRATOS_CMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -std=c++17"
-          else
-            export KRATOS_CMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -std=c++17"
-          fi
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_4_1/"
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
