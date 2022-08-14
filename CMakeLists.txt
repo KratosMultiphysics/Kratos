@@ -165,9 +165,10 @@ endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++17 -Wl,--no-as-needed -ldl")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++17 -Wl,--no-as-needed -ldl -Wsuggest-override")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+    message( "DEPRECATED: detected compiler as GCC " ${CMAKE_CXX_COMPILER_VERSION} )
+    message( FATAL_ERROR "Please use Version 8 or greater")
   endif()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
