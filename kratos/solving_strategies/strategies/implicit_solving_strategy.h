@@ -90,10 +90,6 @@ public:
 
     typedef typename BaseType::DofsArrayType                                   DofsArrayType;
 
-    typedef typename BaseType::DofIteratorType                               DofIteratorType;
-
-    typedef typename BaseType::DofConstantIteratorType               DofConstantIteratorType;
-
     typedef typename BaseType::NodesArrayType                                 NodesArrayType;
 
     typedef typename BaseType::ElementsArrayType                           ElementsArrayType;
