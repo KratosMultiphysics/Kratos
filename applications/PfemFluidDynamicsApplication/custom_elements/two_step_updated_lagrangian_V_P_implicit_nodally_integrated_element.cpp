@@ -55,11 +55,11 @@ namespace Kratos
 
     double meanElementEdgesLength = this->ElementSize();
     double elementVolume = 0;
-    if (TDim == 3)
+    if constexpr (TDim == 3)
     {
       elementVolume = rGeom.Volume() * 0.25;
     }
-    else if (TDim == 2)
+    else if constexpr (TDim == 2)
     {
       elementVolume = rGeom.Area() / 3.0;
     }
@@ -135,7 +135,7 @@ namespace Kratos
               {
                 rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition] += rDN_DX(j, 0) * elementVolume / solidNodalVolume;
                 rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition + 1] += rDN_DX(j, 1) * elementVolume / solidNodalVolume;
-                if (TDim == 3)
+                if constexpr (TDim == 3)
                 {
                   rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition + 2] += rDN_DX(j, 2) * elementVolume / solidNodalVolume;
                 }
@@ -189,7 +189,7 @@ namespace Kratos
               {
                 rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition] += rDN_DX(j, 0) * elementVolume / nodalVolume;
                 rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition + 1] += rDN_DX(j, 1) * elementVolume / nodalVolume;
-                if (TDim == 3)
+                if constexpr (TDim == 3)
                 {
                   rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition + 2] += rDN_DX(j, 2) * elementVolume / nodalVolume;
                 }
@@ -991,11 +991,11 @@ namespace Kratos
     double volumetricDefRate = rGeom[0].GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE);
     double elementalNormalProjDefRate = 0;
 
-    if (TDim == 2)
+    if constexpr (TDim == 2)
     {
       elementalNormalProjDefRate += Normal[0] * SpatialDefRate[0] * Normal[0] + Normal[1] * SpatialDefRate[1] * Normal[1] + 2 * Normal[0] * SpatialDefRate[2] * Normal[1];
     }
-    else if (TDim == 3)
+    else if constexpr (TDim == 3)
     {
       elementalNormalProjDefRate += Normal[0] * SpatialDefRate[0] * Normal[0] + Normal[1] * SpatialDefRate[1] * Normal[1] + Normal[2] * SpatialDefRate[2] * Normal[2] +
                                     2 * Normal[0] * SpatialDefRate[3] * Normal[1] + 2 * Normal[0] * SpatialDefRate[4] * Normal[2] + 2 * Normal[1] * SpatialDefRate[5] * Normal[2];
@@ -1011,11 +1011,11 @@ namespace Kratos
       VolumetricCoeff += TimeStep * rGeom[i].FastGetSolutionStepValue(BULK_MODULUS);
       volumetricDefRate += rGeom[i].GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE);
 
-      if (TDim == 2)
+      if constexpr (TDim == 2)
       {
         elementalNormalProjDefRate += Normal[0] * SpatialDefRate[0] * Normal[0] + Normal[1] * SpatialDefRate[1] * Normal[1] + 2 * Normal[0] * SpatialDefRate[2] * Normal[1];
       }
-      else if (TDim == 3)
+      else if constexpr (TDim == 3)
       {
         elementalNormalProjDefRate += Normal[0] * SpatialDefRate[0] * Normal[0] + Normal[1] * SpatialDefRate[1] * Normal[1] + Normal[2] * SpatialDefRate[2] * Normal[2] +
                                       2 * Normal[0] * SpatialDefRate[3] * Normal[1] + 2 * Normal[0] * SpatialDefRate[4] * Normal[2] + 2 * Normal[1] * SpatialDefRate[5] * Normal[2];
