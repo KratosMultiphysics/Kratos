@@ -35,7 +35,10 @@
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_quasi_incompressible_isochoric_neo_hookean_3d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
+#include "custom_constitutive/hyper_elastic_simo_taylor_neo_hookean_3d.h"
+#include "custom_constitutive/hyper_elastic_simo_taylor_neo_hookean_plane_strain_2d.h"
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
 #include "custom_constitutive/small_strain_j2_plasticity_plane_strain_2d.h"
 #include "custom_constitutive/small_strain_j2_plasticity_3d.h"
@@ -93,6 +96,7 @@
 #include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/mohr_coulomb_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/rankine_plastic_potential.h"
 
 // Rules of mixtures
 #include "custom_constitutive/rule_of_mixtures_law.h"
@@ -256,7 +260,10 @@ private:
     const HyperElasticIsotropicKirchhoffPlaneStress2D  mHyperElasticIsotropicKirchhoffPlaneStress2D;
     const HyperElasticIsotropicKirchhoffPlaneStrain2D  mHyperElasticIsotropicKirchhoffPlaneStrain2D;
     const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
+    const HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D  mHyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D;
     const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
+    const HyperElasticSimoTaylorNeoHookean3D mHyperElasticSimoTaylorNeoHookean3D;
+    const HyperElasticSimoTaylorNeoHookeanPlaneStrain2D mHyperElasticSimoTaylorNeoHookeanPlaneStrain2D;
     const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
 
     const SmallStrainJ2Plasticity3D mSmallStrainJ2Plasticity3D;
@@ -609,9 +616,10 @@ private:
     // Anisotropic law
     const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;
 
-    const AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>> mAssociativePlasticDamageModel3DVonMisesVonMises;
-    const AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>> mAssociativePlasticDamageModel3DDruckerPragerDruckerPrager;
-    const AssociativePlasticDamageModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>> mAssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb;
+    const AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>> mAssociativePlasticDamageModel3DVonMises;
+    const AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>> mAssociativePlasticDamageModel3DDruckerPrager;
+    const AssociativePlasticDamageModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>> mAssociativePlasticDamageModel3DModifiedMohrCoulomb;
+    const AssociativePlasticDamageModel <RankineYieldSurface<RankinePlasticPotential<6>>> mAssociativePlasticDamageModel3DRankine;
 
     ///@}
     ///@name Private Operators

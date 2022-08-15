@@ -16,15 +16,16 @@
 
 // External includes
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 
 // Project includes
 #include "includes/define.h"
+
+// Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/rom_residuals_utility.h"
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-
+#include "custom_utilities/rom_auxiliary_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -39,10 +40,17 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
 
     class_<RomResidualsUtility, typename RomResidualsUtility::Pointer>(m, "RomResidualsUtility")
-    .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) // 
+    .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) //
     .def("GetResiduals",&RomResidualsUtility::Calculate) //
-    ;     
+    ;
 
+    class_<RomAuxiliaryUtilities>(m, "RomAuxiliaryUtilities")
+        .def_static("SetHRomComputingModelPart", &RomAuxiliaryUtilities::SetHRomComputingModelPart)
+        .def_static("SetHRomVolumetricVisualizationModelPart", &RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart)
+        .def_static("GetHRomConditionParentsIds", &RomAuxiliaryUtilities::GetHRomConditionParentsIds)
+        .def_static("GetHRomMinimumConditionsIds", &RomAuxiliaryUtilities::GetHRomMinimumConditionsIds)
+        .def_static("ProjectRomSolutionIncrementToNodes", &RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes)
+        ;
 }
 
 } // namespace Python.

@@ -34,8 +34,7 @@ void UPwForceCondition<TDim,TNumNodes>::
 {
     array_1d<double,3> ForceVector = this->GetGeometry()[0].FastGetSolutionStepValue( POINT_LOAD );
 
-    for(unsigned int i = 0; i < TDim; i++)
-    {
+    for (unsigned int i = 0; i < TDim; ++i) {
         rRightHandSideVector[i] = ForceVector[i];
     }
 }

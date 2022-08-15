@@ -75,14 +75,14 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
-    const unsigned int NumGPoints = integration_points.size();
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const unsigned int NumGPoints = IntegrationPoints.size();
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
     
     //Containers of variables at all integration points
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
     GeometryType::JacobiansType JContainer(NumGPoints);
-    for(unsigned int i = 0; i<NumGPoints; i++)
+    for (unsigned int i = 0; i<NumGPoints; i++)
         (JContainer[i]).resize(TDim,LocalDim,false);
     Geom.Jacobian( JContainer, mThisIntegrationMethod );
     
@@ -116,7 +116,7 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::
             this->CalculateJointWidth(JointWidth, Nu, DisplacementVector, RelDispVector, RotationMatrix, LocalRelDispVector, MinimumJointWidth,GPoint);
         
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(IntegrationCoefficient, JContainer[GPoint], integration_points[GPoint].Weight(), JointWidth);
+        this->CalculateIntegrationCoefficient(IntegrationCoefficient, JContainer[GPoint], IntegrationPoints[GPoint].Weight(), JointWidth);
                 
         //Contributions to the right hand side
         noalias(UVector) = prod(trans(Nu),TractionVector) * IntegrationCoefficient;

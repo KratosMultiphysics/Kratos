@@ -716,7 +716,7 @@ void ShallowWater2D3::ShockCapturingParameters(
     // slope limits
     const double min_slope = 0.1;
     const double max_slope = 1.0;
-    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.height);
+    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * std::abs(rData.height));
     const double min_q_slope = std::max(eigenvalue * 1.0, min_slope);
     const double max_q_slope = std::max(eigenvalue * 10.0, max_slope);
 

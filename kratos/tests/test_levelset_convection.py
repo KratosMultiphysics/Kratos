@@ -218,8 +218,8 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
         # gid_output.ExecuteFinalizeSolutionStep()
         # gid_output.ExecuteFinalize()
 
-        self.assertAlmostEqual(max_distance, 1.0001864678812689)
-        self.assertAlmostEqual(min_distance, -0.00023748611723155408)
+        self.assertAlmostEqual(max_distance, 1.0001547969705757)
+        self.assertAlmostEqual(min_distance, -0.00022682772863112904)
 
 
 if __name__ == '__main__':

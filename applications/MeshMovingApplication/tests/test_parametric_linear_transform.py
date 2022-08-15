@@ -15,9 +15,9 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
                 Array3([0.0, 0.0, 2.0])]
 
     def CheckDefaultTransformedPoints(self, points: list):
-        self.assertVectorAlmostEqual(points[0], [0.0, 2.0, 6.0], prec=5)
-        self.assertVectorAlmostEqual(points[1], [0.0, 4.0, 4.0], prec=5)
-        self.assertVectorAlmostEqual(points[2], [-2.0, 2.0, 4.0], prec=5)
+        self.assertVectorAlmostEqual(points[0], [0.0, 2.0, 6.0], places=5)
+        self.assertVectorAlmostEqual(points[1], [0.0, 4.0, 4.0], places=5)
+        self.assertVectorAlmostEqual(points[2], [-2.0, 2.0, 4.0], places=5)
 
     def test_ConstantTransform(self):
         points = self.GeneratePoints()
@@ -48,9 +48,9 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
 
         self.CheckDefaultTransformedPoints([transform.Apply(point, 0.0, 0.0, 0.0, 0.0) for point in points])
 
-        self.assertVectorAlmostEqual(transform.Apply(points[0], 1.0, 0.0, 0.0, 0.0), [-3.0, 2.0, 3.0], prec=5)
-        self.assertVectorAlmostEqual(transform.Apply(points[1], 1.0, 0.0, 0.0, 0.0), [-1.0, 4.0, 3.0], prec=5)
-        self.assertVectorAlmostEqual(transform.Apply(points[2], 1.0, 0.0, 0.0, 0.0), [-1.0, 2.0, 1.0], prec=5)
+        self.assertVectorAlmostEqual(transform.Apply(points[0], 1.0, 0.0, 0.0, 0.0), [-3.0, 2.0, 3.0], places=5)
+        self.assertVectorAlmostEqual(transform.Apply(points[1], 1.0, 0.0, 0.0, 0.0), [-1.0, 4.0, 3.0], places=5)
+        self.assertVectorAlmostEqual(transform.Apply(points[2], 1.0, 0.0, 0.0, 0.0), [-1.0, 2.0, 1.0], places=5)
 
     def test_ParametricAxis(self):
         points = self.GeneratePoints()
@@ -62,9 +62,9 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
 
         self.CheckDefaultTransformedPoints([transform.Apply(point, 0.0, 0.0, 0.0, 0.0) for point in points])
 
-        self.assertVectorAlmostEqual(transform.Apply(points[0], 1.0, 0.0, 0.0, 0.0), [3.0, 2.0, 3.0], prec=5)
-        self.assertVectorAlmostEqual(transform.Apply(points[1], 1.0, 0.0, 0.0, 0.0), [1.0, 2.0, 1.0], prec=5)
-        self.assertVectorAlmostEqual(transform.Apply(points[2], 1.0, 0.0, 0.0, 0.0), [1.0, 4.0, 3.0], prec=5)
+        self.assertVectorAlmostEqual(transform.Apply(points[0], 1.0, 0.0, 0.0, 0.0), [3.0, 2.0, 3.0], places=5)
+        self.assertVectorAlmostEqual(transform.Apply(points[1], 1.0, 0.0, 0.0, 0.0), [1.0, 2.0, 1.0], places=5)
+        self.assertVectorAlmostEqual(transform.Apply(points[2], 1.0, 0.0, 0.0, 0.0), [1.0, 4.0, 3.0], places=5)
 
     def test_ParametricEulerAngles(self):
         points = self.GeneratePoints()
@@ -75,9 +75,9 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
 
         self.CheckDefaultTransformedPoints([transform.Apply(point, 0.0, 0.0, 0.0, 0.0) for point in points])
 
-        self.assertVectorAlmostEqual(transform.Apply(points[0], 1.0, 0.0, 0.0, 0.0), [0.0, -1.0, 3.0], prec=5)
-        self.assertVectorAlmostEqual(transform.Apply(points[1], 1.0, 0.0, 0.0, 0.0), [0.0, 1.0, 5.0], prec=5)
-        self.assertVectorAlmostEqual(transform.Apply(points[2], 1.0, 0.0, 0.0, 0.0), [-2.0, 1.0, 3.0], prec=5)
+        self.assertVectorAlmostEqual(transform.Apply(points[0], 1.0, 0.0, 0.0, 0.0), [0.0, -1.0, 3.0], places=5)
+        self.assertVectorAlmostEqual(transform.Apply(points[1], 1.0, 0.0, 0.0, 0.0), [0.0, 1.0, 5.0], places=5)
+        self.assertVectorAlmostEqual(transform.Apply(points[2], 1.0, 0.0, 0.0, 0.0), [-2.0, 1.0, 3.0], places=5)
 
     def test_ParametricReferencePoint(self):
         points = self.GeneratePoints()
@@ -89,9 +89,9 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
 
         self.CheckDefaultTransformedPoints([transform.Apply(point, 0.0, 0.0, 0.0, 0.0) for point in points])
 
-        self.assertVectorAlmostEqual(transform.Apply(points[0], 1.0, 0.0, 0.0, 0.0), [1.0, 2.0, 5.0], prec=5)
-        self.assertVectorAlmostEqual(transform.Apply(points[1], 1.0, 0.0, 0.0, 0.0), [1.0, 4.0, 3.0], prec=5)
-        self.assertVectorAlmostEqual(transform.Apply(points[2], 1.0, 0.0, 0.0, 0.0), [-1.0, 2.0, 3.0], prec=5)
+        self.assertVectorAlmostEqual(transform.Apply(points[0], 1.0, 0.0, 0.0, 0.0), [1.0, 2.0, 5.0], places=5)
+        self.assertVectorAlmostEqual(transform.Apply(points[1], 1.0, 0.0, 0.0, 0.0), [1.0, 4.0, 3.0], places=5)
+        self.assertVectorAlmostEqual(transform.Apply(points[2], 1.0, 0.0, 0.0, 0.0), [-1.0, 2.0, 3.0], places=5)
 
     def test_ParametricTranslationVector(self):
         points = self.GeneratePoints()
@@ -103,9 +103,9 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
 
         self.CheckDefaultTransformedPoints([transform.Apply(point, 0.0, 0.0, 0.0, 0.0) for point in points])
 
-        self.assertVectorAlmostEqual(transform.Apply(points[0], 1.0, 0.0, 0.0, 0.0), [-1.0, 0.0, 3.0], prec=5)
-        self.assertVectorAlmostEqual(transform.Apply(points[1], 1.0, 0.0, 0.0, 0.0), [-1.0, 2.0, 1.0], prec=5)
-        self.assertVectorAlmostEqual(transform.Apply(points[2], 1.0, 0.0, 0.0, 0.0), [-3.0, 0.0, 1.0], prec=5)
+        self.assertVectorAlmostEqual(transform.Apply(points[0], 1.0, 0.0, 0.0, 0.0), [-1.0, 0.0, 3.0], places=5)
+        self.assertVectorAlmostEqual(transform.Apply(points[1], 1.0, 0.0, 0.0, 0.0), [-1.0, 2.0, 1.0], places=5)
+        self.assertVectorAlmostEqual(transform.Apply(points[2], 1.0, 0.0, 0.0, 0.0), [-3.0, 0.0, 1.0], places=5)
 
     @staticmethod
     def GetConstantAxis():

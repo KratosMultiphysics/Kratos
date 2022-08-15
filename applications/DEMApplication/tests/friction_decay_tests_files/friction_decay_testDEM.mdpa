@@ -43,6 +43,10 @@ Begin SubModelPart 1 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: 
     VELOCITY_START_TIME 0.0
     VELOCITY_STOP_TIME 100.0
   End SubModelPartData
+  Begin SubModelPartElements
+         1
+         2
+  End SubModelPartElements
   Begin SubModelPartNodes
          1
          2
@@ -57,6 +61,10 @@ Begin SubModelPart 2 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: 
     VELOCITY_START_TIME 0.0
     VELOCITY_STOP_TIME 100.0
   End SubModelPartData
+  Begin SubModelPartElements
+         3
+         4
+  End SubModelPartElements
   Begin SubModelPartNodes
          3
          4
@@ -71,6 +79,10 @@ Begin SubModelPart 3 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: 
     VELOCITY_START_TIME 0.0
     VELOCITY_STOP_TIME 100.0
   End SubModelPartData
+  Begin SubModelPartElements
+         5
+         6
+  End SubModelPartElements
   Begin SubModelPartNodes
          5
          6
@@ -83,6 +95,11 @@ Begin SubModelPart mat_1
          3
          5
   End SubModelPartElements
+  Begin SubModelPartNodes
+         1
+         3
+         5
+  End SubModelPartNodes
 End SubModelPart
 
 Begin SubModelPart mat_2
@@ -91,4 +108,9 @@ Begin SubModelPart mat_2
          4
          6
   End SubModelPartElements
+  Begin SubModelPartNodes
+         2
+         4
+         6
+  End SubModelPartNodes
 End SubModelPart

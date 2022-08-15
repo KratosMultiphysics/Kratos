@@ -45,6 +45,7 @@ public:
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed": false,
+                "is_seepage": false,
                 "gravity_direction": 1,
                 "out_of_plane_direction": 2,
                 "pressure_tension_cut_off" : 0.0,
@@ -64,6 +65,7 @@ public:
         FindBoundaryNodes();
 
         mIsFixed = rParameters["is_fixed"].GetBool();
+        mIsSeepage = rParameters["is_seepage"].GetBool();
         mGravityDirection = rParameters["gravity_direction"].GetInt();
         mOutOfPlaneDirection = rParameters["out_of_plane_direction"].GetInt();
         if (mGravityDirection == mOutOfPlaneDirection)
@@ -80,7 +82,7 @@ public:
         else
           mPressureTensionCutOff = 0.0;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------
@@ -99,28 +101,39 @@ public:
     /// right after reading the model and the groups
     void ExecuteInitialize() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
-
-        if (nNodes > 0) {
+        if (mrModelPart.NumberOfNodes() > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
-            block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
-                if (mIsFixed) rNode.Fix(var);
-                else          rNode.Free(var);
+            if (mIsSeepage) {
+                block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+                    const double pressure = CalculatePressure(rNode);
 
-                double pressure = CalculatePressure(rNode);
+                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0.0) {
+                        rNode.FastGetSolutionStepValue(var) = pressure;
+                        if (mIsFixed) rNode.Fix(var);
+                    } else {
+                        rNode.Free(var);
+                    }
+                });
+            } else {
+                block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+                    if (mIsFixed) rNode.Fix(var);
+                    else          rNode.Free(var);
 
-                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
-                    rNode.FastGetSolutionStepValue(var) = pressure;
-                } else {
-                    rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                }
-            });
+                    const double pressure = CalculatePressure(rNode);
+
+                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
+                        rNode.FastGetSolutionStepValue(var) = pressure;
+                    } else {
+                        rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
+                    }
+                });
+            }
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.
@@ -149,6 +162,7 @@ protected:
     ModelPart& mrModelPart;
     std::string mVariableName;
     bool mIsFixed;
+    bool mIsSeepage;
     unsigned int mGravityDirection;
     unsigned int mOutOfPlaneDirection;
     unsigned int mHorizontalDirection;

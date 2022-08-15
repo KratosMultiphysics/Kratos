@@ -81,6 +81,7 @@ public:
 
     /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+    static constexpr double threshold_tolerance = 1.0e-5;
 
     ///@}
     ///@name Life Cycle
@@ -285,6 +286,14 @@ public:
     bool RequiresFinalizeMaterialResponse() override
     {
         return true;
+    }
+
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return false;
     }
 
     /**

@@ -32,6 +32,7 @@
 #include "includes/checks.h"
 
 #include "includes/variables.h"
+#include "includes/cfd_variables.h"
 #include "utilities/math_utils.h"
 #include "includes/global_pointer_variables.h"
 #include "processes/node_erase_process.h"
@@ -54,12 +55,10 @@
 
 #include "time.h"
 
-//#include "processes/process.h"
 
 namespace Kratos
 {
 
-//this class is to be modified by the user to customize the interpolation process
 template< unsigned int TDim>
 class MoveShallowWaterParticleUtility
 {
@@ -77,7 +76,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(MoveShallowWaterParticleUtility);
 
-    //template<unsigned int TDim>
+
     MoveShallowWaterParticleUtility(ModelPart& rModelPart, Parameters rParameters) :
         mrModelPart(rModelPart),
         mScalarVar1(&KratosComponents< Variable<double> >::Get( rParameters["convection_scalar_variable"].GetString() ) ),
@@ -111,51 +110,8 @@ public:
             ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
             ielem->SetId(ii+1);
         }
-        mLastElemId = (mrModelPart.ElementsEnd()-1)->Id();
-
-        // we look for the smallest edge. could be used as a weighting function when going lagrangian->eulerian instead of traditional shape functions(method currently used)
-        block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
-            array_1d<double,3> position_node;
-            double distance=0.0;
-            position_node = rNode.Coordinates();
-            GlobalPointersVector<NodeType>& rneigh = rNode.GetValue(NEIGHBOUR_NODES);
-            //we loop all the nodes to check all the edges
-            const double number_of_neighbours = static_cast<double>(rneigh.size());
-            for( GlobalPointersVector<NodeType>::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
-            {
-                array_1d<double,3> position_difference;
-                position_difference = inode->Coordinates() - position_node;
-                const double current_distance = norm_2( position_difference );
-                distance += current_distance / number_of_neighbours;
-            }
-            //and we save the largest edge.
-            rNode.SetValue(MEAN_SIZE, distance);
-        });
         mLastNodeId = (mrModelPart.NodesEnd() - 1)->Id();
 
-        //we also calculate the element mean size in the same way, for the courant number
-        //also we set the right size to the LHS column for the pressure enrichments, in order to recover correctly the enrichment pressure
-        //before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
-        block_for_each(mrModelPart.Elements(), [&](Element& rElem){
-            double elem_size;
-            array_1d<double,3> Edge(3,0.0);
-            Edge = rElem.GetGeometry()[1].Coordinates() - rElem.GetGeometry()[0].Coordinates();
-            elem_size = Edge[0]*Edge[0];
-            for (unsigned int d = 1; d < TDim; d++)
-                elem_size += Edge[d]*Edge[d];
-
-            for (unsigned int i = 2; i < (TDim+1); i++)
-                for(unsigned int j = 0; j < i; j++)
-                {
-                    Edge = rElem.GetGeometry()[i].Coordinates() - rElem.GetGeometry()[j].Coordinates();
-                    double Length = Edge[0]*Edge[0];
-                    for (unsigned int d = 1; d < TDim; d++)
-                        Length += Edge[d]*Edge[d];
-                    if (Length < elem_size) elem_size = Length;
-                }
-            elem_size = sqrt(elem_size);
-            rElem.SetValue(MEAN_SIZE, elem_size);
-        });
 
         //matrix containing the position of the 4/15/45 particles that we will seed at the beggining
         BoundedMatrix<double, 5*(1+TDim), 3 > pos;
@@ -260,8 +216,7 @@ public:
 
 
     /// Calculates the mean velocity
-    /** This function computes the mean velocity within an element and
-     * stores it in MEAN_VEL_OVER_ELEM_SIZE variable.
+    /** This function computes the mean velocity within an element and the CFL
      * This variable keeps the courant number aprox 0.1 in each substep
      *
      * @see MoveParticle
@@ -272,18 +227,19 @@ public:
         KRATOS_TRY
 
         const double nodal_weight = 1.0/ (1.0 + double (TDim) );
+        const double dt = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
         block_for_each(mrModelPart.Elements(), [&](Element& rElem){
             const GeometryType& geom = rElem.GetGeometry();
 
-            array_1d<double, 3 >vector_mean_velocity=ZeroVector(3);
+            array_1d<double, 3 >mean_velocity=ZeroVector(3);
 
             for (unsigned int i=0; i != (TDim+1) ; i++)
-                vector_mean_velocity += geom[i].FastGetSolutionStepValue(VELOCITY);
-            vector_mean_velocity *= nodal_weight;
+                mean_velocity += geom[i].FastGetSolutionStepValue(VELOCITY);
+            mean_velocity *= nodal_weight;
 
-            const double mean_velocity = norm_2( vector_mean_velocity );
-            rElem.SetValue(MEAN_VEL_OVER_ELEM_SIZE, mean_velocity / ( rElem.GetValue(MEAN_SIZE) ) );
+            double cfl_number = dt * norm_2(mean_velocity) / rElem.GetGeometry().Length();
+            rElem.SetValue(CFL_NUMBER, cfl_number);
         });
         KRATOS_CATCH("")
     }
@@ -949,7 +905,7 @@ private:
             }
 
             //calculating substep to get +- courant(substep) = 0.1
-            nsubsteps = 10.0 * (delta_t * pElement->GetValue(MEAN_VEL_OVER_ELEM_SIZE));
+            nsubsteps = 10.0 * pElement->GetValue(CFL_NUMBER);
             if (nsubsteps < 1)
                 nsubsteps = 1;
             substep_dt = delta_t / double(nsubsteps);
@@ -1100,7 +1056,7 @@ private:
                 noalias(vel)     += geom[j].FastGetSolutionStepValue(VELOCITY) * N[j];
             }
             //calculating substep to get +- courant(substep) = 1/4
-            nsubsteps = 10.0 * (delta_t * pElement->GetValue(MEAN_VEL_OVER_ELEM_SIZE));
+            nsubsteps = 10.0 * pElement->GetValue(CFL_NUMBER);
             if (nsubsteps < 1)
                 nsubsteps = 1;
             substep_dt = delta_t / double(nsubsteps);
@@ -1178,12 +1134,15 @@ private:
         GlobalPointersVector<Element>& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i = 0; i != neighb_elems.size(); i++)
         {
-            GeometryType& geom = neighb_elems[i].GetGeometry();
-            bool is_found_2 = CalculatePosition(geom, rPosition[0], rPosition[1], rPosition[2], N);
-            if (is_found_2)
-            {
-                pElement = neighb_elems[i].shared_from_this();
-                return true;
+            if(neighb_elems(i).get()!=nullptr)
+			{
+                GeometryType& geom = neighb_elems[i].GetGeometry();
+                bool is_found_2 = CalculatePosition(geom, rPosition[0], rPosition[1], rPosition[2], N);
+                if (is_found_2)
+                {
+                    pElement = neighb_elems[i].shared_from_this();
+                    return true;
+                }
             }
         }
 
@@ -1274,18 +1233,21 @@ private:
         GlobalPointersVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
-            GeometryType& geom = neighb_elems[i].GetGeometry();
-            bool is_found_2 = CalculatePosition(geom, rPosition[0], rPosition[1], rPosition[2], N);
-            if (is_found_2)
-            {
-                pElement = neighb_elems[i].shared_from_this();
-                if (rNumberOfElementsInTrajectory < 20)
+            if(neighb_elems(i).get()!=nullptr)
+			{
+                GeometryType& geom = neighb_elems[i].GetGeometry();
+                bool is_found_2 = CalculatePosition(geom, rPosition[0], rPosition[1], rPosition[2], N);
+                if (is_found_2)
                 {
-                    rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;
-                    rNumberOfElementsInTrajectory++;
-                    rCheckFromElementNumber = rNumberOfElementsInTrajectory;  //we do it after doing the ++ to the counter, so we woudlnt enter the loop that searches in the rElementsInTrajectory list. we are the particle that is adding elements to the list
+                    pElement = neighb_elems[i].shared_from_this();
+                    if (rNumberOfElementsInTrajectory < 20)
+                    {
+                        rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;
+                        rNumberOfElementsInTrajectory++;
+                        rCheckFromElementNumber = rNumberOfElementsInTrajectory;  //we do it after doing the ++ to the counter, so we woudlnt enter the loop that searches in the rElementsInTrajectory list. we are the particle that is adding elements to the list
+                    }
+                    return true;
                 }
-                return true;
             }
         }
 
@@ -1911,7 +1873,7 @@ private:
 
 
     /// check function
-    virtual int Check()
+    int Check()
     {
         KRATOS_TRY
 
@@ -1941,7 +1903,6 @@ private:
     double mMaxSubStepDt;
     int mMaxNumberOfParticles;
     std::vector< ShallowParticle > mParticlesVector;
-    int mLastElemId;
     bool mOddTimeStep;
     bool mParticlePrintingToolInitialized;
     unsigned int mLastNodeId;

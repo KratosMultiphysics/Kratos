@@ -576,6 +576,49 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
 
         #self.__post_process(mp)
 
+
+    def test_SmallDisplacementElement_3D_pyramid(self):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        # Create nodes
+        mp.CreateNewNode(1, 0.00000,  0.00000,  0.00000)
+        mp.CreateNewNode(2, 1.00000,  0.00000,  0.00000)
+        mp.CreateNewNode(3, 1.00000,  1.00000,  0.00000)
+        mp.CreateNewNode(4, 0.00000,  1.00000,  0.00000)
+        mp.CreateNewNode(5, 0.00000,  0.00000,  1.00000)
+        mp.CreateNewNode(6, 1.00000,  0.00000,  1.00000)
+        mp.CreateNewNode(7, 1.00000,  1.00000,  1.00000)
+        mp.CreateNewNode(8, 0.00000,  1.00000,  1.00000)
+        mp.CreateNewNode(9, 0.50000,  0.50000,  0.50000)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        # Create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,3,4,5,6,7,8])
+
+        # Create Element
+        el1 = mp.CreateNewElement("SmallDisplacementElement3D5N", 1,[1,2,3,4,9], mp.GetProperties()[1])
+        el2 = mp.CreateNewElement("SmallDisplacementElement3D5N", 2,[8,7,6,5,9], mp.GetProperties()[1])
+        el3 = mp.CreateNewElement("SmallDisplacementElement3D5N", 3,[5,6,2,1,9], mp.GetProperties()[1])
+        el4 = mp.CreateNewElement("SmallDisplacementElement3D5N", 4,[7,8,4,3,9], mp.GetProperties()[1])
+        el5 = mp.CreateNewElement("SmallDisplacementElement3D5N", 5,[6,7,3,2,9], mp.GetProperties()[1])
+        el6 = mp.CreateNewElement("SmallDisplacementElement3D5N", 6,[1,4,8,5,9], mp.GetProperties()[1])
+
+        self.assertAlmostEqual(el1.GetGeometry().Volume() + el2.GetGeometry().Volume() + el3.GetGeometry().Volume() + el4.GetGeometry().Volume() + el5.GetGeometry().Volume() + el6.GetGeometry().Volume(), 1.0)
+
+        A,b = self._define_movement(dim)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+
     def test_SmallDisplacementElement_3D_prism(self):
         dim = 3
         current_model = KratosMultiphysics.Model()

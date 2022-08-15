@@ -10,7 +10,8 @@ def Factory(settings, Model):
     default_settings = KM.Parameters(
         """{
             "model_part_name"      : "set_model_part_name",
-            "cartesian_local_axis" : [[1.0,0.0,0.0],[0.0,1.0,0.0]]
+            "cartesian_local_axis" : [[1.0,0.0,0.0],[0.0,1.0,0.0]],
+            "update_at_each_step"  : false
         }""");
     process_settings = settings["Parameters"]
     process_settings.ValidateAndAssignDefaults(default_settings)

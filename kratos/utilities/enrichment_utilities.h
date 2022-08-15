@@ -142,7 +142,7 @@ public:
 
         array_1d<double, n_nodes> exact_distance = rDistances;
         array_1d<double, n_nodes> abs_distance = ZeroVector(n_nodes);
-        double sub_volumes_sum = 0.00;
+        //double sub_volumes_sum = 0.00;
 
         //compute edge lenghts and max_lenght
         double max_lenght = 0.0;
@@ -289,7 +289,7 @@ public:
         {
 
             rVolumes[0] = volume;
-            sub_volumes_sum = volume;
+            //sub_volumes_sum = volume;
 //                 // Looking for the first node with sign not zero to get the sign of the element.
 //                 for (int i_node = 0; i_node < n_nodes; i_node++)
 //                     if (signs[i_node] != 0) {
@@ -357,7 +357,7 @@ public:
 
                 rVolumes[i] = sub_volume;
 
-                sub_volumes_sum += sub_volume;
+                //sub_volumes_sum += sub_volume;
 
                 array_1d<double, 4 > N;
                 ComputeElementCoordinates(N, center_position, rPoints, volume);
@@ -585,7 +585,7 @@ public:
 
         array_1d<double, n_nodes> exact_distance = rDistances;
         array_1d<double, n_nodes> abs_distance = ZeroVector(n_nodes);
-        double sub_volumes_sum = 0.00;
+        //double sub_volumes_sum = 0.00;
 
         //compute edge lenghts and max_lenght
         double max_lenght = 0.0;
@@ -734,7 +734,7 @@ public:
         {
 
             rVolumes[0] = volume;
-            sub_volumes_sum = volume;
+            //sub_volumes_sum = volume;
 //                 // Looking for the first node with sign not zero to get the sign of the element.
 //                 for (int i_node = 0; i_node < n_nodes; i_node++)
 //                     if (signs[i_node] != 0) {
@@ -790,7 +790,7 @@ public:
 
                 rVolumes[i] = sub_volume;
 
-                sub_volumes_sum += sub_volume;
+                //sub_volumes_sum += sub_volume;
 
                 array_1d<double, 4 > N;
                 ComputeElementCoordinates(N, center_position, rPoints, volume);
@@ -1537,13 +1537,13 @@ public:
                 rGPShapeFunctionValues(partition_number,2)=N(2);
 
                 //compute enriched shape function values
-                double dist = 0.0;
-                double abs_dist = 0.0;
-                for (int j = 0; j < 3; j++)
-                {
-                    dist += rGPShapeFunctionValues(partition_number, j) * exact_distance[j];
-                    abs_dist += rGPShapeFunctionValues(partition_number, j) * abs_distance[j];
-                }
+                // double dist = 0.0;
+                // double abs_dist = 0.0;
+                // for (int j = 0; j < 3; j++)
+                // {
+                //     dist += rGPShapeFunctionValues(partition_number, j) * exact_distance[j];
+                //     abs_dist += rGPShapeFunctionValues(partition_number, j) * abs_distance[j];
+                // }
 
                 if (partition_sign < 0.0)
                     rPartitionsSign[partition_number] = -1.0;

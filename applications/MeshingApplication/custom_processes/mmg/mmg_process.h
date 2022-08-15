@@ -450,6 +450,12 @@ protected:
      */
     virtual void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
 
+    /**
+     * @brief Applies local hmin, hmax and hausd values to entitities as specified
+     * in the parameters, to locally control the size and curvature of the remeshing.
+    */
+    void ApplyLocalParameters();
+
     ///@}
     ///@name Protected  Access
     ///@{

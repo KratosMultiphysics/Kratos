@@ -58,7 +58,7 @@ class TrilinosImplicitMechanicalSolver(TrilinosMechanicalSolver):
 
     #### Private functions ####
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         scheme_type = self.settings["scheme_type"].GetString()
         process_info = self.main_model_part.ProcessInfo
         process_info[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.settings["rayleigh_alpha"].GetDouble()

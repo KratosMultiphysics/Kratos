@@ -606,7 +606,61 @@ void UPwBaseElement<TDim,TNumNodes>::
 
     KRATOS_CATCH( "" )
 }
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim, TNumNodes>::
+CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
 
+        KRATOS_ERROR << "calling the default CalculateOnIntegrationPoints (array_1d<double, 3>) method for a particular element ... illegal operation!!" << this->Id() << std::endl;
+
+    KRATOS_CATCH("")
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim, TNumNodes>::
+CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    std::vector<Matrix>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+        KRATOS_ERROR << "calling the default CalculateOnIntegrationPoints (Matrix) method for a particular element ... illegal operation!!" << this->Id() << std::endl;
+
+    KRATOS_CATCH("")
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim, TNumNodes>::
+CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+        KRATOS_ERROR << "calling the default CalculateOnIntegrationPoints (Vector) method for a particular element ... illegal operation!!" << this->Id() << std::endl;
+
+    KRATOS_CATCH("")
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim, TNumNodes>::
+CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+        KRATOS_ERROR << "calling the default CalculateOnIntegrationPoints (double) method for a particular element ... illegal operation!!" << this->Id() << std::endl;
+
+    KRATOS_CATCH("")
+}
 //-------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwBaseElement<TDim,TNumNodes>::
@@ -641,8 +695,8 @@ void UPwBaseElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 double UPwBaseElement<TDim,TNumNodes>::
     CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                    const IndexType& PointNumber,
-                                    const double& detJ)
+                                    unsigned int PointNumber,
+                                    double detJ)
 
 {
     return IntegrationPoints[PointNumber].Weight() * detJ;
@@ -655,7 +709,7 @@ void UPwBaseElement<TDim,TNumNodes>::
                                                Matrix& J0,
                                                Matrix& InvJ0,
                                                Matrix& DNu_DX0,
-                                               const IndexType& GPoint) const
+                                               unsigned int GPoint) const
 {
     KRATOS_TRY
     // KRATOS_INFO("0-UPwBaseElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
@@ -678,7 +732,7 @@ void UPwBaseElement<TDim,TNumNodes>::
     CalculateJacobianOnCurrentConfiguration(double& detJ,
                                             Matrix& rJ,
                                             Matrix& rInvJ,
-                                            const IndexType& GPoint) const
+                                            unsigned int GPoint) const
 {
     KRATOS_TRY
     // KRATOS_INFO("0-UPwBaseElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
@@ -699,7 +753,7 @@ void UPwBaseElement<TDim,TNumNodes>::
                                             Matrix& J,
                                             Matrix& InvJ,
                                             Matrix& GradNpT,
-                                            const IndexType &GPoint) const
+                                            unsigned int GPoint) const
 {
     KRATOS_TRY
 

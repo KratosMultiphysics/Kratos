@@ -1,6 +1,7 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Parameters
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
+import KratosMultiphysics.DEMApplication as DEM
 import sys
 import numpy as np
 
@@ -22,6 +23,7 @@ class ProjectionModule:
         self.particles_model_part = balls_model_part
         self.FEM_DEM_model_part = FEM_DEM_model_part
         self.project_parameters = project_parameters
+        self.DEM_parameters = self.project_parameters["dem_parameters"]
         self.dimension = domain_size
         self.coupling_type = project_parameters["coupling"]["coupling_weighing_type"].GetInt()
         self.backward_coupling_parameters = project_parameters["coupling"]["backward_coupling"]
@@ -45,15 +47,24 @@ class ProjectionModule:
         self.projector_parameters.AddValue("n_particles_per_depth_distance", project_parameters["n_particles_in_depth"])
         self.projector_parameters.AddValue("body_force_per_unit_mass_variable_name", project_parameters["body_force_per_unit_mass_variable_name"])
         self.projector_parameters.AddValue("gentle_coupling_initiation", project_parameters["coupling"]["gentle_coupling_initiation"])
+        self.search_strategy = DEM.OMP_DEMSearch()
+        if "PeriodicDomainOption" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PeriodicDomainOption"].GetBool():
+                self.search_strategy = DEM.OMP_DEMSearch(self.DEM_parameters["BoundingBoxMinX"].GetDouble(),
+                                                         self.DEM_parameters["BoundingBoxMinY"].GetDouble(),
+                                                         self.DEM_parameters["BoundingBoxMinZ"].GetDouble(),
+                                                         self.DEM_parameters["BoundingBoxMaxX"].GetDouble(),
+                                                         self.DEM_parameters["BoundingBoxMaxY"].GetDouble(),
+                                                         self.DEM_parameters["BoundingBoxMaxZ"].GetDouble())
 
 
         if self.dimension == 3:
 
             if project_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
-                self.projector = SDEM.BinBasedNanoDEMFluidCoupledMapping3D(self.projector_parameters)
+                self.projector = SDEM.BinBasedNanoDEMFluidCoupledMapping3D(self.projector_parameters, self.search_strategy)
 
             else:
-                self.projector = SDEM.BinBasedDEMFluidCoupledMapping3D(self.projector_parameters)
+                self.projector = SDEM.BinBasedDEMFluidCoupledMapping3D(self.projector_parameters, self.search_strategy)
             self.bin_of_objects_fluid = Kratos.BinBasedFastPointLocator3D(fluid_model_part)
 
         else:

@@ -92,7 +92,7 @@ class GentleAnalysis(SwimmingDEMAnalysis):
         super().__init__(model, parameters)
         self.n_iterations = []
         self.times = []
-        self._GetDEMAnalysis().mdpas_folder_path = os.path.join(self._GetDEMAnalysis().main_path, 'gentle_injection_tests/')
+        self._GetDEMAnalysis().mdpas_folder_path = os.path.join(self._GetDEMAnalysis().main_path, 'fluid_convergence_tests/')
         self.problem_name = parameters
 
     def FinalizeSolutionStep(self):
