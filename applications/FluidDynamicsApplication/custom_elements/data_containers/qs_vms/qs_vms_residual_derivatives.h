@@ -101,7 +101,8 @@ public:
         ///@name Operations
         ///@{
 
-        void AddGaussPointResidualsContributions(
+        void static AddGaussPointResidualsContributions(
+            Data& rData,
             VectorF& rResidual,
             const double W,
             const Vector& rN,
@@ -119,9 +120,10 @@ public:
         ///@name Private Operations
         ///@{
 
-        void AddViscousTerms(
+        void static AddViscousTerms(
+            Data& rData,
             VectorF& rResidual,
-            const double W) const;
+            const double W);
 
         ///@}
     };
@@ -161,20 +163,37 @@ public:
             const Matrix& rdNdXDerivative,
             const double MassTermsDerivativesWeight = 1.0)
         {
+            VariableDerivatives<TDerivativesType>::CalculateGaussPointResidualsDerivativeContributions(mrData, rResidualDerivative, NodeIndex, DirectionIndex, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative, MassTermsDerivativesWeight);
+        }
+
+
+        void static CalculateGaussPointResidualsDerivativeContributions(
+            Data& rData,
+            VectorF& rResidualDerivative,
+            const int NodeIndex,
+            const int DirectionIndex,
+            const double W,
+            const Vector& rN,
+            const Matrix& rdNdX,
+            const double WDerivative,
+            const double DetJDerivative,
+            const Matrix& rdNdXDerivative,
+            const double MassTermsDerivativesWeight = 1.0)
+        {
             rResidualDerivative.clear();
 
             constexpr double u_factor = TDerivativesType::VelocityDerivativeFactor;
             constexpr double p_factor = TDerivativesType::PressureDerivativeFactor;
 
-            const auto& r_geometry = mrData.mrElement.GetGeometry();
+            const auto& r_geometry = rData.mrElement.GetGeometry();
 
             const TDerivativesType derivatives_type(
                 NodeIndex, DirectionIndex, r_geometry, W, rN, rdNdX,
                 WDerivative, DetJDerivative, rdNdXDerivative);
 
-            const auto& velocity_derivative = derivatives_type.CalculateEffectiveVelocityDerivative(mrData.mVelocity);
-            const auto& element_length_derivative = derivatives_type.CalculateElementLengthDerivative(mrData.mElementSize);
-            derivatives_type.CalculateStrainRateDerivative(mrData.mStrainRateDerivative, mrData.mNodalVelocity);
+            const auto& velocity_derivative = derivatives_type.CalculateEffectiveVelocityDerivative(rData.mVelocity);
+            const auto& element_length_derivative = derivatives_type.CalculateElementLengthDerivative(rData.mElementSize);
+            derivatives_type.CalculateStrainRateDerivative(rData.mStrainRateDerivative, rData.mNodalVelocity);
 
             // compute viscous term derivative
             double effective_viscosity_derivative;
@@ -182,7 +201,7 @@ public:
             // calculate derivative contributions w.r.t. current derivative variable. Derivative variables are
             // assumed be independent of each other, so no cross derivative terms are there. Hence
             // it is only sufficient to derrive w.r.t. current derivative variable.
-            mrData.mrConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, derivatives_type.GetDerivativeVariable(), effective_viscosity_derivative);
+            rData.mrConstitutiveLaw.CalculateDerivative(rData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, derivatives_type.GetDerivativeVariable(), effective_viscosity_derivative);
             effective_viscosity_derivative *= rN[NodeIndex];
 
             // calculate derivative contributions w.r.t. its dependent variable gradients. Dependent variable gradients
@@ -194,27 +213,27 @@ public:
             for (const auto& r_effective_viscosity_dependent_variable : r_effective_viscosity_dependent_variables) {
                 // these variables always needs to be scalars (eg. VELOCITY_X)
                 const auto& r_derivative_variable = r_effective_viscosity_dependent_variable.GetVariable();
-                FluidCalculationUtilities::EvaluateGradientInPoint(mrData.mrElement.GetGeometry(), rdNdXDerivative, std::tie(derivative_variable_gradient, r_derivative_variable));
+                FluidCalculationUtilities::EvaluateGradientInPoint(rData.mrElement.GetGeometry(), rdNdXDerivative, std::tie(derivative_variable_gradient, r_derivative_variable));
 
                 // this is a list of gradient component variables. This list also should only contain scalar variables (eg. VELOCITY_GRADIENT_TENSOR_XX)
                 const auto& r_effective_viscosity_dependent_variable_gradient_component_list = r_effective_viscosity_dependent_variable.GetVariableGradientComponents();
                 for (IndexType i = 0; i < TDim; ++i) {
-                    mrData.mrConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, *r_effective_viscosity_dependent_variable_gradient_component_list[i], effective_viscosity_derivative_value);
+                    rData.mrConstitutiveLaw.CalculateDerivative(rData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, *r_effective_viscosity_dependent_variable_gradient_component_list[i], effective_viscosity_derivative_value);
                     effective_viscosity_derivative += effective_viscosity_derivative_value * (rdNdX(NodeIndex, i) * (r_derivative_variable ==  derivatives_type.GetDerivativeVariable()));
                     effective_viscosity_derivative += effective_viscosity_derivative_value * (derivative_variable_gradient[i]);
                 }
             }
 
             const double velocity_norm_derivative = CalculateNormDerivative(
-                mrData.mConvectiveVelocityNorm, mrData.mConvectiveVelocity, velocity_derivative);
+                rData.mConvectiveVelocityNorm, rData.mConvectiveVelocity, velocity_derivative);
 
             double tau_one_derivative, tau_two_derivative;
             CalculateTauDerivative(
-                tau_one_derivative, tau_two_derivative, mrData.mTauOne,
-                mrData.mDensity, mrData.mDynamicTau, mrData.mDeltaTime,
-                mrData.mElementSize, element_length_derivative,
-                mrData.mEffectiveViscosity, effective_viscosity_derivative,
-                mrData.mConvectiveVelocityNorm, velocity_norm_derivative);
+                tau_one_derivative, tau_two_derivative, rData.mTauOne,
+                rData.mDensity, rData.mDynamicTau, rData.mDeltaTime,
+                rData.mElementSize, element_length_derivative,
+                rData.mEffectiveViscosity, effective_viscosity_derivative,
+                rData.mConvectiveVelocityNorm, velocity_norm_derivative);
 
             ArrayD pressure_gradient_derivative;
             BoundedMatrix<double, TDim, TDim> velocity_gradient_derivative;
@@ -230,20 +249,20 @@ public:
             double velocity_dot_nabla_derivative = 0.0;
             for (IndexType a = 0; a < TNumNodes; ++a) {
                 for (IndexType i = 0; i < TDim; ++i) {
-                    velocity_dot_nabla_derivative += mrData.mNodalVelocity(a, i) * rdNdXDerivative(a, i);
+                    velocity_dot_nabla_derivative += rData.mNodalVelocity(a, i) * rdNdXDerivative(a, i);
                 }
             }
 
-            const ArrayD effective_velocity_derivative_dot_velocity_gradient = prod(mrData.mVelocityGradient, velocity_derivative);
-            const ArrayD effective_velocity_dot_velocity_gradient_derivative = prod(velocity_gradient_derivative, mrData.mConvectiveVelocity);
+            const ArrayD effective_velocity_derivative_dot_velocity_gradient = prod(rData.mVelocityGradient, velocity_derivative);
+            const ArrayD effective_velocity_dot_velocity_gradient_derivative = prod(velocity_gradient_derivative, rData.mConvectiveVelocity);
             const VectorN convective_velocity_derivative_dot_dn_dx = prod(rdNdX, velocity_derivative);
-            const VectorN relaxed_acceleration_dot_dn_dx_derivative = prod(rdNdXDerivative, mrData.mRelaxedAcceleration);
-            const VectorN convective_velocity_dot_dn_dx_derivative = prod(rdNdXDerivative, mrData.mConvectiveVelocity);
+            const VectorN relaxed_acceleration_dot_dn_dx_derivative = prod(rdNdXDerivative, rData.mRelaxedAcceleration);
+            const VectorN convective_velocity_dot_dn_dx_derivative = prod(rdNdXDerivative, rData.mConvectiveVelocity);
             const VectorN effective_velocity_derivative_dot_velocity_gradient_dot_shape_gradient = prod(rdNdX, effective_velocity_derivative_dot_velocity_gradient);
             const VectorN effective_velocity_dot_velocity_gradient_derivative_dot_shape_gradient = prod(rdNdX, effective_velocity_dot_velocity_gradient_derivative);
-            const VectorN effective_velocity_dot_velocity_gradient_dot_shape_gradient_derivative = prod(rdNdXDerivative, mrData.mEffectiveVelocityDotVelocityGradient);
+            const VectorN effective_velocity_dot_velocity_gradient_dot_shape_gradient_derivative = prod(rdNdXDerivative, rData.mEffectiveVelocityDotVelocityGradient);
             const VectorN pressure_gradient_derivative_dot_shape_gradient = prod(rdNdX, pressure_gradient_derivative);
-            const VectorN pressure_gradient_dot_shape_gradient_derivative = prod(rdNdXDerivative, mrData.mPressureGradient);
+            const VectorN pressure_gradient_dot_shape_gradient_derivative = prod(rdNdXDerivative, rData.mPressureGradient);
 
             // TODO: Needs implementation for OSS projections
             const ArrayD momentum_projection_derivative = ZeroVector(TDim);
@@ -258,98 +277,98 @@ public:
                     double value = 0.0;
 
                     // Adding RHS derivative terms
-                    value += mrData.mDensity * W * tau_one_derivative * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mBodyForce[i];
-                    value += mrData.mDensity * W * mrData.mTauOne * convective_velocity_derivative_dot_dn_dx[a] * mrData.mBodyForce[i];
-                    value += mrData.mDensity * W * mrData.mTauOne * convective_velocity_dot_dn_dx_derivative[a] * mrData.mBodyForce[i];
+                    value += rData.mDensity * W * tau_one_derivative * rData.mConvectiveVelocityDotDnDx[a] * rData.mBodyForce[i];
+                    value += rData.mDensity * W * rData.mTauOne * convective_velocity_derivative_dot_dn_dx[a] * rData.mBodyForce[i];
+                    value += rData.mDensity * W * rData.mTauOne * convective_velocity_dot_dn_dx_derivative[a] * rData.mBodyForce[i];
 
-                    value -= mrData.mDensity * W * tau_one_derivative * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mMomentumProjection[i];
-                    value -= mrData.mDensity * W * mrData.mTauOne * convective_velocity_derivative_dot_dn_dx[a] * mrData.mMomentumProjection[i];
-                    value -= mrData.mDensity * W * mrData.mTauOne * convective_velocity_dot_dn_dx_derivative[a] * mrData.mMomentumProjection[i];
-                    value -= mrData.mDensity * W * mrData.mTauOne * mrData.mConvectiveVelocityDotDnDx[a] * momentum_projection_derivative[i];
+                    value -= rData.mDensity * W * tau_one_derivative * rData.mConvectiveVelocityDotDnDx[a] * rData.mMomentumProjection[i];
+                    value -= rData.mDensity * W * rData.mTauOne * convective_velocity_derivative_dot_dn_dx[a] * rData.mMomentumProjection[i];
+                    value -= rData.mDensity * W * rData.mTauOne * convective_velocity_dot_dn_dx_derivative[a] * rData.mMomentumProjection[i];
+                    value -= rData.mDensity * W * rData.mTauOne * rData.mConvectiveVelocityDotDnDx[a] * momentum_projection_derivative[i];
 
-                    value -= W * tau_two_derivative * rdNdX(a, i) * mrData.mMassProjection;
-                    value -= W * mrData.mTauTwo * rdNdXDerivative(a, i) * mrData.mMassProjection;
-                    value -= W * mrData.mTauTwo * rdNdX(a, i) * mass_projection_derivative;
+                    value -= W * tau_two_derivative * rdNdX(a, i) * rData.mMassProjection;
+                    value -= W * rData.mTauTwo * rdNdXDerivative(a, i) * rData.mMassProjection;
+                    value -= W * rData.mTauTwo * rdNdX(a, i) * mass_projection_derivative;
 
-                    forcing_derivative += rdNdXDerivative(a, i) * mrData.mBodyForce[i];
-                    forcing_derivative -= rdNdXDerivative(a, i) * mrData.mMomentumProjection[i];
+                    forcing_derivative += rdNdXDerivative(a, i) * rData.mBodyForce[i];
+                    forcing_derivative -= rdNdXDerivative(a, i) * rData.mMomentumProjection[i];
                     forcing_derivative -= rdNdX(a, i) * momentum_projection_derivative[i];
 
                     // Adding LHS derivative terms
-                    value -= W * mrData.mDensity * rN[a] * effective_velocity_derivative_dot_velocity_gradient[i];
-                    value -= W * mrData.mDensity * rN[a] * effective_velocity_dot_velocity_gradient_derivative[i];
+                    value -= W * rData.mDensity * rN[a] * effective_velocity_derivative_dot_velocity_gradient[i];
+                    value -= W * rData.mDensity * rN[a] * effective_velocity_dot_velocity_gradient_derivative[i];
 
-                    value -= W * mrData.mDensity * convective_velocity_derivative_dot_dn_dx[a] * mrData.mTauOne * mrData.mDensity * mrData.mEffectiveVelocityDotVelocityGradient[i];
-                    value -= W * mrData.mDensity * convective_velocity_dot_dn_dx_derivative[a] * mrData.mTauOne * mrData.mDensity * mrData.mEffectiveVelocityDotVelocityGradient[i];
-                    value -= W * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * tau_one_derivative * mrData.mDensity * mrData.mEffectiveVelocityDotVelocityGradient[i];
-                    value -= W * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mTauOne * mrData.mDensity * effective_velocity_derivative_dot_velocity_gradient[i];
-                    value -= W * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mTauOne * mrData.mDensity * effective_velocity_dot_velocity_gradient_derivative[i];
+                    value -= W * rData.mDensity * convective_velocity_derivative_dot_dn_dx[a] * rData.mTauOne * rData.mDensity * rData.mEffectiveVelocityDotVelocityGradient[i];
+                    value -= W * rData.mDensity * convective_velocity_dot_dn_dx_derivative[a] * rData.mTauOne * rData.mDensity * rData.mEffectiveVelocityDotVelocityGradient[i];
+                    value -= W * rData.mDensity * rData.mConvectiveVelocityDotDnDx[a] * tau_one_derivative * rData.mDensity * rData.mEffectiveVelocityDotVelocityGradient[i];
+                    value -= W * rData.mDensity * rData.mConvectiveVelocityDotDnDx[a] * rData.mTauOne * rData.mDensity * effective_velocity_derivative_dot_velocity_gradient[i];
+                    value -= W * rData.mDensity * rData.mConvectiveVelocityDotDnDx[a] * rData.mTauOne * rData.mDensity * effective_velocity_dot_velocity_gradient_derivative[i];
 
-                    value -= W * tau_one_derivative * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mPressureGradient[i];
-                    value -= W * mrData.mTauOne * mrData.mDensity * convective_velocity_derivative_dot_dn_dx[a] * mrData.mPressureGradient[i];
-                    value -= W * mrData.mTauOne * mrData.mDensity * convective_velocity_dot_dn_dx_derivative[a] * mrData.mPressureGradient[i];
-                    value -= W * mrData.mTauOne * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * pressure_gradient_derivative[i];
+                    value -= W * tau_one_derivative * rData.mDensity * rData.mConvectiveVelocityDotDnDx[a] * rData.mPressureGradient[i];
+                    value -= W * rData.mTauOne * rData.mDensity * convective_velocity_derivative_dot_dn_dx[a] * rData.mPressureGradient[i];
+                    value -= W * rData.mTauOne * rData.mDensity * convective_velocity_dot_dn_dx_derivative[a] * rData.mPressureGradient[i];
+                    value -= W * rData.mTauOne * rData.mDensity * rData.mConvectiveVelocityDotDnDx[a] * pressure_gradient_derivative[i];
 
-                    value += W * rdNdXDerivative(a, i) * mrData.mPressure;
+                    value += W * rdNdXDerivative(a, i) * rData.mPressure;
                     value += W * rdNdX(a, i) * rN[NodeIndex] * p_factor;
 
-                    value -= W * tau_two_derivative * rdNdX(a, i) * mrData.mVelocityDotNabla;
-                    value -= W * mrData.mTauTwo * rdNdXDerivative(a, i) * mrData.mVelocityDotNabla;
-                    value -= W * mrData.mTauTwo * rdNdX(a, i) * velocity_dot_nabla_derivative;
-                    value -= W * mrData.mTauTwo * rdNdX(a, i) * rdNdX(NodeIndex, DirectionIndex) * u_factor;
+                    value -= W * tau_two_derivative * rdNdX(a, i) * rData.mVelocityDotNabla;
+                    value -= W * rData.mTauTwo * rdNdXDerivative(a, i) * rData.mVelocityDotNabla;
+                    value -= W * rData.mTauTwo * rdNdX(a, i) * velocity_dot_nabla_derivative;
+                    value -= W * rData.mTauTwo * rdNdX(a, i) * rdNdX(NodeIndex, DirectionIndex) * u_factor;
 
                     // Adding Mass term derivatives
 
-                    value -= W * tau_one_derivative * mrData.mDensity * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mRelaxedAcceleration[i] * MassTermsDerivativesWeight;
-                    value -= W * mrData.mTauOne * mrData.mDensity * mrData.mDensity * convective_velocity_derivative_dot_dn_dx[a] * mrData.mRelaxedAcceleration[i] * MassTermsDerivativesWeight;
-                    value -= W * mrData.mTauOne * mrData.mDensity * mrData.mDensity * convective_velocity_dot_dn_dx_derivative[a] * mrData.mRelaxedAcceleration[i] * MassTermsDerivativesWeight;
+                    value -= W * tau_one_derivative * rData.mDensity * rData.mDensity * rData.mConvectiveVelocityDotDnDx[a] * rData.mRelaxedAcceleration[i] * MassTermsDerivativesWeight;
+                    value -= W * rData.mTauOne * rData.mDensity * rData.mDensity * convective_velocity_derivative_dot_dn_dx[a] * rData.mRelaxedAcceleration[i] * MassTermsDerivativesWeight;
+                    value -= W * rData.mTauOne * rData.mDensity * rData.mDensity * convective_velocity_dot_dn_dx_derivative[a] * rData.mRelaxedAcceleration[i] * MassTermsDerivativesWeight;
 
                     rResidualDerivative[row + i] += value;
                 }
 
                 double value = 0.0;
 
-                const double forcing = mrData.mBodyForceDotDnDx[a] - mrData.mMomentumProjectionDotDnDx[a];
+                const double forcing = rData.mBodyForceDotDnDx[a] - rData.mMomentumProjectionDotDnDx[a];
                 value += W * tau_one_derivative * forcing;
-                value += W * mrData.mTauOne * forcing_derivative;
+                value += W * rData.mTauOne * forcing_derivative;
 
-                value -= W * tau_one_derivative * mrData.mDensity * mrData.mEffectiveVelocityDotVelocityGradientDotShapeGradient[a];
-                value -= W * mrData.mTauOne * mrData.mDensity * effective_velocity_derivative_dot_velocity_gradient_dot_shape_gradient[a];
-                value -= W * mrData.mTauOne * mrData.mDensity * effective_velocity_dot_velocity_gradient_derivative_dot_shape_gradient[a];
-                value -= W * mrData.mTauOne * mrData.mDensity * effective_velocity_dot_velocity_gradient_dot_shape_gradient_derivative[a];
+                value -= W * tau_one_derivative * rData.mDensity * rData.mEffectiveVelocityDotVelocityGradientDotShapeGradient[a];
+                value -= W * rData.mTauOne * rData.mDensity * effective_velocity_derivative_dot_velocity_gradient_dot_shape_gradient[a];
+                value -= W * rData.mTauOne * rData.mDensity * effective_velocity_dot_velocity_gradient_derivative_dot_shape_gradient[a];
+                value -= W * rData.mTauOne * rData.mDensity * effective_velocity_dot_velocity_gradient_dot_shape_gradient_derivative[a];
 
                 value -= W * rN[a] * velocity_dot_nabla_derivative;
                 value -= W * rN[a] * rdNdX(NodeIndex, DirectionIndex) * u_factor;
 
-                value -= W * tau_one_derivative * mrData.mPressureGradientDotDnDx[a];
-                value -= W * mrData.mTauOne * pressure_gradient_derivative_dot_shape_gradient[a];
-                value -= W * mrData.mTauOne * pressure_gradient_dot_shape_gradient_derivative[a];
+                value -= W * tau_one_derivative * rData.mPressureGradientDotDnDx[a];
+                value -= W * rData.mTauOne * pressure_gradient_derivative_dot_shape_gradient[a];
+                value -= W * rData.mTauOne * pressure_gradient_dot_shape_gradient_derivative[a];
 
                 // Adding mass term derivatives
-                value -=  W * tau_one_derivative * mrData.mDensity * mrData.mRelaxedAccelerationDotDnDx[a] * MassTermsDerivativesWeight;
-                value -=  W * mrData.mTauOne * mrData.mDensity * relaxed_acceleration_dot_dn_dx_derivative[a] * MassTermsDerivativesWeight;
+                value -=  W * tau_one_derivative * rData.mDensity * rData.mRelaxedAccelerationDotDnDx[a] * MassTermsDerivativesWeight;
+                value -=  W * rData.mTauOne * rData.mDensity * relaxed_acceleration_dot_dn_dx_derivative[a] * MassTermsDerivativesWeight;
 
                 rResidualDerivative[row + TDim] += value;
             }
 
-            mResidualWeightDerivativeContributions.AddGaussPointResidualsContributions(
-                rResidualDerivative, WDerivative, rN, rdNdX);
+            ResidualsContributions::AddGaussPointResidualsContributions(
+                rData, rResidualDerivative, WDerivative, rN, rdNdX);
 
             // calculate shear stress derivative.
             const auto& r_strain_rate_variables = QSVMSDerivativeUtilities<TDim>::GetStrainRateVariables();
             Vector value;
-            mrData.mShearStressDerivative.clear();
+            rData.mShearStressDerivative.clear();
 
             // calculate shear stress derivatives w.r.t. strain rate
             for (IndexType i = 0; i < TStrainSize; ++i) {
-                mrData.mrConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, CAUCHY_STRESS_VECTOR, *r_strain_rate_variables[i], value);
-                noalias(mrData.mShearStressDerivative) += value * mrData.mStrainRateDerivative[i];
+                rData.mrConstitutiveLaw.CalculateDerivative(rData.mConstitutiveLawValues, CAUCHY_STRESS_VECTOR, *r_strain_rate_variables[i], value);
+                noalias(rData.mShearStressDerivative) += value * rData.mStrainRateDerivative[i];
             }
             // calculate shear stress derivatives w.r.t. effective viscosity
-            mrData.mrConstitutiveLaw.CalculateDerivative(mrData.mConstitutiveLawValues, CAUCHY_STRESS_VECTOR, EFFECTIVE_VISCOSITY, value);
-            noalias(mrData.mShearStressDerivative) += value * effective_viscosity_derivative;
+            rData.mrConstitutiveLaw.CalculateDerivative(rData.mConstitutiveLawValues, CAUCHY_STRESS_VECTOR, EFFECTIVE_VISCOSITY, value);
+            noalias(rData.mShearStressDerivative) += value * effective_viscosity_derivative;
 
-            this->AddViscousDerivative(rResidualDerivative, NodeIndex,
+            AddViscousDerivative(rData, rResidualDerivative, NodeIndex,
                                        DirectionIndex, W, rN, rdNdX, WDerivative,
                                        DetJDerivative, rdNdXDerivative);
         }
@@ -367,7 +386,8 @@ public:
         ///@name Private Operations
         ///@{
 
-        void AddViscousDerivative(
+        void static AddViscousDerivative(
+            Data& rData,
             VectorF& rResidualDerivative,
             const int NodeIndex,
             const int DirectionIndex,
@@ -376,14 +396,14 @@ public:
             const Matrix& rdNdX,
             const double WDerivative,
             const double DetJDerivative,
-            const Matrix& rdNdXDerivative) const
+            const Matrix& rdNdXDerivative)
         {
             BoundedMatrix<double, TStrainSize, TElementLocalSize> strain_matrix_derivative;
             FluidElementUtilities<TNumNodes>::GetStrainMatrix(rdNdXDerivative, strain_matrix_derivative);
 
             const VectorF& rhs_contribution_derivative =
-                prod(trans(mrData.mStrainMatrix), mrData.mShearStressDerivative) +
-                prod(trans(strain_matrix_derivative), mrData.mShearStress);
+                prod(trans(rData.mStrainMatrix), rData.mShearStressDerivative) +
+                prod(trans(strain_matrix_derivative), rData.mShearStress);
 
             noalias(rResidualDerivative) -= rhs_contribution_derivative * W;
         }
