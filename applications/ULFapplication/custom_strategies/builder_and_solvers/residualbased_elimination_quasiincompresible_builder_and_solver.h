@@ -259,7 +259,7 @@ public:
         BaseType::mDofSet.reserve( mnumber_of_active_nodes * TDim );
         int FractionalStepNumber = r_model_part.GetProcessInfo()[FRACTIONAL_STEP];
         KRATOS_WATCH(FractionalStepNumber);
-        if(TDim == 2)
+        if constexpr (TDim == 2)
         {
             for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
             {
@@ -271,7 +271,7 @@ public:
             }
 
         }
-        else if(TDim == 3)
+        else if constexpr (TDim == 3)
         {
             for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
             {

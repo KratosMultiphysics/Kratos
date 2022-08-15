@@ -407,7 +407,7 @@ public:
 
 	// Surface tension contribution
 	int k = 0;
-	if(TDim < 3)
+	if constexpr (TDim < 3)
 	{
 	    array_1d<double,3> node_indx;
 	    node_indx[0] = 0.0;
@@ -479,7 +479,7 @@ public:
 	    k++;
 	  }
 	}
-	if(TDim < 3 && k > 2)
+	if constexpr (TDim < 3 && k > 2)
 	    this->AddViscousStress2D();
 
         // Now calculate an additional contribution to the residual: r -= rDampingMatrix * (u,p)
