@@ -1120,7 +1120,7 @@ namespace Kratos
         ///@name Private Friends
         ///@{
 
-        template<class TOtherPointType> friend class Line2D3;
+        template<class TOtherPointType> friend class Line2D5;
 
         ///@}
         ///@name Un accessible methods
@@ -1141,7 +1141,7 @@ namespace Kratos
 
     /// input stream function
     template<class TPointType>
-    inline std::istream& operator >> (std::istream& rIStream, Line2D3<TPointType>& rThis);
+    inline std::istream& operator >> (std::istream& rIStream, Line2D5<TPointType>& rThis);
 
     /// output stream function
     template<class TPointType>
