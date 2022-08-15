@@ -265,6 +265,12 @@ public:
         mGidMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Triangle2D6,
                                           GiD_Triangle, "Kratos_Triangle2D6_Mesh" ) );
+        mGidMeshContainers.push_back(TMeshContainer(
+                                          GeometryData::KratosGeometryType::Kratos_Triangle2D10,
+                                          GiD_Triangle, "Kratos_Triangle2D10_Mesh"));
+        mGidMeshContainers.push_back(TMeshContainer(
+                                          GeometryData::KratosGeometryType::Kratos_Triangle2D15,
+                                          GiD_Triangle, "Kratos_Triangle2D15_Mesh"));
         mGidMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Triangle3D3,
                                           GiD_Triangle, "Kratos_Triangle3D3_Mesh" ) );
@@ -283,6 +289,12 @@ public:
         mGidMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Line3D3,
                                           GiD_Linear, "Kratos_Line3D3_Mesh" ) );
+        mGidMeshContainers.push_back(TMeshContainer(
+                                          GeometryData::KratosGeometryType::Kratos_Line2D4,
+                                          GiD_Linear, "Kratos_Line2D4_Mesh"));
+        mGidMeshContainers.push_back(TMeshContainer(
+                                          GeometryData::KratosGeometryType::Kratos_Line2D5,
+                                          GiD_Linear, "Kratos_Line2D5_Mesh"));
         mGidMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Point2D,
                                           GiD_Point, "Kratos_Point2D_Mesh" ) );
