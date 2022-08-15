@@ -2,32 +2,7 @@ Begin ModelPartData
 //  VARIABLE_NAME value
 End ModelPartData
 
-Begin Properties 1
-PARTICLE_DENSITY 2650.0
-YOUNG_MODULUS 1006.4e8
-POISSON_RATIO 0.3
-FRICTION 0.5
-PARTICLE_COHESION 0.0
-COEFFICIENT_OF_RESTITUTION 0.01
-PARTICLE_MATERIAL 1
-ROLLING_FRICTION 0.025
-ROLLING_FRICTION_WITH_WALLS 0.0
-DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEM_with_damage_parallel_bond_Hertz_2D
-INTERNAL_COHESION 13.72
-INTERNAL_FRICTION_ANGLE 24.1
-DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_HighStiffness_2D
-CONTACT_TAU_ZERO 10e4
-CONTACT_SIGMA_MIN 13.72e6
-CONTACT_INTERNAL_FRICC 0.0
-ROTATIONAL_MOMENT_COEFFICIENT 0.01
-KDEM_STANDARD_DEVIATION_TAU_ZERO 3.43
-KDEM_STANDARD_DEVIATION_FRICTION 0.2235
-SHEAR_ENERGY_COEF 4.0
-LOOSE_MATERIAL_YOUNG_MODULUS 1000e8 //6.27e8
-FRACTURE_ENERGY 0.0 //3e-3
-DEBUG_PRINTING_OPTION 1
-DEBUG_PRINTING_ID_1 1
-DEBUG_PRINTING_ID_2 2
+Begin Properties 0
 End Properties
 
 Begin Nodes
@@ -36,8 +11,8 @@ Begin Nodes
 End Nodes
 
 Begin Elements CylinderContinuumParticle2D // GUI group identifier: dems
-        1          1     1 
-        2          1     2 
+        1          0     1 
+        2          0     2 
 End Elements
 
 Begin NodalData RADIUS // GUI group identifier: dems
@@ -82,6 +57,9 @@ Begin SubModelPart 1 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: 
   Begin SubModelPartNodes
          1
   End SubModelPartNodes
+  Begin SubModelPartElements
+            1
+  End SubModelPartElements
 End SubModelPart
 
 Begin SubModelPart 2 // GUI DEM-VelocityBC - DEM-VelocityBC2D - group identifier: left
@@ -101,5 +79,8 @@ Begin SubModelPart 2 // GUI DEM-VelocityBC - DEM-VelocityBC2D - group identifier
   Begin SubModelPartNodes
          2
   End SubModelPartNodes
+  Begin SubModelPartElements
+            2
+  End SubModelPartElements
 End SubModelPart
 

@@ -21,8 +21,11 @@
 "RotationOption"                   : false,
 "CleanIndentationsOption"          : false,
 "solver_settings" : {
-"strategy"                   : "continuum_sphere_strategy",
-    "RemoveBallsInitiallyTouchingWalls"          : false
+    "strategy"                   : "continuum_sphere_strategy",
+    "RemoveBallsInitiallyTouchingWalls"          : false,
+    "material_import_settings"           : {
+        "materials_filename" : "MaterialsDEM.json"
+    }
 },
 "DeltaOption"                      : "Absolute",
 "CoordinationNumber"               : 11,

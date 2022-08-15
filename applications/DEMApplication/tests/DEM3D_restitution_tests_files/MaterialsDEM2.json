@@ -34,7 +34,8 @@
             "CONTACT_INTERNAL_FRICC": 0.4,
             "CONTACT_TAU_ZERO": 300000.0,
             "ROTATIONAL_MOMENT_COEFFICIENT": 0.0,
-            "IS_UNBREAKABLE" : false
+            "IS_UNBREAKABLE" : false,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     }],
     "material_assignation_table":[

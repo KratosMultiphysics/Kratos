@@ -65,7 +65,8 @@
             "SHEAR_ENERGY_COEF": 4.0,
             "BONDED_MATERIAL_YOUNG_MODULUS": 3e3,
             "FRACTURE_ENERGY": 0.0,
-            "IS_UNBREAKABLE" : false
+            "IS_UNBREAKABLE" : false,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     },{
         "material_names_list":["mat1", "mat5"],
@@ -81,7 +82,8 @@
             "SEVERITY_OF_WEAR": 0.001,
             "IMPACT_WEAR_SEVERITY": 0.001,
             "BRINELL_HARDNESS": 200.0,
-            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb",
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     },{
         "material_names_list":["mat2", "mat2"],
@@ -108,7 +110,8 @@
             "SHEAR_ENERGY_COEF": 4.0,
             "BONDED_MATERIAL_YOUNG_MODULUS": 3e3,
             "FRACTURE_ENERGY": 0.0,
-            "IS_UNBREAKABLE" : false
+            "IS_UNBREAKABLE" : false,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     },{
         "material_names_list":["mat2", "mat5"],
@@ -124,7 +127,8 @@
             "SEVERITY_OF_WEAR": 0.001,
             "IMPACT_WEAR_SEVERITY": 0.001,
             "BRINELL_HARDNESS": 200.0,
-            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Linear_viscous_Coulomb"
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Linear_viscous_Coulomb",
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     },{
         "material_names_list":["mat3", "mat3"],
@@ -151,7 +155,8 @@
             "SHEAR_ENERGY_COEF": 4.0,
             "BONDED_MATERIAL_YOUNG_MODULUS": 3e3,
             "FRACTURE_ENERGY": 0.0,
-            "IS_UNBREAKABLE" : false
+            "IS_UNBREAKABLE" : false,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     },{
         "material_names_list":["mat3", "mat5"],
@@ -167,7 +172,8 @@
             "SEVERITY_OF_WEAR": 0.001,
             "IMPACT_WEAR_SEVERITY": 0.001,
             "BRINELL_HARDNESS": 200.0,
-            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Linear_viscous_Coulomb"
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Linear_viscous_Coulomb",
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     },{
         "material_names_list":["mat4", "mat4"],
@@ -194,7 +200,8 @@
             "SHEAR_ENERGY_COEF": 4.0,
             "BONDED_MATERIAL_YOUNG_MODULUS": 3e3,
             "FRACTURE_ENERGY": 0.0,
-            "IS_UNBREAKABLE" : false
+            "IS_UNBREAKABLE" : false,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     },{
         "material_names_list":["mat4", "mat5"],
@@ -210,7 +217,8 @@
             "SEVERITY_OF_WEAR": 0.001,
             "IMPACT_WEAR_SEVERITY": 0.001,
             "BRINELL_HARDNESS": 200.0,
-            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Linear_viscous_Coulomb"
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Linear_viscous_Coulomb",
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     }],
     "material_assignation_table":[
