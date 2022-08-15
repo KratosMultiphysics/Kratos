@@ -143,6 +143,7 @@ public:
         double initial_control_density = initial_filtered_density;
 
         for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+            SetVariable(mpVMModelParts[model_i],CD,initial_filtered_density); 
             SetVariable(mpVMModelParts[model_i],FD,initial_filtered_density); 
             SetVariable(mpVMModelParts[model_i],PD,initial_density);
         }  
@@ -156,14 +157,25 @@ public:
             auto model_part_phyisical_dens = fixed_model_parts_densities[i];
             double model_part_filtered_dens = ProjectBackward(model_part_phyisical_dens,filtered_densities,physical_densities,beta);
             for(auto& node_i : model_part.Nodes()){
+                auto& control_density = node_i.FastGetSolutionStepValue(CD);
                 auto& filtered_density = node_i.FastGetSolutionStepValue(FD);
                 auto& physical_density = node_i.FastGetSolutionStepValue(PD);
+                control_density = model_part_filtered_dens;
                 filtered_density = model_part_filtered_dens;
                 physical_density = model_part_phyisical_dens;
             }                
         }
 
-        ComputeInitialControlDensities();
+        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        {
+            ModelPart* mpVMModePart = mpVMModelParts[model_i];
+            
+            ProcessInfo &rCurrentProcessInfo = (mpVMModePart)->GetProcessInfo();
+            rCurrentProcessInfo[COMPUTE_CONTROL_DENSITIES] = false;
+
+        }        
+
+        // ComputeInitialControlDensities();
 
         KRATOS_INFO("HelmholtzMaterial:Initialize") << "Finished initialization of material control "<<mControlName<<" in " << timer.ElapsedSeconds() << " s." << std::endl;
 

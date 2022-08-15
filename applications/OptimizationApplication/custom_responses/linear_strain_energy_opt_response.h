@@ -190,6 +190,7 @@ public:
                 VariableUtils().SetHistoricalVariableToZero(KratosComponents<Variable<double>>::Get(grad_field_name), controlled_model_part.Nodes());                 
             }
 
+            //elems
 			for (auto& elem_i : controlled_model_part.Elements()){
 				const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
 				if(element_is_active){
@@ -202,6 +203,14 @@ public:
                 }
             }
 
+            //conds
+			for (auto& cond_i : controlled_model_part.Conditions()){
+				const bool cond_is_active = cond_i.IsDefined(ACTIVE) ? cond_i.Is(ACTIVE) : true;
+				if(cond_is_active){
+                    if(control_type=="shape")
+                        CalculateConditionShapeGradients(cond_i,grad_field_name,CurrentProcessInfo);                                              
+                }
+            }
             
         }
 
@@ -269,6 +278,65 @@ public:
 
     };
 
+    void CalculateConditionShapeGradients(Condition& cond_i, std::string shape_gradien_name, const ProcessInfo &rCurrentProcessInfo){
+
+        // We get the element geometry
+        auto& r_this_geometry = cond_i.GetGeometry();
+        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
+        const std::size_t number_of_nodes = r_this_geometry.size();
+
+        Vector u;
+        Vector lambda;
+        Vector RHS;
+
+        // Get state solution
+        const auto& rConstCondRef = cond_i;
+        rConstCondRef.GetValuesVector(u,0);
+
+        // Get adjoint variables (Corresponds to 1/2*u)
+        lambda = 0.5*u;
+
+        // Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
+        cond_i.CalculateRightHandSide(RHS, rCurrentProcessInfo);
+        for (auto& node_i : cond_i.GetGeometry())
+        {
+            array_3d gradient_contribution(3, 0.0);
+            Vector RHS_perturbed = Vector(RHS.size());
+            Vector derived_RHS = Vector(RHS.size());
+            
+            // x-direction
+            node_i.GetInitialPosition()[0] += mDelta;
+            node_i.Coordinates()[0] += mDelta;
+            cond_i.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+            noalias(derived_RHS) = (RHS_perturbed - RHS) / mDelta;
+            node_i.GetInitialPosition()[0] -= mDelta;
+            node_i.Coordinates()[0] -= mDelta;
+            gradient_contribution[0] = inner_prod(lambda, derived_RHS);
+
+
+            // y-direction
+            node_i.GetInitialPosition()[1] += mDelta;
+            node_i.Coordinates()[1] += mDelta;
+            cond_i.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+            noalias(derived_RHS) = (RHS_perturbed - RHS) / mDelta;
+            node_i.GetInitialPosition()[1] -= mDelta;
+            node_i.Coordinates()[1] -= mDelta;
+            gradient_contribution[1] = inner_prod(lambda, derived_RHS);
+
+            // z-direction
+            node_i.GetInitialPosition()[2] += mDelta;
+            node_i.Coordinates()[2] += mDelta;
+            cond_i.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+            noalias(derived_RHS) = (RHS_perturbed - RHS) / mDelta;
+            node_i.GetInitialPosition()[2] -= mDelta;
+            node_i.Coordinates()[2] -= mDelta;
+            gradient_contribution[2] = inner_prod(lambda, derived_RHS);
+
+            // Assemble sensitivity to node
+            noalias(node_i.FastGetSolutionStepValue(KratosComponents<Variable<array_1d<double,3>>>::Get(shape_gradien_name))) += gradient_contribution;
+        }
+
+    };
 
     void CalculateElementMaterialGradients(Element& elem_i, std::string material_gradien_name, const ProcessInfo &rCurrentProcessInfo){
 
