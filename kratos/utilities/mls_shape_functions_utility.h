@@ -23,6 +23,7 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/define.h"
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -36,6 +37,8 @@ class MLSShapeFunctionsUtility
 {
 
 public:
+
+    using DenseSpace = UblasSpace<double, Matrix, Vector>;
 
     /**
      * @brief Calculate the kernel value

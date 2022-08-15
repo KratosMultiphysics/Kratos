@@ -19,7 +19,7 @@
 // Project includes
 #include "includes/global_variables.h"
 #include "utilities/math_utils.h"
-#include "utilities/qr_utility.h"
+#include "utilities/dense_householder_qr_decomposition.h"
 #include "mls_shape_functions_utility.h"
 
 namespace Kratos
@@ -29,10 +29,9 @@ namespace Kratos
         const array_1d<double,3>& rRadVect,
         const double h)
     {
-        // const double q = norm_2(rRadVect) / h;
-        // return std::exp(-std::pow(q,2)) /(Globals::Pi*std::pow(h,2));
+        const double c_0 = 1.0;
         const double q_squared = (rRadVect(0)*rRadVect(0) + rRadVect(1)*rRadVect(1) + rRadVect(2)*rRadVect(2)) / (h*h);
-        return std::exp(-q_squared) /(Globals::Pi*h*h);
+        return std::exp(-c_0*q_squared/2.0);
     }
 
     template<std::size_t TDim>
@@ -173,7 +172,7 @@ namespace Kratos
 
         // Set the auxiliary arrays for the L2-norm problem minimization
         static constexpr std::size_t BaseSize = TDim == 2 ? (TOrder+1)*(TOrder+2)/2 : (TOrder+1)*(TOrder+2)*(TOrder+3)/6;
-        Vector W(n_points);
+        Matrix W = ZeroMatrix(n_points,n_points);
         Matrix A = ZeroMatrix(n_points,BaseSize);
 
         // Evaluate the L2-norm minimization problem
@@ -195,15 +194,17 @@ namespace Kratos
             // EvaluatePolynomialBasis(rad_vect, p);
 
             // Add current point data
-            W(i_pt) = kernel;
+            W(i_pt,i_pt) = kernel;
             for (std::size_t j = 0; j < BaseSize; ++j) {
                 A(i_pt, j) = kernel * p[j];
             }
         }
 
         // QR problem resolution
-        QR<double, row_major> qr_util;
-        qr_util.compute(n_points, BaseSize, &(A)(0,0));
+        DenseHouseholderQRDecomposition<DenseSpace> qr_decomposition;
+        qr_decomposition.Compute(A);
+        Matrix aux_sol(BaseSize,n_points);
+        qr_decomposition.Solve(W, aux_sol);
 
         // Set the polynomial basis values at the point of interest
         array_1d<double,BaseSize> p0;
@@ -214,14 +215,12 @@ namespace Kratos
         // array_1d<double,BaseSize> p0;
         // EvaluatePolynomialBasis(ZeroVector(3), p0);
 
-        // Do the solve for each node to obtain the corresponding MLS shape function
-        Vector aux_RHS(n_points);
-        array_1d<double,BaseSize> i_pt_sol;
+        // Get the solution for each node to obtain the corresponding MLS shape function
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
-            aux_RHS = ZeroVector(n_points);
-            aux_RHS(i_pt) = W(i_pt);
-            qr_util.solve(&(aux_RHS)(0), &(i_pt_sol)(0));
-            rN[i_pt] = inner_prod(p0, i_pt_sol);
+            rN[i_pt] = 0.0;
+            for (std::size_t j = 0; j < BaseSize; ++j) {
+                rN[i_pt] += p0[j] * aux_sol(j, i_pt);
+            }
         }
 
         KRATOS_CATCH("");
@@ -352,8 +351,8 @@ namespace Kratos
         }
 
         // QR problem resolution
-        QR<double, row_major> qr_util;
-        qr_util.compute(n_points, 3, &(A)(0,0));
+        DenseHouseholderQRDecomposition<DenseSpace> qr_decomposition;
+        qr_decomposition.Compute(A);
 
         // Set the polynomial basis values at the point of interest
         array_1d<double,3> p0;
@@ -367,29 +366,29 @@ namespace Kratos
         Vector aux_RHS_dy_1(n_points);
         Vector aux_RHS_dx_2(n_points);
         Vector aux_RHS_dy_2(n_points);
-        array_1d<double,3> i_pt_sol;
-        array_1d<double,3> i_pt_sol_dx_1;
-        array_1d<double,3> i_pt_sol_dy_1;
-        array_1d<double,3> i_pt_sol_dx_2;
-        array_1d<double,3> i_pt_sol_dy_2;
+        Vector i_pt_sol(3);
+        Vector i_pt_sol_dx_1(3);
+        Vector i_pt_sol_dy_1(3);
+        Vector i_pt_sol_dx_2(3);
+        Vector i_pt_sol_dy_2(3);
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             aux_RHS = ZeroVector(n_points);
             aux_RHS(i_pt) = W(i_pt);
-            qr_util.solve(&(aux_RHS)(0), &(i_pt_sol)(0));
+            qr_decomposition.Solve(aux_RHS, i_pt_sol);
 
             aux_RHS_dx_1 = prod(DA_DX, i_pt_sol);
-            qr_util.solve(&(aux_RHS_dx_1)(0), &(i_pt_sol_dx_1)(0));
+            qr_decomposition.Solve(aux_RHS_dx_1, i_pt_sol_dx_1);
 
             aux_RHS_dy_1 = prod(DA_DY, i_pt_sol);
-            qr_util.solve(&(aux_RHS_dy_1)(0), &(i_pt_sol_dy_1)(0));
+            qr_decomposition.Solve(aux_RHS_dy_1, i_pt_sol_dy_1);
 
             aux_RHS_dx_2 = ZeroVector(n_points);
             aux_RHS_dx_2(i_pt) = DW_DX(i_pt);
-            qr_util.solve(&(aux_RHS_dx_2)(0), &(i_pt_sol_dx_2)(0));
+            qr_decomposition.Solve(aux_RHS_dx_2, i_pt_sol_dx_2);
 
             aux_RHS_dy_2 = ZeroVector(n_points);
             aux_RHS_dy_2(i_pt) = DW_DY(i_pt);
-            qr_util.solve(&(aux_RHS_dy_2)(0), &(i_pt_sol_dy_2)(0));
+            qr_decomposition.Solve(aux_RHS_dy_2, i_pt_sol_dy_2);
 
             rN[i_pt] = inner_prod(p0, i_pt_sol);
             rDNDX(i_pt,0) = inner_prod(row(Dp0_DX,0), i_pt_sol) - inner_prod(p0, i_pt_sol_dx_1) + inner_prod(p0, i_pt_sol_dx_2);
@@ -566,8 +565,8 @@ namespace Kratos
         }
 
         // QR problem resolution
-        QR<double, row_major> qr_util;
-        qr_util.compute(n_points, 6, &(A)(0,0));
+        DenseHouseholderQRDecomposition<DenseSpace> qr_decomposition;
+        qr_decomposition.Compute(A);
 
         // Set the polynomial basis values at the point of interest
         array_1d<double,6> p0;
@@ -581,29 +580,29 @@ namespace Kratos
         Vector aux_RHS_dy_1(n_points);
         Vector aux_RHS_dx_2(n_points);
         Vector aux_RHS_dy_2(n_points);
-        array_1d<double,6> i_pt_sol;
-        array_1d<double,6> i_pt_sol_dx_1;
-        array_1d<double,6> i_pt_sol_dy_1;
-        array_1d<double,6> i_pt_sol_dx_2;
-        array_1d<double,6> i_pt_sol_dy_2;
+        Vector i_pt_sol(6);
+        Vector i_pt_sol_dx_1(6);
+        Vector i_pt_sol_dy_1(6);
+        Vector i_pt_sol_dx_2(6);
+        Vector i_pt_sol_dy_2(6);
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             aux_RHS = ZeroVector(n_points);
             aux_RHS(i_pt) = W(i_pt);
-            qr_util.solve(&(aux_RHS)(0), &(i_pt_sol)(0));
+            qr_decomposition.Solve(aux_RHS, i_pt_sol);
 
             aux_RHS_dx_1 = prod(DA_DX, i_pt_sol);
-            qr_util.solve(&(aux_RHS_dx_1)(0), &(i_pt_sol_dx_1)(0));
+            qr_decomposition.Solve(aux_RHS_dx_1, i_pt_sol_dx_1);
 
             aux_RHS_dy_1 = prod(DA_DY, i_pt_sol);
-            qr_util.solve(&(aux_RHS_dy_1)(0), &(i_pt_sol_dy_1)(0));
+            qr_decomposition.Solve(aux_RHS_dy_1, i_pt_sol_dy_1);
 
             aux_RHS_dx_2 = ZeroVector(n_points);
             aux_RHS_dx_2(i_pt) = DW_DX(i_pt);
-            qr_util.solve(&(aux_RHS_dx_2)(0), &(i_pt_sol_dx_2)(0));
+            qr_decomposition.Solve(aux_RHS_dx_2, i_pt_sol_dx_2);
 
             aux_RHS_dy_2 = ZeroVector(n_points);
             aux_RHS_dy_2(i_pt) = DW_DY(i_pt);
-            qr_util.solve(&(aux_RHS_dy_2)(0), &(i_pt_sol_dy_2)(0));
+            qr_decomposition.Solve(aux_RHS_dy_2, i_pt_sol_dy_2);
 
             rN[i_pt] = inner_prod(p0, i_pt_sol);
             rDNDX(i_pt,0) = inner_prod(row(Dp0_DX,0), i_pt_sol) - inner_prod(p0, i_pt_sol_dx_1) + inner_prod(p0, i_pt_sol_dx_2);
