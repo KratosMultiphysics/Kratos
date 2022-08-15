@@ -88,7 +88,13 @@ public:
         //compute the columns size
         TIndexType max_col_index = rSparseGraph.ComputeMaxGlobalColumnIndex();
         TIndexType tot_col_size = max_col_index+1;
-        mpColNumbering = Kratos::make_unique<DistributedNumbering<TIndexType>>(*mpComm, tot_col_size, mpComm->Size());
+            
+        //this ensures that diagonal blocks are square for square matrices
+        if (tot_col_size == mpRowNumbering->Size()) {
+            mpColNumbering = Kratos::make_unique<DistributedNumbering<TIndexType>>(*mpComm, mpRowNumbering->GetCpuBounds());
+        } else {
+            mpColNumbering = Kratos::make_unique<DistributedNumbering<TIndexType>>(*mpComm, tot_col_size, mpComm->Size());
+        }
 
         mOffDiagonalLocalIds.clear(); //this is the map that allows to transform from global_ids to local Ids for entries in the non_diag block
 
@@ -796,7 +802,6 @@ public:
     void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "DistributedCsrMatrix" << std::endl;
-        PrintData(rOStream);
     }
 
     /// Print object's data.

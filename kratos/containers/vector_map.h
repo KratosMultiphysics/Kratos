@@ -544,9 +544,6 @@ private:
         }
     };
 
-//        static typename TCompareType::result_type TCompareType(TDataType const & a, TDataType const & b)
-//        {return TCompareType()(KeyOf(a), KeyOf(b));}
-
     ///@name Static Member Variables
     ///@{
 

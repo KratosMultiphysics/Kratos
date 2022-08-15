@@ -17,7 +17,7 @@ def Factory(settings, Model):
     else:
         return GiDOutputProcess(model_part, output_name, postprocess_parameters)
 
-class GiDOutputProcess(KM.Process):
+class GiDOutputProcess(KM.OutputProcess):
 
     defaults = KM.Parameters('''{
         "result_file_configuration": {
@@ -92,7 +92,7 @@ class GiDOutputProcess(KM.Process):
                     }
 
     def __init__(self,model_part,file_name,param = None):
-        KM.Process.__init__(self)
+        super().__init__()
 
         if param is None:
             param = self.defaults
@@ -246,10 +246,17 @@ class GiDOutputProcess(KM.Process):
             self.__write_mesh(label)
             self.__initialize_results(label)
             self.__write_nodal_results(label)
+            self.__write_gp_results(label)
             self.__write_nonhistorical_nodal_results(label)
             self.__write_nodal_flags(label)
             self.__write_elemental_conditional_flags(label)
             self.__finalize_results()
+
+            if self.output_label_is_time:
+                file_label = 0.0
+            else:
+                file_label = 0
+            self.__write_step_to_list(file_label)
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeSolutionLoop()
@@ -275,6 +282,8 @@ class GiDOutputProcess(KM.Process):
     def PrintOutput(self):
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeOutputStep()
+            if self.point_output_process.IsOutputStep():
+                self.point_output_process.PrintOutput()
 
         # Print the output
         time = self.__get_pretty_time(self.model_part.ProcessInfo[KM.TIME])

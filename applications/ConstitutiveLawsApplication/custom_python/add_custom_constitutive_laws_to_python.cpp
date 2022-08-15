@@ -28,6 +28,7 @@
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_quasi_incompressible_isochoric_neo_hookean_3d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
 #include "custom_constitutive/small_strain_j2_plasticity_3d.h"
@@ -143,6 +144,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     py::class_< HyperElasticIsotropicNeoHookean3D, typename HyperElasticIsotropicNeoHookean3D::Pointer, ConstitutiveLaw >
     (m, "HyperElastic3DLaw").def(py::init<>() )
+    ;
+
+    py::class_< HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D, typename HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::Pointer, ConstitutiveLaw >
+    (m, "HyperElasticQuasiIncompressibleNeoHookean3DLaw").def(py::init<>() )
     ;
 
     py::class_< HyperElasticIsotropicNeoHookeanPlaneStrain2D, typename HyperElasticIsotropicNeoHookeanPlaneStrain2D::Pointer, ConstitutiveLaw >

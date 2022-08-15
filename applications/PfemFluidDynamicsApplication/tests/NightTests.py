@@ -28,8 +28,8 @@ class Inlet_3D_Test(TF.TestFactory):
     file_parameters = "pfem_utilities_tests/Test_3D_Inlet/ProjectParameters.json"
 
 class Thermal_Coupling_2D_Test(TF.TestFactory):
-    file_name = "pfem_utilities_tests/2D_thermal_coupling/Test_2D_Thermal_Coupling_Refining"
-    file_parameters = "pfem_utilities_tests/2D_thermal_coupling/ProjectParameters.json"
+    file_name = "pfem_utilities_tests/Test_2D_Thermal_Coupling/Test_2D_Thermal_Coupling"
+    file_parameters = "pfem_utilities_tests/Test_2D_Thermal_Coupling/ProjectParameters.json"
 
 class Nodal_Integration_2D_Test(TF.TestFactory):
     file_name = "pfem_utilities_tests/Test_2D_Nodal_Integration/Test_2D_Nodal_Integration"
