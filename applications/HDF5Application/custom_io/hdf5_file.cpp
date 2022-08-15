@@ -191,7 +191,9 @@ File& File::operator=(File&& rOther)
 
 File::~File()
 {
-    H5Fclose(m_file_id);
+    if (0 <= m_file_id) {
+        H5Fclose(m_file_id);
+    }
 }
 
 bool File::HasPath(const std::string& rPath) const
@@ -627,6 +629,17 @@ void File::Flush()
 {
     KRATOS_ERROR_IF(H5Fflush(m_file_id, H5F_SCOPE_GLOBAL) < 0)
         << "H5Fflush failed." << std::endl;
+}
+
+void File::Close()
+{
+    if (0 <= m_file_id) {
+        const auto close_result = H5Fclose(m_file_id);
+        KRATOS_ERROR_IF(close_result < 0) << "Failed to close " << m_file_name << " with error code " << close_result;
+        m_file_id = -1;
+    } else {
+        KRATOS_WARNING("Invalid file handle") << "Attempt to close an invalid file" << std::endl;
+    }
 }
 
 unsigned File::GetFileSize() const
