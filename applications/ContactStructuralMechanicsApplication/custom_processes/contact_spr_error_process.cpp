@@ -93,7 +93,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
                 p_k(j, j * (TDim+1) + 0) = 1.0;
                 p_k(j, j * (TDim+1) + 1) = coordinates_vector[0][0] - r_coordinates_patch_node[0];
                 p_k(j, j * (TDim+1) + 2) = coordinates_vector[0][1] - r_coordinates_patch_node[1];
-                if(TDim == 3)
+                if constexpr (TDim == 3)
                     p_k(j, j * (TDim+1) + 3) = coordinates_vector[0][2] - r_coordinates_patch_node[2];
             }
 
@@ -108,7 +108,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
         for (IndexType j = 0; j < SigmaSize; ++j){
             p_k(j,j * (TDim + 1) + 1)= r_coordinates[0] - r_coordinates_patch_node[0];
             p_k(j,j * (TDim + 1) + 2)= r_coordinates[1] - r_coordinates_patch_node[1];
-            if(TDim == 3)
+            if constexpr (TDim == 3)
                 p_k(j,j * (TDim + 1) + 3)= r_coordinates[2] - r_coordinates_patch_node[2];
         }
 
