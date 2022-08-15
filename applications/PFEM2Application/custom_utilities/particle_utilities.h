@@ -1494,7 +1494,7 @@ namespace Kratos
             double y3 = geom[3].Y();
 	    double z3 = geom[3].Z();
 	    double area=0.0;
-	    //if(TDim==2) area=CalculateVol(x0, y0, x1, y1, x2, y2);
+	    //if constexpr (TDim==2) area=CalculateVol(x0, y0, x1, y1, x2, y2);
             //else
 	    area=CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
