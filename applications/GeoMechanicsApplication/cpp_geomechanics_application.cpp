@@ -502,12 +502,12 @@ namespace Kratos
         gid_io.InitializeResults(0, model_part.GetMesh());
 
         std::unordered_map<string, unique_ptr<NodeOperation>> NodeOutput;
-        NodeOutput["DISPLACEMENT"] = std::make_unique<NodeDISPLACEMENT>();
-        NodeOutput["TOTAL_DISPLACEMENT"] = std::make_unique<NodeTOTAL_DISPLACEMENT>();
-        NodeOutput["WATER_PRESSURE"] = std::make_unique<NodeWATER_PRESSURE>();
-        NodeOutput["NORMAL_FLUID_FLUX"] = std::make_unique<NodeNORMAL_FLUID_FLUX>();
-        NodeOutput["VOLUME_ACCELERATION"] = std::make_unique<NodeVOLUME_ACCELERATION>();
-        NodeOutput["HYDRAULIC_DISCHARGE"] = std::make_unique<NodeHYDRAULIC_DISCHARGE>();
+        NodeOutput["DISPLACEMENT"] = Kratos::make_unique<NodeDISPLACEMENT>();
+        NodeOutput["TOTAL_DISPLACEMENT"] = Kratos::make_unique<NodeTOTAL_DISPLACEMENT>();
+        NodeOutput["WATER_PRESSURE"] = Kratos::make_unique<NodeWATER_PRESSURE>();
+        NodeOutput["NORMAL_FLUID_FLUX"] = Kratos::make_unique<NodeNORMAL_FLUID_FLUX>();
+        NodeOutput["VOLUME_ACCELERATION"] = Kratos::make_unique<NodeVOLUME_ACCELERATION>();
+        NodeOutput["HYDRAULIC_DISCHARGE"] = Kratos::make_unique<NodeHYDRAULIC_DISCHARGE>();
 
         auto nodal_outputs = outputParameters["postprocess_parameters"]["result_file_configuration"]["nodal_results"].GetStringArray();
         for (string var : nodal_outputs)
@@ -516,17 +516,20 @@ namespace Kratos
         }
 
         std::unordered_map<string, unique_ptr<GaussOperation>> GaussOutput;
-        GaussOutput["FLUID_FLUX_VECTOR"] = std::make_unique<GaussFLUID_FLUX_VECTOR>();
-        GaussOutput["HYDRAULIC_HEAD"] = std::make_unique<GaussHYDRAULIC_HEAD>();
-        GaussOutput["LOCAL_FLUID_FLUX_VECTOR"] = std::make_unique<GaussLOCAL_FLUID_FLUX_VECTOR>();
-        GaussOutput["LOCAL_PERMEABILITY_MATRIX"] = std::make_unique<GaussLOCAL_PERMEABILITY_MATRIX>();
-        GaussOutput["PERMEABILITY_MATRIX"] = std::make_unique<GaussPERMEABILITY_MATRIX>();
-        GaussOutput["DEGREE_OF_SATURATION"] = std::make_unique<GaussDEGREE_OF_SATURATION>();
-        GaussOutput["DERIVATIVE_OF_SATURATION"] = std::make_unique<GaussDERIVATIVE_OF_SATURATION>();
-        GaussOutput["RELATIVE_PERMEABILITY"] = std::make_unique<GaussRELATIVE_PERMEABILITY>();
-        GaussOutput["PIPE_ACTIVE"] = std::make_unique<GaussPIPE_ACTIVE>();
-        GaussOutput["PIPE_HEIGHT"] = std::make_unique<GaussPIPE_HEIGHT>();
-        auto gauss_outputs = outputParameters["postprocess_parameters"]["result_file_configuration"]["gauss_point_results"].GetStringArray();
+        GaussOutput["FLUID_FLUX_VECTOR"] = Kratos::make_unique<GaussFLUID_FLUX_VECTOR>();
+        GaussOutput["HYDRAULIC_HEAD"] = Kratos::make_unique<GaussHYDRAULIC_HEAD>();
+        GaussOutput["LOCAL_FLUID_FLUX_VECTOR"] = Kratos::make_unique<GaussLOCAL_FLUID_FLUX_VECTOR>();
+        GaussOutput["LOCAL_PERMEABILITY_MATRIX"] = Kratos::make_unique<GaussLOCAL_PERMEABILITY_MATRIX>();
+        GaussOutput["PERMEABILITY_MATRIX"] = Kratos::make_unique<GaussPERMEABILITY_MATRIX>();
+        GaussOutput["DEGREE_OF_SATURATION"] = Kratos::make_unique<GaussDEGREE_OF_SATURATION>();
+        GaussOutput["DERIVATIVE_OF_SATURATION"] = Kratos::make_unique<GaussDERIVATIVE_OF_SATURATION>();
+        GaussOutput["RELATIVE_PERMEABILITY"] = Kratos::make_unique<GaussRELATIVE_PERMEABILITY>();
+        GaussOutput["PIPE_ACTIVE"] = Kratos::make_unique<GaussPIPE_ACTIVE>();
+        GaussOutput["PIPE_HEIGHT"] = Kratos::make_unique<GaussPIPE_HEIGHT>();
+
+
+
+    	auto gauss_outputs = outputParameters["postprocess_parameters"]["result_file_configuration"]["gauss_point_results"].GetStringArray();
         for (string var : gauss_outputs)
         {
             GaussOutput[var]->write(gid_io, model_part);
@@ -677,7 +680,7 @@ namespace Kratos
 
         if (!hasPiping)
         {
-            int error = mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
+            mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
             outputGiD(current_model, model_part, projectfile, workingDirectory);
         }
         else
@@ -727,7 +730,7 @@ namespace Kratos
                 }
 
                 KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Searching at head: " << currentHead << std::endl;
-                int error = mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
+                mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
 
                 count = 0;
                 for (Element *element : pipeElements)
@@ -830,7 +833,6 @@ namespace Kratos
 
         std::vector<Element *> pipeElements;
         pipeElements = p_solving_strategy->GetPipingElements();
-        int noPipeElements = pipeElements.size();
 
         double firstNode_A = pipeElements.front()->GetGeometry().GetPoint(0).X0();
         double firstNode_B = pipeElements.front()->GetGeometry().GetPoint(1).X0();
@@ -923,9 +925,7 @@ namespace Kratos
 
         // Initial Setup
         Model current_model;
-        constexpr double tolerance = 1e-6;
         ModelPart &model_part = current_model.CreateModelPart(modelName);
-        const auto rank = model_part.GetCommunicator().MyPID();
         model_part.SetBufferSize(2);
 
         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Initial Setup Done" << std::endl;
@@ -991,7 +991,7 @@ namespace Kratos
         const double delta_time = 1.0;
         const unsigned int number_iterations = 1;
 
-        int error = mainExecution(model_part, processes, p_solving_strategy, time, delta_time, number_iterations);
+        mainExecution(model_part, processes, p_solving_strategy, time, delta_time, number_iterations);
 
         outputGiD(current_model, model_part, projectfile, workingDirectory);
 

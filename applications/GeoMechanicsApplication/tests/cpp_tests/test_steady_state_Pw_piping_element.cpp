@@ -111,11 +111,10 @@ namespace Kratos
             auto Geom = p_element->GetGeometry();
 
             // cast to piping element
-            typedef typename SteadyStatePwPipingElement<2, 4>                    SteadyStatePwPipingElement;
-            SteadyStatePwPipingElement PipeEl = *p_element;
+            auto PipeEl = static_cast<SteadyStatePwPipingElement<2, 4>*>(p_element.get());
 
             // calculate equilibrium height
-            double expected_eq_height = PipeEl.CalculateEquilibriumPipeHeight(*p_elem_prop, Geom, p_elem_prop->GetValue(PIPE_ELEMENT_LENGTH));
+            double expected_eq_height = PipeEl->CalculateEquilibriumPipeHeight(*p_elem_prop, Geom, p_elem_prop->GetValue(PIPE_ELEMENT_LENGTH));
 
             KRATOS_CHECK_NEAR(
                 expected_eq_height,
@@ -177,11 +176,10 @@ namespace Kratos
             auto Geom  = p_element->GetGeometry();
 
             // cast to piping element
-            typedef typename SteadyStatePwPipingElement<2, 4>                    SteadyStatePwPipingElement;
-            SteadyStatePwPipingElement PipeEl = *p_element;
+            auto PipeEl = static_cast<SteadyStatePwPipingElement<2, 4>*>(p_element.get());
 
             // calculate water pressure gradient
-            double expected_gradient = PipeEl.CalculateWaterPressureGradient(*p_elem_prop, Geom, p_elem_prop->GetValue(PIPE_ELEMENT_LENGTH));
+            double expected_gradient = PipeEl->CalculateWaterPressureGradient(*p_elem_prop, Geom, p_elem_prop->GetValue(PIPE_ELEMENT_LENGTH));
 
             // assert gradient
             // expected gradient should be 2. Test is failing on purpose to check CI

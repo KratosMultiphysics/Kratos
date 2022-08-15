@@ -39,7 +39,6 @@ void PwCondition<TDim,TNumNodes>::
     if (rConditionDofList.size() != conditionSize)
         rConditionDofList.resize( conditionSize );
 
-    unsigned int index = 0;
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rConditionDofList[i] = rGeom[i].pGetDof(WATER_PRESSURE);
     }
@@ -124,7 +123,6 @@ void PwCondition<TDim,TNumNodes>::
     if (rResult.size() != conditionSize)
         rResult.resize( conditionSize,false );
 
-    unsigned int index = 0;
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rResult[i] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
     }

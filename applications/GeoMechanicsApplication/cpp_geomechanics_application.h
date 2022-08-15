@@ -88,8 +88,10 @@ public:
 class GaussOperation
 {
 public:
+    virtual ~GaussOperation() = default;
     virtual void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
 };
+
 class GaussFLUID_FLUX_VECTOR : public GaussOperation
 {
 public:

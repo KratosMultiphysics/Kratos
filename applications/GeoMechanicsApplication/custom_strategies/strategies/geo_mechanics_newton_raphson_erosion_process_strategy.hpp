@@ -54,7 +54,7 @@ public:
     typedef typename boost::range_detail::filtered_range
         <std::function<bool(Element*)>, std::vector<Element*>>                         filtered_elements;
 
-    typedef typename SteadyStatePwPipingElement<2, 4>                    SteadyStatePwPipingElement;
+    typedef class SteadyStatePwPipingElement<2, 4>               SteadyStatePwPipingElementType;
     typedef Properties PropertiesType;
     typedef Node <3> NodeType;
     typedef Geometry<NodeType> GeometryType;
@@ -110,7 +110,7 @@ public:
         if (PipeElements.size()==0)
         {
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "No Pipe Elements -> Finalizing Solution " << std::endl;
-        	GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
+        	GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
             return;
         }
         // calculate max pipe height and pipe increment
@@ -121,7 +121,6 @@ public:
         {
             bool Equilibrium = false;
             bool converged = true;
-            int PipeIter = 0;
 
             // get tip element and activate
             Element* tip_element = PipeElements.at(openPipeElements);
@@ -150,7 +149,7 @@ public:
             converged = Recalculate();
         }          
 
-        GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
+        GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
         
 	}
 
@@ -162,13 +161,10 @@ public:
     {
         KRATOS_TRY
 
-            BaseType::Check();
-
-        GetBuilderAndSolver()->Check(BaseType::GetModelPart());
-
-        GetScheme()->Check(BaseType::GetModelPart());
-
-        return 0;
+    	BaseType::Check();
+        this->GetBuilderAndSolver()->Check(BaseType::GetModelPart());
+    	this->GetScheme()->Check(BaseType::GetModelPart());
+    	return 0;
 
         KRATOS_CATCH("")
     }
@@ -179,7 +175,6 @@ public:
         ModelPart& CurrentModelPart = this->GetModelPart();
         std::vector<Element*> PipeElements;
         double PipeElementStartX;
-        ModelPart::ElementsContainerType::iterator element_it = CurrentModelPart.ElementsBegin();
 
         for (Element& element : CurrentModelPart.Elements())
         {
@@ -353,9 +348,9 @@ private:
             rNode.GetSolutionStepValue(WATER_PRESSURE, 0) = dold;
             });*/
 
-    	GeoMechanicsNewtonRaphsonStrategy::InitializeSolutionStep();
-        GeoMechanicsNewtonRaphsonStrategy::Predict();
-        return GeoMechanicsNewtonRaphsonStrategy::SolveSolutionStep();
+    	GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::InitializeSolutionStep();
+        GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Predict();
+        return GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::SolveSolutionStep();
 
     }
 
@@ -389,7 +384,7 @@ private:
                 equilibrium = true;
                 for (auto OpenPipeElement : open_pipe_elements)
                 {
-                    auto pElement = static_cast<SteadyStatePwPipingElement*>(OpenPipeElement);
+                	auto pElement = static_cast<SteadyStatePwPipingElement<2, 4>*>(OpenPipeElement);
 
                     // get open pipe element geometry and properties
                     auto& Geom = OpenPipeElement->GetGeometry();
@@ -446,7 +441,8 @@ private:
         {
             Element* tip_element = PipeElements.at(n_open_elements - 1);
             double pipe_height = tip_element->GetValue(PIPE_HEIGHT);
-            if ((pipe_height > max_pipe_height + DBL_EPSILON) || (pipe_height < pipe_height_accuracy))
+            
+            if ((pipe_height > max_pipe_height + std::numeric_limits<double>::epsilon()) || (pipe_height < pipe_height_accuracy))
             {
                 // stable element found; pipe length does not increase during current time step
                 grow = false;

@@ -109,11 +109,12 @@ protected:
                         const bool CalculateStiffnessMatrixFlag,
                         const bool CalculateResidualVectorFlag) override;
    
-     void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+	using BaseType::CalculateOnIntegrationPoints;
+	void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
          std::vector<bool>& rValues,
          const ProcessInfo& rCurrentProcessInfo) override;
 
-     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+	void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
          std::vector<double>& rValues,
          const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -147,7 +148,7 @@ private:
     SteadyStatePwPipingElement& operator=(SteadyStatePwPipingElement const& rOther);
 
     /// Copy constructor.
-    SteadyStatePwPipingElement(SteadyStatePwInterfaceElement const& rOther);
+    SteadyStatePwPipingElement(SteadyStatePwPipingElement const& rOther);
 
 }; // Class SteadyStatePwInterfaceElement
 

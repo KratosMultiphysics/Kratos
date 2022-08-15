@@ -17,7 +17,6 @@
 namespace Kratos
 {
 
-
 template< unsigned int TDim, unsigned int TNumNodes >
 Element::Pointer SteadyStatePwPipingElement<TDim,TNumNodes>::
     Create( IndexType NewId,
@@ -78,7 +77,6 @@ Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     SteadyStatePwInterfaceElement<TDim, TNumNodes>::Initialize(rCurrentProcessInfo);
-    const PropertiesType& Prop = this->GetProperties();
 
     this->CalculateLength(this->GetGeometry());
 
@@ -329,7 +327,7 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeig
     const double pipeSlope = 0;
 
     // return infinite when dpdx is 0
-    if (dpdx < DBL_EPSILON)
+    if (dpdx < std::numeric_limits<double>::epsilon())
     { 
         return 1e10;
     }
