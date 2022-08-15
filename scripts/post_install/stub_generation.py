@@ -4,6 +4,7 @@ from pathlib import Path
 from importlib import import_module
 import tempfile
 import shutil
+import subprocess
 
 # External imports
 try:
@@ -130,4 +131,8 @@ def Main():
 
 
 if __name__ == "__main__":
-    Main()
+    if "--quiet" in sys.argv: # suppress output from Kratos imports
+        args = [arg for arg in sys.argv if arg != "--quiet"]
+        subprocess.run([sys.executable] + args, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    else:
+        Main()
