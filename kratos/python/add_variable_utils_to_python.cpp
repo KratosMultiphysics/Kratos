@@ -452,7 +452,6 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("ApplyFixity", ApplyFixity<Variable<double>>)
         .def("ApplyFixity", ApplyFlaggedFixity<Variable<double>>)
         .def("ApplyVector", &VariableUtils::ApplyVector<Variable<double>>)
-        
         .def("GetSolutionStepValuesVector", py::overload_cast<
                             const ModelPart::NodesContainerType&,
                             const Variable<array_1d<double,3>>&,
@@ -463,13 +462,12 @@ void AddVariableUtilsToPython(pybind11::module &m)
                             const Variable<double>&,
                             const unsigned int>(&VariableUtils::GetSolutionStepValuesVector))
         .def("SetSolutionStepValuesVector", py::overload_cast<
-                            const ModelPart::NodesContainerType&,
+                            ModelPart::NodesContainerType&,
                             const Variable<array_1d<double,3>>&,
                             const Vector&,
-                            const unsigned int,
                             const unsigned int>(&VariableUtils::SetSolutionStepValuesVector))
         .def("SetSolutionStepValuesVector", py::overload_cast<
-                            const ModelPart::NodesContainerType&,
+                            ModelPart::NodesContainerType&,
                             const Variable<double>&,
                             const Vector&,
                             const unsigned int>(&VariableUtils::SetSolutionStepValuesVector))
