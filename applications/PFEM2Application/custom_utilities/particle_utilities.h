@@ -201,7 +201,7 @@ namespace Kratos
 	  KRATOS_ERROR<<"Add  ----NODAL_H---- variable!!!!!! ERROR";
 
         double sigma = 0.0;
-        if (TDim == 2)
+        if constexpr (TDim == 2)
 	  sigma = 10.0 / (7.0 * 3.1415926);
         else
 	  sigma = 1.0 / 3.1415926;
@@ -306,7 +306,7 @@ namespace Kratos
 	  KRATOS_ERROR<<"Add  ----NODAL_H---- variable!!!!!! ERROR";
 
         double sigma = 0.0;
-        if (TDim == 2)
+        if constexpr (TDim == 2)
 	  sigma = 10.0 / (7.0 * 3.1415926);
         else
 	  sigma = 1.0 / 3.1415926;
@@ -1340,7 +1340,7 @@ namespace Kratos
 
 	double sigma = 0.0;
 
-	if (TDim == 2)
+	if constexpr (TDim == 2)
 	  sigma = 10.0 / (7.0 * 3.1415926);
 	else
 	  sigma = 1.0 / 3.1415926;
