@@ -36,7 +36,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 class QSVMSAdjointElementData
 {
 public:
-    ///@name Type Definitions
+    ///@name Local Type Definitions
     ///@{
 
     using IndexType = std::size_t;
@@ -48,6 +48,22 @@ public:
     using TResidualsDerivatives = QSVMSResidualDerivatives<TDim, TNumNodes>;
 
     ///@}
+    ///@name Template Type Definitions
+    ///@{
+
+    using Data = typename TResidualsDerivatives::Data;
+
+    using ResidualsContributions = typename TResidualsDerivatives::ResidualsContributions;
+
+    using VelocityDerivativeContributions = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes>>;
+
+    using PressureDerivativeContributions = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template PressureDerivative<TNumNodes>>;
+
+    using AccelerationDerivativeContributions = typename TResidualsDerivatives::SecondDerivatives;
+
+    using ShapeDerivatives = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes>>;
+
+    ///@}
     ///@name Static Operations
     ///@{
 
@@ -56,78 +72,6 @@ public:
         const ProcessInfo& rProcessInfo);
 
     static std::vector<const Variable<double>*> GetDofVariablesList();
-
-    ///@}
-    ///@name Classes
-    ///@{
-
-    class Primal
-    {
-    public:
-        ///@name Type Definitions
-        ///@{
-
-        using Data = typename TResidualsDerivatives::Data;
-
-        using ResidualsContributions = typename TResidualsDerivatives::ResidualsContributions;
-
-        ///@}
-    };
-
-    class StateDerivatives
-    {
-    public:
-        ///@name Type Definitions
-        ///@{
-
-        class SecondDerivatives
-        {
-        public:
-            ///@name Type Definitions
-            ///@{
-
-            using Data = typename TResidualsDerivatives::Data;
-
-            using Acceleration = typename TResidualsDerivatives::SecondDerivatives;
-
-            ///@}
-
-        };
-
-        ///@}
-        ///@name Classes
-        ///@{
-
-        class FirstDerivatives
-        {
-        public:
-            ///@name Type Definitions
-            ///@{
-
-            using Data = typename TResidualsDerivatives::Data;
-
-            using Velocity = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes>>;
-
-            using Pressure = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template PressureDerivative<TNumNodes>>;
-
-            ///@}
-        };
-
-        ///@}
-    };
-
-    class SensitivityDerivatives
-    {
-    public:
-        ///@name Type Definitions
-        ///@{
-
-        using Data = typename TResidualsDerivatives::Data;
-
-        using Shape = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes>>;
-
-        ///@}
-    };
 
     ///@}
 };

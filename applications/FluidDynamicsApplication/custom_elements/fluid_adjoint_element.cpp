@@ -516,8 +516,8 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidResidual
     ShapeFunctionDerivativesArrayType dNdXs;
     this->CalculateGeometryData(Ws, Ns, dNdXs, integration_method);
 
-    typename TAdjointElementData::Primal::Data element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
-    typename TAdjointElementData::Primal::ResidualsContributions residual_contributions(element_data);
+    typename TAdjointElementData::Data element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
+    typename TAdjointElementData::ResidualsContributions residual_contributions(element_data);
 
     VectorF residual = ZeroVector(TElementLocalSize);
 
@@ -550,11 +550,9 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidFirstDer
     ShapeFunctionDerivativesArrayType dNdXs;
     this->CalculateGeometryData(Ws, Ns, dNdXs, integration_method);
 
-    using Derivatives = typename TAdjointElementData::StateDerivatives::FirstDerivatives;
-
-    typename Derivatives::Data     element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
-    typename Derivatives::Velocity velocity_derivative(element_data);
-    typename Derivatives::Pressure pressure_derivative(element_data);
+    typename TAdjointElementData::Data                            element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
+    typename TAdjointElementData::VelocityDerivativeContributions velocity_derivative(element_data);
+    typename TAdjointElementData::PressureDerivativeContributions pressure_derivative(element_data);
 
     BoundedVector<double, TElementLocalSize> residual;
     BoundedMatrix<double, TNumNodes, TDim> dNdXDerivative = ZeroMatrix(TNumNodes, TDim);
@@ -595,10 +593,8 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidSecondDe
     ShapeFunctionDerivativesArrayType dNdXs;
     this->CalculateGeometryData(Ws, Ns, dNdXs, integration_method);
 
-    using Derivatives = typename TAdjointElementData::StateDerivatives::SecondDerivatives;
-
-    typename Derivatives::Data         element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
-    typename Derivatives::Acceleration acceleration_derivative(element_data);
+    typename TAdjointElementData::Data                                element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
+    typename TAdjointElementData::AccelerationDerivativeContributions acceleration_derivative(element_data);
 
     VectorF residual;
 
@@ -638,10 +634,8 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidShapeDer
     ShapeFunctionDerivativesArrayType dNdXs;
     this->CalculateGeometryData(Ws, Ns, dNdXs, integration_method);
 
-    using Derivatives = typename TAdjointElementData::SensitivityDerivatives;
-
-    typename Derivatives::Data  element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
-    typename Derivatives::Shape derivative(element_data);
+    typename TAdjointElementData::Data             element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
+    typename TAdjointElementData::ShapeDerivatives derivative(element_data);
 
     VectorF residual;
 
