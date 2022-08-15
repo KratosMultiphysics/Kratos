@@ -155,7 +155,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNum
         NodeType& master_node = current_master[i_master];
         rResult[index++] = master_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = master_node.GetDof( DISPLACEMENT_Y ).EquationId( );
-        if (TDim == 3) rResult[index++] = master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
+        if constexpr (TDim == 3) rResult[index++] = master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
     }
 
     // Slave Nodes Displacement Equation IDs
@@ -163,7 +163,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNum
         NodeType& slave_node = this->GetParentGeometry()[ i_slave ];
         rResult[index++] = slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
-        if (TDim == 3) rResult[index++] = slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
+        if constexpr (TDim == 3) rResult[index++] = slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
     }
 
     // Slave Nodes  Lambda Equation IDs
@@ -205,7 +205,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNum
         NodeType& master_node = current_master[i_master];
         rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_Y );
-        if (TDim == 3) rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_Z );
+        if constexpr (TDim == 3) rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_Z );
     }
 
     // Slave Nodes Displacement Equation IDs
@@ -213,7 +213,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNum
         NodeType& slave_node = this->GetParentGeometry()[ i_slave ];
         rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Y );
-        if (TDim == 3) rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Z );
+        if constexpr (TDim == 3) rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Z );
     }
 
     // Slave Nodes Lambda Equation IDs
