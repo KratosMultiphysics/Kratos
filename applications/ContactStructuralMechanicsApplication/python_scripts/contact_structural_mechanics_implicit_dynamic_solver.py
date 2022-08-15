@@ -156,11 +156,18 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         if self.contact_settings["mortar_type"].GetString() != "":
             if self.settings["analysis_type"].GetString() == "linear":
                 mechanical_solution_strategy = self._create_linear_strategy()
-            else:
-                if(self.settings["line_search"].GetBool()):
-                    mechanical_solution_strategy = self._create_contact_line_search_strategy()
-                else:
+            elif self.settings["analysis_type"].GetString() == "non_linear":
+                # Create strategy
+                if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
                     mechanical_solution_strategy = self._create_contact_newton_raphson_strategy()
+                elif self.settings["solving_strategy_settings"]["type"].GetString() == "line_search":
+                    mechanical_solution_strategy = self._create_contact_line_search_strategy()
+                elif self.settings["solving_strategy_settings"]["type"].GetString() == "arc_length":
+                    mechanical_solution_strategy = self._create_arc_length_strategy()
+            else:
+                err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
+                err_msg += "Available options are: \"linear\", \"non_linear\""
+                raise Exception(err_msg)
         else:
             mechanical_solution_strategy = super()._CreateSolutionStrategy()
 
