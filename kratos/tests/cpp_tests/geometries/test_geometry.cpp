@@ -113,6 +113,10 @@ namespace Testing {
           return "Kratos_Triangle3D3";
         case GeometryData::KratosGeometryType::Kratos_Triangle2D6 :
           return "Kratos_Triangle2D6";
+        case GeometryData::KratosGeometryType::Kratos_Triangle2D10:
+            return "Kratos_Triangle2D10";
+        case GeometryData::KratosGeometryType::Kratos_Triangle2D15:
+            return "Kratos_Triangle2D15";
         case GeometryData::KratosGeometryType::Kratos_Triangle3D3 :
           return "Kratos_Triangle3D3";
         case GeometryData::KratosGeometryType::Kratos_Triangle3D6 :
@@ -121,6 +125,10 @@ namespace Testing {
           return "Kratos_Line2D2";
         case GeometryData::KratosGeometryType::Kratos_Line2D3 :
           return "Kratos_Line2D3";
+        case GeometryData::KratosGeometryType::Kratos_Line2D4:
+            return "Kratos_Line2D4";
+        case GeometryData::KratosGeometryType::Kratos_Line2D5:
+            return "Kratos_Line2D5";
         case GeometryData::KratosGeometryType::Kratos_Line3D2 :
           return "Kratos_Line3D2";
         case GeometryData::KratosGeometryType::Kratos_Line3D3 :
