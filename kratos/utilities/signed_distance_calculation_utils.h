@@ -113,7 +113,7 @@ public:
         const double max_distance
     )
     {
-        if(TDim == 2)
+        if constexpr (TDim == 2)
             CalculateDistances2D(r_model_part, rDistanceVar, max_distance);
         else if constexpr (TDim == 3)
             CalculateDistances3D(r_model_part, rDistanceVar, max_distance);
@@ -191,7 +191,7 @@ public:
 //
 //                                    //generate list of virtual points on the free surface (for the element divided)
 //                                    //and compute the distance of all of the nodes in the element from such list
-//                                    if(TDim == 2)
+//                                    if constexpr (TDim == 2)
 //                                        KRATOS_THROW_ERROR(std::logic_error,"2d not yet implemented","")
 //                                    else
 //                                    {
