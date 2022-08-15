@@ -92,7 +92,7 @@ namespace Kratos
         //           {
         //             rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[solidSFDposition]   += rDN_DX(j,0)*elementVolume/solidNodalVolume;
         //             rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[solidSFDposition+1] += rDN_DX(j,1)*elementVolume/solidNodalVolume;
-        //             if(TDim==3){
+        //             if constexpr (TDim==3){
         //               rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[solidSFDposition+2] += rDN_DX(j,2)*elementVolume/solidNodalVolume;
         //             }
         //             break;
@@ -239,7 +239,7 @@ namespace Kratos
     //               {
     //                 rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition]   += rDN_DX(j,0)*elementVolume/solidNodalVolume;
     //                 rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition+1] += rDN_DX(j,1)*elementVolume/solidNodalVolume;
-    //                 if(TDim==3){
+    //                 if constexpr (TDim==3){
     //                   rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition+2] += rDN_DX(j,2)*elementVolume/solidNodalVolume;
     //                 }
     //                 break;
@@ -286,7 +286,7 @@ namespace Kratos
     //             {
     //               rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition]   += rDN_DX(j,0)*elementVolume/nodalVolume;
     //               rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1] += rDN_DX(j,1)*elementVolume/nodalVolume;
-    //               if(TDim==3){
+    //               if constexpr (TDim==3){
     //                 rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+2] += rDN_DX(j,2)*elementVolume/nodalVolume;
     //               }
     //               break;
@@ -355,7 +355,7 @@ namespace Kratos
     //             {
     //               rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition]   += rDN_DX(j,0)*elementVolume/solidNodalVolume;
     //               rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition+1] += rDN_DX(j,1)*elementVolume/solidNodalVolume;
-    //               if(TDim==3){
+    //               if constexpr (TDim==3){
     //                 rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition+2] += rDN_DX(j,2)*elementVolume/solidNodalVolume;
     //               }
     //               break;
@@ -377,7 +377,7 @@ namespace Kratos
     //             {
     //               rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition]   += rDN_DX(j,0)*elementVolume/nodalVolume;
     //               rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1] += rDN_DX(j,1)*elementVolume/nodalVolume;
-    //               if(TDim==3){
+    //               if constexpr (TDim==3){
     //                 rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+2] += rDN_DX(j,2)*elementVolume/nodalVolume;
     //               }
     //               break;
@@ -1946,9 +1946,9 @@ namespace Kratos
   //   unsigned int SFDposition=0;
 
   //   double elementVolume=0;
-  //   if(TDim==3){
+  //   if constexpr (TDim==3){
   //    	elementVolume=rGeom.Volume()*0.25;
-  //   }else if(TDim==2){
+  //   }else if constexpr (TDim==2){
   //     elementVolume=rGeom.Area()/3.0;
   //   }
 
@@ -1962,7 +1962,7 @@ namespace Kratos
   // 	    double nodal_dNdXi=rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[0];
   //       double nodal_dNdYi=rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[1];
   //       double nodal_dNdZi=0;
-  //       if(TDim==3){
+  //       if constexpr (TDim==3){
   //         nodal_dNdZi=rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[2];
   //       }
   //       double elemental_dNdXi=0;
@@ -1983,7 +1983,7 @@ namespace Kratos
   //             elemental_dNdYi+=rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1]/(double(NumNodes));
   //               // std::cout<<"       elemental_dNdXi:"<<elemental_dNdXi<<"      elemental_dNdYi:"<<elemental_dNdYi<<std::endl;
 
-  //             if(TDim==3){
+  //             if constexpr (TDim==3){
   //               elemental_dNdZi+=rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+2]/(double(NumNodes));
   //             }
   //             break;
@@ -2003,7 +2003,7 @@ namespace Kratos
   //           double nodal_dNdXj=rGeom[j].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[0];
   //           double nodal_dNdYj=rGeom[j].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[1];
   //           double nodal_dNdZj=0;
-  //           if(TDim==3){
+  //           if constexpr (TDim==3){
   //             nodal_dNdZj=rGeom[j].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[2];
   //           }
   //           double elemental_dNdXj=0;
@@ -2021,7 +2021,7 @@ namespace Kratos
   //               {
   //                 elemental_dNdXj+=rGeom[j].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition]/(double(NumNodes));
   //                 elemental_dNdYj+=rGeom[j].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1]/(double(NumNodes));
-  //                 if(TDim==3){
+  //                 if constexpr (TDim==3){
   //                   elemental_dNdZj+=rGeom[j].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+2]/(double(NumNodes));
   //                 }
   //                 break;
@@ -2041,7 +2041,7 @@ namespace Kratos
   //           StabLaplacianMatrix(i,j) += ( (nodal_dNdXi-elemental_dNdXi)*(nodal_dNdXj-elemental_dNdXj) +
   //                                          (nodal_dNdYi-elemental_dNdYi)*(nodal_dNdYj-elemental_dNdYj) ) * Weight;
 
-  //           if(TDim==3){
+  //           if constexpr (TDim==3){
   //             StabLaplacianMatrix(i,j) += (nodal_dNdZi-elemental_dNdZi)*(nodal_dNdZj-elemental_dNdZj) * Weight ;
   //           }
 
