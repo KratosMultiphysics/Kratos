@@ -494,14 +494,14 @@ ModifiedShapeFunctions::Pointer GaussPointErrorUtility::SetModifiedShapeFunction
 //     return rCoords[0] + rCoords[1];
 // }
 
-// array_1d<double,3> GaussPointErrorUtility::CalculateTemperatureExactSolutionGradient(const array_1d<double,3>& rCoords)
-// {
-//     array_1d<double,3> grad;
-//     grad[0] = 1.0;
-//     grad[1] = 1.0;
-//     grad[2] = 0.0;
-//     return grad;
-// }
+array_1d<double,3> GaussPointErrorUtility::CalculateTemperatureExactSolutionGradient(const array_1d<double,3>& rCoords)
+{
+    array_1d<double,3> grad;
+    grad[0] = 1.0;
+    grad[1] = 1.0;
+    grad[2] = 0.0;
+    return grad;
+}
 
 // array_1d<double,3> GaussPointErrorUtility::CalculateTemperatureExactSolutionGradient(const array_1d<double,3>& rCoords)
 // {
@@ -512,14 +512,14 @@ ModifiedShapeFunctions::Pointer GaussPointErrorUtility::SetModifiedShapeFunction
 //     return grad;
 // }
 
-array_1d<double,3> GaussPointErrorUtility::CalculateTemperatureExactSolutionGradient(const array_1d<double,3>& rCoords)
-{
-    array_1d<double,3> grad;
-    grad[0] = -2.0*rCoords[0];
-    grad[1] = 0.0;
-    grad[2] = 0.0;
-    return grad;
-}
+// array_1d<double,3> GaussPointErrorUtility::CalculateTemperatureExactSolutionGradient(const array_1d<double,3>& rCoords)
+// {
+//     array_1d<double,3> grad;
+//     grad[0] = -2.0*rCoords[0];
+//     grad[1] = 0.0;
+//     grad[2] = 0.0;
+//     return grad;
+// }
 
 // array_1d<double,3> GaussPointErrorUtility::CalculateTemperatureExactSolutionGradient(const array_1d<double,3>& rCoords)
 // {
@@ -544,11 +544,11 @@ double GaussPointErrorUtility::CalculateTemperatureExactSolution(const array_1d<
     const double x = rCoords[0];
     const double y = rCoords[1];
     // return x+y;
-    return std::pow((1.0-x),2);
+    // return std::pow((1.0-x),2);
     // return std::pow(x,2) + std::pow(y,2);
     // return 0.25*(9.0 - std::pow(x,2) - std::pow(y,2) - 2.0*std::log(3.0) + std::log(std::pow(x,2)+std::pow(y,2)));
     // return 0.25*(9.0 - std::pow(x,2) - std::pow(y,2) - 2.0*std::log(3.0) + std::log(std::pow(x,2)+std::pow(y,2))) + 0.25*std::sin(y)*std::sinh(x);
-    // return 0.25*(9.0 - std::pow(x,2) - std::pow(y,2) - 2.0*std::log(3.0) + std::log(std::pow(x,2)+std::pow(y,2))) + 0.25*std::sin(x)*std::sinh(y);
+    return 0.25*(9.0 - std::pow(x,2) - std::pow(y,2) - 2.0*std::log(3.0) + std::log(std::pow(x,2)+std::pow(y,2))) + 0.25*std::sin(x)*std::sinh(y);
 }
 
 // double GaussPointErrorUtility::CalculatePressureExactSolution(const array_1d<double,3>& rCoords)
@@ -576,27 +576,27 @@ double GaussPointErrorUtility::CalculateTemperatureExactSolution(const array_1d<
 //     return inner_prod(temp_grad, rNormal);
 // }
 
-// double GaussPointErrorUtility::CalculateTemperatureFluxExactSolution(
-//     const array_1d<double,3>& rCoords,
-//     const array_1d<double,3>& rNormal)
-// {
-//     array_1d<double,3> temp_grad = ZeroVector(3);
-//     temp_grad[0] = 1.0;
-//     temp_grad[1] = 1.0;
-//     return inner_prod(temp_grad, rNormal);
-// }
-
 double GaussPointErrorUtility::CalculateTemperatureFluxExactSolution(
     const array_1d<double,3>& rCoords,
     const array_1d<double,3>& rNormal)
 {
-    const double x = rCoords[0];
-    const double y = rCoords[1];
     array_1d<double,3> temp_grad = ZeroVector(3);
-    temp_grad[0] = -2.0*x;
-    temp_grad[1] = 0.0;
+    temp_grad[0] = 1.0;
+    temp_grad[1] = 1.0;
     return inner_prod(temp_grad, rNormal);
 }
+
+// double GaussPointErrorUtility::CalculateTemperatureFluxExactSolution(
+//     const array_1d<double,3>& rCoords,
+//     const array_1d<double,3>& rNormal)
+// {
+//     const double x = rCoords[0];
+//     const double y = rCoords[1];
+//     array_1d<double,3> temp_grad = ZeroVector(3);
+//     temp_grad[0] = -2.0*x;
+//     temp_grad[1] = 0.0;
+//     return inner_prod(temp_grad, rNormal);
+// }
 
 // double GaussPointErrorUtility::CalculateTemperatureFluxExactSolution(
 //     const array_1d<double,3>& rCoords,

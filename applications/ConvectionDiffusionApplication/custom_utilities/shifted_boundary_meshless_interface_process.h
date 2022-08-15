@@ -26,6 +26,7 @@
 #include "processes/process.h"
 #include "utilities/element_size_calculator.h"
 #include "utilities/mls_shape_functions_utility.h"
+#include "utilities/rbf_shape_functions_utility.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 
@@ -67,7 +68,11 @@ public:
 
     using GeometryType = ModelPart::GeometryType;
 
+    using ShapeFunctionsGradientsType = GeometryType::ShapeFunctionsGradientsType;
+
     using ModifiedShapeFunctionsFactoryType = std::function<ModifiedShapeFunctions::UniquePointer(const GeometryType::Pointer, const Vector&)>;
+
+    using RBFShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, Vector&)>;
 
     using MLSShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&)>;
 
@@ -118,6 +123,9 @@ public:
         // If true, the MLS basis is created such that it is conforming with the linear FE space of the surrogate boundary
         mMLSConformingBasis = ThisParameters["mls_conforming_basis"].GetBool();
 
+        // If true, the basis is created such that the surrogate boundary gradient is kept
+        mGradientBasedConformingBasis = ThisParameters["gradient_based_conforming_basis"].GetBool();
+
         // Set the SBD contion prototype to be used in the condition creation
         std::string interface_condition_name = ThisParameters["sbm_interface_condition_name"].GetString();
         KRATOS_ERROR_IF(interface_condition_name == "") << "SBM interface condition has not been provided." << std::endl;
@@ -138,10 +146,14 @@ public:
 
     void Execute() override
     {
-        if (mMLSConformingBasis) {
-            CalculateConformingExtensionBasis();
+        if (mGradientBasedConformingBasis) {
+            CalculateGradientBasedConformingBasis();
         } else {
-            CalculateNonConformingExtensionBasis();
+            if (mMLSConformingBasis) {
+                CalculateConformingExtensionBasis();
+            } else {
+                CalculateNonConformingExtensionBasis();
+            }
         }
     }
 
@@ -152,7 +164,8 @@ public:
             "boundary_sub_model_part_name" : "",
             "sbm_interface_condition_name" : "",
             "mls_extension_operator_order" : 1,
-            "mls_conforming_basis" : true
+            "mls_conforming_basis" : true,
+            "gradient_based_conforming_basis" : false
         })" );
 
         return default_parameters;
@@ -238,6 +251,8 @@ private:
 
     bool mMLSConformingBasis;
 
+    bool mGradientBasedConformingBasis;
+
     std::size_t mMLSExtensionOperatorOrder;
 
     const Condition* mpConditionPrototype;
@@ -249,6 +264,278 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void CalculateGradientBasedConformingBasis()
+    {
+        // Get DOMAIN_SIZE
+        const auto& r_process_info = mpModelPart->GetProcessInfo();
+        KRATOS_ERROR_IF_NOT(r_process_info.Has(DOMAIN_SIZE)) << "'DOMAIN_SIZE' not present in ProcessInfo container." << std::endl;
+        std::size_t domain_size = r_process_info[DOMAIN_SIZE];
+
+        // Set the required interface flags
+        SetInterfaceFlags();
+
+        // Create the nodal gradient projection weights
+        // This means to build a gradient reconstruction for each node in the surrogate boundary from the positive neighbour values
+        auto sur_bd_nodes_map = SetSurrogateBoundaryNodalGradientWeights();
+
+        // Set the modified shape functions factory
+        // Note that unique geometry in the mesh is assumed
+        const auto& r_begin_geom = mpModelPart->ElementsBegin()->GetGeometry();
+        auto p_mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_begin_geom);
+
+        // Get the element size calculation function
+        // Note that unique geometry in the mesh is assumed
+        auto p_element_size_func = GetElementSizeFunction(r_begin_geom);
+
+        // Get max condition id
+        std::size_t max_cond_id = block_for_each<MaxReduction<std::size_t>>(mpModelPart->Conditions(), [](const Condition& rCondition){return rCondition.Id();});
+
+        // Loop the elements to create the negative nodes basis
+        NodesCloudMapType ext_op_map;
+        for (auto& rElement : mpModelPart->Elements()) {
+
+            // Check if the element is split
+            const auto p_geom = rElement.pGetGeometry();
+            if (IsSplit(*p_geom)) {
+                // Find the intersected element negative nodes
+                for (auto& r_node : *p_geom) {
+
+                    // Check if the current node weight have been already computed
+                    const std::size_t found = ext_op_map.count(&r_node);
+                    if (r_node.IsNot(ACTIVE) && !found) {
+
+                        // Get the neighbouring nodes that belong to the surrogate boundary
+                        std::vector<std::size_t> bd_nodes_ids;
+                        auto& r_neigh_vect = r_node.GetValue(NEIGHBOUR_NODES);
+                        for (auto& r_bd_neigh : r_neigh_vect) {
+                            if (r_bd_neigh.Is(BOUNDARY)) {
+                                bd_nodes_ids.push_back(r_bd_neigh.Id());
+                            }
+                        }
+
+                        // Calculate the weight of each surrogate node from its distance
+                        // This is a weighted average between all the surrogate boundary nodes neighbouring the current extension node
+                        double inv_tot_dist = 0.0;
+                        std::size_t aux_i = 0;
+                        Vector w_sur_nodes(bd_nodes_ids.size());
+                        for (std::size_t bd_node_id : bd_nodes_ids) {
+                            const auto p_sur_bd_node = mpModelPart->pGetNode(bd_node_id);
+                            const double aux_dist = 1.0 / norm_2(r_node.Coordinates() - p_sur_bd_node->Coordinates());
+                            inv_tot_dist += aux_dist;
+                            w_sur_nodes(aux_i) = aux_dist;
+                            ++aux_i;
+                        }
+                        w_sur_nodes /= inv_tot_dist;
+
+                        // Set the cloud weights
+                        // In here we calculate the final weights for the extension operator
+                        // Note that this includes the gradient projection from the surrogate nodes
+                        aux_i = 0;
+                        std::map<std::size_t, double> cloud_data_map;
+                        for (std::size_t sur_bd_id : bd_nodes_ids) {
+                            const double w_sur_node = w_sur_nodes(aux_i);
+                            const auto p_sur_bd_node = mpModelPart->pGetNode(sur_bd_id);
+                            const auto& r_sur_bd_dn_dx_data = sur_bd_nodes_map[sur_bd_id];
+                            array_1d<double,3> proj_vect = r_node.Coordinates() - p_sur_bd_node->Coordinates();
+
+                            // Add projected gradients weights
+                            for (auto& dn_dx_data : r_sur_bd_dn_dx_data) {
+                                // Calculate gradient edge projection
+                                const auto& aux_dn_dx = dn_dx_data.second;
+                                double dn_dx_proj_w = 0.0;
+                                for (std::size_t d = 0; d < domain_size; ++d) {
+                                    dn_dx_proj_w += aux_dn_dx[d] * proj_vect[d];
+                                }
+                                dn_dx_proj_w *= w_sur_node;
+
+                                // Save current value
+                                const std::size_t aux_id = dn_dx_data.first;
+                                auto it_found = cloud_data_map.find(aux_id);
+                                if (it_found != cloud_data_map.end()) {
+                                    auto& r_val = it_found->second;
+                                    r_val += dn_dx_proj_w;
+                                } else {
+                                    cloud_data_map.insert(std::make_pair(aux_id, dn_dx_proj_w));
+                                }
+                            }
+
+                            // Add the current surrogate node weight
+                            // Note that the "negative" node value is the surrogate nodes average one plus de nodal gradients average contribution
+                            auto it_found = cloud_data_map.find(sur_bd_id);
+                            if (it_found != cloud_data_map.end()) {
+                                auto& r_val = it_found->second;
+                                r_val += w_sur_node;
+                            } else {
+                                cloud_data_map.insert(std::make_pair(sur_bd_id, w_sur_node));
+                            }
+
+                            ++aux_i;
+                        }
+
+                        // Save the extension operator nodal data
+                        std::size_t n_cl_nod = cloud_data_map.size();
+                        double w_tot = 0.0;
+                        CloudDataVectorType cloud_data_vector(n_cl_nod);
+                        std::size_t i_cl_nod = 0;
+                        for (auto& it_data : cloud_data_map) {
+                            auto p_cl_node = mpModelPart->pGetNode(it_data.first);
+                            auto i_data = std::make_pair(p_cl_node, it_data.second);
+                            w_tot += it_data.second;
+                            cloud_data_vector(i_cl_nod) = i_data;
+                            i_cl_nod++;
+                        }
+                        KRATOS_ERROR_IF(std::abs(w_tot - 1.0 ) > 1.0e-12) << "Non-unit total weight " << w_tot << " for ext. operator in node " << r_node.Id() << std::endl;
+                        // KRATOS_WARNING_IF("ShiftedBoundaryMeshlessInterfaceProcess",std::abs(w_tot - 1.0 ) > 1.0e-12) << "Non-unit total weight " << w_tot << " for ext. operator in node " << r_node.Id() << std::endl;
+
+                        auto ext_op_key_data = std::make_pair(&r_node, cloud_data_vector);
+                        ext_op_map.insert(ext_op_key_data);
+                    }
+                }
+            }
+        }
+
+        // Create the interface conditions
+        //TODO: THIS CAN BE PARALLEL (WE JUST NEED TO MAKE CRITICAL THE CONDITION ID UPDATE)
+        for (auto& rElement : mpModelPart->Elements()) {
+            // Check if the element is split
+            const auto p_geom = rElement.pGetGeometry();
+            if (IsSplit(*p_geom)) {
+                // Set up the distances vector
+                const auto& r_geom = *p_geom;
+                const std::size_t n_nodes = r_geom.PointsNumber();
+                Vector nodal_distances(n_nodes);
+                SetNodalDistancesVector(r_geom, nodal_distances);
+
+                // Set the modified shape functions pointer and calculate the positive interface data
+                auto p_mod_sh_func = p_mod_sh_func_factory(p_geom, nodal_distances);
+                Vector pos_int_w;
+                Matrix pos_int_N;
+                std::vector<array_1d<double,3>> pos_int_n;
+                typename ModifiedShapeFunctions::ShapeFunctionsGradientsType pos_int_DN_DX;
+                //TODO: Add a method without the interface gradients
+                p_mod_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(pos_int_N, pos_int_DN_DX, pos_int_w, GeometryData::IntegrationMethod::GI_GAUSS_2);
+                p_mod_sh_func->ComputePositiveSideInterfaceAreaNormals(pos_int_n, GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+                // Calculate parent element size for the SBM BC imposition
+                const double h = p_element_size_func(*p_geom);
+
+                // Create an auxiliary set with all the cloud nodes that affect the current element
+                NodesCloudSetType cloud_nodes_set;
+                for (auto& r_node : r_geom) {
+                    NodeType::Pointer p_node = &r_node;
+                    if (r_node.Is(ACTIVE)) {
+                        cloud_nodes_set.insert(p_node);
+                    } else {
+                        auto& r_ext_op_data = ext_op_map[p_node];
+                        for (auto it_data = r_ext_op_data.begin(); it_data != r_ext_op_data.end(); ++it_data) {
+                            auto& p_node = std::get<0>(*it_data);
+                            cloud_nodes_set.insert(p_node);
+                        }
+                    }
+                }
+
+                // Save previous resuls in a pointer vector to be used in the creation of the condition
+                // Note that the obtained cloud is sorted by id to properly get the extension operator data
+                PointerVector<NodeType> cloud_nodes_vector;
+                const std::size_t n_cloud_nodes = cloud_nodes_set.size();
+                cloud_nodes_vector.resize(n_cloud_nodes);
+                std::size_t aux_i = 0;
+                for (auto it_set = cloud_nodes_set.begin(); it_set != cloud_nodes_set.end(); ++it_set) {
+                    cloud_nodes_vector(aux_i++) = *it_set;
+                }
+                std::sort(cloud_nodes_vector.ptr_begin(), cloud_nodes_vector.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
+
+                // Iterate the interface Gauss pts.
+                DenseVector<double> i_g_N;
+                DenseMatrix<double> i_g_DN_DX;
+                array_1d<double,3> i_g_coords;
+                const std::size_t n_int_pts = pos_int_w.size();
+                for (std::size_t i_g = 0; i_g < n_int_pts; ++i_g) {
+                    // Calculate Gauss pt. coordinates
+                    i_g_N = row(pos_int_N, i_g);
+                    i_g_DN_DX = pos_int_DN_DX[i_g];
+                    noalias(i_g_coords) = ZeroVector(3);
+                    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                        noalias(i_g_coords) += i_g_N[i_node] * r_geom[i_node].Coordinates();
+                    }
+
+                    // Initialize the extension operator containers
+                    const std::size_t n_cl_nodes = cloud_nodes_vector.size();
+                    const std::size_t n_dim = r_geom.WorkingSpaceDimension();
+                    Vector N_container = ZeroVector(n_cl_nodes);
+                    Matrix DN_DX_container = ZeroMatrix(n_cl_nodes, n_dim);
+
+                    // Loop the nodes that are involved in the current element
+                    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                        const auto& r_node = r_geom[i_node];
+                        if (r_node.Is(ACTIVE)) {
+                            // If it is ACTIVE (positive) side add the standard shape function contribution
+                            // Note that we need to check for the ids to match in the geometry as nodes in the map are mixed
+                            for (std::size_t i_cl = 0; i_cl < n_cl_nodes; ++i_cl) {
+                                auto& p_cl_node = cloud_nodes_vector(i_cl);
+                                if (r_node.Id() == p_cl_node->Id()) {
+                                    N_container(i_cl) += i_g_N(i_node);
+                                    for (std::size_t d = 0; d < n_dim; ++d) {
+                                        DN_DX_container(i_cl,d) += i_g_DN_DX(i_node,d);
+                                    }
+                                    break;
+                                }
+                            }
+                        } else {
+                            // Get the weight as the corresponding nodal shape function value
+                            const double i_node_N = i_g_N(i_node);
+                            const auto i_node_grad_N = row(i_g_DN_DX, i_node);
+
+                            // If it is not ACTIVE (negative side) search for the extension operator data
+                            auto p_node = r_geom(i_node);
+                            auto& ext_op_data = ext_op_map[p_node];
+
+                            // Loop the current negative node to get its extrapolation operator data and apply the weight to make the basis conformant
+                            // Note that we need to check for the ids to match in the geometry as nodes in the map are mixed
+                            for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
+                                auto& r_node_data = *it_data;
+                                std::size_t data_node_id = (std::get<0>(r_node_data))->Id();
+                                for (std::size_t i_cl = 0; i_cl < n_cl_nodes; ++i_cl) {
+                                    auto& p_cl_node = cloud_nodes_vector(i_cl);
+                                    if (p_cl_node->Id() == data_node_id) {
+                                        const double i_cl_node_N = std::get<1>(r_node_data);
+                                        N_container(i_cl) += i_node_N * i_cl_node_N;
+                                        for (std::size_t d = 0; d < n_dim; ++d) {
+                                            DN_DX_container(i_cl,d) += i_node_grad_N(d) * i_cl_node_N;
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    double total_weights = 0.0;
+                    for (std::size_t i = 0; i < cloud_nodes_vector.size(); ++i) {
+                        total_weights += N_container(i);
+                    }
+                    KRATOS_ERROR_IF(std::abs(total_weights - 1.0) > 1.0e-12) << "Total weights is non-unit in split elem. " << rElement.Id() << std::endl;
+
+                    // Create a new condition with a geometry made up with the basis nodes
+                    auto p_prop = rElement.pGetProperties();
+                    auto p_cond = mpConditionPrototype->Create(++max_cond_id, cloud_nodes_vector, p_prop);
+                    p_cond->Set(ACTIVE, true);
+                    mpBoundarySubModelPart->AddCondition(p_cond);
+
+                    // Store the SBM BC data in the condition database
+                    p_cond->SetValue(ELEMENT_H, h);
+                    const double n_norm = norm_2(pos_int_n[i_g]);
+                    p_cond->SetValue(NORMAL, pos_int_n[i_g] / n_norm);
+                    p_cond->SetValue(INTEGRATION_WEIGHT, pos_int_w[i_g]);
+                    p_cond->SetValue(INTEGRATION_COORDINATES, i_g_coords);
+                    //FIXME: Find variables for these
+                    p_cond->SetValue(BDF_COEFFICIENTS, N_container);
+                    p_cond->SetValue(LOCAL_AXES_MATRIX, DN_DX_container);
+                }
+            }
+        }
+    }
 
     void CalculateConformingExtensionBasis()
     {
@@ -262,6 +549,7 @@ private:
 
         // Get the MLS shape functions function
         auto p_mls_sh_func = GetMLSShapeFunctionsFunction();
+        // auto p_rbf_sh_func = GetRBFShapeFunctionsFunction();
 
         // Get the element size calculation function
         // Note that unique geometry in the mesh is assumed
@@ -289,7 +577,8 @@ private:
                         Vector N_container;
                         const array_1d<double,3> r_coords = r_node.Coordinates();
                         const double mls_kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
-                        p_mls_sh_func(cloud_nodes_coordinates, r_coords, 1.01 * mls_kernel_rad, N_container);
+                        p_mls_sh_func(cloud_nodes_coordinates, r_coords, mls_kernel_rad, N_container);
+                        // p_rbf_sh_func(cloud_nodes_coordinates, r_coords, N_container);
 
                         // Save the extension operator nodal data
                         std::size_t n_cl_nod = cloud_nodes.size();
@@ -586,14 +875,13 @@ private:
                 auto& r_neigh_elems = rElement.GetValue(NEIGHBOUR_ELEMENTS);
                 for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
                     // The neighbour corresponding to the current face is ACTIVE means that the current face is surrogate boundary
-                    // Flag the current neighbour owning the surrogate face as INTERFACE as well as its nodes, which will form the MLS cloud
-                    auto& r_neigh_elem = r_neigh_elems[i_face];
-                    if (r_neigh_elem.Is(ACTIVE)) {
-                        r_neigh_elem.Set(INTERFACE, true);
-                        // auto& r_neigh_geom = r_neigh_elem.GetGeometry();
-                        // for (auto& rNode : r_neigh_geom) {
-                        //     rNode.Set(INTERFACE, true);
-                        // }
+                    // Flag the current neighbour owning the surrogate face as INTERFACE
+                    // The nodes will be flagged if required (MLS basis) when creating the cloud
+                    auto p_neigh_elem = r_neigh_elems(i_face).get();
+                    if (p_neigh_elem != nullptr) {
+                        if (p_neigh_elem->Is(ACTIVE)) {
+                            p_neigh_elem->Set(INTERFACE, true);
+                        }
                     }
                 }
             }
@@ -711,6 +999,13 @@ private:
             default:
                 KRATOS_ERROR << "Wrong domain size. MLS shape functions utility cannot be set.";
         }
+    }
+
+    RBFShapeFunctionsFunctionType GetRBFShapeFunctionsFunction()
+    {
+        return [&](const Matrix& rPoints, const array_1d<double,3>& rX, Vector& rN){
+            RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, rN);
+        };
     }
 
     ElementSizeFunctionType GetElementSizeFunction(const GeometryType& rGeometry)
@@ -935,6 +1230,65 @@ private:
             default:
                 KRATOS_ERROR << "Wrong domain size.";
         }
+    }
+
+    std::map<std::size_t, std::map<std::size_t, Vector>> SetSurrogateBoundaryNodalGradientWeights()
+    {
+        std::map<std::size_t, std::map<std::size_t, Vector>> sur_bd_nodes_map;
+        for (auto& r_bd_node : mpModelPart->Nodes()) {
+            auto it_found = sur_bd_nodes_map.find(r_bd_node.Id());
+            if (it_found == sur_bd_nodes_map.end() && r_bd_node.Is(BOUNDARY)) {
+
+                // Set an auxilary map to calculate the current node nodal gradient contributions
+                std::map<std::size_t, Vector> neigh_dn_dx_map;
+
+                // Calculate the nodal gradient coefficients in the ACTIVE elements neighbouring current node
+                double w_total = 0.0;
+
+                auto& r_elem_neigh_vect = r_bd_node.GetValue(NEIGHBOUR_ELEMENTS);
+                for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
+                    auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
+                    if (p_elem_neigh != nullptr && p_elem_neigh->Is(ACTIVE)) {
+
+                        // Calculate the current element weight
+                        const auto& r_geom = p_elem_neigh->GetGeometry();
+                        const std::size_t n_nodes = r_geom.PointsNumber();
+                        const double w = r_geom.DomainSize() / n_nodes;
+                        w_total += w;
+
+                        // Calculate the current element nodal gradient
+                        // Note that in here we assume that the gradient is constant within the element (simplex geometries)
+                        ShapeFunctionsGradientsType grad_N;
+                        r_geom.ShapeFunctionsIntegrationPointsGradients(grad_N, GeometryData::IntegrationMethod::GI_GAUSS_1);
+
+                        // Save the current element nodal weights
+                        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                            std::size_t aux_id = r_geom[i_node].Id();
+                            const Vector r_node_dn_dx = row(grad_N[0], i_node);
+                            auto it_found = neigh_dn_dx_map.find(aux_id);
+                            if (it_found != neigh_dn_dx_map.end()) {
+                                auto& r_val = it_found->second;
+                                r_val += w*r_node_dn_dx;
+                            } else {
+                                neigh_dn_dx_map.insert(std::make_pair(aux_id, w*r_node_dn_dx));
+                            }
+                        }
+
+                    }
+                }
+
+                // Divide current coefficients by the total weight
+                for (auto& neigh_data : neigh_dn_dx_map) {
+                    auto& r_val = neigh_data.second;
+                    r_val /= w_total;
+                }
+
+                // Update the surrogate nodes data
+                sur_bd_nodes_map.insert(std::make_pair(r_bd_node.Id(), neigh_dn_dx_map));
+            }
+        }
+
+        return sur_bd_nodes_map;
     }
 
     ///@}

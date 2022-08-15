@@ -33,6 +33,7 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         this_defaults = KratosMultiphysics.Parameters(r"""{
             "mls_extension_operator_order" : 1,
             "mls_conforming_basis" : true,
+            "gradient_based_conforming_basis" : false,
             "lagrange_multipliers_imposition" : false
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
@@ -82,9 +83,7 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         # Calculate the required neighbours
         nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.main_model_part)
         nodal_neighbours_process.Execute()
-        avg_num_elements = 10
-        dimensions = self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
-        elemental_neighbours_process = KratosMultiphysics.FindElementalNeighboursProcess(self.main_model_part, dimensions, avg_num_elements)
+        elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
         elemental_neighbours_process.Execute()
 
         # Create the boundary elements and MLS basis
@@ -93,6 +92,7 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         settings.AddEmptyValue("boundary_sub_model_part_name").SetString("shifted_boundary")
         settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["mls_extension_operator_order"].GetInt())
         settings.AddEmptyValue("mls_conforming_basis").SetBool(self.settings["mls_conforming_basis"].GetBool())
+        settings.AddEmptyValue("gradient_based_conforming_basis").SetBool(self.settings["gradient_based_conforming_basis"].GetBool())
         if self.settings["lagrange_multipliers_imposition"].GetBool():
             sbm_interface_condition_name = "LaplacianShiftedBoundaryLagrangeMultipliersCondition"
         else:
