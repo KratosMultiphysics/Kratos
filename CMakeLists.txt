@@ -647,3 +647,7 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+
+install(CODE "message(STATUS \"Trying to install python stub files to enable python hinting support for cpp libraries in IDEs...\")")
+install(CODE "execute_process(COMMAND bash -c \"${PYTHON_EXECUTABLE} ${KRATOS_SOURCE_DIR}/scripts/stub_generation.py ${CMAKE_INSTALL_PREFIX}\")")
+

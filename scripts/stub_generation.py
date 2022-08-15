@@ -40,6 +40,7 @@ def __generate_stub_files_for_module(
     return cpp_module_name
 
 def main():
+    print("--- Generating python stub files from {:s}".format(sys.argv[1]))
     kratos_installation_path = (Path(sys.argv[1])).absolute()
     kratos_library_path = (kratos_installation_path / "libs").absolute()
     sys.path.insert(0, str(kratos_installation_path.absolute()))
