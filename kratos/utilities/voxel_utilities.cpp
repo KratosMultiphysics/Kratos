@@ -130,7 +130,6 @@ double VoxelUtilities::FaceArea(
         }
     }
 
-    //std::size_t VoxelUtilities::mNeighbours[4][2] = {{3,1},{0,2},{1,3},{2,0}};  
     for(std::size_t i = 0; i < nodes_size; i++ ) {
         array_1d<double,3> v_left{nodes[i].X() -nodes[VoxelUtilities::mNeighbours[i][0]].X(), nodes[i].Y() -nodes[VoxelUtilities::mNeighbours[i][0]].Y(), nodes[i].Z() -nodes[VoxelUtilities::mNeighbours[i][0]].Z()};
         array_1d<double,3> v_right{nodes[i].X() -nodes[VoxelUtilities::mNeighbours[i][1]].X(), nodes[i].Y() -nodes[VoxelUtilities::mNeighbours[i][1]].Y(), nodes[i].Z() -nodes[VoxelUtilities::mNeighbours[i][1]].Z()};
