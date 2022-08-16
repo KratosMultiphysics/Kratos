@@ -43,7 +43,7 @@ double VoxelUtilities::EdgesPortionApproximation(
     const GeometryArrayType& rTriangles     
 ) {
     double volume = 0;
-    auto& edges = rVoxel.GenerateEdges(); //GeometryArrayType
+    GeometryArrayType edges = rVoxel.GenerateEdges();
     std::vector<double> distances;
 
     for (std::size_t i = 0; i < edges.size(); i++) {
@@ -76,7 +76,7 @@ double VoxelUtilities::FaceArea(
     const GeometryArrayType& rTriangles     
 ) {
     double area = 0;
-    auto& edges = rFace.GenerateEdges();
+    GeometryArrayType edges = rFace.GenerateEdges();
     auto nodes = rFace.Points(); 
     const double face_area = PointsArea(nodes);
     std::vector<std::pair<double,double>> min_distance_to_node(edges.size(),{1,1}); 
