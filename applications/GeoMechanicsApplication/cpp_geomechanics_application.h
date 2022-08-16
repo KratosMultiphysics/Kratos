@@ -32,7 +32,7 @@
 // The strategies to test
 #include <custom_processes/apply_component_table_process.hpp>
 #include <custom_processes/apply_constant_hydrostatic_pressure_process.hpp>
-#include <ghc/filesystem.hpp>
+//#include <ghc/filesystem.hpp>
 #include <includes/gid_io.h>
 #include <linear_solvers/skyline_lu_factorization_solver.h>
 
@@ -190,9 +190,9 @@ namespace Kratos
             GeoMechanicsNewtonRaphsonErosionProcessStrategyType;
 
         // Dof arrays
-        typedef PointerVectorSet<Dof<double>, SetIdentityFunction<Dof<double>>, std::less<SetIdentityFunction<Dof<double>>::result_type>,
-                                 std::equal_to<SetIdentityFunction<Dof<double>>::result_type>, Dof<double> *>
-            DofsArrayType;
+        typedef SetIdentityFunction<Dof<double>> result_type;
+        typedef PointerVectorSet<Dof<double>, SetIdentityFunction<Dof<double>>, std::less<result_type>,
+                                 std::equal_to<result_type>, Dof<double> *> DofsArrayType;
 
         ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
         LinearSolverType::Pointer setup_solver_dgeoflow();
