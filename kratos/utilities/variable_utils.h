@@ -1417,7 +1417,8 @@ public:
      */
     Vector GetInitialPositionsVector(
         const ModelPart::NodesContainerType& rNodes, 
-        const unsigned int Dimension);
+        const unsigned int Dimension
+        );
 
     /**
      * @brief This function represent the "set" counterpart of GetCurrentPositionsVector and allows
