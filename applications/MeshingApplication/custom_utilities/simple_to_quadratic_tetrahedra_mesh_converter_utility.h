@@ -173,7 +173,7 @@ private:
     * It erases the old Tetrahedra3D4 elements and it creates the new Tetrahedra3D10 ones
     * @param Coord: The compressed matrix containing at (i,j) the id of the node created between nodes i,j
     * @param New_Elements: The new elements created
-    * @param interpolate_internal_variables: A boolean that defines if it is necessary to interpolate the internal variables
+    * @param InterpolateInternalVariables: A boolean that defines if it is necessary to interpolate the internal variables
     * @return rThisModelPart: The model part of the model (it is the input too)
     */
 
@@ -181,7 +181,7 @@ private:
             ModelPart& rThisModelPart,
             const compressed_matrix<int>& Coord,
             PointerVector< Element >& NewElements,
-            bool interpolate_internal_variables
+            bool InterpolateInternalVariables
     ) override
     {
         auto& r_elements = rThisModelPart.Elements();
