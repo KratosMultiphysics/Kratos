@@ -389,7 +389,7 @@ public:
                     CalculateEdgesFaces(geom, Coord, edge_ids, aux);
 
                     // Create the new conditions
-                    bool create_condition =  Split_Triangle(edge_ids, t, &number_elem, &splitted_edges, &nint);
+                    bool create_condition =  TriangleSplit::Split_Triangle(edge_ids, t, &number_elem, &splitted_edges, &nint);
 
                     if(create_condition==true)
                     {

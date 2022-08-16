@@ -11,12 +11,15 @@
 //
 //
 
+// System includes
+
+// External includes
 #include "mpi.h"
 
+// Project includes
 #include "containers/model.h"
 #include "includes/data_communicator.h"
 #include "includes/model_part.h"
-
 #include "testing/testing.h"
 
 namespace Kratos {
@@ -25,7 +28,7 @@ namespace Testing {
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendRecv, KratosMPICoreFastSuite)
 {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
     const int world_size = r_comm.Size();
     const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
@@ -52,7 +55,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendRecv, Kra
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendAndRecv, KratosMPICoreFastSuite)
 {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
     const int world_size = r_comm.Size();
     const int send_rank = world_size -1;
@@ -90,7 +93,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendAndRecv, 
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedBroadcast, KratosMPICoreFastSuite)
 {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
     const int world_size = r_comm.Size();
     const int source_rank = world_size -1;

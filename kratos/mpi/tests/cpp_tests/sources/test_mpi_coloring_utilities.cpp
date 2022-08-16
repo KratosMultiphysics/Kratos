@@ -11,10 +11,14 @@
 //
 //
 
+// System includes
 #include "mpi.h"
+
+// External includes
+
+// Project includes
 #include "includes/parallel_environment.h"
 #include "utilities/communication_coloring_utilities.h"
-
 #include "testing/testing.h"
 
 namespace Kratos {
