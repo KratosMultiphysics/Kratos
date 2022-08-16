@@ -2,7 +2,6 @@
 import sys
 from pathlib import Path
 from importlib import import_module
-import tempfile
 import shutil
 import subprocess
 
@@ -33,19 +32,6 @@ def __AddSubmodules(output_path: Path):
             __AddSubmodules(cpp_sub_module_path)
 
 
-def __binary_module_from_name(module_name: str) -> str:
-    """Get the binary module's stub from its name."""
-    return "Kratos" + module_name
-
-
-def __name_from_binary_module(binary_module_name: str) -> str:
-    """Get the module's name from its binary name."""
-    if binary_module_name.startswith("Kratos"):
-        return binary_module_name[6:]
-    else:
-        return binary_module_name
-
-
 def __GenerateStubFilesForModule(
         kratos_library_path: Path,
         output_path: Path,
@@ -68,6 +54,9 @@ def __MoveGeneratedStub(source: Path, destination: Path) -> None:
         are on a nonstandard path and not within the application's module
         => the generated stubs need to be moved and renamed to emulate the
            runtime layout of the application.
+
+        The problem is that this solution shadows everything defined in python,
+        so only symbols from the binaries get hints. @todo matekelemen
     """
     items = [p for p in source.glob("*")]
     if len(items) == 1:
@@ -86,48 +75,37 @@ def __MoveGeneratedStub(source: Path, destination: Path) -> None:
 def Main():
     print("--- Generating python stub files from {:s}".format(sys.argv[1]))
     kratos_installation_path = (Path(sys.argv[1])).absolute()
-    kratos_package_root = kratos_installation_path / "KratosMultiphysics"
     kratos_library_path = (kratos_installation_path / "libs").absolute()
     sys.path.insert(0, str(kratos_installation_path.absolute()))
     sys.path.insert(0, str(kratos_library_path.absolute()))
 
     list_of_cpp_libs = []
 
-    with tempfile.TemporaryDirectory() as temp_directory:
-        temp_directory = Path(temp_directory)
+    # generate Kratos core cpp stubs files
+    list_of_cpp_libs.append(__GenerateStubFilesForModule(kratos_library_path, kratos_library_path, "Kratos"))
 
-        # generate Kratos core cpp stubs files
-        list_of_cpp_libs.append(__GenerateStubFilesForModule(kratos_library_path, temp_directory, "Kratos"))
-        __MoveGeneratedStub(temp_directory, kratos_package_root)
+    # Collect Kratos applications
+    from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
+    list_of_available_applications = GetListOfAvailableApplications()
 
-        # Collect Kratos applications
-        from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
-        list_of_available_applications = GetListOfAvailableApplications()
+    # Generate stubs for all installed applications
+    for application_name in list_of_available_applications:
+        # Import the application
+        import_module("KratosMultiphysics." + application_name)
+        application_lib_name = "Kratos" + application_name
 
-        # Generate stubs for all installed applications
-        for application_name in list_of_available_applications:
-            # Import the application
-            application = import_module("KratosMultiphysics." + application_name)
-            application_lib_name = "Kratos" + application_name
+        # Generate stubs to temporary directory
+        list_of_cpp_libs.append(__GenerateStubFilesForModule(kratos_library_path, kratos_library_path, application_lib_name))
 
-            # Generate stubs to temporary directory
-            temp_application_path = temp_directory / application_name
-            temp_application_path.mkdir()
-            list_of_cpp_libs.append(__GenerateStubFilesForModule(kratos_library_path, temp_application_path, application_lib_name))
-
-            # Move generated stubs to their module directory
-            kratos_application_path = Path(application.__file__).absolute().parent
-            __MoveGeneratedStub(temp_application_path, kratos_application_path)
-
-        # now iterate through auxiliary libraries and generate stub files
-        for custom_library_path in kratos_library_path.iterdir():
-            if custom_library_path.is_file():
-                custom_library_name = str(custom_library_path.relative_to(custom_library_path.parent))
-                cpython_location = custom_library_name.find(".cpython")
-                if cpython_location != -1:
-                    custom_library_name = custom_library_name[:cpython_location]
-                    if custom_library_name not in list_of_cpp_libs:
-                        list_of_cpp_libs.append(__GenerateStubFilesForModule(kratos_library_path, kratos_library_path, custom_library_name))
+    # now iterate through auxiliary libraries and generate stub files
+    for custom_library_path in kratos_library_path.iterdir():
+        if custom_library_path.is_file():
+            custom_library_name = str(custom_library_path.relative_to(custom_library_path.parent))
+            cpython_location = custom_library_name.find(".cpython")
+            if cpython_location != -1:
+                custom_library_name = custom_library_name[:cpython_location]
+                if custom_library_name not in list_of_cpp_libs:
+                    list_of_cpp_libs.append(__GenerateStubFilesForModule(kratos_library_path, kratos_library_path, custom_library_name))
 
 
 if __name__ == "__main__":

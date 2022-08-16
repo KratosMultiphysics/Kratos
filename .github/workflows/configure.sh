@@ -70,6 +70,7 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
 -DCMAKE_UNITY_BUILD=ON \
 -DINCLUDE_MMG=ON                                    \
+-DKRATOS_GENERATE_PYTHON_STUBS=OFF \
 
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
