@@ -401,7 +401,14 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
         auto& r_data_communicator = r_communicator.GetDataCommunicator();
         const auto rank = r_data_communicator.Rank();
         const auto world_size = r_data_communicator.Size();
-        
+        const auto& r_neighbour_indices = r_communicator.NeighbourIndices();
+        std::vector<int> neighbour_indices;
+        for (auto& r_index : r_neighbour_indices) {
+            if (r_index >= 0) {
+                neighbour_indices.push_back(r_index);
+            }
+        }
+
         // TODO: It fails with more than 2 cores
         // TODO: The proper thing to do will be to use the neighbour ranks of the current rank, but for debugging first we start with passing all the info to rank 0 and passs back to the rest of ranks
         // Now we will send to rank 0 the faces_to_remove. We define a scope, so everything will be removed at the end, except the clean up of the faces_to_remove
