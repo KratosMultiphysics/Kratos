@@ -124,30 +124,20 @@ public:
     static double EdgesPortionApproximation(const GeometryType& rVoxel, const GeometryArrayType& rTriangles);
 
     /**
-     * @brief Aproximates the actual area inside a quadrilateral with 90º angles
-     * @param rFace references to the quadrilateral3D4 whose actual area will be approximated
-     * @param rTriangles references to the triangles which may intersect the quadrilateral at some edge.
-     * @return Approximated area 
-     * @note this method is cheaper than HexahedraFaceArea, but won't work correctly with != 90º angles
-     */  
-    static double VoxelFaceArea(const GeometryType& rFace, const GeometryArrayType& rTriangles);
-
-    /**
      * @brief Aproximates the actual area inside a quadrilateral 
      * @param rFace references to the quadrilateral3D4 whose actual area will be approximated
      * @param rTriangles references to the triangles which may intersect the quadrilateral at some edge.
      * @return Approximated area 
-     * @note Attention: This method is quite expensive 
      */  
-    static double HexahedraFaceArea(const GeometryType& rFace,const GeometryArrayType& rTriangles);
+    static double FaceArea(const GeometryType& rFace,const GeometryArrayType& rTriangles);
 
     /**
-     * @brief Returns the volume enclosed by a set of 4 points
+     * @brief Returns the area enclosed by a set of 4 points
      * @param rPoints the array of points
-     * @return Volume/area inside this points
-     * @note This function should no be implemented in this way, it is too expensive for an actually easy work
+     * @return Area inside this points
+     * @note This code is an approximation and won't work perfectly for "parabolic" quadrilaterals
      */  
-    static double TetraVolume(const PointsArrayType& rPoints);
+    static double PointsArea(const PointsArrayType& rPoints);
 
     /**
      * @brief Aproximates the portion of the edge (Line3D2) that represents volume
