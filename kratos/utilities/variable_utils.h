@@ -1449,7 +1449,8 @@ public:
      */
     void SetInitialPositionsVector(
         ModelPart::NodesContainerType& rNodes, 
-        const Vector& rPositions);
+        const Vector& rPositions
+        );
 
     /**
      * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
