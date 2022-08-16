@@ -19,6 +19,10 @@
 
 namespace Kratos 
 {
+constexpr std::size_t VolumeInsideVoxelUtility::mNeighbours[4][2];
+
+/**********************************************************************************/
+/**********************************************************************************/
 
 double VolumeInsideVoxelUtility::NodesApproximation(const GeometryType& rVoxel) {
     double volume = 0;
@@ -31,8 +35,8 @@ double VolumeInsideVoxelUtility::NodesApproximation(const GeometryType& rVoxel) 
     return volume;
 }
 
-/***********************************************************************************
-    **********************************************************************************/
+/**********************************************************************************/
+/**********************************************************************************/
 
 double VolumeInsideVoxelUtility::EdgesPortionApproximation(
     const GeometryType& rVoxel,  
@@ -64,8 +68,8 @@ double VolumeInsideVoxelUtility::EdgesPortionApproximation(
     return volume;
 }
 
-/***********************************************************************************
-    **********************************************************************************/
+/**********************************************************************************/
+/**********************************************************************************/
 
 double VolumeInsideVoxelUtility::FaceArea(
     const GeometryType& rFace,  
@@ -123,9 +127,10 @@ double VolumeInsideVoxelUtility::FaceArea(
         }
     }
 
+    //std::size_t VolumeInsideVoxelUtility::mNeighbours[4][2] = {{3,1},{0,2},{1,3},{2,0}};  
     for(std::size_t i = 0; i < nodes.size(); i++ ) {
-        array_1d<double,3> v_left{nodes[i].X() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][0]].X(), nodes[i].Y() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][0]].Y(), nodes[i].Z() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][0]].Z()};
-        array_1d<double,3> v_right{nodes[i].X() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][1]].X(), nodes[i].Y() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][1]].Y(), nodes[i].Z() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][1]].Z()};
+        array_1d<double,3> v_left{nodes[i].X() -nodes[VolumeInsideVoxelUtility::mNeighbours[i][0]].X(), nodes[i].Y() -nodes[VolumeInsideVoxelUtility::mNeighbours[i][0]].Y(), nodes[i].Z() -nodes[VolumeInsideVoxelUtility::mNeighbours[i][0]].Z()};
+        array_1d<double,3> v_right{nodes[i].X() -nodes[VolumeInsideVoxelUtility::mNeighbours[i][1]].X(), nodes[i].Y() -nodes[VolumeInsideVoxelUtility::mNeighbours[i][1]].Y(), nodes[i].Z() -nodes[VolumeInsideVoxelUtility::mNeighbours[i][1]].Z()};
 
         const double Case = GetCase(nodes,i);
         double partial_area;
@@ -202,8 +207,8 @@ double VolumeInsideVoxelUtility::FaceArea(
     return area;    
 }
 
-/***********************************************************************************
-    **********************************************************************************/
+/**********************************************************************************/
+/**********************************************************************************/
 
 double VolumeInsideVoxelUtility::PointsArea(const PointsArrayType& rPoints) {
     const NodeType& p0 = rPoints[0];
@@ -226,8 +231,8 @@ double VolumeInsideVoxelUtility::PointsArea(const PointsArrayType& rPoints) {
     return 0.5*(norm_2(area1) + norm_2(area2));
 }
 
-/***********************************************************************************
-    **********************************************************************************/
+/**********************************************************************************/
+/**********************************************************************************/
 
 double VolumeInsideVoxelUtility::EdgeFilledPortion(std::vector<double>& Distances, const PointsArrayType& rEnds) {
     const double length = Distances[Distances.size() - 1];
@@ -261,8 +266,8 @@ double VolumeInsideVoxelUtility::EdgeFilledPortion(std::vector<double>& Distance
     return portion;
 }
 
-/***********************************************************************************
-    **********************************************************************************/
+/**********************************************************************************/
+/**********************************************************************************/
 
 double VolumeInsideVoxelUtility::GetFactor(
     const PointsArrayType& rNodes, 
@@ -278,16 +283,16 @@ double VolumeInsideVoxelUtility::GetFactor(
     return 1.0;
 }
 
-/***********************************************************************************
-    **********************************************************************************/
+/**********************************************************************************/
+/**********************************************************************************/
 
 int VolumeInsideVoxelUtility::GetCase(
     const PointsArrayType& rNodes,
     const int NodeIndex) 
 {
     const int me_inside = (int) rNodes[NodeIndex].GetSolutionStepValue(DISTANCE) > 0;
-    const int left_inside = (int) (rNodes[VolumeInsideVoxedDefinition::Neighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0);
-    const int right_inside = (int) (rNodes[VolumeInsideVoxedDefinition::Neighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0);
+    const int left_inside = (int) (rNodes[VolumeInsideVoxelUtility::mNeighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0);
+    const int right_inside = (int) (rNodes[VolumeInsideVoxelUtility::mNeighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0);
 
     if (me_inside) {
         return left_inside*2 + right_inside;
