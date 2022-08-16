@@ -58,7 +58,8 @@ def __GetPythonModulesImportingCppModules(kratos_python_module_path: Path, krato
     # generate list of cpp modules
     list_of_binary_modules = []
     for custom_library_path in kratos_library_path.iterdir():
-        custom_library_name = str(custom_library_path.relative_to(custom_library_path.parent))
+        custom_library_name = custom_library_path.name
+
         cpython_location = custom_library_name.find(".cpython")
         if cpython_location != -1:
             custom_library_name = custom_library_name[:cpython_location]
