@@ -210,7 +210,7 @@ private:
             p_element->FinalizeSolutionStep(r_current_process_info);
 
             // Setting the internal variables in the "child" elem (the element replacing the old one)
-            if (interpolate_internal_variables == true)
+            if (InterpolateInternalVariables == true)
             {
                 //This method only copies the current information to the new element
                 InterpolateInteralVariables(0, *it.base(), p_element, r_current_process_info);
