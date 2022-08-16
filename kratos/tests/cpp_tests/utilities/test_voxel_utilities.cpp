@@ -33,7 +33,7 @@ namespace {
     /*this functions are creating a model for each element used in the test in order to avoid trouble with repeated Ids.
     This is not optimal but since it is just a test (in real cases, funcions will be used with well-defined models)...
     */
-    GeometryPtrType GenerateHexahedra3D8(const std::vector<double>& rDistances) 
+    GeometryPtrType GenerateHexahedra3D8() 
     { 
         Model my_model;
         ModelPart &voxel = my_model.CreateModelPart("Voxel");  
@@ -49,15 +49,16 @@ namespace {
         voxel.CreateNewNode(8, -1,  1,  1); 
         Properties::Pointer p_properties_0(new Properties(0));
         Element::Pointer pElement = voxel.CreateNewElement("Element3D8N", 1, {1, 2, 3, 4, 5, 6, 7, 8}, p_properties_0);  
-        GeometryPtrType pVoxel = pElement->pGetGeometry();
+        return pElement->pGetGeometry();
+    }
 
+    void SetDistances(GeometryPtrType& pVoxel, const std::vector<double>& rDistances) {
         //Add the distances
         PointsArrayType nodes = pVoxel->Points();   
         
         for (int i = 0; i < 8; i++) {
             nodes[i].FastGetSolutionStepValue(DISTANCE) = rDistances[i];
         }
-        return pVoxel;  
     }
 
     //rNodes is a 3*3 matrix representin de (x,y,z) coordinates of each of the 3 triangle nodes
@@ -102,10 +103,12 @@ namespace {
     {
         //Generate the HEXAHEDRA3D8
         std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1,};   
-        GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
+        GeometryPtrType pVoxel = GenerateHexahedra3D8();
+        SetDistances(pVoxel, distances);
 
         std::vector<double> distances2{1, -1, -0.5, -1, 8, -1, -23, 1,}; 
-        GeometryPtrType pVoxel2 = GenerateHexahedra3D8(distances2);
+        GeometryPtrType pVoxel2 = GenerateHexahedra3D8();
+        SetDistances(pVoxel2, distances2);
 
         //Call the volume utility
         double volume = VoxelUtilities::NodesApproximation(*pVoxel); 
@@ -126,7 +129,8 @@ namespace {
     {
         //Both nodes of an edge are outside
         std::vector<double> distances{-1, -1, -1, -1, -1, -1, -1, -1};   
-        GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
+        GeometryPtrType pVoxel = GenerateHexahedra3D8();
+        SetDistances(pVoxel, distances);
         GeometryArrayType array;
         double volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         double ExpectedVolume = 0; 
@@ -143,15 +147,14 @@ namespace {
         /* One node is outside and the other inside but there are no intersection points (meaning the node is a
         tangential point) */
         distances = {1, -1, -1, -1, -1, -1, -1, -1};   
-        pVoxel = GenerateHexahedra3D8(distances);
-        array = {};
+        SetDistances(pVoxel, distances);        array = {};
         volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
         // One node is outside and the other inside and there is one intersection point
         distances = {1, -1, -1, -1, -1, -1, -1, -1};   
-        pVoxel = GenerateHexahedra3D8(distances);
+        SetDistances(pVoxel, distances);
         array.push_back(pTriangle1);
         volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0.75/12; 
@@ -160,7 +163,7 @@ namespace {
         /* One node is outside and the other inside and there are two intersection point (meaning one is
         a tangential point) */
         distances = {1, -1, -1, -1, -1, -1, -1, -1};   
-        pVoxel = GenerateHexahedra3D8(distances);
+        SetDistances(pVoxel, distances);
         std::vector<std::vector<double>> triangle2{{0,-1,-0.95},{0,-0.95,-1.05},{0,-1.05,-1.05}};
         GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
         array.push_back(pTriangle2);
@@ -170,7 +173,7 @@ namespace {
 
         //Both nodes are outside and there are 2 intersection points
         distances = {-1, -1, -1, -1, -1, -1, -1, -1};   
-        pVoxel = GenerateHexahedra3D8(distances);
+        SetDistances(pVoxel, distances);
         volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0.25/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
@@ -185,14 +188,14 @@ namespace {
 
         // One node is outside and the other inside and there are three intersection point 
         distances = {1, -1, -1, -1, -1, -1, -1, -1};   
-        pVoxel = GenerateHexahedra3D8(distances);
+        SetDistances(pVoxel, distances);
         volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0.5/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
         //Both nodes are inside
         distances = {1, 1, -1, -1, -1, -1, -1, -1};   
-        pVoxel = GenerateHexahedra3D8(distances);
+        SetDistances(pVoxel, distances);
         array = {};
         volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 1.0/12; 
@@ -221,7 +224,8 @@ namespace {
 
     KRATOS_TEST_CASE_IN_SUITE(VolumeInsideVoxelEdgesPortion2, KratosCoreFastSuite) {
         std::vector<double> distances{1, -1, -1, -1, -1, -1, -1, -1};   
-        GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
+        GeometryPtrType pVoxel = GenerateHexahedra3D8();
+        SetDistances(pVoxel, distances);
 
         //Generate the intersecting triangles
         std::vector<std::vector<double>> triangle1{{-1,0.5,-0.95},{-0.95,0.5,-1.05},{-1.05,0.5,-1.05}}; 
@@ -247,7 +251,8 @@ namespace {
     {
         //A voxel crossed by a straight plane with only 2 nodes inside th volume (good case approximation)
         std::vector<double> distances{1, 1, -1, -1, -1, -1, -1, -1};   
-        GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
+        GeometryPtrType pVoxel = GenerateHexahedra3D8();
+        SetDistances(pVoxel, distances);
 
         //Generate the intersecting triangles
         std::vector<std::vector<double>> triangle1{{-1,0.5,-0.95},{-0.95,0.5,-1.05},{-1.05,0.5,-1.05}}; 
@@ -277,7 +282,8 @@ namespace {
      {
         //A voxel crossed by a straight plane with only 2 nodes inside the volume (not good case approximation)
         std::vector<double> distances{1, 1, -1, -1, -1, -1, -1, -1};   
-        GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
+        GeometryPtrType pVoxel = GenerateHexahedra3D8();
+        SetDistances(pVoxel, distances);
 
         //Generate the intersecting triangles
         std::vector<std::vector<double>> triangle1{{-1,0.5,-0.95},{-0.95,0.5,-1.05},{-1.05,0.5,-1.05}}; 
@@ -308,7 +314,8 @@ namespace {
     {
         //A voxel crossed by a straight plane with 4 nodes inside the volume
         std::vector<double> distances{1, 1, -1, -1, 1, 1, -1, -1};   
-        GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
+        GeometryPtrType pVoxel = GenerateHexahedra3D8();
+        SetDistances(pVoxel, distances);
 
         //Generate the intersecting triangles
         std::vector<std::vector<double>> triangle1{{1,0.5,1.05},{1.05,0.5,0.95},{0.95,0.5,0.95}};  
@@ -339,7 +346,8 @@ namespace {
     {
         //A voxel crossed by two straight planes (enclosing half of the volume) with no nodes inside the volume
         std::vector<double> distances{-1, -1, -1, -1, -1, -1, -1, -1};   
-        GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
+        GeometryPtrType pVoxel = GenerateHexahedra3D8();
+        SetDistances(pVoxel, distances);
 
         //Generate the intersecting triangles
         std::vector<std::vector<double>> triangle1{{1,0.5,1.05},{1.05,0.5,0.95},{0.95,0.5,0.95}};  
