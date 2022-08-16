@@ -210,12 +210,15 @@ public:
                     if (value > 0.0) {
                         const auto j = index2_vector[k];
                         if (j > i) {
-                            rA(i,i) += value;
                             rA(i,j) -= value;
                             rA(j,i) -= value;
-                            rA(j,j) += value;
-                            rB[i] += value*dofs_values[j] - value*dofs_values[i];
-                            rB[j] += value*dofs_values[i] - value*dofs_values[j];
+                            #pragma omp critical
+                            {
+                                rA(i,i) += value;
+                                rA(j,j) += value;
+                                rB[i] += value*dofs_values[j] - value*dofs_values[i];
+                                rB[j] += value*dofs_values[i] - value*dofs_values[j];
+                            }
                         }
                     }
                 }
