@@ -27,7 +27,7 @@ constexpr std::size_t VoxelUtilities::mNeighbours[4][2];
 double VoxelUtilities::NodesApproximation(const GeometryType& rVoxel) {
     double volume = 0;
     const auto& nodes = rVoxel.Points(); //PointsArrayType
-    const int n = nodes.size();
+    const std::size_t n = nodes.size();
     for (std::size_t i = 0; i < n; i++) {
         if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
             volume+=(1.0/nodes.size()); 
@@ -46,7 +46,7 @@ double VoxelUtilities::EdgesPortionApproximation(
     double volume = 0;
     GeometryArrayType edges = rVoxel.GenerateEdges();
     std::vector<double> distances;
-    const int n = edges.size();
+    const std::size_t n = edges.size();
     for (std::size_t i = 0; i < n; i++) {
         distances.push_back(0);
         const auto& ends = edges[i].Points();
@@ -83,7 +83,7 @@ double VoxelUtilities::FaceArea(
     std::vector<std::pair<double,double>> min_distance_to_node(edges.size(),{1,1}); 
     
     int nodes_inside = 0;
-    const int nodes_size = nodes.size();
+    const std::size_t nodes_size = nodes.size();
     for (std::size_t i = 0; i < nodes_size; i++) {
         if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) nodes_inside++;
     }
@@ -99,7 +99,7 @@ double VoxelUtilities::FaceArea(
         return 1-area;
     }
     
-    const int edges_size = edges.size();
+    const std::size_t edges_size = edges.size();
     std::vector<double> length(edges_size); 
     for(std::size_t i = 0; i < edges_size; i++) {
         const auto& ends = edges[i].Points();
