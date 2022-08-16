@@ -128,16 +128,16 @@ private:
         unsigned int i9 = rNodeIds[9];
 
         Tetrahedra3D10<Node < 3 > > geom(
-            rThisModelPart.Nodes()(i0),
-            rThisModelPart.Nodes()(i1),
-            rThisModelPart.Nodes()(i2),
-            rThisModelPart.Nodes()(i3),
-            rThisModelPart.Nodes()(i4),
-            rThisModelPart.Nodes()(i5),
-            rThisModelPart.Nodes()(i6),
-            rThisModelPart.Nodes()(i7),
-            rThisModelPart.Nodes()(i8),
-            rThisModelPart.Nodes()(i9)
+            rThisModelPart.pGetNode(i0),
+            rThisModelPart.pGetNode(i1),
+            rThisModelPart.pGetNode(i2),
+            rThisModelPart.pGetNode(i3),
+            rThisModelPart.pGetNode(i4),
+            rThisModelPart.pGetNode(i5),
+            rThisModelPart.pGetNode(i6),
+            rThisModelPart.pGetNode(i7),
+            rThisModelPart.pGetNode(i8),
+            rThisModelPart.pGetNode(i9)
         );
         return geom;
     }
@@ -158,13 +158,14 @@ private:
         unsigned int i5   = rNodeIds[5];
 
         Triangle3D6<Node<3> > geom(
-                rThisModelPart.Nodes()(i0),
-                rThisModelPart.Nodes()(i1),
-                rThisModelPart.Nodes()(i2),
-                rThisModelPart.Nodes()(i3),
-                rThisModelPart.Nodes()(i4),
-                rThisModelPart.Nodes()(i5)
-                );
+            rThisModelPart.pGetNode(i0),
+            rThisModelPart.pGetNode(i1),
+            rThisModelPart.pGetNode(i2),
+            rThisModelPart.pGetNode(i3),
+            rThisModelPart.pGetNode(i4),
+            rThisModelPart.pGetNode(i5)
+        );
+
         return geom;
     }
 
