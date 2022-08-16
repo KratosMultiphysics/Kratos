@@ -78,7 +78,7 @@ void GeoTrussElementBase<TDim,TNumNodes>::
         rResult.resize(TDim*TNumNodes);
     }
 
-    if (TDim > 2) {
+    if constexpr (TDim > 2) {
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
@@ -105,7 +105,7 @@ void GeoTrussElementBase<TDim,TNumNodes>::
         rElementalDofList.resize(TDim*TNumNodes);
     }
 
-    if (TDim > 2) {
+    if constexpr (TDim > 2) {
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
@@ -594,7 +594,7 @@ int GeoTrussElementBase<TDim,TNumNodes>::
     }
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    if (TDim > 2) {
+    if constexpr (TDim > 2) {
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             const NodeType& rnode = GetGeometry()[i];
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, rnode);

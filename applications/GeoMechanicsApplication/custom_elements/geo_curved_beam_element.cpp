@@ -72,7 +72,7 @@ int GeoCurvedBeamElement<TDim,TNumNodes>::
                      << this->Id()
                      << std::endl;
 
-    if (TDim > 2) {
+    if constexpr (TDim > 2) {
         if ( TORSIONAL_INERTIA.Key() == 0 ||
              rProp.Has( TORSIONAL_INERTIA ) == false ||
              rProp[TORSIONAL_INERTIA] < 0.0 )

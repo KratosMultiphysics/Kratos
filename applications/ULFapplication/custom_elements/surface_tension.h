@@ -407,7 +407,7 @@ public:
 
 	// Surface tension contribution
 	int k = 0;
-	if(TDim < 3)
+	if constexpr (TDim < 3)
 	{
 	    array_1d<double,3> node_indx;
 	    node_indx[0] = 0.0;
@@ -479,7 +479,7 @@ public:
 	    k++;
 	  }
 	}
-	if(TDim < 3 && k > 2)
+	if constexpr (TDim < 3 && k > 2)
 	    this->AddViscousStress2D();
 
         // Now calculate an additional contribution to the residual: r -= rDampingMatrix * (u,p)
@@ -922,7 +922,7 @@ public:
 
             KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
             KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,rNode);
-            if (TDim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
+            if constexpr (TDim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
             KRATOS_CHECK_DOF_IN_NODE(PRESSURE,rNode);
         }
         // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1
