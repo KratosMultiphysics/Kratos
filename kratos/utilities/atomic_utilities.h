@@ -37,7 +37,7 @@ namespace Kratos
  * @param target variable being atomically updated by doing target += value
  * @param value value being added
  */
-template<class TDataType>
+template<class TDataType1, class TDataType2 = TDataType1>
 inline void AtomicAdd(TDataType& target, const TDataType& value)
 {
     #pragma omp atomic
