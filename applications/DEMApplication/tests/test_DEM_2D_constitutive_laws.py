@@ -199,9 +199,9 @@ class DEM2DConstitutiveLaws(KratosUnittest.TestCase):
     def tearDown(self):
         file_to_remove = os.path.join("DEM2D_constitutive_laws_tests_files", "TimesPartialRelease")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        file_to_remove = os.path.join(this_working_dir_backup, "DEM2D_constitutive_laws_tests_files", "nl.txt")
+        file_to_remove = os.path.join(this_working_dir_backup, "nl.txt")
         os.remove(file_to_remove)
-        file_to_remove = os.path.join(this_working_dir_backup, "DEM2D_constitutive_laws_tests_files", "tg.txt")
+        file_to_remove = os.path.join(this_working_dir_backup, "tg.txt")
         os.remove(file_to_remove)
         os.chdir(this_working_dir_backup)
 

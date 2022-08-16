@@ -29,7 +29,7 @@ namespace Kratos{
 
         virtual std::unique_ptr<DEMRollingFrictionModel> CloneUnique() override;
 
-        virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt, SphericParticle* p_element, SphericParticle* p_neighbor, double LocalContactForce[3], array_1d<double, 3>& mContactMoment) override;
+        virtual void ComputeRollingFriction(double& RollingResistance, double dt, SphericParticle* p_element, SphericParticle* p_neighbor, double LocalContactForce[3], array_1d<double, 3>& mContactMoment) override;
         
         virtual void ComputeRollingFrictionWithWall(double dt, double LocalContactForce[3], SphericParticle* p_element, Condition* const wall, double indentation, array_1d<double, 3>& mContactMoment) override;
     

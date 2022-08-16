@@ -400,10 +400,10 @@ namespace Kratos {
                 */
                
                 if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
-                    array_1d<double, 3>& rolling_resistance_moment = this_node.FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
-                    rolling_resistance_moment.clear();
+                    //array_1d<double, 3>& rolling_resistance_moment = this_node.FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
+                    //rolling_resistance_moment.clear();
                     mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                    mRollingFrictionModel->ComputeRollingFriction(rolling_resistance_moment, RollingResistance, data_buffer.mDt, this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment);
+                    mRollingFrictionModel->ComputeRollingFriction(RollingResistance, data_buffer.mDt, this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment);
                 }
 
             } else { //for unbonded particles
@@ -414,10 +414,10 @@ namespace Kratos {
 
                 
                 if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
-                    array_1d<double, 3>& rolling_resistance_moment = this_node.FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
-                    rolling_resistance_moment.clear();
+                    //array_1d<double, 3>& rolling_resistance_moment = this_node.FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
+                    //rolling_resistance_moment.clear();
                     mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                    mRollingFrictionModel->ComputeRollingFriction(rolling_resistance_moment, RollingResistance, data_buffer.mDt, this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment);
+                    mRollingFrictionModel->ComputeRollingFriction(RollingResistance, data_buffer.mDt, this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment);
                 }
             }
             //*****************Moments calculation end******************
