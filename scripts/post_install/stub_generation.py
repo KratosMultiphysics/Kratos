@@ -32,7 +32,8 @@ def __AddSubmodules(output_path: Path):
             __AddSubmodules(cpp_sub_module_path)
 
 
-def __FindCPPModuleImportsInPythonModules(current_path: Path, cpp_module_names_list: list[str], cpp_python_modules_dict: dict[str, Path]):
+def __FindCPPModuleImportsInPythonModules(current_path: Path, cpp_module_names_list: "list[str]", cpp_python_modules_dict: "dict[str, Path]") -> None:
+
     if len(cpp_module_names_list) != 0:
         for sub_path in current_path.iterdir():
             if sub_path.is_file() and str(sub_path).endswith(".py"):
