@@ -21,7 +21,7 @@ namespace Kratos
 {
 double VolumeInsideVoxelUtility::NodesApproximation(const GeometryType& rVoxel) {
     double volume = 0;
-    const PointsArrayType& nodes = rVoxel.Points();
+    const auto& nodes = rVoxel.Points(); //PointsArrayType
     for (std::size_t i = 0; i < nodes.size(); i++) {
         if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
             volume+=(1.0/nodes.size()); 
@@ -38,12 +38,12 @@ double VolumeInsideVoxelUtility::EdgesPortionApproximation(
     const GeometryArrayType& rTriangles     
 ) {
     double volume = 0;
-    GeometryArrayType edges = rVoxel.GenerateEdges();
+    auto& edges = rVoxel.GenerateEdges(); //GeometryArrayType
     std::vector<double> distances;
 
     for (std::size_t i = 0; i < edges.size(); i++) {
         distances.push_back(0);
-        PointsArrayType& ends = edges[i].Points();
+        const auto& ends = edges[i].Points();
 
         for (auto& r_triangle : rTriangles) {
             array_1d<double,3> intersection;
@@ -56,8 +56,8 @@ double VolumeInsideVoxelUtility::EdgesPortionApproximation(
         } 
         distances.push_back(norm_2(ends[0].Coordinates() - ends[1].Coordinates()));
         std::sort(distances.begin(),distances.end());       //WOULD A SET BE MORE EFFICIENT?     
-        double edgePortion = VolumeInsideVoxelUtility::EdgeFilledPortion(distances, ends);
-        volume += edgePortion/edges.size();  
+        const double edge_portion = VolumeInsideVoxelUtility::EdgeFilledPortion(distances, ends);
+        volume += edge_portion/edges.size();  
         distances.clear();              
     }
     return volume;
@@ -71,15 +71,15 @@ double VolumeInsideVoxelUtility::VoxelFaceArea(
     const GeometryArrayType& rTriangles     
 ) {
     double area = 0;
-    GeometryArrayType edges = rFace.GenerateEdges();
-    const PointsArrayType& nodes = rFace.Points(); 
+    auto& edges = rFace.GenerateEdges();
+    const auto& nodes = rFace.Points(); 
     std::vector<std::pair<double,double>> min_distance_to_node(edges.size(),{0.5,0.5}); 
     //each pair represents an edge and contains as first() the minimum distance between
     //ends[1] and an intersection and as second() the minimum distance between ends[1] and an intersection 
 
     std::vector<double> length(edges.size()); 
     for(std::size_t i = 0; i < edges.size(); i++) {
-        const PointsArrayType& ends = edges[i].Points();
+        const auto& ends = edges[i].Points();
         const double l = norm_2(ends[0].Coordinates() - ends[1].Coordinates());
         length[i] = l;
     }
@@ -92,7 +92,7 @@ double VolumeInsideVoxelUtility::VoxelFaceArea(
         /*We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
         but possible), only one will be taken into account to create the matrixes. */
         while(!result && j < edges.size()) { 
-            const PointsArrayType& ends = edges[j].Points();
+            const auto& ends = edges[j].Points();
             result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
 
             if (result) {
@@ -110,7 +110,6 @@ double VolumeInsideVoxelUtility::VoxelFaceArea(
         }
     }
 
-    //std::vector<std::vector<double>> VolumeInsideVoxedDefinition::Neighbours{{3,1},{0,2},{1,3},{0,2}};  
     for(std::size_t i = 0; i < nodes.size(); i++ ) {
         const double factor = GetFactor(nodes,i);
         double partial_area;
@@ -132,8 +131,8 @@ double VolumeInsideVoxelUtility::HexahedraFaceArea(
     const GeometryArrayType& rTriangles     
 ) {
     double area = 0;
-    GeometryArrayType edges = rFace.GenerateEdges();
-    PointsArrayType nodes = rFace.Points(); 
+    auto& edges = rFace.GenerateEdges();
+    auto nodes = rFace.Points(); 
     const double face_area = TetraVolume(nodes);
     std::vector<std::pair<double,double>> min_distance_to_node(edges.size(),{1,1}); 
     
@@ -155,7 +154,7 @@ double VolumeInsideVoxelUtility::HexahedraFaceArea(
 
     std::vector<double> length(edges.size()); 
     for(std::size_t i = 0; i < edges.size(); i++) {
-        const PointsArrayType& ends = edges[i].Points();
+        const auto& ends = edges[i].Points();
         const double l = norm_2(ends[0].Coordinates() - ends[1].Coordinates());
         length[i] = l;
     }
@@ -165,7 +164,7 @@ double VolumeInsideVoxelUtility::HexahedraFaceArea(
         array_1d<double,3> intersection;
         std::size_t j = 0;
         while(!result && j < edges.size()) { 
-            const PointsArrayType& ends = edges[j].Points();
+            const auto& ends = edges[j].Points();
             result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
 
             if (result) {
@@ -183,7 +182,6 @@ double VolumeInsideVoxelUtility::HexahedraFaceArea(
         }
     }
 
-    //std::size_t VolumeInsideVoxedDefinition::Neighbours[4][2] = {{3,1},{0,2},{1,3},{2,0}};  
     for(std::size_t i = 0; i < nodes.size(); i++ ) {
         array_1d<double,3> v_left{nodes[i].X() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][0]].X(), nodes[i].Y() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][0]].Y(), nodes[i].Z() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][0]].Z()};
         array_1d<double,3> v_right{nodes[i].X() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][1]].X(), nodes[i].Y() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][1]].Y(), nodes[i].Z() -nodes[VolumeInsideVoxedDefinition::Neighbours[i][1]].Z()};
@@ -279,13 +277,15 @@ double VolumeInsideVoxelUtility::EdgeFilledPortion(std::vector<double>& Distance
     double portion = 0; 
     bool inside = true;       
 
+    const bool left_inside = rEnds[0].GetSolutionStepValue(DISTANCE) > 0;
+    const bool right_inside = rEnds[1].GetSolutionStepValue(DISTANCE) > 0; 
     //casuistics: Both nodes inside, both nodes outside, one node inside and one outside
-    if (rEnds[0].GetSolutionStepValue(DISTANCE) > 0 && rEnds[1].GetSolutionStepValue(DISTANCE) > 0) {
+    if (left_inside && right_inside ) {
         if(Distances.size() % 2 == 1) Distances.pop_back();
         if (Distances.size() == 2) return 1;
-    } else if (rEnds[0].GetSolutionStepValue(DISTANCE) > 0 && rEnds[1].GetSolutionStepValue(DISTANCE) < 0) {
+    } else if (left_inside && !right_inside) {
         if(Distances.size() % 2 == 0) Distances.pop_back();
-    } else if (rEnds[0].GetSolutionStepValue(DISTANCE) < 0 && rEnds[1].GetSolutionStepValue(DISTANCE) > 0) {
+    } else if (!left_inside && right_inside) {
         if(Distances.size() % 2 == 0) Distances.pop_back();
         inside = false;
     } else {    //rEnds[0].GetSolutionStepValue(DISTANCE) < 0 && rEnds[1].GetSolutionStepValue(DISTANCE) < 0
