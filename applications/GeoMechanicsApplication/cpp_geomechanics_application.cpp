@@ -72,7 +72,6 @@ public:
     }
 };
 
-#pragma region NodeVariables
 void NodeOperation::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part){};
 
 void NodeDISPLACEMENT::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) { gid_io.WriteNodalResults(Kratos::DISPLACEMENT, model_part.Nodes(), 0, 0); }
@@ -87,9 +86,6 @@ void NodeVOLUME_ACCELERATION::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &
 
 void NodeHYDRAULIC_DISCHARGE::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) { gid_io.WriteNodalResults(Kratos::HYDRAULIC_DISCHARGE, model_part.Nodes(), 0, 0); }
 
-#pragma endregion NodeVariables
-
-#pragma region GaussVariables
 
 void GaussOperation::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part){};
 
@@ -113,7 +109,6 @@ void GaussPIPE_ACTIVE::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_p
 
 void GaussPIPE_HEIGHT::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) { gid_io.PrintOnGaussPoints(Kratos::PIPE_HEIGHT, model_part, 0, 0); }
 
-#pragma endregion GaussVariables
 
 namespace Kratos
 {
