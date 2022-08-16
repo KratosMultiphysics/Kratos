@@ -96,7 +96,7 @@ namespace Testing {
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D4FacesNumber, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsUnitXDirectionLine2D4();
-        KRATOS_CHECK_EQUAL(p_geometry->FacesNumber(), 3);
+        KRATOS_CHECK_EQUAL(p_geometry->FacesNumber(), 0);
     }
 
     /** Checks if the length of the line is calculated correctly.
@@ -109,7 +109,7 @@ namespace Testing {
 
         p_geometry = GeneratePointsParabolaLine2D4();
 
-        KRATOS_CHECK_NEAR(p_geometry->Length(), 1.46884, 1.0e-5); // NOTE: Analytic 1.47894
+        KRATOS_CHECK_NEAR(p_geometry->Length(), 1.48139, 1.0e-5); // NOTE: Analytic 1.478942858
     }
 
     /** Checks if the bounding box of the line is calculated correctly.
@@ -147,7 +147,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(Line2D4IsInside, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsDiagonalLine2D4();
 
-        Point PointInside(0.5, 0.5, 0.0);
+        Point PointInside(1.0/3.0, 1.0/3.0, 0.0);
         Point PointOutside(1.66, 0.66, 0.0);
         Point PointInVertex(0.0, 0.0, 0.0);
         Point PointInEdge(1.0, 1.0, 0.0);

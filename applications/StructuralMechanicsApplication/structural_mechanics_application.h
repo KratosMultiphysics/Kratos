@@ -354,6 +354,8 @@ private:
     const TotalLagrangian mTotalLagrangian2D6N;
     const TotalLagrangian mTotalLagrangian2D8N;
     const TotalLagrangian mTotalLagrangian2D9N;
+    const TotalLagrangian mTotalLagrangian2D10N;
+    const TotalLagrangian mTotalLagrangian2D15N;
     const TotalLagrangian mTotalLagrangian3D4N;
     const TotalLagrangian mTotalLagrangian3D5N;
     const TotalLagrangian mTotalLagrangian3D6N;
@@ -376,6 +378,8 @@ private:
     const UpdatedLagrangian mUpdatedLagrangian2D6N;
     const UpdatedLagrangian mUpdatedLagrangian2D8N;
     const UpdatedLagrangian mUpdatedLagrangian2D9N;
+    const UpdatedLagrangian mUpdatedLagrangian2D10N;
+    const UpdatedLagrangian mUpdatedLagrangian2D15N;
     const UpdatedLagrangian mUpdatedLagrangian3D4N;
     const UpdatedLagrangian mUpdatedLagrangian3D5N;
     const UpdatedLagrangian mUpdatedLagrangian3D6N;

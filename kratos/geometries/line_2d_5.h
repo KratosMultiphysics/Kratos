@@ -670,7 +670,7 @@ namespace Kratos
          */
         SizeType EdgesNumber() const override
         {
-            return 2;
+            return 4;
         }
 
         /** FacesNumber
@@ -678,7 +678,7 @@ namespace Kratos
          */
         SizeType FacesNumber() const override
         {
-            return EdgesNumber();
+            return 0;
         }
 
         ///@}

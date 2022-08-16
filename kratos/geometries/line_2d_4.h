@@ -666,7 +666,7 @@ public:
      */
     SizeType EdgesNumber() const override
     {
-        return 2;
+        return 3;
     }
 
     /** FacesNumber
@@ -674,7 +674,7 @@ public:
      */
     SizeType FacesNumber() const override
     {
-        return EdgesNumber();
+        return 0;
     }
 
     ///@}

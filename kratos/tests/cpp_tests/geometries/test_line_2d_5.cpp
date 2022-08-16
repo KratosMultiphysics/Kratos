@@ -101,7 +101,7 @@ namespace Testing {
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D5FacesNumber, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsUnitXDirectionLine2D5();
-        KRATOS_CHECK_EQUAL(p_geometry->FacesNumber(), 4);
+        KRATOS_CHECK_EQUAL(p_geometry->FacesNumber(), 0);
     }
 
     /** Checks if the length of the line is calculated correctly.
@@ -114,7 +114,7 @@ namespace Testing {
 
         p_geometry = GeneratePointsParabolaLine2D5();
 
-        KRATOS_CHECK_NEAR(p_geometry->Length(), 1.46884, 1.0e-5); // NOTE: Analytic 1.47894
+        KRATOS_CHECK_NEAR(p_geometry->Length(), 1.48139, 1.0e-5); // NOTE: Analytic 1.478942858
     }
 
     /** Checks if the bounding box of the line is calculated correctly.
@@ -138,7 +138,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(low_point.X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
         KRATOS_CHECK_NEAR(low_point.Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
         KRATOS_CHECK_NEAR(high_point.X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
-        KRATOS_CHECK_NEAR(high_point.Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR(high_point.Y(), (p_geom->pGetPoint(3))->Y(), TOLERANCE);
     }
 
     /** Checks the inside test for a given point respect to the line
