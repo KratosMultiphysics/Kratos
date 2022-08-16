@@ -1402,7 +1402,8 @@ public:
      */
     Vector GetCurrentPositionsVector(
         const ModelPart::NodesContainerType& rNodes, 
-        const unsigned int Dimension);
+        const unsigned int Dimension
+        );
 
     /**
      * @brief This function returns the INITIAL coordinates of all the nodes in a consecutive vector.
@@ -1417,7 +1418,8 @@ public:
      */
     Vector GetInitialPositionsVector(
         const ModelPart::NodesContainerType& rNodes, 
-        const unsigned int Dimension);
+        const unsigned int Dimension
+        );
 
     /**
      * @brief This function represent the "set" counterpart of GetCurrentPositionsVector and allows
@@ -1433,7 +1435,8 @@ public:
      */
      void SetCurrentPositionsVector(
         ModelPart::NodesContainerType& rNodes, 
-        const Vector& rPositions);
+        const Vector& rPositions
+        );
 
     /**
      * @brief This function represent the "set" counterpart of GetInitialPositionsVector and allows
@@ -1449,7 +1452,8 @@ public:
      */
     void SetInitialPositionsVector(
         ModelPart::NodesContainerType& rNodes, 
-        const Vector& rPositions);
+        const Vector& rPositions
+        );
 
     /**
      * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
