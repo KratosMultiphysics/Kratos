@@ -48,6 +48,9 @@ public:
     typedef Geometry<NodeType> GeometryType;
     typedef GeometryType::Pointer GeometryPtrType;
 
+     /// Pointer definition of VoxelInsideVolume
+    KRATOS_CLASS_POINTER_DEFINITION( SimpleToQuadraticTetrahedraMeshConverter );
+
     ///@name Life Cycle
     ///@{
 
