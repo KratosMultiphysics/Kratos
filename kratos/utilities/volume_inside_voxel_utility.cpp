@@ -310,12 +310,13 @@ double VolumeInsideVoxelUtility::GetFactor(
     const PointsArrayType& rNodes, 
     const int NodeIndex) 
 {
+    const bool me_inside = rNodes[NodeIndex].GetSolutionStepValue(DISTANCE) > 0;
+    const bool left_inside = rNodes[VolumeInsideVoxedDefinition::Neighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0;
+    const bool right_inside =  rNodes[VolumeInsideVoxedDefinition::Neighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) < 0;
 
-    if( (rNodes[NodeIndex].GetSolutionStepValue(DISTANCE) > 0 && rNodes[VolumeInsideVoxedDefinition::Neighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) < 0 &&
-        rNodes[VolumeInsideVoxedDefinition::Neighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) < 0) || (rNodes[NodeIndex].GetSolutionStepValue(DISTANCE) < 0 && 
-        rNodes[VolumeInsideVoxedDefinition::Neighbours[NodeIndex][0]].GetSolutionStepValue(DISTANCE) > 0 && rNodes[VolumeInsideVoxedDefinition::Neighbours[NodeIndex][1]].GetSolutionStepValue(DISTANCE) > 0)) {
+    if ((me_inside && !left_inside && !right_inside) || (!me_inside && left_inside && right_inside)) {
             return 0.5;
-        }
+    }
     return 1.0;
 }
 
