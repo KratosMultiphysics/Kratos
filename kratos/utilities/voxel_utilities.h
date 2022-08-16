@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_VOLUME_INSIDE_VOXEL)
-#define  KRATOS_VOLUME_INSIDE_VOXEL
+#if !defined(KRATOS_VOXEL_UTILITIES)
+#define  KRATOS_VOXEL_UTILITIES
 
 // System includes
 
@@ -47,14 +47,14 @@ namespace Kratos
 ///@{
 
 /**
- * @class VolumeInsideVoxel
+ * @class VoxelUtilities
  * @ingroup KratosCore
  * @brief Utilities to compute the real volume inside a voxel
  * @details This class provides static methods to compute (using different approximations) the portion of a 
  * voxel that is actually filled with volume, according to the known triangle elements that intersect the voxel
  * @author Ariadna Cortes
  */
-class VolumeInsideVoxelUtility
+class VoxelUtilities
 {
 public:
 
@@ -69,7 +69,7 @@ public:
     typedef GeometryType::PointsArrayType PointsArrayType;
 
     /// Pointer definition of VoxelInsideVolume
-    KRATOS_CLASS_POINTER_DEFINITION( VolumeInsideVoxelUtility );
+    KRATOS_CLASS_POINTER_DEFINITION( VoxelUtilities );
 
     ///@}
     ///@name Life Cycle
@@ -82,10 +82,10 @@ public:
     /**
      * @brief Default constructor
      */
-    VolumeInsideVoxelUtility(){}
+    VoxelUtilities(){}
 
     /// Destructor
-    virtual ~VolumeInsideVoxelUtility(){}
+    virtual ~VoxelUtilities(){}
 
     ///@}
     ///@name Operations
@@ -120,14 +120,6 @@ public:
     static double FaceArea(const GeometryType& rFace,const GeometryArrayType& rTriangles);
 
     /**
-     * @brief Returns the area enclosed by a set of 4 points
-     * @param rPoints the array of points
-     * @return Area inside this points
-     * @note This code is an approximation and won't work perfectly for "parabolic" quadrilaterals
-     */  
-    static double PointsArea(const PointsArrayType& rPoints);
-
-    /**
      * @brief Aproximates the portion of the edge (Line3D2) that represents volume
      * @param rDistances references to a sorted vector containing the relatve distances of each intersecting point 
      * with the first node of the edge 
@@ -155,6 +147,14 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Returns the area enclosed by a set of 4 points
+     * @param rPoints the array of points
+     * @return Area inside this points
+     * @note This code is an approximation and won't work perfectly for "parabolic" quadrilaterals
+     */  
+    static double PointsArea(const PointsArrayType& rPoints);
+
     static double GetFactor(const PointsArrayType& rNodes, const int NodeIndex);
 
     static int GetCase(const PointsArrayType& rNodes, const int NodeIndex);
@@ -170,4 +170,4 @@ private:
 
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_VOXEL_INSIDE_VOLUME  defined */
+#endif /* KRATOS_VOXEL_UTILITIES  defined */

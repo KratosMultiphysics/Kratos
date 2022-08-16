@@ -17,7 +17,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "includes/checks.h"
 #include "testing/testing.h"
-#include "utilities/volume_inside_voxel_utility.h"
+#include "utilities/voxel_utilities.h"
 
 namespace Kratos {
 namespace Testing {
@@ -108,8 +108,8 @@ namespace {
         GeometryPtrType pVoxel2 = GenerateHexahedra3D8(distances2);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelUtility::NodesApproximation(*pVoxel); 
-        double volume2 = VolumeInsideVoxelUtility::NodesApproximation(*pVoxel2); 
+        double volume = VoxelUtilities::NodesApproximation(*pVoxel); 
+        double volume2 = VoxelUtilities::NodesApproximation(*pVoxel2); 
 
         //Expected output of the function
         const double ExpectedVolume1 = 0.125;
@@ -128,7 +128,7 @@ namespace {
         std::vector<double> distances{-1, -1, -1, -1, -1, -1, -1, -1};   
         GeometryPtrType pVoxel = GenerateHexahedra3D8(distances);
         GeometryArrayType array;
-        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
+        double volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         double ExpectedVolume = 0; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
@@ -136,7 +136,7 @@ namespace {
         std::vector<std::vector<double>> triangle1{{0.5,-1,-0.95},{0.5,-0.95,-1.05},{0.5,-1.05,-1.05}};
         GeometryPtrType pTriangle1 = GenerateTriangle3D3(triangle1);
         array.push_back(pTriangle1);
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
+        volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
@@ -145,7 +145,7 @@ namespace {
         distances = {1, -1, -1, -1, -1, -1, -1, -1};   
         pVoxel = GenerateHexahedra3D8(distances);
         array = {};
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
+        volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
@@ -153,7 +153,7 @@ namespace {
         distances = {1, -1, -1, -1, -1, -1, -1, -1};   
         pVoxel = GenerateHexahedra3D8(distances);
         array.push_back(pTriangle1);
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
+        volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0.75/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
@@ -164,19 +164,19 @@ namespace {
         std::vector<std::vector<double>> triangle2{{0,-1,-0.95},{0,-0.95,-1.05},{0,-1.05,-1.05}};
         GeometryPtrType pTriangle2 = GenerateTriangle3D3(triangle2);
         array.push_back(pTriangle2);
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
+        volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0.5/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
         //Both nodes are outside and there are 2 intersection points
         distances = {-1, -1, -1, -1, -1, -1, -1, -1};   
         pVoxel = GenerateHexahedra3D8(distances);
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
+        volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0.25/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
         //Both nodes are outside and there are 3 intersection points (meaning one is tangential)
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
+        volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         std::vector<std::vector<double>> triangle3{{-0.5,-1,-0.95},{-0.5,-0.95,-1.05},{-0.5,-1.05,-1.05}};
         GeometryPtrType pTriangle3 = GenerateTriangle3D3(triangle3);
         array.push_back(pTriangle3);
@@ -186,7 +186,7 @@ namespace {
         // One node is outside and the other inside and there are three intersection point 
         distances = {1, -1, -1, -1, -1, -1, -1, -1};   
         pVoxel = GenerateHexahedra3D8(distances);
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
+        volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0.5/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
@@ -194,25 +194,25 @@ namespace {
         distances = {1, 1, -1, -1, -1, -1, -1, -1};   
         pVoxel = GenerateHexahedra3D8(distances);
         array = {};
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
+        volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 1.0/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
         //Both nodes are inside and there is an intersection point (tangential)
         array.push_back(pTriangle1);
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
+        volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 1.0/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
         //Both nodes are inside and there are 2 intersection points
         array.push_back(pTriangle2);
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
+        volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0.75/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
 
         //Both nodes are inside and there are 3 intersection points (meaning one is tangential)
         array.push_back(pTriangle3);
-        volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array); 
+        volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array); 
         ExpectedVolume = 0.5/12; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
     }
@@ -238,7 +238,7 @@ namespace {
         array1.push_back(pTriangle3);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array1);
+        double volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array1);
         const double ExpectedVolume = 1.0/8; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);      
     }
@@ -267,7 +267,7 @@ namespace {
         array1.push_back(pTriangle4);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array1);
+        double volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array1);
         const double ExpectedVolume = 3.0/8; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
         /*in this case the volume expected to be returned by the method approximation is actually very close 
@@ -297,7 +297,7 @@ namespace {
         array1.push_back(pTriangle4);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array1);
+        double volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array1);
         const double ExpectedVolume = 0.291; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
         /*in this case the volume returned by the method approximation is not clse to the real volume of the 
@@ -328,7 +328,7 @@ namespace {
         array1.push_back(pTriangle4);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array1);
+        double volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array1);
         const double ExpectedVolume = 7.0/12; //0.5833
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
         /*in this case the volume returned by the method approximation is not close to the real volume of the 
@@ -371,7 +371,7 @@ namespace {
         array1.push_back(pTriangle8);
 
         //Call the volume utility
-        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pVoxel,array1);
+        double volume = VoxelUtilities::EdgesPortionApproximation(*pVoxel,array1);
         const double ExpectedVolume = 2.0/12; //0.1666
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01); 
         /*in this case the volume returned by the method approximation is not close to the real volume of the 
@@ -392,7 +392,7 @@ namespace {
 
         GeometryArrayType array1;
         array1.push_back(pTriangle1);
-        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pFace,array1);
+        double volume = VoxelUtilities::EdgesPortionApproximation(*pFace,array1);
         const double ExpectedVolume = 0; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
     }
@@ -408,7 +408,7 @@ namespace {
 
         GeometryArrayType array1;
         array1.push_back(pTriangle1);
-        double volume = VolumeInsideVoxelUtility::EdgesPortionApproximation(*pFace,array1);
+        double volume = VoxelUtilities::EdgesPortionApproximation(*pFace,array1);
         const double ExpectedVolume = 0.25/4; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
     }
@@ -437,7 +437,7 @@ namespace {
         GeometryArrayType array1;
         array1.push_back(pTriangle1);
         array1.push_back(pTriangle2);
-        double volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        double volume = VoxelUtilities::FaceArea(*pFace,array1);
         double ExpectedVolume = 1.0/16; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
 
@@ -448,14 +448,14 @@ namespace {
         array1.clear();
         array1.push_back(pTriangle1);
         array1.push_back(pTriangle3);
-        volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        volume = VoxelUtilities::FaceArea(*pFace,array1);
         ExpectedVolume = 2.0/4; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
 
         array1.clear();
         array1.push_back(pTriangle4);
         array1.push_back(pTriangle5);
-        volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        volume = VoxelUtilities::FaceArea(*pFace,array1);
         ExpectedVolume = 0.975; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
 
@@ -466,7 +466,7 @@ namespace {
         array1.clear();
         array1.push_back(pTriangle2);
         array1.push_back(pTriangle1);
-        volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        volume = VoxelUtilities::FaceArea(*pFace,array1);
         ExpectedVolume = 15.0/16; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
 
@@ -475,14 +475,14 @@ namespace {
         pFace = GenerateQuadrilateral3D4(quad,distances);
 
         array1.clear();
-        volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        volume = VoxelUtilities::FaceArea(*pFace,array1);
         ExpectedVolume = 1.0; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
 
         //Empty quadrilateral
         distances = {-1, -1, -1, -1}; 
         pFace = GenerateQuadrilateral3D4(quad,distances);
-        volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        volume = VoxelUtilities::FaceArea(*pFace,array1);
         ExpectedVolume = 0.0; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
     }
@@ -499,14 +499,14 @@ namespace {
         std::vector<double> distances{1, 1, 1, 1}; 
         GeometryPtrType  pFace = GenerateQuadrilateral3D4(quad,distances);
 
-        double volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        double volume = VoxelUtilities::FaceArea(*pFace,array1);
         double ExpectedVolume = 1.0; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
 
         //Empty quadrilateral
         distances = {-1, -1, -1, -1}; 
         pFace = GenerateQuadrilateral3D4(quad,distances);
-        volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        volume = VoxelUtilities::FaceArea(*pFace,array1);
         ExpectedVolume = 0.0; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
     }
@@ -527,7 +527,7 @@ namespace {
         GeometryArrayType array1;
         array1.push_back(pTriangle1);
         array1.push_back(pTriangle2);
-        double volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        double volume = VoxelUtilities::FaceArea(*pFace,array1);
         double ExpectedVolume = 1.0/16; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
     }
@@ -548,7 +548,7 @@ namespace {
         GeometryArrayType array1;
         array1.push_back(pTriangle1);
         array1.push_back(pTriangle2);
-        double volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        double volume = VoxelUtilities::FaceArea(*pFace,array1);
         double ExpectedVolume = 0.495; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
     }
@@ -570,7 +570,7 @@ namespace {
         GeometryArrayType array1;
         array1.push_back(pTriangle1);
         array1.push_back(pTriangle3);
-        double volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        double volume = VoxelUtilities::FaceArea(*pFace,array1);
         double ExpectedVolume = 2.0/4; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
     }
@@ -590,7 +590,7 @@ namespace {
         GeometryArrayType array1;
         array1.push_back(pTriangle4);
         array1.push_back(pTriangle5);
-        double volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        double volume = VoxelUtilities::FaceArea(*pFace,array1);
         double ExpectedVolume = 0.975; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
     }
@@ -610,7 +610,7 @@ namespace {
         GeometryArrayType array1;
         array1.push_back(pTriangle4);
         array1.push_back(pTriangle5);
-        double volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        double volume = VoxelUtilities::FaceArea(*pFace,array1);
         double ExpectedVolume = 0.625; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
     }
@@ -637,7 +637,7 @@ namespace {
         array1.push_back(pTriangle2);
         array1.push_back(pTriangle3);
         array1.push_back(pTriangleaux);
-        double volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        double volume = VoxelUtilities::FaceArea(*pFace,array1);
         double ExpectedVolume = 0.25; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
     }
@@ -657,7 +657,7 @@ namespace {
         std::vector<double> distances{-1, 1, 1, 1}; 
         GeometryPtrType pFace = GenerateQuadrilateral3D4(quad,distances);
 
-        double volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        double volume = VoxelUtilities::FaceArea(*pFace,array1);
         double ExpectedVolume = 15.0/16; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
     }
@@ -678,7 +678,7 @@ namespace {
         GeometryArrayType array1;
         array1.push_back(pTriangle1);
         array1.push_back(pTriangle2);
-        double volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        double volume = VoxelUtilities::FaceArea(*pFace,array1);
         double ExpectedVolume = 0.2; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.01);
     }
@@ -699,7 +699,7 @@ namespace {
         GeometryArrayType array1;
         array1.push_back(pTriangle1);
         array1.push_back(pTriangle2);
-        double volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        double volume = VoxelUtilities::FaceArea(*pFace,array1);
         double ExpectedVolume = 1.0/32; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
     }
@@ -719,7 +719,7 @@ namespace {
         GeometryArrayType array1;
         array1.push_back(pTriangle4);
         array1.push_back(pTriangle5);
-        double volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        double volume = VoxelUtilities::FaceArea(*pFace,array1);
         double ExpectedVolume = 0.709; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
     }
@@ -739,7 +739,7 @@ namespace {
         GeometryArrayType array1;
         array1.push_back(pTriangle4);
         array1.push_back(pTriangle5);
-        double volume = VolumeInsideVoxelUtility::FaceArea(*pFace,array1);
+        double volume = VoxelUtilities::FaceArea(*pFace,array1);
         double ExpectedVolume = 0.772; 
         KRATOS_CHECK_NEAR(volume, ExpectedVolume, 0.001);
     }
