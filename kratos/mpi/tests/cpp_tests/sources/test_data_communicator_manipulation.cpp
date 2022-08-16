@@ -11,14 +11,17 @@
 //
 //
 
+// System includes
 #include <string>
 
+// External includes
+
+// Project includes
 #include "includes/data_communicator.h"
 #include "includes/kernel.h"
 #include "includes/parallel_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/utilities/data_communicator_factory.h"
-
 #include "testing/testing.h"
 
 namespace Kratos {
