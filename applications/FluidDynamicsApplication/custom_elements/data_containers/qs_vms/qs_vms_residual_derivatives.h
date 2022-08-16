@@ -59,6 +59,8 @@ public:
 
     constexpr static IndexType TElementLocalSize = TBlockSize * TNumNodes;
 
+    constexpr static IndexType TNN = TNumNodes;
+
     using ArrayD = array_1d<double, TDim>;
 
     using VectorN = BoundedVector<double, TNumNodes>;
@@ -128,7 +130,7 @@ public:
         ///@}
     };
 
-    template<class TDerivativesType>
+    template<class TDerivativesType, unsigned int TDirectionIndex = 0>
     class VariableDerivatives
     {
     public:
@@ -163,13 +165,28 @@ public:
             const Matrix& rdNdXDerivative,
             const double MassTermsDerivativesWeight = 1.0)
         {
-            VariableDerivatives<TDerivativesType>::CalculateGaussPointResidualsDerivativeContributions(mrData, rResidualDerivative, NodeIndex, DirectionIndex, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative, MassTermsDerivativesWeight);
+            VariableDerivatives<TDerivativesType, TDirectionIndex>::CalculateGaussPointResidualsDerivativeContributions(rResidualDerivative, mrData, NodeIndex, DirectionIndex, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative, MassTermsDerivativesWeight);
+        }
+
+        void static CalculateGaussPointResidualsDerivativeContributions(
+            VectorF& rResidualDerivative,
+            Data& rData,
+            const int NodeIndex,
+            const double W,
+            const Vector& rN,
+            const Matrix& rdNdX,
+            const double WDerivative,
+            const double DetJDerivative,
+            const Matrix& rdNdXDerivative,
+            const double MassTermsDerivativesWeight = 1.0)
+        {
+            VariableDerivatives<TDerivativesType, TDirectionIndex>::CalculateGaussPointResidualsDerivativeContributions(rResidualDerivative, rData, NodeIndex, TDirectionIndex, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative, MassTermsDerivativesWeight);
         }
 
 
         void static CalculateGaussPointResidualsDerivativeContributions(
-            Data& rData,
             VectorF& rResidualDerivative,
+            Data& rData,
             const int NodeIndex,
             const int DirectionIndex,
             const double W,
@@ -411,6 +428,7 @@ public:
         ///@}
     };
 
+    template<unsigned int TDirectionIndex = 0>
     class SecondDerivatives
     {
     public:
@@ -434,6 +452,26 @@ public:
             const int DirectionIndex,
             const double W,
             const Vector& rN,
+            const Matrix& rdNdX)
+        {
+            SecondDerivatives::CalculateGaussPointResidualsDerivativeContributions(rResidualDerivative, this->mrData, NodeIndex, DirectionIndex, W, rN, rdNdX);
+        }
+
+        void static CalculateGaussPointResidualsDerivativeContributions(
+            VectorF& rResidualDerivative,
+            Data& rData,
+            const int NodeIndex,
+            const int DirectionIndex,
+            const double W,
+            const Vector& rN,
+            const Matrix& rdNdX);
+
+        void static CalculateGaussPointResidualsDerivativeContributions(
+            VectorF& rResidualDerivative,
+            Data& rData,
+            const int NodeIndex,
+            const double W,
+            const Vector& rN,
             const Matrix& rdNdX);
 
         ///@}
@@ -450,6 +488,14 @@ public:
     class Data
     {
     public:
+        ///@name Type definitions
+        ///@{
+
+        static constexpr IndexType TBlockSize = TDim + 1;
+
+        static constexpr IndexType TLNumNodes = TNN;
+
+        ///@}
         ///@name Life Cycle
         ///@{
 
@@ -530,8 +576,9 @@ public:
         ///@name Private Friends
         ///@{
 
-        template<class TDerivativesType>
+        template<class TDerivativesType, unsigned int TDirectionIndex>
         friend class VariableDerivatives;
+        template<unsigned int TDirectionIndex>
         friend class SecondDerivatives;
         friend class ResidualsContributions;
 

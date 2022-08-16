@@ -24,6 +24,7 @@
 #include "geometries/geometry_data.h"
 
 // Application includes
+#include "custom_elements/data_containers/derivatives.h"
 #include "custom_elements/data_containers/qs_vms/qs_vms_derivative_utilities.h"
 #include "custom_elements/data_containers/qs_vms/qs_vms_residual_derivatives.h"
 
@@ -55,13 +56,32 @@ public:
 
     using ResidualsContributions = typename TResidualsDerivatives::ResidualsContributions;
 
-    using VelocityDerivativeContributions = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes>>;
+    template<unsigned int TDirectionIndex>
+    using VelocityDerivativeContributions = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes>, TDirectionIndex>;
+
+    // using VelocityDerivativeContributions = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes>>;
 
     using PressureDerivativeContributions = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template PressureDerivative<TNumNodes>>;
 
-    using AccelerationDerivativeContributions = typename TResidualsDerivatives::SecondDerivatives;
+    template<unsigned int TDirectionIndex>
+    using AccelerationDerivativeContributions = typename TResidualsDerivatives::template SecondDerivatives<TDirectionIndex>;
 
     using ShapeDerivatives = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes>>;
+
+
+    using ResidualStateVariableFirstDerivatives = FirstDerivatives<
+                                                    Data,
+                                                    SubAssembly<0, 0, VelocityDerivativeContributions<0>>,
+                                                    SubAssembly<1, 0, VelocityDerivativeContributions<1>>,
+                                                    SubAssembly<2, 0, PressureDerivativeContributions>
+                                                    >;
+
+    using ResidualStateVariableSecondDerivatives = SecondDerivatives<
+                                                    Data,
+                                                    SubAssembly<0, 0, AccelerationDerivativeContributions<0>>,
+                                                    SubAssembly<1, 0, AccelerationDerivativeContributions<1>>,
+                                                    SubAssembly<2, 0, ZeroDerivatives>
+                                                    >;
 
     ///@}
     ///@name Static Operations

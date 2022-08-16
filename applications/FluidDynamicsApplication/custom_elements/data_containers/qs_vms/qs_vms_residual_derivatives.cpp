@@ -161,15 +161,18 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::AddVisco
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::SecondDerivatives(
+template <unsigned int TDirectionIndex>
+QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives<TDirectionIndex>::SecondDerivatives(
     Data& rData)
     : mrData(rData)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::CalculateGaussPointResidualsDerivativeContributions(
+template <unsigned int TDirectionIndex>
+void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives<TDirectionIndex>::CalculateGaussPointResidualsDerivativeContributions(
     VectorF& rResidualDerivative,
+    Data& rData,
     const int NodeIndex,
     const int DirectionIndex,
     const double W,
@@ -178,8 +181,8 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::CalculateGaus
 {
     rResidualDerivative.clear();
 
-    const double coeff_1 = W * mrData.mDensity;
-    const double coeff_2 = coeff_1 * mrData.mTauOne;
+    const double coeff_1 = W * rData.mDensity;
+    const double coeff_2 = coeff_1 * rData.mTauOne;
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (IndexType a = 0; a < TNumNodes; ++a) {
@@ -188,10 +191,39 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::CalculateGaus
         double value = 0.0;
 
         value -= coeff_1 * rN[a] * rN[NodeIndex];
-        value -= coeff_2 * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * rN[NodeIndex];
+        value -= coeff_2 * rData.mDensity * rData.mConvectiveVelocityDotDnDx[a] * rN[NodeIndex];
 
         rResidualDerivative[col + DirectionIndex] += value;
         rResidualDerivative[col + TDim] -= coeff_2 * rdNdX(a, DirectionIndex) * rN[NodeIndex];
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+template <unsigned int TDirectionIndex>
+void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives<TDirectionIndex>::CalculateGaussPointResidualsDerivativeContributions(
+    VectorF& rResidualDerivative,
+    Data& rData,
+    const int NodeIndex,
+    const double W,
+    const Vector& rN,
+    const Matrix& rdNdX)
+{
+    rResidualDerivative.clear();
+
+    const double coeff_1 = W * rData.mDensity;
+    const double coeff_2 = coeff_1 * rData.mTauOne;
+
+    // Note: Dof order is (u,v,[w,]p) for each node
+    for (IndexType a = 0; a < TNumNodes; ++a) {
+        const IndexType col = a * TBlockSize;
+
+        double value = 0.0;
+
+        value -= coeff_1 * rN[a] * rN[NodeIndex];
+        value -= coeff_2 * rData.mDensity * rData.mConvectiveVelocityDotDnDx[a] * rN[NodeIndex];
+
+        rResidualDerivative[col + TDirectionIndex] += value;
+        rResidualDerivative[col + TDim] -= coeff_2 * rdNdX(a, TDirectionIndex) * rN[NodeIndex];
     }
 }
 
@@ -422,9 +454,19 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::InitializeConstitutiveLaw(
 // template instantiations
 template class QSVMSResidualDerivatives<2, 3>;
 template class QSVMSResidualDerivatives<2, 4>;
+template class QSVMSResidualDerivatives<2, 3>::SecondDerivatives<0>;
+template class QSVMSResidualDerivatives<2, 3>::SecondDerivatives<1>;
+template class QSVMSResidualDerivatives<2, 4>::SecondDerivatives<0>;
+template class QSVMSResidualDerivatives<2, 4>::SecondDerivatives<1>;
 
 template class QSVMSResidualDerivatives<3, 4>;
 template class QSVMSResidualDerivatives<3, 8>;
+template class QSVMSResidualDerivatives<3, 4>::SecondDerivatives<0>;
+template class QSVMSResidualDerivatives<3, 4>::SecondDerivatives<1>;
+template class QSVMSResidualDerivatives<3, 4>::SecondDerivatives<2>;
+template class QSVMSResidualDerivatives<3, 8>::SecondDerivatives<0>;
+template class QSVMSResidualDerivatives<3, 8>::SecondDerivatives<1>;
+template class QSVMSResidualDerivatives<3, 8>::SecondDerivatives<2>;
 
 
 } // namespace Kratos

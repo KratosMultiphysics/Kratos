@@ -23,6 +23,7 @@
 #include "utilities/indirect_scalar.h"
 
 // Application includes
+#include "custom_elements/data_containers/derivatives.h"
 #include "fluid_dynamics_application_variables.h"
 
 #include "custom_elements/data_containers/qs_vms/qs_vms_adjoint_element_data.h"
@@ -550,9 +551,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidFirstDer
     ShapeFunctionDerivativesArrayType dNdXs;
     this->CalculateGeometryData(Ws, Ns, dNdXs, integration_method);
 
-    typename TAdjointElementData::Data                            element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
-    typename TAdjointElementData::VelocityDerivativeContributions velocity_derivative(element_data);
-    typename TAdjointElementData::PressureDerivativeContributions pressure_derivative(element_data);
+    typename TAdjointElementData::ResidualStateVariableFirstDerivatives::ElementDataType  element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
 
     BoundedVector<double, TElementLocalSize> residual;
     BoundedMatrix<double, TNumNodes, TDim> dNdXDerivative = ZeroMatrix(TNumNodes, TDim);
@@ -564,15 +563,9 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidFirstDer
 
         element_data.CalculateGaussPointData(W, N, dNdX);
 
-        IndexType row = 0;
         for (IndexType c = 0; c < TNumNodes; ++c) {
-            for (IndexType k = 0; k < TDim; ++k) {
-                TAdjointElementData::VelocityDerivativeContributions::CalculateGaussPointResidualsDerivativeContributions(element_data, residual, c, k, W, N, dNdX, 0.0, 0.0, dNdXDerivative, MassTermsDerivativesWeight);
-                AssembleSubVectorToMatrix(rLeftHandSideMatrix, row++, residual);
-            }
-
-            TAdjointElementData::PressureDerivativeContributions::CalculateGaussPointResidualsDerivativeContributions(element_data, residual, c, 0, W, N, dNdX, 0.0, 0.0, dNdXDerivative, MassTermsDerivativesWeight);
-            AssembleSubVectorToMatrix(rLeftHandSideMatrix, row++, residual);
+            TAdjointElementData::ResidualStateVariableFirstDerivatives::template CalculateAndAddGaussPointNodalVariableDerivativeContributions<TBlockSize>(
+                    rLeftHandSideMatrix, element_data, residual, c, W, N, dNdX, 0.0, 0.0, dNdXDerivative, MassTermsDerivativesWeight);
         }
     }
 
@@ -593,8 +586,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidSecondDe
     ShapeFunctionDerivativesArrayType dNdXs;
     this->CalculateGeometryData(Ws, Ns, dNdXs, integration_method);
 
-    typename TAdjointElementData::Data                                element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
-    typename TAdjointElementData::AccelerationDerivativeContributions acceleration_derivative(element_data);
+    typename TAdjointElementData::ResidualStateVariableSecondDerivatives::ElementDataType  element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
 
     VectorF residual;
 
@@ -605,15 +597,9 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidSecondDe
 
         element_data.CalculateGaussPointData(W, N, dNdX);
 
-        IndexType row = 0;
         for (IndexType c = 0; c < TNumNodes; ++c) {
-            for (IndexType k = 0; k < TDim; ++k) {
-                acceleration_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, k, W, N, dNdX);
-                AssembleSubVectorToMatrix(rLeftHandSideMatrix, row++, residual);
-            }
-
-            // skip derivatives w.r.t. pressure time derivative
-            ++row;
+            TAdjointElementData::ResidualStateVariableSecondDerivatives::template CalculateAndAddGaussPointNodalVariableDerivativeContributions<TBlockSize>(
+                    rLeftHandSideMatrix, element_data, residual, c, W, N, dNdX);
         }
     }
 
