@@ -599,7 +599,7 @@ double CalculateElementalVolume(const Geometry<Node <3> >& geom)
 {
     double vol;
     double h;
-    if (TDim == 2){
+    if constexpr (TDim == 2){
         double x0 = geom[0].X();
         double y0 = geom[0].Y();
         double x1 = geom[1].X();
