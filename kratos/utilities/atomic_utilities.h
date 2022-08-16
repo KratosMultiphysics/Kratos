@@ -38,8 +38,10 @@ namespace Kratos
  * @param value value being added
  */
 template<class TDataType1, class TDataType2 = TDataType1>
-inline void AtomicAdd(TDataType& target, const TDataType& value)
+inline void AtomicAdd(TDataType1& target, const TDataType2& value)
 {
+    KRATOS_DEBUG_ERROR_IF(sizeof(TDataType1) < sizeof(TDataType2)) << "AtomicAdd not possible, you are trying to sum a variable of higher size to a variable of lower size, this will induce an overflow - Sizes are: " << sizeof(TDataType1) << " for target and " << sizeof(TDataType2) << " for value " << std::endl;
+
     #pragma omp atomic
     target += value;
 }
