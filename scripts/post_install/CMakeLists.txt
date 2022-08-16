@@ -1,4 +1,4 @@
-set(KRATOS_GENERATE_PYTHON_STUBS ON CACHE BOOL "Generate hints for binary python packages")
+set(KRATOS_GENERATE_PYTHON_STUBS OFF CACHE BOOL "Generate hints for binary python packages")
 
 if (${KRATOS_GENERATE_PYTHON_STUBS})
     install(CODE "message(STATUS \"Trying to install python stub files to enable python hinting support for cpp libraries in IDEs...\")")
