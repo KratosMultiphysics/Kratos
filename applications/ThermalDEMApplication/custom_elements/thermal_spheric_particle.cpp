@@ -118,17 +118,6 @@ namespace Kratos
     // Initialize base class
     SphericParticle::Initialize(r_process_info);
 
-    // Set flags
-    mHasMotion = r_process_info[MOTION_OPTION];
-
-    if ((GetProperties().Has(THERMAL_EXPANSION_COEFFICIENT) && GetProperties()[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
-         GetProperties().HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT)) {
-      mHasVariableRadius = true;
-    }
-    else {
-      mHasVariableRadius = false;
-    }
-
     // Set pointers to to auxiliary objects
     ThermalDEMIntegrationScheme::Pointer& thermal_integration_scheme   = GetProperties()[THERMAL_INTEGRATION_SCHEME_POINTER];
     NumericalIntegrationMethod::Pointer&  numerical_integration_method = GetProperties()[NUMERICAL_INTEGRATION_METHOD_POINTER];
@@ -148,11 +137,22 @@ namespace Kratos
     SetGenerationModel(generation_model);
     SetRealContactModel(real_contact_model);
 
+    // Set flags
+    mHasMotion = r_process_info[MOTION_OPTION];
+
+    if ((GetProperties().Has(THERMAL_EXPANSION_COEFFICIENT) && GetProperties()[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
+         GetProperties().HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT)) {
+      mHasVariableRadius = true;
+    }
+    else {
+      mHasVariableRadius = false;
+    }
+
     // Set flag to store contact parameters during mechanical loop over neighbors
     mStoreContactParam = mHasMotion &&
                         (r_process_info[HEAT_GENERATION_OPTION]  ||
                         (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0));    
-
+    
     // Clear maps
     mContactParamsParticle.clear();
     mContactParamsWall.clear();
