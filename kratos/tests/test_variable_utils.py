@@ -4,7 +4,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import math
 import os
-import numpy as np
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -707,12 +706,12 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part.CreateNewNode(10,12.0,26.0,32.0)
 
         #reference_results
-        ref_initial_coords2d = np.array([1.0,2.0,11.0,25.0,12.0,26.0])
-        ref_initial_coords3d = np.array([1.0,2.0,3.0,11.0,25.0,31.0,12.0,26.0,32.0])
-        ref_current_coords2d = np.array([2.0,4.0,12.0,27.0,13.0,28.0])
-        ref_current_coords3d = np.array([2.0,4.0,6.0,12.0,27.0,34.0,13.0,28.0,35.0])
-        ref_values2d = np.array([1.0,2.0,2.0,4.0,10.0,20.0])
-        ref_values3d = np.array([1.0,2.0,3.0,2.0,4.0,6.0,10.0,20.0,30.0])
+        ref_initial_coords2d = [1.0,2.0,11.0,25.0,12.0,26.0]
+        ref_initial_coords3d = [1.0,2.0,3.0,11.0,25.0,31.0,12.0,26.0,32.0]
+        ref_current_coords2d = [2.0,4.0,12.0,27.0,13.0,28.0]
+        ref_current_coords3d = [2.0,4.0,6.0,12.0,27.0,34.0,13.0,28.0,35.0]
+        ref_values2d = [1.0,2.0,2.0,4.0,10.0,20.0]
+        ref_values3d = [1.0,2.0,3.0,2.0,4.0,6.0,10.0,20.0,30.0]
 
         for node in model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0,node.Id*1.)
@@ -749,14 +748,14 @@ class TestVariableUtils(KratosUnittest.TestCase):
         for v,r in zip(ref_values3d,values3d):
             self.assertEqual(v,r)
 
-        input2d = np.array([0.0,1.0,2.0,3.0,4.0,5.0])
+        input2d = [0.0,1.0,2.0,3.0,4.0,5.0]
         KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,input2d,0)
         verify2d = KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,0,2) 
         
         for v,r in zip(input2d,verify2d):
             self.assertEqual(v,r)
 
-        input3d = np.array([0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0])
+        input3d = [0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0]
         KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,input2d,0)
         verify3d = KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,0,2) 
         
