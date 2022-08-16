@@ -212,13 +212,15 @@ public:
                         if (j > i) {
                             rA(i,j) -= value;
                             rA(j,i) -= value;
-                            #pragma omp critical
-                            {
-                                rA(i,i) += value;
-                                rA(j,j) += value;
-                                rB[i] += value*dofs_values[j] - value*dofs_values[i];
-                                rB[j] += value*dofs_values[i] - value*dofs_values[j];
-                            }
+                            // Values conflicting with other threads
+                            auto& r_aii = rA(i,i).ref();
+                            AtomicAdd(r_aii, value);
+                            auto& r_ajj = rA(j,j).ref();
+                            AtomicAdd(r_ajj, value);
+                            auto& r_bi = rB[i];
+                            AtomicAdd(r_bi, value*dofs_values[j] - value*dofs_values[i]);
+                            auto& r_bj = rB[j];
+                            AtomicAdd(r_bj, value*dofs_values[i] - value*dofs_values[j]);
                         }
                     }
                 }
