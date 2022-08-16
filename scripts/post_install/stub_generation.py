@@ -80,7 +80,8 @@ def __GenerateStubFilesForModule(
         kratos_library_path: Path,
         output_path: Path,
         cpp_module_name: str,
-        python_import_module_path_dict: dict[str, Path]) -> None:
+        python_import_module_path_dict: "dict[str, Path]") -> None:
+
 
     def __generate(output_path: Path, cpp_module_name: str, custom_args: "list[str]"):
 
