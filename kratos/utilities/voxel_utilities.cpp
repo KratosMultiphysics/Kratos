@@ -27,7 +27,8 @@ constexpr std::size_t VoxelUtilities::mNeighbours[4][2];
 double VoxelUtilities::NodesApproximation(const GeometryType& rVoxel) {
     double volume = 0;
     const auto& nodes = rVoxel.Points(); //PointsArrayType
-    for (std::size_t i = 0; i < nodes.size(); i++) {
+    const int n = nodes.size();
+    for (std::size_t i = 0; i < n; i++) {
         if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) {
             volume+=(1.0/nodes.size()); 
         } 
@@ -45,8 +46,8 @@ double VoxelUtilities::EdgesPortionApproximation(
     double volume = 0;
     GeometryArrayType edges = rVoxel.GenerateEdges();
     std::vector<double> distances;
-
-    for (std::size_t i = 0; i < edges.size(); i++) {
+    const int n = edges.size();
+    for (std::size_t i = 0; i < n; i++) {
         distances.push_back(0);
         const auto& ends = edges[i].Points();
 
@@ -55,7 +56,7 @@ double VoxelUtilities::EdgesPortionApproximation(
             int result = IntersectionUtilities::ComputeTriangleLineIntersection(r_triangle,ends[0],ends[1],intersection);
             
             if(result == 1) {
-                double dist = norm_2(ends[0].Coordinates() - intersection);
+                const double dist = norm_2(ends[0].Coordinates() - intersection);
                 distances.push_back(dist);
             }  
         } 
@@ -82,23 +83,25 @@ double VoxelUtilities::FaceArea(
     std::vector<std::pair<double,double>> min_distance_to_node(edges.size(),{1,1}); 
     
     int nodes_inside = 0;
-    for (std::size_t i = 0; i < nodes.size(); i++) {
+    const int nodes_size = nodes.size();
+    for (std::size_t i = 0; i < nodes_size; i++) {
         if (nodes[i].GetSolutionStepValue(DISTANCE) > 0) nodes_inside++;
     }
 
     if(nodes_inside == 3) {
-        for (std::size_t i = 0; i < nodes.size(); i++)  {
+        for (std::size_t i = 0; i < nodes_size; i++)  {
             nodes[i].GetSolutionStepValue(DISTANCE) = -nodes[i].GetSolutionStepValue(DISTANCE);
         }
         const double area = FaceArea(rFace,rTriangles);
-        for (std::size_t i = 0; i < nodes.size(); i++) {
+        for (std::size_t i = 0; i < nodes_size; i++) {
             nodes[i].GetSolutionStepValue(DISTANCE) = -nodes[i].GetSolutionStepValue(DISTANCE);
         }
         return 1-area;
     }
-
-    std::vector<double> length(edges.size()); 
-    for(std::size_t i = 0; i < edges.size(); i++) {
+    
+    const int edges_size = edges.size();
+    std::vector<double> length(edges_size); 
+    for(std::size_t i = 0; i < edges_size; i++) {
         const auto& ends = edges[i].Points();
         const double l = norm_2(ends[0].Coordinates() - ends[1].Coordinates());
         length[i] = l;
@@ -108,7 +111,7 @@ double VoxelUtilities::FaceArea(
         int result = 0; 
         array_1d<double,3> intersection;
         std::size_t j = 0;
-        while(!result && j < edges.size()) { 
+        while(!result && j < edges_size) { 
             const auto& ends = edges[j].Points();
             result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i],ends[0],ends[1],intersection);
 
@@ -128,7 +131,7 @@ double VoxelUtilities::FaceArea(
     }
 
     //std::size_t VoxelUtilities::mNeighbours[4][2] = {{3,1},{0,2},{1,3},{2,0}};  
-    for(std::size_t i = 0; i < nodes.size(); i++ ) {
+    for(std::size_t i = 0; i < nodes_size; i++ ) {
         array_1d<double,3> v_left{nodes[i].X() -nodes[VoxelUtilities::mNeighbours[i][0]].X(), nodes[i].Y() -nodes[VoxelUtilities::mNeighbours[i][0]].Y(), nodes[i].Z() -nodes[VoxelUtilities::mNeighbours[i][0]].Z()};
         array_1d<double,3> v_right{nodes[i].X() -nodes[VoxelUtilities::mNeighbours[i][1]].X(), nodes[i].Y() -nodes[VoxelUtilities::mNeighbours[i][1]].Y(), nodes[i].Z() -nodes[VoxelUtilities::mNeighbours[i][1]].Z()};
 
