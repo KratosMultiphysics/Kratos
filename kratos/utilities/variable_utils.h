@@ -1402,7 +1402,8 @@ public:
      */
     Vector GetCurrentPositionsVector(
         const ModelPart::NodesContainerType& rNodes, 
-        const unsigned int Dimension);
+        const unsigned int Dimension
+        );
 
     /**
      * @brief This function returns the INITIAL coordinates of all the nodes in a consecutive vector.
