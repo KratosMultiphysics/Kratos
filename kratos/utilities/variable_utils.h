@@ -1433,7 +1433,8 @@ public:
      */
      void SetCurrentPositionsVector(
         ModelPart::NodesContainerType& rNodes, 
-        const Vector& rPositions);
+        const Vector& rPositions
+        );
 
     /**
      * @brief This function represent the "set" counterpart of GetInitialPositionsVector and allows
