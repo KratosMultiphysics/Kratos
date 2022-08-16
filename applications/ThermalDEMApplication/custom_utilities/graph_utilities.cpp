@@ -158,6 +158,7 @@ namespace Kratos {
       particle.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY, energy_kinetic_translation, r_process_info);
       particle.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY,    energy_kinetic_rotation,    r_process_info);
       particle.Calculate(PARTICLE_INELASTIC_FRICTIONAL_ENERGY,    accum_energy_dissip_slid,   r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_ROLLRESIST_ENERGY,    accum_energy_dissip_roll,   r_process_info);
       particle.Calculate(PARTICLE_INELASTIC_VISCODAMPING_ENERGY,  accum_energy_dissip_damp,   r_process_info);
 
       #pragma omp critical

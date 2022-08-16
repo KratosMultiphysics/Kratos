@@ -118,6 +118,7 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     mElasticEnergy = rOther.mElasticEnergy;
     mInelasticFrictionalEnergy = rOther.mInelasticFrictionalEnergy;
     mInelasticViscodampingEnergy = rOther.mInelasticViscodampingEnergy;
+    mInelasticRollResistEnergy = rOther.mInelasticRollResistEnergy;
     mNeighbourElements = rOther.mNeighbourElements;
     mContactingNeighbourIds = rOther.mContactingNeighbourIds;
     mContactingFaceNeighbourIds = rOther.mContactingFaceNeighbourIds;
@@ -239,6 +240,8 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     inelastic_frictional_energy = 0.0;
     double& inelastic_viscodamping_energy = this->GetInelasticViscodampingEnergy();
     inelastic_viscodamping_energy = 0.0;
+    double& inelastic_rollresist_energy = this->GetInelasticRollResistEnergy();
+    inelastic_rollresist_energy = 0.0;
 
     DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
     DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
@@ -820,6 +823,7 @@ void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resist
     const double coeff_acc                            = central_node.FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / dt;
     const array_1d<double, 3>& ang_velocity           = central_node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
     const array_1d<double, 3> initial_rotation_moment = coeff_acc * ang_velocity; // the moment needed to stop the spin in one time step
+    double& inelastic_rollresist_energy               = this->GetInelasticRollResistEnergy();
 
     const double MaxRotaMoment[3] = {initial_rotation_moment[0] + mContactMoment[0], initial_rotation_moment[1] + mContactMoment[1], initial_rotation_moment[2] + mContactMoment[2]};
     double CoordSystemMoment[3]   = {0.0};
@@ -840,10 +844,14 @@ void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resist
         rolling_resistance_moment[0] -= CoordSystemMoment[0] * RollingResistance;
         rolling_resistance_moment[1] -= CoordSystemMoment[1] * RollingResistance;
         rolling_resistance_moment[2] -= CoordSystemMoment[2] * RollingResistance;
+
+        inelastic_rollresist_energy += fabs(DEM_INNER_PRODUCT_3(rolling_resistance_moment, central_node.FastGetSolutionStepValue(DELTA_ROTATION)));
     }
     else {
         rolling_resistance_moment = - mContactMoment;
         mContactMoment = - initial_rotation_moment;
+
+        inelastic_rollresist_energy += fabs(DEM_INNER_PRODUCT_3(MaxRotaMoment, central_node.FastGetSolutionStepValue(DELTA_ROTATION)));
     }
 }
 
@@ -1993,6 +2001,12 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
 
     }
 
+    if (rVariable == PARTICLE_INELASTIC_ROLLRESIST_ENERGY) {
+
+      Output = GetInelasticRollResistEnergy();
+
+    }
+
     AdditionalCalculate(rVariable, Output, r_process_info);
 
     KRATOS_CATCH("")
@@ -2217,6 +2231,7 @@ array_1d<double, 3>& SphericParticle::GetForce()                                
 double&              SphericParticle::GetElasticEnergy()                                  { return mElasticEnergy; }
 double&              SphericParticle::GetInelasticFrictionalEnergy()                      { return mInelasticFrictionalEnergy; }
 double&              SphericParticle::GetInelasticViscodampingEnergy()                    { return mInelasticViscodampingEnergy; }
+double&              SphericParticle::GetInelasticRollResistEnergy()                      { return mInelasticRollResistEnergy; }
 
 void   SphericParticle::SetYoungFromProperties(double* young)                                          { GetFastProperties()->SetYoungFromProperties( young);                                            }
 void   SphericParticle::SetPoissonFromProperties(double* poisson)                                      { GetFastProperties()->SetPoissonFromProperties( poisson);                                        }
