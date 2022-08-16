@@ -160,38 +160,39 @@ def Main():
     list_of_cpp_libs = []
 
     # first look for cpp module imports in python modules
-    _, cpp_python_modules_dict = __GetPythonModulesImportingCppModules(kratos_python_module_path, kratos_library_path)
+    available_cpp_libs, cpp_python_modules_dict = __GetPythonModulesImportingCppModules(kratos_python_module_path, kratos_library_path)
 
-    # generate Kratos core cpp stubs files
-    import_module("KratosMultiphysics")
-    list_of_cpp_libs.append(__GenerateStubFilesForModule(kratos_python_module_path, kratos_library_path, kratos_library_path, "Kratos", cpp_python_modules_dict))
+    if len(available_cpp_libs) > 0:
+        # generate Kratos core cpp stubs files
+        import_module("KratosMultiphysics")
+        list_of_cpp_libs.append(__GenerateStubFilesForModule(kratos_python_module_path, kratos_library_path, kratos_library_path, "Kratos", cpp_python_modules_dict))
 
-    # Collect Kratos applications
-    from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
-    list_of_available_applications = GetListOfAvailableApplications()
+        # Collect Kratos applications
+        from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
+        list_of_available_applications = GetListOfAvailableApplications()
 
-    # Generate stubs for all installed applications
-    for application_name in list_of_available_applications:
-        # Import the application
-        import_module("KratosMultiphysics." + application_name)
-        application_lib_name = "Kratos" + application_name
+        # Generate stubs for all installed applications
+        for application_name in list_of_available_applications:
+            # Import the application
+            import_module("KratosMultiphysics." + application_name)
+            application_lib_name = "Kratos" + application_name
 
-        # Generate stubs to temporary directory
-        list_of_cpp_libs.append(__GenerateStubFilesForModule(kratos_python_module_path, kratos_library_path, kratos_library_path, application_lib_name, cpp_python_modules_dict))
+            # Generate stubs to temporary directory
+            list_of_cpp_libs.append(__GenerateStubFilesForModule(kratos_python_module_path, kratos_library_path, kratos_library_path, application_lib_name, cpp_python_modules_dict))
 
-    # now iterate through auxiliary libraries and generate stub files
-    for custom_library_path in kratos_library_path.iterdir():
-        if custom_library_path.is_file():
-            custom_library_name = str(custom_library_path.relative_to(custom_library_path.parent))
-            cpython_location = custom_library_name.find(".cpython")
-            if cpython_location != -1:
-                custom_library_name = custom_library_name[:cpython_location]
-                if custom_library_name not in list_of_cpp_libs:
-                    list_of_cpp_libs.append(__GenerateStubFilesForModule(kratos_python_module_path, kratos_library_path, kratos_library_path, custom_library_name, cpp_python_modules_dict))
+        # now iterate through auxiliary libraries and generate stub files
+        for custom_library_path in kratos_library_path.iterdir():
+            if custom_library_path.is_file():
+                custom_library_name = str(custom_library_path.relative_to(custom_library_path.parent))
+                cpython_location = custom_library_name.find(".cpython")
+                if cpython_location != -1:
+                    custom_library_name = custom_library_name[:cpython_location]
+                    if custom_library_name not in list_of_cpp_libs:
+                        list_of_cpp_libs.append(__GenerateStubFilesForModule(kratos_python_module_path, kratos_library_path, kratos_library_path, custom_library_name, cpp_python_modules_dict))
 
-    # now check for the empty dir in libs
-    if (kratos_library_path / "KratosMultiphysics").is_dir():
-        shutil.rmtree(str(kratos_library_path / "KratosMultiphysics"))
+        # now check for the empty dir in libs
+        if (kratos_library_path / "KratosMultiphysics").is_dir():
+            shutil.rmtree(str(kratos_library_path / "KratosMultiphysics"))
 
 if __name__ == "__main__":
     if "--quiet" in sys.argv: # suppress output from Kratos imports
