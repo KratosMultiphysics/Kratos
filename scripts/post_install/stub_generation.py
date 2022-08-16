@@ -53,7 +53,8 @@ def __FindCPPModuleImportsInPythonModules(current_path: Path, cpp_module_names_l
                 __FindCPPModuleImportsInPythonModules(sub_path, cpp_module_names_list, cpp_python_modules_dict)
 
 
-def __GetPythonModulesImportingCppModules(kratos_python_module_path: Path, kratos_library_path: Path) -> dict[Path, Path]:
+def __GetPythonModulesImportingCppModules(kratos_python_module_path: Path, kratos_library_path: Path) -> "dict[Path, Path]":
+
     # generate list of cpp modules
     list_of_binary_modules = []
     for custom_library_path in kratos_library_path.iterdir():
