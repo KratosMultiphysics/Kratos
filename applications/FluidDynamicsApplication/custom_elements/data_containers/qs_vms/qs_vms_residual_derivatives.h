@@ -140,33 +140,8 @@ public:
         constexpr static IndexType TDerivativeDimension = TDerivativesType::TDerivativeDimension;
 
         ///@}
-        ///name@ Life Cycle
-        ///@{
-
-        VariableDerivatives(
-            Data& rData)
-            : mrData(rData),
-              mResidualWeightDerivativeContributions(rData)
-        {}
-
-        ///@}
         ///@name Operations
         ///@{
-
-        void CalculateGaussPointResidualsDerivativeContributions(
-            VectorF& rResidualDerivative,
-            const int NodeIndex,
-            const int DirectionIndex,
-            const double W,
-            const Vector& rN,
-            const Matrix& rdNdX,
-            const double WDerivative,
-            const double DetJDerivative,
-            const Matrix& rdNdXDerivative,
-            const double MassTermsDerivativesWeight = 1.0)
-        {
-            VariableDerivatives<TDerivativesType, TDirectionIndex>::CalculateGaussPointResidualsDerivativeContributions(rResidualDerivative, mrData, NodeIndex, DirectionIndex, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative, MassTermsDerivativesWeight);
-        }
 
         void static CalculateGaussPointResidualsDerivativeContributions(
             VectorF& rResidualDerivative,
@@ -180,9 +155,19 @@ public:
             const Matrix& rdNdXDerivative,
             const double MassTermsDerivativesWeight = 1.0)
         {
-            VariableDerivatives<TDerivativesType, TDirectionIndex>::CalculateGaussPointResidualsDerivativeContributions(rResidualDerivative, rData, NodeIndex, TDirectionIndex, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative, MassTermsDerivativesWeight);
+            CalculateGaussPointResidualsDerivativeContributions(
+                        rResidualDerivative,
+                        rData,
+                        NodeIndex,
+                        TDirectionIndex,
+                        W,
+                        rN,
+                        rdNdX,
+                        WDerivative,
+                        DetJDerivative,
+                        rdNdXDerivative,
+                        MassTermsDerivativesWeight);
         }
-
 
         void static CalculateGaussPointResidualsDerivativeContributions(
             VectorF& rResidualDerivative,
@@ -393,13 +378,6 @@ public:
         ///@}
 
     private:
-        ///@name Private Members
-        ///@{
-
-        Data& mrData;
-        ResidualsContributions mResidualWeightDerivativeContributions;
-
-        ///@}
         ///@name Private Operations
         ///@{
 
@@ -428,44 +406,13 @@ public:
         ///@}
     };
 
-    template<unsigned int TDirectionIndex = 0>
+    template<unsigned int TDirectionIndex>
     class SecondDerivatives
     {
     public:
-        ///@name Type Definitions
-        ///@{
-
-        ///@}
-        ///@name Life Cycle
-        ///@{
-
-        SecondDerivatives(
-            Data& rData);
-
-        ///@}
         ///@name Operations
         ///@{
 
-        void CalculateGaussPointResidualsDerivativeContributions(
-            VectorF& rResidualDerivative,
-            const int NodeIndex,
-            const int DirectionIndex,
-            const double W,
-            const Vector& rN,
-            const Matrix& rdNdX)
-        {
-            SecondDerivatives::CalculateGaussPointResidualsDerivativeContributions(rResidualDerivative, this->mrData, NodeIndex, DirectionIndex, W, rN, rdNdX);
-        }
-
-        void static CalculateGaussPointResidualsDerivativeContributions(
-            VectorF& rResidualDerivative,
-            Data& rData,
-            const int NodeIndex,
-            const int DirectionIndex,
-            const double W,
-            const Vector& rN,
-            const Matrix& rdNdX);
-
         void static CalculateGaussPointResidualsDerivativeContributions(
             VectorF& rResidualDerivative,
             Data& rData,
@@ -475,14 +422,6 @@ public:
             const Matrix& rdNdX);
 
         ///@}
-    private:
-        ///@name Private Members
-        ///@{
-
-        Data& mrData;
-
-        ///@}
-
     };
 
     class Data

@@ -162,44 +162,6 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::AddVisco
 
 template <unsigned int TDim, unsigned int TNumNodes>
 template <unsigned int TDirectionIndex>
-QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives<TDirectionIndex>::SecondDerivatives(
-    Data& rData)
-    : mrData(rData)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-template <unsigned int TDirectionIndex>
-void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives<TDirectionIndex>::CalculateGaussPointResidualsDerivativeContributions(
-    VectorF& rResidualDerivative,
-    Data& rData,
-    const int NodeIndex,
-    const int DirectionIndex,
-    const double W,
-    const Vector& rN,
-    const Matrix& rdNdX)
-{
-    rResidualDerivative.clear();
-
-    const double coeff_1 = W * rData.mDensity;
-    const double coeff_2 = coeff_1 * rData.mTauOne;
-
-    // Note: Dof order is (u,v,[w,]p) for each node
-    for (IndexType a = 0; a < TNumNodes; ++a) {
-        const IndexType col = a * TBlockSize;
-
-        double value = 0.0;
-
-        value -= coeff_1 * rN[a] * rN[NodeIndex];
-        value -= coeff_2 * rData.mDensity * rData.mConvectiveVelocityDotDnDx[a] * rN[NodeIndex];
-
-        rResidualDerivative[col + DirectionIndex] += value;
-        rResidualDerivative[col + TDim] -= coeff_2 * rdNdX(a, DirectionIndex) * rN[NodeIndex];
-    }
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-template <unsigned int TDirectionIndex>
 void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives<TDirectionIndex>::CalculateGaussPointResidualsDerivativeContributions(
     VectorF& rResidualDerivative,
     Data& rData,

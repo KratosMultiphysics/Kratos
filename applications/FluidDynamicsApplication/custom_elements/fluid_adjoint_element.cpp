@@ -621,7 +621,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidShapeDer
     this->CalculateGeometryData(Ws, Ns, dNdXs, integration_method);
 
     typename TAdjointElementData::Data             element_data(*this, *mpConstitutiveLaw, rCurrentProcessInfo);
-    typename TAdjointElementData::ShapeDerivatives derivative(element_data);
+    // typename TAdjointElementData::ShapeDerivatives derivative(element_data);
 
     VectorF residual;
 
@@ -650,7 +650,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidShapeDer
                 geom_sensitivity.CalculateSensitivity(deriv, detJ_derivative, dNdX_derivative);
                 const double W_derivative = detJ_derivative * inv_detJ * W;
 
-                derivative.CalculateGaussPointResidualsDerivativeContributions(residual, deriv.NodeIndex, deriv.Direction, W, N, dNdX, W_derivative, detJ_derivative, dNdX_derivative);
+                TAdjointElementData::ShapeDerivatives::CalculateGaussPointResidualsDerivativeContributions(residual, element_data, deriv.NodeIndex, deriv.Direction, W, N, dNdX, W_derivative, detJ_derivative, dNdX_derivative);
                 AssembleSubVectorToMatrix(rOutput, row++, residual);
             }
         }
