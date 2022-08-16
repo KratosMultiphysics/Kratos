@@ -81,7 +81,8 @@ def __GenerateStubFilesForModule(
         cpp_module_name: str,
         python_import_module_path_dict: dict[str, Path]) -> None:
 
-    def __generate(output_path: Path, cpp_module_name: str, custom_args: list[str]):
+    def __generate(output_path: Path, cpp_module_name: str, custom_args: "list[str]"):
+
         args = ["-o", str(output_path.absolute())]
         args.extend(custom_args)
         args.append(cpp_module_name)
