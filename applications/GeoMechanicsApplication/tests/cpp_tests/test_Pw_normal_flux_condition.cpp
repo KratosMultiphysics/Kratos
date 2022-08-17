@@ -65,7 +65,7 @@ namespace Kratos
             node_1->UnSetLock();
             node_2->UnSetLock();
 
-            int conditionSize = 2; 
+            unsigned int conditionSize = 2; 
 
             // Create the test piping element
             std::vector<ModelPart::IndexType> cond_nodes{ 1,2};
@@ -131,7 +131,7 @@ namespace Kratos
             node_1->UnSetLock();
             node_2->UnSetLock();
 
-            int conditionSize = 2;
+            unsigned int conditionSize = 2;
 
             // Create the test piping element
             std::vector<ModelPart::IndexType> cond_nodes{ 1,2 };
