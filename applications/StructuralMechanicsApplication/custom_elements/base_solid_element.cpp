@@ -1101,8 +1101,6 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 }
             }
         } else if (rVariable == INITIAL_STRAIN_VECTOR) {
-            const SizeType number_of_nodes = GetGeometry().size();
-            const SizeType dimension = GetGeometry().WorkingSpaceDimension();
             const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
                 if (mConstitutiveLawVector[point_number]->HasInitialState()) {
@@ -1244,7 +1242,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     if (rVariable == CONSTITUTIVE_LAW) {
         const SizeType integration_points_number = mConstitutiveLawVector.size();
         if (rValues.size() != integration_points_number) {
-            rValues.resize(integration_points_number, false);
+            rValues.resize(integration_points_number);
         }
         for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
             rValues[point_number] = mConstitutiveLawVector[point_number];
