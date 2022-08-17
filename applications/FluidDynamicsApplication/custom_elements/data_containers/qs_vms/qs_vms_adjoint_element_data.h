@@ -65,8 +65,6 @@ public:
     ///@name Template Type Definitions
     ///@{
 
-    static GeometryData::IntegrationMethod GetIntegrationMethod();
-
     using Residual = CalculationDataContainers<
                         std::tuple<
                             Data>,
@@ -74,31 +72,66 @@ public:
                             SubAssembly<ResidualsContributions, ElementDataContainerIndex, 0, ResidualColumnOffset>>
                         >;
 
-    using ResidualStateVariableFirstDerivatives = CalculationDataContainers<
-                                                    std::tuple<
-                                                        Data>,
-                                                    std::tuple<
-                                                        SubAssembly<VelocityDerivativeContributions<0>, ElementDataContainerIndex, 0, ResidualColumnOffset>,
-                                                        SubAssembly<VelocityDerivativeContributions<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>,
-                                                        SubAssembly<PressureDerivativeContributions   , ElementDataContainerIndex, 2, ResidualColumnOffset>>
-                                                    >;
+    using ResidualStateVariableFirstDerivatives = typename std::conditional<
+                                                        TDim == 2,
+                                                        CalculationDataContainers<
+                                                            std::tuple<
+                                                                Data>,
+                                                            std::tuple<
+                                                                SubAssembly<VelocityDerivativeContributions<0>, ElementDataContainerIndex, 0, ResidualColumnOffset>,
+                                                                SubAssembly<VelocityDerivativeContributions<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>,
+                                                                SubAssembly<PressureDerivativeContributions,    ElementDataContainerIndex, 2, ResidualColumnOffset>>
+                                                            >,
+                                                        CalculationDataContainers<
+                                                            std::tuple<
+                                                                Data>,
+                                                            std::tuple<
+                                                                SubAssembly<VelocityDerivativeContributions<0>, ElementDataContainerIndex, 0, ResidualColumnOffset>,
+                                                                SubAssembly<VelocityDerivativeContributions<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>,
+                                                                SubAssembly<VelocityDerivativeContributions<2>, ElementDataContainerIndex, 2, ResidualColumnOffset>,
+                                                                SubAssembly<PressureDerivativeContributions,    ElementDataContainerIndex, 3, ResidualColumnOffset>>
+                                                            >
+                                                        >::type;
 
-    using ResidualStateVariableSecondDerivatives = CalculationDataContainers<
-                                                    std::tuple<
-                                                        Data>,
-                                                    std::tuple<
-                                                        SubAssembly<AccelerationDerivativeContributions<0>, ElementDataContainerIndex, 0, ResidualColumnOffset>,
-                                                        SubAssembly<AccelerationDerivativeContributions<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>,
-                                                        SubAssembly<ZeroDerivatives<3, 3>                 , ElementDataContainerIndex, 2, ResidualColumnOffset>>
-                                                    >;
+    using ResidualStateVariableSecondDerivatives = typename std::conditional<
+                                                        TDim == 2,
+                                                        CalculationDataContainers<
+                                                            std::tuple<
+                                                                Data>,
+                                                            std::tuple<
+                                                                SubAssembly<AccelerationDerivativeContributions<0>, ElementDataContainerIndex, 0, ResidualColumnOffset>,
+                                                                SubAssembly<AccelerationDerivativeContributions<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>,
+                                                                SubAssembly<ZeroDerivatives<TNumNodes, 3>,          ElementDataContainerIndex, 2, ResidualColumnOffset>>
+                                                            >,
+                                                        CalculationDataContainers<
+                                                            std::tuple<
+                                                                Data>,
+                                                            std::tuple<
+                                                                SubAssembly<AccelerationDerivativeContributions<0>, ElementDataContainerIndex, 0, ResidualColumnOffset>,
+                                                                SubAssembly<AccelerationDerivativeContributions<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>,
+                                                                SubAssembly<AccelerationDerivativeContributions<2>, ElementDataContainerIndex, 2, ResidualColumnOffset>,
+                                                                SubAssembly<ZeroDerivatives<TNumNodes, 4>,          ElementDataContainerIndex, 3, ResidualColumnOffset>>
+                                                            >
+                                                        >::type;
 
-    using ResidualShapeDerivatives = CalculationDataContainers<
-                                        std::tuple<
-                                            Data>,
-                                        std::tuple<
-                                            SubAssembly<ShapeDerivatives<0>, ElementDataContainerIndex, 0, ResidualColumnOffset>,
-                                            SubAssembly<ShapeDerivatives<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>>
-                                        >;
+    using ResidualShapeDerivatives = typename std::conditional<
+                                            TDim == 2,
+                                            CalculationDataContainers<
+                                                std::tuple<
+                                                    Data>,
+                                                std::tuple<
+                                                    SubAssembly<ShapeDerivatives<0>, ElementDataContainerIndex, 0, ResidualColumnOffset>,
+                                                    SubAssembly<ShapeDerivatives<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>>
+                                                >,
+                                            CalculationDataContainers<
+                                                std::tuple<
+                                                    Data>,
+                                                std::tuple<
+                                                    SubAssembly<ShapeDerivatives<0>, ElementDataContainerIndex, 0, ResidualColumnOffset>,
+                                                    SubAssembly<ShapeDerivatives<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>,
+                                                    SubAssembly<ShapeDerivatives<2>, ElementDataContainerIndex, 2, ResidualColumnOffset>>
+                                                >
+                                            >::type;
 
     ///@}
     ///@name Static Operations
@@ -109,6 +142,8 @@ public:
         const ProcessInfo& rProcessInfo);
 
     static std::vector<const Variable<double>*> GetDofVariablesList();
+
+    static GeometryData::IntegrationMethod GetIntegrationMethod();
 
     ///@}
 };
