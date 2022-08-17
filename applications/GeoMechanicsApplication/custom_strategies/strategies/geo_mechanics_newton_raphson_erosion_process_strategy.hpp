@@ -119,7 +119,8 @@ public:
         // continue this loop, while the pipe is growing in length
         while (grow && (openPipeElements < n_el))
         {
-            bool Equilibrium = false;
+            // todo: JDN (20220817) : grow not used. 
+            // bool Equilibrium = false;
             bool converged = true;
 
             // get tip element and activate
@@ -372,7 +373,6 @@ private:
 
         while (PipeIter < mPipingIterations && !equilibrium && converged)
         {
-
             // set equilibirum on true
             equilibrium = true;
 
