@@ -72,7 +72,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const std::size_t voigt_size = (TDim == 3) ? 6 : 3;
+        const std::size_t voigt_size = rInitialStateVector.size();
 
         mInitialStrain.resize(voigt_size, false);
         mInitialStress.resize(voigt_size, false);
