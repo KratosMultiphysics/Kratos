@@ -168,9 +168,9 @@ const std::array<const Variable<double>*, 6> QSVMSDerivativeUtilities<3>::GetStr
 }
 
 template <unsigned int TDim>
-QSVMSDerivativeUtilities<TDim>::Derivative::Derivative(
+template <unsigned int TComponentIndex>
+QSVMSDerivativeUtilities<TDim>::Derivative<TComponentIndex>::Derivative(
     const IndexType NodeIndex,
-    const IndexType DirectionIndex,
     const GeometryType& rGeometry,
     const double W,
     const Vector& rN,
@@ -179,7 +179,6 @@ QSVMSDerivativeUtilities<TDim>::Derivative::Derivative(
     const double DetJDerivative,
     const Matrix& rdNdXDerivative)
     : mNodeIndex(NodeIndex),
-      mDirectionIndex(DirectionIndex),
       mrGeometry(rGeometry),
       mW(W),
       mrN(rN),
@@ -222,40 +221,35 @@ QSVMSDerivativeUtilities<TDim>::Derivative::Derivative(
            "number_of_nodes, mNodeIndex = "
         << mNodeIndex << ", number_of_nodes = " << number_of_nodes << " ].\n";
 
-    KRATOS_DEBUG_ERROR_IF(mDirectionIndex >= TDim)
-        << "Derivative direction index is not valid. [ mDirectionIndex >= "
-           "TDim, mDirectionIndex = "
-        << mDirectionIndex << ", TDim = " << TDim << " ].\n";
-
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim>
-template <unsigned int TNumNodes>
-array_1d<double, TDim> QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes>::CalculateEffectiveVelocityDerivative(
+template <unsigned int TNumNodes, unsigned int TComponentIndex>
+array_1d<double, TDim> QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes, TComponentIndex>::CalculateEffectiveVelocityDerivative(
     const array_1d<double, TDim>& rVelocity) const
 {
     array_1d<double, TDim> result = ZeroVector(TDim);
-    result[this->mDirectionIndex] = this->mrN[this->mNodeIndex];
+    result[TComponentIndex] = this->mrN[this->mNodeIndex];
     return result;
 }
 
 template <unsigned int TDim>
-template <unsigned int TNumNodes>
-double QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes>::CalculateElementLengthDerivative(
+template <unsigned int TNumNodes, unsigned int TComponentIndex>
+double QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes, TComponentIndex>::CalculateElementLengthDerivative(
     const double ElementLength) const
 {
     return 0.0;
 }
 
 template <unsigned int TDim>
-template <unsigned int TNumNodes>
-void QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes>::CalculateStrainRateDerivative(
+template <unsigned int TNumNodes, unsigned int TComponentIndex>
+void QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes, TComponentIndex>::CalculateStrainRateDerivative(
     Vector& rOutput,
     const Matrix& rNodalVelocity) const
 {
     QSVMSDerivativeUtilities<TDim>::CalculateStrainRateVelocityDerivative(
-        rOutput, this->mNodeIndex, this->mDirectionIndex, this->mrdNdX);
+        rOutput, this->mNodeIndex, TComponentIndex, this->mrdNdX);
 }
 
 template <unsigned int TDim>
@@ -285,8 +279,8 @@ void QSVMSDerivativeUtilities<TDim>::PressureDerivative<TNumNodes>::CalculateStr
 }
 
 template <unsigned int TDim>
-template <unsigned int TNumNodes>
-array_1d<double, TDim> QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes>::CalculateEffectiveVelocityDerivative(
+template <unsigned int TNumNodes, unsigned int TComponentIndex>
+array_1d<double, TDim> QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes, TComponentIndex>::CalculateEffectiveVelocityDerivative(
     const array_1d<double, TDim>& rVelocity) const
 {
     array_1d<double, TDim> result = ZeroVector(TDim);
@@ -294,16 +288,16 @@ array_1d<double, TDim> QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes
 }
 
 template <unsigned int TDim>
-template <unsigned int TNumNodes>
-double QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes>::CalculateElementLengthDerivative(
+template <unsigned int TNumNodes, unsigned int TComponentIndex>
+double QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes, TComponentIndex>::CalculateElementLengthDerivative(
     const double ElementLength) const
 {
-    return ElementSizeCalculator<TDim, TNumNodes>::MinimumElementSizeDerivative(this->mNodeIndex, this->mDirectionIndex, this->mrGeometry);
+    return ElementSizeCalculator<TDim, TNumNodes>::MinimumElementSizeDerivative(this->mNodeIndex, TComponentIndex, this->mrGeometry);
 }
 
 template <unsigned int TDim>
-template <unsigned int TNumNodes>
-void QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes>::CalculateStrainRateDerivative(
+template <unsigned int TNumNodes, unsigned int TComponentIndex>
+void QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes, TComponentIndex>::CalculateStrainRateDerivative(
     Vector& rOutput,
     const Matrix& rNodalVelocity) const
 {
@@ -311,12 +305,26 @@ void QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes>::CalculateStrain
 }
 
 // template instantiations
+template class QSVMSDerivativeUtilities<2>::Derivative<0>;
+template class QSVMSDerivativeUtilities<2>::Derivative<1>;
 
-template class QSVMSDerivativeUtilities<2>::VelocityDerivative<3>;
-template class QSVMSDerivativeUtilities<2>::VelocityDerivative<4>;
+template class QSVMSDerivativeUtilities<3>::Derivative<0>;
+template class QSVMSDerivativeUtilities<3>::Derivative<1>;
+template class QSVMSDerivativeUtilities<3>::Derivative<2>;
 
-template class QSVMSDerivativeUtilities<3>::VelocityDerivative<4>;
-template class QSVMSDerivativeUtilities<3>::VelocityDerivative<8>;
+template class QSVMSDerivativeUtilities<2>::VelocityDerivative<3, 0>;
+template class QSVMSDerivativeUtilities<2>::VelocityDerivative<3, 1>;
+
+template class QSVMSDerivativeUtilities<2>::VelocityDerivative<4, 0>;
+template class QSVMSDerivativeUtilities<2>::VelocityDerivative<4, 1>;
+
+template class QSVMSDerivativeUtilities<3>::VelocityDerivative<4, 0>;
+template class QSVMSDerivativeUtilities<3>::VelocityDerivative<4, 1>;
+template class QSVMSDerivativeUtilities<3>::VelocityDerivative<4, 2>;
+
+template class QSVMSDerivativeUtilities<3>::VelocityDerivative<8, 0>;
+template class QSVMSDerivativeUtilities<3>::VelocityDerivative<8, 1>;
+template class QSVMSDerivativeUtilities<3>::VelocityDerivative<8, 2>;
 
 template class QSVMSDerivativeUtilities<2>::PressureDerivative<3>;
 template class QSVMSDerivativeUtilities<2>::PressureDerivative<4>;
@@ -324,11 +332,19 @@ template class QSVMSDerivativeUtilities<2>::PressureDerivative<4>;
 template class QSVMSDerivativeUtilities<3>::PressureDerivative<4>;
 template class QSVMSDerivativeUtilities<3>::PressureDerivative<8>;
 
-template class QSVMSDerivativeUtilities<2>::ShapeDerivative<3>;
-template class QSVMSDerivativeUtilities<2>::ShapeDerivative<4>;
+template class QSVMSDerivativeUtilities<2>::ShapeDerivative<3, 0>;
+template class QSVMSDerivativeUtilities<2>::ShapeDerivative<3, 1>;
 
-template class QSVMSDerivativeUtilities<3>::ShapeDerivative<4>;
-template class QSVMSDerivativeUtilities<3>::ShapeDerivative<8>;
+template class QSVMSDerivativeUtilities<2>::ShapeDerivative<4, 0>;
+template class QSVMSDerivativeUtilities<2>::ShapeDerivative<4, 1>;
+
+template class QSVMSDerivativeUtilities<3>::ShapeDerivative<4, 0>;
+template class QSVMSDerivativeUtilities<3>::ShapeDerivative<4, 1>;
+template class QSVMSDerivativeUtilities<3>::ShapeDerivative<4, 2>;
+
+template class QSVMSDerivativeUtilities<3>::ShapeDerivative<8, 0>;
+template class QSVMSDerivativeUtilities<3>::ShapeDerivative<8, 1>;
+template class QSVMSDerivativeUtilities<3>::ShapeDerivative<8, 2>;
 
 template class QSVMSDerivativeUtilities<2>;
 template class QSVMSDerivativeUtilities<3>;

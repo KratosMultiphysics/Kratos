@@ -154,14 +154,14 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::AddVisco
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-template <unsigned int TDirectionIndex>
-void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives<TDirectionIndex>::CalculateGaussPointResidualsDerivativeContributions(
+template <unsigned int TComponentIndex>
+void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives<TComponentIndex>::CalculateGaussPointResidualsDerivativeContributions(
     VectorF& rResidualDerivative,
     Data& rData,
     const int NodeIndex,
     const double W,
     const Vector& rN,
-    const Matrix& rdNdX)
+    const Matrix& rdNdX) const
 {
     rResidualDerivative.clear();
 
@@ -177,8 +177,8 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives<TDirectionInde
         value -= coeff_1 * rN[a] * rN[NodeIndex];
         value -= coeff_2 * rData.mDensity * rData.mConvectiveVelocityDotDnDx[a] * rN[NodeIndex];
 
-        rResidualDerivative[col + TDirectionIndex] += value;
-        rResidualDerivative[col + TDim] -= coeff_2 * rdNdX(a, TDirectionIndex) * rN[NodeIndex];
+        rResidualDerivative[col + TComponentIndex] += value;
+        rResidualDerivative[col + TDim] -= coeff_2 * rdNdX(a, TComponentIndex) * rN[NodeIndex];
     }
 }
 

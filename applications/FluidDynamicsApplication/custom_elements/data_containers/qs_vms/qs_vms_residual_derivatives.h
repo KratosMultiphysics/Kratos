@@ -102,12 +102,6 @@ public:
         constexpr static IndexType BlockSize = TBlockSize;
 
         ///@}
-        ///@name Life Cycle
-        ///@{
-
-        explicit ResidualsContributions() = default;
-
-        ///@}
         ///@name Operations
         ///@{
 
@@ -132,7 +126,7 @@ public:
         ///@}
     };
 
-    template<class TDerivativesType, unsigned int TDirectionIndex = 0>
+    template<class TDerivativesType>
     class VariableDerivatives
     {
     public:
@@ -144,6 +138,8 @@ public:
         constexpr static IndexType BlockSize = TBlockSize;
 
         constexpr static IndexType TDerivativeDimension = TDerivativesType::TDerivativeDimension;
+
+        constexpr static IndexType ComponentIndex = TDerivativesType::ComponentIndex;
 
         ///@}
         ///@name Operations
@@ -161,33 +157,6 @@ public:
             const Matrix& rdNdXDerivative,
             const double MassTermsDerivativesWeight = 1.0) const
         {
-            CalculateGaussPointResidualsDerivativeContributions(
-                        rResidualDerivative,
-                        rData,
-                        NodeIndex,
-                        TDirectionIndex,
-                        W,
-                        rN,
-                        rdNdX,
-                        WDerivative,
-                        DetJDerivative,
-                        rdNdXDerivative,
-                        MassTermsDerivativesWeight);
-        }
-
-        void static CalculateGaussPointResidualsDerivativeContributions(
-            VectorF& rResidualDerivative,
-            Data& rData,
-            const int NodeIndex,
-            const int DirectionIndex,
-            const double W,
-            const Vector& rN,
-            const Matrix& rdNdX,
-            const double WDerivative,
-            const double DetJDerivative,
-            const Matrix& rdNdXDerivative,
-            const double MassTermsDerivativesWeight = 1.0)
-        {
             rResidualDerivative.clear();
 
             constexpr double u_factor = TDerivativesType::VelocityDerivativeFactor;
@@ -196,7 +165,7 @@ public:
             const auto& r_geometry = rData.mpElement->GetGeometry();
 
             const TDerivativesType derivatives_type(
-                NodeIndex, DirectionIndex, r_geometry, W, rN, rdNdX,
+                NodeIndex, r_geometry, W, rN, rdNdX,
                 WDerivative, DetJDerivative, rdNdXDerivative);
 
             const auto& velocity_derivative = derivatives_type.CalculateEffectiveVelocityDerivative(rData.mVelocity);
@@ -252,7 +221,7 @@ public:
             for (IndexType l = 0; l < TDim; ++l) {
                 pressure_gradient_derivative[l] += rdNdX(NodeIndex, l) * p_factor;
             }
-            row(velocity_gradient_derivative, DirectionIndex) += row(rdNdX, NodeIndex) * u_factor;
+            row(velocity_gradient_derivative, ComponentIndex) += row(rdNdX, NodeIndex) * u_factor;
 
             double velocity_dot_nabla_derivative = 0.0;
             for (IndexType a = 0; a < TNumNodes; ++a) {
@@ -323,7 +292,7 @@ public:
                     value -= W * tau_two_derivative * rdNdX(a, i) * rData.mVelocityDotNabla;
                     value -= W * rData.mTauTwo * rdNdXDerivative(a, i) * rData.mVelocityDotNabla;
                     value -= W * rData.mTauTwo * rdNdX(a, i) * velocity_dot_nabla_derivative;
-                    value -= W * rData.mTauTwo * rdNdX(a, i) * rdNdX(NodeIndex, DirectionIndex) * u_factor;
+                    value -= W * rData.mTauTwo * rdNdX(a, i) * rdNdX(NodeIndex, ComponentIndex) * u_factor;
 
                     // Adding Mass term derivatives
 
@@ -346,7 +315,7 @@ public:
                 value -= W * rData.mTauOne * rData.mDensity * effective_velocity_dot_velocity_gradient_dot_shape_gradient_derivative[a];
 
                 value -= W * rN[a] * velocity_dot_nabla_derivative;
-                value -= W * rN[a] * rdNdX(NodeIndex, DirectionIndex) * u_factor;
+                value -= W * rN[a] * rdNdX(NodeIndex, ComponentIndex) * u_factor;
 
                 value -= W * tau_one_derivative * rData.mPressureGradientDotDnDx[a];
                 value -= W * rData.mTauOne * pressure_gradient_derivative_dot_shape_gradient[a];
@@ -377,7 +346,7 @@ public:
             noalias(rData.mShearStressDerivative) += value * effective_viscosity_derivative;
 
             AddViscousDerivative(rData, rResidualDerivative, NodeIndex,
-                                       DirectionIndex, W, rN, rdNdX, WDerivative,
+                                       W, rN, rdNdX, WDerivative,
                                        DetJDerivative, rdNdXDerivative);
         }
 
@@ -391,7 +360,6 @@ public:
             Data& rData,
             VectorF& rResidualDerivative,
             const int NodeIndex,
-            const int DirectionIndex,
             const double W,
             const Vector& rN,
             const Matrix& rdNdX,
@@ -412,7 +380,7 @@ public:
         ///@}
     };
 
-    template<unsigned int TDirectionIndex>
+    template<unsigned int TComponentIndex>
     class SecondDerivatives
     {
     public:
@@ -427,13 +395,13 @@ public:
         ///@name Operations
         ///@{
 
-        void static CalculateGaussPointResidualsDerivativeContributions(
+        void CalculateGaussPointResidualsDerivativeContributions(
             VectorF& rResidualDerivative,
             Data& rData,
             const int NodeIndex,
             const double W,
             const Vector& rN,
-            const Matrix& rdNdX);
+            const Matrix& rdNdX) const;
 
         ///@}
     };
@@ -449,12 +417,6 @@ public:
         static constexpr IndexType TLNumNodes = TNN;
 
         static constexpr IndexType TResidualSize = TBlockSize * TLNumNodes;
-
-        ///@}
-        ///@name Life Cycle
-        ///@{
-
-        explicit Data() = default;
 
         ///@}
         ///@name Operations
@@ -533,10 +495,12 @@ public:
         ///@name Private Friends
         ///@{
 
-        template<class TDerivativesType, unsigned int TDirectionIndex>
+        template<class TDerivativesType>
         friend class VariableDerivatives;
-        template<unsigned int TDirectionIndex>
+
+        template<unsigned int TComponentIndex>
         friend class SecondDerivatives;
+
         friend class ResidualsContributions;
 
         ///@}
