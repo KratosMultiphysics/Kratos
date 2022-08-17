@@ -43,7 +43,7 @@ void PfemSolidConstitutiveLaw::CalculateMaterialResponseCauchy(Parameters& rValu
 }
 
 int PfemSolidConstitutiveLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-                                    const ProcessInfo& rCurrentProcessInfo) {
+                                    const ProcessInfo& rCurrentProcessInfo) const {
     KRATOS_ERROR << "Calling base "
                     "PfemSolidConstitutiveLaw::Check "
                     "method. This class should not be instantiated. Please "
@@ -79,7 +79,7 @@ ConstitutiveLaw::SizeType PfemSolidConstitutiveLaw::WorkingSpaceDimension() {
     return 0;
 }
 
-ConstitutiveLaw::SizeType PfemSolidConstitutiveLaw::GetStrainSize() {
+ConstitutiveLaw::SizeType PfemSolidConstitutiveLaw::GetStrainSize() const {
     KRATOS_ERROR << "Calling base "
                     "PfemSolidConstitutiveLaw::GetStrainSize "
                     "method. This class should not be instantiated. Please "

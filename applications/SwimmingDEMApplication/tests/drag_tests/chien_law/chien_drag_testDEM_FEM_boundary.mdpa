@@ -1,0 +1,194 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+
+Begin Properties 3
+End Properties
+Begin Properties 4
+End Properties
+
+Begin Nodes
+    4   0.0000000000   0.0510000000   0.1000000000
+    5   0.0000000000   0.0500000000   0.1000000000
+    8   0.0333333333   0.0510000000   0.0666666667
+    9  -0.0333333333   0.0510000000   0.0666666667
+   10   0.0333333333   0.0500000000   0.0666666667
+   11  -0.0333333333   0.0500000000   0.0666666667
+   21   0.0193449275   0.0510000000   0.0193449275
+   22   0.0193449275   0.0500000000   0.0193449275
+   30   0.0666666667   0.0510000000   0.0333333333
+   31  -0.0666666667   0.0510000000   0.0333333333
+   33   0.0666666667   0.0500000000   0.0333333333
+   34  -0.0666666667   0.0500000000   0.0333333333
+   62  -0.0148314010   0.0510000000  -0.0231647343
+   63  -0.0148314010   0.0500000000  -0.0231647343
+   66   0.0250000000   0.0510000000  -0.0250000000
+   68   0.0250000000   0.0500000000  -0.0250000000
+   77   0.1000000000   0.0510000000   0.0000000000
+   78  -0.1000000000   0.0510000000   0.0000000000
+   79   0.1000000000   0.0500000000   0.0000000000
+   80  -0.1000000000   0.0500000000   0.0000000000
+   84   0.0666666667   0.0510000000  -0.0333333333
+   85  -0.0666666667   0.0510000000  -0.0333333333
+   86   0.0666666667   0.0500000000  -0.0333333333
+   87  -0.0666666667   0.0500000000  -0.0333333333
+   97   0.0333333333   0.0510000000  -0.0666666667
+   98  -0.0333333333   0.0510000000  -0.0666666667
+   99   0.0333333333   0.0500000000  -0.0666666667
+  100  -0.0333333333   0.0500000000  -0.0666666667
+  107   0.0000000000   0.0510000000  -0.1000000000
+  108   0.0000000000   0.0500000000  -0.1000000000
+End Nodes
+
+
+Begin Conditions AnalyticRigidFace3D3N// GUI group identifier: Phantom Walls Auto1
+  239          3     5    10    11
+  240          3    10    33    22
+  241          3    33    79    86
+  242          3    86    99    68
+  243          3    99   108   100
+  244          3   100    87    63
+  245          3    87    80    34
+  246          3    22    33    86
+  247          3    10    22    11
+  248          3    68    99    63
+  249          3    86    68    22
+  250          3    22    68    63
+  251          3    63    99   100
+  252          3    63    87    34
+  253          3    11    22    34
+  254          3    22    63    34
+End Conditions
+
+Begin Conditions AnalyticRigidFace3D3N// GUI group identifier: Phantom Walls Auto2
+  255          4     4     8     9
+  256          4     8    30    21
+  257          4    30    77    84
+  258          4    84    97    66
+  259          4    97   107    98
+  260          4    98    85    62
+  261          4    85    78    31
+  262          4    21    30    84
+  263          4     8    21     9
+  264          4    66    97    62
+  265          4    84    66    21
+  266          4    21    66    62
+  267          4    62    97    98
+  268          4    62    85    31
+  269          4     9    21    31
+  270          4    21    62    31
+End Conditions
+
+Begin SubModelPart 1 // Phantom-Wall - group identifier: Phantom Walls Auto1
+  Begin SubModelPartData // Phantom-Wall. Group name: Phantom Walls Auto1
+    LINEAR_VELOCITY [3] (0.0, 0.0, 0.0)
+    VELOCITY_PERIOD 0.0
+    ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
+    ROTATION_CENTER [3] (0.0,0.0,0.0)
+    ANGULAR_VELOCITY_PERIOD 0.0
+    VELOCITY_START_TIME 0.0
+    VELOCITY_STOP_TIME 100.0
+    ANGULAR_VELOCITY_START_TIME 0.0
+    ANGULAR_VELOCITY_STOP_TIME 100.0
+    FIXED_MESH_OPTION 0
+    RIGID_BODY_MOTION 1
+    FREE_BODY_MOTION 0
+    IS_GHOST 1
+    IDENTIFIER Phantom_Walls_Auto1
+    FORCE_INTEGRATION_GROUP 0
+  End SubModelPartData
+  Begin SubModelPartNodes
+         5
+        10
+        11
+        22
+        33
+        34
+        63
+        68
+        79
+        80
+        86
+        87
+        99
+       100
+       108
+  End SubModelPartNodes
+Begin SubModelPartConditions
+       239
+       240
+       241
+       242
+       243
+       244
+       245
+       246
+       247
+       248
+       249
+       250
+       251
+       252
+       253
+       254
+End SubModelPartConditions
+
+End SubModelPart
+
+Begin SubModelPart 2 // Phantom-Wall - group identifier: Phantom Walls Auto2
+  Begin SubModelPartData // Phantom-Wall. Group name: Phantom Walls Auto2
+    LINEAR_VELOCITY [3] (0.0, 0.0, 0.0)
+    VELOCITY_PERIOD 0.0
+    ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
+    ROTATION_CENTER [3] (0.0,0.0,0.0)
+    ANGULAR_VELOCITY_PERIOD 0.0
+    VELOCITY_START_TIME 0.0
+    VELOCITY_STOP_TIME 100.0
+    ANGULAR_VELOCITY_START_TIME 0.0
+    ANGULAR_VELOCITY_STOP_TIME 100.0
+    FIXED_MESH_OPTION 0
+    RIGID_BODY_MOTION 1
+    FREE_BODY_MOTION 0
+    IS_GHOST 1
+    IDENTIFIER Phantom_Walls_Auto2
+    FORCE_INTEGRATION_GROUP 0
+  End SubModelPartData
+  Begin SubModelPartNodes
+         4
+         8
+         9
+        21
+        30
+        31
+        62
+        66
+        77
+        78
+        84
+        85
+        97
+        98
+       107
+  End SubModelPartNodes
+Begin SubModelPartConditions
+       255
+       256
+       257
+       258
+       259
+       260
+       261
+       262
+       263
+       264
+       265
+       266
+       267
+       268
+       269
+       270
+End SubModelPartConditions
+
+End SubModelPart
+

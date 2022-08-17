@@ -28,7 +28,6 @@
 #include "linear_solvers/linear_solver.h"
 
 #include "custom_utilities/fluid_auxiliary_utilities.h"
-#include "custom_utilities/fluid_post_process_utilities.h"
 #include "custom_utilities/drag_utilities.h"
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/estimate_dt_utilities.h"
@@ -179,12 +178,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("CalculateFluidVolume", &FluidAuxiliaryUtilities::CalculateFluidVolume)
         .def_static("CalculateFluidPositiveVolume", &FluidAuxiliaryUtilities::CalculateFluidPositiveVolume)
         .def_static("CalculateFluidNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidNegativeVolume)
-        ;
-
-    // Post process utilities
-    py::class_< FluidPostProcessUtilities > (m,"FluidPostProcessUtilities")
-        .def(py::init<>())
-        .def("CalculateFlow", &FluidPostProcessUtilities::CalculateFlow)
         ;
 
 }

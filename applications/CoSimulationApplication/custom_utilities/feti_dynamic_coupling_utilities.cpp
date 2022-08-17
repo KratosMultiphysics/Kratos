@@ -809,13 +809,13 @@ namespace Kratos
 
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::SetEffectiveStiffnessMatrixImplicit(
-        SparseMatrixType& rK, const SolverIndex SolverIndex)
+        SparseMatrixType& rK, const SolverIndex iSolverIndex)
     {
-        if (SolverIndex == SolverIndex::Origin) mpKOrigin = &rK;
-        else if (SolverIndex == SolverIndex::Destination) mpKDestination = &rK;
+        if (iSolverIndex == SolverIndex::Origin) mpKOrigin = &rK;
+        else if (iSolverIndex == SolverIndex::Destination) mpKDestination = &rK;
         else KRATOS_ERROR << "SetEffectiveStiffnessMatrices, SolverIndex must be Origin or Destination";
 
-        this->SetEffectiveStiffnessMatrixExplicit(SolverIndex);
+        this->SetEffectiveStiffnessMatrixExplicit(iSolverIndex);
     };
 
     template<class TSparseSpace, class TDenseSpace>

@@ -31,7 +31,8 @@
         "no_skin_parts"              	: [],
         "move_mesh_flag"				: false,
 		"formulation": {
-			"dynamic_tau": 1.0
+			"dynamic_tau": 1.0,
+			"mass_source": false
 		},
         "time_stepping"  : {
             "automatic_time_step" 	: false,

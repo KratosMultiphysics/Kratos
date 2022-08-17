@@ -129,6 +129,10 @@
             "input_filename" : "interpolation_tests/cubeFluid"
         },
 
+        "material_import_settings"    : {
+            "materials_filename" : "interpolation_tests/FluidMaterials.json"
+        },
+
         "formulation" : {
             "element_type" : "vms",
             "dynamic_tau" : 1.0,
@@ -227,8 +231,8 @@
     "solver_settings" : {
             "strategy" : "swimming_sphere_strategy",
             "RemoveBallsInitiallyTouchingWalls" : false,
-            "material_import_settings"           : {
-                "materials_filename" : "interpolation_tests/MaterialsDEM.json"
+            "material_import_settings" : {
+            "materials_filename" : "interpolation_tests/MaterialsDEM.json"
             }
     },
 

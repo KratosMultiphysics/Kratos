@@ -7,6 +7,7 @@ from KratosMultiphysics.HDF5Application.core import operations
 from KratosMultiphysics.HDF5Application.core import file_io
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
+import pathlib
 from unittest.mock import call, patch, MagicMock
 
 
@@ -143,36 +144,26 @@ class TestFileIO(KratosUnittest.TestCase):
         mock_instance = mock_class.return_value
         mock_instance.GetFileName.return_value = '/foo/kratos.h5'
         settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
-        patcher1 = patch('os.path.exists', autospec=True)
-        patcher2 = patch('os.makedirs', autospec=True)
-        pathexists = patcher1.start()
-        makedirs = patcher2.start()
-        pathexists.return_value = True
+        patcher = patch('KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories', autospec=True)
+        makedirs = patcher.start()
         data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
         obj = file_io._FilenameGetterWithDirectoryInitialization(settings, data_comm)
         obj.Get(_SurrogateModelPart())
-        pathexists.assert_called_once_with('/foo')
-        self.assertEqual(makedirs.call_count, 0)
-        patcher1.stop()
-        patcher2.stop()
+        makedirs.assert_called_once_with('/foo')
+        patcher.stop()
 
     @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
     def test_FilenameGetterWithDirectoryInitialization_DirectoryDoesNotExist(self, mock_class):
         mock_instance = mock_class.return_value
         mock_instance.GetFileName.return_value = '/foo/kratos.h5'
         settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
-        patcher1 = patch('os.path.exists', autospec=True)
-        patcher2 = patch('os.makedirs', autospec=True)
-        pathexists = patcher1.start()
-        makedirs = patcher2.start()
-        pathexists.return_value = False
+        patcher = patch('KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories', autospec=True)
+        makedirs = patcher.start()
         data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
         obj = file_io._FilenameGetterWithDirectoryInitialization(settings, data_comm)
         obj.Get(_SurrogateModelPart())
-        pathexists.assert_called_once_with('/foo')
         makedirs.assert_called_once_with('/foo')
-        patcher1.stop()
-        patcher2.stop()
+        patcher.stop()
 
     @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
     def test_FileIOMaxFilesToKeepExclusiveNoDeletion(self, mock_class):
@@ -600,7 +591,7 @@ class TestControllers(KratosUnittest.TestCase):
         settings = ParametersWrapper()
         settings['controller_type'] = 'abcdefg'
         with self.assertRaisesRegex(ValueError, r'"controller_type" has invalid value "abcdefg"'):
-            controllers.Create(MagicMock(), MagicMock(), settings)
+            controllers.Factory(MagicMock(), MagicMock(), settings)
 
     @patch('KratosMultiphysics.FileNameDataCollector', autospec=True)
     def test_DefaultController(self, mock_class):
@@ -612,7 +603,7 @@ class TestControllers(KratosUnittest.TestCase):
         controller_settings = ParametersWrapper()
         with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5FileSerial', autospec=True):
             io = file_io.Create(io_settings, data_comm)
-            controller = controllers.Create(
+            controller = controllers.Factory(
                 model_part, io, controller_settings)
             self.assertTrue(controller_settings.Has('controller_type'))
             self.assertEqual(
@@ -632,7 +623,7 @@ class TestControllers(KratosUnittest.TestCase):
         io = file_io.Create(ParametersWrapper(), data_comm)
         controller_settings = ParametersWrapper()
         controller_settings['controller_type'] = 'temporal_controller'
-        controller = controllers.Create(model_part, io, controller_settings)
+        controller = controllers.Factory(model_part, io, controller_settings)
         self.assertEqual(controller.model_part, model_part)
         self.assertEqual(controller.io, io)
         self.assertEqual(controller.time_frequency, 1.0)
@@ -648,7 +639,7 @@ class TestControllers(KratosUnittest.TestCase):
         controller_settings['controller_type'] = 'temporal_controller'
         controller_settings['time_frequency'] = 2.0
         controller_settings['step_frequency'] = 3
-        controller = controllers.Create(model_part, io, controller_settings)
+        controller = controllers.Factory(model_part, io, controller_settings)
         self.assertEqual(controller.time_frequency, 2.0)
         self.assertEqual(controller.step_frequency, 3)
 
@@ -660,7 +651,7 @@ class TestControllers(KratosUnittest.TestCase):
         controller_settings['controller_type'] = 'temporal_controller'
         with patch('KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO', autospec=True):
             io = file_io.Create(ParametersWrapper(), data_comm)
-            controller = controllers.Create(
+            controller = controllers.Factory(
                 model_part, io, controller_settings)
             for i in range(10):
                 controller()
@@ -676,7 +667,7 @@ class TestControllers(KratosUnittest.TestCase):
         controller_settings['controller_type'] = 'temporal_controller'
         with patch('KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO', autospec=True):
             io = file_io.Create(ParametersWrapper(), data_comm)
-            controller = controllers.Create(
+            controller = controllers.Factory(
                 model_part, io, controller_settings)
             for i in range(10):
                 controller()
@@ -692,7 +683,7 @@ class TestControllers(KratosUnittest.TestCase):
         controller_settings['controller_type'] = 'temporal_controller'
         with patch('KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO', autospec=True):
             io = file_io.Create(ParametersWrapper(), data_comm)
-            controller = controllers.Create(
+            controller = controllers.Factory(
                 model_part, io, controller_settings)
             for _ in range(10):
                 controller()
@@ -709,7 +700,7 @@ class TestControllers(KratosUnittest.TestCase):
         controller_settings['controller_type'] = 'temporal_controller'
         io = file_io.Create(ParametersWrapper(), data_comm)
         operation = MagicMock(spec=operations.ModelPartOutput)
-        controller = controllers.Create(
+        controller = controllers.Factory(
             model_part, io, controller_settings)
         controller.Add(operation)
         with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5FileSerial', autospec=True):
@@ -724,7 +715,7 @@ class TestFactory(KratosUnittest.TestCase):
         model = KratosMultiphysics.Model()
         settings = KratosMultiphysics.Parameters()
         with self.assertRaisesRegex(ValueError, r'Expected settings as an array'):
-            core.Factory(settings, model)
+            core.Factory(settings, model, KratosMultiphysics.Process)
 
     def test_EmptyArraySettings(self):
         model = KratosMultiphysics.Model()
@@ -735,7 +726,7 @@ class TestFactory(KratosUnittest.TestCase):
             ''')
         settings = ParametersWrapper(settings)
         with self.assertRaisesRegex(RuntimeError, '"PLEASE_SPECIFY_MODEL_PART_NAME" was not found'):
-            core.Factory(settings['list_of_controllers'], model)
+            core.Factory(settings['list_of_controllers'], model, KratosMultiphysics.Process)
 
     def test_DefaultSettings(self):
         model = KratosMultiphysics.Model()
@@ -750,7 +741,7 @@ class TestFactory(KratosUnittest.TestCase):
             }
             ''')
         parent_settings = ParametersWrapper(parent_settings)
-        core.Factory(parent_settings['list_of_controllers'], model)
+        core.Factory(parent_settings['list_of_controllers'], model, KratosMultiphysics.Process)
         settings = parent_settings['list_of_controllers'][0]
         self.assertTrue(settings.Has('model_part_name'))
         self.assertTrue(settings.Has('process_step'))
@@ -777,7 +768,7 @@ class TestFactory(KratosUnittest.TestCase):
             ''')
         parent_settings = ParametersWrapper(parent_settings)
         process = core.Factory(
-            parent_settings['list_of_controllers'], model)
+            parent_settings['list_of_controllers'], model, KratosMultiphysics.Process)
         patcher1 = patch(
             'KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5FileSerial', autospec=True)
         patcher2 = patch(
@@ -789,6 +780,57 @@ class TestFactory(KratosUnittest.TestCase):
         model_part_io.WriteModelPart.assert_called_once_with(model_part)
         patcher1.stop()
         patcher2.stop()
+
+
+    def test_TemporalController_PrintOutput(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("test")
+        parameters = ParametersWrapper("""[{
+            "model_part_name" : "test",
+            "process_step" : "finalize_solution_step",
+            "controller_settings" : {
+                "controller_type" : "temporal_controller",
+                "time_frequency" : 5.0,
+                "step_frequency" : 5
+            },
+            "list_of_operations" : [{"operation_type" : "model_part_output"}]
+        }]""")
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ModelPartIO', autospec=True) as MockedModelPartIO:
+            with patch("KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO", autospec = True) as MockedSerialFileIO:
+                process = core.Factory(parameters, model, KratosMultiphysics.OutputProcess)
+
+                process.ExecuteInitialize()
+                process.ExecuteBeforeSolutionLoop()
+
+                MockedModelPartIO.reset_mock() # discard initial calls
+
+                # No writes should be performed here
+                for step in range(4):
+                    model_part.CloneTimeStep(step)
+                    model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+                    process.ExecuteFinalizeSolutionStep()
+                process.ExecuteFinalize()
+                MockedModelPartIO.assert_not_called()
+
+                # This should trigger a single write
+                process.PrintOutput()
+                MockedModelPartIO.assert_called_once()
+
+
+    def test_TemporalController_OutputStep(self):
+        model = KratosMultiphysics.Model()
+        model.CreateModelPart("test")
+        parameters = ParametersWrapper("""[{
+            "model_part_name" : "test",
+            "process_step" : "output",
+            "controller_settings" : {
+                "controller_type" : "temporal_controller"
+            },
+            "list_of_operations" : []
+        }]""")
+        with patch("KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO", autospec = True):
+            with self.assertRaises(TypeError):
+                core.Factory(parameters, model, KratosMultiphysics.OutputProcess)
 
 
 class TestParametersWrapper(KratosUnittest.TestCase):

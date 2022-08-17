@@ -332,7 +332,6 @@ protected:
         array_1d<double,3> velocity;
 
         array_1d<double,3> topography;
-        array_1d<double,3> wind;
         array_1d<double,3> rain;
         array_1d<double,9> unknown;
         array_1d<double,9> mesh_acc;

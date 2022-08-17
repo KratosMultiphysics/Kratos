@@ -58,7 +58,7 @@ class AdaptiveRefinement(object):
         if not CheckIfApplicationsAvailable("MeshingApplication"):
             raise Exception("[MultilevelMonteCarloApplication]: MeshingApplication cannot be imported, but it is necessary to perform adaptive refinement.")
 
-        if (self.metric is "hessian"):
+        if (self.metric == "hessian"):
             # initialize interpolation error
             original_interp_error = metric_param["hessian_strategy_parameters"]["interpolation_error"].GetDouble()
             # set interpolation error for current level
@@ -172,7 +172,7 @@ class AdaptiveRefinement(object):
         """
         self.ComputeMeshSizeCoarsestLevel()
         current_level = self.current_level
-        if (self.metric is "hessian"):
+        if (self.metric == "hessian"):
             original_interp_error = self.metric_param["hessian_strategy_parameters"]["interpolation_error"].GetDouble()
             domain_size = self.wrapper.GetDomainSize()
             if (domain_size == 2):

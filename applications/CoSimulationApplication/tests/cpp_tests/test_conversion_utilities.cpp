@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //                   license: CoSimulationApplication/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //                   Ashish Darekar
 //
 
@@ -43,10 +43,11 @@ KRATOS_TEST_CASE_IN_SUITE(ElementalDataToNodalDataForce, KratosCosimulationFastS
     test_model_part.CreateNewNode(6, 2.0, 1.0, 0.0);
 
     // Creating Elements
+    auto p_props = test_model_part.CreateNewProperties(0);
     std::vector<ModelPart::IndexType> elem_nodes_1{1, 2, 3, 4};
-    test_model_part.CreateNewElement("Element2D4N", 1, elem_nodes_1, test_model_part.pGetProperties(0));
+    test_model_part.CreateNewElement("Element2D4N", 1, elem_nodes_1, p_props);
     std::vector<ModelPart::IndexType> elem_nodes_2{2, 5, 6, 3};
-    test_model_part.CreateNewElement("Element2D4N", 2, elem_nodes_2, test_model_part.pGetProperties(0));
+    test_model_part.CreateNewElement("Element2D4N", 2, elem_nodes_2, p_props);
 
     // Assign values at elements
     array_1d<double, 3> force_value {12.0, 8.0, 0.0};
@@ -72,9 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementalDataToNodalDataForce, KratosCosimulationFastS
     array_1d<double, 18> expected_values {3, 2 ,0, 6, 4, 0, 6, 4 ,0, 3, 2 ,0, 3, 2 ,0, 3, 2 ,0};
 
     KRATOS_CHECK_VECTOR_NEAR(nodal_force_values, expected_values, 1.0e-12)
-
 }
-
 
 } // namespace Testing
 } // namespace Kratos

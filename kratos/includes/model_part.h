@@ -72,7 +72,7 @@ class Model;
  */
 class KRATOS_API(KRATOS_CORE) ModelPart : public DataValueContainer, public Flags
 {
-    class GetModelPartName : public std::unary_function<const ModelPart* const, std::string>
+    class GetModelPartName
     {
     public:
         std::string const& operator()(const ModelPart& rModelPart) const
@@ -109,13 +109,7 @@ public:
     typedef Matrix MatrixType;
     typedef Vector VectorType;
 
-//     typedef PointerVectorSet<DofType, SetIdentityFunction<DofType> > DofsArrayType;
-    typedef PointerVectorSet<DofType,
-                SetIdentityFunction<DofType>,
-                std::less<SetIdentityFunction<DofType>::result_type>,
-                std::equal_to<SetIdentityFunction<DofType>::result_type>,
-                DofType* > DofsArrayType;
-
+    typedef PointerVectorSet<DofType> DofsArrayType;
 
     typedef Node < 3 > NodeType;
     typedef Geometry<NodeType> GeometryType;
@@ -289,6 +283,14 @@ public:
     /// Assignment operator.
     ModelPart & operator=(ModelPart const& rOther) = delete;
 
+    /// Function to wipe a modelpart clean,
+    /// However, variables list, buffer size and process info is preserved
+    void Clear();
+
+    /// Function to wipe a model part clean
+    /// Variables list, buffer size are not preserved
+    void Reset();
+
     ///@}
     ///@name Solution Steps
     ///@{
@@ -316,6 +318,11 @@ public:
 
     //this function returns the "Owner" Model
     Model& GetModel()
+    {
+        return mrModel;
+    }
+
+    const Model& GetModel() const
     {
         return mrModel;
     }
@@ -402,7 +409,7 @@ public:
     void AssignNode(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
 
     /** Returns if the Node corresponding to it's identifier exists */
-    bool HasNode(IndexType NodeId, IndexType ThisIndex = 0)
+    bool HasNode(IndexType NodeId, IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).HasNode(NodeId);
     }
@@ -519,11 +526,9 @@ public:
         return GetMesh(ThisIndex).NodesArray();
     }
 
-    template<class TDataType>
-    void AddNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable)
+    void AddNodalSolutionStepVariable(VariableData const& ThisVariable)
     {
-        if (!HasNodalSolutionStepVariable(ThisVariable))
-        {
+        if (!HasNodalSolutionStepVariable(ThisVariable)) {
             // This error prevents memory leaks if variables are being added to a non-empty modelpart
             KRATOS_ERROR_IF((this->GetRootModelPart()).Nodes().size() != 0)
                 << "Attempting to add the variable \"" << ThisVariable.Name()
@@ -533,8 +538,7 @@ public:
         }
     }
 
-    template<class TDataType>
-    bool HasNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable) const
+    bool HasNodalSolutionStepVariable(VariableData const& ThisVariable) const
     {
         return mpVariablesList->Has(ThisVariable);
     }
@@ -549,7 +553,7 @@ public:
         return *mpVariablesList;
     }
 
-    VariablesList::Pointer pGetNodalSolutionStepVariablesList()
+    VariablesList::Pointer pGetNodalSolutionStepVariablesList() const
     {
         return mpVariablesList;
     }
@@ -852,7 +856,7 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (pointer)
      */
-    PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
+    const PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
 
     /**
      * @brief Returns the Properties::Pointer  corresponding to it's identifier
@@ -870,7 +874,7 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (reference)
      */
-    PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
+    const PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
 
     /**
      * @brief Returns if the sub Properties corresponding to it's address exists
@@ -1080,7 +1084,7 @@ public:
         PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /** Returns if the Element corresponding to it's identifier exists */
-    bool HasElement(IndexType ElementId, IndexType ThisIndex = 0)
+    bool HasElement(IndexType ElementId, IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).HasElement(ElementId);
     }
@@ -1272,7 +1276,7 @@ public:
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /** Returns if the Condition corresponding to it's identifier exists */
-    bool HasCondition(IndexType ConditionId, IndexType ThisIndex = 0)
+    bool HasCondition(IndexType ConditionId, IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).HasCondition(ConditionId);
     }
@@ -1521,7 +1525,7 @@ public:
                 }
             }
         }
-        
+
         // Add to root model part
         for(auto& p_geom : aux_root) {
             p_root_model_part->AddGeometry(p_geom);
@@ -1854,7 +1858,7 @@ public:
     }
 
     /// run input validation
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) const;
+    virtual int Check() const;
 
     ///@}
     ///@name Access

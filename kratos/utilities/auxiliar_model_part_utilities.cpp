@@ -24,6 +24,19 @@
 
 namespace Kratos
 {
+void AuxiliarModelPartUtilities::CopySubModelPartStructure(const ModelPart& rModelPartToCopyFromIt, ModelPart& rModelPartToCopyIntoIt)
+{
+    for (auto& r_sub_model_part : rModelPartToCopyFromIt.SubModelParts()) {
+        auto& r_new_sub_model_part = rModelPartToCopyIntoIt.CreateSubModelPart(r_sub_model_part.Name());
+        if (r_sub_model_part.NumberOfSubModelParts() > 0) {
+            CopySubModelPartStructure(r_sub_model_part, r_new_sub_model_part);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void AuxiliarModelPartUtilities::RecursiveEnsureModelPartOwnsProperties(const bool RemovePreviousProperties)
 {
     // First we do in this model part
@@ -46,7 +59,7 @@ void AuxiliarModelPartUtilities::EnsureModelPartOwnsProperties(const bool Remove
     }
 
     // The list of properties
-    std::unordered_set<Properties::Pointer, IndexedObjecPointertHasher<Properties::Pointer>, IndexedObjectPointerComparator<Properties::Pointer>> list_of_properties;
+    std::unordered_set<Properties::Pointer, IndexedObjectPointerHasher<Properties::Pointer>, IndexedObjectPointerComparator<Properties::Pointer>> list_of_properties;
 
     // Iterating over the elements
     auto& r_elements_array = mrModelPart.Elements();
@@ -61,7 +74,7 @@ void AuxiliarModelPartUtilities::EnsureModelPartOwnsProperties(const bool Remove
     #pragma omp parallel
     {
         // The list of properties
-        std::unordered_set<Properties::Pointer, IndexedObjecPointertHasher<Properties::Pointer>, IndexedObjectPointerComparator<Properties::Pointer>> buffer_list_of_properties;
+        std::unordered_set<Properties::Pointer, IndexedObjectPointerHasher<Properties::Pointer>, IndexedObjectPointerComparator<Properties::Pointer>> buffer_list_of_properties;
 
         #pragma omp for schedule(dynamic, 512) nowait
         for (int i = 0; i < number_of_elements; ++i) {

@@ -79,8 +79,8 @@ void TestAllShapeFunctionsLocalGradients(Geometry<Node<3>> const& rGeom)
 {
     KRATOS_TRY;
     TestShapeFunctionsLocalGradients(rGeom);
-    TestShapeFunctionsLocalGradients(rGeom, GeometryData::GI_GAUSS_1);
-    TestShapeFunctionsLocalGradients(rGeom, GeometryData::GI_GAUSS_2);
+    TestShapeFunctionsLocalGradients(rGeom, GeometryData::IntegrationMethod::GI_GAUSS_1);
+    TestShapeFunctionsLocalGradients(rGeom, GeometryData::IntegrationMethod::GI_GAUSS_2);
     TestShapeFunctionsLocalGradients_IntegrationPointIndex(rGeom);
     TestShapeFunctionsLocalGradients_IntegrationPointIndex(
         rGeom, rGeom.GetDefaultIntegrationMethod());

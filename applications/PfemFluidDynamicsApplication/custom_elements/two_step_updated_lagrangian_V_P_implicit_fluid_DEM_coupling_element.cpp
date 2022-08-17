@@ -4,8 +4,6 @@
 //   Date:                $Date:           February 2016 $
 //   Revision:            $Revision:                 0.0 $
 //
-//   Implementation of the Gauss-Seidel two step Updated Lagrangian Velocity-Pressure element
-//     ( There is a ScalingConstant to multiply the mass balance equation for a number because i read it somewhere)
 //
 
 // System includes
@@ -613,7 +611,7 @@ namespace Kratos
         // this->ComputeBulkMatrix(BulkAccMatrix,N,BulkStabCoeff);
 
         double BoundLHSCoeff = Tau * 4.0 * GaussWeight / (ElemSize * ElemSize);
-        // if(TDim==3){
+        // if constexpr (TDim==3){
         //   BoundLHSCoeff=Tau*2*GaussWeight/(0.81649658*ElemSize*ElemSize);
         // }
 

@@ -668,6 +668,13 @@ public:
     virtual void GenerateSolDataFromModelPart(ModelPart& rModelPart);
 
     /**
+     * @brief This method generates solution (metric) data from an existing model part
+     * for the isosurface algorithm
+     * @param[in,out] rModelPart The model part of interest to study
+     */
+    virtual void GenerateIsosurfaceMetricDataFromModelPart(ModelPart& rModelPart);
+
+    /**
      * @brief This method generates displacement data from an existing model part
      * @param[in,out] rModelPart The model part of interest to study
      */
@@ -722,6 +729,18 @@ public:
      * @param[in,out] rModelPart The model part of interest to study
      */
     virtual void AssignAndClearAuxiliarSubModelPartForFlags(ModelPart& rModelPart);
+
+    /**
+     * @brief Sets the number of parameters to be defined locally at each reference color.
+     * Required by the library.
+     */
+    void SetNumberOfLocalParameters(IndexType NumberOfLocalParameter);
+
+    /**
+     * @brief Sets the local hmin, hmax and hausdorff value for all entities with the given
+     * color reference.
+     */
+    void SetLocalParameter(IndexType rColor, double HMin, double HMax, double HausdorffValue);
 
     ///@}
     ///@name Access

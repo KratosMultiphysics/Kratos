@@ -17,7 +17,7 @@ namespace Kratos {
         return type_of_law;
     }
 
-    void SchillerAndNaumannDragLaw::ComputeForce(Geometry<Node<3> >& r_geometry,
+    void SchillerAndNaumannDragLaw::ComputeForce(SphericParticle* p_particle,
                                        const double reynolds_number,
                                        double particle_radius,
                                        double fluid_density,
@@ -26,7 +26,7 @@ namespace Kratos {
                                        array_1d<double, 3>& drag_force,
                                        const ProcessInfo& r_current_process_info)
     {
-        StokesDragLaw::ComputeForce(r_geometry,
+        StokesDragLaw::ComputeForce(p_particle,
                                     reynolds_number,
                                     particle_radius,
                                     fluid_density,

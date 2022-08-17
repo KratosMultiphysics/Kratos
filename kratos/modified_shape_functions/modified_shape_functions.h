@@ -59,12 +59,12 @@ public:
     typedef GeometryData::ShapeFunctionsGradientsType                                               ShapeFunctionsGradientsType;
     typedef std::vector<array_1d<double,3>> AreaNormalsContainerType;
 
-    typedef DivideGeometry::IndexedPointGeometryType                                                IndexedPointGeometryType;
-    typedef DivideGeometry::IndexedPointGeometryPointerType                                         IndexedPointGeometryPointerType;
+    typedef DivideGeometry<Node<3>>::IndexedPointGeometryType                                                IndexedPointGeometryType;
+    typedef DivideGeometry<Node<3>>::IndexedPointGeometryPointerType                                         IndexedPointGeometryPointerType;
 
     typedef IntegrationPoint<3>                                                                     IntegrationPointType;
     typedef std::vector<IntegrationPointType>                                                       IntegrationPointsArrayType;
-    typedef std::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods>      IntegrationPointsContainerType;
+    typedef std::array<IntegrationPointsArrayType, static_cast<int>(GeometryData::IntegrationMethod::NumberOfIntegrationMethods)>      IntegrationPointsContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -108,7 +108,7 @@ public:
     /**
     * Returns the member pointer to the splitting utility.
     */
-    virtual const DivideGeometry::Pointer pGetSplittingUtil() const;
+    virtual const DivideGeometry<Node<3>>::Pointer pGetSplittingUtil() const;
 
     /**
     * Returns a the member pointer to the input geometry.

@@ -462,7 +462,7 @@ int HyperElasticIsotropicNeoHookean3DFEMDEM::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS is invalid value " << std::endl;
 

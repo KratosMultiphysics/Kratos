@@ -21,10 +21,7 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
-        if self.model.HasModelPart(model_part_name):
-            self.main_model_part = self.model.GetModelPart(model_part_name)
-        else:
-            self.main_model_part = self.model.CreateModelPart(model_part_name)
+        self.main_model_part = self.model.CreateModelPart(model_part_name)
 
         self._SetProcessInfo()
 
@@ -38,8 +35,10 @@ class ShallowWaterBaseSolver(PythonSolver):
             "gravity"                  : 9.81,
             "density"                  : 1000,
             "model_import_settings"    : {
-                "input_type"               : "mdpa",
-                "input_filename"           : "unknown_name"
+                "input_type"               : "use_input_model_part"
+            },
+            "material_import_settings" :{
+                "materials_filename": ""
             },
             "echo_level"               : 0,
             "convergence_criterion"    : "displacement",
@@ -70,6 +69,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(SW.MANNING)
         self.main_model_part.AddNodalSolutionStepVariable(SW.RAIN)
         self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
 
     def AddDofs(self):
         raise Exception("Calling the base class instead of the derived one")
@@ -80,8 +80,17 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     def PrepareModelPart(self):
         if not self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
+            # Import material properties
+            materials_imported = self._ImportMaterials()
+            if materials_imported:
+                KM.Logger.PrintInfo(self.__class__.__name__, "Materials were successfully imported.")
+            else:
+                KM.Logger.PrintInfo(self.__class__.__name__, "Materials were not imported.")
+
             ## Replace default elements and conditions
             self._ReplaceElementsAndConditions()
+            ## Execute the check and prepare model process
+            self._ExecuteCheckAndPrepare()
             ## Set buffer size
             self.main_model_part.SetBufferSize(self.GetMinimumBufferSize())
 
@@ -148,6 +157,18 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, self.settings["domain_size"].GetInt())
         self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, self.settings["gravity"].GetDouble())
 
+    def _ImportMaterials(self):
+    # Add the properties from json file to model parts.
+        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
+        if (materials_filename != ""):
+            material_settings = KM.Parameters("""{"Parameters": {} }""")
+            material_settings["Parameters"].AddString("materials_filename", materials_filename)
+            KM.ReadMaterialsUtility(material_settings, self.model)
+            materials_imported = True
+        else:
+            materials_imported = False
+        return materials_imported
+
     def _ReplaceElementsAndConditions(self):
         ## Get number of nodes and domain size
         elem_num_nodes = self.__get_geometry_num_nodes(self.GetComputingModelPart().Elements)
@@ -165,6 +186,19 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         ## Call the replace elements and conditions process
         KM.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
+
+    def _ExecuteCheckAndPrepare(self):
+        #verify the orientation of the skin in case of triangles mesh
+        elem_num_nodes = self.__get_geometry_num_nodes(self.GetComputingModelPart().Elements)
+        if elem_num_nodes == 3:
+            mesh_orientation = KM.TetrahedralMeshOrientationCheck
+            throw_errors = False
+            flags  = mesh_orientation.COMPUTE_NODAL_NORMALS.AsFalse()
+            flags |= mesh_orientation.COMPUTE_CONDITION_NORMALS.AsFalse()
+            flags |= mesh_orientation.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+            KM.TetrahedralMeshOrientationCheck(self.GetComputingModelPart(), throw_errors, flags).Execute()
+        else:
+            KM.Logger.PrintWarning(self.__class__.__name__, "Orientation check not performed for quadrilateral or higher order geometries.")
 
     def __get_geometry_num_nodes(self, container):
         if len(container) != 0:

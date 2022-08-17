@@ -404,6 +404,7 @@ void  AddContainersToPython(pybind11::module& m)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FLAG_VARIABLE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DISTANCE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUX_DISTANCE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DISTANCE_GRADIENT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INERTIA )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PERIODIC_PAIR_INDEX )
@@ -596,6 +597,9 @@ void  AddContainersToPython(pybind11::module& m)
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, PARAMETER_2D_COORDINATES)
 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND)
+
 
     py::class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer >	(m,"ConvectionDiffusionSettings")
     .def(py::init<	>() )
@@ -612,6 +616,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("SetSpecificHeatVariable",&ConvectionDiffusionSettings::SetSpecificHeatVariable)
     .def("SetVelocityVariable",&ConvectionDiffusionSettings::SetVelocityVariable)
     .def("SetReactionVariable",&ConvectionDiffusionSettings::SetReactionVariable)
+    .def("SetReactionGradientVariable",&ConvectionDiffusionSettings::SetReactionGradientVariable)
 
     .def("GetDensityVariable",&ConvectionDiffusionSettings::GetDensityVariable, py::return_value_policy::reference_internal )
     .def("GetDiffusionVariable",&ConvectionDiffusionSettings::GetDiffusionVariable, py::return_value_policy::reference_internal )
@@ -626,6 +631,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("GetSpecificHeatVariable",&ConvectionDiffusionSettings::GetSpecificHeatVariable, py::return_value_policy::reference_internal )
     .def("GetVelocityVariable",&ConvectionDiffusionSettings::GetVelocityVariable, py::return_value_policy::reference_internal )
     .def("GetReactionVariable",&ConvectionDiffusionSettings::GetReactionVariable, py::return_value_policy::reference_internal )
+    .def("GetReactionGradientVariable",&ConvectionDiffusionSettings::GetReactionGradientVariable, py::return_value_policy::reference_internal )
 
     .def("IsDefinedDensityVariable",&ConvectionDiffusionSettings::IsDefinedDensityVariable)
     .def("IsDefinedDiffusionVariable",&ConvectionDiffusionSettings::IsDefinedDiffusionVariable)
@@ -640,6 +646,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("IsDefinedVelocityVariable",&ConvectionDiffusionSettings::IsDefinedVelocityVariable)
     .def("IsDefinedTransferCoefficientVariable",&ConvectionDiffusionSettings::IsDefinedTransferCoefficientVariable)
     .def("IsDefinedReactionVariable",&ConvectionDiffusionSettings::IsDefinedReactionVariable)
+    .def("IsDefinedReactionGradientVariable",&ConvectionDiffusionSettings::IsDefinedReactionGradientVariable)
     ;
 
     py::class_< RadiationSettings, RadiationSettings::Pointer>	(m,"RadiationSettings")

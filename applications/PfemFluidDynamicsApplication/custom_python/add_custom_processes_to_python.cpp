@@ -46,7 +46,9 @@
 #include "custom_processes/compute_average_pfem_mesh_parameters_process.hpp"
 #include "custom_processes/fix_scalar_pfem_dof_process.hpp"
 #include "custom_processes/free_scalar_pfem_dof_process.hpp"
+#include "custom_processes/fix_free_velocity_on_nodes_process.h"
 #include "custom_processes/set_dummy_property_for_rigid_boundaries_process.hpp"
+#include "custom_processes/set_main_material_property_process.hpp"
 
 #include "custom_processes/assign_scalar_variable_to_pfem_entities_process.hpp"
 #include "custom_processes/assign_vector_variable_to_pfem_conditions_process.hpp"
@@ -103,6 +105,9 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
     py::class_<SetActiveFlagProcess, SetActiveFlagProcess::Pointer, MesherProcess>(m, "SetActiveFlagProcess")
         .def(py::init<ModelPart &, bool, bool, int>());
+
+    py::class_<SetMainMaterialPropertyProcess, SetMainMaterialPropertyProcess::Pointer, MesherProcess>(m, "SetMainMaterialProperty")
+        .def(py::init<ModelPart &>());
 
     py::class_<SetMaterialPropertiesToFluidNodesProcess, SetMaterialPropertiesToFluidNodesProcess::Pointer, MesherProcess>(m, "SetMaterialPropertiesToFluidNodes")
         .def(py::init<ModelPart &>());
@@ -168,6 +173,13 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def("Execute", &FreeScalarPfemDofProcess::Execute)
 
         ;
+
+    //**********FIX AND FREE NODES VELOCITY PROCESS*********
+    py::class_<PFEMFixFreeVelocityOnNodesProcess, PFEMFixFreeVelocityOnNodesProcess::Pointer, Process>(m, "PFEMFixFreeVelocityOnNodesProcess")
+        .def(py::init<ModelPart &, const bool>())
+        .def("Execute", &PFEMFixFreeVelocityOnNodesProcess::Execute)
+    
+        ;//*/
 
     // //**********ASSIGN VALUES TO VARIABLES PROCESSES*********//
 

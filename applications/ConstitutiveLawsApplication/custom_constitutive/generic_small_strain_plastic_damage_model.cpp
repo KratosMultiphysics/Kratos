@@ -647,7 +647,7 @@ int GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInteg
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     const int check_integrator_plasticity = TPlasticityIntegratorType::Check(rMaterialProperties);
@@ -731,7 +731,7 @@ CalculateIndicatorsFactors(
 {
     // We do an initial check
     if (norm_2(rPredictiveStressVector) < 1.0e-8) {
-        rTensileIndicatorFactor = 0.0;
+        rTensileIndicatorFactor = 1.0;
         rCompressionIndicatorFactor = 0.0;
         return;
     }

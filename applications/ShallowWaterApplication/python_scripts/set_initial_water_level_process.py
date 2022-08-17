@@ -18,12 +18,16 @@ class SetInitialWaterLevelProcess(KM.Process):
                 "model_part_name"      : "please_specify_model_part_name",
                 "variable_name"        : "HEIGHT",
                 "constrained"          : false,
-                "value"                : "1.0",
+                "interval"             : [0.0, 0.0],
+                "value"                : 1.0,
                 "set_minimum_height"   : true,
                 "minimum_height_value" : 1e-4
             }
             """
             )
+        if settings.Has("value"):
+            if settings["value"].IsString():
+                default_settings["value"].SetString("1.0")
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.variable = settings["variable_name"].GetString()

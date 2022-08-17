@@ -254,20 +254,20 @@ void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(MMGMeshInfo<TMMGLibrary>&
     KRATOS_TRY;
 
     rMMGMeshInfo.NumberOfNodes = mMmgMesh->np;
-    if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
+    if constexpr (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
         rMMGMeshInfo.NumberOfLines = mMmgMesh->na;
-    } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
+    } else if constexpr (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         rMMGMeshInfo.NumberOfTriangles = mMmgMesh->nt;
         rMMGMeshInfo.NumberOfQuadrilaterals = mMmgMesh->nquad;
     } else { // Surfaces
         rMMGMeshInfo.NumberOfLines = mMmgMesh->na;
     }
-    if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
+    if constexpr (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
         rMMGMeshInfo.NumberOfTriangles = mMmgMesh->nt;
     #if MMG_VERSION_GE(5,5)
         rMMGMeshInfo.NumberOfQuadrilaterals = mMmgMesh->nquad;
     #endif
-    } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
+    } else if constexpr (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         rMMGMeshInfo.NumberOfTetrahedra = mMmgMesh->ne;
         rMMGMeshInfo.NumberOfPrism = mMmgMesh->nprism;
     } else { // Surfaces
@@ -275,7 +275,7 @@ void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(MMGMeshInfo<TMMGLibrary>&
     }
 
     KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 0) << "\tNodes created: " << rMMGMeshInfo.NumberOfNodes << std::endl;
-    if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
+    if constexpr (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
     #if MMG_VERSION_GE(5,5)
         KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 0) <<
         "Conditions created: " << rMMGMeshInfo.NumberOfLines << "\n" <<
@@ -285,7 +285,7 @@ void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(MMGMeshInfo<TMMGLibrary>&
         "Conditions created: " << rMMGMeshInfo.NumberOfLines << "\n" <<
         "Elements created: " << rMMGMeshInfo.NumberOfTriangles << std::endl;
     #endif
-    } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
+    } else if constexpr (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 0) <<
         "Conditions created: " << rMMGMeshInfo.NumberOfTriangles + rMMGMeshInfo.NumberOfQuadrilaterals << "\n\tTriangles: " << rMMGMeshInfo.NumberOfTriangles << "\tQuadrilaterals: " << rMMGMeshInfo.NumberOfQuadrilaterals << "\n" <<
         "Elements created: " << rMMGMeshInfo.NumberOfTetrahedra + rMMGMeshInfo.NumberOfPrism << "\n\tTetrahedron: " << rMMGMeshInfo.NumberOfTetrahedra << "\tPrisms: " << rMMGMeshInfo.NumberOfPrism << std::endl;
@@ -1550,7 +1550,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::InitMesh()
         MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgMet, MMG5_ARG_ppDisp, &mMmgDisp, MMG5_ARG_end);
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
     #if MMG_VERSION_GE(5,5)
-        MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgMet, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
+        MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgMet, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
     #else
         MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgMet, MMG5_ARG_end);
     #endif
@@ -1585,7 +1585,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::InitMesh()
         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgMet, MMG5_ARG_ppDisp, &mMmgDisp, MMG5_ARG_end);
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
     #if MMG_VERSION_GE(5,5)
-        MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgMet, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
+        MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgMet, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
     #else
         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgMet, MMG5_ARG_end);
     #endif
@@ -1620,7 +1620,7 @@ void MmgUtilities<MMGLibrary::MMGS>::InitMesh()
         MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgMet, MMG5_ARG_ppDisp, &mMmgDisp, MMG5_ARG_end);
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
     #if MMG_VERSION_GE(5,5)
-        MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgMet, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
+        MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgMet, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
     #else
         MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgMet, MMG5_ARG_end);
     #endif
@@ -1983,6 +1983,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::CheckMeshData()
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
     #if MMG_VERSION_GE(5,5)
         KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong solution data" << std::endl;
+        KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
     #else
         KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
     #endif
@@ -2007,6 +2008,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::CheckMeshData()
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
     #if MMG_VERSION_GE(5,5)
         KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong solution data" << std::endl;
+        KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
     #else
         KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
     #endif
@@ -2031,6 +2033,7 @@ void MmgUtilities<MMGLibrary::MMGS>::CheckMeshData()
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
     #if MMG_VERSION_GE(5,5)
         KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong solution data" << std::endl;
+        KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
     #else
         KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgMet) != 1 ) << "Wrong metric data" << std::endl;
     #endif
@@ -2628,6 +2631,12 @@ void MmgUtilities<MMGLibrary::MMG2D>::MMGLibCallMetric(Parameters ConfigurationP
             KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
     }
 
+    // Set the value for angle detection (default 45°)
+    if (ConfigurationParameters["advanced_parameters"]["force_angle_detection_value"].GetBool()) {
+        if ( MMG2D_Set_dparameter(mMmgMesh,mMmgMet,MMG2D_DPARAM_angleDetection, ConfigurationParameters["advanced_parameters"]["angle_detection_value"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set the angle detection value" << std::endl;
+    }
+
     // Set the gradation
     if (ConfigurationParameters["advanced_parameters"]["force_gradation_value"].GetBool()) {
         if ( MMG2D_Set_dparameter(mMmgMesh,mMmgMet,MMG2D_DPARAM_hgrad, ConfigurationParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )
@@ -2741,6 +2750,12 @@ void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallMetric(Parameters ConfigurationP
     if ( deactivate_detect_angle) {
         if ( MMG3D_Set_iparameter(mMmgMesh,mMmgMet,MMG3D_IPARAM_angle, static_cast<int>(!deactivate_detect_angle)) != 1 )
             KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
+    }
+
+    if (ConfigurationParameters["advanced_parameters"]["force_angle_detection_value"].GetBool()) {
+        // Set the value for angle detection (default 45°)
+        if ( MMG3D_Set_dparameter(mMmgMesh,mMmgMet,MMG3D_DPARAM_angleDetection, ConfigurationParameters["advanced_parameters"]["angle_detection_value"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set the angle detection value" << std::endl;
     }
 
     // Set the gradation
@@ -2883,6 +2898,12 @@ void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallMetric(Parameters ConfigurationPa
             KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
     }
 
+    // Set the value for angle detection (default 45°)
+    if (ConfigurationParameters["advanced_parameters"]["force_angle_detection_value"].GetBool()) {
+        if ( MMGS_Set_dparameter(mMmgMesh,mMmgMet,MMGS_DPARAM_angleDetection, ConfigurationParameters["advanced_parameters"]["angle_detection_value"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set the angle detection value" << std::endl;
+    }
+
     // Set the gradation
     if (ConfigurationParameters["advanced_parameters"]["force_gradation_value"].GetBool()) {
         if ( MMGS_Set_dparameter(mMmgMesh,mMmgMet,MMGS_DPARAM_hgrad, ConfigurationParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )
@@ -2955,6 +2976,69 @@ void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallIsoSurface(Parameters Configurati
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMGSLS. ier: " << ier << std::endl;
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG2D>::SetNumberOfLocalParameters(IndexType NumberOfLocalParameter) {
+//mmg2d does not support it for versions below 5.5
+#if MMG_VERSION_GE(5,5)
+    if ( MMG2D_Set_iparameter(mMmgMesh, mMmgMet, MMG2D_IPARAM_numberOfLocalParam, NumberOfLocalParameter) != 1)
+        KRATOS_ERROR << "Unable to set the number of local parameters" << std::endl;
+#endif
+}
+
+
+template<>
+void MmgUtilities<MMGLibrary::MMG3D>::SetNumberOfLocalParameters(IndexType NumberOfLocalParameter) {
+    if ( MMG3D_Set_iparameter(mMmgMesh, mMmgMet, MMG3D_IPARAM_numberOfLocalParam, NumberOfLocalParameter) != 1)
+        KRATOS_ERROR << "Unable to set the number of local parameters" << std::endl;
+}
+
+template<>
+void MmgUtilities<MMGLibrary::MMGS>::SetNumberOfLocalParameters(IndexType NumberOfLocalParameter) {
+    if ( MMGS_Set_iparameter(mMmgMesh, mMmgMet, MMGS_IPARAM_numberOfLocalParam, NumberOfLocalParameter) != 1)
+        KRATOS_ERROR << "Unable to set the number of local parameters" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
+template<>
+void MmgUtilities<MMGLibrary::MMG2D>::SetLocalParameter(
+                                    IndexType rColor,
+                                    double HMin,
+                                    double HMax,
+                                    double HausdorffValue) {
+//mmg2d does not support it for versions below 5.5
+#if MMG_VERSION_GE(5,5)
+    if ( MMG2D_Set_localParameter(mMmgMesh, mMmgMet, MMG5_Edg, rColor, HMin, HMax, HausdorffValue) != 1)
+        KRATOS_ERROR << "Unable to set local parameter" << std::endl;
+#endif
+}
+
+
+template<>
+void MmgUtilities<MMGLibrary::MMG3D>::SetLocalParameter(
+                                    IndexType rColor,
+                                    double HMin,
+                                    double HMax,
+                                    double HausdorffValue) {
+    if ( MMG3D_Set_localParameter(mMmgMesh, mMmgMet, MMG5_Triangle, rColor, HMin, HMax, HausdorffValue) != 1)
+        KRATOS_ERROR << "Unable to set local parameter" << std::endl;
+}
+
+template<>
+void MmgUtilities<MMGLibrary::MMGS>::SetLocalParameter(
+                                    IndexType rColor,
+                                    double HMin,
+                                    double HMax,
+                                    double HausdorffValue) {
+    if ( MMGS_Set_localParameter(mMmgMesh, mMmgMet, MMG5_Triangle, rColor, HMin, HMax, HausdorffValue) != 1)
+        KRATOS_ERROR << "Unable to set local parameter" << std::endl;
 }
 
 /***********************************************************************************/
@@ -3045,7 +3129,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetConditions(
         if (blocked_1 && blocked_2) BlockCondition(Index);
     } else {
         const IndexType size_geometry = rGeometry.size();
-        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << rGeometry.GetGeometryType() << std::endl;
+        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << static_cast<int>(rGeometry.GetGeometryType()) << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -3109,7 +3193,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetConditions(
         KRATOS_ERROR_IF( MMG3D_Set_quadrilateral(mMmgMesh, id_1, id_2, id_3, id_4, Color, Index) != 1 ) << "Unable to set quadrilateral" << std::endl;
     } else {
         const SizeType size_geometry = rGeometry.size();
-        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << rGeometry.GetGeometryType() << std::endl;
+        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << static_cast<int>(rGeometry.GetGeometryType()) << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -3146,7 +3230,7 @@ void MmgUtilities<MMGLibrary::MMGS>::SetConditions(
         if (blocked_1 && blocked_2) BlockCondition(Index);
     } else {
         const IndexType size_geometry = rGeometry.size();
-        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << rGeometry.GetGeometryType() << std::endl;
+        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << static_cast<int>(rGeometry.GetGeometryType()) << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -3719,7 +3803,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
 
     /* Manually set of the mesh */
     MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
-    if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
+    if constexpr (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
         /* Conditions */
         std::size_t num_lines = 0;
         for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
@@ -3772,7 +3856,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         "Number of Elements: " << r_conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
     #endif
 
-    } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
+    } else if constexpr (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         /* Conditions */
         std::size_t num_tri = 0, num_quad = 0;
         for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
@@ -4289,6 +4373,21 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
             }
         });
     }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::GenerateIsosurfaceMetricDataFromModelPart(ModelPart& rModelPart)
+{
+    KRATOS_TRY;
+
+    #if MMG_VERSION_GE(5,5)
+        this->GenerateSolDataFromModelPart(rModelPart);
+    #endif
 
     KRATOS_CATCH("");
 }

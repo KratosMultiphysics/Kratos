@@ -27,6 +27,9 @@
 #include "utilities/atomic_utilities.h"
 #include "containers/sparse_graph.h"
 #include "containers/sparse_contiguous_row_graph.h"
+#include "utilities/reduction_utilities.h"
+#include "utilities/parallel_utilities.h"
+
 
 namespace Kratos
 {
@@ -85,6 +88,15 @@ public:
         mData.resize(size,false);
     }
 
+    SystemVector(
+        const Vector& data,
+        DataCommunicator& rComm = ParallelEnvironment::GetDataCommunicator("Serial")) {
+        if(rComm.IsDistributed())
+            KRATOS_ERROR << "Attempting to construct a serial system_vector with a distributed communicator" << std::endl;
+        mpComm = &rComm;
+        mData.resize(data.size(),false);
+        noalias(mData) = data;
+    }
     /// Copy constructor.
     explicit SystemVector(const SystemVector<TDataType,TIndexType>& rOtherVector){
         mpComm = rOtherVector.mpComm;
@@ -144,7 +156,19 @@ public:
         return mData[I];
     }
 
-    void Add(const double factor,
+    ///provides low level access to internal data
+    DenseVector<TDataType>& data()
+    {
+        return mData;
+    }
+
+    ///provides low level access to internal data
+    const DenseVector<TDataType>& data() const
+    {
+        return mData;
+    }
+
+    void Add(const TDataType factor,
              const SystemVector& rOtherVector
             )
     {
@@ -158,35 +182,52 @@ public:
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
             (*this)[i] = rOtherVector[i];
         });
+        return *this;
     }
 
 
-    void operator+=(const SystemVector& rOtherVector)
+    SystemVector& operator+=(const SystemVector& rOtherVector)
     {
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
             (*this)[i] += rOtherVector[i];
         });
+        return *this;
     }
 
-    void operator-=(const SystemVector& rOtherVector)
+    SystemVector& operator-=(const SystemVector& rOtherVector)
     {
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
             (*this)[i] -= rOtherVector[i];
         });
+        return *this;
     }
 
-    void operator*=(const TDataType multiplier_factor)
+    SystemVector& operator*=(const TDataType multiplier_factor)
     {
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
             (*this)[i] *= multiplier_factor;
         });
+        return *this;
     }
 
-    void operator/=(const TDataType divide_factor)
+    SystemVector& operator/=(const TDataType divide_factor)
     {
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
             (*this)[i] /= divide_factor;
         });
+        return *this;
+    }
+
+    TDataType Dot(const SystemVector& rOtherVector, IndexType gather_on_rank=0)
+    {
+        KRATOS_WARNING_IF("SystemVector", gather_on_rank != 0) << "the parameter gather_on_rank essentially does nothing for a non-distribued vector. It is added to have the same interface as for the distributed_system_vector" << std::endl;
+
+        auto partition = IndexPartition<IndexType>(size());
+        TDataType dot_value = partition.template for_each< SumReduction<TDataType> >([&](IndexType i){
+                return (*this)[i]*rOtherVector[i];
+            });
+
+        return dot_value; // note that the value to be reduced should be returned
     }
 
 
@@ -212,6 +253,7 @@ public:
         }
     }
 
+
     ///@}
     ///@name Access
     ///@{
@@ -235,7 +277,10 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const {rOStream << "SystemVector";}
+    void PrintInfo(std::ostream& rOStream) const {
+        rOStream << "SystemVector" << std::endl;
+        PrintData(rOStream);
+    }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const {

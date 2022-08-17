@@ -31,6 +31,9 @@
 #include "custom_processes/impose_z_strain_process.h"
 #include "custom_processes/distribute_load_on_surface_process.h"
 #include "custom_processes/set_moving_load_process.h"
+#include "custom_processes/set_cartesian_local_axes_process.h"
+#include "custom_processes/set_cylindrical_local_axes_process.h"
+#include "custom_processes/set_spherical_local_axes_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -99,6 +102,15 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, Parameters>());
 
     py::class_<SetMovingLoadProcess, SetMovingLoadProcess::Pointer, Process>(m, "SetMovingLoadProcess")
+        .def(py::init<ModelPart&, Parameters>());
+
+    py::class_<SetCartesianLocalAxesProcess, SetCartesianLocalAxesProcess::Pointer, Process>(m,"SetCartesianLocalAxesProcess")
+        .def(py::init<ModelPart&, Parameters>());
+
+    py::class_<SetCylindricalLocalAxesProcess, SetCylindricalLocalAxesProcess::Pointer, Process>(m,"SetCylindricalLocalAxesProcess")
+        .def(py::init<ModelPart&, Parameters>());
+
+    py::class_<SetSphericalLocalAxesProcess, SetSphericalLocalAxesProcess::Pointer, Process>(m,"SetSphericalLocalAxesProcess")
         .def(py::init<ModelPart&, Parameters>());
 }
 

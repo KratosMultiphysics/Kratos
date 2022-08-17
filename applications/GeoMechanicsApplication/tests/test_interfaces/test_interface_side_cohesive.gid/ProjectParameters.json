@@ -40,13 +40,13 @@
         "rayleigh_k":                         0.0,
         "strategy_type":                      "line_search",
         "convergence_criterion":              "displacement_criterion",
-        "displacement_relative_tolerance":    5.0E-3,
-        "displacement_absolute_tolerance":    1.0E-6,
+        "displacement_relative_tolerance":    1.0E-4,
+        "displacement_absolute_tolerance":    1.0E-9,
         "residual_relative_tolerance":        1.0E-4,
         "residual_absolute_tolerance":        1.0E-9,
         "min_iterations":                      6,
-        "max_iterations":                      30,
-        "number_cycles":                      100,
+        "max_iterations":                      50,
+        "number_cycles":                      2,
         "reduction_factor":                   0.5,
         "increase_factor":                    2.0,
         "realised_factor":                    0.9999,
@@ -99,7 +99,7 @@
                         "skin_output":         false,
                         "plane_output":        [],
                         "nodal_results":       ["DISPLACEMENT","WATER_PRESSURE","LINE_LOAD"],
-                        "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR","VON_MISES_STRESS","FLUID_FLUX_VECTOR","LOCAL_STRESS_VECTOR","LOCAL_RELATIVE_DISPLACEMENT_VECTOR"]
+                        "gauss_point_results":["GREEN_LAGRANGE_STRAIN_TENSOR", "CAUCHY_STRESS_TENSOR", "TOTAL_STRESS_TENSOR", "VON_MISES_STRESS", "FLUID_FLUX_VECTOR", "LOCAL_STRESS_VECTOR", "LOCAL_RELATIVE_DISPLACEMENT_VECTOR"]
                     },
                     "point_data_configuration":  []
                 }

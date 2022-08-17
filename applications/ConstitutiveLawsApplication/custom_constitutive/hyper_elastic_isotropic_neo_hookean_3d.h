@@ -126,7 +126,7 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return VoigtSize;
     };
@@ -297,7 +297,27 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        ) const override;
+
+    /**
+     * @brief It calculates the strain vector
+     * @param rValues The Internalvalues of the law
+     * @param rStrainVector The strain vector in Voigt notation
+     */
+    virtual void CalculateGreenLagrangianStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        Vector& rStrainVector
+        );
+
+    /**
+     * @brief Calculates the Almansi strains
+     * @param rValues The Internalvalues of the law
+     * @param rStrainVector The strain vector in Voigt notation
+     */
+    virtual void CalculateAlmansiStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        Vector& rStrainVector
+        );
 
 protected:
 
@@ -379,39 +399,9 @@ private:
 
     /**
      * @brief It calculates the Kirchoff stress vector
-     * @param rBTensor The left Cauchy-Green tensor
-     * @param rStressVector The stress vector in Voigt notation
-     * @param DeterminantF The determinant of the deformation gradient
-     * @param LameLambda First Lame parameter
-     * @param LameMu Second Lame parameter
+     * @param rValues The internal values of the law
      */
-    virtual void CalculateKirchhoffStress(
-        const Matrix& rBTensor,
-        Vector& rStressVector,
-        const double DeterminantF,
-        const double LameLambda,
-        const double LameMu
-        );
-
-    /**
-     * @brief It calculates the strain vector
-     * @param rValues The Internalvalues of the law
-     * @param rStrainVector The strain vector in Voigt notation
-     */
-    virtual void CalculateGreenLagrangianStrain(
-        ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
-        );
-
-    /**
-     * @brief Calculates the Almansi strains
-     * @param rValues The Internalvalues of the law
-     * @param rStrainVector The strain vector in Voigt notation
-     */
-    virtual void CalculateAlmansiStrain(
-        ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
-        );
+    virtual void CalculateKirchhoffStress(ConstitutiveLaw::Parameters& rValues);
 
     ///@}
     ///@name Private Operations

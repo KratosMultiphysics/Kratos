@@ -18,7 +18,7 @@ namespace Kratos {
         // TODO: make mDoApplyFaxenCorrections an option
         RubinowAndKellerLiftLaw(){}
 
-        RubinowAndKellerLiftLaw(Parameters& r_parameters);
+        RubinowAndKellerLiftLaw(Parameters r_parameters);
 
         ~RubinowAndKellerLiftLaw(){}
 
