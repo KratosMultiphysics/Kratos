@@ -22,7 +22,7 @@ def write_conditions_to_excavation(filename,excavation_list):
                     i += 1
 
             # find all the excavations in the input file
-            for j, n in enumerate(excavation_list):
+            for _, n in enumerate(excavation_list):
                 if n in lines[i]:
                     i += 2
 

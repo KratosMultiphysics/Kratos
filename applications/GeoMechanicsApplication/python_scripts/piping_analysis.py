@@ -7,10 +7,7 @@ sys.path.append(r"D:\software_development\Kratos\bin\Debug")
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication
-import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
-from KratosMultiphysics.analysis_stage import AnalysisStage
-from KratosMultiphysics.GeoMechanicsApplication import geomechanics_solvers_wrapper
 from geomechanics_analysis import GeoMechanicsAnalysis
 
 class PipingAnalysis(GeoMechanicsAnalysis):

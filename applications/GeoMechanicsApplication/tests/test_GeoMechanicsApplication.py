@@ -9,7 +9,6 @@ from KratosMultiphysics.GeoMechanicsApplication import *
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics import Tester
 
 # Import the tests o test_classes to create the suits
 from generalTests import KratosGeoMechanicsGeneralTests

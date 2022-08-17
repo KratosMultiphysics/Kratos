@@ -1,16 +1,11 @@
-import sys
-import os
-
 from KratosMultiphysics import Tester
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.GeoMechanicsApplication
 
 class TestNormalFluxCondition(KratosUnittest.TestCase):
 
     # Tester.RunAllTestCases() #Test all cases
     def setUp(self):
         Tester.SetVerbosity(Tester.Verbosity.TESTS_OUTPUTS) # Set the verbosity level
-        pass
 
     def tearDown(self):
         # Code here will be placed AFTER every test in this TestCase.

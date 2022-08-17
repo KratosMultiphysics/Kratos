@@ -130,7 +130,6 @@ namespace Kratos
         VariableData *p_water_pres = &WATER_PRESSURE;
         KratosExecute::ConvergenceVariableListType convergence_settings;
         convergence_settings.push_back(std::make_tuple(p_water_pres, rel_tol, abs_tol));
-        auto mixed_generic_criteria = KratosExecute::MixedGenericCriteriaType(convergence_settings);
         return KratosExecute::ConvergenceCriteriaType::Pointer(new KratosExecute::MixedGenericCriteriaType(convergence_settings));
     }
 
@@ -700,7 +699,6 @@ namespace Kratos
                 return -1;
             }
 
-            int count = 0;
             double criticalHead;
             double currentHead;
             bool pipingSuccess = false;
@@ -727,7 +725,7 @@ namespace Kratos
                 KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Searching at head: " << currentHead << std::endl;
                 mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
 
-                count = 0;
+                int count = 0;
                 for (Element *element : pipeElements)
                 {
                     if (element->GetValue(PIPE_ACTIVE))

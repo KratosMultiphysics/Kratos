@@ -21,7 +21,7 @@ class KratosGeoMechanicsSettlementTests(KratosUnittest.TestCase):
     def test_Abc_1_1_0_True_Deformations(self):
         test_name = 'test_Abc_1_1_0_True_Deformations'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
-        stages = test_helper.run_stages(file_path, 2)
+        test_helper.run_stages(file_path, 2)
         node = 1
         currentWorking = os.getcwd()
         os.chdir(file_path)
@@ -71,7 +71,7 @@ def getTimesDisplacement(node):
                 if time < 0.0:
                     continue
                 fo.readline() # header
-                for i in range(node):
+                for _ in range(node):
                     subline = fo.readline()
                     yDisp = float(subline.split()[2])
                     timeDisplacement.append([time, yDisp])

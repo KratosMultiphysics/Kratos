@@ -1,5 +1,3 @@
-import sys
-
 import os
 from functools import reduce
 import math
@@ -114,7 +112,7 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
         flow_rate_2 = test_helper.get_hydraulic_discharge(simulation)[1]
         flow_rate_3 = test_helper.get_hydraulic_discharge(simulation)[3]
         flow_rate_4 = test_helper.get_hydraulic_discharge(simulation)[4]
-        x, y, head_list = test_helper.get_hydraylic_head_with_intergration_points(simulation)
+        _, y, head_list = test_helper.get_hydraylic_head_with_intergration_points(simulation)
         specific_discharge = reduce(lambda a, b: a + b if b > 0 else a, test_helper.get_hydraulic_discharge(simulation),
                                     0)
 

@@ -1,9 +1,4 @@
-import sys
 import os
-import math
-
-#sys.path.append(os.path.join('..', '..', '..'))
-#sys.path.append(os.path.join('..', 'python_scripts'))
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
@@ -23,6 +18,7 @@ class KratosGeoMechanicsPipingMethodTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
         simulation = test_helper.run_kratos(file_path)
         model_part = simulation._list_of_output_processes[0].model_part
+        self.assertTrue(model_part is not None)
 
 if __name__ == '__main__':
     suites = KratosUnittest.KratosSuites

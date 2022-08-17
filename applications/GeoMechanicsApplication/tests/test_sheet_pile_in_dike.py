@@ -27,3 +27,4 @@ class KratosSheetPileInDikeTest(KratosUnittest.TestCase):
         test_name = 'InitialPhase1a_redefinition'
         file_path = test_helper.get_file_path(os.path.join('.', 'test_sheet_pile_in_dike_phases',  test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
+        self.assertTrue(simulation is not None)
