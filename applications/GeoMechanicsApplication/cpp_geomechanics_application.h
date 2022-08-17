@@ -44,8 +44,6 @@
 
 using namespace std;
 
-#pragma region NodeVariables
-
 class NodeOperation
 {
 public:
@@ -82,9 +80,7 @@ class NodeHYDRAULIC_DISCHARGE : public NodeOperation
 public:
     void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
 };
-#pragma endregion NodeVariables
 
-#pragma region GaussVariables
 class GaussOperation
 {
 public:
@@ -142,7 +138,6 @@ class GaussPIPE_HEIGHT : public GaussOperation
 public:
     void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
 };
-#pragma endregion GaussVariables
 
 namespace Kratos
 {
