@@ -105,7 +105,7 @@ public:
         unsigned int n_el = PipeElements.size(); // number of piping elements
 
         // get initially open pipe elements
-        int openPipeElements = this->InitialiseNumActivePipeElements(PipeElements);
+        unsigned int openPipeElements = this->InitialiseNumActivePipeElements(PipeElements);
 
         if (PipeElements.size()==0)
         {
@@ -133,20 +133,25 @@ public:
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
             
             // non-lin picard iteration, for deepening the pipe
-            Equilibrium = check_pipe_equilibrium(OpenPipeElements, amax, mPipingIterations);
+            //Todo JDN (20220817):: Deal with Equilibrium redundancy
+            //Equilibrium = check_pipe_equilibrium(OpenPipeElements, amax, mPipingIterations);
+            check_pipe_equilibrium(OpenPipeElements, amax, mPipingIterations);
+
+        	// check if pipe should grow in length
+        	std::tie(grow, openPipeElements) = check_status_tip_element(openPipeElements, n_el, amax, PipeElements);
             
-            // check if pipe should grow in length
-            std::tie(grow, openPipeElements) = check_status_tip_element(openPipeElements, n_el, amax, PipeElements);
-            
-            // if n open elements is lower than total pipe elements, save pipe height current growing iteration or reset to previous 
+        	// if n open elements is lower than total pipe elements, save pipe height current growing iteration or reset to previous
             // iteration in case the pipe should not grow.
             if (openPipeElements < n_el)
-            { 
+            {
                 save_or_reset_pipe_heights(OpenPipeElements, grow);
             }
-
             // recalculate ground water flow
             converged = Recalculate();
+
+            // error check
+            KRATOS_ERROR_IF_NOT("PipingLoop", converged) << "Groundwater flow calculation failed to converge." << std::endl;
+
         }          
 
         GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
@@ -182,7 +187,7 @@ public:
             {
                 PipeElements.push_back(&element);
 
-                auto startElement = element.GetProperties()[PIPE_START_ELEMENT];
+                long unsigned int startElement = element.GetProperties()[PIPE_START_ELEMENT];
 
                 KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << element.Id() << " " << startElement << std::endl;
 
@@ -358,7 +363,7 @@ private:
     {
         bool equilibrium = false;
         bool converged = true;
-        int PipeIter = 0;
+        unsigned int PipeIter = 0;
         bool grow = true;
 
         // calculate max pipe height and pipe increment
@@ -373,10 +378,11 @@ private:
             // perform a flow calculation and stop growing if the calculation doesnt converge
             converged = Recalculate();
 
-            if (!converged)
-            {
-                grow = false;
-            }
+            // todo: JDN (20220817) : grow not used. 
+        	//if (!converged)
+            //{
+            //    grow = false;
+            //}
 
             if (converged)
             {

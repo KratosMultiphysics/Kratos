@@ -796,12 +796,9 @@ namespace Kratos
       
         for (shared_ptr<Process> process : processes)
         {
-            ModelPart *currentModelPart;
-
             if (process->Info() == "ApplyConstantHydrostaticPressureProcess")
             {
                 auto current_process = std::static_pointer_cast<GeoFlowApplyConstantHydrostaticPressureProcess>(process);
-                currentModelPart = &current_process->GetModelPart();
                 if (current_process->hasWaterPressure())
                 {
                     if (current_process->GetName() == criticalHeadBoundaryModelPartName)
@@ -833,17 +830,14 @@ namespace Kratos
         double firstNode_B = pipeElements.front()->GetGeometry().GetPoint(1).X0();
         double lastNode_A = pipeElements.back()->GetGeometry().GetPoint(0).X0();
 
-        IndexType PolderNode;
         IndexType RiverNode;
 
         if ((firstNode_A < lastNode_A) && (firstNode_A < firstNode_B))
         {
-            PolderNode = pipeElements.front()->GetGeometry().GetPoint(0).Id();
             RiverNode = pipeElements.back()->GetGeometry().GetPoint(1).Id();
         }
         else
         {
-            PolderNode = pipeElements.front()->GetGeometry().GetPoint(1).Id();
             RiverNode = pipeElements.back()->GetGeometry().GetPoint(0).Id();
         }
 
