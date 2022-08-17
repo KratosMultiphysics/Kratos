@@ -7,12 +7,12 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ariadna Cortés
+//  Main authors:    Ariadna Cortes
 //
 //
 
-#if !defined(KRATOS_VOLUME_INSIDE_VOXEL)
-#define  KRATOS_VOLUME_INSIDE_VOXEL
+#if !defined(KRATOS_VOXEL_UTILITIES)
+#define  KRATOS_VOXEL_UTILITIES
 
 // System includes
 
@@ -47,14 +47,14 @@ namespace Kratos
 ///@{
 
 /**
- * @class VolumeInsideVoxel
+ * @class VoxelUtilities
  * @ingroup KratosCore
  * @brief Utilities to compute the real volume inside a voxel
  * @details This class provides static methods to compute (using different approximations) the portion of a 
  * voxel that is actually filled with volume, according to the known triangle elements that intersect the voxel
- * @author Ariadna Cortés
+ * @author Ariadna Cortes
  */
-class VolumeInsideVoxelUtility
+class VoxelUtilities
 {
 public:
 
@@ -68,9 +68,8 @@ public:
     typedef GeometryType::GeometriesArrayType GeometryArrayType;
     typedef GeometryType::PointsArrayType PointsArrayType;
 
-
     /// Pointer definition of VoxelInsideVolume
-    KRATOS_CLASS_POINTER_DEFINITION( VolumeInsideVoxelUtility );
+    KRATOS_CLASS_POINTER_DEFINITION( VoxelUtilities );
 
     ///@}
     ///@name Life Cycle
@@ -83,10 +82,10 @@ public:
     /**
      * @brief Default constructor
      */
-    VolumeInsideVoxelUtility(){}
+    VoxelUtilities(){}
 
     /// Destructor
-    virtual ~VolumeInsideVoxelUtility(){}
+    virtual ~VoxelUtilities(){}
 
     ///@}
     ///@name Operations
@@ -101,10 +100,6 @@ public:
      * This operation is VERY cheap
      */  
     static double NodesApproximation(const GeometryType& rVoxel);
-
-    /*This method is completly useless since it does the same calculation as the previous 
-    one but in a different way. Helps to illustrate use of Edges */
-    static double EdgesApproximation(const GeometryType& rVoxel);
     
     /**
      * @brief Aproximates the actual volume inside the voxel 
@@ -117,38 +112,12 @@ public:
     static double EdgesPortionApproximation(const GeometryType& rVoxel, const GeometryArrayType& rTriangles);
 
     /**
-     * @brief Aproximates the actual area inside a quadrilateral with 90º angles
-     * @param rFace references to the quadrilateral3D4 whose actual area will be approximated
-     * @param rTriangles references to the triangles which may intersect the quadrilateral at some edge.
-     * @return Approximated area 
-     * @note this method is cheaper than HexaVolume2D, but won't work correctly with != 90º angles
-     */  
-    static double VoxelVolume2D(const GeometryType& rFace, const GeometryArrayType& rTriangles);
-
-    /**
      * @brief Aproximates the actual area inside a quadrilateral 
      * @param rFace references to the quadrilateral3D4 whose actual area will be approximated
      * @param rTriangles references to the triangles which may intersect the quadrilateral at some edge.
      * @return Approximated area 
-     * @note Attention: This method is quite expensive 
      */  
-    static double HexaVolume2D(const GeometryType& rFace,const GeometryArrayType& rTriangles);
-
-    /**
-     * @brief Returns the distance between two 3D points.
-     * @param rPoint0 reference to the first point
-     * @param rPoint1 reference an array of 3 coordinates representing the second point
-     * @return Distance 
-     */  
-    static double Distance(const NodeType& Point0, const array_1d<double,3>& Point1);
-
-    /**
-     * @brief Returns the volume enclosed by a set of 4 points
-     * @param rPoints the array of points
-     * @return Volume/area inside this points
-     * @note This function should no be implemented in this way, it is too expensive for an actually easy work
-     */  
-    static double TetraVolume(const PointsArrayType& rPoints);
+    static double FaceArea(const GeometryType& rFace,const GeometryArrayType& rTriangles);
 
     /**
      * @brief Aproximates the portion of the edge (Line3D2) that represents volume
@@ -157,7 +126,7 @@ public:
      * @param rEnds references to the nodes at both sides of the edge
      * @return Approximated Portion of edge that contains volume 
      */  
-    static const double EdgeFilledPortion(std::vector<double>& Distances, const PointsArrayType& rEnds);
+    static double EdgeFilledPortion(std::vector<double>& Distances, const PointsArrayType& rEnds);
 
 private:
 
@@ -168,6 +137,8 @@ private:
     ///@name Private member Variables
     ///@{
 
+    static constexpr std::size_t mNeighbours[4][2] = {{3,1},{0,2},{1,3},{2,0}}; /// Neighbour list
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -176,9 +147,17 @@ private:
     ///@name Private Operations
     ///@{
 
-    static double GetFactor(const PointsArrayType& nodes, const std::vector<std::vector<double>>& neighbours,const int node);
+    /**
+     * @brief Returns the area enclosed by a set of 4 points
+     * @param rPoints the array of points
+     * @return Area inside this points
+     * @note This code is an approximation and won't work perfectly for "parabolic" quadrilaterals
+     */  
+    static double PointsArea(const PointsArrayType& rPoints);
 
-    static int GetCase(const PointsArrayType& nodes, const std::vector<std::vector<double>>& neighbours,const int node);
+    static double GetFactor(const PointsArrayType& rNodes, const int NodeIndex);
+
+    static int GetCase(const PointsArrayType& rNodes, const int NodeIndex);
 
 }; /* Class VoxelInsideVolumeUtility */
 
@@ -191,4 +170,4 @@ private:
 
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_VOXEL_INSIDE_VOLUME  defined */
+#endif /* KRATOS_VOXEL_UTILITIES  defined */
