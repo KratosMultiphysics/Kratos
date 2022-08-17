@@ -132,7 +132,7 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl) (see belo
     **Windows:**
 
     ```batch
-    call "C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\mkl\bin\mklvars.bat" intel64 lp64
+    call "C:\Program Files (x86)\Intel\oneAPI\mkl\latest\env\vars.bat" intel64 lp64
     ```
 
     **Linux:**
@@ -161,17 +161,9 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl) (see belo
 
     **Windows:**
 
-    Copy the required MKL libraries to the Kratos `lib`
-
     ```batch
-    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_core.dll
-    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_rt.dll
-    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_intel_thread.dll
-    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_def.dll
-    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\compiler\libiomp5md.dll
+    call "C:\Program Files (x86)\Intel\oneAPI\mkl\latest\env\vars.bat" intel64 lp64
     ```
-
-    or add the folders to your `PATH`/`LD_LIBRARY_PATH` variable.
 
     **Linux:**
 
@@ -200,7 +192,7 @@ rm GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
 sh -c 'echo deb https://apt.repos.intel.com/mkl all main > /etc/apt/sources.list.d/intel-mkl.list'
 apt-get update -y
 # install specific version of intel-mkl
-apt-get install -y intel-mkl-2020.0-088
+apt-get install -y intel-mkl-2020.4-912
 exit
 ```
 

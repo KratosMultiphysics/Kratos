@@ -110,6 +110,7 @@ class RigidBodySolver:
         # Create all the processes stated in the project parameters
         self._list_of_processes = input_check._CreateListOfProcesses(self.model, project_parameters, self.main_model_part)
         self._list_of_output_processes = input_check._CreateListOfOutputProcesses(self.model, project_parameters)
+        self._list_of_processes.extend(self._list_of_output_processes)
 
 
     def _InitializeSolutionVariables(self, solver_settings):
@@ -420,12 +421,13 @@ class RigidBodySolver:
 
         # Get displacement, velocity and acceleration of both the rigid body and the root point
         x, v, a = self._GetKinematics("rigid_body", buffer=buffer)
-        x_root, v_root, a_root = self._GetKinematics("root_point", buffer=buffer)
+        #x_root, v_root, a_root = self._GetKinematics("root_point", buffer=buffer)
 
         # Calculate the reaction
-        # TODO: Check how does it work with constrained DOFs
-        # This is a very big TODO!
-        reaction = self.C.dot(v - v_root) + self.K.dot(x - x_root)
+        # It is important not to calculate from the stiffness,
+        # since constrained dofs will have an inf*O factor there.
+        reaction = -self.M.dot(a) + self.total_load
+        #reaction = self.C.dot(v - v_root) + self.K.dot(x - x_root)
 
         # Inactive dofs should have a zero reaction, in case they were coupled by mistake
         for index, dof in enumerate(self.available_dofs):
