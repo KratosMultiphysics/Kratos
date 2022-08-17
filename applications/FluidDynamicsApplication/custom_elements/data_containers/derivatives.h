@@ -47,7 +47,7 @@ public:
     ///@{
 
     template<IndexType TSize, class... TArgs>
-    static void inline CalculateGaussPointResidualsDerivativeContributions(BoundedVector<double, TSize>& rResidualDerivative, TArgs&... rArgs)
+    void inline CalculateGaussPointResidualsDerivativeContributions(BoundedVector<double, TSize>& rResidualDerivative, TArgs&... rArgs) const
     {
         rResidualDerivative.clear();
     }
