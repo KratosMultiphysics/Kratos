@@ -43,7 +43,7 @@ void AddNonHistoricalVariableCheck(pybind11::module& m) {
 // CheckNonHistoricalNodeVariableConsistency()
 template<class TContainerType, class TVariableType>
 void AddHistoricalVariableCheck(pybind11::module& m) {
-    m.def("CheckHistoricalNodeVariable",[](ModelPart& rModelPart, const TContainerType& rContainer, const Kratos::Variable<TVariableType>& rVariable){MpiDebugUtilities::CheckNonHistoricalVariable(rModelPart, rContainer, rVariable);});
+    m.def("CheckHistoricalNodeVariable",[](ModelPart& rModelPart, const Kratos::Variable<TVariableType>& rVariable){MpiDebugUtilities::CheckHistoricalVariable(rModelPart, rVariable);});
 }
 
 template<class TContainerType, typename... args>
