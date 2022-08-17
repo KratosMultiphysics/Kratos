@@ -201,7 +201,7 @@ public:
             const unsigned int dimension = geom.WorkingSpaceDimension();
 
             // It creates the new conectivities
-            create_element = Split_Triangle(edge_ids, t, &number_elem, &splitted_edges, &nint);
+            create_element = TriangleSplit::Split_Triangle(edge_ids, t, &number_elem, &splitted_edges, &nint);
 
             // It creates the new elements
             if (create_element == true)

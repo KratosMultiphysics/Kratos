@@ -78,7 +78,7 @@ int UPwSmallStrainElement<TDim,TNumNodes>::
         if ( rProp.Has( PERMEABILITY_XY ) == false || rProp[PERMEABILITY_XY] < 0.0 )
             KRATOS_ERROR << "PERMEABILITY_XY has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
-        if (TDim > 2) {
+        if constexpr (TDim > 2) {
             if ( rProp.Has( PERMEABILITY_ZZ ) == false || rProp[PERMEABILITY_ZZ] < 0.0 )
                 KRATOS_ERROR << "PERMEABILITY_ZZ has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
@@ -1367,7 +1367,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
     unsigned int index;
 
-    if (TDim > 2) {
+    if constexpr (TDim > 2) {
         for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             index = TDim * i;
 
@@ -1866,7 +1866,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         ETensor(i,i) -= 1.0;
     ETensor *= 0.5;
 
-    if (TDim==2) {
+    if constexpr (TDim==2) {
         Vector StrainVector;
         StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
@@ -1904,7 +1904,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
     ETensor *= 0.5;
 
-    if (TDim==2) {
+    if constexpr (TDim==2) {
         Vector StrainVector;
         StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
@@ -1948,7 +1948,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     MathUtils<double>::BDBtProductOperation(ETensor, EigenValuesMatrix, EigenVectorsMatrix);
 
     // Hencky Strain Calculation
-    if (TDim==2) {
+    if constexpr (TDim==2) {
         Vector StrainVector;
         StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];

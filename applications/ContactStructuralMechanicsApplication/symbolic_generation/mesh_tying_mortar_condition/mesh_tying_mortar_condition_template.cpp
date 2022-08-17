@@ -572,7 +572,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Equation
             const NodeType& r_master_node = r_current_master[i_master];
             rResult[index++] = r_master_node.GetDof( r_var_x ).EquationId( );
             rResult[index++] = r_master_node.GetDof( r_var_y ).EquationId( );
-            if (TDim == 3) rResult[index++] = r_master_node.GetDof( r_var_z ).EquationId( );
+            if constexpr (TDim == 3) rResult[index++] = r_master_node.GetDof( r_var_z ).EquationId( );
         }
     }
 
@@ -591,7 +591,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Equation
             const NodeType& r_slave_node = r_current_slave[i_slave];
             rResult[index++] = r_slave_node.GetDof( r_var_x ).EquationId( );
             rResult[index++] = r_slave_node.GetDof( r_var_y ).EquationId( );
-            if (TDim == 3) rResult[index++] = r_slave_node.GetDof( r_var_z ).EquationId( );
+            if constexpr (TDim == 3) rResult[index++] = r_slave_node.GetDof( r_var_z ).EquationId( );
         }
     }
 
@@ -606,7 +606,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Equation
             const NodeType& r_slave_node = r_current_slave[i_slave];
             rResult[index++] = r_slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_X ).EquationId( );
             rResult[index++] = r_slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ).EquationId( );
-            if (TDim == 3) rResult[index++] = r_slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Z ).EquationId( );
+            if constexpr (TDim == 3) rResult[index++] = r_slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Z ).EquationId( );
         }
     }
 
@@ -650,7 +650,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::GetDofL
             const NodeType& r_master_node = r_current_master[i_master];
             rConditionalDofList[index++] = r_master_node.pGetDof( r_var_x );
             rConditionalDofList[index++] = r_master_node.pGetDof( r_var_y );
-            if (TDim == 3) rConditionalDofList[index++] = r_master_node.pGetDof( r_var_z );
+            if constexpr (TDim == 3) rConditionalDofList[index++] = r_master_node.pGetDof( r_var_z );
         }
     }
 
@@ -669,7 +669,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::GetDofL
             const NodeType& r_slave_node = r_current_slave[i_slave];
             rConditionalDofList[index++] = r_slave_node.pGetDof( r_var_x );
             rConditionalDofList[index++] = r_slave_node.pGetDof( r_var_y );
-            if (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( r_var_z );
+            if constexpr (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( r_var_z );
         }
     }
 
@@ -684,7 +684,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::GetDofL
             const NodeType& r_slave_node = r_current_slave[i_slave];
             rConditionalDofList[index++] = r_slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_X );
             rConditionalDofList[index++] = r_slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Y );
-            if (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Z );
+            if constexpr (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Z );
         }
     }
 

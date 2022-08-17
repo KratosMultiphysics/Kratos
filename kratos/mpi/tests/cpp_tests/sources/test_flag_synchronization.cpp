@@ -11,9 +11,13 @@
 //
 //
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/kratos_flags.h"
 #include "mpi/includes/mpi_data_communicator.h"
-
 #include "testing/testing.h"
 
 namespace Kratos {

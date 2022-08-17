@@ -8,17 +8,20 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//
 
+// System includes
 #include <utility>
 #include <iostream>
 #include <random>
 
+// External includes
+
+// Project includes
 #include "testing/testing.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "containers/distributed_system_vector.h"
 #include "containers/distributed_vector_exporter.h"
-
-
 
 namespace Kratos {
 namespace Testing {

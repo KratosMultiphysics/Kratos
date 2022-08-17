@@ -22,6 +22,8 @@
 
 
 // External includes
+#include <utility>
+#include <type_traits>
 #include <unordered_map>
 
 // Project includes
@@ -76,16 +78,16 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(PointerHashMapSet);
 
     /// Key type for searching in this container.
-    typedef typename TGetKeyType::result_type key_type;
+    typedef decltype(std::declval<TGetKeyType>()(std::declval<TDataType>())) key_type;
 
-    /// data type stores in this container.
+    /// Data type stores in this container.
     typedef TDataType data_type;
     typedef TDataType value_type;
-    typedef THashType hasher;
     typedef TPointerType pointer_type;
     typedef TDataType& reference;
     typedef const TDataType& const_reference;
-	typedef std::unordered_map<key_type, TPointerType, hasher> ContainerType;
+	// typedef std::unordered_map<key_type, TPointerType, THashType> ContainerType;
+    typedef std::unordered_map<typename std::remove_reference<key_type>::type, TPointerType, THashType> ContainerType;
 
     typedef typename ContainerType::size_type size_type;
     typedef typename ContainerType::iterator ptr_iterator;
@@ -97,10 +99,16 @@ public:
 private:
 	///@name Nested clases
 	///@{
-	class iterator_adaptor : public std::iterator<std::forward_iterator_tag, data_type>
+	class iterator_adaptor
 	{
 		ptr_iterator map_iterator;
 	public:
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = data_type;
+        using pointer           = data_type*;
+        using reference         = data_type&;
+        
 		iterator_adaptor(ptr_iterator it) :map_iterator(it) {}
 		iterator_adaptor(const iterator_adaptor& it) : map_iterator(it.map_iterator) {}
 		iterator_adaptor& operator++() { map_iterator++; return *this; }
@@ -113,10 +121,16 @@ private:
 		ptr_iterator const& base() const { return map_iterator; }
 	};
 
-	class const_iterator_adaptor : public std::iterator<std::forward_iterator_tag, data_type>
+	class const_iterator_adaptor
 	{
 		ptr_const_iterator map_iterator;
 	public:
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = data_type;
+        using pointer           = data_type*;
+        using reference         = data_type&;
+
 		const_iterator_adaptor(ptr_const_iterator it) :map_iterator(it) {}
 		const_iterator_adaptor(const const_iterator_adaptor& it) : map_iterator(it.map_iterator) {}
 		const_iterator_adaptor& operator++() { map_iterator++; return *this; }

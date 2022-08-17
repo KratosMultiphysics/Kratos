@@ -11,14 +11,17 @@
 //
 //
 
+// System includes
 #include <cmath>
 
+// External includes
+
+// Project includes
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/parallel_environment.h"
 #include "mpi/includes/mpi_communicator.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
-
 #include "testing/testing.h"
 
 namespace Kratos {
@@ -585,6 +588,74 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataSynchronize, Krato
     }
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSyncToMax, KratosMPICoreFastSuite)
+{
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+    r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+
+    MPIDataCommunicator comm_world(MPI_COMM_WORLD);
+    Internals::ModelPartForMPICommunicatorTests(r_model_part, comm_world);
+    int rank = comm_world.Rank();
+    int size = comm_world.Size();
+
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node) {
+        i_node->FastGetSolutionStepValue(TEMPERATURE, 0) = 10.0*rank;
+    }
+
+    Communicator& r_comm = r_model_part.GetCommunicator();
+
+    // center is local to rank 0 and ghost in all other ranks
+    Node<3>& r_center = r_model_part.Nodes()[1];
+    // local and ghost nodes are each known in two ranks
+    const unsigned int local_id = rank + 2;
+    const unsigned int ghost_id = (size == 1) || (rank != size-1) ? rank + 3 : 2;
+    auto& r_local = r_model_part.Nodes()[local_id];
+    auto& r_ghost = r_model_part.Nodes()[ghost_id];
+
+    const int expected_local = (rank == 0) ? 10.0*(size-1) : 10.0*rank;
+    const int expected_ghost = (rank + 1 < size) ? 10.0*(rank+1) : 10.0*(size-1);
+
+    r_comm.SynchronizeCurrentDataToMax(TEMPERATURE);
+    KRATOS_CHECK_EQUAL(r_center.FastGetSolutionStepValue(TEMPERATURE, 0), 10.0*(size-1));
+    KRATOS_CHECK_EQUAL(r_local.FastGetSolutionStepValue(TEMPERATURE, 0), expected_local);
+    KRATOS_CHECK_EQUAL(r_ghost.FastGetSolutionStepValue(TEMPERATURE, 0), expected_ghost);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToMax, KratosMPICoreFastSuite)
+{
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    MPIDataCommunicator comm_world(MPI_COMM_WORLD);  
+    Internals::ModelPartForMPICommunicatorTests(r_model_part, comm_world);
+    const int rank = comm_world.Rank();
+    const int size = comm_world.Size();
+
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node) {
+        i_node->SetValue(TEMPERATURE, 10.0*rank);
+    }
+
+    Communicator& r_comm = r_model_part.GetCommunicator();
+
+    // center is local to rank 0 and ghost in all other ranks
+    Node<3>& r_center = r_model_part.Nodes()[1];
+    // local and ghost nodes are each known in two ranks
+    const unsigned int local_id = rank + 2;
+    const unsigned int ghost_id = (size == 1) || (rank != size-1) ? rank + 3 : 2;
+    auto& r_local = r_model_part.Nodes()[local_id];
+    auto& r_ghost = r_model_part.Nodes()[ghost_id];
+
+    const int expected_local = (rank == 0) ? 10.0*(size-1) : 10.0*rank;
+    const int expected_ghost = (rank + 1 < size) ? 10.0*(rank+1) : 10.0*(size-1);
+
+    r_comm.SynchronizeNonHistoricalDataToMax(TEMPERATURE);
+    KRATOS_CHECK_EQUAL(r_center.GetValue(TEMPERATURE), 10.0*(size-1));
+    KRATOS_CHECK_EQUAL(r_local.GetValue(TEMPERATURE), expected_local);
+    KRATOS_CHECK_EQUAL(r_ghost.GetValue(TEMPERATURE), expected_ghost);
+}
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSyncToMin, KratosMPICoreFastSuite)
 {
@@ -622,7 +693,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
     KRATOS_CHECK_EQUAL( r_ghost.FastGetSolutionStepValue(TEMPERATURE,0), expected_ghost);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataariableSyncToMin, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToMin, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -656,7 +727,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataariableSyncToMin, 
     KRATOS_CHECK_EQUAL( r_local.GetValue(TEMPERATURE), expected_local);
     KRATOS_CHECK_EQUAL( r_ghost.GetValue(TEMPERATURE), expected_ghost);
 }
-
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, KratosMPICoreFastSuite)
 {
