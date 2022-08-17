@@ -1055,7 +1055,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 if ( rOutput[point_number].size() != strain_size )
                     rOutput[point_number].resize( strain_size, false );
 
-                rOutput[point_number] = this_constitutive_variables.StressVector;
+                noalias(rOutput[point_number]) = this_constitutive_variables.StressVector;
             }
         } else if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR ) {
             // Create and initialize element variables:
@@ -1090,7 +1090,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 if ( rOutput[point_number].size() != strain_size)
                     rOutput[point_number].resize( strain_size, false );
 
-                rOutput[point_number] = this_constitutive_variables.StrainVector;
+                noalias(rOutput[point_number]) = this_constitutive_variables.StrainVector;
             }
         } else if (rVariable == INITIAL_STRESS_VECTOR) {
             const SizeType number_of_nodes = GetGeometry().size();
