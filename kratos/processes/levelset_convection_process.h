@@ -953,10 +953,10 @@ private:
         VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(*mpConvectVar, mrBaseModelPart.Nodes());
 
         // Check the base model part element family (only simplex elements are supported)
-        if(TDim == 2){
+        if constexpr (TDim == 2){
             KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle) <<
                 "In 2D the element type is expected to be a triangle" << std::endl;
-        } else if(TDim == 3) {
+        } else if constexpr (TDim == 3) {
             KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) <<
                 "In 3D the element type is expected to be a tetrahedra" << std::endl;
         }
