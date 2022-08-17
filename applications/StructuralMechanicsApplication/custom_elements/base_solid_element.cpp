@@ -779,9 +779,6 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
             ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-            // Reading integration points
-            //const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
-
             // If strain has to be computed inside of the constitutive law with PK2
             Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
 
@@ -814,9 +811,6 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
             ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
             ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-            // Reading integration points
-            //const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints(  );
 
             //Calculate Cauchy Stresses from the FE solution
             std::vector<Vector> sigma_FE_solution(number_of_nodes);
