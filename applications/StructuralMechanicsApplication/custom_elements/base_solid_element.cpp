@@ -68,7 +68,7 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
         //Constitutive Law initialisation
         if ( mConstitutiveLawVector.size() != integration_points.size() )
-            mConstitutiveLawVector.resize( integration_points.size(), false );
+            mConstitutiveLawVector.resize( integration_points.size() );
 
         InitializeMaterial();
 
@@ -355,7 +355,7 @@ void BaseSolidElement::GetDofList(
 
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    rElementalDofList.resize(0, false);
+    rElementalDofList.resize(0);
     rElementalDofList.reserve(dimension*number_of_nodes);
 
     if(dimension == 2) {
