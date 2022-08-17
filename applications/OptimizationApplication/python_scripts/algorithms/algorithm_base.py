@@ -188,6 +188,7 @@ class OptimizationAlgorithm:
                 response_settings.AddString("type",self.constraints_types[index])
                 response_settings.AddDouble("ref_value",self.constraints_ref_values[index])
                 response_settings.AddBool("is_active",True)
+                response_settings.AddBool("prev_itr_is_active",False)
                 self.opt_parameters["constraints"].Append(response_settings)
             else:
                 raise RuntimeError("OptimizationAlgorithm:__init__:error in compile settings for c++ optimizer")
@@ -293,6 +294,7 @@ class OptimizationAlgorithm:
                 if is_active:
                     self.num_active_consts += 1
 
+                constraint["prev_itr_is_active"].SetBool(constraint["is_active"].GetBool())
                 constraint["is_active"].SetBool(is_active)
 
                 return is_active       

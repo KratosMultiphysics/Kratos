@@ -69,6 +69,11 @@ public:
         //resize the required vectors
         mSearchDirection = ZeroVector(mTotalNumControlVars);
 
+        current_is_feasible = true;
+        prev_is_feasible = true;
+        sum_obj_improvement = 0.0;
+        sum_obj_improvement_prev = 0.0;
+        last_feasible_obj_val = 0.0;
         mSumObjectivesImprovements = 0.0;
         for(auto& objetive : mrSettings["objectives"]){
             double objective_improvement = objetive["objective_improvement"].GetDouble();
@@ -140,11 +145,13 @@ public:
 
         Vector mObjectiveGradients = ZeroVector(mTotalNumControlVars);
         double objective_value = 0.0;
-        double sum_obj_improvement =0.0;
+        double sum_objective_value = 0.0;
+        sum_obj_improvement =0.0;
         for(auto& objetive : mrSettings["objectives"]){
             objective_value = objetive["value"].GetDouble();
             auto objective_prev_value = objetive["prev_itr_value"].GetDouble();
             double objective_weight = objetive["weight"].GetDouble();
+            sum_objective_value += objective_value;
             double objective_improvement = objetive["objective_improvement"].GetDouble();
 
             if(opt_itr>1){
@@ -194,7 +201,7 @@ public:
                         L2_norm += nodal_gradient * nodal_gradient;
                     }
                 }
-                // L2_norm = std::sqrt(L2_norm); 
+                L2_norm = std::sqrt(L2_norm); 
                 L2_norm = 1.0;        
 
                 int node_index=0;
@@ -212,40 +219,49 @@ public:
                 }             
             }
         }        
-
         mObjectiveGradients *= (1.0/norm_2(mObjectiveGradients));
 
         //now fill the active_constraints_gradients matrix
         int constraint_index = 0;
         Matrix active_constraints_gradients = ZeroMatrix(num_active_constraints,mTotalNumControlVars);
         Vector active_constraints_violations(num_active_constraints,0.0);
+        current_is_feasible = true;
         for(auto& constraint : mrSettings["constraints"]){
             if(constraint["is_active"].GetBool()){
                 auto const_type = constraint["type"].GetString();
                 double current_violation = (constraint["value"].GetDouble()-constraint["ref_value"].GetDouble())/constraint["ref_value"].GetDouble();
+                if(100 * std::abs(current_violation)>1.0)
+                    current_is_feasible = false;
                 double previous_violation = (constraint["prev_itr_value"].GetDouble()-constraint["ref_value"].GetDouble())/constraint["ref_value"].GetDouble();
                 double relative_change = (constraint["value"].GetDouble()-constraint["prev_itr_value"].GetDouble())/constraint["prev_itr_value"].GetDouble();
                 double weight = constraint["weight"].GetDouble();
-                // set the weight
+                
+                // analysis and set the weight
                 if(opt_itr>1){
-
-                    if((std::abs(current_violation)>std::abs(previous_violation)) && (100 * std::abs(previous_violation)>1.0))
-                        weight *= 1.25;
-                    else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(current_violation)>1.0) && (100 * std::abs(relative_change)<1.0))
-                        weight *= 1.25;
-                    else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(relative_change)<1.0) && ((const_type!="equality") && (const_type!="initial_value_equality")))
-                        weight *= 1.25;
-
-                    if ((const_type=="equality") || (const_type=="initial_value_equality"))
-                        if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(current_violation)<1.0))
-                            weight *= 0.75;                        
-                        else if((100 * std::abs(current_violation)<1.0) && (sum_obj_improvement>0))
-                            weight *= 0.75;
-                        else if((current_violation>0.0) && (previous_violation<0))
-                            weight *= 0.5;
-                        else if((current_violation<0.0) && (previous_violation>0))
-                            weight *= 0.5;
-
+                    
+                    if((const_type=="equality") || (const_type=="initial_value_equality")){
+                        //first check the oscill
+                        if((100 * std::abs(current_violation)>1) && (((current_violation>0.0) && (previous_violation<0)) || ((current_violation<0.0) && (previous_violation>0)))){
+                            double mult = std::abs(constraint["prev_itr_value"].GetDouble()-constraint["ref_value"].GetDouble());
+                            mult /= std::abs(constraint["prev_itr_value"].GetDouble()-constraint["value"].GetDouble());
+                            weight *= 0.75; 
+                        }
+                        else if((std::abs(current_violation)>std::abs(previous_violation)) && (100 * std::abs(previous_violation)>1))
+                            weight *= 1.25;
+                        else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(current_violation)>1) && (100 * std::abs(relative_change)<1.0))
+                            weight *= 1.25;
+                        else if((100 * std::abs(previous_violation)<0.1) && (100 * std::abs(current_violation)<0.1))
+                            weight *= 0.75;                                                                                
+                    }
+                    else{
+                        bool prev_itr_is_active = constraint["prev_itr_is_active"].GetBool();
+                        if(prev_itr_is_active){
+                            if((std::abs(current_violation)>std::abs(previous_violation)) && (100 * std::abs(previous_violation)>1))
+                                weight *= 1.25;                        
+                            else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(relative_change)<1.0))
+                                weight *= 1.25;
+                        }
+                    }
 
                     if(weight<1.0)
                         weight = 1.0;                        
@@ -300,27 +316,43 @@ public:
 
 
         auto projection_step_size = mrSettings["projection_step_size"].GetDouble();
-        auto correction_step_size = mrSettings["correction_step_size"].GetDouble();
-        
-        
+        auto correction_step_size = mrSettings["correction_step_size"].GetDouble();        
+
+        // apply contraction if necessary
+        if (opt_itr>2 && current_is_feasible && (sum_objective_value>last_feasible_obj_val))
+            mSumObjectivesImprovements *= 0.8;
+
+        KRATOS_INFO("mSumObjectivesImprovements: ")<<mSumObjectivesImprovements<<std::endl;
+
         if(opt_itr>1){
+        
             double scale = 1.0;
-            if(sum_obj_improvement<0.0){
-                double ratio = mSumObjectivesImprovements/abs(sum_obj_improvement);
-                if(ratio>1.2)
-                    ratio = 1.2;
-                if(ratio<0.8)
-                    ratio = 0.8;
+            double ratio = mSumObjectivesImprovements/abs(sum_obj_improvement);
+            if(ratio>1.0 && sum_obj_improvement<0.0 && sum_obj_improvement_prev<0.0 && current_is_feasible && prev_is_feasible)
+                scale = ratio; 
+
+            if(ratio<1.0 && sum_obj_improvement<0.0 && sum_obj_improvement_prev<0.0)
                 scale = ratio;
-            }
-            // else
-            //     scale = 1.2;
+
+            if(scale>1.2)
+                scale = 1.2; 
+            if(scale<0.8) 
+                scale = 0.8;                  
+
+            if(sum_obj_improvement>0.0)
+                scale = 0.8;
 
             projection_step_size *= scale;
             mrSettings["projection_step_size"].SetDouble(projection_step_size);
+
+            if(current_is_feasible)
+                last_feasible_obj_val = sum_objective_value;
         }
 
-        
+        sum_obj_improvement_prev = sum_obj_improvement;
+        prev_is_feasible = current_is_feasible;         
+
+         
         if(num_active_constraints>0)
         {
             // compute feasible self.lin_solversearch direction
@@ -332,18 +364,16 @@ public:
 
             Vector projection = - (mObjectiveGradients - prod(trans(active_constraints_gradients), Vector(prod(NTN_inv, Vector(prod(active_constraints_gradients, mObjectiveGradients))))));
             Vector correction = - prod(trans(active_constraints_gradients), Vector(prod(NTN_inv,active_constraints_violations)));
-            double sin_alpha = norm_2(projection);
-            
-            mrSettings["sin_alpha"].SetDouble(sin_alpha);
-
+            double current_sin_alpha = norm_2(projection);
+            double prev_sin_alpha = mrSettings["sin_alpha"].GetDouble();
+            mrSettings["sin_alpha"].SetDouble(current_sin_alpha);
+    
             mSearchDirection = (projection_step_size * projection / norm_2(projection)) + (correction_step_size * correction);
-   
         }
-        else{
+        else
             mSearchDirection = - projection_step_size * mObjectiveGradients / norm_2(mObjectiveGradients);
-        }
             
-        // compute and set the updates
+        // set the updates
         int index = 0;
         for(auto& control : mrSettings["controls"]){
             int control_size = control["size"].GetInt();
@@ -367,15 +397,17 @@ public:
                 }
             }
         }
-
-
-
     };
 
     Vector mSearchDirection;
     LinearSolver<DenseSpace, DenseSpace>& mrSolver;
     int mTotalNumControlVars;
     double mSumObjectivesImprovements;
+    double sum_obj_improvement;  
+    double sum_obj_improvement_prev;
+    double last_feasible_obj_val;
+    bool current_is_feasible;
+    bool prev_is_feasible;
 
 
 }; // Class OptimizationAlgorithm

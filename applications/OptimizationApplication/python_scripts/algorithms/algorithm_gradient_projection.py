@@ -30,8 +30,8 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         super().__init__(name,opt_settings,model,model_parts_controller,analyses_controller,responses_controller,controls_controller)
 
         # check if constraint list is empty or not 
-        if not len(self.constraints)>0:
-            raise RuntimeError("AlgorithmGradientProjection:__init__: constraints list can not be empty !")  
+        # if not len(self.constraints)>0:
+        #     raise RuntimeError("AlgorithmGradientProjection:__init__: constraints list can not be empty !")  
 
         self.lin_solver_settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
         self.lin_solver = dense_linear_solver_factory.ConstructSolver(self.lin_solver_settings)          
