@@ -294,28 +294,6 @@ protected:
         ShapeFunctionDerivativesArrayType& rDN_DX,
         const GeometryData::IntegrationMethod& rIntegrationMethod) const;
 
-    template<IndexType TSize>
-    void AssembleSubVectorToVector(Vector& rOutput, const BoundedVector<double, TSize>& rSubVector)
-    {
-        constexpr IndexType ValueBlockSize = TSize / TNumNodes;
-        for (IndexType i = 0; i < TNumNodes; ++i) {
-            for (IndexType j = 0; j < ValueBlockSize; ++j) {
-                rOutput[i * TBlockSize + j] += rSubVector[i * ValueBlockSize + j];
-            }
-        }
-    }
-
-    template<IndexType TSize>
-    void AssembleSubVectorToMatrix(Matrix& rOutput, const IndexType Row, const BoundedVector<double, TSize>& rSubVector)
-    {
-        constexpr IndexType ValueBlockSize = TSize / TNumNodes;
-        for (IndexType i = 0; i < TNumNodes; ++i) {
-            for (IndexType j = 0; j < ValueBlockSize; ++j) {
-                rOutput(Row, i * TBlockSize + j) += rSubVector[i * ValueBlockSize + j];
-            }
-        }
-    }
-
     ///@}
 };
 
