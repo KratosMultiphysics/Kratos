@@ -9,6 +9,7 @@
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
 // System includes

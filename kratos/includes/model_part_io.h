@@ -8,6 +8,8 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_MODEL_PART_IO_H_INCLUDED )
