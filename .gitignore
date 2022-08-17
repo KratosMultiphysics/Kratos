@@ -27,7 +27,7 @@ applications/DEMApplication/out/*
 applications/DEMApplication/.vs/*
 applications/DEMApplication/custom_constitutive/.vs/*
 applications/DEMApplication/python_scripts/.vs/*
-applications/DEMApplication/tests/*
+applications/DEMApplication/tests/*.pdf
 
 
 # Times files

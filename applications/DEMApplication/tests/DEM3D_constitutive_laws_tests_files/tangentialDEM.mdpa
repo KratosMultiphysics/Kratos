@@ -82,6 +82,9 @@ Begin SubModelPart 1 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: 
   Begin SubModelPartNodes
          1
   End SubModelPartNodes
+  Begin SubModelPartElements
+            1
+  End SubModelPartElements
 End SubModelPart
 
 Begin SubModelPart 2 // GUI DEM-VelocityBC - DEM-VelocityBC2D - group identifier: left
@@ -101,5 +104,8 @@ Begin SubModelPart 2 // GUI DEM-VelocityBC - DEM-VelocityBC2D - group identifier
   Begin SubModelPartNodes
          2
   End SubModelPartNodes
+  Begin SubModelPartElements
+            2
+  End SubModelPartElements
 End SubModelPart
 
