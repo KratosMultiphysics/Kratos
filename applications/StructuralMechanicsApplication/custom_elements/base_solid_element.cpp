@@ -928,7 +928,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
     const SizeType number_of_integration_points = integration_points.size();
     if ( rOutput.size() != number_of_integration_points )
-        rOutput.resize( number_of_integration_points, false );
+        rOutput.resize( number_of_integration_points );
 
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
@@ -975,7 +975,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
     const SizeType number_of_integration_points = integration_points.size();
     if (rOutput.size() != number_of_integration_points)
-        rOutput.resize(number_of_integration_points, false);
+        rOutput.resize(number_of_integration_points);
 
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
@@ -997,7 +997,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
     const SizeType number_of_integration_points = integration_points.size();
     if ( rOutput.size() != number_of_integration_points )
-        rOutput.resize( number_of_integration_points, false );
+        rOutput.resize( number_of_integration_points );
 
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
@@ -1139,7 +1139,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     if ( rOutput.size() != integration_points.size() )
-        rOutput.resize( integration_points.size(), false );
+        rOutput.resize( integration_points.size() );
 
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
