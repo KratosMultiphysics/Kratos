@@ -94,18 +94,26 @@ public:
     class ResidualsContributions
     {
     public:
+        ///@name Type definitions
+        ///@{
+
+        constexpr static IndexType NumNodes = TNumNodes;
+
+        constexpr static IndexType BlockSize = TBlockSize;
+
+        ///@}
         ///@name Life Cycle
         ///@{
 
-        ResidualsContributions(Data& rData);
+        explicit ResidualsContributions() = default;
 
         ///@}
         ///@name Operations
         ///@{
 
-        void static AddGaussPointResidualsContributions(
-            Data& rData,
+        void AddGaussPointResidualsContributions(
             VectorF& rResidual,
+            Data& rData,
             const double W,
             const Vector& rN,
             const Matrix& rdNdX);
@@ -113,16 +121,10 @@ public:
         ///@}
 
     private:
-        ///@name Private Members
-        ///@{
-
-        Data& mrData;
-
-        ///@}
         ///@name Private Operations
         ///@{
 
-        void static AddViscousTerms(
+        void AddViscousTerms(
             Data& rData,
             VectorF& rResidual,
             const double W);
@@ -137,13 +139,17 @@ public:
         ///@name Type Definitions
         ///@{
 
+        constexpr static IndexType NumNodes = TNumNodes;
+
+        constexpr static IndexType BlockSize = TBlockSize;
+
         constexpr static IndexType TDerivativeDimension = TDerivativesType::TDerivativeDimension;
 
         ///@}
         ///@name Operations
         ///@{
 
-        void static CalculateGaussPointResidualsDerivativeContributions(
+        void CalculateGaussPointResidualsDerivativeContributions(
             VectorF& rResidualDerivative,
             Data& rData,
             const int NodeIndex,
@@ -153,7 +159,7 @@ public:
             const double WDerivative,
             const double DetJDerivative,
             const Matrix& rdNdXDerivative,
-            const double MassTermsDerivativesWeight = 1.0)
+            const double MassTermsDerivativesWeight = 1.0) const
         {
             CalculateGaussPointResidualsDerivativeContributions(
                         rResidualDerivative,
@@ -187,7 +193,7 @@ public:
             constexpr double u_factor = TDerivativesType::VelocityDerivativeFactor;
             constexpr double p_factor = TDerivativesType::PressureDerivativeFactor;
 
-            const auto& r_geometry = rData.mrElement.GetGeometry();
+            const auto& r_geometry = rData.mpElement->GetGeometry();
 
             const TDerivativesType derivatives_type(
                 NodeIndex, DirectionIndex, r_geometry, W, rN, rdNdX,
@@ -203,7 +209,7 @@ public:
             // calculate derivative contributions w.r.t. current derivative variable. Derivative variables are
             // assumed be independent of each other, so no cross derivative terms are there. Hence
             // it is only sufficient to derrive w.r.t. current derivative variable.
-            rData.mrConstitutiveLaw.CalculateDerivative(rData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, derivatives_type.GetDerivativeVariable(), effective_viscosity_derivative);
+            rData.mpConstitutiveLaw->CalculateDerivative(rData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, derivatives_type.GetDerivativeVariable(), effective_viscosity_derivative);
             effective_viscosity_derivative *= rN[NodeIndex];
 
             // calculate derivative contributions w.r.t. its dependent variable gradients. Dependent variable gradients
@@ -215,12 +221,12 @@ public:
             for (const auto& r_effective_viscosity_dependent_variable : r_effective_viscosity_dependent_variables) {
                 // these variables always needs to be scalars (eg. VELOCITY_X)
                 const auto& r_derivative_variable = r_effective_viscosity_dependent_variable.GetVariable();
-                FluidCalculationUtilities::EvaluateGradientInPoint(rData.mrElement.GetGeometry(), rdNdXDerivative, std::tie(derivative_variable_gradient, r_derivative_variable));
+                FluidCalculationUtilities::EvaluateGradientInPoint(rData.mpElement->GetGeometry(), rdNdXDerivative, std::tie(derivative_variable_gradient, r_derivative_variable));
 
                 // this is a list of gradient component variables. This list also should only contain scalar variables (eg. VELOCITY_GRADIENT_TENSOR_XX)
                 const auto& r_effective_viscosity_dependent_variable_gradient_component_list = r_effective_viscosity_dependent_variable.GetVariableGradientComponents();
                 for (IndexType i = 0; i < TDim; ++i) {
-                    rData.mrConstitutiveLaw.CalculateDerivative(rData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, *r_effective_viscosity_dependent_variable_gradient_component_list[i], effective_viscosity_derivative_value);
+                    rData.mpConstitutiveLaw->CalculateDerivative(rData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, *r_effective_viscosity_dependent_variable_gradient_component_list[i], effective_viscosity_derivative_value);
                     effective_viscosity_derivative += effective_viscosity_derivative_value * (rdNdX(NodeIndex, i) * (r_derivative_variable ==  derivatives_type.GetDerivativeVariable()));
                     effective_viscosity_derivative += effective_viscosity_derivative_value * (derivative_variable_gradient[i]);
                 }
@@ -353,8 +359,8 @@ public:
                 rResidualDerivative[row + TDim] += value;
             }
 
-            ResidualsContributions::AddGaussPointResidualsContributions(
-                rData, rResidualDerivative, WDerivative, rN, rdNdX);
+            ResidualsContributions().AddGaussPointResidualsContributions(
+                rResidualDerivative, rData, WDerivative, rN, rdNdX);
 
             // calculate shear stress derivative.
             const auto& r_strain_rate_variables = QSVMSDerivativeUtilities<TDim>::GetStrainRateVariables();
@@ -363,11 +369,11 @@ public:
 
             // calculate shear stress derivatives w.r.t. strain rate
             for (IndexType i = 0; i < TStrainSize; ++i) {
-                rData.mrConstitutiveLaw.CalculateDerivative(rData.mConstitutiveLawValues, CAUCHY_STRESS_VECTOR, *r_strain_rate_variables[i], value);
+                rData.mpConstitutiveLaw->CalculateDerivative(rData.mConstitutiveLawValues, CAUCHY_STRESS_VECTOR, *r_strain_rate_variables[i], value);
                 noalias(rData.mShearStressDerivative) += value * rData.mStrainRateDerivative[i];
             }
             // calculate shear stress derivatives w.r.t. effective viscosity
-            rData.mrConstitutiveLaw.CalculateDerivative(rData.mConstitutiveLawValues, CAUCHY_STRESS_VECTOR, EFFECTIVE_VISCOSITY, value);
+            rData.mpConstitutiveLaw->CalculateDerivative(rData.mConstitutiveLawValues, CAUCHY_STRESS_VECTOR, EFFECTIVE_VISCOSITY, value);
             noalias(rData.mShearStressDerivative) += value * effective_viscosity_derivative;
 
             AddViscousDerivative(rData, rResidualDerivative, NodeIndex,
@@ -410,6 +416,14 @@ public:
     class SecondDerivatives
     {
     public:
+        ///@name Type definitions
+        ///@{
+
+        constexpr static IndexType NumNodes = TNumNodes;
+
+        constexpr static IndexType BlockSize = TBlockSize;
+
+        ///@}
         ///@name Operations
         ///@{
 
@@ -434,18 +448,22 @@ public:
 
         static constexpr IndexType TLNumNodes = TNN;
 
+        static constexpr IndexType TResidualSize = TBlockSize * TLNumNodes;
+
         ///@}
         ///@name Life Cycle
         ///@{
 
-        Data(
-            const Element& rElement,
-            ConstitutiveLaw& rConstitutiveLaw,
-            const ProcessInfo& rProcessInfo);
+        explicit Data() = default;
 
         ///@}
         ///@name Operations
         ///@{
+
+        void Initialize(
+            const Element& rElement,
+            ConstitutiveLaw& rConstitutiveLaw,
+            const ProcessInfo& rProcessInfo);
 
         void CalculateGaussPointData(
             const double W,
@@ -457,8 +475,8 @@ public:
         ///@name Private Members
         ///@{
 
-        const Element& mrElement;
-        ConstitutiveLaw& mrConstitutiveLaw;
+        const Element* mpElement;
+        ConstitutiveLaw* mpConstitutiveLaw;
 
         // Primal data
         int mOSS_SWITCH;

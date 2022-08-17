@@ -84,16 +84,9 @@ GeometryData::IntegrationMethod QSVMSResidualDerivatives<TDim, TNumNodes>::GetIn
 
 
 template <unsigned int TDim, unsigned int TNumNodes>
-QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::ResidualsContributions(
-    Data& rData)
-    : mrData(rData)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::AddGaussPointResidualsContributions(
-    Data& rData,
     VectorF& rResidual,
+    Data& rData,
     const double W,
     const Vector& rN,
     const Matrix& rdNdX)
@@ -190,21 +183,23 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives<TDirectionInde
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-QSVMSResidualDerivatives<TDim, TNumNodes>::Data::Data(
+void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::Initialize(
     const Element& rElement,
     ConstitutiveLaw& rConstitutiveLaw,
     const ProcessInfo& rProcessInfo)
-    : mrElement(rElement),
-      mrConstitutiveLaw(rConstitutiveLaw)
 {
     KRATOS_TRY
 
+    // set the element and constitutive law pointers
+    mpElement = &rElement;
+    mpConstitutiveLaw = &rConstitutiveLaw;
+
     // this method gathers values which are constants for all gauss points.
 
-    const auto& r_geometry = mrElement.GetGeometry();
+    const auto& r_geometry = mpElement->GetGeometry();
 
     // get values from properties
-    const auto& properties = mrElement.GetProperties();
+    const auto& properties = mpElement->GetProperties();
     mDensity = properties.GetValue(DENSITY);
     mDynamicViscosity = properties.GetValue(DYNAMIC_VISCOSITY);
 
@@ -240,7 +235,7 @@ QSVMSResidualDerivatives<TDim, TNumNodes>::Data::Data(
 
     // setting up primal constitutive law
     InitializeConstitutiveLaw(mConstitutiveLawValues, mStrainRate, mShearStress, mC,
-                              r_geometry, mrElement.GetProperties(), rProcessInfo);
+                              r_geometry, mpElement->GetProperties(), rProcessInfo);
 
     // setting up adjoint derivative variables
     mStrainRateDerivative.resize(TStrainSize);
@@ -258,7 +253,7 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::CalculateGaussPointData(
     using element_utilities = FluidElementUtilities<TNumNodes>;
     using derivative_utilities = QSVMSDerivativeUtilities<TDim>;
 
-    const auto& r_geometry = mrElement.GetGeometry();
+    const auto& r_geometry = mpElement->GetGeometry();
 
     // get gauss point evaluated values
     FluidCalculationUtilities::EvaluateInPoint(
@@ -292,8 +287,8 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::CalculateGaussPointData(
 
     // ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
     // this is ok under the hypothesis that no history dependent behavior is employed
-    mrConstitutiveLaw.CalculateMaterialResponseCauchy(mConstitutiveLawValues);
-    mrConstitutiveLaw.CalculateValue(mConstitutiveLawValues, EFFECTIVE_VISCOSITY, mEffectiveViscosity);
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(mConstitutiveLawValues);
+    mpConstitutiveLaw->CalculateValue(mConstitutiveLawValues, EFFECTIVE_VISCOSITY, mEffectiveViscosity);
 
     element_utilities::GetStrainMatrix(rdNdX, mStrainMatrix);
     noalias(mViscousTermRHSContribution) = prod(trans(mStrainMatrix), mShearStress);

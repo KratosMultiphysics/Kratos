@@ -14,6 +14,8 @@
 #define KRATOS_DERIVATIVES_H
 
 // System includes
+#include <tuple>
+#include <utility>
 
 // External includes
 
@@ -27,28 +29,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-namespace DerivativeHelperUtilities
-{
-
-template<unsigned int TNumNodes, unsigned int TColumnOffset, unsigned int TSubVectorBlockSize, unsigned int TAssemblyBlockSize>
-static void inline AssembleSubVectorToMatrix(
-    Matrix& rOutput,
-    const IndexType RowIndex,
-    const BoundedVector<double, TSubVectorBlockSize * TNumNodes>& rSubVector)
-{
-    KRATOS_TRY
-
-    for (IndexType i = 0; i < TNumNodes; ++i) {
-        for (IndexType j = 0; j < TSubVectorBlockSize; ++j) {
-            rOutput(RowIndex, i * TAssemblyBlockSize + j + TColumnOffset) += rSubVector[i * TSubVectorBlockSize + j];
-        }
-    }
-
-    KRATOS_CATCH("");
-}
-
-}
-
+template<unsigned int TNumNodes, unsigned int TBlockSize>
 class ZeroDerivatives
 {
 public:
@@ -56,6 +37,10 @@ public:
     ///@{
 
     using IndexType = std::size_t;
+
+    constexpr static IndexType NumNodes = TNumNodes;
+
+    constexpr static IndexType BlockSize = TBlockSize;
 
     ///@}
     ///@name Public static operations
@@ -70,188 +55,116 @@ public:
     ///@}
 };
 
-template<unsigned int TRowStartingIndex, unsigned int TColumnStartingIndex, class TSubAssemblyType>
-class SubAssembly
+template<class TSubAssemblyType, unsigned int TElementDataHolderIndex, unsigned int TRowStartingIndex, unsigned int TColumnStartingIndex = 0>
+class SubAssembly : public TSubAssemblyType
 {
 public:
     ///@name Type definitions
     ///@{
 
+    using IndexType = std::size_t;
+
+    using SubAssemblyType = TSubAssemblyType;
+
+    static constexpr unsigned int ElementDataIndex = TElementDataHolderIndex;
+
     static constexpr unsigned int RowStartingIndex = TRowStartingIndex;
 
     static constexpr unsigned int ColumnStartingIndex = TColumnStartingIndex;
 
-    using SubAssemblyType = TSubAssemblyType;
+    static constexpr unsigned int NumNodes = SubAssemblyType::NumNodes;
+
+    static constexpr unsigned int BlockSize = SubAssemblyType::BlockSize;
+
+    static constexpr unsigned int ResidualSize = NumNodes * BlockSize;
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    inline BoundedVector<double, ResidualSize>& GetSubVector()
+    {
+        return mSubVector;
+    }
+
+    template<class TCombinedElementDataContainer>
+    inline typename std::tuple_element<ElementDataIndex, TCombinedElementDataContainer>::type& GetElementDataContainer(TCombinedElementDataContainer& rCombinedDataContainer) const
+    {
+        static_assert(
+            ElementDataIndex <std::tuple_size<TCombinedElementDataContainer>::value,
+            "Required Element data container index is more than the available element data containers.");
+        return std::get<ElementDataIndex>(rCombinedDataContainer);
+    }
+
+    template<IndexType TAssemblyRowBlockSize, IndexType TAssemblyColumnBlockSize = TAssemblyRowBlockSize>
+    inline void AssembleSubVectorToMatrix(Matrix& rOutput, const IndexType NodeIndex) const
+    {
+        KRATOS_TRY
+
+        KRATOS_DEBUG_ERROR_IF(rOutput.size1() != TAssemblyRowBlockSize * NumNodes)
+            << "rOuput.size1() does not have the required size. [ rOutput.size1() = "
+            << rOutput.size1() << ", required_size = TAssemblyRowBlockSize * NumNodes = "
+            << TAssemblyRowBlockSize * NumNodes << " ].\n";
+
+        KRATOS_DEBUG_ERROR_IF(rOutput.size2() != TAssemblyColumnBlockSize * NumNodes)
+            << "rOuput.size2() does not have the required size. [ rOutput.size2() = "
+            << rOutput.size2() << ", required_size = TAssemblyColumnBlockSize * NumNodes = "
+            << TAssemblyColumnBlockSize * NumNodes << " ].\n";
+
+        for (IndexType i = 0; i < NumNodes; ++i) {
+            for (IndexType j = 0; j < BlockSize; ++j) {
+                rOutput(TAssemblyRowBlockSize * NodeIndex + RowStartingIndex, i * TAssemblyColumnBlockSize + j + ColumnStartingIndex) += mSubVector[i * BlockSize + j];
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    template<IndexType TAssemblyRowBlockSize>
+    inline void AssembleSubVectorToVector(Vector& rOutput) const
+    {
+        KRATOS_TRY
+
+        KRATOS_DEBUG_ERROR_IF(rOutput.size() != TAssemblyRowBlockSize * NumNodes)
+            << "rOuput.size() does not have the required size. [ rOutput.size() = "
+            << rOutput.size() << ", required_size = TAssemblyRowBlockSize * NumNodes = "
+            << TAssemblyRowBlockSize * NumNodes << " ].\n";
+
+        for (IndexType i = 0; i < NumNodes; ++i) {
+            for (IndexType j = 0; j < BlockSize; ++j) {
+                rOutput[i * TAssemblyRowBlockSize + j] += mSubVector[i * BlockSize + j];
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    ///@}
+private:
+    ///@name Private members
+    ///@{
+
+    BoundedVector<double, ResidualSize> mSubVector;
 
     ///@}
 };
 
 template <
-    class TResidualData,
-    class... TResidualDerivatives
+    class TCombinedElementDataContainer,
+    class TCombinedCalculationContainers
 >
-class FirstDerivatives
+class CalculationDataContainers
 {
 public:
-    ///@name Local type definitions
-    ///@{
-
-    using IndexType = std::size_t;
-
-    static constexpr IndexType TBlockSize = TResidualData::TBlockSize;
-
-    static constexpr IndexType TNumNodes = TResidualData::TLNumNodes;
-
-    static constexpr IndexType TResidualsSize = TNumNodes * TBlockSize;
-
-    using ResidualVector = BoundedVector<double, TResidualsSize>;
-
-    ///@}
     ///@name Derivative type definitions
     ///@{
 
-    using ElementDataType = TResidualData;
+    using CombinedElementDataContainerType = TCombinedElementDataContainer;
 
-    ///@}
-    ///@name Public static operations
-    ///@{
-
-    template<unsigned int TAssemblyBlockSize>
-    static void inline CalculateAndAddGaussPointNodalVariableDerivativeContributions(
-        Matrix& rOutput,
-        TResidualData& rData,
-        ResidualVector& rResidualDerivative,
-        const int NodeIndex,
-        const double W,
-        const Vector& rN,
-        const Matrix& rdNdX,
-        const double WDerivative,
-        const double DetJDerivative,
-        const Matrix& rdNdXDerivative,
-        const double MassTermsDerivativesWeight)
-    {
-        (CalculateAndAddGaussPointNodalVariableDerivativeContributions<TAssemblyBlockSize, TResidualDerivatives>(
-            rOutput,
-            rData,
-            rResidualDerivative,
-            NodeIndex,
-            W,
-            rN,
-            rdNdX,
-            WDerivative,
-            DetJDerivative,
-            rdNdXDerivative,
-            MassTermsDerivativesWeight
-        ), ...);
-    }
-
-    ///@}
-
-private:
-    ///@name Private static operations
-    ///@{
-
-    template<unsigned int TAssemblyBlockSize, class TDerivative>
-    static void inline CalculateAndAddGaussPointNodalVariableDerivativeContributions(
-        Matrix& rOutput,
-        TResidualData& rData,
-        ResidualVector& rResidualDerivative,
-        const int NodeIndex,
-        const double W,
-        const Vector& rN,
-        const Matrix& rdNdX,
-        const double WDerivative,
-        const double DetJDerivative,
-        const Matrix& rdNdXDerivative,
-        const double MassTermsDerivativesWeight)
-    {
-        TDerivative::SubAssemblyType::CalculateGaussPointResidualsDerivativeContributions(
-            rResidualDerivative, rData, NodeIndex, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative, MassTermsDerivativesWeight);
-
-        DerivativeHelperUtilities::AssembleSubVectorToMatrix<TNumNodes, TDerivative::ColumnStartingIndex, TBlockSize,  TAssemblyBlockSize>(
-            rOutput, TAssemblyBlockSize * NodeIndex + TDerivative::RowStartingIndex, rResidualDerivative);
-    }
+    using CombinedCalculationContainersType = TCombinedCalculationContainers;
 
     ///@}
 };
-
-template <
-    class TResidualData,
-    class... TResidualDerivatives
->
-class SecondDerivatives
-{
-public:
-    ///@name Local type definitions
-    ///@{
-
-    using IndexType = std::size_t;
-
-    static constexpr IndexType TBlockSize = TResidualData::TBlockSize;
-
-    static constexpr IndexType TNumNodes = TResidualData::TLNumNodes;
-
-    static constexpr IndexType TResidualsSize = TNumNodes * TBlockSize;
-
-    using ResidualVector = BoundedVector<double, TResidualsSize>;
-
-    ///@}
-    ///@name Derivative type definitions
-    ///@{
-
-    using ElementDataType = TResidualData;
-
-    ///@}
-    ///@name Public static operations
-    ///@{
-
-    template<unsigned int TAssemblyBlockSize>
-    static void inline CalculateAndAddGaussPointNodalVariableDerivativeContributions(
-        Matrix& rOutput,
-        TResidualData& rData,
-        ResidualVector& rResidualDerivative,
-        const int NodeIndex,
-        const double W,
-        const Vector& rN,
-        const Matrix& rdNdX)
-    {
-        (CalculateAndAddGaussPointNodalVariableDerivativeContributions<TAssemblyBlockSize, TResidualDerivatives>(
-            rOutput,
-            rData,
-            rResidualDerivative,
-            NodeIndex,
-            W,
-            rN,
-            rdNdX
-        ), ...);
-    }
-
-    ///@}
-
-private:
-    ///@name Private static operations
-    ///@{
-
-    template<unsigned int TAssemblyBlockSize, class TDerivative>
-    static void inline CalculateAndAddGaussPointNodalVariableDerivativeContributions(
-        Matrix& rOutput,
-        TResidualData& rData,
-        ResidualVector& rResidualDerivative,
-        const int NodeIndex,
-        const double W,
-        const Vector& rN,
-        const Matrix& rdNdX)
-    {
-        TDerivative::SubAssemblyType::CalculateGaussPointResidualsDerivativeContributions(
-            rResidualDerivative, rData, NodeIndex, W, rN, rdNdX);
-
-        DerivativeHelperUtilities::AssembleSubVectorToMatrix<TNumNodes, TDerivative::ColumnStartingIndex, TBlockSize,  TAssemblyBlockSize>(
-            rOutput, TAssemblyBlockSize * NodeIndex + TDerivative::RowStartingIndex, rResidualDerivative);
-    }
-
-    ///@}
-};
-
 }
 
 #endif // KRATOS_DERIVATIVES_H
