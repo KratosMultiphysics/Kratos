@@ -145,7 +145,7 @@ namespace Kratos {
         MathUtils<double>::UnitCrossProduct(mNormal, edge1, edge2);
 
         const double mConstant =  inner_prod(mNormal, Nodes[NodesInFaces(0,face)]);
-        double Side = Distance(Nodes[NodesInFaces(1,face)],Nodes[NodesInFaces(0,face)]);
+        double Side = norm_2(Nodes[NodesInFaces(1,face)].Coordinates() - Nodes[NodesInFaces(0,face)].Coordinates());
         double Distance = inner_prod(mNormal,Point) - mConstant;
 
         return Distance/Side;
@@ -171,7 +171,7 @@ namespace Kratos {
         MathUtils<double>::UnitCrossProduct(mNormal, edge1, edge2);
         
         const double mConstant =  inner_prod(mNormal, Nodes[0]);
-        double Side = Distance(Nodes[1],Nodes[0]);
+        double Side = norm_2(Nodes[1].Coordinates() - Nodes[0].Coordinates());
         double Distance = inner_prod(mNormal,Point) - mConstant;
 
         return Distance/Side;
