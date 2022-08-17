@@ -110,7 +110,7 @@ public:
             Data& rData,
             const double W,
             const Vector& rN,
-            const Matrix& rdNdX);
+            const Matrix& rdNdX) const;
 
         ///@}
 
@@ -118,7 +118,7 @@ public:
         ///@name Private Operations
         ///@{
 
-        void AddViscousTerms(
+        void static AddViscousTerms(
             Data& rData,
             VectorF& rResidual,
             const double W);
@@ -328,7 +328,7 @@ public:
                 rResidualDerivative[row + TDim] += value;
             }
 
-            ResidualsContributions().AddGaussPointResidualsContributions(
+            mResidualsContributions.AddGaussPointResidualsContributions(
                 rResidualDerivative, rData, WDerivative, rN, rdNdX);
 
             // calculate shear stress derivative.
@@ -353,6 +353,12 @@ public:
         ///@}
 
     private:
+        ///@name Private members
+        ///@{
+
+        ResidualsContributions mResidualsContributions;
+
+        ///@}
         ///@name Private Operations
         ///@{
 

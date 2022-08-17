@@ -89,7 +89,7 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::AddGauss
     Data& rData,
     const double W,
     const Vector& rN,
-    const Matrix& rdNdX)
+    const Matrix& rdNdX) const
 {
     for (IndexType a = 0; a < TNumNodes; ++a) {
         const IndexType row = a * TBlockSize;
