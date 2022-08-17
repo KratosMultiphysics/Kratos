@@ -189,11 +189,11 @@ public:
             const auto& r_effective_viscosity_dependent_variables = derivatives_type.GetEffectiveViscosityDependentVariables();
             for (const auto& r_effective_viscosity_dependent_variable : r_effective_viscosity_dependent_variables) {
                 // these variables always needs to be scalars (eg. VELOCITY_X)
-                const auto& r_derivative_variable = r_effective_viscosity_dependent_variable.GetVariable();
+                const auto& r_derivative_variable = std::get<0>(r_effective_viscosity_dependent_variable);
                 FluidCalculationUtilities::EvaluateGradientInPoint(rData.mpElement->GetGeometry(), rdNdXDerivative, std::tie(derivative_variable_gradient, r_derivative_variable));
 
                 // this is a list of gradient component variables. This list also should only contain scalar variables (eg. VELOCITY_GRADIENT_TENSOR_XX)
-                const auto& r_effective_viscosity_dependent_variable_gradient_component_list = r_effective_viscosity_dependent_variable.GetVariableGradientComponents();
+                const auto& r_effective_viscosity_dependent_variable_gradient_component_list = std::get<1>(r_effective_viscosity_dependent_variable);
                 for (IndexType i = 0; i < TDim; ++i) {
                     rData.mpConstitutiveLaw->CalculateDerivative(rData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, *r_effective_viscosity_dependent_variable_gradient_component_list[i], effective_viscosity_derivative_value);
                     effective_viscosity_derivative += effective_viscosity_derivative_value * (rdNdX(NodeIndex, i) * (r_derivative_variable ==  derivatives_type.GetDerivativeVariable()));

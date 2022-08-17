@@ -30,7 +30,6 @@
 
 // Application includes
 #include "custom_utilities/fluid_adjoint_utilities.h"
-#include "custom_utilities/fluid_adjoint_variable_information.h"
 
 namespace Kratos
 {
@@ -50,7 +49,12 @@ public:
 
     using IndexType = std::size_t;
 
-    using AdjointVariableInformationType = AdjointVariableInformation::VariableInformation<TDim>;
+    using DependentVariablesListType = std::vector<
+                                            std::tuple<
+                                                const Variable<double>&,
+                                                std::vector<const Variable<double>*>
+                                            >
+                                        >;
 
     using DerivativeGradientsArray = std::array<const Variable<double>*, 9>;
 
@@ -100,7 +104,7 @@ public:
         ///@name Operations
         ///@{
 
-        std::vector<AdjointVariableInformationType> GetEffectiveViscosityDependentVariables() const { return std::vector<AdjointVariableInformationType>{{}}; }
+        DependentVariablesListType GetEffectiveViscosityDependentVariables() const { return DependentVariablesListType({}); }
 
         ///@}
 
@@ -150,8 +154,7 @@ public:
             const double WDerivative,
             const double DetJDerivative,
             const Matrix& rdNdXDerivative)
-            : BaseType(NodeIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative),
-              mVariableInformation(TComponentIndex)
+            : BaseType(NodeIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
         {
         }
 
@@ -159,7 +162,7 @@ public:
         ///@name Operations
         ///@{
 
-        const Variable<double>& GetDerivativeVariable() const { return mVariableInformation.GetVariable(); }
+        const Variable<double>& GetDerivativeVariable() const;
 
         array_1d<double, TDim> CalculateEffectiveVelocityDerivative(const array_1d<double, TDim>& rVelocity) const;
 
@@ -168,13 +171,6 @@ public:
         void CalculateStrainRateDerivative(
             Vector& rOutput,
             const Matrix& rNodalVelocity) const;
-
-        ///@}
-    private:
-        ///@name Private Members
-        ///@{
-
-        const AdjointVariableInformation::VelocityInformation<TDim> mVariableInformation;
 
         ///@}
     };
@@ -260,8 +256,7 @@ public:
             const double WDerivative,
             const double DetJDerivative,
             const Matrix& rdNdXDerivative)
-            : BaseType(NodeIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative),
-              mVariableInformation(TComponentIndex)
+            : BaseType(NodeIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
         {
         }
 
@@ -269,7 +264,7 @@ public:
         ///@name Operations
         ///@{
 
-        const Variable<double>& GetDerivativeVariable() const { return mVariableInformation.GetVariable(); }
+        const Variable<double>& GetDerivativeVariable() const;
 
         array_1d<double, TDim> CalculateEffectiveVelocityDerivative(const array_1d<double, TDim>& rVelocity) const;
 
@@ -278,13 +273,6 @@ public:
         void CalculateStrainRateDerivative(
             Vector& rOutput,
             const Matrix& rNodalVelocity) const;
-
-        ///@}
-    private:
-        ///@name Private Members
-        ///@{
-
-        const AdjointVariableInformation::ShapeSensitivityInformation<TDim> mVariableInformation;
 
         ///@}
     };

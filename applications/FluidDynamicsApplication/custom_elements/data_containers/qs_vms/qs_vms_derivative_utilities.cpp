@@ -26,6 +26,51 @@
 
 namespace Kratos
 {
+namespace QSVMSDerivativeHelperUtilities
+{
+template<unsigned int TComponentIndex>
+const Variable<double>& GetVelocityVariable();
+
+template<unsigned int TComponentIndex>
+const Variable<double>& GetShapeVariable();
+
+template<>
+const Variable<double>& GetVelocityVariable<0>()
+{
+    return VELOCITY_X;
+}
+
+template<>
+const Variable<double>& GetVelocityVariable<1>()
+{
+    return VELOCITY_Y;
+}
+
+template<>
+const Variable<double>& GetVelocityVariable<2>()
+{
+    return VELOCITY_Z;
+}
+
+template<>
+const Variable<double>& GetShapeVariable<0>()
+{
+    return SHAPE_SENSITIVITY_X;
+}
+
+template<>
+const Variable<double>& GetShapeVariable<1>()
+{
+    return SHAPE_SENSITIVITY_Y;
+}
+
+template<>
+const Variable<double>& GetShapeVariable<2>()
+{
+    return SHAPE_SENSITIVITY_Z;
+}
+}
+
 template <>
 void QSVMSDerivativeUtilities<2>::CalculateStrainRate(
     Vector& rOutput,
@@ -226,6 +271,14 @@ QSVMSDerivativeUtilities<TDim>::Derivative<TComponentIndex>::Derivative(
 
 template <unsigned int TDim>
 template <unsigned int TNumNodes, unsigned int TComponentIndex>
+const Variable<double>& QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes, TComponentIndex>::GetDerivativeVariable() const
+{
+    static_assert(TDim > TComponentIndex);
+    return QSVMSDerivativeHelperUtilities::GetVelocityVariable<TComponentIndex>();
+}
+
+template <unsigned int TDim>
+template <unsigned int TNumNodes, unsigned int TComponentIndex>
 array_1d<double, TDim> QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes, TComponentIndex>::CalculateEffectiveVelocityDerivative(
     const array_1d<double, TDim>& rVelocity) const
 {
@@ -276,6 +329,14 @@ void QSVMSDerivativeUtilities<TDim>::PressureDerivative<TNumNodes>::CalculateStr
     const Matrix& rNodalVelocity) const
 {
     rOutput.clear();
+}
+
+template <unsigned int TDim>
+template <unsigned int TNumNodes, unsigned int TComponentIndex>
+const Variable<double>& QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes, TComponentIndex>::GetDerivativeVariable() const
+{
+    static_assert(TDim > TComponentIndex);
+    return QSVMSDerivativeHelperUtilities::GetShapeVariable<TComponentIndex>();
 }
 
 template <unsigned int TDim>
