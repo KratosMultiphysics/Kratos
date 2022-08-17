@@ -38,7 +38,6 @@ from adjoint_vms_element_2d import AdjointVMSElement2D
 from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
 from test_statistics_process import IntegrationPointStatisticsTest
-from cfl_output_process_test import CFLOutputProcessTest
 from test_flows_measuring_utility import FlowsMeasuringUtilityTest
 from levelset_consistent_nodal_gradient_test import ConsistentLevelsetNodalGradientTest
 from adjoint_conditions import TestAdjointMonolithicWallCondition
@@ -127,7 +126,6 @@ def AssembleTestSuites():
     nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
     nightSuite.addTest(ConsistentLevelsetNodalGradientTest('testConsistentGradientSquare2D'))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IntegrationPointStatisticsTest]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CFLOutputProcessTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowsMeasuringUtilityTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidAuxiliaryUtilitiesTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
