@@ -1,4 +1,3 @@
-import sys
 import os
 import json
 import math
@@ -9,9 +8,9 @@ import test_helper
 
 class TestConsecutivePipeLines(KratosUnittest.TestCase):
     """
-    Class to Check consecutive pipelines with different configurations
-    Note that  we are testing for convergence and FE operation/integration, No theory is available to describe 2
-    materials, therefore no comparison of results.
+     Class to Check consecutive pipelines with different configurations
+     Note that  we are testing for convergence and FE operation/integration, No theory is available to describe 2
+     materials, therefore no comparison of results.
     """
 
     def setUp(self):

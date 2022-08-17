@@ -47,7 +47,7 @@ int main(int argc, char **argv)
             std::cerr << "Could not parse critical head parameters to double values. Please check the input and try again.";
         }
     }
-    catch (runtime_error e)
+    catch (runtime_error& e)
     {
         cout << "Runtime error: " << e.what();
     }

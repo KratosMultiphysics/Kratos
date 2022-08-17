@@ -11,9 +11,7 @@ import test_helper
 
 
 class LatexWriterFile:
-    """
-    Class that writes results for latex documentation
-    """
+    """ Class that writes results for latex documentation """
 
     def __init__(self, filename=""):
         self.filename = filename

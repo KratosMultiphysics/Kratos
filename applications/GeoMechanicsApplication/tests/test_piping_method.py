@@ -20,10 +20,11 @@ class KratosGeoMechanicsPipingMethodTests(KratosUnittest.TestCase):
         model_part = simulation._list_of_output_processes[0].model_part
         self.assertTrue(model_part is not None)
 
+
 if __name__ == '__main__':
     suites = KratosUnittest.KratosSuites
-    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsPipingMethodTests]))
-    allSuite = suites['all']
-    allSuite.addTests(smallSuite)
+    small_suite = suites['small'] # These tests are executed by the continuous integration tool
+    small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsPipingMethodTests]))
+    all_suite = suites['all']
+    all_suite.addTests(small_suite)
     KratosUnittest.runTests(suites)

@@ -285,7 +285,7 @@ private:
     }
 
     /// <summary>
-    /// Calculates the pipe particle diamter according to the modified sellmeijer rule if selected. Else the pipe particle diameter is
+    /// Calculates the pipe particle diameter according to the modified Sellmeijer rule if selected. Else the pipe particle diameter is
     /// equal to the d70.
     /// </summary>
     /// <param name="Prop"></param>
@@ -309,7 +309,6 @@ private:
     double CalculateMaxPipeHeight(std::vector<Element*> pipe_elements)
     {
         double max_diameter = 0;
-        double particle_diameter = 0;
         double height_factor = 100;
 
         // loop over all elements
@@ -317,7 +316,7 @@ private:
         {
             // calculate pipe particle diameter of pipe element
             PropertiesType prop = pipe_element->GetProperties();
-            particle_diameter = this->CalculateParticleDiameter(prop);
+            double particle_diameter = this->CalculateParticleDiameter(prop);
 
             // get maximum pipe particle diameter of all pipe elements
             if (particle_diameter > max_diameter)

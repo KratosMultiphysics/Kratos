@@ -445,7 +445,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
                                                                                              compute_reactions,
                                                                                              reform_step_dofs,
                                                                                              move_mesh_flag)
-                                                                           
+
         elif strategy_type.lower() == "line_search":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("max_iteration",              self.settings["max_iterations"])

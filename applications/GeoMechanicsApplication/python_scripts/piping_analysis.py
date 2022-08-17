@@ -1,9 +1,4 @@
 import os
-import sys
-
-sys.path.append(os.path.join('..','..','..'))
-
-sys.path.append(r"D:\software_development\Kratos\bin\Debug")
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication
@@ -154,10 +149,6 @@ class PipingAnalysis(GeoMechanicsAnalysis):
 
 if __name__ == '__main__':
     from sys import argv
-
-    # change the current directory
-    # to specified directory
-    os.chdir(r"D:\software_development\Kratos\applications\GeoMechanicsApplication\tests\SteadyStatePipeElementWithEmbankment\SteadyStatePipeElementWithEmbankment.gid")
 
     if len(argv) > 2:
         err_msg =  'Too many input arguments!\n'

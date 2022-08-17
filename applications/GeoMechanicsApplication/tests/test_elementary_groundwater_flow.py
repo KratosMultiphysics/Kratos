@@ -211,9 +211,9 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
         flow_rate_2 = test_helper.get_hydraulic_discharge(simulation)[1]
         flow_rate_3 = test_helper.get_hydraulic_discharge(simulation)[3]
         flow_rate_4 = test_helper.get_hydraulic_discharge(simulation)[4]
-        assert math.isclose(abs(flow_rate_1), abs(self.flow_calculations.flow_rate(self.flow_calculations.specific_dicharge(1), 1)))
-        assert math.isclose(abs(flow_rate_2), abs(self.flow_calculations.flow_rate(self.flow_calculations.specific_dicharge(1), 1)))
-        assert math.isclose(abs(flow_rate_3), abs(self.flow_calculations.flow_rate(self.flow_calculations.specific_dicharge(1), 1)))
-        assert math.isclose(abs(flow_rate_4), abs(self.flow_calculations.flow_rate(self.flow_calculations.specific_dicharge(1), 1)))
-        assert math.isclose(test_helper.get_hydraylic_head_with_intergration_points(simulation)[2][8], -1.5)
-        assert math.isclose(test_helper.get_hydraylic_head_with_intergration_points(simulation)[2][11], -1.5)
+        self.assertTrue(math.isclose(abs(flow_rate_1), abs(self.flow_calculations.flow_rate(self.flow_calculations.specific_dicharge(1), 1))))
+        self.assertTrue(math.isclose(abs(flow_rate_2), abs(self.flow_calculations.flow_rate(self.flow_calculations.specific_dicharge(1), 1))))
+        self.assertTrue(math.isclose(abs(flow_rate_3), abs(self.flow_calculations.flow_rate(self.flow_calculations.specific_dicharge(1), 1))))
+        self.assertTrue(math.isclose(abs(flow_rate_4), abs(self.flow_calculations.flow_rate(self.flow_calculations.specific_dicharge(1), 1))))
+        self.assertTrue(math.isclose(test_helper.get_hydraylic_head_with_intergration_points(simulation)[2][8], -1.5))
+        self.assertTrue(math.isclose(test_helper.get_hydraylic_head_with_intergration_points(simulation)[2][11], -1.5))

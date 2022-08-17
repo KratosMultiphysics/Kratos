@@ -101,10 +101,11 @@ def convertToObjectiveStress(result, depth):
 
     return objectiveStress
 
+
 if __name__ == '__main__':
     suites = KratosUnittest.KratosSuites
-    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsSettlementTests]))
-    allSuite = suites['all']
-    allSuite.addTests(smallSuite)
+    small_suite = suites['small'] # These tests are executed by the continuous integration tool
+    small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsSettlementTests]))
+    all_suite = suites['all']
+    all_suite.addTests(small_suite)
     KratosUnittest.runTests(suites)
