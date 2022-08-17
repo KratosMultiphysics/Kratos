@@ -18,7 +18,7 @@ class ConstitutiveLawsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
 
     @classmethod
     def GetMainPath(self):
-        return os.path.join(os.path.dirname(os.path.realpath(__file__)), "constitutive_laws_tests_files")
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_constitutive_laws_tests_files")
 
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
@@ -52,7 +52,7 @@ class ConstitutiveLawsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
         Y7, Y8, Y9, Y10, Y11, Y12 = [], [], [], [], [], []
         Y13, Y14, Y15, Y16, Y17, Y18 = [], [], [], [], [], []
         Y19, Y20, Y21, Y22 = [], [], [], []
-        with open(os.path.join(self.GetMainPath(), 'nl.txt'), 'r') as normal:
+        with open(os.path.join(os.getcwd(), 'nl.txt'), 'r') as normal:
             for line in normal:
                 values = [float(s) for s in line.split()]
                 X.append(values[0])
@@ -101,7 +101,7 @@ class ConstitutiveLawsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
         Y13, Y14, Y15, Y16, Y17, Y18  = [], [], [], [], [], []
         Y19, Y20, Y21, Y22, Y23, Y24  = [], [], [], [], [], []
         Y25, Y26, Y27, Y33, Y34, Y35  = [], [], [], [], [], []
-        with open(os.path.join(self.GetMainPath(), 'tg.txt'), 'r') as tangential:
+        with open(os.path.join(os.getcwd(), 'tg.txt'), 'r') as tangential:
             for line in tangential:
                 values = [float(s) for s in line.split()]
                 X.append(values[0])
@@ -165,34 +165,34 @@ class DEM3DConstitutiveLaws(KratosUnittest.TestCase):
 
     @classmethod
     def test_DEM3D_ConstitutiveLaws1(self):
-        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "constitutive_laws_tests_files")
-        os.chdir(path)
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_constitutive_laws_tests_files")
+        #os.chdir(path)
         parameters_file_name = os.path.join(path, "ProjectParametersDEM1.json")
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ConstitutiveLawsTestSolution, model, parameters_file_name, 1)
     
     @classmethod
     def test_DEM3D_ConstitutiveLaws2(self):
-        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "constitutive_laws_tests_files")
-        os.chdir(path)
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_constitutive_laws_tests_files")
+        #os.chdir(path)
         parameters_file_name = os.path.join(path, "ProjectParametersDEM2.json")
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ConstitutiveLawsTestSolution, model, parameters_file_name, 1)
     
     @classmethod
     def test_DEM3D_ConstitutiveLaws3(self):
-        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "constitutive_laws_tests_files")
-        os.chdir(path)
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_constitutive_laws_tests_files")
+        #os.chdir(path)
         parameters_file_name = os.path.join(path, "ProjectParametersDEM3.json")
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ConstitutiveLawsTestSolution, model, parameters_file_name, 1)
     
     def tearDown(self):
-        file_to_remove = os.path.join("constitutive_laws_tests_files", "TimesPartialRelease")
+        file_to_remove = os.path.join("DEM3D_constitutive_laws_tests_files", "TimesPartialRelease")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        file_to_remove = os.path.join(this_working_dir_backup, "constitutive_laws_tests_files", "nl.txt")
+        file_to_remove = os.path.join(this_working_dir_backup, "nl.txt")
         os.remove(file_to_remove)
-        file_to_remove = os.path.join(this_working_dir_backup, "constitutive_laws_tests_files", "tg.txt")
+        file_to_remove = os.path.join(this_working_dir_backup, "tg.txt")
         os.remove(file_to_remove)
         os.chdir(this_working_dir_backup)
 
