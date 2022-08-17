@@ -2,7 +2,6 @@ import math
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.KratosUnittest as UnitTest
-import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.testing.utilities import ReadModelPart
 
 class ComputeYPlusProcessTest(UnitTest.TestCase):
@@ -80,9 +79,6 @@ class ComputeYPlusProcessTest(UnitTest.TestCase):
             analytical_tangential_reaction_magnitude = math.sqrt(ComputeYPlusProcessTest.__InnerProd(analytical_tangential_reaction, analytical_tangential_reaction))
 
             self.assertAlmostEqual(y_plus_based_tangential_reaction_magnitude/analytical_tangential_reaction_magnitude - 1.0, 0.0, 5)
-
-    def tearDown(self):
-        kratos_utilities.DeleteFileIfExisting("test_y_plus.dat")
 
     @staticmethod
     def __InnerProd(v1: Kratos.Array3, v2: Kratos.Array3):

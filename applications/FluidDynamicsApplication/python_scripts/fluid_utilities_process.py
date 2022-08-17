@@ -29,6 +29,27 @@ class CFLUtility:
         if self.echo_level > 0:
             Kratos.Logger.PrintInfo("CFLUtility", "Calculated CFL numebers of elements in {:s}.".format(self.model_part.FullName()))
 
+class YPlusUtility:
+    def __init__(self, model_part, params):
+        self.model_part = model_part
+
+        default_settings = Kratos.Parameters("""
+            {
+                "utility_type"                     : "y_plus",
+                "output_variable_name"             : "Y_PLUS",
+                "output_to_elements"               : false,
+                "calculate_normals_every_time_step": false,
+                "echo_level"                       : 0
+            }
+            """)
+        params.ValidateAndAssignDefaults(default_settings)
+        params.RemoveValue("utility_type")
+        params.AddString("model_part_name", self.model_part.FullName())
+        self.compute_y_plus_process = KratosCFD.ComputeYPlusProcess(self.model_part.GetModel(), params)
+
+    def Execute(self):
+        self.compute_y_plus_process.ExecuteInitializeSolutionStep()
+        self.compute_y_plus_process.ExecuteFinalizeSolutionStep()
 
 class FluidUtilitiesProcess(Kratos.Process):
     """
@@ -59,8 +80,10 @@ class FluidUtilitiesProcess(Kratos.Process):
             utility_type = params["utility_settings"]["utility_type"].GetString()
             if utility_type == "cfl":
                 self.utility = CFLUtility(self.model_part, params["utility_settings"])
+            elif utility_type == "y_plus":
+                self.utility = YPlusUtility(self.model_part, params["utility_settings"])
             else:
-                raise RuntimeError("Unsupported utility type requested. [ utility_type = {:s}]. Supported utility types are:\n\t\t \"cfl\"".format(utility_type))
+                raise RuntimeError("Unsupported utility type requested. [ utility_type = {:s}]. Supported utility types are:\n\t\t \"cfl\"\n\t\t \"y_plus\"".format(utility_type))
         else:
             raise RuntimeError("Please provide \"utiltiy_type\" string setting under \"utility_settings\"")
 
