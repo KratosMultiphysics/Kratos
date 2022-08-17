@@ -944,17 +944,17 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 Point global_point;
                 GetGeometry().GlobalCoordinates(global_point, integration_points[point_number]);
 
-                rOutput[point_number] = global_point.Coordinates();
+                noalias(rOutput[point_number]) = global_point.Coordinates();
             }
         } else if (rVariable == LOCAL_AXIS_1 || rVariable == LOCAL_AXIS_2 || rVariable == LOCAL_AXIS_3) {
             if (this->Has(rVariable)) {
                 for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number)
-                    rOutput[point_number] = this->GetValue(rVariable);
+                    noalias(rOutput[point_number]) = this->GetValue(rVariable);
             } else if (rVariable == LOCAL_AXIS_3) {
                 const array_1d<double, 3> r_local_axis_1 = this->GetValue(LOCAL_AXIS_1);
                 const array_1d<double, 3> local_axis_2 = this->GetValue(LOCAL_AXIS_2);
                 for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number)
-                    rOutput[point_number] = MathUtils<double>::CrossProduct(r_local_axis_1, local_axis_2);
+                    noalias(rOutput[point_number]) = MathUtils<double>::CrossProduct(r_local_axis_1, local_axis_2);
             }
         } else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
@@ -1157,7 +1157,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 if ( rOutput[point_number].size2() != dimension )
                     rOutput[point_number].resize( dimension, dimension, false );
 
-                rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
+                noalias(rOutput[point_number]) = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
             }
         }
         else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR) {
@@ -1172,7 +1172,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 if ( rOutput[point_number].size2() != dimension )
                     rOutput[point_number].resize( dimension, dimension, false );
 
-                rOutput[point_number] = MathUtils<double>::StrainVectorToTensor(strain_vector[point_number]);
+                noalias(rOutput[point_number]) = MathUtils<double>::StrainVectorToTensor(strain_vector[point_number]);
             }
         } else if ( rVariable == CONSTITUTIVE_MATRIX ) {
             // Create and initialize element variables:
@@ -1205,7 +1205,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 if( rOutput[point_number].size2() != this_constitutive_variables.D.size2() )
                     rOutput[point_number].resize( this_constitutive_variables.D.size1() , this_constitutive_variables.D.size2() , false );
 
-                rOutput[point_number] = this_constitutive_variables.D;
+                noalias(rOutput[point_number]) = this_constitutive_variables.D;
             }
         } else if ( rVariable == DEFORMATION_GRADIENT ) { // VARIABLE SET FOR TRANSFER PURPOUSES
             // Create and initialize element variables:
@@ -1226,7 +1226,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 if( rOutput[point_number].size2() != this_kinematic_variables.F.size2() )
                     rOutput[point_number].resize( this_kinematic_variables.F.size1() , this_kinematic_variables.F.size2() , false );
 
-                rOutput[point_number] = this_kinematic_variables.F;
+                noalias(rOutput[point_number]) = this_kinematic_variables.F;
             }
         }  else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
