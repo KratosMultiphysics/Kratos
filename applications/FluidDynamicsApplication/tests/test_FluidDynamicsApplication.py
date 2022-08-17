@@ -51,7 +51,7 @@ from compressible_slip_wall_process_test import TestCompressibleSlipWallProcess
 from compute_pressure_coefficient_process_test import ComputePressureCoefficientProcessTest
 from compute_drag_process_test import ComputeDragProcessTest
 from test_compute_y_plus_process import ComputeYPlusProcessTest
-
+from test_fluid_utilities_process import FluidUtilitiesProcessTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -130,6 +130,7 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidAuxiliaryUtilitiesTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidUtilitiesProcessTest]))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
