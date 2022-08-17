@@ -79,7 +79,7 @@ namespace Kratos {
         //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
 
         for(int i = 0; i < Faces.size(); i++) {
-            double Portion = VoxelVolume2D(Faces[i],rTriangles);
+            double Portion = FaceArea(Faces[i],rTriangles);
             double Dist = NormalizedDistanceToQEF(Faces[i], QEF, i);
             
             double PartialVolume = Portion*abs(Dist)/3.0;   //Volume of a piramid
@@ -106,7 +106,7 @@ namespace Kratos {
         //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
 
         for(int i = 0; i < Faces.size(); i++) {
-            double Portion = HexaVolume2D(Faces[i],rTriangles);
+            double Portion = FaceArea(Faces[i],rTriangles);
             double Dist = NormalizedDistanceToQEF(Faces[i], QEF, i);
             
             double PartialVolume = Portion*abs(Dist)/3.0;   //Volume of a piramid

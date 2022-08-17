@@ -20,7 +20,7 @@
 
 // Project includes
 #include "qef_utility.h"
-#include "volume_inside_voxel_utility.h"
+#include "voxel_utilities.h"
 
 namespace Kratos
 { 
@@ -51,7 +51,7 @@ namespace Kratos
  * voxel that is actually filled with volume.
  * @author Ariadna Cortés
  */
-class VolumeInsideVoxelQEF : public VolumeInsideVoxelUtility
+class VolumeInsideVoxelQEF : public VoxelUtilities
 {
 public:
 
