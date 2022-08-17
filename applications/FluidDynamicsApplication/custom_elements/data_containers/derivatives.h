@@ -91,7 +91,7 @@ public:
     inline typename std::tuple_element<ElementDataIndex, TCombinedElementDataContainer>::type& GetElementDataContainer(TCombinedElementDataContainer& rCombinedDataContainer) const
     {
         static_assert(
-            ElementDataIndex <std::tuple_size<TCombinedElementDataContainer>::value,
+            ElementDataIndex < std::tuple_size<TCombinedElementDataContainer>::value,
             "Required Element data container index is more than the available element data containers.");
         return std::get<ElementDataIndex>(rCombinedDataContainer);
     }
@@ -124,6 +124,8 @@ public:
     inline void AssembleSubVectorToVector(Vector& rOutput) const
     {
         KRATOS_TRY
+
+        static_assert(ColumnStartingIndex == 0);
 
         KRATOS_DEBUG_ERROR_IF(rOutput.size() != TAssemblyRowBlockSize * NumNodes)
             << "rOuput.size() does not have the required size. [ rOutput.size() = "

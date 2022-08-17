@@ -555,7 +555,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidResidual
     std::apply([&](auto&... args) {((args.Initialize(*this, *mpConstitutiveLaw, rCurrentProcessInfo)), ...);}, combined_element_data);
 
     // initialize residual data holders
-    std::apply([&](auto&... args) {((args.GetSubVector().clear()), ...);}, combined_residuals);
+    std::apply([](auto&... args) {((args.GetSubVector().clear()), ...);}, combined_residuals);
 
     for (IndexType g = 0; g < Ws.size(); ++g) {
         const Vector& N = row(Ns, g);
