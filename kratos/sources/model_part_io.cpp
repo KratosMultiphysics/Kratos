@@ -4129,47 +4129,30 @@ void ModelPartIO::DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
     WriteInAllFiles(OutputFiles, variable_name);
     WriteInAllFiles(OutputFiles, "\n");
 
-    if(KratosComponents<Variable<double> >::Has(variable_name))
-    {
+    if(KratosComponents<Flags>::Has(variable_name)) {
+        DivideFlagVariableData(OutputFiles, NodesAllPartitions);
+    } else if(KratosComponents<Variable<double> >::Has(variable_name)) {
         DivideDofVariableData(OutputFiles, NodesAllPartitions);
-    }
-    else if(KratosComponents<Variable<int> >::Has(variable_name))
-    {
+    } else if(KratosComponents<Variable<int> >::Has(variable_name)) {
         DivideDofVariableData(OutputFiles, NodesAllPartitions);
-    }
-    else if(KratosComponents<Variable<bool> >::Has(variable_name))
-    {
+    } else if(KratosComponents<Variable<bool> >::Has(variable_name)) {
         DivideDofVariableData(OutputFiles, NodesAllPartitions);
-    }
-    else if(KratosComponents<array_1d_component_type>::Has(variable_name))
-    {
+    } else if(KratosComponents<array_1d_component_type>::Has(variable_name)) {
         DivideDofVariableData(OutputFiles, NodesAllPartitions);
-    }
-    else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
-    {
+    } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
         DivideVectorialVariableData<Vector>(OutputFiles, NodesAllPartitions, "NodalData");
-    }
-    else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
-    {
+    } else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name)) {
         DivideVectorialVariableData<Vector>(OutputFiles, NodesAllPartitions, "NodalData");
-    }
-    else if(KratosComponents<Variable<Vector> >::Has(variable_name))
-    {
+    } else if(KratosComponents<Variable<Vector> >::Has(variable_name)) {
         DivideVectorialVariableData<Vector>(OutputFiles, NodesAllPartitions, "NodalData" );
-    }
-    else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
-    {
+    } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
         DivideVectorialVariableData<Matrix>(OutputFiles, NodesAllPartitions, "NodalData" );
-    }
-    else if(KratosComponents<VariableData>::Has(variable_name))
-    {
+    } else if(KratosComponents<VariableData>::Has(variable_name)) {
         std::stringstream buffer;
         buffer << variable_name << " is not supported to be read by this IO or the type of variable is not registered correctly" << std::endl;
         buffer << " [Line " << mNumberOfLines << " ]";
         KRATOS_ERROR << buffer.str() << std::endl;;
-    }
-    else
-    {
+    } else {
         std::stringstream buffer;
         buffer << variable_name << " is not a valid variable!!!" << std::endl;
         buffer << " [Line " << mNumberOfLines << " ]";
@@ -4177,6 +4160,50 @@ void ModelPartIO::DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
     }
 
     WriteInAllFiles(OutputFiles, "End NodalData\n");
+
+    KRATOS_CATCH("")
+}
+
+void ModelPartIO::DivideFlagVariableData(OutputFilesContainerType& OutputFiles,
+                            PartitionIndicesContainerType const& NodesAllPartitions)
+{
+    KRATOS_TRY
+
+    SizeType id;
+
+    std::string word;
+
+    while(!mpStream->eof()) {
+        ReadWord(word); // reading id
+        if(CheckEndBlock("NodalData", word))
+            break;
+
+        ExtractValue(word, id);
+
+        if(ReorderedNodeId(id) > NodesAllPartitions.size()) {
+            std::stringstream buffer;
+            buffer << "Invalid node id : " << id;
+            buffer << " [Line " << mNumberOfLines << " ]";
+            KRATOS_ERROR << buffer.str() << std::endl;;
+        }
+
+        std::stringstream node_data;
+        node_data << ReorderedNodeId(id) << '\t'; // id
+        ReadWord(word);
+        node_data << word << '\n'; // value
+
+        for(SizeType i = 0 ; i < NodesAllPartitions[ReorderedNodeId(id)-1].size() ; i++) {
+            SizeType partition_id = NodesAllPartitions[ReorderedNodeId(id)-1][i];
+            if(partition_id > OutputFiles.size()) {
+                std::stringstream buffer;
+                buffer << "Invalid prtition id : " << partition_id;
+                buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
+                KRATOS_ERROR << buffer.str() << std::endl;;
+            }
+
+            *(OutputFiles[partition_id]) << node_data.str();
+        }
+    }
 
     KRATOS_CATCH("")
 }
@@ -4189,7 +4216,6 @@ void ModelPartIO::DivideDofVariableData(OutputFilesContainerType& OutputFiles,
     SizeType id;
 
     std::string word;
-
 
     while(!mpStream->eof())
     {
@@ -4228,7 +4254,6 @@ void ModelPartIO::DivideDofVariableData(OutputFilesContainerType& OutputFiles,
             *(OutputFiles[partition_id]) << node_data.str();
         }
     }
-
 
     KRATOS_CATCH("")
 }

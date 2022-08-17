@@ -22,7 +22,6 @@
 #include <typeinfo>
 #include <unordered_set>
 
-
 // External includes
 
 // Project includes
@@ -631,6 +630,9 @@ private:
 
     void DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
                               PartitionIndicesContainerType const& NodesAllPartitions);
+
+    void DivideFlagVariableData(OutputFilesContainerType& OutputFiles,
+                               PartitionIndicesContainerType const& NodesAllPartitions);
 
     void DivideDofVariableData(OutputFilesContainerType& OutputFiles,
                                PartitionIndicesContainerType const& NodesAllPartitions);
