@@ -1107,7 +1107,22 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 } else {
                     noalias(rOutput[point_number]) = ZeroVector(strain_size);
                 }
+            }
+        } else if (rVariable == INITIAL_STRAIN_VECTOR) {
+            const SizeType number_of_nodes = GetGeometry().size();
+            const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+            const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+            for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
+                if (mConstitutiveLawVector[point_number]->HasInitialState()) {
+                    const Vector& r_initial_strain = mConstitutiveLawVector[point_number]->GetInitialState().GetInitialStrainVector();
 
+                    if ( rOutput[point_number].size() != strain_size)
+                        rOutput[point_number].resize( strain_size, false );
+
+                    noalias(rOutput[point_number]) = r_initial_strain;
+                } else {
+                    noalias(rOutput[point_number]) = ZeroVector(strain_size);
+                }
             }
         } else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
