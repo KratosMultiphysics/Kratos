@@ -364,7 +364,8 @@ private:
         bool equilibrium = false;
         bool converged = true;
         unsigned int PipeIter = 0;
-        bool grow = true;
+        // todo: JDN (20220817) : grow not used. 
+        // bool grow = true;
 
         // calculate max pipe height and pipe increment
         double da = CalculatePipeHeightIncrement(amax, mPipingIterations);
