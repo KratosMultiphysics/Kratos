@@ -91,6 +91,8 @@ namespace Kratos {
     {
         Model current_model;
         ModelPart& r_model_part = current_model.CreateModelPart("test");
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(REACTION);
         auto p_node = r_model_part.CreateNewNode(1, 1., 0, 0);
         p_node->AddDof(DISPLACEMENT_X, REACTION_X);
         DofPointerHasher dof_pointer_hasher;
@@ -198,6 +200,8 @@ namespace Kratos {
     {
         Model current_model;
         ModelPart& r_model_part = current_model.CreateModelPart("test");
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(REACTION);
         auto p_node = r_model_part.CreateNewNode(1, 1., 0, 0);
         p_node->AddDof(DISPLACEMENT_X, REACTION_X);
         p_node->AddDof(DISPLACEMENT_Y, REACTION_Y);
