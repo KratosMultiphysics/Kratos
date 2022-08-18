@@ -20,26 +20,26 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_constitutive/associative_plastic_damage_model.h"
+#include "associative_plastic_damage_model.h"
 #include "constitutive_laws_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 
 // Plasticity Integrator includes
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
 
 // Yield surfaces
-#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
+#include "custom_constitutive/auxiliar_files/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/auxiliar_files/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/auxiliar_files/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_constitutive/auxiliar_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/auxiliar_files/yield_surfaces/rankine_yield_surface.h"
 
 // Plastic potentials
-#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/rankine_plastic_potential.h"
+#include "custom_constitutive/auxiliar_files/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/auxiliar_files/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_constitutive/auxiliar_files/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_constitutive/auxiliar_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/auxiliar_files/plastic_potentials/rankine_plastic_potential.h"
 
 namespace Kratos
 {

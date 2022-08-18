@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
+#include "plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "includes/model_part.h"
 #include "constitutive_laws_application_variables.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
