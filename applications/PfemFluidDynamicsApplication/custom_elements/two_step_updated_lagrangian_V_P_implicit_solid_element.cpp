@@ -251,7 +251,7 @@ namespace Kratos
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     double coeff = 1.0 + TDim;
     // coeff=6.0;
-    if constexpr (TDim == 2 && NumNodes == 6)
+    if (TDim == 2 && NumNodes == 6)
     {
       double Mij = Weight / 57.0;
       double consistent = 1.0;
