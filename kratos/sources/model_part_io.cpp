@@ -2144,11 +2144,43 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
 {
     KRATOS_TRY
 
-    VariablesList& r_this_variables = rThisModelPart.GetNodalSolutionStepVariablesList();
+    // Iterate over nodes
     auto& r_this_nodes = rThisModelPart.Nodes();
     const std::size_t number_of_nodes = r_this_nodes.size();
     const auto it_node_begin = r_this_nodes.begin();
 
+    // Writing flags
+    const auto& r_flags = KratosComponents<Flags>::GetComponents();
+    for (auto& r_flag : r_flags) {
+        const auto& r_flag_name = r_flag.first;
+        const auto& r_variable_flag = *(r_flag.second);
+        int to_consider = 0;
+        if (r_flag_name == "ALL_DEFINED" || r_flag_name == "ALL_TRUE") {
+            to_consider = -1;
+        }
+        if (to_consider == 0) {
+            for(std::size_t j = 0; j < number_of_nodes; j++) {
+                auto it_node = it_node_begin + j;
+                if (it_node->Is(r_variable_flag)) {
+                    to_consider = 1;
+                    break;
+                }
+            }
+        }
+        if (to_consider == 1) {
+            (*mpStream) << "Begin NodalData\t" << r_flag_name << std::endl;
+            for(std::size_t j = 0; j < number_of_nodes; j++) {
+                auto it_node = it_node_begin + j;
+                if (it_node->Is(r_variable_flag)) {
+                    (*mpStream) << it_node->Id() <<"\n";
+                }
+            }
+            (*mpStream) << "End NodalData" << std::endl << std::endl;
+        }
+    }
+
+    // Writing variables
+    VariablesList& r_this_variables = rThisModelPart.GetNodalSolutionStepVariablesList();
     std::string variable_name;
 
     // FIXME: Maybe there is a better way (I get confused with to much KratosComponents)
@@ -2157,15 +2189,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
 
         variable_name = it_var->Name();
 
-        if(KratosComponents<Flags >::Has(variable_name)) {
-            (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
-            auto Variable = static_cast<Flags const& >(KratosComponents<Flags>::Get(variable_name));
-            for(std::size_t j = 0; j < number_of_nodes; j++) {
-                auto it_node = it_node_begin + j;
-                (*mpStream) << it_node->Id() <<"\n";
-            }
-            (*mpStream) << "End NodalData" << std::endl << std::endl;
-        } else if(KratosComponents<Variable<int>>::Has(variable_name)) {
+        if(KratosComponents<Variable<int>>::Has(variable_name)) {
             (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
             const auto& r_variable = KratosComponents<Kratos::Variable<int> >::Get(variable_name);
             for(std::size_t j = 0; j < number_of_nodes; j++) {
