@@ -27,15 +27,14 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         RemoveFiles(cls.mdpa_name)
 
     def test_SkinDetectionProcess(self):
-        # We set a flag in the already knon node in the skin
-        for node in self.model_part.GetSubModelPart("Skin_Part").Nodes:
-            node.Set(KratosMultiphysics.ACTIVE, True)
-
         detect_skin = KratosMultiphysics.SkinDetectionProcess3D(self.model_part)
         detect_skin.Execute()
 
-        ## DEBUG
-        #self._post_process(self.model_part)
+        # # DEBUG
+        # self._post_process(self.model_part)
+
+        # # DEBUG
+        # self._post_process_mpi(self.model_part)
 
         for node in self.model_part.Nodes:
             self.assertEqual(node.Is(KratosMultiphysics.INTERFACE), node.Is(KratosMultiphysics.ACTIVE))
