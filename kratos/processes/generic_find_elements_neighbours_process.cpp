@@ -20,7 +20,7 @@ namespace Kratos
 {
 
 
-void GenericFindElementalNeighboursProcess::ExecuteInitialize()
+void GenericFindElementalNeighboursProcess::Execute()
 {
     KRATOS_TRY
 
@@ -36,15 +36,15 @@ void GenericFindElementalNeighboursProcess::ExecuteInitialize()
         const auto& r_geom = rElement.GetGeometry();
         const auto elem_boundaries = r_geom.LocalSpaceDimension()==3 ? r_geom.GenerateFaces() : r_geom.GenerateEdges() ;
         const unsigned int nBoundaries = elem_boundaries.size();
-        
+
         //initializing elem neighbours
         if (rElement.Has(NEIGHBOUR_ELEMENTS)) {
             auto& r_neighbour_elements = rElement.GetValue(NEIGHBOUR_ELEMENTS);
-            r_neighbour_elements.reserve(nBoundaries); 
+            r_neighbour_elements.reserve(nBoundaries);
             r_neighbour_elements.erase(r_neighbour_elements.begin(),r_neighbour_elements.end() );
         } else {
             ElementPointerVector empty_vector;
-            empty_vector.reserve(nBoundaries); 
+            empty_vector.reserve(nBoundaries);
             rElement.SetValue(NEIGHBOUR_ELEMENTS, empty_vector);
         }
         ElementPointerVector& rElemNeighbours = rElement.GetValue(NEIGHBOUR_ELEMENTS);
@@ -60,6 +60,11 @@ void GenericFindElementalNeighboursProcess::ExecuteInitialize()
     KRATOS_CATCH("Error finding the elemental neighbours")
 }
 
+void GenericFindElementalNeighboursProcess::ExecuteInitialize()
+{
+    KRATOS_WARNING("GenericFindElementalNeighboursProcess") << "'ExecuteInitialize' call is deprecated. Use 'Execute' instead." << std::endl;
+    Execute();
+}
 
 GlobalPointer<Element> GenericFindElementalNeighboursProcess::CheckForNeighbourElems (const Geometry<Node<3> >& rBoundaryGeom,
                                                                                       Element & rElement,
@@ -81,7 +86,7 @@ GlobalPointer<Element> GenericFindElementalNeighboursProcess::CheckForNeighbourE
     //we will take the pointers in the first node as candidates
     const unsigned int nCandidates =  rBoundaryGeom[0].GetValue(NEIGHBOUR_ELEMENTS).size();
     const unsigned int nCompleteList = PointersOfAllBoundaryNodes.size();
-    for( unsigned int j = 0 ; j < nCandidates; j++){ 
+    for( unsigned int j = 0 ; j < nCandidates; j++){
         unsigned int repetitions = 1 ; //the current one must be added
         if(PointersOfAllBoundaryNodes(j).GetRank() != CurrentRank ||
            PointersOfAllBoundaryNodes[j].Id()!=main_elem_id){ //ignoring main node
@@ -102,7 +107,7 @@ GlobalPointer<Element> GenericFindElementalNeighboursProcess::CheckForNeighbourE
 
 std::vector<bool> GenericFindElementalNeighboursProcess::HasNeighboursInFaces(const Element& rElement)
 {
-    std::vector<bool> has_neigh_in_faces;    
+    std::vector<bool> has_neigh_in_faces;
     if (rElement.Has(NEIGHBOUR_ELEMENTS)) {
         const auto& r_neighbour_elements = rElement.GetValue(NEIGHBOUR_ELEMENTS);
         has_neigh_in_faces.resize(r_neighbour_elements.size());

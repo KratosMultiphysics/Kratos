@@ -389,12 +389,12 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
 
     double Domain = rGeom.DomainSize();
 
-    if (TDim == 2)
+    if constexpr (TDim == 2)
     {
         rVariables.lv = std::sqrt(2.0*Domain);
         rVariables.lsc = rVariables.lv;
 
-        if (TNumNodes == 3)
+        if constexpr (TNumNodes == 3)
         {
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
@@ -1005,7 +1005,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegrat
 
             double Domain = Geom.DomainSize();
 
-            if (TDim == 2)
+            if constexpr (TDim == 2)
             {
                 Variables.lv = std::sqrt(2.0*Domain);
             }

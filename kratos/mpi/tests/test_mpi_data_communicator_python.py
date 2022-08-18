@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 class TestMPIDataCommunicatorPython(UnitTest.TestCase):
 
     def setUp(self):
-        self.world = Kratos.DataCommunicator.GetDefault()
+        self.world = Kratos.Testing.GetDefaultDataCommunicator()
         self.rank = self.world.Rank()
         self.size = self.world.Size()
 
@@ -14,7 +14,7 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
 
     @UnitTest.skipIf(not Kratos.IsDistributedRun(), "This test is designed for distributed runs only.")
     def testDataCommunicatorRetrievalFromDataCommunicator(self):
-        default_comm = Kratos.DataCommunicator.GetDefault()
+        default_comm = Kratos.Testing.GetDefaultDataCommunicator()
 
         # if we imported mpi, default should be "World" (wrapping MPI_COMM_WORLD)
         self.assertTrue(default_comm.IsDistributed())
@@ -161,13 +161,17 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
         source_rank = 0
         broadcast_int = self.world.Broadcast(self.rank, source_rank)
         broadcast_double = self.world.Broadcast(2.0*self.rank, source_rank)
+        broadcast_string = self.world.Broadcast(str(self.rank), source_rank)
         broadcast_int_list = self.world.BroadcastInts([self.rank,-self.rank], source_rank)
         broadcast_double_list = self.world.BroadcastDoubles([2.0*self.rank,-2.0*self.rank], source_rank)
+        broadcast_string_list = self.world.BroadcastStrings([f"{self.rank}_{i}" for i in range(3)], source_rank)
 
         self.assertEqual(broadcast_int, source_rank)
         self.assertEqual(broadcast_double, 2.0*source_rank)
+        self.assertEqual(broadcast_string, str(source_rank))
         self.assertEqual(broadcast_int_list, [source_rank, -source_rank])
         self.assertEqual(broadcast_double_list, [2.0*source_rank, -2.0*source_rank])
+        self.assertEqual(broadcast_string_list, [f"{source_rank}_{i}" for i in range(3)])
 
     def testScatterOperations(self):
         source_rank = self.size-1

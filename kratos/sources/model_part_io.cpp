@@ -13,6 +13,7 @@
 
 // System includes
 #include <unordered_set>
+#include <filesystem>
 
 // Project includes
 #include "includes/model_part_io.h"
@@ -23,9 +24,6 @@
 #include "utilities/compare_elements_and_conditions_utility.h"
 
 // External includes
-// this needs to be included last to avoid redefinition problems in win
-#include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
-namespace fs = ghc::filesystem;
 
 namespace Kratos
 {
@@ -995,17 +993,17 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
     OutputFilesContainerType output_files;
 
     // create folder for partitioned files
-    const fs::path base_path(mBaseFilename);
+    const std::filesystem::path base_path(mBaseFilename);
 
-    const fs::path raw_file_name = base_path.stem();
-    const fs::path folder_name = base_path.parent_path() / raw_file_name += "_partitioned";
+    const std::filesystem::path raw_file_name = base_path.stem();
+    const std::filesystem::path folder_name = base_path.parent_path() / raw_file_name += "_partitioned";
 
-    fs::remove_all(folder_name); // to remove leftovers
+    std::filesystem::remove_all(folder_name); // to remove leftovers
     FilesystemExtensions::MPISafeCreateDirectories(folder_name.string());
 
     for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
     {
-        const fs::path full_file_name = folder_name / raw_file_name += "_"+std::to_string(i)+".mdpa";
+        const std::filesystem::path full_file_name = folder_name / raw_file_name += "_"+std::to_string(i)+".mdpa";
         std::ofstream* p_ofstream = new std::ofstream(full_file_name);
         KRATOS_ERROR_IF_NOT(*p_ofstream) << "Error opening mdpa file : " << full_file_name << std::endl;
 

@@ -213,7 +213,7 @@ public:
 
             //find the center and "radius" of the element
 // 				double xc,  yc,  radius;
-// 				if(TDim == 2)
+// 				if constexpr (TDim == 2)
 // 				{
 // 					 CalculateCenterAndSearchRadius( geom[0].X(), geom[0].Y(),
 // 								geom[1].X(), geom[1].Y(),
@@ -253,7 +253,7 @@ public:
 
                 bool is_inside = false;
                 //once we are sure the node in inside the circle we have to see if it is inside the triangle i.e. if all the Origin element shape functions are >1
-// 				        if(TDim == 2)
+// 				        if constexpr (TDim == 2)
 // 				        {
 // 					       is_inside = CalculatePosition(geom[0].X(), geom[0].Y(),
 // 									       geom[1].X(), geom[1].Y(),
@@ -396,7 +396,7 @@ public:
 
             //find the center and "radius" of the element
 // 				double xc,  yc,  radius;
-// 				if(TDim == 2)
+// 				if constexpr (TDim == 2)
 // 				{
 // 					 CalculateCenterAndSearchRadius( geom[0].X(), geom[0].Y(),
 // 								geom[1].X(), geom[1].Y(),
@@ -436,7 +436,7 @@ public:
 // KRATOS_WATCH("line 402")
                 bool is_inside = false;
                 //once we are sure the node in inside the circle we have to see if it is inside the triangle i.e. if all the Origin element shape functions are >1
-// 					 if(TDim == 2)
+// 					 if constexpr (TDim == 2)
 // 					 {
 // 						is_inside = CalculatePosition(geom[0].X(), geom[0].Y(),
 // 										geom[1].X(), geom[1].Y(),

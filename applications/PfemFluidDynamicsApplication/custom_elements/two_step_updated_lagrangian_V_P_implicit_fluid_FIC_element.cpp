@@ -898,7 +898,7 @@ namespace Kratos
         // this->ComputeBulkMatrix(BulkAccMatrix,N,BulkStabCoeff);
 
         double BoundLHSCoeff = Tau * 4.0 * GaussWeight / (ElemSize * ElemSize);
-        // if(TDim==3){
+        // if constexpr (TDim==3){
         //   BoundLHSCoeff=Tau*2*GaussWeight/(0.81649658*ElemSize*ElemSize);
         // }
 
