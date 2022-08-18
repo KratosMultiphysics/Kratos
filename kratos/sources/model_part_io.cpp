@@ -3873,7 +3873,7 @@ void ModelPartIO::DivideNodesBlock(OutputFilesContainerType& OutputFiles,
             if(partition_id > OutputFiles.size())
             {
                 std::stringstream buffer;
-                buffer << "Invalid prtition id : " << partition_id;
+                buffer << "Invalid partition id : " << partition_id;
                 buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
@@ -3943,7 +3943,7 @@ void ModelPartIO::DivideGeometriesBlock(OutputFilesContainerType& OutputFiles,
             SizeType partition_id = GeometriesAllPartitions[ReorderedGeometryId(id)-1][i];
             if(partition_id > OutputFiles.size()) {
                 std::stringstream buffer;
-                buffer << "Invalid prtition id : " << partition_id;
+                buffer << "Invalid partition id : " << partition_id;
                 buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
@@ -4020,7 +4020,7 @@ void ModelPartIO::DivideElementsBlock(OutputFilesContainerType& OutputFiles,
             if(partition_id > OutputFiles.size())
             {
                 std::stringstream buffer;
-                buffer << "Invalid prtition id : " << partition_id;
+                buffer << "Invalid partition id : " << partition_id;
                 buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
@@ -4096,7 +4096,7 @@ void ModelPartIO::DivideConditionsBlock(OutputFilesContainerType& OutputFiles,
             if(partition_id > OutputFiles.size())
             {
                 std::stringstream buffer;
-                buffer << "Invalid prtition id : " << partition_id;
+                buffer << "Invalid partition id : " << partition_id;
                 buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
@@ -4196,7 +4196,7 @@ void ModelPartIO::DivideFlagVariableData(OutputFilesContainerType& OutputFiles,
             SizeType partition_id = NodesAllPartitions[ReorderedNodeId(id)-1][i];
             if(partition_id > OutputFiles.size()) {
                 std::stringstream buffer;
-                buffer << "Invalid prtition id : " << partition_id;
+                buffer << "Invalid partition id : " << partition_id;
                 buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
@@ -4246,7 +4246,7 @@ void ModelPartIO::DivideDofVariableData(OutputFilesContainerType& OutputFiles,
             if(partition_id > OutputFiles.size())
             {
                 std::stringstream buffer;
-                buffer << "Invalid prtition id : " << partition_id;
+                buffer << "Invalid partition id : " << partition_id;
                 buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
@@ -4327,7 +4327,7 @@ void ModelPartIO::DivideVectorialVariableData(OutputFilesContainerType& OutputFi
             if(partition_id > OutputFiles.size())
             {
                 std::stringstream buffer;
-                buffer << "Invalid prtition id : " << partition_id;
+                buffer << "Invalid partition id : " << partition_id;
                 buffer << " for entity " << id << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
@@ -4455,7 +4455,7 @@ void ModelPartIO::DivideScalarVariableData(OutputFilesContainerType& OutputFiles
             if(partition_id > OutputFiles.size())
             {
                 std::stringstream buffer;
-                buffer << "Invalid prtition id : " << partition_id;
+                buffer << "Invalid partition id : " << partition_id;
                 buffer << " for entity " << id << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
@@ -4671,7 +4671,7 @@ void ModelPartIO::DivideMeshNodesBlock(OutputFilesContainerType& OutputFiles,
             if(partition_id > OutputFiles.size())
             {
                 std::stringstream buffer;
-                buffer << "Invalid prtition id : " << partition_id;
+                buffer << "Invalid partition id : " << partition_id;
                 buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
@@ -4720,7 +4720,7 @@ void ModelPartIO::DivideMeshElementsBlock(OutputFilesContainerType& OutputFiles,
             if(partition_id > OutputFiles.size())
             {
                 std::stringstream buffer;
-                buffer << "Invalid prtition id : " << partition_id;
+                buffer << "Invalid partition id : " << partition_id;
                 buffer << " for element " << id << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
@@ -4769,7 +4769,7 @@ void ModelPartIO::DivideMeshConditionsBlock(OutputFilesContainerType& OutputFile
             if(partition_id > OutputFiles.size())
             {
                 std::stringstream buffer;
-                buffer << "Invalid prtition id : " << partition_id;
+                buffer << "Invalid partition id : " << partition_id;
                 buffer << " for condition " << id << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
@@ -4846,7 +4846,7 @@ void ModelPartIO::DivideSubModelPartNodesBlock(OutputFilesContainerType& OutputF
             if (partition_id > OutputFiles.size())
             {
                 std::stringstream buffer;
-                buffer << "Invalid prtition id : " << partition_id;
+                buffer << "Invalid partition id : " << partition_id;
                 buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
@@ -4895,7 +4895,7 @@ void ModelPartIO::DivideSubModelPartElementsBlock(OutputFilesContainerType& Outp
             if (partition_id > OutputFiles.size())
             {
                 std::stringstream buffer;
-                buffer << "Invalid prtition id : " << partition_id;
+                buffer << "Invalid partition id : " << partition_id;
                 buffer << " for element " << id << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
@@ -4944,7 +4944,7 @@ void ModelPartIO::DivideSubModelPartConditionsBlock(OutputFilesContainerType& Ou
             if (partition_id > OutputFiles.size())
             {
                 std::stringstream buffer;
-                buffer << "Invalid prtition id : " << partition_id;
+                buffer << "Invalid partition id : " << partition_id;
                 buffer << " for condition " << id << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
@@ -4971,7 +4971,7 @@ void ModelPartIO::WritePartitionIndices(OutputFilesContainerType& OutputFiles, P
             if(partition_id > OutputFiles.size())
             {
                 std::stringstream buffer;
-                buffer << "Invalid prtition id : " << partition_id;
+                buffer << "Invalid partition id : " << partition_id;
                 buffer << " for node " << i_node+1 << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
