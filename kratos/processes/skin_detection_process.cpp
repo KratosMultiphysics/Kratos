@@ -229,7 +229,7 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     // In case we are in MPI we syncronize the INTERFACE flag
     if (mrModelPart.IsDistributed()) {
         auto& r_communicator = mrModelPart.GetCommunicator();
-        r_communicator.SynchronizeNodalFlags();
+        r_communicator.SynchronizeOrNodalFlags(INTERFACE);
     }
 }
 
