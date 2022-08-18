@@ -12,17 +12,14 @@ class TestUnitPipingElements(KratosUnittest.TestCase):
         pass
 
     def test_water_pressure_gradient(self):
-        print(os.getcwd())
         exitcode = Tester.RunTestCases("TestCalculateWaterPressureGradient")
         self.assertTrue(exitcode == 0)
 
     def test_equilibrium_pipe_height(self):
-        print(os.getcwd())
         exitcode = Tester.RunTestCases("TestCalculateEquilibriumPipeHeight")
         self.assertTrue(exitcode == 0)
 
     def test_ErosionProcessStrategy(self):
-        print(os.getcwd())
         exitcode = Tester.RunTestCases("TestErosionProcessStrategy")
         self.assertTrue(exitcode == 0)
 
