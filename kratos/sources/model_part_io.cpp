@@ -2082,16 +2082,16 @@ void ModelPartIO::ReadNodalDataBlock(ModelPart& rThisModelPart)
             ReadNodalDofVariableData(rThisNodes, KratosComponents<Variable<double> >::Get(variable_name));
         }
     }
-    else if(KratosComponents<array_1d_component_type>::Has(variable_name))
+    else if(KratosComponents<Variable<double>>::Has(variable_name))
     {
-        const bool has_been_added = rThisVariables.Has(KratosComponents<array_1d_component_type>::Get(variable_name).GetSourceVariable()) ;
+        const bool has_been_added = rThisVariables.Has(KratosComponents<Variable<double>>::Get(variable_name).GetSourceVariable()) ;
         if( !has_been_added && mOptions.Is(IGNORE_VARIABLES_ERROR) ) {
             KRATOS_WARNING("ModelPartIO") <<"WARNING: Skipping NodalData block. Variable "<<variable_name<<" has not been added to ModelPart '"<<rThisModelPart.Name()<<"'"<<std::endl<<std::endl;
             SkipBlock("NodalData");
         }
         else {
             KRATOS_ERROR_IF_NOT(has_been_added) << "The nodal solution step container does not have this variable: " << variable_name << "." << std::endl;
-            ReadNodalDofVariableData(rThisNodes, KratosComponents<array_1d_component_type>::Get(variable_name));
+            ReadNodalDofVariableData(rThisNodes, KratosComponents<Variable<double>>::Get(variable_name));
         }
     }
     else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
@@ -2291,8 +2291,8 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
 }
 
 template<class TObjectsContainerType>
-void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName){
-    typedef Variable<double> array_1d_component_type;
+void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName)
+{
     std::unordered_set<std::string> variables;
 
     for(auto& object :rThisObjectContainer){
@@ -2310,8 +2310,8 @@ void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContain
                 else if(KratosComponents<Variable<double>>::Has(var.first->Name())){
                     WriteDataBlock<Variable<double>, TObjectsContainerType>(rThisObjectContainer, var.first, rObjectName);
                 }
-                else if(KratosComponents<array_1d_component_type>::Has(var.first->Name())){
-                    WriteDataBlock<array_1d_component_type>(rThisObjectContainer, var.first, rObjectName);
+                else if(KratosComponents<Variable<double>>::Has(var.first->Name())){
+                    WriteDataBlock<Variable<double>>(rThisObjectContainer, var.first, rObjectName);
                 }
                 else if(KratosComponents<Variable<array_1d<double,3>>>::Has(var.first->Name())){
                     WriteDataBlock<Variable<array_1d<double,3>>, TObjectsContainerType>(rThisObjectContainer, var.first, rObjectName);
@@ -2505,9 +2505,9 @@ void ModelPartIO::ReadElementalDataBlock(ElementsContainerType& rThisElements)
     {
         ReadElementalScalarVariableData(rThisElements, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
     }
-    else if(KratosComponents<array_1d_component_type>::Has(variable_name))
+    else if(KratosComponents<Variable<double>>::Has(variable_name))
     {
-        ReadElementalScalarVariableData(rThisElements, static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type>::Get(variable_name)));
+        ReadElementalScalarVariableData(rThisElements, static_cast<Variable<double> const& >(KratosComponents<Variable<double>>::Get(variable_name)));
     }
     else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
     {
@@ -2621,9 +2621,9 @@ void ModelPartIO::ReadConditionalDataBlock(ConditionsContainerType& rThisConditi
     {
         ReadConditionalScalarVariableData(rThisConditions, static_cast<Variable<int> const& >(KratosComponents<Variable<int> >::Get(variable_name)));
     }
-    else if(KratosComponents<array_1d_component_type>::Has(variable_name))
+    else if(KratosComponents<Variable<double>>::Has(variable_name))
     {
-        ReadConditionalScalarVariableData(rThisConditions, static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type>::Get(variable_name)));
+        ReadConditionalScalarVariableData(rThisConditions, static_cast<Variable<double> const& >(KratosComponents<Variable<double>>::Get(variable_name)));
     }
     else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
     {
@@ -4164,7 +4164,7 @@ void ModelPartIO::DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
     {
         DivideDofVariableData(OutputFiles, NodesAllPartitions);
     }
-    else if(KratosComponents<array_1d_component_type>::Has(variable_name))
+    else if(KratosComponents<Variable<double>>::Has(variable_name))
     {
         DivideDofVariableData(OutputFiles, NodesAllPartitions);
     }
@@ -4368,7 +4368,7 @@ void ModelPartIO::DivideElementalDataBlock(OutputFilesContainerType& OutputFiles
     {
         DivideScalarVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
     }
-    else if(KratosComponents<array_1d_component_type>::Has(variable_name))
+    else if(KratosComponents<Variable<double>>::Has(variable_name))
     {
         DivideScalarVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
     }
@@ -4495,7 +4495,7 @@ void ModelPartIO::DivideConditionalDataBlock(OutputFilesContainerType& OutputFil
     {
         DivideScalarVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
     }
-    else if(KratosComponents<array_1d_component_type>::Has(variable_name))
+    else if(KratosComponents<Variable<double>>::Has(variable_name))
     {
         DivideScalarVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
     }
