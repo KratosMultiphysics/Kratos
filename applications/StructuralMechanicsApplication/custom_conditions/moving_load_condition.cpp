@@ -18,7 +18,7 @@
 // Project includes
 #include "custom_conditions/moving_load_condition.h"
 
-#include <includes/checks.h>
+#include "includes/checks.h"
 
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
