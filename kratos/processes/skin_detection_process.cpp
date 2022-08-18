@@ -224,7 +224,6 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
 
     // Now we set the flag on the nodes. The list of nodes of the auxiliar model part
     auto& r_nodes_array = rAuxiliaryModelPart.Nodes();
-
     VariableUtils().SetFlag(INTERFACE, true, r_nodes_array);
 
     // In case we are in MPI we syncronize the INTERFACE flag
