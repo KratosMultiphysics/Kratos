@@ -2166,6 +2166,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
             auto Variable = static_cast<Flags const& >(KratosComponents<Flags>::Get(variable_name));
             for(std::size_t j = 0; j < number_of_nodes; j++) {
                 auto it_node = it_node_begin + j;
+                (*mpStream) << it_node->Id() <<"\n";
             }
             (*mpStream) << "End NodalData" << std::endl << std::endl;
         }
