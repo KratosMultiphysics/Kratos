@@ -700,7 +700,7 @@ protected:
     std::string GetSkinElementName()
     {
         std::string element_name;
-        if (TDim == 2) {
+        if constexpr (TDim == 2) {
             element_name = "Element2D2N";
         } else {
             element_name = "Element3D3N";
@@ -716,7 +716,7 @@ protected:
      */
     std::string GetSkinConditionName()
     {
-        if (TDim == 2) {
+        if constexpr (TDim == 2) {
             return "LineCondition2D2N";
         } else {
             return "SurfaceCondition3D3N";

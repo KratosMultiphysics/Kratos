@@ -44,7 +44,7 @@ git clone https://github.com/KratosMultiphysics/Kratos Kratos
 ### Kratos Core Dependencies
   These are the basic dependecies needed to compile the Kratos Core and most of the Kratos applications.
   * Python3-dev
-  * C++11 compiler
+  * C++17 compiler
   * CMake
   * Boost (dependencies are header-only, no compilation of boost libraries required)
 

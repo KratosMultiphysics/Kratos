@@ -86,7 +86,7 @@ namespace Kratos
       this->mUpdatedDeviatoricCauchyStress.resize(integration_points_number);
 
     unsigned int voigtsize = 3;
-    if (TDim == 3)
+    if constexpr (TDim == 3)
     {
       voigtsize = 6;
     }
@@ -251,7 +251,7 @@ namespace Kratos
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     double coeff = 1.0 + TDim;
     // coeff=6.0;
-    if (TDim == 2 && NumNodes == 6)
+    if constexpr (TDim == 2 && NumNodes == 6)
     {
       double Mij = Weight / 57.0;
       double consistent = 1.0;
@@ -306,7 +306,7 @@ namespace Kratos
   void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeElementalVariables(ElementalVariables &rElementalVariables)
   {
     unsigned int voigtsize = 3;
-    if (TDim == 3)
+    if constexpr (TDim == 3)
     {
       voigtsize = 6;
     }

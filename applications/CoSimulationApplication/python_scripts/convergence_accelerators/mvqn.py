@@ -54,13 +54,13 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
 
         ## For the first iteration
         if k == 0:
-            if self.J == []:
+            if len(self.J) == 0:
                 return self.alpha * r  # if no Jacobian, do relaxation
             else:
                 return np.linalg.solve( self.J, -r ) # use the Jacobian from previous step
 
         ## Let the initial Jacobian correspond to a constant relaxation
-        if self.J == []:
+        if len(self.J) == 0:
             self.J = - np.identity( row ) / self.alpha # correspongding to constant relaxation
 
         ## Construct matrix V (differences of residuals)
@@ -78,7 +78,7 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         ## Solve least norm problem
         rhs = V - np.dot(self.J, W)
         b = np.identity( row )
-        W_right_inverse = np.linalg.lstsq(W, b)[0]
+        W_right_inverse = np.linalg.lstsq(W, b, rcond=-1)[0]
         J_tilde = np.dot(rhs, W_right_inverse)
         self.J_hat = self.J + J_tilde
         delta_r = -self.R[0]
@@ -89,7 +89,7 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     ## FinalizeSolutionStep()
     # Finalizes the current time step and initializes the next time step.
     def FinalizeSolutionStep( self ):
-        if self.J == []:
+        if len(self.J) == 0:
             return
 
         row = self.J.shape[0]

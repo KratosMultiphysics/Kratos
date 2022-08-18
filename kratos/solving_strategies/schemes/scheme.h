@@ -81,10 +81,6 @@ public:
     typedef Dof<double> TDofType;
     /// DoF array type definition
     typedef ModelPart::DofsArrayType DofsArrayType;
-    /// DoF iterator type definition
-    typedef typename PointerVectorSet<TDofType, IndexedObject>::iterator DofIterator;
-    /// DoF constant iterator type definition
-    typedef typename PointerVectorSet<TDofType, IndexedObject>::const_iterator DofConstantIterator;
 
     /// Elements containers definition
     typedef ModelPart::ElementsContainerType ElementsArrayType;
