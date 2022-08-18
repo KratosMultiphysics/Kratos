@@ -102,11 +102,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor
-    FixedMeshALEUtilities(
-        ModelPart &rVirtualModelPart,
-        ModelPart &rStructureModelPart);
-
     /// Constructor with model and parameters
     FixedMeshALEUtilities(
         Model &rModel,
@@ -221,6 +216,9 @@ protected:
     ModelPart *mpOriginModelPart = nullptr;
 
     Parameters mEmbeddedNodalVariableSettings;
+
+    std::vector<Variable<double>*> mScalarVariablesList;
+    std::vector<Variable<array_1d<double,3>>*> mArrayVariablesList;
 
     ///@}
     ///@name Protected Operators

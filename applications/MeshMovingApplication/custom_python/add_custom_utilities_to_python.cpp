@@ -37,7 +37,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<FixedMeshALEUtilities, FixedMeshALEUtilities::Pointer>(m, "FixedMeshALEUtilities")
         .def(py::init<Model &, Parameters &>())
-        .def(py::init<ModelPart &, ModelPart &>())
         .def("Initialize", &FixedMeshALEUtilities::Initialize)
         .def("SetVirtualMeshValuesFromOriginMesh", &FixedMeshALEUtilities::SetVirtualMeshValuesFromOriginMesh)
         .def("ComputeMeshMovement", &FixedMeshALEUtilities::ComputeMeshMovement)
