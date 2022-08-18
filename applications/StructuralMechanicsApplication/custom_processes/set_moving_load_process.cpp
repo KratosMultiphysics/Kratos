@@ -65,7 +65,7 @@ std::vector<int> FindNonRepeatingIndices(std::vector<int> arr)
 
     return non_repeating_indices;
           
-    }
+}
 
 Condition& GetFirstConditionFromCoord(double first_coord, double second_coord, int direction, std::vector<Condition>& end_conditions)
 {
