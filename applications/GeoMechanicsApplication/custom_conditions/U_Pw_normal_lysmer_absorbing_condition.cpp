@@ -11,7 +11,6 @@
 //  Main authors:    Aron Noordam
 //
 
-#include <math.h>
 // Application includes
 #include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
 
@@ -37,20 +36,19 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixTy
 {
 
     //Previous definitions
-    GeometryType& Geom = this->GetGeometry();
-    PropertiesType& prop = this->GetProperties();
-    //GeometryData::IntegrationMethod rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+    GeometryType& rGeom = this->GetGeometry();
+
     GeometryData::IntegrationMethod rIntegrationMethod = this->mThisIntegrationMethod;
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(rIntegrationMethod);
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(rIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();
-    const unsigned int LocalDim = Geom.LocalSpaceDimension();
+    const unsigned int LocalDim = rGeom.LocalSpaceDimension();
 
     //Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues(rIntegrationMethod);
+    const Matrix& NContainer = rGeom.ShapeFunctionsValues(rIntegrationMethod);
     GeometryType::JacobiansType JContainer(NumGPoints);
     for (unsigned int i = 0; i < NumGPoints; ++i)
         (JContainer[i]).resize(TDim, LocalDim, false);
-    Geom.Jacobian(JContainer, rIntegrationMethod);
+    rGeom.Jacobian(JContainer, rIntegrationMethod);
 
     //Condition variables
     BoundedMatrix<double, TDim, N_DOF> Nu = ZeroMatrix(TDim, N_DOF);
@@ -69,13 +67,13 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixTy
         // calculate
         rVariables.Ec = 0.0;
         rVariables.G = 0.0;
-        for (unsigned int node = 0; node < Geom.size(); ++node)
+        for (unsigned int node = 0; node < rGeom.size(); ++node)
         {
             rVariables.Ec += NContainer(GPoint, node) * rVariables.EcNodes[node];
             rVariables.G += NContainer(GPoint, node) * rVariables.GNodes[node];
         }
 
-        this->CalculateNodalStiffnessMatrix(rVariables, CurrentProcessInfo, Geom);
+        this->CalculateNodalStiffnessMatrix(rVariables, CurrentProcessInfo, rGeom);
 
         // calculate displacement shape function matrix
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Nu, NContainer, GPoint);
@@ -115,21 +113,19 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
 {
 
     //Previous definitions
-    GeometryType& Geom = this->GetGeometry();
-    PropertiesType& prop = this->GetProperties();
+    GeometryType& rGeom = this->GetGeometry();
 
-    //GeometryData::IntegrationMethod rIntegrationMethod = this->mThisIntegrationMethod;
-    GeometryData::IntegrationMethod rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(rIntegrationMethod);
+    GeometryData::IntegrationMethod rIntegrationMethod = this->mThisIntegrationMethod;
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(rIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();
-    const unsigned int LocalDim = Geom.LocalSpaceDimension();
+    const unsigned int LocalDim = rGeom.LocalSpaceDimension();
 
     //Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues(rIntegrationMethod);
+    const Matrix& NContainer = rGeom.ShapeFunctionsValues(rIntegrationMethod);
     GeometryType::JacobiansType JContainer(NumGPoints);
     for (unsigned int i = 0; i < NumGPoints; ++i)
         (JContainer[i]).resize(TDim, LocalDim, false);
-    Geom.Jacobian(JContainer, rIntegrationMethod);
+    rGeom.Jacobian(JContainer, rIntegrationMethod);
 
     //Condition variables
     BoundedMatrix<double, TDim, N_DOF> Nu = ZeroMatrix(TDim, N_DOF);
@@ -147,7 +143,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
         rVariables.rho = 0.0;
         rVariables.Ec = 0.0;
         rVariables.G = 0.0;
-        for (unsigned int node = 0; node < Geom.size(); ++node)
+        for (unsigned int node = 0; node < rGeom.size(); ++node)
         {
             rVariables.rho += NContainer(GPoint, node) * rVariables.rhoNodes[node];
             rVariables.Ec += NContainer(GPoint, node) * rVariables.EcNodes[node];
@@ -156,7 +152,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
         rVariables.vp = sqrt(rVariables.Ec / rVariables.rho);
         rVariables.vs = sqrt(rVariables.G / rVariables.rho);
 
-        this->CalculateNodalDampingMatrix(rVariables, CurrentProcessInfo, Geom);
+        this->CalculateNodalDampingMatrix(rVariables, CurrentProcessInfo, rGeom);
 
         // calculate displacement shape function matrix
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Nu, NContainer, GPoint);
@@ -233,7 +229,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
 CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, const Element::GeometryType& Geom)
 {
-    array_1d<double, 2> rDampingConstants;
+    array_1d<double, 2> dampingConstants;
 
     // calculate rotation matrix
     BoundedMatrix<double, TDim, TDim> rotationMatrix;
@@ -242,19 +238,18 @@ CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const Pr
     const int local_perpendicular_direction = TDim - 1;
 
     // calculate constant traction vector part
-    rDampingConstants[0] = rVariables.vs * rVariables.rho * rVariables.s_factor;
-    rDampingConstants[1] = rVariables.vp * rVariables.rho * rVariables.p_factor;
+    dampingConstants[0] = rVariables.vs * rVariables.rho * rVariables.s_factor;
+    dampingConstants[1] = rVariables.vp * rVariables.rho * rVariables.p_factor;
 
-    BoundedMatrix<double, TDim, TDim>             localCMatrix = ZeroMatrix(TDim, TDim);
-    BoundedMatrix<double, TDim, TDim>             auxLocalCMatrix = ZeroMatrix(TDim, TDim);
+    BoundedMatrix<double, TDim, TDim> localCMatrix = ZeroMatrix(TDim, TDim);
+    BoundedMatrix<double, TDim, TDim> auxLocalCMatrix = ZeroMatrix(TDim, TDim);
 
     rVariables.CAbsMatrix = ZeroMatrix(TDim, TDim);
 
     for (unsigned int idim = 0; idim < TDim; ++idim) {
-        localCMatrix(idim, idim) = rDampingConstants[0];
+        localCMatrix(idim, idim) = dampingConstants[0];
     }
-    //localCMatrix(local_perpendicular_direction, local_perpendicular_direction) = 0;
-    localCMatrix(local_perpendicular_direction, local_perpendicular_direction) = rDampingConstants[1];
+    localCMatrix(local_perpendicular_direction, local_perpendicular_direction) = dampingConstants[1];
 
     auxLocalCMatrix = prod(localCMatrix, rotationMatrix);
     rVariables.CAbsMatrix = prod(trans(rotationMatrix), auxLocalCMatrix);
@@ -274,7 +269,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
 CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, const Element::GeometryType& Geom)
 {
-    array_1d<double, 2> rStiffnessConstants;
+    array_1d<double, 2> stiffnessConstants;
 
     // calculate rotation matrix
     BoundedMatrix<double, TDim, TDim> rotationMatrix;
@@ -283,18 +278,18 @@ CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const 
     const int local_perpendicular_direction = TDim - 1;
 
     // calculate constant traction vector part
-    rStiffnessConstants[0] = rVariables.G / rVariables.virtual_thickness;
-    rStiffnessConstants[1] = rVariables.Ec / rVariables.virtual_thickness;
+    stiffnessConstants[0] = rVariables.G / rVariables.virtual_thickness;
+    stiffnessConstants[1] = rVariables.Ec / rVariables.virtual_thickness;
 
-    BoundedMatrix<double, TDim, TDim>             localKMatrix = ZeroMatrix(TDim, TDim);
-    BoundedMatrix<double, TDim, TDim>             auxLocalKMatrix = ZeroMatrix(TDim, TDim);
+    BoundedMatrix<double, TDim, TDim> localKMatrix = ZeroMatrix(TDim, TDim);
+    BoundedMatrix<double, TDim, TDim> auxLocalKMatrix = ZeroMatrix(TDim, TDim);
 
     rVariables.KAbsMatrix = ZeroMatrix(TDim, TDim);
 
     for (unsigned int idim = 0; idim < TDim; ++idim) {
-        localKMatrix(idim, idim) = rStiffnessConstants[0];
+        localKMatrix(idim, idim) = stiffnessConstants[0];
     }
-    localKMatrix(local_perpendicular_direction, local_perpendicular_direction) = rStiffnessConstants[1];
+    localKMatrix(local_perpendicular_direction, local_perpendicular_direction) = stiffnessConstants[1];
 
     auxLocalKMatrix = prod(localKMatrix, rotationMatrix);
     rVariables.KAbsMatrix = prod(trans(rotationMatrix), auxLocalKMatrix);
@@ -327,7 +322,7 @@ Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes >::CalculateExtrapolationMatr
             GeoElementUtilities::CalculateExtrapolationMatrixTriangle(rExtrapolationMatrix, rIntegrationMethodNeighbour);
             return rExtrapolationMatrix;
         }
-        else if (rNumNodesNeighbour == 4)
+        if (rNumNodesNeighbour == 4)
         {
             GeoElementUtilities::CalculateExtrapolationMatrixQuad(rExtrapolationMatrix, rIntegrationMethodNeighbour);
             return rExtrapolationMatrix;
@@ -342,7 +337,7 @@ Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes >::CalculateExtrapolationMatr
             GeoElementUtilities::CalculateExtrapolationMatrixTetra(rExtrapolationMatrix, rIntegrationMethodNeighbour);
             return rExtrapolationMatrix;
         }
-        else if (rNumNodesNeighbour == 8)
+        if (rNumNodesNeighbour == 8)
         {
             GeoElementUtilities::CalculateExtrapolationMatrixHexa(rExtrapolationMatrix, rIntegrationMethodNeighbour);
             return rExtrapolationMatrix;
@@ -392,16 +387,10 @@ GetNeighbourElementVariables(
 
     const GeometryType& rNeighbourGeom = rNeighbour.GetGeometry();
     const GeometryData::IntegrationMethod rIntegrationMethodNeighbour = rNeighbour.GetIntegrationMethod();
-    const Matrix& NContainerNeighbour = rNeighbourGeom.ShapeFunctionsValues(rIntegrationMethodNeighbour);
-
     const IndexType rNumNodesNeighbour = rNeighbourGeom.size();
     const IndexType NumGPointsNeighbour = rNeighbourGeom.IntegrationPointsNumber(rIntegrationMethodNeighbour);
 
     // get density and porosity from element
-    double rho_s = rPropNeighbour[DENSITY_SOLID];
-    double rho_w = rPropNeighbour[DENSITY_WATER];
-    double n = rPropNeighbour[POROSITY];
-
     std::vector<double> SaturationVector;
     vector<double> DensityVector(NumGPointsNeighbour);
     vector<double> ConfinedStiffness(NumGPointsNeighbour);
@@ -414,7 +403,7 @@ GetNeighbourElementVariables(
     rNeighbour.CalculateOnIntegrationPoints(DEGREE_OF_SATURATION, SaturationVector, rCurrentProcessInfo);
     rNeighbour.CalculateOnIntegrationPoints(CONFINED_STIFFNESS, stdConfinedStiffness, rCurrentProcessInfo);
     rNeighbour.CalculateOnIntegrationPoints(SHEAR_STIFFNESS, stdShearStiffness, rCurrentProcessInfo);
-       
+
     for (unsigned int GPoint = 0; GPoint < NumGPointsNeighbour; ++GPoint) {
 
         // transform std vectors to boost vectors
@@ -482,13 +471,13 @@ CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
 }
 
 template< >
-void UPwLysmerAbsorbingCondition<2, 2>::CalculateRotationMatrix( BoundedMatrix<double, 2, 2>& rRotationMatrix, const Element::GeometryType& Geom)
+void UPwLysmerAbsorbingCondition<2, 2>::CalculateRotationMatrix( BoundedMatrix<double, 2, 2>& rRotationMatrix, const Element::GeometryType& rGeom)
 {
     //Line_2d_2
     //Unitary vector in local x direction
     array_1d<double, 3> Vx;
-    noalias(Vx) = Geom.GetPoint(1) - Geom.GetPoint(0);
-    double norm_x = norm_2(Vx);
+    noalias(Vx) = rGeom.GetPoint(1) - rGeom.GetPoint(0);
+    const double norm_x = norm_2(Vx);
 
     Vx[0] *= 1.0 / norm_x;
     Vx[1] *= 1.0 / norm_x;
@@ -531,13 +520,13 @@ void UPwLysmerAbsorbingCondition<2, 2>::CalculateRotationMatrix( BoundedMatrix<d
 
 
 template< >
-void UPwLysmerAbsorbingCondition<2, 3>::CalculateRotationMatrix(BoundedMatrix<double, 2, 2>& rRotationMatrix, const Element::GeometryType& Geom)
+void UPwLysmerAbsorbingCondition<2, 3>::CalculateRotationMatrix(BoundedMatrix<double, 2, 2>& rRotationMatrix, const Element::GeometryType& rGeom)
 {
     //Line_2d_3
     //Unitary vector in local x direction
     array_1d<double, 3> Vx;
-    noalias(Vx) = Geom.GetPoint(1) - Geom.GetPoint(0);
-    double norm_x = norm_2(Vx);
+    noalias(Vx) = rGeom.GetPoint(1) - rGeom.GetPoint(0);
+    const double norm_x = norm_2(Vx);
 
     Vx[0] *= 1.0 / norm_x;
     Vx[1] *= 1.0 / norm_x;
@@ -578,30 +567,30 @@ void UPwLysmerAbsorbingCondition<2, 3>::CalculateRotationMatrix(BoundedMatrix<do
 }
 
 template< >
-void UPwLysmerAbsorbingCondition<3, 3>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix, const Element::GeometryType& Geom)
+void UPwLysmerAbsorbingCondition<3, 3>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix, const Element::GeometryType& rGeom)
 {
 
     ////triangle_3d_3
     array_1d<double, 3> pmid0;
     array_1d<double, 3> pmid1;
-    noalias(pmid0) = 0.5 * (Geom.GetPoint(0) + Geom.GetPoint(1));
-    noalias(pmid1) = 0.5 * (Geom.GetPoint(0) + Geom.GetPoint(2));
+    noalias(pmid0) = 0.5 * (rGeom.GetPoint(0) + rGeom.GetPoint(1));
+    noalias(pmid1) = 0.5 * (rGeom.GetPoint(0) + rGeom.GetPoint(2));
 
     //Unitary vector in local x direction
     array_1d<double, 3> Vx;
-    noalias(Vx) = Geom.GetPoint(1) - Geom.GetPoint(0);
-    double inv_norm_x = 1.0 / norm_2(Vx);
+    noalias(Vx) = rGeom.GetPoint(1) - rGeom.GetPoint(0);
+    const double inv_norm_x = 1.0 / norm_2(Vx);
     Vx[0] *= inv_norm_x;
     Vx[1] *= inv_norm_x;
     Vx[2] *= inv_norm_x;
 
     //Unitary vector in local z direction
     array_1d<double, 3> Vy;
-    noalias(Vy) = Geom.GetPoint(2) - Geom.GetPoint(0);
+    noalias(Vy) = rGeom.GetPoint(2) - rGeom.GetPoint(0);
 
     array_1d<double, 3> Vz;
     MathUtils<double>::CrossProduct(Vz, Vx, Vy);
-    double norm_z = norm_2(Vz);
+    const double norm_z = norm_2(Vz);
 
     Vz[0] *= 1.0 / norm_z;
     Vz[1] *= 1.0 / norm_z;
@@ -626,19 +615,19 @@ void UPwLysmerAbsorbingCondition<3, 3>::CalculateRotationMatrix(BoundedMatrix<do
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwLysmerAbsorbingCondition<3, 4>::CalculateRotationMatrix( BoundedMatrix<double, 3, 3>& rRotationMatrix, const Element::GeometryType& Geom)
+void UPwLysmerAbsorbingCondition<3, 4>::CalculateRotationMatrix( BoundedMatrix<double, 3, 3>& rRotationMatrix, const Element::GeometryType& rGeom)
 {
     //Quadrilateral_3d_4
     array_1d<double, 3> pmid0;
     array_1d<double, 3> pmid1;
-    array_1d<double, 3> P2 = Geom.GetPoint(2);
-    noalias(pmid0) = 0.5 * (Geom.GetPoint(0) + Geom.GetPoint(3));
-    noalias(pmid1) = 0.5 * (Geom.GetPoint(1) + P2);
+    const array_1d<double, 3> P2 = array_1d<double, 3>(rGeom.GetPoint(2));
+    noalias(pmid0) = 0.5 * (rGeom.GetPoint(0) + rGeom.GetPoint(3));
+    noalias(pmid1) = 0.5 * (rGeom.GetPoint(1) + P2);
 
     //Unitary vector in local x direction
     array_1d<double, 3> Vx;
     noalias(Vx) = pmid1 - pmid0;
-    double inv_norm_x = 1.0 / norm_2(Vx);
+    const double inv_norm_x = 1.0 / norm_2(Vx);
     Vx[0] *= inv_norm_x;
     Vx[1] *= inv_norm_x;
     Vx[2] *= inv_norm_x;
@@ -648,7 +637,7 @@ void UPwLysmerAbsorbingCondition<3, 4>::CalculateRotationMatrix( BoundedMatrix<d
     noalias(Vy) = P2 - pmid0;
     array_1d<double, 3> Vz;
     MathUtils<double>::CrossProduct(Vz, Vx, Vy);
-    double norm_z = norm_2(Vz);
+    const double norm_z = norm_2(Vz);
 
     Vz[0] *= 1.0 / norm_z;
     Vz[1] *= 1.0 / norm_z;

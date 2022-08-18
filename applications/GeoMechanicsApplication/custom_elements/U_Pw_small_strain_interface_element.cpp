@@ -120,12 +120,6 @@ int UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" );
 }
 
-template< unsigned int TDim, unsigned int TNumNodes >
-GeometryData::IntegrationMethod UPwSmallStrainInterfaceElement<TDim, TNumNodes>::GetIntegrationMethod() const 
-{
-    return mThisIntegrationMethod;
-}
-
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
@@ -632,28 +626,35 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         //Defining necessary variables
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+        std::vector<double> GPValues(NumGPoints);
 
         //Element variables
         InterfaceElementVariables Variables;
         this->InitializeElementVariables(Variables, Geom, this->GetProperties(), rCurrentProcessInfo);
 
-        // create general parametes of retention law
+        // create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
 
-        if (rValues.size() != NumGPoints)
-            rValues.resize(NumGPoints);
+        if (GPValues.size() != NumGPoints)
+            GPValues.resize(NumGPoints);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
             Variables.FluidPressure = CalculateFluidPressure(Variables);
             SetRetentionParameters(Variables, RetentionParameters);
 
-            if (rVariable == DEGREE_OF_SATURATION)     rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
-            if (rVariable == EFFECTIVE_SATURATION)     rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateEffectiveSaturation(RetentionParameters);
-            if (rVariable == BISHOP_COEFFICIENT)        rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
-            if (rVariable == DERIVATIVE_OF_SATURATION) rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(RetentionParameters);
-            if (rVariable == RELATIVE_PERMEABILITY )   rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
+            if (rVariable == DEGREE_OF_SATURATION)     GPValues[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
+            if (rVariable == EFFECTIVE_SATURATION)     GPValues[GPoint] = mRetentionLawVector[GPoint]->CalculateEffectiveSaturation(RetentionParameters);
+            if (rVariable == BISHOP_COEFFICIENT)        GPValues[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
+            if (rVariable == DERIVATIVE_OF_SATURATION) GPValues[GPoint] = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(RetentionParameters);
+            if (rVariable == RELATIVE_PERMEABILITY )   GPValues[GPoint] = mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
         }
+
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+        if (rValues.size() != OutputGPoints)
+            rValues.resize(OutputGPoints);
+
+        this->InterpolateOutputDoubles(rValues, GPValues);
     } 
     else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
         
@@ -694,6 +695,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         const PropertiesType& rProp = this->GetProperties();
         const GeometryType& rGeom = this->GetGeometry();
         const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
+        std::vector<double> GPValues(NumGPoints);
+
         this->InitializeElementVariables(Variables,
             rGeom,
             rProp,
@@ -707,8 +710,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         rGeom.Jacobian(JContainer, mThisIntegrationMethod);        
 
         // set constitutive parameters
-        if (rValues.size() != mConstitutiveLawVector.size())
-            rValues.resize(mConstitutiveLawVector.size());
+        if (GPValues.size() != mConstitutiveLawVector.size())
+            GPValues.resize(mConstitutiveLawVector.size());
         
         ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, rProp, rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -751,8 +754,15 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
             // get variable from constitutive matrix
-            rValues[GPoint] = Variables.ConstitutiveMatrix(variable_index, variable_index);
+            GPValues[GPoint] = Variables.ConstitutiveMatrix(variable_index, variable_index);
         }
+
+        //Printed on standard GiD Gauss points
+        const unsigned int OutputGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
+        if (rValues.size() != OutputGPoints)
+            rValues.resize(OutputGPoints);
+
+        this->InterpolateOutputDoubles(rValues, GPValues);
     }
     else {
         //Variables computed on Lobatto points
