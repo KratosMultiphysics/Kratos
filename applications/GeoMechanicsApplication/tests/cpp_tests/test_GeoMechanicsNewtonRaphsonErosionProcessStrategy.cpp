@@ -17,6 +17,8 @@
 #include <map>
 
 /* External includes */
+#include <filesystem>
+#include <iostream>
 
 /* Project includes */
 #include "testing/testing.h"
@@ -29,7 +31,7 @@ namespace Kratos
 
     	KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategy, KratosGeoMechanicsFastSuite)
         {
-            auto workingDirectory = "./test_compare_sellmeijer/HeightAquiferD10L30.gid"; 
+			auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid"; 
             auto projectFile = "ProjectParameters.json";
             
             auto execute = KratosExecute();
