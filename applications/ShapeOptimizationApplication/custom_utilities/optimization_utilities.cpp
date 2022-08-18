@@ -317,22 +317,105 @@ void OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection(
 
 void OptimizationUtilities::ConstructActiveSubspace(
     Vector& rObjectiveGradient,
-    Vector& rActiveSubspaceNodes,
-    LinearSolver<SparseSpace, DenseSpace>& rSolver)
+    Vector& rObjectiveGradientSubSpace,
+    LinearSolver<TDenseSpaceTypeIn, TDenseSpaceTypeIn>& rSolver,
+    Matrix& rEigenVectors,
+    Vector& rEigenValues,
+    double& rShapeFraction)
 {
     KRATOS_INFO("") << std::endl;
     KRATOS_INFO("ShapeOpt") << "ConstructActiveSubspace starts" << std::endl;
-    CompressedMatrix C = outer_prod(rObjectiveGradient, rObjectiveGradient);
-    CompressedMatrix I = IdentityMatrix(C.size2());
+    long int node_number = rObjectiveGradient.size() / 3;
+    TDenseSpaceTypeIn::MatrixType C(node_number, node_number, 0.0);
+    // C.resize(node_number, node_number);
 
-    // KRATOS_INFO("ShapeOpt") << "Covariance matrix:\n" << C << std::endl;
+    for (int i = 0; i < node_number; ++i) {
+        for (int j = 0; j < node_number; ++j) {
+            C(i, j) = 0.0;
+            for (int dim = 0; dim < 3; ++dim) {
+                C(i, j) += rObjectiveGradient(3*i+dim) * rObjectiveGradient(3*j+dim);
+            }
+        }
+    }
+    // TSparseSpaceTypeIn::MatrixType C = outer_prod(rObjectiveGradient, rObjectiveGradient);
+    TDenseSpaceTypeIn::MatrixType I = IdentityMatrix(C.size2());
 
+    KRATOS_INFO("ShapeOpt") << "Covariance matrix:\n" << std::endl;
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            KRATOS_INFO("ShapeOpt") << "C(" << i << "," << j << "): " << C(i,j) << std::endl;
+        }
+    }
     Vector eigenvalues;
-    Matrix eigenvectors;
-    rSolver.Solve(C, I, eigenvalues, eigenvectors);
+    // Matrix eigenvectors;
+    rSolver.Solve(C, I, rEigenValues, rEigenVectors);
+    KRATOS_INFO("ShapeOpt") << "ConstructActiveSubspace rEigenValues size: " << rEigenValues.size() << std::endl;
+    KRATOS_INFO("ShapeOpt") << "ConstructActiveSubspace rObjectiveGradient size: " << rObjectiveGradient.size() << std::endl;
+
+    // rObjectiveGradientSubSpace = prod(trans(rEigenVectors), rObjectiveGradient);
 
 
-    // KRATOS_INFO("ShapeOpt") << "ConstructActiveSubspace Matrix C: " << C << std::endl;
+
+
+    // long int eigen_value_number = rEigenVectors.size1();
+    // double shape_fraction = 0.15;
+    long int eigen_value_number = rShapeFraction*node_number;
+    // long int eigen_value_number = 3;
+    Matrix eigen_vectors_3(3*eigen_value_number, 3*node_number, 0.0);
+    for (int i = 0; i < eigen_value_number; ++i) {
+        for (int j = 0; j < node_number; ++j) {
+            for (int dim = 0; dim < 3; ++dim) {
+                eigen_vectors_3(3*i+dim, 3*j+dim) = rEigenVectors(i, j);
+            }
+        }
+    }
+    // KRATOS_INFO("ShapeOpt") << "rEigenVectors:\n" << std::endl;
+    // for (int i = 0; i < 3; ++i) {
+    //     for (int j = 0; j < node_number; ++j) {
+    //         KRATOS_INFO("ShapeOpt") << "rEigenVectors(" << i << "," << j << "): " << rEigenVectors(i,j) << std::endl;
+    //     }
+    // }
+
+    rObjectiveGradientSubSpace = prod(eigen_vectors_3, rObjectiveGradient);
+    rEigenVectors = eigen_vectors_3;
+    KRATOS_INFO("ShapeOpt") << "ConstructActiveSubspace rEigenVectors size: " << rEigenVectors.size1() << " by " << rEigenVectors.size2() << std::endl;
+    KRATOS_INFO("ShapeOpt") << "ConstructActiveSubspace rObjectiveGradientSubSpace size: " << rObjectiveGradientSubSpace.size() << std::endl;
+    // KRATOS_INFO("ShapeOpt") << "ConstructActiveSubspace rObjectiveGradientSubSpace: " << rObjectiveGradientSubSpace << std::endl;
+    // KRATOS_INFO("ShapeOpt") << "ConstructActiveSubspace eigenvalues: " << eigenvalues << std::endl;
+    // KRATOS_INFO("ShapeOpt") << "ConstructActiveSubspace eigenvalues: " << eigenvectors << std::endl;
+}
+
+void OptimizationUtilities::ActiveSubspaceInverseMap(
+    Vector& rSubspaceInputVector,
+    Vector& rFullspaceOutputVector,
+    LinearSolver<DenseSpace, DenseSpace>& rSolver,
+    Matrix& rEigenVectors)
+{
+    Matrix eigen_vectors_t = trans(rEigenVectors);
+    // for (unsigned i = 0; i < rFullspaceOutputVector.size (); ++ i)
+    //     rFullspaceOutputVector (i) = 0;
+
+    KRATOS_INFO("ShapeOpt") << "ConstructActiveSubspace eigen_vectors_t size: " << eigen_vectors_t.size1() << " by " << eigen_vectors_t.size2() << std::endl;
+    KRATOS_INFO("ShapeOpt") << "ConstructActiveSubspace rSubspaceInputVector size: " << rSubspaceInputVector.size() << std::endl;
+    Vector output_vector;
+    // rSolver.Solve(eigen_vectors_t, rFullspaceOutputVector, rSubspaceInputVector);
+
+    // Method 1: Using transpose
+    rFullspaceOutputVector = prod(eigen_vectors_t, rSubspaceInputVector);
+
+    // Method 2: Ordinary Least Squares
+    // Matrix A = prod(eigen_vectors_t, rEigenVectors);
+    // Vector b = prod(eigen_vectors_t, rSubspaceInputVector);
+
+    // rSolver.Solve(A, rFullspaceOutputVector, b);
+
+
+    // long int node_number = rFullspaceOutputVector.size() / 3;
+    // for (int i = 0; i < node_number; ++i) {
+    //     for (int dim = 0; dim < 3; ++dim) {
+    //         rFullspaceOutputVector(3*i+dim) = output_vector(i);
+    //     }
+    // }
 }
 
 }  // namespace Kratos.

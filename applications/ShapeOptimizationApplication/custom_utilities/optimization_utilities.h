@@ -68,6 +68,8 @@ public:
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpace;
     // typedef Preconditioner<SparseSpace, DenseSpace> Preconditioner;
     // typedef Reorderer<SparseSpace, DenseSpace> Reorderer;
+    typedef TUblasSparseSpace<double> TSparseSpaceTypeIn;
+    typedef TUblasDenseSpace<double> TDenseSpaceTypeIn;
 
     /// Pointer definition of OptimizationUtilities
     KRATOS_CLASS_POINTER_DEFINITION(OptimizationUtilities);
@@ -161,10 +163,36 @@ public:
     // ==============================================================================
     // For running active subspace method
     // ==============================================================================
+    // USING FEAST:
+    // static void ConstructActiveSubspace(
+    //     Vector& rObjectiveGradient,
+    //     Vector& rActiveSubspaceNodes,
+    //     LinearSolver<TSparseSpaceTypeIn, TDenseSpaceTypeIn>& rSolver,
+    //     Matrix& rEigenVectors,
+    //     Vector& rEigenValues);
+
+    // USING spectra
+    // static void ConstructActiveSubspace(
+    //     Vector& rObjectiveGradient,
+    //     Vector& rActiveSubspaceNodes,
+    //     LinearSolver<SparseSpace, DenseSpace>& rSolver,
+    //     Matrix& rEigenVectors,
+    //     Vector& rEigenValues);
+
+    // using dense eigenvalue solver (self adjoint matrix, every real symmetric matrix is self adjoint)
     static void ConstructActiveSubspace(
         Vector& rObjectiveGradient,
         Vector& rActiveSubspaceNodes,
-        LinearSolver<SparseSpace, DenseSpace>& rSolver);
+        LinearSolver<TDenseSpaceTypeIn, TDenseSpaceTypeIn>& rSolver,
+        Matrix& rEigenVectors,
+        Vector& rEigenValues,
+        double& rShapeFraction);
+
+    static void ActiveSubspaceInverseMap(
+        Vector& rSubspaceInputVector,
+        Vector& rFullspaceOutputVector,
+        LinearSolver<DenseSpace, DenseSpace>& rSolver,
+        Matrix& rEigenVectors);
 
     // ==============================================================================
 

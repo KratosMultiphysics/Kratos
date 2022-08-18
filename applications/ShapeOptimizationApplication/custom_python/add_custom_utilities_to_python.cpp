@@ -164,6 +164,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         // For active subspace method
         // ----------------------------------------------------------------
         .def_static("ConstructActiveSubspace", &OptimizationUtilities::ConstructActiveSubspace)
+        .def_static("ActiveSubspaceInverseMap", &OptimizationUtilities::ActiveSubspaceInverseMap)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------

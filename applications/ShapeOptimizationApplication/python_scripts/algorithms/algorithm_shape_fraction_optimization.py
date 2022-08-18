@@ -11,8 +11,6 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-from sympy import false
-
 # Kratos Core and Apps
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
@@ -29,6 +27,7 @@ from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_u
 
 import math
 import time as timer
+import pandas as pd
 
 # ==============================================================================
 class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
@@ -88,6 +87,16 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.CORRECTION)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.DP1DX)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.DPF1DX)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.EIGENVECTOR_1)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.EIGENVECTOR_2)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.EIGENVECTOR_3)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.EIGENVECTOR_4)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.EIGENVECTOR_5)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.EIGENVECTOR_6)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.EIGENVECTOR_7)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.EIGENVECTOR_8)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.EIGENVECTOR_9)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.EIGENVECTOR_10)
 
         self.max_shape_fraction = self.algorithm_settings["shape_fraction"]["max_fraction"].GetDouble()
         self.frac_tolerance = self.algorithm_settings["shape_fraction"]["tolerance"].GetDouble()
@@ -206,27 +215,27 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         KM.Logger.PrintInfo("self.penalty_value: {}".format(self.penalty_value))
 
         # use penalty factor from start
-        if self.penalty_factor == 0.0 and penalty_gradient_norm > 0:
-            self.penalty_factor = 0.1 * objective_gradient_norm / penalty_gradient_norm
+        # if self.penalty_factor == 0.0 and penalty_gradient_norm > 0:
+        #     self.penalty_factor = 0.1 * objective_gradient_norm / penalty_gradient_norm
 
         if penalty_gradient_norm > 0:
             self.inner_step += 1
         # use pseudo objective for inner convergence check
-        pseudo_objective_value = objective_value + self.penalty_factor * max(0, self.penalty_value)**2
-        inner_converged = self.__checkInnerConvergence(pseudo_objective_value)
+        pseudo_objective_value = objective_value #+ self.penalty_factor * max(0, self.penalty_value)**2
+        # inner_converged = self.__checkInnerConvergence(pseudo_objective_value)
 
         # use only objective for inner convergence check
         # inner_converged = self.__checkInnerConvergence(objective_value)
 
-        if inner_converged:
-            KM.Logger.PrintInfo("ShapeFractionOptimization", "Updating penalty factor:")
-            self.__updatePenaltyFactor(objective_gradient_norm, penalty_gradient_norm)
-            KM.Logger.PrintInfo("self.penalty_factor: {}".format(self.penalty_factor))
+        # if inner_converged:
+        #     KM.Logger.PrintInfo("ShapeFractionOptimization", "Updating penalty factor:")
+        #     self.__updatePenaltyFactor(objective_gradient_norm, penalty_gradient_norm)
+        #     KM.Logger.PrintInfo("self.penalty_factor: {}".format(self.penalty_factor))
 
-        pseudo_objective_value = objective_value + self.penalty_factor * max(0, self.penalty_value)**2
+        pseudo_objective_value = objective_value #+ self.penalty_factor * max(0, self.penalty_value)**2
         KM.Logger.PrintInfo("pseudo_objective_value: {}".format(pseudo_objective_value))
 
-        pseudo_objective_gradient = objective_gradient + self.penalty_factor * penalty_gradient
+        pseudo_objective_gradient = objective_gradient # + self.penalty_factor * penalty_gradient
         self.optimization_utilities.AssignVectorToVariable(self.optimization_model_part, pseudo_objective_gradient, KSO.DPF1DX)
 
         pseudo_objective_gradient_norm = pseudo_objective_gradient.norm_2()
@@ -266,17 +275,19 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
             shape_change = node.GetSolutionStepValue(KSO.SHAPE_CHANGE)
             norm = cm.Norm2(shape_change)
 
-            if norm > self.frac_tolerance:
-                if neglect_feasible_nodes and norm > quantile:
-                    return [0.0, 0.0, 0.0]
-                else:
-                    return [
-                        (shape_change[0] / norm)*(quantile / norm)**1,
-                        (shape_change[1] / norm)*(quantile / norm)**1,
-                        (shape_change[2] / norm)*(quantile / norm)**1
-                    ]
-            else:
-                return [0.0, 0.0, 0.0]
+            # if norm > self.frac_tolerance:
+            #     if neglect_feasible_nodes and norm > quantile:
+            #         return [0.0, 0.0, 0.0]
+            #     else:
+            #         return [
+            #             (shape_change[0] / norm)*(quantile / norm)**1,
+            #             (shape_change[1] / norm)*(quantile / norm)**1,
+            #             (shape_change[2] / norm)*(quantile / norm)**1
+            #         ]
+            # else:
+            #     return [0.0, 0.0, 0.0]
+
+            return [0,0,0]
 
         def __getQuantile(self):
 
@@ -377,6 +388,80 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
         self.mapper.Update()
+
+        # """ Variant: Construct subspace based on raw sensitivities"""
+        # nabla_f = KM.Vector()
+        # self.optimization_utilities.AssembleVector(self.design_surface, nabla_f, KSO.DPF1DX)
+        # eigen_settings = KM.Parameters(
+        #     '''{
+        #             "solver_type" : "dense_eigensolver",
+        #             "ascending_order"   : false
+        #         }''')
+        # eigen_solver = eigen_solver_factory.ConstructSolver(eigen_settings)
+
+        # nabla_f_sub = KM.Vector()
+        # startTime = timer.time()
+        # eigen_vectors = KM.Matrix()
+        # eigen_values = KM.Vector(1, 0.0)
+        # nabla_f *= 1 / nabla_f.norm_inf()
+        # self.optimization_utilities.ConstructActiveSubspace(nabla_f, nabla_f_sub, eigen_solver, eigen_vectors, eigen_values)
+        # KM.Logger.PrintInfo("ShapeFractionOptimization", "Time needed for calculating the active subspace = ",round(timer.time() - startTime,2),"s")
+
+        # model_part = self.design_surface
+        # total_nodes = len(model_part.Nodes)
+
+        # eigen_vector_1 = KM.Vector(3*total_nodes, 0.0)
+        # eigen_vector_2 = KM.Vector(3*total_nodes, 0.0)
+        # eigen_vector_3 = KM.Vector(3*total_nodes, 0.0)
+        # eigen_vector_4 = KM.Vector(3*total_nodes, 0.0)
+        # eigen_vector_5 = KM.Vector(3*total_nodes, 0.0)
+        # eigen_vector_6 = KM.Vector(3*total_nodes, 0.0)
+        # eigen_vector_7 = KM.Vector(3*total_nodes, 0.0)
+        # eigen_vector_8 = KM.Vector(3*total_nodes, 0.0)
+        # eigen_vector_9 = KM.Vector(3*total_nodes, 0.0)
+        # eigen_vector_10 = KM.Vector(3*total_nodes, 0.0)
+
+        # for i in range(total_nodes):
+        #     for dim in range(3):
+        #         eigen_vector_1[3*i+dim] = eigen_vectors[0+dim,3*i+dim]
+        #         eigen_vector_2[3*i+dim] = eigen_vectors[3+dim,3*i+dim]
+        #         eigen_vector_3[3*i+dim] = eigen_vectors[6+dim,3*i+dim]
+        #         eigen_vector_4[3*i+dim] = eigen_vectors[9+dim,3*i+dim]
+        #         eigen_vector_5[3*i+dim] = eigen_vectors[12+dim,3*i+dim]
+        #         eigen_vector_6[3*i+dim] = eigen_vectors[15+dim,3*i+dim]
+        #         eigen_vector_7[3*i+dim] = eigen_vectors[18+dim,3*i+dim]
+        #         eigen_vector_8[3*i+dim] = eigen_vectors[21+dim,3*i+dim]
+        #         eigen_vector_9[3*i+dim] = eigen_vectors[24+dim,3*i+dim]
+        #         eigen_vector_10[3*i+dim] = eigen_vectors[27+dim,3*i+dim]
+
+        # self.optimization_utilities.AssignVectorToVariable(self.design_surface, eigen_vector_1, KSO.EIGENVECTOR_1)
+        # self.optimization_utilities.AssignVectorToVariable(self.design_surface, eigen_vector_2, KSO.EIGENVECTOR_2)
+        # self.optimization_utilities.AssignVectorToVariable(self.design_surface, eigen_vector_3, KSO.EIGENVECTOR_3)
+        # self.optimization_utilities.AssignVectorToVariable(self.design_surface, eigen_vector_4, KSO.EIGENVECTOR_4)
+        # self.optimization_utilities.AssignVectorToVariable(self.design_surface, eigen_vector_5, KSO.EIGENVECTOR_5)
+        # self.optimization_utilities.AssignVectorToVariable(self.design_surface, eigen_vector_6, KSO.EIGENVECTOR_6)
+        # self.optimization_utilities.AssignVectorToVariable(self.design_surface, eigen_vector_7, KSO.EIGENVECTOR_7)
+        # self.optimization_utilities.AssignVectorToVariable(self.design_surface, eigen_vector_8, KSO.EIGENVECTOR_8)
+        # self.optimization_utilities.AssignVectorToVariable(self.design_surface, eigen_vector_9, KSO.EIGENVECTOR_9)
+        # self.optimization_utilities.AssignVectorToVariable(self.design_surface, eigen_vector_10, KSO.EIGENVECTOR_10)
+
+        # # eigen_values_list = []
+        # # for i in range(eigen_values):
+        # #     eigen_values_list.append(eigen_values[i])
+
+        # dict = {'eigenvalues': eigen_values}
+
+        # df = pd.DataFrame(dict)
+        # df.to_csv('eigenvalues.csv')
+
+        # settings_inv = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_householder_qr" }')
+        # solver_inv = dense_linear_solver_factory.ConstructSolver(settings_inv)
+        # nabla_f_filtered = KM.Vector()
+        # self.optimization_utilities.ActiveSubspaceInverseMap(nabla_f_sub, nabla_f_filtered, solver_inv, eigen_vectors)
+        # self.optimization_utilities.AssignVectorToVariable(self.design_surface, nabla_f_filtered, KSO.DPF1DX)
+
+        # """END VARIANT"""
+
         self.mapper.InverseMap(KSO.DPF1DX, KSO.DF1DX_MAPPED)
 
         for constraint in self.constraints:
@@ -399,6 +484,7 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         nabla_f = KM.Vector()
         self.optimization_utilities.AssembleVector(self.design_surface, nabla_f, KSO.DF1DX_MAPPED)
 
+        """VARIANT: Construct subspace based on mapped sensitivities"""
         "active subspace strategy"
         model_part = self.design_surface
         total_nodes = len(model_part.Nodes)
@@ -410,24 +496,72 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         #             "solver_type" : "feast",
         #             "symmetric": true,
         #             "search_highest_eigenvalues": true,
-        #             "number_of_eigenvalues": 0
+        #             "number_of_eigenvalues": 0,
+        #             "e_min": 0.0,
+        #             "e_max": 1e8,
+        #             "sort_order" : "lr"
+        #         }''')
+        # eigen_settings["number_of_eigenvalues"].SetDouble(total_nodes)
+        # eigen_settings["number_of_eigenvalues"].SetDouble(2)
+        ## TODO: shift 100 findet 1 eigenvalue im 1ten opt. schritt
+        # eigen_settings = KM.Parameters(
+        #     '''{
+        #             "solver_type" : "spectra_sym_g_eigs_shift",
+        #             "number_of_eigenvalues": 1,
+        #             "shift": 100.0
         #         }''')
         eigen_settings = KM.Parameters(
             '''{
-                    "solver_type" : "spectra_sym_g_eigs_shift",
-                    "number_of_eigenvalues": 1,
-                    "shift": 0.0
+                    "solver_type" : "dense_eigensolver",
+                    "ascending_order"   : false
                 }''')
-        eigen_settings["number_of_eigenvalues"].SetDouble(total_nodes - number_of_active_nodes)
+        # eigen_settings["number_of_eigenvalues"].SetDouble(total_nodes - number_of_active_nodes)
+        # eigen_settings["number_of_eigenvalues"].SetDouble(1)
         KM.Logger.PrintInfo("ShapeOpt", "Construct solver.")
         eigen_solver = eigen_solver_factory.ConstructSolver(eigen_settings)
 
-        active_nodes = KM.Vector()
+        nabla_f_sub = KM.Vector()
         startTime = timer.time()
-        self.optimization_utilities.ConstructActiveSubspace(nabla_f, active_nodes, eigen_solver)
+        eigen_vectors = KM.Matrix()
+        eigen_values = KM.Vector(1, 0.0)
+        # nabla_f_full = nabla_f / nabla_f.norm_inf()
+        # nabla_f *= 1 / nabla_f.norm_inf()
+        self.optimization_utilities.ConstructActiveSubspace(nabla_f, nabla_f_sub, eigen_solver, eigen_vectors, eigen_values, self.max_shape_fraction)
         KM.Logger.PrintInfo("ShapeFractionOptimization", "Time needed for calculating the active subspace = ",round(timer.time() - startTime,2),"s")
 
-        s = KM.Vector()
+        eigen_vector_1 = KM.Vector(3*total_nodes, 0.0)
+        eigen_vector_2 = KM.Vector(3*total_nodes, 0.0)
+        eigen_vector_3 = KM.Vector(3*total_nodes, 0.0)
+
+        for i in range(total_nodes):
+            for dim in range(3):
+                eigen_vector_1[3*i+dim] = eigen_vectors[0+dim,3*i+dim]
+                eigen_vector_2[3*i+dim] = eigen_vectors[3+dim,3*i+dim]
+                eigen_vector_3[3*i+dim] = eigen_vectors[6+dim,3*i+dim]
+
+        self.optimization_utilities.AssignVectorToVariable(self.design_surface, eigen_vector_1, KSO.EIGENVECTOR_1)
+        self.optimization_utilities.AssignVectorToVariable(self.design_surface, eigen_vector_2, KSO.EIGENVECTOR_2)
+        self.optimization_utilities.AssignVectorToVariable(self.design_surface, eigen_vector_3, KSO.EIGENVECTOR_3)
+
+        # eigen_values_list = []
+        # for i in range(eigen_values):
+        #     eigen_values_list.append(eigen_values[i])
+
+        dict = {'eigenvalues': eigen_values}
+
+        df = pd.DataFrame(dict)
+        df.to_csv('eigenvalues.csv')
+
+        # s_sub = KM.Vector()
+        # s_sub = nabla_f_sub * (-1.0)
+        settings_inv = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_householder_qr" }')
+        solver_inv = dense_linear_solver_factory.ConstructSolver(settings_inv)
+
+        s = KM.Vector(3*total_nodes, 0.0)
+        # self.optimization_utilities.ActiveSubspaceInverseMap(s_sub, s, solver_inv, eigen_vectors)
+
+        nabla_f = KM.Vector(3*total_nodes, 0.0)
+        self.optimization_utilities.ActiveSubspaceInverseMap(nabla_f_sub, nabla_f, solver_inv, eigen_vectors)
 
         if len(g_a) == 0:
             KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
@@ -505,8 +639,10 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
     def __logCurrentOptimizationStep(self):
         additional_values_to_log = {}
         additional_values_to_log["penalty_value"] = self.penalty_value
-        additional_values_to_log["penalty_factor"] = self.penalty_factor
-        additional_values_to_log["df_rel_p"] = self.relative_change
+        # additional_values_to_log["penalty_factor"] = self.penalty_factor
+        # additional_values_to_log["df_rel_p"] = self.relative_change
+        additional_values_to_log["penalty_factor"] = 0
+        additional_values_to_log["df_rel_p"] = 0
         additional_values_to_log["step_size"] = self.step_size
         additional_values_to_log["inf_norm_s"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SEARCH_DIRECTION)
         additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.CORRECTION)
