@@ -20,7 +20,7 @@
 #include "structural_mechanics_application_variables.h"
 
 // Application includes
-#include "custom_constitutive/hyper_elastic_simo_taylor_neo_hookean_plane_strain_2d.h"
+#include "hyper_elastic_simo_taylor_neo_hookean_plane_strain_2d.h"
 #include "constitutive_laws_application_variables.h"
 
 namespace Kratos

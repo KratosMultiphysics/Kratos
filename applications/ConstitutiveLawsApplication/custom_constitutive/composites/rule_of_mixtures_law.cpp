@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_constitutive/rule_of_mixtures_law.h"
+#include "rule_of_mixtures_law.h"
 #include "constitutive_laws_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"

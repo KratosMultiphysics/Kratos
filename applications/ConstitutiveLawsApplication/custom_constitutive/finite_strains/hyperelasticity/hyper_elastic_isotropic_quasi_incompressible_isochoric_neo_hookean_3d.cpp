@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/hyper_elastic_isotropic_quasi_incompressible_isochoric_neo_hookean_3d.h"
+#include "hyper_elastic_isotropic_quasi_incompressible_isochoric_neo_hookean_3d.h"
 
 namespace Kratos
 {

@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_constitutive/hyper_elastic_simo_taylor_neo_hookean_3d.h"
+#include "hyper_elastic_simo_taylor_neo_hookean_3d.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "constitutive_laws_application_variables.h"
