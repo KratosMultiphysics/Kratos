@@ -53,16 +53,16 @@
 #include "custom_constitutive/small_strains/plasticity/generic_small_strain_isotropic_plasticity.h"
 #include "custom_constitutive/finite_strains/plasticity/generic_finite_strain_isotropic_plasticity.h"
 #include "custom_constitutive/finite_strains/plasticity/generic_finite_strain_kinematic_plasticity.h"
-#include "custom_constitutive/generic_small_strain_isotropic_damage.h"
-#include "custom_constitutive/generic_small_strain_d_plus_d_minus_damage.h"
-#include "custom_constitutive/generic_small_strain_kinematic_plasticity.h"
-#include "custom_constitutive/generic_small_strain_high_cycle_fatigue_law.h"
-#include "custom_constitutive/plasticity_isotropic_kinematic_j2.h"
-#include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
-#include "custom_constitutive/d_plus_d_minus_damage_masonry_3d.h"
-#include "custom_constitutive/generic_small_strain_plastic_damage_model.h"
-#include "custom_constitutive/generic_small_strain_orthotropic_damage.h"
-#include "custom_constitutive/serial_parallel_rule_of_mixtures_law.h"
+#include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage.h"
+#include "custom_constitutive/small_strains/damage/generic_small_strain_d_plus_d_minus_damage.h"
+#include "custom_constitutive/small_strains/plasticity/generic_small_strain_kinematic_plasticity.h"
+#include "custom_constitutive/small_strains/fatigue/generic_small_strain_high_cycle_fatigue_law.h"
+#include "custom_constitutive/small_strains/plasticity/plasticity_isotropic_kinematic_j2.h"
+#include "custom_constitutive/small_strains/damage/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
+#include "custom_constitutive/small_strains/damage/d_plus_d_minus_damage_masonry_3d.h"
+#include "custom_constitutive/small_strains/plastic_damage/generic_small_strain_plastic_damage_model.h"
+#include "custom_constitutive/small_strains/damage/generic_small_strain_orthotropic_damage.h"
+#include "custom_constitutive/composites/serial_parallel_rule_of_mixtures_law.h"
 
 // Integrators
 #include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
@@ -91,9 +91,9 @@
 #include "custom_constitutive/auxiliar_files/plastic_potentials/rankine_plastic_potential.h"
 
 // Rules of mixtures
-#include "custom_constitutive/rule_of_mixtures_law.h"
+#include "custom_constitutive/composites/rule_of_mixtures_law.h"
 
-#include "custom_constitutive/associative_plastic_damage_model.h"
+#include "custom_constitutive/small_strains/plastic_damage/associative_plastic_damage_model.h"
 
 namespace Kratos {
 namespace Python {
