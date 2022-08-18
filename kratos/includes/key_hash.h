@@ -161,24 +161,6 @@ namespace Kratos
     };
 
     /**
-     * @brief This is a hasher for variables pointers
-     * @tparam TVariable The type of variable to be hashed
-     */
-    template<class TVariable>
-    struct pVariableHasher
-    {
-        /**
-         * @brief This is the () operator
-         * @param pVariable The variable pointer to be hashed
-         * @return The corresponding hash
-         */
-        HashType operator()(const TVariable* pVariable) const
-        {
-            return pVariable->Key();
-        }
-    };
-
-    /**
      * @brief This is a key comparer between two variables
      * @tparam TVariable The type of variable to be compared
      */
@@ -196,6 +178,24 @@ namespace Kratos
             ) const
         {
             return rFirst.Key() == rSecond.Key();
+        }
+    };
+
+    /**
+     * @brief This is a hasher for variables pointers
+     * @tparam TVariable The type of variable to be hashed
+     */
+    template<class TVariable>
+    struct pVariableHasher
+    {
+        /**
+         * @brief This is the () operator
+         * @param pVariable The variable pointer to be hashed
+         * @return The corresponding hash
+         */
+        HashType operator()(const TVariable* pVariable) const
+        {
+            return pVariable->Key();
         }
     };
 
