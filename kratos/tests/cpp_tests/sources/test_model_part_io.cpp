@@ -53,7 +53,7 @@ KRATOS_TEST_CASE_IN_SUITE(
 				End Elements
 
 				Begin NodalData BOUNDARY
-				    3    1 
+				    3 
 				End NodalData
 
 				Begin NodalData DISPLACEMENT_X          //be careful, variables are case sensitive!
@@ -149,6 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(
     ModelPartIO * model_part_io_1 = new ModelPartIO(p_output_1);
     model_part_io_1->ReadModelPart(model_part_1);
 
+    KRATOS_CHECK(model_part_1.GetNode(3).Is(BOUNDARY));
     KRATOS_CHECK_EQUAL(model_part_1.NumberOfNodes(), 3);
     KRATOS_CHECK_EQUAL(model_part_1.NumberOfElements(), 1);
     KRATOS_CHECK_EQUAL(model_part_1.NumberOfConditions(), 1);
