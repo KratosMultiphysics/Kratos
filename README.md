@@ -1,6 +1,6 @@
 <p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>
 
-[![License][license-image]][license] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI] [![Twitter][twitter-image]][twitter]
+[![License][license-image]][license] [![C++][c++-image]][c++standard] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI] [![Twitter][twitter-image]][twitter]
 
 [![Release][release-image]][releases]
 <a href="https://github.com/KratosMultiphysics/Kratos/releases/latest"><img src="https://img.shields.io/github/release-date/KratosMultiphysics/Kratos?label="></a>
@@ -12,6 +12,9 @@
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
 [license]: https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/license.txt
+
+[c++-image]: https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B
+[c++standard]: https://isocpp.org/std/the-standard
 
 [Nightly-Build]: https://github.com/KratosMultiphysics/Kratos/workflows/Nightly%20Build/badge.svg
 [Nightly-link]: https://github.com/KratosMultiphysics/Kratos/actions?query=workflow%3A%22Nightly+Build%22

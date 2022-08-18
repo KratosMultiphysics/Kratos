@@ -10,7 +10,13 @@
 //  Main authors:    Riccardo Rossi
 //
 //
+
+// System includes
 #include <vector>
+
+// External includes
+
+// Project includes
 #include "containers/model.h"
 #include "includes/parallel_environment.h"
 #include "utilities/global_pointer_utilities.h"
@@ -18,7 +24,6 @@
 #include "utilities/pointer_map_communicator.h"
 #include "utilities/retrieve_global_pointers_by_index_functor.h"
 #include "utilities/get_value_functor.h"
-
 #include "testing/testing.h"
 
 namespace Kratos

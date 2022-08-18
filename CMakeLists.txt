@@ -1,6 +1,6 @@
 project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 
 # Setting some policies
 # No recursive dereferencing
@@ -165,9 +165,10 @@ endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11 -Wl,--no-as-needed -ldl")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+    message( "DEPRECATED: detected compiler as GCC " ${CMAKE_CXX_COMPILER_VERSION} )
+    message( FATAL_ERROR "Please use Version 8 or greater")
   endif()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
@@ -205,10 +206,10 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		endif()
 		if (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
 			# "IntelLLVM": Intel's NextGen LLVM compiler (icx)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -diag-disable 654 -diag-disable 10010 ")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -diag-disable 654 -diag-disable 10010 -diag-disable 1011")
 		else (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
 			# "Intel": Intel's Classic compiler (icc)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -lpthread -wd654 -wd10010 ")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -lpthread -wd654 -wd10010 -wd1011")
 		endif()
 		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops  ")
 		set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
@@ -618,6 +619,7 @@ message("\t Geometry old projection methods deprecation: https://github.com/Krat
 message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
 message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
 message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
+message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
 
 # Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
