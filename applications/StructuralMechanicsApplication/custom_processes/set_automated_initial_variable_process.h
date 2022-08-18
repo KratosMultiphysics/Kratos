@@ -6,13 +6,18 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Luis Antônio Gonçalves Junior
+//  Main authors:    Luis Antonio Goncalves Junior
 //                   Alejandro Cornejo
 //
 
-#if !defined(KRATOS_SET_AUTOMATED_INITIAL_STATE_PROCESS )
-#define  KRATOS_SET_AUTOMATED_INITIAL_STATE_PROCESS
+#if !defined(KRATOS_SET_AUTOMATED_INITIAL_VARIABLE_PROCESS )
+#define  KRATOS_SET_AUTOMATED_INITIAL_VARIABLE_PROCESS
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "processes/process.h"
 
 namespace Kratos
@@ -21,8 +26,8 @@ namespace Kratos
 /**
  * @class SetAutomatedInitialVariableProcess
  * @ingroup StructuralMechanicsApplication
- * @brief This class set the local axes of the elements according to a cylindrical coordinates
- * @author Alejandro Cornejo
+ * @brief This class automotes the creation of the variables INITIAL_STRAIN_VECTOR and INITIAL_STRESS_VECTOR using tables imported from csv files
+ * @author Luis Antonio Goncalves Junior
 */
 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetAutomatedInitialVariableProcess
@@ -31,6 +36,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetAutomatedInitialVariablePr
 
 public:
 
+    static constexpr double tolerance = 1.0e-6;
 
     KRATOS_CLASS_POINTER_DEFINITION(SetAutomatedInitialVariableProcess);
 
@@ -50,11 +56,6 @@ public:
      * right after reading the model and the groups
      */
     void ExecuteInitialize() override;
-
-    // /**
-    //  * @brief This function is designed for being called at the beginning each time step
-    //  */
-    // void ExecuteInitializeSolutionStep() override;
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
@@ -92,9 +93,9 @@ private:
     SetAutomatedInitialVariableProcess& operator=(SetAutomatedInitialVariableProcess const& rOther);
 
     /// Copy constructor.
-    //SetAutomatedInitialStateProcess(SetAutomatedInitialStateProcess const& rOther);
+    //SetAutomatedInitialVariableProcess(SetAutomatedInitialVariableProcess const& rOther);
 
-}; // Class SetAutomatedInitialStateProcess
+}; // Class SetAutomatedInitialVariableProcess
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,

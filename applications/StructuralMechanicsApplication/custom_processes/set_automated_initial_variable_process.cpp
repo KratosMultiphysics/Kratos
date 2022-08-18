@@ -6,16 +6,22 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Luis Antônio Gonçalves Junior
+//  Main authors:    Luis Antonio Goncalves Junior
 //                   Alejandro Cornejo
 //
 
-#include "includes/model_part.h"
 #include "custom_processes/set_automated_initial_variable_process.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -33,13 +39,13 @@ SetAutomatedInitialVariableProcess::SetAutomatedInitialVariableProcess(
 
 void SetAutomatedInitialVariableProcess::ExecuteInitialize()
 {
-
+    
     KRATOS_TRY
 
-    array_1d<double, 3> hole_generatrix_axis = mThisParameters["hole_generatrix_axis"].GetVector();
+    const array_1d<double, 3> hole_generatrix_axis = mThisParameters["hole_generatrix_axis"].GetVector();
     KRATOS_ERROR_IF(MathUtils<double>::Norm3(hole_generatrix_axis) < std::numeric_limits<double>::epsilon()) << "The hole generatrix axis has norm zero" << std::endl;
     
-    array_1d<double, 3> hole_generatrix_point = mThisParameters["hole_generatrix_point"].GetVector();  
+    const array_1d<double, 3> hole_generatrix_point = mThisParameters["hole_generatrix_point"].GetVector();  
 
     array_1d<double, 3> normalized_generatrix_vector;   
     normalized_generatrix_vector[0] = (hole_generatrix_axis[0] * hole_generatrix_axis[0]) / std::sqrt(hole_generatrix_axis[0] * hole_generatrix_axis[0] + hole_generatrix_axis[1] * hole_generatrix_axis[1] + hole_generatrix_axis[2] * hole_generatrix_axis[2]);
@@ -47,11 +53,10 @@ void SetAutomatedInitialVariableProcess::ExecuteInitialize()
     normalized_generatrix_vector[2] = (hole_generatrix_axis[2] * hole_generatrix_axis[2]) / std::sqrt(hole_generatrix_axis[0] * hole_generatrix_axis[0] + hole_generatrix_axis[1] * hole_generatrix_axis[1] + hole_generatrix_axis[2] * hole_generatrix_axis[2]);
 
     const double hole_radius_offset = mThisParameters["hole_radius_offset"].GetDouble();
-    const double tol = 1.0e-6;
 
     block_for_each(mrThisModelPart.Elements(), [&](Element &rElement) {
 
-        array_1d<double, 3> element_centroid = rElement.GetGeometry().Center();
+        const array_1d<double, 3> element_centroid = rElement.GetGeometry().Center();
         
         array_1d<double, 3> relative_position_vector;
         relative_position_vector[0] = element_centroid[0] - hole_generatrix_point[0];
@@ -60,26 +65,29 @@ void SetAutomatedInitialVariableProcess::ExecuteInitialize()
 
         double vector_scaler = relative_position_vector[0] * normalized_generatrix_vector[0] + relative_position_vector[1] * normalized_generatrix_vector[1] + relative_position_vector[2] * normalized_generatrix_vector[2];
         
-        array_1d<double, 3> intersection_point = hole_generatrix_point + vector_scaler * normalized_generatrix_vector;
+        const array_1d<double, 3> intersection_point = hole_generatrix_point + vector_scaler * normalized_generatrix_vector;
 
-        array_1d<double, 3> radial_position_vector = element_centroid - intersection_point;
+        const array_1d<double, 3> radial_position_vector = element_centroid - intersection_point;
 
         double centroid_relative_distance = std::sqrt(radial_position_vector[0] * radial_position_vector[0] + radial_position_vector[1] * radial_position_vector[1] + radial_position_vector[2] * radial_position_vector[2]) - hole_radius_offset;
 
-        if (centroid_relative_distance < 0.0 && abs(centroid_relative_distance) <= tol) {
-            centroid_relative_distance = 0.0;
+        if (centroid_relative_distance < 0.0){
+            if (fabs(centroid_relative_distance) <= tolerance) {
+                centroid_relative_distance = 0.0;
+            }
+            else {
+                const int elem_id = rElement.Id();
+                KRATOS_ERROR << "Thickness of element " << elem_id << " is too small." << std::endl;
+            }
         }
-        else if(centroid_relative_distance < 0.0 && abs(centroid_relative_distance) >= tol){
-            int ElemId = rElement.Id();
-            KRATOS_ERROR << "Thickness of element " << ElemId << " is too small." << std::endl;
-        }
-
-        int TableFirstId = mThisParameters["initial_variable_table"]["table_id"].GetInt() - mrThisModelPart.Tables().size()+1;
+           
+        const int table_first_id = mThisParameters["initial_variable_table"]["table_id"].GetInt() - mrThisModelPart.Tables().size() + 1;
         
         int count = 0;
-        array_1d<double, 6> initial_variable_vector = ZeroVector(); 
+        array_1d<double, 6> initial_variable_vector;
+        noalias(initial_variable_vector) = ZeroVector(6); 
 
-        for (IndexType TableId = TableFirstId; TableId < TableFirstId + mrThisModelPart.Tables().size(); ++TableId) {
+        for (IndexType TableId = table_first_id; TableId < table_first_id + mrThisModelPart.Tables().size(); ++TableId) {
                 initial_variable_vector[count] = mrThisModelPart.GetTable(TableId).GetValue(centroid_relative_distance);  
                 count += 1;
         }
