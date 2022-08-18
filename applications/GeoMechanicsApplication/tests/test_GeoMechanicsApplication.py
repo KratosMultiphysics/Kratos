@@ -79,21 +79,27 @@ def AssembleTestSuites(is_team_city):
 
     night_test_cases = [KratosGeoMechanicsDynamicsTests,
                         TestSellmeijersRule,
-                        TestElementaryGroundWaterFlow,
-                        TestConsecutivePipeLines]
+                        TestElementaryGroundWaterFlow]
 
+    # Create an array with all long tests only for validations
+    
+    valid_test_cases = [TestConsecutivePipeLines]
+    
+    
     # Create an array that contains all the tests from every testCase
     # in the list:
 
     all_test_cases = []
     all_test_cases.extend(night_test_cases)
     all_test_cases.extend(small_test_cases)
+    all_test_cases.extend(valid_test_cases)
     suites = KratosUnittest.KratosSuites
 
     # add the tests to the corresponding suite,
     if is_team_city:
         smallSuite = unittest.TestSuite()
         nightSuite = unittest.TestSuite()
+        validSuite = unittest.TestSuite()
         allSuite = unittest.TestSuite()
 
         for test in small_test_cases:
@@ -103,6 +109,11 @@ def AssembleTestSuites(is_team_city):
         for test in night_test_cases:
             nightSuite.addTests(unittest.TestLoader().loadTestsFromTestCase(
                 test))
+                
+        
+        for test in valid_test_cases:
+            validSuite.addTests(unittest.TestLoader().loadTestsFromTestCase(
+                test))
 
         for test in all_test_cases:
             allSuite.addTests(unittest.TestLoader().loadTestsFromTestCase(
@@ -111,14 +122,18 @@ def AssembleTestSuites(is_team_city):
         # suites = allSuite
         suites['small'] = smallSuite
         suites['nightly'] = nightSuite
+        suites['validation'] = validSuite
         suites['all'] = allSuite
     else:
         smallSuite = suites['small']
         nightSuite = suites['nightly']
+        validSuite = suites['validation']
         allSuite = suites['all']
 
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(small_test_cases))
+        night_test_cases.extend(small_test_cases)
         nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(night_test_cases))
+        validSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(valid_test_cases))
         allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(all_test_cases))
 
     return suites
