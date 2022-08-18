@@ -15,7 +15,7 @@
 // System includes
 
 // Project includes
-#include "custom_constitutive/viscous_generalized_kelvin.h"
+#include "viscous_generalized_kelvin.h"
 #include "constitutive_laws_application_variables.h"
 
 namespace Kratos
