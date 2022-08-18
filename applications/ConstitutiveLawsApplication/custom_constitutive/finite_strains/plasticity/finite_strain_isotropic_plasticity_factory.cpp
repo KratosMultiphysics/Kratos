@@ -17,8 +17,8 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/finite_strain_isotropic_plasticity_factory.h"
-#include "custom_constitutive/generic_finite_strain_isotropic_plasticity.h"
+#include "finite_strain_isotropic_plasticity_factory.h"
+#include "generic_finite_strain_isotropic_plasticity.h"
 
 namespace Kratos
 {

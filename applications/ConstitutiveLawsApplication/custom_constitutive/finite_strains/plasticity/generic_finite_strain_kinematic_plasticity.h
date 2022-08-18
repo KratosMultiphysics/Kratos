@@ -21,7 +21,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/generic_small_strain_kinematic_plasticity.h"
+#include "custom_constitutive/small_strains/plasticity/generic_small_strain_kinematic_plasticity.h"
 
 namespace Kratos
 {
