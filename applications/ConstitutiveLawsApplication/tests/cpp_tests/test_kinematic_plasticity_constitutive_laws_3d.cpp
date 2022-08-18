@@ -37,7 +37,7 @@
 // Constitutive law
 #include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_isotropic_kirchhoff_3d.h"
 #include "custom_constitutive/small_strains/plasticity/generic_small_strain_kinematic_plasticity.h"
-#include "custom_constitutive/small_strains/plasticity/generic_finite_strain_kinematic_plasticity.h"
+#include "custom_constitutive/finite_strains/plasticity/generic_finite_strain_kinematic_plasticity.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
