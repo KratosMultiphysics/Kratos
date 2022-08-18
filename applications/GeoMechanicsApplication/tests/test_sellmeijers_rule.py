@@ -32,7 +32,7 @@ class LatexWriterFile:
                 f"{result_pair['equivalent_software_h']} &  {round(result_pair['kratos_results_h'], 2)} & "
                 f" {round(error_height * 100, 2)} &  {round(error_equivalent_software_height * 100, 2)} & "
                 f" {round(result_pair['equivalent_software_l'], 2)} &  {round(result_pair['kratos_results_l'], 2)} & "
-                f" {round(error_equivalent_software_length * 100, 2)} \\\\ \hline \n")
+                f" {round(error_equivalent_software_length * 100, 2)} \\\\ \\hline \n")
 
 
 class TestSellmeijersRule(KratosUnittest.TestCase):

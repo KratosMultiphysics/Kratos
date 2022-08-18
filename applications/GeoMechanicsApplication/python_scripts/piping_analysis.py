@@ -1,5 +1,3 @@
-import os
-
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication
 
