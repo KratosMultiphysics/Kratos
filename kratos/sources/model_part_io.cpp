@@ -2154,14 +2154,12 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
     std::string variable_name;
 
     // FIXME: Maybe there is a better way (I get confused with to much KratosComponents)
-    for(std::size_t i = 0; i < r_this_variables.size(); i++)
-    {
+    for(std::size_t i = 0; i < r_this_variables.size(); i++) {
         auto it_var = r_this_variables.begin() + i;
 
         variable_name = it_var->Name();
 
-        if(KratosComponents<Flags >::Has(variable_name))
-        {
+        if(KratosComponents<Flags >::Has(variable_name)) {
             (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
             auto Variable = static_cast<Flags const& >(KratosComponents<Flags>::Get(variable_name));
             for(std::size_t j = 0; j < number_of_nodes; j++) {
@@ -2169,64 +2167,66 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
                 (*mpStream) << it_node->Id() <<"\n";
             }
             (*mpStream) << "End NodalData" << std::endl << std::endl;
-        }
-        else if(KratosComponents<Variable<int>>::Has(variable_name))
-        {
+        } else if(KratosComponents<Variable<int>>::Has(variable_name)) {
             (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
-            const auto& Variable = KratosComponents<Kratos::Variable<int> >::Get(variable_name);
+            const auto& r_variable = KratosComponents<Kratos::Variable<int> >::Get(variable_name);
             for(std::size_t j = 0; j < number_of_nodes; j++) {
                 auto it_node = it_node_begin + j;
-                const bool is_fixed = it_node->IsFixed(Variable);
-                (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(Variable, 0) << std::endl;
-            }
-            (*mpStream) << "End NodalData" << std::endl << std::endl;
-        }
-        else if(KratosComponents<Variable<double>>::Has(variable_name))
-        {
-            (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
-            const auto& Variable = KratosComponents<Kratos::Variable<double> >::Get(variable_name);
-            for(std::size_t j = 0; j < number_of_nodes; j++) {
-                auto it_node = it_node_begin + j;
-                const bool is_fixed = it_node->IsFixed(Variable);
-                (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(Variable, 0) << std::endl;
+                const bool is_fixed = it_node->IsFixed(r_variable);
+                (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(r_variable, 0) << std::endl;
             }
             (*mpStream) << "End NodalData" << std::endl << std::endl;
         } else if(KratosComponents<Variable<double>>::Has(variable_name)) {
             (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
-            const auto& Variable = KratosComponents<Variable<double> >::Get(variable_name);
-                const bool is_fixed = it_node->IsFixed(Variable);
-                (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(Variable, 0) << std::endl;
+            const auto& r_variable = KratosComponents<Kratos::Variable<double> >::Get(variable_name);
+            for(std::size_t j = 0; j < number_of_nodes; j++) {
+                auto it_node = it_node_begin + j;
+                const bool is_fixed = it_node->IsFixed(r_variable);
+                (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(r_variable, 0) << std::endl;
+            }
+            (*mpStream) << "End NodalData" << std::endl << std::endl;
+        } else if(KratosComponents<Variable<double>>::Has(variable_name)) {
+            (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
+                const auto& r_variable = KratosComponents<Variable<double> >::Get(variable_name);
+                const bool is_fixed = it_node->IsFixed(r_variable);
+                (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(r_variable, 0) << std::endl;
             }
             (*mpStream) << "End NodalData" << std::endl << std::endl;
         }  else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))  {
             if(KratosComponents<Variable<double>>::Has(variable_name + "_X")) { // To check if it defined by components or as a vector
                 (*mpStream) << "Begin NodalData\t" << variable_name << "_X" << std::endl;
+                const auto& r_variable_x = KratosComponents<Variable<double> >::Get(variable_name+"_X");
                 for(std::size_t j = 0; j < number_of_nodes; j++) {
                     auto it_node = it_node_begin + j;
+                    const bool is_fixed = it_node->IsFixed(r_variable_x);
+                    (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(r_variable_x, 0) << std::endl;
                 }
                 (*mpStream) << "End NodalData" << std::endl << std::endl;
 
                 (*mpStream) << "Begin NodalData\t" << variable_name << "_Y" << std::endl;
-                for(std::size_t j = 0; j < r_this_nodes.size(); j++) {
+                const auto&  r_variable_y = KratosComponents<Variable<double> >::Get(variable_name+"_Y");
+                for(std::size_t j = 0; j < number_of_nodes; j++) {
                     auto it_node = it_node_begin + j;
+                    const bool is_fixed = it_node->IsFixed(r_variable_y);
+                    (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(r_variable_y, 0) << std::endl;
                 }
                 (*mpStream) << "End NodalData" << std::endl << std::endl;
 
                 (*mpStream) << "Begin NodalData\t" << variable_name << "_Z" << std::endl;
-                for(std::size_t j = 0; j < r_this_nodes.size(); j++) {
+                const auto&  r_variable_z = KratosComponents<Variable<double> >::Get(variable_name+"_Z");
+                for(std::size_t j = 0; j < number_of_nodes; j++) {
                     auto it_node = it_node_begin + j;
+                    const bool is_fixed = it_node->IsFixed(r_variable_z);
+                    (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(r_variable_z, 0) << std::endl;
                 }
                 (*mpStream) << "End NodalData" << std::endl << std::endl;
-            }
-            else
-            {
+            } else {
                 KRATOS_WARNING("ModelPartIO") << variable_name << " is not a valid variable for output!!!" << std::endl;
 //                 (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
 //                 auto Variable = KratosComponents<array_1d<double, 3>>::Get(variable_name);
 //                 // TODO: Finish me
 //                 (*mpStream) << "End NodalData" << std::endl << std::endl;
             }
-        }
 //             else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
 //             {
 //                 (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
@@ -2248,8 +2248,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
 //                 // TODO: Finish me
 //                 (*mpStream) << "End NodalData" << std::endl << std::endl;
 //             }
-        else
-        {
+        } else {
             KRATOS_WARNING("ModelPartIO") << variable_name << " is not a valid variable for output!!!" << std::endl;
         }
 
@@ -2455,8 +2454,6 @@ void ModelPartIO::ReadElementalDataBlock(ElementsContainerType& rThisElements)
 {
     KRATOS_TRY
 
-    typedef Variable<double> array_1d_component_type;
-
     std::string variable_name;
 
     ReadWord(variable_name);
@@ -2570,8 +2567,6 @@ void ModelPartIO::ReadElementalVectorialVariableData(ElementsContainerType& rThi
 void ModelPartIO::ReadConditionalDataBlock(ConditionsContainerType& rThisConditions)
 {
     KRATOS_TRY
-
-    typedef Variable<double> array_1d_component_type;
 
     std::string variable_name;
 
@@ -4107,8 +4102,6 @@ void ModelPartIO::DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
 {
     KRATOS_TRY
 
-    typedef Variable<double> array_1d_component_type;
-
     std::string word;
 
     WriteInAllFiles(OutputFiles, "Begin NodalData ");
@@ -4311,8 +4304,6 @@ void ModelPartIO::DivideElementalDataBlock(OutputFilesContainerType& OutputFiles
 {
     KRATOS_TRY
 
-    typedef Variable<double> array_1d_component_type;
-
     std::string word;
 
     WriteInAllFiles(OutputFiles, "Begin ElementalData ");
@@ -4438,9 +4429,6 @@ void ModelPartIO::DivideConditionalDataBlock(OutputFilesContainerType& OutputFil
                                 PartitionIndicesContainerType const& ConditionsAllPartitions)
 {
     KRATOS_TRY
-
-
-    typedef Variable<double> array_1d_component_type;
 
     std::string word, variable_name;
 
