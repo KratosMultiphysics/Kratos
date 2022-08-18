@@ -48,7 +48,7 @@ def run_kratos(file_path, model=None):
     simulation = analysis.GeoMechanicsAnalysis(model, parameters)
     simulation.Run()
 
-    os.chdir(currentWorking) 
+    os.chdir(currentWorking)
     return simulation
 
 def run_stages(project_path,n_stages):

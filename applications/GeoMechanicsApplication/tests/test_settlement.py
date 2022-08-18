@@ -34,7 +34,7 @@ class KratosGeoMechanicsSettlementTests(KratosUnittest.TestCase):
 
         self.assertLess(analytical_error, 7.5,
                         "Analytical Comparison Failed (Av Diff >7.5%): {0:.2f}%".format(analytical_error))
-        
+
         os.chdir(currentWorking)
 
 def getComparisonResult(file):

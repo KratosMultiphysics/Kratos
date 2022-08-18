@@ -39,10 +39,10 @@ template< unsigned int TDim, unsigned int TNumNodes >
 int SteadyStatePwPipingElement<TDim,TNumNodes>::
     Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
-    KRATOS_TRY
     int ierr = SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
+    KRATOS_TRY
     const PropertiesType& rProp = this->GetProperties();
     // Verify properties
     if (rProp.Has(PIPE_ETA) == false ||
@@ -65,10 +65,9 @@ int SteadyStatePwPipingElement<TDim,TNumNodes>::
 
     if (rProp.Has(PIPE_MODEL_FACTOR) == false)
         KRATOS_ERROR << "PIPE_MODEL_FACTOR has Key zero, is not defined or has an invalid value at element " << this->Id() << std::endl;
-
-    return ierr;
     KRATOS_CATCH( "" );
 
+    return ierr;
 }
 
 template< unsigned int TDim, unsigned int TNumNodes >
