@@ -226,6 +226,12 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     auto& r_nodes_array = rAuxiliaryModelPart.Nodes();
 
     VariableUtils().SetFlag(INTERFACE, true, r_nodes_array);
+
+    // In case we are in MPI we syncronize the INTERFACE flag
+    if (mrModelPart.IsDistributed()) {
+        auto& r_communicator = mrModelPart.GetCommunicator();
+        r_communicator.SynchronizeNodalFlags();
+    }
 }
 
 /***********************************************************************************/
@@ -351,6 +357,7 @@ void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& r
 template<SizeType TDim>
 void SkinDetectionProcess<TDim>::GenerateSetNodeIdsInterface(std::unordered_set<IndexType>& rSetNodeIdsInterface)
 {
+    // Only in case we are executing in MPI
     if (mrModelPart.IsDistributed()) {
         auto& r_communicator = mrModelPart.GetCommunicator();
         // const auto rank = r_communicator.GetDataCommunicator().Rank();
