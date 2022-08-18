@@ -162,7 +162,7 @@ private:
      * @param rStressVector: The stress vector
      * @param rValues: The rvalues of the CL
      */
-    void CalculatePK2Stress(const Vector &rStrainVector, ConstitutiveLaw::StressVectorType &rStressVector, ConstitutiveLaw::Parameters &rValues);
+    void CalculatePK2Stress(const Vector &rStrainVector, ConstitutiveLaw::StressVectorType &rStressVector, ConstitutiveLaw::Parameters &rValues) override;
 
     /**
      * It calculates the strain vector
