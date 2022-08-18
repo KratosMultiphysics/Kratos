@@ -17,6 +17,7 @@
 // Project includes
 #include "processes/skin_detection_process.h"
 #include "utilities/variable_utils.h"
+#include "includes/key_hash.h"
 
 namespace Kratos
 {
@@ -418,9 +419,10 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
             std::unordered_map<std::size_t, bool> faces_mpi_counter;
             std::unordered_map<std::size_t, VectorIndexType> faces_hash_map;
             std::vector<std::size_t> faces_to_remove_hash;
+            VectorIndexHasher<std::vector<std::size_t>> vector_hasher;
             faces_to_remove_hash.reserve(faces_to_remove.size());
             for (auto& r_face_to_remove : faces_to_remove) {
-                const std::size_t hash_face = GenerateHashVectorInteger(r_face_to_remove);
+                const std::size_t hash_face = vector_hasher(r_face_to_remove);
                 faces_to_remove_hash.push_back(hash_face);
                 faces_mpi_counter.insert(std::pair<std::size_t, bool>({hash_face, false}));
                 faces_hash_map.insert(std::pair<std::size_t, VectorIndexType>({hash_face, r_face_to_remove}));
