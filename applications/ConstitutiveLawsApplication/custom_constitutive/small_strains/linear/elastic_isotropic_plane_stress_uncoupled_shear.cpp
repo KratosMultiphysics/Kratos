@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/elastic_isotropic_plane_stress_uncoupled_shear.h"
+#include "elastic_isotropic_plane_stress_uncoupled_shear.h"
 #include "includes/checks.h"
 
 #include "constitutive_laws_application_variables.h"
