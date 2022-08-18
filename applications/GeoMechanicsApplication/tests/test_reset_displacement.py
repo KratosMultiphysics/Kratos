@@ -54,7 +54,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
             nodal_coordinates_stages[idx] = test_helper. get_nodal_coordinates(stage)
 
         os.chdir(currentWorking)
-       
+
         # Assert
         stage_nr = 0
         for idx,node in enumerate(nodal_coordinates_stages[stage_nr]):

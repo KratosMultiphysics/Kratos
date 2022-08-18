@@ -22,5 +22,6 @@ class TestUnitPipingElements(KratosUnittest.TestCase):
         exitcode = Tester.RunTestCases("TestErosionProcessStrategy")
         self.assertTrue(exitcode == 0)
 
+
 if __name__ == '__main__':
     KratosUnittest.main()
