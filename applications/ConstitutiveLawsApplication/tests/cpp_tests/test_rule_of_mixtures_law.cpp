@@ -22,7 +22,7 @@
 #include "containers/model.h"
 // #include "includes/gid_io.h"
 #include "utilities/read_materials_utility.h"
-#include "custom_constitutive/rule_of_mixtures_law.h"
+#include "custom_constitutive/composites/rule_of_mixtures_law.h"
 #include "includes/mat_variables.h"
 
 namespace Kratos
