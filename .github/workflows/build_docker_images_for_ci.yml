@@ -20,6 +20,16 @@ on:
       - 'scripts/docker_files/docker_file_ci_centos_7/*'
       - '.github/workflows/build_docker_images_for_ci.yml'
 
+  workflow_dispatch:
+
+# for cancelling redundant runs
+concurrency:
+  group: ci-${{ github.head_ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   build-docker-ubuntu:
     runs-on: ubuntu-latest
