@@ -79,9 +79,11 @@ namespace Kratos {
         VectorIndexHasher<std::vector<std::size_t>> vector_integer_hasher;
 
         std::vector<std::size_t> vector_to_generate_hash_1({6, 1});
+        std::vector<std::size_t> vector_to_generate_hash_1_duplicated({6, 1});
         std::vector<std::size_t> vector_to_generate_hash_2({4, 3, 6, 9});
-        KRATOS_CHECK_EQUAL(vector_integer_hasher(vector_to_generate_hash_1), 175247769174);
-        KRATOS_CHECK_EQUAL(vector_integer_hasher(vector_to_generate_hash_2), 706246304684648);
+        std::vector<std::size_t> vector_to_generate_hash_2_duplicated({4, 3, 6, 9});
+        KRATOS_CHECK_EQUAL(vector_integer_hasher(vector_to_generate_hash_1), vector_integer_hasher(vector_to_generate_hash_1_duplicated));
+        KRATOS_CHECK_EQUAL(vector_integer_hasher(vector_to_generate_hash_2), vector_integer_hasher(vector_to_generate_hash_2_duplicated));
     }
 
     /**
@@ -97,7 +99,7 @@ namespace Kratos {
         p_node->AddDof(DISPLACEMENT_X, REACTION_X);
         DofPointerHasher dof_pointer_hasher;
 
-        KRATOS_CHECK_EQUAL(dof_pointer_hasher(p_node->pGetDof(DISPLACEMENT_X)), 9560262452381);
+        KRATOS_CHECK_EQUAL(dof_pointer_hasher(p_node->pGetDof(DISPLACEMENT_X)), dof_pointer_hasher(r_model_part.GetNode(1).pGetDof(DISPLACEMENT_X)));
     }
 
     /**
@@ -107,8 +109,9 @@ namespace Kratos {
     {
         PairHasher<std::size_t, std::size_t> pair_hasher;
         std::pair<std::size_t, std::size_t> pair_test({1,2});
+        std::pair<std::size_t, std::size_t> pair_test_duplicated({1,2});
 
-        KRATOS_CHECK_EQUAL(pair_hasher(pair_test), 175247769363);
+        KRATOS_CHECK_EQUAL(pair_hasher(pair_test), pair_hasher(pair_test_duplicated));
     }
 
     /**
