@@ -86,9 +86,9 @@ void AxisymElasticIsotropic::CalculateElasticMatrix(VoigtSizeMatrixType& C, Cons
         C.resize(4, 4, false);
     noalias(C) = ZeroMatrix(4, 4);
 
-    const double c1 = E / ((1.00 + NU) * (1 - 2 * NU));
-    const double c0 = c1*(1.0 - NU);
-    const double c2 = c1*(1.0 - 2.0 * NU) / (2.0);
+    const double c1 = E / ((1.00 + NU) * (1.0 - 2.0 * NU));
+    const double c0 = c1 * (1.0 - NU);
+    const double c2 = c1 * (1.0 - 2.0 * NU) / (2.0);
     const double c3 = NU * c1;
 
     C(0, 0) = c0;
@@ -119,9 +119,9 @@ void AxisymElasticIsotropic::CalculatePK2Stress(
     const double E = r_material_properties[YOUNG_MODULUS];
     const double NU = r_material_properties[POISSON_RATIO];
 
-    const double c1 = E / ((1.00 + NU) * (1 - 2 * NU));
-    const double c0 = c1*(1.0 - NU);
-    const double c2 = c1*(1.0 - 2.0 * NU) / (2.0);
+    const double c1 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
+    const double c0 = c1 * (1.0 - NU);
+    const double c2 = c1 * (1.0 - 2.0 * NU) / (2.0);
     const double c3 = NU * c1;
 
     rStressVector[0] = (c0 * rStrainVector[0] + c3 * rStrainVector[1] + c3 * rStrainVector[2]);
