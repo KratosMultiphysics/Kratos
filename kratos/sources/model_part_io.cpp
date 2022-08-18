@@ -2045,8 +2045,6 @@ void ModelPartIO::ReadNodalDataBlock(ModelPart& rThisModelPart)
 
     NodesContainerType& rThisNodes = rThisModelPart.Nodes();
 
-    typedef Variable<double> array_1d_component_type;
-
     std::string variable_name;
 
     ReadWord(variable_name);
@@ -2181,13 +2179,6 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
             const auto& r_variable = KratosComponents<Kratos::Variable<double> >::Get(variable_name);
             for(std::size_t j = 0; j < number_of_nodes; j++) {
                 auto it_node = it_node_begin + j;
-                const bool is_fixed = it_node->IsFixed(r_variable);
-                (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(r_variable, 0) << std::endl;
-            }
-            (*mpStream) << "End NodalData" << std::endl << std::endl;
-        } else if(KratosComponents<Variable<double>>::Has(variable_name)) {
-            (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
-                const auto& r_variable = KratosComponents<Variable<double> >::Get(variable_name);
                 const bool is_fixed = it_node->IsFixed(r_variable);
                 (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(r_variable, 0) << std::endl;
             }
