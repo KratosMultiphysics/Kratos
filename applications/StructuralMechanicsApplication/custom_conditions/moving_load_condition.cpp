@@ -140,7 +140,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
     bool is_moving_load = false;
     for (int i = 0; i < TDim; ++i)
     {
-        if (abs(MovingLoad[i]) > DBL_EPSILON)
+        if (std::abs(MovingLoad[i]) > DBL_EPSILON)
         {
             is_moving_load = true;
         }
