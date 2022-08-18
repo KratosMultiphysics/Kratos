@@ -317,7 +317,6 @@ endif(NOT DEFINED KRATOS_ENABLE_LTO)
 message("AR VERSION: ${CMAKE_AR}")
 
 # check version of Python, needs to be done after including pybind
-PYTHON_VERSION
 if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 6))
 message( FATAL_ERROR "Kratos only supports Python version 3.6 and above")
 endif()
