@@ -4188,9 +4188,7 @@ void ModelPartIO::DivideFlagVariableData(OutputFilesContainerType& OutputFiles,
         }
 
         std::stringstream node_data;
-        node_data << ReorderedNodeId(id) << '\t'; // id
-        ReadWord(word);
-        node_data << word << '\n'; // value
+        node_data << ReorderedNodeId(id) << '\n'; // id
 
         for(SizeType i = 0 ; i < NodesAllPartitions[ReorderedNodeId(id)-1].size() ; i++) {
             SizeType partition_id = NodesAllPartitions[ReorderedNodeId(id)-1][i];
