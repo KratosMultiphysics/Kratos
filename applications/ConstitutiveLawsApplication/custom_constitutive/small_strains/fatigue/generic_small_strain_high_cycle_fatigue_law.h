@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/generic_small_strain_isotropic_damage.h"
+#include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage.h"
 
 namespace Kratos
 {

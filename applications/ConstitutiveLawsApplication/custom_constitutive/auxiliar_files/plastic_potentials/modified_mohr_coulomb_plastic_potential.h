@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
+#include "generic_plastic_potential.h"
 
 namespace Kratos
 {

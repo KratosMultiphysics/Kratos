@@ -20,7 +20,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
+#include "hyper_elastic_isotropic_kirchhoff_3d.h"
 
 namespace Kratos
 {

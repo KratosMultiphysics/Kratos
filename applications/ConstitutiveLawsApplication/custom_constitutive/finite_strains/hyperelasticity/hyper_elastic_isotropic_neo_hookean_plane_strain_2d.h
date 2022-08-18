@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
-#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "hyper_elastic_isotropic_neo_hookean_3d.h"
 
 namespace Kratos
 {
