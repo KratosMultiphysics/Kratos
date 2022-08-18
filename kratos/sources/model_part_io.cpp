@@ -2146,10 +2146,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
 {
     KRATOS_TRY
 
-    VariablesList r_this_variables = rThisModelPart.GetNodalSolutionStepVariablesList();
-    NodesContainerType& r_this_nodes = rThisModelPart.Nodes();
-
-    typedef Variable<double> array_1d_component_type;
+    VariablesList& r_this_variables = rThisModelPart.GetNodalSolutionStepVariablesList();
 
     std::string variable_name;
 
