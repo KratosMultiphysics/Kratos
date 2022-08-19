@@ -1046,10 +1046,19 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                     CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);
                 }
 
-                if ( rOutput[point_number].size() != strain_size )
-                    rOutput[point_number].resize( strain_size, false );
+                if (strain_size == 4) { // Axysimmetric
+                    if (rOutput[point_number].size() != 6)
+                        rOutput[point_number].resize(6, false);
+                    noalias(rOutput[point_number]) = ZeroVector(6);
+                    for (IndexType i = 0; i < 4; ++i)
+                        rOutput[point_number](i) = this_constitutive_variables.StressVector(i);
+                } else {
+                    if (rOutput[point_number].size() != strain_size)
+                        rOutput[point_number].resize(strain_size, false);
 
-                noalias(rOutput[point_number]) = this_constitutive_variables.StressVector;
+                    noalias(rOutput[point_number]) = this_constitutive_variables.StressVector;
+                }
+
             }
         } else if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR ) {
             // Create and initialize element variables:
