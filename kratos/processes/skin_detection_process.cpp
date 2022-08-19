@@ -404,8 +404,8 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
         /* Not all the faces are going to be removed, only the ones which are repeated in different processes. So we need to filter then. */
         
         // First we determine the rank and the size of the world
-        auto& r_communicator = mrModelPart.GetCommunicator();
-        auto& r_data_communicator = r_communicator.GetDataCommunicator();
+        const auto& r_communicator = mrModelPart.GetCommunicator();
+        const auto& r_data_communicator = r_communicator.GetDataCommunicator();
         // const auto rank = r_data_communicator.Rank();
         // const auto world_size = r_data_communicator.Size();
         const auto& r_neighbour_indices = r_communicator.NeighbourIndices();
