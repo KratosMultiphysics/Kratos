@@ -911,7 +911,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                         noalias(aux_stress) = ZeroVector(6);
                         for (IndexType i = 0; i < 4; ++i)
                             aux_stress(i) = this_constitutive_variables.StressVector(i);
-                        rOutput[point_number] = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(aux_stress);
+                        rOutput[point_number] = ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(aux_stress);
                     }
                 } else { // 3D
                     rOutput[point_number] = ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
