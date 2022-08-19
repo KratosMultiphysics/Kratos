@@ -2154,10 +2154,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
     for (auto& r_flag : r_flags) {
         const auto& r_flag_name = r_flag.first;
         const auto& r_variable_flag = *(r_flag.second);
-        int to_consider = 0;
-        if (r_flag_name == "ALL_DEFINED" || r_flag_name == "ALL_TRUE") {
-            to_consider = -1;
-        }
+        int to_consider = (r_flag_name == "ALL_DEFINED" || r_flag_name == "ALL_TRUE") ? -1 : 0;
         if (to_consider == 0) {
             for(std::size_t j = 0; j < number_of_nodes; j++) {
                 auto it_node = it_node_begin + j;
