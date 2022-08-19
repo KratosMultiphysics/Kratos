@@ -81,10 +81,8 @@ def AssembleTestSuites():
                         TestElementaryGroundWaterFlow]
 
     # Create an array with all long tests only for validations
-    
     valid_test_cases = [TestConsecutivePipeLines]
-    
-    
+
     # Create an array that contains all the tests from every testCase
     # in the list:
 

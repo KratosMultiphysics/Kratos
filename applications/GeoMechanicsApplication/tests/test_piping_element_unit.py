@@ -1,5 +1,4 @@
 from KratosMultiphysics import Tester
-import os
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class TestUnitPipingElements(KratosUnittest.TestCase):
