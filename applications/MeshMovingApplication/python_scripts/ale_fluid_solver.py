@@ -211,7 +211,7 @@ class AleFluidSolver(PythonSolver):
         '''Copy the MESH_VELOCITY to the VELOCITY (ALE) on the ale-boundary
         '''
         for mp in self.ale_boundary_parts:
-            KM.VariableUtils().CopyVectorVar(
+            KM.VariableUtils().CopyVariable(
                 KM.MESH_VELOCITY,
                 KM.VELOCITY,
                 mp.GetCommunicator().LocalMesh().Nodes)

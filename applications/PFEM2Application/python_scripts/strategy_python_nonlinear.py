@@ -219,7 +219,7 @@ class SolvingStrategyPython:
         (moveparticles).ResetBoundaryConditions(full_reset) 
         #(moveparticles).UpdateParticleStresses()	
         #finally we save the last pressure for future iterations. No need to do it for the velocity since it is saved in delta_velocity
-        (VariableUtils).CopyScalarVar(PRESSURE,PRESSUREAUX,self.model_part.Nodes) #we save the pressure of this iteration in order to have the delta_pressure in the next one
+        (VariableUtils).CopyVariable(PRESSURE,PRESSUREAUX,self.model_part.Nodes) #we save the pressure of this iteration in order to have the delta_pressure in the next one
 
 
         ########################
@@ -264,7 +264,7 @@ class SolvingStrategyPython:
         (moveparticles).UpdateParticleStresses()
         #CalculatePressure()	
         #finally we save the last pressure for future iterations. No need to do it for the velocity since it is saved in delta_velocity
-        (VariableUtils).CopyScalarVar(PRESSURE,PRESSUREAUX,self.model_part.Nodes) #we save the pressure of this iteration in order to have the delta_pressure in the next one
+        (VariableUtils).CopyVariable(PRESSURE,PRESSUREAUX,self.model_part.Nodes) #we save the pressure of this iteration in order to have the delta_pressure in the next one
 
 
         ########################

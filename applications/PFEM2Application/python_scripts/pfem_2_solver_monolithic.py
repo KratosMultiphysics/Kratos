@@ -179,7 +179,7 @@ class PFEM2Solver:
                 t6 = timer.time()
 
                 #TransferLagrtoEul copied info to MESH_VEL, but the solver uses simply velocity, so we copy the variable there.
-                (self.VariableUtils).CopyVectorVar(MESH_VELOCITY,VELOCITY,self.model_part.Nodes)
+                (self.VariableUtils).CopyVariable(MESH_VELOCITY,VELOCITY,self.model_part.Nodes)
 
                 #implicit everything
                 full_reset=True;

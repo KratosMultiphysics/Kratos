@@ -240,7 +240,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         orientation.Z = 3.0
         orientation.W = 4.0
 
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, viscosity, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, viscosity, model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VELOCITY_X, velocity[0], model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VELOCITY_Y, velocity[1], model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VELOCITY_Z, velocity[2], model_part.Nodes)
@@ -456,10 +456,10 @@ class TestVariableUtils(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.FORCE, displacement, model_part.Nodes)
 
         ##save the variable values
-        KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.VISCOSITY, KratosMultiphysics.DENSITY, model_part.Nodes)
-        KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.FORCE_X, KratosMultiphysics.REACTION_Y, model_part.Nodes)
-        KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.FORCE_X, KratosMultiphysics.FORCE_Y, model_part.Nodes)
-        KratosMultiphysics.VariableUtils().CopyVectorVar(KratosMultiphysics.DISPLACEMENT, KratosMultiphysics.VELOCITY, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().CopyVariable(KratosMultiphysics.VISCOSITY, KratosMultiphysics.DENSITY, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().CopyVariable(KratosMultiphysics.FORCE_X, KratosMultiphysics.REACTION_Y, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().CopyVariable(KratosMultiphysics.FORCE_X, KratosMultiphysics.FORCE_Y, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().CopyVariable(KratosMultiphysics.DISPLACEMENT, KratosMultiphysics.VELOCITY, model_part.Nodes)
 
         ##verify the result
         for node in model_part.Nodes:
@@ -483,10 +483,10 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part_io.ReadModelPart(model_part)
 
         ##save the variable values
-        KratosMultiphysics.VariableUtils().SaveScalarVar(KratosMultiphysics.VISCOSITY, KratosMultiphysics.DENSITY, model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SaveVectorVar(KratosMultiphysics.DISPLACEMENT, KratosMultiphysics.VELOCITY, model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SaveScalarNonHistoricalVar(KratosMultiphysics.DENSITY, KratosMultiphysics.DISTANCE, model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SaveVectorNonHistoricalVar(KratosMultiphysics.VELOCITY, KratosMultiphysics.VOLUME_ACCELERATION, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SaveVariable(KratosMultiphysics.VISCOSITY, KratosMultiphysics.DENSITY, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SaveVariable(KratosMultiphysics.DISPLACEMENT, KratosMultiphysics.VELOCITY, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SaveNonHistoricalVariable(KratosMultiphysics.DENSITY, KratosMultiphysics.DISTANCE, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SaveNonHistoricalVariable(KratosMultiphysics.VELOCITY, KratosMultiphysics.VOLUME_ACCELERATION, model_part.Nodes)
 
         ##verify the result
         for node in model_part.Nodes:

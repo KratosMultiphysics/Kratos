@@ -170,14 +170,14 @@ class PFEM2Solver:
 
         transfer_pressure=True
         (self.moveparticles).TransferLagrangianToEulerian(transfer_pressure);
-        (self.VariableUtils).CopyVectorVar(VELOCITY,MESH_VELOCITY,self.model_part.Nodes)
-        (self.VariableUtils).CopyScalarVar(EXTERNAL_PRESSURE,PRESSURE,self.model_part.Nodes)
+        (self.VariableUtils).CopyVariable(VELOCITY,MESH_VELOCITY,self.model_part.Nodes)
+        (self.VariableUtils).CopyVariable(EXTERNAL_PRESSURE,PRESSURE,self.model_part.Nodes)
 
-        (self.VariableUtils).CopyVectorVar(MESH_VELOCITY,VELOCITY,self.model_part.Nodes)
+        (self.VariableUtils).CopyVariable(MESH_VELOCITY,VELOCITY,self.model_part.Nodes)
         (self.moveparticles).ResetBoundaryConditions(True)
-        (self.VariableUtils).CopyScalarVar(PRESSURE,SOLID_PRESSURE,self.model_part.Nodes)
-        (self.VariableUtils).CopyScalarVar(PRESSURE,PRESSUREAUX,self.model_part.Nodes)
-        (self.VariableUtils).CopyScalarVar(DISTANCE,CORRECTED_DISTANCE,self.model_part.Nodes)
+        (self.VariableUtils).CopyVariable(PRESSURE,SOLID_PRESSURE,self.model_part.Nodes)
+        (self.VariableUtils).CopyVariable(PRESSURE,PRESSUREAUX,self.model_part.Nodes)
+        (self.VariableUtils).CopyVariable(DISTANCE,CORRECTED_DISTANCE,self.model_part.Nodes)
 
         (self.moveparticles).CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
         (self.moveparticles).CopyScalarVarToPreviousTimeStep(PRESSURE,self.model_part.Nodes)
@@ -203,10 +203,10 @@ class PFEM2Solver:
 
             (self.moveparticles).UpdateParticleStresses()
             #finally we save the last pressure for future iterations. No need to do it for the velocity since it is saved in delta_velocity
-            (self.VariableUtils).CopyScalarVar(PRESSURE,PRESSUREAUX,self.model_part.Nodes) #we save the pressure of this iteration in order to have the delta_pressure in the next one
+            (self.VariableUtils).CopyVariable(PRESSURE,PRESSUREAUX,self.model_part.Nodes) #we save the pressure of this iteration in order to have the delta_pressure in the next one
             non_linear_iteration_number =  non_linear_iteration_number +1
 
-        (self.VariableUtils).CopyScalarVar(PRESSURE,EXTERNAL_PRESSURE,self.model_part.Nodes)
+        (self.VariableUtils).CopyVariable(PRESSURE,EXTERNAL_PRESSURE,self.model_part.Nodes)
         t11 = timer.time()
         self.implicit_tasks = self.implicit_tasks + t11-t6
 

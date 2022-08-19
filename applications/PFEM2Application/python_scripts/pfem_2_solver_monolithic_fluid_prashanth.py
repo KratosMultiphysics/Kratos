@@ -194,13 +194,13 @@ class PFEM2Solver:
 
                 #RICC THINGS for eulerian transport of distance function
                 #self.distance_utils.CalculateDistances(self.model_part,DISTANCE,0.1)
-                #(self.VariableUtils).CopyScalarVar(DISTANCE,TEMP_CONV_PROJ,self.model_part.Nodes)
+                #(self.VariableUtils).CopyVariable(DISTANCE,TEMP_CONV_PROJ,self.model_part.Nodes)
 
                 #transfering data from the particles to the mesh:
                 (self.moveparticles).TransferLagrangianToEulerian();
 
                 #MORE RICC THINGS
-                #(self.VariableUtils).CopyScalarVar(TEMP_CONV_PROJ,DISTANCE,self.model_part.Nodes)
+                #(self.VariableUtils).CopyVariable(TEMP_CONV_PROJ,DISTANCE,self.model_part.Nodes)
                 #self.convection_solver.CalculateProjection(self.model_part,DISTANCE,NODAL_AREA,VELOCITY,FORCE,TEMP_CONV_PROJ);
                 #self.convection_solver.ConvectScalarVar(self.model_part,self.linear_solver,DISTANCE,VELOCITY,FORCE,TEMP_CONV_PROJ,2);
 
@@ -214,7 +214,7 @@ class PFEM2Solver:
                     distance= node.GetSolutionStepValue(DISTANCE)
                     node.SetSolutionStepValue(CORRECTED_DISTANCE,distance-2.0)
                 #TransferLagrtoEul copied info to MESH_VEL, but the solver uses simply velocity, so we copy the variable there.
-                (self.VariableUtils).CopyVectorVar(MESH_VELOCITY,VELOCITY,self.model_part.Nodes)
+                (self.VariableUtils).CopyVariable(MESH_VELOCITY,VELOCITY,self.model_part.Nodes)
 
                 #implicit everything
                 full_reset=True;

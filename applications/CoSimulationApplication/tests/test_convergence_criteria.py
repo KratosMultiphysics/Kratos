@@ -215,7 +215,7 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
 
             conv_crit.InitializeNonLinearIteration()
 
-            KM.VariableUtils().SetScalarVar(KM.PRESSURE, vals_tuple[0], self.model_part.Nodes)
+            KM.VariableUtils().SetVariable(KM.PRESSURE, vals_tuple[0], self.model_part.Nodes)
 
             self.assertEqual(vals_tuple[1], conv_crit.IsConverged())
 

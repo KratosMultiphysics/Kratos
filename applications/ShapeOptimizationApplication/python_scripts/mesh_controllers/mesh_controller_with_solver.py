@@ -141,7 +141,7 @@ class MeshControllerWithSolver(MeshController) :
         self.OptimizationModelPart.ProcessInfo.SetValue(KM.TIME, time_before_update-1)
         self.OptimizationModelPart.ProcessInfo.SetValue(KM.DELTA_TIME, 0)
 
-        KM.VariableUtils().CopyVectorVar(variable, KM.MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
+        KM.VariableUtils().CopyVariable(variable, KM.MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
 
         if self.has_automatic_boundary_process and self.is_remeshing_used:
             self.OptimizationModelPart.GetSubModelPart("auto_surface_nodes").GetNodes().clear()

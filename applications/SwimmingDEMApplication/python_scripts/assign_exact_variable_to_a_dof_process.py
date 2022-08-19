@@ -74,13 +74,13 @@ class AssignExactVariableToADOFProcess(Kratos.Process):
         """
 
         if self.variable_type == "Array":
-            Kratos.VariableUtils().CopyVectorVar(self.exact_variable, self.destination_variable, self.model_part.Nodes)
+            Kratos.VariableUtils().CopyVariable(self.exact_variable, self.destination_variable, self.model_part.Nodes)
             for node in self.model_part.Nodes:
                 node.Fix(self.destination_variable_name_component[0])
                 node.Fix(self.destination_variable_name_component[1])
                 node.Fix(self.destination_variable_name_component[2])
         else:
-            Kratos.VariableUtils().CopyScalarVar(self.exact_variable, self.destination_variable, self.model_part.Nodes)
+            Kratos.VariableUtils().CopyVariable(self.exact_variable, self.destination_variable, self.model_part.Nodes)
             for node in self.model_part.Nodes:
                 node.Fix(self.destination_variable)
 

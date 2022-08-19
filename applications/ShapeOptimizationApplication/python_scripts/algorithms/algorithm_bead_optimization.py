@@ -148,15 +148,15 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
         # Specify bounds and assign starting values for ALPHA
         if self.bead_side == "positive":
-            KM.VariableUtils().SetScalarVar(KSO.ALPHA, 0.5, self.design_surface.Nodes, KM.BOUNDARY, False)
+            KM.VariableUtils().SetVariable(KSO.ALPHA, 0.5, self.design_surface.Nodes, KM.BOUNDARY, False)
             self.lower_bound = 0.0
             self.upper_bound = 1.0
         elif self.bead_side == "negative":
-            KM.VariableUtils().SetScalarVar(KSO.ALPHA, -0.5, self.design_surface.Nodes, KM.BOUNDARY, False)
+            KM.VariableUtils().SetVariable(KSO.ALPHA, -0.5, self.design_surface.Nodes, KM.BOUNDARY, False)
             self.lower_bound = -1.0
             self.upper_bound = 0.0
         elif self.bead_side == "both":
-            KM.VariableUtils().SetScalarVar(KSO.ALPHA, 0.0, self.design_surface.Nodes, KM.BOUNDARY, False)
+            KM.VariableUtils().SetVariable(KSO.ALPHA, 0.0, self.design_surface.Nodes, KM.BOUNDARY, False)
             self.lower_bound = -1.0
             self.upper_bound = 1.0
         else:

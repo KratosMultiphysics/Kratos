@@ -49,25 +49,25 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
 
     def test_Map_constant_scalar(self):
         val = 1.234
-        KM.VariableUtils().SetScalarVar(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
+        KM.VariableUtils().SetVariable(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val)
 
     def test_InverseMap_constant_scalar(self):
         val = -571.147
-        KM.VariableUtils().SetScalarVar(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
+        KM.VariableUtils().SetVariable(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_origin), KM.PRESSURE, val)
 
     def test_Map_constant_vector(self):
         val = KM.Vector([1.234, -22.845, 11.775])
-        KM.VariableUtils().SetVectorVar(KM.FORCE, val, self.interface_model_part_origin.Nodes)
+        KM.VariableUtils().SetVariable(KM.FORCE, val, self.interface_model_part_origin.Nodes)
         self.mapper.Map(KM.FORCE, KM.VELOCITY)
         self._CheckHistoricalUniformValuesVector(GetNodes(self.interface_model_part_destination), KM.VELOCITY, val)
 
     def test_InverseMap_constant_vector(self):
         val = KM.Vector([-51.234, -22.845, 118.775])
-        KM.VariableUtils().SetVectorVar(KM.VELOCITY, val, self.interface_model_part_destination.Nodes)
+        KM.VariableUtils().SetVariable(KM.VELOCITY, val, self.interface_model_part_destination.Nodes)
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY)
         self._CheckHistoricalUniformValuesVector(GetNodes(self.interface_model_part_origin), KM.FORCE, val)
 
@@ -93,81 +93,81 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
 
     def test_SWAP_SIGN_Map_scalar(self):
         val = 1.234
-        KM.VariableUtils().SetScalarVar(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
+        KM.VariableUtils().SetVariable(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.SWAP_SIGN)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, -val)
 
     def test_SWAP_SIGN_InverseMap_scalar(self):
         val = -571.147
-        KM.VariableUtils().SetScalarVar(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
+        KM.VariableUtils().SetVariable(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.SWAP_SIGN)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_origin), KM.PRESSURE, -val)
 
     def test_SWAP_SIGN_Map_vector(self):
         val = KM.Vector([1.234, -22.845, 11.775])
-        KM.VariableUtils().SetVectorVar(KM.FORCE, val, self.interface_model_part_origin.Nodes)
+        KM.VariableUtils().SetVariable(KM.FORCE, val, self.interface_model_part_origin.Nodes)
         self.mapper.Map(KM.FORCE, KM.VELOCITY, KM.Mapper.SWAP_SIGN)
         self._CheckHistoricalUniformValuesVector(GetNodes(self.interface_model_part_destination), KM.VELOCITY, [(-1)*x for x in val])
 
     def test_SWAP_SIGN_InverseMap_vector(self):
         val = KM.Vector([-51.234, -22.845, 118.775])
-        KM.VariableUtils().SetVectorVar(KM.VELOCITY, val, self.interface_model_part_destination.Nodes)
+        KM.VariableUtils().SetVariable(KM.VELOCITY, val, self.interface_model_part_destination.Nodes)
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KM.Mapper.SWAP_SIGN)
         self._CheckHistoricalUniformValuesVector(GetNodes(self.interface_model_part_origin), KM.FORCE, [(-1)*x for x in val])
 
     def test_ADD_VALUES_Map_scalar(self):
         val_1 = 1.234
         val_2 = -571.147
-        KM.VariableUtils().SetScalarVar(KM.PRESSURE, val_1, self.interface_model_part_origin.Nodes)
+        KM.VariableUtils().SetVariable(KM.PRESSURE, val_1, self.interface_model_part_origin.Nodes)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE) # set the initial field
 
-        KM.VariableUtils().SetScalarVar(KM.PRESSURE, val_2, self.interface_model_part_origin.Nodes)
+        KM.VariableUtils().SetVariable(KM.PRESSURE, val_2, self.interface_model_part_origin.Nodes)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.ADD_VALUES)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val_1+val_2)
 
     def test_ADD_VALUES_InverseMap_scalar(self):
         val_1 = -571.147
         val_2 = 128.336
-        KM.VariableUtils().SetScalarVar(KM.TEMPERATURE, val_1, self.interface_model_part_destination.Nodes)
+        KM.VariableUtils().SetVariable(KM.TEMPERATURE, val_1, self.interface_model_part_destination.Nodes)
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE)
 
-        KM.VariableUtils().SetScalarVar(KM.TEMPERATURE, val_2, self.interface_model_part_destination.Nodes)
+        KM.VariableUtils().SetVariable(KM.TEMPERATURE, val_2, self.interface_model_part_destination.Nodes)
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.ADD_VALUES)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_origin), KM.PRESSURE, val_1+val_2)
 
     def test_ADD_VALUES_Map_vector(self):
         val_1 = KM.Vector([1.234, -22.845, 11.83])
         val_2 = KM.Vector([-51.9234, -22.845, 118.775])
-        KM.VariableUtils().SetVectorVar(KM.FORCE, val_1, self.interface_model_part_origin.Nodes)
+        KM.VariableUtils().SetVariable(KM.FORCE, val_1, self.interface_model_part_origin.Nodes)
         self.mapper.Map(KM.FORCE, KM.VELOCITY) # set the initial field
 
-        KM.VariableUtils().SetVectorVar(KM.FORCE, val_2, self.interface_model_part_origin.Nodes)
+        KM.VariableUtils().SetVariable(KM.FORCE, val_2, self.interface_model_part_origin.Nodes)
         self.mapper.Map(KM.FORCE, KM.VELOCITY, KM.Mapper.ADD_VALUES)
         self._CheckHistoricalUniformValuesVector(GetNodes(self.interface_model_part_destination), KM.VELOCITY, val_1+val_2)
 
     def test_ADD_VALUES_InverseMap_vector(self):
         val_1 = KM.Vector([1.234, -22.845, 11.83])
         val_2 = KM.Vector([-51.9234, -22.845, 118.775])
-        KM.VariableUtils().SetVectorVar(KM.VELOCITY, val_1, self.interface_model_part_destination.Nodes)
+        KM.VariableUtils().SetVariable(KM.VELOCITY, val_1, self.interface_model_part_destination.Nodes)
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY) # set the initial field
 
-        KM.VariableUtils().SetVectorVar(KM.VELOCITY, val_2, self.interface_model_part_destination.Nodes)
+        KM.VariableUtils().SetVariable(KM.VELOCITY, val_2, self.interface_model_part_destination.Nodes)
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KM.Mapper.ADD_VALUES)
         self._CheckHistoricalUniformValuesVector(GetNodes(self.interface_model_part_origin), KM.FORCE, val_1+val_2)
 
     def test_SWAP_SIGN_and_ADD_VALUES_scalar(self):
         val_1 = 1.234
         val_2 = -571.147
-        KM.VariableUtils().SetScalarVar(KM.PRESSURE, val_1, self.interface_model_part_origin.Nodes)
+        KM.VariableUtils().SetVariable(KM.PRESSURE, val_1, self.interface_model_part_origin.Nodes)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE) # set the initial field
 
-        KM.VariableUtils().SetScalarVar(KM.PRESSURE, val_2, self.interface_model_part_origin.Nodes)
+        KM.VariableUtils().SetVariable(KM.PRESSURE, val_2, self.interface_model_part_origin.Nodes)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.ADD_VALUES | KM.Mapper.SWAP_SIGN)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val_1-val_2)
 
     def test_Map_USE_TRANSPOSE_constant_scalar(self):
         val = 1.234
-        KM.VariableUtils().SetScalarVar(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
+        KM.VariableUtils().SetVariable(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.USE_TRANSPOSE)
 
         sum_origin = KM.VariableUtils().SumHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin, 0)
@@ -176,7 +176,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
 
     def test_InverseMap_USE_TRANSPOSE_constant_scalar(self):
         val = 1.234
-        KM.VariableUtils().SetScalarVar(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
+        KM.VariableUtils().SetVariable(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.USE_TRANSPOSE)
 
         sum_origin = KM.VariableUtils().SumHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin, 0)
@@ -185,7 +185,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
 
     def test_Map_USE_TRANSPOSE_constant_vector(self):
         val = KM.Vector([1.234, -22.845, 11.83])
-        KM.VariableUtils().SetVectorVar(KM.FORCE, val, self.interface_model_part_origin.Nodes)
+        KM.VariableUtils().SetVariable(KM.FORCE, val, self.interface_model_part_origin.Nodes)
         self.mapper.Map(KM.FORCE, KM.VELOCITY, KM.Mapper.USE_TRANSPOSE)
 
         sum_origin = KM.VariableUtils().SumHistoricalNodeVectorVariable(KM.FORCE, self.interface_model_part_origin, 0)
@@ -194,7 +194,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
 
     def test_InverseMap_USE_TRANSPOSE_constant_vector(self):
         val = KM.Vector([1.234, -22.845, 11.83])
-        KM.VariableUtils().SetVectorVar(KM.VELOCITY, val, self.interface_model_part_destination.Nodes)
+        KM.VariableUtils().SetVariable(KM.VELOCITY, val, self.interface_model_part_destination.Nodes)
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KM.Mapper.USE_TRANSPOSE)
 
         sum_origin = KM.VariableUtils().SumHistoricalNodeVectorVariable(KM.FORCE, self.interface_model_part_origin, 0)
@@ -240,7 +240,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
 
     def test_Map_USE_TRANSPOSE_constant_scalar_TO_NON_HISTORICAL(self):
         val = 17.09
-        KM.VariableUtils().SetScalarVar(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
+        KM.VariableUtils().SetVariable(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.USE_TRANSPOSE | KM.Mapper.TO_NON_HISTORICAL)
 
         sum_origin = KM.VariableUtils().SumHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin, 0)
@@ -267,7 +267,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
 
     def test_InverseMap_USE_TRANSPOSE_constant_scalar_TO_NON_HISTORICAL(self):
         val = 23.189
-        KM.VariableUtils().SetScalarVar(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
+        KM.VariableUtils().SetVariable(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.USE_TRANSPOSE | KM.Mapper.TO_NON_HISTORICAL)
 
         sum_origin = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin)

@@ -270,7 +270,7 @@ class PFEM2Solver:
 		self.thermal = self.thermal + t7-t6
 		print "hola5"
 
-		(self.VariableUtils).CopyVectorVar(MESH_VELOCITY,VELOCITY,self.model_part.Nodes)
+		(self.VariableUtils).CopyVariable(MESH_VELOCITY,VELOCITY,self.model_part.Nodes)
 		#self.CalculateExplicitPressureViscousCorrection()
 		#pressure iterations
 

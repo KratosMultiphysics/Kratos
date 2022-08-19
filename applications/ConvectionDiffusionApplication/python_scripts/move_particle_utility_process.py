@@ -62,14 +62,14 @@ class MoveParticleUtilityProcess(KM.Process):
 
     def ExecuteInitializeSolutionStep(self):
         if not self.use_mesh_velocity:
-            KM.VariableUtils().SetVectorVar(self.mesh_velocity_var, [0.0, 0.0, 0.0], self.model_part.Nodes)
+            KM.VariableUtils().SetVariable(self.mesh_velocity_var, [0.0, 0.0, 0.0], self.model_part.Nodes)
         self.moveparticles.CalculateVelOverElemSize()
         self.moveparticles.MoveParticles()
         dimension = self.model_part.ProcessInfo[KM.DOMAIN_SIZE]
         pre_minimum_num_of_particles = dimension
         self.moveparticles.PreReseed(pre_minimum_num_of_particles)
         self.moveparticles.TransferLagrangianToEulerian()
-        KM.VariableUtils().CopyScalarVar(self.projection_var, self.unknown_var, self.model_part.Nodes)
+        KM.VariableUtils().CopyVariable(self.projection_var, self.unknown_var, self.model_part.Nodes)
         if self.reset_boundary_conditions:
             self.moveparticles.ResetBoundaryConditions()
         self.moveparticles.CopyScalarVarToPreviousTimeStep(self.unknown_var, self.model_part.Nodes)

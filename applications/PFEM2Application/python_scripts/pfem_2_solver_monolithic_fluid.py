@@ -204,7 +204,7 @@ class PFEM2Solver:
         t5 = timer.time()
         self.lagrangiantoeulerian = self.lagrangiantoeulerian + t5-t4
 
-        (self.VariableUtils).CopyVectorVar(PROJECTED_VELOCITY,VELOCITY,self.model_part.Nodes)
+        (self.VariableUtils).CopyVariable(PROJECTED_VELOCITY,VELOCITY,self.model_part.Nodes)
         full_reset=True;
         (self.moveparticles).ResetBoundaryConditions(full_reset)
         (self.moveparticles).CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)

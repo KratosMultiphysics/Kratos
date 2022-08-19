@@ -180,7 +180,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         volume_acceleration=self.main_model_part.ProcessInfo[KratosMultiphysics.GRAVITY]
         variable_utils = KratosMultiphysics.VariableUtils()
         if(currentStep == 1):
-            variable_utils.SetVectorVar(KratosMultiphysics.VOLUME_ACCELERATION, volume_acceleration, self.main_model_part.Nodes)
+            variable_utils.SetVariable(KratosMultiphysics.VOLUME_ACCELERATION, volume_acceleration, self.main_model_part.Nodes)
 
         if self.remesh_domains_active:
             if self.meshing_before_output:

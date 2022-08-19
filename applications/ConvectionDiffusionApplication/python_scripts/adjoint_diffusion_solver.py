@@ -135,9 +135,9 @@ class AdjointDiffusionSolver(PythonSolver):
                     #     raise Exception("Trying to set variable {0} on nodes, but the variable is not in nodal data.".format(var.Name()))
                     if model_part.HasNodalSolutionStepVariable(var):
                         if value.IsDouble():
-                            var_utils.SetScalarVar(var, value.GetDouble(), model_part.Nodes)
+                            var_utils.SetVariable(var, value.GetDouble(), model_part.Nodes)
                         elif value.IsVector():
-                            var_utils.SetVectorVar(var, value.GetVector(), model_part.Nodes)
+                            var_utils.SetVariable(var, value.GetVector(), model_part.Nodes)
                         else:
                             raise ValueError("Type of value is not available")
                     else:

@@ -71,7 +71,7 @@ class EmpiricalSpringTests(KratosUnittest.TestCase):
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
     def _apply_Neumann_BCs(self,mp,which_dof,load_size_dir):
         if(which_dof == 'x'):
-            KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.
+            KratosMultiphysics.VariableUtils().SetVariable(StructuralMechanicsApplication.
                 POINT_LOAD_X, load_size_dir, mp.Nodes)
         else:
             sys.exit('cannot apply given neumann boundary condition')

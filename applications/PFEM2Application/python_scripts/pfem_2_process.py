@@ -68,14 +68,14 @@ class PFEM2Process(KM.Process):
 
     def ExecuteInitializeSolutionStep(self):
         if self.use_mesh_velocity == False:
-            KM.VariableUtils().SetVectorVar(KM.MESH_VELOCITY, [0.0, 0.0, 0.0], self.model_part.Nodes)
+            KM.VariableUtils().SetVariable(KM.MESH_VELOCITY, [0.0, 0.0, 0.0], self.model_part.Nodes)
         self.moveparticles.CalculateVelOverElemSize()
         self.moveparticles.MoveParticles(self.discriminate_streamlines)
         dimension = self.model_part.ProcessInfo[KM.DOMAIN_SIZE]
         pre_minimum_num_of_particles = dimension
         self.moveparticles.PreReseed(pre_minimum_num_of_particles)
         self.moveparticles.TransferLagrangianToEulerian()
-        KM.VariableUtils().CopyVectorVar(PFEM2.PROJECTED_VELOCITY, KM.VELOCITY, self.model_part.Nodes)
+        KM.VariableUtils().CopyVariable(PFEM2.PROJECTED_VELOCITY, KM.VELOCITY, self.model_part.Nodes)
         if self.reset_boundary_conditions:
             self.moveparticles.ResetBoundaryConditions(self.full_reset_boundary_conditions)
         self.moveparticles.CopyVectorVarToPreviousTimeStep(KM.VELOCITY, self.model_part.Nodes)

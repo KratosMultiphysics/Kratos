@@ -154,7 +154,7 @@ class PFEM2Solver:
         self.lagrangiantoeulerian = self.lagrangiantoeulerian + t5-t4
 
         print( "finished lagrangian to eulerian")
-        (self.VariableUtils).CopyVectorVar(PROJECTED_VELOCITY,VELOCITY,self.model_part.Nodes)
+        (self.VariableUtils).CopyVariable(PROJECTED_VELOCITY,VELOCITY,self.model_part.Nodes)
 
         t7=timer.time()
         #explicit viscosity. automatically limited inside to ensure stability. artifically lowered to keep Fo<0.5

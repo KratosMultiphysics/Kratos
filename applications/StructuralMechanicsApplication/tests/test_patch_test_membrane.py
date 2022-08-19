@@ -351,7 +351,7 @@ class StaticPatchTestMembrane(BasePatchTestMembrane):
         bcs_neumann.AddNodes([1,3])
         bcs_neumann.AddConditions([1,2])
 
-        KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.POINT_LOAD_X, 1000000.0, bcs_neumann.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(StructuralMechanicsApplication.POINT_LOAD_X, 1000000.0, bcs_neumann.Nodes)
 
         # solve
         self._solve_static(mp)
@@ -410,9 +410,9 @@ class StaticPatchTestMembrane(BasePatchTestMembrane):
         bcs_neumann.AddConditions([1,2])
         point_load = 5.0
 
-        KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.POINT_LOAD_X, point_load*0.6634135, bcs_neumann.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.POINT_LOAD_Y, point_load*0.6427876, bcs_neumann.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.POINT_LOAD_Z, point_load*(-0.383022), bcs_neumann.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(StructuralMechanicsApplication.POINT_LOAD_X, point_load*0.6634135, bcs_neumann.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(StructuralMechanicsApplication.POINT_LOAD_Y, point_load*0.6427876, bcs_neumann.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(StructuralMechanicsApplication.POINT_LOAD_Z, point_load*(-0.383022), bcs_neumann.Nodes)
 
         ## 1.) with local axis calculated from element (dependent on node numbering)
         cauchy_stress_analytical = point_load * len(bcs_neumann.Nodes) / (thickness*height)

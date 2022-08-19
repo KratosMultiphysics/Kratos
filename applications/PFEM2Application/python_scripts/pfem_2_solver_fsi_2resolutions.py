@@ -176,16 +176,16 @@ class PFEM2Solver:
                 #for node in self.model_part.Nodes:
                 #        node.SetSolutionStepValue(VELOCITY,node.GetSolutionStepValue(MESH_VELOCITY))
                 #        node.SetSolutionStepValue(MESH_VELOCITY,node.GetSolutionStepValue(VELOCITY))
-                (self.VariableUtils).CopyVectorVar(MESH_VELOCITY,VELOCITY,self.model_part.Nodes)
-                #(self.VariableUtils).CopyVectorVar(VELOCITY,MESH_VELOCITY,self.model_part.Nodes)
+                (self.VariableUtils).CopyVariable(MESH_VELOCITY,VELOCITY,self.model_part.Nodes)
+                #(self.VariableUtils).CopyVariable(VELOCITY,MESH_VELOCITY,self.model_part.Nodes)
                 (self.moveparticles).ResetBoundaryConditions(True)
-                #(self.VariableUtils).CopyScalarVar(SOLID_PRESSURE,PRESSURE,self.model_part.Nodes)
-                #(self.VariableUtils).CopyScalarVar(SOLID_PRESSURE,PRESSUREAUX,self.model_part.Nodes)
-                (self.VariableUtils).CopyScalarVar(PRESSURE,SOLID_PRESSURE,self.model_part.Nodes)
-                #(self.VariableUtils).CopyScalarVar(CORRECTED_DISTANCE,DISTANCE,self.model_part.Nodes)
+                #(self.VariableUtils).CopyVariable(SOLID_PRESSURE,PRESSURE,self.model_part.Nodes)
+                #(self.VariableUtils).CopyVariable(SOLID_PRESSURE,PRESSUREAUX,self.model_part.Nodes)
+                (self.VariableUtils).CopyVariable(PRESSURE,SOLID_PRESSURE,self.model_part.Nodes)
+                #(self.VariableUtils).CopyVariable(CORRECTED_DISTANCE,DISTANCE,self.model_part.Nodes)
                 (self.moveparticles).CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
                 (self.moveparticles).CopyScalarVarToPreviousTimeStep(PRESSURE,self.model_part.Nodes)
-                (self.VariableUtils).CopyScalarVar(PRESSURE,PRESSUREAUX,self.model_part.Nodes)
+                (self.VariableUtils).CopyVariable(PRESSURE,PRESSUREAUX,self.model_part.Nodes)
 
                 t5 = timer.time()
 

@@ -193,5 +193,5 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         ''' This function copies the distance field to an auxiliary distance variable and sets
         to zero the default one.
         '''
-        KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.GEOMETRY_DISTANCE, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().CopyVariable(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.GEOMETRY_DISTANCE, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISTANCE, self.main_model_part.Nodes)

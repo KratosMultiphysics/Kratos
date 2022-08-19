@@ -245,10 +245,10 @@ class PFEM2BaseSolver(PythonSolver):
             for key, value in mat["Variables"].items():
                 var = KM.KratosGlobals.GetVariable(key)
                 if value.IsDouble():
-                    KM.VariableUtils().SetScalarVar(var, value.GetDouble(), model_part.Nodes)
+                    KM.VariableUtils().SetVariable(var, value.GetDouble(), model_part.Nodes)
                     model_part.ProcessInfo.SetValue(var, value.GetDouble())
                 elif value.IsVector():
-                    KM.VariableUtils().SetVectorVar(var, value.GetVector(), model_part.Nodes)
+                    KM.VariableUtils().SetVariable(var, value.GetVector(), model_part.Nodes)
                     model_part.ProcessInfo.SetValue(var, value.GetVector())
                 else:
                     raise ValueError("Type of value is not available")
