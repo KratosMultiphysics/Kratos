@@ -30,11 +30,8 @@ namespace Kratos
       virtual ~GenerationDissipation();
 
       // Public methods
-      double ComputeHeatGeneration                (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
-      double ComputeHeatGenerationSlidingFriction (ThermalSphericParticle* particle);
-      double ComputeHeatGenerationRollingFriction (ThermalSphericParticle* particle);
-      double ComputeHeatGenerationDampingContact  (ThermalSphericParticle* particle);
-      double ComputePartitionCoeff                (ThermalSphericParticle* particle);
+      double ComputeHeatGeneration (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
+      double ComputePartitionCoeff (ThermalSphericParticle* particle);
 
       // Clone
       HeatGenerationMechanism* CloneRaw() const override {

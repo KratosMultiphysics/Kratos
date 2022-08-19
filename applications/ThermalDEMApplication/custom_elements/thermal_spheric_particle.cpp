@@ -157,6 +157,11 @@ namespace Kratos
     mContactParamsParticle.clear();
     mContactParamsWall.clear();
 
+    // Initialze accumulated energy dissipations
+    mPreviousFrictionalEnergy   = 0.0;
+    mPreviousRollResistEnergy   = 0.0;
+    mPreviousViscodampingEnergy = 0.0;
+
     KRATOS_CATCH("")
   }
 
@@ -363,53 +368,45 @@ namespace Kratos
 
     SphericParticle::StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceDamping, sliding);
 
-    if (!mStoreContactParam || !mIsTimeToSolve)
+    if (!mStoreContactParam)
       return;
 
     // Increment number of contact particle neighbors
     SphericParticle* neighbor = data_buffer.mpOtherParticle;
     mNumberOfContactParticleNeighbor++;
 
-    // Local components of relavive velocity (normal and tangential)
-    std::vector<double> LocalRelativeVelocity{ data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) };
+    // New contact
+    if (!mContactParamsParticle.count(neighbor)) {
+      // Add new parameters to map
+      ContactParams params;
+      mContactParamsParticle[neighbor] = params;
 
-    // Local components of total contact force (normal and sliding tangential)
-    double LocalContactForceTotal[3] = { 0.0 };
-    GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, GlobalContactForceTotal, LocalContactForceTotal);
-    std::vector<double> LocalForceTotal{ LocalContactForceTotal[2] };
-
-    // Friction heat generation is not considered when particles are not sliding against each other, so tangent velocity is set to zero.
-    // ATTENTION: Becareful when using the tangent velocity in other context that is not friction heat generation, as it can be zero.
-    if (sliding)
-      LocalForceTotal.push_back(sqrt(LocalContactForceTotal[0] * LocalContactForceTotal[0] + LocalContactForceTotal[1] * LocalContactForceTotal[1]));
-    else
-      LocalForceTotal.push_back(0.0);
-
-    // Local components of damping force (normal and tangential)
-    std::vector<double> LocalForceDamping{ LocalContactForceDamping[2], sqrt(LocalContactForceDamping[0] * LocalContactForceDamping[0] + LocalContactForceDamping[1] * LocalContactForceDamping[1]) };
-
-    // Update contact parameters
-    ContactParams params;
-    params.updated_step        = r_process_info[TIME_STEPS];
-    params.local_velocity      = LocalRelativeVelocity;
-    params.local_force_total   = LocalForceTotal;
-    params.local_force_damping = LocalForceDamping;
-    
-    if (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0) {
-      // Keep impact parameters if contact is not new
-      if (mContactParamsParticle.count(neighbor)) {
-        params.impact_time     = mContactParamsParticle[neighbor].impact_time;
-        params.impact_velocity = mContactParamsParticle[neighbor].impact_velocity;
-      }
-      // Set impact parameters for new contacts
-      else {
-        params.impact_time     = r_process_info[TIME];
-        params.impact_velocity = LocalRelativeVelocity;
-      }
+      // Initialize contact parameters
+      mContactParamsParticle[neighbor].impact_time         = r_process_info[TIME];
+      mContactParamsParticle[neighbor].impact_velocity     = { data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) }; // local components of relavive velocity (normal and tangential)
+      mContactParamsParticle[neighbor].frictional_energy   = 0.0;
+      mContactParamsParticle[neighbor].viscodamping_energy = 0.0;
     }
 
-    // Add/Update parameters in map
-    mContactParamsParticle[neighbor] = params;
+    if (r_process_info[HEAT_GENERATION_OPTION]) {
+      // If thermal problem was solved in previous step, reset dissipated energies accumulated for this interaction
+      if ((r_process_info[TIME_STEPS] - 2) % r_process_info[THERMAL_FREQUENCY] == 0) {
+        mContactParamsParticle[neighbor].frictional_energy   = 0.0;
+        mContactParamsParticle[neighbor].viscodamping_energy = 0.0;
+      }
+
+      // Energy dissipated in this interaction (since last thermal solution) as a difference between
+      // current accumulated dissipation and previous accumulated dissipation (after previous neighbor iteration)
+      mContactParamsParticle[neighbor].frictional_energy   += GetInelasticFrictionalEnergy()   - mPreviousFrictionalEnergy;
+      mContactParamsParticle[neighbor].viscodamping_energy += GetInelasticViscodampingEnergy() - mPreviousViscodampingEnergy;
+
+      // Update previous accumulated dissipation 
+      mPreviousFrictionalEnergy   = GetInelasticFrictionalEnergy();
+      mPreviousViscodampingEnergy = GetInelasticViscodampingEnergy();
+    }
+
+    // Update time step
+    mContactParamsParticle[neighbor].updated_step = r_process_info[TIME_STEPS];
 
     KRATOS_CATCH("")
   }
@@ -424,52 +421,44 @@ namespace Kratos
 
     SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceDamping, sliding);
 
-    if (!mStoreContactParam || !mIsTimeToSolve)
+    if (!mStoreContactParam)
       return;
 
     // Get neighbor wall
     DEMWall* neighbor = data_buffer.mpOtherRigidFace;
 
-    // Local components of relavive velocity (normal and tangential)
-    std::vector<double> LocalRelativeVelocity{ data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) };
+    // New contact
+    if (!mContactParamsWall.count(neighbor)) {
+      // Add new parameters to map
+      ContactParams params;
+      mContactParamsWall[neighbor] = params;
 
-    // Local components of total contact force (normal and sliding tangential)
-    double LocalContactForceTotal[3] = { 0.0 };
-    GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, GlobalContactForceTotal, LocalContactForceTotal);
-    std::vector<double> LocalForceTotal{ LocalContactForceTotal[2] };
-
-    // Friction heat generation is not considered when particles are not sliding against each other, so tangent velocity is set to zero.
-    // ATTENTION: Becareful when using the tangent velocity in other context that is not friction heat generation, as it can be zero.
-    if (sliding)
-      LocalForceTotal.push_back(sqrt(LocalContactForceTotal[0] * LocalContactForceTotal[0] + LocalContactForceTotal[1] * LocalContactForceTotal[1]));
-    else
-      LocalForceTotal.push_back(0.0);
-
-    // Local components of damping force (normal and tangential)
-    std::vector<double> LocalForceDamping{ LocalContactForceDamping[2], sqrt(LocalContactForceDamping[0] * LocalContactForceDamping[0] + LocalContactForceDamping[1] * LocalContactForceDamping[1]) };
-
-    // Update contact parameters
-    ContactParams params;
-    params.updated_step        = r_process_info[TIME_STEPS];
-    params.local_velocity      = LocalRelativeVelocity;
-    params.local_force_total   = LocalForceTotal;
-    params.local_force_damping = LocalForceDamping;
-
-    if (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0) {
-      // Keep impact parameters if contact is not new
-      if (mContactParamsWall.count(neighbor)) {
-        params.impact_time = mContactParamsWall[neighbor].impact_time;
-        params.impact_velocity = mContactParamsWall[neighbor].impact_velocity;
-      }
-      // Set impact parameters for new contacts
-      else {
-        params.impact_time = r_process_info[TIME];
-        params.impact_velocity = LocalRelativeVelocity;
-      }
+      // Initialize contact parameters
+      mContactParamsWall[neighbor].impact_time         = r_process_info[TIME];
+      mContactParamsWall[neighbor].impact_velocity     = { data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) }; // local components of relavive velocity (normal and tangential)
+      mContactParamsWall[neighbor].frictional_energy   = 0.0;
+      mContactParamsWall[neighbor].viscodamping_energy = 0.0;
     }
 
-    // Add/Update parameters in map
-    mContactParamsWall[neighbor] = params;
+    if (r_process_info[HEAT_GENERATION_OPTION]) {
+      // If thermal problem was solved in previous step, reset dissipated energies accumulated for this interaction
+      if ((r_process_info[TIME_STEPS] - 2) % r_process_info[THERMAL_FREQUENCY] == 0) {
+        mContactParamsWall[neighbor].frictional_energy   = 0.0;
+        mContactParamsWall[neighbor].viscodamping_energy = 0.0;
+      }
+
+      // Energy dissipated in this interaction (since last thermal solution) as a difference between
+      // current accumulated dissipation and previous accumulated dissipation (after previous neighbor iteration)
+      mContactParamsWall[neighbor].frictional_energy   += GetInelasticFrictionalEnergy()   - mPreviousFrictionalEnergy;
+      mContactParamsWall[neighbor].viscodamping_energy += GetInelasticViscodampingEnergy() - mPreviousViscodampingEnergy;
+
+      // Update previous accumulated dissipation 
+      mPreviousFrictionalEnergy   = GetInelasticFrictionalEnergy();
+      mPreviousViscodampingEnergy = GetInelasticViscodampingEnergy();
+    }
+
+    // Update time step
+    mContactParamsWall[neighbor].updated_step = r_process_info[TIME_STEPS];
 
     KRATOS_CATCH("")
   }
@@ -1407,12 +1396,11 @@ namespace Kratos
     }
     else {
       ContactParams null_param;
-      null_param.updated_step = 0;
-      null_param.impact_time  = 0.0;
+      null_param.updated_step        = 0;
+      null_param.impact_time         = 0.0;
+      null_param.frictional_energy   = 0.0;
+      null_param.viscodamping_energy = 0.0;
       null_param.impact_velocity.assign(2, 0.0);
-      null_param.local_velocity.assign(2, 0.0);
-      null_param.local_force_total.assign(2, 0.0);
-      null_param.local_force_damping.assign(2, 0.0);
       return null_param;
     }
   }

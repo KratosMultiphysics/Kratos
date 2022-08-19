@@ -53,10 +53,9 @@ namespace Kratos
       {
         int                 updated_step;
         double              impact_time;
+        double              frictional_energy;
+        double              viscodamping_energy;
         std::vector<double> impact_velocity;
-        std::vector<double> local_velocity;
-        std::vector<double> local_force_total;
-        std::vector<double> local_force_damping;
       };
 
       // Constructor
@@ -205,13 +204,16 @@ namespace Kratos
       RealContactModel*            mpRealContactModel;
 
       // General properties
-      unsigned int mNumStepsEval;         // number of steps passed since last thermal evaluation
-      double       mPreviousTemperature;  // temperature from the beginning of the step
-      bool         mIsTimeToSolve;        // flag to solve thermal problem in current step
-      bool         mHasMotion;            // flag to solve mechanical behavior (forces and displacements)
-      bool         mHasFixedTemperature;  // flag for constant temperature
-      bool         mHasVariableRadius;    // flag for temperature-dependent radius
-      bool         mStoreContactParam;    // flag to store contact parameters with neighbors when solving the mechanical problem
+      unsigned int mNumStepsEval;               // number of steps passed since last thermal evaluation
+      double       mPreviousTemperature;        // temperature from the beginning of the step
+      double       mPreviousFrictionalEnergy;   // accumulated frictional energy dissipation from previous interaction
+      double       mPreviousRollResistEnergy;   // accumulated rolling resistanceenergy dissipation from previous interaction
+      double       mPreviousViscodampingEnergy; // accumulated viscodamping energy dissipation from previous interaction
+      bool         mIsTimeToSolve;              // flag to solve thermal problem in current step
+      bool         mHasMotion;                  // flag to solve mechanical behavior (forces and displacements)
+      bool         mHasFixedTemperature;        // flag for constant temperature
+      bool         mHasVariableRadius;          // flag for temperature-dependent radius
+      bool         mStoreContactParam;          // flag to store contact parameters with neighbors when solving the mechanical problem
 
       // Heat flux components
       double mConductionDirectHeatFlux;
