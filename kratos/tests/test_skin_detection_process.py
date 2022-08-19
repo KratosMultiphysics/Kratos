@@ -131,7 +131,7 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         gid_output.ExecuteFinalize()
 
     def _post_process_mpi(self, model_part):
-        comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
+        comm = model_part.GetCommunicator().GetDataCommunicator()
         rank = comm.Rank()
         gid_output = GiDOutputProcess(model_part,
                                     "gid_output_"+str(rank),
