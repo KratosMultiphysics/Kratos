@@ -193,6 +193,7 @@ namespace Kratos
     // Initialize heat fluxes contributions
     mConductionDirectHeatFlux         = 0.0;
     mConductionIndirectHeatFlux       = 0.0;
+    mConvectionHeatFlux               = 0.0;
     mRadiationHeatFlux                = 0.0;
     mGenerationHeatFlux               = 0.0;
     mGenerationHeatFlux_slid_particle = 0.0;
@@ -201,7 +202,6 @@ namespace Kratos
     mGenerationHeatFlux_roll_wall     = 0.0;
     mGenerationHeatFlux_damp_particle = 0.0;
     mGenerationHeatFlux_damp_wall     = 0.0;
-    mConvectionHeatFlux               = 0.0;
     mPrescribedHeatFlux               = 0.0;
     mTotalHeatFlux                    = 0.0;
 
@@ -282,7 +282,7 @@ namespace Kratos
     if (r_process_info[RADIATION_OPTION])
       mRadiationHeatFlux += GetRadiationModel().FinalizeHeatFlux(r_process_info, this);
 
-    // Compute convection with surrounding fluid
+    // Convection with surrounding fluid
     if (r_process_info[CONVECTION_OPTION])
       mConvectionHeatFlux += GetConvectionModel().ComputeHeatFlux(r_process_info, this);
 
@@ -295,7 +295,7 @@ namespace Kratos
       mPrescribedHeatFlux += mPrescribedHeatFluxVolume * GetParticleVolume();
 
     // Sum up heat fluxes contributions
-    mTotalHeatFlux = mConductionDirectHeatFlux + mConductionIndirectHeatFlux + mRadiationHeatFlux + mGenerationHeatFlux + mConvectionHeatFlux + mPrescribedHeatFlux;
+    mTotalHeatFlux = mConductionDirectHeatFlux + mConductionIndirectHeatFlux + mRadiationHeatFlux + mConvectionHeatFlux + mGenerationHeatFlux + mPrescribedHeatFlux;
     SetParticleHeatFlux(mTotalHeatFlux);
 
     KRATOS_CATCH("")
