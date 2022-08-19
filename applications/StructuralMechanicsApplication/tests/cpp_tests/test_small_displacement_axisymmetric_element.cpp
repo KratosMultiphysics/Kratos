@@ -37,13 +37,6 @@ namespace Testing
         const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticAxisym2DLaw");
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
-        // Constants for the computation of the stress
-        const double E = p_elem_prop->GetValue(YOUNG_MODULUS);
-        const double NU = p_elem_prop->GetValue(POISSON_RATIO);
-        const double c1 = E / (1.0 - NU * NU);
-        const double c2 = c1 * NU;
-        const double c3 = 0.5 * E / (1.0 + NU);
-
         // Create the test element
         auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
         auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
