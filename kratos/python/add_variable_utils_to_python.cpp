@@ -148,51 +148,6 @@ void ApplyFlaggedFixity(
     rVariableUtils.ApplyFixity(rVar, IsFixed, rNodes, rFlag, CheckValue);
 }
 
-
-/**
- * @brief Auxiliary set variable export function
- * This function is required to export the SetVariable overloaded method with a unique name
- * @tparam TDataType The variable data type
- * @tparam Variable<TDataType> The variable type
- * @param rVariableUtils Reference to the self variable utils class
- * @param rVariable Reference to the variable to be set
- * @param rValue Reference to the value to set
- * @param rNodes Reference to the nodes container
- */
-template<class TDataType, class TVarType = Variable<TDataType>>
-void VariableUtilsSetVariable(
-    VariableUtils &rVariableUtils,
-    const TVarType &rVariable,
-    const TDataType &rValue,
-    ModelPart::NodesContainerType &rNodes)
-{
-    rVariableUtils.SetVariable(rVariable, rValue, rNodes);
-}
-
-/**
- * @brief Auxiliary set variable export function
- * This function is required to export the SetVariable with flag overloaded method with a unique name
- * @tparam TDataType The variable data type
- * @tparam Variable<TDataType> The variable type
- * @param rVariableUtils Reference to the self variable utils class
- * @param rVariable Reference to the variable to be set
- * @param rValue Reference to the value to set
- * @param rNodes Reference to the nodes container
- * @param Flag Flag to filter the nodes that are set
- * @param CheckValue Flag value to be checked
- */
-template <class TDataType, class TVarType = Variable<TDataType>>
-void VariableUtilsSetVariableForFlag(
-    VariableUtils &rVariableUtils,
-    const TVarType &rVariable,
-    const TDataType &rValue,
-    ModelPart::NodesContainerType &rNodes,
-    const Flags Flag,
-    const bool CheckValue = true)
-{
-    rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue);
-}
-
 template <class TDataType, class TContainerType, class TVarType = Variable<TDataType>>
 void VariableUtilsSetNonHistoricalVariable(
     VariableUtils &rVariableUtils,
@@ -216,7 +171,9 @@ void VariableUtilsSetNonHistoricalVariableForFlag(
 }
 
 // List of valid interface variables
-#define KRATOS_VARIABLE_UTILS_TYPES bool, int, double, array_1d<double, 3>, array_1d<double, 4>, array_1d<double, 6>, array_1d<double, 9>, Quaternion<double>, Vector, Matrix
+#define KRATOS_VARIABLE_UTILS_TYPES             bool, int, double, array_1d<double, 3>, array_1d<double, 4>, array_1d<double, 6>, array_1d<double, 9>, Quaternion<double>, Vector, Matrix
+#define KRATOS_VARIABLE_UTILS_CONTAINERS        ModelPart::NodesContainerType, ModelPart::ElementsContainerType, ModelPart::ConditionsContainerType
+#define KRATOS_VARIABLE_UTILS_CONTAINERS_EXT    ModelPart::MasterSlaveConstraintContainerType
 
 // Unified interface
 template<class TVariableType>
@@ -226,9 +183,9 @@ void AddVariableUtilsCommonInterfaceIterator(pybind11::module& m) {
     m.def("CopyModelPartNodalVarToNonHistoricalVar",    CopyModelPartNodalVarToNonHistoricalVar<Variable<TVariableType>>);
     m.def("CopyModelPartNodalVarToNonHistoricalVar",    CopyModelPartNodalVarToNonHistoricalVarWithDestination<Variable<TVariableType>>);
     m.def("CopyModelPartElementalVar",                  &VariableUtils::CopyModelPartElementalVar<Variable<TVariableType>>);
-    m.def("SetVariable",                                VariableUtilsSetVariable<TVariableType>);
+    m.def("SetVariable",                                [](VariableUtils& rVariableUtils, const Variable<TVariableType>& rVariable, const TVariableType& rValue, ModelPart::NodesContainerType& rNodes){rVariableUtils.SetVariable(rVariable, rValue, rNodes);});
     m.def("SetVariable",                                [](VariableUtils& rVariableUtils, const Variable<TVariableType>& rVariable, const TVariableType& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);});
-    m.def("SetVariable",                                VariableUtilsSetVariableForFlag<TVariableType>);
+    m.def("SetVariable",                                [](VariableUtils& rVariableUtils, const Variable<TVariableType>& rVariable, const TVariableType &rValue, ModelPart::NodesContainerType& rNodes, const Flags Flag, const bool CheckValue = true){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue);});
     m.def("SetNonHistoricalVariable",                   VariableUtilsSetNonHistoricalVariable<TVariableType, ModelPart::NodesContainerType>);
     m.def("SetNonHistoricalVariable",                   VariableUtilsSetNonHistoricalVariable<TVariableType, ModelPart::ElementsContainerType>);
     m.def("SetNonHistoricalVariable",                   VariableUtilsSetNonHistoricalVariable<TVariableType, ModelPart::ConditionsContainerType>);
@@ -239,6 +196,7 @@ void AddVariableUtilsCommonInterfaceIterator(pybind11::module& m) {
     m.def("SetNonHistoricalVariableToZero",             &VariableUtils::SetNonHistoricalVariableToZero<TVariableType, ModelPart::ElementsContainerType>);
     m.def("SetNonHistoricalVariableToZero",             &VariableUtils::SetNonHistoricalVariableToZero<TVariableType, ModelPart::ConditionsContainerType>);
     m.def("SetNonHistoricalVariableToZero",             &VariableUtils::SetNonHistoricalVariableToZero<TVariableType, ModelPart::MasterSlaveConstraintContainerType>);
+    m.def("SetHistoricalVariableToZero",                &VariableUtils::SetHistoricalVariableToZero<TVariableType>);
     m.def("SaveVariable",                               &VariableUtils::SaveVariable<TVariableType>);
     m.def("SaveNonHistoricalVariable",                  &VariableUtils::SaveNonHistoricalVariable<TVariableType, ModelPart::NodesContainerType>);
     m.def("SaveNonHistoricalVariable",                  &VariableUtils::SaveNonHistoricalVariable<TVariableType, ModelPart::ElementsContainerType>);
@@ -259,20 +217,24 @@ void AddVariableUtilsToPython(pybind11::module &m)
 
     auto python_variable_utils = py::class_<VariableUtils>(m, "VariableUtils")
         .def(py::init<>())
-        .def("SetVectorVar", VariableUtilsSetVariable<array_1d<double,3>>)
-        .def("SetVectorVar", [](VariableUtils& rVariableUtils, const Variable<array_1d<double, 3>>& rVariable, const array_1d<double, 3>& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
-        .def("SetVectorVar", VariableUtilsSetVariableForFlag<array_1d<double, 3>>)
-        .def("SetScalarVar", VariableUtilsSetVariable<double>)
-        .def("SetScalarVar", [](VariableUtils& rVariableUtils, const Variable<double>& rVariable, const double& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
-        .def("SetScalarVar", VariableUtilsSetVariableForFlag<double>)
-
-        .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<int, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVectorVar", VariableUtilsSetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
-
-        .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<int>)
-        .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<double>)
-        .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<array_1d<double, 3>>)
+        
+        // All this entry points should be removed.
+        // .def("SetVectorVar", VariableUtilsSetVariable<array_1d<double,3>>)
+        // .def("SetVectorVar", [](VariableUtils& rVariableUtils, const Variable<array_1d<double, 3>>& rVariable, const array_1d<double, 3>& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
+        // .def("SetVectorVar", VariableUtilsSetVariableForFlag<array_1d<double, 3>>)
+        // .def("SetScalarVar", VariableUtilsSetVariable<double>)
+        // .def("SetScalarVar", [](VariableUtils& rVariableUtils, const Variable<double>& rVariable, const double& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
+        // .def("SetScalarVar", VariableUtilsSetVariableForFlag<double>)
+        // .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<int, ModelPart::NodesContainerType>)
+        // .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
+        // .def("SetNonHistoricalVectorVar", VariableUtilsSetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
+        // .def("CopyScalarVar", &VariableUtils::CopyVariable<double>)
+        // .def("CopyVectorVar", &VariableUtils::CopyVariable<array_1d<double, 3>>)
+        // .def("SaveScalarVar", &VariableUtils::SaveVariable<double>)
+        // .def("SaveVectorVar", &VariableUtils::SaveVariable<array_1d<double, 3>>)
+        // .def("SaveScalarNonHistoricalVar", &VariableUtils::SaveNonHistoricalVariable<double, ModelPart::NodesContainerType>)
+        // .def("SaveVectorNonHistoricalVar", &VariableUtils::SaveNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
+        ////////////////////////////////////////////
 
         .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::NodesContainerType>)
         .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::ConditionsContainerType>)
@@ -302,17 +264,8 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("FlipFlag", &VariableUtils::FlipFlag<ModelPart::ElementsContainerType>)
         .def("FlipFlag", &VariableUtils::FlipFlag<ModelPart::MasterSlaveConstraintContainerType>)
         
-        .def("SaveScalarVar", &VariableUtils::SaveVariable<double>)              // To be removed
-        .def("SaveVectorVar", &VariableUtils::SaveVariable<array_1d<double, 3>>) // To be removed
-        
-        .def("SaveScalarNonHistoricalVar", &VariableUtils::SaveNonHistoricalVariable<double, ModelPart::NodesContainerType>)              // To be removed
-        .def("SaveVectorNonHistoricalVar", &VariableUtils::SaveNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>) // To be removed
-
         .def("SelectNodeList", &VariableUtils::SelectNodeList)
         
-        .def("CopyScalarVar", &VariableUtils::CopyVariable<double>)                                                                    // To be removed
-        .def("CopyVectorVar", &VariableUtils::CopyVariable<array_1d<double, 3>>)                                                       // To be removed
-
         .def("ApplyFixity", ApplyFixity<Variable<double>>)
         .def("ApplyFixity", ApplyFlaggedFixity<Variable<double>>)
         .def("ApplyVector", &VariableUtils::ApplyVector<Variable<double>>)
