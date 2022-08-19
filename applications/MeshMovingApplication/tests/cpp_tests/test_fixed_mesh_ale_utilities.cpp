@@ -205,6 +205,16 @@ namespace Testing {
         for (std::size_t i = 0; i < 8; ++i) {
             KRATOS_CHECK_NEAR(obtained_projected_values[i], expected_projected_values[i], tol);
         }
+
+        const auto v_n_29 = origin_model_part.pGetNode(29)->FastGetSolutionStepValue(VELOCITY, 1);
+        const auto v_n_53 = origin_model_part.pGetNode(54)->FastGetSolutionStepValue(VELOCITY, 1);
+        const auto p_n_29 = origin_model_part.pGetNode(29)->FastGetSolutionStepValue(PRESSURE, 1);
+        const auto p_n_53 = origin_model_part.pGetNode(54)->FastGetSolutionStepValue(PRESSURE, 1);
+        const std::array<double,8> expected_projected_values_n{{0.459105,0,0,0.1,0.885347,0,0,0.1}};
+        const std::array<double,8> obtained_projected_values_n{{v_n_29[0], v_n_29[1], v_n_29[2], p_n_29, v_n_53[0], v_n_53[1], v_n_53[2], p_n_53}};
+        for (std::size_t i = 0; i < 8; ++i) {
+            KRATOS_CHECK_NEAR(obtained_projected_values_n[i], expected_projected_values_n[i], tol);
+        }
     }
 }
 }  // namespace Kratos.
