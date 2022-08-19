@@ -101,7 +101,7 @@ def AssembleTestSuites(is_team_city):
         validSuite = unittest.TestSuite()
         allSuite = unittest.TestSuite()
 
-	small_test_cases.append(TestUnitPipingElements)
+        small_test_cases.append(TestUnitPipingElements)
 
         for test in small_test_cases:
             smallSuite.addTests(unittest.TestLoader().loadTestsFromTestCase(
