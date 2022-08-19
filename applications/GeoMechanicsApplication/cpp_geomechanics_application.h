@@ -42,8 +42,6 @@
 
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 
-using namespace std;
-
 class NodeOperation
 {
 public:
@@ -147,10 +145,10 @@ namespace Kratos
         KratosExecute(){};
         ~KratosExecute(){};
 
-        int geoflow(string workingDirectory, string parameterName,
+        int geoflow(std::string workingDirectory, std::string parameterName,
                     double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
-                    string criticalHeadBoundaryModelPartName);
-        int geosettlement(string workingDirectory, string parameterName);
+                    std::string criticalHeadBoundaryModelPartName);
+        int geosettlement(std::string workingDirectory, std::string parameterName);
 
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
@@ -192,12 +190,12 @@ namespace Kratos
         ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
         LinearSolverType::Pointer setup_solver_dgeoflow();
         GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart &model_part);
-        void parseMesh(ModelPart &model_part, string filepath);
-        void parseMaterial(Model &model, string filepath);
+        void parseMesh(ModelPart &model_part, std::string filepath);
+        void parseMaterial(Model &model, std::string filepath);
 
-        Parameters openProjectParamsFile(string filepath);
+        Parameters openProjectParamsFile(std::string filepath);
         std::vector<std::shared_ptr<Process>> parseProcess(ModelPart &model_part, Parameters projFile);
-        void outputGiD(Model &model, ModelPart &model_part, Parameters parameters, string workingDirectory);
+        void outputGiD(Model &model, ModelPart &model_part, Parameters parameters, std::string workingDirectory);
 
     private:
         int echoLevel = 1;

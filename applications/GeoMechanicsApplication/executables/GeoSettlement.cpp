@@ -13,13 +13,10 @@
 #include "GeoSettlement.h"
 #include <iostream>
 
-int main(int argc, char** argv) {
-
-	//string workingDirectory = "C:/Development/Kratos/KratosStandaloneTest/test1";
-    //string projectName = "ProjectParameters_stage1.json";
-
-    string workingDirectory = argv[1];
-    string projectName = argv[2];
+int main(int argc, char **argv)
+{
+    std::string workingDirectory = argv[1];
+    std::string projectName = argv[2];
 
     auto execute = Kratos::KratosExecute();
     execute.geosettlement(workingDirectory, projectName);
