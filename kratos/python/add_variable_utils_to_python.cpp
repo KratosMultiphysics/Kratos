@@ -80,52 +80,6 @@ void VariableUtilsUpdateCurrentPositionWithVariableAndPosition(
     rVariableUtils.UpdateCurrentPosition(rNodes, rUpdateVariable, BufferPosition);
 }
 
-template<class TVarType>
-void VariableUtilsCopyModelPartNodalVar(
-    VariableUtils &rVariableUtils,
-    const TVarType &rVariable,
-    const ModelPart &rOriginModelPart,
-    ModelPart &rDestinationModelPart,
-    const unsigned int BuffStep = 0)
-{
-    rVariableUtils.CopyModelPartNodalVar(rVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
-}
-
-template<class TVarType>
-void VariableUtilsCopyModelPartNodalVarWithDestination(
-    VariableUtils &rVariableUtils,
-    const TVarType &rVariable,
-    const TVarType &rDestinationVariable,
-    const ModelPart &rOriginModelPart,
-    ModelPart &rDestinationModelPart,
-    const unsigned int BuffStep = 0)
-{
-    rVariableUtils.CopyModelPartNodalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
-}
-
-template<class TVarType>
-void CopyModelPartNodalVarToNonHistoricalVar(
-    VariableUtils &rVariableUtils,
-    const TVarType &rVariable,
-    const ModelPart &rOriginModelPart,
-    ModelPart &rDestinationModelPart,
-    const unsigned int BuffStep = 0)
-{
-    rVariableUtils.CopyModelPartNodalVarToNonHistoricalVar(rVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
-}
-
-template<class TVarType>
-void CopyModelPartNodalVarToNonHistoricalVarWithDestination(
-    VariableUtils &rVariableUtils,
-    const TVarType &rVariable,
-    const TVarType &rDestinationVariable,
-    const ModelPart &rOriginModelPart,
-    ModelPart &rDestinationModelPart,
-    const unsigned int BuffStep = 0)
-{
-    rVariableUtils.CopyModelPartNodalVarToNonHistoricalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
-}
-
 template< class TVarType >
 void ApplyFixity(
     VariableUtils &rVariableUtils,
@@ -178,10 +132,10 @@ void VariableUtilsSetNonHistoricalVariableForFlag(
 // Unified interface
 template<class TVariableType>
 void AddVariableUtilsCommonInterfaceIterator(pybind11::module& m) {
-    m.def("CopyModelPartNodalVar",                      VariableUtilsCopyModelPartNodalVar<Variable<TVariableType>>);
-    m.def("CopyModelPartNodalVar",                      VariableUtilsCopyModelPartNodalVarWithDestination<Variable<TVariableType>>);
-    m.def("CopyModelPartNodalVarToNonHistoricalVar",    CopyModelPartNodalVarToNonHistoricalVar<Variable<TVariableType>>);
-    m.def("CopyModelPartNodalVarToNonHistoricalVar",    CopyModelPartNodalVarToNonHistoricalVarWithDestination<Variable<TVariableType>>);
+    m.def("CopyModelPartNodalVar",                      [](VariableUtils& rVariableUtils, const Variable<TVariableType>& rVariable, const ModelPart &rOriginModelPart, ModelPart &rDestinationModelPart, const unsigned int BuffStep = 0){rVariableUtils.CopyModelPartNodalVar(rVariable, rOriginModelPart, rDestinationModelPart, BuffStep);});
+    m.def("CopyModelPartNodalVar",                      [](VariableUtils& rVariableUtils, const Variable<TVariableType>& rVariable, const Variable<TVariableType>& rDestinationVariable, const ModelPart &rOriginModelPart, ModelPart &rDestinationModelPart, const unsigned int BuffStep = 0){rVariableUtils.CopyModelPartNodalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep);});
+    m.def("CopyModelPartNodalVarToNonHistoricalVar",    [](VariableUtils& rVariableUtils, const Variable<TVariableType>& rVariable, const ModelPart &rOriginModelPart, ModelPart &rDestinationModelPart, const unsigned int BuffStep = 0){rVariableUtils.CopyModelPartNodalVarToNonHistoricalVar(rVariable, rOriginModelPart, rDestinationModelPart, BuffStep);});
+    m.def("CopyModelPartNodalVarToNonHistoricalVar",    [](VariableUtils& rVariableUtils, const Variable<TVariableType>& rVariable, const Variable<TVariableType>& rDestinationVariable, const ModelPart &rOriginModelPart, ModelPart &rDestinationModelPart, const unsigned int BuffStep = 0){rVariableUtils.CopyModelPartNodalVarToNonHistoricalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep);});
     m.def("CopyModelPartElementalVar",                  &VariableUtils::CopyModelPartElementalVar<Variable<TVariableType>>);
     m.def("SetVariable",                                [](VariableUtils& rVariableUtils, const Variable<TVariableType>& rVariable, const TVariableType& rValue, ModelPart::NodesContainerType& rNodes){rVariableUtils.SetVariable(rVariable, rValue, rNodes);});
     m.def("SetVariable",                                [](VariableUtils& rVariableUtils, const Variable<TVariableType>& rVariable, const TVariableType& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);});
