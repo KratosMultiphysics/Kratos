@@ -903,9 +903,17 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
                 // Compute VM stress
-                if (dimension == 2 ) {
-                    rOutput[point_number] = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
-                } else {
+                if (dimension == 2) {
+                    if (strain_size == 3) {
+                        rOutput[point_number] = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
+                    } else { // Axysimmetric 4
+                        Vector aux_stress(6);
+                        noalias(aux_stress) = ZeroVector(6);
+                        for (IndexType i = 0; i < 4; ++i)
+                            aux_stress(i) = this_constitutive_variables.StressVector(i);
+                        rOutput[point_number] = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(aux_stress);
+                    }
+                } else { // 3D
                     rOutput[point_number] = ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
                 }
             }
