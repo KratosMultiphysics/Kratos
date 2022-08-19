@@ -208,13 +208,13 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        export CC=/usr/lib/ccache/clang-10
-        export CXX=/usr/lib/ccache/clang++-10
+        export CC=/usr/lib/ccache/clang
+        export CXX=/usr/lib/ccache/clang++
 
         export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
         export KRATOS_BUILD="${KRATOS_SOURCE}/build"
         export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
-        export PYTHON_EXECUTABLE="/usr/bin/python3.8"
+        export PYTHON_EXECUTABLE="/usr/bin/python3.10"
         export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
         add_app () {
@@ -230,7 +230,6 @@ jobs:
         # Configure
         cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
         -DUSE_MPI=ON \
-        -DPYBIND11_PYTHON_VERSION="3.8" \
         -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
         -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
         -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
