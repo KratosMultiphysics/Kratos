@@ -80,37 +80,19 @@ public:
         const auto& r_node = rGeometry[0];
         const double shape_function_value = rShapeFunction[0];
 
-        int dummy[sizeof...(TRefVariableValuePairArgs)] = {(
-            AssignValue<
+        (AssignValue<
                 typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type,
-                typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type
-                >
-                (
-                    r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value,
-                    std::get<0>(rValueVariablePairs)
-                ),
-            0)...};
-
-        // this can be removed with fold expressions in c++17
-        *dummy = 0;
+                typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type>(
+                    r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value, std::get<0>(rValueVariablePairs)), ...);
 
         for (IndexType c = 1; c < rGeometry.PointsNumber(); ++c) {
             const auto& r_node = rGeometry[c];
             const double shape_function_value = rShapeFunction[c];
 
-            int dummy[sizeof...(TRefVariableValuePairArgs)] = {(
-                UpdateValue<
+            (UpdateValue<
                     typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type,
-                    typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type
-                    >
-                    (
-                        r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value,
-                        std::get<0>(rValueVariablePairs)
-                    ),
-                0)...};
-
-            // this can be removed with fold expressions in c++17
-            *dummy = 0;
+                    typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type>(
+                        r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value, std::get<0>(rValueVariablePairs)), ...);
         }
 
         KRATOS_CATCH("");
@@ -175,37 +157,20 @@ public:
         const auto& r_node = rGeometry[0];
         const double shape_function_value = rShapeFunction[0];
 
-        int dummy[sizeof...(TRefVariableValuePairArgs)] = {(
-            AssignValue<
+        (AssignValue<
                 typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type,
-                typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type
-                >
-                (
-                    r_node.GetValue(std::get<1>(rValueVariablePairs)) * shape_function_value,
-                    std::get<0>(rValueVariablePairs)
-                ),
-            0)...};
-
-        // this can be removed with fold expressions in c++17
-        *dummy = 0;
+                typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type>(
+                    r_node.GetValue(std::get<1>(rValueVariablePairs)) * shape_function_value, std::get<0>(rValueVariablePairs)), ...);
 
         for (IndexType c = 1; c < rGeometry.PointsNumber(); ++c) {
             const auto& r_node = rGeometry[c];
             const double shape_function_value = rShapeFunction[c];
 
-            int dummy[sizeof...(TRefVariableValuePairArgs)] = {(
-                UpdateValue<
+            (UpdateValue<
                     typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type,
-                    typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type
-                    >
-                    (
-                        r_node.GetValue(std::get<1>(rValueVariablePairs)) * shape_function_value,
-                        std::get<0>(rValueVariablePairs)
-                    ),
-                0)...};
+                    typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type>(
+                        r_node.GetValue(std::get<1>(rValueVariablePairs)) * shape_function_value, std::get<0>(rValueVariablePairs)), ...);
 
-            // this can be removed with fold expressions in c++17
-            *dummy = 0;
         }
 
         KRATOS_CATCH("");
@@ -250,21 +215,10 @@ public:
         const Vector& shape_function_derivative = row(rShapeFunctionDerivatives, 0);
 
         for (IndexType i = 0; i < rShapeFunctionDerivatives.size2(); ++i) {
-            int dummy[sizeof...(TRefVariableValuePairArgs)] = {(
-                AssignGradientValue<
+            (AssignGradientValue<
                     typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type,
-                    typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type
-                    >
-                    (
-                        r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step),
-                        shape_function_derivative[i],
-                        i,
-                        std::get<0>(rValueVariablePairs)
-                    ),
-                0)...};
-
-            // this can be removed with fold expressions in c++17
-            *dummy = 0;
+                    typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type>(
+                        r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step), shape_function_derivative[i], i, std::get<0>(rValueVariablePairs)), ...);
         }
 
         for (IndexType c = 1; c < rGeometry.PointsNumber(); ++c) {
@@ -272,21 +226,10 @@ public:
             const Vector& shape_function_derivative = row(rShapeFunctionDerivatives, c);
 
             for (IndexType i = 0; i < rShapeFunctionDerivatives.size2(); ++i) {
-                int dummy[sizeof...(TRefVariableValuePairArgs)] = {(
-                    UpdateGradientValue<
+                (UpdateGradientValue<
                         typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type,
-                        typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type
-                        >
-                        (
-                            r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step),
-                            shape_function_derivative[i],
-                            i,
-                            std::get<0>(rValueVariablePairs)
-                        ),
-                    0)...};
-
-                // this can be removed with fold expressions in c++17
-                *dummy = 0;
+                        typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type>(
+                            r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step), shape_function_derivative[i], i, std::get<0>(rValueVariablePairs)), ...);
             }
         }
 
@@ -366,21 +309,11 @@ public:
         const Vector& shape_function_derivative = row(rShapeFunctionDerivatives, 0);
 
         for (IndexType i = 0; i < rShapeFunctionDerivatives.size2(); ++i) {
-            int dummy[sizeof...(TRefVariableValuePairArgs)] = {(
-                AssignGradientValue<
+            (AssignGradientValue<
                     typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type,
-                    typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type
-                    >
-                    (
-                        r_node.GetValue(std::get<1>(rValueVariablePairs)),
-                        shape_function_derivative[i],
-                        i,
-                        std::get<0>(rValueVariablePairs)
-                    ),
-                0)...};
+                    typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type>(
+                        r_node.GetValue(std::get<1>(rValueVariablePairs)), shape_function_derivative[i], i, std::get<0>(rValueVariablePairs)), ...);
 
-            // this can be removed with fold expressions in c++17
-            *dummy = 0;
         }
 
         for (IndexType c = 1; c < rGeometry.PointsNumber(); ++c) {
@@ -388,21 +321,10 @@ public:
             const Vector& shape_function_derivative = row(rShapeFunctionDerivatives, c);
 
             for (IndexType i = 0; i < rShapeFunctionDerivatives.size2(); ++i) {
-                int dummy[sizeof...(TRefVariableValuePairArgs)] = {(
-                    UpdateGradientValue<
+                (UpdateGradientValue<
                         typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type,
-                        typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type
-                        >
-                        (
-                            r_node.GetValue(std::get<1>(rValueVariablePairs)),
-                            shape_function_derivative[i],
-                            i,
-                            std::get<0>(rValueVariablePairs)
-                        ),
-                    0)...};
-
-                // this can be removed with fold expressions in c++17
-                *dummy = 0;
+                        typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type>(
+                            r_node.GetValue(std::get<1>(rValueVariablePairs)), shape_function_derivative[i], i, std::get<0>(rValueVariablePairs)), ...);
             }
         }
 
