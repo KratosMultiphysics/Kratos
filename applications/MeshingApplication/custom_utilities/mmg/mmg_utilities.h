@@ -33,7 +33,7 @@
     #define MMG_VERSION_MAJOR 5
 #endif
 #ifndef MMG_VERSION_MINOR
-    #define MMG_VERSION_MINOR 4
+    #define MMG_VERSION_MINOR 5
 #endif
 #ifndef MMG_VERSION_PATCH
     #define MMG_VERSION_PATCH 0
