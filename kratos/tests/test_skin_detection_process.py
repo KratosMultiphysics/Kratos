@@ -117,9 +117,7 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         gid_output.ExecuteFinalize()
 
     def _post_process_mpi(self, model_part):
-        from mpi4py import MPI
-        comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
+        comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
         gid_output = GiDOutputProcess(model_part,
                                     "gid_output_"+str(rank),
                                     KratosMultiphysics.Parameters("""
