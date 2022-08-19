@@ -67,7 +67,6 @@ def AssembleTestSuites(is_team_city):
         KratosGeoMechanicsSoilWeightTests,
         KratosGeoMechanicsSettlementTests,
         KratosGeoMechanicsCurvedBeamElementTests,
-        TestUnitPipingElements,
         TestNormalFluxCondition
     ]
 
@@ -101,6 +100,8 @@ def AssembleTestSuites(is_team_city):
         nightSuite = unittest.TestSuite()
         validSuite = unittest.TestSuite()
         allSuite = unittest.TestSuite()
+
+	small_test_cases.append(TestUnitPipingElements)
 
         for test in small_test_cases:
             smallSuite.addTests(unittest.TestLoader().loadTestsFromTestCase(
