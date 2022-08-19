@@ -401,8 +401,8 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
             }            
         }
 
-        // Not all the faces are going to be removed, only the ones which are repeated in different processes. So we need to filter then. This is a complex MPI process. 
-
+        /* Not all the faces are going to be removed, only the ones which are repeated in different processes. So we need to filter then. */
+        
         // First we determine the rank and the size of the world
         auto& r_communicator = mrModelPart.GetCommunicator();
         auto& r_data_communicator = r_communicator.GetDataCommunicator();
