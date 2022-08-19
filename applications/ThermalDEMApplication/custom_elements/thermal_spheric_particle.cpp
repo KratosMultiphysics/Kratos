@@ -159,7 +159,6 @@ namespace Kratos
 
     // Initialze accumulated energy dissipations
     mPreviousFrictionalEnergy   = 0.0;
-    mPreviousRollResistEnergy   = 0.0;
     mPreviousViscodampingEnergy = 0.0;
 
     KRATOS_CATCH("")

@@ -207,7 +207,6 @@ namespace Kratos
       unsigned int mNumStepsEval;               // number of steps passed since last thermal evaluation
       double       mPreviousTemperature;        // temperature from the beginning of the step
       double       mPreviousFrictionalEnergy;   // accumulated frictional energy dissipation from previous interaction
-      double       mPreviousRollResistEnergy;   // accumulated rolling resistanceenergy dissipation from previous interaction
       double       mPreviousViscodampingEnergy; // accumulated viscodamping energy dissipation from previous interaction
       bool         mIsTimeToSolve;              // flag to solve thermal problem in current step
       bool         mHasMotion;                  // flag to solve mechanical behavior (forces and displacements)
