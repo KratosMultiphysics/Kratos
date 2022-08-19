@@ -71,10 +71,7 @@ namespace Testing
         Matrix lhs;
         Vector rhs;
         const auto& const_procinfo_ref = r_model_part.GetProcessInfo();
-        double factor = 1.0;
-        // for(unsigned int step = 0; step < 5; ++step) {
-            // factor += 1.0;
-            // Matrix A = factor * A0;
+
         for (auto& r_node : r_model_part.Nodes()){
             noalias(r_node.GetSolutionStepValue(DISPLACEMENT)) = prod(A0, r_node.GetInitialPosition());
             r_node.Coordinates() = r_node.GetInitialPosition() + r_node.GetSolutionStepValue(DISPLACEMENT); //here i update the node coordinates
@@ -86,22 +83,22 @@ namespace Testing
         p_element->FinalizeNonLinearIteration(const_procinfo_ref);
         p_element->FinalizeSolutionStep(const_procinfo_ref);
 
-        // const double reference_von_mises_pk2 = 0.0;
-        // Vector reference_strain = {0.0, 0.0, 0.0, 0.0};
-        // Vector reference_stress = {0.0, 0.0, 0.0, 0.0};
+        const double reference_von_mises_pk2 = 167301.0;
+        const std::vector<double> reference_strain = {0.02,-0.01,0.0654206,0.1,0.0,0.0};
+        const std::vector<double> reference_stress = {117793,71639.1,187671,76923.1,0.0,0.0};
 
-        // std::vector<Vector> output_strains(1);
-        // p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, output_strains, r_model_part.GetProcessInfo());
+        std::vector<Vector> output_strains(1);
+        p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, output_strains, r_model_part.GetProcessInfo());
 
-        // std::vector<Vector> output_stress(1);
-        // p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, output_stress, r_model_part.GetProcessInfo());
+        std::vector<Vector> output_stress(1);
+        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, output_stress, r_model_part.GetProcessInfo());
 
-        // std::vector<double> output_von_mises(1);
-        // p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS, output_von_mises, r_model_part.GetProcessInfo());
+        std::vector<double> output_von_mises(1);
+        p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS, output_von_mises, r_model_part.GetProcessInfo());
 
-        // KRATOS_CHECK_VECTOR_EQUAL(output_strains[0], reference_strain);
-        // KRATOS_CHECK_VECTOR_EQUAL(output_stress[0], reference_stress);
-        // KRATOS_CHECK_NEAR((output_von_mises[0]-reference_von_mises_pk2)/reference_von_mises_pk2, 0.0,1e-14);
+        KRATOS_CHECK_VECTOR_NEAR(output_strains[0], reference_strain, 1.0e-6);
+        KRATOS_CHECK_VECTOR_NEAR(output_stress[0], reference_stress, 1.0e-4*reference_stress[0]);
+        KRATOS_CHECK_NEAR((output_von_mises[0]-reference_von_mises_pk2)/reference_von_mises_pk2, 0.0,1e-6*reference_von_mises_pk2);
     }
 }
 }
