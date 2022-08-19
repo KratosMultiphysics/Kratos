@@ -34,12 +34,6 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         detect_skin = KratosMultiphysics.SkinDetectionProcess3D(self.model_part)
         detect_skin.Execute()
 
-        # # DEBUG
-        # self._post_process(self.model_part)
-
-        # # DEBUG
-        # self._post_process_mpi(self.model_part)
-
         for node in self.model_part.Nodes:
             self.assertEqual(node.Is(KratosMultiphysics.INTERFACE), node.Is(KratosMultiphysics.ACTIVE))
 
@@ -52,12 +46,6 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
 
         detect_skin = KratosMultiphysics.SkinDetectionProcess3D(self.model_part, skin_detection_parameters)
         detect_skin.Execute()
-
-        # # DEBUG
-        # self._post_process(self.model_part)
-
-        # # DEBUG
-        # self._post_process_mpi(self.model_part)
 
         self.assertEqual(self.model_part.GetSubModelPart("Skin_Part").NumberOfConditions(), self.model_part.NumberOfConditions())
 
@@ -76,12 +64,6 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         }"""))
         detect_skin.Execute()
 
-        # # DEBUG
-        # self._post_process(self.model_part)
-
-        # # DEBUG
-        # self._post_process_mpi(self.model_part)
-
         for node in self.model_part.Nodes:
             self.assertEqual(node.Is(KratosMultiphysics.INTERFACE), node.Is(KratosMultiphysics.ACTIVE))
 
@@ -96,67 +78,8 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         }"""))
         detect_skin.Execute()
 
-        # # DEBUG
-        # self._post_process(self.model_part)
-
-        # # DEBUG
-        # self._post_process_mpi(self.model_part)
-
         # Check the number of conditions created
         self.assertEqual(model_part.GetCommunicator().GlobalNumberOfConditions(), 112)
-
-    def _post_process(self, model_part):
-        gid_output = GiDOutputProcess(model_part,
-                                    "gid_output",
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_flags_results" : ["INTERFACE","ACTIVE"]
-                                            }
-                                        }
-                                        """)
-                                    )
-
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
-
-    def _post_process_mpi(self, model_part):
-        data_comm = model_part.GetCommunicator().GetDataCommunicator()
-        rank = data_comm.Rank()
-        gid_output = GiDOutputProcess(model_part,
-                                    "gid_output_"+str(rank),
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_results": ["PARTITION_INDEX"],
-                                                "nodal_flags_results" : ["INTERFACE","ACTIVE"]
-                                            }
-                                        }
-                                        """)
-                                    )
-
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
 
 if __name__ == '__main__':
     KratosUnittest.main()
