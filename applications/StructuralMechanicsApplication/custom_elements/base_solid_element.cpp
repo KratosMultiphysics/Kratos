@@ -1090,10 +1090,18 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 // Compute material reponse
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this_stress_measure);
 
-                if ( rOutput[point_number].size() != strain_size)
-                    rOutput[point_number].resize( strain_size, false );
+                if (strain_size == 4) { // Axysimmetric
+                    if (rOutput[point_number].size() != 6)
+                        rOutput[point_number].resize(6, false);
+                    noalias(rOutput[point_number]) = ZeroVector(6);
+                    for (IndexType i = 0; i < 4; ++i)
+                        rOutput[point_number](i) = this_constitutive_variables.StrainVector(i);
+                } else {
+                    if (rOutput[point_number].size() != strain_size)
+                        rOutput[point_number].resize(strain_size, false);
 
-                noalias(rOutput[point_number]) = this_constitutive_variables.StrainVector;
+                    noalias(rOutput[point_number]) = this_constitutive_variables.StrainVector;
+                }
             }
         } else if (rVariable == INITIAL_STRESS_VECTOR) {
             const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
