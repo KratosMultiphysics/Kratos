@@ -201,6 +201,13 @@ protected:
     ///@name Life Cycle
     ///@{
 
+    /// Constructor with model part arguments for derived explicit FM-ALE
+    FixedMeshALEUtilities(
+        ModelPart& rVirtualModelPart,
+        ModelPart& rStructureModelPart)
+        : mrVirtualModelPart(rVirtualModelPart)
+        , mrStructureModelPart(rStructureModelPart)
+    {}
 
     ///@}
     ///@name Static Member Variables
@@ -217,8 +224,8 @@ protected:
 
     Parameters mEmbeddedNodalVariableSettings;
 
-    std::vector<Variable<double>*> mScalarVariablesList;
-    std::vector<Variable<array_1d<double,3>>*> mArrayVariablesList;
+    std::vector<const Variable<double>*> mScalarVariablesList;
+    std::vector<const Variable<array_1d<double,3>>*> mArrayVariablesList;
 
     ///@}
     ///@name Protected Operators

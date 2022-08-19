@@ -82,12 +82,6 @@ namespace Kratos
     ///@name Life Cycle
     ///@{
 
-    /// Constructor
-    ExplicitFixedMeshALEUtilities(
-        ModelPart &rVirtualModelPart,
-        ModelPart &rStructureModelPart,
-        const double SearchRadius);
-
     /// Constructor with model and parameters
     ExplicitFixedMeshALEUtilities(
         Model &rModel,
@@ -150,6 +144,16 @@ namespace Kratos
 
     ///@}
 protected:
+    ///@name Protected Life Cycle
+    ///@{
+
+    /// Constructor
+    ExplicitFixedMeshALEUtilities(
+        ModelPart &rVirtualModelPart,
+        ModelPart &rStructureModelPart,
+        const double SearchRadius);
+
+    ///@}
     ///@name Static Member Variables
     ///@{
 

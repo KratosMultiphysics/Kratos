@@ -109,9 +109,12 @@ namespace Testing {
         }
 
         // Set the explicit mesh moving utility
-        const double search_radius = 1.0;
-        ExplicitFixedMeshALEUtilities::Pointer p_mesh_moving =
-            Kratos::make_shared<ExplicitFixedMeshALEUtilities>(virtual_model_part, str_model_part, search_radius);
+        Parameters expl_fm_ale_settings(R"({
+            "virtual_model_part_name": "VirtualModelPart",
+            "structure_model_part_name": "StructureModelPart",
+            "search_radius": 1.0
+        })");
+        auto p_mesh_moving = Kratos::make_shared<ExplicitFixedMeshALEUtilities>(current_model, expl_fm_ale_settings);
 
         // Fill the virtual model part geometry
         p_mesh_moving->Initialize(origin_model_part);

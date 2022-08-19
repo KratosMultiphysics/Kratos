@@ -116,7 +116,11 @@ namespace Testing {
         CalculateDistanceToSkinProcess<2>(origin_model_part, str_model_part).Execute();
 
         // Set the FM-ALE utility
-        auto p_mesh_moving = Kratos::make_shared<FixedMeshALEUtilities>(virtual_model_part, str_model_part);
+        Parameters fm_ale_settings(R"({
+            "virtual_model_part_name" : "VirtualModelPart",
+            "structure_model_part_name" : "StructureModelPart"
+        })");
+        auto p_mesh_moving = Kratos::make_shared<FixedMeshALEUtilities>(current_model, fm_ale_settings);
 
         // Fill the virtual model part geometry
         p_mesh_moving->Initialize(origin_model_part);

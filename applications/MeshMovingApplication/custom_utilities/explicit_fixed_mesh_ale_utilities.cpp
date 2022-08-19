@@ -34,22 +34,6 @@ namespace Kratos
 /* Public functions *******************************************************/
 
 ExplicitFixedMeshALEUtilities::ExplicitFixedMeshALEUtilities(
-    ModelPart &rVirtualModelPart,
-    ModelPart &rStructureModelPart,
-    const double SearchRadius) :
-    FixedMeshALEUtilities(
-        rVirtualModelPart,
-        rStructureModelPart),
-    mSearchRadius(SearchRadius)
-{
-    // Check the structure model part
-    if (mrStructureModelPart.GetBufferSize() < 2) {
-        (mrStructureModelPart.GetRootModelPart()).SetBufferSize(2);
-        KRATOS_WARNING("ExplicitFixedMeshALEUtilities") << "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
-    }
-}
-
-ExplicitFixedMeshALEUtilities::ExplicitFixedMeshALEUtilities(
     Model &rModel,
     Parameters &rParameters) :
     FixedMeshALEUtilities(
@@ -103,6 +87,24 @@ ExplicitFixedMeshALEUtilities::ComputeMeshMovement(const double DeltaTime)
         KRATOS_ERROR_IF((it_elem->GetGeometry()).Area() < 0.0) << "Element " << it_elem->Id() << " in virtual model part has negative jacobian." << std::endl;
     }
 #endif
+}
+
+/* Protected functions *******************************************************/
+
+ExplicitFixedMeshALEUtilities::ExplicitFixedMeshALEUtilities(
+    ModelPart &rVirtualModelPart,
+    ModelPart &rStructureModelPart,
+    const double SearchRadius) :
+    FixedMeshALEUtilities(
+        rVirtualModelPart,
+        rStructureModelPart),
+    mSearchRadius(SearchRadius)
+{
+    // Check the structure model part
+    if (mrStructureModelPart.GetBufferSize() < 2) {
+        (mrStructureModelPart.GetRootModelPart()).SetBufferSize(2);
+        KRATOS_WARNING("ExplicitFixedMeshALEUtilities") << "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
+    }
 }
 
 /* Private functions *******************************************************/

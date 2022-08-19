@@ -44,8 +44,8 @@ namespace Kratos
         for (std::string var_name : rParameters["projected_variable_names"].GetStringArray()) {
             if (KratosComponents<Variable<double>>::Has(var_name)) {
                 mScalarVariablesList.push_back(&(KratosComponents<Variable<double>>::Get(var_name)));
-            } else if (KratosComponents<Variable<array_1d<double,3>>::Has(var_name)) {
-                mArrayVariablesList.push_back(&(KratosComponents<Variable<array_1d<double,3>>::Get(var_name)));
+            } else if (KratosComponents<Variable<array_1d<double,3>>>::Has(var_name)) {
+                mArrayVariablesList.push_back(&(KratosComponents<Variable<array_1d<double,3>>>::Get(var_name)));
             } else {
                 KRATOS_ERROR << "Variable '" << var_name << "' in 'projected_variable_names' is not of scalar nor array type." << std::endl;
             }
@@ -204,11 +204,11 @@ namespace Kratos
 
                     // Initialize historical data
                     for (unsigned int i_step = 1; i_step < BufferSize; ++i_step) {
-                        for (auto& r_scal_var : mScalarVariablesList) {
-                            rNode.FastGetSolutionStepValue(r_scal_var, i_step) = 0.0;
+                        for (auto p_scal_var : mScalarVariablesList) {
+                            rNode.FastGetSolutionStepValue(*p_scal_var, i_step) = 0.0;
                         }
-                        for (auto& r_arr_var : mArrayVariablesList) {
-                            noalias(rNode.FastGetSolutionStepValue(r_arr_var, i_step)) = ZeroVector(3);
+                        for (auto p_arr_var : mArrayVariablesList) {
+                            noalias(rNode.FastGetSolutionStepValue(*p_arr_var, i_step)) = ZeroVector(3);
                         }
                     }
 
@@ -221,13 +221,13 @@ namespace Kratos
 
                         // Project historical data
                         for (unsigned int i_step = 1; i_step < BufferSize; ++i_step){
-                            for (auto& r_scal_var : mScalarVariablesList) {
-                                const double &i_virt_val = r_geom[i_virt_node].FastGetSolutionStepValue(r_scal_var, i_step);
-                                rNode.FastGetSolutionStepValue(r_scal_var, i_step) += aux_N(i_virt_node) * i_virt_val;
+                            for (auto p_scal_var : mScalarVariablesList) {
+                                const double &i_virt_val = r_geom[i_virt_node].FastGetSolutionStepValue(*p_scal_var, i_step);
+                                rNode.FastGetSolutionStepValue(*p_scal_var, i_step) += aux_N(i_virt_node) * i_virt_val;
                             }
-                            for (auto& r_arr_var : mArrayVariablesList) {
-                                const auto &i_virt_val = r_geom[i_virt_node].FastGetSolutionStepValue(r_arr_var, i_step);
-                                noalias(rNode.FastGetSolutionStepValue(r_arr_var, i_step)) += aux_N(i_virt_node) * i_virt_val;
+                            for (auto p_arr_var : mArrayVariablesList) {
+                                const auto &i_virt_val = r_geom[i_virt_node].FastGetSolutionStepValue(*p_arr_var, i_step);
+                                noalias(rNode.FastGetSolutionStepValue(*p_arr_var, i_step)) += aux_N(i_virt_node) * i_virt_val;
                             }
                         }
                     }
