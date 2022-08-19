@@ -79,8 +79,8 @@ void AxisymElasticIsotropic::GetLawFeatures(Features& rFeatures)
 void AxisymElasticIsotropic::CalculateElasticMatrix(VoigtSizeMatrixType& C, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& MaterialProperties = rValues.GetMaterialProperties();
-    const double& E = MaterialProperties[YOUNG_MODULUS];
-    const double& NU = MaterialProperties[POISSON_RATIO];
+    const double E = MaterialProperties[YOUNG_MODULUS];
+    const double NU = MaterialProperties[POISSON_RATIO];
 
     if (C.size1() != 4 || C.size2() != 4)
         C.resize(4, 4, false);
@@ -117,7 +117,7 @@ void AxisymElasticIsotropic::CalculatePK2Stress(
     )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
+    const double E  = r_material_properties[YOUNG_MODULUS];
     const double NU = r_material_properties[POISSON_RATIO];
 
     const double aux_value = (1.0 - 2.0 * NU);
