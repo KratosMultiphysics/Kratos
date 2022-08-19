@@ -197,7 +197,7 @@ namespace Kratos
         block_for_each(
             rOriginModelPart.Nodes(),
             typename BinBasedFastPointLocator<TDim>::ResultContainerType(mSearchMaxResults),
-            [&](Node<3>& rNode, typename BinBasedFastPointLocator<TDim>::ResultContainerType& rSearchResults){
+            [&](auto& rNode, auto& rSearchResults){
                 // Find the origin model part node in the virtual mesh
                 Vector aux_N(TDim+1);
                 Element::Pointer p_elem = nullptr;
