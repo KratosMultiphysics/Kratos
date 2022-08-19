@@ -1,5 +1,5 @@
 # Importing the Kratos Library
-from genericpath import isfile
+from pathlib import Path
 import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 from KratosMultiphysics import Logger
@@ -17,7 +17,6 @@ def Factory(settings, Model):
             "hole_generatrix_axis"     : [0.0,0.0,1.0],
             "hole_generatrix_point"    : [0.0,0.0,0.0],
             "hole_radius_offset"       : 0.0,
-            "last_layer"               : false,
             "initial_variable_table"     : {
                         "name"             : "csv_table",
                         "filename"         : "sample.csv",
@@ -25,7 +24,6 @@ def Factory(settings, Model):
                         "skiprows"         : 1,
                         "first_column_id"  : 0,
                         "second_column_id" : 1,
-                        "table_id"         : -1,
                         "na_replace"       : 0.0
                     }
         }""")
@@ -33,40 +31,48 @@ def Factory(settings, Model):
     process_settings.ValidateAndAssignDefaults(default_settings)
     computing_model_part = Model[process_settings["model_part_name"].GetString()]
 
-    if process_settings["initial_variable_table"]["filename"].GetString().find("/") != -1:
-        filepath = process_settings["initial_variable_table"]["filename"].GetString().split("/")[0] + "/"
-        filename = process_settings["initial_variable_table"]["filename"].GetString().split("/")[1]
-    else:
-        filepath = ""
-        filename = process_settings["initial_variable_table"]["filename"].GetString()
+    default_table_id = KM.Parameters("""{
+    "table_id": 0
+    }""")
+    process_settings["initial_variable_table"].AddValue("table_id", default_table_id)
 
-    layer_string = filename.split("_")[0]
-    layer_number_string = layer_string[-1]
-    stress_string = filename.split("_")[1].split(".")[0]
-    variable_string = process_settings["variable_name"].GetString().split("_")[0] + " " + process_settings["variable_name"].GetString().split("_")[1].split("_")[0]
+    file_path = Path(process_settings["initial_variable_table"]["filename"].GetString())
+    layer_name = file_path.name.split("_")[0]
+    layer_list = [file for file in file_path.parent.iterdir() if file.name.split("_")[0] == layer_name]
 
-    i = 0
-
-    if not isfile(filepath + layer_string[:-1] + str(i + 1) + "_" + stress_string + ".csv"):
-        ErrorMsg = "Table " + "\"" + layer_string[:-1] + str(i + 1) + "_" + stress_string + ".csv\" not found"
+    if  len(layer_list) == 0:
+        ErrorMsg = "Tables of " + layer_name + " not found"
         raise RuntimeError(ErrorMsg)
-
-    while isfile(filepath + layer_string + "_" + stress_string[:-1] + str(i + 1) + ".csv") and i < 6:
-        
-        table_id = int(layer_number_string + str(i))
-
-        process_settings["initial_variable_table"]["filename"].SetString(filepath + layer_string + "_" + stress_string[:-1] + str(i+1)+".csv")
-        process_settings["initial_variable_table"]["table_id"].SetInt(table_id)
-
-        ReadCsvTableUtility(process_settings["initial_variable_table"]).Read(computing_model_part)
-        
-        if not isfile(filepath + layer_string + "_" + stress_string[:-1] + str(i + 2) + ".csv") or i == 5:
-            Logger.PrintInfo("SetAutomatedInitialVariableProcess:: ", variable_string.capitalize() + " tables of " + layer_string + " were successfully imported")
-     
-            if not isfile(filepath + layer_string[:-1] + str(int(layer_number_string) + 1) + "_" + stress_string + ".csv") and not process_settings["last_layer"].GetBool():
-                ErrorMsg = "Table " + "\"" + layer_string[:-1] + str(int(layer_number_string) + 1) + "_" + stress_string + ".csv\" not found"
-                raise RuntimeError(ErrorMsg)
-
-        i += 1
+    else:
+        component_list = []
+        table_id_list = []
+        for i in range (0, len(layer_list)):
+            component_number = int(layer_list[i].stem.split("_")[1][-1])
+            component_list.append(component_number)
+            table_id = int(layer_name[-1] + str(component_number - 1))
+            table_id_list.append(table_id)
+            process_settings["initial_variable_table"]["filename"].SetString(layer_list[i].as_posix())
+            process_settings["initial_variable_table"]["table_id"].SetInt(table_id)
+            ReadCsvTableUtility(process_settings["initial_variable_table"]).Read(computing_model_part)
     
+    raw_variable_name = process_settings["variable_name"].GetString()
+    variable_name = raw_variable_name.split("_")[0] + " " + raw_variable_name.split("_")[1].split("_")[0]
+    
+    if len(component_list) < 6:
+        missing_component_list = list(set(range(1,7)).difference(component_list))
+        for missing_component in missing_component_list:
+            Logger.PrintInfo("::[WARNING]:: : SetAutomatedInitialVariableProcess ", "Table correspoding to " + variable_name.lower() + " component " + str(missing_component) + " of " + layer_name + " not found. A zero entry will be added to the " + variable_name + " variable")
+    else:
+        Logger.PrintInfo("SetAutomatedInitialVariableProcess:: ", variable_name.capitalize() + " tables of " + layer_name + " were successfully imported")
+    
+    default_table_id_vector = KM.Parameters("""{
+    "table_id_vector": [10,11,12,13,14,15]
+    }""")
+    process_settings.AddValue("table_id_vector", default_table_id_vector)
+    process_settings["table_id_vector"].SetVector(table_id_list)
+   
+    process_settings.RemoveValue("help")
+    process_settings.RemoveValue("model_part_name")
+    process_settings.RemoveValue("initial_variable_table")
+
     return SMA.SetAutomatedInitialVariableProcess(computing_model_part, process_settings)
