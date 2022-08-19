@@ -51,6 +51,10 @@ namespace Kratos
             }
         }
 
+        // Set the settings for the search in the virtual mesh
+        mSearchTolerance = rParameters["search_tolerance"].GetDouble();
+        mSearchMaxResults = rParameters["search_max_results"].GetInt();
+
         // Save the embedded nodal variable settings
         mEmbeddedNodalVariableSettings = rParameters["embedded_nodal_variable_settings"];
 
@@ -190,14 +194,10 @@ namespace Kratos
 
         // Search the origin model part nodes in the virtual mesh elements and
         // interpolate the values in the virtual element to the origin model part node
-
-        unsigned int max_results=10000;
-        double search_tol = 1e-5;
-        block_for_each( rOriginModelPart.Nodes(), typename BinBasedFastPointLocator<TDim>::ResultContainerType(max_results),
-            [&]( Node<3>& rNode,
-                 typename BinBasedFastPointLocator<TDim>::ResultContainerType& search_results
-             )
-            {
+        block_for_each(
+            rOriginModelPart.Nodes(),
+            typename BinBasedFastPointLocator<TDim>::ResultContainerType(mSearchMaxResults),
+            [&](Node<3>& rNode, typename BinBasedFastPointLocator<TDim>::ResultContainerType& rSearchResults){
                 // Find the origin model part node in the virtual mesh
                 Vector aux_N(TDim+1);
                 Element::Pointer p_elem = nullptr;
@@ -205,9 +205,9 @@ namespace Kratos
                     rNode.Coordinates(),
                     aux_N,
                     p_elem,
-                    search_results.begin(),
-                    max_results,
-                    search_tol);
+                    rSearchResults.begin(),
+                    mSearchMaxResults,
+                    mSearchTolerance);
 
                 // Check if the node is found
                 if (is_found){
@@ -282,6 +282,8 @@ namespace Kratos
             "virtual_model_part_name": "",
             "structure_model_part_name": "",
             "projected_variable_names" : ["PRESSURE","VELOCITY"],
+            "search_tolerance" : 1.0e-5,
+            "search_max_results" : 10000,
             "linear_solver_settings": {
                 "solver_type": "cg",
                 "tolerance": 1.0e-8,
