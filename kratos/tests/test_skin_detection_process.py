@@ -103,14 +103,7 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         # self._post_process_mpi(self.model_part)
 
         # Check the number of conditions created
-        data_comm = self.model_part.GetCommunicator().GetDataCommunicator()
-        if data_comm.IsDistributed():
-            number_of_conditions = 0
-            number_of_conditions += self.model_part.NumberOfConditions()
-            global_number_of_conditions = data_comm.SumAll(number_of_conditions)
-            self.assertEqual(global_number_of_conditions, 112)
-        else:
-            self.assertEqual(self.model_part.NumberOfConditions(), 112)
+        self.assertEqual(model_part.GetCommunicator().GlobalNumberOfConditions(), 112)
 
     def _post_process(self, model_part):
         gid_output = GiDOutputProcess(model_part,
