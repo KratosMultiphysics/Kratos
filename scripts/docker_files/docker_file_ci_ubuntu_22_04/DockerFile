@@ -1,4 +1,4 @@
-FROM ubuntu:focal
+FROM ubuntu:jammy
 
 ENV HOME /root
 
@@ -17,7 +17,6 @@ RUN apt-get update -y && apt-get upgrade -y && \
         build-essential \
         ccache \
         clang \
-        libomp-10-dev \
         cmake \
         gfortran \
         git \

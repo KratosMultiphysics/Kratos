@@ -903,9 +903,17 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
                 // Compute VM stress
-                if (dimension == 2 ) {
-                    rOutput[point_number] = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
-                } else {
+                if (dimension == 2) {
+                    if (strain_size == 3) {
+                        rOutput[point_number] = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
+                    } else { // Axysimmetric 4
+                        Vector aux_stress(6);
+                        noalias(aux_stress) = ZeroVector(6);
+                        for (IndexType i = 0; i < 4; ++i)
+                            aux_stress(i) = this_constitutive_variables.StressVector(i);
+                        rOutput[point_number] = ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(aux_stress);
+                    }
+                } else { // 3D
                     rOutput[point_number] = ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
                 }
             }
@@ -1046,10 +1054,19 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                     CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);
                 }
 
-                if ( rOutput[point_number].size() != strain_size )
-                    rOutput[point_number].resize( strain_size, false );
+                if (strain_size == 4) { // Axysimmetric
+                    if (rOutput[point_number].size() != 6)
+                        rOutput[point_number].resize(6, false);
+                    noalias(rOutput[point_number]) = ZeroVector(6);
+                    for (IndexType i = 0; i < 4; ++i)
+                        rOutput[point_number](i) = this_constitutive_variables.StressVector(i);
+                } else {
+                    if (rOutput[point_number].size() != strain_size)
+                        rOutput[point_number].resize(strain_size, false);
 
-                noalias(rOutput[point_number]) = this_constitutive_variables.StressVector;
+                    noalias(rOutput[point_number]) = this_constitutive_variables.StressVector;
+                }
+
             }
         } else if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR ) {
             // Create and initialize element variables:
@@ -1081,10 +1098,18 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 // Compute material reponse
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this_stress_measure);
 
-                if ( rOutput[point_number].size() != strain_size)
-                    rOutput[point_number].resize( strain_size, false );
+                if (strain_size == 4) { // Axysimmetric
+                    if (rOutput[point_number].size() != 6)
+                        rOutput[point_number].resize(6, false);
+                    noalias(rOutput[point_number]) = ZeroVector(6);
+                    for (IndexType i = 0; i < 4; ++i)
+                        rOutput[point_number](i) = this_constitutive_variables.StrainVector(i);
+                } else {
+                    if (rOutput[point_number].size() != strain_size)
+                        rOutput[point_number].resize(strain_size, false);
 
-                noalias(rOutput[point_number]) = this_constitutive_variables.StrainVector;
+                    noalias(rOutput[point_number]) = this_constitutive_variables.StrainVector;
+                }
             }
         } else if (rVariable == INITIAL_STRESS_VECTOR) {
             const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
