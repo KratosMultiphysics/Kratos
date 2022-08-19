@@ -61,7 +61,6 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
         # Code here will be placed BEFORE every test in this TestCase.
         self.flow_calculations = FlowCalculations()
         self.latex_writer = LatexWriterFile()
-        self.is_running_under_teamcity = test_helper.is_running_under_teamcity()
 
     def tearDown(self):
         # Code here will be placed AFTER every test in this TestCase.
@@ -94,11 +93,7 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
         hydraylic_disc = {"value_name": "specific discharge [m/s]", "test_result": 0,
                           "kratos_results": sum(test_helper.get_hydraulic_discharge(simulation)), "round": True}
         result_list = [p3, p4, phi1, phi2, phi3, phi4, hydraylic_disc]
-        if self.is_running_under_teamcity:
-            self.latex_writer.write_latex_file_and_assert(result_list)
-        else:
-            self.assert_test_expectations(result_list)
-
+        self.latex_writer.write_latex_file_and_assert(result_list)
 
     def test_saturated_flow_pressure_bound(self):
         """ Fully saturated soil with pressure boundary """
@@ -145,10 +140,7 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
                        head_g5,
                        head_g6,
                        specific_discharge]
-        if self.is_running_under_teamcity:
-            self.latex_writer.write_latex_file_and_assert(result_list)
-        else:
-            self.assert_test_expectations(result_list)
+        self.latex_writer.write_latex_file_and_assert(result_list)
 
     def test_saturated_flow_head_bound(self):
         """ Fully saturated soil with head boundary """
@@ -197,10 +189,7 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
                        pore_pressure_3_value,
                        pore_pressure_4_value,
                        specific_discharge]
-        if self.is_running_under_teamcity:
-            self.latex_writer.write_latex_file_and_assert(result_list)
-        else:
-            self.assert_test_expectations(result_list)
+        self.latex_writer.write_latex_file_and_assert(result_list)
 
     def test_saturated_flux_bound(self):
         """ Fully saturated soil with flux boundary """

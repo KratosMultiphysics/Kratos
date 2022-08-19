@@ -35,7 +35,7 @@ from test_piping_element_unit import TestUnitPipingElements
 from test_normal_flux_condition import TestNormalFluxCondition
 
 
-def AssembleTestSuites(is_team_city):
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should populate the suites:
@@ -95,82 +95,21 @@ def AssembleTestSuites(is_team_city):
     suites = KratosUnittest.KratosSuites
 
     # add the tests to the corresponding suite,
-    if is_team_city:
-        smallSuite = unittest.TestSuite()
-        nightSuite = unittest.TestSuite()
-        validSuite = unittest.TestSuite()
-        allSuite = unittest.TestSuite()
+    smallSuite = suites['small']
+    nightSuite = suites['nightly']
+    validSuite = suites['validation']
+    allSuite = suites['all']
 
-        small_test_cases.append(TestUnitPipingElements)
-
-        for test in small_test_cases:
-            smallSuite.addTests(unittest.TestLoader().loadTestsFromTestCase(
-                test))
-
-        for test in night_test_cases:
-            nightSuite.addTests(unittest.TestLoader().loadTestsFromTestCase(
-                test))
-                
-        
-        for test in valid_test_cases:
-            validSuite.addTests(unittest.TestLoader().loadTestsFromTestCase(
-                test))
-
-        for test in all_test_cases:
-            allSuite.addTests(unittest.TestLoader().loadTestsFromTestCase(
-                test))
-
-        # suites = allSuite
-        suites['small'] = smallSuite
-        suites['nightly'] = nightSuite
-        suites['validation'] = validSuite
-        suites['all'] = allSuite
-    else:
-        smallSuite = suites['small']
-        nightSuite = suites['nightly']
-        validSuite = suites['validation']
-        allSuite = suites['all']
-
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(small_test_cases))
-        night_test_cases.extend(small_test_cases)
-        nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(night_test_cases))
-        validSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(valid_test_cases))
-        allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(all_test_cases))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(small_test_cases))
+    night_test_cases.extend(small_test_cases)
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(night_test_cases))
+    validSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(valid_test_cases))
+    allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(all_test_cases))
 
     return suites
 
 
-def get_level_argument():
-    """
-    This function is used only when the unit tests are run under teamcity.
-    In this case the level the KratosUnittest class is not directly used to determine the level of unit tests
-    Therefore we implement a simple function that enables this functionality
-
-    :return: level: str
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-l', '--level', default='all', choices=['all', 'nightly', 'small', 'validation'])
-    args = parser.parse_args()
-    return args.level
-
-
 if __name__ == '__main__':
-    is_team_city = False
-    try:
-        from teamcity import is_running_under_teamcity
-        from teamcity.unittestpy import TeamcityTestRunner
-
-        is_team_city = is_running_under_teamcity()
-    except ImportError:
-        pass
-
-    if is_team_city:
-        import unittest
-
-        level = get_level_argument()
-        test_suite_dictionary = AssembleTestSuites(is_team_city)
-        tests_to_run = test_suite_dictionary[level]
-        runner = TeamcityTestRunner()
-        runner.run(tests_to_run)
-    else:
-        KratosUnittest.runTests(AssembleTestSuites(is_team_city))
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
+    KratosUnittest.runTests(AssembleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

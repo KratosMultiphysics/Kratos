@@ -40,14 +40,11 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
     def setUp(self):
         # Code here will be placed BEFORE every test in this TestCase.
         self.latex_writer = LatexWriterFile()
-        self.is_running_under_teamcity = test_helper.is_running_under_teamcity()
         self.results = {}
 
     def tearDown(self):
-        if self.is_running_under_teamcity:
-            self.latex_writer.filename = test_helper.get_file_path(
-                'test_compare_sellmeijer/test_compare_sellmeijer.tex')
-            self.latex_writer.write_latex_file(self.results)
+        self.latex_writer.filename = test_helper.get_file_path('test_compare_sellmeijer/test_compare_sellmeijer.tex')
+        self.latex_writer.write_latex_file(self.results)
 
     def change_material_parameters(self, file_path, kappa, d70):
         # change the values of the pipe elements

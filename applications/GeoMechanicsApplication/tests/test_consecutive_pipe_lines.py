@@ -15,7 +15,7 @@ class TestConsecutivePipeLines(KratosUnittest.TestCase):
 
     def setUp(self):
         # Code here will be placed BEFORE every test in this TestCase.
-        self.is_running_under_teamcity = test_helper.is_running_under_teamcity()
+        pass
 
     def tearDown(self):
         # Code here will be placed AFTER every test in this TestCase.
