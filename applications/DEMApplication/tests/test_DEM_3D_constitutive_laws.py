@@ -166,7 +166,6 @@ class DEM3DConstitutiveLaws(KratosUnittest.TestCase):
     @classmethod
     def test_DEM3D_ConstitutiveLaws1(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_constitutive_laws_tests_files")
-        #os.chdir(path)
         parameters_file_name = os.path.join(path, "ProjectParametersDEM1.json")
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ConstitutiveLawsTestSolution, model, parameters_file_name, 1)
@@ -174,7 +173,6 @@ class DEM3DConstitutiveLaws(KratosUnittest.TestCase):
     @classmethod
     def test_DEM3D_ConstitutiveLaws2(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_constitutive_laws_tests_files")
-        #os.chdir(path)
         parameters_file_name = os.path.join(path, "ProjectParametersDEM2.json")
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ConstitutiveLawsTestSolution, model, parameters_file_name, 1)
@@ -182,7 +180,6 @@ class DEM3DConstitutiveLaws(KratosUnittest.TestCase):
     @classmethod
     def test_DEM3D_ConstitutiveLaws3(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_constitutive_laws_tests_files")
-        #os.chdir(path)
         parameters_file_name = os.path.join(path, "ProjectParametersDEM3.json")
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ConstitutiveLawsTestSolution, model, parameters_file_name, 1)
@@ -194,6 +191,7 @@ class DEM3DConstitutiveLaws(KratosUnittest.TestCase):
         os.remove(file_to_remove)
         file_to_remove = os.path.join(this_working_dir_backup, "tg.txt")
         os.remove(file_to_remove)
+        file_to_remove = os.path.join(this_working_dir_backup, "both.pdf")
         os.chdir(this_working_dir_backup)
 
 if __name__ == "__main__":
