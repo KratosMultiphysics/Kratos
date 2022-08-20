@@ -361,11 +361,11 @@ namespace Kratos
   void ThermalSphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info,
                                                           SphericParticle::ParticleDataBuffer& data_buffer,
                                                           double GlobalContactForceTotal[3],
-                                                          double LocalContactForceDamping[3],
-                                                          bool sliding) {
+                                                          double LocalContactForceTotal[3],
+                                                          double LocalContactForceDamping[3]) {
     KRATOS_TRY
 
-    SphericParticle::StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceDamping, sliding);
+    SphericParticle::StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceTotal, LocalContactForceDamping);
 
     if (!mStoreContactParam)
       return;
@@ -414,11 +414,11 @@ namespace Kratos
   void ThermalSphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info,
                                                                SphericParticle::ParticleDataBuffer& data_buffer,
                                                                double GlobalContactForceTotal[3],
-                                                               double LocalContactForceDamping[3],
-                                                               bool sliding) {
+                                                               double LocalContactForceTotal[3],
+                                                               double LocalContactForceDamping[3]) {
     KRATOS_TRY
 
-    SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceDamping, sliding);
+    SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceTotal, LocalContactForceDamping);
 
     if (!mStoreContactParam)
       return;
