@@ -23,6 +23,10 @@ namespace Kratos {
         const double my_poisson      = element1->GetPoisson();
         const double other_poisson   = element2->GetPoisson();
         const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
+        
+        const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
+        const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
+        const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
         double equiv_poisson;
         if (my_poisson + other_poisson) {
@@ -33,7 +37,9 @@ namespace Kratos {
 
         //Normal and Tangent elastic constants
         mKn = 0.25 * Globals::Pi * equiv_young; // Here length is 1.0m
+        //mKn = 2.0 * equiv_young;    // 2.0 * equiv_young * sqrt_equiv_radius;
         mKt = mKn * (1.0 - equiv_poisson) / (1.0 - 0.5 * equiv_poisson);
+        //mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
 
     void DEM_D_Linear_viscous_Coulomb2D::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
@@ -44,6 +50,11 @@ namespace Kratos {
         const double walls_poisson    = wall->GetProperties()[POISSON_RATIO];
 
         const double equiv_young      = my_young * walls_young / (walls_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - walls_poisson * walls_poisson));
+
+        const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
+        const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
+        const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus);
+
         double equiv_poisson = 0.0;
         if (my_poisson + walls_poisson) {
             equiv_poisson = 2.0 * my_poisson * walls_poisson / (my_poisson + walls_poisson);
@@ -65,7 +76,9 @@ namespace Kratos {
 
         //Normal and Tangent elastic constants
         mKn = 0.25 * Globals::Pi * equiv_young; // Here length is 1.0m
+        //mKn = 2.0 * equiv_young;    // 2.0 * equiv_young * sqrt_equiv_radius;
         mKt = mKn * (1.0 - equiv_poisson) / (1.0 - 0.5 * equiv_poisson);
+        //mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
 
 } /* namespace Kratos.*/

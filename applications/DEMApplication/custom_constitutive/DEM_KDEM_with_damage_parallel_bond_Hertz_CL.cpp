@@ -46,8 +46,7 @@ namespace Kratos {
         }
 
         //Normal and Tangent elastic constants
-        mUnbondedNormalElasticConstant = 2.0 * equiv_young * sqrt_equiv_radius_and_indentation / sqrt(equiv_radius);
-        //mUnbondedNormalElasticConstant = 2.0 * equiv_young * sqrt_equiv_radius_and_indentation;
+        mUnbondedNormalElasticConstant = 2.0 * equiv_young * sqrt_equiv_radius_and_indentation;
         mUnbondedTangentialElasticConstant = 4.0 * equiv_shear * mUnbondedNormalElasticConstant / equiv_young;
 
         const double my_mass    = element1->GetMass();
@@ -55,8 +54,7 @@ namespace Kratos {
         const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
         const double& equiv_gamma   = (*mpProperties)[DAMPING_GAMMA];
 
-        mUnbondedEquivViscoDampCoeffNormal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mUnbondedNormalElasticConstant * sqrt(equiv_radius));
-        //mUnbondedEquivViscoDampCoeffNormal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mUnbondedNormalElasticConstant);
+        mUnbondedEquivViscoDampCoeffNormal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mUnbondedNormalElasticConstant);
         mUnbondedEquivViscoDampCoeffTangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mUnbondedTangentialElasticConstant);
 
         const double bonded_equiv_young = (*mpProperties)[BONDED_MATERIAL_YOUNG_MODULUS];
@@ -73,8 +71,7 @@ namespace Kratos {
         KRATOS_TRY
 
         if (indentation > 0.0) {
-            mUnbondedLocalElasticContactForce2 = 0.666666666666666666667 * mUnbondedNormalElasticConstant * indentation * sqrt (indentation);
-            // mUnbondedLocalElasticContactForce2 = 0.666666666666666666667 * mUnbondedNormalElasticConstant * indentation + 10 * equiv_young / equiv_radius * (125 / equiv_radius * indentation * indentation + indentation);
+            mUnbondedLocalElasticContactForce2 = 0.666666666666666666667 * mUnbondedNormalElasticConstant * indentation;
         } else {
             mUnbondedLocalElasticContactForce2 = 0.0;
         }
