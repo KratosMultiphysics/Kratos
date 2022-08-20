@@ -40,24 +40,38 @@ def Factory(settings, Model):
     layer_name = file_path.name.split("_")[0]
     layer_list = [file for file in file_path.parent.iterdir() if file.name.split("_")[0] == layer_name]
 
-    if  len(layer_list) == 0:
+    if not len(layer_list):
         ErrorMsg = "Tables of " + layer_name + " not found"
         raise RuntimeError(ErrorMsg)
     else:
         component_list = []
         table_id_list = []
+        out_of_range_component_list = []
         for i in range (0, len(layer_list)):
             component_number = int(layer_list[i].stem.split("_")[1][-1])
-            component_list.append(component_number)
-            table_id = int(layer_name[-1] + str(component_number - 1))
-            table_id_list.append(table_id)
-            process_settings["initial_variable_table"]["filename"].SetString(layer_list[i].as_posix())
-            process_settings["initial_variable_table"]["table_id"].SetInt(table_id)
-            ReadCsvTableUtility(process_settings["initial_variable_table"]).Read(computing_model_part)
-    
+            if  0 < component_number < 7:
+                component_list.append(component_number)
+                table_id = int(layer_name[-1] + str(component_number - 1))
+                table_id_list.append(table_id)
+                process_settings["initial_variable_table"]["filename"].SetString(layer_list[i].as_posix())
+                process_settings["initial_variable_table"]["table_id"].SetInt(table_id)
+                ReadCsvTableUtility(process_settings["initial_variable_table"]).Read(computing_model_part)
+            else:
+                out_of_range_component_list.append(component_number)
+                print (out_of_range_component_list)
+
     raw_variable_name = process_settings["variable_name"].GetString()
     variable_name = raw_variable_name.split("_")[0] + " " + raw_variable_name.split("_")[1].split("_")[0]
-    
+
+    if len(out_of_range_component_list) != 0:
+        if len(out_of_range_component_list) == 1:
+            Logger.PrintInfo("::[WARNING]:: : SetAutomatedInitialVariableProcess ", variable_name.capitalize() + " component " + str(out_of_range_component_list[0]) + " of " + layer_name + " is out of range. The correspoding table will be negleted")
+        else:
+            out_of_range_component_name = ""
+            for out_of_range_component in out_of_range_component_list:
+                out_of_range_component_name += str(out_of_range_component) + ", "
+            Logger.PrintInfo("::[WARNING]:: : SetAutomatedInitialVariableProcess ", variable_name.capitalize() + " components " + out_of_range_component_name[:-2] + " of " + layer_name + " are out of range. Correspoding tables will be negleted")       
+
     if len(component_list) < 6:
         missing_component_list = list(set(range(1,7)).difference(component_list))
         if len(missing_component_list) == 1:
