@@ -273,6 +273,7 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
 
     data_buffer.mDt = dt;
     data_buffer.mMultiStageRHS = false;
+    data_buffer.mRollingResistance = 0.0;
 
     array_1d<double, 3> additional_forces = ZeroVector(3);
     array_1d<double, 3> additionally_applied_moment = ZeroVector(3);
@@ -287,11 +288,9 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
 
     InitializeForceComputation(r_process_info);
 
-    double RollingResistance = 0.0;
+    ComputeBallToBallContactForce(data_buffer, r_process_info, elastic_force, contact_force);
 
-    ComputeBallToBallContactForce(data_buffer, r_process_info, elastic_force, contact_force, RollingResistance);
-
-    ComputeBallToRigidFaceContactForce(data_buffer, elastic_force, contact_force, RollingResistance, rigid_element_force, r_process_info);
+    ComputeBallToRigidFaceContactForce(data_buffer, elastic_force, contact_force, rigid_element_force, r_process_info);
 
     if (this->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)){
         ComputeAdditionalForces(additional_forces, additionally_applied_moment, r_process_info, gravity);
@@ -307,7 +306,7 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
             array_1d<double, 3>& rolling_resistance_moment = this_node.FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
             rolling_resistance_moment.clear();
 
-            ComputeRollingFriction(rolling_resistance_moment, RollingResistance, data_buffer.mDt);
+            ComputeRollingFriction(rolling_resistance_moment, data_buffer.mRollingResistance, data_buffer.mDt);
         }
     }
 
@@ -858,8 +857,7 @@ void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resist
 void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
                                                     const ProcessInfo& r_process_info,
                                                     array_1d<double, 3>& r_elastic_force,
-                                                    array_1d<double, 3>& r_contact_force,
-                                                    double& RollingResistance)
+                                                    array_1d<double, 3>& r_contact_force)
 {
     KRATOS_TRY
 
@@ -925,7 +923,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
 
             // ROTATION FORCES
             if (this->Is(DEMFlags::HAS_ROTATION) && !data_buffer.mMultiStageRHS) {
-                ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation, i);
+                ComputeMoments(LocalContactForce[2], GlobalContactForce, data_buffer.mRollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation, i);
             }
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
@@ -993,7 +991,6 @@ void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericPa
 void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
                                                         array_1d<double, 3>& r_elastic_force,
                                                         array_1d<double, 3>& r_contact_force,
-                                                        double& RollingResistance,
                                                         array_1d<double, 3>& rigid_element_force,
                                                         const ProcessInfo& r_process_info)
 {
@@ -1124,7 +1121,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             rigid_element_force[2] -= GlobalContactForce[2];
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                ComputeMomentsWithWalls(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], wall, indentation, i); //WARNING: sending itself as the neighbor!!
+                ComputeMomentsWithWalls(LocalContactForce[2], GlobalContactForce, data_buffer.mRollingResistance, data_buffer.mLocalCoordSystem[2], wall, indentation, i); //WARNING: sending itself as the neighbor!!
             }
 
             //WEAR
@@ -1282,7 +1279,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
         wall->SetValue(EXTERNAL_FORCES_VECTOR, GlobalContactForceVector);
 
         if (this->Is(DEMFlags::HAS_ROTATION)) {
-            ComputeMomentsWithWalls(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], wall, indentation, i); //WARNING: sending itself as the neighbor!!
+            ComputeMomentsWithWalls(LocalContactForce[2], GlobalContactForce, data_buffer.mRollingResistance, data_buffer.mLocalCoordSystem[2], wall, indentation, i); //WARNING: sending itself as the neighbor!!
         }
 
         if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {

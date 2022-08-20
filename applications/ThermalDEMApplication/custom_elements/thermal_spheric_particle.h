@@ -84,6 +84,7 @@ namespace Kratos
       void Move                            (const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) override;
 
       // Finalization methods
+      void FinalizeForceComputation                                         (ParticleDataBuffer& data_buffer) override;
       void FinalizeSolutionStep                                             (const ProcessInfo& r_process_info) override;
       void UpdateTemperatureDependentRadius                                 (const ProcessInfo& r_process_info);
       void UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion (const ProcessInfo& r_process_info, double& thermalDeltDisp, double& thermalRelVel, SphericParticle* element2);

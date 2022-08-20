@@ -96,6 +96,7 @@ double mRadiusSum;
 double mDt;
 double mOtherRadius;
 double mIndentation;
+double mRollingResistance;
 double mMyCoors[3];
 double mOtherCoors[3];
 double mLocalRelVel[3];
@@ -281,7 +282,6 @@ protected:
 virtual void ComputeBallToRigidFaceContactForce(ParticleDataBuffer & data_buffer,
                                                 array_1d<double, 3>& rElasticForce,
                                                 array_1d<double, 3>& rContactForce,
-                                                double& RollingResistance,
                                                 array_1d<double, 3>& rigid_element_force,
                                                 const ProcessInfo& r_process_info) ;
 
@@ -292,8 +292,7 @@ virtual void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum
 virtual void ComputeBallToBallContactForce(ParticleDataBuffer & data_buffer,
                                         const ProcessInfo& r_process_info,
                                         array_1d<double, 3>& rElasticForce,
-                                        array_1d<double, 3>& rContactForce,
-                                        double& RollingResistance);
+                                        array_1d<double, 3>& rContactForce);
 
 virtual void EvaluateDeltaDisplacement(ParticleDataBuffer & data_buffer,
                                     double DeltDisp[3],

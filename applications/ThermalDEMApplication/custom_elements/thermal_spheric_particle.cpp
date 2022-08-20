@@ -478,6 +478,15 @@ namespace Kratos
   // Finalization methods
 
   //------------------------------------------------------------------------------------------------------------
+  void ThermalSphericParticle::FinalizeForceComputation(ParticleDataBuffer& data_buffer) {
+    KRATOS_TRY
+
+    SphericParticle::FinalizeForceComputation(data_buffer);
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
