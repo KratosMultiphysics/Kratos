@@ -37,23 +37,11 @@ namespace Kratos {
     const double partition  = ComputePartitionCoeff(particle);
 
     // Initialize contribution from different sources of energy dissipation
-    double heat_gen_sliding = 0.0;
     double heat_gen_damping = 0.0;
+    double heat_gen_sliding = 0.0;
+    double heat_gen_rolling = 0.0;
 
     // Convert dissipated power (energy/time) to heat
-    if (r_process_info[GENERATION_SLIDING_OPTION]) {
-      if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
-        // Energy multiplied by 2 as it was calculated by equally splitting the energy with neighbor
-        heat_gen_sliding = 2.0 * partition * conversion * contact_params.frictional_energy / time;
-        particle->mGenerationHeatFlux_slid_particle += heat_gen_sliding;
-      }
-      else if (particle->mNeighborType & WALL_NEIGHBOR) {
-        // Energy was calculated by assuming that it goes entirely to the particle
-        heat_gen_sliding = partition * conversion * contact_params.frictional_energy / time;
-        particle->mGenerationHeatFlux_slid_wall += heat_gen_sliding;
-      }
-    }
-
     if (r_process_info[GENERATION_DAMPING_OPTION]) {
       if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
         // Energy multiplied by 2 as it was calculated by equally splitting the energy with neighbor
@@ -67,7 +55,31 @@ namespace Kratos {
       }
     }
 
-    return heat_gen_sliding + heat_gen_damping;
+    if (r_process_info[GENERATION_SLIDING_OPTION]) {
+      if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
+        // Energy multiplied by 2 as it was calculated by equally splitting the energy with neighbor
+        heat_gen_sliding = 2.0 * partition * conversion * contact_params.frictional_energy / time;
+        particle->mGenerationHeatFlux_slid_particle += heat_gen_sliding;
+      }
+      else if (particle->mNeighborType & WALL_NEIGHBOR) {
+        // Energy was calculated by assuming that it goes entirely to the particle
+        heat_gen_sliding = partition * conversion * contact_params.frictional_energy / time;
+        particle->mGenerationHeatFlux_slid_wall += heat_gen_sliding;
+      }
+    }
+
+    if (r_process_info[GENERATION_ROLLING_OPTION] && particle->Is(DEMFlags::HAS_ROTATION) && particle->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
+      heat_gen_rolling = conversion * contact_params.rollresist_energy / time;
+
+      if (particle->mNeighborType & PARTICLE_NEIGHBOR) { 
+        particle->mGenerationHeatFlux_roll_particle += heat_gen_rolling;
+      }
+      else if (particle->mNeighborType & WALL_NEIGHBOR) {
+        particle->mGenerationHeatFlux_roll_wall += heat_gen_rolling;
+      }
+    }
+
+    return heat_gen_damping + heat_gen_sliding + heat_gen_rolling;
 
     KRATOS_CATCH("")
   }
