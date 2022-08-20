@@ -60,8 +60,13 @@ def Factory(settings, Model):
     
     if len(component_list) < 6:
         missing_component_list = list(set(range(1,7)).difference(component_list))
-        for missing_component in missing_component_list:
-            Logger.PrintInfo("::[WARNING]:: : SetAutomatedInitialVariableProcess ", "Table correspoding to " + variable_name.lower() + " component " + str(missing_component) + " of " + layer_name + " not found. A zero entry will be added to the " + variable_name + " variable")
+        if len(missing_component_list) == 1:
+            Logger.PrintInfo("::[WARNING]:: : SetAutomatedInitialVariableProcess ", "Table correspoding to " + variable_name.lower() + " component " + str(missing_component_list[0]) + " of " + layer_name + " not found. A zero entry will be added to the " + raw_variable_name + " variable")
+        else:
+            missing_component_name = ""
+            for missing_component in missing_component_list:
+                missing_component_name += str(missing_component) + ", "
+            Logger.PrintInfo("::[WARNING]:: : SetAutomatedInitialVariableProcess ", "Tables correspoding to " + variable_name.lower() + " components " + missing_component_name[:-2] + " of " + layer_name + " not found. Zero entries will be added to the " + raw_variable_name + " variable")       
     else:
         Logger.PrintInfo("SetAutomatedInitialVariableProcess:: ", variable_name.capitalize() + " tables of " + layer_name + " were successfully imported")
     
