@@ -753,11 +753,6 @@ public:
     {
         block_for_each(rNodes, [&](NodeType& rNode){(
             AuxiliaryHistoricalValueSetter<TVariableArgs::Type>(rVariableArgs, rVariableArgs.Zero(), rNode), ...);
-            //if constexpr (std::is_same<TVariableArgs::Type,array_1d<double,3>>::value) {
-            //    noalias(rNode.FastGetSolutionStepValue(rVariableArgs)) = ZeroVector(3);
-            //} else {
-            //    rNode.FastGetSolutionStepValue(rVariableArgs) = rVariableArgs.Zero();
-            //}, ...);
         });
     }
 
