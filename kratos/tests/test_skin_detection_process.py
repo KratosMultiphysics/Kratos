@@ -79,7 +79,14 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         detect_skin.Execute()
 
         # Check the number of conditions created
-        self.assertEqual(model_part.GetCommunicator().GlobalNumberOfConditions(), 112)
+        data_comm = self.model_part.GetCommunicator().GetDataCommunicator()
+        if data_comm.IsDistributed():
+            number_of_conditions = 0
+            number_of_conditions += self.model_part.NumberOfConditions()
+            global_number_of_conditions = data_comm.SumAll(number_of_conditions)
+            self.assertEqual(global_number_of_conditions, 112)
+        else:
+            self.assertEqual(self.model_part.NumberOfConditions(), 112)
 
 if __name__ == '__main__':
     KratosUnittest.main()
