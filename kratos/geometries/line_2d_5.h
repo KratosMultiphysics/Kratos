@@ -426,10 +426,10 @@ namespace Kratos
             Matrix invJ = ZeroMatrix(1, 1);
 
             // Starting with xi = 0
-            if (rResult.size() != 5) rResult.resize(5, false);
-            noalias(rResult) = ZeroVector(5);
+            if (rResult.size() != 3) rResult.resize(3, false);
+            noalias(rResult) = ZeroVector(3);
             double delta_xi = 0.0;
-            const array_1d<double, 5> zero_array = ZeroVector(5);
+            const array_1d<double, 3> zero_array = ZeroVector(3);
             array_1d<double, 3> current_global_coords;
             array_1d<double, 1> res;
 
@@ -678,7 +678,7 @@ namespace Kratos
          */
         SizeType FacesNumber() const override
         {
-            return 0;
+            return EdgesNumber();
         }
 
         ///@}

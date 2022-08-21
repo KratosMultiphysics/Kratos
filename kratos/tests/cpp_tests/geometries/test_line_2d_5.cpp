@@ -93,7 +93,7 @@ namespace Testing {
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D5EdgesNumber, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsUnitXDirectionLine2D5();
-        KRATOS_CHECK_EQUAL(p_geometry->EdgesNumber(), 4);
+        KRATOS_CHECK_EQUAL(p_geometry->EdgesNumber(), 2);
     }
 
     /** Checks if the number of faces is correct.
@@ -101,7 +101,7 @@ namespace Testing {
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D5FacesNumber, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsUnitXDirectionLine2D5();
-        KRATOS_CHECK_EQUAL(p_geometry->FacesNumber(), 0);
+        KRATOS_CHECK_EQUAL(p_geometry->FacesNumber(), 2);
     }
 
     /** Checks if the length of the line is calculated correctly.

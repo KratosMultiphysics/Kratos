@@ -421,10 +421,10 @@ public:
         Matrix invJ = ZeroMatrix(1, 1);
 
         // Starting with xi = 0
-        if (rResult.size() != 4) rResult.resize(4, false);
-        noalias(rResult) = ZeroVector(4);
+        if (rResult.size() != 3) rResult.resize(3, false);
+        noalias(rResult) = ZeroVector(3);
         double delta_xi = 0.0;
-        const array_1d<double, 4> zero_array = ZeroVector(4);
+        const array_1d<double, 3> zero_array = ZeroVector(3);
         array_1d<double, 3> current_global_coords;
         array_1d<double, 1> res;
 
@@ -674,7 +674,7 @@ public:
      */
     SizeType FacesNumber() const override
     {
-        return 0;
+        return EdgesNumber();
     }
 
     ///@}

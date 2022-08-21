@@ -521,25 +521,6 @@ namespace Kratos
             return area;
         }
 
-        /**
-         * This method calculates and returns the volume of this geometry.
-         * This method calculates and returns the volume of this geometry.
-         *
-         * This method uses the V = (A x B) * C / 6 formula.
-         *
-         * @return double value contains length, area or volume.
-         *
-         * @see Length()
-         * @see Area()
-         * @see Volume()
-         *
-         * @todo might be necessary to reimplement
-         */
-        double Volume() const override
-        {
-            return Area();
-        }
-
         /** This method calculates and returns length, area or volume of
          * this geometry depending to it's dimension. For one dimensional
          * geometry it returns its length, for two dimensional it gives area
