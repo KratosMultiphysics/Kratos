@@ -376,7 +376,7 @@ void SkinDetectionProcess<TDim>::GenerateSetNodeIdsInterface(std::unordered_set<
 template<SizeType TDim>
 void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
     const std::unordered_set<IndexType>& rSetNodeIdsInterface,
-    SkinDetectionProcess<TDim>::HashMapVectorIntType& rInverseFaceMap
+    HashMapVectorIntType& rInverseFaceMap
     )
 {
     if (rSetNodeIdsInterface.size() > 0) {
