@@ -89,7 +89,7 @@ namespace Testing
             KRATOS_CHECK_NEAR(r_node.GetValue(TEMPERATURE), 0.0, tolerance);
             KRATOS_CHECK_VECTOR_NEAR(r_node.GetValue(VELOCITY), ZeroVector(3), tolerance);
             KRATOS_CHECK_VECTOR_NEAR(r_node.GetValue(DISPLACEMENT), ZeroVector(3), tolerance);
-            KRATOS_CHECK_MATRIX_NEAR(r_node.GetValue(DEFORMATION_GRADIENT), ZeroMatrix(3,3), tolerance);
+            KRATOS_CHECK_MATRIX_NEAR(r_node.GetValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
         }
     }
 
@@ -117,7 +117,7 @@ namespace Testing
             KRATOS_CHECK_NEAR(r_element.GetValue(TEMPERATURE), 0.0, tolerance);
             KRATOS_CHECK_VECTOR_NEAR(r_element.GetValue(VELOCITY), ZeroVector(3), tolerance);
             KRATOS_CHECK_VECTOR_NEAR(r_element.GetValue(DISPLACEMENT), ZeroVector(3), tolerance);
-            KRATOS_CHECK_MATRIX_NEAR(r_element.GetValue(DEFORMATION_GRADIENT), ZeroMatrix(3,3), tolerance);
+            KRATOS_CHECK_MATRIX_NEAR(r_element.GetValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
         }
     }
 
@@ -145,7 +145,7 @@ namespace Testing
             KRATOS_CHECK_NEAR(r_condition.GetValue(TEMPERATURE), 0.0, tolerance);
             KRATOS_CHECK_VECTOR_NEAR(r_condition.GetValue(VELOCITY), ZeroVector(3), tolerance);
             KRATOS_CHECK_VECTOR_NEAR(r_condition.GetValue(DISPLACEMENT), ZeroVector(3), tolerance);
-            KRATOS_CHECK_MATRIX_NEAR(r_condition.GetValue(DEFORMATION_GRADIENT), ZeroMatrix(3,3), tolerance);
+            KRATOS_CHECK_MATRIX_NEAR(r_condition.GetValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
         }
     }
 
