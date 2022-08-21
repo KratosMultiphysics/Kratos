@@ -311,10 +311,10 @@ public:
         = BaseType::LumpingMethods::ROW_SUM) const override
     {
         if (rResult.size() != 4) rResult.resize(4, false);
-        rResult[0] = 1.0 / 6.0;
-        rResult[1] = 1.0 / 6.0;
-        rResult[2] = 1.0 / 3.0;
-        rResult[3] = 1.0 / 3.0;
+        rResult[0] = 0.125;
+        rResult[1] = 0.125;
+        rResult[2] = 0.375;
+        rResult[3] = 0.375;
         return rResult;
     }
 
@@ -403,7 +403,7 @@ public:
     CoordinatesArrayType& PointLocalCoordinates(CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint) const override
     {
-        BoundedMatrix<double, 3, 3> X;
+        BoundedMatrix<double, 3, 4> X;
         BoundedMatrix<double, 3, 1> DN;
         for (IndexType i = 0; i < this->size(); ++i)
         {
@@ -666,7 +666,7 @@ public:
      */
     SizeType EdgesNumber() const override
     {
-        return 3;
+        return 2;
     }
 
     /** FacesNumber

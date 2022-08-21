@@ -204,21 +204,21 @@ namespace {
 
         geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::DIAGONAL_SCALING);
 
-        KRATOS_CHECK_NEAR(lumping_factors[ 0], 0.0050008622, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 1], 0.0050008622, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 2], 0.0050008622, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 3], 0.0441455423, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 4], 0.0546301086, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 5], 0.0441455423, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 6], 0.0441455423, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 7], 0.0546301086, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 8], 0.0441455423, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[ 9], 0.0441455423, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[10], 0.0546301086, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[11], 0.0441455423, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[12], 0.1854112778, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[13], 0.1854112778, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[14], 0.1854112778, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[ 0], 0.0049479514208965, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[ 1], 0.0049479514208965, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[ 2], 0.0049479514208965, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[ 3], 0.0415105750486979, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[ 4], 0.0411365548334816, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[ 5], 0.0415105750486979, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[ 6], 0.0415105750486979, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[ 7], 0.0411365548334816, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[ 8], 0.0415105750486979, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[ 9], 0.0415105750486979, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[10], 0.0411365548334816, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[11], 0.0415105750486979, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[12], 0.2042276769815594, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[13], 0.2042276769815594, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[14], 0.2042276769815594, TOLERANCE);
 
         geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::QUADRATURE_ON_NODES);
 
