@@ -752,14 +752,12 @@ public:
         const TVariableArgs&... rVariableArgs)
     {
         block_for_each(rNodes, [&](NodeType& rNode){(
-            [&](){
-                //rNode.FastGetSolutionStepValue(rVariableArgs) = rVariableArgs.Zero();
-                if constexpr (std::is_same<TVariableArgs::Type,array_1d<double,3>>::value) {
-                    noalias(rNode.FastGetSolutionStepValue(rVariableArgs)) = ZeroVector(3);
-                } else {
-                    rNode.FastGetSolutionStepValue(rVariableArgs) = rVariableArgs.Zero();
-                }
-            }, ...);
+            AuxiliaryHistoricalValueSetter<TVariableArgs::Type>(rVariableArgs, rVariableArgs.Zero(), rNode), ...);
+            //if constexpr (std::is_same<TVariableArgs::Type,array_1d<double,3>>::value) {
+            //    noalias(rNode.FastGetSolutionStepValue(rVariableArgs)) = ZeroVector(3);
+            //} else {
+            //    rNode.FastGetSolutionStepValue(rVariableArgs) = rVariableArgs.Zero();
+            //}, ...);
         });
     }
 
@@ -1626,6 +1624,12 @@ private:
 
     template <class TContainerType>
     const TContainerType& GetContainer(const ModelPart& rModelPart);
+
+    template<class TDataType>
+    static void AuxiliaryHistoricalValueSetter(
+        const Variable<TDataType>& rVariable,
+        const TDataType& rValue,
+        NodeType& rNode);
 
     template <class TContainerType, class TSetterFunction, class TGetterFunction>
     void CopyModelPartFlaggedVariable(
