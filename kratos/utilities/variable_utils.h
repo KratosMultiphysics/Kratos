@@ -752,7 +752,7 @@ public:
         const TVariableArgs&... rVariableArgs)
     {
         block_for_each(rNodes, [&](NodeType& rNode){(
-            AuxiliaryHistoricalValueSetter<TVariableArgs::Type>(rVariableArgs, rVariableArgs.Zero(), rNode), ...);
+            AuxiliaryHistoricalValueSetter<typename TVariableArgs::Type>(rVariableArgs, rVariableArgs.Zero(), rNode), ...);
         });
     }
 
