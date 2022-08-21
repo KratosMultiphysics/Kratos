@@ -66,7 +66,7 @@ namespace Testing
             KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(TEMPERATURE), 0.0, tolerance);
             KRATOS_CHECK_VECTOR_NEAR(r_node.FastGetSolutionStepValue(VELOCITY), ZeroVector(3), tolerance);
             KRATOS_CHECK_VECTOR_NEAR(r_node.FastGetSolutionStepValue(DISPLACEMENT), ZeroVector(3), tolerance);
-            KRATOS_CHECK_MATRIX_NEAR(r_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT), ZeroMatrix(3,3), tolerance);
+            KRATOS_CHECK_MATRIX_NEAR(r_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
         }
     }
 
@@ -98,7 +98,7 @@ namespace Testing
         // Set auxilary elemental structure
         Model test_model;
         auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
-        for (std::size_t i = 0; i < 5; ++i) {
+        for (std::size_t i = 0; i < 6; ++i) {
             r_test_model_part.CreateNewNode(i,0.0,0.0,0.0);
         }
         auto p_prop = Kratos::make_shared<Properties>(0);
@@ -126,7 +126,7 @@ namespace Testing
         // Set auxilary elemental structure
         Model test_model;
         auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
-        for (std::size_t i = 0; i < 5; ++i) {
+        for (std::size_t i = 0; i < 6; ++i) {
             r_test_model_part.CreateNewNode(i,0.0,0.0,0.0);
         }
         auto p_prop = Kratos::make_shared<Properties>(0);
