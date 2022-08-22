@@ -213,7 +213,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
 
     //a.- Recover tensils from previous step: (it must be done once for each time step)
 
-    //compare to auxiliar variables stored in the contact nodes to restore the LocalTensils
+    //compare to auxiliary variables stored in the contact nodes to restore the LocalTensils
     //from the previous configuration
 
     // Element::NodeType&    MasterNode   = *GetValue(MASTER_NODES).back();

@@ -171,7 +171,7 @@ namespace Kratos
          double dF_dt, dF_dp;  // derivatives of the yield function respect the tangential and normal contact stresses.
          EvaluateYieldDerivativeRespectStress( dF_dt, dF_dp, TangentStress, NormalStress, rTangentVariables.PlasticSlip, rTangentVariables);
 
-         //double Auxiliar = -rTangentVariables.TangentPenalty / (rTangentVariables.TangentPenalty *dF_dt - Hardening);
+         //double Auxiliary = -rTangentVariables.TangentPenalty / (rTangentVariables.TangentPenalty *dF_dt - Hardening);
 
          //rNormalModulus = ( rTangentVariables.TangentPenalty / ( Hardening + rTangentVariables.TangentPenalty)) * dF_dp ;
          rNormalModulus = ( rTangentVariables.TangentPenalty / ( Hardening + rTangentVariables.TangentPenalty)) * dF_dp ;
