@@ -29,7 +29,7 @@ namespace Kratos {
 	namespace Testing {
 
         /**
-	     * Auxiliar function to generate a triangular element to be tested.
+	     * Auxiliary function to generate a triangular element to be tested.
 	     */
         void GenerateModelPartToTestDivergence(
             ModelPart& rModelPart) {
