@@ -136,9 +136,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             d = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
             for i in range(3):
                 error = abs((d[i] - u[i])/u[i])
-                if error > self.tolerance:
-                    print("NODE ", node.Id,": Component ", coor_list[i],":\t",u[i],"\t",d[i], "\tError: ", error)
-                self.assertLess(error, self.tolerance)
+                self.assertLess(error, self.tolerance, msg=f"NODE {node.Id}: Component {coor_list[i]}: {u[i]} {d[i]} Error: {error}")
 
     def _check_outputs(self,mp,A,dim):
 
