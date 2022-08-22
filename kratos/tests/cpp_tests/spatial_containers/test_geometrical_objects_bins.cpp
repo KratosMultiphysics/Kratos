@@ -80,7 +80,7 @@ namespace Testing {
     }
 
     
-    /** Checks modified constructor 
+    /** Checks the new constructor 
     */
     KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsConstructor, KratosFastSuite) {
         constexpr double tolerance = 1e-12;

@@ -88,7 +88,8 @@ public:
     }
 
     template<typename TIteratorType>
-    GeometricalObjectsBins(TIteratorType GeometricalObjectsBegin, 
+    GeometricalObjectsBins(
+        TIteratorType GeometricalObjectsBegin, 
         TIteratorType GeometricalObjectsEnd, 
         array_1d<double,3>& rCellSize) 
     {
