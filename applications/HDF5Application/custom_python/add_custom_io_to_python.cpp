@@ -87,6 +87,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("HasIntDataType",&HDF5::File::HasIntDataType)
         .def("HasFloatDataType",&HDF5::File::HasFloatDataType)
         .def("Flush",&HDF5::File::Flush)
+        .def("Close", &HDF5::File::Close)
         .def("GetFileSize",&HDF5::File::GetFileSize)
         .def("GetFileName",&HDF5::File::GetFileName)
         ;
