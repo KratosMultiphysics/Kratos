@@ -427,8 +427,8 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
             for (auto& r_face_to_remove : faces_to_remove) {
                 const std::size_t hash_face = vector_hasher(r_face_to_remove);
                 faces_to_remove_hash.push_back(hash_face);
-                faces_mpi_counter.insert(std::pair<std::size_t, bool>({hash_face, false}));
-                faces_hash_map.insert(std::pair<std::size_t, VectorIndexType>({hash_face, r_face_to_remove}));
+                faces_mpi_counter.insert({hash_face, false});
+                faces_hash_map.insert({hash_face, r_face_to_remove});
             }
 
             // We send the list of the faces to be removed from the current ramk to the neighbour ranks
