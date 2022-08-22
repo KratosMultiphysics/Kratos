@@ -272,7 +272,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::EquationIdVector
         const NodeType& r_master_node = r_master_geometry[i_master];
         rResult[index++] = r_master_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Y ).EquationId( );
-        if (TDim == 3) rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
+        if constexpr (TDim == 3) rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
     }
 
     // Slave Nodes Displacement Equation IDs
@@ -280,7 +280,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::EquationIdVector
         const NodeType& r_slave_node = r_slave_geometry[ i_slave ];
         rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
-        if (TDim == 3) rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
+        if constexpr (TDim == 3) rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
     }
 
     KRATOS_CATCH("")
@@ -311,7 +311,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::GetDofList(
         const NodeType& r_master_node = r_master_geometry[i_master];
         rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Y );
-        if (TDim == 3) rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Z );
+        if constexpr (TDim == 3) rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Z );
     }
 
     // Slave Nodes Displacement Equation IDs
@@ -319,7 +319,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::GetDofList(
         const NodeType& r_slave_node = r_slave_geometry[ i_slave ];
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Y );
-        if (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Z );
+        if constexpr (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Z );
     }
 
     KRATOS_CATCH("")
@@ -532,7 +532,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::ConstraintDofDat
             for (auto& r_node_master : r_master_geometry) {
                 auxiliar_master_dof_vector.push_back(r_node_master.pGetDof(DISPLACEMENT_X));
                 auxiliar_master_dof_vector.push_back(r_node_master.pGetDof(DISPLACEMENT_Y));
-                if (TDim == 3) auxiliar_master_dof_vector.push_back(r_node_master.pGetDof(DISPLACEMENT_Z));
+                if constexpr (TDim == 3) auxiliar_master_dof_vector.push_back(r_node_master.pGetDof(DISPLACEMENT_Z));
             }
 
             master_dof_vector.resize(0);
@@ -544,12 +544,12 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::ConstraintDofDat
             for (auto& r_node_master : r_master_geometry) {
                 master_dof_vector.push_back(r_node_master.pGetDof(DISPLACEMENT_X));
                 master_dof_vector.push_back(r_node_master.pGetDof(DISPLACEMENT_Y));
-                if (TDim == 3) master_dof_vector.push_back(r_node_master.pGetDof(DISPLACEMENT_Z));
+                if constexpr (TDim == 3) master_dof_vector.push_back(r_node_master.pGetDof(DISPLACEMENT_Z));
             }
 //             for (auto& r_node_slave : r_slave_geometry) {
 //                 master_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_X));
 //                 master_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_Y));
-//                 if (TDim == 3) master_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_Z));
+//                 if constexpr (TDim == 3) master_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_Z));
 //             }
         }
 
@@ -563,7 +563,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::ConstraintDofDat
             for (auto& r_node_slave : r_slave_geometry) {
                 auxiliar_slave_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_X));
                 auxiliar_slave_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_Y));
-                if (TDim == 3) auxiliar_slave_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_Z));
+                if constexpr (TDim == 3) auxiliar_slave_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_Z));
             }
 
             slave_dof_vector.resize(0);
@@ -578,7 +578,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::ConstraintDofDat
             for (auto& r_node_slave : r_slave_geometry) {
                 slave_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_X));
                 slave_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_Y));
-                if (TDim == 3) slave_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_Z));
+                if constexpr (TDim == 3) slave_dof_vector.push_back(r_node_slave.pGetDof(DISPLACEMENT_Z));
             }
         }
 

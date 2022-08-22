@@ -409,4 +409,4 @@ If a solver does not support MPI-parallelism then it can only run on one rank. I
 ## References
 
 - [1] Wall, Wolfgang A., _Fluid structure interaction with stabilized finite elements_, PhD Thesis, University of Stuttgart, 1999, http://dx.doi.org/10.18419/opus-127
-- [2] Bucher et al., _Realizing CoSimulation in and with a multiphysics framework_, conference proceedings, IX International Conference on Computational Methods for Coupled Problems in Science and Engineering, 2021, under review
+- [2] Bucher et al., _Realizing CoSimulation in and with a multiphysics framework_, conference proceedings, IX International Conference on Computational Methods for Coupled Problems in Science and Engineering, 2021, https://www.scipedia.com/public/Bucher_et_al_2021a
