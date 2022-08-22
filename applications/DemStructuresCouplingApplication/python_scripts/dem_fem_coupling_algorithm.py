@@ -102,19 +102,19 @@ class Algorithm():
 
         skin_detection_parameters = Kratos.Parameters("""
         {
-            "name_auxiliar_model_part"              : "DetectedByProcessSkinModelPart",
+            "name_auxiliary_model_part"              : "DetectedByProcessSkinModelPart",
             "list_model_parts_to_assign_conditions" : []
         }
         """)
 
         computing_model_part = self.structural_solution._GetSolver().GetComputingModelPart()
         if (computing_model_part.ProcessInfo[Kratos.DOMAIN_SIZE] == 2):
-            skin_detection_parameters.AddEmptyValue("name_auxiliar_condition")
-            skin_detection_parameters["name_auxiliar_condition"].SetString('LineLoadFromDEMCondition')
+            skin_detection_parameters.AddEmptyValue("name_auxiliary_condition")
+            skin_detection_parameters["name_auxiliary_condition"].SetString('LineLoadFromDEMCondition')
             self.structure_skin_detector = Kratos.SkinDetectionProcess2D(computing_model_part, skin_detection_parameters)
         elif (computing_model_part.ProcessInfo[Kratos.DOMAIN_SIZE] == 3):
-            skin_detection_parameters.AddEmptyValue("name_auxiliar_condition")
-            skin_detection_parameters["name_auxiliar_condition"].SetString('SurfaceLoadFromDEMCondition')
+            skin_detection_parameters.AddEmptyValue("name_auxiliary_condition")
+            skin_detection_parameters["name_auxiliary_condition"].SetString('SurfaceLoadFromDEMCondition')
             self.structure_skin_detector = Kratos.SkinDetectionProcess3D(computing_model_part, skin_detection_parameters)
         else:
             print("No dimensions detected for the structures problem. Exiting.")
