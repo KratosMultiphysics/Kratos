@@ -9,7 +9,7 @@ from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 class TestPatchTestSmallStrain(KratosUnittest.TestCase):
     def setUp(self):
-        pass
+        self.tolerance = 1.0e-6
 
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -135,11 +135,10 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
 
             d = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
             for i in range(3):
-                if abs(u[i]) > 0.0:
-                    error = (d[i] - u[i])/u[i]
-                    if error > 1.0e-6:
-                       print("NODE ", node.Id,": Component ", coor_list[i],":\t",u[i],"\t",d[i], "\tError: ", error)
-                    self.assertLess(error, 1.0e-6)
+                error = abs((d[i] - u[i])/u[i])
+                if error > self.tolerance:
+                    print("NODE ", node.Id,": Component ", coor_list[i],":\t",u[i],"\t",d[i], "\tError: ", error)
+                self.assertLess(error, self.tolerance)
 
     def _check_outputs(self,mp,A,dim):
 
@@ -190,7 +189,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             for strain in out:
                 for i in range(len(reference_strain)):
                     if abs(strain[i]) > 0.0:
-                        self.assertLess((reference_strain[i] - strain[i])/strain[i], 1.0e-6)
+                        self.assertLess((reference_strain[i] - strain[i])/strain[i], self.tolerance)
 
         # Finally compute stress
         if(dim == 2):
@@ -220,7 +219,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             for stress in out:
                 for i in range(len(reference_stress)):
                     if abs(stress[i]) > 0.0:
-                        self.assertLess((reference_stress[i] - stress[i])/stress[i], 1.0e-6)
+                        self.assertLess((reference_stress[i] - stress[i])/stress[i], self.tolerance)
 
     def test_SmallDisplacementElement_2D_triangle(self):
         dim = 2
