@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "utilities/auxiliar_model_part_utilities.h"
+#include "utilities/auxiliary_model_part_utilities.h"
 #include "custom_utilities/meshing_utilities.h"
 #include "utilities/parallel_utilities.h"
 

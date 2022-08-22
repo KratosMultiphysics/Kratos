@@ -44,14 +44,14 @@ namespace Kratos
 ///@{
 
     /**
-     * @struct AuxiliarHessianComputationVariables
+     * @struct AuxiliaryHessianComputationVariables
      * @ingroup MeshingApplication
-     * @brief This is an auxiliar struct to store remeshing variables
+     * @brief This is an auxiliary struct to store remeshing variables
      * @author Vicente Mataix Ferrandiz
      */
-    struct AuxiliarHessianComputationVariables
+    struct AuxiliaryHessianComputationVariables
     {
-        AuxiliarHessianComputationVariables(
+        AuxiliaryHessianComputationVariables(
             const double AnisotropicRatio,
             const double ElementMinSize,
             const double ElementMaxSize,
@@ -280,18 +280,18 @@ private:
      * @brief This function is used to compute the Hessian Metric tensor
      * @details Note that when using the Hessian, more than one Metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
      * @param Hessian The hessian tensor condensed already computed
-     * @param rAuxiliarHessianComputationVariables Struct containing several variables
+     * @param rAuxiliaryHessianComputationVariables Struct containing several variables
      */
     template<SizeType TDim>
     static array_1d<double, 3 * (TDim - 1)> ComputeHessianMetricTensor(
         const Vector& rHessian,
-        const AuxiliarHessianComputationVariables& rAuxiliarHessianComputationVariables
+        const AuxiliaryHessianComputationVariables& rAuxiliaryHessianComputationVariables
         );
 
     /**
-     * @brief This calculates the auxiliar hessian needed for the Metric
+     * @brief This calculates the auxiliary hessian needed for the Metric
      */
-    void CalculateAuxiliarHessian();
+    void CalculateAuxiliaryHessian();
 
     /**
      * @brief This converts the interpolation string to an enum

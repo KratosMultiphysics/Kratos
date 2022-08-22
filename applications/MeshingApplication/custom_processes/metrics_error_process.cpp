@@ -87,7 +87,7 @@ void MetricErrorProcess<TDim>::CalculateElementSize()
      // Loop over all elements:
     ElementsArrayType& r_elements_array = mrThisModelPart.Elements();
 
-    // Auxiliar member variables
+    // Auxiliary member variables
     const auto number_of_elements = mrThisModelPart.NumberOfElements();
 
     // Compute new element size
@@ -138,7 +138,7 @@ void MetricErrorProcess<TDim>::CalculateMetric()
     // Iteration over all nodes
     KRATOS_DEBUG_ERROR_IF(r_nodes_array.size() == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
 
-    // Auxiliar variables
+    // Auxiliary variables
     const auto average_nodal_h = mAverageNodalH;
     const auto echo_level = mEchoLevel;
 

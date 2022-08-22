@@ -502,27 +502,27 @@ private:
 
     /**
      * @brief This methoid a boundary model part in the reference and target model part
-     * @param rAuxiliarNameModelPart The name of the model part to be created
+     * @param rAuxiliaryNameModelPart The name of the model part to be created
      */
-    void GenerateBoundary(const std::string& rAuxiliarNameModelPart);
+    void GenerateBoundary(const std::string& rAuxiliaryNameModelPart);
 
     /**
      * @brief This methoid a boundary model part in the reference and target model part
      * @param rModelPart The model part to compute
-     * @param rAuxiliarNameModelPart The name of the model part to be created
+     * @param rAuxiliaryNameModelPart The name of the model part to be created
      */
     void GenerateBoundaryFromElements(
         ModelPart& rModelPart,
-        const std::string& rAuxiliarNameModelPart
+        const std::string& rAuxiliaryNameModelPart
         );
 
     /**
      * @brief This methoid a boundary model part in the reference and target model part
-     * @param rAuxiliarNameModelPart The name of the model part to be created
+     * @param rAuxiliaryNameModelPart The name of the model part to be created
      * @param rToExtrapolateNodes The list of nodes to extrapolate
      */
     void ExtrapolateValues(
-        const std::string& rAuxiliarNameModelPart,
+        const std::string& rAuxiliaryNameModelPart,
         std::vector<NodeType::Pointer>& rToExtrapolateNodes
         );
 

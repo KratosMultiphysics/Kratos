@@ -590,14 +590,14 @@ class MmgProcess(KratosMultiphysics.Process):
             self._debug_output_vtk(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP], "", "BEFORE_")
 
         # Execute before remesh
-        self._AuxiliarCallsBeforeRemesh()
+        self._AuxiliaryCallsBeforeRemesh()
 
         # Actually remesh
         KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Remeshing")
         self.mmg_process.Execute()
 
         # Execute after remesh
-        self._AuxiliarCallsAfterRemesh()
+        self._AuxiliaryCallsAfterRemesh()
 
         # Debug after remesh
         if self.settings["debug_mode"].GetString() == "GiD": # GiD
@@ -636,7 +636,7 @@ class MmgProcess(KratosMultiphysics.Process):
         self.metric_process.Execute()
         self.error_ratio = self.main_model_part.ProcessInfo[KratosMultiphysics.ERROR_RATIO]
 
-    def _AuxiliarCallsBeforeRemesh(self):
+    def _AuxiliaryCallsBeforeRemesh(self):
         """ This method is executed right before execute the remesh
 
         Keyword arguments:
@@ -644,7 +644,7 @@ class MmgProcess(KratosMultiphysics.Process):
         """
         pass
 
-    def _AuxiliarCallsAfterRemesh(self):
+    def _AuxiliaryCallsAfterRemesh(self):
         """ This method is executed right after execute the remesh
 
         Keyword arguments:

@@ -57,8 +57,8 @@ namespace Kratos
                 it_node->SetValue(METRIC_TENSOR_2D, ref_metric);
             }
 
-            // Auxiliar submodelpart to check colors
-            auto& r_sub = r_model_part.CreateSubModelPart("AuxiliarSubModelPart");
+            // Auxiliary submodelpart to check colors
+            auto& r_sub = r_model_part.CreateSubModelPart("AuxiliarySubModelPart");
 
             // Now we create the conditions
             r_sub.AddNode(r_model_part.pGetNode(1));
@@ -119,8 +119,8 @@ namespace Kratos
                 it_node->SetValue(METRIC_TENSOR_3D, ref_metric);
             }
 
-            // Auxiliar submodelpart to check colors
-            auto& r_sub = r_model_part.CreateSubModelPart("AuxiliarSubModelPart");
+            // Auxiliary submodelpart to check colors
+            auto& r_sub = r_model_part.CreateSubModelPart("AuxiliarySubModelPart");
 
             // Now we create the conditions
             r_sub.AddNode(r_model_part.pGetNode(1));

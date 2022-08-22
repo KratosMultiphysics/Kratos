@@ -63,7 +63,7 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
 
     std::vector<NodeType::Pointer> to_extrapolate_nodes; // In this vector we will store the nodes to be extrapolated
 
-    // Auxiliar values
+    // Auxiliary values
     Vector shape_functions;
     Element::Pointer p_element;
 
@@ -110,20 +110,20 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
         const std::size_t original_number_of_conditions = mrDestinationMainModelPart.NumberOfConditions();
 
         // Generate boundary
-        const std::string name_auxiliar_model_part = "SKIN_MODEL_PART_TO_LATER_REMOVE";
-        GenerateBoundary(name_auxiliar_model_part);
+        const std::string name_auxiliary_model_part = "SKIN_MODEL_PART_TO_LATER_REMOVE";
+        GenerateBoundary(name_auxiliary_model_part);
 
         // Remove new conditions and submodelpart
-        VariableUtils().SetFlag(TO_ERASE, true, mrDestinationMainModelPart.GetSubModelPart(name_auxiliar_model_part).Conditions());
-        mrDestinationMainModelPart.RemoveSubModelPart(name_auxiliar_model_part);
+        VariableUtils().SetFlag(TO_ERASE, true, mrDestinationMainModelPart.GetSubModelPart(name_auxiliary_model_part).Conditions());
+        mrDestinationMainModelPart.RemoveSubModelPart(name_auxiliary_model_part);
 
         // Extrapolate values
-        ExtrapolateValues(name_auxiliar_model_part, to_extrapolate_nodes);
+        ExtrapolateValues(name_auxiliary_model_part, to_extrapolate_nodes);
 
-        // Remove auxiliar model part
-        mrOriginMainModelPart.RemoveSubModelPart(name_auxiliar_model_part);
+        // Remove auxiliary model part
+        mrOriginMainModelPart.RemoveSubModelPart(name_auxiliary_model_part);
 
-        // Removing generated auxiliar conditions
+        // Removing generated auxiliary conditions
         mrDestinationMainModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 
         const std::size_t number_of_conditions = mrDestinationMainModelPart.NumberOfConditions();
@@ -153,7 +153,7 @@ void NodalValuesInterpolationProcess<TDim>::GetListNonHistoricalVariables()
 /***********************************************************************************/
 
 template<SizeType TDim>
-void NodalValuesInterpolationProcess<TDim>::GenerateBoundary(const std::string& rAuxiliarNameModelPart)
+void NodalValuesInterpolationProcess<TDim>::GenerateBoundary(const std::string& rAuxiliaryNameModelPart)
 {
     // Initialize values of Normal
     /* Origin model part */
@@ -172,30 +172,30 @@ void NodalValuesInterpolationProcess<TDim>::GenerateBoundary(const std::string& 
 
     Parameters skin_parameters = Parameters(R"(
     {
-        "name_auxiliar_model_part" : ""
+        "name_auxiliary_model_part" : ""
     })" );
-    skin_parameters["name_auxiliar_model_part"].SetString(rAuxiliarNameModelPart);
+    skin_parameters["name_auxiliary_model_part"].SetString(rAuxiliaryNameModelPart);
 
     /* Destination skin */
     if (mThisParameters["surface_elements"].GetBool() == false) {
         SkinDetectionProcess<TDim>(mrOriginMainModelPart, skin_parameters).Execute();
     } else {
-        GenerateBoundaryFromElements(mrOriginMainModelPart, rAuxiliarNameModelPart);
+        GenerateBoundaryFromElements(mrOriginMainModelPart, rAuxiliaryNameModelPart);
     }
 
     // Compute normal in the skin
-    ModelPart& r_model_part_origin = mrOriginMainModelPart.GetSubModelPart(rAuxiliarNameModelPart);
+    ModelPart& r_model_part_origin = mrOriginMainModelPart.GetSubModelPart(rAuxiliaryNameModelPart);
     ComputeNormalSkin(r_model_part_origin);
 
     /* Destination skin */
     if (mThisParameters["surface_elements"].GetBool() == false) {
         SkinDetectionProcess<TDim>(mrDestinationMainModelPart, skin_parameters).Execute();
     } else {
-        GenerateBoundaryFromElements(mrDestinationMainModelPart, rAuxiliarNameModelPart);
+        GenerateBoundaryFromElements(mrDestinationMainModelPart, rAuxiliaryNameModelPart);
     }
 
     // Compute normal in the skin
-    ModelPart& r_model_part_destination = mrDestinationMainModelPart.GetSubModelPart(rAuxiliarNameModelPart);
+    ModelPart& r_model_part_destination = mrDestinationMainModelPart.GetSubModelPart(rAuxiliaryNameModelPart);
     ComputeNormalSkin(r_model_part_destination);
 }
 
@@ -205,10 +205,10 @@ void NodalValuesInterpolationProcess<TDim>::GenerateBoundary(const std::string& 
 template<SizeType TDim>
 void NodalValuesInterpolationProcess<TDim>::GenerateBoundaryFromElements(
     ModelPart& rModelPart,
-    const std::string& rAuxiliarNameModelPart
+    const std::string& rAuxiliaryNameModelPart
     )
 {
-    ModelPart& r_new_model_part = rModelPart.HasSubModelPart(rAuxiliarNameModelPart) ? rModelPart.GetSubModelPart(rAuxiliarNameModelPart) : rModelPart.CreateSubModelPart(rAuxiliarNameModelPart);
+    ModelPart& r_new_model_part = rModelPart.HasSubModelPart(rAuxiliaryNameModelPart) ? rModelPart.GetSubModelPart(rAuxiliaryNameModelPart) : rModelPart.CreateSubModelPart(rAuxiliaryNameModelPart);
 
     IndexType new_id = rModelPart.GetRootModelPart().NumberOfConditions();
 
@@ -225,7 +225,7 @@ void NodalValuesInterpolationProcess<TDim>::GenerateBoundaryFromElements(
 
 template<SizeType TDim>
 void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(
-    const std::string& rAuxiliarNameModelPart,
+    const std::string& rAuxiliaryNameModelPart,
     std::vector<NodeType::Pointer>& rToExtrapolateNodes
     )
 {
@@ -244,7 +244,7 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(
     point_list_destination.clear();
 
     // Iterate in the conditions
-    ConditionsArrayType& r_origin_conditions_array = mrOriginMainModelPart.GetSubModelPart(rAuxiliarNameModelPart).Conditions();
+    ConditionsArrayType& r_origin_conditions_array = mrOriginMainModelPart.GetSubModelPart(rAuxiliaryNameModelPart).Conditions();
 
     #pragma omp parallel
     {

@@ -105,7 +105,7 @@ void MmgIO<TMMGLibrary>::ReadModelPart(ModelPart& rModelPart)
     MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
     mMmgUtilities.PrintAndGetMmgMeshInfo(mmg_mesh_info);
 
-    // Creating auxiliar maps of pointers
+    // Creating auxiliary maps of pointers
     std::unordered_map<IndexType,Condition::Pointer> ref_condition; /// Reference condition
     std::unordered_map<IndexType,Element::Pointer> ref_element;     /// Reference element
 
@@ -133,7 +133,7 @@ void MmgIO<TMMGLibrary>::WriteModelPart(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
-    // The auxiliar color maps
+    // The auxiliary color maps
     ColorsMapType aux_ref_cond, aux_ref_elem;
 
     // We initialize the mesh data with the given modelpart

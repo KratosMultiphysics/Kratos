@@ -440,10 +440,10 @@ private:
     double mWeight;                             /// The integration weight of the GP
 
     /* For values not available on the constitutive law */                                        /// This is the position on the list of GP inside the element
-    std::unordered_map<IndexType,double> mMapDoubleVariables;             /// This maps stores auxiliar doubles to interpolate later
-    std::unordered_map<IndexType,array_1d<double, 3>> mMapArrayVariables; /// This maps stores auxiliar arrays to interpolate later
-    std::unordered_map<IndexType,Vector> mMapVectorVariables;             /// This maps stores auxiliar vectors to interpolate later
-    std::unordered_map<IndexType,Matrix> mMapMatrixVariables;             /// This maps stores auxiliar matrixes to interpolate later
+    std::unordered_map<IndexType,double> mMapDoubleVariables;             /// This maps stores auxiliary doubles to interpolate later
+    std::unordered_map<IndexType,array_1d<double, 3>> mMapArrayVariables; /// This maps stores auxiliary arrays to interpolate later
+    std::unordered_map<IndexType,Vector> mMapVectorVariables;             /// This maps stores auxiliary vectors to interpolate later
+    std::unordered_map<IndexType,Matrix> mMapMatrixVariables;             /// This maps stores auxiliary matrixes to interpolate later
 
     ///@}
     ///@name Private Operators

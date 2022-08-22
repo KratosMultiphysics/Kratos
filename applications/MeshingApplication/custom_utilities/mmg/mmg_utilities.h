@@ -644,8 +644,8 @@ public:
      * @brief This method generates mesh data from an existing model part
      * @param[in,out] rModelPart The model part of interest to study
      * @param[in,out] rColors Where the sub model parts IDs are stored
-     * @param[in,out] rColorMapCondition Auxiliar color map for conditions
-     * @param[in,out] rColorMapElement Auxiliar color map for elements
+     * @param[in,out] rColorMapCondition Auxiliary color map for conditions
+     * @param[in,out] rColorMapElement Auxiliary color map for elements
      * @param[in] Framework The framework considered
      * @param[in] CollapsePrismElements If the prisms elements are going to be collapsed
      */
@@ -661,8 +661,8 @@ public:
     /**
      * @brief This method generates the maps of reference for conditions and elements
      * @param[in] rModelPart The model part of interest to study
-     * @param[in] rColorMapCondition Auxiliar color map for conditions
-     * @param[in] rColorMapElement Auxiliar color map for elements
+     * @param[in] rColorMapCondition Auxiliary color map for conditions
+     * @param[in] rColorMapElement Auxiliary color map for elements
      * @param[in,out] rRefCondition The conditions of reference
      * @param[in,out] rRefElement The elements of reference
      */
@@ -735,13 +735,13 @@ public:
      * @brief This function generates a list of submodelparts to be able to reassign flags after remesh
      * @param[in,out] rModelPart The model part of interest to study
      */
-   virtual void CreateAuxiliarSubModelPartForFlags(ModelPart& rModelPart);
+   virtual void CreateAuxiliarySubModelPartForFlags(ModelPart& rModelPart);
 
     /**
-     * @brief This function assigns the flags and clears the auxiliar sub model part for flags
+     * @brief This function assigns the flags and clears the auxiliary sub model part for flags
      * @param[in,out] rModelPart The model part of interest to study
      */
-    virtual void AssignAndClearAuxiliarSubModelPartForFlags(ModelPart& rModelPart);
+    virtual void AssignAndClearAuxiliarySubModelPartForFlags(ModelPart& rModelPart);
 
     /**
      * @brief Sets the number of parameters to be defined locally at each reference color.

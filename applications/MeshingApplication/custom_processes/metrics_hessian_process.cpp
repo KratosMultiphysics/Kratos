@@ -69,8 +69,8 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
 
 void ComputeHessianSolMetricProcess::Execute()
 {
-    // Computing auxiliar Hessian
-    CalculateAuxiliarHessian();
+    // Computing auxiliary Hessian
+    CalculateAuxiliaryHessian();
 
     if (mrModelPart.NumberOfNodes() > 0) {
         // Some checks
@@ -105,7 +105,7 @@ void ComputeHessianSolMetricProcess::Execute()
 template<SizeType TDim>
 array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianMetricTensor(
     const Vector& rHessian,
-    const AuxiliarHessianComputationVariables& rAuxiliarHessianComputationVariables
+    const AuxiliaryHessianComputationVariables& rAuxiliaryHessianComputationVariables
     )
 {
     /// The type of array considered for the tensor
@@ -118,9 +118,9 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
     const MatrixType hessian_matrix = MathUtils<double>::VectorToSymmetricTensor<Vector, MatrixType>(rHessian);
 
     // Calculating Metric parameters (using equation from remark 4.2.2 on Metric-Based Anisotropic Mesh Adaptation)
-    double interpolation_error = rAuxiliarHessianComputationVariables.mInterpolationError;
-    if (rAuxiliarHessianComputationVariables.mEstimateInterpolationError) {
-        interpolation_error = rAuxiliarHessianComputationVariables.mMeshDependentConstant * MathUtils<double>::Max(rAuxiliarHessianComputationVariables.mNodalH, rAuxiliarHessianComputationVariables.mNodalH * norm_frobenius(hessian_matrix)); // NOTE: To compute it properly instead of iterating over the nodes you should iterate over the elements and instead of ElementMaxSize you should iterate over the edges, this is equivalent when using nodes and computing NodalH previously
+    double interpolation_error = rAuxiliaryHessianComputationVariables.mInterpolationError;
+    if (rAuxiliaryHessianComputationVariables.mEstimateInterpolationError) {
+        interpolation_error = rAuxiliaryHessianComputationVariables.mMeshDependentConstant * MathUtils<double>::Max(rAuxiliaryHessianComputationVariables.mNodalH, rAuxiliaryHessianComputationVariables.mNodalH * norm_frobenius(hessian_matrix)); // NOTE: To compute it properly instead of iterating over the nodes you should iterate over the elements and instead of ElementMaxSize you should iterate over the edges, this is equivalent when using nodes and computing NodalH previously
     }
 
     // Declaring the eigen system
@@ -131,14 +131,14 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
     // We check is the interpolation error is near zero. If it is we will correct it
     if (interpolation_error < std::numeric_limits<double>::epsilon()) { // In practice, the Hessian of function u can be 0, e.g. if u is linear, then |Hu| is not definite. In this particular case, the interpolation error is 0 and we want to prescribe a mesh size which is infinite. To solve this issue, this infinite size prescription is truncated by imposing maximal size hmax . This is equivalent to truncate tiny eigenvalues by lambda  = 1/hmax^2 . See [1] pag. 34
         KRATOS_WARNING("ComputeHessianSolMetricProcess") << "WARNING: Your interpolation error is near zero: " << interpolation_error  <<  ". Computing a local L(inf) upper bound of the interpolation error"<< std::endl;
-        const double l_square_minus1 = 1.0/std::pow(rAuxiliarHessianComputationVariables.mElementMaxSize, 2);
+        const double l_square_minus1 = 1.0/std::pow(rAuxiliaryHessianComputationVariables.mElementMaxSize, 2);
         for (IndexType i = 0; i < TDim; ++i) {
             eigen_values_matrix(i, i) = l_square_minus1;
         }
     } else { // Equation 4.4 from Metric-Based Anisotropic Mesh Adaptation
-        const double c_epsilon = rAuxiliarHessianComputationVariables.mMeshDependentConstant/interpolation_error;
-        const double min_ratio = 1.0/std::pow(rAuxiliarHessianComputationVariables.mElementMinSize, 2);
-        const double max_ratio = 1.0/std::pow(rAuxiliarHessianComputationVariables.mElementMaxSize, 2);
+        const double c_epsilon = rAuxiliaryHessianComputationVariables.mMeshDependentConstant/interpolation_error;
+        const double min_ratio = 1.0/std::pow(rAuxiliaryHessianComputationVariables.mElementMinSize, 2);
+        const double max_ratio = 1.0/std::pow(rAuxiliaryHessianComputationVariables.mElementMaxSize, 2);
 
         // Recalculate the Metric eigen values
         for (IndexType i = 0; i < TDim; ++i) {
@@ -147,8 +147,8 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
     }
 
     // Considering anisotropic
-    if (rAuxiliarHessianComputationVariables.mAnisotropyRemeshing) {
-        if (rAuxiliarHessianComputationVariables.mEnforceAnisotropyRelativeVariable) {
+    if (rAuxiliaryHessianComputationVariables.mAnisotropyRemeshing) {
+        if (rAuxiliaryHessianComputationVariables.mEnforceAnisotropyRelativeVariable) {
             double eigen_max = eigen_values_matrix(0, 0);
             double eigen_min = eigen_values_matrix(0, 0);
             for (IndexType i = 1; i < TDim; ++i) {
@@ -156,7 +156,7 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
                 eigen_min = MathUtils<double>::Min(eigen_min, eigen_values_matrix(i, i));
             }
 
-            const double eigen_radius = std::abs(eigen_max - eigen_min) * (1.0 - rAuxiliarHessianComputationVariables.mAnisotropicRatio);
+            const double eigen_radius = std::abs(eigen_max - eigen_min) * (1.0 - rAuxiliaryHessianComputationVariables.mAnisotropicRatio);
             const double relative_eigen_radius = std::abs(eigen_max - eigen_radius);
 
             for (IndexType i = 0; i < TDim; ++i)
@@ -184,7 +184,7 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
+void ComputeHessianSolMetricProcess::CalculateAuxiliaryHessian()
 {
     // Iterate in the elements
     ElementsArrayType& r_elements_array = mrModelPart.Elements();
@@ -192,7 +192,7 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
     // Geometry information
     const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
-    // Declaring auxiliar vector
+    // Declaring auxiliary vector
     const Vector aux_zero_hessian = ZeroVector(3 * (dimension - 1));
     const array_1d<double, 3> aux_zero_vector = ZeroVector(3);
 
@@ -204,23 +204,23 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
     const double normalization_factor = normalization_method == Normalization::CONSTANT ? mThisParameters["normalization_factor"].GetDouble() : 1.0;
     const double normalization_alpha = mThisParameters["normalization_alpha"].GetDouble();
 
-    // Initialize auxiliar variables
+    // Initialize auxiliary variables
     block_for_each(r_nodes_array,
         [this,&aux_zero_hessian,&aux_zero_vector,&normalization_factor](NodeType& rNode) {
         rNode.SetValue(NODAL_AREA, 0.0);
         rNode.SetValue(AUXILIAR_HESSIAN, aux_zero_hessian);
         rNode.SetValue(AUXILIAR_GRADIENT, aux_zero_vector);
 
-        // Saving auxiliar value
+        // Saving auxiliary value
         const double value = mNonHistoricalVariable ? rNode.GetValue(*(mpOriginVariable)) : rNode.FastGetSolutionStepValue(*(mpOriginVariable));
         rNode.SetValue(NODAL_MAUX, value * normalization_factor);
     });
 
-    // Compute auxiliar gradient
+    // Compute auxiliary gradient
     auto gradient_process = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mrModelPart, NODAL_MAUX, AUXILIAR_GRADIENT, NODAL_AREA, true);
     gradient_process.Execute();
 
-    // Auxiliar containers
+    // Auxiliary containers
     struct fe_containers
     {
         Matrix DN_DX, J0, InvJ0;
@@ -393,8 +393,8 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
     const double hmin_over_hmax_anisotropic_ratio = mThisParameters["hmin_over_hmax_anisotropic_ratio"].GetDouble();     /// The error of interpolation allowed
     const double boundary_layer_max_distance = mThisParameters["boundary_layer_max_distance"].GetDouble();               /// The error of interpolation allowed
 
-    // Create auxiliar variable structure
-    AuxiliarHessianComputationVariables aux_variables(1.0, 0.0, 0.0, 0.0, estimate_interpolation_error, interpolation_error, mesh_dependent_constant, anisotropy_remeshing, enforce_anisotropy_relative_variable);
+    // Create auxiliary variable structure
+    AuxiliaryHessianComputationVariables aux_variables(1.0, 0.0, 0.0, 0.0, estimate_interpolation_error, interpolation_error, mesh_dependent_constant, anisotropy_remeshing, enforce_anisotropy_relative_variable);
 
     /// The type of array considered for the tensor
     typedef typename std::conditional<TDim == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
@@ -408,7 +408,7 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
 
     // Setting metric in case not defined
     if (!it_node_begin->Has(r_tensor_variable)) {
-        // Declaring auxiliar vector
+        // Declaring auxiliary vector
         const TensorArrayType aux_zero_vector = ZeroVector(3 * (TDim - 1));
         VariableUtils().SetNonHistoricalVariable(r_tensor_variable, aux_zero_vector, r_nodes_array);
     }
@@ -418,7 +418,7 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
     const auto& r_reference_var = *mpRatioReferenceVariable;
 
     block_for_each(r_nodes_array, aux_variables,
-        [&minimal_size,&maximal_size,&enforce_current,&anisotropy_remeshing,&enforce_anisotropy_relative_variable,&hmin_over_hmax_anisotropic_ratio,&boundary_layer_max_distance,this,&r_reference_var,&r_tensor_variable](NodeType& rNode, AuxiliarHessianComputationVariables& aux_variables) {
+        [&minimal_size,&maximal_size,&enforce_current,&anisotropy_remeshing,&enforce_anisotropy_relative_variable,&hmin_over_hmax_anisotropic_ratio,&boundary_layer_max_distance,this,&r_reference_var,&r_tensor_variable](NodeType& rNode, AuxiliaryHessianComputationVariables& aux_variables) {
 
         const Vector& r_hessian = rNode.GetValue(AUXILIAR_HESSIAN);
 

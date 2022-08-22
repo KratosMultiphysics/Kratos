@@ -233,11 +233,11 @@ private:
     ///@name Private Type Definitions
     ///@{
 
-    // Auxiliar search struct
+    // Auxiliary search struct
     template<std::size_t TDim>
-    struct auxiliar_search
+    struct auxiliary_search
     {
-        auxiliar_search(ModelPart& rModelPart)
+        auxiliary_search(ModelPart& rModelPart)
             : point_locator(rModelPart)
         {
             // We create the locator
@@ -317,7 +317,7 @@ private:
      * @brief This method saves the values on the gauss point object
      * @param rThisVar The variable to transfer
      * @param pPointOrigin The pointer to the current GP
-     * @param itElemOrigin The origin element iterator to save on the auxiliar point
+     * @param itElemOrigin The origin element iterator to save on the auxiliary point
      * @param GaussPointId The index of te current GaussPoint computed
      * @param rCurrentProcessInfo The process info
      */
@@ -493,7 +493,7 @@ private:
      * @param rThisGeometry The geometry of the element
      * @param rThisVar The variable to transfer
      * @param N The shape function used
-     * @param rElement The origin element to save on the auxiliar point
+     * @param rElement The origin element to save on the auxiliary point
      * @param GaussPointId The index of te current GaussPoint computed
      * @param Weight The integration weight
      * @param rCurrentProcessInfo The process info
@@ -537,7 +537,7 @@ private:
         Element::Pointer pElement
         )
     {
-        // An auxiliar value
+        // An auxiliary value
         TVarType aux_value = rThisVar.Zero();
 
         // Interpolate with shape function
@@ -565,7 +565,7 @@ private:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        // An auxiliar value
+        // An auxiliary value
         TVarType destination_value = rThisVar.Zero();
 
         // Interpolate with shape function
@@ -595,7 +595,7 @@ private:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        // An auxiliar value
+        // An auxiliary value
         TVarType destination_value = rThisVar.Zero();
 
         // Interpolate with shape function
@@ -620,8 +620,8 @@ private:
         NodesArrayType& r_nodes_array = mrDestinationMainModelPart.Nodes();
 
         /* Nodes */
-        block_for_each(r_nodes_array, auxiliar_search<TDim>(mrOriginMainModelPart),
-        [this](Node<3>& rNode, auxiliar_search<TDim>& aux) {
+        block_for_each(r_nodes_array, auxiliary_search<TDim>(mrOriginMainModelPart),
+        [this](Node<3>& rNode, auxiliary_search<TDim>& aux) {
 
             const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
             if (!old_entity) {

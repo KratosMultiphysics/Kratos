@@ -371,7 +371,7 @@ namespace Kratos
                     (ThisModelPart.Nodes()).push_back(*(i_node.base()));
             }
 
-            // Remove  auxiliar model part
+            // Remove  auxiliary model part
             ThisModelPart.GetModel().DeleteModelPart("auxiliary");
 
             KRATOS_CATCH("")

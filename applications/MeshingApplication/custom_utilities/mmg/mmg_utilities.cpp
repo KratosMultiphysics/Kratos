@@ -3865,7 +3865,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
 
     // The ISOSURFACE has some reserved Ids. We reassign
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        // Create auxiliar model part
+        // Create auxiliary model part
         if (!rModelPart.HasSubModelPart("SKIN_ISOSURFACE")) {
             rModelPart.CreateSubModelPart("SKIN_ISOSURFACE");
         }
@@ -3889,15 +3889,15 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         }
 
         // Identify the submodelparts with elements
-        std::unordered_set<std::string> auxiliar_set_elements;
+        std::unordered_set<std::string> auxiliary_set_elements;
         // We build a set for all the model parts containing elements
         for (auto& r_elem_color : elem_colors) {
             const IndexType color = r_elem_color.second;
             const auto& r_sub_model_parts_names = rColors[color];
-            auxiliar_set_elements.insert(r_sub_model_parts_names.begin(), r_sub_model_parts_names.end());
+            auxiliary_set_elements.insert(r_sub_model_parts_names.begin(), r_sub_model_parts_names.end());
         }
-        std::vector<std::string> auxiliar_vector_elements(auxiliar_set_elements.size());
-        std::copy(auxiliar_set_elements.begin(), auxiliar_set_elements.end(), std::back_inserter(auxiliar_vector_elements));
+        std::vector<std::string> auxiliary_vector_elements(auxiliary_set_elements.size());
+        std::copy(auxiliary_set_elements.begin(), auxiliary_set_elements.end(), std::back_inserter(auxiliary_vector_elements));
 
         // Move the map to the end
         if (id_2_exists) {
@@ -3979,10 +3979,10 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         }
 
         // Fill the model parts
-        rColors.insert(IndexStringVectorPairType(2, auxiliar_vector_elements));
-        rColors.insert(IndexStringVectorPairType(3, auxiliar_vector_elements));
-        std::vector<std::string> auxiliar_name_vector (1, "SKIN_ISOSURFACE");
-        rColors.insert(IndexStringVectorPairType(10, auxiliar_name_vector));
+        rColors.insert(IndexStringVectorPairType(2, auxiliary_vector_elements));
+        rColors.insert(IndexStringVectorPairType(3, auxiliary_vector_elements));
+        std::vector<std::string> auxiliary_name_vector (1, "SKIN_ISOSURFACE");
+        rColors.insert(IndexStringVectorPairType(10, auxiliary_name_vector));
     }
 
     /* Nodes */
@@ -4034,7 +4034,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         }
     });
 
-    // Create auxiliar colors maps
+    // Create auxiliary colors maps
     for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
         auto it_cond = it_cond_begin + i;
         const IndexType cond_id = it_cond->Id();
@@ -4256,7 +4256,7 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
     ConditionsArrayType created_conditions_vector;
     ElementsArrayType created_elements_vector;
 
-    // Auxiliar values
+    // Auxiliary values
     int ref, is_required;
 
     /* NODES */ // TODO: ADD OMP
@@ -4499,8 +4499,8 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
 {
     KRATOS_TRY;
 
-    // Getting auxiliar properties
-    auto p_auxiliar_prop = rModelPart.CreateNewProperties(0);
+    // Getting auxiliary properties
+    auto p_auxiliary_prop = rModelPart.CreateNewProperties(0);
 
     /* Elements */
     std::ifstream elem_infile(rFilename + ".elem.ref.json");
@@ -4509,7 +4509,7 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     for (auto it_param = elem_ref_json.begin(); it_param != elem_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
         Element const& r_clone_element = KratosComponents<Element>::Get(it_param->GetString());
-        rRefElement[key] = r_clone_element.Create(0, r_clone_element.pGetGeometry(), p_auxiliar_prop);
+        rRefElement[key] = r_clone_element.Create(0, r_clone_element.pGetGeometry(), p_auxiliary_prop);
     }
 
     /* Conditions */
@@ -4519,7 +4519,7 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     for (auto it_param = cond_ref_json.begin(); it_param != cond_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
         Condition const& r_clone_element = KratosComponents<Condition>::Get(it_param->GetString());
-        rRefCondition[key] = r_clone_element.Create(0, r_clone_element.pGetGeometry(), p_auxiliar_prop);
+        rRefCondition[key] = r_clone_element.Create(0, r_clone_element.pGetGeometry(), p_auxiliary_prop);
     }
 
     KRATOS_CATCH("");
@@ -4529,25 +4529,25 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-void MmgUtilities<TMMGLibrary>::CreateAuxiliarSubModelPartForFlags(ModelPart& rModelPart)
+void MmgUtilities<TMMGLibrary>::CreateAuxiliarySubModelPartForFlags(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
-    ModelPart& r_auxiliar_model_part = rModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
+    ModelPart& r_auxiliary_model_part = rModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
 
     const auto& r_flags = KratosComponents<Flags>::GetComponents();
 
     for (auto& r_flag : r_flags) {
         const std::string name_sub_model = "FLAG_" + r_flag.first;
         if (name_sub_model.find("NOT") == std::string::npos && name_sub_model.find("ALL") == std::string::npos) { // Avoiding inactive flags
-            r_auxiliar_model_part.CreateSubModelPart(name_sub_model);
-            ModelPart& r_auxiliar_sub_model_part = r_auxiliar_model_part.GetSubModelPart(name_sub_model);
-            FastTransferBetweenModelPartsProcess(r_auxiliar_sub_model_part, rModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, *(r_flag.second)).Execute();
+            r_auxiliary_model_part.CreateSubModelPart(name_sub_model);
+            ModelPart& r_auxiliary_sub_model_part = r_auxiliary_model_part.GetSubModelPart(name_sub_model);
+            FastTransferBetweenModelPartsProcess(r_auxiliary_sub_model_part, rModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, *(r_flag.second)).Execute();
             // If the number of elements transfered is 0 we remove the model part
-            if (r_auxiliar_sub_model_part.NumberOfNodes() == 0
-            && r_auxiliar_sub_model_part.NumberOfElements() == 0
-            && r_auxiliar_sub_model_part.NumberOfConditions() == 0) {
-                r_auxiliar_model_part.RemoveSubModelPart(name_sub_model);
+            if (r_auxiliary_sub_model_part.NumberOfNodes() == 0
+            && r_auxiliary_sub_model_part.NumberOfElements() == 0
+            && r_auxiliary_sub_model_part.NumberOfConditions() == 0) {
+                r_auxiliary_model_part.RemoveSubModelPart(name_sub_model);
             }
         }
     }
@@ -4559,20 +4559,20 @@ void MmgUtilities<TMMGLibrary>::CreateAuxiliarSubModelPartForFlags(ModelPart& rM
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-void MmgUtilities<TMMGLibrary>::AssignAndClearAuxiliarSubModelPartForFlags(ModelPart& rModelPart)
+void MmgUtilities<TMMGLibrary>::AssignAndClearAuxiliarySubModelPartForFlags(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
     const auto& r_flags = KratosComponents<Flags>::GetComponents();
 
-    ModelPart& r_auxiliar_model_part = rModelPart.GetSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
+    ModelPart& r_auxiliary_model_part = rModelPart.GetSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
     for (auto& r_flag : r_flags) {
         const std::string name_sub_model = "FLAG_" + r_flag.first;
-        if (r_auxiliar_model_part.HasSubModelPart(name_sub_model)) {
-            ModelPart& r_auxiliar_sub_model_part = r_auxiliar_model_part.GetSubModelPart(name_sub_model);
-            VariableUtils().SetFlag(*(r_flag.second), true, r_auxiliar_sub_model_part.Nodes());
-            VariableUtils().SetFlag(*(r_flag.second), true, r_auxiliar_sub_model_part.Conditions());
-            VariableUtils().SetFlag(*(r_flag.second), true, r_auxiliar_sub_model_part.Elements());
+        if (r_auxiliary_model_part.HasSubModelPart(name_sub_model)) {
+            ModelPart& r_auxiliary_sub_model_part = r_auxiliary_model_part.GetSubModelPart(name_sub_model);
+            VariableUtils().SetFlag(*(r_flag.second), true, r_auxiliary_sub_model_part.Nodes());
+            VariableUtils().SetFlag(*(r_flag.second), true, r_auxiliary_sub_model_part.Conditions());
+            VariableUtils().SetFlag(*(r_flag.second), true, r_auxiliary_sub_model_part.Elements());
         }
     }
 

@@ -253,10 +253,10 @@ void ParMmgProcess<TPMMGLibrary>::InitializeMeshData()
 
     // We create a list of submodelparts to later reassign flags after remesh
     if (mThisParameters["preserve_flags"].GetBool()) {
-        mPMmgUtilities.CreateAuxiliarSubModelPartForFlags(mrThisModelPart);
+        mPMmgUtilities.CreateAuxiliarySubModelPartForFlags(mrThisModelPart);
     }
 
-    // The auxiliar color maps
+    // The auxiliary color maps
     ColorsMapType aux_ref_cond, aux_ref_elem;
 
     // Actually generate mesh data
@@ -422,12 +422,12 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
     /* Save to file. It is required to call it AFTER writing the model part data */
     if (save_to_file) SaveSolutionToFile(true);
 
-    /* We assign flags and clear the auxiliar model parts created to reassing the flags */
+    /* We assign flags and clear the auxiliary model parts created to reassing the flags */
     if (mThisParameters["preserve_flags"].GetBool()) {
-        mPMmgUtilities.AssignAndClearAuxiliarSubModelPartForFlags(mrThisModelPart);
+        mPMmgUtilities.AssignAndClearAuxiliarySubModelPartForFlags(mrThisModelPart);
     }
 
-    // We create an auxiliar mesh for debugging purposes
+    // We create an auxiliary mesh for debugging purposes
     if (mThisParameters["debug_result_mesh"].GetBool()) {
         CreateDebugPrePostRemeshOutput(r_old_model_part);
     }
