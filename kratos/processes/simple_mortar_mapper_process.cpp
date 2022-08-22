@@ -303,7 +303,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
             point_list_destination[Index]->UpdatePoint();
         });
 
-        // Some auxiliar values
+        // Some auxiliary values
         const SizeType allocation_size = mThisParameters["search_parameters"]["allocation_size"].GetInt(); // Allocation size for the vectors and max number of potential results
         const double search_factor = mThisParameters["search_parameters"]["search_factor"].GetDouble(); // The search factor to be considered
         SizeType bucket_size = mThisParameters["search_parameters"]["bucket_size"].GetInt(); // Bucket size for kd-tree
@@ -390,7 +390,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
     const BoundedMatrixType Ae
     )
 {
-    // Auxiliar value
+    // Auxiliary value
     PointType global_point;
 
     for (IndexType i_geom = 0; i_geom < rGeometricalObjectsPointSlave.size(); ++i_geom) {
@@ -758,7 +758,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         MortarUtilities::ResetValue<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(mDestinationModelPart, *mpDestinationVariable);
     }
 
-    // Declaring auxiliar values
+    // Declaring auxiliary values
     IntMap inverse_conectivity_database;
     MatrixType A;
     std::vector<VectorType> b;
@@ -819,9 +819,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
 
     // Compute until convergence
     while (!CheckWholeVector(is_converged) && iteration < max_number_iterations) {
-        // We reset the auxiliar variable
-        MortarUtilities::ResetAuxiliarValue<TVarType>(mOriginModelPart);
-        MortarUtilities::ResetAuxiliarValue<TVarType>(mDestinationModelPart);
+        // We reset the auxiliary variable
+        MortarUtilities::ResetAuxiliaryValue<TVarType>(mOriginModelPart);
+        MortarUtilities::ResetAuxiliaryValue<TVarType>(mDestinationModelPart);
 
         if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
             // We map the values from one side to the other
@@ -869,7 +869,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
                 MortarUtilities::AddAreaWeightedNodalValue<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(rNode, *mpDestinationVariable, ref_area);
             }
             for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
-                const double value = MortarUtilities::GetAuxiliarValue<TVarType>(rNode, i_size);
+                const double value = MortarUtilities::GetAuxiliaryValue<TVarType>(rNode, i_size);
                 AtomicAdd(residual_norm[i_size], std::pow(value, 2));
             }
         });

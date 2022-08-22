@@ -268,8 +268,8 @@ namespace Kratos {
             // Generate skin
             Parameters surface_parameters = Parameters(R"(
             {
-                "name_auxiliar_model_part"              : "Main.Surface",
-                "name_auxiliar_condition"               : "Condition",
+                "name_auxiliary_model_part"              : "Main.Surface",
+                "name_auxiliary_condition"               : "Condition",
                 "list_model_parts_to_assign_conditions" : [],
                 "echo_level"                            : 0
             })");

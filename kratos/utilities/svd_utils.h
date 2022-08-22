@@ -199,9 +199,9 @@ public:
         IndexType iter = 0;
 
         // We create the auxuliar matrices (for aliased operations)
-        MatrixType auxiliar_matrix_mn(m, n);
-        MatrixType auxiliar_matrix_m(m, m);
-        MatrixType auxiliar_matrix_n(n, n);
+        MatrixType auxiliary_matrix_mn(m, n);
+        MatrixType auxiliary_matrix_m(m, m);
+        MatrixType auxiliary_matrix_n(n, n);
 
         // We compute Jacobi
         while (LocalSpaceType::JacobiNorm(SMatrix) > relative_tolerance) {
@@ -214,10 +214,10 @@ public:
 
                     const MatrixType aux_matrix = prod(SMatrix, j2);
                     noalias(SMatrix) = prod(j1, aux_matrix);
-                    noalias(auxiliar_matrix_m) = prod(UMatrix, trans(j1));
-                    noalias(UMatrix) = auxiliar_matrix_m;
-                    noalias(auxiliar_matrix_n) = prod(trans(j2), VMatrix);
-                    noalias(VMatrix) = auxiliar_matrix_n;
+                    noalias(auxiliary_matrix_m) = prod(UMatrix, trans(j1));
+                    noalias(UMatrix) = auxiliary_matrix_m;
+                    noalias(auxiliary_matrix_n) = prod(trans(j2), VMatrix);
+                    noalias(VMatrix) = auxiliary_matrix_n;
                 }
 
                 for (IndexType j = n; j < m; j++) {
@@ -225,10 +225,10 @@ public:
 
                     Jacobi(j1, SMatrix, m, i, j);
 
-                    noalias(auxiliar_matrix_mn) = prod(j1, SMatrix);
-                    noalias(SMatrix) = auxiliar_matrix_mn;
-                    noalias(auxiliar_matrix_m) = prod(UMatrix, trans(j1));
-                    noalias(UMatrix) = auxiliar_matrix_m;
+                    noalias(auxiliary_matrix_mn) = prod(j1, SMatrix);
+                    noalias(SMatrix) = auxiliary_matrix_mn;
+                    noalias(auxiliary_matrix_m) = prod(UMatrix, trans(j1));
+                    noalias(UMatrix) = auxiliary_matrix_m;
                 }
             }
 
@@ -271,9 +271,9 @@ public:
 
         SingularValueDecomposition2x2Symmetric(m_matrix, UMatrix, SMatrix, VMatrix);
 
-        MatrixType auxiliar_matrix_m(UMatrix.size1(), UMatrix.size2());
-        noalias(auxiliar_matrix_m) = prod(trans(r_matrix), UMatrix);
-        noalias(UMatrix) = auxiliar_matrix_m;
+        MatrixType auxiliary_matrix_m(UMatrix.size1(), UMatrix.size2());
+        noalias(auxiliary_matrix_m) = prod(trans(r_matrix), UMatrix);
+        noalias(UMatrix) = auxiliary_matrix_m;
     }
 
 	/**
@@ -330,7 +330,7 @@ public:
         z_matrix(1, 0) = 0.0;
         z_matrix(1, 1) = MathUtils<TDataType>::Sign(SMatrix(1, 1));
 
-        // Auxiliar matrix for alias operations
+        // Auxiliary matrix for alias operations
         MatrixType aux_2_2_matrix(2, 2);
         noalias(aux_2_2_matrix) = prod(UMatrix, z_matrix);
         noalias(UMatrix) = aux_2_2_matrix;

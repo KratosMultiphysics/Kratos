@@ -40,7 +40,7 @@
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
 #include "utilities/merge_variable_lists_utility.h"
 #include "utilities/variable_redistribution_utility.h"
-#include "utilities/auxiliar_model_part_utilities.h"
+#include "utilities/auxiliary_model_part_utilities.h"
 #include "utilities/time_discretization.h"
 #include "utilities/table_stream_utility.h"
 #include "utilities/read_materials_utility.h"
@@ -379,34 +379,34 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("DistributePointValuesNonHistorical", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValuesNonHistorical(rModelPart, rConditions, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
         ;
 
-    // Auxiliar ModelPart Utility
-    py::class_<AuxiliarModelPartUtilities, typename AuxiliarModelPartUtilities::Pointer>(m, "AuxiliarModelPartUtilities")
+    // Auxiliary ModelPart Utility
+    py::class_<AuxiliaryModelPartUtilities, typename AuxiliaryModelPartUtilities::Pointer>(m, "AuxiliaryModelPartUtilities")
         .def(py::init<ModelPart&>())
-        .def("CopySubModelPartStructure", &AuxiliarModelPartUtilities::CopySubModelPartStructure)
-        .def("RecursiveEnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities) { rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties();})
-        .def("RecursiveEnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, const bool RemovePreviousProperties) { rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties(RemovePreviousProperties);})
-        .def("EnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities) { rAuxiliarModelPartUtilities.EnsureModelPartOwnsProperties();})
-        .def("EnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, const bool RemovePreviousProperties) { rAuxiliarModelPartUtilities.EnsureModelPartOwnsProperties(RemovePreviousProperties);})
-        .def("RemoveElementAndBelongings", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ElementId, Flags IdentifierFlag) { rAuxiliarModelPartUtilities.RemoveElementAndBelongings(ElementId, IdentifierFlag);})
-        .def("RemoveElementAndBelongings", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ElementId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliarModelPartUtilities.RemoveElementAndBelongings(ElementId, IdentifierFlag, ThisIndex);})
-        .def("RemoveElementAndBelongings", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag) { rAuxiliarModelPartUtilities.RemoveElementAndBelongings(pThisElement, IdentifierFlag);})
-        .def("RemoveElementAndBelongings", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliarModelPartUtilities.RemoveElementAndBelongings(pThisElement, IdentifierFlag, ThisIndex);})
-        .def("RemoveElementsAndBelongings", &Kratos::AuxiliarModelPartUtilities::RemoveElementsAndBelongings)
-        .def("RemoveElementAndBelongingsFromAllLevels", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ElementId, Flags IdentifierFlag) { rAuxiliarModelPartUtilities.RemoveElementAndBelongingsFromAllLevels(ElementId, IdentifierFlag);})
-        .def("RemoveElementAndBelongingsFromAllLevels", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ElementId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliarModelPartUtilities.RemoveElementAndBelongingsFromAllLevels(ElementId, IdentifierFlag, ThisIndex);})
-        .def("RemoveElementAndBelongingsFromAllLevels", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag) { rAuxiliarModelPartUtilities.RemoveElementAndBelongingsFromAllLevels(pThisElement, IdentifierFlag);})
-        .def("RemoveElementAndBelongingsFromAllLevels", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliarModelPartUtilities.RemoveElementAndBelongingsFromAllLevels(pThisElement, IdentifierFlag, ThisIndex);})
-        .def("RemoveElementsAndBelongingsFromAllLevels", &Kratos::AuxiliarModelPartUtilities::RemoveElementsAndBelongingsFromAllLevels)
-        .def("RemoveConditionAndBelongings", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ConditionId, Flags IdentifierFlag) { rAuxiliarModelPartUtilities.RemoveConditionAndBelongings(ConditionId, IdentifierFlag);})
-        .def("RemoveConditionAndBelongings", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ConditionId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliarModelPartUtilities.RemoveConditionAndBelongings(ConditionId, IdentifierFlag, ThisIndex);})
-        .def("RemoveConditionAndBelongings", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag) { rAuxiliarModelPartUtilities.RemoveConditionAndBelongings(pThisCondition, IdentifierFlag);})
-        .def("RemoveConditionAndBelongings", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliarModelPartUtilities.RemoveConditionAndBelongings(pThisCondition, IdentifierFlag, ThisIndex);})
-        .def("RemoveConditionsAndBelongings", &Kratos::AuxiliarModelPartUtilities::RemoveConditionsAndBelongings)
-        .def("RemoveConditionAndBelongingsFromAllLevels", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ConditionId, Flags IdentifierFlag) { rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(ConditionId, IdentifierFlag);})
-        .def("RemoveConditionAndBelongingsFromAllLevels", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ConditionId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(ConditionId, IdentifierFlag, ThisIndex);})
-        .def("RemoveConditionAndBelongingsFromAllLevels", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag) { rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(pThisCondition, IdentifierFlag);})
-        .def("RemoveConditionAndBelongingsFromAllLevels", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(pThisCondition, IdentifierFlag, ThisIndex);})
-        .def("RemoveConditionsAndBelongingsFromAllLevels", &Kratos::AuxiliarModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels)
+        .def("CopySubModelPartStructure", &AuxiliaryModelPartUtilities::CopySubModelPartStructure)
+        .def("RecursiveEnsureModelPartOwnsProperties", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities) { rAuxiliaryModelPartUtilities.RecursiveEnsureModelPartOwnsProperties();})
+        .def("RecursiveEnsureModelPartOwnsProperties", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, const bool RemovePreviousProperties) { rAuxiliaryModelPartUtilities.RecursiveEnsureModelPartOwnsProperties(RemovePreviousProperties);})
+        .def("EnsureModelPartOwnsProperties", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities) { rAuxiliaryModelPartUtilities.EnsureModelPartOwnsProperties();})
+        .def("EnsureModelPartOwnsProperties", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, const bool RemovePreviousProperties) { rAuxiliaryModelPartUtilities.EnsureModelPartOwnsProperties(RemovePreviousProperties);})
+        .def("RemoveElementAndBelongings", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, ModelPart::IndexType ElementId, Flags IdentifierFlag) { rAuxiliaryModelPartUtilities.RemoveElementAndBelongings(ElementId, IdentifierFlag);})
+        .def("RemoveElementAndBelongings", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, ModelPart::IndexType ElementId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliaryModelPartUtilities.RemoveElementAndBelongings(ElementId, IdentifierFlag, ThisIndex);})
+        .def("RemoveElementAndBelongings", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag) { rAuxiliaryModelPartUtilities.RemoveElementAndBelongings(pThisElement, IdentifierFlag);})
+        .def("RemoveElementAndBelongings", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliaryModelPartUtilities.RemoveElementAndBelongings(pThisElement, IdentifierFlag, ThisIndex);})
+        .def("RemoveElementsAndBelongings", &Kratos::AuxiliaryModelPartUtilities::RemoveElementsAndBelongings)
+        .def("RemoveElementAndBelongingsFromAllLevels", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, ModelPart::IndexType ElementId, Flags IdentifierFlag) { rAuxiliaryModelPartUtilities.RemoveElementAndBelongingsFromAllLevels(ElementId, IdentifierFlag);})
+        .def("RemoveElementAndBelongingsFromAllLevels", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, ModelPart::IndexType ElementId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliaryModelPartUtilities.RemoveElementAndBelongingsFromAllLevels(ElementId, IdentifierFlag, ThisIndex);})
+        .def("RemoveElementAndBelongingsFromAllLevels", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag) { rAuxiliaryModelPartUtilities.RemoveElementAndBelongingsFromAllLevels(pThisElement, IdentifierFlag);})
+        .def("RemoveElementAndBelongingsFromAllLevels", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliaryModelPartUtilities.RemoveElementAndBelongingsFromAllLevels(pThisElement, IdentifierFlag, ThisIndex);})
+        .def("RemoveElementsAndBelongingsFromAllLevels", &Kratos::AuxiliaryModelPartUtilities::RemoveElementsAndBelongingsFromAllLevels)
+        .def("RemoveConditionAndBelongings", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, ModelPart::IndexType ConditionId, Flags IdentifierFlag) { rAuxiliaryModelPartUtilities.RemoveConditionAndBelongings(ConditionId, IdentifierFlag);})
+        .def("RemoveConditionAndBelongings", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, ModelPart::IndexType ConditionId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliaryModelPartUtilities.RemoveConditionAndBelongings(ConditionId, IdentifierFlag, ThisIndex);})
+        .def("RemoveConditionAndBelongings", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag) { rAuxiliaryModelPartUtilities.RemoveConditionAndBelongings(pThisCondition, IdentifierFlag);})
+        .def("RemoveConditionAndBelongings", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliaryModelPartUtilities.RemoveConditionAndBelongings(pThisCondition, IdentifierFlag, ThisIndex);})
+        .def("RemoveConditionsAndBelongings", &Kratos::AuxiliaryModelPartUtilities::RemoveConditionsAndBelongings)
+        .def("RemoveConditionAndBelongingsFromAllLevels", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, ModelPart::IndexType ConditionId, Flags IdentifierFlag) { rAuxiliaryModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(ConditionId, IdentifierFlag);})
+        .def("RemoveConditionAndBelongingsFromAllLevels", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, ModelPart::IndexType ConditionId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliaryModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(ConditionId, IdentifierFlag, ThisIndex);})
+        .def("RemoveConditionAndBelongingsFromAllLevels", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag) { rAuxiliaryModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(pThisCondition, IdentifierFlag);})
+        .def("RemoveConditionAndBelongingsFromAllLevels", [](AuxiliaryModelPartUtilities& rAuxiliaryModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliaryModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(pThisCondition, IdentifierFlag, ThisIndex);})
+        .def("RemoveConditionsAndBelongingsFromAllLevels", &Kratos::AuxiliaryModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels)
         ;
 
     // Sparse matrix multiplication utility

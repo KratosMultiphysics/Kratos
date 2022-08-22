@@ -43,7 +43,7 @@
 namespace Kratos {
 namespace Python {
 
-// Embedded skin utility auxiliar functions
+// Embedded skin utility auxiliary functions
 template<std::size_t TDim>
 void InterpolateMeshVariableToSkinDouble(
     EmbeddedSkinUtility<TDim> &rEmbeddedSkinUtility,

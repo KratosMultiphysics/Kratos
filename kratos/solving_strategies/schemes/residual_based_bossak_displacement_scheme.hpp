@@ -111,7 +111,7 @@ public:
         // For pure Newmark Scheme
         mNewmark.gamma = 0.5;
 
-        AuxiliarInitializeBossak();
+        AuxiliaryInitializeBossak();
     }
 
     /**
@@ -139,7 +139,7 @@ public:
         mNewmark.beta = NewmarkBeta;
         mNewmark.gamma = 0.5;
 
-        AuxiliarInitializeBossak();
+        AuxiliaryInitializeBossak();
     }
 
     /**
@@ -268,7 +268,7 @@ public:
         KRATOS_WARNING_IF("ResidualBasedBossakDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
         const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
 
-        // Auxiliar variables
+        // Auxiliary variables
         array_1d<double, 3 > delta_displacement;
         std::array<bool, 3> predicted = {false, false, false};
         const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
@@ -751,7 +751,7 @@ private:
     /**
      * @brief This method does an auziliar initialization of some member variables of the class
      */
-    void AuxiliarInitializeBossak()
+    void AuxiliaryInitializeBossak()
     {
         // Initialize Bossak coefficients
         CalculateBossakCoefficients();

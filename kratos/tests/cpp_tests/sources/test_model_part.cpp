@@ -16,7 +16,7 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/model_part.h"
-#include "utilities/auxiliar_model_part_utilities.h"
+#include "utilities/auxiliary_model_part_utilities.h"
 #include "utilities/cpp_tests_utilities.h"
 
 namespace Kratos {
@@ -248,7 +248,7 @@ namespace Kratos {
         r_model_part.pGetElement(2)->Set(TO_ERASE, true);
 
         // Call method
-        auto aux_util = AuxiliarModelPartUtilities(r_model_part);
+        auto aux_util = AuxiliaryModelPartUtilities(r_model_part);
         aux_util.RemoveElementsAndBelongings(TO_ERASE);
 
         // Check results
@@ -293,7 +293,7 @@ namespace Kratos {
         r_model_part.pGetCondition(2)->Set(TO_ERASE, true);
 
         // Call method
-        auto aux_util = AuxiliarModelPartUtilities(r_model_part);
+        auto aux_util = AuxiliaryModelPartUtilities(r_model_part);
         aux_util.RemoveConditionsAndBelongings(TO_ERASE);
 
         // Check results
@@ -322,7 +322,7 @@ namespace Kratos {
         KRATOS_CHECK_EQUAL(r_model_part.NumberOfProperties(), 1);
 
         // Call method
-        auto aux_util = AuxiliarModelPartUtilities(r_model_part);
+        auto aux_util = AuxiliaryModelPartUtilities(r_model_part);
         aux_util.EnsureModelPartOwnsProperties(false);
 
         // Check results

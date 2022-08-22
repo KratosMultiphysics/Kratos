@@ -217,7 +217,7 @@ public:
         // Updating time derivatives (nodally for efficiency)
         const auto it_node_begin = rModelPart.Nodes().begin();
 
-        // Auxiliar variables
+        // Auxiliary variables
         const array_1d<double, 3> zero_array = ZeroVector(3);
         array_1d<double, 3 > delta_displacement = zero_array;
 

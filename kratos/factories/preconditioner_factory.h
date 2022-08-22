@@ -122,7 +122,7 @@ protected:
     ///@{
 
     /**
-     * @brief This method is an auxiliar method to create a new solver
+     * @brief This method is an auxiliary method to create a new solver
      * @return The pointer to the solver of interest
      */
     virtual typename PreconditionerType::Pointer CreatePreconditioner()  const

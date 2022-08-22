@@ -650,7 +650,7 @@ protected:
      * @brief Construct a new Calculate Embedded Nodal Variable From Skin Process object
      * Constructor with background and skin model parts as well as json settings. This
      * constructor is intentionally protected to avoid exposing it to the user since it
-     * is intended to serve as an auxiliar constructor to bridge from the model and
+     * is intended to serve as an auxiliary constructor to bridge from the model and
      * parameters one, which checks the provided settings with the defaults, to the "old
      * fashioned" one. This allows keeping the member variables as const as well as to
      * have a unique implementation of the constructor required checks and operations.

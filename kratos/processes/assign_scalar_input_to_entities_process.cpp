@@ -471,7 +471,7 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ReadDataTXT(const
     // Define the number of time steps
     SizeType number_time_steps = 0;
 
-    // Definition of auxiliar line
+    // Definition of auxiliary line
     std::string line;
 
     // Initial read

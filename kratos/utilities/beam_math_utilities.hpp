@@ -481,8 +481,8 @@ public:
 
     unsigned int MatSize = rMatrix.size1();
 
-    Matrix AuxiliarRotationMatrix(MatSize,MatSize);
-    noalias(AuxiliarRotationMatrix) = ZeroMatrix(MatSize,MatSize);
+    Matrix AuxiliaryRotationMatrix(MatSize,MatSize);
+    noalias(AuxiliaryRotationMatrix) = ZeroMatrix(MatSize,MatSize);
  
     //Building the rotation matrix for the local element matrix
     for (unsigned int kk=0; kk < MatSize; kk += 2)
@@ -491,17 +491,17 @@ public:
         {
             for(unsigned int j=0; j<2; j++)
             {
-	      AuxiliarRotationMatrix(i+kk,j+kk) = rLocalToGlobalMatrix(i,j);
+	      AuxiliaryRotationMatrix(i+kk,j+kk) = rLocalToGlobalMatrix(i,j);
             }
         }
     }
 
     //Rotate Local Stiffness Matrix
     Matrix aux_matrix(MatSize,MatSize);
-    noalias(aux_matrix) = prod(AuxiliarRotationMatrix, rMatrix);
+    noalias(aux_matrix) = prod(AuxiliaryRotationMatrix, rMatrix);
 
     //Stiffness Matrix
-    noalias(rMatrix) = prod(aux_matrix,trans(AuxiliarRotationMatrix));
+    noalias(rMatrix) = prod(aux_matrix,trans(AuxiliaryRotationMatrix));
          
 
     KRATOS_CATCH( "" )
@@ -524,8 +524,8 @@ public:
 
     unsigned int MatSize = rVector.size();
 
-    Matrix AuxiliarRotationMatrix(MatSize,MatSize);
-    noalias(AuxiliarRotationMatrix) = ZeroMatrix(MatSize,MatSize);
+    Matrix AuxiliaryRotationMatrix(MatSize,MatSize);
+    noalias(AuxiliaryRotationMatrix) = ZeroMatrix(MatSize,MatSize);
  
     //Building the rotation matrix for the local element matrix
     for (unsigned int kk=0; kk < MatSize; kk += 2)
@@ -534,12 +534,12 @@ public:
         {
             for(unsigned int j=0; j<2; j++)
             {
-	      AuxiliarRotationMatrix(i+kk,j+kk) = rLocalToGlobalMatrix(i,j);
+	      AuxiliaryRotationMatrix(i+kk,j+kk) = rLocalToGlobalMatrix(i,j);
             }
         }
     }
 
-    rVector = prod(AuxiliarRotationMatrix, rVector);
+    rVector = prod(AuxiliaryRotationMatrix, rVector);
           
     KRATOS_CATCH( "" )
 
@@ -609,8 +609,8 @@ public:
 
     unsigned int MatSize = rMatrix.size1();
 
-    Matrix AuxiliarRotationMatrix(MatSize,MatSize);
-    noalias(AuxiliarRotationMatrix) = ZeroMatrix(MatSize,MatSize);
+    Matrix AuxiliaryRotationMatrix(MatSize,MatSize);
+    noalias(AuxiliaryRotationMatrix) = ZeroMatrix(MatSize,MatSize);
 
     //Building the rotation matrix for the local element matrix
     for (unsigned int kk=0; kk < MatSize; kk += 3)
@@ -619,17 +619,17 @@ public:
         {
             for(unsigned int j=0; j<3; j++)
             {
-	      AuxiliarRotationMatrix(i+kk,j+kk) = rLocalToGlobalMatrix(i,j);
+	      AuxiliaryRotationMatrix(i+kk,j+kk) = rLocalToGlobalMatrix(i,j);
             }
         }
     }
 
     //Rotate Local Stiffness Matrix
     Matrix aux_matrix(MatSize,MatSize);
-    noalias(aux_matrix) = prod(AuxiliarRotationMatrix, rMatrix);
+    noalias(aux_matrix) = prod(AuxiliaryRotationMatrix, rMatrix);
 
     //Stiffness Matrix
-    noalias(rMatrix) = prod(aux_matrix,trans(AuxiliarRotationMatrix));
+    noalias(rMatrix) = prod(aux_matrix,trans(AuxiliaryRotationMatrix));
          
 
     KRATOS_CATCH( "" )
@@ -652,8 +652,8 @@ public:
 
     unsigned int MatSize = rVector.size();
 
-    Matrix AuxiliarRotationMatrix(MatSize,MatSize);
-    noalias(AuxiliarRotationMatrix) = ZeroMatrix(MatSize,MatSize);
+    Matrix AuxiliaryRotationMatrix(MatSize,MatSize);
+    noalias(AuxiliaryRotationMatrix) = ZeroMatrix(MatSize,MatSize);
 
     //Building the rotation matrix for the local element matrix
     for (unsigned int kk=0; kk < MatSize; kk += 3)
@@ -662,12 +662,12 @@ public:
         {
             for(unsigned int j=0; j<3; j++)
             {
-	      AuxiliarRotationMatrix(i+kk,j+kk) = rLocalToGlobalMatrix(i,j);
+	      AuxiliaryRotationMatrix(i+kk,j+kk) = rLocalToGlobalMatrix(i,j);
             }
         }
     }
 
-    rVector = prod(AuxiliarRotationMatrix, rVector);
+    rVector = prod(AuxiliaryRotationMatrix, rVector);
           
     KRATOS_CATCH( "" )
 

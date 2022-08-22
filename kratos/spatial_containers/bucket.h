@@ -140,7 +140,7 @@ public:
         SearchNearestInRange()( mPointsBegin, mPointsEnd, ThisPoint, rResult, rResultDistance );
     }
 
-    void SearchNearestPoint(PointType const& ThisPoint, PointerType& Result, CoordinateType& ResultDistance, SearchStructureType& Auxiliar ) override
+    void SearchNearestPoint(PointType const& ThisPoint, PointerType& Result, CoordinateType& ResultDistance, SearchStructureType& Auxiliary ) override
     {
         SearchNearestPoint(ThisPoint,Result,ResultDistance);
     }
@@ -154,7 +154,7 @@ public:
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar) override
+                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliary) override
     {
         SearchInRadius(ThisPoint,Radius,Radius2,Results,ResultsDistances,NumberOfResults,MaxNumberOfResults);
     }
@@ -169,7 +169,7 @@ public:
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar) override
+                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliary) override
     {
         SearchInRadius(ThisPoint,Radius,Radius2,Results,NumberOfResults,MaxNumberOfResults);
     }

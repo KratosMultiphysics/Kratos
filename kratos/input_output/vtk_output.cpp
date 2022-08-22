@@ -898,7 +898,7 @@ void VtkOutput::WriteIntegrationScalarContainerVariable(
     rFileStream << rVariable.Name() << " 1 "
                 << rContainer.size() << "  float\n";
 
-    // Auxiliar values
+    // Auxiliary values
     const auto& r_process_info = mrModelPart.GetProcessInfo();
     auto& r_this_geometry_begin = (rContainer.begin())->GetGeometry();
     const GeometryData::IntegrationMethod this_integration_method = (rContainer.begin())->GetIntegrationMethod();
@@ -964,7 +964,7 @@ void VtkOutput::WriteIntegrationVectorContainerVariable(
 
     rFileStream << rVariable.Name() << " " << res_size << " " << rContainer.size() << "  float\n";
 
-    // Auxiliar values
+    // Auxiliary values
     auto& r_this_geometry_begin = (rContainer.begin())->GetGeometry();
     const GeometryData::IntegrationMethod this_integration_method = (rContainer.begin())->GetIntegrationMethod();
     const auto& r_integration_points = r_this_geometry_begin.IntegrationPoints(this_integration_method);
@@ -1040,24 +1040,24 @@ void VtkOutput::WriteIdsToFile(
 
 void VtkOutput::WriteModelPartWithoutNodesToFile(ModelPart& rModelPart, const std::string& rOutputFilename)
 {
-    // Getting model and creating auxiliar model part
+    // Getting model and creating auxiliary model part
     auto& r_model = mrModelPart.GetModel();
     const std::string& r_name_model_part = rModelPart.Name();
-    auto& r_auxiliar_model_part = r_model.CreateModelPart("AUXILIAR_" + r_name_model_part);
+    auto& r_auxiliary_model_part = r_model.CreateModelPart("AUXILIAR_" + r_name_model_part);
 
     // Tranfering entities of the submodelpart
-    FastTransferBetweenModelPartsProcess(r_auxiliar_model_part, rModelPart).Execute();
+    FastTransferBetweenModelPartsProcess(r_auxiliary_model_part, rModelPart).Execute();
 
     // Tranfering nodes from root model part
-    FastTransferBetweenModelPartsProcess(r_auxiliar_model_part, mrModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODES).Execute();
+    FastTransferBetweenModelPartsProcess(r_auxiliary_model_part, mrModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODES).Execute();
 
     // Marking to remove the nodes
-    for (auto& r_node : r_auxiliar_model_part.Nodes()) {
+    for (auto& r_node : r_auxiliary_model_part.Nodes()) {
         r_node.Set(TO_ERASE, true);
     }
 
     // Checking nodes from conditions
-    for (auto& r_cond : r_auxiliar_model_part.Conditions()) {
+    for (auto& r_cond : r_auxiliary_model_part.Conditions()) {
         auto& r_geometry = r_cond.GetGeometry();
         for (auto& r_node : r_geometry) {
             r_node.Set(TO_ERASE, false);
@@ -1065,7 +1065,7 @@ void VtkOutput::WriteModelPartWithoutNodesToFile(ModelPart& rModelPart, const st
     }
 
     // Checking nodes from elements
-    for (auto& r_elem : r_auxiliar_model_part.Elements()) {
+    for (auto& r_elem : r_auxiliary_model_part.Elements()) {
         auto& r_geometry = r_elem.GetGeometry();
         for (auto& r_node : r_geometry) {
             r_node.Set(TO_ERASE, false);
@@ -1073,12 +1073,12 @@ void VtkOutput::WriteModelPartWithoutNodesToFile(ModelPart& rModelPart, const st
     }
 
     // Removing unused nodes
-    r_auxiliar_model_part.RemoveNodes(TO_ERASE);
+    r_auxiliary_model_part.RemoveNodes(TO_ERASE);
 
     // Actually writing the
-    WriteModelPartToFile(r_auxiliar_model_part, true, rOutputFilename);
+    WriteModelPartToFile(r_auxiliary_model_part, true, rOutputFilename);
 
-    // Deletin auxiliar modek part
+    // Deletin auxiliary modek part
     r_model.DeleteModelPart("AUXILIAR_" + r_name_model_part);
 }
 

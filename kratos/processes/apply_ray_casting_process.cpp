@@ -395,7 +395,7 @@ namespace Kratos
         const double* pRayPoint2,
         double* pIntersectionPoint)
 	{
-		// Auxiliar arrays
+		// Auxiliary arrays
 		array_1d<double,3> ray_pt_1;
 		array_1d<double,3> ray_pt_2;
 		for (unsigned int i = 0; i < 3; ++i){
@@ -413,7 +413,7 @@ namespace Kratos
 			int_pt,
 			tolerance);
 
-		// Convert the auxiliar intersection point to the original type
+		// Convert the auxiliary intersection point to the original type
 		for (unsigned int i = 0; i < 3; ++i){
 			pIntersectionPoint[i] = int_pt[i];
 		}
@@ -428,7 +428,7 @@ namespace Kratos
         const double* pRayPoint2,
         double* pIntersectionPoint)
 	{
-		// Auxiliar arrays
+		// Auxiliary arrays
 		array_1d<double,3> ray_pt_1;
 		array_1d<double,3> ray_pt_2;
 		for (unsigned int i = 0; i < 3; ++i){
@@ -446,7 +446,7 @@ namespace Kratos
 			int_pt,
 			tolerance);
 
-		// Convert the auxiliar intersection point to the original type
+		// Convert the auxiliary intersection point to the original type
 		for (unsigned int i = 0; i < 3; ++i){
 			pIntersectionPoint[i] = int_pt[i];
 		}

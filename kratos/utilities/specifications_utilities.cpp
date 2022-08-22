@@ -496,7 +496,7 @@ std::vector<std::string> SpecificationsUtilities::DetermineTimeIntegration(const
     std::unordered_map<std::string, std::size_t> time_integrations_map;
     std::vector<std::string> time_integrations;
 
-    // Auxiliar classes
+    // Auxiliary classes
     std::size_t counter = 0;
 
     // Define specifications
@@ -1182,7 +1182,7 @@ bool SpecificationsUtilities::CheckCompatibleConstitutiveLaws(const ModelPart& r
 
     bool compatible_cl = true;
 
-    // Auxiliar things
+    // Auxiliary things
     std::vector<ConstitutiveLaw::Pointer> cl_vector;
     const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
     ConstitutiveLaw::Features features;

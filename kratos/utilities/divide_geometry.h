@@ -59,7 +59,7 @@ public:
     /// Empty constructor
     IndexedPoint();
 
-    /// Auxiliar constructor
+    /// Auxiliary constructor
     explicit IndexedPoint(const unsigned int Id);
 
     /// Default constructor

@@ -148,8 +148,8 @@ public:
         ,mVector(rOther.mVector)
         ,mpBDFUtility(nullptr)
     {
-        Kratos::unique_ptr<TimeDiscretization::BDF> auxiliar_pointer = Kratos::make_unique<TimeDiscretization::BDF>(mOrder);
-        mpBDFUtility.swap(auxiliar_pointer);
+        Kratos::unique_ptr<TimeDiscretization::BDF> auxiliary_pointer = Kratos::make_unique<TimeDiscretization::BDF>(mOrder);
+        mpBDFUtility.swap(auxiliary_pointer);
     }
 
     /**

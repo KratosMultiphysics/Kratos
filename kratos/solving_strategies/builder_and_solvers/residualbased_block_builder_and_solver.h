@@ -1104,12 +1104,12 @@ public:
             TSparseSpace::Mult(T_transpose_matrix, rb, b_modified);
             TSparseSpace::Copy(b_modified, rb);
 
-            TSystemMatrixType auxiliar_A_matrix(mT.size2(), rA.size2());
-            SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix); //auxiliar = T_transpose * rA
+            TSystemMatrixType auxiliary_A_matrix(mT.size2(), rA.size2());
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliary_A_matrix); //auxiliary = T_transpose * rA
             T_transpose_matrix.resize(0, 0, false);                                                             //free memory
 
-            SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
-            auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliary_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
+            auxiliary_A_matrix.resize(0, 0, false);                                              //free memory
 
             const double max_diag = GetMaxDiagonal(rA);
 
@@ -1448,7 +1448,7 @@ protected:
 
         #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
         {
-            std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
+            std::unordered_set<IndexType> auxiliary_inactive_slave_dofs;
 
             #pragma omp for schedule(guided, 512)
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
@@ -1477,14 +1477,14 @@ protected:
                     }
                 } else { // Taking into account inactive constraints
                     it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
-                    auxiliar_inactive_slave_dofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
+                    auxiliary_inactive_slave_dofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
                 }
             }
 
             // We merge all the sets in one thread
             #pragma omp critical
             {
-                mInactiveSlaveDofs.insert(auxiliar_inactive_slave_dofs.begin(), auxiliar_inactive_slave_dofs.end());
+                mInactiveSlaveDofs.insert(auxiliary_inactive_slave_dofs.begin(), auxiliary_inactive_slave_dofs.end());
             }
         }
 

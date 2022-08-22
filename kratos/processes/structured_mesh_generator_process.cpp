@@ -70,11 +70,11 @@ void StructuredMeshGeneratorProcess::Execute()
     if (mCreateSkinSubModelPart) {
         const Parameters skin_parameters = Parameters(R"(
         {
-            "name_auxiliar_model_part"              : "Skin",
-            "name_auxiliar_condition"               : "Condition"
+            "name_auxiliary_model_part"              : "Skin",
+            "name_auxiliary_condition"               : "Condition"
         })" );
         if (mConditionName != "PLEASE SPECIFY IT") {
-            skin_parameters["name_auxiliar_condition"].SetString(mConditionName);
+            skin_parameters["name_auxiliary_condition"].SetString(mConditionName);
         } else {
             KRATOS_WARNING("StructuredMeshGeneratorProcess") << "Condition name not specified. Default geometrical conditions will be generated" << std::endl;
         }

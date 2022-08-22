@@ -53,19 +53,19 @@ enum class DataLocation {
 ///@{
 
 /**
- * @class AuxiliarModelPartUtilities
+ * @class AuxiliaryModelPartUtilities
  * @ingroup KratosCore
- * @brief This utility includes auxiliar methods not included in the model part to avoid increase more than necessary the API
+ * @brief This utility includes auxiliary methods not included in the model part to avoid increase more than necessary the API
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(KRATOS_CORE) AuxiliarModelPartUtilities
+class KRATOS_API(KRATOS_CORE) AuxiliaryModelPartUtilities
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of AuxiliarModelPartUtilities
-    KRATOS_CLASS_POINTER_DEFINITION( AuxiliarModelPartUtilities );
+    /// Counted pointer of AuxiliaryModelPartUtilities
+    KRATOS_CLASS_POINTER_DEFINITION( AuxiliaryModelPartUtilities );
 
     ///@}
     ///@name Life Cycle
@@ -74,12 +74,12 @@ public:
     /**
      * The default constructor
      */
-    AuxiliarModelPartUtilities(ModelPart& rModelPart):
+    AuxiliaryModelPartUtilities(ModelPart& rModelPart):
         mrModelPart(rModelPart)
     {
     }
 
-    virtual ~AuxiliarModelPartUtilities()= default;
+    virtual ~AuxiliaryModelPartUtilities()= default;
 
     ///@}
     ///@name Access
@@ -582,7 +582,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "AuxiliarModelPartUtilities";
+        return "AuxiliaryModelPartUtilities";
     }
 
     /// Print information about this object.
@@ -725,7 +725,7 @@ private:
     ///@name Unaccessible methods
     ///@{
     ///@}
-};// class AuxiliarModelPartUtilities
+};// class AuxiliaryModelPartUtilities
 
 ///@}
 ///@name Type Definitions

@@ -14,7 +14,7 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
 
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
         model_part = current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliary_files_for_python_unittest/mdpa_files/coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
 
         # We set a flag in the already knon node in the skin
@@ -34,7 +34,7 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
         model_part = current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliary_files_for_python_unittest/mdpa_files/coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
 
         skin_detection_parameters = KratosMultiphysics.Parameters("""
@@ -81,7 +81,7 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
 
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
         model_part = current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliary_files_for_python_unittest/mdpa_files/coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
 
         # We set a flag in the already knon node in the skin
@@ -90,7 +90,7 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
 
         detect_skin = KratosMultiphysics.SubModelPartSkinDetectionProcess3D(model_part, KratosMultiphysics.Parameters(r"""
         {
-            "name_auxiliar_model_part": "SkinModelPart",
+            "name_auxiliary_model_part": "SkinModelPart",
             "selection_criteria": "nodes_on_sub_model_part",
             "selection_settings": {
                 "sub_model_part_name" : "Partial_Skin_Part"
@@ -109,12 +109,12 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliary_files_for_python_unittest/mdpa_files/coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
 
         detect_skin = KratosMultiphysics.SubModelPartSkinDetectionProcess3D(model_part, KratosMultiphysics.Parameters(r"""
         {
-            "name_auxiliar_model_part": "SkinModelPart",
+            "name_auxiliary_model_part": "SkinModelPart",
             "selection_criteria": "node_not_on_sub_model_part",
             "selection_settings": {
                 "sub_model_part_names" : ["Partial_Skin_Part"]

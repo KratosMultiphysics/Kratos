@@ -690,12 +690,12 @@ protected:
 
     /**
      * @brief This method checks if the center of the geometry is inside the slave geometry (to prevent convex geometries)
-     * @param AuxiliarCenterLocalCoordinates These are the local coordinates corresponding to the center
+     * @param AuxiliaryCenterLocalCoordinates These are the local coordinates corresponding to the center
      * @param NumNodes The number of nodes of the geometry
      * @return True if is inside false otherwise
      */
     static inline bool CheckCenterIsInside(
-        const array_1d<double, 2>& rAuxiliarCenterLocalCoordinates,
+        const array_1d<double, 2>& rAuxiliaryCenterLocalCoordinates,
         const SizeType NumNodes = TNumNodes
         );
 
@@ -722,7 +722,7 @@ private:
     double mDistanceThreshold;               /// The distance where we directly  consider out of integration limits
     SizeType mEchoLevel;                     /// The echo level considered
     double mZeroToleranceFactor;             /// The zero tolerance factor considered
-    IntegrationMethod mAuxIntegrationMethod; /// The auxiliar list of Gauss Points taken from the geometry
+    IntegrationMethod mAuxIntegrationMethod; /// The auxiliary list of Gauss Points taken from the geometry
     bool mConsiderDelaunator;                /// If consider the DelaunatorUtilities in 3D in order to construct the triangles
 
     ///@}

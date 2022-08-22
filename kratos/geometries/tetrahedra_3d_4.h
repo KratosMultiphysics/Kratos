@@ -992,7 +992,7 @@ public:
         X[2] = rPoint[1];
         X[3] = rPoint[2];
 
-        // Auxiliar coordinates
+        // Auxiliary coordinates
         const double x1 = this->GetPoint( 0 ).X();
         const double x2 = this->GetPoint( 1 ).X();
         const double x3 = this->GetPoint( 2 ).X();
@@ -1006,7 +1006,7 @@ public:
         const double z3 = this->GetPoint( 2 ).Z();
         const double z4 = this->GetPoint( 3 ).Z();
 
-        // Auxiliar diff
+        // Auxiliary diff
         const double x12 = x1 - x2;
         const double x13 = x1 - x3;
         const double x14 = x1 - x4;

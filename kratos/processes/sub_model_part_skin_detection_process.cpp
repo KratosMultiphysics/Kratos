@@ -104,7 +104,7 @@ void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
     IndexType condition_id = rMainModelPart.GetRootModelPart().Conditions().size();
     const auto& r_process_info = rMainModelPart.GetProcessInfo();
 
-    // Create the auxiliar conditions
+    // Create the auxiliary conditions
     for (auto& map : rInverseFaceMap) {
         condition_id += 1;
 

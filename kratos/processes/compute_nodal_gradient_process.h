@@ -59,12 +59,12 @@ struct ComputeNodalGradientProcessSettings
 };
 
 /**
- * @brief This struct is an auxiliar base class of the VariableVectorRetriever
+ * @brief This struct is an auxiliary base class of the VariableVectorRetriever
  */
-struct AuxiliarVariableVectorRetriever
+struct AuxiliaryVariableVectorRetriever
 {
     /// Destructor.
-    virtual ~AuxiliarVariableVectorRetriever()
+    virtual ~AuxiliaryVariableVectorRetriever()
     {
     }
 
@@ -89,7 +89,7 @@ struct AuxiliarVariableVectorRetriever
  */
 template<bool THistorical>
 struct VariableVectorRetriever
-    : public AuxiliarVariableVectorRetriever
+    : public AuxiliaryVariableVectorRetriever
 {
     /// Destructor.
     ~VariableVectorRetriever() override
@@ -268,7 +268,7 @@ private:
     ModelPart& mrModelPart;                                           /// The main model part
     const Variable<double>* mpOriginVariable = nullptr;               /// The scalar variable list to compute
     const Variable<array_1d<double,3>>* mpGradientVariable;           /// The resultant gradient variable
-    const Variable<double>* mpAreaVariable = nullptr;                 /// The auxiliar area variable
+    const Variable<double>* mpAreaVariable = nullptr;                 /// The auxiliary area variable
     bool mNonHistoricalVariable = false;                              /// If the variable is non-historical
 
     ///@}

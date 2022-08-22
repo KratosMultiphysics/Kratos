@@ -17,8 +17,8 @@
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
-#include"tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_constitutive_law.h"
-#include"tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
+#include"tests/cpp_tests/auxiliary_files_for_cpp_unnitest/test_constitutive_law.h"
+#include"tests/cpp_tests/auxiliary_files_for_cpp_unnitest/test_element.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 

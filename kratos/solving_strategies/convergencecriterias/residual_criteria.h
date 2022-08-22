@@ -362,7 +362,7 @@ protected:
         TDataType residual_solution_norm = TDataType();
         SizeType dof_num = 0;
 
-        // Auxiliar values
+        // Auxiliary values
         TDataType residual_dof_value = 0.0;
         const auto it_dof_begin = rDofSet.begin();
         const int number_of_dof = static_cast<int>(rDofSet.size());

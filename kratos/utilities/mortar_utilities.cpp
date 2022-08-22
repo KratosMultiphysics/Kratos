@@ -413,7 +413,7 @@ void ResetValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNo
 /***********************************************************************************/
 
 template<>
-void ResetAuxiliarValue<Variable<double>>(ModelPart& rThisModelPart)
+void ResetAuxiliaryValue<Variable<double>>(ModelPart& rThisModelPart)
 {
     auto& r_nodes_array = rThisModelPart.Nodes();
     VariableUtils().SetNonHistoricalVariable(NODAL_MAUX, 0.0, r_nodes_array);
@@ -423,7 +423,7 @@ void ResetAuxiliarValue<Variable<double>>(ModelPart& rThisModelPart)
 /***********************************************************************************/
 
 template<>
-void ResetAuxiliarValue<Variable<array_1d<double, 3>>>(ModelPart& rThisModelPart)
+void ResetAuxiliaryValue<Variable<array_1d<double, 3>>>(ModelPart& rThisModelPart)
 {
     const array_1d<double, 3> zero_array = ZeroVector(3);
     auto& r_nodes_array = rThisModelPart.Nodes();
@@ -434,7 +434,7 @@ void ResetAuxiliarValue<Variable<array_1d<double, 3>>>(ModelPart& rThisModelPart
 /***********************************************************************************/
 
 template< >
-const std::string GetAuxiliarVariable<Variable<double>>()
+const std::string GetAuxiliaryVariable<Variable<double>>()
 {
     return "NODAL_MAUX";
 }
@@ -443,7 +443,7 @@ const std::string GetAuxiliarVariable<Variable<double>>()
 /***********************************************************************************/
 
 template< >
-const std::string GetAuxiliarVariable<Variable<array_1d<double, 3>>>()
+const std::string GetAuxiliaryVariable<Variable<array_1d<double, 3>>>()
 {
     return "NODAL_VAUX";
 }
@@ -452,7 +452,7 @@ const std::string GetAuxiliarVariable<Variable<array_1d<double, 3>>>()
 /***********************************************************************************/
 
 template< >
-double GetAuxiliarValue<Variable<double>>(
+double GetAuxiliaryValue<Variable<double>>(
     NodeType& rThisNode,
     const std::size_t iSize
     )
@@ -464,7 +464,7 @@ double GetAuxiliarValue<Variable<double>>(
 /***********************************************************************************/
 
 template< >
-double GetAuxiliarValue<Variable<array_1d<double, 3>>>(
+double GetAuxiliaryValue<Variable<array_1d<double, 3>>>(
     NodeType& rThisNode,
     const std::size_t iSize
     )

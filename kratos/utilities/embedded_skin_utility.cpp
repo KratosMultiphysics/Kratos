@@ -37,7 +37,7 @@ namespace Kratos
         unsigned int temp_node_id = (mrModelPart.NumberOfNodes() > 0) ? ((mrModelPart.NodesEnd()-1)->Id()) + 1 : 1;
         unsigned int temp_cond_id = (mrModelPart.NumberOfConditions() > 0) ? ((mrModelPart.ConditionsEnd()-1)->Id()) + 1 : 1;
 
-        // Auxiliar vectors to store pointers to the new entities
+        // Auxiliary vectors to store pointers to the new entities
         // These vectors will be use when renumbering the entities ids.
         ModelPart::NodesContainerType new_nodes_vect;
         ModelPart::ConditionsContainerType new_conds_vect;

@@ -18,7 +18,7 @@
 #include "includes/kratos_flags.h"
 #include "processes/entity_erase_process.h"
 #include "utilities/variable_utils.h"
-#include "utilities/auxiliar_model_part_utilities.h"
+#include "utilities/auxiliary_model_part_utilities.h"
 
 namespace Kratos
 {

@@ -59,7 +59,7 @@ void SkinDetectionProcess<TDim>::GenerateFaceMaps(
     HashMapVectorIntIdsType& rPropertiesFaceMap
     ) const
 {
-    // Auxiliar values
+    // Auxiliary values
     auto& r_elements_array = mrModelPart.Elements();
     const SizeType number_of_elements = r_elements_array.size();
     const auto it_elem_begin = r_elements_array.begin();
@@ -157,21 +157,21 @@ void SkinDetectionProcess<TDim>::GenerateFaceMaps(
 template<SizeType TDim>
 ModelPart& SkinDetectionProcess<TDim>::SetUpAuxiliaryModelPart()
 {
-    // We create the auxiliar ModelPart
-    const std::string& name_auxiliar_model_part = mThisParameters["name_auxiliar_model_part"].GetString();
-    if (!(mrModelPart.HasSubModelPart(name_auxiliar_model_part))) {
-        mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
+    // We create the auxiliary ModelPart
+    const std::string& name_auxiliary_model_part = mThisParameters["name_auxiliary_model_part"].GetString();
+    if (!(mrModelPart.HasSubModelPart(name_auxiliary_model_part))) {
+        mrModelPart.CreateSubModelPart(name_auxiliary_model_part);
     } else {
-        auto& r_conditions_array = mrModelPart.GetSubModelPart(name_auxiliar_model_part).Conditions();
+        auto& r_conditions_array = mrModelPart.GetSubModelPart(name_auxiliary_model_part).Conditions();
 
         VariableUtils().SetFlag(TO_ERASE, true, r_conditions_array);
 
-        mrModelPart.GetSubModelPart(name_auxiliar_model_part).RemoveConditionsFromAllLevels(TO_ERASE);
+        mrModelPart.GetSubModelPart(name_auxiliary_model_part).RemoveConditionsFromAllLevels(TO_ERASE);
 
-        mrModelPart.RemoveSubModelPart(name_auxiliar_model_part);
-        mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
+        mrModelPart.RemoveSubModelPart(name_auxiliary_model_part);
+        mrModelPart.CreateSubModelPart(name_auxiliary_model_part);
     }
-    return mrModelPart.GetSubModelPart(name_auxiliar_model_part);
+    return mrModelPart.GetSubModelPart(name_auxiliary_model_part);
 }
 
 /***********************************************************************************/
@@ -184,8 +184,8 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     HashMapVectorIntIdsType& rPropertiesFaceMap
     )
 {
-    // The auxiliar name of the condition
-    const std::string& r_name_condition = mThisParameters["name_auxiliar_condition"].GetString();
+    // The auxiliary name of the condition
+    const std::string& r_name_condition = mThisParameters["name_auxiliary_condition"].GetString();
     std::string pre_name = "";
     if (TDim == 3 && r_name_condition == "Condition") {
         pre_name = "Surface";
@@ -205,7 +205,7 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
 
     this->CreateConditions(mrModelPart, rAuxiliaryModelPart, rInverseFaceMap, rPropertiesFaceMap, nodes_in_the_skin, base_name);
 
-    // Adding to the auxiliar model part
+    // Adding to the auxiliary model part
     VectorIndexType indexes_skin;
     indexes_skin.insert(indexes_skin.end(), nodes_in_the_skin.begin(), nodes_in_the_skin.end());
     rAuxiliaryModelPart.AddNodes(indexes_skin);
@@ -213,7 +213,7 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     const SizeType echo_level = mThisParameters["echo_level"].GetInt();
     KRATOS_INFO_IF("SkinDetectionProcess", echo_level > 0) << rInverseFaceMap.size() << " have been created" << std::endl;
 
-    // Now we set the flag on the nodes. The list of nodes of the auxiliar model part
+    // Now we set the flag on the nodes. The list of nodes of the auxiliary model part
     auto& r_nodes_array = rAuxiliaryModelPart.Nodes();
 
     VariableUtils().SetFlag(INTERFACE, true, r_nodes_array);
@@ -235,7 +235,7 @@ void SkinDetectionProcess<TDim>::CreateConditions(
     IndexType condition_id = rMainModelPart.GetRootModelPart().Conditions().size();
     const auto& r_process_info = rMainModelPart.GetProcessInfo();
 
-    // Create the auxiliar conditions
+    // Create the auxiliary conditions
     for (auto& r_map : rInverseFaceMap) {
         condition_id += 1;
 
@@ -343,8 +343,8 @@ const Parameters SkinDetectionProcess<TDim>::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {
-        "name_auxiliar_model_part"              : "SkinModelPart",
-        "name_auxiliar_condition"               : "Condition",
+        "name_auxiliary_model_part"              : "SkinModelPart",
+        "name_auxiliary_condition"               : "Condition",
         "list_model_parts_to_assign_conditions" : [],
         "echo_level"                            : 0
     })" );

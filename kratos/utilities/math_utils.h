@@ -1708,7 +1708,7 @@ public:
         noalias(rEigenVectorsMatrix) = identity_matrix;
         noalias(rEigenValuesMatrix) = rA;
 
-        // Auxiliar values
+        // Auxiliary values
         TMatrixType2 aux_A, aux_V_matrix, rotation_matrix;
         TDataType a, u, c, s, gamma, teta;
         IndexType index1, index2;

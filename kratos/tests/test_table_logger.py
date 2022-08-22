@@ -8,7 +8,7 @@ class TestTableLogger(KratosUnittest.TestCase):
 
     def setUp(self):
         self.comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
-        self.work_folder = "auxiliar_files_for_python_unittest"
+        self.work_folder = "auxiliary_files_for_python_unittest"
         self.size = self.comm.Size()
         self.rank = self.comm.Rank()
 

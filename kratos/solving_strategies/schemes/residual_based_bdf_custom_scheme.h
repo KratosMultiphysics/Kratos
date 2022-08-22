@@ -239,7 +239,7 @@ public:
         const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
         const auto it_node_begin = rModelPart.Nodes().begin();
 
-        // Auxiliar fixed value
+        // Auxiliary fixed value
         bool fixed = false;
 
         IndexPartition<std::size_t>(num_nodes).for_each([&](std::size_t Index){
@@ -501,7 +501,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::size_t mDomainSize = 3; /// This auxiliar variable is used to store the domain size of the problem
+    std::size_t mDomainSize = 3; /// This auxiliary variable is used to store the domain size of the problem
 
     ///@}
     ///@name Private Operators

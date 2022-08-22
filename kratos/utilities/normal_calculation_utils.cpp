@@ -29,7 +29,7 @@ void NormalCalculationUtils::CalculateNormalsInContainer(
     const Variable<array_1d<double,3>>& rNormalVariable
     )
 {
-    // Declare auxiliar coordinates
+    // Declare auxiliary coordinates
     Point::CoordinatesArrayType aux_coords;
 
     auto& r_entity_array = GetContainer<TContainerType>(rModelPart);
@@ -576,7 +576,7 @@ void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm(
     // Calculate normals in entities
     CalculateNormalsInContainer<TContainerType>(rModelPart, rNormalVariable);
 
-    // Declare auxiliar coordinates
+    // Declare auxiliary coordinates
     Point::CoordinatesArrayType aux_coords;
 
     auto& r_entities_array = GetContainer<TContainerType>(rModelPart);

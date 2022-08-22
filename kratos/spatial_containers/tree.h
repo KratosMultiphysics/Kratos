@@ -93,7 +93,7 @@ public:
     virtual void SearchNearestPoint(PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance) {}
 
     virtual void SearchNearestPoint(PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance,
-                                    SearchStructureType& Auxiliar) {}
+                                    SearchStructureType& Auxiliary) {}
 
     virtual void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
                                 DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults)
@@ -103,7 +103,7 @@ public:
     }
 
     virtual void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                                DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar)
+                                DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliary)
     {
         // must be implemented in derived classes.
         return;
@@ -117,7 +117,7 @@ public:
     }
 
     virtual void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                                SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar)
+                                SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliary)
     {
         // must be implemented in derived classes.
         return;

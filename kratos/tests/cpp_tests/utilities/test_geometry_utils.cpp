@@ -283,12 +283,12 @@ namespace Testing {
         KRATOS_CHECK_NEAR(J0(0, 1), 1.0, tolerance);
         KRATOS_CHECK_NEAR(J0(1, 1), 1.0, tolerance);
 
-        Matrix auxiliar_J0(2, 2);
-        GeometryUtils::DirectJacobianOnInitialConfiguration<Matrix>(triangle, auxiliar_J0, 0, integration_method);
+        Matrix auxiliary_J0(2, 2);
+        GeometryUtils::DirectJacobianOnInitialConfiguration<Matrix>(triangle, auxiliary_J0, 0, integration_method);
 
         for (std::size_t i = 0; i < 2; ++i) {
             for (std::size_t j = 0; j < 2; ++j) {
-                KRATOS_CHECK_NEAR(J0(i, j), auxiliar_J0(i, j), tolerance);
+                KRATOS_CHECK_NEAR(J0(i, j), auxiliary_J0(i, j), tolerance);
             }
         }
 
@@ -320,12 +320,12 @@ namespace Testing {
         KRATOS_CHECK_NEAR(F(0, 1), 0.0, tolerance);
         KRATOS_CHECK_NEAR(F(1, 1), 1.0, tolerance);
 
-        Matrix auxiliar_J(2, 2);
-        GeometryUtils::DirectJacobianOnCurrentConfiguration<Matrix>(triangle, integration_points[0].Coordinates(), auxiliar_J);
+        Matrix auxiliary_J(2, 2);
+        GeometryUtils::DirectJacobianOnCurrentConfiguration<Matrix>(triangle, integration_points[0].Coordinates(), auxiliary_J);
 
         for (std::size_t i = 0; i < 2; ++i) {
             for (std::size_t j = 0; j < 2; ++j) {
-                KRATOS_CHECK_NEAR(J(i, j), auxiliar_J(i, j), tolerance);
+                KRATOS_CHECK_NEAR(J(i, j), auxiliary_J(i, j), tolerance);
             }
         }
     }

@@ -151,7 +151,7 @@ public:
         BaseType::mScalingDiagonal = BaseType::SCALING_DIAGONAL::NO_SCALING;
         BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, false);
         mConstraintFactorConsidered = CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
-        mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
+        mAuxiliaryConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
         BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, true);
         BaseType::mOptions.Set(TRANSFORMATION_MATRIX_COMPUTED, false);
     }
@@ -542,7 +542,7 @@ public:
             TSystemVectorType b_lm(total_size_of_system);
             ComputeRHSLMContributions(b_lm, mConstraintFactor);
 
-            // Fill auxiliar vector
+            // Fill auxiliary vector
             TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
 
             // Finally reassign
@@ -612,7 +612,7 @@ public:
             DenseMatrix<double> contribution_coefficients(number_of_blocks, number_of_blocks);
             DenseMatrix<bool> transpose_blocks(number_of_blocks, number_of_blocks);
 
-            // Definition of the auxiliar values
+            // Definition of the auxiliary values
             const bool has_constraint_scale_factor = mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR ? true : false;
             KRATOS_ERROR_IF(has_constraint_scale_factor && !r_current_process_info.Has(CONSTRAINT_SCALE_FACTOR)) << "Constraint scale factor not defined at process info" << std::endl;
             const double constraint_scale_factor = has_constraint_scale_factor ? r_current_process_info.GetValue(CONSTRAINT_SCALE_FACTOR) : mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? this->GetDiagonalNorm(copy_of_A) : this->GetAveragevalueDiagonal(copy_of_A);
@@ -638,13 +638,13 @@ public:
 
             // Assemble the blocks
             if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
-                // Definition of the build scale factor auxiliar value
-                const bool has_auxiliar_constraint_scale_factor = mAuxiliarConstraintFactorConsidered == AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR ? true : false;
-                KRATOS_ERROR_IF(has_auxiliar_constraint_scale_factor && !r_current_process_info.Has(AUXILIAR_CONSTRAINT_SCALE_FACTOR)) << "Auxiliar constraint scale factor not defined at process info" << std::endl;
-                const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? r_current_process_info.GetValue(AUXILIAR_CONSTRAINT_SCALE_FACTOR) : mAuxiliarConstraintFactorConsidered == AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? this->GetDiagonalNorm(copy_of_A) : this->GetAveragevalueDiagonal(copy_of_A);
-                mAuxiliarConstraintFactor = auxiliar_constraint_scale_factor;
+                // Definition of the build scale factor auxiliary value
+                const bool has_auxiliary_constraint_scale_factor = mAuxiliaryConstraintFactorConsidered == AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR ? true : false;
+                KRATOS_ERROR_IF(has_auxiliary_constraint_scale_factor && !r_current_process_info.Has(AUXILIAR_CONSTRAINT_SCALE_FACTOR)) << "Auxiliary constraint scale factor not defined at process info" << std::endl;
+                const double auxiliary_constraint_scale_factor = has_auxiliary_constraint_scale_factor ? r_current_process_info.GetValue(AUXILIAR_CONSTRAINT_SCALE_FACTOR) : mAuxiliaryConstraintFactorConsidered == AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? this->GetDiagonalNorm(copy_of_A) : this->GetAveragevalueDiagonal(copy_of_A);
+                mAuxiliaryConstraintFactor = auxiliary_constraint_scale_factor;
 
-                // Create auxiliar identity matrix
+                // Create auxiliary identity matrix
                 TSystemMatrixType identity_matrix(number_of_slave_dofs, number_of_slave_dofs);
                 for (IndexType i = 0; i < number_of_slave_dofs; ++i) {
                     identity_matrix.push_back(i, i, 1.0);
@@ -663,15 +663,15 @@ public:
                 // Fill coefficients
                 contribution_coefficients(0, 2) = mConstraintFactor;
                 contribution_coefficients(2, 0) = mConstraintFactor;
-                contribution_coefficients(1, 1) = -mAuxiliarConstraintFactor;
-                contribution_coefficients(1, 2) = mAuxiliarConstraintFactor;
-                contribution_coefficients(2, 1) = mAuxiliarConstraintFactor;
-                contribution_coefficients(2, 2) = -mAuxiliarConstraintFactor;
+                contribution_coefficients(1, 1) = -mAuxiliaryConstraintFactor;
+                contribution_coefficients(1, 2) = mAuxiliaryConstraintFactor;
+                contribution_coefficients(2, 1) = mAuxiliaryConstraintFactor;
+                contribution_coefficients(2, 2) = -mAuxiliaryConstraintFactor;
 
                 // Assemble the matrix (NOTE: Like the identity matrix is created inside the condition must be used meanwhile is alive, so inside the condition)
                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
             } else {
-                // Create auxiliar zero matrix
+                // Create auxiliary zero matrix
                 TSystemMatrixType zero_matrix(number_of_slave_dofs, number_of_slave_dofs);
 
                 // Fill blocks
@@ -688,7 +688,7 @@ public:
             TSystemVectorType b_lm(total_size_of_system);
             ComputeRHSLMContributions(b_lm, constraint_scale_factor);
 
-            // Fill auxiliar vector
+            // Fill auxiliary vector
             TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
 
             // Finally reassign
@@ -740,7 +740,7 @@ public:
             "name"                                               : "ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier",
             "consider_lagrange_multiplier_constraint_resolution" : "double",
             "constraint_scale_factor"                            : "use_mean_diagonal",
-            "auxiliar_constraint_scale_factor"                   : "use_mean_diagonal"
+            "auxiliary_constraint_scale_factor"                   : "use_mean_diagonal"
         })");
 
         // Getting base class default parameters
@@ -805,10 +805,10 @@ protected:
     std::unordered_map<IndexType, IndexType> mCorrespondanceDofsSlave; /// A map of the correspondance between the slave dofs
     TSystemVectorType mLagrangeMultiplierVector;                       /// This is vector containing the Lagrange multiplier solution
     double mConstraintFactor = 0.0;                                    /// The constraint scale factor
-    double mAuxiliarConstraintFactor = 0.0;                            /// The auxiliar constraint scale factor
+    double mAuxiliaryConstraintFactor = 0.0;                            /// The auxiliary constraint scale factor
 
     CONSTRAINT_FACTOR mConstraintFactorConsidered;                  /// The value considered for the constraint factor
-    AUXILIAR_CONSTRAINT_FACTOR mAuxiliarConstraintFactorConsidered; /// The value considered for the auxiliar constraint factor
+    AUXILIAR_CONSTRAINT_FACTOR mAuxiliaryConstraintFactorConsidered; /// The value considered for the auxiliary constraint factor
 
     ///@}
     ///@name Protected Operators
@@ -1033,7 +1033,7 @@ protected:
     {
         BaseType::AssignSettings(ThisParameters);
 
-        // Auxiliar set for constraints
+        // Auxiliary set for constraints
         std::set<std::string> available_options_for_constraints_scale = {"use_mean_diagonal","use_diagonal_norm","defined_in_process_info"};
 
         // Definition of the constraint scale factor
@@ -1056,24 +1056,24 @@ protected:
             mConstraintFactorConsidered = CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR;
         }
 
-        // Definition of the auxiliar constraint scale factor
-        const std::string& r_auxiliar_constraint_scale_factor = ThisParameters["auxiliar_constraint_scale_factor"].GetString();
+        // Definition of the auxiliary constraint scale factor
+        const std::string& r_auxiliary_constraint_scale_factor = ThisParameters["auxiliary_constraint_scale_factor"].GetString();
 
         // Check the values
-        if (available_options_for_constraints_scale.find(r_auxiliar_constraint_scale_factor) == available_options_for_constraints_scale.end()) {
+        if (available_options_for_constraints_scale.find(r_auxiliary_constraint_scale_factor) == available_options_for_constraints_scale.end()) {
             std::stringstream msg;
-            msg << "Currently prescribed constraint scale factor : " << r_auxiliar_constraint_scale_factor << "\n";
+            msg << "Currently prescribed constraint scale factor : " << r_auxiliary_constraint_scale_factor << "\n";
             msg << "Admissible values for the constraint scale factor are : use_mean_diagonal, use_diagonal_norm, or defined_in_process_info" << "\n";
             KRATOS_ERROR << msg.str() << std::endl;
         }
 
         // This case will consider the mean value in the diagonal as a scaling value
-        if (r_auxiliar_constraint_scale_factor == "use_mean_diagonal") {
-            mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_MEAN_DIAGONAL_CONSTRAINT_FACTOR;
-        } else if (r_auxiliar_constraint_scale_factor == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
-            mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
+        if (r_auxiliary_constraint_scale_factor == "use_mean_diagonal") {
+            mAuxiliaryConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_MEAN_DIAGONAL_CONSTRAINT_FACTOR;
+        } else if (r_auxiliary_constraint_scale_factor == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
+            mAuxiliaryConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
         } else { // Otherwise we will assume we impose a numerical value
-            mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR;
+            mAuxiliaryConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR;
         }
 
         // Type of LM
@@ -1132,7 +1132,7 @@ private:
         const auto it_dof_begin = BaseType::mDofSet.begin();
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
-        // Our auxiliar vector
+        // Our auxiliary vector
         const SizeType number_of_slave_dofs = TSparseSpace::Size1(BaseType::mT);
         const SizeType total_size_of_system = BaseType::mEquationSystemSize + (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER) ? 2 * number_of_slave_dofs : number_of_slave_dofs);
         if (TSparseSpace::Size(rbLM) != total_size_of_system)
@@ -1146,7 +1146,7 @@ private:
             aux_whole_dof_vector[Index] = it_dof->GetSolutionStepValue();
         });
 
-        // Compute auxiliar contribution
+        // Compute auxiliary contribution
         TSystemVectorType aux_slave_dof_vector(number_of_slave_dofs);
         TSparseSpace::Mult(BaseType::mT, aux_whole_dof_vector, aux_slave_dof_vector);
 

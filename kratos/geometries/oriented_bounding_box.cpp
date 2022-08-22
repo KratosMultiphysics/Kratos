@@ -354,7 +354,7 @@ bool OrientedBoundingBox<TDim>::DirectHasIntersection(const OrientedBoundingBox<
 template<>
 bool OrientedBoundingBox<2>::SeparatingAxisTheoremHasIntersection(const OrientedBoundingBox<2>& rOtherOrientedBoundingBox) const
 {
-    // Auxiliar values
+    // Auxiliary values
     const auto& r_orientation_vectors_2 = rOtherOrientedBoundingBox.GetOrientationVectors();
     const array_1d<double, 3> relative_position = rOtherOrientedBoundingBox.GetCenter() - mPointCenter;
 
@@ -382,7 +382,7 @@ bool OrientedBoundingBox<2>::SeparatingAxisTheoremHasIntersection(const Oriented
 template<>
 bool OrientedBoundingBox<3>::SeparatingAxisTheoremHasIntersection(const OrientedBoundingBox<3>& rOtherOrientedBoundingBox) const
 {
-    // Auxiliar values
+    // Auxiliary values
     const auto& r_orientation_vectors_2 = rOtherOrientedBoundingBox.GetOrientationVectors();
     const array_1d<double, 3> relative_position = rOtherOrientedBoundingBox.GetCenter() - mPointCenter;
 
@@ -486,10 +486,10 @@ Quadrilateral2D4<Point> OrientedBoundingBox<2>::GetEquivalentGeometry() const
 
     // Create a quad points
     std::vector<Point::Pointer> points(4);
-    array_1d<double, 3> auxiliar_coords;
+    array_1d<double, 3> auxiliary_coords;
     for (std::size_t i_point = 0; i_point < 4; ++i_point) {
-        noalias(auxiliar_coords) = mPointCenter + sign_components_X2D[i_point] *  mOrientationVectors[0] * mHalfLength[0] + sign_components_Y2D[i_point] * mOrientationVectors[1] * mHalfLength[1];
-        points[i_point] = Kratos::make_shared<Point>(auxiliar_coords);
+        noalias(auxiliary_coords) = mPointCenter + sign_components_X2D[i_point] *  mOrientationVectors[0] * mHalfLength[0] + sign_components_Y2D[i_point] * mOrientationVectors[1] * mHalfLength[1];
+        points[i_point] = Kratos::make_shared<Point>(auxiliary_coords);
     }
 
     Quadrilateral2D4<Point> quadrilateral(PointerVector<Point>{points});
@@ -510,10 +510,10 @@ Hexahedra3D8<Point> OrientedBoundingBox<3>::GetEquivalentGeometry() const
 
     // Create a hexa points
     std::vector<Point::Pointer> points(8);
-    array_1d<double, 3> auxiliar_coords;
+    array_1d<double, 3> auxiliary_coords;
     for (std::size_t i_point = 0; i_point < 8; ++i_point) {
-        noalias(auxiliar_coords) = mPointCenter + sign_components_X3D[i_point] *  mOrientationVectors[0] * mHalfLength[0] + sign_components_Y3D[i_point] * mOrientationVectors[1] * mHalfLength[1] + sign_components_Z3D[i_point] * mOrientationVectors[2] * mHalfLength[2];
-        points[i_point] = Kratos::make_shared<Point>(auxiliar_coords);
+        noalias(auxiliary_coords) = mPointCenter + sign_components_X3D[i_point] *  mOrientationVectors[0] * mHalfLength[0] + sign_components_Y3D[i_point] * mOrientationVectors[1] * mHalfLength[1] + sign_components_Z3D[i_point] * mOrientationVectors[2] * mHalfLength[2];
+        points[i_point] = Kratos::make_shared<Point>(auxiliary_coords);
     }
 
     Hexahedra3D8<Point> hexahedra(PointerVector<Point>{points});

@@ -80,7 +80,7 @@ namespace Python
 {
 typedef Node<3> NodeType;
 
-// Discontinuous distance computation auxiliar functions
+// Discontinuous distance computation auxiliary functions
 template<std::size_t TDim>
 void CalculateDiscontinuousEmbeddedVariableFromSkinDouble(
     CalculateDiscontinuousDistanceToSkinProcess<TDim> &rDiscDistProcess,
@@ -99,7 +99,7 @@ void CalculateDiscontinuousEmbeddedVariableFromSkinArray(
     rDiscDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
 }
 
-// Continuous distance computation auxiliar functions
+// Continuous distance computation auxiliary functions
 template<std::size_t TDim>
 void CalculateEmbeddedVariableFromSkinDouble(
     CalculateDistanceToSkinProcess<TDim> &rDistProcess,

@@ -49,7 +49,7 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
 template<bool THistorical>
 void ComputeNodalGradientProcess<THistorical>::ComputeElementalContributionsAndVolume() {
 
-    // Auxiliar containers
+    // Auxiliary containers
     struct TLSType
     {
         Matrix DN_DX, J0, InvJ0;
@@ -78,7 +78,7 @@ void ComputeNodalGradientProcess<THistorical>::ComputeElementalContributionsAndV
         tls.J0.resize(dimension, local_space_dimension_first_element);
 
     // Variable retriever
-    Kratos::unique_ptr<AuxiliarVariableVectorRetriever> p_variable_retriever;
+    Kratos::unique_ptr<AuxiliaryVariableVectorRetriever> p_variable_retriever;
     if (mNonHistoricalVariable) {
         p_variable_retriever = Kratos::make_unique<VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsNonHistoricalVariable>>();
     } else {

@@ -153,135 +153,135 @@ public:
 
     void SearchNearestPoint(PointType const& rThisPoint, PointerType& rResult, CoordinateType& rResultDistance ) override
     {
-        SearchStructureType Auxiliar;
+        SearchStructureType Auxiliary;
         for(SizeType i = 0 ; i < Dimension; i++)
-            Auxiliar.residual_distance[i] = 0.00;
-        SearchNearestPoint(rThisPoint, rResult, rResultDistance, Auxiliar );
+            Auxiliary.residual_distance[i] = 0.00;
+        SearchNearestPoint(rThisPoint, rResult, rResultDistance, Auxiliary );
     }
 
-    void SearchNearestPoint(PointType const& rThisPoint, PointerType& rResult, CoordinateType& rResultDistance, SearchStructureType& Auxiliar ) override
+    void SearchNearestPoint(PointType const& rThisPoint, PointerType& rResult, CoordinateType& rResultDistance, SearchStructureType& Auxiliary ) override
     {
-        CoordinateType temp = Auxiliar.residual_distance[mCutingDimension];
+        CoordinateType temp = Auxiliary.residual_distance[mCutingDimension];
         CoordinateType distance_to_partition = rThisPoint[mCutingDimension] - mPosition;
 
         if( distance_to_partition < 0.0 ) // The point is in the left partition
         {
             //searching in the left child
-            mpChilds[0]->SearchNearestPoint(rThisPoint, rResult, rResultDistance, Auxiliar );
+            mpChilds[0]->SearchNearestPoint(rThisPoint, rResult, rResultDistance, Auxiliary );
 
             // compare with distance to right partition
-            Auxiliar.residual_distance[mCutingDimension] = distance_to_partition * distance_to_partition;
-            Auxiliar.distance_to_partition2 = Auxiliar.residual_distance[0];
+            Auxiliary.residual_distance[mCutingDimension] = distance_to_partition * distance_to_partition;
+            Auxiliary.distance_to_partition2 = Auxiliary.residual_distance[0];
             for(SizeType i = 1; i < Dimension; i++)
-                Auxiliar.distance_to_partition2 += Auxiliar.residual_distance[i];
-            if( rResultDistance > Auxiliar.distance_to_partition2 )
-                mpChilds[1]->SearchNearestPoint(rThisPoint, rResult, rResultDistance, Auxiliar );
+                Auxiliary.distance_to_partition2 += Auxiliary.residual_distance[i];
+            if( rResultDistance > Auxiliary.distance_to_partition2 )
+                mpChilds[1]->SearchNearestPoint(rThisPoint, rResult, rResultDistance, Auxiliary );
 
         }
         else  // The point is in the right partition
         {
             //Searching in the right child
-            mpChilds[1]->SearchNearestPoint(rThisPoint, rResult, rResultDistance, Auxiliar );
+            mpChilds[1]->SearchNearestPoint(rThisPoint, rResult, rResultDistance, Auxiliary );
 
             // compare with distance to left partition
-            Auxiliar.residual_distance[mCutingDimension] = distance_to_partition * distance_to_partition;
-            Auxiliar.distance_to_partition2 = Auxiliar.residual_distance[0];
+            Auxiliary.residual_distance[mCutingDimension] = distance_to_partition * distance_to_partition;
+            Auxiliary.distance_to_partition2 = Auxiliary.residual_distance[0];
             for(SizeType i = 1; i < Dimension; i++)
-                Auxiliar.distance_to_partition2 += Auxiliar.residual_distance[i];
-            if( rResultDistance > Auxiliar.distance_to_partition2 )
-                mpChilds[0]->SearchNearestPoint( rThisPoint, rResult, rResultDistance, Auxiliar );
+                Auxiliary.distance_to_partition2 += Auxiliary.residual_distance[i];
+            if( rResultDistance > Auxiliary.distance_to_partition2 )
+                mpChilds[0]->SearchNearestPoint( rThisPoint, rResult, rResultDistance, Auxiliary );
         }
-        Auxiliar.residual_distance[mCutingDimension] = temp;
+        Auxiliary.residual_distance[mCutingDimension] = temp;
 
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
                         DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults) override
     {
-        SearchStructureType Auxiliar;
+        SearchStructureType Auxiliary;
         for(SizeType i = 0 ; i < Dimension; i++)
-            Auxiliar.residual_distance[i] = 0.00;
-        SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Auxiliar );
+            Auxiliary.residual_distance[i] = 0.00;
+        SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Auxiliary );
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar ) override
+                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliary ) override
     {
-        CoordinateType temp = Auxiliar.residual_distance[mCutingDimension];
+        CoordinateType temp = Auxiliary.residual_distance[mCutingDimension];
         CoordinateType distance_to_partition = ThisPoint[mCutingDimension] - mPosition;
 
         if(distance_to_partition < 0) // The point is in the left partition
         {
             //searching in the left child
-            mpChilds[0]->SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Auxiliar );
+            mpChilds[0]->SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Auxiliary );
 
-            Auxiliar.residual_distance[mCutingDimension] = distance_to_partition * distance_to_partition;
-            Auxiliar.distance_to_partition2 = Auxiliar.residual_distance[0];
+            Auxiliary.residual_distance[mCutingDimension] = distance_to_partition * distance_to_partition;
+            Auxiliary.distance_to_partition2 = Auxiliary.residual_distance[0];
             for(SizeType i = 1; i < Dimension; i++)
-                Auxiliar.distance_to_partition2 += Auxiliar.residual_distance[i];
+                Auxiliary.distance_to_partition2 += Auxiliary.residual_distance[i];
             // The points is too near to the wall and the other child is in the searching radius
-            if( Radius2 >= Auxiliar.distance_to_partition2 )
-                mpChilds[1]->SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Auxiliar );
+            if( Radius2 >= Auxiliary.distance_to_partition2 )
+                mpChilds[1]->SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Auxiliary );
         }
         else // The point is in the right partition
         {
             //searching in the left child
-            mpChilds[1]->SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Auxiliar );
+            mpChilds[1]->SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Auxiliary );
 
-            Auxiliar.residual_distance[mCutingDimension] = distance_to_partition * distance_to_partition;
-            Auxiliar.distance_to_partition2 = Auxiliar.residual_distance[0];
+            Auxiliary.residual_distance[mCutingDimension] = distance_to_partition * distance_to_partition;
+            Auxiliary.distance_to_partition2 = Auxiliary.residual_distance[0];
             for(SizeType i = 1; i < Dimension; i++)
-                Auxiliar.distance_to_partition2 += Auxiliar.residual_distance[i];
+                Auxiliary.distance_to_partition2 += Auxiliary.residual_distance[i];
             // The points is too near to the wall and the other child is in the searching radius
-            if( Radius2 >= Auxiliar.distance_to_partition2 )
-                mpChilds[0]->SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Auxiliar );
+            if( Radius2 >= Auxiliary.distance_to_partition2 )
+                mpChilds[0]->SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Auxiliary );
         }
-        Auxiliar.residual_distance[mCutingDimension] = temp;
+        Auxiliary.residual_distance[mCutingDimension] = temp;
 
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
                         SizeType& NumberOfResults, SizeType const& MaxNumberOfResults) override
     {
-        SearchStructureType Auxiliar;
+        SearchStructureType Auxiliary;
         for(SizeType i = 0 ; i < Dimension; i++)
-            Auxiliar.residual_distance[i] = 0.00;
-        SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Auxiliar );
+            Auxiliary.residual_distance[i] = 0.00;
+        SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Auxiliary );
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar ) override
+                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliary ) override
     {
-        CoordinateType temp = Auxiliar.residual_distance[mCutingDimension];
+        CoordinateType temp = Auxiliary.residual_distance[mCutingDimension];
         CoordinateType distance_to_partition = ThisPoint[mCutingDimension] - mPosition;
 
         if(distance_to_partition < 0) // The point is in the left partition
         {
             //searching in the left child
-            mpChilds[0]->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Auxiliar );
+            mpChilds[0]->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Auxiliary );
 
-            Auxiliar.residual_distance[mCutingDimension] = distance_to_partition * distance_to_partition;
-            Auxiliar.distance_to_partition2 = Auxiliar.residual_distance[0];
+            Auxiliary.residual_distance[mCutingDimension] = distance_to_partition * distance_to_partition;
+            Auxiliary.distance_to_partition2 = Auxiliary.residual_distance[0];
             for(SizeType i = 1; i < Dimension; i++)
-                Auxiliar.distance_to_partition2 += Auxiliar.residual_distance[i];
+                Auxiliary.distance_to_partition2 += Auxiliary.residual_distance[i];
             // The points is too near to the wall and the other child is in the searching radius
-            if( Radius2 >= Auxiliar.distance_to_partition2 )
-                mpChilds[1]->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Auxiliar );
-            Auxiliar.residual_distance[mCutingDimension] = temp;
+            if( Radius2 >= Auxiliary.distance_to_partition2 )
+                mpChilds[1]->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Auxiliary );
+            Auxiliary.residual_distance[mCutingDimension] = temp;
         }
         else // The point is in the right partition
         {
             //searching in the left child
-            mpChilds[1]->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Auxiliar );
+            mpChilds[1]->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Auxiliary );
 
-            Auxiliar.residual_distance[mCutingDimension] = distance_to_partition * distance_to_partition;
-            Auxiliar.distance_to_partition2 = Auxiliar.residual_distance[0];
+            Auxiliary.residual_distance[mCutingDimension] = distance_to_partition * distance_to_partition;
+            Auxiliary.distance_to_partition2 = Auxiliary.residual_distance[0];
             for(SizeType i = 1; i < Dimension; i++)
-                Auxiliar.distance_to_partition2 += Auxiliar.residual_distance[i];
+                Auxiliary.distance_to_partition2 += Auxiliary.residual_distance[i];
             // The points is too near to the wall and the other child is in the searching radius
-            if( Radius2 >= Auxiliar.distance_to_partition2 )
-                mpChilds[0]->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Auxiliar );
-            Auxiliar.residual_distance[mCutingDimension] = temp;
+            if( Radius2 >= Auxiliary.distance_to_partition2 )
+                mpChilds[0]->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Auxiliary );
+            Auxiliary.residual_distance[mCutingDimension] = temp;
         }
 
     }

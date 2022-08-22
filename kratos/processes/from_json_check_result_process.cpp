@@ -62,7 +62,7 @@ void FromJSONCheckResultProcess::ExecuteInitialize()
 {
     KRATOS_TRY;
 
-    // The auxiliar vectors for the variables
+    // The auxiliary vectors for the variables
     const auto& r_check_variables_names = mThisParameters["check_variables"].GetStringArray();
     const auto& r_gauss_points_check_variables = mThisParameters["gauss_points_check_variables"].GetStringArray();
 
@@ -313,7 +313,7 @@ void FromJSONCheckResultProcess::CheckNodeValues(IndexType& rCheckCounter)
     const auto& r_nodes_array = GetNodes();
     const auto it_node_begin = r_nodes_array.begin();
 
-    // Auxiliar check counter (MVSC does not accept references)
+    // Auxiliary check counter (MVSC does not accept references)
     IndexType check_counter = rCheckCounter;
 
     for (auto& p_var_double : mpNodalVariableDoubleList) {
@@ -389,7 +389,7 @@ void FromJSONCheckResultProcess::CheckNodeHistoricalValues(IndexType& rCheckCoun
     const auto& r_nodes_array = GetNodes();
     const auto it_node_begin = r_nodes_array.begin();
 
-    // Auxiliar check counter (MVSC does not accept references)
+    // Auxiliary check counter (MVSC does not accept references)
     IndexType check_counter = rCheckCounter;
 
     for (auto& p_var_double : mpNodalVariableDoubleList) {
@@ -473,7 +473,7 @@ void FromJSONCheckResultProcess::CheckGPValues(IndexType& rCheckCounter)
     std::vector<array_1d<double,3>> result_array;
     std::vector<Vector> result_vector;
 
-    // Auxiliar check counter (MVSC does not accept references)
+    // Auxiliary check counter (MVSC does not accept references)
     IndexType check_counter = rCheckCounter;
 
     for (auto& p_var_double : mpGPVariableDoubleList) {

@@ -116,7 +116,7 @@ void FastTransferBetweenModelPartsProcess::TransferWithoutFlags()
 
 void FastTransferBetweenModelPartsProcess::TransferWithFlags()
 {
-    // Auxiliar sizes
+    // Auxiliary sizes
     const int num_nodes = static_cast<int>(mrOriginModelPart.NumberOfNodes());
     const int num_elements = static_cast<int>(mrOriginModelPart.NumberOfElements());
     const int num_conditions = static_cast<int>(mrOriginModelPart.NumberOfConditions());
@@ -254,7 +254,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
     ModelPart& r_root_model_part = mrOriginModelPart.GetRootModelPart();
     ReorderAllIds(r_root_model_part);
 
-    // Getting the auxiliar values
+    // Getting the auxiliary values
     const SizeType total_num_nodes = r_root_model_part.NumberOfNodes();
     const int num_nodes = static_cast<int>(mrOriginModelPart.NumberOfNodes());
     const SizeType total_num_elements = r_root_model_part.NumberOfElements();
@@ -357,7 +357,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
     ModelPart& r_root_model_part = mrOriginModelPart.GetRootModelPart();
     ReorderAllIds(r_root_model_part);
 
-    // Getting the auxiliar values
+    // Getting the auxiliary values
     const SizeType total_num_nodes = r_root_model_part.NumberOfNodes();
     const int num_nodes = static_cast<int>(mrOriginModelPart.NumberOfNodes());
     const SizeType total_num_elements = r_root_model_part.NumberOfElements();

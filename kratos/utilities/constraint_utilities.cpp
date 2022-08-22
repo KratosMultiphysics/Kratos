@@ -169,12 +169,12 @@ void PreComputeExplicitConstraintConstribution(
         ++counter;
     }
 
-    // Getting auxiliar variables
+    // Getting auxiliary variables
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
     const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
     const auto it_cont_begin = rModelPart.MasterSlaveConstraints().begin();
 
-    // Auxiliar values
+    // Auxiliary values
     Matrix transformation_matrix;
     Vector constant_vector, slave_solution_vector, master_solution_vector;
     ModelPart::NodeType::Pointer p_master_node = *(rModelPart.Nodes().begin()).base();
@@ -270,18 +270,18 @@ void PreComputeExplicitConstraintMassAndInertia(
     displacement_variable_map.insert({r_check_dof_y.Key(), &r_mass_dof_y});
     displacement_variable_map.insert({r_check_dof_z.Key(), &r_mass_dof_z});
 
-    // Getting auxiliar variables
+    // Getting auxiliary variables
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
     const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
     const auto it_cont_begin = rModelPart.MasterSlaveConstraints().begin();
 
-    // Auxiliar values
+    // Auxiliary values
     Matrix transformation_matrix;
     Vector constant_vector, slave_solution_vector, master_solution_vector;
     ModelPart::NodeType::Pointer p_master_node = *(rModelPart.Nodes().begin()).base();
     ModelPart::NodeType::Pointer p_slave_node = *(rModelPart.Nodes().begin()).base();
 
-    // Auxiliar map to count the mass added (NOTE: mass should be components for sake of consistency)
+    // Auxiliary map to count the mass added (NOTE: mass should be components for sake of consistency)
     std::unordered_set<std::size_t> slave_mass_map_counter, mass_mass_map_counter;
 
     for (int i_const = 0; i_const < number_of_constraints; ++i_const) {

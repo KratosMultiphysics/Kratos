@@ -736,7 +736,7 @@ protected:
             norm_b = TSparseSpace::TwoNorm(rb);
 
         if (norm_b > 0.0) {
-             // Create the auxiliar dof set
+             // Create the auxiliary dof set
              DofsArrayType aux_dof_set;
              aux_dof_set.reserve(mDoFToSolveSystemSize);
              for (auto& r_dof : BaseType::mDofSet) {
@@ -1120,9 +1120,9 @@ protected:
             TSparseSpace::UnaliasedAdd(rb_copy, -1.0, aux_constant_vector);
         }
 
-        // The auxiliar matrix to store the intermediate matrix multiplication
-        TSystemMatrixType auxiliar_A_matrix(mDoFToSolveSystemSize, BaseType::mEquationSystemSize);
-        SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix);
+        // The auxiliary matrix to store the intermediate matrix multiplication
+        TSystemMatrixType auxiliary_A_matrix(mDoFToSolveSystemSize, BaseType::mEquationSystemSize);
+        SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliary_A_matrix);
 
         // We do a backup of the matrix before apply the constraints
         if (mpOldAMatrix == NULL) { // If the pointer is not initialized initialize it to an empty matrix
@@ -1135,11 +1135,11 @@ protected:
         rb.resize(mDoFToSolveSystemSize, false);
 
         // Final multiplication
-        SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, rTMatrix, rA);
+        SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliary_A_matrix, rTMatrix, rA);
         TSparseSpace::Mult(T_transpose_matrix, rb_copy, rb);
 
         // Cleaning up memory
-        auxiliar_A_matrix.resize(0, 0, false);
+        auxiliary_A_matrix.resize(0, 0, false);
         T_transpose_matrix.resize(0, 0, false);
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() >= 1) << "Constraint relation build time and multiplication: " << timer.ElapsedSeconds() << std::endl;
@@ -1184,7 +1184,7 @@ protected:
         SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, rTMatrix, 1.0);
 
         // We build the original system
-        TSystemMatrixType A; // Dummy auxiliar matrix we ned to build anyway because are needed to impose the rigid displacements
+        TSystemMatrixType A; // Dummy auxiliary matrix we ned to build anyway because are needed to impose the rigid displacements
         if (mComputeConstantContribution) {
             A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
             ConstructMatrixStructure(pScheme, A, rModelPart);
@@ -1437,7 +1437,7 @@ protected:
     {
         BaseType::Clear();
 
-        // Reseting auxiliar set of dofs
+        // Reseting auxiliary set of dofs
         mDoFMasterFixedSet = DofsArrayType();
         mDoFSlaveSet = DofsArrayType();
 
@@ -1662,7 +1662,7 @@ private:
     {
         KRATOS_TRY
 
-        // Auxiliar values
+        // Auxiliary values
         const auto it_dof_begin = BaseType::mDofSet.begin();
         TSystemVectorType current_solution(mDoFToSolveSystemSize);
         TSystemVectorType updated_solution(BaseType::mEquationSystemSize);
@@ -2085,7 +2085,7 @@ private:
             });
         }
 
-        // Auxiliar set to reorder master DoFs
+        // Auxiliary set to reorder master DoFs
         IndexMapType solvable_dof_reorder;
 
         // Filling with "ones"
@@ -2117,12 +2117,12 @@ private:
 
         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
 
-        std::unordered_set<IndexType> auxiliar_constant_equations_ids;
+        std::unordered_set<IndexType> auxiliary_constant_equations_ids;
 
         #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_id, master_equation_id)
         {
-            std::unordered_set<IndexType> auxiliar_temp_constant_equations_ids;
-            auxiliar_temp_constant_equations_ids.reserve(2000);
+            std::unordered_set<IndexType> auxiliary_temp_constant_equations_ids;
+            auxiliary_temp_constant_equations_ids.reserve(2000);
 
             #pragma omp for schedule(guided, 512)
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
@@ -2149,7 +2149,7 @@ private:
                             if (i_global < BaseType::mEquationSystemSize) {
                                 const double constant_value = constant_vector[i];
                                 if (std::abs(constant_value) > 0.0) {
-                                    auxiliar_temp_constant_equations_ids.insert(i_global);
+                                    auxiliary_temp_constant_equations_ids.insert(i_global);
                                     double& r_value = rConstantVector[i_global];
                                     AtomicAdd(r_value, constant_value);
                                 }
@@ -2175,7 +2175,7 @@ private:
             // We merge all the sets in one thread
             #pragma omp critical
             {
-                auxiliar_constant_equations_ids.insert(auxiliar_temp_constant_equations_ids.begin(), auxiliar_temp_constant_equations_ids.end());
+                auxiliary_constant_equations_ids.insert(auxiliary_temp_constant_equations_ids.begin(), auxiliary_temp_constant_equations_ids.end());
             }
         }
 
@@ -2208,7 +2208,7 @@ private:
             TSparseSpace::Mult(rTMatrix, rDxSolved, Dx);
 
             // Compute the effective constant vector
-            // Auxiliar initial dof iterator
+            // Auxiliary initial dof iterator
             const auto it_dof_begin = BaseType::mDofSet.begin();
 
             TSystemVectorType u(BaseType::mEquationSystemSize);

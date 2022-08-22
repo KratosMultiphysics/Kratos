@@ -253,7 +253,7 @@ public:
         KRATOS_WARNING_IF("ResidualBasedBDFDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
         const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
 
-        // Auxiliar variables
+        // Auxiliary variables
         std::array<bool, 3> predicted = {false, false, false};
         const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
         const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};

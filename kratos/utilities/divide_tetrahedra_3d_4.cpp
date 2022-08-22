@@ -83,14 +83,14 @@ namespace Kratos
         const GeometryType geometry = this->GetInputGeometry();
         const Vector nodal_distances = this->GetNodalDistances();
 
-        // Fill the auxiliar points vector set
+        // Fill the auxiliary points vector set
         if (this->mIsSplit) {
 
             // Set the Tetrahedra geometry parameters
             const unsigned int n_nodes = 4;
             const unsigned int n_edges = 6;
 
-            // Clear the auxiliar vector points set
+            // Clear the auxiliary vector points set
             this->mAuxPointsContainer.clear();
             this->mAuxPointsContainer.reserve(10);
 
@@ -127,7 +127,7 @@ namespace Kratos
                         aux_point_coords(comp) = j_node_coords(comp)*aux_node_rel_location + i_node_coords(comp)*(1.0-aux_node_rel_location);
                     }
 
-                    // Add the intersection point to the auxiliar points array
+                    // Add the intersection point to the auxiliary points array
                     IndexedPointPointerType paux_point = Kratos::make_shared<IndexedPoint>(aux_point_coords, aux_node_id);
                     this->mAuxPointsContainer.push_back(paux_point);
                 }
@@ -150,7 +150,7 @@ namespace Kratos
                 int i0, i1, i2, i3;
                 TetrahedraSplit::TetrahedraGetNewConnectivityGID(idivision, t.data(), this->mSplitEdges.data(), &i0, &i1, &i2, &i3);
 
-                // Generate a pointer to an auxiliar triangular geometry made with the subdivision points
+                // Generate a pointer to an auxiliary triangular geometry made with the subdivision points
                 IndexedPointGeometryPointerType p_aux_partition = Kratos::make_shared<IndexedPointTetrahedraType>(
                     this->mAuxPointsContainer(i0), 
                     this->mAuxPointsContainer(i1), 
@@ -217,7 +217,7 @@ namespace Kratos
                     int node_k_key = r_face[2].Id();
                     
                     // Check the nodal keys to state which nodes belong to the interface
-                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
+                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliary interface points
                     if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes) && (node_k_key >= n_nodes)) {
                         // Generate an indexed point triangle geometry pointer with the two interface nodes
                         IndexedPointGeometryPointerType p_intersection_tri = Kratos::make_shared<IndexedPointTriangleType>(this->mAuxPointsContainer(node_i_key), 
@@ -245,7 +245,7 @@ namespace Kratos
                     int node_k_key = r_face[2].Id();
                     
                     // Check the nodal keys to state which nodes belong to the interface
-                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
+                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliary interface points
                     if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes) && (node_k_key >= n_nodes)) {
                         // Generate an indexed point triangle geometry pointer with the two interface nodes
                         IndexedPointGeometryPointerType p_intersection_tri = Kratos::make_shared<IndexedPointTriangleType>(this->mAuxPointsContainer(node_i_key), 

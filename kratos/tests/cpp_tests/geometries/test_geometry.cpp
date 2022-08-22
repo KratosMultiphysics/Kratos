@@ -25,7 +25,7 @@
 namespace Kratos {
 namespace Testing {
 
-    /// Auxiliar check functions (from geometry_tester.h)
+    /// Auxiliary check functions (from geometry_tester.h)
     /// - All this functions should probably me moved somewhere else.
 
     /** Gets the corresponding string of the integration method provided.

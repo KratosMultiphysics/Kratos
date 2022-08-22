@@ -15,10 +15,10 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "auxiliar_files_for_python_unittest/mdpa_files/levelset_convection_process_mesh"
+            "input_filename" : "auxiliary_files_for_python_unittest/mdpa_files/levelset_convection_process_mesh"
         },
         "material_import_settings"           : {
-            "materials_filename" : "auxiliar_files_for_python_unittest/materials_files/initial_time_First.json"
+            "materials_filename" : "auxiliary_files_for_python_unittest/materials_files/initial_time_First.json"
         },
         "convection_diffusion_variables" : {
             "density_variable"              : "DENSITY",

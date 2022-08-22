@@ -52,7 +52,7 @@ namespace Kratos
 /**
  * @class VariableUtils
  * @ingroup KratosCore
- * @brief This class implements a set of auxiliar, already parallelized, methods to
+ * @brief This class implements a set of auxiliary, already parallelized, methods to
  * perform some common tasks related with the variable values and fixity.
  * @details The methods are exported to python in order to add this improvements to the python interface
  * @author Riccardo Rossi
@@ -1558,7 +1558,7 @@ private:
     ///@{
 
     /**
-     * @brief This is auxiliar method to check the keys
+     * @brief This is auxiliary method to check the keys
      * @return True if all the keys are OK
      */
     template< class TVarType >

@@ -492,7 +492,7 @@ namespace Kratos
         const Matrix &rPmatrix,
         const IntegrationMethodType IntegrationMethod) {
 
-        // Set some auxiliar constants
+        // Set some auxiliary constants
         GeometryPointerType p_input_geometry = this->GetInputGeometry();
         const unsigned int n_edges_global = p_input_geometry->EdgesNumber();       // Number of edges in original geometry
         const unsigned int n_nodes_global = p_input_geometry->PointsNumber();      // Number of nodes in original geometry
@@ -581,7 +581,7 @@ namespace Kratos
         const Matrix &rPmatrix,
         const IntegrationMethodType IntegrationMethod) {
 
-        // Set some auxiliar variables
+        // Set some auxiliary variables
         GeometryPointerType p_input_geometry = this->GetInputGeometry();                                     // Pointer to the input geometry
         const unsigned int n_nodes = p_input_geometry->PointsNumber();                                       // Split geometry number of nodes
         const unsigned int n_edges = p_input_geometry->EdgesNumber();                                        // Number of edges in original geometry
@@ -690,7 +690,7 @@ namespace Kratos
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const IntegrationMethodType IntegrationMethod) {
 
-        // Set some auxiliar variables
+        // Set some auxiliary variables
         const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of interfaces
         const unsigned int n_int_pts =
             n_interfaces > 0 ? (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod) : 0;       // Number of Gauss pts. per interface
@@ -755,7 +755,7 @@ namespace Kratos
         const Matrix &rPmatrix,
         const IntegrationMethodType IntegrationMethod)
     {
-        // Set some auxiliar constants
+        // Set some auxiliary constants
         const auto& r_input_geometry = *(this->GetInputGeometry());
         const std::size_t n_edges_global = r_input_geometry.EdgesNumber(); // Number of edges in original geometry
         const std::size_t n_nodes_global = r_input_geometry.PointsNumber(); // Number of nodes in original geometry

@@ -206,7 +206,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@{
 
     /**
-     * @brief This method creates an auxiliar Parameters when reading properties in order to avoid error, so these non-registered properties can be processed later
+     * @brief This method creates an auxiliary Parameters when reading properties in order to avoid error, so these non-registered properties can be processed later
      * @param VariablesParameters The original variable parameters
      * @param PropertyId The current property Id (for a warning)
      * @return The variables filtered if required

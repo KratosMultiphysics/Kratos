@@ -28,7 +28,7 @@
 
 /* Element include */
 #include "geometries/line_2d_2.h"
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_bar_element.h"
+#include "tests/cpp_tests/auxiliary_files_for_cpp_unnitest/test_bar_element.h"
 
 // Linear solvers
 #include "linear_solvers/reorderer.h"
@@ -389,7 +389,7 @@ namespace Kratos
         /**
          * Checks if the block builder and solver with constraints performs correctly the assemble of the system
          */
-        KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithConstraintsAuxiliarNode, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithConstraintsAuxiliaryNode, KratosCoreFastSuite)
         {
             Model current_model;
             ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);

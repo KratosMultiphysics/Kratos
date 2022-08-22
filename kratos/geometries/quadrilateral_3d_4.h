@@ -1588,7 +1588,7 @@ public:
         CoordinatesArrayType proj_pt_gl_coords = this->Center();
         array_1d<double, 3> normal = this->UnitNormal(proj_pt_gl_coords);
 
-        // Some auxiliar variables
+        // Some auxiliary variables
         double distance;
         std::size_t iter;
 

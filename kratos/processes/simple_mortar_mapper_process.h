@@ -234,7 +234,7 @@ public:
     /// Type definition for integration methods
     typedef GeometryData::IntegrationMethod      IntegrationMethod;
 
-    /// Auxiliar geometries
+    /// Auxiliary geometries
     typedef Line2D2<PointType>                            LineType;
     typedef Triangle3D3<PointType>                    TriangleType;
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
@@ -275,7 +275,7 @@ public:
     typedef DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>          DualLagrangeMultiplierOperatorsType;
     typedef ExactMortarIntegrationUtility<TDim, TNumNodes, false, TNumNodesMaster> ExactMortarIntegrationUtilityType;
 
-    /// Auxiliar struct for mapping
+    /// Auxiliary struct for mapping
     struct TLS {
         MortarKinematicVariablesType this_kinematic_variables;    // Create and initialize condition variables:
         MortarOperatorType this_mortar_operators;                 // Create the mortar operators
@@ -691,8 +691,8 @@ private:
         // The root model part
         ModelPart& r_root_model_part = mOriginModelPart.GetRootModelPart();
 
-        // Getting the auxiliar variable
-        const TVarType& r_aux_variable = KratosComponents<TVarType>::Get(MortarUtilities::GetAuxiliarVariable<TVarType>());
+        // Getting the auxiliary variable
+        const TVarType& r_aux_variable = KratosComponents<TVarType>::Get(MortarUtilities::GetAuxiliaryVariable<TVarType>());
 
         // Indexes of the pair to be removed
         std::vector<IndexType> indexes_to_remove, geometrical_objects_to_erase;
@@ -700,7 +700,7 @@ private:
         // Getting discontinous factor
         const double discontinous_interface_factor = mOptions.Is(DISCONTINOUS_INTERFACE) ? mThisParameters["discontinous_interface_factor"].GetDouble() : 1.0;
 
-        // Declare auxiliar coordinates
+        // Declare auxiliary coordinates
         GeometryType::CoordinatesArrayType aux_coords;
 
         // Geometrical values
@@ -784,17 +784,17 @@ private:
                                 const auto& r_index_masp_master = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? r_const_origin_model_part.GetCondition(master_id).GetValue(INDEX_SET) : r_const_origin_model_part.GetElement(master_id).GetValue(INDEX_SET);
                                 for (auto it_master_pair = r_index_masp_master->begin(); it_master_pair != r_index_masp_master->end(); ++it_master_pair ) {
 
-                                    const IndexType auxiliar_slave_id = r_index_masp_master->GetId(it_master_pair);
-                                    if (rGeometricalObject.Id() != auxiliar_slave_id) {
-                                        GeometryType& r_auxiliar_slave_geometry =  const_cast<GeometryType&>(mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED) ? r_const_destination_model_part.GetCondition(auxiliar_slave_id).GetGeometry() : r_const_destination_model_part.GetElement(auxiliar_slave_id).GetGeometry());
+                                    const IndexType auxiliary_slave_id = r_index_masp_master->GetId(it_master_pair);
+                                    if (rGeometricalObject.Id() != auxiliary_slave_id) {
+                                        GeometryType& r_auxiliary_slave_geometry =  const_cast<GeometryType&>(mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED) ? r_const_destination_model_part.GetCondition(auxiliary_slave_id).GetGeometry() : r_const_destination_model_part.GetElement(auxiliary_slave_id).GetGeometry());
 
                                         for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
-                                            // The auxiliar node coordinates
-                                            const auto& r_auxiliar_slave_node_coordinates = r_auxiliar_slave_geometry[j_node].Coordinates();
-                                            const double distance = norm_2(r_auxiliar_slave_node_coordinates - r_slave_node_coordinates);
+                                            // The auxiliary node coordinates
+                                            const auto& r_auxiliary_slave_node_coordinates = r_auxiliary_slave_geometry[j_node].Coordinates();
+                                            const double distance = norm_2(r_auxiliary_slave_node_coordinates - r_slave_node_coordinates);
                                             const double contribution_coeff = 1.0/std::pow((1.0 + distance/(discontinous_interface_factor * element_length)), 2);
 
-                                            double& r_nodal_area = r_auxiliar_slave_geometry[j_node].GetValue(NODAL_AREA);
+                                            double& r_nodal_area = r_auxiliary_slave_geometry[j_node].GetValue(NODAL_AREA);
                                             AtomicAdd(r_nodal_area, contribution_coeff * nodal_area_contribution);
                                         }
                                     }
@@ -852,7 +852,7 @@ private:
         // Indexes of the pair to be removed
         std::vector<IndexType> indexes_to_remove, geometrical_objects_to_erase;
 
-        // Declare auxiliar coordinates
+        // Declare auxiliary coordinates
         GeometryType::CoordinatesArrayType aux_coords;
 
         // Geometrical values

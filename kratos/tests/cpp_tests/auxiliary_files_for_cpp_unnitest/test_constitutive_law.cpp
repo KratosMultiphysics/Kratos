@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_constitutive_law.h"
+#include "tests/cpp_tests/auxiliary_files_for_cpp_unnitest/test_constitutive_law.h"
 #include "includes/checks.h"
 
 

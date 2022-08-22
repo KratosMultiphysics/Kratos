@@ -38,9 +38,9 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
     const double tolerance = 1.0e3 * mZeroToleranceFactor * ZeroTolerance;
 
     double total_weight = 0.0;
-    array_1d<double, 2> auxiliar_coordinates = ZeroVector(2);
+    array_1d<double, 2> auxiliary_coordinates = ZeroVector(2);
 
-    // Declaring auxiliar values
+    // Declaring auxiliary values
     PointType projected_gp_global;
     GeometryType::CoordinatesArrayType projected_gp_local;
 
@@ -59,69 +59,69 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
 
         if (is_inside) {// The slave node belongs to the master
             if (i_slave == 0) {
-                auxiliar_coordinates[0] = -1.0;  // First node
+                auxiliary_coordinates[0] = -1.0;  // First node
             } else {
-                auxiliar_coordinates[1] = 1.0;  // Second node
+                auxiliary_coordinates[1] = 1.0;  // Second node
             }
         }
     }
 
     // We check if the element is fully integrated
-    if ((auxiliar_coordinates[0] == -1.0 && auxiliar_coordinates[1] == 1.0)) {
+    if ((auxiliary_coordinates[0] == -1.0 && auxiliary_coordinates[1] == 1.0)) {
         total_weight = 2.0;
     } else { // If not then we proceed
-        std::vector<double> auxiliar_xi;
+        std::vector<double> auxiliary_xi;
         for (IndexType i_master = 0; i_master < 2; ++i_master) {
             projected_gp_local[0] = (i_master == 0) ? -1.0 : 1.0;
             double delta_xi = (i_master == 0) ? 0.5 : -0.5;
             const bool is_inside = GeometricalProjectionUtilities::ProjectIterativeLine2D(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_master].Coordinates(), projected_gp_local, rSlaveNormal, tolerance, delta_xi);
 
             if (is_inside) {
-                auxiliar_xi.push_back(projected_gp_local[0]);
-                if (projected_gp_local[0] > (1.0 - tolerance)) auxiliar_coordinates[1] = 1.0;
-                else if (projected_gp_local[0] < (-1.0 + tolerance)) auxiliar_coordinates[0] = -1.0;
+                auxiliary_xi.push_back(projected_gp_local[0]);
+                if (projected_gp_local[0] > (1.0 - tolerance)) auxiliary_coordinates[1] = 1.0;
+                else if (projected_gp_local[0] < (-1.0 + tolerance)) auxiliary_coordinates[0] = -1.0;
             }
         }
 
         // In this case one edge of the slave belongs to the master and additionally one node of the master belongs to the slave
-        if (auxiliar_xi.size() == 1 && ((auxiliar_coordinates[0] == - 1.0 || auxiliar_coordinates[1] == 1.0))) {
-            if (std::abs(auxiliar_coordinates[0] + 1.0) < tolerance) { // NOTE: Equivalent to == -1.0
-                auxiliar_coordinates[1] = auxiliar_xi[0];
-            } else if (std::abs(auxiliar_coordinates[1] - 1.0) < tolerance) { // NOTE: Equivalent to == 1.0
-                auxiliar_coordinates[0] = auxiliar_xi[0];
+        if (auxiliary_xi.size() == 1 && ((auxiliary_coordinates[0] == - 1.0 || auxiliary_coordinates[1] == 1.0))) {
+            if (std::abs(auxiliary_coordinates[0] + 1.0) < tolerance) { // NOTE: Equivalent to == -1.0
+                auxiliary_coordinates[1] = auxiliary_xi[0];
+            } else if (std::abs(auxiliary_coordinates[1] - 1.0) < tolerance) { // NOTE: Equivalent to == 1.0
+                auxiliary_coordinates[0] = auxiliary_xi[0];
             } else {
-                KRATOS_ERROR << "THIS IS NOT SUPPOSED TO HAPPEN. Auxiliar local coordinate: " <<  auxiliar_xi[0] << ". Auxiliar coordinates: " << auxiliar_coordinates[0] << " , " << auxiliar_coordinates[1] << std::endl;
+                KRATOS_ERROR << "THIS IS NOT SUPPOSED TO HAPPEN. Auxiliary local coordinate: " <<  auxiliary_xi[0] << ". Auxiliary coordinates: " << auxiliary_coordinates[0] << " , " << auxiliary_coordinates[1] << std::endl;
             }
-        } else if ( auxiliar_xi.size() == 2) { // Both nodes of the master belong to the slave (and none of the nodes of the slave belong to the master, the nodes can coincide, there is no other possibility)
-            if (std::abs(auxiliar_coordinates[0] + 1.0) < tolerance) { // NOTE: Equivalent to == -1.0. In this case the node in the left edge is already assigned
-                auxiliar_coordinates[1] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_xi[1] : auxiliar_xi[0]; // We set in the proper position
-            } else if (std::abs(auxiliar_coordinates[1] - 1.0) < tolerance) { // NOTE: Equivalent to == 1.0. In this case the node in the right edge is already assigned
-                auxiliar_coordinates[0] = auxiliar_xi[0] < auxiliar_xi[1] ? auxiliar_xi[0] : auxiliar_xi[1]; // We set in the proper position
+        } else if ( auxiliary_xi.size() == 2) { // Both nodes of the master belong to the slave (and none of the nodes of the slave belong to the master, the nodes can coincide, there is no other possibility)
+            if (std::abs(auxiliary_coordinates[0] + 1.0) < tolerance) { // NOTE: Equivalent to == -1.0. In this case the node in the left edge is already assigned
+                auxiliary_coordinates[1] = auxiliary_xi[0] < auxiliary_xi[1] ? auxiliary_xi[1] : auxiliary_xi[0]; // We set in the proper position
+            } else if (std::abs(auxiliary_coordinates[1] - 1.0) < tolerance) { // NOTE: Equivalent to == 1.0. In this case the node in the right edge is already assigned
+                auxiliary_coordinates[0] = auxiliary_xi[0] < auxiliary_xi[1] ? auxiliary_xi[0] : auxiliary_xi[1]; // We set in the proper position
             } else { // There isn't any coincidence with the edges
-                if (auxiliar_xi[0] < auxiliar_xi[1]) { // We check that are in proper order
-                    auxiliar_coordinates[0] = auxiliar_xi[0];
-                    auxiliar_coordinates[1] = auxiliar_xi[1];
+                if (auxiliary_xi[0] < auxiliary_xi[1]) { // We check that are in proper order
+                    auxiliary_coordinates[0] = auxiliary_xi[0];
+                    auxiliary_coordinates[1] = auxiliary_xi[1];
                 } else {
-                    auxiliar_coordinates[1] = auxiliar_xi[0];
-                    auxiliar_coordinates[0] = auxiliar_xi[1];
+                    auxiliary_coordinates[1] = auxiliary_xi[0];
+                    auxiliary_coordinates[0] = auxiliary_xi[1];
                 }
             }
         } else { // Projection not possible
             return false;
         }
 
-        total_weight = auxiliar_coordinates[1] - auxiliar_coordinates[0];
+        total_weight = auxiliary_coordinates[1] - auxiliary_coordinates[0];
     }
 
-    KRATOS_ERROR_IF(total_weight < 0.0) << "Wrong order of the coordinates: "<< auxiliar_coordinates << std::endl;
-    KRATOS_ERROR_IF(total_weight > 2.0) << "Impossible, Weight higher than 2: "<< auxiliar_coordinates << std::endl;
+    KRATOS_ERROR_IF(total_weight < 0.0) << "Wrong order of the coordinates: "<< auxiliary_coordinates << std::endl;
+    KRATOS_ERROR_IF(total_weight > 2.0) << "Impossible, Weight higher than 2: "<< auxiliary_coordinates << std::endl;
 
     // We do the final assignmen
     if (total_weight > ZeroTolerance) {
         rConditionsPointsSlave.resize(1);
         array_1d<PointType, 2> list_points;
-        list_points[0].Coordinates()[0] = auxiliar_coordinates[0];
-        list_points[1].Coordinates()[0] = auxiliar_coordinates[1];
+        list_points[0].Coordinates()[0] = auxiliary_coordinates[0];
+        list_points[1].Coordinates()[0] = auxiliary_coordinates[1];
         rConditionsPointsSlave[0] = list_points;
 
         return true;
@@ -145,7 +145,7 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
-    // Firt we create an auxiliar plane based in the condition center and its normal
+    // Firt we create an auxiliary plane based in the condition center and its normal
     const PointType slave_center = rOriginalSlaveGeometry.Center();
 
     // We define the condition tangents
@@ -154,11 +154,11 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_eta;
     MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
-    // We define the auxiliar geometry
+    // We define the auxiliary geometry
     PointerVector<PointType> points_array_slave(3);
     PointerVector<PointType> points_array_master(3);
 
-    // Auxiliar values for projections
+    // Auxiliary values for projections
     PointType aux_point;
     double distance;
 
@@ -230,7 +230,7 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
-    // Firt we create an auxiliar plane based in the condition center and its normal
+    // Firt we create an auxiliary plane based in the condition center and its normal
     const PointType slave_center = rOriginalSlaveGeometry.Center();
 
     // We define the condition tangents
@@ -239,12 +239,12 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_eta;
     MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
-    // We define the auxiliar geometry
+    // We define the auxiliary geometry
     PointerVector<PointType> points_array_slave(4);
     PointerVector<PointType> points_array_slave_not_rotated(4);
     PointerVector<PointType> points_array_master(4);
 
-    // Auxiliar values
+    // Auxiliary values
     PointType aux_point;
     double distance_slave, distance_master;
 
@@ -312,7 +312,7 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
-    // Firt we create an auxiliar plane based in the condition center and its normal
+    // Firt we create an auxiliary plane based in the condition center and its normal
     const PointType slave_center = rOriginalSlaveGeometry.Center();
 
     // We define the condition tangents
@@ -321,11 +321,11 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_eta;
     MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
-    // We define the auxiliar geometry
+    // We define the auxiliary geometry
     PointerVector<PointType> points_array_slave(3);
     PointerVector<PointType> points_array_master(4);
 
-    // Auxiliar values
+    // Auxiliary values
     PointType aux_point;
     double distance;
 
@@ -406,7 +406,7 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
-    // Firt we create an auxiliar plane based in the condition center and its normal
+    // Firt we create an auxiliary plane based in the condition center and its normal
     const PointType slave_center = rOriginalSlaveGeometry.Center();
 
     // We define the condition tangents
@@ -415,11 +415,11 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_eta;
     MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
-    // Auxiliar values
+    // Auxiliary values
     PointType aux_point;
     double distance;
 
-    // We define the auxiliar geometry
+    // We define the auxiliary geometry
     PointerVector<PointType> points_array_slave(4);
     PointerVector<PointType> points_array_slave_not_rotated(4);
     PointerVector<PointType> points_array_master(3);
@@ -509,10 +509,10 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
     const double tolerance = 1.0e3 * mZeroToleranceFactor * ZeroTolerance;
 
     double total_weight = 0.0;
-    array_1d<double, 2> auxiliar_coordinates = ZeroVector(2);
-    array_1d<PointBelongsLine2D2N, 2> auxiliar_belong;
+    array_1d<double, 2> auxiliary_coordinates = ZeroVector(2);
+    array_1d<PointBelongsLine2D2N, 2> auxiliary_belong;
 
-    // Declaring auxiliar values
+    // Declaring auxiliary values
     PointType projected_gp_global;
     GeometryType::CoordinatesArrayType projected_gp_local;
 
@@ -531,83 +531,83 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
 
         if (is_inside) {// The slave node belongs to the master
             if (i_slave == 0) {  // First node
-                auxiliar_coordinates[0] = -1.0;
-                auxiliar_belong[0] = PointBelongsLine2D2N::SlaveLine2D2N0;
+                auxiliary_coordinates[0] = -1.0;
+                auxiliary_belong[0] = PointBelongsLine2D2N::SlaveLine2D2N0;
             } else { // Second node
-                auxiliar_coordinates[1] = 1.0;
-                auxiliar_belong[1] = PointBelongsLine2D2N::SlaveLine2D2N1;
+                auxiliary_coordinates[1] = 1.0;
+                auxiliary_belong[1] = PointBelongsLine2D2N::SlaveLine2D2N1;
             }
         }
     }
 
     // We check if the element is fully integrated
-    if ((auxiliar_coordinates[0] == - 1.0 && auxiliar_coordinates[1] == 1.0)) {
+    if ((auxiliary_coordinates[0] == - 1.0 && auxiliary_coordinates[1] == 1.0)) {
         total_weight = 2.0;
     } else { // If not then we proceed
-        std::vector<double> auxiliar_xi;
-        std::vector<PointBelongsLine2D2N> auxiliar_master_belong;
+        std::vector<double> auxiliary_xi;
+        std::vector<PointBelongsLine2D2N> auxiliary_master_belong;
         for (IndexType i_master = 0; i_master < 2; ++i_master) {
             projected_gp_local[0] = (i_master == 0) ? -1.0 : 1.0;
             double delta_xi = (i_master == 0) ? 0.5 : -0.5;
             const bool is_inside = GeometricalProjectionUtilities::ProjectIterativeLine2D(rOriginalSlaveGeometry,  rOriginalMasterGeometry[i_master].Coordinates(), projected_gp_local, rSlaveNormal, tolerance, delta_xi);
 
             if (is_inside) {
-                auxiliar_xi.push_back(projected_gp_local[0]);
-                if (projected_gp_local[0] > (1.0 - tolerance)) auxiliar_coordinates[1] = 1.0;
-                else if (projected_gp_local[0] < (-1.0 + tolerance)) auxiliar_coordinates[0] = -1.0;
-                auxiliar_master_belong.push_back( static_cast<PointBelongsLine2D2N>(2 + i_master));
+                auxiliary_xi.push_back(projected_gp_local[0]);
+                if (projected_gp_local[0] > (1.0 - tolerance)) auxiliary_coordinates[1] = 1.0;
+                else if (projected_gp_local[0] < (-1.0 + tolerance)) auxiliary_coordinates[0] = -1.0;
+                auxiliary_master_belong.push_back( static_cast<PointBelongsLine2D2N>(2 + i_master));
             }
         }
 
         // In this case one edge of the slave belongs to the master and additionally one node of the master belongs to the slave
-        if (auxiliar_xi.size() == 1 && ((auxiliar_coordinates[0] == -1.0 ||  auxiliar_coordinates[1] == 1.0))) {
-            if (std::abs(auxiliar_coordinates[0] + 1.0) < tolerance) { // NOTE: Equivalent to == -1.0
-                auxiliar_coordinates[1] = auxiliar_xi[0];
-                auxiliar_belong[1] = auxiliar_master_belong[0];
-            } else if (std::abs(auxiliar_coordinates[1] - 1.0) < tolerance) { // NOTE: Equivalent to == 1.0
-                auxiliar_coordinates[0] = auxiliar_xi[0];
-                auxiliar_belong[0] = auxiliar_master_belong[0];
+        if (auxiliary_xi.size() == 1 && ((auxiliary_coordinates[0] == -1.0 ||  auxiliary_coordinates[1] == 1.0))) {
+            if (std::abs(auxiliary_coordinates[0] + 1.0) < tolerance) { // NOTE: Equivalent to == -1.0
+                auxiliary_coordinates[1] = auxiliary_xi[0];
+                auxiliary_belong[1] = auxiliary_master_belong[0];
+            } else if (std::abs(auxiliary_coordinates[1] - 1.0) < tolerance) { // NOTE: Equivalent to == 1.0
+                auxiliary_coordinates[0] = auxiliary_xi[0];
+                auxiliary_belong[0] = auxiliary_master_belong[0];
             } else {
-                KRATOS_ERROR << "THIS IS NOT SUPPOSED TO HAPPEN. Auxiliar local coordinate: " <<  auxiliar_xi[0] << ". Auxiliar coordinates: " << auxiliar_coordinates[0] << " , " << auxiliar_coordinates[1] << std::endl;
+                KRATOS_ERROR << "THIS IS NOT SUPPOSED TO HAPPEN. Auxiliary local coordinate: " <<  auxiliary_xi[0] << ". Auxiliary coordinates: " << auxiliary_coordinates[0] << " , " << auxiliary_coordinates[1] << std::endl;
             }
-        } else if ( auxiliar_xi.size() == 2) { // Both nodes of the master belong to the slave (and none of the nodes of the slave belong to the master, the nodes can coincide, there is no other possibility)
-            if (std::abs(auxiliar_coordinates[0] + 1.0) < tolerance) { // NOTE: Equivalent to == -1.0. In this case the node in the left edge is already assigned
-                auxiliar_coordinates[1] = auxiliar_xi[0] < auxiliar_xi[1]  ? auxiliar_xi[1] : auxiliar_xi[0];  // We set in the proper position
-                auxiliar_belong[1] = auxiliar_xi[0] < auxiliar_xi[1]  ? auxiliar_master_belong[1] : auxiliar_master_belong[0];
-            } else if (std::abs(auxiliar_coordinates[1] - 1.0) < tolerance) { // NOTE: Equivalent to == 1.0. In this case the node in the right edge is already assigned
-                auxiliar_coordinates[0] = auxiliar_xi[0] < auxiliar_xi[1]  ? auxiliar_xi[0]  : auxiliar_xi[1];  // We set in the proper position
-                auxiliar_belong[0] = auxiliar_xi[0] < auxiliar_xi[1]  ? auxiliar_master_belong[0] : auxiliar_master_belong[1];
+        } else if ( auxiliary_xi.size() == 2) { // Both nodes of the master belong to the slave (and none of the nodes of the slave belong to the master, the nodes can coincide, there is no other possibility)
+            if (std::abs(auxiliary_coordinates[0] + 1.0) < tolerance) { // NOTE: Equivalent to == -1.0. In this case the node in the left edge is already assigned
+                auxiliary_coordinates[1] = auxiliary_xi[0] < auxiliary_xi[1]  ? auxiliary_xi[1] : auxiliary_xi[0];  // We set in the proper position
+                auxiliary_belong[1] = auxiliary_xi[0] < auxiliary_xi[1]  ? auxiliary_master_belong[1] : auxiliary_master_belong[0];
+            } else if (std::abs(auxiliary_coordinates[1] - 1.0) < tolerance) { // NOTE: Equivalent to == 1.0. In this case the node in the right edge is already assigned
+                auxiliary_coordinates[0] = auxiliary_xi[0] < auxiliary_xi[1]  ? auxiliary_xi[0]  : auxiliary_xi[1];  // We set in the proper position
+                auxiliary_belong[0] = auxiliary_xi[0] < auxiliary_xi[1]  ? auxiliary_master_belong[0] : auxiliary_master_belong[1];
             } else { // There isn't any coincidence with the edges
-                if (auxiliar_xi[0] < auxiliar_xi[1]) { // We check that are in proper order
-                    auxiliar_coordinates[0] = auxiliar_xi[0];
-                    auxiliar_coordinates[1] = auxiliar_xi[1];
-                    auxiliar_belong[0] = auxiliar_master_belong[0];
-                    auxiliar_belong[1] = auxiliar_master_belong[1];
+                if (auxiliary_xi[0] < auxiliary_xi[1]) { // We check that are in proper order
+                    auxiliary_coordinates[0] = auxiliary_xi[0];
+                    auxiliary_coordinates[1] = auxiliary_xi[1];
+                    auxiliary_belong[0] = auxiliary_master_belong[0];
+                    auxiliary_belong[1] = auxiliary_master_belong[1];
                 } else {
-                    auxiliar_coordinates[1] = auxiliar_xi[0];
-                    auxiliar_coordinates[0] = auxiliar_xi[1];
-                    auxiliar_belong[1] = auxiliar_master_belong[0];
-                    auxiliar_belong[0] = auxiliar_master_belong[1];
+                    auxiliary_coordinates[1] = auxiliary_xi[0];
+                    auxiliary_coordinates[0] = auxiliary_xi[1];
+                    auxiliary_belong[1] = auxiliary_master_belong[0];
+                    auxiliary_belong[0] = auxiliary_master_belong[1];
                 }
             }
         } else { // Projection not possible
             return false;
         }
 
-        total_weight = auxiliar_coordinates[1] - auxiliar_coordinates[0];
+        total_weight = auxiliary_coordinates[1] - auxiliary_coordinates[0];
     }
 
-    KRATOS_ERROR_IF(total_weight < 0.0) << "Wrong order of the coordinates: "<< auxiliar_coordinates << std::endl;
-    KRATOS_ERROR_IF(total_weight > 2.0) << "Impossible, Weight higher than 2: "<< auxiliar_coordinates << std::endl;
+    KRATOS_ERROR_IF(total_weight < 0.0) << "Wrong order of the coordinates: "<< auxiliary_coordinates << std::endl;
+    KRATOS_ERROR_IF(total_weight > 2.0) << "Impossible, Weight higher than 2: "<< auxiliary_coordinates << std::endl;
 
     // We do the final assignmen
     if (total_weight > ZeroTolerance) {
         rConditionsPointsSlave.resize(1);
         array_1d<PointBelong<2>, 2> list_points;
-        list_points[0].Coordinates()[0] = auxiliar_coordinates[0];
-        list_points[0].SetBelong(auxiliar_belong[0]);
-        list_points[1].Coordinates()[0] = auxiliar_coordinates[1];
-        list_points[1].SetBelong(auxiliar_belong[1]);
+        list_points[0].Coordinates()[0] = auxiliary_coordinates[0];
+        list_points[0].SetBelong(auxiliary_belong[0]);
+        list_points[1].Coordinates()[0] = auxiliary_coordinates[1];
+        list_points[1].SetBelong(auxiliary_belong[1]);
         rConditionsPointsSlave[0] = list_points;
 
         return true;
@@ -631,7 +631,7 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
-    // Firt we create an auxiliar plane based in the condition center and its normal
+    // Firt we create an auxiliary plane based in the condition center and its normal
     const PointType slave_center = rOriginalSlaveGeometry.Center();
 
     // We define the condition tangents
@@ -640,11 +640,11 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_eta;
     MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
-    // We define the auxiliar geometry
+    // We define the auxiliary geometry
     PointerVector<PointType> points_array_slave(3);
     PointerVector<PointType> points_array_master(3);
 
-    // Auxiliar values
+    // Auxiliary values
     PointType aux_point;
     double distance;
 
@@ -711,7 +711,7 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
-    // Firt we create an auxiliar plane based in the condition center and its normal
+    // Firt we create an auxiliary plane based in the condition center and its normal
     const PointType slave_center = rOriginalSlaveGeometry.Center();
 
     // We define the condition tangents
@@ -720,12 +720,12 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_eta;
     MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
-    // We define the auxiliar geometry
+    // We define the auxiliary geometry
     PointerVector<PointType> points_array_slave(4);
     PointerVector<PointType> points_array_slave_not_rotated(4);
     PointerVector<PointType> points_array_master(4);
 
-    // Auxiliar values
+    // Auxiliary values
     PointType aux_point;
     double distance_slave, distance_master;
 
@@ -793,7 +793,7 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
-    // Firt we create an auxiliar plane based in the condition center and its normal
+    // Firt we create an auxiliary plane based in the condition center and its normal
     const PointType slave_center = rOriginalSlaveGeometry.Center();
 
     // We define the condition tangents
@@ -802,11 +802,11 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_eta;
     MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
-    // We define the auxiliar geometry
+    // We define the auxiliary geometry
     PointerVector<PointType> points_array_slave(3);
     PointerVector<PointType> points_array_master(4);
 
-    // Auxiliar values
+    // Auxiliary values
     PointType aux_point;
     double distance;
 
@@ -887,7 +887,7 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
-    // Firt we create an auxiliar plane based in the condition center and its normal
+    // Firt we create an auxiliary plane based in the condition center and its normal
     const PointType slave_center = rOriginalSlaveGeometry.Center();
 
     // We define the condition tangents
@@ -896,12 +896,12 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_eta;
     MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
-    // We define the auxiliar geometry
+    // We define the auxiliary geometry
     PointerVector<PointType> points_array_slave(4);
     PointerVector<PointType> points_array_slave_not_rotated(4);
     PointerVector<PointType> points_array_master(3);
 
-    // Auxiliar values
+    // Auxiliary values
     PointType aux_point;
     double distance;
 
@@ -1171,7 +1171,7 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::T
             r_cond.Reset(VISITED);
         }
 
-        // Auxiliar values
+        // Auxiliary values
         IndexType node_counter = rMainModelPart.NumberOfNodes() + 1;
         IndexType cond_counter = rMainModelPart.NumberOfConditions() + 1;
 
@@ -1323,7 +1323,7 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::T
 template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
 void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::GetIntegrationMethod()
 {
-    // Setting the auxiliar integration points
+    // Setting the auxiliary integration points
     switch (mIntegrationOrder) {
         case 1:
             mAuxIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
@@ -1352,7 +1352,7 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::G
 template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
 GeometryType::IntegrationPointsArrayType ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::GetIntegrationTriangle()
 {
-    // Setting the auxiliar integration points
+    // Setting the auxiliary integration points
     switch (mIntegrationOrder) {
         case 1:
             return Quadrature<TriangleGaussLegendreIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
@@ -1476,7 +1476,7 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
     // We compose the triangles
     const SizeType list_size = rPointList.size();
     if (list_size >  2) { // Technically the minimum is three, just in case I consider 2
-        // Declaring auxiliar local point
+        // Declaring auxiliary local point
         PointType local_point;
         PointListType aux_master_point_list(list_size);
 
@@ -1522,12 +1522,12 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
                 // We add the triangle to the vector
                 rConditionsPointsSlave[aux_elem_index] = points_locals_slave;
 
-                // We update the auxiliar index
+                // We update the auxiliary index
                 ++aux_elem_index;
             }
         } else {
-            // We will check if the triangle is inside the slave geometry, so we will compute an auxiliar shape function
-            array_1d<double, 2> auxiliar_slave_center_local_coords, auxiliar_master_center_local_coords;
+            // We will check if the triangle is inside the slave geometry, so we will compute an auxiliary shape function
+            array_1d<double, 2> auxiliary_slave_center_local_coords, auxiliary_master_center_local_coords;
 
             // We compute the angles between the nodes
             rSlaveGeometry.PointLocalCoordinates(local_point, rSlaveGeometry.Center());
@@ -1548,11 +1548,11 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
                 points_locals_master[2] = aux_master_point_list[index_vector[elem + 1] + 1];
 
                 // We compute if the center is inside the slave geometry
-                auxiliar_slave_center_local_coords[0] = 1.0/3.0 * (points_locals_slave[0].X() + points_locals_slave[1].X() + points_locals_slave[2].X());
-                auxiliar_slave_center_local_coords[1] = 1.0/3.0 * (points_locals_slave[0].Y() + points_locals_slave[1].Y() + points_locals_slave[2].Y());
-                auxiliar_master_center_local_coords[0] = 1.0/3.0 * (points_locals_master[0].X() + points_locals_master[1].X() + points_locals_master[2].X());
-                auxiliar_master_center_local_coords[1] = 1.0/3.0 * (points_locals_master[0].Y() + points_locals_master[1].Y() + points_locals_master[2].Y());
-                const bool center_is_inside = CheckCenterIsInside(auxiliar_slave_center_local_coords) && CheckCenterIsInside(auxiliar_master_center_local_coords, TNumNodesMaster);
+                auxiliary_slave_center_local_coords[0] = 1.0/3.0 * (points_locals_slave[0].X() + points_locals_slave[1].X() + points_locals_slave[2].X());
+                auxiliary_slave_center_local_coords[1] = 1.0/3.0 * (points_locals_slave[0].Y() + points_locals_slave[1].Y() + points_locals_slave[2].Y());
+                auxiliary_master_center_local_coords[0] = 1.0/3.0 * (points_locals_master[0].X() + points_locals_master[1].X() + points_locals_master[2].X());
+                auxiliary_master_center_local_coords[1] = 1.0/3.0 * (points_locals_master[0].Y() + points_locals_master[1].Y() + points_locals_master[2].Y());
+                const bool center_is_inside = CheckCenterIsInside(auxiliary_slave_center_local_coords) && CheckCenterIsInside(auxiliary_master_center_local_coords, TNumNodesMaster);
                 if (!center_is_inside) {
                     rConditionsPointsSlave.erase(rConditionsPointsSlave.begin() + aux_elem_index);
                     KRATOS_WARNING_IF("ExactMortarIntegrationUtility", mEchoLevel > 0) << "The generated intersection is probably a concave polygon. Check it out: \n" << rSlaveGeometry << "\n" << rMasterGeometry << std::endl;
@@ -1562,7 +1562,7 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
                 // We add the triangle to the vector
                 rConditionsPointsSlave[aux_elem_index] = points_locals_slave;
 
-                // We update the auxiliar index
+                // We update the auxiliary index
                 ++aux_elem_index;
             }
         }
@@ -1585,21 +1585,21 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
 
 template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
 inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::CheckCenterIsInside(
-    const array_1d<double, 2>& rAuxiliarCenterLocalCoordinates,
+    const array_1d<double, 2>& rAuxiliaryCenterLocalCoordinates,
     const SizeType NumNodes
     )
 {
     if (NumNodes == 3) {
-        if ( (rAuxiliarCenterLocalCoordinates[0] >= (0.0-ZeroTolerance)) && (rAuxiliarCenterLocalCoordinates[0] <= (1.0+ZeroTolerance)) ) {
-            if ( (rAuxiliarCenterLocalCoordinates[1] >= (0.0-ZeroTolerance)) && (rAuxiliarCenterLocalCoordinates[1] <= (1.0+ZeroTolerance)) ) {
-                if ( (rAuxiliarCenterLocalCoordinates[0] + rAuxiliarCenterLocalCoordinates[1]) <= (1.0+ZeroTolerance) ) {
+        if ( (rAuxiliaryCenterLocalCoordinates[0] >= (0.0-ZeroTolerance)) && (rAuxiliaryCenterLocalCoordinates[0] <= (1.0+ZeroTolerance)) ) {
+            if ( (rAuxiliaryCenterLocalCoordinates[1] >= (0.0-ZeroTolerance)) && (rAuxiliaryCenterLocalCoordinates[1] <= (1.0+ZeroTolerance)) ) {
+                if ( (rAuxiliaryCenterLocalCoordinates[0] + rAuxiliaryCenterLocalCoordinates[1]) <= (1.0+ZeroTolerance) ) {
                     return true;
                 }
             }
         }
     } if (NumNodes == 4) {
-        if ( std::abs(rAuxiliarCenterLocalCoordinates[0]) <= (1.0+ZeroTolerance) ) {
-            if ( std::abs(rAuxiliarCenterLocalCoordinates[1]) <= (1.0+ZeroTolerance) ) {
+        if ( std::abs(rAuxiliaryCenterLocalCoordinates[0]) <= (1.0+ZeroTolerance) ) {
+            if ( std::abs(rAuxiliaryCenterLocalCoordinates[1]) <= (1.0+ZeroTolerance) ) {
                 return true;
             }
         }

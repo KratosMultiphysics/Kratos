@@ -50,8 +50,8 @@ KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess1, KratosCoreFastSuite)
 
     Parameters default_parameters = Parameters(R"(
     {
-        "name_auxiliar_model_part"              : "SkinModelPart",
-        "name_auxiliar_condition"               : "Condition",
+        "name_auxiliary_model_part"              : "SkinModelPart",
+        "name_auxiliary_condition"               : "Condition",
         "list_model_parts_to_assign_conditions" : [],
         "echo_level"                            : 0
     })");
@@ -87,8 +87,8 @@ KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess2, KratosCoreFastSuite)
 
     Parameters default_parameters = Parameters(R"(
     {
-        "name_auxiliar_model_part"              : "SkinModelPart",
-        "name_auxiliar_condition"               : "Condition",
+        "name_auxiliary_model_part"              : "SkinModelPart",
+        "name_auxiliary_condition"               : "Condition",
         "list_model_parts_to_assign_conditions" : [],
         "echo_level"                            : 0
     })");

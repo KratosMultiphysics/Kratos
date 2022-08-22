@@ -689,7 +689,7 @@ namespace Kratos
           const Variable< TValueType >& rDistributedVariable);
 
     /**
-     * @brief Auxiliar method to retrieve the variable used in the RHS of the distribution problem
+     * @brief Auxiliary method to retrieve the variable used in the RHS of the distribution problem
      *
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param rVariable reference to the RHS variable of the distribution problem
@@ -699,7 +699,7 @@ namespace Kratos
       static const Variable< TValueType >& GetRHSVariable(const Variable<TValueType>& rVariable);
 
     /**
-     * @brief Auxiliar function to compute the error norm according to the variable value type
+     * @brief Auxiliary function to compute the error norm according to the variable value type
      *
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param NodalValue nodal value

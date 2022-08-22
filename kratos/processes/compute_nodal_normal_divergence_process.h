@@ -165,7 +165,7 @@ private:
     ModelPart& mrModelPart;                                /// The main model part
     const Variable<array_1d<double,3>>* mpOriginVariable;  /// The scalar variable list to compute
     const Variable<double>* mpDivergenceVariable;          /// The resultant divergence variable
-    const Variable<double>* mpAreaVariable;                /// The auxiliar area variable
+    const Variable<double>* mpAreaVariable;                /// The auxiliary area variable
     bool mNormalizeDivergence = true;
     bool mNonHistoricalOriginVariable = false;                   /// If the origin variable is non-historical
 

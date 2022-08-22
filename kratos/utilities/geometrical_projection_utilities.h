@@ -32,8 +32,8 @@ namespace Kratos
 /**
  * @class GeometricalProjectionUtilities
  * @ingroup KratosCore
- * @brief This is a class that provides auxiliar utilities for projections
- * @details This is a class that provides auxiliar utilities for the projections. Check the documentation for more details
+ * @brief This is a class that provides auxiliary utilities for projections
+ * @details This is a class that provides auxiliary utilities for the projections. Check the documentation for more details
  * @author Vicente Mataix Ferrandiz
  * Contact: vmataix@cimne.upc.edu
  */

@@ -238,7 +238,7 @@ protected:
         );
 
     /**
-     * @brief This creates auxiliar elements with the provided OBB (2D)
+     * @brief This creates auxiliary elements with the provided OBB (2D)
      * @param rModelPart The model part where to add the elements
      * @param pProperties Pointer to the considered properties
      * @param rOrientedBoundingBox The bounding box to be postprocessed
@@ -250,7 +250,7 @@ protected:
         );
 
     /**
-     * @brief This creates auxiliar elements with the provided OBB (3D)
+     * @brief This creates auxiliary elements with the provided OBB (3D)
      * @param rModelPart The model part where to add the elements
      * @param pProperties Pointer to the considered properties
      * @param rOrientedBoundingBox The bounding box to be postprocessed

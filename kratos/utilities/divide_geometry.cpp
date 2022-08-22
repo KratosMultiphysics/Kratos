@@ -37,14 +37,14 @@ namespace Kratos
     std::string IndexedPoint::Info() const {
         std::stringstream info_string;
         info_string << "Indexed point class created as a combination of the Point and IndexedObject classes.\n";
-        info_string << "This indexed point class is intended to be used to define both the real and auxiliar points of an intersected element.";
+        info_string << "This indexed point class is intended to be used to define both the real and auxiliary points of an intersected element.";
         return info_string.str();
     };
 
     /// Print information about this object.
     void IndexedPoint::PrintInfo(std::ostream& rOStream) const {
         rOStream << "Indexed point class created as a combination of the Point and IndexedObject classes.\n";
-        rOStream << "This indexed point class is intended to be used to define both the real and auxiliar points of an intersected element.";
+        rOStream << "This indexed point class is intended to be used to define both the real and auxiliary points of an intersected element.";
     };
 
     /// Print object's data.

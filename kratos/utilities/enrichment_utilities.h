@@ -1587,7 +1587,7 @@ public:
                         number_of_real_nodes++;
                 }
 
-                if (number_of_real_nodes==2) //the jump enrichment has to be constructed from the auxiliar node.
+                if (number_of_real_nodes==2) //the jump enrichment has to be constructed from the auxiliary node.
                 {
                     for (int index_shape_function = 0; index_shape_function < 2; index_shape_function++) //enrichment shape function
                     {

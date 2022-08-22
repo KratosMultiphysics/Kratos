@@ -101,7 +101,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
     // The list of elements
     auto& r_elements_array = mrModelPart.Elements();
 
-    // Auxiliar value
+    // Auxiliary value
     struct TLSType
     {
         Vector vector_J, N;
@@ -114,7 +114,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
         if (element_is_active) {
             auto& r_this_geometry = rElem.GetGeometry();
 
-            // Auxiliar values
+            // Auxiliary values
             const GeometryData::IntegrationMethod this_integration_method = rElem.GetIntegrationMethod();
             const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
             const SizeType integration_points_number = integration_points.size();
@@ -305,7 +305,7 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
             // The geometry of the element
             auto& r_this_geometry = rElem.GetGeometry();
 
-            // Auxiliar values
+            // Auxiliary values
             const GeometryData::IntegrationMethod this_integration_method = rElem.GetIntegrationMethod();
             const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
             const SizeType integration_points_number = integration_points.size();
@@ -336,7 +336,7 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
         // The first iterator of elements
         auto& r_this_geometry_begin = it_elem_begin->GetGeometry();
 
-        // Auxiliar values
+        // Auxiliary values
         const GeometryData::IntegrationMethod this_integration_method = it_elem_begin->GetIntegrationMethod();
         const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry_begin.IntegrationPoints(this_integration_method);
         const SizeType integration_points_number = integration_points.size();
@@ -363,7 +363,7 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
 
 void IntegrationValuesExtrapolationToNodesProcess::InitializeVariables()
 {
-    // Initializing some auxiliar values
+    // Initializing some auxiliary values
     array_1d<double, 3> zero_array = ZeroVector(3);
 
     // The list of nodes

@@ -148,7 +148,7 @@ void ResultDatabase::Initialize(
 
     KRATOS_ERROR_IF_NOT(rVariablesIndexes.size() == rValuesSizes.size()) << "Inconsistent sizes in the values sizes and the variable indexes" << std::endl;
 
-    // Auxiliar lambda to generate vectors of tables
+    // Auxiliary lambda to generate vectors of tables
     auto table_generator =[](const SizeType NumberOfEntites, const SizeType NumberOfComponents, const SizeType NumberOfGP){
         EntityDatabase::GPDatabaseType aux_1(NumberOfComponents, nullptr);
         EntityDatabase aux_2(NumberOfGP, aux_1);
