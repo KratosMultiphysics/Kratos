@@ -758,7 +758,7 @@ namespace Kratos
    // *****************************************************************
    Vector & WaterPressureUtilities::AddReshapeWaterPressureForces( VectorType & rRightHandSideVector, const VectorType & rPartialRHS, const unsigned int number_of_variables, const unsigned int number_of_nodes)
    {
-      //Vector AuxiliarRHS = rRightHandSide; 
+      //Vector AuxiliaryRHS = rRightHandSide; 
       //rRightHandSide = ZeroVector(number_of_variables*number_of_nodes);
 
       for ( unsigned int i = 0; i < number_of_nodes; i++)
