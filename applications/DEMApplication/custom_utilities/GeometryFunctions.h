@@ -1155,14 +1155,14 @@ namespace Kratos {
 
         if (DistPToB < rad)
         {
-            double auxiliar_unit_vector[3];
-            CrossProduct( N,A,auxiliar_unit_vector );
-            normalize( auxiliar_unit_vector );
+            double auxiliary_unit_vector[3];
+            CrossProduct( N,A,auxiliary_unit_vector );
+            normalize( auxiliary_unit_vector );
             normalize( A );
             for (unsigned int j = 0; j<3; j++)
             {
                 LocalCoordSystem[0][j] = A[j];
-                LocalCoordSystem[1][j] = auxiliar_unit_vector[j];
+                LocalCoordSystem[1][j] = auxiliary_unit_vector[j];
                 LocalCoordSystem[2][j] = N[j];
             }
 
@@ -1281,14 +1281,14 @@ namespace Kratos {
             if ((eta>=0.0) && (eta<=1.0))
             {
                 double dummy_length = 0.0;
-                double auxiliar_unit_vector[3];
-                CrossProduct(normal_unit_vector,edge_unit_vector,auxiliar_unit_vector);
-                normalize(auxiliar_unit_vector, dummy_length);
+                double auxiliary_unit_vector[3];
+                CrossProduct(normal_unit_vector,edge_unit_vector,auxiliary_unit_vector);
+                normalize(auxiliary_unit_vector, dummy_length);
 
                 for (unsigned int j = 0; j<3; j++)
                 {
                     LocalCoordSystem[0][j] = edge_unit_vector[j];
-                    LocalCoordSystem[1][j] = auxiliar_unit_vector[j];
+                    LocalCoordSystem[1][j] = auxiliary_unit_vector[j];
                     LocalCoordSystem[2][j] = normal_unit_vector[j];
                 }
 
