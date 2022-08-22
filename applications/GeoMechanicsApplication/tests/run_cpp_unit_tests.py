@@ -3,7 +3,7 @@ from KratosMultiphysics.GeoMechanicsApplication import *
 
 
 def run():
-    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS)
+    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.TESTS_LIST)
     KratosMultiphysics.Tester.RunTestSuite("KratosGeoMechanicsFastSuite")
 
 
