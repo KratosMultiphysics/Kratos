@@ -197,7 +197,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( const
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
-    // Auxiliar output variables
+    // Auxiliary output variables
     unsigned int NumGPoints = mConstitutiveLawVector.size();
     std::vector<double> JointWidthContainer(NumGPoints);
 

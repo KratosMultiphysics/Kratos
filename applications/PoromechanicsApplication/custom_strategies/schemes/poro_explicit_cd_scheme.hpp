@@ -282,7 +282,7 @@ public:
         // The array of nodes
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
-        // Auxiliar values
+        // Auxiliary values
         const array_1d<double, 3> zero_array = ZeroVector(3);
         // Initializing the variables
         VariableUtils().SetVariable(FORCE_RESIDUAL, zero_array,r_nodes);
@@ -551,7 +551,7 @@ public:
         // The array of nodes
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
-        // Auxiliar values
+        // Auxiliary values
         const array_1d<double, 3> zero_array = ZeroVector(3);
         // Initializing the variables
         VariableUtils().SetVariable(FORCE_RESIDUAL, zero_array, r_nodes);

@@ -98,13 +98,13 @@ double& ModifiedMisesYieldCriterion::CalculateYieldCondition(double& rStateFunct
         DeviatoricStrain(i,i) -= I1/Dim;
     }
 
-    Matrix Auxiliar(Dim,Dim);
-    noalias(Auxiliar) = prod(DeviatoricStrain,DeviatoricStrain);
+    Matrix Auxiliary(Dim,Dim);
+    noalias(Auxiliary) = prod(DeviatoricStrain,DeviatoricStrain);
     double J2 = 0.0;
 
     for(unsigned int i = 0; i < Dim; i++)
     {
-        J2 += Auxiliar(i,i);
+        J2 += Auxiliary(i,i);
     }
 
     J2 *= 0.5;

@@ -300,7 +300,7 @@ protected:
         // We iterate over the nodes
         auto& r_nodes = rModelPart.Nodes();
 
-        // Auxiliar values
+        // Auxiliary values
         array_1d<double, 3> force_residual = ZeroVector(3);
         double flux_residual = 0.0;
 
