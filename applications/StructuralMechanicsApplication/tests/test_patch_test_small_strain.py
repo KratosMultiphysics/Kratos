@@ -78,8 +78,6 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             b[1] = -0.2e-10
             b[2] = 0.7e-10
 
-
-
         return A,b
 
     def _solve(self,mp):
@@ -118,7 +116,6 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         strategy.Check()
         strategy.Solve()
 
-
     def _check_results(self,mp,A,b):
 
         ##check that the results are exact on the nodes
@@ -135,8 +132,9 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
 
             d = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
             for i in range(3):
-                error = abs((d[i] - u[i])/u[i])
-                self.assertLess(error, self.tolerance, msg=f"NODE {node.Id}: Component {coor_list[i]}: {u[i]} {d[i]} Error: {error}")
+                if abs(u[i]) > 0.0:
+                    error = abs((d[i] - u[i])/u[i])
+                    self.assertLess(error, self.tolerance, msg=f"NODE {node.Id}: Component {coor_list[i]}: {u[i]} {d[i]} Error: {error}")
 
     def _check_outputs(self,mp,A,dim):
 

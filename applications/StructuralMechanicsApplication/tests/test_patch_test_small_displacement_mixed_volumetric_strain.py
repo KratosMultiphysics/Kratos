@@ -131,10 +131,9 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
 
             d = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
             for i in range(3):
-                error = abs((d[i] - u[i])/u[i])
-                if error > self.tolerance:
-                    print("NODE ", node.Id,": Component ", coor_list[i],":\t",u[i],"\t",d[i], "\tError: ", error)
-                self.assertLess(error, self.tolerance)
+                if abs(u[i]) > 0.0:
+                    error = abs((d[i] - u[i])/u[i])
+                    self.assertLess(error, self.tolerance, msg=f"NODE {node.Id}: Component {coor_list[i]}: {u[i]} {d[i]} Error: {error}")
 
     def _calculate_reference_strain(self, A, dim):
         # Given the matrix A, the analytic deformation gradient is F+I
