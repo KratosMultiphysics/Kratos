@@ -151,7 +151,7 @@ void ExplicitFixedMeshALEUtilities::ComputeExplicitMeshDisplacement(
     IndexPartition<std::size_t>( static_cast<std::size_t>(mrVirtualModelPart.NumberOfNodes()) ).for_each(
     [&]( std::size_t i_fl )
     {
-        // Get auxiliar current fluid node info.
+        // Get auxiliary current fluid node info.
         auto it_node = mrVirtualModelPart.NodesBegin() + i_fl;
         const auto i_fl_str_nodes = rSearchResults[i_fl];
         const auto i_fl_str_dists = rSearchDistanceResults[i_fl];
