@@ -4,7 +4,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
 
-class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
+class KratosGeoMechanicsAbsorbingBoundaryColumnValidationTests(KratosUnittest.TestCase):
     """
     This class contains tests which check if the lysmer absorbing boundary works in a 1d column made out of different
     element types
@@ -26,18 +26,49 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
         # Code here will be placed AFTER every test in this TestCase.
         pass
 
-    def test_absorbing_boundary_on_1d_column_quad(self):
+    def test_absorbing_boundary_on_1d_column_tetra(self):
         """
-        Tests the lysmer absorbing boundary condition on a column made of rectangulars. The boundary is a 2d2n line.
+        Tests the lysmer absorbing boundary condition on a column made of tetrahedrals. The boundary is a 3d3n triangle.
 
         :return:
         """
-        test_name = 'test_lysmer_boundary_column2d_quad.gid'
+        test_name = 'test_lysmer_boundary_column3d_tetra.gid'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
 
         # quarter node, middle node, three quarter node
-        node_nbrs_to_assert = [5,11,17]
+        node_nbrs_to_assert = [33,54,81]
+        direction = 2
+
+        self.run_and_assert_1d_column(file_path, node_nbrs_to_assert, direction)
+
+    def test_absorbing_boundary_on_1d_column_tetra_horizontal(self):
+        """
+        Tests the lysmer absorbing boundary condition on a column made of tetrahedrals. In this case the wave columns
+        moves in a positive y-direction. The boundary is a 3d3n triangle.
+        :return:
+        """
+
+        test_name = 'test_lysmer_boundary_column3d_tetra_hor.gid'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+
+        # quarter node, middle node, three quarter node
+        node_nbrs_to_assert = [33,54,81]
         direction = 1
+
+        self.run_and_assert_1d_column(file_path, node_nbrs_to_assert, direction)
+
+    def test_absorbing_boundary_on_1d_column_hexa(self):
+        """
+        Tests the lysmer absorbing boundary condition on a column made of hexahedrals. The boundary is a 3d4n rectangle.
+
+        :return:
+        """
+        test_name = 'test_lysmer_column3d_hexa.gid'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+
+        # quarter node, middle node, three quarter node
+        node_nbrs_to_assert = [31, 54, 81]
+        direction = 2
 
         self.run_and_assert_1d_column(file_path, node_nbrs_to_assert, direction)
 
