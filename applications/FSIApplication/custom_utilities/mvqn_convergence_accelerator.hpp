@@ -709,7 +709,7 @@ private:
      */
     void DropLastDataColumn()
     {
-        // Set two auxiliar observation matrices
+        // Set two auxiliary observation matrices
         const auto n_cols = mpObsMatrixV->size2() - 1;
         MatrixPointerType p_aux_V = Kratos::make_shared<MatrixType>(mProblemSize, n_cols);
         MatrixPointerType p_aux_W = Kratos::make_shared<MatrixType>(mProblemSize, n_cols);

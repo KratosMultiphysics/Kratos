@@ -154,7 +154,7 @@ public:
         }
         else
         {
-            VectorType Aux1minus0(*mpResidualVector_1);                  // Auxiliar copy of mResidualVector_1
+            VectorType Aux1minus0(*mpResidualVector_1);                  // Auxiliary copy of mResidualVector_1
             TSparseSpace::UnaliasedAdd(Aux1minus0, -1.0, *mpResidualVector_0); // mResidualVector_1 - mResidualVector_0
 
             double den = TSparseSpace::Dot(Aux1minus0, Aux1minus0);

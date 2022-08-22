@@ -291,7 +291,7 @@ public:
         const Variable<TValueType> &rResidualVariable,
         const std::string ResidualType = "nodal")
     {
-        // Set an auxiliar interface vector
+        // Set an auxiliary interface vector
         VectorPointerType p_interface_residual = this->SetUpInterfaceVector(rInterfaceModelPart);
 
         // Call compute the provided variables residual
@@ -320,8 +320,8 @@ public:
     }
 
     /**
-     * @brief Auxiliar call to SetLocalValue for double type
-     * This method serves as an auxiliar call to the SetLocalValue function for double variables
+     * @brief Auxiliary call to SetLocalValue for double type
+     * This method serves as an auxiliary call to the SetLocalValue function for double variables
      * @param rInterfaceResidual Interface residual vector in where the value is set
      * @param rResidualValue Double residual value
      * @param AuxPosition Position in rInterfaceResidual where the value is to be set
@@ -335,8 +335,8 @@ public:
     }
 
     /**
-     * @brief Auxiliar call to SetLocalValue for array type
-     * This method serves as an auxiliar call to the SetLocalValue function for array variables
+     * @brief Auxiliary call to SetLocalValue for array type
+     * This method serves as an auxiliary call to the SetLocalValue function for array variables
      * @param rInterfaceResidual Interface residual vector in where the value is set
      * @param rResidualValue Double residual value
      * @param AuxPosition Position in rInterfaceResidual where the value is to be set. Note that
@@ -379,7 +379,7 @@ public:
 
     /**
      * @brief Corrected guess local double value update
-     * This auxiliar method helps to update the nodal database using the values from
+     * This auxiliary method helps to update the nodal database using the values from
      * a corrected guess vector values.
      * @param rCorrectedGuess Corrected coupling guess vector
      * @param rValueToUpdate Reference in where the updated value is to be stored
@@ -395,7 +395,7 @@ public:
 
     /**
      * @brief Corrected guess local array value update
-     * This auxiliar method helps to update the nodal database using the values from
+     * This auxiliary method helps to update the nodal database using the values from
      * a corrected guess vector values. Note that it performs the array components loop.
      * @param rCorrectedGuess Corrected coupling guess vector
      * @param rValueToUpdate Reference in where the updated value is to be stored
@@ -749,7 +749,7 @@ protected:
             auto& rGeom = it_cond->GetGeometry();
             const unsigned int n_nodes = rGeom.PointsNumber();
 
-            // Initialize auxiliar array to save the condition nodes consistent residual
+            // Initialize auxiliary array to save the condition nodes consistent residual
             std::vector<TValueType> cons_res_vect(n_nodes);
             for (unsigned int i = 0; i < n_nodes; ++i) {
                 cons_res_vect[i] = rErrorStorageVariable.Zero();

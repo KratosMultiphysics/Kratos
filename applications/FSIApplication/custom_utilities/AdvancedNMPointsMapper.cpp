@@ -1822,7 +1822,7 @@ void AdvancedNMPointsMapper::DistanceCheck()
 }
 
 /**
- * Auxiliar function to compute the nodal length/area of each node in both origin and destiny model parts.
+ * Auxiliary function to compute the nodal length/area of each node in both origin and destiny model parts.
  */
 void AdvancedNMPointsMapper::ComputeNodalLengthArea()
 {

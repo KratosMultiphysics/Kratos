@@ -309,7 +309,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
     #######################################################################
 
     def _AuxiliaryInitOperations(self):
-        # Auxiliar variables
+        # Auxiliary variables
         self.parallel_type = self.settings["parallel_type"].GetString()
         coupling_settings = self.settings["coupling_settings"]
         self.max_nl_it = coupling_settings["nl_max_it"].GetInt()

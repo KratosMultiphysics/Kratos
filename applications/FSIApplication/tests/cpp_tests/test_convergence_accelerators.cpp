@@ -35,7 +35,7 @@ namespace Kratos {
         typedef typename ConvergenceAccelerator<SparseSpaceType, DenseSpaceType>::UniquePointer ConvAccPointerType;
 
         /**
-	     * Auxiliar function to set the system to be solved
+	     * Auxiliary function to set the system to be solved
 	     */
         void ComputeResidual(
             const std::size_t TimeValue,

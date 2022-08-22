@@ -311,7 +311,7 @@ class KRATOS_API(FSI_APPLICATION) AdvancedNMPointsMapper
     typedef Bucket< 3ul, PointType, GaussPointVector, PointTypePointer, GaussPointIterator, DistanceIterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> > tree;
 
-    // Auxiliar matrix 3x3 for 3D cases
+    // Auxiliary matrix 3x3 for 3D cases
     typedef boost::numeric::ublas::bounded_matrix<double, 3, 3> MatrixVar;
 
 public:
@@ -514,12 +514,12 @@ private:
     void DistanceCheck();
 
     /**
-     * Auxiliar function to compute the nodal length/area of each node in both origin and destiny model parts.
+     * Auxiliary function to compute the nodal length/area of each node in both origin and destiny model parts.
      */
     void ComputeNodalLengthArea();
 
     /**
-     * Auxiliar function to compute the equivalent nodal tractions to point loads minimizing the L2 norm of the error.
+     * Auxiliary function to compute the equivalent nodal tractions to point loads minimizing the L2 norm of the error.
      * @param rOriginVar: Origin variable to be converted to tractions
      * @param MaxIter: Maximum iterations
      * @param TolIter: Absolute tolerance
@@ -529,7 +529,7 @@ private:
                                     const double TolIter);
 
     /**
-     * Auxiliar function to recover punctual loads from equivalent tractions.
+     * Auxiliary function to recover punctual loads from equivalent tractions.
      * @param rOriginVar: Destination variable to store the recovered nodal values
      */
     void ComputeNodalLoadsFromTractions(const Variable<array_1d<double,3> >& rDestVar);

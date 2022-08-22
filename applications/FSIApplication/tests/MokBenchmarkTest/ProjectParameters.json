@@ -195,7 +195,7 @@
                 "direction": [0.0,-1.0,0.0]
             }
         }],
-        "fluid_auxiliar_process_list" : [{
+        "fluid_auxiliary_process_list" : [{
             "python_module": "from_json_check_result_process",
             "kratos_module": "KratosMultiphysics",
             "process_name" : "FromJsonCheckResultProcess",

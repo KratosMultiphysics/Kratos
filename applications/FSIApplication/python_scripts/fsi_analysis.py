@@ -111,7 +111,7 @@ class FsiAnalysis(AnalysisStage):
                 "fluid_gravity",
                 "fluid_initial_conditions_process_list",
                 "fluid_boundary_conditions_process_list",
-                "fluid_auxiliar_process_list"]
+                "fluid_auxiliary_process_list"]
 
     def _GetOrderOfOutputProcessesInitialization(self):
         return ["gid_output"]
