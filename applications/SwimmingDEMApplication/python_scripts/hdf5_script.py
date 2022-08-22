@@ -163,3 +163,59 @@ class ParticleDragForcePostProcessTool(object):
         data_array = np.rec.fromarrays(data, dtype = column_name)
 
         self.sub_group.create_dataset(name = self.group_name, data = data_array)
+
+class GranularTemperaturePostProcessTool(object):
+    def __init__(self):
+        """The default constructor of the class.
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        test_number -- It is the number of the mesh that is computing
+        """
+        self.parameters = Kratos.Parameters( """
+        {
+            "file_name": "sp_data.hdf5",
+            "target_porosity" : 0.3,
+            "probe_height" : 0.2032
+        }  """ )
+
+        self.time = []
+        self.mean_granular_temperature = []
+        self.problem_path = os.getcwd()
+        self.file_path = os.path.join(str(self.problem_path),self.parameters["file_name"].GetString())
+        self.dtype = np.float64
+        self.group_name = str(1)
+
+    def WriteData(self, fluid_model_part):
+        self.fluid_model_part = fluid_model_part
+
+        self.time.append(self.fluid_model_part.ProcessInfo[Kratos.TIME])
+        temp = 0
+        n = 0
+        for node in self.fluid_model_part.Nodes:
+            if (node.GetSolutionStepValue(Kratos.SwimmingDEMApplication.GRANULAR_TEMPERATURE) > 1e-18):
+                temp += node.GetSolutionStepValue(Kratos.SwimmingDEMApplication.GRANULAR_TEMPERATURE)
+                n += 1
+
+        if (n != 0):
+            self.mean_granular_temperature.append(temp/n)
+        else:
+            self.mean_granular_temperature.append(0.0)
+
+        with h5py.File(self.file_path, 'a') as f:
+                self.WriteDataToFile(file_or_group = f,
+                            names = ['TIME', 'GRANULAR_TEMPERATURE'],
+                            data = [self.time, self.mean_granular_temperature])
+
+    def WriteDataToFile(self, file_or_group, names, data):
+        if self.group_name in file_or_group:
+            file_or_group['/'].__delitem__(self.group_name)
+            self.sub_group = file_or_group.create_group(self.group_name)
+        else:
+            self.sub_group = file_or_group.create_group(self.group_name)
+
+        for name, datum in zip(names, data):
+            if name in file_or_group:
+                file_or_group.__delitem__(name)
+        for name, datum in zip(names, data):
+            self.sub_group.create_dataset(name = name, data = datum)

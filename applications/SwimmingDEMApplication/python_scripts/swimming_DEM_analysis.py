@@ -69,7 +69,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.StartTimer()
         self.model = model
         self.main_path = self.GetMainPath()
-
+        #from KratosMultiphysics.SwimmingDEMApplication import hdf5_script
+        #self.granular_temperature_post_process = hdf5_script.GranularTemperaturePostProcessTool()
         self.SetProjectParameters(parameters)
 
         self.vars_man = variables_management.VariablesManager(self.project_parameters)
@@ -468,6 +469,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         if self.DEM_to_fluid_counter.Tick() and self.time >= self.project_parameters["coupling"]["interaction_start_time"].GetDouble():
             self._GetSolver().projection_module.ProjectFromParticles()
+            #self.projector_post_process.WriteData(self.fluid_model_part)
 
         # coupling checks (debugging)
         if self.debug_info_counter.Tick():

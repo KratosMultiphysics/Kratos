@@ -234,6 +234,7 @@ void InterpolateFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_mode
 void VariingRadiusHomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, const double& search_radius, const double& shape_factor, bool must_search = true, bool use_drew_model = false);
 void HomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, const double& search_radius, bool must_search = true, bool use_drew_model = false);
 void ComputePostProcessResults(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, ModelPart& rfem_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const ProcessInfo& r_current_process_info);
+void CalculateGranularTemperature(ModelPart& r_fluid_model_part);
 
 ///@}
 ///@name Access
@@ -350,6 +351,7 @@ int mViscosityModificationType;
 int mParticlesPerDepthDistance;
 int mNumberOfDEMSamplesSoFarInTheCurrentFluidStep;
 array_1d<double, 3> mGravity;
+array_1d<double, 3> mVelocityDistributionMean;
 
 VariablesContainer mVariables;
 std::map<VariableData, double> mAlphas;
@@ -411,6 +413,7 @@ void CalculateNodalFluidFractionByAveraging(ParticleType& particle, const Result
 void CalculateNodalSolidFractionByAveraging(const Node<3>::Pointer p_node, const ResultNodesContainerType& neighbours, const DistanceType& weights, const double averaging_volume_inv);
 void MultiplyNodalVariableBy(ModelPart& r_model_part, const Variable<double>& r_variable, const double& factor);
 void MultiplyNodalVariableBy(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& r_variable, const double& factor);
+void CalculateWeightedIncrementalGranularTemperature(double& granular_temperature, array_1d<double, 3>& old_filtered_variable, array_1d<double, 3> origin_data, double weight, double& sum_of_weights);
 void ResetDEMVariables(ModelPart& r_dem_model_part);
 void ResetFluidVariables(ModelPart& r_fluid_model_part);
 void ResetFLuidVelocityRate(const NodeIteratorType& node_it);

@@ -366,6 +366,8 @@ class VariablesManager:
                 self.coupling_fluid_vars += [Kratos.DISPERSE_FRACTION]
 
             if parameters["coupling"]["backward_coupling"]["filter_velocity_option"].GetBool():
+                self.coupling_fluid_vars += [SDEM.GRANULAR_TEMPERATURE]
+                self.coupling_fluid_vars += [SDEM.AVERAGED_PARTICLE_VELOCITY]
                 self.coupling_fluid_vars += [Kratos.PARTICLE_VEL_FILTERED]
                 self.coupling_fluid_vars += [Kratos.TIME_AVERAGED_ARRAY_3]
                 self.coupling_fluid_vars += [Kratos.PHASE_FRACTION]
@@ -443,6 +445,8 @@ class VariablesManager:
                 self.time_filtered_vars += [Kratos.FLUID_FRACTION]
 
         if parameters["coupling"]["backward_coupling"]["filter_velocity_option"].GetBool():
+            self.coupling_fluid_vars += [SDEM.GRANULAR_TEMPERATURE]
+            self.coupling_fluid_vars += [SDEM.AVERAGED_PARTICLE_VELOCITY]
             self.time_filtered_vars += [Kratos.PARTICLE_VEL_FILTERED]
 
         if self.time_filtered_vars:

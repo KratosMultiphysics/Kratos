@@ -329,7 +329,12 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
         const auto& variable = *fluid_variables[j];
         if (mVariables.Is(variable, "FluidTimeFiltered") && variable != FLUID_FRACTION){ // hold the current value in an auxiliary variable
             CopyValues(r_fluid_model_part, variable);
-            if (variable == PARTICLE_VEL_FILTERED) SetToZero(r_fluid_model_part, variable);
+            if (variable == PARTICLE_VEL_FILTERED)
+            {
+                SetToZero(r_fluid_model_part, variable);
+                SetToZero(r_fluid_model_part, WEIGHTED_SUM);
+                SetToZero(r_fluid_model_part, GRANULAR_TEMPERATURE);
+            }
         }
 
         for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
@@ -1502,13 +1507,55 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
     else if (r_origin_variable == VELOCITY){
         for (unsigned int i = 0; i != neighbours.size(); ++i){
             array_1d<double, 3> contribution = weights[i] * origin_data;
+            double& sum_of_weights = neighbours[i]->FastGetSolutionStepValue(WEIGHTED_SUM);
+            double& granular_temperature = neighbours[i]->FastGetSolutionStepValue(GRANULAR_TEMPERATURE);
             array_1d<double, 3>& particles_filtered_vel = neighbours[i]->FastGetSolutionStepValue(PARTICLE_VEL_FILTERED);
+            array_1d<double, 3>& mean_p_velocity = neighbours[i]->FastGetSolutionStepValue(AVERAGED_PARTICLE_VELOCITY);
+            CalculateWeightedIncrementalGranularTemperature(granular_temperature, mean_p_velocity, origin_data, weights[i], sum_of_weights);
             particles_filtered_vel += contribution;
         }
     }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
+// This algorithm is based on the West's proposal method : https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CalculateWeightedIncrementalGranularTemperature(
+    double& granular_temperature,
+    array_1d<double, 3>& old_filtered_variable,
+    array_1d<double, 3> origin_data,
+    double weight,
+    double& sum_of_weights)
+{
+    array_1d<double, 3> mean_old;
+    double old_sum_of_weights = sum_of_weights;
+    sum_of_weights += weight;
+    if(old_sum_of_weights < std::numeric_limits<double>::epsilon()){
+        mean_old = origin_data;
+        old_filtered_variable = mean_old;
+    }
+    else{
+        mean_old = old_filtered_variable;
+        old_filtered_variable = mean_old + weight * (origin_data - mean_old) / sum_of_weights;
+    }
+
+    array_1d<double, 3> a = origin_data - mean_old;
+    granular_temperature += weight * SWIMMING_INNER_PRODUCT_3(a,a) * old_sum_of_weights / sum_of_weights;
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CalculateGranularTemperature(
+    ModelPart& r_fluid_model_part)
+{
+    for (NodeIteratorType node_it = r_fluid_model_part.NodesBegin(); node_it != r_fluid_model_part.NodesEnd(); ++node_it){
+        double& granular_temperature = node_it->FastGetSolutionStepValue(GRANULAR_TEMPERATURE);
+        if (node_it->FastGetSolutionStepValue(WEIGHTED_SUM) <= std::numeric_limits<double>::epsilon())
+            granular_temperature = 0.0;
+        else
+            granular_temperature /= node_it->FastGetSolutionStepValue(WEIGHTED_SUM) * 3.0;
+    }
+}
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CalculateNodalFluidFractionByAveraging( // it is actually calculating its complementary here; (1 - this value) is performed later
     ParticleType& particle,
