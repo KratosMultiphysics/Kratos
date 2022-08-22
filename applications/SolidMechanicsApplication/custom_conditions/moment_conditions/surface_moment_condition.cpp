@@ -128,7 +128,7 @@ namespace Kratos
     //Jacobian to the last known configuration
     double Jacobian =  norm_2(rVariables.Normal);
 
-    //auxiliar computation
+    //auxiliary computation
 
     //get first vector of the plane
     rVariables.Tangent1[0] = rVariables.j[rPointNumber](0, 0);

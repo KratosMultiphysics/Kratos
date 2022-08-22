@@ -1178,8 +1178,8 @@ namespace Kratos
     noalias(AlphaNodeRotationMatrix) = ZeroMatrix(3,3);
     AlphaNodeRotationMatrix = (1-alpha) * PreviousNodeDirectors + alpha * CurrentNodeDirectors;
 
-    Matrix AuxiliarRotationMatrix(6,6);
-    noalias(AuxiliarRotationMatrix) = ZeroMatrix(6,6);
+    Matrix AuxiliaryRotationMatrix(6,6);
+    noalias(AuxiliaryRotationMatrix) = ZeroMatrix(6,6);
 
     //Building the rotation matrix for the local element matrix
     for (unsigned int kk=0; kk < 6; kk += 3)
@@ -1188,7 +1188,7 @@ namespace Kratos
 	  {
             for(unsigned int j=0; j<3; j++)
 	      {
-		AuxiliarRotationMatrix(i+kk,j+kk) = AlphaNodeRotationMatrix(i,j);
+		AuxiliaryRotationMatrix(i+kk,j+kk) = AlphaNodeRotationMatrix(i,j);
 	      }
 	  }
       }
@@ -1295,7 +1295,7 @@ namespace Kratos
 
     OperatorTau += 0.5 * (OperatorOmegaI + OperatorOmegaII);
 
-    //OperatorTau = prod( trans(AuxiliarRotationMatrix), OperatorTau);
+    //OperatorTau = prod( trans(AuxiliaryRotationMatrix), OperatorTau);
 
     rDifferentialOperator = trans(OperatorTau);
 

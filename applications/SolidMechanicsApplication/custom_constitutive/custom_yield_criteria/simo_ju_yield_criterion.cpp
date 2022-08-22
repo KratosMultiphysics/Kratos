@@ -126,14 +126,14 @@ double& SimoJuYieldCriterion::CalculateYieldCondition(double & rStateFunction, c
 
     // Compute Equivalent Strain (rStateFunction)
     const Matrix& StrainMatrix = rVariables.GetStrainMatrix();
-    Matrix Auxiliar(Dim,Dim);
-    noalias(Auxiliar) = prod(StrainMatrix,StressMatrix);
+    Matrix Auxiliary(Dim,Dim);
+    noalias(Auxiliary) = prod(StrainMatrix,StressMatrix);
 
     double StressNorm = 0.0;
 
     for(unsigned int i = 0; i < Dim; i++)
     {
-        StressNorm += Auxiliar(i,i);
+        StressNorm += Auxiliary(i,i);
     }
 
     const double& StrengthRatio = mpHardeningLaw->GetProperties()[STRENGTH_RATIO];

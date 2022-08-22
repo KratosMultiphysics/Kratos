@@ -681,14 +681,14 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddPressureForces(Vecto
 
         rRightHandSideVector[indexp] -=  Coefficient * rVariables.N[i] * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
 
-        //std::cout<< " Mpres "<<rRightHandSideVector[indexp]<<" Ppres "<<auxiliar * rVariables.N[i] * rIntegrationWeight / rVariables.detF <<std::endl;
+        //std::cout<< " Mpres "<<rRightHandSideVector[indexp]<<" Ppres "<<auxiliary * rVariables.N[i] * rIntegrationWeight / rVariables.detF <<std::endl;
 
         indexp += (dimension + 1);
     }
 
 
     // std::cout<<std::endl;
-    // std::cout<<" auxiliar " <<auxiliar<<" F0 "<<rVariables.detF0<<std::endl;
+    // std::cout<<" auxiliary " <<auxiliary<<" F0 "<<rVariables.detF0<<std::endl;
     // std::cout<<" Fpres "<<rRightHandSideVector-Fh<<std::endl;
 
     KRATOS_CATCH( "" )
