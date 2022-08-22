@@ -62,7 +62,7 @@ public:
     TransientConvectionDiffusionFICExplicitElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : TransientConvectionDiffusionFICElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
     /// Destructor
-    virtual ~TransientConvectionDiffusionFICExplicitElement() {}
+    ~TransientConvectionDiffusionFICExplicitElement() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -73,9 +73,9 @@ public:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-                        VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+                        VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

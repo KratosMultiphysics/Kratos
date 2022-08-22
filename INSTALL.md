@@ -44,7 +44,7 @@ git clone https://github.com/KratosMultiphysics/Kratos Kratos
 ### Kratos Core Dependencies
   These are the basic dependecies needed to compile the Kratos Core and most of the Kratos applications.
   * Python3-dev
-  * C++11 compiler
+  * C++17 compiler
   * CMake
   * Boost (dependencies are header-only, no compilation of boost libraries required)
 
@@ -369,13 +369,13 @@ The result should be:
    ' /   __| _` | __|  _ \   __|
    . \  |   (   | |   (   |\__ \
   _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 8.0
+           Multi-Physics 9.1
 ```
 
 
 ## Advanced Configuration
 
-### Parallel Compilation
+### Compilation of Kratos in parallel
 
 We provide several flavours in order to parallelize Kratos compilation. We have divided this option according to the operating system specifics.
 
@@ -436,19 +436,15 @@ try to update this section with the specifics.
 It is possible to configure the build environment for Kratos, that is: where the source is located, which will be the install dir, and how the python files are going to be installed.
 
 `KRATOS_SOURCE=Path`
-
 Path to the source of Kratos. It will target the directory above this script by default.
 
 `KRATOS_BUILD=Path`
-
 Build directory for Kratos. Makefiles, vsprojects and other artifacts will be stored here. It defaults to Kratos/Build
 
 `KRATOS_APP_DIR=Path`
-
 Path where your applications are located. This variable is not necessary but it helps to organize the list of applications to be compiled. It defaults to Kratos/Applications
 
 `KRATOS_INSTALL_PYTHON_USING_LINKS=ON/OFF`
-
 Controls wether the python files are installed by making copies or creating symlinks to the files in the source directory. This options is specially usefull if you are developing python files and don't want to reinstall every time you touch a script.
 
 Using this option in windows requires elevated privileges (you must run the script as admin)
@@ -458,46 +454,35 @@ Using this option in windows requires elevated privileges (you must run the scri
 
 It is also possible to use more advanced configuration options. To use any of these options please add them directly to the cmake configuration line just as any other flag
 
-
 `-DCMAKE_C_COMPILER=String`
-
 Path to the C compiler. Overrides `CC` environment variable
 
 `-DCMAKE_CXX_COMPILER=String`
-
 Path to the C++ compiler. Overrides `CXX` environment variable
 
 `-DCMAKE_INSTALL_PREFIX=String`
-
 Install path for Kratos. If not set the installation will be done in `bin/[build_type]`
 
 `-DCMAKE_C_FLAGS=String`
-
 User defined flags for the C compiler.
 
 `-DCMAKE_CXX_FLAGS=String`
-
 User defined flags for the C++ compiler.
 
 `-DBOOST_ROOT=String`
-
 Root directory for boost. Overrided by BOOST_ROOT environmental variable if defined.
 
 `-DPYTHON_EXECUTABLE=String`
-
 Python executable to be used. It is recommended to set this option if more than one version of python is present in the system (For example while using ubuntu). Overrided by PYTHON_EXECUTABLE environmental variable if defined.
 
 `-DINSTALL_RUNKRATOS=ON/OFF`
-
 Enables(Default) or Disables the compilation of the embedded python interpreter (aka Runkratos).
 
 `-DKRATOS_BUILD_TESTING=ON/OFF`
-
 Enables(Default) or Disables the compilation of the C++ unitary tests for Kratos and Applications.
 
 ### Unitary Builds
 `-DCMAKE_UNITY_BUILD=ON/OFF`
-
 Enables or Disables(default) the use of [cmake unity build](https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html) to speedup compilation by using unitary builds.
 Please notice that enabling this options can greatly increase the amount of memory needed to compile some targets, specially if combined with -jx.
 
@@ -518,13 +503,13 @@ Please, beware that using this flag along with a parallel compilation may cause 
 We recommed you to disable parallel compilation unless you know what you are doing.
 
 ### Parallelism
-`-DUSE_MPI=ON/OFF`
 
-Enables or Disables(default) the modules and code for mpi. This option is needed if you want to compile Trilinos, Metis, etc...
+Building Kratos with support for MPI requires an advanced configuration of its building script,
+as well as the building of dependencies and parallel applications.
+Here you can find [guidelines](https://github.com/KratosMultiphysics/Kratos/wiki/Compiling-Kratos-with-MPI-support) for the compilation of Kratos and its dependencies.
 
 ### Logging
 `-DKRATOS_COLORED_OUTPUT=ON/OFF`
-
 Enables colored output of the Logger. If switched on, e.g. warning level messages will be printed in yellow to the terminal. Please notice that colored output is not supported by all terminals.
 
 ### TPL-Libraries

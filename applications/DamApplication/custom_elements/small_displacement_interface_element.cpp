@@ -144,7 +144,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetDofList(DofsVectorTyp
     {
         rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
         rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-        if(TDim>2)
+        if constexpr (TDim>2)
             rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
     }
 
