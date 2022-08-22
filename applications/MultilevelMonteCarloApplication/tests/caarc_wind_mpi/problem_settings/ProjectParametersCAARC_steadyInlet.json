@@ -143,7 +143,7 @@
                 "direction"       : [0.0,-1.0,0.0]
             }
         }],
-        "auxiliar_process_list"            : [{
+        "auxiliary_process_list"            : [{
                 "python_module" : "compute_body_fitted_drag_process",
                 "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
                 "process_name"  : "ComputeBodyFittedDragProcess",

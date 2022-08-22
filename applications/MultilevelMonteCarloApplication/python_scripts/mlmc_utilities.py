@@ -25,9 +25,9 @@ import KratosMultiphysics.MultilevelMonteCarloApplication.generator_utilities as
 from exaqute import *
 
 try:
-    computing_units_auxiliar_utilities = int(os.environ["computing_units_auxiliar_utilities"])
+    computing_units_auxiliary_utilities = int(os.environ["computing_units_auxiliary_utilities"])
 except:
-    computing_units_auxiliar_utilities = 1
+    computing_units_auxiliary_utilities = 1
 try:
     computing_units_mlmc_execute_0 = int(os.environ["computing_units_mlmc_execute_0"])
 except:
@@ -61,7 +61,7 @@ input:  level              : working level
 output: new_difference_QoI_power_sum_batches : power sums up to level 4 of difference QoI
         new_time_ML_power_sum_batches        : power sums up to level 4 of time MLMC instance
 """
-@constraint(computing_units=computing_units_auxiliar_utilities)
+@constraint(computing_units=computing_units_auxiliary_utilities)
 @task(keep=True,returns=2,priority=True)
 def AddResultsAux_Task(level,*simulation_results):
     def computePowers(value):
@@ -93,7 +93,7 @@ output: auxiliary_MLMC_object.rates_error       : rates error of the MultilevelM
         auxiliary_MLMC_object.total_error       :  total error of the MultilevelMonteCarlo class
         auxiliary_MLMC_object.number_samples    : number of samples of the MultilevelMonteCarlo class
 """
-@constraint(computing_units=computing_units_auxiliar_utilities)
+@constraint(computing_units=computing_units_auxiliary_utilities)
 @task(keep=True,returns=5,priority=True)
 def FinalizePhaseAux_Task(ConstructorCallback,aux_settings_serialized,aux_mesh_parameters,\
 aux_current_number_levels,aux_current_iteration,aux_number_samples,*args):
