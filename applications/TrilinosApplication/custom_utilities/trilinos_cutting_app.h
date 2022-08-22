@@ -333,7 +333,7 @@ public:
 
         for (int index=0; index!=nnodes; ++index)  //now we have to save the nodes!.
         {
-             //KRATOS_WATCH(auxiliar);
+             //KRATOS_WATCH(auxiliary);
             if (used_nodes[index]==true)
             {
                 //KRATOS_WATCH(index)

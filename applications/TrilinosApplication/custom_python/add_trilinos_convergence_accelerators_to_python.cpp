@@ -34,7 +34,7 @@ namespace Python {
 typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
 
-void AuxiliarUpdateSolution(
+void AuxiliaryUpdateSolution(
     ConvergenceAccelerator<TrilinosSparseSpaceType, TrilinosLocalSpaceType> &dummy,
     AuxiliaryVectorWrapper &rResidualVector,
     AuxiliaryVectorWrapper &rIterationGuess)
@@ -58,7 +58,7 @@ void AddTrilinosConvergenceAcceleratorsToPython(pybind11::module &m)
         .def("Initialize",                   &TrilinosBaseConvergenceAcceleratorType::Initialize)
         .def("InitializeSolutionStep",       &TrilinosBaseConvergenceAcceleratorType::InitializeSolutionStep)
         .def("InitializeNonLinearIteration", &TrilinosBaseConvergenceAcceleratorType::InitializeNonLinearIteration)
-        .def("UpdateSolution",               AuxiliarUpdateSolution)
+        .def("UpdateSolution",               AuxiliaryUpdateSolution)
         .def("FinalizeNonLinearIteration",   &TrilinosBaseConvergenceAcceleratorType::FinalizeNonLinearIteration)
         .def("FinalizeSolutionStep",         &TrilinosBaseConvergenceAcceleratorType::FinalizeSolutionStep)
         .def("Finalize",                     &TrilinosBaseConvergenceAcceleratorType::Finalize)
