@@ -278,7 +278,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     ConstitutiveParameters.SetDeformationGradientF(F);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-    // Auxiliar output variables
+    // Auxiliary output variables
     unsigned int NumGPoints = mConstitutiveLawVector.size();
     std::vector<double> JointWidthContainer(NumGPoints);
 
@@ -345,7 +345,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     ConstitutiveParameters.SetDeformationGradientF(F);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-    // Auxiliar output variables
+    // Auxiliary output variables
     unsigned int NumGPoints = mConstitutiveLawVector.size();
     std::vector<double> JointWidthContainer(NumGPoints);
 
