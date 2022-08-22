@@ -139,7 +139,7 @@ class DamUpliftConditionLoadProcess : public Process
         // Computing the rotation matrix accoding with the introduced points by the user
         this->CalculateRotationMatrix(RotationMatrix);
         array_1d<double, 3> newCoordinate;
-        array_1d<double, 3> auxiliar_vector;
+        array_1d<double, 3> auxiliary_vector;
         array_1d<double, 3> reference_vector;
 
         // Gravity direction for computing the hydrostatic pressure
@@ -171,12 +171,12 @@ class DamUpliftConditionLoadProcess : public Process
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                    auxiliar_vector.resize(3, false);
+                    auxiliary_vector.resize(3, false);
                     const array_1d<double,3>& r_coordinates = it->Coordinates();
-                    noalias(auxiliar_vector) = r_coordinates;
+                    noalias(auxiliary_vector) = r_coordinates;
 
                     // Computing the new coordinates
-                    newCoordinate = prod(RotationMatrix, auxiliar_vector);
+                    newCoordinate = prod(RotationMatrix, auxiliary_vector);
 
                     // We compute the first part of the uplift law
                     mUpliftPressure = (mSpecific * ((ref_coord - aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mDistanceDrain)) * (fabs((newCoordinate(0)) - reference_vector(0))))) + mSpecific * aux_drain;
@@ -204,11 +204,11 @@ class DamUpliftConditionLoadProcess : public Process
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                    auxiliar_vector.resize(3, false);
+                    auxiliary_vector.resize(3, false);
                     const array_1d<double,3>& r_coordinates = it->Coordinates();
-                    noalias(auxiliar_vector) = r_coordinates;
+                    noalias(auxiliary_vector) = r_coordinates;
 
-                    newCoordinate = prod(RotationMatrix, auxiliar_vector);
+                    newCoordinate = prod(RotationMatrix, auxiliary_vector);
 
                     mUpliftPressure = (mSpecific * (ref_coord - (r_coordinates[direction]))) * (1.0 - ((1.0 / mBaseDam) * (fabs(newCoordinate(0) - reference_vector(0)))));
 
@@ -252,7 +252,7 @@ class DamUpliftConditionLoadProcess : public Process
         // Computing the rotation matrix accoding with the introduced points by the user
         this->CalculateRotationMatrix(RotationMatrix);
         array_1d<double, 3> newCoordinate;
-        array_1d<double, 3> auxiliar_vector;
+        array_1d<double, 3> auxiliary_vector;
         array_1d<double, 3> reference_vector;
 
         // Gravity direction for computing the hydrostatic pressure
@@ -284,12 +284,12 @@ class DamUpliftConditionLoadProcess : public Process
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                    auxiliar_vector.resize(3, false);
+                    auxiliary_vector.resize(3, false);
                     const array_1d<double,3>& r_coordinates = it->Coordinates();
-                    noalias(auxiliar_vector) = r_coordinates;
+                    noalias(auxiliary_vector) = r_coordinates;
 
                     // Computing the new coordinates
-                    newCoordinate = prod(RotationMatrix, auxiliar_vector);
+                    newCoordinate = prod(RotationMatrix, auxiliary_vector);
 
                     // We compute the first part of the uplift law
                     mUpliftPressure = (mSpecific * ((ref_coord - aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mDistanceDrain)) * (fabs((newCoordinate(0)) - reference_vector(0))))) + mSpecific * aux_drain;
@@ -317,11 +317,11 @@ class DamUpliftConditionLoadProcess : public Process
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                    auxiliar_vector.resize(3, false);
+                    auxiliary_vector.resize(3, false);
                     const array_1d<double,3>& r_coordinates = it->Coordinates();
-                    noalias(auxiliar_vector) = r_coordinates;
+                    noalias(auxiliary_vector) = r_coordinates;
 
-                    newCoordinate = prod(RotationMatrix, auxiliar_vector);
+                    newCoordinate = prod(RotationMatrix, auxiliary_vector);
 
                     mUpliftPressure = (mSpecific * (ref_coord - (r_coordinates[direction]))) * (1.0 - ((1.0 / mBaseDam) * (fabs(newCoordinate(0) - reference_vector(0)))));
 

@@ -132,7 +132,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
         //Defining necessary variables
         const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-        array_1d<double, 3> auxiliar_vector;
+        array_1d<double, 3> auxiliary_vector;
 
         // Gravity direction for computing the hydrostatic pressure
         int direction;
@@ -182,12 +182,12 @@ class DamUpliftCircularConditionLoadProcess : public Process
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                    auxiliar_vector.resize(3, false);
+                    auxiliary_vector.resize(3, false);
                     const array_1d<double,3>& r_coordinates = it->Coordinates();
-                    noalias(auxiliar_vector) = mFocus - r_coordinates;
+                    noalias(auxiliary_vector) = mFocus - r_coordinates;
 
                     //// Computing the new coordinates
-                    double current_radius = sqrt(auxiliar_vector[radius_comp_1] * auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2] * auxiliar_vector[radius_comp_2]);
+                    double current_radius = sqrt(auxiliary_vector[radius_comp_1] * auxiliary_vector[radius_comp_1] + auxiliary_vector[radius_comp_2] * auxiliary_vector[radius_comp_2]);
 
                     //// We compute the first part of the uplift law
                     mUpliftPressure = mSpecific * ((ref_coord - aux_drain) - (r_coordinates[direction])) * (1.0 - ((1.0 / mDistanceDrain) * (fabs(current_radius - up_radius)))) + (mSpecific * aux_drain);
@@ -215,12 +215,12 @@ class DamUpliftCircularConditionLoadProcess : public Process
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                    auxiliar_vector.resize(3, false);
+                    auxiliary_vector.resize(3, false);
                     const array_1d<double,3>& r_coordinates = it->Coordinates();
-                    noalias(auxiliar_vector) = mFocus - r_coordinates;
+                    noalias(auxiliary_vector) = mFocus - r_coordinates;
 
                     // Computing the current distance to the focus.
-                    double current_radius = sqrt(auxiliar_vector[radius_comp_1] * auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2] * auxiliar_vector[radius_comp_2]);
+                    double current_radius = sqrt(auxiliary_vector[radius_comp_1] * auxiliary_vector[radius_comp_1] + auxiliary_vector[radius_comp_2] * auxiliary_vector[radius_comp_2]);
 
                     mUpliftPressure = mSpecific * (ref_coord - (r_coordinates[direction])) * (1.0 - (1.0 / width_dam) * (fabs(current_radius - up_radius)));
 
@@ -249,7 +249,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
         //Defining necessary variables
         const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-        array_1d<double, 3> auxiliar_vector;
+        array_1d<double, 3> auxiliary_vector;
 
         // Getting the values of table in case that it exist
         if (mTableId != 0)
@@ -307,12 +307,12 @@ class DamUpliftCircularConditionLoadProcess : public Process
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                    auxiliar_vector.resize(3, false);
+                    auxiliary_vector.resize(3, false);
                     const array_1d<double,3>& r_coordinates = it->Coordinates();
-                    noalias(auxiliar_vector) = mFocus - r_coordinates;
+                    noalias(auxiliary_vector) = mFocus - r_coordinates;
 
                     //// Computing the new coordinates
-                    double current_radius = sqrt(auxiliar_vector[radius_comp_1] * auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2] * auxiliar_vector[radius_comp_2]);
+                    double current_radius = sqrt(auxiliary_vector[radius_comp_1] * auxiliary_vector[radius_comp_1] + auxiliary_vector[radius_comp_2] * auxiliary_vector[radius_comp_2]);
 
                     //// We compute the first part of the uplift law
                     mUpliftPressure = mSpecific * ((ref_coord - aux_drain) - (r_coordinates[direction])) * (1.0 - ((1.0 / mDistanceDrain) * (fabs(current_radius - up_radius)))) + (mSpecific * aux_drain);
@@ -340,12 +340,12 @@ class DamUpliftCircularConditionLoadProcess : public Process
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                    auxiliar_vector.resize(3, false);
+                    auxiliary_vector.resize(3, false);
                     const array_1d<double,3>& r_coordinates = it->Coordinates();
-                    noalias(auxiliar_vector) = mFocus - r_coordinates;
+                    noalias(auxiliary_vector) = mFocus - r_coordinates;
 
                     // Computing the current distance to the focus.
-                    double current_radius = sqrt(auxiliar_vector[radius_comp_1] * auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2] * auxiliar_vector[radius_comp_2]);
+                    double current_radius = sqrt(auxiliary_vector[radius_comp_1] * auxiliary_vector[radius_comp_1] + auxiliary_vector[radius_comp_2] * auxiliary_vector[radius_comp_2]);
 
                     mUpliftPressure = mSpecific * (ref_coord - (r_coordinates[direction])) * (1.0 - (1.0 / width_dam) * (fabs(current_radius - up_radius)));
 
