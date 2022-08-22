@@ -65,10 +65,10 @@ namespace Kratos
     typedef struct
     {
       int        id;       // Spline Knot number
-      PointType  P0;       // First auxiliar point
+      PointType  P0;       // First auxiliary point
       PointType  P1;       // First curve point
       PointType  P2;       // Second curve point
-      PointType  P3;       // Second auxiliar point
+      PointType  P3;       // Second auxiliary point
 
     } SplineType;
 
@@ -185,7 +185,7 @@ namespace Kratos
       Z = nodes_begin->Z();
 
       KnotPoint = NodePointerType( new NodeType(id,X,Y,Z) );
-      NewKnotsList.push_back( KnotPoint );   //reserve space for the initial auxiliar node
+      NewKnotsList.push_back( KnotPoint );   //reserve space for the initial auxiliary node
 
       id+=1;
       X = (nodes_begin + 1)->X();

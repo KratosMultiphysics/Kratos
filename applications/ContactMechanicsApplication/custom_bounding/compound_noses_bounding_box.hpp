@@ -1418,7 +1418,7 @@ private:
       double FaceC = CalculateClearanceFace( FaceC, rPoint, rRadius, rWallNose );
 
       double Face1=0, Face2=0, Face3=0;
-      CalculateAuxiliarFaces( Face1, Face2, Face3, rPoint, rRadius, rWallNose );
+      CalculateAuxiliaryFaces( Face1, Face2, Face3, rPoint, rRadius, rWallNose );
 
 
       // bool node_in =false;
@@ -1706,7 +1706,7 @@ private:
     //************************************************************************************
 
 
-    void CalculateAuxiliarFaces(double& rFace1, double& rFace2,  double& rFace3, const PointType& rPoint, const double& rRadius, const BoxNoseVariables& rWallNose)
+    void CalculateAuxiliaryFaces(double& rFace1, double& rFace2,  double& rFace3, const PointType& rPoint, const double& rRadius, const BoxNoseVariables& rWallNose)
     {
       KRATOS_TRY
 
