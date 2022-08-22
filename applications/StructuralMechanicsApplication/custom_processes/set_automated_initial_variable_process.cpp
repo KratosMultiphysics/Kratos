@@ -83,10 +83,12 @@ void SetAutomatedInitialVariableProcess::ExecuteInitialize()
         noalias(initial_variable_vector) = ZeroVector(6); 
  
         Vector table_id_vector = mThisParameters["table_id_vector"].GetVector();
+        int table_id;
+        int varible_id;
 
         for (IndexType count = 0; count < table_id_vector.size(); ++count) {
-                int table_id = table_id_vector[count];
-                int varible_id = table_id % 10;
+                table_id = table_id_vector[count];
+                varible_id = table_id % 10;
                 initial_variable_vector[varible_id] = mrThisModelPart.GetTable(table_id).GetValue(centroid_relative_distance);  
         }
     
