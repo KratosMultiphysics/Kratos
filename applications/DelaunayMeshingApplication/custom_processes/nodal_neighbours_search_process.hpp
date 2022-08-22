@@ -391,7 +391,7 @@ class NodalNeighboursSearchProcess
       for(unsigned int i = 0; i < rGeometry.size(); ++i)
       {
         ipoi1=rGeometry[i].Id();      //counter
-        PSharedE[ipoi1]+=1;       //auxiliar counter: esup2
+        PSharedE[ipoi1]+=1;       //auxiliary counter: esup2
       }
     }
 
