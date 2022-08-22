@@ -44,7 +44,7 @@ class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
                 "absolute_tolerance": 1e-5,
                 "max_iterations": 10
             },
-            "auxiliar_process_list": [],
+            "auxiliary_process_list": [],
             "echo_level": 0,
             "minimum_turbulent_viscosity": 1e-12
         }''')
