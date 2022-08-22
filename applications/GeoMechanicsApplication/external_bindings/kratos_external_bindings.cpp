@@ -15,11 +15,6 @@ extern "C"
         return new Kratos::KratosExecute();
     }
 
-    EXPORT int __stdcall DGeoSettlement(Kratos::KratosExecute *instance, char *workingDirectory, char *projectFile)
-    {
-        return instance->geosettlement(workingDirectory, projectFile);
-    }
-
     EXPORT int __stdcall DGeoFlow(Kratos::KratosExecute *instance, char *workingDirectory, char *projectFile,
                                   double minCriticalHead, double maxCriticalHead, double stepCriticalHead, char *criticalHeadBoundaryModelPartName)
     {

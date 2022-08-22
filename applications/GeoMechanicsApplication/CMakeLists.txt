@@ -98,16 +98,8 @@ install(TARGETS KratosGeoMechanicsApplication DESTINATION libs )
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosGeoMechanicsCore" PARENT_SCOPE)
 set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosGeoMechanicsApplication" PARENT_SCOPE)
 
-
-project(KratosGeoSettlement)
-set(KratosGeoSettlementSources ${CMAKE_CURRENT_SOURCE_DIR}/executables/GeoSettlement.cpp ${CMAKE_CURRENT_SOURCE_DIR}/executables/GeoSettlement.h)
-add_executable(KratosGeoSettlement ${KratosGeoSettlementSources})
-target_link_libraries(KratosGeoSettlement PUBLIC KratosCore KratosGeoMechanicsCore KratosStructuralMechanicsCore ${CMAKE_DL_LIBS})
-set_target_properties(KratosGeoSettlement PROPERTIES LINKER_LANGUAGE CXX)
-install(TARGETS KratosGeoSettlement DESTINATION libs)
-
 project(KratosGeoFlow)
-set(KratosGeoFlowSources ${CMAKE_CURRENT_SOURCE_DIR}/executables/GeoFlow.cpp ${CMAKE_CURRENT_SOURCE_DIR}/executables/GeoFlow.h)
+set(KratosGeoFlowSources ${CMAKE_CURRENT_SOURCE_DIR}/custom_workflows/GeoFlow.cpp ${CMAKE_CURRENT_SOURCE_DIR}/custom_workflows/GeoFlow.h)
 add_executable(KratosGeoFlow ${KratosGeoFlowSources})
 target_link_libraries(KratosGeoFlow PUBLIC KratosCore KratosGeoMechanicsCore KratosStructuralMechanicsCore ${CMAKE_DL_LIBS})
 set_target_properties(KratosGeoFlow PROPERTIES LINKER_LANGUAGE CXX)

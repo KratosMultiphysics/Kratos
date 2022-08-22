@@ -148,7 +148,6 @@ namespace Kratos
         int geoflow(std::string workingDirectory, std::string parameterName,
                     double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
                     std::string criticalHeadBoundaryModelPartName);
-        int geosettlement(std::string workingDirectory, std::string parameterName);
 
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
