@@ -231,7 +231,7 @@ public:
         // The array of nodes
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
-        // Auxiliar values
+        // Auxiliary values
         const Double3DArray zero_array = ZeroVector(3);
         // Initializing the variables
         VariableUtils().SetVariable(FORCE_RESIDUAL, zero_array,r_nodes);
@@ -554,7 +554,7 @@ public:
         // The fisrt node interator
         const auto it_node_begin = rModelPart.NodesBegin();
 
-        // Auxiliar zero array
+        // Auxiliary zero array
         const Double3DArray zero_array = ZeroVector(3);
 
         // If we consider the rotation DoF

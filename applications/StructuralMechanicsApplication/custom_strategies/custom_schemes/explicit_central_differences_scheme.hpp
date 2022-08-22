@@ -258,7 +258,7 @@ public:
         // The array of nodes
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
-        // Auxiliar values
+        // Auxiliary values
         const array_1d<double, 3> zero_array = ZeroVector(3);
         // Initializing the variables
         VariableUtils().SetVariable(FORCE_RESIDUAL, zero_array,r_nodes);
@@ -530,7 +530,7 @@ public:
             // If we consider the rotation DoF
             const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
 
-            // Auxiliar zero array
+            // Auxiliary zero array
             const array_1d<double, 3> zero_array = ZeroVector(3);
 
             // Getting dof position

@@ -83,8 +83,8 @@ namespace Kratos
         {
             rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
             rModelPart.AddNodalSolutionStepVariable(REACTION);
-            rModelPart.AddNodalSolutionStepVariable(LAGRANGE_DISPLACEMENT); // Auxiliar displacement to test complex combinations of MPC
-            rModelPart.AddNodalSolutionStepVariable(FORCE_RESIDUAL); // Auxiliar displacement to test complex combinations of MPC
+            rModelPart.AddNodalSolutionStepVariable(LAGRANGE_DISPLACEMENT); // Auxiliary displacement to test complex combinations of MPC
+            rModelPart.AddNodalSolutionStepVariable(FORCE_RESIDUAL); // Auxiliary displacement to test complex combinations of MPC
 
             Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
 
