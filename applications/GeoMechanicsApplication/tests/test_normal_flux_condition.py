@@ -3,7 +3,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class TestNormalFluxCondition(KratosUnittest.TestCase):
 
-    # Tester.RunAllTestCases() #Test all cases
     def setUp(self):
         Tester.SetVerbosity(Tester.Verbosity.TESTS_OUTPUTS) # Set the verbosity level
 
@@ -20,6 +19,4 @@ class TestNormalFluxCondition(KratosUnittest.TestCase):
         self.assertTrue(exitcode == 0)
 
 if __name__ == '__main__':
-    # Tester.RunTestSuite("KratosGeoMechanicsFastSuite")
-    # Tester.RunAllTestCases()
     KratosUnittest.main()

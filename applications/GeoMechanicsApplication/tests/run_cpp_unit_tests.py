@@ -1,10 +1,10 @@
-from KratosMultiphysics import *
+import KratosMultiphysics
 from KratosMultiphysics.GeoMechanicsApplication import *
 
 
 def run():
-    Tester.SetVerbosity(Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
-    Tester.RunTestSuite("KratosGeoMechanicsFastSuite")
+    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS)
+    KratosMultiphysics.Tester.RunTestSuite("KratosGeoMechanicsFastSuite")
 
 
 if __name__ == '__main__':

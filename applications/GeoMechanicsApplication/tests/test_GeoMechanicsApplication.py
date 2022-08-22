@@ -65,9 +65,7 @@ def AssembleTestSuites():
         KratosGeoMechanicsSteadyStateGroundWaterFlowTests,
         KratosGeoMechanicsSoilWeightTests,
         KratosGeoMechanicsSettlementTests,
-        KratosGeoMechanicsCurvedBeamElementTests,
-        TestNormalFluxCondition
-    ]
+        KratosGeoMechanicsCurvedBeamElementTests]
 
     # Create an array with the selected tests
     # nightSuite will contain the following tests:

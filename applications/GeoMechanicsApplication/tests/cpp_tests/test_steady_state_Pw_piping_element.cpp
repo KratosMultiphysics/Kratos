@@ -9,19 +9,14 @@
 //
 //  Main authors:    Aron Noordam
 //
-//#include "stdafx.h"
+
 #include <string>
 #include <iostream>
+
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
-//#include "structural_mechanics_application_variables.h"
-//#include "custom_elements/total_lagrangian.h"
-//#include "custom_processes/set_cartesian_local_axes_process.h"
-//#include "custom_processes/set_cylindrical_local_axes_process.h"
-//#include "custom_processes/set_spherical_local_axes_process.h"
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
-//#include "custom_elements/steady_state_Pw_piping_element.cpp"
 
 
 
