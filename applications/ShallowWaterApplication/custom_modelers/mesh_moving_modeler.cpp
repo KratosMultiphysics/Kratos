@@ -150,7 +150,7 @@ void MeshMovingModeler::SetupModelPart()
 
     // Generate the conditions for the shoreline
     auto skin_settings = Parameters();
-    skin_settings.AddValue("name_auxiliar_model_part", mParameters["interface_sub_model_part_name"]);
+    skin_settings.AddValue("name_auxiliary_model_part", mParameters["interface_sub_model_part_name"]);
     skin_settings.AddString("selection_criteria", "node_not_on_sub_model_part");
     skin_settings.AddEmptyValue("selection_settings");
     skin_settings["selection_settings"].AddValue("sub_model_part_names", mParameters["solid_boundary_sub_model_part_names"]);

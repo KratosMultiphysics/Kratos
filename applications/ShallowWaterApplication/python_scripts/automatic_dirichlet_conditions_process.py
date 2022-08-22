@@ -43,8 +43,8 @@ class AutomaticDirichletConditionsProcess(KM.Process):
         model_part = self.model[model_part_name]
 
         skin_detection_settings = KM.Parameters()
-        skin_detection_settings.AddValue("name_auxiliar_model_part", self.settings["auxiliary_model_part_name"])
-        skin_detection_settings.AddValue("name_auxiliar_condition", self.settings["auxiliary_condition_name"])
+        skin_detection_settings.AddValue("name_auxiliary_model_part", self.settings["auxiliary_model_part_name"])
+        skin_detection_settings.AddValue("name_auxiliary_condition", self.settings["auxiliary_condition_name"])
         skin_detection_settings.AddValue("list_model_parts_to_assign_conditions", self.settings["skin_parts_to_exclude"])
         KM.SkinDetectionProcess2D(model_part, skin_detection_settings).Execute()
 
