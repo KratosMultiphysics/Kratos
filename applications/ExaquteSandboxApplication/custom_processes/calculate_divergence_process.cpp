@@ -75,7 +75,7 @@ namespace Kratos
         KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
         const unsigned int number_elements = mrModelPart.NumberOfElements();
 
-        // Auxiliar containers
+        // Auxiliary containers
         GeometryData::ShapeFunctionsGradientsType DN_DX;
         Vector grad_x;
         Vector grad_y;
@@ -138,7 +138,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    // Compute local auxiliar divergence
+    // Compute local auxiliary divergence
     double CalculateDivergenceProcess::ComputeAuxiliaryElementDivergence(Vector& grad_x, Vector& grad_y, Vector& grad_z)
     {
         double aux_current_divergence;
@@ -146,7 +146,7 @@ namespace Kratos
         return aux_current_divergence;
     }
 
-    // Compute local auxiliar velocity seminorm
+    // Compute local auxiliary velocity seminorm
     double CalculateDivergenceProcess::ComputeAuxiliaryElementVelocitySeminorm(Vector& grad_x, Vector& grad_y, Vector& grad_z)
     {
         double aux_current_velocity_seminorm;

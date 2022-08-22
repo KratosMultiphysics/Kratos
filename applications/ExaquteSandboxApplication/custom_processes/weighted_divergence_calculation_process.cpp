@@ -91,7 +91,7 @@ namespace Kratos
             KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "the number of elements in the domain is zero. weighted divergence calculation cannot be applied"<< std::endl;
             const unsigned int number_elements = mrModelPart.NumberOfElements();
 
-            // Auxiliar containers
+            // Auxiliary containers
             GeometryData::ShapeFunctionsGradientsType DN_DX;
 
             // Iterate over the elements
@@ -181,7 +181,7 @@ namespace Kratos
         return new_average;
     }
 
-    // Compute local auxiliar divergence
+    // Compute local auxiliary divergence
     double WeightedDivergenceCalculationProcess::ComputeAuxiliaryElementDivergence(Vector& grad_x, Vector& grad_y, Vector& grad_z)
     {
         const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -195,7 +195,7 @@ namespace Kratos
         return aux_current_divergence;
     }
 
-    // Compute local auxiliar velocity seminorm
+    // Compute local auxiliary velocity seminorm
     double WeightedDivergenceCalculationProcess::ComputeAuxiliaryElementVelocitySeminorm(Vector& grad_x, Vector& grad_y, Vector& grad_z)
     {
         const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
