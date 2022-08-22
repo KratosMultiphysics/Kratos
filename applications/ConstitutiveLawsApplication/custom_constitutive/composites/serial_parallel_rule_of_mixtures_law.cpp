@@ -509,10 +509,10 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     double det_aux = 0.0;
     MathUtils<double>::InvertMatrix(aux, A, det_aux);
 
-    Vector auxiliar(rInitialApproximationSerialStrainMatrix.size());
-    auxiliar = prod(rConstitutiveTensorFiberSS, r_total_strain_increment_serial) + k_f * prod(trans(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp)), r_total_strain_increment_parallel);
+    Vector auxiliary(rInitialApproximationSerialStrainMatrix.size());
+    auxiliary = prod(rConstitutiveTensorFiberSS, r_total_strain_increment_serial) + k_f * prod(trans(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp)), r_total_strain_increment_parallel);
 
-    noalias(rInitialApproximationSerialStrainMatrix) = prod(A, auxiliar) + mPreviousSerialStrainMatrix;
+    noalias(rInitialApproximationSerialStrainMatrix) = prod(A, auxiliary) + mPreviousSerialStrainMatrix;
 }
 
 /***********************************************************************************/
@@ -618,7 +618,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateElasticMatrix(
 
 void SerialParallelRuleOfMixturesLaw::CalculateGreenLagrangeStrain(ConstitutiveLaw::Parameters& rValues)
 {
-    // Some auxiliar values
+    // Some auxiliary values
     const SizeType dimension = WorkingSpaceDimension();
     Vector& r_strain_vector = rValues.GetStrainVector();
 
@@ -636,7 +636,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateGreenLagrangeStrain(ConstitutiveL
 
 void SerialParallelRuleOfMixturesLaw::CalculateAlmansiStrain(ConstitutiveLaw::Parameters& rValues)
 {
-    // Some auxiliar values
+    // Some auxiliary values
     const SizeType dimension = WorkingSpaceDimension();
     Vector& r_strain_vector = rValues.GetStrainVector();
 
@@ -655,7 +655,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateAlmansiStrain(ConstitutiveLaw::Pa
 void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     Flags& r_flags = rValues.GetOptions();
-    // Some auxiliar values
+    // Some auxiliary values
     const SizeType voigt_size = GetStrainSize();
 
     // In case the element has not computed the Strain
@@ -719,7 +719,7 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponsePK1(ConstitutiveLa
 void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     Flags& r_flags = rValues.GetOptions();
-    // Some auxiliar values
+    // Some auxiliary values
     const SizeType voigt_size = GetStrainSize();
 
     // In case the element has not computed the Strain
@@ -783,7 +783,7 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponsePK2(ConstitutiveLa
 void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     Flags& r_flags = rValues.GetOptions();
-    // Some auxiliar values
+    // Some auxiliary values
     const SizeType voigt_size = GetStrainSize();
 
     // In case the element has not computed the Strain
@@ -847,7 +847,7 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseKirchhoff(Constitu
 void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     Flags& r_flags = rValues.GetOptions();
-    // Some auxiliar values
+    // Some auxiliary values
     const SizeType voigt_size = GetStrainSize();
 
     // In case the element has not computed the Strain
@@ -1240,7 +1240,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
     } else if (rThisVariable == DEFORMATION_GRADIENT) { // TODO: Make in the future modifications for take into account different layers combinations
         noalias(rValue) = rParameterValues.GetDeformationGradientF();
     } else if (rThisVariable == CAUCHY_STRESS_TENSOR_FIBER) { // TODO: Make in the future modifications for take into account different layers combinations
-        // Some auxiliar values
+        // Some auxiliary values
         const SizeType dimension = WorkingSpaceDimension();
         const SizeType voigt_size = GetStrainSize();
 
@@ -1314,7 +1314,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
             return rValue;
         }
     } else if (rThisVariable == CAUCHY_STRESS_TENSOR_MATRIX) { // TODO: Make in the future modifications for take into account different layers combinations
-        // Some auxiliar values
+        // Some auxiliary values
         const SizeType dimension = WorkingSpaceDimension();
         const SizeType voigt_size = GetStrainSize();
 
