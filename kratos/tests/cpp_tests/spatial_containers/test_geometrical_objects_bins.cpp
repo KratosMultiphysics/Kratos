@@ -79,6 +79,35 @@ namespace Testing {
         KRATOS_CHECK_NEAR(bounding_box.GetMaxPoint()[2], cube_z, tolerance);
     }
 
+    
+    /** Checks modified constructor 
+    */
+    KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsConstructor, KratosFastSuite) {
+        constexpr double tolerance = 1e-12;
+
+        Model current_model;
+
+        const double cube_x = 0.6;
+        const double cube_y = 0.9;
+        const double cube_z = 0.3;
+
+        // Generate the cube skin
+        ModelPart& skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
+
+        array_1d<double,3> cell_size{0.1,0.1,0.1};
+        GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd(), cell_size);
+
+        auto number_of_cells = bins.GetNumberOfCells();
+        KRATOS_CHECK_EQUAL(number_of_cells[0], 6);
+        KRATOS_CHECK_EQUAL(number_of_cells[1], 9);
+        KRATOS_CHECK_EQUAL(number_of_cells[2], 3);
+
+        auto cell_sizes = bins.GetCellSizes();
+        KRATOS_CHECK_NEAR(cell_sizes[0], 0.1, tolerance);
+        KRATOS_CHECK_NEAR(cell_sizes[1], 0.1, tolerance);
+        KRATOS_CHECK_NEAR(cell_sizes[2], 0.1, tolerance);
+    }
+
     /** Checks bins number of cells
     */
     KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsCellSizes, KratosFastSuite) {

@@ -87,6 +87,24 @@ public:
         AddObjectsToCells(GeometricalObjectsBegin, GeometricalObjectsEnd);
     }
 
+    template<typename TIteratorType>
+    GeometricalObjectsBins(TIteratorType GeometricalObjectsBegin, 
+        TIteratorType GeometricalObjectsEnd, 
+        array_1d<double,3>& rCellSize) 
+    {
+        std::size_t number_of_objects = std::distance(GeometricalObjectsBegin, GeometricalObjectsEnd);
+        if(number_of_objects > 0){
+            mBoundingBox.Set(GeometricalObjectsBegin->GetGeometry().begin(), GeometricalObjectsBegin->GetGeometry().end());
+            for(TIteratorType i_object = GeometricalObjectsBegin ; i_object != GeometricalObjectsEnd ; i_object++){
+                mBoundingBox.Extend(i_object->GetGeometry().begin() , i_object->GetGeometry().end());
+            }
+        }
+        mBoundingBox.Extend(Tolerance);
+        AssignCellSize(rCellSize);
+        mCells.resize(GetTotalNumberOfCells());  
+        AddObjectsToCells(GeometricalObjectsBegin, GeometricalObjectsEnd);
+    }
+
 
     /// Destructor.
     virtual ~GeometricalObjectsBins(){}
@@ -341,6 +359,19 @@ private:
             mInverseOfCellSize[i] = 1.00 / mCellSizes[i];
         }
 
+    }
+
+    void AssignCellSize(array_1d<double,3>& rCellSize) {
+        std::array<double, 3> lengths;
+        for (int i = 0; i < Dimension; i++) {
+            lengths[i] = mBoundingBox.GetMaxPoint()[i] - mBoundingBox.GetMinPoint()[i];
+        }
+
+        for (int i = 0; i < Dimension; i++) {
+            mNumberOfCells[i] = static_cast<std::size_t>(lengths[i] / rCellSize(i));
+            mCellSizes[i] = rCellSize(i);
+            mInverseOfCellSize[i] = 1.00 / mCellSizes[i];
+        }
     }
 
     /// Adding objects to the cells that intersecting with it.
