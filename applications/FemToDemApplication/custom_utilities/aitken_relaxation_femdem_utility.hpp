@@ -125,7 +125,7 @@ public:
         if (mConvergenceAcceleratorIteration == 1) {
             TSpace::UnaliasedAdd(rIterationGuess, mOmegaOld, *mpResidualVectorNew);
         } else {
-            VectorType Aux1minus0(*mpResidualVectorNew);                  // Auxiliar copy of mpResidualVectorNew
+            VectorType Aux1minus0(*mpResidualVectorNew);                  // Auxiliary copy of mpResidualVectorNew
             TSpace::UnaliasedAdd(Aux1minus0, -1.0, *mpResidualVectorOld); // mpResidualVectorNew - mpResidualVectorOld
 
             const double denominator = TSpace::Dot(Aux1minus0, Aux1minus0);

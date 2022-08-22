@@ -71,8 +71,8 @@ class CheckAndPrepareModelProcessForCoupling(pfem_check_and_prepare_model_proces
 
         skin_params = KratosMultiphysics.Parameters("""
         {
-            "name_auxiliar_model_part" : "SkinDEMModelPart",
-            "name_auxiliar_condition"  : "Condition",
+            "name_auxiliary_model_part" : "SkinDEMModelPart",
+            "name_auxiliary_condition"  : "Condition",
             "echo_level"               : 1
         }""")
 

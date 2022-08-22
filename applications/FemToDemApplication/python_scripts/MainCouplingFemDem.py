@@ -122,8 +122,8 @@ class MainCoupledFemDem_Solution:
 
         self.SkinDetectionProcessParameters = KratosMultiphysics.Parameters("""
         {
-            "name_auxiliar_model_part" : "SkinDEMModelPart",
-            "name_auxiliar_condition"  : "Condition",
+            "name_auxiliary_model_part" : "SkinDEMModelPart",
+            "name_auxiliary_condition"  : "Condition",
             "echo_level"               : 0
         }""")
 
@@ -503,7 +503,7 @@ class MainCoupledFemDem_Solution:
             dem_generator_process.Execute()
 
             # We remove the inactive DEM associated to fem_nodes
-            element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
+            element_eliminator = KratosMultiphysics.AuxiliaryModelPartUtilities(self.FEM_Solution.main_model_part)
             element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
 
             self.FindNeighboursIfNecessary()

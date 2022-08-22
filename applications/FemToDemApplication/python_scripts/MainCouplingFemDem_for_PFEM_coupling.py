@@ -112,8 +112,8 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
 
         self.SkinDetectionProcessParameters = KratosMultiphysics.Parameters("""
         {
-            "name_auxiliar_model_part" : "SkinDEMModelPart",
-            "name_auxiliar_condition"  : "Condition",
+            "name_auxiliary_model_part" : "SkinDEMModelPart",
+            "name_auxiliary_condition"  : "Condition",
             "echo_level"               : 0
         }""")
 

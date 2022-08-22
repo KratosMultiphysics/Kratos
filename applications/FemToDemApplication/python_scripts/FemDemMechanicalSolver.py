@@ -457,7 +457,7 @@ class FemDemMechanicalSolver(object):
         raise Exception("please implement the Custom Choice of your Scheme (_create_solution_scheme) in your solver")
 
     def _create_convergence_criterion(self):
-        # Creation of an auxiliar Kratos parameters object to store the convergence settings
+        # Creation of an auxiliary Kratos parameters object to store the convergence settings
         conv_params = KratosMultiphysics.Parameters("{}")
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
         conv_params.AddEmptyValue("rotation_dofs").SetBool(self._check_input_dof("ROTATION"))

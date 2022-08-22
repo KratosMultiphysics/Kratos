@@ -80,17 +80,17 @@ bool ExpandWetNodesProcess::ElementHasWetNodes(
 {   // Assigns the maximum Pressure Id 
     rNumberOfWetNodes = 0;
     rPressureId = 0;
-    bool auxiliar = false;
+    bool auxiliary = false;
     auto& r_geometry = itElem->GetGeometry();
     for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
         const int pressure_id = r_geometry[i].GetValue(PRESSURE_ID);
         if (pressure_id != 0) {
             rNumberOfWetNodes++;
             rPressureId = (pressure_id > rPressureId) ? pressure_id : rPressureId;
-            auxiliar = true;
+            auxiliary = true;
         }
     }
-    return auxiliar;
+    return auxiliary;
 }
 
 /***********************************************************************************/
@@ -104,7 +104,7 @@ bool ExpandWetNodesProcess::ElementHasWetNodes2(
 {   // Assigns the dominant Pressure Id 
     rNumberOfWetNodes = 0;
     rPressureId = 0;
-    bool auxiliar = false;
+    bool auxiliary = false;
     auto& r_geometry = itElem->GetGeometry();
     const auto number_points = r_geometry.PointsNumber();
     Vector pressures_ids(number_points);
@@ -115,7 +115,7 @@ bool ExpandWetNodesProcess::ElementHasWetNodes2(
             pressures_ids(i) = pressure_id;
             rNumberOfWetNodes++;
             rPressureId = (pressure_id > rPressureId) ? pressure_id : rPressureId;
-            auxiliar = true;
+            auxiliary = true;
         }
     }
 
@@ -129,7 +129,7 @@ bool ExpandWetNodesProcess::ElementHasWetNodes2(
         }
 
     }
-    return auxiliar;
+    return auxiliary;
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -167,8 +167,8 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
 {
     Parameters skin_process_parameters = Parameters(R"(
     {
-        "name_auxiliar_model_part"              : "SkinModelPart",
-        "name_auxiliar_condition"               : "Condition",
+        "name_auxiliary_model_part"              : "SkinModelPart",
+        "name_auxiliary_condition"               : "Condition",
         "list_model_parts_to_assign_conditions" : [],
         "echo_level"                            : 0
     })");

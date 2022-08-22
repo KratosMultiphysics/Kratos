@@ -1,7 +1,7 @@
 
 proc WriteMdpa { basename dir problemtypedir } {
 
-    ## Source auxiliar procedures
+    ## Source auxiliary procedures
     source [file join $problemtypedir MdpaAuxProcs.tcl]
 
     ## Start MDPA file

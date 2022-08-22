@@ -48,13 +48,13 @@ class DemAfterRemeshIdentificatorProcess : public Process
         }
 
         mrModelPart.CreateSubModelPart(name_dem_model_part);
-        ModelPart* p_auxiliar_model_part = mrModelPart.pGetSubModelPart(name_dem_model_part);
+        ModelPart* p_auxiliary_model_part = mrModelPart.pGetSubModelPart(name_dem_model_part);
         ModelPart* p_skin_model_part = mrModelPart.pGetSubModelPart("SkinDEMModelPart");
 
         for (ModelPart::NodeIterator it = (*p_skin_model_part).NodesBegin(); it != (*p_skin_model_part).NodesEnd(); ++it) {
             const double &nodal_damage = it->GetSolutionStepValue(NODAL_DAMAGE);
             if (nodal_damage > mDamageThreshold) {
-                p_auxiliar_model_part->AddNode(*(it.base()));
+                p_auxiliary_model_part->AddNode(*(it.base()));
             }
         } // DemAfterRemeshingNodes SubModelPart Filled with nodes
 
@@ -62,7 +62,7 @@ class DemAfterRemeshIdentificatorProcess : public Process
         FindNodalNeighboursProcess neighbour_finder(mrModelPart);
         neighbour_finder.Execute();
 
-        for (ModelPart::NodeIterator it = (*p_auxiliar_model_part).NodesBegin(); it != (*p_auxiliar_model_part).NodesEnd(); ++it) {
+        for (ModelPart::NodeIterator it = (*p_auxiliary_model_part).NodesBegin(); it != (*p_auxiliary_model_part).NodesEnd(); ++it) {
             GlobalPointersVector<Node<3>> &rneigh = (*it).GetValue(NEIGHBOUR_NODES);
             KRATOS_ERROR_IF(rneigh.size() == 0) << "Nodal neighbours not computed..." << std::endl;
             std::vector<double> radius_is_dems, radius_not_dem;
