@@ -110,14 +110,14 @@ bool LinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialRetu
 // 	//1.-Identity build
 // 	Matrix Identity  = identity_matrix<double> (3);
 
-// 	//2.-Auxiliar matrices
+// 	//2.-Auxiliary matrices
 // 	rScalingFactors.Normal      = rReturnMappingVariables.TrialIsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
 
 
 // 	rScalingFactors.Dev_Normal  = zero_matrix<double> (3);
 
 
-// 	//3.-Auxiliar constants
+// 	//3.-Auxiliary constants
 // 	double EquivalentPlasticStrain = mInternalVariables.EquivalentPlasticStrain + sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
 // 	double DeltaHardening = 0;
 	// HardeningLaw::Parameters HardeningParameters;

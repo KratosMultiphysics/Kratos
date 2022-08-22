@@ -321,11 +321,11 @@ void NonLinearAssociativePlasticFlowRule::UpdateConfiguration( RadialReturnVaria
         if( rReturnMappingVariables.NormIsochoricStress > 0 ){
 
 	  //Stress Update:
-	  double Auxiliar   = 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma;
+	  double Auxiliary   = 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma;
 
 	  Matrix Normal     = rIsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
 
-	  rIsoStressMatrix -= ( Normal * Auxiliar );
+	  rIsoStressMatrix -= ( Normal * Auxiliary );
 
 	}
 
@@ -364,7 +364,7 @@ void NonLinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialRe
  	//1.-Identity build
 	Matrix Identity   = identity_matrix<double> (3);
 
-	//2.-Auxiliar matrices
+	//2.-Auxiliary matrices
 	rScalingFactors.Normal      = rReturnMappingVariables.TrialIsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
 
 	Matrix Norm_Normal          = prod( rScalingFactors.Normal, trans(rScalingFactors.Normal) );
@@ -375,7 +375,7 @@ void NonLinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialRe
 	rScalingFactors.Dev_Normal -= (1.0/3.0) * Trace_Norm_Normal * Identity;
 
 
-	//3.-Auxiliar constants
+	//3.-Auxiliary constants
 	double EquivalentPlasticStrain = mInternalVariables.EquivalentPlasticStrain + sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
 	double DeltaHardening = 0;
 

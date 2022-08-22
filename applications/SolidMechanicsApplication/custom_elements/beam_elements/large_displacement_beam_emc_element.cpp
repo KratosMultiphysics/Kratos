@@ -145,15 +145,15 @@ namespace Kratos
 
     unsigned int MatSize = rVariable.size1();
 
-    Matrix AuxiliarRotationMatrix(MatSize,MatSize);
-    noalias(AuxiliarRotationMatrix) = ZeroMatrix(MatSize,MatSize);
+    Matrix AuxiliaryRotationMatrix(MatSize,MatSize);
+    noalias(AuxiliaryRotationMatrix) = ZeroMatrix(MatSize,MatSize);
 
     //Building the rotation matrix for the local element matrix N+Alpha
     for (unsigned int i=0; i<dimension; i++)
       {
 	for(unsigned int j=0; j<dimension; j++)
 	  {
-	    AuxiliarRotationMatrix(i,j) = rVariables.AlphaRotationMatrix(i,j);
+	    AuxiliaryRotationMatrix(i,j) = rVariables.AlphaRotationMatrix(i,j);
 	  }
       }
 
@@ -161,17 +161,17 @@ namespace Kratos
       {
 	for(unsigned int j=0; j<dimension; j++)
 	  {
-	    AuxiliarRotationMatrix(i+dimension,j+dimension) = rVariables.AlphaRotationMatrixAsterisk(i,j);
+	    AuxiliaryRotationMatrix(i+dimension,j+dimension) = rVariables.AlphaRotationMatrixAsterisk(i,j);
 	  }
       }
 
     //Rotate Local Stiffness Matrix
     Matrix aux_matrix(MatSize,MatSize);
     noalias(aux_matrix) = ZeroMatrix(MatSize,MatSize);
-    noalias(aux_matrix) = prod(AuxiliarRotationMatrix, rVariable);
+    noalias(aux_matrix) = prod(AuxiliaryRotationMatrix, rVariable);
 
 
-    noalias(AuxiliarRotationMatrix) = ZeroMatrix(MatSize,MatSize);
+    noalias(AuxiliaryRotationMatrix) = ZeroMatrix(MatSize,MatSize);
     //Building the rotation matrix for the local element matrix N+1
     for (unsigned int kk=0; kk < MatSize; kk += dimension)
       {
@@ -179,14 +179,14 @@ namespace Kratos
 	  {
             for(unsigned int j=0; j<dimension; j++)
 	      {
-		AuxiliarRotationMatrix(i+kk,j+kk) = rVariables.CurrentRotationMatrix(i,j);
+		AuxiliaryRotationMatrix(i+kk,j+kk) = rVariables.CurrentRotationMatrix(i,j);
 	      }
 	  }
       }
 
     //Transformed Matrix
     noalias(rVariable) = ZeroMatrix(MatSize,MatSize);
-    noalias(rVariable) = prod(aux_matrix,trans(AuxiliarRotationMatrix));
+    noalias(rVariable) = prod(aux_matrix,trans(AuxiliaryRotationMatrix));
 
 
     KRATOS_CATCH( "" )

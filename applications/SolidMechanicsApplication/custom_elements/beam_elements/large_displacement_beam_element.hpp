@@ -419,7 +419,7 @@ protected:
 
 
     /**
-     * Calculation Complementary Method : B Auxiliar Matrix Calculation
+     * Calculation Complementary Method : B Auxiliary Matrix Calculation
      */
     void CalculateBmatrix(MatrixType& rBmatrix,
 			  ElementDataType& rVariables);
