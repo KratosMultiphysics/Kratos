@@ -485,18 +485,15 @@ namespace Kratos {
 
         int BrokenBondsCounter = 0.0;
 
-        for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
+            if(mNeighbourElements[i] == NULL) BrokenBondsCounter++;
+            else if (mIniNeighbourFailureId[i] > 0) BrokenBondsCounter++;                        
+        }        
 
-            if (i < mContinuumInitialNeighborsSize) {
-                if(mNeighbourElements[i] == NULL) ++BrokenBondsCounter;
-                else if (mIniNeighbourFailureId[i] > 0) BrokenBondsCounter++;
-            }
-
-            double NeighbourRatio = 0.0;
-
-            if (mContinuumInitialNeighborsSize) NeighbourRatio = BrokenBondsCounter / mContinuumInitialNeighborsSize;
-
-            GetGeometry()[0].GetSolutionStepValue(NEIGHBOUR_RATIO) = NeighbourRatio;
+        if(mContinuumInitialNeighborsSize) {
+            GetGeometry()[0].GetSolutionStepValue(DAMAGE_RATIO) = BrokenBondsCounter / mContinuumInitialNeighborsSize;
+        } else {
+            GetGeometry()[0].GetSolutionStepValue(DAMAGE_RATIO) = 1.0;
         }
     }
 

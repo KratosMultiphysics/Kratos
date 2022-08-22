@@ -42,8 +42,8 @@ namespace Kratos{
         const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
         double aim_radius = std::min(my_radius, other_radius);
-        mKn = equiv_young * Globals::Pi * aim_radius * aim_radius / my_radius + other_radius; 
-        mKt = equiv_shear * Globals::Pi * aim_radius * aim_radius / my_radius + other_radius;
+        mKn = equiv_young * Globals::Pi * aim_radius * aim_radius / (my_radius + other_radius); 
+        mKt = equiv_shear * Globals::Pi * aim_radius * aim_radius / (my_radius + other_radius);
     }
 
     void DEM_D_Linear_classic::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {

@@ -472,7 +472,7 @@ class Procedures():
         model_part.AddNodalSolutionStepVariable(NODAL_MASS)
         model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
         model_part.AddNodalSolutionStepVariable(NEIGHBOUR_SIZE)
-        model_part.AddNodalSolutionStepVariable(NEIGHBOUR_RATIO)
+        model_part.AddNodalSolutionStepVariable(DAMAGE_RATIO)
 
         # ROTATION RELATED PROPERTIES
         if self.DEM_parameters["RotationOption"].GetBool():
@@ -1448,7 +1448,7 @@ class DEMIo():
 
         if "PostBrokenRatio" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostBrokenRatio"].GetBool():
-                self.PushPrintVar(self.PostBrokenRatio, NEIGHBOUR_RATIO, self.spheres_variables)
+                self.PushPrintVar(self.PostBrokenRatio, DAMAGE_RATIO, self.spheres_variables)
 
         if self.PostGluedSphere:
             self.PushPrintVar(self.PostGluedSphere, IS_STICKY, self.spheres_variables)
