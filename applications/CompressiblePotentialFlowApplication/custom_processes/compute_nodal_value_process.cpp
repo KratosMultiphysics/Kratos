@@ -101,7 +101,7 @@ void ComputeNodalValueProcess::InitializeNodalVariables()
 
 template< typename TValueType >
 void ComputeNodalValueProcess::AddElementsContribution(const Variable<TValueType>& rVariable){
-    // Auxiliar container
+    // Auxiliary container
     Vector N;
 
     const ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();

@@ -74,7 +74,7 @@
                 "time_frequency"   : -2
             }
         }],
-        "auxiliar_process_list" :[]
+        "auxiliary_process_list" :[]
     },
     "_print_output_process_list" : [
     {
