@@ -361,7 +361,7 @@ def OutputVector(rhs, name, mode="python", initial_tabs = 1,max_index=30, aux_di
     mode -- The mode of output
     initial_tabs -- The number of tabulations considered
     max_index -- The maximum index
-    aux_dict -- Auxiliar dictionary
+    aux_dict -- Auxiliary dictionary
     """
     initial_spaces = ""
     for i in range(0,initial_tabs):
@@ -417,7 +417,7 @@ def OutputMatrix(lhs, name, mode, initial_tabs = 1, max_index=30, aux_dict={}):
     mode -- The mode of output
     initial_tabs -- The number of tabulations considered
     max_index -- The maximum index
-    aux_dict -- Auxiliar dictionary
+    aux_dict -- Auxiliary dictionary
     """
     initial_spaces = ""
     for i in range(0,initial_tabs):
@@ -472,7 +472,7 @@ def OutputVectorNonZero(rhs,name, mode="python", initial_tabs = 1,max_index=30,a
     mode -- The mode of output
     initial_tabs -- The number of tabulations considered
     max_index -- The maximum index
-    aux_dict -- Auxiliar dictionary
+    aux_dict -- Auxiliary dictionary
     """
     initial_spaces = ""
     for i in range(0,initial_tabs):
@@ -529,7 +529,7 @@ def OutputMatrixNonZero(lhs, name, mode, initial_tabs = 1, max_index=30,aux_dict
     mode -- The mode of output
     initial_tabs -- The number of tabulations considered
     max_index -- The maximum index
-    aux_dict -- Auxiliar dictionary
+    aux_dict -- Auxiliary dictionary
     """
     initial_spaces = ""
     for i in range(0,initial_tabs):
@@ -583,7 +583,7 @@ def OutputSymbolicVariable(var, mode="python", varname = "",aux_dict={}, initial
     var -- The variable to define symbolic
     mode -- The mode of output
     varname -- The name of the variables
-    aux_dict -- Auxiliar dictionary
+    aux_dict -- Auxiliary dictionary
     initial_tabs -- The number of tabulations considered
     max_index -- The maximum index
     """
