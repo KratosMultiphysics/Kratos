@@ -236,8 +236,7 @@ protected:
     // Protected interface of FluidElement ////////////////////////////////////
 
     /// Determine the shape second derivative in the gauss point
-    void GetShapeSecondDerivatives(ShapeFunctionsSecondDerivativesType &rDDN_DDX,
-                                          const int& rGaussPointIndex) const;
+    void GetShapeSecondDerivatives(DenseVector<DenseVector<Matrix>> &rDDN_DDX) const;
 
     void AlgebraicMomentumResidual(
         const TElementData& rData,
@@ -339,6 +338,12 @@ protected:
         ) const;
 
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    //void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    //void UpdateSubscaleVelocity(const TElementData& rData);
+
+    //array_1d<double,3> FullConvectiveVelocity(const TElementData& rData) const;
 
     ///@}
     ///@name Protected  Access
