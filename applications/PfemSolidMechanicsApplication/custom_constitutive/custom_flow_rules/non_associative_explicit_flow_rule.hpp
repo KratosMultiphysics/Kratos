@@ -56,7 +56,7 @@ namespace Kratos
   public:
     ///@name Type Definitions
     ///@{
-    struct AuxiliarDerivativesStructure
+    struct AuxiliaryDerivativesStructure
     { 
         Vector PlasticPotentialD;
         Vector YieldFunctionD;
@@ -210,7 +210,7 @@ namespace Kratos
    
     Vector ConvertCauchyGreenTensorToHenckyStrain(const Matrix& rCauchyGreenTensor);
 
-    void UpdateDerivatives(const Vector& rHenckyElasticStrain, AuxiliarDerivativesStructure & rAuxiliarDerivatives, const double& EquivalentPlasticStrian) ;
+    void UpdateDerivatives(const Vector& rHenckyElasticStrain, AuxiliaryDerivativesStructure & rAuxiliaryDerivatives, const double& EquivalentPlasticStrian) ;
 
     virtual void CalculatePlasticPotentialDerivatives(const Vector& rPrincipalStress, Vector& rFirstDerivative, Matrix& rSecondDerivative)
     {

@@ -833,7 +833,7 @@ namespace Kratos
 
 
       // std::cout<<std::endl;
-      // std::cout<<" auxiliar " <<auxiliar<<" F0 "<<rVariables.detF0<<std::endl;
+      // std::cout<<" auxiliary " <<auxiliary<<" F0 "<<rVariables.detF0<<std::endl;
       // std::cout<<" Fpres "<<rRightHandSideVector-Fh<<std::endl;
 
       KRATOS_CATCH( "" )
