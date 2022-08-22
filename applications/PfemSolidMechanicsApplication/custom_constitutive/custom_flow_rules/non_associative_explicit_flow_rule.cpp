@@ -259,13 +259,13 @@ namespace Kratos
          if ( fabs(PlasticMultiplier) < 1e-12)
             PlasticMultiplier = 1e-11;
 
-         AuxiliarDerivativesStructure  AuxiliarDerivatives;
+         AuxiliaryDerivativesStructure  AuxiliaryDerivatives;
          Vector HenckyStrain = ConvertCauchyGreenTensorToHenckyStrain (PreviousElasticLeftCauchyGreen );
 
-         this->UpdateDerivatives( HenckyStrain, AuxiliarDerivatives, rReturnMappingVariables.DeltaGamma );
-         Vector AuxiliarVector =  -PlasticMultiplier * AuxiliarDerivatives.PlasticPotentialD / 2.0;
+         this->UpdateDerivatives( HenckyStrain, AuxiliaryDerivatives, rReturnMappingVariables.DeltaGamma );
+         Vector AuxiliaryVector =  -PlasticMultiplier * AuxiliaryDerivatives.PlasticPotentialD / 2.0;
 
-         UpdateMatrix = this->ConvertHenckyStrainToCauchyGreenTensor( AuxiliarVector);
+         UpdateMatrix = this->ConvertHenckyStrainToCauchyGreenTensor( AuxiliaryVector);
 
          UpdateMatrix = prod( rDeltaDeformationGradient, UpdateMatrix);
          rNewElasticLeftCauchyGreen = prod( UpdateMatrix, PreviousElasticLeftCauchyGreen);
@@ -274,16 +274,16 @@ namespace Kratos
          // ACTUALIZE HARDENING PARAMENTERS (Volumetric) 
          double AlphaUpdate = 0;
          for (unsigned int i = 0; i < 3; i++) {
-            rReturnMappingVariables.DeltaGamma += PlasticMultiplier * AuxiliarDerivatives.PlasticPotentialD(i);
-            AlphaUpdate += PlasticMultiplier * AuxiliarDerivatives.PlasticPotentialD(i);
+            rReturnMappingVariables.DeltaGamma += PlasticMultiplier * AuxiliaryDerivatives.PlasticPotentialD(i);
+            AlphaUpdate += PlasticMultiplier * AuxiliaryDerivatives.PlasticPotentialD(i);
          }
 
          double aux = 0.0;
          for (unsigned int j = 0; j < 3; ++j)
-            aux += pow(PlasticMultiplier*AuxiliarDerivatives.PlasticPotentialD(j) - AlphaUpdate/3.0, 2);
+            aux += pow(PlasticMultiplier*AuxiliaryDerivatives.PlasticPotentialD(j) - AlphaUpdate/3.0, 2);
 
          for (unsigned int j = 3; j < 6; ++j)
-            aux  += 2.0*pow(PlasticMultiplier*AuxiliarDerivatives.PlasticPotentialD(j) / 2.0, 2);
+            aux  += 2.0*pow(PlasticMultiplier*AuxiliaryDerivatives.PlasticPotentialD(j) / 2.0, 2);
          rReturnMappingVariables.IncrementalPlasticShearStrain += sqrt( aux);
 
          PlasticityActive = true;
@@ -354,7 +354,7 @@ namespace Kratos
       {
 
          // Define some variables previous to iterate
-         AuxiliarDerivativesStructure  AuxiliarDerivatives;
+         AuxiliaryDerivativesStructure  AuxiliaryDerivatives;
          Vector HenckyStrainTrial = ConvertCauchyGreenTensorToHenckyStrain ( rNewElasticLeftCauchyGreen );
          Vector DeltaHencky; 
          Vector HenckyStrain = HenckyStrainTrial; // this is the unkwonw
@@ -366,20 +366,20 @@ namespace Kratos
 
          // EXPLICIT PREDICTION OF THE "hardening" PARAMTER (volumetric)
          Vector HenckyStrainPrev = ConvertCauchyGreenTensorToHenckyStrain( PreviousElasticLeftCauchyGreen);
-         this->UpdateDerivatives( HenckyStrainPrev, AuxiliarDerivatives, rReturnMappingVariables.DeltaGamma );
+         this->UpdateDerivatives( HenckyStrainPrev, AuxiliaryDerivatives, rReturnMappingVariables.DeltaGamma );
          for (unsigned int i = 0; i < 3; i++) {
-            rReturnMappingVariables.DeltaGamma += PlasticMultiplier * AuxiliarDerivatives.PlasticPotentialD(i);
+            rReturnMappingVariables.DeltaGamma += PlasticMultiplier * AuxiliaryDerivatives.PlasticPotentialD(i);
          }
 
 
          // BEGINING OF SOLVING THE NON-LINEAR THING 
-         this->UpdateDerivatives( HenckyStrain, AuxiliarDerivatives, rReturnMappingVariables.DeltaGamma );
+         this->UpdateDerivatives( HenckyStrain, AuxiliaryDerivatives, rReturnMappingVariables.DeltaGamma );
 
          for (unsigned int iter = 0; iter < 150; iter ++)
          {
 
-            this->UpdateDerivatives( HenckyStrain, AuxiliarDerivatives, rReturnMappingVariables.DeltaGamma );
-            Residual = HenckyStrain + PlasticMultiplier * AuxiliarDerivatives.PlasticPotentialD - HenckyStrainTrial;
+            this->UpdateDerivatives( HenckyStrain, AuxiliaryDerivatives, rReturnMappingVariables.DeltaGamma );
+            Residual = HenckyStrain + PlasticMultiplier * AuxiliaryDerivatives.PlasticPotentialD - HenckyStrainTrial;
 
             ErrorNorm = 0; 
             for ( int k = 0; k < 6; ++k)
@@ -416,7 +416,7 @@ namespace Kratos
             }
 
             this->ComputeElasticMatrix(HenckyStrain, ElasticMatrix);
-            Matrix ThisUpdate = PlasticMultiplier * prod( AuxiliarDerivatives.PlasticPotentialDD, ElasticMatrix);
+            Matrix ThisUpdate = PlasticMultiplier * prod( AuxiliaryDerivatives.PlasticPotentialDD, ElasticMatrix);
             SystemMatrix += ThisUpdate; 
 
             InverseSystemMatrix = ZeroMatrix(6,6);
@@ -432,17 +432,17 @@ namespace Kratos
          if ( is_converged == false )
          {
             std::cout << " trial " ;
-            this->UpdateDerivatives( HenckyStrainTrial, AuxiliarDerivatives, rReturnMappingVariables.DeltaGamma );
+            this->UpdateDerivatives( HenckyStrainTrial, AuxiliaryDerivatives, rReturnMappingVariables.DeltaGamma );
 
-            HenckyStrain = HenckyStrainTrial - PlasticMultiplier * AuxiliarDerivatives.PlasticPotentialD;
+            HenckyStrain = HenckyStrainTrial - PlasticMultiplier * AuxiliaryDerivatives.PlasticPotentialD;
          }
 
          double aux = 0.0, AlphaUpdate = 0.0;
          for (unsigned int j = 0; j < 3; ++j)
-            aux += pow(PlasticMultiplier*AuxiliarDerivatives.PlasticPotentialD(j) - AlphaUpdate/3.0, 2);
+            aux += pow(PlasticMultiplier*AuxiliaryDerivatives.PlasticPotentialD(j) - AlphaUpdate/3.0, 2);
 
          for (unsigned int j = 3; j < 6; ++j)
-            aux  += 2.0*pow(PlasticMultiplier*AuxiliarDerivatives.PlasticPotentialD(j) / 2.0, 2);
+            aux  += 2.0*pow(PlasticMultiplier*AuxiliaryDerivatives.PlasticPotentialD(j) / 2.0, 2);
          rReturnMappingVariables.IncrementalPlasticShearStrain += sqrt( aux);
 
          rNewElasticLeftCauchyGreen = ConvertHenckyStrainToCauchyGreenTensor( HenckyStrain ); 
@@ -471,7 +471,7 @@ namespace Kratos
    void NonAssociativeExplicitPlasticFlowRule::ReturnStressToYieldSurface4( RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rStressVector, double& rDrift, const double& rTolerance)
    {
 
-      AuxiliarDerivativesStructure  AuxiliarDerivatives;
+      AuxiliaryDerivativesStructure  AuxiliaryDerivatives;
       Matrix ElasticMatrix;
       double H;
       Matrix  UpdateMatrix;
@@ -494,7 +494,7 @@ namespace Kratos
 
       if ( false )
       {
-         this->UpdateDerivatives( HenckyElastic, AuxiliarDerivatives, Alpha);
+         this->UpdateDerivatives( HenckyElastic, AuxiliaryDerivatives, Alpha);
 
          std::cout << " CHECK THE DERIVATIVE " << std::endl;
          Vector KirS ;
@@ -512,7 +512,7 @@ namespace Kratos
             yield = mpYieldCriterion->CalculateYieldCondition( yield, StressV, Alpha);
             NumDer(m) = (yield-Ryield) / delta;
          }
-         std::cout << " ANALYTICAL " << AuxiliarDerivatives.YieldFunctionD << std::endl;
+         std::cout << " ANALYTICAL " << AuxiliaryDerivatives.YieldFunctionD << std::endl;
          std::cout << " NUMERICAL  " << NumDer << std::endl;
          std::cout << " " << std::endl;
          std::cout << " " << std::endl;
@@ -525,7 +525,7 @@ namespace Kratos
             StressV(m) += delta; 
             mpYieldCriterion->CalculateYieldFunctionDerivative( StressV, Der, Alpha);
             for (unsigned int kk = 0; kk < 6; kk++)
-               Der(kk) = (Der(kk) - AuxiliarDerivatives.YieldFunctionD(kk) ) / delta;
+               Der(kk) = (Der(kk) - AuxiliaryDerivatives.YieldFunctionD(kk) ) / delta;
 
             std::cout << " comp " << m ;
             for ( int tt = 0; tt < 6; tt ++)
@@ -536,7 +536,7 @@ namespace Kratos
          std::cout << " ANALYTICAL " << std::endl;;
          for (unsigned t = 0; t < 6; t++) {
             for (unsigned q = 0; q < 6; q++) {
-               std::cout << " "  <<AuxiliarDerivatives.PlasticPotentialDD(t, q);
+               std::cout << " "  <<AuxiliaryDerivatives.PlasticPotentialDD(t, q);
             }
             std::cout << " " << std::endl;
          }
@@ -561,14 +561,14 @@ namespace Kratos
          Alpha -= deltaX(6);
          Gamma -= deltaX(7);
 
-         this->UpdateDerivatives( HenckyElastic, AuxiliarDerivatives, Alpha);
+         this->UpdateDerivatives( HenckyElastic, AuxiliaryDerivatives, Alpha);
 
          // COMPUTE THE RESIDUAL;
-         R1 = HenckyElastic + Gamma * AuxiliarDerivatives.PlasticPotentialD - HenckyTrialElastic; 
+         R1 = HenckyElastic + Gamma * AuxiliaryDerivatives.PlasticPotentialD - HenckyTrialElastic; 
 
          double AuxP = 0;
          for (unsigned int i = 0; i < 3; i++)
-            AuxP += AuxiliarDerivatives.PlasticPotentialD(i);
+            AuxP += AuxiliaryDerivatives.PlasticPotentialD(i);
          R2 = Alpha - AlphaTrial - Gamma *  AuxP; 
 
          this->CalculateKirchhoffStressVector( HenckyElastic , rStressVector);
@@ -593,7 +593,7 @@ namespace Kratos
             //std::cout << " iteration " << iter << std::endl;
             PerformSomeSortOfLineSearch( HenckyElastic, Gamma, Alpha, HenckyTrialElastic, AlphaTrial, ResidualNorm, PreviousResidualNorm, deltaX);
             //std::cout << " " << ResidualNorm << " " << PreviousResidualNorm << std::endl;
-            this->UpdateDerivatives( HenckyElastic, AuxiliarDerivatives, Alpha);
+            this->UpdateDerivatives( HenckyElastic, AuxiliaryDerivatives, Alpha);
          }
          //std::cout << "   RRMM ITER " << iter << " NORM " << ResidualNorm << std::endl;;
 
@@ -640,11 +640,11 @@ namespace Kratos
          this->ComputePlasticHardeningParameter(HenckyElastic, Alpha, H);
 
          // EQUATION 1.
-         AuxMatrix = Gamma * prod( AuxiliarDerivatives.PlasticPotentialDD, ElasticMatrix);
+         AuxMatrix = Gamma * prod( AuxiliaryDerivatives.PlasticPotentialDD, ElasticMatrix);
          for (unsigned int i = 0; i < 6; i++)
          {
             SystemMatrix(i,i) += 1.0;
-            SystemMatrix(i,7) += AuxiliarDerivatives.PlasticPotentialD(i);
+            SystemMatrix(i,7) += AuxiliaryDerivatives.PlasticPotentialD(i);
             for (unsigned int j = 0; j < 6; j++)
             {
                SystemMatrix(i,j)  += AuxMatrix(i,j);
@@ -656,7 +656,7 @@ namespace Kratos
          SystemMatrix(6,7) += - AuxP;
 
          // EQUATION 3
-         AuxVector = prod( AuxiliarDerivatives.YieldFunctionD, ElasticMatrix);
+         AuxVector = prod( AuxiliaryDerivatives.YieldFunctionD, ElasticMatrix);
          for (unsigned int i = 0; i<6; i++)
             SystemMatrix(7, i) += AuxVector(i);
          SystemMatrix(7,6) = -H;
@@ -671,7 +671,7 @@ namespace Kratos
             std::cout << " AuxMatrix " << AuxMatrix << std::endl;
             std::cout << " ELASTIC MAT " << ElasticMatrix << std::endl;
             std::cout << " gamma " << Gamma  << std::endl;
-            std::cout << " AuxiliarDerivati " << AuxiliarDerivatives.PlasticPotentialDD << std::endl;
+            std::cout << " AuxiliaryDerivati " << AuxiliaryDerivatives.PlasticPotentialDD << std::endl;
             std::cout << " " << std::endl;
             SystemMatrix = ZeroMatrix(8,8);
             for (int i = 0; i < 8; i++)
@@ -695,14 +695,14 @@ namespace Kratos
       // CONVERGED
       double AlphaUpdate = 0.0;
       for (unsigned int j = 0; j < 3; ++j)
-         AlphaUpdate += Gamma*AuxiliarDerivatives.PlasticPotentialD(j);
+         AlphaUpdate += Gamma*AuxiliaryDerivatives.PlasticPotentialD(j);
 
       double aux = 0;
       for (unsigned int j = 0; j < 3; ++j)
-         aux += pow( Gamma*AuxiliarDerivatives.PlasticPotentialD(j) - AlphaUpdate/3.0, 2);
+         aux += pow( Gamma*AuxiliaryDerivatives.PlasticPotentialD(j) - AlphaUpdate/3.0, 2);
 
       for (unsigned int j = 3; j < 6; ++j)
-         aux += 2.0*pow(Gamma*AuxiliarDerivatives.PlasticPotentialD(j) / 2.0, 2);
+         aux += 2.0*pow(Gamma*AuxiliaryDerivatives.PlasticPotentialD(j) / 2.0, 2);
 
       rReturnMappingVariables.IncrementalPlasticShearStrain += sqrt( aux);
 
@@ -725,7 +725,7 @@ namespace Kratos
          yield = mpYieldCriterion->CalculateYieldCondition( yield, StressV, Alpha);
          NumDer(m) = (yield-Ryield) / delta;
          }
-         std::cout << " ANALYTICAL " << AuxiliarDerivatives.YieldFunctionD << std::endl;
+         std::cout << " ANALYTICAL " << AuxiliaryDerivatives.YieldFunctionD << std::endl;
          std::cout << " NUMERICAL  " << NumDer << std::endl;
          std::cout << " AlphaTrial " << AlphaTrial << " ALPHA " << Alpha << std::endl;
          }
@@ -744,7 +744,7 @@ namespace Kratos
          yield = mpYieldCriterion->CalculateYieldCondition( yield, StressV, Alpha);
          NumDer(m) = (yield-Ryield) / delta;
          }
-         std::cout << " ANALYTICAL " << AuxiliarDerivatives.YieldFunctionD << std::endl;
+         std::cout << " ANALYTICAL " << AuxiliaryDerivatives.YieldFunctionD << std::endl;
          std::cout << " NUMERICAL  " << NumDer << std::endl;
          std::cout << " " << std::endl;
          std::cout << " " << std::endl;
@@ -757,7 +757,7 @@ namespace Kratos
       StressV(m) += delta; 
       mpYieldCriterion->CalculateYieldFunctionDerivative( StressV, Der, Alpha);
       for (unsigned int kk = 0; kk < 6; kk++)
-      Der(kk) = (Der(kk) - AuxiliarDerivatives.YieldFunctionD(kk) ) / delta;
+      Der(kk) = (Der(kk) - AuxiliaryDerivatives.YieldFunctionD(kk) ) / delta;
 
       std::cout << " comp " << m ;
       for ( int tt = 0; tt < 6; tt ++)
@@ -768,7 +768,7 @@ namespace Kratos
       std::cout << " ANALYTICAL " << std::endl;;
       for (unsigned t = 0; t < 6; t++) {
       for (unsigned q = 0; q < 6; q++) {
-      std::cout << " "  <<AuxiliarDerivatives.PlasticPotentialDD(t, q);
+      std::cout << " "  <<AuxiliaryDerivatives.PlasticPotentialDD(t, q);
       }
       std::cout << " " << std::endl;
       }
@@ -982,7 +982,7 @@ namespace Kratos
    void NonAssociativeExplicitPlasticFlowRule::ReturnStressToYieldSurface( RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rStressVector, double& rDrift, const double& rTolerance)
    {
 
-      AuxiliarDerivativesStructure  AuxiliarDerivatives;
+      AuxiliaryDerivativesStructure  AuxiliaryDerivatives;
       Matrix ElasticMatrix;
       double H;
       double DeltaGamma;
@@ -998,17 +998,17 @@ namespace Kratos
 
          ActualElasticHenckyStrain = this->ConvertCauchyGreenTensorToHenckyStrain( rNewElasticLeftCauchyGreen);
 
-         this->UpdateDerivatives(ActualElasticHenckyStrain, AuxiliarDerivatives, Alpha);
+         this->UpdateDerivatives(ActualElasticHenckyStrain, AuxiliaryDerivatives, Alpha);
          this->ComputeElasticMatrix(ActualElasticHenckyStrain, ElasticMatrix);
          this->ComputePlasticHardeningParameter(ActualElasticHenckyStrain, Alpha, H);
 
          DeltaGamma = rDrift;
-         DeltaGamma /= ( H + MathUtils<double>::Dot(AuxiliarDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD)));
+         DeltaGamma /= ( H + MathUtils<double>::Dot(AuxiliaryDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliaryDerivatives.PlasticPotentialD)));
 
 
 
-         Vector MuyAuxiliar = -DeltaGamma*AuxiliarDerivatives.PlasticPotentialD/ 2.0;
-         UpdateMatrix = this->ConvertHenckyStrainToCauchyGreenTensor( MuyAuxiliar);
+         Vector MuyAuxiliary = -DeltaGamma*AuxiliaryDerivatives.PlasticPotentialD/ 2.0;
+         UpdateMatrix = this->ConvertHenckyStrainToCauchyGreenTensor( MuyAuxiliary);
 
 
          CorrectedLeftCauchyGreen =  prod((UpdateMatrix), rNewElasticLeftCauchyGreen);
@@ -1016,14 +1016,14 @@ namespace Kratos
 
          double AlphaUpdate = 0.0;
          for (unsigned int j = 0; j < 3; ++j)
-            AlphaUpdate += DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(j);
+            AlphaUpdate += DeltaGamma*AuxiliaryDerivatives.PlasticPotentialD(j);
 
          double aux = 0;
          for (unsigned int j = 0; j < 3; ++j)
-            aux += pow(DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(j) - AlphaUpdate/3.0, 2);
+            aux += pow(DeltaGamma*AuxiliaryDerivatives.PlasticPotentialD(j) - AlphaUpdate/3.0, 2);
 
          for (unsigned int j = 3; j < 6; ++j)
-            aux += 2.0*pow(DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(j) / 2.0, 2);
+            aux += 2.0*pow(DeltaGamma*AuxiliaryDerivatives.PlasticPotentialD(j) / 2.0, 2);
 
          rReturnMappingVariables.IncrementalPlasticShearStrain += sqrt( aux);
 
@@ -1088,8 +1088,8 @@ namespace Kratos
       ElasticStrainVector = ConvertCauchyGreenTensorToHenckyStrain( rPreviousElasticLeftCauchyGreen);
       this->ComputeElasticMatrix(ElasticStrainVector, ElasticMatrix);
 
-      AuxiliarDerivativesStructure AuxiliarDerivatives;
-      this->UpdateDerivatives(ElasticStrainVector, AuxiliarDerivatives, rNewEquivalentPlasticStrain);
+      AuxiliaryDerivativesStructure AuxiliaryDerivatives;
+      this->UpdateDerivatives(ElasticStrainVector, AuxiliaryDerivatives, rNewEquivalentPlasticStrain);
 
       double H;
       this->ComputePlasticHardeningParameter(ElasticStrainVector, rNewEquivalentPlasticStrain, H);
@@ -1102,10 +1102,10 @@ namespace Kratos
       auxVector = prod(ElasticMatrix, ElasticStrainVector) ;
       double DeltaGamma = 0.0;
       for (unsigned int i = 0; i<6; ++i)
-         DeltaGamma += auxVector(i)*AuxiliarDerivatives.YieldFunctionD(i);
+         DeltaGamma += auxVector(i)*AuxiliaryDerivatives.YieldFunctionD(i);
 
 
-      double auxDenominador = H + MathUtils<double>::Dot( AuxiliarDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD));
+      double auxDenominador = H + MathUtils<double>::Dot( AuxiliaryDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliaryDerivatives.PlasticPotentialD));
 
       DeltaGamma /= auxDenominador;
 
@@ -1114,11 +1114,11 @@ namespace Kratos
 
       rDeltaPlastic = DeltaGamma;
 
-      Vector MuyAuxiliar;
-      MuyAuxiliar = -DeltaGamma * AuxiliarDerivatives.PlasticPotentialD / 2.0; 
+      Vector MuyAuxiliary;
+      MuyAuxiliary = -DeltaGamma * AuxiliaryDerivatives.PlasticPotentialD / 2.0; 
 
       Matrix UpdateMatrix;
-      UpdateMatrix = this->ConvertHenckyStrainToCauchyGreenTensor (MuyAuxiliar);
+      UpdateMatrix = this->ConvertHenckyStrainToCauchyGreenTensor (MuyAuxiliary);
       UpdateMatrix = prod( rDeltaDeformationGradient, UpdateMatrix);
 
       rNewElasticLeftCauchyGreen = prod(UpdateMatrix, rPreviousElasticLeftCauchyGreen);
@@ -1126,15 +1126,15 @@ namespace Kratos
 
       double PlasticPotentialP = 0.0;
       for (unsigned int i = 0; i < 3; ++i)
-         PlasticPotentialP += DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(i);
+         PlasticPotentialP += DeltaGamma*AuxiliaryDerivatives.PlasticPotentialD(i);
       rNewEquivalentPlasticStrain +=  PlasticPotentialP ;// 3.0; 
 
       rNewPlasticShearStrain = 0.0;
       for (unsigned int i = 0; i < 3; ++i)
-         rNewPlasticShearStrain += pow( DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(i) - PlasticPotentialP/3.0, 2);
+         rNewPlasticShearStrain += pow( DeltaGamma*AuxiliaryDerivatives.PlasticPotentialD(i) - PlasticPotentialP/3.0, 2);
 
       for (unsigned int i = 3; i < 6; ++i)
-         rNewPlasticShearStrain += 2.0*pow( DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(i)/2.0, 2);
+         rNewPlasticShearStrain += 2.0*pow( DeltaGamma*AuxiliaryDerivatives.PlasticPotentialD(i)/2.0, 2);
 
       rNewPlasticShearStrain = sqrt( rNewPlasticShearStrain );
 
@@ -1384,24 +1384,24 @@ namespace Kratos
    }
 
 
-   void NonAssociativeExplicitPlasticFlowRule::UpdateDerivatives(const Vector& rHenckyStrain, AuxiliarDerivativesStructure& rAuxiliarDerivatives, const double& rAlpha)
+   void NonAssociativeExplicitPlasticFlowRule::UpdateDerivatives(const Vector& rHenckyStrain, AuxiliaryDerivativesStructure& rAuxiliaryDerivatives, const double& rAlpha)
    {
       Vector StressVector = ZeroVector(6);
 
       this->CalculateKirchhoffStressVector( rHenckyStrain, StressVector);
 
-      this->CalculatePlasticPotentialDerivatives(StressVector, rAuxiliarDerivatives.PlasticPotentialD, rAuxiliarDerivatives.PlasticPotentialDD);
+      this->CalculatePlasticPotentialDerivatives(StressVector, rAuxiliaryDerivatives.PlasticPotentialD, rAuxiliaryDerivatives.PlasticPotentialDD);
 
-      mpYieldCriterion->CalculateYieldFunctionDerivative(StressVector, rAuxiliarDerivatives.YieldFunctionD, rAlpha);
+      mpYieldCriterion->CalculateYieldFunctionDerivative(StressVector, rAuxiliaryDerivatives.YieldFunctionD, rAlpha);
 
       // in order to program things only once
-      if ( rAuxiliarDerivatives.PlasticPotentialD.size() == 1 ) {
-         rAuxiliarDerivatives.PlasticPotentialD = rAuxiliarDerivatives.YieldFunctionD;
-         if ( rAuxiliarDerivatives.PlasticPotentialDD.size1() == 1) {
-            //mpYieldCriterion->CalculateYieldFunctionSecondDerivative( StressVector, rAuxiliarDerivatives.PlasticPotentialDD, rAlpha);
+      if ( rAuxiliaryDerivatives.PlasticPotentialD.size() == 1 ) {
+         rAuxiliaryDerivatives.PlasticPotentialD = rAuxiliaryDerivatives.YieldFunctionD;
+         if ( rAuxiliaryDerivatives.PlasticPotentialDD.size1() == 1) {
+            //mpYieldCriterion->CalculateYieldFunctionSecondDerivative( StressVector, rAuxiliaryDerivatives.PlasticPotentialDD, rAlpha);
 
-            if ( rAuxiliarDerivatives.PlasticPotentialDD.size1() == 1) {
-               rAuxiliarDerivatives.PlasticPotentialDD = ZeroMatrix(6,6);
+            if ( rAuxiliaryDerivatives.PlasticPotentialDD.size1() == 1) {
+               rAuxiliaryDerivatives.PlasticPotentialDD = ZeroMatrix(6,6);
             }
          }
       }
@@ -1535,15 +1535,15 @@ namespace Kratos
             return;
          }
 
-         AuxiliarDerivativesStructure AuxiliarDerivatives;
-         this->UpdateDerivatives(ElasticStrainVector, AuxiliarDerivatives, rAlpha);
+         AuxiliaryDerivativesStructure AuxiliaryDerivatives;
+         this->UpdateDerivatives(ElasticStrainVector, AuxiliaryDerivatives, rAlpha);
 
          Matrix SystemMatrix = rElasticMatrix;
 
          bool singular = SolidMechanicsMathUtilities<double>::InvertMatrix( rElasticMatrix, SystemMatrix);
          if (  ! singular)
          {
-            SystemMatrix += rReturnMappingVariables.NormIsochoricStress *  AuxiliarDerivatives.PlasticPotentialDD;
+            SystemMatrix += rReturnMappingVariables.NormIsochoricStress *  AuxiliaryDerivatives.PlasticPotentialDD;
 
             singular = SolidMechanicsMathUtilities<double>::InvertMatrix( SystemMatrix, SystemMatrix);
          }
@@ -1558,8 +1558,8 @@ namespace Kratos
       if ( rReturnMappingVariables.Options.Is( FlowRule::PLASTIC_REGION ) )
       {
 
-         AuxiliarDerivativesStructure AuxiliarDerivatives;
-         this->UpdateDerivatives(ElasticStrainVector, AuxiliarDerivatives, rAlpha);
+         AuxiliaryDerivativesStructure AuxiliaryDerivatives;
+         this->UpdateDerivatives(ElasticStrainVector, AuxiliaryDerivatives, rAlpha);
 
 
          // ADD the second derivative in the Elastic Matrix
@@ -1569,7 +1569,7 @@ namespace Kratos
 
             bool singular = SolidMechanicsMathUtilities<double>::InvertMatrix( rElasticMatrix, SystemMatrix);
             if ( ! singular) {
-               SystemMatrix += rReturnMappingVariables.DeltaBeta *  AuxiliarDerivatives.PlasticPotentialDD;
+               SystemMatrix += rReturnMappingVariables.DeltaBeta *  AuxiliaryDerivatives.PlasticPotentialDD;
 
                singular = SolidMechanicsMathUtilities<double>::InvertMatrix( SystemMatrix, SystemMatrix);
             }
@@ -1587,13 +1587,13 @@ namespace Kratos
          Vector AuxVectorF;
          Vector AuxVectorG;
 
-         AuxVectorF = prod(trans(AuxiliarDerivatives.YieldFunctionD), rElasticMatrix);
-         AuxVectorG = prod( rElasticMatrix, AuxiliarDerivatives.PlasticPotentialD);
+         AuxVectorF = prod(trans(AuxiliaryDerivatives.YieldFunctionD), rElasticMatrix);
+         AuxVectorG = prod( rElasticMatrix, AuxiliaryDerivatives.PlasticPotentialD);
 
          Matrix PlasticUpdate;
-         PlasticUpdate = MyCrossProduct(rElasticMatrix, AuxiliarDerivatives.PlasticPotentialD, AuxiliarDerivatives.YieldFunctionD);
+         PlasticUpdate = MyCrossProduct(rElasticMatrix, AuxiliaryDerivatives.PlasticPotentialD, AuxiliaryDerivatives.YieldFunctionD);
 
-         rElasticMatrix -= 1.0*PlasticUpdate / ( H + MathUtils<double>::Dot(AuxVectorF, AuxiliarDerivatives.PlasticPotentialD));
+         rElasticMatrix -= 1.0*PlasticUpdate / ( H + MathUtils<double>::Dot(AuxVectorF, AuxiliaryDerivatives.PlasticPotentialD));
 
       }
 
@@ -1618,7 +1618,7 @@ namespace Kratos
 
       double beta, BestBeta = 0;
       double Ratio = 0;
-      AuxiliarDerivativesStructure  AuxiliarDerivatives;
+      AuxiliaryDerivativesStructure  AuxiliaryDerivatives;
 
       Vector Hen, Res = ZeroVector(8), R1 = ZeroVector(6), StressV;
       double R2, R3, AuxP; 
@@ -1646,13 +1646,13 @@ namespace Kratos
 
 
          // AND NOW I HAVE TO COMPUTE THE ERROR...
-         this->UpdateDerivatives( Hen, AuxiliarDerivatives, Alp);
+         this->UpdateDerivatives( Hen, AuxiliaryDerivatives, Alp);
 
-         R1 = Hen + Gam * AuxiliarDerivatives.PlasticPotentialD - rHenckyTrialElastic;
+         R1 = Hen + Gam * AuxiliaryDerivatives.PlasticPotentialD - rHenckyTrialElastic;
 
          AuxP = 0;
          for ( int i = 0; i < 3; i++)
-            AuxP += AuxiliarDerivatives.PlasticPotentialD(i);
+            AuxP += AuxiliaryDerivatives.PlasticPotentialD(i);
 
          R2 = Alp - rAlphaTrial - Gam * AuxP;
 
