@@ -183,7 +183,7 @@ public:
         VectorType &rRightHandSideVector,
         const ProcessInfo &rCurrentProcessInfo) override;
 
-    /// Auxiliar element check function
+    /// Auxiliary element check function
     /**
      * This function calls the base element check method and adds the
      * current element check implementations
@@ -415,7 +415,7 @@ private:
     ///@{
 
     /**
-     * @brief Split shape functions computation auxiliar method
+     * @brief Split shape functions computation auxiliary method
      * This method computes the standard and enrichment shape functions for a split element
      * @param rData Element data container
      * @param rShapeFunctionsPos Positive side shape functions values

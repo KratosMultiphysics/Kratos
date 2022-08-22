@@ -446,7 +446,7 @@ protected:
     }
 
 
-    // Auxiliar function to fill the element data structure
+    // Auxiliary function to fill the element data structure
     void FillEmbeddedAusasElementData(
         EmbeddedAusasElementDataStruct& rData,
         const ProcessInfo& rCurrentProcessInfo) {
@@ -761,7 +761,7 @@ protected:
         array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
         GetPreviousSolutionVector(rData, prev_sol);
 
-        // Declare auxiliar arrays
+        // Declare auxiliary arrays
         BoundedMatrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
 
         // Contribution coming from the positive side boundary term
@@ -840,7 +840,7 @@ protected:
         array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
         GetPreviousSolutionVector(rData, prev_sol);
 
-        // Declare auxiliar arrays
+        // Declare auxiliary arrays
         array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
 
         // Contribution coming from the positive side boundary term
@@ -1058,7 +1058,7 @@ protected:
     }
 
     /**
-    * Auxiliar function to compute the element size
+    * Auxiliary function to compute the element size
     * @return Characteristic element size computed using the gradients
     */
     double ComputeH() {
@@ -1228,9 +1228,9 @@ protected:
     }
 
     /**
-    * This functions sets the auxiliar matrix to compute the normal projection in Voigt notation
+    * This functions sets the auxiliary matrix to compute the normal projection in Voigt notation
     * @param rUnitNormal reference to Gauss pt. unit normal vector
-    * @param[out] rVoigtNormProjMatrix reference to the computed normal projection auxiliar matrix
+    * @param[out] rVoigtNormProjMatrix reference to the computed normal projection auxiliary matrix
     */
     void SetVoigtNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,

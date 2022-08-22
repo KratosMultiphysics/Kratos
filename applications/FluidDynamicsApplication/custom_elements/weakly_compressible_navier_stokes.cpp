@@ -178,7 +178,7 @@ void WeaklyCompressibleNavierStokes<TElementData>::AddBoundaryTraction(
     BoundedMatrix<double, StrainSize, LocalSize> B_matrix = ZeroMatrix(StrainSize, LocalSize);
     FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX, B_matrix);
 
-    // Compute some Gauss pt. auxiliar matrices
+    // Compute some Gauss pt. auxiliary matrices
     const BoundedMatrix<double, Dim, StrainSize> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
     const BoundedMatrix<double, StrainSize, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
 
@@ -190,7 +190,7 @@ void WeaklyCompressibleNavierStokes<TElementData>::AddBoundaryTraction(
         }
     }
 
-    // Set the shape functions auxiliar transpose matrix
+    // Set the shape functions auxiliary transpose matrix
     BoundedMatrix<double, LocalSize, Dim> N_aux_trans = ZeroMatrix(LocalSize, Dim);
     for (unsigned int i=0; i<NumNodes; ++i) {
         for (unsigned int comp=0; comp<Dim; ++comp) {

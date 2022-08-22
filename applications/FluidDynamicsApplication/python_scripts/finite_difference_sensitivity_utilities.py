@@ -188,7 +188,7 @@ class FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis:
         response_parameters["Parameters"]["model_part_name"].SetString(
             drag_model_part_name)
 
-        kratos_parameters["processes"]["auxiliar_process_list"].Append(
+        kratos_parameters["processes"]["auxiliary_process_list"].Append(
             response_parameters)
 
 

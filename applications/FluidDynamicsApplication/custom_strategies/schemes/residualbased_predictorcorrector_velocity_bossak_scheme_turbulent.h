@@ -509,7 +509,7 @@ namespace Kratos {
 
             rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
             rCurrentCondition.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
-            //rCurrentCondition.CalculateDampingMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
+            //rCurrentCondition.CalculateDampingMatrix(VelocityBossakAuxiliaryies::mDamp,CurrentProcessInfo);
             rCurrentCondition.CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
             rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
@@ -539,7 +539,7 @@ namespace Kratos {
             //basic operations for the element considered
             rCurrentCondition.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
             rCurrentCondition.CalculateMassMatrix(mMass[k],rCurrentProcessInfo);
-            //rCurrentCondition.CalculateDampingMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
+            //rCurrentCondition.CalculateDampingMatrix(VelocityBossakAuxiliaryies::mDamp,CurrentProcessInfo);
             rCurrentCondition.CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution,rCurrentProcessInfo);
             rCurrentCondition.EquationIdVector(EquationId,rCurrentProcessInfo);
 

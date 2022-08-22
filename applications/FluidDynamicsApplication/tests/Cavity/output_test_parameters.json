@@ -115,7 +115,7 @@
             }
         }],
         "gravity"                          : [],
-        "auxiliar_process_list" :[{
+        "auxiliary_process_list" :[{
             "kratos_module" : "KratosMultiphysics.HDF5Application",
             "python_module" : "single_mesh_primal_output_process",
             "help"          : "",

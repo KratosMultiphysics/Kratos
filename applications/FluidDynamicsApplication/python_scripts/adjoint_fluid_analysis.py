@@ -60,7 +60,7 @@ class AdjointFluidAnalysis(AnalysisStage):
         # Note 1: gravity is constructed first. Outlet process might need its information.
         # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
         if parameter_name == "processes":
-            processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
+            processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliary_process_list"]
             if len(list_of_processes) == 0: # Processes are given in the old format
                 Kratos.Logger.PrintWarning(self.__class__.__name__, "Using the old way to create the processes, this will be removed!")
                 factory = KratosProcessFactory(self.model)
@@ -109,7 +109,7 @@ class AdjointFluidAnalysis(AnalysisStage):
         return ["gravity",
                 "initial_conditions_process_list",
                 "boundary_conditions_process_list",
-                "auxiliar_process_list"]
+                "auxiliary_process_list"]
 
     def _GetSimulationName(self):
         return self.__class__.__name__

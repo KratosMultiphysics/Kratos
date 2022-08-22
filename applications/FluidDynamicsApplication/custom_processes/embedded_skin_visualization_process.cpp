@@ -617,7 +617,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
     unsigned int temp_elem_id = (n_elems > 0) ? ((mrModelPart.ElementsEnd()-1)->Id()) + 1 : 1;
     unsigned int temp_cond_id = (n_conds > 0) ? ((mrModelPart.ConditionsEnd()-1)->Id()) + 1 : 1;
 
-    // Auxiliar vectors to store pointers to the new entities
+    // Auxiliary vectors to store pointers to the new entities
     // These vectors will be use when renumbering the entities ids.
     ModelPart::NodesContainerType new_nodes_vect;
     ModelPart::ConditionsContainerType new_conds_vect;
@@ -660,7 +660,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
             // Compute the splitting pattern
             DivideGeometry<Node<3>>::Pointer p_split_utility = p_modified_shape_functions->pGetSplittingUtil();
 
-            // Create the auxiliar map that will be used to generate the skin
+            // Create the auxiliary map that will be used to generate the skin
             std::unordered_map<std::pair<unsigned int,bool>, unsigned int, Hash, KeyEqual> new_nodes_map;
 
             // Get the split geometries from the splitting pattern
@@ -701,7 +701,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
                         const unsigned int node_i = (p_split_utility->GetEdgeIdsI())[intersected_edge_id];
                         const unsigned int node_j = (p_split_utility->GetEdgeIdsJ())[intersected_edge_id];
 
-                        // Create a new node based in the indexed point auxiliar node
+                        // Create a new node based in the indexed point auxiliary node
                         const array_1d<double, 3> point_coords = sub_geom_node.Coordinates();
                         Node<3>::Pointer p_new_node = mrVisualizationModelPart.CreateNewNode(temp_node_id, point_coords[0], point_coords[1], point_coords[2]);
                         sub_geom_nodes_array.push_back(p_new_node);

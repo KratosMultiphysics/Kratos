@@ -701,7 +701,7 @@ protected:
     void ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
     void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& rData);
 
-    // Auxiliar function to fill the element data structure
+    // Auxiliary function to fill the element data structure
     void FillConditionData(ConditionDataStruct &rData)
     {
         const GeometryType& r_geometry = this->GetGeometry();

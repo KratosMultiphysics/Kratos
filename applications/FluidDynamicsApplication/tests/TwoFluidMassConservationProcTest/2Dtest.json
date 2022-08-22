@@ -66,7 +66,7 @@
             	"h_top"              : 0.0
         	}
     	}],
-    	"auxiliar_process_list"            : [{
+    	"auxiliary_process_list"            : [{
         	"python_module" : "apply_mass_conservation_check_process",
         	"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         	"process_name"  : "ApplyMassConservationCheckProcess",

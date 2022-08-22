@@ -370,7 +370,7 @@ protected:
         KRATOS_CATCH( "" )
     }
 
-    // Auxiliar function to fill the element data structure
+    // Auxiliary function to fill the element data structure
     void FillElementData(ElementDataStruct& rData, const ProcessInfo& rCurrentProcessInfo)
     {
         // Getting data for the given geometry

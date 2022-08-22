@@ -77,7 +77,7 @@
             }
         }],
         "gravity"                          : [],
-        "auxiliar_process_list"            : [],
+        "auxiliary_process_list"            : [],
         "json_check_process_list"          : []
     }
 }

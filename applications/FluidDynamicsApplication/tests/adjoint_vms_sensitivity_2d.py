@@ -175,7 +175,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
         if (not is_steady):
             process_parameters["Parameters"]["nodal_solution_step_data_settings"]["list_of_variables"].Append("ACCELERATION")
 
-        parameters["processes"]["auxiliar_process_list"].Append(process_parameters)
+        parameters["processes"]["auxiliary_process_list"].Append(process_parameters)
 
     @staticmethod
     def AddHDF5PrimalSlipOutputProcess(parameters, is_steady):
@@ -219,7 +219,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
         if (not is_steady):
             process_parameters["Parameters"]["nodal_solution_step_data_settings"]["list_of_variables"].Append("ACCELERATION")
 
-        parameters["processes"]["auxiliar_process_list"].Append(process_parameters)
+        parameters["processes"]["auxiliary_process_list"].Append(process_parameters)
 
     @classmethod
     def tearDownClass(_):

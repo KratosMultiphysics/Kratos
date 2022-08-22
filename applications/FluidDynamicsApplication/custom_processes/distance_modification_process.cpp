@@ -231,7 +231,7 @@ void DistanceModificationProcess::ModifyDistance()
             auto nodes_begin = r_nodes.begin() + partition_vec[i_chunk];
             auto nodes_end = r_nodes.begin() + partition_vec[i_chunk + 1];
 
-            // Auxiliar chunk arrays
+            // Auxiliary chunk arrays
             std::vector<std::size_t> aux_modified_distances_ids;
             std::vector<double> aux_modified_distance_values;
 
@@ -261,7 +261,7 @@ void DistanceModificationProcess::ModifyDistance()
                 }
             }
 
-            // Save the auxiliar chunk arrays
+            // Save the auxiliary chunk arrays
             #pragma omp critical
             {
                 mModifiedDistancesIDs.insert(mModifiedDistancesIDs.end(),aux_modified_distances_ids.begin(),aux_modified_distances_ids.end());
@@ -353,7 +353,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
                 auto elems_begin = r_elems.begin() + partition_vec[i_chunk];
                 auto elems_end = r_elems.begin() + partition_vec[i_chunk + 1];
 
-                // Auxiliar chunk arrays
+                // Auxiliary chunk arrays
                 std::vector<std::size_t> aux_modified_distances_ids;
                 std::vector<Vector> aux_modified_elemental_distances;
                 std::vector<std::size_t> aux_modified_edge_dist_extra_ids;
@@ -395,7 +395,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
                     }
                 }
 
-                // Save the auxiliar chunk arrays
+                // Save the auxiliary chunk arrays
                 #pragma omp critical
                 {
                     mModifiedDistancesIDs.insert(mModifiedDistancesIDs.end(),aux_modified_distances_ids.begin(),aux_modified_distances_ids.end());
@@ -409,7 +409,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
                 auto elems_begin = r_elems.begin() + partition_vec[i_chunk];
                 auto elems_end = r_elems.begin() + partition_vec[i_chunk + 1];
 
-                // Auxiliar chunk arrays
+                // Auxiliary chunk arrays
                 std::vector<std::size_t> aux_modified_distances_ids;
                 std::vector<Vector> aux_modified_elemental_distances;
 
@@ -431,7 +431,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
                     }
                 }
 
-                // Save the auxiliar chunk arrays
+                // Save the auxiliary chunk arrays
                 #pragma omp critical
                 {
                     mModifiedDistancesIDs.insert(mModifiedDistancesIDs.end(),aux_modified_distances_ids.begin(),aux_modified_distances_ids.end());

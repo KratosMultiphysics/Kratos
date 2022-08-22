@@ -81,7 +81,7 @@ namespace Kratos {
         }
 
         /**
-	     * Auxiliar function to generate a triangular element within
+	     * Auxiliary function to generate a triangular element within
          * a given model part using the constitutive law to be tested.
 	     */
         void GenerateTriangle(
@@ -106,7 +106,7 @@ namespace Kratos {
         }
 
         /**
-	     * Auxiliar function to generate a tetrahedral element within
+	     * Auxiliary function to generate a tetrahedral element within
          * a given model part using the constitutive law to be tested.
 	     */
         void GenerateTetrahedron(
