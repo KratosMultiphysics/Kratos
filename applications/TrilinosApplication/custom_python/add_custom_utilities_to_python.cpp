@@ -39,7 +39,7 @@ typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceTy
 typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
 
 template <class TValueType, unsigned int TDim>
-void AuxiliarUpdateInterfaceValues(
+void AuxiliaryUpdateInterfaceValues(
     TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, TValueType, TDim> &dummy,
     ModelPart &rModelPart,
     const Variable<TValueType> &rSolutionVariable,
@@ -52,7 +52,7 @@ void AuxiliarUpdateInterfaceValues(
 }
 
 template <class TValueType, unsigned int TDim>
-void AuxiliarComputeInterfaceResidualVector(
+void AuxiliaryComputeInterfaceResidualVector(
     TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, TValueType, TDim> &dummy,
     ModelPart &rInterfaceModelPart,
     const Variable<TValueType> &rOriginalVariable,
@@ -132,9 +132,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilitiesDouble2DType::GetInterfaceResidualSize)
         .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilitiesDouble2DType& self, ModelPart& rModelPart){
             return AuxiliaryVectorWrapper(self.SetUpInterfaceVector(rModelPart));})
-        .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<double,2>)
+        .def("UpdateInterfaceValues", &AuxiliaryUpdateInterfaceValues<double,2>)
         .def("ComputeInterfaceResidualNorm", &TrilinosPartitionedFSIUtilitiesDouble2DType::ComputeInterfaceResidualNorm)
-        .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<double,2>)
+        .def("ComputeInterfaceResidualVector", &AuxiliaryComputeInterfaceResidualVector<double,2>)
         .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilitiesDouble2DType::ComputeAndPrintFluidInterfaceNorms)
         .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilitiesDouble2DType::ComputeAndPrintStructureInterfaceNorms)
         .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilitiesDouble2DType::CheckCurrentCoordinatesFluid)
@@ -146,9 +146,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilitiesArray2DType::GetInterfaceResidualSize)
         .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilitiesArray2DType& self, ModelPart& rModelPart){
             return AuxiliaryVectorWrapper(self.SetUpInterfaceVector(rModelPart));})
-        .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<array_1d<double,3>,2>)
+        .def("UpdateInterfaceValues", &AuxiliaryUpdateInterfaceValues<array_1d<double,3>,2>)
         .def("ComputeInterfaceResidualNorm", &TrilinosPartitionedFSIUtilitiesArray2DType::ComputeInterfaceResidualNorm)
-        .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<array_1d<double,3>,2>)
+        .def("ComputeInterfaceResidualVector", &AuxiliaryComputeInterfaceResidualVector<array_1d<double,3>,2>)
         .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilitiesArray2DType::ComputeAndPrintFluidInterfaceNorms)
         .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilitiesArray2DType::ComputeAndPrintStructureInterfaceNorms)
         .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilitiesArray2DType::CheckCurrentCoordinatesFluid)
@@ -160,9 +160,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilitiesDouble3DType::GetInterfaceResidualSize)
         .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilitiesDouble3DType& self, ModelPart& rModelPart){
             return AuxiliaryVectorWrapper(self.SetUpInterfaceVector(rModelPart));})
-        .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<double,3>)
+        .def("UpdateInterfaceValues", &AuxiliaryUpdateInterfaceValues<double,3>)
         .def("ComputeInterfaceResidualNorm", &TrilinosPartitionedFSIUtilitiesDouble3DType::ComputeInterfaceResidualNorm)
-        .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<double,3>)
+        .def("ComputeInterfaceResidualVector", &AuxiliaryComputeInterfaceResidualVector<double,3>)
         .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilitiesDouble3DType::ComputeAndPrintFluidInterfaceNorms)
         .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilitiesDouble3DType::ComputeAndPrintStructureInterfaceNorms)
         .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilitiesDouble3DType::CheckCurrentCoordinatesFluid)
@@ -174,9 +174,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilitiesArray3DType::GetInterfaceResidualSize)
         .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilitiesArray3DType& self, ModelPart& rModelPart){
             return AuxiliaryVectorWrapper(self.SetUpInterfaceVector(rModelPart));})
-        .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<array_1d<double,3>,3>)
+        .def("UpdateInterfaceValues", &AuxiliaryUpdateInterfaceValues<array_1d<double,3>,3>)
         .def("ComputeInterfaceResidualNorm", &TrilinosPartitionedFSIUtilitiesArray3DType::ComputeInterfaceResidualNorm)
-        .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<array_1d<double,3>,3>)
+        .def("ComputeInterfaceResidualVector", &AuxiliaryComputeInterfaceResidualVector<array_1d<double,3>,3>)
         .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilitiesArray3DType::ComputeAndPrintFluidInterfaceNorms)
         .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilitiesArray3DType::ComputeAndPrintStructureInterfaceNorms)
         .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilitiesArray3DType::CheckCurrentCoordinatesFluid)

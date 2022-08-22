@@ -49,7 +49,7 @@ typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceTy
 ///@name Kratos Classes
 ///@{
 
-/// Auxiliarty Trilinos matrix pointer wrapper class
+/// Auxiliaryty Trilinos matrix pointer wrapper class
 /** This class is intended to handle the Trilinos space matrices exportation to Python.
  * Since the matrix pointer cannot be exported to Python by means of PyBind, it is stored
  * in this auxilary class, which is the object that is exported to python. The exportation
@@ -163,7 +163,7 @@ private:
     ///@}
 }; // Class AuxiliaryMatrixWrapper
 
-/// Auxiliarty Trilinos vector pointer wrapper class
+/// Auxiliaryty Trilinos vector pointer wrapper class
 /** This class is intended to handle the Trilinos space matrices exportation to Python.
  * Since the vector pointer cannot be exported to Python by means of PyBind, it is stored
  * in this auxilary class, which is the object that is exported to python. The exportation
