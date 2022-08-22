@@ -145,15 +145,15 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateHenckyMainStrain(const Matri
         ParticleFlowRule::RadialReturnVariables& rReturnMappingVariables,
         Vector& rMainStrain)
 {
-    Matrix Auxiliar = ZeroMatrix(3,3);
-    Auxiliar(0,0) = rCauchyGreenMatrix(0,0);
-    Auxiliar(1,1) = rCauchyGreenMatrix(1,1);
-    Auxiliar(0,1) = rCauchyGreenMatrix(0,1);
-    Auxiliar(1,0) = rCauchyGreenMatrix(1,0);
-    Auxiliar(2,2) = 1.0;
+    Matrix Auxiliary = ZeroMatrix(3,3);
+    Auxiliary(0,0) = rCauchyGreenMatrix(0,0);
+    Auxiliary(1,1) = rCauchyGreenMatrix(1,1);
+    Auxiliary(0,1) = rCauchyGreenMatrix(0,1);
+    Auxiliary(1,0) = rCauchyGreenMatrix(1,0);
+    Auxiliary(2,2) = 1.0;
     Matrix AuxEigenVectors = ZeroMatrix(3,3);
     Vector AuxEigenValues  = ZeroVector(3);
-    ParticleMechanicsMathUtilities<double>::EigenVectors(Auxiliar, AuxEigenVectors, AuxEigenValues);
+    ParticleMechanicsMathUtilities<double>::EigenVectors(Auxiliary, AuxEigenVectors, AuxEigenValues);
 
 
     Matrix EigenVectors = ZeroMatrix(3,3);

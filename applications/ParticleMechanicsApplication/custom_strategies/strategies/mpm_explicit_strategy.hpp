@@ -341,7 +341,7 @@ namespace Kratos
             // If we consider rotation dofs
             const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
 
-            // Auxiliar values
+            // Auxiliary values
             const array_1d<double, 3> zero_array = ZeroVector(3);
             array_1d<double, 3> force_residual = ZeroVector(3);
             array_1d<double, 3> moment_residual = ZeroVector(3);
