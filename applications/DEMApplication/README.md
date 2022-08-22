@@ -22,7 +22,7 @@ Build [Kratos](https://github.com/KratosMultiphysics/Kratos/wiki) and, before th
 
 amongst the compilation options, so the DEM application is compiled.
 
-No auxiliar external libraries are needed.
+No auxiliary external libraries are needed.
 
 ## Theory
 
