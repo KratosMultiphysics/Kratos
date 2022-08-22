@@ -129,7 +129,7 @@ py::class_< ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalS
     .def("ConstructMatrixStructure", &ResidualBasedIncompressibleBuilderType2D::ConstructMatrixStructure)
     .def("ConstructMatrixStructure_Mconsistent", &ResidualBasedIncompressibleBuilderType2D::ConstructMatrixStructure_Mconsistent)
     .def("ConstructMatrixStructure_DivergenceMatrixD", &ResidualBasedIncompressibleBuilderType2D::ConstructMatrixStructure_DivergenceMatrixD)
-    .def("BuildAuxiliaries", &ResidualBasedIncompressibleBuilderType2D::BuildAuxiliaries)
+    .def("BuildAuxiliaryies", &ResidualBasedIncompressibleBuilderType2D::BuildAuxiliaryies)
     .def("AssembleMassMatrices", &ResidualBasedIncompressibleBuilderType2D::AssembleMassMatrices)
     .def("calc_GMinvD_prod", &ResidualBasedIncompressibleBuilderType2D::calc_GMinvD_prod)
     .def("CalculatePreconditionerDiagonalMatrix",  &ResidualBasedIncompressibleBuilderType2D::CalculatePreconditionerDiagonalMatrix)
@@ -144,7 +144,7 @@ py::class_< ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalS
     .def("FractionalStepProjection", &ResidualBasedIncompressibleBuilderType2D::FractionalStepProjection)
     .def("CalculateNodalPressureForce", &ResidualBasedIncompressibleBuilderType2D::CalculateNodalPressureForce )
     .def("ConvergenceCheck", &ResidualBasedIncompressibleBuilderType2D::ConvergenceCheck)
-    //.def("BuildAuxiliariesFSI", &ResidualBasedIncompressibleBuilderType2D::BuildAuxiliariesFSI)
+    //.def("BuildAuxiliaryiesFSI", &ResidualBasedIncompressibleBuilderType2D::BuildAuxiliaryiesFSI)
     //.def("ConstructMatrixStructure_Fluid_DivergenceMatrixD",&ResidualBasedIncompressibleBuilderType2D::ConstructMatrixStructure_Fluid_DivergenceMatrixD)
 
     ;
@@ -165,7 +165,7 @@ py::class_< ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalS
     .def("ConstructMatrixStructure", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ConstructMatrixStructure)
     .def("ConstructMatrixStructure_Mconsistent", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ConstructMatrixStructure_Mconsistent)
     .def("ConstructMatrixStructure_DivergenceMatrixD", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ConstructMatrixStructure_DivergenceMatrixD)
-    .def("BuildAuxiliaries", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::BuildAuxiliaries)
+    .def("BuildAuxiliaryies", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::BuildAuxiliaryies)
     .def("AssembleMassMatrices", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::AssembleMassMatrices)
     .def("calc_GMinvD_prod", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::calc_GMinvD_prod)
     .def("CalculatePreconditionerDiagonalMatrix",  &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::CalculatePreconditionerDiagonalMatrix)

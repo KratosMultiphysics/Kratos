@@ -1202,7 +1202,7 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-    void BuildAuxiliaries(
+    void BuildAuxiliaryies(
         TSystemMatrixType& mD,TSystemMatrixType& Mconsistent, TSystemVectorType& mMdiagInv,
         ModelPart& r_model_part)
     {
@@ -1468,7 +1468,7 @@ public:
         KRATOS_CATCH (" ")
     }
     /*
-    		void BuildAuxiliaries(
+    		void BuildAuxiliaryies(
     			TSystemMatrixType& mD,
     			ModelPart& r_model_part)
     		{

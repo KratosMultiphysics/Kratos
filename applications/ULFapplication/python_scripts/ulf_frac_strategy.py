@@ -314,7 +314,7 @@ class ULFFracStrategyPython:
         # self.builder_and_solver.AssembleMassMatrices(self.MPconsistent, self.MPinv, self.model_part)
 
         # now build the D = GT matrix
-        self.builder_and_solver.BuildAuxiliaries(self.D, self.MPconsistent, self.MPinv, self.model_part)
+        self.builder_and_solver.BuildAuxiliaryies(self.D, self.MPconsistent, self.MPinv, self.model_part)
 
         time3 = time.time()
 
