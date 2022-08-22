@@ -105,7 +105,6 @@ def AssembleTestSuites():
     allSuite = suites['all']
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(small_test_cases))
-    night_test_cases.extend(small_test_cases)
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(night_test_cases))
     validSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(valid_test_cases))
     allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(all_test_cases))
