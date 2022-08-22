@@ -95,9 +95,9 @@ public:
         const double max_distance
     )
     {
-        if(TDim == 2)
+        if constexpr (TDim == 2)
             CalculateDistances2D(r_model_part, rDistanceVar, max_distance);
-        else if (TDim == 3)
+        else if constexpr (TDim == 3)
             CalculateDistances3D(r_model_part, rDistanceVar, max_distance);
 
      //   r_model_part.GetCommunicator().SynchronizeCurrentDataToMin(rDistanceVar);
