@@ -45,11 +45,12 @@ void AnalyticFaceWatcher::MakeMeasurements()
             FaceHistoryDatabase& face_database = GetFaceDataBase(id);
             std::vector<int> colliding_ids = face.GetSignedCollidingIds();
             std::vector<double> particle_masses = face.GetMasses();
+            std::vector<double> particle_radii = face.GetRadii();
             std::vector<double> colliding_normal_vel = face.GetCollidingNormalRelativeVelocity();
             std::vector<double> colliding_tangential_vel = face.GetCollidingTangentialRelativeVelocity();
 
             for (unsigned int i = 0; i < colliding_ids.size(); ++i){
-                time_step_database.PushBackCrossings(id, colliding_ids[i], particle_masses[i], colliding_normal_vel[i], colliding_tangential_vel[i]);
+                time_step_database.PushBackCrossings(id, colliding_ids[i], particle_masses[i], particle_radii[i], colliding_normal_vel[i], colliding_tangential_vel[i]);
                 face_database.PushBackCrossings(current_time, colliding_ids[i], particle_masses[i], colliding_normal_vel[i], colliding_tangential_vel[i]);
             }
         }
@@ -142,6 +143,7 @@ void AnalyticFaceWatcher::GetTimeStepsData(pybind11::list& ids,
 void AnalyticFaceWatcher::GetTotalFlux(pybind11::list &times,
                                        pybind11::list &n_particles,
                                        pybind11::list &mass,
+                                       pybind11::list &radii,
                                        pybind11::list &vel_nr,
                                        pybind11::list &vel_tg)
 {
@@ -151,6 +153,7 @@ void AnalyticFaceWatcher::GetTotalFlux(pybind11::list &times,
         times.append(mVectorOfTimeStepDatabases[i].GetTime());
         n_particles.append(mVectorOfTimeStepDatabases[i].GetTotalThroughput());
         mass.append(mVectorOfTimeStepDatabases[i].GetTotalMassThroughput());
+        radii.append(mVectorOfTimeStepDatabases[i].GetTotalRadiiThroughput());
         vel_nr.append(mVectorOfTimeStepDatabases[i].GetRelVelNormalxMass());
         vel_tg.append(mVectorOfTimeStepDatabases[i].GetRelVelTangentialxMass());
     }

@@ -59,6 +59,7 @@ int AnalyticRigidFace3D::CheckSide(SphericParticle* p_particle)
                 mNumberThroughput += side_sign;
                 mCrossers.push_back(signed_id);
                 mMasses.push_back(p_particle->GetMass());
+                mRadii.push_back(p_particle->GetRadius());
                 array_1d<double, 3> particle_vel = p_particle->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
                 const double normal_vel_component = DEM_INNER_PRODUCT_3(particle_vel, normal);
                 mCollidingNormalVelocities.push_back(normal_vel_component);
@@ -102,6 +103,11 @@ std::vector<double> AnalyticRigidFace3D::GetMasses()
     return mMasses;
 }
 
+std::vector<double> AnalyticRigidFace3D::GetRadii()
+{
+    return mRadii;
+}
+
 void AnalyticRigidFace3D::InitializeSolutionStep(const ProcessInfo& r_process_info)
 {
     RigidFace3D::InitializeSolutionStep(r_process_info);
@@ -109,6 +115,7 @@ void AnalyticRigidFace3D::InitializeSolutionStep(const ProcessInfo& r_process_in
     mContactingNeighbourSignedIds.clear();
     mCrossers.clear();
     mMasses.clear();
+    mRadii.clear();
     mCollidingNormalVelocities.clear();
     mCollidingTangentialVelocities.clear();
     mNumberThroughput = 0;

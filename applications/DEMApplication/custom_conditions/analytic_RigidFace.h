@@ -52,6 +52,7 @@ public:
     std::vector<double> GetCollidingNormalRelativeVelocity();
     std::vector<double> GetCollidingTangentialRelativeVelocity();
     std::vector<double> GetMasses();
+    std::vector<double> GetRadii();
     std::string Info() const override
     {
         std::stringstream buffer;
@@ -70,6 +71,7 @@ private:
     std::vector<double> mCollidingNormalVelocities;
     std::vector<double> mCollidingTangentialVelocities;
     std::vector<double> mMasses;
+    std::vector<double> mRadii;
 
     template<class Tvalue>
     bool IsInside(const Tvalue& value, const std::vector<Tvalue>& my_vector)

@@ -3,7 +3,8 @@
 #define ANALYTIC_FACE_WATCHER_H
 
 #include <pybind11/pybind11.h>
-
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
 // System includes
 
 #include <limits>
@@ -55,7 +56,7 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
         return mNCrossings;
     }
 
-    void PushBackCrossings(const int id1, const int id2, const double mass, const double normal_vel, const double tang_vel)
+    void PushBackCrossings(const int id1, const int id2, const double mass, const double radius, const double normal_vel, const double tang_vel)
     {
         ++mNCrossings;
         mNSignedCrossings += Sign(id2);
@@ -63,6 +64,7 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
         mRelVelNormalxMass += mass*normal_vel;
         mRelVelTangentialxMass += mass*tang_vel;
         mMasses.push_back(mass);
+        mRadii.push_back(radius);
         mId1.push_back(id1);
         mId2.push_back(std::abs(id2));
         mRelVelNormal.push_back(normal_vel);
@@ -77,6 +79,12 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
     double GetTotalMassThroughput()
     {
         return mMass;
+    }
+
+    pybind11::list GetTotalRadiiThroughput()
+    {
+        pybind11::list aux = pybind11::cast(mRadii);
+        return aux;
     }
 
     double GetTime()
@@ -124,6 +132,7 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
         double mTime;
         double mMass;
         std::vector<double> mMasses;
+        std::vector<double> mRadii;
         std::vector<int> mId1;
         std::vector<int> mId2;
         std::vector<double> mRelVelNormal;
@@ -194,6 +203,7 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
         double mMass;
         std::vector<double> mTimes;
         std::vector<double> mMasses;
+        std::vector<double> mRadii;
         std::vector<int> mId2;
         std::vector<double> mRelVelNormal;
         std::vector<double> mRelVelTangential;
@@ -224,6 +234,7 @@ void GetTimeStepsData(pybind11::list& ids,
 void GetTotalFlux(pybind11::list &times,
                   pybind11::list &n_particles,
                   pybind11::list &mass,
+                  pybind11::list &radii,
                   pybind11::list &normal_relative_vel,
                   pybind11::list &tangential_relative_vel);
 
