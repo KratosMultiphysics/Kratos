@@ -49,7 +49,7 @@ namespace Kratos
 /**
  * @ingroup MapingApplication
  * @class Projection3D2DMapper
- * @brief This mapper simplifies the mapping between two model parts thanks to the projection of over a reference plane
+ * @brief This mapper simplifies the mapping between two model parts thanks to the projection over a reference plane
  * @author Vicente Mataix Ferrandiz
  */
 template<class TSparseSpace, class TDenseSpace, class TMapperBackend>
@@ -119,7 +119,7 @@ public:
         array_1d<double, 3> projected_point_coordinates;
         for (auto& r_node : rModelPartOrigin.Nodes()) {
             noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).GetCoordinates();
-            r_projected_origin_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]); // TODO: This is asuming the plane is always XY, to fix after this works
+            r_projected_origin_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]); // TODO: This is assuming the plane is always XY, to fix after this works
         }
 
         // In case of nearest_element we generate "geometries" to be able to interpolate
@@ -132,7 +132,7 @@ public:
         auto& r_projected_destination_modelpart = r_destination_model.CreateModelPart("projected_destination_modelpart");
         for (auto& r_node : rModelPartDestination.Nodes()) {
             noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).GetCoordinates();
-            r_projected_destination_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]); // TODO: This is asuming the plane is always XY, to fix after this works
+            r_projected_destination_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]); // TODO: This is assuming the plane is always XY, to fix after this works
         }
 
         // In case of nearest_element or barycentric or coupling_geometry we generate "geometries" to be able to interpolate
