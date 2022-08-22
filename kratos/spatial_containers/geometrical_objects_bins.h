@@ -87,11 +87,11 @@ public:
         AddObjectsToCells(GeometricalObjectsBegin, GeometricalObjectsEnd);
     }
 
-    template<typename TIteratorType>
+    template<typename TIteratorType,typename TCellSizesType>
     GeometricalObjectsBins(
         TIteratorType GeometricalObjectsBegin, 
         TIteratorType GeometricalObjectsEnd, 
-        array_1d<double,3>& rCellSize) 
+        const TCellSizesType& rCellSize) 
     {
         std::size_t number_of_objects = std::distance(GeometricalObjectsBegin, GeometricalObjectsEnd);
         if(number_of_objects > 0){
@@ -362,15 +362,16 @@ private:
 
     }
 
-    void AssignCellSize(array_1d<double,3>& rCellSize) {
+    template<typename TCellSizesType>
+    void AssignCellSize(const TCellSizesType& rCellSize) {
         std::array<double, 3> lengths;
         for (int i = 0; i < Dimension; i++) {
             lengths[i] = mBoundingBox.GetMaxPoint()[i] - mBoundingBox.GetMinPoint()[i];
         }
 
         for (int i = 0; i < Dimension; i++) {
-            mNumberOfCells[i] = static_cast<std::size_t>(lengths[i] / rCellSize(i));
-            mCellSizes[i] = rCellSize(i);
+            mNumberOfCells[i] = static_cast<std::size_t>(lengths[i] / rCellSize[i]);
+            mCellSizes[i] = rCellSize[i];
             mInverseOfCellSize[i] = 1.00 / mCellSizes[i];
         }
     }

@@ -94,18 +94,18 @@ namespace Testing {
         // Generate the cube skin
         ModelPart& skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
 
-        array_1d<double,3> cell_size{0.1,0.1,0.1};
+        array_1d<double,3> cell_size{0.2,0.1,0.05};
         GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd(), cell_size);
 
         auto number_of_cells = bins.GetNumberOfCells();
-        KRATOS_CHECK_EQUAL(number_of_cells[0], 6);
+        KRATOS_CHECK_EQUAL(number_of_cells[0], 3);
         KRATOS_CHECK_EQUAL(number_of_cells[1], 9);
-        KRATOS_CHECK_EQUAL(number_of_cells[2], 3);
+        KRATOS_CHECK_EQUAL(number_of_cells[2], 6);
 
         auto cell_sizes = bins.GetCellSizes();
-        KRATOS_CHECK_NEAR(cell_sizes[0], 0.1, tolerance);
+        KRATOS_CHECK_NEAR(cell_sizes[0], 0.2, tolerance);
         KRATOS_CHECK_NEAR(cell_sizes[1], 0.1, tolerance);
-        KRATOS_CHECK_NEAR(cell_sizes[2], 0.1, tolerance);
+        KRATOS_CHECK_NEAR(cell_sizes[2], 0.05, tolerance);
     }
 
     /** Checks bins number of cells
