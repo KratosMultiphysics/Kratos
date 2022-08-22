@@ -214,12 +214,12 @@ protected:
             TSparseSpace::Copy(b_modified, rb);
             b_modified.resize(0, false); //free memory
 
-            TSystemMatrixType auxiliar_A_matrix(BaseType::mT.size2(), rA.size2());
-            SparseMatrixMultiplicationUtility::MatrixMultiplication(L_transpose_matrix, rA, auxiliar_A_matrix); //auxiliar = T_transpose * rA
+            TSystemMatrixType auxiliary_A_matrix(BaseType::mT.size2(), rA.size2());
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(L_transpose_matrix, rA, auxiliary_A_matrix); //auxiliary = T_transpose * rA
             L_transpose_matrix.resize(0, 0, false);                                                             //free memory
 
-            SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, BaseType::mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
-            auxiliar_A_matrix.resize(0, 0, false);                                                        //free memory
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliary_A_matrix, BaseType::mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
+            auxiliary_A_matrix.resize(0, 0, false);                                                        //free memory
 
             double max_diag = 0.0;
             for (IndexType i = 0; i < rA.size1(); ++i)
