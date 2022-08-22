@@ -153,7 +153,7 @@ namespace Kratos
 
 	const MatrixType& rTotalDeformationMatrix = rValues.GetTotalDeformationMatrix();
 
-	//Variables.Strain.InverseMatrix used as an auxiliar matrix (contravariant push forward)
+	//Variables.Strain.InverseMatrix used as an auxiliary matrix (contravariant push forward)
 	noalias( Variables.Strain.InverseMatrix ) = prod( rTotalDeformationMatrix, rStressMatrix );
 	noalias( rStressMatrix )  = prod( Variables.Strain.InverseMatrix, trans(rTotalDeformationMatrix) );
 
@@ -215,7 +215,7 @@ namespace Kratos
 
 	const MatrixType& rTotalDeformationMatrix = rValues.GetTotalDeformationMatrix();
 
-	//Variables.Strain.InverseMatrix used as an auxiliar matrix (contravariant push forward)
+	//Variables.Strain.InverseMatrix used as an auxiliary matrix (contravariant push forward)
 	noalias( Variables.Strain.InverseMatrix ) = prod( rTotalDeformationMatrix, rStressMatrix );
 	noalias( rStressMatrix )  = prod( Variables.Strain.InverseMatrix, trans(rTotalDeformationMatrix) );
 
@@ -369,7 +369,7 @@ namespace Kratos
 
 	ConstitutiveModelUtilities::LeftCauchyToAlmansiStrain( rValues.StrainMatrix, rVariables.Strain.Matrix);
 
-	//rVariables.Strain.InverseMatrix used as an auxiliar matrix (covariant pull back)  to GreenLagrangeStrain
+	//rVariables.Strain.InverseMatrix used as an auxiliary matrix (covariant pull back)  to GreenLagrangeStrain
 	noalias( rVariables.Strain.InverseMatrix ) = prod( trans(rTotalDeformationMatrix), rVariables.Strain.Matrix );
 	noalias( rVariables.Strain.Matrix )  = prod( rVariables.Strain.InverseMatrix, rTotalDeformationMatrix );
 

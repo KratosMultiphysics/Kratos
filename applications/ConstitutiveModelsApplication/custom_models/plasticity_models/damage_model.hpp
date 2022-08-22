@@ -459,7 +459,7 @@ namespace Kratos
     }
 
 
-    // auxiliar methods
+    // auxiliary methods
 
     virtual void InitializeVariables(ModelDataType& rValues, PlasticDataType& rVariables)
     {
@@ -563,14 +563,14 @@ namespace Kratos
 
       // Compute Equivalent Strain (rYieldCondition)
       const Matrix& rStrainMatrix = rVariables.GetStrainMatrix();
-      MatrixType Auxiliar;
-      noalias(Auxiliar) = prod(rStrainMatrix,rStressMatrix);
+      MatrixType Auxiliary;
+      noalias(Auxiliary) = prod(rStrainMatrix,rStressMatrix);
 
       rVariables.StressNorm = 0.0;
 
       for(unsigned int i=0; i<3; i++)
 	{
-	  rVariables.StressNorm += Auxiliar(i,i);
+	  rVariables.StressNorm += Auxiliary(i,i);
 	}
 
 

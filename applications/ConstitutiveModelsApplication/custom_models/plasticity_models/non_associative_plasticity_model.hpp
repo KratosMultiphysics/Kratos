@@ -374,14 +374,14 @@ namespace Kratos
             //***************************************************************************************
             //***************************************************************************************
             // function to compress the tensor my way
-            int AuxiliarCompressTensor( const unsigned int & rI, const unsigned int & rJ , double & rVoigtNumber)
+            int AuxiliaryCompressTensor( const unsigned int & rI, const unsigned int & rJ , double & rVoigtNumber)
             {
 
                unsigned int index;
                if ( rI == rJ) {
                   index = rI;
                } else if ( rI > rJ) {
-                  index = AuxiliarCompressTensor( rJ, rI, rVoigtNumber);
+                  index = AuxiliaryCompressTensor( rJ, rI, rVoigtNumber);
                } else {
                   rVoigtNumber *= 0.5;
                   if ( rI == 0) {
@@ -418,8 +418,8 @@ namespace Kratos
                      for (unsigned int k = 0; k < 3; k++) {
                         for (unsigned int l = 0; l < 3; l++) {
                            double voigtNumber = 1.0;
-                           indexi = AuxiliarCompressTensor( i, j, voigtNumber);
-                           indexj = AuxiliarCompressTensor( k, l, voigtNumber);
+                           indexi = AuxiliaryCompressTensor( i, j, voigtNumber);
+                           indexj = AuxiliaryCompressTensor( k, l, voigtNumber);
                            ExtraMatrix(indexi, indexj) -= voigtNumber * (Identity(i,k)*rStressMatrix(j,l) + Identity(j,k) * rStressMatrix(i,l) );
                         }
                      }

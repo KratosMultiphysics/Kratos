@@ -680,7 +680,7 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
-    // auxiliar methods
+    // auxiliary methods
 
     virtual void InitializeVariables(ModelDataType& rValues, PlasticDataType& rVariables)
     {
@@ -774,7 +774,7 @@ namespace Kratos
       //1.-Identity build
       MatrixType Identity = IdentityMatrix(3);
 
-      //2.-Auxiliar matrices
+      //2.-Auxiliary matrices
       rFactors.Normal = rIsochoricStressMatrix * ( 1.0 / rVariables.StressNorm );
 
       MatrixType Norm_Normal = prod( rFactors.Normal, trans(rFactors.Normal) );
@@ -785,7 +785,7 @@ namespace Kratos
 
       rFactors.Dev_Normal -= (1.0/3.0) * Trace_Norm_Normal * Identity;
 
-      //3.-Auxiliar constants
+      //3.-Auxiliary constants
       if( rVariables.State().Is(ConstitutiveModelData::IMPLEX_ACTIVE) )
 	{
 

@@ -127,13 +127,13 @@ namespace Kratos
 	  DeviatoricStrain(i,i) -= I1/3.0;
 	}
 
-      MatrixType Auxiliar;
-      noalias(Auxiliar) = prod(DeviatoricStrain,DeviatoricStrain);
+      MatrixType Auxiliary;
+      noalias(Auxiliary) = prod(DeviatoricStrain,DeviatoricStrain);
       double J2 = 0.0;
 
       for(unsigned int i=0; i<3; i++)
 	{
-	  J2 += Auxiliar(i,i);
+	  J2 += Auxiliary(i,i);
 	}
 
       J2 *= 0.5;
