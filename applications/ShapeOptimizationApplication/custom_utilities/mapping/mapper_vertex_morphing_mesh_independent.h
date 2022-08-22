@@ -107,14 +107,10 @@ public:
         Vector diagonal_mass_matrix(mrOriginModelPart.Nodes().size());
         SparseSpaceType::TransposeMult(mMappingMatrix, mDestinationNodalAreas, diagonal_mass_matrix);
 
-        mSqrtOfInverseDiagonalMassMatrix.resize(diagonal_mass_matrix.size(), false);
-
-        // diagonal_mass_matrix *= 1.0/norm_inf(diagonal_mass_matrix);
-
-        #pragma omp parallel for
-        for (int i=0; i<diagonal_mass_matrix.size(); ++i)
+        for(auto& node_i : mrOriginModelPart.Nodes())
         {
-            mSqrtOfInverseDiagonalMassMatrix[i] = std::sqrt(1.0/diagonal_mass_matrix[i]);
+            const int mapping_id = node_i.GetValue(MAPPING_ID);
+            node_i.SetValue(VARIABLE_SCALING_FACTOR, std::sqrt(1.0/diagonal_mass_matrix[mapping_id]));
         }
     }
 
@@ -272,7 +268,6 @@ private:
 
     Vector mOriginNodalAreas;
     Vector mDestinationNodalAreas;
-    Vector mSqrtOfInverseDiagonalMassMatrix;
 
     ///@}
     ///@name Private Operators
@@ -314,8 +309,7 @@ private:
     void ScaleOriginValues(const T& rOriginVariable) {
         for (auto& node_i : mrOriginModelPart.Nodes())
         {
-            const int mapping_id = node_i.GetValue(MAPPING_ID);
-            node_i.FastGetSolutionStepValue(rOriginVariable) *= mSqrtOfInverseDiagonalMassMatrix[mapping_id];
+            node_i.FastGetSolutionStepValue(rOriginVariable) *= node_i.GetValue(VARIABLE_SCALING_FACTOR);
         }
     }
 

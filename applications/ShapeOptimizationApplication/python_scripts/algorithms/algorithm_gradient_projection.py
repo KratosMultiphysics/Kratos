@@ -245,10 +245,20 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         s = KM.Vector()
         self.optimization_utilities.AssembleVector(self.design_surface, nabla_f, KSO.DF1DX_MAPPED)
 
+        consider_scaling = True
+        if consider_scaling:
+            KM.Logger.PrintInfo("ShapeOpt", "Consider scaling factors in computation of step size")
+            scaling_factors = KM.Vector([node.GetValue(KSO.VARIABLE_SCALING_FACTOR) for node in self.design_surface.Nodes for _ in range(3)])
+        else:
+            scaling_factors = KM.Vector([1.0 for _ in self.design_surface.Nodes for _ in range(3)])
+
+        self.optimization_utilities.AssembleVector(self.design_surface, nabla_f, KSO.DF1DX_MAPPED)
+
         if len(g_a) == 0:
             KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
             s = nabla_f * (-1.0)
-            s *= self.step_size / s.norm_inf()
+            s_inf_norm = self.__getScaledInfNorm(s, scaling_factors)
+            s *= self.step_size / s_inf_norm
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.SEARCH_DIRECTION)
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, [0.0]*len(s), KSO.CORRECTION)
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.CONTROL_POINT_UPDATE)
@@ -272,23 +282,32 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             s,
             c)
 
-        if c.norm_inf() != 0.0:
-            if c.norm_inf() <= self.max_correction_share * self.step_size:
-                delta = self.step_size - c.norm_inf()
-                s *= delta/s.norm_inf()
+        c_inf_norm = self.__getScaledInfNorm(c, scaling_factors)
+        s_inf_norm = self.__getScaledInfNorm(s, scaling_factors)
+
+        if c_inf_norm != 0.0:
+            if c_inf_norm <= self.max_correction_share * self.step_size:
+                delta = self.step_size - c_inf_norm
+                s *= delta/s_inf_norm
             else:
                 KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c.norm_inf()} to {self.max_correction_share * self.step_size}.")
-                c *= self.max_correction_share * self.step_size / c.norm_inf()
-                s *= (1.0 - self.max_correction_share) * self.step_size / s.norm_inf()
+                c *= self.max_correction_share * self.step_size / c_inf_norm
+                s *= (1.0 - self.max_correction_share) * self.step_size / s_inf_norm
 
             if self.step_size_in_geometry_space:
                 KM.Logger.PrintWarning("ShapeOpt", "Calculating the step size in geometry space will make the computed correction incorrect! Use with care!")
         else:
-            s *= self.step_size / s.norm_inf()
+            s *= self.step_size / s_inf_norm
 
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.SEARCH_DIRECTION)
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, c, KSO.CORRECTION)
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, s+c, KSO.CONTROL_POINT_UPDATE)
+
+    def __getScaledInfNorm(self, vector, scaling_factors):
+        _max = 0
+        for value, scaling_factor in zip(vector, scaling_factors):
+            _max = max(abs(value * scaling_factor), _max)
+        return _max
 
     # --------------------------------------------------------------------------
     def __getActiveConstraints(self):
