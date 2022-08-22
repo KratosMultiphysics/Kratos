@@ -1,9 +1,5 @@
 # import Kratos
 
-import os
-import sys
-import argparse
-
 from KratosMultiphysics import *
 from KratosMultiphysics.GeoMechanicsApplication import *
 
@@ -82,7 +78,6 @@ def AssembleTestSuites():
                         TestSellmeijersRule,
                         TestElementaryGroundWaterFlow]
     night_test_cases.extend(small_test_cases)
-                        
 
     # Create an array with all long tests only for validations
     valid_test_cases = [TestConsecutivePipeLines,
@@ -116,3 +111,7 @@ if __name__ == '__main__':
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
+
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
+    run_cpp_unit_tests.run()
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
