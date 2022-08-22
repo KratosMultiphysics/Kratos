@@ -50,7 +50,7 @@ The Python interface is defined in [_CoSimIO_ python module](https://github.com/
 The _CoSimIO_ supports pure sequential and mpi-parallel executions. Shared memory parallelism is currently not planned but might be added at a later stage.
 
 ## Memory Management
-Coupling requires frequent exchange of data. Therefore the _CoSimIO_ uses the memory provided by the including solvers/software-tools directly, without copying it to an auxiliar data structure.
+Coupling requires frequent exchange of data. Therefore the _CoSimIO_ uses the memory provided by the including solvers/software-tools directly, without copying it to an auxiliary data structure.
 
 ## Special Thanks To
 - [Boost](http://www.boost.org/) for the `intrusive_ptr`

@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "custom_python/add_co_sim_io_to_python.h"
-#include "utilities/auxiliar_model_part_utilities.h"
+#include "utilities/auxiliary_model_part_utilities.h"
 #include "custom_utilities/co_sim_io_conversion_utilities.h"
 
 // CoSimIO
