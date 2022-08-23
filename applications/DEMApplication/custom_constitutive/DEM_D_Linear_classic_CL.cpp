@@ -34,7 +34,7 @@ namespace Kratos{
         const double my_poisson      = element1->GetPoisson();
         const double other_poisson   = element2->GetPoisson();
         const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
-        const double equiv_poisson   = my_poisson * other_poisson / (my_poisson + other_poisson);
+        const double equiv_poisson   = 2.0 * my_poisson * other_poisson / (my_poisson + other_poisson);
 
         //Get equivalent Shear Modulus
         const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
@@ -58,7 +58,7 @@ namespace Kratos{
         const double my_poisson          = element->GetPoisson();
         const double walls_poisson       = wall->GetProperties()[POISSON_RATIO];
         const double equiv_young         = my_young * walls_young / (walls_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - walls_poisson * walls_poisson));
-        const double equiv_poisson       = my_poisson * walls_poisson / (my_poisson + walls_poisson);
+        const double equiv_poisson       = 2.0 * my_poisson * walls_poisson / (my_poisson + walls_poisson);
 
         //Get equivalent Shear Modulus
         const double my_shear_modulus    = 0.5 * my_young / (1.0 + my_poisson);

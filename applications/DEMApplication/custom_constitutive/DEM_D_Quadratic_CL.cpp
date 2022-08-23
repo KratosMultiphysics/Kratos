@@ -22,13 +22,13 @@ namespace Kratos {
     }
 
     std::string DEM_D_Quadratic::GetTypeOfLaw() {
-        std::string type_of_law = "Hertz";
+        std::string type_of_law = "Hertz"; //TODO: this should be update
         return type_of_law;
     }
 
     void DEM_D_Quadratic::Check(Properties::Pointer pProp) const {
 
-        if(!pProp->Has(ALPHA_K)){
+        if(!pProp->Has(K_ALPHA)){
         KRATOS_WARNING("DEM")<<std::endl;
         KRATOS_ERROR << "Error: Variable ALPHA_K should be present in the properties when using DEM_D_Quadratic_LAW. "<<std::endl;
         KRATOS_WARNING("DEM")<<std::endl;
@@ -56,25 +56,25 @@ namespace Kratos {
         const double my_poisson      = element1->GetPoisson();
         const double other_poisson   = element2->GetPoisson();
         const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
-        const double equiv_poisson   = my_poisson * other_poisson / (my_poisson + other_poisson);
+        const double equiv_poisson   = 2.0 * my_poisson * other_poisson / (my_poisson + other_poisson);
 
         //Get equivalent Shear Modulus
         const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
         const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
         const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
-        //Normal and Tangent elastic constants //TODO: UPDATE 
+        //Normal and Tangent stiffness
         Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
-        const double alpha_k = properties_of_this_contact[ALPHA_K];
-        const double aim_radius = std::min(my_radius, other_radius);
-        // mKn is from Li,2011 [Modeling of stress-dependent static and dynamic moduli of weak sandstones]
-        mKn = alpha_k * equiv_shear * Globals::Pi * aim_radius * aim_radius / radius_sum * (1 - equiv_poisson); 
-        mKt = 0.5 * mKn / (1 + equiv_poisson);
+        const double k_alpha = properties_of_this_contact[K_ALPHA];
+
+        // mKn for conical contact is from Sneddon, I. N., 1965, [The Relation between Load and Penetration in the Axisymmetric Boussinesq Problem for a Punch of Arbitrary Profile]
+        mKn = 4.0 * equiv_young * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha));
+        mKt = 4.0 * equiv_shear * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha));
     }
 
     double DEM_D_Quadratic::CalculateNormalForce(const double indentation) {
 
-        return mKn * indentation * indentation;
+        return mKn * indentation;
     }
 
     void DEM_D_Quadratic::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
@@ -89,15 +89,18 @@ namespace Kratos {
         const double my_poisson          = element->GetPoisson();
         const double walls_poisson       = wall->GetProperties()[POISSON_RATIO];
         const double equiv_young         = my_young * walls_young / (walls_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - walls_poisson * walls_poisson));
-        const double equiv_poisson       = my_poisson * walls_poisson / (my_poisson + walls_poisson);
+        const double equiv_poisson       = 2.0 * my_poisson * walls_poisson / (my_poisson + walls_poisson);
 
         //Get equivalent Shear Modulus
         const double my_shear_modulus    = 0.5 * my_young / (1.0 + my_poisson);
         const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
         const double equiv_shear         = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus);
+
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        const double k_alpha = properties_of_this_contact[K_ALPHA];
  
-        mKn = equiv_young * Globals::Pi * my_radius * my_radius / (my_radius + my_radius); 
-        mKt = equiv_shear * Globals::Pi * my_radius * my_radius / (my_radius + my_radius);
+        mKn = 4.0 * equiv_young * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha));
+        mKt = 4.0 * equiv_shear * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha));
     }
 
 } //namespace Kratos
