@@ -3,7 +3,7 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.testing.utilities import ReadModelPart
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
-class FluidUtilitiesProcessTest(UnitTest.TestCase):
+class FluidComputationProcessTest(UnitTest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.model = Kratos.Model()
@@ -31,41 +31,28 @@ class FluidUtilitiesProcessTest(UnitTest.TestCase):
             node.SetSolutionStepValue(Kratos.VELOCITY, Kratos.Array3([node.Id, node.Id * 2, node.Id * 3]))
             node.SetSolutionStepValue(Kratos.REACTION, Kratos.Array3([node.Id, node.Id * 2, node.Id * 3]))
 
-    def testCFLUtility(self):
+    def testComputeCFLProcess(self):
         settings = Kratos.Parameters(r'''
         [
             {
                 "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-                "python_module" : "fluid_utilities_process",
+                "python_module" : "compute_cfl_process",
                 "Parameters" : {
-                    "model_part_name" : "test",
-                    "interval"        : [0.0, "End"],
-                    "utility_settings": {
-                        "utility_type" : "cfl",
-                        "echo_level"   : 0
-                    }
+                    "model_part_name" : "test"
                 }
             }
         ]''')
 
         self.__RunTest(settings)
 
-    def testYPlusUtility(self):
+    def testComputeYPlusProcess(self):
         settings = Kratos.Parameters(r'''
         [
             {
                 "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-                "python_module" : "fluid_utilities_process",
+                "python_module" : "compute_y_plus_process",
                 "Parameters" : {
-                    "model_part_name" : "test",
-                    "interval"        : [0.0, "End"],
-                    "utility_settings": {
-                        "utility_type"                     : "y_plus",
-                        "output_variable_name"             : "Y_PLUS",
-                        "output_to_elements"               : false,
-                        "calculate_normals_every_time_step": true,
-                        "echo_level"                       : 0
-                    }
+                    "model_part_name" : "test"
                 }
             }
         ]''')
