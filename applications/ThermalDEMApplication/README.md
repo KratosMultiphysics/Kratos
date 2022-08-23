@@ -46,6 +46,7 @@ Instructions on how to get a copy of the project and run on your local machine f
 Before building *Kratos Multiphysics*, make sure to add the following applications to your configure file: 
 
 - ThermalDEMApplication
+- DelaunayMeshingApplication
 
 ## Instructions
 
