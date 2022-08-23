@@ -40,7 +40,7 @@ class SurfaceAnalyzer:
         return acc_number_flux, acc_mass_flux
 
     def CalculateAccumulatedLists(self, radii_flux):
-        acc_radii_flux = self.radii_accumulated + radii_flux
+        acc_radii_flux = radii_flux
 
         return acc_radii_flux
 
@@ -59,16 +59,21 @@ class SurfaceAnalyzer:
             avg_vel_nr = [0.] * len(mass)
         return shape, time, n_particles, mass, radii, avg_vel_nr
 
+    def GetRadiiDataBase(self, radii_db, radii):
+        #db = np.array(radii_db,dtype='object')
+        print(type(radii_db))
+        self.face_watcher.GetRadiiDataBase(radii_db, radii)
+        print(radii_db)
+
     def MakeInletMassPlot(self):
         self.MakeInletReading()
 
     def SetInlet(self, inlet):
         self.inlet = inlet
 
-    def UpdateVariables(self, n_particles_old, n_mass_old, radii_old):
+    def UpdateVariables(self, n_particles_old, n_mass_old):
         self.n_particles_accumulated = n_particles_old
         self.mass_accumulated = n_mass_old
-        self.radii_accumulated = radii_old
 
     def ClearData(self):
         self.face_watcher.ClearData()
@@ -156,7 +161,7 @@ class SurfacesAnalyzerClass:
                 shape_old = f_old['/' + analyzer.smp_name + '/time'].shape
                 current_shape = (shape_old[0] + shape[0], )
                 time_db, n_particles_db, mass_db, avg_vel_nr_db = self.CreateDataSets(f, current_shape, analyzer.smp_name)
-                radii_db = self.CreateDataSetOfRadii(f, len(radii), analyzer.smp_name)
+                radii_db = self.CreateDataSetOfRadii(f, current_shape[0], analyzer.smp_name)
                 surface_data = f.require_group(analyzer.smp_name)
                 surface_data.attrs['Surface Identifier'] = analyzer.smp_name
 
@@ -167,13 +172,16 @@ class SurfacesAnalyzerClass:
                 mass_db[:shape_old[0]] = f_old['/' + analyzer.smp_name + '/' + self.name_mass][:]
                 mass_db[shape_old[0]:] = mass[:]
 
-                radii_db[:,0] = radii[:]
+                radii_db[:shape_old[0]] = f_old['/' + analyzer.smp_name + '/' + self.name_radii][:]
+
+                #analyzer.GetRadiiDataBase(radii_db[shape_old[0]:,0], radii[:])
+                radii_db[shape_old[0]:,0] = radii[:]
 
                 avg_vel_nr_db[:shape_old[0]] = f_old['/' + analyzer.smp_name + '/' + self.name_avg_vel_nr][:]
                 avg_vel_nr_db[shape_old[0]:] = avg_vel_nr[:]
                 if self.do_clear_data:
                     if len(n_particles):
-                        (analyzer).UpdateVariables(n_particles[-1], mass[-1], radii)
+                        (analyzer).UpdateVariables(n_particles[-1], mass[-1])
                     (analyzer).ClearData()
 
         # how to extract data from h5 subgrouped datasets:
@@ -191,13 +199,15 @@ class SurfacesAnalyzerClass:
             for analyzer in self.surface_analyzers_list:
                     shape, time, n_particles, mass, radii, avg_vel_nr = analyzer.UpdateData(time)
                     time_db, n_particles_db, mass_db, avg_vel_nr_db = self.CreateDataSets(f, shape, analyzer.smp_name)
+                    radii_db = self.CreateDataSetOfRadii(f, len(radii), analyzer.smp_name)
                     time_db[:] = time[:]
                     n_particles_db[:] = n_particles[:]
                     mass_db[:] = mass[:]
                     avg_vel_nr_db[:] = avg_vel_nr[:]
+                    radii_db[:,0] = radii[:]
                     if self.do_clear_data:
                         if len(n_particles):
-                            analyzer.UpdateVariables(n_particles[-1], mass[-1], radii)
+                            analyzer.UpdateVariables(n_particles[-1], mass[-1])
                         analyzer.ClearData()
 
     def CreateDataSets(self, f, current_shape, sp_name):

@@ -287,6 +287,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         //.def("GetFaceData", &AnalyticFaceWatcher::GetFaceData)
         //.def("GetAllFacesData", &AnalyticFaceWatcher::GetAllFacesData)
         .def("GetTotalFlux", &AnalyticFaceWatcher::GetTotalFlux)
+        .def("GetRadiiDataBase", &AnalyticFaceWatcher::GetRadiiDataBase)
         ;
 
     py::class_<DEM_FEM_Search, DEM_FEM_Search::Pointer>(m, "DEM_FEM_Search")
