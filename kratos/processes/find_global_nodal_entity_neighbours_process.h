@@ -94,7 +94,9 @@ public:
 
     void Execute() override;
 
-    void ClearNeighbours();
+    void Clear() override;
+
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use Clear)") void ClearNeighbours() { Clear(); }
 
     std::unordered_map<int, std::vector<int> > GetNeighbourIds(
         ModelPart::NodesContainerType& rNodes);

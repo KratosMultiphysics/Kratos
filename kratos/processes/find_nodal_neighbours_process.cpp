@@ -61,7 +61,7 @@ void FindNodalNeighboursProcess::Execute()
 void FindNodalNeighboursProcess::ClearNeighbours()
 {
     mpNodeNeighboursCalculator->ClearNeighbours();
-    mpElemNeighboursCalculator->ClearNeighbours();
+    mpElemNeighboursCalculator->Clear();
 }
 
 }  // namespace Kratos.

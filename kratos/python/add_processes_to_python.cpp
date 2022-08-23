@@ -182,14 +182,18 @@ void  AddProcessesToPython(pybind11::module& m)
             return Kratos::make_shared<FindGlobalNodalElementalNeighboursProcessType>(rModelPart);
         }))
         .def(py::init<ModelPart&>())
-        .def("ClearNeighbours",&FindGlobalNodalElementalNeighboursProcessType::ClearNeighbours)
+        .def("ClearNeighbours", [](FindGlobalNodalElementalNeighboursProcessType& rSelf){
+            KRATOS_WARNING("FindGlobalNodalElementalNeighboursProcess") << "Using deprecated ClearNeighbours method. please use Clear().";
+            rSelf.Clear();})
         .def("GetNeighbourIds",&FindGlobalNodalElementalNeighboursProcessType::GetNeighbourIds)
         ;
 
     using FindGlobalNodalConditionalNeighboursProcessType = FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>;
     py::class_<FindGlobalNodalConditionalNeighboursProcessType, typename FindGlobalNodalConditionalNeighboursProcessType::Pointer, Process>(m,"FindGlobalNodalConditionNeighboursProcess")
         .def(py::init<ModelPart&>())
-        .def("ClearNeighbours",&FindGlobalNodalConditionalNeighboursProcessType::ClearNeighbours)
+        .def("ClearNeighbours", [](FindGlobalNodalElementalNeighboursProcessType& rSelf){
+            KRATOS_WARNING("FindGlobalNodalConditionNeighboursProcess") << "Using deprecated ClearNeighbours method. please use Clear().";
+            rSelf.Clear();})
         .def("GetNeighbourIds",&FindGlobalNodalConditionalNeighboursProcessType::GetNeighbourIds)
         ;
 
