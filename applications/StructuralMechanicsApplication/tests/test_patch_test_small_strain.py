@@ -197,7 +197,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                         if abs(reference_strain[i]) > 0.0:
                             self.assertLess(abs((reference_strain[i] - strain[i])/reference_strain[i]), self.tolerances.relative)
                         else:
-                            self.assertLess(abs(strain[i]), self.tolerances.strain)
+                            self.assertLess(abs(strain[i]), self.tolerances.absolute.strain)
 
         # Finally compute stress
         if(dim == 2):
