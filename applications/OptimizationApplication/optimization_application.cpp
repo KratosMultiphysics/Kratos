@@ -39,6 +39,7 @@ namespace Kratos
         mHelmholtzSurfThickness3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
         mHelmholtzBulkShape3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
         mHelmholtzBulkTopology3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+        mAdjointSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))),Element::Pointer() ),
         /* CONDITIONS */            
         mHelmholtzSurfShapeCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3))))              
     {}
@@ -97,31 +98,13 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(D_MASS_D_CT);       
         KRATOS_REGISTER_VARIABLE(D_MASS_D_PD);
         KRATOS_REGISTER_VARIABLE(D_MASS_D_FD);
-        KRATOS_REGISTER_VARIABLE(D_MASS_D_CD);      
+        KRATOS_REGISTER_VARIABLE(D_MASS_D_CD);                 
 
-        //eigenfrequency
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(D_EIGEN_FREQ_D_X);
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(D_EIGEN_FREQ_D_CX);
-        KRATOS_REGISTER_VARIABLE(D_EIGEN_FREQ_D_PT);
-        KRATOS_REGISTER_VARIABLE(D_EIGEN_FREQ_D_CT);       
-        KRATOS_REGISTER_VARIABLE(D_EIGEN_FREQ_D_PD);
-        KRATOS_REGISTER_VARIABLE(D_EIGEN_FREQ_D_CD);            
-
-        //local_stress
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(D_LOCAL_STRESS_D_X);
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(D_LOCAL_STRESS_D_CX);
-        KRATOS_REGISTER_VARIABLE(D_LOCAL_STRESS_D_PT);
-        KRATOS_REGISTER_VARIABLE(D_LOCAL_STRESS_D_CT);       
-        KRATOS_REGISTER_VARIABLE(D_LOCAL_STRESS_D_PD);
-        KRATOS_REGISTER_VARIABLE(D_LOCAL_STRESS_D_CD);                  
-
-        //max_stress
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(D_MAX_STRESS_D_X);
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(D_MAX_STRESS_D_CX);
-        KRATOS_REGISTER_VARIABLE(D_MAX_STRESS_D_PT);
-        KRATOS_REGISTER_VARIABLE(D_MAX_STRESS_D_CT);       
-        KRATOS_REGISTER_VARIABLE(D_MAX_STRESS_D_PD);
-        KRATOS_REGISTER_VARIABLE(D_MAX_STRESS_D_CD);       
+        //stress
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(D_STRESS_D_X);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(D_STRESS_D_CX);      
+        KRATOS_REGISTER_VARIABLE(D_STRESS_D_FD);
+        KRATOS_REGISTER_VARIABLE(D_STRESS_D_CD);                       
 
         // shape control
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SX);
@@ -172,6 +155,12 @@ namespace Kratos
 
         // Topology optimization elements 
         KRATOS_REGISTER_ELEMENT("HelmholtzBulkTopology3D4N", mHelmholtzBulkTopology3D4N);
+
+        // Adjoint elements 
+        KRATOS_REGISTER_ELEMENT("AdjointSmallDisplacementElement3D4N", mAdjointSmallDisplacementElement3D4N);   
+
+        // Adjoint RHS
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_RHS);     
 
         // Thickness optimization elements
         KRATOS_REGISTER_ELEMENT("HelmholtzSurfThickness3D3N", mHelmholtzSurfThickness3D3N);        

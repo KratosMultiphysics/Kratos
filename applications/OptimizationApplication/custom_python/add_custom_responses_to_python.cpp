@@ -28,6 +28,7 @@
 #include "custom_responses/shape_responses/linear.h"
 #include "custom_responses/mass_opt_response.h"
 #include "custom_responses/linear_strain_energy_opt_response.h"
+#include "custom_responses/stress_opt_response.h"
 
 // ==============================================================================
 
@@ -40,6 +41,11 @@ namespace Python {
 void  AddCustomResponsesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
+
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;    
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+
     // ================================================================
     // 
     // ================================================================
@@ -69,7 +75,14 @@ void  AddCustomResponsesToPython(pybind11::module& m)
         .def("Initialize", &LinearStrainEnergyOptResponse::Initialize)
         .def("CalculateValue", &LinearStrainEnergyOptResponse::CalculateValue)
         .def("CalculateGradient", &LinearStrainEnergyOptResponse::CalculateGradient)        
-        ;                                  
+        ;   
+
+    py::class_<StressOptResponse >(m, "StressOptResponse")
+        .def(py::init<std::string, Model&, Parameters&, std::vector<LinearSolverType::Pointer>&>())
+        .def("Initialize", &StressOptResponse::Initialize)
+        .def("CalculateValue", &StressOptResponse::CalculateValue)
+        .def("CalculateGradient", &StressOptResponse::CalculateGradient)        
+        ;                                         
  
 }
 

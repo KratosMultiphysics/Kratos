@@ -185,10 +185,10 @@ public:
 
         opt_itr++;
 
-        if (opt_itr % 20 == 0 && beta <20.0)
-            beta *=1.5;
-        if(beta>25.0)
-            beta = 25.0;
+        // if (opt_itr % 20 == 0 && beta <20.0)
+        //     beta *=1.5;
+        // if(beta>25.0)
+        //     beta = 25.0;
         
         std::cout<<"++++++++++++++++++++++ beta : "<<beta<<" ++++++++++++++++++++++"<<std::endl;
 

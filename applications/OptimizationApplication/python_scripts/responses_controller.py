@@ -60,7 +60,7 @@ class ResponsesController:
 
 
         analysis_based_responses = []
-        structural_responses = ["strain_energy", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]        
+        structural_responses = ["strain_energy", "stress"]        
         analysis_based_responses.extend(structural_responses)
 
         analysis_free_responses = ["mass","linear","plane_symmetry"]

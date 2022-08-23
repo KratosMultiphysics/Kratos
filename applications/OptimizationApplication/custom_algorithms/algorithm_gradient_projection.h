@@ -230,7 +230,7 @@ public:
             if(constraint["is_active"].GetBool()){
                 auto const_type = constraint["type"].GetString();
                 double current_violation = (constraint["value"].GetDouble()-constraint["ref_value"].GetDouble())/constraint["ref_value"].GetDouble();
-                if(100 * std::abs(current_violation)>1.0)
+                if(100 * std::abs(current_violation)>0.5)
                     current_is_feasible = false;
                 double previous_violation = (constraint["prev_itr_value"].GetDouble()-constraint["ref_value"].GetDouble())/constraint["ref_value"].GetDouble();
                 double relative_change = (constraint["value"].GetDouble()-constraint["prev_itr_value"].GetDouble())/constraint["prev_itr_value"].GetDouble();
@@ -241,17 +241,17 @@ public:
                     
                     if((const_type=="equality") || (const_type=="initial_value_equality")){
                         //first check the oscill
-                        if((100 * std::abs(current_violation)>1) && (((current_violation>0.0) && (previous_violation<0)) || ((current_violation<0.0) && (previous_violation>0)))){
+                        if((100 * std::abs(previous_violation)>1) && (100 * std::abs(current_violation)>1) && (((current_violation>0.0) && (previous_violation<0)) || ((current_violation<0.0) && (previous_violation>0)))){
                             double mult = std::abs(constraint["prev_itr_value"].GetDouble()-constraint["ref_value"].GetDouble());
                             mult /= std::abs(constraint["prev_itr_value"].GetDouble()-constraint["value"].GetDouble());
-                            weight *= 0.75; 
+                            weight *= 0.95; 
                         }
-                        else if((std::abs(current_violation)>std::abs(previous_violation)) && (100 * std::abs(previous_violation)>1))
+                        else if((std::abs(current_violation)>std::abs(previous_violation)) && (100 * std::abs(previous_violation)>0.5))
                             weight *= 1.25;
-                        else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(current_violation)>1) && (100 * std::abs(relative_change)<1.0))
+                        else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(current_violation)>0.5) && (100 * std::abs(relative_change)<1.0))
                             weight *= 1.25;
                         else if((100 * std::abs(previous_violation)<0.1) && (100 * std::abs(current_violation)<0.1))
-                            weight *= 0.75;                                                                                
+                            weight *= 0.95;                                                                                
                     }
                     else{
                         bool prev_itr_is_active = constraint["prev_itr_is_active"].GetBool();
@@ -320,7 +320,10 @@ public:
 
         // apply contraction if necessary
         if (opt_itr>2 && current_is_feasible && (sum_objective_value>last_feasible_obj_val))
-            mSumObjectivesImprovements *= 0.8;
+            mSumObjectivesImprovements *= 0.9;
+
+        if (opt_itr>2 && current_is_feasible && prev_is_feasible && (sum_objective_value<last_feasible_obj_val))
+            mSumObjectivesImprovements *= 1.01;            
 
         KRATOS_INFO("mSumObjectivesImprovements: ")<<mSumObjectivesImprovements<<std::endl;
 

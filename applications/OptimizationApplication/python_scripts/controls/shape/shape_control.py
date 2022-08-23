@@ -42,6 +42,9 @@ class ShapeControl():
         if self.smooth_surface:
             self.vector_fields.append("SX")
 
+
+        self.vector_fields.append("ADJOINT_DISPLACEMENT")
+
         self.output_names = self.vector_fields + self.scalar_fields
 
         # add vars

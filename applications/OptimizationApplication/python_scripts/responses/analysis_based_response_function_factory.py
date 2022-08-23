@@ -6,6 +6,9 @@ def CreateResponseFunction(response_name,response_type,response_settings, respon
     if response_type == "strain_energy": 
         return structural_response.StrainEnergyResponseFunction(response_name,response_settings,response_analysis,model)
 
+    elif response_type == "stress":
+        return structural_response.StressResponseFunction(response_name,response_settings,response_analysis,model)
+
     # elif response_type == "mass":
     #     return structural_response.MassResponseFunction(response_id, response_settings, model)
 
