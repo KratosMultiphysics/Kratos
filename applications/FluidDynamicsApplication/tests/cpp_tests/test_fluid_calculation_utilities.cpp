@@ -26,7 +26,7 @@
 namespace Kratos {
 namespace Testing {
 
-    Element& GenerateTestModelPart(ModelPart& rModelPart, const int Dim) {
+    Element& GenerateTestModelPart(ModelPart& rModelPart, const unsigned int Dim) {
 
         // Set buffer size
         rModelPart.SetBufferSize(2);
