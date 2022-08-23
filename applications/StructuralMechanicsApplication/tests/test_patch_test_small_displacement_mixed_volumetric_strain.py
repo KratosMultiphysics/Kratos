@@ -240,7 +240,7 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
                     if abs(stress[i]) > 0.0:
                         self.assertLess((reference_stress[i] - stress[i])/stress[i], self.tolerances.relative)
                     else:
-                        self.assertLess(abs(stress[i]), self.tolerances.stress)
+                        self.assertLess(abs(stress[i]), self.tolerances.absolute.stress)
 
     def testSmallDisplacementMixedVolumetricStrainElement2DTriangle(self):
         dimension = 2
