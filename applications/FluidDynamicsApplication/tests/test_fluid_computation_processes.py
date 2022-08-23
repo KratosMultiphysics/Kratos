@@ -3,7 +3,7 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.testing.utilities import ReadModelPart
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
-class FluidComputationProcessTest(UnitTest.TestCase):
+class FluidComputationProcessesTest(UnitTest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.model = Kratos.Model()
