@@ -5,22 +5,6 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import Co
 from KratosMultiphysics.CoSimulationApplication.solver_wrappers.rigid_body.rigid_body_solver import RigidBodySolver
 
 
-data_comm = KM.Testing.GetDefaultDataCommunicator()
-
-import os
-
-try:
-    import numpy
-    numpy_available = True
-except ImportError:
-    numpy_available = False
-
-have_cfd_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamicsApplication", "MappingApplication", "LinearSolversApplication")
-
-# def GetFilePath(fileName):
-#     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
-
-
 class RBSTestFactory(KratosUnittest.TestCase):
     def setUp(self):
         # Within this location context:
@@ -74,29 +58,15 @@ class CoSimTestFactory(KratosUnittest.TestCase):
         with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.Run()
 
-    # def tearDown(self):
-    #     # Within this location context:
-    #     with KratosUnittest.WorkFolderScope(".", __file__):
-    #         self.test.Finalize()
-
-
 
 class RBSStandaloneTest(RBSTestFactory):
-    if not numpy_available:
-        CoSimRBSTestFactory.skipTest("Numpy not available")
     file_name = "rbs_test/RBS_standalone/RBS_standalone"
 
 class RBSRBSTest(CoSimTestFactory):
-    if not numpy_available:
-        CoSimRBSTestFactory.skipTest("Numpy not available")
     file_name = "rbs_test/RBS_RBS/RBS_RBS"
 
-@KratosUnittest.skipIfApplicationsNotAvailable("FluidDynamicsApplication")
+@KratosUnittest.skipIfApplicationsNotAvailable("FluidDynamicsApplication", "MappingApplication", "LinearSolversApplication")
 class Barc2DRigidBodyTest(CoSimTestFactory):
-    # if not numpy_available:
-    #     self.skipTest("Numpy not available")
-    # if not False:
-    #     self.skipTest("CFD dependencies are not available!")
     file_name = "rbs_test/Barc2DRigidBody/Barc2DRigidBody"
 
 
