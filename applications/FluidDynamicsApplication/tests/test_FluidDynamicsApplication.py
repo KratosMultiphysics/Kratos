@@ -130,7 +130,7 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidAuxiliaryUtilitiesTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidComputationProcessTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidComputationProcessesTest]))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
