@@ -222,8 +222,6 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                     if abs(stress[i]) > 0.0:
                         if abs(reference_stress[i]) > 0.0: 
                             self.assertLess(abs((reference_stress[i] - stress[i])/reference_stress[i]), self.tolerance) 
-                        else: 
-                            self.assertLess(abs(stress[i]), self.tolerance)
 
     def test_SmallDisplacementElement_2D_triangle(self):
         dim = 2
