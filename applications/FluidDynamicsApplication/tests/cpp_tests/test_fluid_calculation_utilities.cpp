@@ -36,7 +36,7 @@ namespace Testing {
         rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
 
         // Process info creation
-        rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, Dim);
+        rModelPart.GetProcessInfo()[DOMAIN_SIZE] =  Dim;
         auto p_elem_prop = rModelPart.CreateNewProperties(1);
 
         // Element creation
