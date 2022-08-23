@@ -143,7 +143,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                     error = abs((d[i] - u[i])/u[i])
                     self.assertLess(error, self.tolerances.relative, msg=f"NODE {node.Id}: Component {coor_list[i]}: {u[i]} {d[i]} Error: {error}")
                 else:
-                    self.assertLess(abs(d[i]), self.tolerances.displacement)
+                    self.assertLess(abs(d[i]), self.tolerances.absolute.displacement)
 
     def _check_outputs(self,mp,A,dim):
 
