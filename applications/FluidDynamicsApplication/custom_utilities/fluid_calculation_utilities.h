@@ -44,6 +44,9 @@ public:
 
     using GeometryType = Geometry<NodeType>;
 
+    template<class TDataType>
+    using ComponentDataType = std::tuple<TDataType&, const TDataType&>;
+
     ///@}
     ///@name Static Operations
     ///@{
@@ -80,19 +83,13 @@ public:
         const auto& r_node = rGeometry[0];
         const double shape_function_value = rShapeFunction[0];
 
-        (AssignValue<
-                typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type,
-                typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type>(
-                    r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value, std::get<0>(rValueVariablePairs)), ...);
+        (std::apply([&](auto&&... args) {((std::get<0>(args) = std::get<1>(args) * shape_function_value), ...);}, GetComponentsArray(std::get<0>(rValueVariablePairs), r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step))), ...);
 
         for (IndexType c = 1; c < rGeometry.PointsNumber(); ++c) {
             const auto& r_node = rGeometry[c];
             const double shape_function_value = rShapeFunction[c];
 
-            (UpdateValue<
-                    typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type,
-                    typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type>(
-                        r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value, std::get<0>(rValueVariablePairs)), ...);
+            (std::apply([&](auto&&... args) {((std::get<0>(args) += std::get<1>(args) * shape_function_value), ...);}, GetComponentsArray(std::get<0>(rValueVariablePairs), r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step))), ...);
         }
 
         KRATOS_CATCH("");
@@ -157,20 +154,13 @@ public:
         const auto& r_node = rGeometry[0];
         const double shape_function_value = rShapeFunction[0];
 
-        (AssignValue<
-                typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type,
-                typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type>(
-                    r_node.GetValue(std::get<1>(rValueVariablePairs)) * shape_function_value, std::get<0>(rValueVariablePairs)), ...);
+        (std::apply([&](auto&&... args) {((std::get<0>(args) = std::get<1>(args) * shape_function_value), ...);}, GetComponentsArray(std::get<0>(rValueVariablePairs), r_node.GetValue(std::get<1>(rValueVariablePairs)))), ...);
 
         for (IndexType c = 1; c < rGeometry.PointsNumber(); ++c) {
             const auto& r_node = rGeometry[c];
             const double shape_function_value = rShapeFunction[c];
 
-            (UpdateValue<
-                    typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type,
-                    typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type>(
-                        r_node.GetValue(std::get<1>(rValueVariablePairs)) * shape_function_value, std::get<0>(rValueVariablePairs)), ...);
-
+            (std::apply([&](auto&&... args) {((std::get<0>(args) += std::get<1>(args) * shape_function_value), ...);}, GetComponentsArray(std::get<0>(rValueVariablePairs), r_node.GetValue(std::get<1>(rValueVariablePairs)))), ...);
         }
 
         KRATOS_CATCH("");
@@ -215,10 +205,7 @@ public:
         const Vector& shape_function_derivative = row(rShapeFunctionDerivatives, 0);
 
         for (IndexType i = 0; i < rShapeFunctionDerivatives.size2(); ++i) {
-            (AssignGradientValue<
-                    typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type,
-                    typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type>(
-                        r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step), shape_function_derivative[i], i, std::get<0>(rValueVariablePairs)), ...);
+            (std::apply([&](auto&&... args) {((std::get<0>(args) = std::get<1>(args) * shape_function_derivative[i]), ...);}, GetComponentsArray(std::get<0>(rValueVariablePairs), r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step), i)), ...);
         }
 
         for (IndexType c = 1; c < rGeometry.PointsNumber(); ++c) {
@@ -226,10 +213,7 @@ public:
             const Vector& shape_function_derivative = row(rShapeFunctionDerivatives, c);
 
             for (IndexType i = 0; i < rShapeFunctionDerivatives.size2(); ++i) {
-                (UpdateGradientValue<
-                        typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type,
-                        typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type>(
-                            r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step), shape_function_derivative[i], i, std::get<0>(rValueVariablePairs)), ...);
+                (std::apply([&](auto&&... args) {((std::get<0>(args) += std::get<1>(args) * shape_function_derivative[i]), ...);}, GetComponentsArray(std::get<0>(rValueVariablePairs), r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step), i)), ...);
             }
         }
 
@@ -309,11 +293,7 @@ public:
         const Vector& shape_function_derivative = row(rShapeFunctionDerivatives, 0);
 
         for (IndexType i = 0; i < rShapeFunctionDerivatives.size2(); ++i) {
-            (AssignGradientValue<
-                    typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type,
-                    typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type>(
-                        r_node.GetValue(std::get<1>(rValueVariablePairs)), shape_function_derivative[i], i, std::get<0>(rValueVariablePairs)), ...);
-
+            (std::apply([&](auto&&... args) {((std::get<0>(args) = std::get<1>(args) * shape_function_derivative[i]), ...);}, GetComponentsArray(std::get<0>(rValueVariablePairs), r_node.GetValue(std::get<1>(rValueVariablePairs)), i)), ...);
         }
 
         for (IndexType c = 1; c < rGeometry.PointsNumber(); ++c) {
@@ -321,10 +301,7 @@ public:
             const Vector& shape_function_derivative = row(rShapeFunctionDerivatives, c);
 
             for (IndexType i = 0; i < rShapeFunctionDerivatives.size2(); ++i) {
-                (UpdateGradientValue<
-                        typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type,
-                        typename std::remove_reference<typename std::tuple_element<1, TRefVariableValuePairArgs>::type>::type::Type>(
-                            r_node.GetValue(std::get<1>(rValueVariablePairs)), shape_function_derivative[i], i, std::get<0>(rValueVariablePairs)), ...);
+                (std::apply([&](auto&&... args) {((std::get<0>(args) += std::get<1>(args) * shape_function_derivative[i]), ...);}, GetComponentsArray(std::get<0>(rValueVariablePairs), r_node.GetValue(std::get<1>(rValueVariablePairs)), i)), ...);
             }
         }
 
@@ -479,29 +456,18 @@ private:
     ///@name Private Operations
     ///@{
 
-    template<class TOutputDataType, class TInputDataType = TOutputDataType>
-    static void AssignValue(
-        const TInputDataType& rInput,
-        TOutputDataType& rOutput);
+    // gauss point evaluation templates
+    static auto inline GetComponentsArray(double& rOutput, const double& rInput) { return std::array<ComponentDataType<double>, 1>{std::tie(rOutput, rInput)};}
+    static auto inline GetComponentsArray(array_1d<double, 2>& rOutput, const array_1d<double, 3>& rInput) { return std::array<ComponentDataType<double>, 2>{std::tie(rOutput[0], rInput[0]), std::tie(rOutput[1], rInput[1])};}
+    static auto inline GetComponentsArray(array_1d<double, 3>& rOutput, const array_1d<double, 3>& rInput) { return std::array<ComponentDataType<double>, 3>{std::tie(rOutput[0], rInput[0]), std::tie(rOutput[1], rInput[1]), std::tie(rOutput[2], rInput[2])};}
+    static auto inline GetComponentsArray(Vector& rOutput, const Vector& rInput) { return std::array<ComponentDataType<Vector>, 1>{std::tie(rOutput, rInput)};}
+    static auto inline GetComponentsArray(Matrix& rOutput, const Matrix& rInput) { return std::array<ComponentDataType<Matrix>, 1>{std::tie(rOutput, rInput)};}
 
-    template<class TOutputDataType, class TInputDataType = TOutputDataType>
-    static void UpdateValue(
-        const TInputDataType& rInput,
-        TOutputDataType& rOutput);
-
-    template<class TOutputDataType, class TInputDataType>
-    static void AssignGradientValue(
-        const TInputDataType& rInput,
-        const double rShapeFunctionDerivative,
-        const IndexType DirectionIndex,
-        TOutputDataType& rOutput);
-
-    template<class TOutputDataType, class TInputDataType>
-    static void UpdateGradientValue(
-        const TInputDataType& rInput,
-        const double rShapeFunctionDerivative,
-        const IndexType DirectionIndex,
-        TOutputDataType& rOutput);
+    // gauss point gradient evaluation templates
+    static auto inline GetComponentsArray(array_1d<double, 2>& rOutput, const double& rInput, const IndexType DerivativeIndex) { return std::array<ComponentDataType<double>, 1>{std::tie(rOutput[DerivativeIndex], rInput)};}
+    static auto inline GetComponentsArray(array_1d<double, 3>& rOutput, const double& rInput, const IndexType DerivativeIndex) { return std::array<ComponentDataType<double>, 1>{std::tie(rOutput[DerivativeIndex], rInput)};}
+    static auto inline GetComponentsArray(BoundedMatrix<double, 2, 2>& rOutput, const array_1d<double, 3>& rInput, const IndexType DerivativeIndex) { return std::array<ComponentDataType<double>, 2>{std::tie(rOutput(0, DerivativeIndex), rInput[0]), std::tie(rOutput(1, DerivativeIndex), rInput[1])};}
+    static auto inline GetComponentsArray(BoundedMatrix<double, 3, 3>& rOutput, const array_1d<double, 3>& rInput, const IndexType DerivativeIndex) { return std::array<ComponentDataType<double>, 3>{std::tie(rOutput(0, DerivativeIndex), rInput[0]), std::tie(rOutput(1, DerivativeIndex), rInput[1]), std::tie(rOutput(2, DerivativeIndex), rInput[2])};}
 
     ///@}
 };
