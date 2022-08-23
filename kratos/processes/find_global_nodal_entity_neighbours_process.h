@@ -88,12 +88,6 @@ public:
 
     FindGlobalNodalEntityNeighboursProcess<EntityType>& operator=(FindGlobalNodalEntityNeighboursProcess<EntityType> const& rOther) = delete;
 
-    void operator()()
-    {
-        Execute();
-    }
-
-
     ///@}
     ///@name Operations
     ///@{
