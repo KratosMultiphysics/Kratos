@@ -73,6 +73,7 @@ class FluidComputationProcessesTest(UnitTest.TestCase):
 
             for process in process_list:
                 process.ExecuteInitializeSolutionStep()
+                process.Execute()                
                 process.ExecuteFinalizeSolutionStep()
 
         for process in process_list:
