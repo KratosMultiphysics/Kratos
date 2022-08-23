@@ -9,14 +9,14 @@ from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCase):
     def setUp(self):
-        self.tolerances = {
+        self.tolerances = Struct({
             "relative" : 1e-6,
-            "absolute" : {
+            "absolute" : Struct({
                 "displacement" : 1e-6,
                 "stress"       : 1e2,
                 "strain"       : 1e-2
-            }
-        }
+            })
+        })
         self.print_output = True
 
     def _add_variables(self, ModelPart):
