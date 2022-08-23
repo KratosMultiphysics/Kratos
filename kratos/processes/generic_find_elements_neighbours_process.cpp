@@ -20,7 +20,7 @@ namespace Kratos
 {
 
 
-void GenericFindElementalNeighboursProcess::ExecuteInitialize()
+void GenericFindElementalNeighboursProcess::Execute()
 {
     KRATOS_TRY
 
@@ -60,6 +60,11 @@ void GenericFindElementalNeighboursProcess::ExecuteInitialize()
     KRATOS_CATCH("Error finding the elemental neighbours")
 }
 
+void GenericFindElementalNeighboursProcess::ExecuteInitialize()
+{
+    KRATOS_WARNING("GenericFindElementalNeighboursProcess") << "'ExecuteInitialize' call is deprecated. Use 'Execute' instead." << std::endl;
+    Execute();
+}
 
 GlobalPointer<Element> GenericFindElementalNeighboursProcess::CheckForNeighbourElems (const Geometry<Node<3> >& rBoundaryGeom,
                                                                                       Element & rElement,

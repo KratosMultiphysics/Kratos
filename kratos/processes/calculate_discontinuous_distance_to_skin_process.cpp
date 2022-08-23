@@ -706,7 +706,7 @@ namespace Kratos
     {
         if (TDim == 2 && rNumCutEdges == 1) {
             ComputeExtrapolatedGeometryIntersections(rElement, rEdgesContainer, rNumCutEdges, rCutEdgesRatioVector, rExtraGeomNormal, rCutExtraEdgesRatioVector);
-        } else if (TDim == 3) {
+        } else if constexpr (TDim == 3) {
             if (rNumCutEdges == 3) {
                 // if all three cut edges share one node, then the element is intersected and not incised
                 if (CheckIfCutEdgesShareNode(rElement, rEdgesContainer, rCutEdgesRatioVector)) {
