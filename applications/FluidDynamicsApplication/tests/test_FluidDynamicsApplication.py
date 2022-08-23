@@ -51,7 +51,7 @@ from compressible_slip_wall_process_test import TestCompressibleSlipWallProcess
 from compute_pressure_coefficient_process_test import ComputePressureCoefficientProcessTest
 from compute_drag_process_test import ComputeDragProcessTest
 from test_compute_y_plus_process import ComputeYPlusProcessTest
-from test_fluid_computation_processes import FluidComputationProcessTest
+from test_fluid_computation_processes import FluidComputationProcessesTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
