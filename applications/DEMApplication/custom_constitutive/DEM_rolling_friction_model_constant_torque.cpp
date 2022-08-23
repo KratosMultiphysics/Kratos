@@ -26,7 +26,7 @@ namespace Kratos{
         
     }
 
-    void DEMRollingFrictionModelConstantTorque::ComputeRollingFriction(double& RollingResistance, double dt, SphericParticle* p_element, SphericParticle* p_neighbor, double LocalContactForce[3], array_1d<double, 3>& mContactMoment)
+    void DEMRollingFrictionModelConstantTorque::ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, double LocalContactForce[3], array_1d<double, 3>& mContactMoment)
     {
         array_1d<double, 3> elementRelAngularVelocity;
         noalias(elementRelAngularVelocity) = p_element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) - p_neighbor->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
@@ -55,13 +55,12 @@ namespace Kratos{
         } 
     }
 
-    void DEMRollingFrictionModelConstantTorque::ComputeRollingFrictionWithWall(double dt, double LocalContactForce[3], SphericParticle* p_element, Condition* const wall, double indentation, array_1d<double, 3>& mContactMoment)
+    void DEMRollingFrictionModelConstantTorque::ComputeRollingFrictionWithWall(double LocalContactForce[3], SphericParticle* p_element, Condition* const wall, double indentation, array_1d<double, 3>& mContactMoment)
     {
         array_1d<double, 3> element1AngularVelocity;
         noalias(element1AngularVelocity) = p_element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
         if (element1AngularVelocity[0] || element1AngularVelocity[1] || element1AngularVelocity[2]){
-            //array_1d<double, 3> other_to_me_vect;
-            //noalias(other_to_me_vect) = GetGeometry()[0].Coordinates() - wall->GetGeometry()[0].Coordinates();
+
             double arm_length = p_element->GetInteractionRadius() - indentation; 
             
             double element1AngularVelocity_modulus = sqrt(element1AngularVelocity[0] * element1AngularVelocity[0] + 

@@ -118,7 +118,6 @@ namespace Kratos {
                                       double LocalElasticContactForce[3],
                                       double normalLocalContactForce,
                                       double GlobalElasticContactForces[3],
-                                      double& RollingResistance,
                                       double LocalCoordSystem_2[3],
                                       const int i_neighbor_count);
 

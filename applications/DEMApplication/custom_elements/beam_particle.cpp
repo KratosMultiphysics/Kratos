@@ -364,7 +364,6 @@ namespace Kratos {
 
                 ComputeMoments(LocalContactForce[2],
                                TotalGlobalElasticContactForce,
-                               RollingResistance,
                                data_buffer.mLocalCoordSystem[2],
                                data_buffer.mpOtherParticle,
                                indentation,

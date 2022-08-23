@@ -31,19 +31,13 @@ DEMContinuumConstitutiveLaw::Pointer DEM_parallel_bond::Clone() const{
 
 void DEM_parallel_bond::TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp){
     BaseClassType::TransferParametersToProperties(parameters, pProp);
-
-    //TODO: add the parameters need to be transferred
-
 }
 
 void DEM_parallel_bond::Check(Properties::Pointer pProp) const {
     
-    //How many parameters do I need?
     //two parts: discontinuum part and continuum part
 
     //*********discontinuum part **************
-    //for [DEM_D_Hertz_viscous_Coulomb]
-    //here we only mention static_friction and dynamic_friction 
 
     if(!pProp->Has(STATIC_FRICTION)){
         KRATOS_WARNING("DEM")<<std::endl;
@@ -234,24 +228,10 @@ void DEM_parallel_bond::CalculateElasticConstants(double& kn_el, double& kt_el, 
     const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
     const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
-    //Normal and Tangent elastic constants
-    //const double aim_radius = std::min(my_radius, other_radius);
-    //mKn = equiv_young * Globals::Pi * aim_radius * aim_radius / radius_sum;
-    //mKt = mKn / (1 + equiv_poisson);
-
     //for bonded part
     const double bond_equiv_young = (*mpProperties)[BOND_YOUNG_MODULUS];
     kn_el = bond_equiv_young * calculation_area / initial_dist;
     kt_el = kn_el / (*mpProperties)[BOND_KNKS_RATIO];
-
-    //FOR COMPOUND
-    //double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
-    /*
-    array_1d<double, 3> other_to_me_vect;
-    noalias(other_to_me_vect) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
-    double distance = DEM_MODULUS_3(other_to_me_vect);
-    double unbonded_indentation = 0.0;
-    unbonded_indentation = radius_sum - distance;*/
 
     InitializeContact(element1, element2, indentation);
 
@@ -299,16 +279,6 @@ double DEM_parallel_bond::LocalMaxSearchDistance(const int i,
 
     KRATOS_CATCH("")
 }
-
-/*
-double DEM_parallel_bond::GetContactSigmaMax(){
-
-    KRATOS_TRY
-
-    // TODO: maybe this function is unnecessary
-
-    KRATOS_CATCH("")    
-}*/
 
 //*************************************
 // Force calculation
@@ -471,15 +441,6 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
     } else {
         mBondedScalingFactor[2] = 0.0;
     }
-
-    /* For debug
-    if (LocalElasticContactForce[2] > 200){
-        KRATOS_WATCH("**************************************normal force")
-        KRATOS_WATCH(element1->Id())
-        KRATOS_WATCH(element2->Id())
-        KRATOS_WATCH(BondedLocalElasticContactForce2)
-        KRATOS_WATCH(mUnbondedLocalElasticContactForce2)
-    }*/
 
     KRATOS_CATCH("")  
 
@@ -732,15 +693,6 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
         mBondedScalingFactor[0] = mBondedScalingFactor[1] = 0.0;
     }
 
-    /* For debug
-    if (LocalElasticContactForce[0] > 200 || LocalElasticContactForce[1] > 200){
-        KRATOS_WATCH("**************************************tangential force")
-        KRATOS_WATCH(element1->Id())
-        KRATOS_WATCH(element2->Id())
-        KRATOS_WATCH(LocalElasticContactForce[0])
-        KRATOS_WATCH(LocalElasticContactForce[1])
-    }*/
-
     KRATOS_CATCH("")
 }
 
@@ -761,14 +713,12 @@ void DEM_parallel_bond::CalculateMoments(SphericContinuumParticle* element,
                     double LocalElasticContactForce[3],
                     double normalLocalContactForce,
                     double GlobalElasticContactForces[3],
-                    double& RollingResistance,
                     double LocalCoordSystem_2[3],
                     const int i_neighbor_count) 
 {
     KRATOS_TRY
 
     int failure_type = element->mIniNeighbourFailureId[i_neighbor_count];
-    //int continuum_ini_neighbors_size = element->mContinuumInitialNeighborsSize;
 
     if (failure_type == 0) {
             ComputeParticleRotationalMoments(element, 
@@ -793,7 +743,6 @@ void DEM_parallel_bond::CalculateMoments(SphericContinuumParticle* element,
 
     DemContact::ComputeParticleContactMoments(normalLocalContactForce,
                                              GlobalUnbondElasticContactForce,
-                                             RollingResistance,
                                              LocalCoordSystem_2,
                                              element,
                                              neighbor,
@@ -822,7 +771,6 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
 
     KRATOS_TRY
 
-    //double LocalRotationalMoment[3]     = {0.0};
     double LocalDeltaRotatedAngle[3]    = {0.0};
     double LocalDeltaAngularVelocity[3] = {0.0};
 
@@ -922,15 +870,7 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
         ViscoLocalRotationalMoment[1] = 0.0;
         ViscoLocalRotationalMoment[2] = 0.0;
     }
-
-    //ViscoLocalRotationalMoment[0] = 0.0;
-    //ViscoLocalRotationalMoment[1] = 0.0;
-    //ViscoLocalRotationalMoment[2] = 0.0;
      
-    //const double rotational_moment_coeff = 0.01;
-    //DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, rotational_moment_coeff);
-    //DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, rotational_moment_coeff);
-
     KRATOS_CATCH("")
 }//ComputeParticleRotationalMoments
 

@@ -191,7 +191,6 @@ namespace Kratos {
                                       double LocalElasticContactForce[3],
                                       double normalLocalContactForce,
                                       double GlobalElasticContactForces[3],
-                                      double& RollingResistance,
                                       double LocalCoordSystem_2[3],
                                       const int i_neighbor_count){
             KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateMoments) shouldn't be accessed, use derived class instead"<<std::endl;

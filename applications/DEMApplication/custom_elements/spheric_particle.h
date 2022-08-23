@@ -344,7 +344,6 @@ virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternio
 
 virtual void ComputeMoments(double normalLocalContactForce,
                             double GlobalElasticContactForces[3],
-                            double& RollingResistance,
                             double LocalCoordSystem_2[3],
                             SphericParticle* neighbour_iterator,
                             double indentation,
@@ -352,15 +351,10 @@ virtual void ComputeMoments(double normalLocalContactForce,
 
 virtual void ComputeMomentsWithWalls(double normalLocalContactForce,
                             double GlobalElasticContactForces[3],
-                            double& RollingResistance,
                             double LocalCoordSystem_2[3],
                             Condition* wall,
                             double indentation,
                             unsigned int i);
-
-//virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt) final;
-//virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt, SphericParticle* p_neighbor, double LocalContactForce[3]) final;
-//virtual void ComputeRollingFrictionWithWall(double dt, double LocalContactForce[3], Condition* const wall, double indentation) final;
 
 virtual double GetInitialDeltaWithFEM(int index);
 
