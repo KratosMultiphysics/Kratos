@@ -280,13 +280,20 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("FindSmallestEdge", &CuttingUtility ::FindSmallestEdge)
         ;
 
-    //interval utility
-    py::class_<IntervalUtility >(m,"IntervalUtility")
-        .def(py::init<Parameters >())
-        .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
-        .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
-        .def("IsInInterval", &IntervalUtility ::IsInInterval)
-        ;
+    // Interval utility
+    #define KRATOS_DEFINE_INTERVAL_UTILITY_PYTHON_BINDINGS(CLASS_NAME) \
+        py::class_<CLASS_NAME>(m, #CLASS_NAME)                         \
+            .def(py::init<Parameters>())                               \
+            .def("GetIntervalBegin", &CLASS_NAME ::GetIntervalBegin)   \
+            .def("GetIntervalEnd", &CLASS_NAME ::GetIntervalEnd)       \
+            .def("IsInInterval", &CLASS_NAME ::IsInInterval)           \
+            ;
+
+    KRATOS_DEFINE_INTERVAL_UTILITY_PYTHON_BINDINGS(IntervalUtility)
+
+    KRATOS_DEFINE_INTERVAL_UTILITY_PYTHON_BINDINGS(DiscreteIntervalUtility)
+
+    #undef KRATOS_DEFINE_INTERVAL_UTILITY_PYTHON_BINDINGS
 
     //particle convect utility
     py::class_<ParticleConvectUtily<2> >(m,"ParticleConvectUtily2D")
