@@ -281,12 +281,14 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         ;
 
     // Interval utility
-    #define KRATOS_DEFINE_INTERVAL_UTILITY_PYTHON_BINDINGS(CLASS_NAME) \
-        py::class_<CLASS_NAME>(m, #CLASS_NAME)                         \
-            .def(py::init<Parameters>())                               \
-            .def("GetIntervalBegin", &CLASS_NAME ::GetIntervalBegin)   \
-            .def("GetIntervalEnd", &CLASS_NAME ::GetIntervalEnd)       \
-            .def("IsInInterval", &CLASS_NAME ::IsInInterval)           \
+    #define KRATOS_DEFINE_INTERVAL_UTILITY_PYTHON_BINDINGS(CLASS_NAME)       \
+        py::class_<CLASS_NAME>(m, #CLASS_NAME)                               \
+            .def(py::init<>())                                               \
+            .def(py::init<Parameters>())                                     \
+            .def("GetIntervalBegin", &CLASS_NAME ::GetIntervalBegin)         \
+            .def("GetIntervalEnd", &CLASS_NAME ::GetIntervalEnd)             \
+            .def("IsInInterval", &CLASS_NAME ::IsInInterval)                 \
+            .def("GetDefaultParameters", &CLASS_NAME ::GetDefaultParameters) \
             ;
 
     KRATOS_DEFINE_INTERVAL_UTILITY_PYTHON_BINDINGS(IntervalUtility)

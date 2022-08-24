@@ -22,6 +22,14 @@ namespace Kratos
 namespace Detail
 {
 
+
+template <class TValue>
+IntervalUtility<TValue>::IntervalUtility()
+    : IntervalUtility(IntervalUtility<TValue>::GetDefaultParameters())
+{
+}
+
+
 template <class TValue>
 IntervalUtility<TValue>::IntervalUtility(Parameters settings)
 {
@@ -76,6 +84,12 @@ template <class TValue>
 TValue IntervalUtility<TValue>::GetIntervalEnd() const noexcept
 {
     return mEnd;
+}
+
+template <class TValue>
+Parameters IntervalUtility<TValue>::GetDefaultParameters()
+{
+    return Parameters(R"({"interval" : ["Begin", "End"]})");
 }
 
 template <>

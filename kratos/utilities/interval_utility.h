@@ -34,6 +34,9 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(IntervalUtility);
 
+    /// Default constructor initializing boundaries to "Begin" and "End".
+    IntervalUtility();
+
     /**
      *  @brief Construct from parameters containing "interval".
      *
@@ -53,6 +56,10 @@ public:
      */
     IntervalUtility(Parameters Settings);
 
+    IntervalUtility(IntervalUtility&& rOther) = default;
+
+    IntervalUtility(const IntervalUtility& rOther) = default;
+
     TValue GetIntervalBegin() const noexcept;
 
     TValue GetIntervalEnd() const noexcept;
@@ -66,6 +73,8 @@ public:
      *           behaviour.
      */
     bool IsInInterval(TValue Value) const noexcept;
+
+    static Parameters GetDefaultParameters();
 
 private:
     TValue mBegin;
