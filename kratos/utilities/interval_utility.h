@@ -65,7 +65,7 @@ public:
     TValue GetIntervalEnd() const noexcept;
 
     /**
-     *  @brief Check whether the input value is within the defined interval [Begin, End).
+     *  @brief Check whether the input value is within the defined interval [Begin, End].
      *
      *  @details This member has explicit specializations for different types
      *           that have slight variations in behaviour around the interval

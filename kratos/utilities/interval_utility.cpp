@@ -36,23 +36,21 @@ IntervalUtility<TValue>::IntervalUtility(Parameters settings)
     KRATOS_TRY
 
     if (!settings.Has("interval")) {
-        // No interval provided => set it to ["Begin", "End"]
-        settings.AddEmptyArray("interval");
-        Parameters interval = settings["interval"];
-        interval.Append("Begin");
-        interval.Append("End");
+        settings.AddStringArray("interval", {"Begin", "End"});
     }
 
     auto interval = settings["interval"];
-    KRATOS_ERROR_IF_NOT(settings.IsArray() && settings.size() == 2) << "Expecting \"interval\" as an array of size 2, but got:\n" << interval.PrettyPrintJsonString();
+    KRATOS_ERROR_IF_NOT(interval.IsArray() && interval.size() == 2) << "Expecting \"interval\" as an array of size 2, but got:\n" << interval.PrettyPrintJsonString();
 
     // Replace "Begin" with the minimum representable value
-    if(interval[1].Is<std::string>()) {
+    if(interval[0].Is<std::string>()) {
         if(interval[0].Get<std::string>() == "Begin") {
-            interval[0].Set(std::numeric_limits<TValue>::min());
+            interval[0].Set(std::numeric_limits<TValue>::lowest());
         } else {
             KRATOS_ERROR << "the first value of \"interval\" can be \"Begin\" or a number, \"interval\" currently:\n" << interval.PrettyPrintJsonString();
         }
+    } else {
+        KRATOS_ERROR_IF_NOT(interval[0].Is<TValue>()) << "the first value of \"interval\" can be \"Begin\" or a number, \"interval\" currently:\n" << interval.PrettyPrintJsonString();
     }
 
     // Replace "End" with the maximum representable value
@@ -65,6 +63,8 @@ IntervalUtility<TValue>::IntervalUtility(Parameters settings)
         } else {
             KRATOS_ERROR << "the second value of \"interval\" can be \"End\" or a number, \"interval\" currently:\n" << interval.PrettyPrintJsonString();
         }
+    } else {
+        KRATOS_ERROR_IF_NOT(interval[1].Is<TValue>()) << "the second value of \"interval\" can be \"End\" or a number, \"interval\" currently:\n" << interval.PrettyPrintJsonString();
     }
 
     mBegin = interval[0].Get<TValue>();
@@ -95,14 +95,26 @@ Parameters IntervalUtility<TValue>::GetDefaultParameters()
 template <>
 bool IntervalUtility<double>::IsInInterval(double Value) const noexcept
 {
-    const double eps = std::max(1e-14 * mBegin, 1e-30);
-    return Value > mBegin - eps && Value < mEnd + eps;
+    double offset_begin = mBegin - std::max(1e-14 * mBegin, 1e-30);
+    double offset_end = mEnd + std::max(1e-14 * mEnd, 1e-30);
+
+    // Edge case: offset_begin underflowed
+    if (mBegin < offset_begin) {
+        offset_begin = std::numeric_limits<double>::lowest();
+    }
+
+    // Edge case: offset_end overflowed
+    if (offset_end < mEnd) {
+        offset_end = std::numeric_limits<double>::max();
+    }
+
+    return offset_begin <= Value && Value <= offset_end;
 }
 
 template <>
 bool IntervalUtility<int>::IsInInterval(int Value) const noexcept
 {
-    return mBegin < Value && Value <= mEnd;
+    return mBegin <= Value && Value <= mEnd;
 }
 
 template class IntervalUtility<double>;
