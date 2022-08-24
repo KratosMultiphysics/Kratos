@@ -67,7 +67,7 @@ namespace Kratos {
         void ComputeNewRigidFaceNeighboursHistoricalData() override;
         void CreateContactElements() override;
         void SetCoordinationNumber(ModelPart& r_model_part);
-        double ComputeCoordinationNumber(double& standard_dev);
+        double ComputeCoordinationNumber(double& standard_dev) override;
 
         void RebuildListOfContinuumSphericParticles() {
             RebuildListOfSphericParticles<SphericContinuumParticle>(GetModelPart().GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
