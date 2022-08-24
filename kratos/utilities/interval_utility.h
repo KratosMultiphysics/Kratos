@@ -21,6 +21,12 @@ namespace Kratos
 namespace Detail
 {
 
+/**
+ *  @brief Utility class for membership tests on a 1D interval.
+ *
+ *  @note This class template has specializations for @a double and @a int but is not implemented for other types.
+ *  @ingroup KratosCore
+ */
 template <class TValue>
 class IntervalUtility
 {
@@ -28,12 +34,37 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(IntervalUtility);
 
+    /**
+     *  @brief Construct from parameters containing "interval".
+     *
+     *  @details "interval" is expected as an array with exactly 2 items, defining
+     *           the begin and end of the interval respectively. The first item can
+     *           either be a numeric value or "Begin" (setting the smallest representable
+     *           value of @a TValue), while the second one can be a numeric value or
+     *           "End" (setting the highest representable value of @a TValue).
+     *
+     *  @note String values ("Begin" and "End") are replaced with their numeric counterparts
+     *        in the input @a Settings.
+     *
+     *  @note If "interval" is not in @a Settings, an "interval" with values corresponding
+     *        to "Begin" and "End" are added to it.
+     *
+     *  @note Other parameters in @a Settings are not checked.
+     */
     IntervalUtility(Parameters Settings);
 
     TValue GetIntervalBegin() const noexcept;
 
     TValue GetIntervalEnd() const noexcept;
 
+    /**
+     *  @brief Check whether the input value is within the defined interval [Begin, End).
+     *
+     *  @details This member has explicit specializations for different types
+     *           that have slight variations in behaviour around the interval
+     *           boundaries. Check the individual specializations for the exact
+     *           behaviour.
+     */
     bool IsInInterval(TValue Value) const noexcept;
 
 private:
