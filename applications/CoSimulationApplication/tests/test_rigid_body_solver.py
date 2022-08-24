@@ -318,11 +318,29 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.assertTrue(simulation.rigid_body_model_part.HasNodalSolutionStepVariable(KMC.PRESCRIBED_DISPLACEMENT))
         self.assertTrue(simulation.root_point_model_part.HasNodalSolutionStepVariable(KMC.PRESCRIBED_ROTATION))
 
+    def test_ResetExternalVariables(self):
+        pass
 
-        simulation.main_model_part
-        print(dir(simulation.rigid_body_model_part))
-        simulation.root_point_model_part
+    def test_CalculateEffectiveLoad(self):
+        pass
 
+    def test_GetKinematics(self):
+        pass
+
+    def test_UpdateKinematics(self):
+        pass
+
+    def test_CalculateReaction(self):
+        pass
+
+    def test_CalculateEquivalentForceFromRootPointDisplacement(self):
+        pass
+
+    def test_GetCompleteVector(self):
+        pass
+
+    def test_SetCompleteVector(self):
+        pass
         
 
 
