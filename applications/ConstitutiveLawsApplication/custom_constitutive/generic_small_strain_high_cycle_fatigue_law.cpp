@@ -115,8 +115,15 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             const SizeType fatigue_parameters_size = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS].size();
             if (fatigue_parameters_size == 8) {
                 c_factor = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7];
-            } else if (fatigue_parameters_size == 9) {
+            } else if (fatigue_parameters_size == 11) {
                 c_factor = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7] * ((1.0 - reference_damage) * max_stress) + rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][8];
+                const double c_factor_min = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][9];
+                const double c_factor_max = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][10];
+
+                KRATOS_ERROR_IF(c_factor_min > c_factor_max) << "The min and max C factor order is not correct: first C_min and then C_max" << std::endl;
+
+                c_factor = (c_factor < c_factor_min) ? c_factor_min : c_factor;
+                c_factor = (c_factor > c_factor_max) ? c_factor_max : c_factor;
             }
         }
 
@@ -639,6 +646,8 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue
         rValue = mPreviousCycleDamage;
     } else if (rThisVariable == INFINITY_YIELD_STRESS) {
         rValue = mMinStress / mMaxStress;
+    } else if (rThisVariable == DAMAGE_MATRIX) {
+        rValue = mCFactor;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }
