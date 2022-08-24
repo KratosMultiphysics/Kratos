@@ -1130,7 +1130,6 @@ Vector& SerialParallelRuleOfMixturesLaw::CalculateValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue)
 {
-    const SizeType dimension = WorkingSpaceDimension();
     const SizeType voigt_size = GetStrainSize();
     // We do some special operations for constitutive matrices
     if (rThisVariable == CAUCHY_STRESS_VECTOR_FIBER) {
