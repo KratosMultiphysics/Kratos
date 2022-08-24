@@ -1290,7 +1290,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
             // Calculate E matrix
             const Matrix E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
             // Almansi Strain Calculation
-            r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
+            noalias(r_strain_vector) = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
         }
 
         if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
@@ -1366,7 +1366,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
             // Calculate E matrix
             const Matrix E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
             // Almansi Strain Calculation
-            r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
+            noalias(r_strain_vector) = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
         }
 
         if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
@@ -1406,7 +1406,10 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
 
         // We compute the stress
         this->CalculateMaterialResponsePK2(rParameterValues);
-        rValue = MathUtils<double>::StressVectorToTensor(rParameterValues.GetStressVector());
+
+        if (rValue.size1() != voigt_size)
+            rValue.resize(voigt_size, voigt_size, false);
+        noalias(rValue) = MathUtils<double>::StressVectorToTensor(rParameterValues.GetStressVector());
 
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
