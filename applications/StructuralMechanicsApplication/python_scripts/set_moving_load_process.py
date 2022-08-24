@@ -38,7 +38,7 @@ class SetMovingLoadProcess(KratosMultiphysics.Process):
         {
             "help"            : "This process applies a moving load condition belonging to a modelpart. The load moves over line elements.",
             "model_part_name" : "please_specify_model_part_name",
-            "variable_name"   : "MOVING_LOAD",
+            "variable_name"   : "POINT_LOAD",
             "load"            : [0.0, 1.0, 0.0],
             "direction"       : [1,1,1],
             "velocity"        : 1

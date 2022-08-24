@@ -124,7 +124,7 @@ public:
     /**
      * Check if Rotational Dof existant
      */
-    bool HasRotDof() const override {return true;};
+    bool HasRotDof() const override;
 
     ///@}
     ///@name Access
@@ -203,14 +203,14 @@ protected:
         const bool CalculateResidualVectorFlag
         ) override;
 
-    /**
-     * It calcules the integration load for the point load
-     */
-    virtual double GetMovingLoadIntegrationWeight() const;
 
-    void CalculateSecondOrderTranslationalShapeFunctions(VectorType& rShapeFunctionsVector, double local_x_coord) const;
+    void CalculateExactNormalShapeFunctions(VectorType& rShapeFunctionsVector, double local_x_coord) const;
 
-    void CalculateSecondOrderRotationalShapeFunctions(VectorType& rShapeFunctionsVector, double local_x_coord) const;
+    void CalculateExactShearShapeFunctions(VectorType& rShapeFunctionsVector, double local_x_coord) const;
+
+    void CalculateExactRotationalShapeFunctions(VectorType& rShapeFunctionsVector, double local_x_coord) const;
+
+    void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const Element::GeometryType& rGeom);
     ///@}
     ///@name Protected  Access
     ///@{

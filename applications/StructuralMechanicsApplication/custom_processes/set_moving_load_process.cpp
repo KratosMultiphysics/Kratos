@@ -33,6 +33,7 @@ namespace Kratos
             "help"            : "This process applies a moving load condition belonging to a modelpart. The load moves over line elements.",
             "model_part_name" : "please_specify_model_part_name",
             "variable_name"   : "MOVING_LOAD",
+			"is_rotation"     : true,
             "load"            : [0.0, 1.0, 0.0],
             "direction"       : [1,1,1],
             "velocity"        : 1
@@ -274,7 +275,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
         if ((distance_cond + element_length >= mCurrentDistance) && (distance_cond <= mCurrentDistance) && !is_moving_load_added)
         {
             
-            r_cond.SetValue(MOVING_LOAD, mLoad);
+            r_cond.SetValue(POINT_LOAD, mLoad);
 
             // todo, currently distance is only correct when nodes are sorted in direction of distance
             r_cond.SetValue(MOVING_LOAD_LOCAL_DISTANCE, mCurrentDistance - distance_cond);
@@ -282,7 +283,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
         }
         else
         {
-            r_cond.SetValue(MOVING_LOAD, ZeroVector(3));
+            r_cond.SetValue(POINT_LOAD, ZeroVector(3));
         }
         distance_cond += element_length;
     }
