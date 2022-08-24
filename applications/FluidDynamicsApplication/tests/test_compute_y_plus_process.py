@@ -2,9 +2,7 @@ import math
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.KratosUnittest as UnitTest
-import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.testing.utilities import ReadModelPart
-from KratosMultiphysics.process_factory import KratosProcessFactory
 
 class ComputeYPlusProcessTest(UnitTest.TestCase):
     @classmethod
@@ -81,52 +79,6 @@ class ComputeYPlusProcessTest(UnitTest.TestCase):
             analytical_tangential_reaction_magnitude = math.sqrt(ComputeYPlusProcessTest.__InnerProd(analytical_tangential_reaction, analytical_tangential_reaction))
 
             self.assertAlmostEqual(y_plus_based_tangential_reaction_magnitude/analytical_tangential_reaction_magnitude - 1.0, 0.0, 5)
-
-    @UnitTest.skipIfApplicationsNotAvailable("StatisticsApplication")
-    def testYPlusOutputProcess(self):
-        settings = Kratos.Parameters(r'''
-        [
-            {
-                "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-                "python_module" : "y_plus_output_process",
-                "Parameters" : {
-                    "model_part_name"                  : "test",
-                    "interval"                         : [0.0, 1e30],
-                    "y_plus_output_limit"              : 0.1,
-                    "print_to_screen"                  : false,
-                    "print_format"                     : ".8f",
-                    "write_output_file"                : true,
-                    "output_step"                      : 2,
-                    "output_to_elements"               : false,
-                    "calculate_normals_every_time_step": false,
-                    "echo_level"                       : 0,
-                    "output_file_settings"             : {}
-                }
-            }
-        ]''')
-
-        factory = KratosProcessFactory(self.model)
-        process_list = factory.ConstructListOfProcesses(settings)
-
-        for process in process_list:
-            process.Check()
-            
-        time_steps = [1.0, 1.5, 2.0, 2.5]
-        for step, time_step in enumerate(time_steps, 1):
-            self.model_part.ProcessInfo[Kratos.TIME] = time_step
-            self.model_part.ProcessInfo[Kratos.STEP] = step
-
-            for process in process_list:
-                process.ExecuteInitializeSolutionStep()
-                process.ExecuteFinalizeSolutionStep()
-                if process.IsOutputStep():
-                    process.PrintOutput()
-
-        for process in process_list:
-            process.ExecuteFinalize()
-
-    def tearDown(self):
-        kratos_utilities.DeleteFileIfExisting("test_y_plus.dat")
 
     @staticmethod
     def __InnerProd(v1: Kratos.Array3, v2: Kratos.Array3):

@@ -11,25 +11,20 @@
 // External includes
 
 // Project includes
-#include "friction_model.h"
+#include "generation_model.h"
 
 namespace Kratos {
   //-----------------------------------------------------------------------------------------------------------------------
-  FrictionModel::FrictionModel() {}
-  FrictionModel::~FrictionModel() {}
+  GenerationModel::GenerationModel() {}
+  GenerationModel::~GenerationModel() {}
 
   //------------------------------------------------------------------------------------------------------------
-  void FrictionModel::SetHeatGenerationMechanismInProperties(Properties::Pointer pProp, bool verbose) const {
-    pProp->SetValue(FRICTION_MODEL_POINTER, this->CloneShared());
+  void GenerationModel::SetHeatGenerationMechanismInProperties(Properties::Pointer pProp, bool verbose) const {
+    pProp->SetValue(GENERATION_MODEL_POINTER, this->CloneShared());
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double FrictionModel::ComputeHeatGeneration(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
-    return 0.0;
-  }
-
-  //------------------------------------------------------------------------------------------------------------
-  double FrictionModel::ComputePartitionCoeff(ThermalSphericParticle* particle) {
+  double GenerationModel::ComputeHeatGeneration(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
     return 0.0;
   }
 
