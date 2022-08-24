@@ -1389,8 +1389,8 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
 
         r_prop = material_properties.GetSubProperties(1);
         rParameterValues.SetMaterialProperties(r_prop);
-        mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
-        noalias(rValue) += (1.0 - mFiberVolumetricParticipation) * aux_value;
+        mpFiberConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
+        noalias(rValue) += (mFiberVolumetricParticipation) * aux_value;
 
         // Reset properties
         rParameterValues.SetMaterialProperties(material_properties);
