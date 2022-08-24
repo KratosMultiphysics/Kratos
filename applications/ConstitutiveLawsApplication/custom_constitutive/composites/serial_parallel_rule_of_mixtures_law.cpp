@@ -509,10 +509,10 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     double det_aux = 0.0;
     MathUtils<double>::InvertMatrix(aux, A, det_aux);
 
-    Vector auxiliar(rInitialApproximationSerialStrainMatrix.size());
-    auxiliar = prod(rConstitutiveTensorFiberSS, r_total_strain_increment_serial) + k_f * prod(trans(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp)), r_total_strain_increment_parallel);
+    Vector auxiliary(rInitialApproximationSerialStrainMatrix.size());
+    noalias(auxiliary) = prod(rConstitutiveTensorFiberSS, r_total_strain_increment_serial) + k_f * prod(trans(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp)), r_total_strain_increment_parallel);
 
-    noalias(rInitialApproximationSerialStrainMatrix) = prod(A, auxiliar) + mPreviousSerialStrainMatrix;
+    noalias(rInitialApproximationSerialStrainMatrix) = prod(A, auxiliary) + mPreviousSerialStrainMatrix;
 }
 
 /***********************************************************************************/
