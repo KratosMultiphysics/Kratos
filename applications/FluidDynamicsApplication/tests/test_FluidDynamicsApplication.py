@@ -39,7 +39,6 @@ from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
 from adjoint_qsvms_sensitivity_2d import AdjointQSVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
 from test_statistics_process import IntegrationPointStatisticsTest
-from cfl_output_process_test import CFLOutputProcessTest
 from test_flows_measuring_utility import FlowsMeasuringUtilityTest
 from levelset_consistent_nodal_gradient_test import ConsistentLevelsetNodalGradientTest
 from adjoint_conditions import TestAdjointMonolithicWallCondition
@@ -53,7 +52,7 @@ from compressible_slip_wall_process_test import TestCompressibleSlipWallProcess
 from compute_pressure_coefficient_process_test import ComputePressureCoefficientProcessTest
 from compute_drag_process_test import ComputeDragProcessTest
 from test_compute_y_plus_process import ComputeYPlusProcessTest
-
+from test_fluid_computation_processes import FluidComputationProcessesTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -129,11 +128,11 @@ def AssembleTestSuites():
     nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
     nightSuite.addTest(ConsistentLevelsetNodalGradientTest('testConsistentGradientSquare2D'))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IntegrationPointStatisticsTest]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CFLOutputProcessTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowsMeasuringUtilityTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidAuxiliaryUtilitiesTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidComputationProcessesTest]))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
@@ -164,4 +163,6 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(
+        KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.runTests(AssembleTestSuites())

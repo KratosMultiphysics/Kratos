@@ -55,7 +55,8 @@ namespace Kratos
         double              impact_time;
         std::vector<double> impact_velocity;
         std::vector<double> local_velocity;
-        std::vector<double> local_force;
+        std::vector<double> local_force_total;
+        std::vector<double> local_force_damping;
       };
 
       // Constructor
@@ -79,8 +80,8 @@ namespace Kratos
       void ComputeHeatFluxes               (const ProcessInfo& r_process_info);
       void ComputeHeatFluxWithNeighbor     (const ProcessInfo& r_process_info);
       void ComputeInteractionProps         (const ProcessInfo& r_process_info);
-      void StoreBallToBallContactInfo      (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, SphericParticle* neighbor, double GlobalContactForce[3], bool sliding) override;
-      void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, DEMWall* neighbor, double GlobalContactForce[3], bool sliding) override;
+      void StoreBallToBallContactInfo      (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
+      void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
       void Move                            (const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) override;
 
       // Finalization methods
@@ -123,7 +124,7 @@ namespace Kratos
       HeatExchangeMechanism&       GetIndirectConductionModel    (void);
       HeatExchangeMechanism&       GetConvectionModel            (void);
       HeatExchangeMechanism&       GetRadiationModel             (void);
-      HeatGenerationMechanism&     GetFrictionModel              (void);
+      HeatGenerationMechanism&     GetGenerationModel            (void);
       RealContactModel&            GetRealContactModel           (void);
 
       double GetYoung   (void) override;
@@ -132,6 +133,7 @@ namespace Kratos
 
       array_1d<double,3> GetParticleCoordinates               (void);
       array_1d<double,3> GetParticleVelocity                  (void);
+      array_1d<double,3> GetParticleAngularVelocity           (void);
       double             GetParticleTemperature               (void);
       double             GetParticleRadius                    (void);
       double             GetParticleSurfaceArea               (void);
@@ -172,6 +174,7 @@ namespace Kratos
       double             GetNeighborEmissivity                (void);
   
       double             GetContactDynamicFrictionCoefficient (void);
+      double             GetContactRollingFrictionCoefficient (void);
       ContactParams      GetContactParameters                 (void);
 
       void               SetThermalIntegrationScheme          (ThermalDEMIntegrationScheme::Pointer& scheme);
@@ -180,7 +183,7 @@ namespace Kratos
       void               SetIndirectConductionModel           (HeatExchangeMechanism::Pointer& model);
       void               SetConvectionModel                   (HeatExchangeMechanism::Pointer& model);
       void               SetRadiationModel                    (HeatExchangeMechanism::Pointer& model);
-      void               SetFrictionModel                     (HeatGenerationMechanism::Pointer& model);
+      void               SetGenerationModel                   (HeatGenerationMechanism::Pointer& model);
       void               SetRealContactModel                  (RealContactModel::Pointer& model);
       void               SetParticleTemperature               (const double temperature);
       void               SetParticleHeatFlux                  (const double heat_flux);
@@ -198,7 +201,7 @@ namespace Kratos
       HeatExchangeMechanism*       mpIndirectConductionModel;
       HeatExchangeMechanism*       mpConvectionModel;
       HeatExchangeMechanism*       mpRadiationModel;
-      HeatGenerationMechanism*     mpFrictionModel;
+      HeatGenerationMechanism*     mpGenerationModel;
       RealContactModel*            mpRealContactModel;
 
       // General properties
@@ -214,7 +217,13 @@ namespace Kratos
       double mConductionDirectHeatFlux;
       double mConductionIndirectHeatFlux;
       double mRadiationHeatFlux;
-      double mFrictionHeatFlux;
+      double mGenerationHeatFlux;
+      double mGenerationHeatFlux_slid_particle;
+      double mGenerationHeatFlux_slid_wall;
+      double mGenerationHeatFlux_roll_particle;
+      double mGenerationHeatFlux_roll_wall;
+      double mGenerationHeatFlux_damp_particle;
+      double mGenerationHeatFlux_damp_wall;
       double mConvectionHeatFlux;
       double mPrescribedHeatFluxSurface;
       double mPrescribedHeatFluxVolume;
