@@ -1351,8 +1351,8 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         noalias(rValue) = MathUtils<double>::StressVectorToTensor(rParameterValues.GetStressVector());
 
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
         return rValue;
     } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_TENSOR_MATRIX) {
         Matrix parallel_projector, serial_projector;
@@ -1360,9 +1360,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
 
         const Vector& r_strain_vector = rParameterValues.GetStrainVector();
         Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
-        this->CalculateStrainsOnEachComponent(r_strain_vector,
-                                              parallel_projector, serial_projector, mPreviousSerialStrainMatrix,
-                                              matrix_strain_vector, fiber_strain_vector);
+        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
         if (rValue.size1() != voigt_size)
             rValue.resize(voigt_size, voigt_size, false);
         noalias(rValue) = MathUtils<double>::StrainVectorToTensor(matrix_strain_vector);
@@ -1374,9 +1372,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
 
         const Vector& r_strain_vector = rParameterValues.GetStrainVector();
         Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
-        this->CalculateStrainsOnEachComponent(r_strain_vector,
-                                              parallel_projector, serial_projector, mPreviousSerialStrainMatrix,
-                                              matrix_strain_vector, fiber_strain_vector);
+        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
         if (rValue.size1() != voigt_size)
             rValue.resize(voigt_size, voigt_size, false);
         noalias(rValue) = MathUtils<double>::StrainVectorToTensor(fiber_strain_vector);
