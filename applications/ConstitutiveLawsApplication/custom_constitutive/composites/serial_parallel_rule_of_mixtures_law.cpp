@@ -1393,7 +1393,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
             noalias(rValue) = MathUtils<double>::StressVectorToTensor(matrix_stress_vector);
             return rValue;
         }
-    } else if (rThisVariable == CAUCHY_STRESS_TENSOR) {
+    } else if (rThisVariable == CAUCHY_STRESS_TENSOR || PK2_STRESS_TENSOR || KIRCHHOFF_STRESS_TENSOR) {
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
 
@@ -1405,7 +1405,13 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // We compute the stress
-        this->CalculateMaterialResponsePK2(rParameterValues);
+        if (rThisVariable == CAUCHY_STRESS_TENSOR) {
+            this->CalculateMaterialResponseCauchy(rParameterValues);
+        } else if (rThisVariable == PK2_STRESS_TENSOR) {
+            this->CalculateMaterialResponsePK2(rParameterValues);
+        } else if (rThisVariable == KIRCHHOFF_STRESS_TENSOR) {
+            this->CalculateMaterialResponseKirchhoff(rParameterValues);
+        }
 
         if (rValue.size1() != voigt_size)
             rValue.resize(voigt_size, voigt_size, false);
