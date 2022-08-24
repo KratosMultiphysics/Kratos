@@ -1395,7 +1395,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         // Reset properties
         rParameterValues.SetMaterialProperties(material_properties);
     }
-    return(rValue);
+    return rValue;
 }
 
 /***********************************************************************************/
