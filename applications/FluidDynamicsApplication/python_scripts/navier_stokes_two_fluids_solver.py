@@ -433,7 +433,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 print("Smoothing: Finished")
 
             # Recompute the distance field according to the new level-set position
-            if (TimeStep % 4 == 0):
+            if (TimeStep % 1 == 0):
                 print("Elliptic Redistancing: Started")
                 print(time.time())
 
@@ -446,6 +446,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
                 print("Elliptic Redistancing: Finished")
                 print(time.time())
+
+                print("Calculating DISTANCE GRADIENT, prior to writing: Start")
+                (self.distance_gradient_process).Execute() # Always check if calculated above
+                # (self.curvature_calculation_process).Execute()
+                print("Calculating DISTANCE GRADIENT, prior to writing: End")
 
                 print("Writing Reinitialized Levelset: Started")
                 print(time.time())
@@ -1190,7 +1195,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                                                 "node_output"         : false,
                                                 "skin_output"         : false,
                                                 "plane_output"        : [],
-                                                "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","DISTANCE_GRADIENT"],
+                                                "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","DISTANCE_GRADIENT","CURVATURE","CONTACT_ANGLE"],
                                                 "gauss_point_results" : []
                                             }
                                         }

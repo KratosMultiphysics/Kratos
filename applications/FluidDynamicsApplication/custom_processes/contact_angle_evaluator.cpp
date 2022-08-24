@@ -270,7 +270,7 @@ void ContactAngleEvaluator::Execute()
 
         // CONTACT_ANGLE estimation
         if (node_i_contact_angle == 0.0 && node_i_distance > 0.0){
-            if (it_node_i->GetValue(IS_STRUCTURE) == 1.0 && it_node_i->Coordinates()[2] == 0.0){
+            if (it_node_i->GetValue(IS_STRUCTURE) == 1.0 && it_node_i->Coordinates()[2] == 0.0){    // This won't work if droplet has no contact with z=0 plane.
                 double min_horizontal_dist = 1.0e6;
                 double min_dist_contact_angle;
                 unsigned int min_dist_index;

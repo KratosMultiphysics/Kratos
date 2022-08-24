@@ -261,7 +261,7 @@ void VariationalNonEikonalDistance::Execute()
     double max_grad_norm_deviation = 1.0e2;
     double norm_grad_norm_deviation = 0.0;
 
-    while (max_grad_norm_deviation > 1.0e-2 && iteration < 10){
+    while (max_grad_norm_deviation > 1.0e-2 && iteration < 5){
 
         KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, about to solve the LSE" << std::endl;
         mp_solving_strategy->Solve();
@@ -286,6 +286,51 @@ void VariationalNonEikonalDistance::Execute()
         KRATOS_INFO("Deviation in the norm of distance gradient") <<
             norm_grad_norm_deviation/static_cast<double>(NumNodes) << std::endl;
     }
+
+    auto NumFreeNodes = NumNodes;
+    for (unsigned int k = 0; k < NumNodes; ++k) {
+        auto it_node = mrModelPart.NodesBegin() + k;
+        const double dist = it_node->FastGetSolutionStepValue(DISTANCE_AUX2);
+        if (/* dist > 5.0*h_min || */ dist < -1.0*h_min){
+            it_node->Fix(DISTANCE_AUX2);
+            NumFreeNodes -= 1;
+        }
+    }
+
+    mpGradientCalculator->Execute(); // To provide the initial condition for DISTANCE_GRADIENT
+
+    iteration = 0;
+    max_grad_norm_deviation = 1.0e2;
+    norm_grad_norm_deviation = 0.0;
+
+    while (max_grad_norm_deviation > 1.0e-2 && iteration < 10){
+
+        KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, about to solve the LSE" << std::endl;
+        mp_solving_strategy->Solve();
+        KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, LSE is solved" << std::endl;
+
+        mpGradientCalculator->Execute();
+
+        max_grad_norm_deviation = 0.0;
+        norm_grad_norm_deviation = 0.0;
+        #pragma omp parallel for
+        for (unsigned int k = 0; k < NumNodes; ++k) {
+            auto it_node = mrModelPart.NodesBegin() + k;
+            if (!it_node->IsFixed(DISTANCE_AUX2)){
+                const double grad_norm_dev = std::abs(
+                    norm_2( it_node->GetValue(DISTANCE_GRADIENT) ) - 1.0);
+                if ( grad_norm_dev > max_grad_norm_deviation ){
+                    #pragma omp critical
+                    max_grad_norm_deviation = grad_norm_dev;
+                }
+                norm_grad_norm_deviation += grad_norm_dev;
+            }
+        }
+        iteration++;
+        KRATOS_INFO("Deviation in the norm of distance gradient") <<
+            norm_grad_norm_deviation/static_cast<double>(NumFreeNodes) << std::endl;
+    }
+
     if (max_grad_norm_deviation > 1.0e-2){
         KRATOS_INFO("VariationalNonEikonalDistance") << "Convergence is not achieved." << std::endl;
     }
