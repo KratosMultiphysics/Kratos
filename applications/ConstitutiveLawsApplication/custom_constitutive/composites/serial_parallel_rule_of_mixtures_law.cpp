@@ -1173,7 +1173,160 @@ Vector& SerialParallelRuleOfMixturesLaw::CalculateValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue)
 {
-    return this->GetValue(rThisVariable, rValue);
+    const SizeType dimension = WorkingSpaceDimension();
+    const SizeType voigt_size = GetStrainSize();
+    // We do some special operations for constitutive matrices
+    if (rThisVariable == CAUCHY_STRESS_VECTOR_FIBER) {
+
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
+        const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS );
+
+        const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+
+        // The deformation gradient
+        if (rParameterValues.IsSetDeterminantF()) {
+            const double determinant_f = rParameterValues.GetDeterminantF();
+            KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
+        }
+        // In case the element has not computed the Strain
+        if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+            CalculateGreenLagrangeStrain(rParameterValues);
+        }
+
+        // Set new flags
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        // Total strain vector
+        Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
+        Vector fiber_stress_vector, matrix_stress_vector;
+        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rParameterValues, serial_strain_matrix_old);
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+
+        if (rValue.size() != voigt_size)
+            rValue.resize(voigt_size, false);
+        noalias(rValue) = fiber_stress_vector;
+        return rValue;
+
+    } else if (rThisVariable == CAUCHY_STRESS_VECTOR_MATRIX) {
+
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
+        const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS );
+
+        const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+
+        // The deformation gradient
+        if (rParameterValues.IsSetDeterminantF()) {
+            const double determinant_f = rParameterValues.GetDeterminantF();
+            KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
+        }
+        // In case the element has not computed the Strain
+        if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+            CalculateGreenLagrangeStrain(rParameterValues);
+        }
+
+        // Set new flags
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        // Total strain vector
+        Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
+        Vector fiber_stress_vector, matrix_stress_vector;
+        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rParameterValues, serial_strain_matrix_old);
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        if (rValue.size() != voigt_size)
+            rValue.resize(voigt_size, false);
+        noalias(rValue) = matrix_stress_vector;
+        return rValue;
+
+    } else if (rThisVariable == CAUCHY_STRESS_VECTOR || PK2_STRESS_VECTOR || KIRCHHOFF_STRESS_VECTOR) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS);
+
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+        // We compute the stress
+        if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+            this->CalculateMaterialResponseCauchy(rParameterValues);
+        } else if (rThisVariable == PK2_STRESS_VECTOR) {
+            this->CalculateMaterialResponsePK2(rParameterValues);
+        } else if (rThisVariable == KIRCHHOFF_STRESS_VECTOR) {
+            this->CalculateMaterialResponseKirchhoff(rParameterValues);
+        }
+
+        if (rValue.size() != voigt_size)
+            rValue.resize(voigt_size, false);
+        noalias(rValue) = rParameterValues.GetStressVector();
+
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        return rValue;
+    } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR_MATRIX) {
+        Matrix parallel_projector, serial_projector;
+        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+
+        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
+        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
+        if (rValue.size() != voigt_size)
+            rValue.resize(voigt_size, false);
+        noalias(rValue) = matrix_strain_vector;
+        return rValue;
+    } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR_FIBER) {
+        const std::size_t voigt_size = this->GetStrainSize();
+        Matrix parallel_projector, serial_projector;
+        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+
+        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
+        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
+        if (rValue.size() != voigt_size)
+            rValue.resize(voigt_size, false);
+        noalias(rValue) = fiber_strain_vector;
+        return rValue;
+    } else {
+        Vector aux_value;
+        Properties material_properties  = rParameterValues.GetMaterialProperties();
+        Properties& r_prop = material_properties.GetSubProperties(0);
+
+        rValue.clear();
+        rParameterValues.SetMaterialProperties(r_prop);
+        mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
+        noalias(rValue) += (1.0 - mFiberVolumetricParticipation) * aux_value;
+
+        r_prop = material_properties.GetSubProperties(1);
+        rParameterValues.SetMaterialProperties(r_prop);
+        mpFiberConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
+        noalias(rValue) += (mFiberVolumetricParticipation) * aux_value;
+
+        // Reset properties
+        rParameterValues.SetMaterialProperties(material_properties);
+    }
+    return rValue;
 }
 
 /***********************************************************************************/
