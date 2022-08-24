@@ -573,18 +573,6 @@ void SerialParallelRuleOfMixturesLaw::CalculateSerialParallelProjectionMatrices(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::FinalizeSolutionStep(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    // Deprecated
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void SerialParallelRuleOfMixturesLaw::CalculateElasticMatrix(
     Matrix& rElasticityTensor,
     const Properties& rMaterialProperties)
