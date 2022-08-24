@@ -36,14 +36,14 @@ IntervalUtility<TValue>::IntervalUtility(Parameters settings)
     }
 
     auto interval = settings["interval"];
-    KRATOS_ERROR_IF_NOT(settings.IsArray() && settings.size() == 2) << "Expecting 'interval' as an array of size 2, but got:\n" << interval.PrettyPrintJsonString();
+    KRATOS_ERROR_IF_NOT(settings.IsArray() && settings.size() == 2) << "Expecting \"interval\" as an array of size 2, but got:\n" << interval.PrettyPrintJsonString();
 
     // Replace "Begin" with the minimum representable value
     if(interval[1].Is<std::string>()) {
         if(interval[0].Get<std::string>() == "Begin") {
             interval[0].Set(std::numeric_limits<TValue>::min());
         } else {
-            KRATOS_ERROR << "the first value of 'interval' can be \"Begin\" or a number, 'interval' currently:\n" << interval.PrettyPrintJsonString();
+            KRATOS_ERROR << "the first value of \"interval\" can be \"Begin\" or a number, \"interval\" currently:\n" << interval.PrettyPrintJsonString();
         }
     }
 
@@ -55,12 +55,13 @@ IntervalUtility<TValue>::IntervalUtility(Parameters settings)
         if(interval[1].Get<std::string>() == "End") {
             interval[1].Set(std::numeric_limits<TValue>::max());
         } else {
-            KRATOS_ERROR << "the second value of 'interval' can be \"End\" or a number, 'interval' currently:\n" << interval.PrettyPrintJsonString();
+            KRATOS_ERROR << "the second value of \"interval\" can be \"End\" or a number, \"interval\" currently:\n" << interval.PrettyPrintJsonString();
         }
     }
 
     mBegin = interval[0].Get<TValue>();
     mEnd = interval[1].Get<TValue>();
+    KRATOS_ERROR_IF(mEnd < mBegin) << "Invalid \"interval\":\n" << interval.PrettyPrintJsonString();
 
     KRATOS_CATCH("");
 }
