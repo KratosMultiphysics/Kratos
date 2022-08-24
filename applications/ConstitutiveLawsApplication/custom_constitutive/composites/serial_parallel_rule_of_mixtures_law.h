@@ -668,15 +668,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     ///@name Private Operations
     ///@{
 
-    /**
-     * @brief This method computes the elastic tensor
-     * @param rElasticityTensor The elastic tensor
-     * @param rMaterialProperties The material properties
-     */
-    void CalculateElasticMatrix(
-        Matrix& rElasticityTensor,
-        const Properties& rMaterialProperties);
-
     ///@}
     ///@name Private  Access
     ///@{
