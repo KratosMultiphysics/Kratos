@@ -7,10 +7,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
-class Struct:
-    def __init__(self, member_dict):
-        self.__dict__.update(member_dict)
-
 class TestPatchTestSmallStrain(KratosUnittest.TestCase):
     def setUp(self):
         self.tolerances = {

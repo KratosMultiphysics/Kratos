@@ -7,20 +7,16 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
-class Struct:
-    def __init__(self, member_dict):
-        self.__dict__.update(member_dict)
-
 class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCase):
     def setUp(self):
-        self.tolerances = Struct({
+        self.tolerances = {
             "relative" : 1e-6,
-            "absolute" : Struct({
+            "absolute" : {
                 "displacement" : 1e-6,
                 "stress"       : 1e2,
                 "strain"       : 1e-2
-            })
-        })
+            }
+        }
         self.print_output = True
 
     def _add_variables(self, ModelPart):
