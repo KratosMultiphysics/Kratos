@@ -68,14 +68,24 @@ std::vector<int> FindNonRepeatingIndices(std::vector<int> arr)
           
 }
 
+
+void SwapPoints(double first_coord, double second_coord, int direction, PointerVector<Node<3>>& rPoints)
+{
+    // swap points if points are sorted in opposite order compared to direction
+    if ((first_coord < second_coord) * (direction < 0))
+    {
+		rPoints[0].swap(rPoints[1]);
+    }
+}
+
 Condition& GetFirstConditionFromCoord(double first_coord, double second_coord, int direction, std::vector<Condition>& end_conditions)
 {
-    // if center1 x-coord  < center2 x-coord and direction is positive
+    // if center1 coord  < center2 coord and direction is positive
     if ((first_coord < second_coord) && (direction > 0))
     {
         return end_conditions[0];
     }
-    // if center1 x-coord  > center2 x-coord and direction is negative
+    // if center1 coord  > center2 coord and direction is negative
     if ((first_coord > second_coord) && (direction < 0))
     {
         return end_conditions[0];
@@ -100,27 +110,48 @@ Condition& GetFirstCondition(Point first_point, Point second_point, vector<int> 
 }
 
 
+void SortConditionPoints(Condition& rCondition, vector<int> direction)
+{
+    auto& rGeom = rCondition.GetGeometry();
+
+    auto& rPoints = rGeom.Points();
+    if (abs(rGeom.Points()[0].X0() - rGeom.Points()[1].X0()) > DBL_EPSILON)
+    {
+        SwapPoints(rGeom.Points()[0].X0(), rGeom.Points()[1].X0(), direction[0], rPoints);
+    }
+    else if (abs(rGeom.Points()[0].Y0() - rGeom.Points()[1].Y0()) > DBL_EPSILON)
+    {
+        SwapPoints(rGeom.Points()[0].Y0(), rGeom.Points()[1].Y0(), direction[1], rPoints);
+    }
+    else
+    {
+        SwapPoints(rGeom.Points()[0].Z0(), rGeom.Points()[1].Z0(), direction[2], rPoints);
+    }
+}
+
+
+
 std::vector<Condition> BubbleSortConditions(ModelPart::ConditionsContainerType& unsorted_conditions, Condition& first_condition)
 {
     //ModelPart::ConditionsContainerType& sorted_conditions = unsorted_conditions;
     std::vector<Condition> unsorted_conditions_v(unsorted_conditions.begin(), unsorted_conditions.end());
 
-    for (int i = 0; i < unsorted_conditions_v.size(); ++i)
-    {
-        int tmp = unsorted_conditions_v[i].Id();
-        auto& r_geom = unsorted_conditions_v[i].GetGeometry();
-        int tmp2 = r_geom.Points()[0].Id();
-        int tmp3 = r_geom.Points()[1].Id();
-        int tmp4 = 2;
-        double a = r_geom[0].X();
-        int b = 1 + 1;
-    }
+    //for (int i = 0; i < unsorted_conditions_v.size(); ++i)
+    //{
+    //    int tmp = unsorted_conditions_v[i].Id();
+    //    auto& r_geom = unsorted_conditions_v[i].GetGeometry();
+    //    int tmp2 = r_geom.Points()[0].Id();
+    //    int tmp3 = r_geom.Points()[1].Id();
+    //    int tmp4 = 2;
+    //    double a = r_geom[0].X();
+    //    int b = 1 + 1;
+    //}
 
 
     std::vector<Condition> sorted_conditions;
     std::vector<int> visited_indices;
     GeometricalObject::GeometryType& r_geom_first = first_condition.GetGeometry();
-    std::set<unsigned long long> node_id_vector{ r_geom_first[0].Id(),r_geom_first[1].Id() };
+    std::set<IndexType> node_id_vector{ r_geom_first[0].Id(),r_geom_first[1].Id() };
 
  
     while (visited_indices.size() != unsorted_conditions_v.size())
@@ -149,6 +180,14 @@ std::vector<Condition> BubbleSortConditions(ModelPart::ConditionsContainerType& 
                     }
                     else
                     {
+                        // sort nodes in condition, such that new node is connected to previous condition
+                        auto it = node_id_vector.end();
+                        --it;
+                        if (*it != r_geom.Points()[0].Id())
+                        {
+                            r_geom.Points()[0].swap(r_geom.Points()[1]);
+                        }
+                        
                         node_id_vector = { r_geom[0].Id(),r_geom[1].Id() };
                         sorted_conditions.push_back(r_cond);
                         visited_indices.push_back(i);
@@ -159,15 +198,15 @@ std::vector<Condition> BubbleSortConditions(ModelPart::ConditionsContainerType& 
         }
     }
 
-    // swap first 2 conditions if nessesary
-    //r_geom = first_condition.GetGeometry();
-    int tmp = first_condition.Id();
-    for (int i = 0; i < sorted_conditions.size(); ++i)
-    {
-        int tmp2 = sorted_conditions[i].Id();
-        double tmp12 = sorted_conditions[i].GetGeometry()[0].X();
-        int tmp7 = 2;
-    }
+    //// swap first 2 conditions if nessesary
+    ////r_geom = first_condition.GetGeometry();
+    //int tmp = first_condition.Id();
+    //for (int i = 0; i < sorted_conditions.size(); ++i)
+    //{
+    //    int tmp2 = sorted_conditions[i].Id();
+    //    double tmp12 = sorted_conditions[i].GetGeometry()[0].X();
+    //    int tmp7 = 2;
+    //}
     
 
     return sorted_conditions;
@@ -196,7 +235,7 @@ void SetMovingLoadProcess::ExecuteInitialize()
     }
 
     // find non repeating node ids
-    std::vector<int> non_repeating_node_ids = FindNonRepeatingIndices(node_id_vector);
+    const std::vector<int> non_repeating_node_ids = FindNonRepeatingIndices(node_id_vector);
 
     // error if model part does not have 1 end and 1 beginning
     KRATOS_ERROR_IF_NOT(non_repeating_node_ids.size() ==2) << "Moving load condition model part needs to be connected with a beginning and end" << std::endl;
@@ -223,10 +262,11 @@ void SetMovingLoadProcess::ExecuteInitialize()
 
 
     // find start condition 
-    Point center_1 = end_conditions[0].GetGeometry().Center();
-    Point center_2 = end_conditions[1].GetGeometry().Center();
+    const Point center_1 = end_conditions[0].GetGeometry().Center();
+    const Point center_2 = end_conditions[1].GetGeometry().Center();
 
     Condition& r_first_cond = GetFirstCondition(center_1, center_2, direction, end_conditions);
+    SortConditionPoints(r_first_cond, direction);
 
     mSortedConditions = BubbleSortConditions(mrModelPart.Conditions(), r_first_cond);
 
@@ -269,7 +309,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
     for (auto& r_cond : mSortedConditions)
     {
         auto& r_geom = r_cond.GetGeometry();
-        double element_length = r_geom.Length();
+        const double element_length = r_geom.Length();
 
         // if moving load is located at current condition element, apply moving load, else apply a zero load
         if ((distance_cond + element_length >= mCurrentDistance) && (distance_cond <= mCurrentDistance) && !is_moving_load_added)
