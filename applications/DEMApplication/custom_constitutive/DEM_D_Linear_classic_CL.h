@@ -35,7 +35,6 @@ namespace Kratos {
 
     protected:
 
-        Properties::Pointer mpProperties;
     };
 } // namespace Kratos
 

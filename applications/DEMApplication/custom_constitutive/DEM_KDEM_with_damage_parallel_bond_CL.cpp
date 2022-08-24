@@ -177,27 +177,12 @@ namespace Kratos {
                 sliding,
                 r_process_info);
 
-        //FindMaximumValueOfNormalAndTangentialDamageComponents(element1, element2);
-
-        CalculationOfNormalAndTangentialDamageComponents(element1, element2);
+        CalculateNormalAndTangentialDamageComponents(element1, element2);
 
         KRATOS_CATCH("")
     }
 
-    /*
-    void DEM_KDEM_with_damage_parallel_bond::FindMaximumValueOfNormalAndTangentialDamageComponents(SphericContinuumParticle* element1,
-                                                                                                   SphericContinuumParticle* element2) {
-
-        KRATOS_TRY
-
-        mDamageNormal = std::max(mDamageNormal, mDamageTangential);
-        mDamageTangential = std::max(mDamageNormal, mDamageTangential);
-        mDamageMoment = std::max(mDamageNormal, mDamageTangential);
-
-        KRATOS_CATCH("")
-    } */
-
-    void DEM_KDEM_with_damage_parallel_bond::CalculationOfNormalAndTangentialDamageComponents(SphericContinuumParticle* element1,
+    void DEM_KDEM_with_damage_parallel_bond::CalculateNormalAndTangentialDamageComponents(SphericContinuumParticle* element1,
                                                                                                    SphericContinuumParticle* element2) {
 
         KRATOS_TRY

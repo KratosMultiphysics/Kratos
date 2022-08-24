@@ -21,14 +21,6 @@ scripts/*.sh
 scripts/*.bat
 build/*
 bin/*
-out/*
-applications/DEMApplication/out/*
-.vs/*
-applications/DEMApplication/.vs/*
-applications/DEMApplication/custom_constitutive/.vs/*
-applications/DEMApplication/python_scripts/.vs/*
-applications/DEMApplication/tests/*.pdf
-
 
 # Times files
 *.time
@@ -63,7 +55,6 @@ applications/DEMApplication/tests/*.pdf
 *.post.msh
 *.post.bin
 *.post.lst
-*.pdf
 
 # VTK post files
 *.vtk

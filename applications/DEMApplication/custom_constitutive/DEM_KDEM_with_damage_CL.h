@@ -99,9 +99,8 @@ namespace Kratos {
                                                     double indentation,
                                                     double LocalElasticContactForce[3]) override;
 
-        //void FindMaximumValueOfNormalAndTangentialDamageComponents();
 
-        void CalculationOfNormalAndTangentialDamageComponents();
+        void CalculateNormalAndTangentialDamageComponents();
 
         double mDamageNormal = 0.0;
         double mDamageTangential = 0.0;
