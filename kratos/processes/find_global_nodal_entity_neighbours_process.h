@@ -135,13 +135,16 @@ private:
     Model& mrModel;
 
     std::string mModelPartName;
-    std::string mOutputVariableName;
+
+    const Variable<GlobalEntityPointersVectorType>& mrOutputVariable;
 
     ///@}
     ///@name Private Operations
     ///@{
 
     static TContainerType& GetContainer(ModelPart& rModelPart);
+
+    static const Variable<GlobalEntityPointersVectorType>& GetDefaultOutputVariable();
 
     ///@}
 
