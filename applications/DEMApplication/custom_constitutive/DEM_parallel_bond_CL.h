@@ -85,7 +85,7 @@ namespace Kratos{
 
         virtual double ComputeNormalUnbondedForce(double unbonded_indentation);
 
-        virtual void CalculateNormalForces(double LocalElasticContactForce[3],
+        void CalculateNormalForces(double LocalElasticContactForce[3],
                 const double kn_el,
                 double equiv_young,
                 double indentation,
@@ -209,7 +209,9 @@ namespace Kratos{
         //virtual double GetInternalFricc(SphericContinuumParticle* element1);
 
     private:
-
+        using DEMContinuumConstitutiveLaw::CalculateNormalForces;
+        using DEMContinuumConstitutiveLaw::CalculateViscoDamping;
+        using DEMContinuumConstitutiveLaw::CalculateTangentialForces;
 
     };
     

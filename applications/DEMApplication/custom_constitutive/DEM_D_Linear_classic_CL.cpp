@@ -24,9 +24,6 @@ namespace Kratos{
         //Get equivalent Radius
         const double my_radius       = element1->GetRadius();
         const double other_radius    = element2->GetRadius();
-        const double radius_sum      = my_radius + other_radius;
-        const double radius_sum_inv  = 1.0 / radius_sum;
-        const double equiv_radius    = my_radius * other_radius * radius_sum_inv;
 
         //Get equivalent Young's Modulus
         const double my_young        = element1->GetYoung();
@@ -34,7 +31,6 @@ namespace Kratos{
         const double my_poisson      = element1->GetPoisson();
         const double other_poisson   = element2->GetPoisson();
         const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
-        const double equiv_poisson   = 2.0 * my_poisson * other_poisson / (my_poisson + other_poisson);
 
         //Get equivalent Shear Modulus
         const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
@@ -50,7 +46,7 @@ namespace Kratos{
         
         //Get effective Radius
         const double my_radius           = element->GetRadius(); //Get equivalent Radius
-        const double effective_radius    = my_radius - ini_delta;
+        //const double effective_radius    = my_radius - ini_delta;
 
         //Get equivalent Young's Modulus
         const double my_young            = element->GetYoung();
@@ -58,7 +54,6 @@ namespace Kratos{
         const double my_poisson          = element->GetPoisson();
         const double walls_poisson       = wall->GetProperties()[POISSON_RATIO];
         const double equiv_young         = my_young * walls_young / (walls_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - walls_poisson * walls_poisson));
-        const double equiv_poisson       = 2.0 * my_poisson * walls_poisson / (my_poisson + walls_poisson);
 
         //Get equivalent Shear Modulus
         const double my_shear_modulus    = 0.5 * my_young / (1.0 + my_poisson);
