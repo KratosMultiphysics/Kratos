@@ -14,7 +14,7 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return ParticleFromJsonCheckResultProcess(Model, settings["Parameters"])
 
-class LegacyFromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.TestCase): # TODO: This must be updated to the new C++ version
+class LegacyFromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
     """This class is used in order to check results using a json file
     containing the solution a given model part with a certain frequency
 
@@ -312,7 +312,7 @@ def ComputeRelevantDigits(number):
     self -- It signifies an instance of a class.
     """
     return int(ceil(abs(log10(number))))
-class ParticleFromJsonCheckResultProcess(LegacyFromJsonCheckResultProcess, KratosUnittest.TestCase):
+class ParticleFromJsonCheckResultProcess(LegacyFromJsonCheckResultProcess, KratosUnittest.TestCase): # TODO: This must be updated to the new C++ version
 
     def __init__(self, model_part, params):
         super(ParticleFromJsonCheckResultProcess, self).__init__(model_part, params)
