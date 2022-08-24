@@ -1206,6 +1206,8 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
     Matrix& rValue
     )
 {
+    const SizeType dimension = WorkingSpaceDimension();
+    const SizeType voigt_size = GetStrainSize();
     // We do some special operations for constitutive matrices
     if (rThisVariable == CONSTITUTIVE_MATRIX ||
         rThisVariable == CONSTITUTIVE_MATRIX_PK2 ||
@@ -1231,18 +1233,19 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
             this->CalculateMaterialResponseKirchhoff(rParameterValues);
         }
 
+        if (rValue.size1() != voigt_size)
+            rValue.resize(voigt_size, voigt_size, false);
         noalias(rValue) = rParameterValues.GetConstitutiveMatrix();
 
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-    } else if (rThisVariable == DEFORMATION_GRADIENT) { // TODO: Make in the future modifications for take into account different layers combinations
+    } else if (rThisVariable == DEFORMATION_GRADIENT) {
+        if (rValue.size1() != dimension)
+            rValue.resize(dimension, dimension, false);
         noalias(rValue) = rParameterValues.GetDeformationGradientF();
     } else if (rThisVariable == CAUCHY_STRESS_TENSOR_FIBER) { // TODO: Make in the future modifications for take into account different layers combinations
-        // Some auxiliar values
-        const SizeType dimension = WorkingSpaceDimension();
-        const SizeType voigt_size = GetStrainSize();
 
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
@@ -1384,7 +1387,9 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
             r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
             r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
             r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-            rValue = MathUtils<double>::StressVectorToTensor(matrix_stress_vector);
+            if (rValue.size1() != voigt_size)
+                rValue.resize(voigt_size, voigt_size, false);
+            noalias(rValue) = MathUtils<double>::StressVectorToTensor(matrix_stress_vector);
             return rValue;
         }
     } else if (rThisVariable == CAUCHY_STRESS_TENSOR) {
