@@ -16,6 +16,7 @@
 // System includes
 #include <cmath>
 
+
 namespace Kratos
 {
 namespace Detail
@@ -26,27 +27,40 @@ IntervalUtility<TValue>::IntervalUtility(Parameters settings)
 {
     KRATOS_TRY
 
-    if(settings.Has("interval"))
-    {
-        if(settings["interval"][1].Is<std::string>())
-        {
-            if(settings["interval"][1].Get<std::string>() == "End")
-                settings["interval"][1].Set(std::numeric_limits<TValue>::max());
-            else
-                KRATOS_ERROR << "the second value of interval can be \"End\" or a number, interval currently: \n"+settings["interval"].PrettyPrintJsonString();
-        }
-    }
-    else
-    {
-        // No interval provided => set it to [min, max]
+    if (!settings.Has("interval")) {
+        // No interval provided => set it to ["Begin", "End"]
         settings.AddEmptyArray("interval");
         Parameters interval = settings["interval"];
-        interval.Append(std::numeric_limits<TValue>::min());
-        interval.Append(std::numeric_limits<TValue>::max());
+        interval.Append("Begin");
+        interval.Append("End");
     }
 
-    mBegin = settings["interval"][0].Get<TValue>();
-    mEnd = settings["interval"][1].Get<TValue>();
+    auto interval = settings["interval"];
+    KRATOS_ERROR_IF_NOT(settings.IsArray() && settings.size() == 2) << "Expecting 'interval' as an array of size 2, but got:\n" << interval.PrettyPrintJsonString();
+
+    // Replace "Begin" with the minimum representable value
+    if(interval[1].Is<std::string>()) {
+        if(interval[0].Get<std::string>() == "Begin") {
+            interval[0].Set(std::numeric_limits<TValue>::min());
+        } else {
+            KRATOS_ERROR << "the first value of 'interval' can be \"Begin\" or a number, 'interval' currently:\n" << interval.PrettyPrintJsonString();
+        }
+    }
+
+    // Replace "End" with the maximum representable value
+    /// @todo setting "End" to the maximum representable value will lead to incorrect behaviour
+    /// when the test value is also the maximum representable value. This is an unlikely case for
+    /// @a double and @a int but still a logical inconsistency.
+    if(interval[1].Is<std::string>()) {
+        if(interval[1].Get<std::string>() == "End") {
+            interval[1].Set(std::numeric_limits<TValue>::max());
+        } else {
+            KRATOS_ERROR << "the second value of 'interval' can be \"End\" or a number, 'interval' currently:\n" << interval.PrettyPrintJsonString();
+        }
+    }
+
+    mBegin = interval[0].Get<TValue>();
+    mEnd = interval[1].Get<TValue>();
 
     KRATOS_CATCH("");
 }
