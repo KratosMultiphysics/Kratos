@@ -43,13 +43,6 @@ namespace Kratos {
 
     void DEM_D_Quadratic::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
         
-        //Get equivalent Radius
-        const double my_radius       = element1->GetRadius();
-        const double other_radius    = element2->GetRadius();
-        const double radius_sum      = my_radius + other_radius;
-        const double radius_sum_inv  = 1.0 / radius_sum;
-        const double equiv_radius    = my_radius * other_radius * radius_sum_inv;
-
         //Get equivalent Young's Modulus
         const double my_young        = element1->GetYoung();
         const double other_young     = element2->GetYoung();
@@ -78,10 +71,6 @@ namespace Kratos {
     }
 
     void DEM_D_Quadratic::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
-        
-        //Get effective Radius
-        const double my_radius           = element->GetRadius(); //Get equivalent Radius
-        const double effective_radius    = my_radius - ini_delta;
 
         //Get equivalent Young's Modulus
         const double my_young            = element->GetYoung();

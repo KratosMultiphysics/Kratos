@@ -206,28 +206,6 @@ void DEM_parallel_bond::CalculateElasticConstants(double& kn_el, double& kt_el, 
 
     KRATOS_TRY
 
-    //for unbonded part
-    //TODO: check whether the unbonded elastic parameters should be calculated here
-    //maybe they should not be here.
-    const double my_radius       = element1->GetRadius();
-    const double other_radius    = element2->GetRadius();
-    const double radius_sum      = my_radius + other_radius;
-    const double radius_sum_inv  = 1.0 / radius_sum;
-    const double equiv_radius    = my_radius * other_radius * radius_sum_inv;
-
-    //Get equivalent Young's Modulus
-    const double my_young        = element1->GetYoung();
-    const double other_young     = element2->GetYoung();
-    const double my_poisson      = element1->GetPoisson();
-    const double other_poisson   = element2->GetPoisson();
-    const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
-    const double equiv_poisson   = my_poisson * other_poisson / (my_poisson + other_poisson);
-
-    //Get equivalent Shear Modulus //TODO: check
-    const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
-    const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
-    const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
-
     //for bonded part
     const double bond_equiv_young = (*mpProperties)[BOND_YOUNG_MODULUS];
     kn_el = bond_equiv_young * calculation_area / initial_dist;
@@ -549,16 +527,13 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
     KRATOS_TRY
 
     // TODO: add [BOND_TAU_ZERO_DEVIATION]
-    const double& bond_tau_zero = (*mpProperties)[BOND_TAU_ZERO];
-    const double& internal_friction = (*mpProperties)[BOND_INTERNAL_FRICC];
+    //const double& bond_tau_zero = (*mpProperties)[BOND_TAU_ZERO];
+    //const double& internal_friction = (*mpProperties)[BOND_INTERNAL_FRICC];
     int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
     double current_tangential_force_module = 0.0;
 
     // The [mBondedScalingFactor] is divided into two direction [0] and [1]. June, 2022
-    double OldBondedLocalElasticContactForce[2] = {0.0};
     double BondedLocalElasticContactForce[2] = {0.0};
-    OldBondedLocalElasticContactForce[0] = mBondedScalingFactor[0] * OldLocalElasticContactForce[0];
-    OldBondedLocalElasticContactForce[1] = mBondedScalingFactor[1] * OldLocalElasticContactForce[1];
 
     // bond force
     if (!failure_type) {
@@ -681,9 +656,6 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
 
     LocalElasticContactForce[0] = BondedLocalElasticContactForce[0] + UnbondedLocalElasticContactForce[0];
     LocalElasticContactForce[1] = BondedLocalElasticContactForce[1] + UnbondedLocalElasticContactForce[1];
-
-    double local_elastic_force_modulus = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] +
-                                                LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
     // Here, we only calculate the BondedScalingFactor and [unBondedScalingFactor = 1 - BondedScalingFactor].
     if (LocalElasticContactForce[0] && LocalElasticContactForce[1]) {
@@ -897,9 +869,9 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
 
         //parameters
         const double& bond_sigma_max = (*mpProperties)[BOND_SIGMA_MAX];
-        const double& bond_sigma_max_deviation = (*mpProperties)[BOND_SIGMA_MAX_DEVIATION];
+        //const double& bond_sigma_max_deviation = (*mpProperties)[BOND_SIGMA_MAX_DEVIATION];
         const double& bond_tau_zero = (*mpProperties)[BOND_TAU_ZERO];
-        const double& bond_tau_zero_deviation = (*mpProperties)[BOND_TAU_ZERO_DEVIATION];
+        //const double& bond_tau_zero_deviation = (*mpProperties)[BOND_TAU_ZERO_DEVIATION];
         const double& bond_interanl_friction = (*mpProperties)[BOND_INTERNAL_FRICC];
         const double& bond_rotational_moment_coefficient =(*mpProperties)[BOND_ROTATIONAL_MOMENT_COEFFICIENT];
         
@@ -949,7 +921,7 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             ViscoLocalRotationalMoment[2] = 0.0;
         } 
         else if (contact_sigma < 0.0  /*break only in tension*/
-                && (-1 * contact_sigma + bond_rotational_moment_coefficient * bond_rotational_moment_tangential_modulus * bond_radius / I > bond_current_tau_max) 
+                && (-1 * contact_sigma + bond_rotational_moment_coefficient * bond_rotational_moment_tangential_modulus * bond_radius / I > bond_sigma_max) 
                 && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for normal
             failure_type = 4; // failure in tension
