@@ -114,7 +114,7 @@ namespace Kratos
     KRATOS_TRY;
 
     unsigned int voigtsize = 3;
-    if (TDim == 3)
+    if constexpr (TDim == 3)
     {
       voigtsize = 6;
     }

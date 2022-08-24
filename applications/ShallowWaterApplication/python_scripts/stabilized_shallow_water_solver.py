@@ -22,7 +22,6 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         self.main_model_part.AddNodalSolutionStepVariable(SW.ATMOSPHERIC_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KM.MESH_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(SW.WIND)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
 
     def AddDofs(self):
         KM.VariableUtils().AddDof(KM.MOMENTUM_X, self.main_model_part)
@@ -39,9 +38,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         self.main_model_part.ProcessInfo.SetValue(KM.DENSITY, 1e3)
         self.main_model_part.ProcessInfo.SetValue(SW.INTEGRATE_BY_PARTS, False)
         if self.compute_neighbours:
-            dimension = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
-            avg_neigh = 2 * dimension
-            KM.FindElementalNeighboursProcess(self.main_model_part, dimension, avg_neigh).Execute()
+            KM.GenericFindElementalNeighboursProcess(self.main_model_part).Execute()
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
