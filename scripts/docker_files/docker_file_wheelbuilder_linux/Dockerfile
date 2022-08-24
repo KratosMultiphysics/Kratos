@@ -34,6 +34,8 @@ RUN git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /workspace/m
     rm -r /workspace/mmg_5_5_1 && \
     cd /
 
+RUN python3.6 -m pip install mypy
+
 COPY start.sh /workspace/scripts/start.sh
 
 RUN chmod +x /workspace/scripts/start.sh
