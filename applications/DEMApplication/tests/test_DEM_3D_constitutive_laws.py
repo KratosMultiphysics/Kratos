@@ -9,7 +9,6 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
-print(os.getpid())
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -24,7 +23,7 @@ class ConstitutiveLawsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def Finalize(self):
-        self.PrintDebugGraphs()
+        #self.PrintDebugGraphs()
         super().Finalize()
 
     def PrintDebugGraphs(self):

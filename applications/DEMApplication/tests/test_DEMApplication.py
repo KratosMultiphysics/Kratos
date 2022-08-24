@@ -34,6 +34,7 @@ import test_DEM_search_tolerance
 import test_DEM_search_flags
 import test_erase_particles
 import test_search_nodes
+import test_dem_3d_parallel_bond_model
 
 def AssembleTestSuites():
 
@@ -94,6 +95,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_little_delay"))
     smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_with_delay"))
     smallSuite.addTest(test_search_nodes.TestSearchNodes("test_SearchNodesInTargetModelPart"))
+    smallSuite.addTest(test_dem_3d_parallel_bond_model.TestParallelBondModel("test_ParallelBondModel_1"))
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTest(test_restart.TestRestartOneBall("test_execution"))
