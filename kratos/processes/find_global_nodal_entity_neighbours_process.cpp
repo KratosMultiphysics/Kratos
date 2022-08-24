@@ -33,40 +33,85 @@ namespace Kratos
 {
 
 template <>
-ModelPart::ConditionsContainerType& FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>::GetContainer()
+ModelPart::ConditionsContainerType& FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>::GetContainer(ModelPart& rModelPart)
 {
-    return this->mrModelPart.Conditions();
+    return rModelPart.Conditions();
 }
 
 template <>
-ModelPart::ElementsContainerType& FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>::GetContainer()
+ModelPart::ElementsContainerType& FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>::GetContainer(ModelPart& rModelPart)
 {
-    return this->mrModelPart.Elements();
+    return rModelPart.Elements();
+}
+
+template<>
+const Parameters FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>::GetDefaultParameters() const
+{
+    const auto default_parameters = Parameters(R"(
+        {
+            "model_part_name"     : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "output_variable_name": "NEIGHBOUR_CONDITIONS"
+        })");
+
+    return default_parameters;
+}
+
+template<>
+const Parameters FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>::GetDefaultParameters() const
+{
+    const auto default_parameters = Parameters(R"(
+        {
+            "model_part_name"     : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "output_variable_name": "NEIGHBOUR_ELEMENTS"
+        })");
+
+    return default_parameters;
+}
+
+template<class TContainerType>
+FindGlobalNodalEntityNeighboursProcess<TContainerType>::FindGlobalNodalEntityNeighboursProcess(
+    Model& rModel,
+    Parameters Params)
+    : mrModel(rModel)
+{
+    KRATOS_TRY
+
+    Params.ValidateAndAssignDefaults(GetDefaultParameters());
+    mModelPartName = Params["model_part_name"].GetString();
+    mOutputVariableName = Params["output_variable_name"].GetString();
+
+    KRATOS_ERROR_IF_NOT(KratosComponents<Variable<GlobalEntityPointersVectorType>>::Has(mOutputVariableName))
+            << mOutputVariableName << " is not found in GlobalEntityPointersVectorType variables list.\n";
+
+    KRATOS_CATCH("")
 }
 
 template<>
 FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>::FindGlobalNodalEntityNeighboursProcess(
     ModelPart& rModelPart)
-    : mrModelPart(rModelPart),
-      mrOutputVariable(NEIGHBOUR_CONDITIONS)
+    : mrModel(rModelPart.GetModel())
 {
+    mModelPartName = rModelPart.FullName();
+    mOutputVariableName = "NEIGHBOUR_CONDITIONS";
 }
 
 template<>
 FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>::FindGlobalNodalEntityNeighboursProcess(
     ModelPart& rModelPart)
-    : mrModelPart(rModelPart),
-      mrOutputVariable(NEIGHBOUR_ELEMENTS)
+    : mrModel(rModelPart.GetModel())
 {
+    mModelPartName = rModelPart.FullName();
+    mOutputVariableName = "NEIGHBOUR_ELEMENTS";
 }
 
 template<class TContainerType>
 FindGlobalNodalEntityNeighboursProcess<TContainerType>::FindGlobalNodalEntityNeighboursProcess(
     ModelPart& rModelPart,
     const Variable<GlobalEntityPointersVectorType>& rOutputVariable)
-    : mrModelPart(rModelPart),
-      mrOutputVariable(rOutputVariable)
+    : mrModel(rModelPart.GetModel())
 {
+    mModelPartName = rModelPart.FullName();
+    mOutputVariableName = rOutputVariable.Name();
 }
 
 template<class TContainerType>
@@ -74,20 +119,23 @@ void FindGlobalNodalEntityNeighboursProcess<TContainerType>::Execute()
 {
     KRATOS_TRY
 
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+    const auto& r_output_variable = KratosComponents<Variable<GlobalEntityPointersVectorType>>::Get(mOutputVariableName);
+
     // first of all the neighbour nodes and elements array are initialized to the guessed size
     // and empties the old entries
-    auto& r_nodes = mrModelPart.Nodes();
-    VariableUtils().SetNonHistoricalVariable(mrOutputVariable, GlobalEntityPointersVectorType(), r_nodes);
+    auto& r_nodes = r_model_part.Nodes();
+    VariableUtils().SetNonHistoricalVariable(r_output_variable, GlobalEntityPointersVectorType(), r_nodes);
 
     // compute the complete list of local neighbours
-    const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
+    const auto& r_data_communicator = r_model_part.GetCommunicator().GetDataCommunicator();
     const IndexType current_rank = r_data_communicator.Rank();
 
-    block_for_each(GetContainer(), [&](EntityType& rEntity) {
+    block_for_each(GetContainer(r_model_part), [&](EntityType& rEntity) {
         GlobalPointer<EntityType> gp_entity(&rEntity, current_rank);
         for(auto& r_node : rEntity.GetGeometry()) {
             r_node.SetLock();
-            r_node.GetValue(mrOutputVariable).push_back(gp_entity);
+            r_node.GetValue(r_output_variable).push_back(gp_entity);
             r_node.UnSetLock();
         }
     });
@@ -96,9 +144,9 @@ void FindGlobalNodalEntityNeighboursProcess<TContainerType>::Execute()
         // construct the list of nodes that need to be sent
         NonLocalMapType non_local_map;
 
-        for(const auto& r_node : mrModelPart.GetCommunicator().InterfaceMesh().Nodes()) {
+        for(const auto& r_node : r_model_part.GetCommunicator().InterfaceMesh().Nodes()) {
             const int owner_rank = r_node.FastGetSolutionStepValue(PARTITION_INDEX);
-            non_local_map[owner_rank][r_node.Id()] = r_node.GetValue(mrOutputVariable);
+            non_local_map[owner_rank][r_node.Id()] = r_node.GetValue(r_output_variable);
         }
 
         // here communicate non local data
@@ -119,8 +167,8 @@ void FindGlobalNodalEntityNeighboursProcess<TContainerType>::Execute()
                 recv_map[color] = r_data_communicator.SendRecv(non_local_map[color], color, color);
 
                 for(auto& r_item : recv_map[color]) {
-                    auto& recv_node = mrModelPart.GetNode(r_item.first);
-                    auto& neighbours = recv_node.GetValue(mrOutputVariable);
+                    auto& recv_node = r_model_part.GetNode(r_item.first);
+                    auto& neighbours = recv_node.GetValue(r_output_variable);
                     for(auto& r_gp : r_item.second.GetContainer()) {
                         neighbours.push_back(r_gp);
                     }
@@ -134,8 +182,8 @@ void FindGlobalNodalEntityNeighboursProcess<TContainerType>::Execute()
                 for(auto& r_item : recv_map[color]) {
                     //r_item.first contains the id of the node
                     //r_item.second contains the list of neighbours
-                    auto& r_recv_node = mrModelPart.GetNode(r_item.first);
-                    r_item.second = r_recv_node.GetValue(mrOutputVariable);
+                    auto& r_recv_node = r_model_part.GetNode(r_item.first);
+                    r_item.second = r_recv_node.GetValue(r_output_variable);
                 }
 
                 //obtain the final list of neighbours for nodes owned on color
@@ -143,14 +191,14 @@ void FindGlobalNodalEntityNeighboursProcess<TContainerType>::Execute()
 
                 //update the local database
                 for(auto& r_item : final_gp_map) {
-                    auto& r_recv_node = mrModelPart.GetNode(r_item.first);
-                    r_recv_node.GetValue(mrOutputVariable) = r_item.second;
+                    auto& r_recv_node = r_model_part.GetNode(r_item.first);
+                    r_recv_node.GetValue(r_output_variable) = r_item.second;
                 }
             }
         }
     }
 
-    auto constructor_functor =  ComputeNeighbourListFunctor<ModelPart::NodesContainerType, Variable<GlobalEntityPointersVectorType>>(r_nodes, mrOutputVariable);
+    auto constructor_functor =  ComputeNeighbourListFunctor<ModelPart::NodesContainerType, Variable<GlobalEntityPointersVectorType>>(r_nodes, r_output_variable);
 
     GlobalPointerCommunicator<EntityType> pointer_comm(r_data_communicator, constructor_functor);
     auto id_proxy = pointer_comm.Apply(
@@ -158,7 +206,7 @@ void FindGlobalNodalEntityNeighboursProcess<TContainerType>::Execute()
     );
 
     block_for_each(r_nodes, [&](NodeType& rNode){
-        auto& neighbours = rNode.GetValue(mrOutputVariable);
+        auto& neighbours = rNode.GetValue(r_output_variable);
         neighbours.shrink_to_fit();
         std::sort(neighbours.ptr_begin(), neighbours.ptr_end(),
             [&id_proxy](GlobalPointer<EntityType> const& gp1, GlobalPointer<EntityType> const& gp2)
@@ -174,8 +222,9 @@ void FindGlobalNodalEntityNeighboursProcess<TContainerType>::Execute()
 template<class TContainerType>
 void FindGlobalNodalEntityNeighboursProcess<TContainerType>::Clear()
 {
-    auto& rNodes = mrModelPart.Nodes();
-    VariableUtils().SetNonHistoricalVariable(mrOutputVariable, GlobalEntityPointersVectorType(), rNodes);
+    auto& rNodes = mrModel.GetModelPart(mModelPartName).Nodes();
+    const auto& r_output_variable = KratosComponents<Variable<GlobalEntityPointersVectorType>>::Get(mOutputVariableName);
+    VariableUtils().SetNonHistoricalVariable(r_output_variable, GlobalEntityPointersVectorType(), rNodes);
 }
 
 template<class TContainerType>
@@ -184,11 +233,14 @@ std::unordered_map<int, std::vector<int>> FindGlobalNodalEntityNeighboursProcess
 {
     KRATOS_TRY
 
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+    const auto& r_output_variable = KratosComponents<Variable<GlobalEntityPointersVectorType>>::Get(mOutputVariableName);
+
     std::unordered_map<int, std::vector<int>> output;
 
-    auto constructor_functor =  Kratos::ComputeNeighbourListFunctor<ModelPart::NodesContainerType, Variable<GlobalEntityPointersVectorType>>(rNodes, mrOutputVariable);
+    auto constructor_functor =  Kratos::ComputeNeighbourListFunctor<ModelPart::NodesContainerType, Variable<GlobalEntityPointersVectorType>>(rNodes, r_output_variable);
 
-    GlobalPointerCommunicator<EntityType> pointer_comm(mrModelPart.GetCommunicator().GetDataCommunicator(), constructor_functor);
+    GlobalPointerCommunicator<EntityType> pointer_comm(r_model_part.GetCommunicator().GetDataCommunicator(), constructor_functor);
 
     auto result_proxy = pointer_comm.Apply(
         [](GlobalPointer<EntityType>& gp) {
@@ -197,7 +249,7 @@ std::unordered_map<int, std::vector<int>> FindGlobalNodalEntityNeighboursProcess
     );
 
     block_for_each(rNodes, [&](NodeType& rNode){
-        auto& r_neighbours = rNode.GetValue(mrOutputVariable);
+        auto& r_neighbours = rNode.GetValue(r_output_variable);
         std::vector<int> tmp(r_neighbours.size());
         for(unsigned int i=0; i<r_neighbours.size(); ++i) {
             tmp[i] = result_proxy.Get(r_neighbours(i));

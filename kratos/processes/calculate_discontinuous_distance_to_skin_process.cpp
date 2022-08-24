@@ -26,6 +26,7 @@
 #include "utilities/intersection_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/plane_approximation_utility.h"
+#include "utilities/global_pointer_utilities.h"
 
 namespace Kratos
 {

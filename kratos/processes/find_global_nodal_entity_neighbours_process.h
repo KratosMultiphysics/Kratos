@@ -23,13 +23,11 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/model.h"
 #include "processes/process.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "includes/global_pointer_variables.h"
-#include "utilities/communication_coloring_utilities.h"
-#include "utilities/pointer_communicator.h"
-#include "includes/mpi_serializer.h"
-#include "utilities/global_pointer_utilities.h"
 
 namespace Kratos
 {
@@ -73,6 +71,10 @@ public:
 
     /// Constructor.
     FindGlobalNodalEntityNeighboursProcess(
+        Model& rModel,
+        Parameters Params);
+
+    FindGlobalNodalEntityNeighboursProcess(
         ModelPart& rModelPart);
 
     FindGlobalNodalEntityNeighboursProcess(
@@ -101,6 +103,8 @@ public:
     std::unordered_map<int, std::vector<int> > GetNeighbourIds(
         ModelPart::NodesContainerType& rNodes);
 
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -128,15 +132,16 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    Model& mrModel;
 
-    const Variable<GlobalEntityPointersVectorType>& mrOutputVariable;
+    std::string mModelPartName;
+    std::string mOutputVariableName;
 
     ///@}
     ///@name Private Operations
     ///@{
 
-    TContainerType& GetContainer();
+    static TContainerType& GetContainer(ModelPart& rModelPart);
 
     ///@}
 
