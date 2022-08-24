@@ -558,7 +558,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateSerialParallelProjectionMatrices(
     noalias(rParallelProjector) = ZeroMatrix(voigt_size, num_parallel_components);
     noalias(rSerialProjector)   = ZeroMatrix(num_serial_components, voigt_size);
 
-    int parallel_counter = 0, serial_counter = 0;
+    IndexType parallel_counter = 0, serial_counter = 0;
     for (IndexType i_comp = 0; i_comp < voigt_size; ++i_comp) {
         if (mParallelDirections[i_comp] == 1) {
             rParallelProjector(i_comp, parallel_counter) = 1.0;
