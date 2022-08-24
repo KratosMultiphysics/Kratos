@@ -1214,7 +1214,7 @@ Vector& SerialParallelRuleOfMixturesLaw::CalculateValue(
         noalias(rValue) = matrix_stress_vector;
         return rValue;
 
-    } else if (rThisVariable == CAUCHY_STRESS_VECTOR || PK2_STRESS_VECTOR || KIRCHHOFF_STRESS_VECTOR) {
+    } else if (rThisVariable == CAUCHY_STRESS_VECTOR || rThisVariable == PK2_STRESS_VECTOR || rThisVariable == KIRCHHOFF_STRESS_VECTOR) {
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
 
@@ -1319,9 +1319,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
     const SizeType dimension = WorkingSpaceDimension();
     const SizeType voigt_size = GetStrainSize();
     // We do some special operations for constitutive matrices
-    if (rThisVariable == CONSTITUTIVE_MATRIX ||
-        rThisVariable == CONSTITUTIVE_MATRIX_PK2 ||
-        rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
+    if (rThisVariable == CONSTITUTIVE_MATRIX || rThisVariable == CONSTITUTIVE_MATRIX_PK2 || rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
 
@@ -1436,7 +1434,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         noalias(rValue) = MathUtils<double>::StressVectorToTensor(matrix_stress_vector);
         return rValue;
 
-    } else if (rThisVariable == CAUCHY_STRESS_TENSOR || PK2_STRESS_TENSOR || KIRCHHOFF_STRESS_TENSOR) {
+    } else if (rThisVariable == CAUCHY_STRESS_TENSOR || rThisVariable == PK2_STRESS_TENSOR || rThisVariable == KIRCHHOFF_STRESS_TENSOR) {
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
 
