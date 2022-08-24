@@ -1416,7 +1416,6 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
         return rValue;
     } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_TENSOR_MATRIX) {
-        const std::size_t voigt_size = this->GetStrainSize();
         Matrix parallel_projector, serial_projector;
         this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
 
@@ -1425,7 +1424,9 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         this->CalculateStrainsOnEachComponent(r_strain_vector,
                                               parallel_projector, serial_projector, mPreviousSerialStrainMatrix,
                                               matrix_strain_vector, fiber_strain_vector);
-        rValue = MathUtils<double>::StrainVectorToTensor(matrix_strain_vector);
+        if (rValue.size1() != voigt_size)
+            rValue.resize(voigt_size, voigt_size, false);
+        noalias(rValue) = MathUtils<double>::StrainVectorToTensor(matrix_strain_vector);
         return rValue;
     } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_TENSOR_FIBER) {
         const std::size_t voigt_size = this->GetStrainSize();
@@ -1437,7 +1438,9 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         this->CalculateStrainsOnEachComponent(r_strain_vector,
                                               parallel_projector, serial_projector, mPreviousSerialStrainMatrix,
                                               matrix_strain_vector, fiber_strain_vector);
-        rValue = MathUtils<double>::StrainVectorToTensor(fiber_strain_vector);
+        if (rValue.size1() != voigt_size)
+            rValue.resize(voigt_size, voigt_size, false);
+        noalias(rValue) = MathUtils<double>::StrainVectorToTensor(fiber_strain_vector);
         return rValue;
     } else {
         Matrix aux_value;
