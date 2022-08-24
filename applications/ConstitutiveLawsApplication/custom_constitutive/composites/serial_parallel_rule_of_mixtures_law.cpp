@@ -509,10 +509,10 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     double det_aux = 0.0;
     MathUtils<double>::InvertMatrix(aux, A, det_aux);
 
-    Vector auxiliar(rInitialApproximationSerialStrainMatrix.size());
-    auxiliar = prod(rConstitutiveTensorFiberSS, r_total_strain_increment_serial) + k_f * prod(trans(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp)), r_total_strain_increment_parallel);
+    Vector auxiliary(rInitialApproximationSerialStrainMatrix.size());
+    noalias(auxiliary) = prod(rConstitutiveTensorFiberSS, r_total_strain_increment_serial) + k_f * prod(trans(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp)), r_total_strain_increment_parallel);
 
-    noalias(rInitialApproximationSerialStrainMatrix) = prod(A, auxiliar) + mPreviousSerialStrainMatrix;
+    noalias(rInitialApproximationSerialStrainMatrix) = prod(A, auxiliary) + mPreviousSerialStrainMatrix;
 }
 
 /***********************************************************************************/
@@ -558,7 +558,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateSerialParallelProjectionMatrices(
     noalias(rParallelProjector) = ZeroMatrix(voigt_size, num_parallel_components);
     noalias(rSerialProjector)   = ZeroMatrix(num_serial_components, voigt_size);
 
-    int parallel_counter = 0, serial_counter = 0;
+    IndexType parallel_counter = 0, serial_counter = 0;
     for (IndexType i_comp = 0; i_comp < voigt_size; ++i_comp) {
         if (mParallelDirections[i_comp] == 1) {
             rParallelProjector(i_comp, parallel_counter) = 1.0;
@@ -568,49 +568,6 @@ void SerialParallelRuleOfMixturesLaw::CalculateSerialParallelProjectionMatrices(
             serial_counter++;
         }
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SerialParallelRuleOfMixturesLaw::FinalizeSolutionStep(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    // Deprecated
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SerialParallelRuleOfMixturesLaw::CalculateElasticMatrix(
-    Matrix& rElasticityTensor,
-    const Properties& rMaterialProperties)
-{
-    const double E = rMaterialProperties[YOUNG_MODULUS];
-    const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
-    const double lambda =
-        E * poisson_ratio / ((1. + poisson_ratio) * (1.0 - 2.0 * poisson_ratio));
-    const double mu = E / (2.0 + 2.0 * poisson_ratio);
-
-    if (rElasticityTensor.size1() != 6 || rElasticityTensor.size2() != 6)
-        rElasticityTensor.resize(6, 6, false);
-    rElasticityTensor.clear();
-
-    rElasticityTensor(0, 0) = lambda + 2.0 * mu;
-    rElasticityTensor(0, 1) = lambda;
-    rElasticityTensor(0, 2) = lambda;
-    rElasticityTensor(1, 0) = lambda;
-    rElasticityTensor(1, 1) = lambda + 2.0 * mu;
-    rElasticityTensor(1, 2) = lambda;
-    rElasticityTensor(2, 0) = lambda;
-    rElasticityTensor(2, 1) = lambda;
-    rElasticityTensor(2, 2) = lambda + 2.0 * mu;
-    rElasticityTensor(3, 3) = mu;
-    rElasticityTensor(4, 4) = mu;
-    rElasticityTensor(5, 5) = mu;
 }
 
 /***********************************************************************************/
@@ -950,7 +907,7 @@ double& SerialParallelRuleOfMixturesLaw::GetValue(
     if (rThisVariable == DAMAGE_MATRIX) {
         return mpMatrixConstitutiveLaw->GetValue(DAMAGE, rValue);
     } else if (rThisVariable == DAMAGE_FIBER) {
-         return mpFiberConstitutiveLaw->GetValue(DAMAGE, rValue);
+        return mpFiberConstitutiveLaw->GetValue(DAMAGE, rValue);
     } else if (rThisVariable == DAMAGE && mpFiberConstitutiveLaw->Has(rThisVariable) && mpMatrixConstitutiveLaw->Has(rThisVariable)) {
         double damage_fiber, damage_matrix;
         mpFiberConstitutiveLaw->GetValue(DAMAGE, damage_fiber);
@@ -1173,7 +1130,159 @@ Vector& SerialParallelRuleOfMixturesLaw::CalculateValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue)
 {
-    return this->GetValue(rThisVariable, rValue);
+    const SizeType voigt_size = GetStrainSize();
+    // We do some special operations for constitutive matrices
+    if (rThisVariable == CAUCHY_STRESS_VECTOR_FIBER) {
+
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
+        const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS );
+
+        const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+
+        // The deformation gradient
+        if (rParameterValues.IsSetDeterminantF()) {
+            const double determinant_f = rParameterValues.GetDeterminantF();
+            KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
+        }
+        // In case the element has not computed the Strain
+        if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+            CalculateGreenLagrangeStrain(rParameterValues);
+        }
+
+        // Set new flags
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        // Total strain vector
+        Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
+        Vector fiber_stress_vector, matrix_stress_vector;
+        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rParameterValues, serial_strain_matrix_old);
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+
+        if (rValue.size() != voigt_size)
+            rValue.resize(voigt_size, false);
+        noalias(rValue) = fiber_stress_vector;
+        return rValue;
+
+    } else if (rThisVariable == CAUCHY_STRESS_VECTOR_MATRIX) {
+
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
+        const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS );
+
+        const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+
+        // The deformation gradient
+        if (rParameterValues.IsSetDeterminantF()) {
+            const double determinant_f = rParameterValues.GetDeterminantF();
+            KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
+        }
+        // In case the element has not computed the Strain
+        if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+            CalculateGreenLagrangeStrain(rParameterValues);
+        }
+
+        // Set new flags
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        // Total strain vector
+        Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
+        Vector fiber_stress_vector, matrix_stress_vector;
+        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rParameterValues, serial_strain_matrix_old);
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        if (rValue.size() != voigt_size)
+            rValue.resize(voigt_size, false);
+        noalias(rValue) = matrix_stress_vector;
+        return rValue;
+
+    } else if (rThisVariable == CAUCHY_STRESS_VECTOR || rThisVariable == PK2_STRESS_VECTOR || rThisVariable == KIRCHHOFF_STRESS_VECTOR) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS);
+
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+        // We compute the stress
+        if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+            this->CalculateMaterialResponseCauchy(rParameterValues);
+        } else if (rThisVariable == PK2_STRESS_VECTOR) {
+            this->CalculateMaterialResponsePK2(rParameterValues);
+        } else if (rThisVariable == KIRCHHOFF_STRESS_VECTOR) {
+            this->CalculateMaterialResponseKirchhoff(rParameterValues);
+        }
+
+        if (rValue.size() != voigt_size)
+            rValue.resize(voigt_size, false);
+        noalias(rValue) = rParameterValues.GetStressVector();
+
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        return rValue;
+    } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR_MATRIX) {
+        Matrix parallel_projector, serial_projector;
+        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+
+        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
+        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
+        if (rValue.size() != voigt_size)
+            rValue.resize(voigt_size, false);
+        noalias(rValue) = matrix_strain_vector;
+        return rValue;
+    } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR_FIBER) {
+        const std::size_t voigt_size = this->GetStrainSize();
+        Matrix parallel_projector, serial_projector;
+        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+
+        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
+        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
+        if (rValue.size() != voigt_size)
+            rValue.resize(voigt_size, false);
+        noalias(rValue) = fiber_strain_vector;
+        return rValue;
+    } else {
+        Vector aux_value;
+        Properties material_properties  = rParameterValues.GetMaterialProperties();
+        Properties& r_prop = material_properties.GetSubProperties(0);
+
+        rValue.clear();
+        rParameterValues.SetMaterialProperties(r_prop);
+        mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
+        noalias(rValue) += (1.0 - mFiberVolumetricParticipation) * aux_value;
+
+        r_prop = material_properties.GetSubProperties(1);
+        rParameterValues.SetMaterialProperties(r_prop);
+        mpFiberConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
+        noalias(rValue) += (mFiberVolumetricParticipation) * aux_value;
+
+        // Reset properties
+        rParameterValues.SetMaterialProperties(material_properties);
+    }
+    return rValue;
 }
 
 /***********************************************************************************/
@@ -1206,10 +1315,10 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
     Matrix& rValue
     )
 {
+    const SizeType dimension = WorkingSpaceDimension();
+    const SizeType voigt_size = GetStrainSize();
     // We do some special operations for constitutive matrices
-    if (rThisVariable == CONSTITUTIVE_MATRIX ||
-        rThisVariable == CONSTITUTIVE_MATRIX_PK2 ||
-        rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
+    if (rThisVariable == CONSTITUTIVE_MATRIX || rThisVariable == CONSTITUTIVE_MATRIX_PK2 || rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
 
@@ -1231,18 +1340,19 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
             this->CalculateMaterialResponseKirchhoff(rParameterValues);
         }
 
+        if (rValue.size1() != voigt_size)
+            rValue.resize(voigt_size, voigt_size, false);
         noalias(rValue) = rParameterValues.GetConstitutiveMatrix();
 
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-    } else if (rThisVariable == DEFORMATION_GRADIENT) { // TODO: Make in the future modifications for take into account different layers combinations
+    } else if (rThisVariable == DEFORMATION_GRADIENT) {
+        if (rValue.size1() != dimension)
+            rValue.resize(dimension, dimension, false);
         noalias(rValue) = rParameterValues.GetDeformationGradientF();
-    } else if (rThisVariable == CAUCHY_STRESS_TENSOR_FIBER) { // TODO: Make in the future modifications for take into account different layers combinations
-        // Some auxiliar values
-        const SizeType dimension = WorkingSpaceDimension();
-        const SizeType voigt_size = GetStrainSize();
+    } else if (rThisVariable == CAUCHY_STRESS_TENSOR_FIBER) {
 
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
@@ -1261,62 +1371,29 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         }
         // In case the element has not computed the Strain
         if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-            Vector& r_strain_vector = rParameterValues.GetStrainVector();
-
-            Matrix F_deformation_gradient;
-            this->CalculateValue(rParameterValues, DEFORMATION_GRADIENT, F_deformation_gradient);
-            const Matrix B_matrix = prod(F_deformation_gradient, trans(F_deformation_gradient));
-            // Doing resize in case is needed
-            if (r_strain_vector.size() != voigt_size)
-                r_strain_vector.resize(voigt_size);
-
-            // Identity matrix
-            Matrix identity_matrix(dimension, dimension);
-            for (IndexType i = 0; i < dimension; ++i) {
-                for (IndexType j = 0; j < dimension; ++j) {
-                    if (i == j) identity_matrix(i, j) = 1.0;
-                    else identity_matrix(i, j) = 0.0;
-                }
-            }
-
-            // Calculating the inverse of the left Cauchy tensor
-            Matrix inverse_B_tensor (dimension, dimension);
-            double aux_det_b = 0;
-            MathUtils<double>::InvertMatrix(B_matrix, inverse_B_tensor, aux_det_b);
-
-            // Calculate E matrix
-            const Matrix E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
-            // Almansi Strain Calculation
-            r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
+            CalculateGreenLagrangeStrain(rParameterValues);
         }
 
-        if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-            // Set new flags
-            r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-            r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-            r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        // Set new flags
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-            // Total strain vector
-            Vector& r_strain_vector = rParameterValues.GetStrainVector();
-            Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
-            Vector fiber_stress_vector, matrix_stress_vector;
-            this->IntegrateStrainSerialParallelBehaviour(r_strain_vector,
-                                                        fiber_stress_vector,
-                                                        matrix_stress_vector,
-                                                        r_material_properties,
-                                                        rParameterValues,
-                                                        serial_strain_matrix_old);
-            // Previous flags restored
-            r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
-            r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-            r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-            rValue = MathUtils<double>::StressVectorToTensor(fiber_stress_vector);
-            return rValue;
-        }
-    } else if (rThisVariable == CAUCHY_STRESS_TENSOR_MATRIX) { // TODO: Make in the future modifications for take into account different layers combinations
-        // Some auxiliar values
-        const SizeType dimension = WorkingSpaceDimension();
-        const SizeType voigt_size = GetStrainSize();
+        // Total strain vector
+        Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
+        Vector fiber_stress_vector, matrix_stress_vector;
+        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rParameterValues, serial_strain_matrix_old);
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+
+        if (rValue.size1() != voigt_size)
+            rValue.resize(voigt_size, voigt_size, false);
+        noalias(rValue) = MathUtils<double>::StressVectorToTensor(fiber_stress_vector);
+        return rValue;
+
+    } else if (rThisVariable == CAUCHY_STRESS_TENSOR_MATRIX) {
 
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
@@ -1335,59 +1412,28 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         }
         // In case the element has not computed the Strain
         if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-            Vector& r_strain_vector = rParameterValues.GetStrainVector();
-
-            Matrix F_deformation_gradient;
-            this->CalculateValue(rParameterValues, DEFORMATION_GRADIENT, F_deformation_gradient);
-            const Matrix B_matrix = prod(F_deformation_gradient, trans(F_deformation_gradient));
-            // Doing resize in case is needed
-            if (r_strain_vector.size() != voigt_size)
-                r_strain_vector.resize(voigt_size);
-
-            // Identity matrix
-            Matrix identity_matrix(dimension, dimension);
-            for (IndexType i = 0; i < dimension; ++i) {
-                for (IndexType j = 0; j < dimension; ++j) {
-                    if (i == j) identity_matrix(i, j) = 1.0;
-                    else identity_matrix(i, j) = 0.0;
-                }
-            }
-
-            // Calculating the inverse of the left Cauchy tensor
-            Matrix inverse_B_tensor (dimension, dimension);
-            double aux_det_b = 0;
-            MathUtils<double>::InvertMatrix(B_matrix, inverse_B_tensor, aux_det_b);
-
-            // Calculate E matrix
-            const Matrix E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
-            // Almansi Strain Calculation
-            r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
+            CalculateGreenLagrangeStrain(rParameterValues);
         }
 
-        if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-            // Set new flags
-            r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-            r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-            r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        // Set new flags
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-            // Total strain vector
-            Vector& r_strain_vector = rParameterValues.GetStrainVector();
-            Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
-            Vector fiber_stress_vector, matrix_stress_vector;
-            this->IntegrateStrainSerialParallelBehaviour(r_strain_vector,
-                                                        fiber_stress_vector,
-                                                        matrix_stress_vector,
-                                                        r_material_properties,
-                                                        rParameterValues,
-                                                        serial_strain_matrix_old);
-            // Previous flags restored
-            r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
-            r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-            r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-            rValue = MathUtils<double>::StressVectorToTensor(matrix_stress_vector);
-            return rValue;
-        }
-    } else if (rThisVariable == CAUCHY_STRESS_TENSOR) {
+        // Total strain vector
+        Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
+        Vector fiber_stress_vector, matrix_stress_vector;
+        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rParameterValues, serial_strain_matrix_old);
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        if (rValue.size1() != voigt_size)
+            rValue.resize(voigt_size, voigt_size, false);
+        noalias(rValue) = MathUtils<double>::StressVectorToTensor(matrix_stress_vector);
+        return rValue;
+
+    } else if (rThisVariable == CAUCHY_STRESS_TENSOR || rThisVariable == PK2_STRESS_TENSOR || rThisVariable == KIRCHHOFF_STRESS_TENSOR) {
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
 
@@ -1399,24 +1445,32 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // We compute the stress
-        this->CalculateMaterialResponsePK2(rParameterValues);
-        rValue = MathUtils<double>::StressVectorToTensor(rParameterValues.GetStressVector());
+        if (rThisVariable == CAUCHY_STRESS_TENSOR) {
+            this->CalculateMaterialResponseCauchy(rParameterValues);
+        } else if (rThisVariable == PK2_STRESS_TENSOR) {
+            this->CalculateMaterialResponsePK2(rParameterValues);
+        } else if (rThisVariable == KIRCHHOFF_STRESS_TENSOR) {
+            this->CalculateMaterialResponseKirchhoff(rParameterValues);
+        }
+
+        if (rValue.size1() != voigt_size)
+            rValue.resize(voigt_size, voigt_size, false);
+        noalias(rValue) = MathUtils<double>::StressVectorToTensor(rParameterValues.GetStressVector());
 
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
         return rValue;
     } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_TENSOR_MATRIX) {
-        const std::size_t voigt_size = this->GetStrainSize();
         Matrix parallel_projector, serial_projector;
         this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
 
         const Vector& r_strain_vector = rParameterValues.GetStrainVector();
         Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
-        this->CalculateStrainsOnEachComponent(r_strain_vector,
-                                              parallel_projector, serial_projector, mPreviousSerialStrainMatrix,
-                                              matrix_strain_vector, fiber_strain_vector);
-        rValue = MathUtils<double>::StrainVectorToTensor(matrix_strain_vector);
+        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
+        if (rValue.size1() != voigt_size)
+            rValue.resize(voigt_size, voigt_size, false);
+        noalias(rValue) = MathUtils<double>::StrainVectorToTensor(matrix_strain_vector);
         return rValue;
     } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_TENSOR_FIBER) {
         const std::size_t voigt_size = this->GetStrainSize();
@@ -1425,10 +1479,10 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
 
         const Vector& r_strain_vector = rParameterValues.GetStrainVector();
         Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
-        this->CalculateStrainsOnEachComponent(r_strain_vector,
-                                              parallel_projector, serial_projector, mPreviousSerialStrainMatrix,
-                                              matrix_strain_vector, fiber_strain_vector);
-        rValue = MathUtils<double>::StrainVectorToTensor(fiber_strain_vector);
+        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
+        if (rValue.size1() != voigt_size)
+            rValue.resize(voigt_size, voigt_size, false);
+        noalias(rValue) = MathUtils<double>::StrainVectorToTensor(fiber_strain_vector);
         return rValue;
     } else {
         Matrix aux_value;
@@ -1442,13 +1496,13 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
 
         r_prop = material_properties.GetSubProperties(1);
         rParameterValues.SetMaterialProperties(r_prop);
-        mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
-        noalias(rValue) += (1.0 - mFiberVolumetricParticipation) * aux_value;
+        mpFiberConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
+        noalias(rValue) += (mFiberVolumetricParticipation) * aux_value;
 
         // Reset properties
         rParameterValues.SetMaterialProperties(material_properties);
     }
-    return(rValue);
+    return rValue;
 }
 
 /***********************************************************************************/
