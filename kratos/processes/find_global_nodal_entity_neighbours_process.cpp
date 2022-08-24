@@ -175,7 +175,7 @@ template<class TContainerType>
 void FindGlobalNodalEntityNeighboursProcess<TContainerType>::Clear()
 {
     auto& rNodes = mrModelPart.Nodes();
-    VariableUtils().SetVariable(mrOutputVariable, GlobalEntityPointersVectorType(), rNodes);
+    VariableUtils().SetNonHistoricalVariable(mrOutputVariable, GlobalEntityPointersVectorType(), rNodes);
 }
 
 template<class TContainerType>
