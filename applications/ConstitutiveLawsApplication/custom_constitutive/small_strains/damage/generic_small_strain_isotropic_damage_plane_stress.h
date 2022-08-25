@@ -48,7 +48,7 @@ namespace Kratos
 /**
  * @class GenericSmallStrainIsotropicDamagePlaneStress
  * @ingroup StructuralMechanicsApplication
- * @brief This class is the base class which define all the constitutive laws for damage in small deformation
+ * @brief This class is the base class which define all the constitutive laws for damage in plane stress small deformation
  * @details This class considers a constitutive law integrator as an intermediate utility to compute the damage
  * @tparam TConstLawIntegratorType The constitutive law integrator considered
  * @author Alejandro Cornejo
