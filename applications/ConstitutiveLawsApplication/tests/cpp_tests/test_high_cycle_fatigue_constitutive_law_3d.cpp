@@ -36,7 +36,7 @@ namespace Testing
 {
 // We test the associated damage Constitutive laws...
 typedef Node<3> NodeType;
-typedef GenericSmallStrainHighCycleFatigueLaw<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> FatigueLawType;
+typedef GenericSmallStrainHighCycleFatigueLaw<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesYieldPlasticPotential<6>>>> FatigueLawType;
 
 /**
     * Check the correct calculation of the integrated stress with the CL's
