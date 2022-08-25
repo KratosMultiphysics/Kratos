@@ -71,7 +71,8 @@ public:
     TValue GetIntervalEnd() const noexcept;
 
     /// @brief Check whether the input value is within the defined closed interval [Begin, End].
-    bool IsInInterval(TValue Value) const noexcept;
+    bool IsInInterval(TValue Value) const noexcept
+    {return mBegin <= Value && Value <= mEnd;}
 
     static Parameters GetDefaultParameters();
 

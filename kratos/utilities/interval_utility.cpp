@@ -91,12 +91,6 @@ Parameters IntervalUtility<TValue>::GetDefaultParameters()
     return Parameters(R"({"interval" : ["Begin", "End"]})");
 }
 
-template <class TValue>
-bool IntervalUtility<TValue>::IsInInterval(TValue Value) const noexcept
-{
-    return mBegin <= Value && Value <= mEnd;
-}
-
 
 template <>
 void IntervalUtility<double>::SetBoundaries(double begin, double end) noexcept
