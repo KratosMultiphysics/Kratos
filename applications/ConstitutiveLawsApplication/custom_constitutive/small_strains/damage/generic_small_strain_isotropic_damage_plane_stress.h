@@ -20,7 +20,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage.h"
+#include "generic_small_strain_isotropic_damage.h"
 
 namespace Kratos
 {
@@ -67,7 +67,8 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-
+            /// Counted pointer of GenericYieldSurface
+    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicDamage);
     /**
     * Default constructor.
     */
