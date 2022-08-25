@@ -161,19 +161,7 @@ namespace Kratos{
                                                 double ViscoLocalRotationalMoment[3],
                                                 double equiv_poisson,
                                                 double indentation,
-                                                double LocalElasticContactForce[3]) override;
-        
-        /*
-        void AddPoissonContribution(const double equiv_poisson,
-                                    double LocalCoordSystem[3][3],
-                                    double& normal_force,
-                                    double calculation_area, 
-                                    BoundedMatrix<double, 3, 3>* mSymmStressTensor, 
-                                    SphericContinuumParticle* element1,
-                                    SphericContinuumParticle* element2, 
-                                    const ProcessInfo& r_process_info, 
-                                    const int i_neighbor_count, 
-                                    const double indentation) override; */
+                                                double LocalElasticContactForce[3]) override;       
         
         void AddContributionOfShearStrainParallelToBond(double OldLocalElasticContactForce[3],
                                                     double LocalElasticExtraContactForce[3],
@@ -185,14 +173,12 @@ namespace Kratos{
                                                     SphericContinuumParticle* element2);
 
 
-        //TODO: remove the usefulless parameters
         double mUnbondedLocalElasticContactForce2 = 0.0;
         double mUnbondedNormalElasticConstant = 0.0;
         double mUnbondedTangentialElasticConstant = 0.0;
         double mUnbondedViscoDampingLocalContactForce[3] = {0.0};
         double mBondedViscoDampingLocalContactForce[3] = {0.0};
         double mBondedScalingFactor[3] = {0.0};
-        //double mUnbondedScalingFactor[2] = {0.0};
         double mUnbondedEquivViscoDampCoeffTangential = 0.0;
         double mUnbondedEquivViscoDampCoeffNormal = 0.0;
         double mInitialIndentationForBondedPart = 0.0;
@@ -204,20 +190,12 @@ namespace Kratos{
 
     protected:
 
-        // TODO: check whether they are necessary
-        //virtual double GetTauZero(SphericContinuumParticle* element1);
-        //virtual double GetInternalFricc(SphericContinuumParticle* element1);
-
     private:
         using DEMContinuumConstitutiveLaw::CalculateNormalForces;
         using DEMContinuumConstitutiveLaw::CalculateViscoDamping;
         using DEMContinuumConstitutiveLaw::CalculateTangentialForces;
 
-    };
-    
-    //This definition is done here to avoid recursive inclusion of header files 
-    //TODO: check the name of pointer // the function?
-    //KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, DEMContinuumConstitutiveLaw::Pointer, DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
+    };   
 
 } // namespace Kratos
 

@@ -28,12 +28,14 @@ namespace Kratos {
     void DEM_D_Linear_HighStiffness::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
         
         DEM_D_Linear_viscous_Coulomb::InitializeContact(element1, element2, indentation);
-        mKn *= (*mpProperties)[STIFFNESS_FACTOR];
+        Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
+        mKn *= properties_of_this_contact[STIFFNESS_FACTOR];
     }
 
     void DEM_D_Linear_HighStiffness::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
         
         DEM_D_Linear_viscous_Coulomb::InitializeContactWithFEM(element, wall, indentation, ini_delta);
-        mKn *= (*mpProperties)[STIFFNESS_FACTOR];
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        mKn *= properties_of_this_contact[STIFFNESS_FACTOR];
     }
 } // namespace Kratos

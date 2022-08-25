@@ -31,9 +31,7 @@ namespace Kratos {
         }
 
         mKn = 0.25 * Globals::Pi * equiv_young * 1.0; // This 1.0 is the length (the unitary thickness)
-        //mKn = 0.7854 * equiv_young;     //KRATOS_M_PI_4 = 0.7854
         mKt = mKn * (1.0 - equiv_poisson) / (1.0 - 0.5 * equiv_poisson);
-        //mKt = mKn * (1.0 - my_poisson) / (1.0 - 0.5 * my_poisson);
     }
 
     void DEM_D_Hertz_viscous_Coulomb2D::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
@@ -49,7 +47,6 @@ namespace Kratos {
         const double equiv_shear = 1.0 / ((2.0 - my_poisson) / my_shear_modulus + (2.0 - walls_poisson) / walls_shear_modulus);
         const double element_radius = element->GetRadius();
         mKn = 2.0 * element_radius * equiv_young;
-        //mKn = 0.7854 * equiv_young;     //KRATOS_M_PI_4 = 0.7854
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
 
