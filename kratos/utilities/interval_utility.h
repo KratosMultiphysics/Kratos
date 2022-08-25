@@ -50,9 +50,15 @@ public:
      *        in the input @a Settings.
      *
      *  @note If "interval" is not in @a Settings, an "interval" with values corresponding
-     *        to "Begin" and "End" are added to it.
+     *        to "Begin" and "End" is added to it.
      *
      *  @note Other parameters in @a Settings are not checked.
+     *
+     *  @throws If @a Settings has "interval" but has invalid value:
+     *          - not an array of size 2
+     *          - first item is not "Begin" or an appropriate numeric value
+     *          - second item is not "End" or an appropriate numeric value
+     *          - swapped boundaries (end < begin)
      */
     IntervalUtility(Parameters Settings);
 
@@ -64,19 +70,22 @@ public:
 
     TValue GetIntervalEnd() const noexcept;
 
-    /**
-     *  @brief Check whether the input value is within the defined interval [Begin, End].
-     *
-     *  @details This member has explicit specializations for different types
-     *           that have slight variations in behaviour around the interval
-     *           boundaries. Check the individual specializations for the exact
-     *           behaviour.
-     */
+    /// @brief Check whether the input value is within the defined closed interval [Begin, End].
     bool IsInInterval(TValue Value) const noexcept;
 
     static Parameters GetDefaultParameters();
 
 private:
+    /**
+     *  @brief Set the boundaries from numeric values in the input @a parameters.
+     *
+     *  @details This member has explicit specializations for different types
+     *           that may slightly adjust the interval boundaries
+     *           (eg.: introduce floating point round-off tolerance).
+     *           Check the specializations for the exact behaviour.
+     */
+    void SetBoundaries(TValue begin, TValue end) noexcept;
+
     TValue mBegin;
 
     TValue mEnd;

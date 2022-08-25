@@ -67,8 +67,7 @@ IntervalUtility<TValue>::IntervalUtility(Parameters settings)
         KRATOS_ERROR_IF_NOT(interval[1].Is<TValue>()) << "the second value of \"interval\" can be \"End\" or a number, \"interval\" currently:\n" << interval.PrettyPrintJsonString();
     }
 
-    mBegin = interval[0].Get<TValue>();
-    mEnd = interval[1].Get<TValue>();
+    this->SetBoundaries(interval[0].Get<TValue>(), interval[1].Get<TValue>());
     KRATOS_ERROR_IF(mEnd < mBegin) << "Invalid \"interval\":\n" << interval.PrettyPrintJsonString();
 
     KRATOS_CATCH("");
@@ -92,30 +91,32 @@ Parameters IntervalUtility<TValue>::GetDefaultParameters()
     return Parameters(R"({"interval" : ["Begin", "End"]})");
 }
 
-template <>
-bool IntervalUtility<double>::IsInInterval(double Value) const noexcept
-{
-    double offset_begin = mBegin - std::max(1e-14 * mBegin, 1e-30);
-    double offset_end = mEnd + std::max(1e-14 * mEnd, 1e-30);
-
-    // Edge case: offset_begin underflowed
-    if (mBegin < offset_begin) {
-        offset_begin = std::numeric_limits<double>::lowest();
-    }
-
-    // Edge case: offset_end overflowed
-    if (offset_end < mEnd) {
-        offset_end = std::numeric_limits<double>::max();
-    }
-
-    return offset_begin <= Value && Value <= offset_end;
-}
-
-template <>
-bool IntervalUtility<int>::IsInInterval(int Value) const noexcept
+template <class TValue>
+bool IntervalUtility<TValue>::IsInInterval(TValue Value) const noexcept
 {
     return mBegin <= Value && Value <= mEnd;
 }
+
+
+template <>
+void IntervalUtility<double>::SetBoundaries(double begin, double end) noexcept
+{
+    const double relative_tolerance = 1e-14;
+    const double absolute_tolerance = 1e-30;
+
+    // Apply tolerances and avoid under/overflows
+    mBegin = std::min(begin, begin - std::max(relative_tolerance * begin, absolute_tolerance));
+    mEnd = std::max(end, end + std::max(relative_tolerance * end, absolute_tolerance));
+}
+
+
+template <>
+void IntervalUtility<int>::SetBoundaries(int begin, int end) noexcept
+{
+    mBegin = begin;
+    mEnd = end;
+}
+
 
 template class IntervalUtility<double>;
 
