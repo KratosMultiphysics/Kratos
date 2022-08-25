@@ -32,6 +32,7 @@
 #include "custom_constitutive/auxiliar_files/yield_surfaces/simo_ju_yield_surface.h"
 #include "custom_constitutive/auxiliar_files/yield_surfaces/drucker_prager_yield_surface.h"
 #include "custom_constitutive/auxiliar_files/yield_surfaces/tresca_yield_surface.h"
+#include "custom_constitutive/auxiliar_files/yield_surfaces/mohr_coulomb_yield_surface.h"
 
 // Plastic potentials
 #include "custom_constitutive/auxiliar_files/plastic_potentials/generic_plastic_potential.h"
@@ -39,6 +40,7 @@
 #include "custom_constitutive/auxiliar_files/plastic_potentials/tresca_plastic_potential.h"
 #include "custom_constitutive/auxiliar_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 #include "custom_constitutive/auxiliar_files/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_constitutive/auxiliar_files/plastic_potentials/mohr_coulomb_plastic_potential.h"
 
 namespace Kratos
 {
@@ -633,5 +635,6 @@ template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawInte
 template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>>;
 template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<RankinePlasticPotential<6>>>>;
 template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>;
 
 } // namespace Kratos
