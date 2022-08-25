@@ -933,51 +933,6 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     ConstitutiveLaw>(m, "SmallStrainDplusDminusDamageDruckerPragerDruckerPrager3D").def(py::init<>())
     ;
 
-    py::class_<  GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<MohrCoulombPlasticPotential<6>>>>,
-    typename GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<MohrCoulombPlasticPotential<6>>>>::Pointer,
-    ConstitutiveLaw >
-    (m,"SmallStrainIsotropicDamage3DVonMisesMohrCoulomb").def(py::init<>());
-
-    py::class_<  GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>,
-    typename GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
-    ConstitutiveLaw >
-    (m,"SmallStrainIsotropicDamage3DMohrCoulombVonMises").def(py::init<>());
-
-    py::class_<  GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>,
-    typename GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>::Pointer,
-    ConstitutiveLaw >
-    (m,"SmallStrainIsotropicDamage3DMohrCoulombMohrCoulomb").def(py::init<>());
-
-    py::class_<  GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>,
-    typename GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>::Pointer,
-    ConstitutiveLaw >
-    (m,"SmallStrainIsotropicDamage3DMohrCoulombDruckerPrager").def(py::init<>());
-
-    py::class_<  GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>,
-    typename GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>::Pointer,
-    ConstitutiveLaw >
-    (m,"SmallStrainIsotropicDamage3DMohrCoulombTresca").def(py::init<>());
-
-    py::class_<  GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<MohrCoulombPlasticPotential<6>>>>,
-    typename GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<MohrCoulombPlasticPotential<6>>>>::Pointer,
-    ConstitutiveLaw >
-    (m,"SmallStrainIsotropicDamage3DTrescaMohrCoulomb").def(py::init<>());
-
-    py::class_<  GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>>,
-    typename GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>>::Pointer,
-    ConstitutiveLaw >
-    (m,"SmallStrainIsotropicDamage3DDruckerPragerMohrCoulomb").def(py::init<>());
-
-    py::class_<  GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<MohrCoulombPlasticPotential<6>>>>,
-    typename GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<MohrCoulombPlasticPotential<6>>>>::Pointer,
-    ConstitutiveLaw >
-    (m,"SmallStrainIsotropicDamage3DRankineMohrCoulomb").def(py::init<>());
-
-    py::class_<  GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<MohrCoulombPlasticPotential<6>>>>,
-    typename GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<MohrCoulombPlasticPotential<6>>>>::Pointer,
-    ConstitutiveLaw >
-    (m,"SmallStrainIsotropicDamage3DSimoJuMohrCoulomb").def(py::init<>());
-
     py::class_< GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>,
     typename GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
     ConstitutiveLaw>(m, "SmallStrainDplusDminusDamageMohrCoulombMohrCoulomb3D").def(py::init<>())
