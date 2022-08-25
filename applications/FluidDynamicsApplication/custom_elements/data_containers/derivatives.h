@@ -99,7 +99,9 @@ public:
     }
 
     template<IndexType TAssemblyRowBlockSize, IndexType TAssemblyColumnBlockSize = TAssemblyRowBlockSize>
-    inline void AssembleSubVectorToMatrix(Matrix& rOutput, const IndexType NodeIndex) const
+    inline void AssembleSubVectorToMatrix(
+        Matrix& rOutput,
+        const IndexType NodeIndex) const
     {
         KRATOS_TRY
 
