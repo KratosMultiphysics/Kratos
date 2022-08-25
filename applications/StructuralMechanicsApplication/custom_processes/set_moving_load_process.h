@@ -93,6 +93,7 @@ private:
     Parameters mParameters;
 
     std::vector<Condition> mSortedConditions;
+    std::vector<bool> mIsCondReversedVector;
     array_1d<double,3> mLoad;
     double mLoadVelocity;
     double mCurrentDistance;
@@ -100,7 +101,17 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    std::vector<int> FindNonRepeatingIndices(std::vector<int> arr);
 
+    std::vector<Condition> SortConditions(ModelPart::ConditionsContainerType& unsorted_conditions, Condition& first_condition);
+
+    bool SortConditionPoints(Condition& rCondition, vector<int> direction);
+
+    Condition& GetFirstCondition(Point first_point, Point second_point, vector<int> direction, std::vector<Condition>& end_conditions);
+
+    Condition& GetFirstConditionFromCoord(double first_coord, double second_coord, int direction, std::vector<Condition>& end_conditions);
+
+    bool SwapPoints(double first_coord, double second_coord, int direction);
     ///@}
 
 }; // Class SetMovingLoadProcess

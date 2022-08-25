@@ -23,10 +23,10 @@
 namespace Kratos
 {
 
-    SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
-                                                                Parameters Settings)
-                                                                : mrModelPart(rModelPart),
-                                                                mParameters(Settings)
+SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
+                                                            Parameters Settings)
+                                                            : mrModelPart(rModelPart),
+                                                            mParameters(Settings)
 {
     Parameters default_parameters(R"(
         {
@@ -48,9 +48,7 @@ namespace Kratos
 }
 
 
-
-
-std::vector<int> FindNonRepeatingIndices(std::vector<int> arr)
+std::vector<int> SetMovingLoadProcess::FindNonRepeatingIndices(std::vector<int> arr)
 {
     // Insert all array elements in hash
     // table
@@ -68,17 +66,21 @@ std::vector<int> FindNonRepeatingIndices(std::vector<int> arr)
           
 }
 
-
-void SwapPoints(double first_coord, double second_coord, int direction, PointerVector<Node<3>>& rPoints)
+bool SetMovingLoadProcess::SwapPoints(double first_coord, double second_coord, int direction)
 {
     // swap points if points are sorted in opposite order compared to direction
-    if ((first_coord < second_coord) * (direction < 0))
+    if ((first_coord < second_coord) && (direction < 0))
     {
-		rPoints[0].swap(rPoints[1]);
+        return true;
     }
+    if ((first_coord > second_coord) && (direction >0))
+    {
+        return true;
+    }
+    return false;
 }
 
-Condition& GetFirstConditionFromCoord(double first_coord, double second_coord, int direction, std::vector<Condition>& end_conditions)
+Condition& SetMovingLoadProcess::GetFirstConditionFromCoord(double first_coord, double second_coord, int direction, std::vector<Condition>& end_conditions)
 {
     // if center1 coord  < center2 coord and direction is positive
     if ((first_coord < second_coord) && (direction > 0))
@@ -94,7 +96,7 @@ Condition& GetFirstConditionFromCoord(double first_coord, double second_coord, i
 
 }
 
-Condition& GetFirstCondition(Point first_point, Point second_point, vector<int> direction, std::vector<Condition>& end_conditions)
+Condition& SetMovingLoadProcess::GetFirstCondition(Point first_point, Point second_point, vector<int> direction, std::vector<Condition>& end_conditions)
 {
     // sort on x-coord, if x coords are equal, sort on y coord, if y coord is equal sort on z-coord
     if (abs(first_point[0] - second_point[0]) > DBL_EPSILON)
@@ -106,54 +108,36 @@ Condition& GetFirstCondition(Point first_point, Point second_point, vector<int> 
         return GetFirstConditionFromCoord(first_point[1], second_point[1], direction[1], end_conditions);
     }
         return GetFirstConditionFromCoord(first_point[2], second_point[2], direction[2], end_conditions);
-
 }
 
 
-void SortConditionPoints(Condition& rCondition, vector<int> direction)
+bool SetMovingLoadProcess::SortConditionPoints(Condition& rCondition, vector<int> direction)
 {
-    auto& rGeom = rCondition.GetGeometry();
-
-    auto& rPoints = rGeom.Points();
-    if (abs(rGeom.Points()[0].X0() - rGeom.Points()[1].X0()) > DBL_EPSILON)
+    auto& rPoints = rCondition.GetGeometry().Points();
+    if (abs(rPoints[0].X0() - rPoints[1].X0()) > DBL_EPSILON)
     {
-        SwapPoints(rGeom.Points()[0].X0(), rGeom.Points()[1].X0(), direction[0], rPoints);
+        return SwapPoints(rPoints[0].X0(), rPoints[1].X0(), direction[0]);
     }
-    else if (abs(rGeom.Points()[0].Y0() - rGeom.Points()[1].Y0()) > DBL_EPSILON)
+    if (abs(rPoints[0].Y0() - rPoints[1].Y0()) > DBL_EPSILON)
     {
-        SwapPoints(rGeom.Points()[0].Y0(), rGeom.Points()[1].Y0(), direction[1], rPoints);
+        return SwapPoints(rPoints[0].Y0(), rPoints[1].Y0(), direction[1]);
     }
-    else
-    {
-        SwapPoints(rGeom.Points()[0].Z0(), rGeom.Points()[1].Z0(), direction[2], rPoints);
-    }
+    return SwapPoints(rPoints[0].Z0(), rPoints[1].Z0(), direction[2]);
 }
 
 
 
-std::vector<Condition> BubbleSortConditions(ModelPart::ConditionsContainerType& unsorted_conditions, Condition& first_condition)
+std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::ConditionsContainerType& unsorted_conditions, Condition& first_condition)
 {
     //ModelPart::ConditionsContainerType& sorted_conditions = unsorted_conditions;
     std::vector<Condition> unsorted_conditions_v(unsorted_conditions.begin(), unsorted_conditions.end());
-
-    //for (int i = 0; i < unsorted_conditions_v.size(); ++i)
-    //{
-    //    int tmp = unsorted_conditions_v[i].Id();
-    //    auto& r_geom = unsorted_conditions_v[i].GetGeometry();
-    //    int tmp2 = r_geom.Points()[0].Id();
-    //    int tmp3 = r_geom.Points()[1].Id();
-    //    int tmp4 = 2;
-    //    double a = r_geom[0].X();
-    //    int b = 1 + 1;
-    //}
-
 
     std::vector<Condition> sorted_conditions;
     std::vector<int> visited_indices;
     GeometricalObject::GeometryType& r_geom_first = first_condition.GetGeometry();
     std::set<IndexType> node_id_vector{ r_geom_first[0].Id(),r_geom_first[1].Id() };
 
- 
+    bool is_cond_reversed = mIsCondReversedVector[0];
     while (visited_indices.size() != unsorted_conditions_v.size())
     {
         for (int i =0; i< unsorted_conditions_v.size(); i++)
@@ -181,13 +165,29 @@ std::vector<Condition> BubbleSortConditions(ModelPart::ConditionsContainerType& 
                     else
                     {
                         // sort nodes in condition, such that new node is connected to previous condition
-                        auto it = node_id_vector.end();
-                        --it;
-                        if (*it != r_geom.Points()[0].Id())
+                        std::set<IndexType>::iterator prev_id;
+                        if (is_cond_reversed)
                         {
-                            r_geom.Points()[0].swap(r_geom.Points()[1]);
+                            prev_id = node_id_vector.begin();
                         }
-                        
+                        else
+                        {
+                            prev_id = node_id_vector.end();
+                            --prev_id;
+                        }
+
+                        if (*prev_id != r_geom.Points()[0].Id())
+                        {
+                            is_cond_reversed = true;
+                            mIsCondReversedVector.push_back(is_cond_reversed);
+                        }
+                        else
+                        {
+                            is_cond_reversed = false;
+                            mIsCondReversedVector.push_back(is_cond_reversed);
+                        }
+
+                        // add condition to sorted conditions vector
                         node_id_vector = { r_geom[0].Id(),r_geom[1].Id() };
                         sorted_conditions.push_back(r_cond);
                         visited_indices.push_back(i);
@@ -198,17 +198,6 @@ std::vector<Condition> BubbleSortConditions(ModelPart::ConditionsContainerType& 
         }
     }
 
-    //// swap first 2 conditions if nessesary
-    ////r_geom = first_condition.GetGeometry();
-    //int tmp = first_condition.Id();
-    //for (int i = 0; i < sorted_conditions.size(); ++i)
-    //{
-    //    int tmp2 = sorted_conditions[i].Id();
-    //    double tmp12 = sorted_conditions[i].GetGeometry()[0].X();
-    //    int tmp7 = 2;
-    //}
-    
-
     return sorted_conditions;
 }
 
@@ -217,7 +206,6 @@ void SetMovingLoadProcess::ExecuteInitialize()
 {
     KRATOS_TRY
     mLoad = mParameters["load"].GetVector();
-    const double current_time = mrModelPart.GetProcessInfo().GetValue(TIME);
 
     vector<int> direction = mParameters["direction"].GetVector();
     mLoadVelocity = mParameters["velocity"].GetDouble();
@@ -239,10 +227,8 @@ void SetMovingLoadProcess::ExecuteInitialize()
 
     // error if model part does not have 1 end and 1 beginning
     KRATOS_ERROR_IF_NOT(non_repeating_node_ids.size() ==2) << "Moving load condition model part needs to be connected with a beginning and end" << std::endl;
-    
-    
 
-    // find conditions at both ends of modelpart
+    // find conditions at both ends of model part
     std::vector<Condition> end_conditions;
     for (Condition& r_cond : mrModelPart.Conditions()) {
 
@@ -260,41 +246,19 @@ void SetMovingLoadProcess::ExecuteInitialize()
         }
     }
 
-
     // find start condition 
     const Point center_1 = end_conditions[0].GetGeometry().Center();
     const Point center_2 = end_conditions[1].GetGeometry().Center();
 
     Condition& r_first_cond = GetFirstCondition(center_1, center_2, direction, end_conditions);
-    SortConditionPoints(r_first_cond, direction);
 
-    mSortedConditions = BubbleSortConditions(mrModelPart.Conditions(), r_first_cond);
+	// Initialise vector which indicates if nodes in condition are in direction of movement
+    mIsCondReversedVector.clear();
+    mIsCondReversedVector.push_back(SortConditionPoints(r_first_cond, direction));
 
-    auto tmp = r_first_cond.GetGeometry();
+    mSortedConditions = SortConditions(mrModelPart.Conditions(), r_first_cond);
 
-    int a = 1 + 1;
-    //for (int i = 0; i < arr_size; i++) {
-    //    node_id_vector[node_id_vector[i] % arr_size]
-    //        = node_id_vector[node_id_vector[i] % arr_size] + arr_size;
-    //}
-
-
-    //IntervalUtility interval_utility(mParameters);
-   /* if (interval_utility.IsInInterval(current_time)) {
-        double total_area = 0.0;
-        for (auto& r_cond : mrModelPart.Conditions()) {
-            total_area += r_cond.GetGeometry().Area();
-        }
-
-        const double global_total_area = mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(total_area);
-
-        Vector force_by_area = mParameters["load"].GetVector() / global_total_area;
-
-        for (auto& r_cond : mrModelPart.Conditions()) {
-            const double area = r_cond.GetGeometry().Area();
-            r_cond.SetValue(SURFACE_LOAD, force_by_area * area);
-        }
-    }*/
+   
     KRATOS_CATCH("")
 }
 
@@ -306,19 +270,30 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
     // bool to check if load is already added, such that a load is not added twice if the load is exactly at a shared node.
     bool is_moving_load_added = false;
 
-    for (auto& r_cond : mSortedConditions)
+    for (unsigned int i = 0; i < mSortedConditions.size(); ++i) 
     {
+        auto& r_cond = mSortedConditions[i];
         auto& r_geom = r_cond.GetGeometry();
         const double element_length = r_geom.Length();
 
         // if moving load is located at current condition element, apply moving load, else apply a zero load
         if ((distance_cond + element_length >= mCurrentDistance) && (distance_cond <= mCurrentDistance) && !is_moving_load_added)
         {
+            double local_distance;
+
+            if (mIsCondReversedVector[i])
+            {
+                local_distance = distance_cond + element_length - mCurrentDistance;
+            }
+            else
+            {
+                local_distance = mCurrentDistance - distance_cond;
+            }
             
             r_cond.SetValue(POINT_LOAD, mLoad);
 
-            // todo, currently distance is only correct when nodes are sorted in direction of distance
-            r_cond.SetValue(MOVING_LOAD_LOCAL_DISTANCE, mCurrentDistance - distance_cond);
+            // distance is correct assuming nodes in condition are correctly sorted, the sorting is done while initializing this process
+            r_cond.SetValue(MOVING_LOAD_LOCAL_DISTANCE, local_distance);
             is_moving_load_added = true;
         }
         else
@@ -327,29 +302,6 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
         }
         distance_cond += element_length;
     }
- /*   const double current_time = mrModelPart.GetProcessInfo().GetValue(TIME);
-
-    Vector direction = mParameters["direction"].GetVector();
-    double velocity = mParameters["velocity"].GetDouble();
-
-
-
-    IntervalUtility interval_utility(mParameters);
-    if (interval_utility.IsInInterval(current_time)) {
-        double total_area = 0.0;
-        for (auto& r_cond : mrModelPart.Conditions()) {
-            total_area += r_cond.GetGeometry().Area();
-        }
-
-        const double global_total_area = mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(total_area);
-
-        Vector force_by_area = mParameters["load"].GetVector() / global_total_area;
-
-        for (auto& r_cond : mrModelPart.Conditions()) {
-            const double area = r_cond.GetGeometry().Area();
-            r_cond.SetValue(SURFACE_LOAD, force_by_area * area);
-        }
-    }*/
 }
 
 void SetMovingLoadProcess::ExecuteFinalizeSolutionStep()
