@@ -62,7 +62,7 @@ public:
     ///@{
 
     /// Definition of the base class
-    typedef typename GenericSmallStrainIsotropicDamage<TConstLawIntegratorType> BaseType;
+    typedef GenericSmallStrainIsotropicDamage<TConstLawIntegratorType> BaseType;
 
     ///@}
     ///@name Life Cycle
