@@ -297,7 +297,7 @@ void ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
 /***********************************************************************************/
 /***********************************************************************************/
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(BoundedMatrixVoigtType& rC, ConstitutiveLaw::Parameters& rValues)
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(MatrixType& rC, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double E = r_material_properties[YOUNG_MODULUS];
@@ -321,7 +321,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(Bou
 /***********************************************************************************/
 /***********************************************************************************/
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(BoundedMatrixVoigtType& rC, ConstitutiveLaw::Parameters& rValues)
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(MatrixType& rC, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double E = r_material_properties[YOUNG_MODULUS];
@@ -346,7 +346,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(Bou
 /***********************************************************************************/
 /***********************************************************************************/
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrix(BoundedMatrixVoigtType& rC, ConstitutiveLaw::Parameters& rValues)
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrix(MatrixType& rC, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double E  = r_material_properties[YOUNG_MODULUS];
