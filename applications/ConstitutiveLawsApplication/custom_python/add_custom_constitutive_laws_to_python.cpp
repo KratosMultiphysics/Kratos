@@ -42,6 +42,7 @@
 #include "custom_constitutive/small_strains/linear/multi_linear_isotropic_plane_stress_2d.h"
 
 // Plastic, damage laws and viscosities
+#include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage_plane_stress.h"
 #include "custom_constitutive/small_strains/damage/small_strain_isotropic_damage_plane_strain_2d.h"
 #include "custom_constitutive/small_strains/plasticity/small_strain_isotropic_plasticity_factory.h"
 #include "custom_constitutive/small_strains/plasticity/small_strain_kinematic_plasticity_factory.h"

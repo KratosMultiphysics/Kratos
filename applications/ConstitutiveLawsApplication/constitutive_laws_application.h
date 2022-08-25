@@ -70,6 +70,7 @@
 #include "custom_constitutive/small_strains/anisotropy_orthotropy/generic_anisotropic_3d_law.h"
 #include "custom_constitutive/small_strains/linear/multi_linear_elastic_1d_law.h"
 #include "custom_constitutive/small_strains/linear/multi_linear_isotropic_plane_stress_2d.h"
+#include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage_plane_stress.h"
 
 // Integrators
 #include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
@@ -466,6 +467,15 @@ private:
     const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainIsotropicDamage2DDruckerPragerMohrCoulomb;
     const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainIsotropicDamage2DRankineMohrCoulomb;
     const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainIsotropicDamage2DSimoJuMohrCoulomb;
+
+    /* Small strain  plane stress 2D */
+    const GenericSmallStrainIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainIsotropicDamage2DVonMises;
+    const GenericSmallStrainIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<3>>>> mSmallStrainIsotropicDamage2DModifiedMohrCoulomb;
+    const GenericSmallStrainIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainIsotropicDamage2DTresca;
+    const GenericSmallStrainIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainIsotropicDamage2DDruckerPrager;
+    const GenericSmallStrainIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainIsotropicDamage2DRankine;
+    const GenericSmallStrainIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainIsotropicDamage2DSimoJu;
+    const GenericSmallStrainIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainIsotropicDamage2DMohrCoulomb;
 
     // HCF (High Cycle Fatigue)
     const GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainHighCycleFatigue3DLawVonMisesVonMises;
