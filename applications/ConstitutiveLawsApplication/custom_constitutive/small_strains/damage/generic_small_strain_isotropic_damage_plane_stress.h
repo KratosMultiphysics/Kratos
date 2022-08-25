@@ -67,7 +67,7 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-            /// Counted pointer of GenericYieldSurface
+    /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicDamagePlaneStress);
     /**
     * Default constructor.
