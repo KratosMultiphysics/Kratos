@@ -338,6 +338,55 @@ public:
 
     };
 
+   void CalculateElementMaterialGradientsFD(Element& elem_i, std::string material_gradien_name, const ProcessInfo &rCurrentProcessInfo){
+
+        // We get the element geometry
+        auto& r_this_geometry = elem_i.GetGeometry();
+        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
+        const std::size_t number_of_nodes = r_this_geometry.size();
+
+        Vector u;
+        Vector lambda;
+        Vector RHS;
+
+        // Get state solution
+        const auto& rConstElemRef = elem_i;
+        rConstElemRef.GetValuesVector(u,0);
+
+        // Get adjoint variables (Corresponds to 1/2*u)
+        lambda = 0.5*u;
+
+        // Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
+        elem_i.CalculateRightHandSide(RHS, rCurrentProcessInfo);
+        for (auto& node_i : elem_i.GetGeometry())
+        {
+            Vector RHS_perturbed = Vector(RHS.size());
+            Vector derived_RHS = Vector(RHS.size());
+
+            const auto& d_pe_d_fd = node_i.FastGetSolutionStepValue(D_PE_D_FD);
+            auto& pe = node_i.FastGetSolutionStepValue(PE);
+            pe += 0.000001;
+            elem_i.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+            noalias(derived_RHS) = (RHS_perturbed - RHS) / 0.000001;
+            pe -= 0.000001;
+            // KRATOS_INFO("mDelta: ")<<mDelta<<std::endl;
+            // KRATOS_INFO("lambda: ")<<lambda<<std::endl;
+            // KRATOS_INFO("derived_RHS: ")<<derived_RHS<<std::endl;
+            // KRATOS_INFO("inner_prod(lambda, derived_RHS): ")<<inner_prod(lambda, derived_RHS)<<std::endl;
+            // KRATOS_INFO("d_pe_d_fd * inner_prod(lambda, derived_RHS): ")<<d_pe_d_fd * inner_prod(lambda, derived_RHS)<<std::endl;
+            node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pe_d_fd * inner_prod(lambda, derived_RHS);                                    
+            // const auto& d_pd_d_fd = node_i.FastGetSolutionStepValue(D_PD_D_FD);
+            // auto& pd = node_i.FastGetSolutionStepValue(PD);
+            // pd += mDelta;
+            // elem_i.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+            // noalias(derived_RHS) = (RHS_perturbed - RHS) / mDelta;
+            // pd -= mDelta;
+            // node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pd_d_fd * inner_prod(lambda, derived_RHS);
+
+        }
+
+    };    
+
     void CalculateElementMaterialGradients(Element& elem_i, std::string material_gradien_name, const ProcessInfo &rCurrentProcessInfo){
 
         // We get the element geometry
@@ -374,7 +423,66 @@ public:
             r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pd_d_fd * inner_prod(RHS,lambda);
         }
 
+    };
+
+    void CalculateElementMaterialGradientsNewExact(Element& elem_i, std::string material_gradien_name, const ProcessInfo &rCurrentProcessInfo){
+
+        // We get the element geometry
+        auto& r_this_geometry = elem_i.GetGeometry();
+        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
+        const std::size_t number_of_nodes = r_this_geometry.size();
+
+        Vector u;
+        Vector lambda;
+        Vector RHS;
+
+        // Get state solution
+        const auto& rConstElemRef = elem_i;
+        rConstElemRef.GetValuesVector(u,0);
+
+        // Get adjoint variables (Corresponds to 1/2*u)
+        lambda = 0.5*u;
+
+        // Store PE & PD and reinitialize
+        Vector initial_pe_variables;
+        Vector initial_pd_variables;
+        initial_pe_variables.resize(number_of_nodes, false);
+        initial_pd_variables.resize(number_of_nodes, false);
+
+        for (IndexType i = 0; i < number_of_nodes; ++i)
+        {
+            initial_pe_variables[i] = elem_i.GetGeometry()[i].FastGetSolutionStepValue(PE);
+            elem_i.GetGeometry()[i].FastGetSolutionStepValue(PE) = 1.0;
+            initial_pd_variables[i] = elem_i.GetGeometry()[i].FastGetSolutionStepValue(PD);
+            elem_i.GetGeometry()[i].FastGetSolutionStepValue(PD) = 1.0;            
+        }
+
+        elem_i.CalculateRightHandSide(RHS, rCurrentProcessInfo);
+
+
+        for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
+            const auto& d_pe_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PE_D_FD);
+            // elem_i.GetGeometry()[i_node].FastGetSolutionStepValue(PE) = 1.0;
+            // elem_i.CalculateRightHandSide(RHS, rCurrentProcessInfo);
+            // elem_i.GetGeometry()[i_node].FastGetSolutionStepValue(PE) = 0.0;
+            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pe_d_fd * inner_prod(RHS,lambda);
+
+            const auto& d_pd_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PD_D_FD);
+            // elem_i.GetGeometry()[i_node].FastGetSolutionStepValue(PD) = 1.0;
+            // elem_i.CalculateRightHandSide(RHS, rCurrentProcessInfo);
+            // elem_i.GetGeometry()[i_node].FastGetSolutionStepValue(PD) = 0.0;
+            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pd_d_fd * inner_prod(RHS,lambda);
+        }
+
+        // Recall value
+        for (IndexType i = 0; i < number_of_nodes; ++i)
+        {
+            elem_i.GetGeometry()[i].FastGetSolutionStepValue(PE) = initial_pe_variables[i];
+            elem_i.GetGeometry()[i].FastGetSolutionStepValue(PD) = initial_pd_variables[i];
+        }
+
     };        
+
 
     void CalculateElementThicknessGradients(Element& elem_i, std::string thickness_gradien_name, const ProcessInfo &rCurrentProcessInfo){
         // We get the element geometry

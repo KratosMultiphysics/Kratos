@@ -260,7 +260,20 @@ public:
 
         }
     } 
-
+    // --------------------------------------------------------------------------
+    double CalculateElementStress(Element& elem_i, const ProcessInfo &rCurrentProcessInfo){
+        std::vector<Vector> stress_gp_vector;
+        elem_i.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_gp_vector, rCurrentProcessInfo);
+        std::vector<double> gp_weights_vector;
+        elem_i.CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, gp_weights_vector, rCurrentProcessInfo);
+        double elem_stress = 0.0;
+        for(IndexType i = 0; i < gp_weights_vector.size(); i++){
+            double sum_11_22_33 = stress_gp_vector[i][0] + stress_gp_vector[i][1] + stress_gp_vector[i][2];
+            if(sum_11_22_33>0)
+                elem_stress += (gp_weights_vector[i] * sum_11_22_33);
+        }
+        return elem_stress;          
+    }
     // --------------------------------------------------------------------------
     double CalculateValue() override {
         double intg_stress = 0.0;     
@@ -367,7 +380,8 @@ public:
             ComputeAdjointRHS(mpADJModelParts[model_i]);
             mpStrategies[model_i]->Solve();
         }
-               
+
+        // compute adjoint-based sensitivities       
         for(int i=0;i<mrResponseSettings["controlled_objects"].size();i++){
             auto controlled_obj = mrResponseSettings["controlled_objects"][i].GetString();
             ModelPart& controlled_model_part = mrModel.GetModelPart(controlled_obj);
@@ -382,10 +396,6 @@ public:
                 grad_field_name = mrResponseSettings["gradient_settings"]["material_gradient_field_name"].GetString();
                 VariableUtils().SetHistoricalVariableToZero(KratosComponents<Variable<double>>::Get(grad_field_name), controlled_model_part.Nodes());                
             }
-            else if(control_type=="thickness"){
-                grad_field_name = mrResponseSettings["gradient_settings"]["thickness_gradient_field_name"].GetString();
-                VariableUtils().SetHistoricalVariableToZero(KratosComponents<Variable<double>>::Get(grad_field_name), controlled_model_part.Nodes());                 
-            }
 
             //elems
 			for (auto& elem_i : controlled_model_part.Elements()){
@@ -394,9 +404,7 @@ public:
                     if(control_type=="shape")
                         CalculateElementShapeGradients(elem_i,grad_field_name,CurrentProcessInfo);
                     // if(control_type=="material")
-                    //     CalculateElementMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);
-                    // if(control_type=="thickness")
-                    //     CalculateElementThicknessGradients(elem_i,grad_field_name,CurrentProcessInfo);                                                
+                    //     CalculateElementMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);                                              
                 }
             }
 
@@ -416,9 +424,7 @@ public:
                     if(control_type=="shape")
                         CalculateElementObjShapeGradients(elem_i,grad_field_name,CurrentProcessInfo);
                     // if(control_type=="material")
-                    //     CalculateElementMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);
-                    // if(control_type=="thickness")
-                    //     CalculateElementThicknessGradients(elem_i,grad_field_name,CurrentProcessInfo);                                                
+                    //     CalculateElementMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);                                               
                 }
             }
 
@@ -429,48 +435,6 @@ public:
 		KRATOS_CATCH("");
  
     };
-
-    void GetElementAdjointVector(Element& elem_i, Vector &rAdjoints){
-
-        const GeometryType &rgeom = elem_i.GetGeometry();
-        const SizeType num_nodes = rgeom.PointsNumber();
-        const unsigned int dimension = elem_i.GetGeometry().WorkingSpaceDimension();
-        const unsigned int local_size = num_nodes * dimension;
-
-        if (rAdjoints.size() != local_size)
-            rAdjoints.resize(local_size, false);
-
-        SizeType index = 0;
-        for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-        rAdjoints[index++] =
-            rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_X"));
-        rAdjoints[index++] =
-            rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Y"));
-        rAdjoints[index++] =
-            rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Z"));
-        }
-    }
-
-    void GetConditionAdjointVector(Condition& cond_i, Vector &rAdjoints){
-
-        const GeometryType &rgeom = cond_i.GetGeometry();
-        const SizeType num_nodes = rgeom.PointsNumber();
-        const unsigned int dimension = cond_i.GetGeometry().WorkingSpaceDimension();
-        const unsigned int local_size = num_nodes * dimension;
-
-        if (rAdjoints.size() != local_size)
-            rAdjoints.resize(local_size, false);
-
-        SizeType index = 0;
-        for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-        rAdjoints[index++] =
-            rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_X"));
-        rAdjoints[index++] =
-            rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Y"));
-        rAdjoints[index++] =
-            rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Z"));
-        }
-    }
 
     void CalculateElementShapeGradients(Element& elem_i, std::string shape_gradien_name, const ProcessInfo &rCurrentProcessInfo){
 
@@ -526,22 +490,6 @@ public:
         }
 
     };
-
-    double CalculateElementStress(Element& elem_i, const ProcessInfo &rCurrentProcessInfo){
-        std::vector<Vector> stress_gp_vector;
-        elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<Vector>>::Get("PK2_STRESS_VECTOR"), stress_gp_vector, rCurrentProcessInfo);
-        std::vector<double> gp_weights_vector;
-        elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<double>>::Get("INTEGRATION_WEIGHT"), gp_weights_vector, rCurrentProcessInfo);
-        double elem_stress = 0.0;
-        for(IndexType i = 0; i < gp_weights_vector.size(); i++){
-            double sum_11_22_33 = stress_gp_vector[i][0] + stress_gp_vector[i][1] + stress_gp_vector[i][2];
-            if(sum_11_22_33>0)
-                elem_stress += (gp_weights_vector[i] * sum_11_22_33);
-            // double val = 1.0 / (1.0 + std::exp(-2*25*sum_11_22_33));
-            // elem_stress += (gp_weights_vector[i] * val);
-        }
-        return elem_stress;          
-    }
 
     void CalculateElementObjShapeGradients(Element& elem_i, std::string shape_gradien_name, const ProcessInfo &rCurrentProcessInfo){
 
@@ -687,108 +635,50 @@ public:
             r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pd_d_fd * inner_prod(RHS,lambda);
         }
 
-    };        
+    };    
 
-    void CalculateElementThicknessGradients(Element& elem_i, std::string thickness_gradien_name, const ProcessInfo &rCurrentProcessInfo){
-        // We get the element geometry
-        auto& r_this_geometry = elem_i.GetGeometry();
-        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
-        const std::size_t number_of_nodes = r_this_geometry.size();
+    void GetElementAdjointVector(Element& elem_i, Vector &rAdjoints){
 
-        // We copy the current coordinates and move the coordinates to the initial configuration
-        std::vector<array_1d<double, 3>> current_coordinates(number_of_nodes);
-        for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
-            noalias(current_coordinates[i_node]) = r_this_geometry[i_node].Coordinates();
-            noalias(r_this_geometry[i_node].Coordinates()) = r_this_geometry[i_node].GetInitialPosition().Coordinates();
-        }
-
-        VectorType element_nodal_density;
-        GetElementsNodalDensity(elem_i,element_nodal_density);
-
-        const auto& integrationPoints = r_this_geometry.IntegrationPoints(r_this_geometry.GetDefaultIntegrationMethod());
-        const unsigned int numberOfIntegrationPoints = integrationPoints.size();
-        const Matrix& N_container = r_this_geometry.ShapeFunctionsValues(r_this_geometry.GetDefaultIntegrationMethod());                    
-
-        for ( unsigned int pointNumber = 0; pointNumber < numberOfIntegrationPoints; pointNumber++ )
-        {
-            // Get FEM-shape-function-value for current integration point
-            Vector N_FEM_GPi = row( N_container, pointNumber);
-            double integration_weight = integrationPoints[pointNumber].Weight() * r_this_geometry.DeterminantOfJacobian(pointNumber,r_this_geometry.GetDefaultIntegrationMethod());
-            for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
-                auto& node_val = r_this_geometry[i_node].FastGetSolutionStepValue(D_MASS_D_PT);
-                node_val += integration_weight * N_FEM_GPi[i_node] * element_nodal_density[i_node];
-            }
-        }
-
-        // We restore the current configuration
-        for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
-            noalias(r_this_geometry[i_node].Coordinates()) = current_coordinates[i_node];
-        }        
-    };
-
-    void GetElementsNodalThicknessDensity(const Element& rElement, VectorType &rValues){
-        const GeometryType &rgeom = rElement.GetGeometry();
+        const GeometryType &rgeom = elem_i.GetGeometry();
         const SizeType num_nodes = rgeom.PointsNumber();
-        const Properties& this_properties = rElement.GetProperties();
-        const unsigned int local_size = num_nodes;    
-        if (rValues.size() != local_size)
-            rValues.resize(local_size, false);   
+        const unsigned int dimension = elem_i.GetGeometry().WorkingSpaceDimension();
+        const unsigned int local_size = num_nodes * dimension;
 
-        for (SizeType i_node = 0; i_node < num_nodes; ++i_node){
-            if(rgeom[i_node].Has(PD))
-                rValues[i_node] = rgeom[i_node].FastGetSolutionStepValue(PD);  
-            else if(this_properties.Has(DENSITY))
-                rValues[i_node] = this_properties[DENSITY];
-            else
-                rValues[i_node] = 1;
+        if (rAdjoints.size() != local_size)
+            rAdjoints.resize(local_size, false);
+
+        SizeType index = 0;
+        for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+        rAdjoints[index++] =
+            rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_X"));
+        rAdjoints[index++] =
+            rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Y"));
+        rAdjoints[index++] =
+            rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Z"));
         }
+    }
 
-        for (SizeType i_node = 0; i_node < num_nodes; ++i_node){
-            if(rgeom[i_node].Has(PT))
-                rValues[i_node] *= rgeom[i_node].FastGetSolutionStepValue(PT);  
-            else if(this_properties.Has(THICKNESS))
-                rValues[i_node] *= this_properties[THICKNESS];
-            else
-                rValues[i_node] *= 1;
-        }
+    void GetConditionAdjointVector(Condition& cond_i, Vector &rAdjoints){
 
-    }; 
-
-    void GetElementsNodalThickness(const Element& rElement, VectorType &rValues){
-        const GeometryType &rgeom = rElement.GetGeometry();
+        const GeometryType &rgeom = cond_i.GetGeometry();
         const SizeType num_nodes = rgeom.PointsNumber();
-        const Properties& this_properties = rElement.GetProperties();
-        const unsigned int local_size = num_nodes;    
-        if (rValues.size() != local_size)
-            rValues.resize(local_size, false);   
+        const unsigned int dimension = cond_i.GetGeometry().WorkingSpaceDimension();
+        const unsigned int local_size = num_nodes * dimension;
 
-        for (SizeType i_node = 0; i_node < num_nodes; ++i_node){
-            if(rgeom[i_node].Has(PT))
-                rValues[i_node] = rgeom[i_node].FastGetSolutionStepValue(PT);  
-            else if(this_properties.Has(THICKNESS))
-                rValues[i_node] = this_properties[THICKNESS];
-            else
-                rValues[i_node] = 1;
+        if (rAdjoints.size() != local_size)
+            rAdjoints.resize(local_size, false);
+
+        SizeType index = 0;
+        for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+        rAdjoints[index++] =
+            rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_X"));
+        rAdjoints[index++] =
+            rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Y"));
+        rAdjoints[index++] =
+            rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Z"));
         }
-    }; 
+    }    
 
-    void GetElementsNodalDensity(const Element& rElement, VectorType &rValues){
-        const GeometryType &rgeom = rElement.GetGeometry();
-        const SizeType num_nodes = rgeom.PointsNumber();
-        const Properties& this_properties = rElement.GetProperties();
-        const unsigned int local_size = num_nodes;    
-        if (rValues.size() != local_size)
-            rValues.resize(local_size, false);   
-
-        for (SizeType i_node = 0; i_node < num_nodes; ++i_node){
-            if(rgeom[i_node].Has(PD))
-                rValues[i_node] = rgeom[i_node].FastGetSolutionStepValue(PD);  
-            else if(this_properties.Has(DENSITY))
-                rValues[i_node] = this_properties[DENSITY];
-            else
-                rValues[i_node] = 1;
-        }
-    };
 
     // --------------------------------------------------------------------------
        
