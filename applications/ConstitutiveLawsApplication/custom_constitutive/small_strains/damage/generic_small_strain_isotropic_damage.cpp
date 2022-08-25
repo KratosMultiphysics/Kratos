@@ -229,7 +229,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::FinalizeMateria
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        this->CalculateValue(rValues, STRAIN, r_strain_vector);
+        BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
     }
 
     // We compute the stress
@@ -261,11 +261,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::FinalizeMateria
         if (F >= threshold_tolerance) { // Plastic case
             const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
             // This routine updates the PredictiveStress to verify the yield surf
-            TConstLawIntegratorType::IntegrateStressVector(
-                predictive_stress_vector,
-                uniaxial_stress, damage,
-                threshold, rValues,
-                characteristic_length);
+            TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damage, threshold, rValues, characteristic_length);
             mDamage = damage;
             mThreshold = uniaxial_stress;
 
