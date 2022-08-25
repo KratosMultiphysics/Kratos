@@ -99,6 +99,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mSmallDisplacement3D15N(0, Element::GeometryType::Pointer(new Prism3D15<NodeType >(Element::GeometryType::PointsArrayType(15)))),
       mSmallDisplacement3D20N(0, Element::GeometryType::Pointer(new Hexahedra3D20<NodeType >(Element::GeometryType::PointsArrayType(20)))),
       mSmallDisplacement3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<NodeType >(Element::GeometryType::PointsArrayType(27)))),
+      
+      mSmallDisplacementNonLocalHex3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
 
       mSmallDisplacementBbar2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType>(Element::GeometryType::PointsArrayType(4)))),
       mSmallDisplacementBbar3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType>(Element::GeometryType::PointsArrayType(8)))),
@@ -256,6 +258,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(LOCAL_ELEMENT_ORIENTATION)
     KRATOS_REGISTER_VARIABLE(MATERIAL_ORIENTATION_ANGLE)
     KRATOS_REGISTER_VARIABLE(CONDENSED_DOF_LIST)
+    KRATOS_REGISTER_VARIABLE(CHARACTERISTIC_INTERNAL_LENGTH)
 
     // Truss generalized variables
     KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_PK2)
@@ -448,8 +451,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(IMPOSED_Z_STRAIN_VALUE)
     KRATOS_REGISTER_VARIABLE(IMPOSED_Z_STRAIN_OPTION)
 
-    // damage variable
-    KRATOS_REGISTER_VARIABLE( DAMAGE_VARIABLE );     
+    // non_local damage variable
+    KRATOS_REGISTER_VARIABLE( NON_LOCAL_DAMAGE );     
     
     //Register the truss element
     KRATOS_REGISTER_ELEMENT("TrussElement3D2N", mTrussElement3D2N)
@@ -503,6 +506,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D15N", mSmallDisplacement3D15N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D20N", mSmallDisplacement3D20N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D27N", mSmallDisplacement3D27N)
+
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementNonLocalHexElement3D8N", mSmallDisplacementNonLocalHex3D8N)
 
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement2D3N", mSmallDisplacementMixedVolumetricStrainElement2D3N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement2D4N", mSmallDisplacementMixedVolumetricStrainElement2D4N)
