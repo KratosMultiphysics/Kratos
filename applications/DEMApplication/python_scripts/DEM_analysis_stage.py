@@ -240,86 +240,11 @@ class DEMAnalysisStage(AnalysisStage):
         #analytic_particle_ids = [elem.Id for elem in self.spheres_model_part.Elements]
         #self.analytic_model_part.AddElements(analytic_particle_ids)
 
-    def SkinForCube(self):
-
-        side = 1.0
-        dist = 0.06
-        dim = 2
-
-        if dim == 3:
-            for element in self.spheres_model_part.Elements:
-                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
-                node = element.GetNode(0)
-                x = node.X
-                y = node.Y
-                z = node.Z
-
-                if (x > side - dist) or (y > side - dist) or (z > side - dist) or (x < dist) or (y < dist) or (z < dist):
-                    element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
-        else:
-            for element in self.spheres_model_part.Elements:
-                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
-                node = element.GetNode(0)
-                x = node.X
-                y = node.Y
-
-                if (x > side - dist) or (y > side - dist) or (x < dist) or (y < dist):
-                    element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
-
-    def SetBallsVels(self):
-
-        side = 1.0
-        dist = 0.06
-        vel = 0.05
-        dim = 2
-
-        for element in self.spheres_model_part.Elements:
-            node = element.GetNode(0)
-
-            if dim == 3:
-
-                z = node.Z
-
-                if (z > side - dist):
-                    node.SetSolutionStepValue(VELOCITY_X, 0.0)
-                    node.SetSolutionStepValue(VELOCITY_Y, 0.0)
-                    node.SetSolutionStepValue(VELOCITY_Z, -vel)
-                    node.Fix(VELOCITY_X)
-                    node.Fix(VELOCITY_Y)
-                    node.Fix(VELOCITY_Z)
-                if z < dist:
-                    node.SetSolutionStepValue(VELOCITY_X, 0.0)
-                    node.SetSolutionStepValue(VELOCITY_Y, 0.0)
-                    node.SetSolutionStepValue(VELOCITY_Z, vel)
-                    node.Fix(VELOCITY_X)
-                    node.Fix(VELOCITY_Y)
-                    node.Fix(VELOCITY_Z)
-            else:
-                y = node.Y
-
-                if (y > side - dist):
-                    node.SetSolutionStepValue(VELOCITY_X, 0.0)
-                    node.SetSolutionStepValue(VELOCITY_Y, -vel)
-                    node.SetSolutionStepValue(VELOCITY_Z, 0.0)
-                    node.Fix(VELOCITY_X)
-                    node.Fix(VELOCITY_Y)
-                    node.Fix(VELOCITY_Z)
-                if y < dist:
-                    node.SetSolutionStepValue(VELOCITY_X, -0.0)
-                    node.SetSolutionStepValue(VELOCITY_Y, vel)
-                    node.SetSolutionStepValue(VELOCITY_Z, 0.0)
-                    node.Fix(VELOCITY_X)
-                    node.Fix(VELOCITY_Y)
-                    node.Fix(VELOCITY_Z)
-
     def Initialize(self):
         self.time = 0.0
         self.time_old_print = 0.0
 
         self.ReadModelParts()
-
-        #self.SkinForCube()
-        #self.SetBallsVels()
 
         self.SetMaterials()
         
