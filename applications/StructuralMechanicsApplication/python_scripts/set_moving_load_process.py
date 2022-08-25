@@ -2,13 +2,13 @@
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as KSM
 
+
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return SetMovingLoadProcess(Model, settings["Parameters"])
 
-from KratosMultiphysics.StructuralMechanicsApplication import set_moving_load_process as smlp
-#
+
 ## All the processes python should be derived from "Process"
 class SetMovingLoadProcess(KratosMultiphysics.Process):
     """This process assigns given POINT_LOAD and PRESCRIBED_DISPLACEMENT values
@@ -41,7 +41,8 @@ class SetMovingLoadProcess(KratosMultiphysics.Process):
             "variable_name"   : "POINT_LOAD",
             "load"            : [0.0, 1.0, 0.0],
             "direction"       : [1,1,1],
-            "velocity"        : 1
+            "velocity"        : 1,
+            "origin"          : [0.0,0.0,0.0]
         }
         """
         )
@@ -55,6 +56,7 @@ class SetMovingLoadProcess(KratosMultiphysics.Process):
         params_load.AddValue("load", settings["load"])
         params_load.AddValue("direction", settings["direction"])
         params_load.AddValue("velocity", settings["velocity"])
+        params_load.AddValue("origin", settings["origin"])
 
         # Set process
         self.model_part = Model.GetModelPart(params_load["model_part_name"].GetString())
@@ -70,17 +72,17 @@ class SetMovingLoadProcess(KratosMultiphysics.Process):
         self.process.ExecuteInitialize()
 
     def ExecuteInitializeSolutionStep(self):
-    #     """ This method is executed in order to initialize the current step
-    #
-    #     Keyword arguments:
-    #     self -- It signifies an instance of a class.
-    #     """
+        """ This method is executed in order to initialize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         self.process.ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
-    #     """ This method is executed in order to initialize the current step
-    #
-    #     Keyword arguments:
-    #     self -- It signifies an instance of a class.
-    #     """
+        """ This method is executed in order to initialize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         self.process.ExecuteFinalizeSolutionStep()

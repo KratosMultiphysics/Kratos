@@ -16,6 +16,9 @@
 
 // Project includes
 #include "set_moving_load_process.h"
+
+#include <utilities/mortar_utilities.h>
+
 #include "utilities/interval_utility.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -36,7 +39,8 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
 			"is_rotation"     : true,
             "load"            : [0.0, 1.0, 0.0],
             "direction"       : [1,1,1],
-            "velocity"        : 1
+            "velocity"        : 1,
+			"origin"          : [0.0, 0.0, 0.0]
         }  )"
     );
     Parameters mParameters;
@@ -207,20 +211,32 @@ void SetMovingLoadProcess::ExecuteInitialize()
     KRATOS_TRY
     mLoad = mParameters["load"].GetVector();
 
-    vector<int> direction = mParameters["direction"].GetVector();
+    const vector<int> direction = mParameters["direction"].GetVector();
     mLoadVelocity = mParameters["velocity"].GetDouble();
+    const array_1d<double,3> origin_point = mParameters["origin"].GetVector();
     mCurrentDistance = 0;
 
     std::vector<int> node_id_vector;
     std::vector<int> node_id_vector2;
 
     // get all end node ids ( not the middle nodes, in case of line3 conditions)
+    // simultaneously check if origin point is on line
+    bool condition_is_on_line = false;
     for (auto& r_cond : mrModelPart.Conditions()) {
 
+        Point local_point;
+        if (r_cond.GetGeometry().IsInside(origin_point, local_point))
+        {
+            condition_is_on_line = true;
+        }
         auto geom = r_cond.GetGeometry();
         node_id_vector.push_back(geom[0].Id());
         node_id_vector.push_back(geom[1].Id());
     }
+
+    // error if origin point is not on line
+    KRATOS_ERROR_IF_NOT(condition_is_on_line) << "Origin point of moving load is not on line" << std::endl;
+
 
     // find non repeating node ids
     const std::vector<int> non_repeating_node_ids = FindNonRepeatingIndices(node_id_vector);
@@ -258,6 +274,32 @@ void SetMovingLoadProcess::ExecuteInitialize()
 
     mSortedConditions = SortConditions(mrModelPart.Conditions(), r_first_cond);
 
+    double global_distance = 0;
+    for (unsigned int i = 0; i < mSortedConditions.size(); ++i)
+    {
+        auto& r_cond = mSortedConditions[i];
+        auto& r_geom = r_cond.GetGeometry();
+        const double element_length = r_geom.Length();
+
+        Point local_point;
+        if (r_geom.IsInside(origin_point, local_point))
+        {
+	        const double local_to_global_distance = (local_point[0] + 1) / 2 * element_length;
+
+            if (mIsCondReversedVector[i])
+            {
+                mCurrentDistance = global_distance + element_length - local_to_global_distance;
+            }
+            else
+            {
+                mCurrentDistance = global_distance + local_to_global_distance;
+            }
+            
+        }
+
+        global_distance += element_length;
+
+    }
    
     KRATOS_CATCH("")
 }
