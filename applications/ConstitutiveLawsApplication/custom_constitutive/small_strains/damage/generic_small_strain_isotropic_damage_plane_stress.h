@@ -12,8 +12,7 @@
 //
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_PLANE_STRESS_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_PLANE_STRESS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -206,4 +205,3 @@ private:
 };
 
 } // namespace Kratos
-#endif
