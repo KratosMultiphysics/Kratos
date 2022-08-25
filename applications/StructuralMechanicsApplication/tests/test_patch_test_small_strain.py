@@ -141,9 +141,9 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             for i in range(3):
                 if abs(u[i]) > 0.0:
                     error = abs((d[i] - u[i])/u[i])
-                    self.assertLess(error, self.tolerances.relative, msg=f"NODE {node.Id}: Component {coor_list[i]}: {u[i]} {d[i]} Error: {error}")
+                    self.assertLess(error, self.tolerances["relative"], msg=f"NODE {node.Id}: Component {coor_list[i]}: {u[i]} {d[i]} Error: {error}")
                 else:
-                    self.assertLess(abs(d[i]), self.tolerances.absolute.displacement)
+                    self.assertLess(abs(d[i]), self.tolerances["absolute"]["displacement"])
 
     def _check_outputs(self,mp,A,dim):
 
@@ -195,9 +195,9 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                 for i in range(len(reference_strain)):
                     if abs(strain[i]) > 0.0:
                         if abs(reference_strain[i]) > 0.0:
-                            self.assertLess(abs((reference_strain[i] - strain[i])/reference_strain[i]), self.tolerances.relative)
+                            self.assertLess(abs((reference_strain[i] - strain[i])/reference_strain[i]), self.tolerances["relative"])
                         else:
-                            self.assertLess(abs(strain[i]), self.tolerances.absolute.strain)
+                            self.assertLess(abs(strain[i]), self.tolerances["absolute"]["strain"])
 
         # Finally compute stress
         if(dim == 2):
@@ -228,9 +228,9 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                 for i in range(len(reference_stress)):
                     if abs(stress[i]) > 0.0:
                         if abs(reference_stress[i]) > 0.0: 
-                            self.assertLess(abs((reference_stress[i] - stress[i])/reference_stress[i]), self.tolerances.relative)
+                            self.assertLess(abs((reference_stress[i] - stress[i])/reference_stress[i]), self.tolerances["relative"])
                         else:
-                            self.assertLess(abs(stress[i]), self.tolerances.absolute.stress)
+                            self.assertLess(abs(stress[i]), self.tolerances["absolute"]["stress"])
 
     def test_SmallDisplacementElement_2D_triangle(self):
         dim = 2
