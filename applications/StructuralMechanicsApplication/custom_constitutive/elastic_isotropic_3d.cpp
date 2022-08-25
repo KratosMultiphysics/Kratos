@@ -251,6 +251,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        return rValue;
 
     } else if (rThisVariable == INITIAL_STRAIN_VECTOR) {
         if (this->HasInitialState()) {
@@ -263,7 +264,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
         }
     }
 
-    return( rValue );
+    return rValue;
 }
 
 /***********************************************************************************/
