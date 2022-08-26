@@ -82,7 +82,7 @@ void TwoFluidNavierStokesWallCondition<TDim, TNumNodes>::ComputeRHSNeumannContri
         for (unsigned int i = 0; i < TNumNodes; ++i){
             unsigned int row = i * block_size;
             for (unsigned int j = 0; j < TNumNodes; ++j){
-                const double p_j = rGeom[j].FastGetSolutio<nStepValue(PRESSURE, 1);
+                const double p_j = rGeom[j].FastGetSolutionStepValue(PRESSURE, 1);
                 // const double p_j = rGeom[j].FastGetSolutio<nStepValue(PRESSURE);
                 for (unsigned int d = 0; d < TDim; ++d){
                     rhs_gauss[row + d] -= data.wGauss * data.N[i] * data.N[j] * p_j * data.Normal[d]; // Same EXTERNAL_PRESSURE sign
