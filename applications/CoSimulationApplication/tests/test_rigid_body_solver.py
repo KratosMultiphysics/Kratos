@@ -251,31 +251,29 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                 self.assertEqual(simulation.C[i][j], C[i][j])
                 self.assertEqual(simulation.K[i][j], K[i][j])
 
-
-    def test_InitializeGeneralizedAlphaParameters(self):
-
+    def test_InitializeGeneralizedAlphaParameters1(self):
         simulation = RigidBodySolver(self.model, self.default_parameters)
 
-        self.assertEqual(simulation.alpha_f, 0.5)
-        self.assertEqual(simulation.alpha_m, 0.5)
-        self.assertEqual(simulation.beta, 0.25)
-        self.assertEqual(simulation.gamma, 0.5)
-        self.assertEqual(simulation.a1h, 20000.0)
-        self.assertEqual(simulation.a2h, 100.0)
-        self.assertEqual(simulation.a3h, 0.5)
-        self.assertEqual(simulation.a1m, 20000.0)
-        self.assertEqual(simulation.a2m, 200.0)
-        self.assertEqual(simulation.a3m, 0.0)
-        self.assertEqual(simulation.a1b, 100.0)
-        self.assertEqual(simulation.a2b, 0.0)
-        self.assertEqual(simulation.a3b, 0.0)
-        self.assertEqual(simulation.a1k, -0.5)
-        self.assertEqual(simulation.a1v, 200.0)
-        self.assertEqual(simulation.a2v, -1.0)
-        self.assertEqual(simulation.a3v, 0.0)
-        self.assertEqual(simulation.a1a, 40000.0)
-        self.assertEqual(simulation.a2a, -400.0)
-        self.assertEqual(simulation.a3a, -1.0)
+        self.assertAlmostEqual(simulation.alpha_f, 0.5)
+        self.assertAlmostEqual(simulation.alpha_m, 0.5)
+        self.assertAlmostEqual(simulation.beta, 0.25)
+        self.assertAlmostEqual(simulation.gamma, 0.5)
+        self.assertAlmostEqual(simulation.a1h, 20000.0)
+        self.assertAlmostEqual(simulation.a2h, 100.0)
+        self.assertAlmostEqual(simulation.a3h, 0.5)
+        self.assertAlmostEqual(simulation.a1m, 20000.0)
+        self.assertAlmostEqual(simulation.a2m, 200.0)
+        self.assertAlmostEqual(simulation.a3m, 0.0)
+        self.assertAlmostEqual(simulation.a1b, 100.0)
+        self.assertAlmostEqual(simulation.a2b, 0.0)
+        self.assertAlmostEqual(simulation.a3b, 0.0)
+        self.assertAlmostEqual(simulation.a1k, -0.5)
+        self.assertAlmostEqual(simulation.a1v, 200.0)
+        self.assertAlmostEqual(simulation.a2v, -1.0)
+        self.assertAlmostEqual(simulation.a3v, 0.0)
+        self.assertAlmostEqual(simulation.a1a, 40000.0)
+        self.assertAlmostEqual(simulation.a2a, -400.0)
+        self.assertAlmostEqual(simulation.a3a, -1.0)
 
         LHS= [[20000.5,     0. ,     0. ,     0. ,     0. ,     0. ],
               [    0. , 20000.5,     0. ,     0. ,     0. ,     0. ],
@@ -287,12 +285,112 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
 
         for i in range(6):
             for j in range(6):
-                self.assertEqual(simulation.LHS[i][j], LHS[i][j])
+                self.assertAlmostEqual(simulation.LHS[i][j], LHS[i][j])
+
+    def test_InitializeGeneralizedAlphaParameters2(self):
+        Parameters = KM.Parameters('''{
+            "solver_settings": {
+                "time_integration_parameters": {
+                        "rho_inf": 0.16,
+                        "time_step": 0.01
+                },
+                "active_dofs": [
+                    {
+                        "dof": "displacement_x",
+                        "constrained": false,
+                        "system_parameters": {
+                            "mass": 40.0,
+                            "stiffness": 400.0,
+                            "damping": 4.0
+                        }
+                    },
+                    {
+                        "dof": "displacement_y",
+                        "constrained": true,
+                        "system_parameters": {
+                            "mass": 50.0,
+                            "stiffness": 500.0,
+                            "damping": 5.0
+                        }
+                    },
+                    {
+                        "dof": "displacement_z",
+                        "constrained": false,
+                        "system_parameters": {
+                            "mass": 100.0,
+                            "stiffness": 1000.0,
+                            "damping": 10.0
+                        }
+                    },
+                    {
+                        "dof": "rotation_x",
+                        "constrained": false,
+                        "system_parameters": {
+                            "mass": 2.0,
+                            "stiffness": 200.0,
+                            "damping": 2.0
+                        }
+                    },
+                    {
+                        "dof": "rotation_y",
+                        "constrained": true,
+                        "system_parameters": {
+                            "mass": 10.0,
+                            "stiffness": 1000.0,
+                            "damping": 10.0
+                        }
+                    }
+                ]
+            }
+        }''')
+        Parameters.RecursivelyAddMissingParameters(self.default_parameters)
+        simulation = RigidBodySolver(self.model, Parameters)
+
+        self.assertAlmostEqual(simulation.alpha_f, 0.13793103448275865)
+        self.assertAlmostEqual(simulation.alpha_m, -0.5862068965517241)
+        self.assertAlmostEqual(simulation.beta, 0.7431629013079668)
+        self.assertAlmostEqual(simulation.gamma, 1.2241379310344829)
+        self.assertAlmostEqual(simulation.a1h, 21344.0)
+        self.assertAlmostEqual(simulation.a2h, 142.0)
+        self.assertAlmostEqual(simulation.a3h, 0.8620689655172413)
+        self.assertAlmostEqual(simulation.a1m, 21344.0)
+        self.assertAlmostEqual(simulation.a2m, 213.44)
+        self.assertAlmostEqual(simulation.a3m, 0.0671999999999999)
+        self.assertAlmostEqual(simulation.a1b, 142.0)
+        self.assertAlmostEqual(simulation.a2b, 0.41999999999999993)
+        self.assertAlmostEqual(simulation.a3b, -0.0015206896551724137)
+        self.assertAlmostEqual(simulation.a1k, -0.13793103448275865)
+        self.assertAlmostEqual(simulation.a1v, 164.72)
+        self.assertAlmostEqual(simulation.a2v, -0.6472)
+        self.assertAlmostEqual(simulation.a3v, 0.001764)
+        self.assertAlmostEqual(simulation.a1a, 13455.999999999998)
+        self.assertAlmostEqual(simulation.a2a, -134.55999999999997)
+        self.assertAlmostEqual(simulation.a3a, 0.32720000000000005)
+
+
+        LHS= [[854672.82758621,     0. ,     0. ,     0. ,     0. ,     0. ],
+              [    0. , 1068341.03448276,     0. ,     0. ,     0. ,     0. ],
+              [    0. ,     0. , 2136682.06896552,     0. ,     0. ,     0. ],
+              [    0. ,     0. ,     0. , 43144.4137931,     0. ,     0. ],
+              [    0. ,     0. ,     0. ,     0. , 215722.06896552,     0. ],
+              [    0. ,     0. ,     0. ,     0. ,     0. , 21344.86206897]]
+
+
+        for i in range(6):
+            for j in range(6):
+                self.assertAlmostEqual(simulation.LHS[i][j], LHS[i][j])
 
     def test_check_variables(self):
-        # HasNodalSolutionStepVariable
         simulation = RigidBodySolver(self.model, self.default_parameters)
-
+        # # Skip __init__
+        # simulation = object.__new__(RigidBodySolver)
+        # # Creating model
+        # simulation.model = KM.Model()
+        # simulation.main_model_part = simulation.model.CreateModelPart("Main")
+        # simulation.rigid_body_model_part = simulation.main_model_part.CreateSubModelPart("RigidBody")
+        # simulation.root_point_model_part = simulation.main_model_part.CreateSubModelPart("RootPoint")
+        # # Adding variables
+        # simulation.AddVariables()
 
         # Kinematic variables (work with both RigidBody and RootPoint model parts)
         self.assertTrue(simulation.main_model_part.HasNodalSolutionStepVariable(KM.DISPLACEMENT))
