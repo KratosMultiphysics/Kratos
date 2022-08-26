@@ -319,7 +319,21 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.assertTrue(simulation.root_point_model_part.HasNodalSolutionStepVariable(KMC.PRESCRIBED_ROTATION))
 
     def test_ResetExternalVariables(self):
-        pass
+        simulation = RigidBodySolver(self.model, self.default_parameters)
+
+        random_vector = np.random.rand(simulation.system_size)
+        simulation._SetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT, random_vector)
+        simulation._SetCompleteVector("rigid_body", KMC.PRESCRIBED_FORCE, KMC.PRESCRIBED_MOMENT, random_vector)
+        simulation._SetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION, random_vector)
+        simulation._SetCompleteVector("root_point", KMC.PRESCRIBED_DISPLACEMENT, KMC.PRESCRIBED_ROTATION, random_vector)
+        
+        simulation._ResetExternalVariables()
+
+        zero_vector = np.zeros(simulation.system_size)
+        self.assertVectorAlmostEqual(zero_vector, simulation._GetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT))
+        self.assertVectorAlmostEqual(zero_vector, simulation._GetCompleteVector("rigid_body", KMC.PRESCRIBED_FORCE, KMC.PRESCRIBED_MOMENT))
+        self.assertVectorAlmostEqual(zero_vector, simulation._GetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION))
+        self.assertVectorAlmostEqual(zero_vector, simulation._GetCompleteVector("root_point", KMC.PRESCRIBED_DISPLACEMENT, KMC.PRESCRIBED_ROTATION))
 
     def test_CalculateEffectiveLoad(self):
         pass
