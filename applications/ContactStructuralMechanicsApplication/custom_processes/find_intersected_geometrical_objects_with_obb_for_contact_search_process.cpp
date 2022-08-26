@@ -23,7 +23,7 @@ FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::FindIntersectedGeo
     ModelPart& rPart1,
     ModelPart& rPart2,
     const double BoundingBoxFactor,
-    const Flags Options
+    const Flags& Options
     ) : BaseType(rPart1, rPart2, BoundingBoxFactor, Options)
 {
 }
