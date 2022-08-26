@@ -85,7 +85,7 @@ public:
         const bool PerformCorrections,
         const int CorrectionFreq,
         const bool WriteToLogFile,
-        const std::string LogFileName);
+        const std::string& LogFileName);
 
     /**
      * @brief Constructor with Kratos parameters
@@ -139,7 +139,7 @@ public:
      * @param boundaryFlag Boundary to consider
      * @return double Volume flow computed over boundary in regions with negative distance field
      */
-    double ComputeFlowOverBoundary( const Kratos::Flags boundaryFlag );
+    double ComputeFlowOverBoundary( const Kratos::Flags& boundaryFlag );
 
     /**
      * @brief Initialization of the process including computation of inital volumes

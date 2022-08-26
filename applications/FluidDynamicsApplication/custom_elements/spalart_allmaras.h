@@ -14,8 +14,9 @@
 #define  KRATOS_SPALART_ALLMARAS_H_INCLUDED
 
 // System includes
-#include <string>
 #include <iostream>
+#include <string>
+#include <utility>
 
 
 // External includes
@@ -81,26 +82,26 @@ public:
     {}
 
     /// Constructor using a Geometry instance
-    SpalartAllmaras(IndexType NewId, GeometryType::Pointer pGeometry) :
+    SpalartAllmaras(IndexType NewId, const GeometryType::Pointer& pGeometry) :
         Element(NewId, pGeometry),
         mIntegrationMethod(pGeometry->GetDefaultIntegrationMethod())
     {}
 
     /// Constructor using geometry and properties
-    SpalartAllmaras(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
-        Element(NewId, pGeometry, pProperties),
+    SpalartAllmaras(IndexType NewId, const GeometryType::Pointer& pGeometry, PropertiesType::Pointer pProperties) :
+        Element(NewId, pGeometry, std::move(pProperties)),
         mIntegrationMethod(pGeometry->GetDefaultIntegrationMethod())
     {}
 
     /// Additional constructor using a specific quadrature
     SpalartAllmaras(IndexType NewId, GeometryType::Pointer pGeometry, const Element::IntegrationMethod& ThisIntegrationMethod) :
-        Element(NewId, pGeometry),
+        Element(NewId, std::move(pGeometry)),
         mIntegrationMethod(ThisIntegrationMethod)
     {}
 
     /// Additional constructor using a specific quadrature
     SpalartAllmaras(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, const Element::IntegrationMethod& ThisIntegrationMethod) :
-        Element(NewId,pGeometry,pProperties),
+        Element(NewId,std::move(pGeometry),std::move(pProperties)),
         mIntegrationMethod(ThisIntegrationMethod)
     {}
 
@@ -238,7 +239,7 @@ protected:
     void AddModelTerms(MatrixType& rLHS,
                        const double MolecularViscosity,
                        const double LastEddyViscosity,
-                       const array_1d<double,3> rLastEddyViscosityGradient,
+                       const array_1d<double,3>& rLastEddyViscosityGradient,
                        const double Distance,
                        const array_1d<double,3>& rVelocity,
                        const ShapeFunctionsType& N,
