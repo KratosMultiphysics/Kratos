@@ -678,7 +678,7 @@ public:
         const TVarType &rVariable,
         const TDataType &rValue,
         NodesContainerType &rNodes,
-        const Flags Flag,
+        const Flags& Flag,
         const bool CheckValue = true)
     {
         KRATOS_TRY

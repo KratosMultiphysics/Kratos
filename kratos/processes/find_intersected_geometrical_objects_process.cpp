@@ -36,7 +36,7 @@ KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsProcess, INTERSECTED_E
 FindIntersectedGeometricalObjectsProcess::FindIntersectedGeometricalObjectsProcess(
     ModelPart& rModelPartIntersected,
     ModelPart& rModelPartIntersecting,
-    const Flags Options
+    const Flags& Options
     ) : mrModelPartIntersected(rModelPartIntersected),
         mrModelPartIntersecting(rModelPartIntersecting),
         mOptions(Options),

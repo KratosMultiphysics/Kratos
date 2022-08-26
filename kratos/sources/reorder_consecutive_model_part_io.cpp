@@ -29,7 +29,7 @@
 namespace Kratos
 {
     /// Constructor with  filenames.
-    ReorderConsecutiveModelPartIO::ReorderConsecutiveModelPartIO(std::string const& Filename, const Flags Options )
+    ReorderConsecutiveModelPartIO::ReorderConsecutiveModelPartIO(std::string const& Filename, const Flags& Options )
         : ModelPartIO(Filename, Options),
 		mNumberOfNodes(0),
 		mNumberOfElements(0),

@@ -42,7 +42,7 @@ void Model::Reset()
     mRootModelPartMap.clear();
 }
 
-void Model::CreateRootModelPart(const std::string ModelPartName, ModelPart::IndexType NewBufferSize)
+void Model::CreateRootModelPart(const std::string& ModelPartName, ModelPart::IndexType NewBufferSize)
 {
     auto p_var_list = Kratos::make_intrusive<VariablesList>();
 
@@ -50,7 +50,7 @@ void Model::CreateRootModelPart(const std::string ModelPartName, ModelPart::Inde
     mRootModelPartMap[ModelPartName] = std::unique_ptr<ModelPart>(p_model_part); // note that i create it separately since Model is friend of ModelPart but unique_ptr is not
 }
 
-ModelPart& Model::CreateModelPart( const std::string ModelPartName, ModelPart::IndexType NewBufferSize )
+ModelPart& Model::CreateModelPart( const std::string& ModelPartName, ModelPart::IndexType NewBufferSize )
 {
     KRATOS_TRY
 
@@ -77,7 +77,7 @@ ModelPart& Model::CreateModelPart( const std::string ModelPartName, ModelPart::I
     KRATOS_CATCH("")
 }
 
-void Model::DeleteModelPart( const std::string ModelPartName  )
+void Model::DeleteModelPart( const std::string& ModelPartName  )
 {
     KRATOS_TRY
 
@@ -90,7 +90,7 @@ void Model::DeleteModelPart( const std::string ModelPartName  )
     KRATOS_CATCH("")
 }
 
-void Model::RenameModelPart( const std::string OldName, const std::string NewName )
+void Model::RenameModelPart( const std::string& OldName, const std::string& NewName )
 {
     KRATOS_TRY
 

@@ -111,7 +111,7 @@ public:
         ModelPart& rDestinationModelPart,
         ModelPart& rOriginModelPart,
         const EntityTransfered Entity = EntityTransfered::ALL,
-        const Flags Flag = Flags(),
+        const Flags& Flag = Flags(),
         const bool ReplicateEntities = false
         );
 
