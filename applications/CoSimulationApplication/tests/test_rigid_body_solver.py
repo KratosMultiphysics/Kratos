@@ -320,15 +320,16 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
 
     def test_SetCompleteVector(self):
         simulation = RigidBodySolver(self.model, self.default_parameters)
-        
+
+        buffer = 0
         # rigid_body
         random_linear = np.random.rand(simulation.linear_size)
         random_angular = np.random.rand(simulation.angular_size)
         random_vector = np.array(list(random_linear) + list(random_angular))
 
         simulation._SetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT, random_vector)
-        simulation_linear = simulation.rigid_body_model_part.Nodes[1].GetSolutionStepValue(KM.FORCE)
-        simulation_angular = simulation.rigid_body_model_part.Nodes[1].GetSolutionStepValue(KM.MOMENT)
+        simulation_linear = simulation.rigid_body_model_part.Nodes[1].GetSolutionStepValue(KM.FORCE, buffer)
+        simulation_angular = simulation.rigid_body_model_part.Nodes[1].GetSolutionStepValue(KM.MOMENT, buffer)
 
         self.assertVectorAlmostEqual(random_linear, simulation_linear)
         self.assertVectorAlmostEqual(random_angular, simulation_angular)
@@ -339,15 +340,41 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         random_vector = np.array(list(random_linear) + list(random_angular))
 
         simulation._SetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION, random_vector)
-        simulation_linear = simulation.root_point_model_part.Nodes[2].GetSolutionStepValue(KM.DISPLACEMENT)
-        simulation_angular = simulation.root_point_model_part.Nodes[2].GetSolutionStepValue(KM.ROTATION)
+        simulation_linear = simulation.root_point_model_part.Nodes[2].GetSolutionStepValue(KM.DISPLACEMENT, buffer)
+        simulation_angular = simulation.root_point_model_part.Nodes[2].GetSolutionStepValue(KM.ROTATION, buffer)
 
         self.assertVectorAlmostEqual(random_linear, simulation_linear)
         self.assertVectorAlmostEqual(random_angular, simulation_angular)
         
     def test_GetCompleteVector(self):
-        pass
-    
+        simulation = RigidBodySolver(self.model, self.default_parameters)
+
+        buffer = 0
+        # rigid_body
+        random_linear = np.random.rand(simulation.linear_size)
+        random_angular = np.random.rand(simulation.angular_size)
+        random_vector = np.array(list(random_linear) + list(random_angular))
+
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.FORCE, buffer, random_linear)
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.MOMENT, buffer, random_angular)
+
+        simulation_vector = simulation._GetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT, buffer)
+
+        self.assertVectorAlmostEqual(random_vector, simulation_vector)
+
+        # root_point
+        random_linear = np.random.rand(simulation.linear_size)
+        random_angular = np.random.rand(simulation.angular_size)
+        random_vector = np.array(list(random_linear) + list(random_angular))
+
+        simulation.root_point_model_part.Nodes[2].SetSolutionStepValue(KM.DISPLACEMENT, buffer, random_linear)
+        simulation.root_point_model_part.Nodes[2].SetSolutionStepValue(KM.ROTATION, buffer, random_angular)
+
+        simulation_vector = simulation._GetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION, buffer)
+
+        self.assertVectorAlmostEqual(random_vector, simulation_vector)
+
+
     def test_ResetExternalVariables(self):
         simulation = RigidBodySolver(self.model, self.default_parameters)
 
