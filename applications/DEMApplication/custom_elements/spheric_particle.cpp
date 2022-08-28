@@ -779,6 +779,7 @@ void SphericParticle::ComputeMomentsWithWalls(double NormalLocalContactForce,
     noalias(mContactMoment) += moment_of_this_neighbour;
 }
 
+//TODO: remove RollingResistance related function
 void SphericParticle::ComputeRollingResistance(double& RollingResistance, const double& NormalLocalContactForce, const double& equiv_rolling_friction_coeff, const unsigned int i) {
 
     KRATOS_TRY
