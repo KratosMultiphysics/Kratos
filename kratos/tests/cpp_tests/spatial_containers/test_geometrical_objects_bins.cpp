@@ -60,7 +60,7 @@ namespace Testing {
 
         Model current_model;
 
-        const double cube_x = 0.6;
+        const double cube_x = 0.6; 
         const double cube_y = 0.9;
         const double cube_z = 0.3;
 
@@ -87,7 +87,7 @@ namespace Testing {
 
         Model current_model;
 
-        const double cube_x = 0.6;
+        const double cube_x = 0.6; //The cube will then be a 1.2x1.8x0.6 cube
         const double cube_y = 0.9;
         const double cube_z = 0.3;
 
@@ -98,9 +98,9 @@ namespace Testing {
         GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd(), cell_size);
 
         auto number_of_cells = bins.GetNumberOfCells();
-        KRATOS_CHECK_EQUAL(number_of_cells[0], 3);
-        KRATOS_CHECK_EQUAL(number_of_cells[1], 9);
-        KRATOS_CHECK_EQUAL(number_of_cells[2], 6);
+        KRATOS_CHECK_EQUAL(number_of_cells[0], 6);
+        KRATOS_CHECK_EQUAL(number_of_cells[1], 18);
+        KRATOS_CHECK_EQUAL(number_of_cells[2], 12);
 
         auto cell_sizes = bins.GetCellSizes();
         KRATOS_CHECK_NEAR(cell_sizes[0], 0.2, tolerance);
