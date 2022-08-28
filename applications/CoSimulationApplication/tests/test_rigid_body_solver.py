@@ -411,9 +411,9 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.assertTrue(simulation.rigid_body_model_part.HasNodalSolutionStepVariable(KM.BODY_MOMENT))
         
         # Specific variables for the model part RootPoint
-        self.assertTrue(simulation.rigid_body_model_part.HasNodalSolutionStepVariable(KM.REACTION))
-        self.assertTrue(simulation.rigid_body_model_part.HasNodalSolutionStepVariable(KM.REACTION_MOMENT))
-        self.assertTrue(simulation.rigid_body_model_part.HasNodalSolutionStepVariable(KMC.PRESCRIBED_DISPLACEMENT))
+        self.assertTrue(simulation.root_point_model_part.HasNodalSolutionStepVariable(KM.REACTION))
+        self.assertTrue(simulation.root_point_model_part.HasNodalSolutionStepVariable(KM.REACTION_MOMENT))
+        self.assertTrue(simulation.root_point_model_part.HasNodalSolutionStepVariable(KMC.PRESCRIBED_DISPLACEMENT))
         self.assertTrue(simulation.root_point_model_part.HasNodalSolutionStepVariable(KMC.PRESCRIBED_ROTATION))
 
     def test_SetCompleteVector_rigid_body(self):
