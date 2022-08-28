@@ -739,10 +739,76 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.assertVectorAlmostEqual(reference, simulation_effective_load)
 
     def test_GetKinematics(self):
-        pass
+        simulation = RigidBodySolver(self.model, self.default_parameters)
+        buffer = 0
+        random_linear = np.random.rand(simulation.linear_size)
+        random_angular = np.random.rand(simulation.angular_size)
+        random_vector_x = np.array(list(random_linear) + list(random_angular))
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.DISPLACEMENT, buffer, random_linear)
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.ROTATION, buffer, random_angular)
+
+        random_linear = np.random.rand(simulation.linear_size)
+        random_angular = np.random.rand(simulation.angular_size)
+        random_vector_v = np.array(list(random_linear) + list(random_angular))
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.VELOCITY, buffer, random_linear)
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.ANGULAR_VELOCITY, buffer, random_angular)
+
+        random_linear = np.random.rand(simulation.linear_size)
+        random_angular = np.random.rand(simulation.angular_size)
+        random_vector_a = np.array(list(random_linear) + list(random_angular))
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.ACCELERATION, buffer, random_linear)
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.ANGULAR_ACCELERATION, buffer, random_angular)
+
+        x, v, a = simulation._GetKinematics("rigid_body", 0)
+
+        self.assertVectorAlmostEqual(random_vector_x, x)
+        self.assertVectorAlmostEqual(random_vector_v, v)
+        self.assertVectorAlmostEqual(random_vector_a, a)
 
     def test_UpdateKinematics(self):
-        pass
+        simulation = RigidBodySolver(self.model, self.default_parameters)
+        # Sets previous kinematics
+        buffer = 1
+        prev_linear = np.array([0.3496 , 0.575, 0.7984])
+        prev_angular = np.array([0.4725 , 0.6698, 0.3468])
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.DISPLACEMENT, buffer, prev_linear)
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.ROTATION, buffer, prev_angular)
+
+        prev_linear = np.array([1.7849 , 2.2954, 3.3984])
+        prev_angular = np.array([0.3989 , 0.8954, 1.1389])
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.VELOCITY, buffer, prev_linear)
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.ANGULAR_VELOCITY, buffer, prev_angular)
+
+        prev_linear = np.array([3.1488 , 0.5647, 0.1417])
+        prev_angular = np.array([1.8998 , 2.1987, 0.9874])
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.ACCELERATION, buffer, prev_linear)
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.ANGULAR_ACCELERATION, buffer, prev_angular)
+
+        current_x = np.array([0.4861 , 0.6813, 0.8942, 0.7549 , 1.1698, 0.7918])
+
+        simulation._UpdateKinematics("rigid_body", current_x)
+        
+        ref_DISPLACEMENT = np.array([0.4861, 0.6813, 0.8942])
+        ref_ROTATION = np.array([0.7549 , 1.1698, 0.7918])
+        ref_VELOCITY = np.array([25.5151, 18.9646, 15.7616])
+        ref_ANGULAR_VELOCITY = np.array([56.0811, 99.1046, 87.8611])
+        ref_ACCELERATION = np.array([4742.8912, 3333.2753, 2472.4983])
+        ref_ANGULAR_ACCELERATION = np.array([11134.5402, 19639.6413, 17343.4526])
+
+        buffer = 0
+        simulation_DISPLACEMENT = simulation.rigid_body_model_part.Nodes[1].GetSolutionStepValue(KM.DISPLACEMENT, buffer)
+        simulation_ROTATION = simulation.rigid_body_model_part.Nodes[1].GetSolutionStepValue(KM.ROTATION, buffer)
+        simulation_VELOCITY = simulation.rigid_body_model_part.Nodes[1].GetSolutionStepValue(KM.VELOCITY, buffer)
+        simulation_ANGULAR_VELOCITY = simulation.rigid_body_model_part.Nodes[1].GetSolutionStepValue(KM.ANGULAR_VELOCITY, buffer)
+        simulation_ACCELERATION = simulation.rigid_body_model_part.Nodes[1].GetSolutionStepValue(KM.ACCELERATION, buffer)
+        simulation_ANGULAR_ACCELERATION = simulation.rigid_body_model_part.Nodes[1].GetSolutionStepValue(KM.ANGULAR_ACCELERATION, buffer)
+
+        self.assertVectorAlmostEqual(ref_DISPLACEMENT, simulation_DISPLACEMENT)
+        self.assertVectorAlmostEqual(ref_ROTATION, simulation_ROTATION)
+        self.assertVectorAlmostEqual(ref_VELOCITY, simulation_VELOCITY)
+        self.assertVectorAlmostEqual(ref_ANGULAR_VELOCITY, simulation_ANGULAR_VELOCITY)
+        self.assertVectorAlmostEqual(ref_ACCELERATION, simulation_ACCELERATION)
+        self.assertVectorAlmostEqual(ref_ANGULAR_ACCELERATION, simulation_ANGULAR_ACCELERATION)
 
     def test_CalculateReaction(self):
         pass
