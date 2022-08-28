@@ -882,7 +882,75 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.assertVectorAlmostEqual(ref_buffer_1, simulation._CalculateReaction(1))
 
     def test_CalculateEquivalentForceFromRootPointDisplacement(self):
-        pass
+        Parameters = KM.Parameters('''{
+            "solver_settings":{
+                "active_dofs": [
+                    {
+                        "dof": "displacement_x",
+                        "constrained": false,
+                        "system_parameters": {
+                            "mass": 40.0,
+                            "stiffness": 400.0,
+                            "damping": 4.0
+                        }
+                    },
+                    {
+                        "dof": "displacement_y",
+                        "constrained": true,
+                        "system_parameters": {
+                            "mass": 50.0,
+                            "stiffness": 500.0,
+                            "damping": 5.0
+                        }
+                    },
+                    {
+                        "dof": "displacement_z",
+                        "constrained": false,
+                        "system_parameters": {
+                            "mass": 100.0,
+                            "stiffness": 1000.0,
+                            "damping": 10.0
+                        }
+                    },
+                    {
+                        "dof": "rotation_x",
+                        "constrained": false,
+                        "system_parameters": {
+                            "mass": 2.0,
+                            "stiffness": 200.0,
+                            "damping": 2.0
+                        }
+                    },
+                    {
+                        "dof": "rotation_y",
+                        "constrained": true,
+                        "system_parameters": {
+                            "mass": 10.0,
+                            "stiffness": 1000.0,
+                            "damping": 10.0
+                        }
+                    }
+                ]
+            }
+        }''')
+
+        Parameters.RecursivelyAddMissingParameters(self.default_parameters)
+        simulation = RigidBodySolver(self.model, Parameters)
+
+        buffer = 0
+        linear = np.array([0.3496 , 0.575, 0.7984])
+        angular = np.array([0.4725 , 0.6698, 0.3468])
+        simulation.root_point_model_part.Nodes[2].SetSolutionStepValue(KM.DISPLACEMENT, buffer, linear)
+        simulation.root_point_model_part.Nodes[2].SetSolutionStepValue(KM.ROTATION, buffer, angular)
+
+        linear = np.array([1.7849 , 2.2954, 3.3984])
+        angular = np.array([0.3989 , 0.8954, 1.1389])
+        simulation.root_point_model_part.Nodes[2].SetSolutionStepValue(KM.VELOCITY, buffer, linear)
+        simulation.root_point_model_part.Nodes[2].SetSolutionStepValue(KM.ANGULAR_VELOCITY, buffer, angular)
+
+        ref_equivalent_force = np.array([1.469796e+02, 2.989770e+02, 8.323840e+02, 9.529780e+01, 6.787540e+02, 3.468000e-01])
+        
+        self.assertVectorAlmostEqual(ref_equivalent_force, simulation._CalculateEquivalentForceFromRootPointDisplacement())
 
         
 
