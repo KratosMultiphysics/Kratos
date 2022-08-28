@@ -383,16 +383,6 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
     
     int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
     const double bonded_indentation = indentation - mInitialIndentationForBondedPart;                                                                                                          
-    
-    /*
-    array_1d<double, 3> other_to_me_vect;
-    noalias(other_to_me_vect) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
-    double distance = DEM_MODULUS_3(other_to_me_vect);
-    double radius_sum = element1->GetRadius() + element2->GetRadius();
-    double unbonded_indentation = 0.0;
-    unbonded_indentation = radius_sum - distance;
-    */
-    //double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
 
     double BondedLocalElasticContactForce2 = 0.0;
 
@@ -468,16 +458,6 @@ void DEM_parallel_bond::CalculateViscoDamping(double LocalRelVel[3],
     mBondedViscoDampingLocalContactForce[0] = 0.0;
     mBondedViscoDampingLocalContactForce[1] = 0.0;
     mBondedViscoDampingLocalContactForce[2] = 0.0;
-
-    //double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
-    /*
-    array_1d<double, 3> other_to_me_vect;
-    noalias(other_to_me_vect) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
-    double distance = DEM_MODULUS_3(other_to_me_vect);
-    double radius_sum = element1->GetRadius() + element2->GetRadius();
-    double unbonded_indentation = 0.0;
-    unbonded_indentation = radius_sum - distance;
-    */
 
     if (indentation > 0) {
         mUnbondedViscoDampingLocalContactForce[0] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[0];
@@ -560,15 +540,6 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
     double ActualTotalShearForce = 0.0;
     double max_admissible_shear_force = 0.0;
     double fraction = 0.0;
-    //double unbonded_indentation = indentation - element1->GetInitialDelta(i_neighbour_count);
-    /*
-    array_1d<double, 3> other_to_me_vect;
-    noalias(other_to_me_vect) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
-    double distance = DEM_MODULUS_3(other_to_me_vect);
-    double radius_sum = element1->GetRadius() + element2->GetRadius();
-    double unbonded_indentation = 0.0;
-    unbonded_indentation = radius_sum - distance;
-    */
 
     if (indentation <= 0.0) {
         UnbondedLocalElasticContactForce[0] = 0.0;
@@ -791,14 +762,9 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
     LocalEffDeltaAngularVelocity[1] = LocalDeltaAngularVelocity[1] * aux;
     LocalEffDeltaAngularVelocity[2] = LocalDeltaAngularVelocity[2] * aux;
 
-    
-    ElasticLocalRotationalMoment[0] = -kt_el * Inertia_I * LocalEffDeltaRotatedAngle[0];
-    ElasticLocalRotationalMoment[1] = -kt_el * Inertia_I * LocalEffDeltaRotatedAngle[1];
-    ElasticLocalRotationalMoment[2] = -kn_el * Inertia_J * LocalEffDeltaRotatedAngle[2];
-    
-    //ViscoLocalRotationalMoment[0] = -visc_param[0] * LocalEffDeltaAngularVelocity[0];
-    //ViscoLocalRotationalMoment[1] = -visc_param[1] * LocalEffDeltaAngularVelocity[1];
-    //ViscoLocalRotationalMoment[2] = -visc_param[2] * LocalEffDeltaAngularVelocity[2];
+    ElasticLocalRotationalMoment[0] = -kn_el / calculation_area * Inertia_I * LocalEffDeltaRotatedAngle[0];
+    ElasticLocalRotationalMoment[1] = -kn_el / calculation_area * Inertia_I * LocalEffDeltaRotatedAngle[1];
+    ElasticLocalRotationalMoment[2] = -kt_el / calculation_area * Inertia_J * LocalEffDeltaRotatedAngle[2];
 
     // Bond rotational 'friction' based on particle rolling fricton 
     //Not damping but simple implementation to help energy dissipation

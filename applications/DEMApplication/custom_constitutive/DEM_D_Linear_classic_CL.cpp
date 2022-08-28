@@ -24,6 +24,9 @@ namespace Kratos{
         //Get equivalent Radius
         const double my_radius       = element1->GetRadius();
         const double other_radius    = element2->GetRadius();
+        const double radius_sum      = my_radius + other_radius;
+        const double radius_sum_inv  = 1.0 / radius_sum;
+        const double equiv_radius    = my_radius * other_radius * radius_sum_inv;
 
         //Get equivalent Young's Modulus
         const double my_young        = element1->GetYoung();
@@ -37,16 +40,16 @@ namespace Kratos{
         const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
         const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
-        double aim_radius = std::min(my_radius, other_radius);
         //Literature [Cundall, 2004, "A bonded particle model for rock"]
-        mKn = 4.0 * aim_radius * equiv_young;
-        mKt = 4.0 * aim_radius * equiv_shear;
+        mKn = 4.0 * equiv_radius * equiv_young;
+        mKt = 4.0 * equiv_radius * equiv_shear;
     }
 
     void DEM_D_Linear_classic::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
         
         //Get effective Radius
         const double my_radius           = element->GetRadius(); //Get equivalent Radius
+        const double effective_radius    = my_radius - ini_delta;
 
         //Get equivalent Young's Modulus
         const double my_young            = element->GetYoung();
@@ -60,7 +63,7 @@ namespace Kratos{
         const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
         const double equiv_shear         = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus);
  
-        mKn = 4.0 * my_radius * equiv_young; 
-        mKt = 4.0 * my_radius * equiv_shear;
+        mKn = 4.0 * effective_radius * equiv_young; 
+        mKt = 4.0 * effective_radius * equiv_shear;
     }
 } // namespace Kratos
