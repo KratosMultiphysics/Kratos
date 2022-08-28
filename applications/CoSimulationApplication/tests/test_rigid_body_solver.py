@@ -499,7 +499,244 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.assertVectorAlmostEqual(zero_vector, simulation._GetCompleteVector("root_point", KMC.PRESCRIBED_DISPLACEMENT, KMC.PRESCRIBED_ROTATION))
 
     def test_CalculateEffectiveLoad(self):
-        pass
+        # Setting up the model
+        Parameters = KM.Parameters('''{
+            "solver_settings":{
+                "active_dofs": [
+                    {
+                        "dof": "displacement_x",
+                        "constrained": false,
+                        "system_parameters": {
+                            "mass": 40.0,
+                            "stiffness": 400.0,
+                            "damping": 4.0
+                        }
+                    },
+                    {
+                        "dof": "displacement_y",
+                        "constrained": true,
+                        "system_parameters": {
+                            "mass": 50.0,
+                            "stiffness": 500.0,
+                            "damping": 5.0
+                        }
+                    },
+                    {
+                        "dof": "displacement_z",
+                        "constrained": false,
+                        "system_parameters": {
+                            "mass": 100.0,
+                            "stiffness": 1000.0,
+                            "damping": 10.0
+                        }
+                    },
+                    {
+                        "dof": "rotation_x",
+                        "constrained": false,
+                        "system_parameters": {
+                            "mass": 2.0,
+                            "stiffness": 200.0,
+                            "damping": 2.0
+                        }
+                    },
+                    {
+                        "dof": "rotation_y",
+                        "constrained": true,
+                        "system_parameters": {
+                            "mass": 10.0,
+                            "stiffness": 1000.0,
+                            "damping": 10.0
+                        }
+                    }
+                ]
+            },
+            "processes": {
+                "gravity": [
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "BODY_FORCE_Y",
+                            "is_fixed": true,
+                            "value": -981
+                        }
+                    },
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "BODY_MOMENT_Y",
+                            "is_fixed": true,
+                            "value": -98.1
+                        }
+                    }
+                ],
+                "initial_conditions_process_list": [
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "DISPLACEMENT_X",
+                            "value": 1
+                        }
+                    },
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "ACCELERATION_X",
+                            "value": -400
+                        }
+                    },
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "ANGULAR_VELOCITY_Z",
+                            "value": -10
+                        }
+                    }
+                ],
+                "boundary_conditions_process_list": [
+                    {
+                        "python_module" : "assign_vector_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name" : "Main.RigidBody",
+                            "variable_name"   : "PRESCRIBED_FORCE",
+                            "interval"        : [0, "End"],
+                            "constrained"     : [false,false,false],
+                            "value"           : ["5*sin((5+2*t)*t)", "3*sin((5+2*t)*t)", "2*sin((5+2*t)*t)"]
+                        }
+                    },
+                    {
+                        "python_module" : "assign_vector_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name" : "Main.RigidBody",
+                            "variable_name"   : "FORCE",
+                            "interval"        : [0, "End"],
+                            "constrained"     : [false,false,false],
+                            "value"           : ["5", "3", "2"]
+                        }
+                    },
+                    {
+                        "python_module" : "assign_vector_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name" : "Main.RigidBody",
+                            "variable_name"   : "MOMENT",
+                            "interval"        : [0, "End"],
+                            "constrained"     : [false,false,false],
+                            "value"           : ["4", "3", "5"]
+                        }
+                    },
+                    {
+                        "python_module": "assign_vector_variable_process",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RootPoint",
+                            "variable_name": "PRESCRIBED_DISPLACEMENT",
+                            "interval": [
+                                0,
+                                "End"
+                            ],
+                            "constrained": [
+                                false,
+                                false,
+                                false
+                            ],
+                            "value": [
+                                "0.05*sin(20*t)",
+                                "0.05*sin(10*t)",
+                                "0.05*sin(5*t)"
+                            ]
+                        }
+                    },
+                    {
+                        "python_module": "assign_vector_variable_process",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RootPoint",
+                            "variable_name": "PRESCRIBED_ROTATION",
+                            "interval": [
+                                0,
+                                "End"
+                            ],
+                            "constrained": [
+                                false,
+                                false,
+                                false
+                            ],
+                            "value": [
+                                "0.05*sin(6*t)",
+                                "0.05*sin(8*t)",
+                                "0.05*sin(13*t)"
+                            ]
+                        }
+                    },
+                    {
+                        "python_module": "assign_vector_variable_process",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "PRESCRIBED_MOMENT",
+                            "interval": [
+                                0,
+                                "End"
+                            ],
+                            "constrained": [
+                                false,
+                                false,
+                                false
+                            ],
+                            "value": [
+                                "100*sin(4*t)",
+                                "100*sin(3*t)",
+                                "100*sin(10*t)"
+                            ]
+                        }
+                    }
+                ]
+            }
+        }''')
+        Parameters.RecursivelyAddMissingParameters(self.default_parameters)
+        simulation = RigidBodySolver(self.model, Parameters)
+        simulation.Initialize()
+
+        while simulation.main_model_part.ProcessInfo[KM.TIME] < 0.1:
+            simulation.AdvanceInTime(simulation.main_model_part.ProcessInfo[KM.TIME])
+            simulation.InitializeSolutionStep()
+            simulation.Predict()
+            simulation.SolveSolutionStep()
+            simulation.FinalizeSolutionStep()
+            simulation.OutputSolutionStep()
+
+        simulation.AdvanceInTime(simulation.main_model_part.ProcessInfo[KM.TIME])
+        simulation.InitializeSolutionStep()
+        simulation.Predict()
+        simulation.SolveSolutionStep()
+
+        reference = [14.47730397, -954.52993411, 30.97172112, 56.62280302, -20.61982872, 98.25390568]
+        simulation_effective_load = simulation._GetCompleteVector("rigid_body", KMC.EFFECTIVE_FORCE, KMC.EFFECTIVE_MOMENT)
+
+        self.assertVectorAlmostEqual(reference, simulation_effective_load)
 
     def test_GetKinematics(self):
         pass
