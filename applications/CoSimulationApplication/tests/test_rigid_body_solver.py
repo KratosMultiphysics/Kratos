@@ -787,7 +787,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         current_x = np.array([0.4861 , 0.6813, 0.8942, 0.7549 , 1.1698, 0.7918])
 
         simulation._UpdateKinematics("rigid_body", current_x)
-        
+
         ref_DISPLACEMENT = np.array([0.4861, 0.6813, 0.8942])
         ref_ROTATION = np.array([0.7549 , 1.1698, 0.7918])
         ref_VELOCITY = np.array([25.5151, 18.9646, 15.7616])
@@ -811,7 +811,75 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.assertVectorAlmostEqual(ref_ANGULAR_ACCELERATION, simulation_ANGULAR_ACCELERATION)
 
     def test_CalculateReaction(self):
-        pass
+        Parameters = KM.Parameters('''{
+            "solver_settings": {
+                "time_integration_parameters": {
+                        "rho_inf": 0.16,
+                        "time_step": 0.01
+                },
+                "active_dofs": [
+                    {
+                        "dof": "displacement_x",
+                        "constrained": false,
+                        "system_parameters": {
+                            "mass": 40.0,
+                            "stiffness": 400.0,
+                            "damping": 4.0
+                        }
+                    },
+                    {
+                        "dof": "displacement_z",
+                        "constrained": false,
+                        "system_parameters": {
+                            "mass": 100.0,
+                            "stiffness": 1000.0,
+                            "damping": 10.0
+                        }
+                    },
+                    {
+                        "dof": "rotation_x",
+                        "constrained": false,
+                        "system_parameters": {
+                            "mass": 2.0,
+                            "stiffness": 200.0,
+                            "damping": 2.0
+                        }
+                    },
+                    {
+                        "dof": "rotation_y",
+                        "constrained": true,
+                        "system_parameters": {
+                            "mass": 10.0,
+                            "stiffness": 1000.0,
+                            "damping": 10.0
+                        }
+                    }
+                ]
+            }
+        }''')
+        
+        Parameters.RecursivelyAddMissingParameters(self.default_parameters)
+        simulation = RigidBodySolver(self.model, Parameters)
+
+        buffer = 0
+        linear = np.array([3.1488 , 0.5647, 0.1417])
+        angular = np.array([1.8998 , 2.1987, 0.9874])
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.ACCELERATION, buffer, linear)
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.ANGULAR_ACCELERATION, buffer, angular)
+
+        buffer = 1
+        linear = np.array([2.1488 , 1.5647, 0.5417])
+        angular = np.array([2.8998 , 3.1987, 1.5874])
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.ACCELERATION, buffer, linear)
+        simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.ANGULAR_ACCELERATION, buffer, angular)
+
+        simulation.total_load = 1.4648
+
+        ref_buffer_0 = np.array([-124.4872, 0., -12.7052, -2.3348, -20.5222, 0.])
+        ref_buffer_1 = np.array([-84.4872, 0., -52.7052, -4.3348, -30.5222, 0.])
+
+        self.assertVectorAlmostEqual(ref_buffer_0, simulation._CalculateReaction(0))
+        self.assertVectorAlmostEqual(ref_buffer_1, simulation._CalculateReaction(1))
 
     def test_CalculateEquivalentForceFromRootPointDisplacement(self):
         pass
