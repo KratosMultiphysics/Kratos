@@ -491,8 +491,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      */
     void IntegrateStressesOfFiberAndMatrix(
         ConstitutiveLaw::Parameters& rValues,
-        Vector rMatrixStrainVector,
-        Vector rFiberStrainVector,
+        Vector& rMatrixStrainVector,
+        Vector& rFiberStrainVector,
         Vector& rMatrixStressVector,
         Vector& rFiberStressVector,
         const ConstitutiveLaw::StressMeasure& rStressMeasure);
@@ -656,8 +656,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     ConstitutiveLaw::Pointer mpMatrixConstitutiveLaw;
     ConstitutiveLaw::Pointer mpFiberConstitutiveLaw;
     double mFiberVolumetricParticipation;
-    Vector mParallelDirections = ZeroVector(6);
-    Vector mPreviousStrainVector = ZeroVector(6);
+    array_1d<double, 6> mParallelDirections = ZeroVector(6);
+    array_1d<double, 6> mPreviousStrainVector = ZeroVector(6);
     Vector mPreviousSerialStrainMatrix = ZeroVector(GetNumberOfSerialComponents());
 
     ///@}

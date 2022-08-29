@@ -410,8 +410,8 @@ void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
 /***********************************************************************************/
 void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
     ConstitutiveLaw::Parameters& rValues,
-    Vector rMatrixStrainVector,
-    Vector rFiberStrainVector,
+    Vector& rMatrixStrainVector,
+    Vector& rFiberStrainVector,
     Vector& rMatrixStressVector,
     Vector& rFiberStressVector,
     const ConstitutiveLaw::StressMeasure& rStressMeasure
