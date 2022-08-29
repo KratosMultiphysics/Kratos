@@ -1,3 +1,4 @@
+from inspect import Parameter
 import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication as KMC
 
@@ -979,21 +980,6 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
             },
             "output_processes": [
                 {
-                    "python_module" : "save_restart_process",
-                    "kratos_module" : "KratosMultiphysics",
-                    "process_name"  : "SaveRestartProcess",
-                    "Parameters"            : {
-                        "model_part_name"              : "Main",
-                        "echo_level"                   : 0,
-                        "serializer_trace"             : "no_trace",
-                        "restart_save_frequency"       : 1.0,
-                        "restart_control_type"         : "time",
-                        "save_restart_files_in_folder" : true,
-                        "output_path"                  : "restart/RBS1",
-                        "max_files_to_keep"            : 2
-                    }
-                },
-                {
                     "python_module" : "point_output_process",
                     "kratos_module" : "KratosMultiphysics",
                     "process_name"  : "PointOutputProcess",
@@ -1222,9 +1208,209 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
             # input_check._CreateListOfProcesses was tested in xxx
             # input_check._CreateListOfOutputProcesses was tested in xxx
         self.assertTrue(hasattr(simulation, "_list_of_processes"))
-        self.assertEqual(13, len(simulation._list_of_processes))
+        self.assertEqual(12, len(simulation._list_of_processes))
         self.assertTrue(hasattr(simulation, "_list_of_output_processes"))
-        self.assertEqual(2, len(simulation._list_of_output_processes))
+        self.assertEqual(1, len(simulation._list_of_output_processes))
+
+
+    def test_CheckMandatoryInputParameters1(self):
+        # Missing problem_data
+        Parameters = KM.Parameters('''{
+        }''')
+        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+
+
+    def test_CheckMandatoryInputParameters2(self):
+        # Missing solver_settings
+        Parameters = KM.Parameters('''{
+            "problem_data": {
+            }
+        }''')
+        
+        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+
+
+    def test_CheckMandatoryInputParameters3(self):
+        # Missing output_processes
+        Parameters = KM.Parameters('''{
+            "problem_data": {
+            },
+            "solver_settings": {
+            }
+        }''')
+        
+        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+
+
+    def test_CheckMandatoryInputParameters4(self):
+        # Missing processes
+        Parameters = KM.Parameters('''{
+            "problem_data": {
+            },
+            "solver_settings": {
+            },
+            "output_processes": [
+            ]
+        }''')
+        
+        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+
+
+    def test_CheckMandatoryInputParameters5(self):
+        # Missing problem_name in problem_data
+        Parameters = KM.Parameters('''{
+            "problem_data": {
+            },
+            "solver_settings": {
+            },
+            "output_processes": [
+            ],
+            "processes": {
+            }
+        }''')
+        
+        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+
+
+    def test_CheckMandatoryInputParameters6(self):
+        # Missing start_time in problem_data
+        Parameters = KM.Parameters('''{
+            "problem_data": {
+                "problem_name": "RigidBodyStandalone"
+            },
+            "solver_settings": {
+            },
+            "output_processes": [
+            ],
+            "processes": {
+            }
+        }''')
+        
+        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+
+
+    def test_CheckMandatoryInputParameters7(self):
+        # Missing end_time in problem_data
+        Parameters = KM.Parameters('''{
+            "problem_data": {
+                "problem_name": "RigidBodyStandalone",
+                "start_time": 0.0
+            },
+            "solver_settings": {
+            },
+            "output_processes": [
+            ],
+            "processes": {
+            }
+        }''')
+        
+        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+
+
+    def test_CheckMandatoryInputParameters8(self):
+        # Missing time_integration_parameters in solver_settings
+        Parameters = KM.Parameters('''{
+            "problem_data": {
+                "problem_name": "RigidBodyStandalone",
+                "start_time": 0.0,
+                "end_time": 1.0
+            },
+            "solver_settings": {
+            },
+            "output_processes": [
+            ],
+            "processes": {
+            }
+        }''')
+        
+        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+        
+        
+    def test_CheckMandatoryInputParameters9(self):
+        # Missing time_step in time_integration_parameters
+        Parameters = KM.Parameters('''{
+            "problem_data": {
+                "problem_name": "RigidBodyStandalone",
+                "start_time": 0.0,
+                "end_time": 1.0
+            },
+            "solver_settings": {
+                "time_integration_parameters": {
+                }
+            },
+            "output_processes": [
+            ],
+            "processes": {
+            }
+        }''')
+        
+        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+
+
+    def test_CheckMandatoryInputParameters10(self):
+        # input_type must be either "none" or "rest
+        Parameters = KM.Parameters('''{
+            "problem_data": {
+                "problem_name": "RigidBodyStandalone",
+                "start_time": 0.0,
+                "end_time": 1.0
+            },
+            "solver_settings": {
+                "time_integration_parameters": {
+                    "time_step": 0.01
+                },
+                "model_import_settings": {
+                    "input_type": "non"
+                }
+            },
+            "output_processes": [
+            ],
+            "processes": {
+            }
+        }''')
+        
+        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+
+        
+    def test_CheckMandatoryInputParameters11(self):
+        # Missing restart_load_file_label in model_import_settings
+        Parameters = KM.Parameters('''{
+            "problem_data": {
+                "problem_name": "RigidBodyStandalone",
+                "start_time": 0.0,
+                "end_time": 1.0
+            },
+            "solver_settings": {
+                "time_integration_parameters": {
+                    "time_step": 0.01
+                },
+                "model_import_settings": {
+                    "input_type": "rest"
+                }
+            },
+            "output_processes": [
+            ],
+            "processes": {
+            }
+        }''')
+        
+        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+
+
+    def test_ValidateAndAssignRigidBodySolverDefaults(self):
+        pass
+
+
+    def test_ValidateAndAssignDofDefaults(self):
+        pass
+
+
+    def test_CreateListOfProcesses(self):
+        pass
+
+
+    def test_CreateListOfOutputProcesses(self):
+        pass
 
 
 if __name__ == '__main__':
