@@ -38,9 +38,11 @@ def Factory(settings, Model):
 
     file_path = Path(process_settings["initial_variable_table"]["filename"].GetString())
     layer_name = file_path.name.split("_")[0]
+    
+    # List composed by the csv files containning the stress components applied to elements of a given model part (element layer)
     layer_list = [file for file in file_path.parent.iterdir() if file.name.split("_")[0] == layer_name]
 
-    if not len(layer_list):
+    if not layer_list:
         ErrorMsg = "Tables of " + layer_name + " not found"
         raise RuntimeError(ErrorMsg)
     else:
@@ -67,20 +69,16 @@ def Factory(settings, Model):
         if len(out_of_range_component_list) == 1:
             Logger.PrintInfo("::[WARNING]:: : SetAutomatedInitialVariableProcess ", variable_name.capitalize() + " component " + str(out_of_range_component_list[0]) + " of " + layer_name + " is out of range. The correspoding table will be negleted")
         else:
-            out_of_range_component_name = ""
-            for out_of_range_component in out_of_range_component_list:
-                out_of_range_component_name += str(out_of_range_component) + ", "
-            Logger.PrintInfo("::[WARNING]:: : SetAutomatedInitialVariableProcess ", variable_name.capitalize() + " components " + out_of_range_component_name[:-2] + " of " + layer_name + " are out of range. Correspoding tables will be negleted")       
+            out_of_range_component_name = ", ".join(str(out_of_range_component) for (out_of_range_component) in out_of_range_component_list)
+            Logger.PrintInfo("::[WARNING]:: : SetAutomatedInitialVariableProcess ", variable_name.capitalize() + " components " + out_of_range_component_name + " of " + layer_name + " are out of range. Correspoding tables will be negleted")       
 
     if len(component_list) < 6:
         missing_component_list = list(set(range(1,7)).difference(component_list))
         if len(missing_component_list) == 1:
             Logger.PrintInfo("::[WARNING]:: : SetAutomatedInitialVariableProcess ", "Table correspoding to " + variable_name.lower() + " component " + str(missing_component_list[0]) + " of " + layer_name + " not found. A zero entry will be added to the " + raw_variable_name + " variable")
         else:
-            missing_component_name = ""
-            for missing_component in missing_component_list:
-                missing_component_name += str(missing_component) + ", "
-            Logger.PrintInfo("::[WARNING]:: : SetAutomatedInitialVariableProcess ", "Tables correspoding to " + variable_name.lower() + " components " + missing_component_name[:-2] + " of " + layer_name + " not found. Zero entries will be added to the " + raw_variable_name + " variable")       
+            missing_component_name = ", ".join(str(missing_component) for (missing_component) in missing_component_list)
+            Logger.PrintInfo("::[WARNING]:: : SetAutomatedInitialVariableProcess ", "Tables correspoding to " + variable_name.lower() + " components " + missing_component_name + " of " + layer_name + " not found. Zero entries will be added to the " + raw_variable_name + " variable")       
     else:
         Logger.PrintInfo("SetAutomatedInitialVariableProcess:: ", variable_name.capitalize() + " tables of " + layer_name + " were successfully imported")
     
@@ -89,7 +87,7 @@ def Factory(settings, Model):
     }""")
     process_settings.AddValue("table_id_vector", default_table_id_vector)
     process_settings["table_id_vector"].SetVector(table_id_list)
-   
+
     process_settings.RemoveValue("help")
     process_settings.RemoveValue("model_part_name")
     process_settings.RemoveValue("initial_variable_table")

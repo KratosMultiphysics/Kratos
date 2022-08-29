@@ -54,6 +54,8 @@ void SetAutomatedInitialVariableProcess::ExecuteInitialize()
 
     const double hole_radius_offset = mThisParameters["hole_radius_offset"].GetDouble();
 
+    Vector table_id_vector = mThisParameters["table_id_vector"].GetVector();
+
     block_for_each(mrThisModelPart.Elements(), [&](auto& rElement) {
 
         const array_1d<double, 3>& r_element_centroid = rElement.GetGeometry().Center();
@@ -74,15 +76,13 @@ void SetAutomatedInitialVariableProcess::ExecuteInitialize()
                 centroid_relative_distance = 0.0;
             }
             else {
-                const int elem_id = rElement.Id();
-                KRATOS_ERROR << "Thickness of element " << elem_id << " is too small." << std::endl;
+                KRATOS_ERROR << "Thickness of element " << rElement.Id() << " is too small." << std::endl;
             }
         }
         
         array_1d<double, 6> initial_variable_vector;
         noalias(initial_variable_vector) = ZeroVector(6); 
  
-        Vector table_id_vector = mThisParameters["table_id_vector"].GetVector();
         int table_id;
         int varible_id;
 
