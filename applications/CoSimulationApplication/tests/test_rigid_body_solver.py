@@ -1397,8 +1397,118 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
 
 
-    def test_ValidateAndAssignRigidBodySolverDefaults(self):
-        pass
+    def test_ValidateAndAssignRigidBodySolverDefaults1(self):
+        # Check returned solver_settings
+        Parameters = KM.Parameters('''{
+            "problem_data": {
+            },
+            "solver_settings": {
+                "time_integration_parameters": {
+                    "time_step": 0.01
+                },
+                "model_import_settings": {
+                    "input_type": "none"
+                }
+            },
+            "output_processes": [
+            ],
+            "processes": {
+            }
+        }''')
+        solver_settings = Parameters["solver_settings"]
+        checked_solver_settings = input_check._ValidateAndAssignRigidBodySolverDefaults(solver_settings)
+        ref_solver_settings = KM.Parameters('''{
+            "active_dofs": [],
+            "buffer_size": 3,
+            "domain_size": 3,
+            "echo_level": 0,
+            "model_import_settings": {
+                "input_filename": "Main",
+                "input_output_path": "restart",
+                "input_type": "none",
+                "load_restart_files_from_folder": true,
+                "restart_load_file_label": "0.0"
+            },
+            "time_integration_parameters": {
+                "rho_inf": 0.16,
+                "time_step": 0.01
+            }
+        }''')
+        
+        self.assertEqual(ref_solver_settings.PrettyPrintJsonString(), checked_solver_settings.PrettyPrintJsonString())
+
+
+    def test_ValidateAndAssignRigidBodySolverDefaults2(self):
+        # Raise Exception: The domain size can only be 2 or 3.
+        Parameters = KM.Parameters('''{
+            "problem_data": {
+            },
+            "solver_settings": {
+                "domain_size": 4,
+                "time_integration_parameters": {
+                    "time_step": 0.01
+                },
+                "model_import_settings": {
+                    "input_type": "none"
+                }
+            },
+            "output_processes": [
+            ],
+            "processes": {
+            }
+        }''')
+        solver_settings = Parameters["solver_settings"]
+        
+        self.assertRaises(Exception, input_check._ValidateAndAssignRigidBodySolverDefaults, solver_settings)
+
+
+    def test_ValidateAndAssignRigidBodySolverDefaults3(self):
+        # Raise Exception: The 2D version of the solver is yet to be implemented.
+        Parameters = KM.Parameters('''{
+            "problem_data": {
+            },
+            "solver_settings": {
+                "domain_size": 2,
+                "time_integration_parameters": {
+                    "time_step": 0.01
+                },
+                "model_import_settings": {
+                    "input_type": "none"
+                }
+            },
+            "output_processes": [
+            ],
+            "processes": {
+            }
+        }''')
+        solver_settings = Parameters["solver_settings"]
+        
+        self.assertRaises(Exception, input_check._ValidateAndAssignRigidBodySolverDefaults, solver_settings)
+
+
+    def test_ValidateAndAssignRigidBodySolverDefaults4(self):
+        # Raise Exception: The buffer size needs to be equal or bigger than 1.
+        Parameters = KM.Parameters('''{
+            "problem_data": {
+            },
+            "solver_settings": {
+                "domain_size": 3,
+                "buffer_size": 0,
+                "time_integration_parameters": {
+                    "time_step": 0.01
+                },
+                "model_import_settings": {
+                    "input_type": "none"
+                }
+            },
+            "output_processes": [
+            ],
+            "processes": {
+            }
+        }''')
+        solver_settings = Parameters["solver_settings"]
+        
+        self.assertRaises(Exception, input_check._ValidateAndAssignRigidBodySolverDefaults, solver_settings)
 
 
     def test_ValidateAndAssignDofDefaults(self):
