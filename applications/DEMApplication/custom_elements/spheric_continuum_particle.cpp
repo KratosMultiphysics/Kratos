@@ -467,12 +467,12 @@ namespace Kratos {
         //Because we will get an int if we use an int divide an int
         double BrokenBondsCounter = 0;
 
-        for (unsigned int i = 0; i < (int)mContinuumInitialNeighborsSize; i++) {
+        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
             if(mNeighbourElements[i] == NULL) BrokenBondsCounter++;
             else if (mIniNeighbourFailureId[i] > 0) BrokenBondsCounter++;                        
         }        
 
-        if((int)mContinuumInitialNeighborsSize) {
+        if(mContinuumInitialNeighborsSize) {
             GetGeometry()[0].FastGetSolutionStepValue(DAMAGE_RATIO) = BrokenBondsCounter / (int)mContinuumInitialNeighborsSize;
         } else {
             GetGeometry()[0].FastGetSolutionStepValue(DAMAGE_RATIO) = 1.0;
