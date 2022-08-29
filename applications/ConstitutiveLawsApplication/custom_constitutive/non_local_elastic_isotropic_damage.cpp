@@ -269,18 +269,24 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
 
         if (f_d < 0.0){
             D = 0.0;
-            AssembleConstitutiveMatrix(r_constitutive_matrix, r_elastic_tensor, HDNLu, HuDNL, HDNLDNL);
-
+            //AssembleConstitutiveMatrix(r_constitutive_matrix, r_elastic_tensor, HDNLu, HuDNL, HDNLDNL);
         }else if (f_d == 0.0) {       
             double var1      = pow((k0/kappa),beta1);
             double var2      = exp(-beta2*((kappa-k0)/(k0)));
             D                = 1.0 - var1 * var2;
-            const auto& N    = rParametersValues.GetShapeFunctionsValues();
-            double NL_Damage_GP = 0.0;
-            for (size_t i = 0; i < N.size(); ++i) {
-                NL_Damage_GP += N[i] * rParametersValues.GetElementGeometry()[i].FastGetSolutionStepValue(NON_LOCAL_DAMAGE, 0);
-            }
-            KRATOS_WATCH(NL_Damage_GP);
+        }
+        
+        const auto& N    = rParametersValues.GetShapeFunctionsValues();
+        double NL_Damage_GP = 0.0;
+        for (size_t i = 0; i < N.size(); ++i) {
+            NL_Damage_GP += N[i] * rParametersValues.GetElementGeometry()[i].FastGetSolutionStepValue(NON_LOCAL_DAMAGE, 0);
+        }
+        KRATOS_WATCH(NL_Damage_GP);
+        if (NL_Damage_GP == 0){
+
+            AssembleConstitutiveMatrix(r_constitutive_matrix, r_elastic_tensor, HDNLu, HuDNL, HDNLDNL);
+        
+        }else{       
             DN                  = std::pow((1.0 - NL_Damage_GP),2);
             r_stress_vector    *= DN;
             //Huu = dSigmadEps; HuDNL = dSigmadDNL; HDNLu = dDlocaldEps; HDNLDNL = dDlocal/dDNL;        

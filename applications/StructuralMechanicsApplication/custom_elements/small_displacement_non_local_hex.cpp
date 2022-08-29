@@ -338,6 +338,7 @@ void SmallDisplacementNonLocalHex::CalculateAll(
 
         // Calculate and set non locl constitutive variables
         CalculateNonLocalConstitutiveVariables(this_kinematic_variables, this_non_local_constitutive_variables, Values, DAMAGE_VARIABLE, point_number);
+        SetNonLocalConstitutiveVariables(mConstitutiveMatrix, this_constitutive_variables, this_non_local_constitutive_variables);
 
         // Calculating weights for integration on the reference configuration
         int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
@@ -367,9 +368,9 @@ void SmallDisplacementNonLocalHex::CalculateAll(
         }
     }
     //assemble right hand side and left hand sides
-    AssembleRHSAndLHS(rLeftHandSideMatrix, rRightHandSideVector, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag, Kuu, Kud, Kdu, Kdd, Fu, FNL);
-    KRATOS_WATCH(rLeftHandSideMatrix);
-    KRATOS_WATCH(rRightHandSideVector);
+    AssembleRHSAndLHS(rLeftHandSideMatrix, rRightHandSideVector, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag, Kuu, Kud, Kdu, Kdd, Fu, FNL); 
+    if ( CalculateResidualVectorFlag ) {KRATOS_WATCH(rRightHandSideVector);}
+    if ( CalculateStiffnessMatrixFlag ) {KRATOS_WATCH(rLeftHandSideMatrix);}
     KRATOS_CATCH( "" )
 }
 
@@ -409,7 +410,7 @@ void SmallDisplacementNonLocalHex::FinalizeSolutionStep( const ProcessInfo& rCur
         Values.SetStressVector(this_constitutive_variables.StressVector);
         Values.SetConstitutiveMatrix(mConstitutiveMatrix); 
         SetNonLocalConstitutiveVariables(mConstitutiveMatrix, this_constitutive_variables, this_non_local_constitutive_variables);
-    
+
         // Reading integration points
         const GeometryType& r_geometry = GetGeometry();
         const Properties& r_properties = GetProperties();
@@ -489,8 +490,6 @@ void SmallDisplacementNonLocalHex::CalculateAllConstitutiveVariables(
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
     //NOTE: setting NonLocalConstitutiveVariables from the constitutivematrix(7,7)
     SetNonLocalConstitutiveVariables(mConstitutiveMatrix, rThisConstitutiveVariables, rThisNonLocalConstitutiveVariables);
-    KRATOS_WATCH("after_CalculateMaterialResponse");
-    KRATOS_WATCH(rValues.GetConstitutiveMatrix());
 
     KRATOS_CATCH( "" )
 }
@@ -644,7 +643,7 @@ void SmallDisplacementNonLocalHex::CalculateAndAddKmdu(
 {
     KRATOS_TRY
 
-    rStiffnessMatrixKdu  += IntegrationWeight * prod( outer_prod(N, DNLu), B);
+    rStiffnessMatrixKdu  -= IntegrationWeight * prod( outer_prod(N, DNLu), B);
 
     KRATOS_CATCH( "" )
 }
