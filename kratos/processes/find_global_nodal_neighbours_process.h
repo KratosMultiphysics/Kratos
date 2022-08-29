@@ -15,17 +15,13 @@
 #define KRATOS_FIND_GLOBAL_NODAL_NEIGHBOURS_PROCESS_H_INCLUDED
 
 // System includes
-#include <iostream>
-#include <string>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "includes/global_pointer_variables.h"
-#include "includes/model_part.h"
 #include "processes/find_global_nodal_neighbours_for_entities_process.h"
-#include "utilities/pointer_communicator.h"
 
 namespace Kratos
 {
