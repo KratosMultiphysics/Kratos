@@ -463,18 +463,21 @@ namespace Kratos {
 
     void SphericContinuumParticle::ComputeBrokenBondsRatio() {
 
-        int BrokenBondsCounter = 0.0;
+        //Here, although BrokenBondsCounter is an int, we set it a double 
+        //Because we will get an int if we use an int divide an int
+        double BrokenBondsCounter = 0;
 
-        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
+        for (unsigned int i = 0; i < (int)mContinuumInitialNeighborsSize; i++) {
             if(mNeighbourElements[i] == NULL) BrokenBondsCounter++;
             else if (mIniNeighbourFailureId[i] > 0) BrokenBondsCounter++;                        
         }        
 
-        if(mContinuumInitialNeighborsSize) {
-            GetGeometry()[0].GetSolutionStepValue(DAMAGE_RATIO) = BrokenBondsCounter / mContinuumInitialNeighborsSize;
+        if((int)mContinuumInitialNeighborsSize) {
+            GetGeometry()[0].FastGetSolutionStepValue(DAMAGE_RATIO) = BrokenBondsCounter / (int)mContinuumInitialNeighborsSize;
         } else {
-            GetGeometry()[0].GetSolutionStepValue(DAMAGE_RATIO) = 1.0;
+            GetGeometry()[0].FastGetSolutionStepValue(DAMAGE_RATIO) = 1.0;
         }
+
     }
 
     void SphericContinuumParticle::FilterNonSignificantDisplacements(double DeltDisp[3], //IN GLOBAL AXES
