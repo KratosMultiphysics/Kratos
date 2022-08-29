@@ -81,16 +81,25 @@ class Optimizer:
         model_part.AddNodalSolutionStepVariable(KSO.SENS_HEATMAP_DESIGN_3D)
         model_part.AddNodalSolutionStepVariable(KSO.SENS_HEATMAP_CONTROL_1D)
         model_part.AddNodalSolutionStepVariable(KSO.SENS_HEATMAP_CONTROL_3D)
+        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_BB_MAX_RELAXED)
 
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_S)
+
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_MAX)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_MAX_RELAXED)
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_VALUE_MAPPED_RELAXED)
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_L2_MAPPED_RELAXED)
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_BB_MAX_RELAXED)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_MAX_MAPPED)
+        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_MAX_MAPPED_RELAXED)
+
+        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_VALUE)
+        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_VALUE_RELAXED)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_VALUE_MAPPED)
+        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_VALUE_MAPPED_RELAXED)
+
+        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_L2)
+        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_L2_RELAXED)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_L2_MAPPED)
+        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_L2_MAPPED_RELAXED)
+
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DF1DX)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DF1DX_MAPPED)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DC1DX)
