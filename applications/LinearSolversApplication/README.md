@@ -192,8 +192,8 @@ sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
 rm GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
 # Configure apt client to use Intel repository
 sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
-# Install all HPC related dependencies
-sudo apt install intel-hpckit
+# Install all MKL related dependencies. You can install full HPC with: sudo apt install intel-hpckit
+sudo apt install intel-oneapi-mkl-devel
 # Exit
 exit
 ```
