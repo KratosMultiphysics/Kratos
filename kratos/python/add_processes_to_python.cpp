@@ -29,6 +29,7 @@
 #include "processes/find_nodal_neighbours_process.h"
 #include "processes/find_conditions_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
+#include "processes/find_global_nodal_conditional_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_for_entities_process.h"
 #include "processes/find_global_nodal_entity_neighbours_process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
@@ -160,6 +161,13 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ClearNeighbours",&FindGlobalNodalNeighboursProcess::ClearNeighbours)
     .def("GetNeighbourIds",&FindGlobalNodalNeighboursProcess::GetNeighbourIds)
     ;
+
+    py::class_<FindGlobalNodalConditionalNeighboursProcess, FindGlobalNodalConditionalNeighboursProcess::Pointer, Process>
+        (m,"FindGlobalNodalConditionalNeighboursProcess")
+        .def(py::init<ModelPart&>())
+        .def("ClearNeighbours",&FindGlobalNodalConditionalNeighboursProcess::ClearNeighbours)
+        .def("GetNeighbourIds",&FindGlobalNodalConditionalNeighboursProcess::GetNeighbourIds)
+        ;
 
     typedef FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType> FindGlobalNodalNeighboursForConditionsProcess;
     py::class_<FindGlobalNodalNeighboursForConditionsProcess, FindGlobalNodalNeighboursForConditionsProcess::Pointer, Process>
