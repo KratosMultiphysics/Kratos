@@ -93,13 +93,7 @@ double BrooksCoreyLaw::
     else if(p > 0.0 && p >= pe && p>=pl) 
     {   
         
-        const double &satMax = rMaterialProperties[SATURATED_SATURATION];
-        const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
-        const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
-        const double &Lambda     = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
-        
-
-        double sat = satMin + (satMax - satMin) *  pow(pb/p, Lambda);
+        double sat = rMaterialProperties[SATURATED_SATURATION];
         return sat;
         double pl=p;
     }
@@ -198,17 +192,8 @@ double BrooksCoreyLaw::
     else if(p > 0.0 && p >= pe && p>=pl ) 
          {
 
-       	 const auto &rMaterialProperties = rParameters.GetMaterialProperties();
-         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
-         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
-         const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
-         const double &Lambda     = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
-        
-
-         double dSdp = (satMax - satMin) * (-Lambda) * pow(pb,Lambda)*pow(p, (-Lambda-1.0));
-    
-         return dSdp;
-         double pl=p;
+       	  return 0.0;
+          double pl=p;
           }
     else if(p > 0.0 && p >= pe && p<pl)
          {
@@ -312,17 +297,10 @@ if (p > 0.0 && p >= pb )
         {
          
          
-         const auto &rMaterialProperties = rParameters.GetMaterialProperties();
-         const double &Porosity = rMaterialProperties[POROSITY];
-         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
-         const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
-         const double &Lambda  = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
-         const double &Beta  = rMaterialProperties[BROOKS_COREY_FITTING_PARAMETER];// which is considered between 0.4 to 0.7
-
-         double BishopCo = pow(pb/p, Beta)+pow(pb/p, 1+Beta)*Porosity*(Lambda/(Lambda-1))*(1-satMin)*(1-pow(pb/p, Lambda-1)); 
-   
-         return BishopCo;
-         double pl=p;
+          double BishopCo =1;
+          return 1.0;
+          double pl=p;
+          
          }
     else if(p > 0.0 && p >= pe && p<pl)
          {
