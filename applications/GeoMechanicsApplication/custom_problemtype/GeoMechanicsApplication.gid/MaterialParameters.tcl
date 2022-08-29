@@ -1767,7 +1767,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "          \},"
                 puts $FileVar "          \"Variables\": \{"
                 puts $FileVar "              \"IGNORE_UNDRAINED\"         :  true,"
-                puts $FileVar "              \"YOUNG_MODULUS\"            :  [lindex [lindex $Groups $i] 5],"
+                puts $FileVar "              \"YOUNG_MODULUS\"   p         :  [lindex [lindex $Groups $i] 5],"
                 puts $FileVar "              \"POISSON_RATIO\"            :  [lindex [lindex $Groups $i] 6],"
                 puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
                 puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"

@@ -447,10 +447,10 @@ VALUE: 0.0
 QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
 VALUE: SaturatedBelowPhreaticLevelLaw
 HELP: Retention model for flow
-DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Lambda,#CURRENT#, RESTORE, Beta,#CURRENT#, RESTORE, Air_Expulsion_Pressure,  #CURRENT#, RESTORE, Plast, #CURRENT#, RESTORE, Lambdawet,#CURRENT#, RESTORE, Betawet,#CURRENT#, RESTORE, N1,#CURRENT#)
+DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Lambda,#CURRENT#, RESTORE, Beta,#CURRENT#, RESTORE, Air_Expulsion_Pressure,  #CURRENT#, RESTORE, Lastp, #CURRENT#, RESTORE, Lambdawet,#CURRENT#, RESTORE, Betawet,#CURRENT#, RESTORE, N1,#CURRENT#)
 QUESTION: Saturated_Saturation
 VALUE: 1.0
 HELP: Maximum degree of saturation.
@@ -478,9 +478,9 @@ HELP: Beta is a fitting parameter between 0.4 and 0.7.
 QUESTION: Air_Expulsion_Pressure
 VALUE: 1.377
 HELP: Air expulsion pressure in kPa.
-QUESTION: Plast
+QUESTION: Lastp
 VALUE: 1.25
-HELP: Plast is an initial parameter which is beeter to enter as same as pb in kPa.
+HELP: Lastp is an initial parameter which is beeter to enter as same as pb in kPa.
 QUESTION: Lambdawet
 VALUE: 1.377
 HELP: Lambdawet is pore size index of wetting branch in Brooks Corey model.
@@ -951,10 +951,10 @@ VALUE: 0.0
 QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
 VALUE: SaturatedBelowPhreaticLevelLaw
 HELP: Retention model for flow
-DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Lambda,#CURRENT#, RESTORE, Beta,#CURRENT#, RESTORE, Air_Expulsion_Pressure,  #CURRENT#, RESTORE, Plast, #CURRENT#, RESTORE, Lambdawet,#CURRENT#, RESTORE, Betawet,#CURRENT#, RESTORE, N1,#CURRENT#)
+DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Lambda,#CURRENT#, RESTORE, Beta,#CURRENT#, RESTORE, Air_Expulsion_Pressure,  #CURRENT#, RESTORE, Lastp, #CURRENT#, RESTORE, Lambdawet,#CURRENT#, RESTORE, Betawet,#CURRENT#, RESTORE, N1,#CURRENT#)
 QUESTION: Saturated_Saturation
 VALUE: 1.0
 HELP: Maximum degree of saturation.
@@ -982,9 +982,9 @@ HELP: Beta is a fitting parameter between 0.4 and 0.7.
 QUESTION: Air_Expulsion_Pressure
 VALUE: 1.377
 HELP: Air expulsion pressure in kPa.
-QUESTION: Plast
+QUESTION: Lastp
 VALUE: 1.25
-HELP: Plast is an initial parameter which is beeter to enter as same as pb in kPa.
+HELP: Lastp is an initial parameter which is beeter to enter as same as pb in kPa.
 QUESTION: Lambdawet
 VALUE: 1.377
 HELP: Lambdawet is pore size index of wetting branch in Brooks Corey model.
@@ -1452,10 +1452,10 @@ VALUE: 0.0
 QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
 VALUE: SaturatedBelowPhreaticLevelLaw
 HELP: Retention model for flow
-DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Lambda,#CURRENT#, RESTORE, Beta,#CURRENT#, RESTORE, Air_Expulsion_Pressure,  #CURRENT#, RESTORE, Plast, #CURRENT#, RESTORE, Lambdawet,#CURRENT#, RESTORE, Betawet,#CURRENT#, RESTORE, N1,#CURRENT#)
+DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Lambda,#CURRENT#, RESTORE, Beta,#CURRENT#, RESTORE, Air_Expulsion_Pressure,  #CURRENT#, RESTORE, Lastp, #CURRENT#, RESTORE, Lambdawet,#CURRENT#, RESTORE, Betawet,#CURRENT#, RESTORE, N1,#CURRENT#)
 QUESTION: Saturated_Saturation
 VALUE: 1.0
 HELP: Maximum degree of saturation.
@@ -1483,9 +1483,9 @@ HELP: Beta is a fitting parameter between 0.4 and 0.7.
 QUESTION: Air_Expulsion_Pressure
 VALUE: 1.377
 HELP: Air expulsion pressure in kPa.
-QUESTION: Plast
+QUESTION: Lastp
 VALUE: 1.25
-HELP: Plast is an initial parameter which is beeter to enter as same as pb in kPa.
+HELP: Lastp is an initial parameter which is beeter to enter as same as pb in kPa.
 QUESTION: Lambdawet
 VALUE: 1.377
 HELP: Lambdawet is pore size index of wetting branch in Brooks Corey model.
@@ -1978,10 +1978,10 @@ HELP: Units in kN/m2·s
 QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
 VALUE: BrooksCoreyLaw
 HELP: Retention model for flow
-DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Lambda,#CURRENT#, RESTORE, Beta,#CURRENT#, RESTORE, Air_Expulsion_Pressure,  #CURRENT#, RESTORE, Plast, #CURRENT#, RESTORE, Lambdawet,#CURRENT#, RESTORE, Betawet,#CURRENT#, RESTORE, N1,#CURRENT#)
+DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Lambda,#CURRENT#, RESTORE, Beta,#CURRENT#, RESTORE, Air_Expulsion_Pressure,  #CURRENT#, RESTORE, Lastp, #CURRENT#, RESTORE, Lambdawet,#CURRENT#, RESTORE, Betawet,#CURRENT#, RESTORE, N1,#CURRENT#)
 QUESTION: Saturated_Saturation
 VALUE: 1.0
 HELP: Maximum degree of saturation.
@@ -2009,9 +2009,9 @@ HELP: Beta is a fitting parameter between 0.4 and 0.7.
 QUESTION: Air_Expulsion_Pressure
 VALUE: 1.377
 HELP: Air expulsion pressure in kPa.
-QUESTION: Plast
+QUESTION: Lastp
 VALUE: 1.25
-HELP: Plast is an initial parameter which is beeter to enter as same as pb in kPa.
+HELP: Lastp is an initial parameter which is beeter to enter as same as pb in kPa.
 QUESTION: Lambdawet
 VALUE: 1.377
 HELP: Lambdawet is pore size index of wetting branch in Brooks Corey model.
@@ -2558,10 +2558,10 @@ VALUE: 0.0
 QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
 VALUE: SaturatedBelowPhreaticLevelLaw
 HELP: Retention model for flow
-DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Lambda,#CURRENT#, RESTORE, Beta,#CURRENT#, RESTORE, Air_Expulsion_Pressure,  #CURRENT#, RESTORE, Plast, #CURRENT#, RESTORE, Lambdawet,#CURRENT#, RESTORE, Betawet,#CURRENT#, RESTORE, N1,#CURRENT#)
+DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Lambda,#CURRENT#, RESTORE, Beta,#CURRENT#, RESTORE, Air_Expulsion_Pressure,  #CURRENT#, RESTORE, Lastp, #CURRENT#, RESTORE, Lambdawet,#CURRENT#, RESTORE, Betawet,#CURRENT#, RESTORE, N1,#CURRENT#)
 QUESTION: Saturated_Saturation
 VALUE: 1.0
 HELP: Maximum degree of saturation.
@@ -2589,9 +2589,9 @@ HELP: Beta is a fitting parameter between 0.4 and 0.7.
 QUESTION: Air_Expulsion_Pressure
 VALUE: 1.377
 HELP: Air expulsion pressure in kPa.
-QUESTION: Plast
+QUESTION: Lastp
 VALUE: 1.25
-HELP: Plast is an initial parameter which is beeter to enter as same as pb in kPa.
+HELP: Lastp is an initial parameter which is beeter to enter as same as pb in kPa.
 QUESTION: Lambdawet
 VALUE: 1.377
 HELP: Lambdawet is pore size index of wetting branch in Brooks Corey model.
@@ -3026,10 +3026,10 @@ VALUE: 0.0
 QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
 VALUE: SaturatedBelowPhreaticLevelLaw
 HELP: Retention model for flow
-DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Lambda,#CURRENT#, RESTORE, Beta,#CURRENT#, RESTORE, Air_Expulsion_Pressure,  #CURRENT#, RESTORE, Plast, #CURRENT#, RESTORE, Lambdawet,#CURRENT#, RESTORE, Betawet,#CURRENT#, RESTORE, N1,#CURRENT#)
+DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Lambda,#CURRENT#, RESTORE, Beta,#CURRENT#, RESTORE, Air_Expulsion_Pressure,  #CURRENT#, RESTORE, Lastp, #CURRENT#, RESTORE, Lambdawet,#CURRENT#, RESTORE, Betawet,#CURRENT#, RESTORE, N1,#CURRENT#)
 QUESTION: Saturated_Saturation
 VALUE: 1.0
 HELP: Maximum degree of saturation.
@@ -3057,9 +3057,9 @@ HELP: Beta is a fitting parameter between 0.4 and 0.7.
 QUESTION: Air_Expulsion_Pressure
 VALUE: 1.377
 HELP: Air expulsion pressure in kPa.
-QUESTION: Plast
+QUESTION: Lastp
 VALUE: 1.25
-HELP: Plast is an initial parameter which is beeter to enter as same as pb in kPa.
+HELP: Lastp is an initial parameter which is beeter to enter as same as pb in kPa.
 QUESTION: Lambdawet
 VALUE: 1.377
 HELP: Lambdawet is pore size index of wetting branch in Brooks Corey model.
@@ -3496,10 +3496,10 @@ VALUE: 0.0
 QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
 VALUE: SaturatedBelowPhreaticLevelLaw
 HELP: Retention model for flow
-DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Lambda,#CURRENT#, RESTORE, Beta,#CURRENT#, RESTORE, Air_Expulsion_Pressure,  #CURRENT#, RESTORE, Plast, #CURRENT#, RESTORE, Lambdawet,#CURRENT#, RESTORE, Betawet,#CURRENT#, RESTORE, N1,#CURRENT#)
+DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Lambda,#CURRENT#, RESTORE, Beta,#CURRENT#, RESTORE, Air_Expulsion_Pressure,  #CURRENT#, RESTORE, Lastp, #CURRENT#, RESTORE, Lambdawet,#CURRENT#, RESTORE, Betawet,#CURRENT#, RESTORE, N1,#CURRENT#)
 QUESTION: Saturated_Saturation
 VALUE: 1.0
 HELP: Maximum degree of saturation.
@@ -3527,9 +3527,9 @@ HELP: Beta is a fitting parameter between 0.4 and 0.7.
 QUESTION: Air_Expulsion_Pressure
 VALUE: 1.377
 HELP: Air expulsion pressure in kPa.
-QUESTION: Plast
+QUESTION: Lastp
 VALUE: 1.25
-HELP: Plast is an initial parameter which is beeter to enter as same as pb in kPa.
+HELP: Lastp is an initial parameter which is beeter to enter as same as pb in kPa.
 QUESTION: Lambdawet
 VALUE: 1.377
 HELP: Lambdawet is pore size index of wetting branch in Brooks Corey model.
@@ -3604,10 +3604,10 @@ HELP: Small number for avoiding division by zero in zero-thickness cases. Units 
 QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
 VALUE: BrooksCoreyLaw
 HELP: Retention model for flow
-DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Plast, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
-DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Lambda,#CURRENT#, RESTORE, Beta,#CURRENT#, RESTORE, Air_Expulsion_Pressure,  #CURRENT#, RESTORE, Plast, #CURRENT#, RESTORE, Lambdawet,#CURRENT#, RESTORE, Betawet,#CURRENT#, RESTORE, N1,#CURRENT#)
+DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#, HIDE, Air_Expulsion_Pressure,  #CURRENT#, HIDE, Lastp, #CURRENT#, HIDE, Lambdawet,#CURRENT#, HIDE, Betawet,#CURRENT#, HIDE, N1,#CURRENT#)
+DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Lambda,#CURRENT#, RESTORE, Beta,#CURRENT#, RESTORE, Air_Expulsion_Pressure,  #CURRENT#, RESTORE,Lastp, #CURRENT#, RESTORE, Lambdawet,#CURRENT#, RESTORE, Betawet,#CURRENT#, RESTORE, N1,#CURRENT#)
 QUESTION: Saturated_Saturation
 VALUE: 1.0
 HELP: Maximum degree of saturation.
@@ -3635,9 +3635,9 @@ HELP: Beta is a fitting parameter between 0.4 and 0.7.
 QUESTION: Air_Expulsion_Pressure
 VALUE: 1.377
 HELP: Air expulsion pressure in kPa.
-QUESTION: Plast
+QUESTION: Lastp
 VALUE: 1.25
-HELP: Plast is an initial parameter which is beeter to enter as same as pb in kPa.
+HELP: Lastp is an initial parameter which is beeter to enter as same as pb in kPa.
 QUESTION: Lambdawet
 VALUE: 1.377
 HELP: Lambdawet is pore size index of wetting branch in Brooks Corey model.
