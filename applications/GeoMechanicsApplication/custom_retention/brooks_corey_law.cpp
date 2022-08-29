@@ -91,7 +91,22 @@ double BrooksCoreyLaw::
 
         } 
     else if(p > 0.0 && p >= pe) 
-    {
+    {   
+        if (p>=pl)
+        {
+
+        const double &satMax = rMaterialProperties[SATURATED_SATURATION];
+        const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
+        const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
+        const double &Lambda     = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
+        
+
+        double sat = satMin + (satMax - satMin) *  pow(pb/p, Lambda);
+        return sat;
+        double pl=p;
+        }
+        else
+        {
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
         const double &pe     = rMaterialProperties[AIR_EXPULSION_PRESSURE];
@@ -101,7 +116,9 @@ double BrooksCoreyLaw::
         double sat = satMin + (satMax - satMin) *  pow(pe/p, Lambdawet);
         return sat;
         double pl=p;
+         }
     }
+    
 
     else 
     {
@@ -183,7 +200,24 @@ double BrooksCoreyLaw::
         } 
     else if(p > 0.0 && p >= pe) 
     {
-    	const auto &rMaterialProperties = rParameters.GetMaterialProperties();
+        if (p>=pl)
+        {
+
+        const auto &rMaterialProperties = rParameters.GetMaterialProperties();
+        const double &satMax = rMaterialProperties[SATURATED_SATURATION];
+        const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
+        const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
+        const double &Lambda     = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
+        
+
+        double dSdp = (satMax - satMin) * (-Lambda) * pow(pb,Lambda)*pow(p, (-Lambda-1.0));
+    
+        return dSdp;
+        double pl=p;
+        }
+        else
+        {
+        const auto &rMaterialProperties = rParameters.GetMaterialProperties();
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
         const double &pe     = rMaterialProperties[AIR_EXPULSION_PRESSURE];
@@ -194,7 +228,9 @@ double BrooksCoreyLaw::
     
         return dSdp;
         double pl=p;
+         }
     }
+    	
 
     else 
     {
@@ -281,6 +317,22 @@ if (p > 0.0 && p >= pb )
         } 
     else if(p > 0.0 && p >= pe) 
     {
+       if(p>=pl)
+       {
+       	const auto &rMaterialProperties = rParameters.GetMaterialProperties();
+        const double &Porosity = rMaterialProperties[POROSITY];
+        const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
+        const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
+        const double &Lambda  = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
+        const double &Beta  = rMaterialProperties[BROOKS_COREY_FITTING_PARAMETER];// which is considered between 0.4 to 0.7
+
+        double BishopCo = pow(pb/p, Beta)+pow(pb/p, 1+Beta)*Porosity*(Lambda/(Lambda-1))*(1-satMin)*(1-pow(pb/p, Lambda-1)); 
+   
+        return BishopCo;
+        double pl=p;
+        }
+        else
+        {
     	const auto &rMaterialProperties = rParameters.GetMaterialProperties();
         const double &Porosity = rMaterialProperties[POROSITY];
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
@@ -294,6 +346,9 @@ if (p > 0.0 && p >= pb )
         return BishopCo;
         double pl=p;
     }
+
+    }
+    
 
     else 
     {
