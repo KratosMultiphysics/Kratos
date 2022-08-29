@@ -55,10 +55,6 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
     def tearDown(self):
         kratos_utilities.DeleteFileIfExisting("result.dat")
 
-    def __CompareResults(self, reference, result):
-        pass
-
-
 
     def test_InitializeSolutionVariables(self):
         # Read from solver_settings
@@ -74,6 +70,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.assertEqual(simulation.echo_level, echo_level)
         self.assertEqual(simulation.rho_inf, rho_inf)
         self.assertEqual(simulation.delta_t, time_step)
+
 
     def test_InitializeDofsVariables1(self):
         Parameters = KM.Parameters('''{
@@ -251,6 +248,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                 self.assertEqual(simulation.C[i][j], C[i][j])
                 self.assertEqual(simulation.K[i][j], K[i][j])
 
+
     def test_InitializeGeneralizedAlphaParameters1(self):
         simulation = RigidBodySolver(self.model, self.default_parameters)
 
@@ -286,6 +284,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         for i in range(6):
             for j in range(6):
                 self.assertAlmostEqual(simulation.LHS[i][j], LHS[i][j])
+
 
     def test_InitializeGeneralizedAlphaParameters2(self):
         Parameters = KM.Parameters('''{
@@ -380,6 +379,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
             for j in range(6):
                 self.assertAlmostEqual(simulation.LHS[i][j], LHS[i][j])
 
+
     def test_check_variables(self):
         simulation = RigidBodySolver(self.model, self.default_parameters)
         # # Skip __init__
@@ -416,6 +416,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.assertTrue(simulation.root_point_model_part.HasNodalSolutionStepVariable(KMC.PRESCRIBED_DISPLACEMENT))
         self.assertTrue(simulation.root_point_model_part.HasNodalSolutionStepVariable(KMC.PRESCRIBED_ROTATION))
 
+
     def test_SetCompleteVector_rigid_body(self):
         simulation = RigidBodySolver(self.model, self.default_parameters)
         buffer = 0
@@ -429,6 +430,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
 
         self.assertVectorAlmostEqual(random_linear, simulation_linear)
         self.assertVectorAlmostEqual(random_angular, simulation_angular)
+
 
     def test_SetCompleteVector_root_point(self):
         simulation = RigidBodySolver(self.model, self.default_parameters)
@@ -444,11 +446,13 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.assertVectorAlmostEqual(random_linear, simulation_linear)
         self.assertVectorAlmostEqual(random_angular, simulation_angular)
 
+
     def test_SetCompleteVector_false_model_part(self):
         simulation = RigidBodySolver(self.model, self.default_parameters)
         buffer = 0
         random_vector = np.random.rand(simulation.system_size)
         self.assertRaises(Exception, simulation._SetCompleteVector, "false_model_part", KM.DISPLACEMENT, KM.ROTATION, random_vector, buffer)
+
 
     def test_GetCompleteVector_rigid_body(self):
         simulation = RigidBodySolver(self.model, self.default_parameters)
@@ -462,7 +466,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         simulation_vector = simulation._GetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT, buffer)
 
         self.assertVectorAlmostEqual(random_vector, simulation_vector)
-    
+
+
     def test_GetCompleteVector_root_point(self):
         simulation = RigidBodySolver(self.model, self.default_parameters)
         buffer = 0
@@ -476,10 +481,12 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
 
         self.assertVectorAlmostEqual(random_vector, simulation_vector)
 
+
     def test_GetCompleteVector_false_model_part(self):
         simulation = RigidBodySolver(self.model, self.default_parameters)
         buffer = 0
         self.assertRaises(Exception, simulation._GetCompleteVector, "false_model_part", KM.DISPLACEMENT, KM.ROTATION, buffer)
+
 
     def test_ResetExternalVariables(self):
         simulation = RigidBodySolver(self.model, self.default_parameters)
@@ -497,6 +504,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.assertVectorAlmostEqual(zero_vector, simulation._GetCompleteVector("rigid_body", KMC.PRESCRIBED_FORCE, KMC.PRESCRIBED_MOMENT))
         self.assertVectorAlmostEqual(zero_vector, simulation._GetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION))
         self.assertVectorAlmostEqual(zero_vector, simulation._GetCompleteVector("root_point", KMC.PRESCRIBED_DISPLACEMENT, KMC.PRESCRIBED_ROTATION))
+
 
     def test_CalculateEffectiveLoad(self):
         # Setting up the model
@@ -738,6 +746,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
 
         self.assertVectorAlmostEqual(reference, simulation_effective_load)
 
+
     def test_GetKinematics(self):
         simulation = RigidBodySolver(self.model, self.default_parameters)
         buffer = 0
@@ -764,6 +773,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.assertVectorAlmostEqual(random_vector_x, x)
         self.assertVectorAlmostEqual(random_vector_v, v)
         self.assertVectorAlmostEqual(random_vector_a, a)
+
 
     def test_UpdateKinematics(self):
         simulation = RigidBodySolver(self.model, self.default_parameters)
@@ -809,6 +819,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.assertVectorAlmostEqual(ref_ANGULAR_VELOCITY, simulation_ANGULAR_VELOCITY)
         self.assertVectorAlmostEqual(ref_ACCELERATION, simulation_ACCELERATION)
         self.assertVectorAlmostEqual(ref_ANGULAR_ACCELERATION, simulation_ANGULAR_ACCELERATION)
+
 
     def test_CalculateReaction(self):
         Parameters = KM.Parameters('''{
@@ -881,6 +892,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.assertVectorAlmostEqual(ref_buffer_0, simulation._CalculateReaction(0))
         self.assertVectorAlmostEqual(ref_buffer_1, simulation._CalculateReaction(1))
 
+
     def test_CalculateEquivalentForceFromRootPointDisplacement(self):
         Parameters = KM.Parameters('''{
             "solver_settings":{
@@ -952,168 +964,268 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         
         self.assertVectorAlmostEqual(ref_equivalent_force, simulation._CalculateEquivalentForceFromRootPointDisplacement())
 
+
+    def test_init(self):
+        # Check that the input parameters are in the right format
+        self.assertRaises(Exception, RigidBodySolver, "Not a Kratos Model object", self.default_parameters)
+        self.assertRaises(Exception, RigidBodySolver, self.model, "Not a Kratos Parameters object")
         
+        Parameters = KM.Parameters('''{
+            "problem_data": {
+                "problem_name": "RigidBodyStandalone",
+                "start_time": 0.1,
+                "end_time": 1.23,
+                "echo_level" : 0
+            },
+            "output_processes": [
+                {
+                    "python_module" : "save_restart_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"  : "SaveRestartProcess",
+                    "Parameters"            : {
+                        "model_part_name"              : "Main",
+                        "echo_level"                   : 0,
+                        "serializer_trace"             : "no_trace",
+                        "restart_save_frequency"       : 1.0,
+                        "restart_control_type"         : "time",
+                        "save_restart_files_in_folder" : true,
+                        "output_path"                  : "restart/RBS1",
+                        "max_files_to_keep"            : 2
+                    }
+                },
+                {
+                    "python_module" : "point_output_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"  : "PointOutputProcess",
+                    "Parameters": {
+                        "model_part_name"  : "Main.RigidBody",
+                        "entity_type"      : "node",
+                        "interval"         : [0.0, "End"],
+                        "position"         : [0, 0, 0],
+                        "output_variables" : ["DISPLACEMENT", "ROTATION", "VELOCITY", "ANGULAR_VELOCITY", "ACCELERATION", "ANGULAR_ACCELERATION"],
+                        "output_file_settings": {
+                            "file_name": "RigidBody",
+                            "output_path": "results/RBS1"
+                        }
+                    }
+                }
+            ],
+            "processes": {
+                "gravity": [
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "BODY_FORCE_Y",
+                            "is_fixed": true,
+                            "value": -981
+                        }
+                    },
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "BODY_MOMENT_Y",
+                            "is_fixed": true,
+                            "value": -98.1
+                        }
+                    }
+                ],
+                "initial_conditions_process_list": [
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "DISPLACEMENT_X",
+                            "value": 1
+                        }
+                    },
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "ACCELERATION_X",
+                            "value": -400
+                        }
+                    },
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "ANGULAR_VELOCITY_Z",
+                            "value": -10
+                        }
+                    }
+                ],
+                "boundary_conditions_process_list": [
+                    {
+                        "python_module" : "assign_vector_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name" : "Main.RigidBody",
+                            "variable_name"   : "PRESCRIBED_FORCE",
+                            "interval"        : [0, "End"],
+                            "constrained"     : [false,false,false],
+                            "value"           : ["5*sin((5+2*t)*t)", "3*sin((5+2*t)*t)", "2*sin((5+2*t)*t)"]
+                        }
+                    },
+                    {
+                        "python_module" : "assign_vector_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name" : "Main.RigidBody",
+                            "variable_name"   : "FORCE",
+                            "interval"        : [0, "End"],
+                            "constrained"     : [false,false,false],
+                            "value"           : ["5", "3", "2"]
+                        }
+                    },
+                    {
+                        "python_module" : "assign_vector_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name" : "Main.RigidBody",
+                            "variable_name"   : "MOMENT",
+                            "interval"        : [0, "End"],
+                            "constrained"     : [false,false,false],
+                            "value"           : ["4", "3", "5"]
+                        }
+                    },
+                    {
+                        "python_module": "assign_vector_variable_process",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RootPoint",
+                            "variable_name": "PRESCRIBED_DISPLACEMENT",
+                            "interval": [
+                                0,
+                                "End"
+                            ],
+                            "constrained": [
+                                false,
+                                false,
+                                false
+                            ],
+                            "value": [
+                                "0.05*sin(20*t)",
+                                "0.05*sin(10*t)",
+                                "0.05*sin(5*t)"
+                            ]
+                        }
+                    },
+                    {
+                        "python_module": "assign_vector_variable_process",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RootPoint",
+                            "variable_name": "PRESCRIBED_ROTATION",
+                            "interval": [
+                                0,
+                                "End"
+                            ],
+                            "constrained": [
+                                false,
+                                false,
+                                false
+                            ],
+                            "value": [
+                                "0.05*sin(6*t)",
+                                "0.05*sin(8*t)",
+                                "0.05*sin(13*t)"
+                            ]
+                        }
+                    },
+                    {
+                        "python_module": "assign_vector_variable_process",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "PRESCRIBED_MOMENT",
+                            "interval": [
+                                0,
+                                "End"
+                            ],
+                            "constrained": [
+                                false,
+                                false,
+                                false
+                            ],
+                            "value": [
+                                "100*sin(4*t)",
+                                "100*sin(3*t)",
+                                "100*sin(10*t)"
+                            ]
+                        }
+                    }
+                ]
+            }
+        }''')
+        Parameters.RecursivelyAddMissingParameters(self.default_parameters)
+        simulation = RigidBodySolver(self.model, Parameters)
 
+        # Basic check to see if project_parameters has all the necessary data to set up the problem
+            # input_check._CheckMandatoryInputParameters was tested in xxx
 
-# class TestSdofSolver(KratosUnittest.TestCase):
+        # Read the basic problem data and store it in class variables
+        self.assertEqual("RigidBodyStandalone", simulation.problem_name)
+        self.assertEqual(0.1, simulation.start_time)
+        self.assertEqual(1.23, simulation.end_time)
 
-#     def setUp(self):
-#         self.system_settings = {
-#         "system_parameters":{
-#             "mass"      : 10.0,
-#             "stiffness" : 1579.14,
-#             "damping"   : 10.0
-#             },
-#         "time_integration_parameters":{
-#                     "alpha_m"   : -0.3,
-#                     "start_time": 0.0,
-#                     "time_step" : 0.01
-#                 },
-#         "output_parameters":{
-#             "write_output_file": True,
-#             "file_name" : "result.dat"
-#             }
-#         }
-#         #result.dat
-#         self.end_time = 1.0
-#         self.time = 0.0
+        # Check the solver settings, fill empty fields with the default values and save them in class variables
+            # input_check._ValidateAndAssignRigidBodySolverDefaults was tested in xxx
+            # _InitializeSolutionVariables was tested in test_InitializeSolutionVariables
 
-#     def tearDown(self):
-#         kratos_utilities.DeleteFileIfExisting("result.dat")
+        # available_dofs with domain size = 3 (2D is yet to be implemented)
+        self.assertEqual(['displacement_x', 'displacement_y', 'displacement_z',
+                'rotation_x', 'rotation_y', 'rotation_z'], simulation.available_dofs)
+        self.assertEqual( 6, simulation.system_size)
+        self.assertEqual( 3, simulation.linear_size)
+        self.assertEqual( 3, simulation.angular_size)
 
-#     def __CompareResults(self, reference, result):
-#         ref = np.loadtxt(reference, skiprows=1)
-#         res = np.loadtxt(result, skiprows=1)
-#         self.assertEqual(len(ref), len(res))
-#         for line_ref, line_res in zip(ref, res):
-#             self.assertEqual(len(line_ref), len(line_res))
-#             for entry_ref, entry_res in zip(line_ref, line_res):
-#                 self.assertAlmostEqual(entry_ref, entry_res)
+        # Check the settings related to each DOF, fill empty fields and save them in class variables
+            # input_check._ValidateAndAssignDofDefaults was tested in xxx
+            # _InitializeDofsVariables was tested in test_InitializeDofsVariables1 and 2
 
-#     def __ExecuteTest(self, settings, ref_file_name):
-#         settings.update(self.system_settings)
-#         system = SDoFSolver(settings)
-#         system.Initialize()
+        # Prepare the coefficients to apply the generalized-alpha method
+            # _InitializeGeneralizedAlphaParameters was tested in test_InitializeGeneralizedAlphaParameters1 and 2
 
-#         while(self.time <= self.end_time):
-#             self.time =  system.AdvanceInTime(self.time)
-#             system.SolveSolutionStep()
-#             system.OutputSolutionStep()
+        # Check Kratos model
+        self.assertTrue(hasattr(simulation, "model"))
+        self.assertTrue(hasattr(simulation, "main_model_part"))
 
-#         self.__CompareResults(os.path.join("reference_files", ref_file_name), "result.dat")
+        # Check sub model parts from scratch
+        self.assertEqual( 3, simulation.main_model_part.ProcessInfo[KM.DOMAIN_SIZE])
+        self.assertTrue(hasattr(simulation, "rigid_body_model_part"))
+        self.assertTrue(hasattr(simulation, "root_point_model_part"))
+            # AddVariables() was tested in test_check_variables
+        self.assertTrue(simulation.rigid_body_model_part.HasNode(1))
+        self.assertTrue(simulation.root_point_model_part.HasNode(2))
+        self.assertEqual(3, simulation.main_model_part.GetBufferSize())
 
+        # Check processes
+            # input_check._CreateListOfProcesses was tested in xxx
+            # input_check._CreateListOfOutputProcesses was tested in xxx
+        self.assertTrue(hasattr(simulation, "_list_of_processes"))
+        self.assertEqual(13, len(simulation._list_of_processes))
+        self.assertTrue(hasattr(simulation, "_list_of_output_processes"))
+        self.assertEqual(2, len(simulation._list_of_output_processes))
 
-#     def test_initial_displacement(self):
-#         settings = {
-#         "initial_values":{
-#             "displacement"  : 1.0,
-#             "velocity"      : 0.0,
-#             "acceleration"  : 0.0
-#             }
-#         }
-#         self.__ExecuteTest(settings, "ref_sdof_initial_displacement.dat")
-
-#     def test_initial_velocity(self):
-#         settings = {
-#         "initial_values":{
-#             "displacement"  : 0.0,
-#             "velocity"      : 1.0,
-#             "acceleration"  : 0.0
-#             }
-#         }
-#         self.__ExecuteTest(settings, "ref_sdof_initial_velocity.dat")
-
-#     def test_impulse(self):
-#         settings = {
-#                 "boundary_conditions":{
-#                     "load_impulse" : 1000.0
-#                 }
-#         }
-#         self.__ExecuteTest(settings, "ref_sdof_impulse.dat")
-
-#     def test_force_excitation(self):
-#         settings = {
-#                 "boundary_conditions":{
-#                     "load_impulse" : 0.0,
-#                     "omega_force"        : 12.57,
-#                     "omega_root_point_displacement"        : 0.0,
-#                     "excitation_function_force": "A * sin(omega * t)",
-#                     "excitation_function_root_point_displacement": "A * sin(omega * t)",
-#                     "amplitude_root_point_displacement": 0.0,
-#                     "amplitude_force": 1000.0
-#                 }
-#         }
-#         self.__ExecuteTest(settings, "ref_sdof_force_excitation.dat")
-
-#     def test_root_point_excitation(self):
-#         settings = {
-#                 "boundary_conditions":{
-#                     "load_impulse" : 0.0,
-#                     "omega_force"        : 0.0,
-#                     "omega_root_point_displacement"        : 12.57,
-#                     "excitation_function_force": "A * sin(omega * t)",
-#                     "excitation_function_root_point_displacement": "A * sin(omega * t)",
-#                     "amplitude_root_point_displacement": 1.0,
-#                     "amplitude_force": 0.0
-#                 }
-#         }
-#         self.__ExecuteTest(settings, "ref_sdof_root_point_displacement.dat")
-
-#     def test_root_point_excitation_force_excitation(self):
-#         settings = {
-#                 "boundary_conditions":{
-#                     "load_impulse" : 0.0,
-#                     "omega_force"        : 3.0,
-#                     "omega_root_point_displacement"        : 12.57,
-#                     "excitation_function_force": "A * sin(omega * t)",
-#                     "excitation_function_root_point_displacement": "A * sin(omega * t)",
-#                     "amplitude_root_point_displacement": 1.0,
-#                     "amplitude_force": 1000.0
-#                 }
-#         }
-#         self.__ExecuteTest(settings, "ref_sdof_root_point_displacement_external_force.dat")
-
-#     def test_root_point_excitation_force_excitation_impulse(self):
-#         settings = {
-#                 "boundary_conditions":{
-#                     "load_impulse" : 10.0,
-#                     "omega_force"        : 3.0,
-#                     "omega_root_point_displacement"        : 12.57,
-#                     "excitation_function_force": "A * sin(omega * t)",
-#                     "excitation_function_root_point_displacement": "A * sin(omega * t)",
-#                     "amplitude_root_point_displacement": 1.0,
-#                     "amplitude_force": 1000.0
-#                 }
-#         }
-#         self.__ExecuteTest(settings, "ref_sdof_root_point_displacement_impulse.dat")
-
-#     def test_self_weight_calculation(self):
-#         system = SDoFSolver(self.system_settings)
-#         system.Initialize()
-#         self_weight = system.GetSolutionStepValue("VOLUME_ACCELERATION")
-#         self.assertAlmostEqual(98.10000000000001, self_weight)
-
-#     def test_wrapper_variables_check(self):
-#         # resusing the sdof fsi parameters
-#         wrapper_settings = KM.Parameters("""{
-#             "type" : "solver_wrappers.sdof.sdof_solver_wrapper",
-#             "solver_wrapper_settings" : {
-#                 "input_file"  : "fsi_sdof/ProjectParametersSdof"
-#             },
-#             "data" : {
-#                 "disp" : {
-#                     "model_part_name" : "Sdof",
-#                     "variable_name" : "DISPLACEMENT",
-#                     "location"      : "model_part",
-#                     "dimension"     : 1
-#                 }
-#             }
-#         }""")
-#         sdof_solver_wrapper = CreateSDofSolverWrapper(wrapper_settings, None, "custom_sdof_solver_wrapper")
-
-#         sdof_solver_wrapper.Initialize()
-#         with self.assertRaisesRegex(Exception, 'Variable "DISPLACEMENT" of interface data "disp" of solver "custom_sdof_solver_wrapper" cannot be used for the SDof Solver!'):
-#             sdof_solver_wrapper.Check()
 
 if __name__ == '__main__':
     KratosUnittest.main()
