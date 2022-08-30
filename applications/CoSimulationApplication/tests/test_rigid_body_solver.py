@@ -1512,8 +1512,67 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
 
 
     def test_ValidateAndAssignDofDefaults(self):
-        pass
+        dof_settings = KM.Parameters('''{
+            "active_dofs": [
+                {
+                    "dof": "displacement_x",
+                    "constrained": false,
+                    "system_parameters": {
+                        "mass": 40.0,
+                        "stiffness": 400.0,
+                        "damping": 4.0
+                    }
+                },
+                {
+                    "dof": "displacement_y",
+                    "constrained": true,
+                    "system_parameters": {
+                        "mass": 50.0,
+                        "stiffness": 500.0,
+                        "damping": 5.0
+                    }
+                },
+                {
+                    "dof": "displacement_z",
+                    "constrained": false,
+                    "system_parameters": {
+                        "mass": 100.0,
+                        "stiffness": 1000.0,
+                        "damping": 10.0
+                    }
+                },
+                {
+                    "dof": "rotation_x",
+                    "constrained": false,
+                    "system_parameters": {
+                        "mass": 2.0,
+                        "stiffness": 200.0,
+                        "damping": 2.0
+                    }
+                },
+                {
+                    "dof": "rotation_y",
+                    "constrained": true,
+                    "system_parameters": {
+                        "mass": 10.0,
+                        "stiffness": 1000.0,
+                        "damping": 10.0
+                    }
+                }
+            ]
+        }''')
 
+        available_dofs = ['displacement_x', 'displacement_y', 'displacement_z', 'rotation_x', 'rotation_y', 'rotation_z']
+
+        dof_settings_processed, active_dofs = input_check._ValidateAndAssignDofDefaults(dof_settings["active_dofs"], available_dofs)
+        # print(dir(dof_settings_processed))
+
+        print(dof_settings_processed)
+        for dof in dof_settings_processed:
+            print(dof_settings_processed[dof])
+
+        ref_active_dofs = ['displacement_x', 'displacement_y', 'displacement_z', 'rotation_x', 'rotation_y']
+        self.assertEqual(ref_active_dofs, active_dofs)
 
     def test_CreateListOfProcesses(self):
         pass
