@@ -1511,7 +1511,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.assertRaises(Exception, input_check._ValidateAndAssignRigidBodySolverDefaults, solver_settings)
 
 
-    def test_ValidateAndAssignDofDefaults(self):
+    def test_ValidateAndAssignDofDefaults1(self):
         dof_settings = KM.Parameters('''{
             "active_dofs": [
                 {
@@ -1565,14 +1565,140 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         available_dofs = ['displacement_x', 'displacement_y', 'displacement_z', 'rotation_x', 'rotation_y', 'rotation_z']
 
         dof_settings_processed, active_dofs = input_check._ValidateAndAssignDofDefaults(dof_settings["active_dofs"], available_dofs)
-        # print(dir(dof_settings_processed))
-
-        print(dof_settings_processed)
-        for dof in dof_settings_processed:
-            print(dof_settings_processed[dof])
-
+        
         ref_active_dofs = ['displacement_x', 'displacement_y', 'displacement_z', 'rotation_x', 'rotation_y']
+
+        ref_settings_disp_x = KM.Parameters('''{
+                "constrained": false,
+                "dof": "displacement_x",
+                "system_parameters": {
+                    "damping": 4.0,
+                    "mass": 40.0,
+                    "stiffness": 400.0
+                }
+        }''')
+        ref_settings_disp_y = KM.Parameters('''{
+                "constrained": true,
+                "dof": "displacement_y",
+                "system_parameters": {
+                    "damping": 5.0,
+                    "mass": 50.0,
+                    "stiffness": 500.0
+                }
+        }''')
+        ref_settings_disp_z = KM.Parameters('''{
+                "constrained": false,
+                "dof": "displacement_z",
+                "system_parameters": {
+                    "damping": 10.0,
+                    "mass": 100.0,
+                    "stiffness": 1000.0
+                }
+        }''')
+        ref_settings_rot_x = KM.Parameters('''{
+                "constrained": false,
+                "dof": "rotation_x",
+                "system_parameters": {
+                    "damping": 2.0,
+                    "mass": 2.0,
+                    "stiffness": 200.0
+                }
+        }''')
+        ref_settings_rot_y = KM.Parameters('''{
+                "constrained": true,
+                "dof": "rotation_y",
+                "system_parameters": {
+                    "damping": 10.0,
+                    "mass": 10.0,
+                    "stiffness": 1000.0
+                }
+        }''')
+        ref_settings_rot_z = KM.Parameters('''{
+                "constrained": false,
+                "dof": "needs_to_be_given",
+                "system_parameters": {
+                    "damping": 0.0,
+                    "mass": 1.0,
+                    "stiffness": 1.0
+                }
+        }''')
+        
         self.assertEqual(ref_active_dofs, active_dofs)
+        self.assertTrue(dof_settings_processed['displacement_x'].IsEquivalentTo(ref_settings_disp_x))
+        self.assertTrue(dof_settings_processed['displacement_y'].IsEquivalentTo(ref_settings_disp_y))
+        self.assertTrue(dof_settings_processed['displacement_z'].IsEquivalentTo(ref_settings_disp_z))
+        self.assertTrue(dof_settings_processed['rotation_x'].IsEquivalentTo(ref_settings_rot_x))
+        self.assertTrue(dof_settings_processed['rotation_y'].IsEquivalentTo(ref_settings_rot_y))
+        self.assertTrue(dof_settings_processed['rotation_z'].IsEquivalentTo(ref_settings_rot_z))
+
+
+    def test_ValidateAndAssignDofDefaults2(self):
+        # Raise Exception: At least an active degree of freedom is needed to use the solver  and none where provided in "active_dofs".
+        dof_settings = KM.Parameters('''{
+            "active_dofs": []
+        }''')
+        available_dofs = ['displacement_x', 'displacement_y', 'displacement_z', 'rotation_x', 'rotation_y', 'rotation_z']
+        
+        self.assertRaises(Exception, input_check._ValidateAndAssignDofDefaults, dof_settings["active_dofs"], available_dofs)
+
+
+    def test_ValidateAndAssignDofDefaults3(self):
+        # Raise Exception: The degree of freedom "displacemen_y" is not among the available ones.
+        dof_settings = KM.Parameters('''{
+            "active_dofs": [
+                {
+                    "dof": "displacement_x",
+                    "constrained": false,
+                    "system_parameters": {
+                        "mass": 40.0,
+                        "stiffness": 400.0,
+                        "damping": 4.0
+                    }
+                },
+                {
+                    "dof": "displacemen_y",
+                    "constrained": true,
+                    "system_parameters": {
+                        "mass": 50.0,
+                        "stiffness": 500.0,
+                        "damping": 5.0
+                    }
+                }
+            ]
+        }''')
+        available_dofs = ['displacement_x', 'displacement_y', 'displacement_z', 'rotation_x', 'rotation_y', 'rotation_z']
+        
+        self.assertRaises(Exception, input_check._ValidateAndAssignDofDefaults, dof_settings["active_dofs"], available_dofs)
+
+
+    def test_ValidateAndAssignDofDefaults4(self):
+        # Raise Exception: The degree of freedom "displacement_x" was repeated in the list "active dofs".
+        dof_settings = KM.Parameters('''{
+            "active_dofs": [
+                {
+                    "dof": "displacement_x",
+                    "constrained": false,
+                    "system_parameters": {
+                        "mass": 40.0,
+                        "stiffness": 400.0,
+                        "damping": 4.0
+                    }
+                },
+                {
+                    "dof": "displacement_x",
+                    "constrained": true,
+                    "system_parameters": {
+                        "mass": 50.0,
+                        "stiffness": 500.0,
+                        "damping": 5.0
+                    }
+                }
+            ]
+        }''')
+        available_dofs = ['displacement_x', 'displacement_y', 'displacement_z', 'rotation_x', 'rotation_y', 'rotation_z']
+        
+        self.assertRaises(Exception, input_check._ValidateAndAssignDofDefaults, dof_settings["active_dofs"], available_dofs)
+
 
     def test_CreateListOfProcesses(self):
         pass
