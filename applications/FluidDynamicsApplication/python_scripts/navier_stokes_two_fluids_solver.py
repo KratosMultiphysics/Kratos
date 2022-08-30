@@ -389,7 +389,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #        inlet_node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, vel_inlet)
             #        KratosMultiphysics.Logger.PrintInfo("Inlet", vel_inlet)
 
-            if (TimeStep % 40000 == 0):
+            if (TimeStep % 1000000 == 0):
                 print("Parallel Redistancing: Started")
                 print(time.time())
                 layers = 100#int(4000/100000*self.main_model_part.NumberOfElements())
