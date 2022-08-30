@@ -55,42 +55,90 @@ namespace Kratos {
     if (mGraph_ParticleTempMin) {
       mFile_ParticleTempMin.open("graph_particle_temp_min.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleTempMin) << "Could not open graph file for minimum particle temperature!" << std::endl;
-      mFile_ParticleTempMin << "1 - TIME STEP | 2 - TIME | 3 - MIN PARTICLE TEMPERATURE" << std::endl;
+      mFile_ParticleTempMin << "1 - TIME STEP | ";
+      mFile_ParticleTempMin << "2 - TIME | ";
+      mFile_ParticleTempMin << "3 - MIN PARTICLE TEMPERATURE";
+      mFile_ParticleTempMin << std::endl;
     }
     if (mGraph_ParticleTempMax) {
       mFile_ParticleTempMax.open("graph_particle_temp_max.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleTempMax) << "Could not open graph file for maximum particle temperature!" << std::endl;
-      mFile_ParticleTempMax << "1 - TIME STEP | 2 - TIME | 3 - MAX PARTICLE TEMPERATURE" << std::endl;
+      mFile_ParticleTempMin << "1 - TIME STEP | ";
+      mFile_ParticleTempMin << "2 - TIME | ";
+      mFile_ParticleTempMin << "3 - MAX PARTICLE TEMPERATURE";
+      mFile_ParticleTempMin << std::endl;
     }
     if (mGraph_ParticleTempAvg) {
       mFile_ParticleTempAvg.open("graph_particle_temp_avg.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleTempAvg) << "Could not open graph file for average particle temperature!" << std::endl;
-      mFile_ParticleTempAvg << "1 - TIME STEP | 2 - TIME | 3 - AVERAGE PARTICLE TEMPERATURE" << std::endl;
+      mFile_ParticleTempMin << "1 - TIME STEP | ";
+      mFile_ParticleTempMin << "2 - TIME | ";
+      mFile_ParticleTempMin << "3 - AVERAGE PARTICLE TEMPERATURE";
+      mFile_ParticleTempMin << std::endl;
     }
     if (mGraph_ParticleTempDev) {
       mFile_ParticleTempDev.open("graph_particle_temp_dev.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleTempDev) << "Could not open graph file for deviation of particle temperature!" << std::endl;
-      mFile_ParticleTempDev << "1 - TIME STEP | 2 - TIME | 3 - PARTICLE TEMPERATURE STANDARD DEVIATION" << std::endl;
+      mFile_ParticleTempMin << "1 - TIME STEP | ";
+      mFile_ParticleTempMin << "2 - TIME | ";
+      mFile_ParticleTempMin << "3 - PARTICLE TEMPERATURE STANDARD DEVIATION";
+      mFile_ParticleTempMin << std::endl;
     }
     if (mGraph_ModelTempAvg) {
       mFile_ModelTempAvg.open("graph_model_temp_avg.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ModelTempAvg) << "Could not open graph file for average model temperature!" << std::endl;
-      mFile_ModelTempAvg << "1 - TIME STEP | 2 - TIME | 3 - AVERAGE MODEL TEMPERATURE" << std::endl;
+      mFile_ParticleTempMin << "1 - TIME STEP | ";
+      mFile_ParticleTempMin << "2 - TIME | ";
+      mFile_ParticleTempMin << "3 - AVERAGE MODEL TEMPERATURE";
+      mFile_ParticleTempMin << std::endl;
     }
     if (mGraph_ParticleHeatFluxContributions) {
       mFile_ParticleHeatFluxContributions.open("graph_flux_contributions.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleHeatFluxContributions) << "Could not open graph file for heat flux contributions!" << std::endl;
-      mFile_ParticleHeatFluxContributions << "1 - TIME STEP | 2 - TIME | 3 - DIRECT CONDUCTION | 4 - INDIRECT CONDUCTION | 5 - RADIATION | 6 - GENERATION | 7 - CONVECTION | 8 - SURFACE PRESCRIBED | 9 - VOLUME PRESCRIBED" << std::endl;
+      mFile_ParticleHeatFluxContributions << "1 - TIME STEP | ";
+      mFile_ParticleHeatFluxContributions << "2 - TIME | ";
+      mFile_ParticleHeatFluxContributions << "3 - DIRECT CONDUCTION | ";
+      mFile_ParticleHeatFluxContributions << "4 - INDIRECT CONDUCTION | ";
+      mFile_ParticleHeatFluxContributions << "5 - RADIATION | ";
+      mFile_ParticleHeatFluxContributions << "6 - GENERATION | ";
+      mFile_ParticleHeatFluxContributions << "7 - CONVECTION | ";
+      mFile_ParticleHeatFluxContributions << "8 - SURFACE PRESCRIBED | ";
+      mFile_ParticleHeatFluxContributions << "9 - VOLUME PRESCRIBED";
+      mFile_ParticleHeatFluxContributions << std::endl;
     }
     if (mGraph_ParticleHeatGenContributions) {
       mFile_ParticleHeatGenContributions.open("graph_generation_contributions.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleHeatGenContributions) << "Could not open graph file for heat generation contributions!" << std::endl;
-      mFile_ParticleHeatGenContributions << "1 - TIME STEP | 2 - TIME | 3 - SLIDING FRICTION PARTICLE-PARTICLE | 4 - SLIDING FRICTION PARTICLE-WALL | 5 - ROLLING FRICTION PARTICLE-PARTICLE | 6 - ROLLING FRICTION PARTICLE-WALL | 7 - DAMPING FORCE PARTICLE-PARTICLE | 8 - DAMPING FORCE PARTICLE-WALL" << std::endl;
+      mFile_ParticleHeatGenContributions << "1 - TIME STEP | ";
+      mFile_ParticleHeatGenContributions << "2 - TIME | ";
+      mFile_ParticleHeatGenContributions << "3 - SLIDING FRICTION PARTICLE-PARTICLE | ";
+      mFile_ParticleHeatGenContributions << "4 - SLIDING FRICTION PARTICLE-WALL | ";
+      mFile_ParticleHeatGenContributions << "5 - ROLLING FRICTION PARTICLE-PARTICLE | ";
+      mFile_ParticleHeatGenContributions << "6 - ROLLING FRICTION PARTICLE-WALL | ";
+      mFile_ParticleHeatGenContributions << "7 - DAMPING FORCE PARTICLE-PARTICLE | ";
+      mFile_ParticleHeatGenContributions << "8 - DAMPING FORCE PARTICLE-WALL";
+      mFile_ParticleHeatGenContributions << std::endl;
     }
     if (mGraph_ParticleEnergyContributions) {
       mFile_ParticleEnergyContributions.open("graph_energy_contributions.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleEnergyContributions) << "Could not open graph file for energy contributions!" << std::endl;
-      mFile_ParticleEnergyContributions << "1 - TIME STEP | 2 - TIME | 3 - GRAVITATIONAL | 4 - ELASTIC | 5 - KINETIC TRANSLATION | 6 - KINETIC ROTATION | 7 - TOTAL ENERGY | 8 - ACCUMULATED DISSIP FRICTION | 9 - ACCUMULATED DISSIP ROLL | 10 - ACCUMULATED DISSIP DAMPING | 11 - TOTAL ACCUMULATED DISSIP | 12 - ACCUMULATED THERMAL GENERATION | 13 - TOTAL ENERGY + ACCUMULATED DISSIP" << std::endl;
+      mFile_ParticleEnergyContributions << "1 - TIME STEP | ";
+      mFile_ParticleEnergyContributions << "2 - TIME | ";
+      mFile_ParticleEnergyContributions << "3 - GRAVITATIONAL | ";
+      mFile_ParticleEnergyContributions << "4 - ELASTIC | ";
+      mFile_ParticleEnergyContributions << "5 - KINETIC TRANSLATION | ";
+      mFile_ParticleEnergyContributions << "6 - KINETIC ROTATION | ";
+      mFile_ParticleEnergyContributions << "7 - TOTAL ENERGY | ";
+      mFile_ParticleEnergyContributions << "8 - ACCUMULATED DISSIP FRICTION | ";
+      mFile_ParticleEnergyContributions << "9 - ACCUMULATED DISSIP ROLL | ";
+      mFile_ParticleEnergyContributions << "10 - ACCUMULATED DISSIP DAMPING | ";
+      mFile_ParticleEnergyContributions << "11 - TOTAL ACCUMULATED DISSIP | ";
+      mFile_ParticleEnergyContributions << "12 - ACCUMULATED THERMAL FRICTION | ";
+      mFile_ParticleEnergyContributions << "13 - ACCUMULATED THERMAL ROLL | ";
+      mFile_ParticleEnergyContributions << "14 - ACCUMULATED THERMAL DAMPING | ";
+      mFile_ParticleEnergyContributions << "15 - TOTAL ACCUMULATED THERMAL | ";
+      mFile_ParticleEnergyContributions << "16 - TOTAL ENERGY + ACCUMULATED DISSIP";
+      mFile_ParticleEnergyContributions << std::endl;
     }
 
     KRATOS_CATCH("")
@@ -110,11 +158,13 @@ namespace Kratos {
     int       num_ratio_particles_flux            =  0;
     int       num_ratio_particles_gen             =  0;
     double    total_vol                           =  0.0;
+
     double    particle_temp_min                   =  DBL_MAX;
     double    particle_temp_max                   = -DBL_MAX;
     double    particle_temp_avg                   =  0.0;
     double    particle_temp_dev                   =  0.0;
     double    model_temp_avg                      =  0.0;
+
     double    particle_flux_conducdir_ratio_avg   =  0.0;
     double    particle_flux_conducindir_ratio_avg =  0.0;
     double    particle_flux_rad_ratio_avg         =  0.0;
@@ -122,22 +172,29 @@ namespace Kratos {
     double    particle_flux_conv_ratio_avg        =  0.0;
     double    particle_flux_prescsurf_ratio_avg   =  0.0;
     double    particle_flux_prescvol_ratio_avg    =  0.0;
+
     double    particle_gen_slid_pp_ratio_avg      =  0.0;
     double    particle_gen_slid_pw_ratio_avg      =  0.0;
     double    particle_gen_roll_pp_ratio_avg      =  0.0;
     double    particle_gen_roll_pw_ratio_avg      =  0.0;
     double    particle_gen_damp_pp_ratio_avg      =  0.0;
     double    particle_gen_damp_pw_ratio_avg      =  0.0;
+
     double    total_energy_potential_gravity      =  0.0;
     double    total_energy_potential_elastic      =  0.0;
     double    total_energy_kinetic_translation    =  0.0;
     double    total_energy_kinetic_rotation       =  0.0;
     double    total_energy                        =  0.0;
+
     double    total_accum_energy_dissip_slid      =  0.0;
     double    total_accum_energy_dissip_roll      =  0.0;
     double    total_accum_energy_dissip_damp      =  0.0;
     double    total_accum_energy_dissip           =  0.0;
-    double    total_accum_thermal_generation      =  0.0;
+
+    double    total_accum_energy_thermal_slid     =  0.0;
+    double    total_accum_energy_thermal_roll     =  0.0;
+    double    total_accum_energy_thermal_damp     =  0.0;
+    double    total_accum_energy_thermal          =  0.0;
 
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < num_of_particles; i++) {
@@ -154,7 +211,6 @@ namespace Kratos {
       double accum_energy_dissip_slid   = 0.0;
       double accum_energy_dissip_roll   = 0.0;
       double accum_energy_dissip_damp   = 0.0;
-      double accum_thermal_generation   = particle.mThermalGenerationEnergy;
       particle.Calculate(PARTICLE_GRAVITATIONAL_ENERGY,           energy_potential_gravity,   r_process_info);
       particle.Calculate(PARTICLE_ELASTIC_ENERGY,                 energy_potential_elastic,   r_process_info);
       particle.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY, energy_kinetic_translation, r_process_info);
@@ -162,6 +218,9 @@ namespace Kratos {
       particle.Calculate(PARTICLE_INELASTIC_FRICTIONAL_ENERGY,    accum_energy_dissip_slid,   r_process_info);
       particle.Calculate(PARTICLE_INELASTIC_ROLLRESIST_ENERGY,    accum_energy_dissip_roll,   r_process_info);
       particle.Calculate(PARTICLE_INELASTIC_VISCODAMPING_ENERGY,  accum_energy_dissip_damp,   r_process_info);
+      double accum_energy_thermal_slid = particle.mThermalFrictionalEnergy;
+      double accum_energy_thermal_roll = particle.mThermalRollResistEnergy;
+      double accum_energy_thermal_damp = particle.mThermalViscodampingEnergy;
 
       #pragma omp critical
       {
@@ -171,16 +230,22 @@ namespace Kratos {
         particle_temp_avg                += temp;
         particle_temp_dev                += temp * temp;
         model_temp_avg                   += temp * vol;
+
         total_energy_potential_gravity   += energy_potential_gravity;
         total_energy_potential_elastic   += energy_potential_elastic;
         total_energy_kinetic_translation += energy_kinetic_translation;
         total_energy_kinetic_rotation    += energy_kinetic_rotation;
         total_energy                     += energy_potential_gravity + energy_potential_elastic + energy_kinetic_translation + energy_kinetic_rotation;
+        
         total_accum_energy_dissip_slid   += accum_energy_dissip_slid;
         total_accum_energy_dissip_roll   += accum_energy_dissip_roll;
         total_accum_energy_dissip_damp   += accum_energy_dissip_damp;
         total_accum_energy_dissip        += accum_energy_dissip_slid + accum_energy_dissip_roll + accum_energy_dissip_damp;
-        total_accum_thermal_generation   += accum_thermal_generation;
+
+        total_accum_energy_thermal_slid  += accum_energy_thermal_slid;
+        total_accum_energy_thermal_roll  += accum_energy_thermal_roll;
+        total_accum_energy_thermal_damp  += accum_energy_thermal_damp;
+        total_accum_energy_thermal       += accum_energy_thermal_slid + accum_energy_thermal_roll + accum_energy_thermal_damp;
       }
 
       if (mGraph_ParticleHeatFluxContributions) {
@@ -331,7 +396,10 @@ namespace Kratos {
                                         << total_accum_energy_dissip_roll   << " "
                                         << total_accum_energy_dissip_damp   << " "
                                         << total_accum_energy_dissip        << " "
-                                        << total_accum_thermal_generation   << " "
+                                        << total_accum_energy_thermal_slid  << " "
+                                        << total_accum_energy_thermal_roll  << " "
+                                        << total_accum_energy_thermal_damp  << " "
+                                        << total_accum_energy_thermal       << " "
                                         << total_energy+total_accum_energy_dissip
                                         << std::endl;
 

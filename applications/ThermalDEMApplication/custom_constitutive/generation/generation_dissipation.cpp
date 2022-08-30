@@ -41,35 +41,62 @@ namespace Kratos {
     double heat_gen_sliding = 0.0;
     double heat_gen_rolling = 0.0;
 
-    // Convert dissipated power (energy/time) to heat
+    // Damping
     if (r_process_info[GENERATION_DAMPING_OPTION]) {
       if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
-        // Energy multiplied by 2 as it was calculated by equally splitting the energy with neighbor
-        heat_gen_damping = 2.0 * partition * conversion * contact_params.viscodamping_energy / time;
+        // Thermal energy
+        // (energy multiplied by 2 as it was calculated by equally splitting the energy with neighbor)
+        heat_gen_damping = 2.0 * partition * conversion * contact_params.viscodamping_energy;
+        particle->mThermalViscodampingEnergy += heat_gen_damping;
+
+        // Convert thermal energy to power
+        heat_gen_damping /= time;
         particle->mGenerationHeatFlux_damp_particle += heat_gen_damping;
       }
       else if (particle->mNeighborType & WALL_NEIGHBOR) {
-        // Energy was calculated by assuming that it goes entirely to the particle
-        heat_gen_damping = partition * conversion * contact_params.viscodamping_energy / time;
+        // Thermal energy
+        // (energy was calculated by assuming that it goes entirely to the particle)
+        heat_gen_damping = partition * conversion * contact_params.viscodamping_energy;
+        particle->mThermalViscodampingEnergy += heat_gen_damping;
+
+        // Convert thermal energy to power
+        heat_gen_damping /= time;
         particle->mGenerationHeatFlux_damp_wall += heat_gen_damping;
       }
     }
 
+    // Sliding friction
     if (r_process_info[GENERATION_SLIDING_OPTION]) {
       if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
-        // Energy multiplied by 2 as it was calculated by equally splitting the energy with neighbor
-        heat_gen_sliding = 2.0 * partition * conversion * contact_params.frictional_energy / time;
+        // Thermal energy
+        // (multiplied by 2 as it was calculated by equally splitting the energy with neighbor)
+        heat_gen_sliding = 2.0 * partition * conversion * contact_params.frictional_energy;
+        particle->mThermalFrictionalEnergy += heat_gen_sliding;
+
+        // Convert thermal energy to power
+        heat_gen_sliding /= time;
         particle->mGenerationHeatFlux_slid_particle += heat_gen_sliding;
       }
       else if (particle->mNeighborType & WALL_NEIGHBOR) {
-        // Energy was calculated by assuming that it goes entirely to the particle
-        heat_gen_sliding = partition * conversion * contact_params.frictional_energy / time;
+        // Thermal energy
+        // (energy was calculated by assuming that it goes entirely to the particle)
+        heat_gen_sliding = partition * conversion * contact_params.frictional_energy;
+        particle->mThermalFrictionalEnergy += heat_gen_sliding;
+
+        // Convert thermal energy to power
+        heat_gen_sliding /= time;
         particle->mGenerationHeatFlux_slid_wall += heat_gen_sliding;
       }
     }
 
+    // Rolling friction
     if (r_process_info[GENERATION_ROLLING_OPTION] && particle->Is(DEMFlags::HAS_ROTATION) && particle->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
-      heat_gen_rolling = conversion * contact_params.rollresist_energy / time;
+      // Thermal energy
+      heat_gen_rolling = conversion * contact_params.rollresist_energy;
+      particle->mThermalRollResistEnergy += heat_gen_rolling;
+
+      // Convert thermal energy to power
+      heat_gen_rolling /= time;
 
       if (particle->mNeighborType & PARTICLE_NEIGHBOR) { 
         particle->mGenerationHeatFlux_roll_particle += heat_gen_rolling;
