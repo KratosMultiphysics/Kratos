@@ -48,6 +48,9 @@ public:
     typedef Geometry<NodeType> GeometryType;
     typedef GeometryType::Pointer GeometryPtrType;
 
+     /// Pointer definition of VoxelInsideVolume
+    KRATOS_CLASS_POINTER_DEFINITION( SimpleToQuadraticTetrahedraMeshConverter );
+
     ///@name Life Cycle
     ///@{
 
@@ -125,16 +128,16 @@ private:
         unsigned int i9 = rNodeIds[9];
 
         Tetrahedra3D10<Node < 3 > > geom(
-            rThisModelPart.Nodes()(i0),
-            rThisModelPart.Nodes()(i1),
-            rThisModelPart.Nodes()(i2),
-            rThisModelPart.Nodes()(i3),
-            rThisModelPart.Nodes()(i4),
-            rThisModelPart.Nodes()(i5),
-            rThisModelPart.Nodes()(i6),
-            rThisModelPart.Nodes()(i7),
-            rThisModelPart.Nodes()(i8),
-            rThisModelPart.Nodes()(i9)
+            rThisModelPart.pGetNode(i0),
+            rThisModelPart.pGetNode(i1),
+            rThisModelPart.pGetNode(i2),
+            rThisModelPart.pGetNode(i3),
+            rThisModelPart.pGetNode(i4),
+            rThisModelPart.pGetNode(i5),
+            rThisModelPart.pGetNode(i6),
+            rThisModelPart.pGetNode(i7),
+            rThisModelPart.pGetNode(i8),
+            rThisModelPart.pGetNode(i9)
         );
         return geom;
     }
@@ -155,13 +158,14 @@ private:
         unsigned int i5   = rNodeIds[5];
 
         Triangle3D6<Node<3> > geom(
-                rThisModelPart.Nodes()(i0),
-                rThisModelPart.Nodes()(i1),
-                rThisModelPart.Nodes()(i2),
-                rThisModelPart.Nodes()(i3),
-                rThisModelPart.Nodes()(i4),
-                rThisModelPart.Nodes()(i5)
-                );
+            rThisModelPart.pGetNode(i0),
+            rThisModelPart.pGetNode(i1),
+            rThisModelPart.pGetNode(i2),
+            rThisModelPart.pGetNode(i3),
+            rThisModelPart.pGetNode(i4),
+            rThisModelPart.pGetNode(i5)
+        );
+
         return geom;
     }
 
@@ -169,7 +173,7 @@ private:
     * It erases the old Tetrahedra3D4 elements and it creates the new Tetrahedra3D10 ones
     * @param Coord: The compressed matrix containing at (i,j) the id of the node created between nodes i,j
     * @param New_Elements: The new elements created
-    * @param interpolate_internal_variables: A boolean that defines if it is necessary to interpolate the internal variables
+    * @param InterpolateInternalVariables: A boolean that defines if it is necessary to interpolate the internal variables
     * @return rThisModelPart: The model part of the model (it is the input too)
     */
 
@@ -177,7 +181,7 @@ private:
             ModelPart& rThisModelPart,
             const compressed_matrix<int>& Coord,
             PointerVector< Element >& NewElements,
-            bool interpolate_internal_variables
+            bool InterpolateInternalVariables
     ) override
     {
         auto& r_elements = rThisModelPart.Elements();
@@ -206,7 +210,7 @@ private:
             p_element->FinalizeSolutionStep(r_current_process_info);
 
             // Setting the internal variables in the "child" elem (the element replacing the old one)
-            if (interpolate_internal_variables == true)
+            if (InterpolateInternalVariables == true)
             {
                 //This method only copies the current information to the new element
                 InterpolateInteralVariables(0, *it.base(), p_element, r_current_process_info);
