@@ -119,22 +119,34 @@
                     "imposed_stress"  : [0.0,0.0,0.0,0.0,0.0,0.0],
                     "interval"        : [0.0, 1e30]
             }
+        }],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "gauss_points_check_variables" : ["CAUCHY_STRESS_VECTOR"],
+                "input_file_name"              : "automated_initial_variable_process_test/automated_initial_variable_process_test_results.json",
+                "model_part_name"              : "Structure.Parts_Solid_Body",
+                "time_frequency"               : 0.1
+            }
         }]
     },
-    "_json_output_process" : [
-    {
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "gauss_points_output_variables" : ["CAUCHY_STRESS_VECTOR"],
-            "output_file_name"              : "automated_initial_variable_process_test/automated_initial_variable_process_test_results.json",
-            "model_part_name"               : "Structure.Parts_Solid_Body",
-            "time_frequency"                : 0.1
-        }
-    }
-    ],
+	"_json_output_process" : [
+	{
+		"python_module"   : "json_output_process",
+		"kratos_module" : "KratosMultiphysics",
+		"help"                  : "",
+		"process_name"          : "JsonOutputProcess",
+		"Parameters"            : {
+			"gauss_points_output_variables" : ["CAUCHY_STRESS_VECTOR"],
+			"output_file_name"              : "automated_initial_variable_process_test/automated_initial_variable_process_test_results.json",
+			"model_part_name"               : "Structure.Parts_Solid_Body",
+			"time_frequency"                : 0.1
+		}
+	}],
     "output_processes" : {
         "gid_output" : [],
         "vtk_output" : []
