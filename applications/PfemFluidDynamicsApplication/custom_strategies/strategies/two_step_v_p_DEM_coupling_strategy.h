@@ -34,7 +34,7 @@
 #include "two_step_v_p_DEM_coupling_strategy.h"
 
 #include <stdio.h>
-#include <math.h>
+#include <cmath>
 
 namespace Kratos
 {

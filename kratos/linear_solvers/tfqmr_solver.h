@@ -16,7 +16,7 @@
 #define  KRATOS_TFQMR_SOLVER_H_INCLUDED
 
 // System includes
-#include <math.h>
+#include <cmath>
 
 // External includes
 
