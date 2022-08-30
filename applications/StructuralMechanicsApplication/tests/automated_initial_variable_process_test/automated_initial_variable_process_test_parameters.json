@@ -17,10 +17,10 @@
         "analysis_type"                   : "non_linear",
         "model_import_settings"           : {
             "input_type"     : "mdpa",
-            "input_filename" : "automated_initial_variable_process_test"
+            "input_filename" : "automated_initial_variable_process_test/automated_initial_variable_process_test"
         },
         "material_import_settings"        : {
-            "materials_filename" : "automated_initial_variable_process_test_materials.json"
+            "materials_filename" : "automated_initial_variable_process_test/automated_initial_variable_process_test_materials.json"
         },
         "line_search"                     : false,
         "convergence_criterion"           : "residual_criterion",
@@ -48,7 +48,7 @@
                 "hole_radius_offset"       : 0.0005,
                 "initial_variable_table"     : {
                             "name"             : "csv_table",
-                            "filename"         : "input_tables/Layer1_StressComp1.csv",
+                            "filename"         : "automated_initial_variable_process_test/input_tables/Layer1_StressComp1.csv",
                             "delimiter"        : ",",
                             "skiprows"         : 1,
                             "first_column_id"  : 0,
@@ -90,7 +90,7 @@
                 "hole_radius_offset"       : 0.0005,
                 "initial_variable_table"     : {
                             "name"             : "csv_table",
-                            "filename"         : "input_tables/Layer2_StressComp1.csv",
+                            "filename"         : "automated_initial_variable_process_test/input_tables/Layer2_StressComp1.csv",
                             "delimiter"        : ",",
                             "skiprows"         : 1,
                             "first_column_id"  : 0,
@@ -131,7 +131,7 @@
             "gauss_points_output_variables" : ["CAUCHY_STRESS_VECTOR"],
             "output_file_name"              : "automated_initial_variable_process_test/automated_initial_variable_process_test_results.json",
             "model_part_name"               : "Structure.Parts_Solid_Body",
-            "time_frequency"                : 1.0
+            "time_frequency"                : 0.1
         }
     }
     ],
