@@ -20,14 +20,14 @@ namespace Kratos
 
 class ApplyComponentTableProcess : public Process
 {
-    
+
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ApplyComponentTableProcess);
-    
+
     /// Defining a table with double argument and result type as table type.
     typedef Table<double,double> TableType;
-    
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
@@ -36,7 +36,7 @@ public:
                                 ) : Process(Flags()) , mr_model_part(model_part)
     {
         KRATOS_TRY
-			 
+
         //only include validation with c++11 since raw_literals do not exist in c++03
         Parameters default_parameters( R"(
             {
@@ -46,7 +46,7 @@ public:
                 "value" : 1.0,
                 "table" : 1
             }  )" );
-        
+
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         // So that an error is thrown if they don't exist
         rParameters["table"];
@@ -59,16 +59,16 @@ public:
         mvariable_name = rParameters["variable_name"].GetString();
         mis_fixed = rParameters["is_fixed"].GetBool();
         minitial_value = rParameters["value"].GetDouble();
-        
+
         unsigned int TableId = rParameters["table"].GetInt();
         mpTable = model_part.pGetTable(TableId);
         mTimeUnitConverter = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
-        
+
         KRATOS_CATCH("");
     }
 
     ///------------------------------------------------------------------------------------
-    
+
     /// Destructor
     ~ApplyComponentTableProcess() override {}
 
@@ -78,16 +78,16 @@ public:
     void Execute() override
     {
     }
-    
+
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
     void ExecuteInitialize() override
     {
         KRATOS_TRY;
-        
-        typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-        component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
-        
+
+        typedef Variable<double> component_type;
+        const component_type& var_component = KratosComponents< component_type >::Get(mvariable_name);
+
         const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
 
         if(nnodes != 0)
@@ -107,7 +107,7 @@ public:
                 it->FastGetSolutionStepValue(var_component) = minitial_value;
             }
         }
-        
+
         KRATOS_CATCH("");
     }
 
@@ -115,13 +115,13 @@ public:
     void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
-        
-        typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-        component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
-        
+
+        typedef Variable<double> component_type;
+        const component_type& var_component = KratosComponents< component_type >::Get(mvariable_name);
+
         const double Time = mr_model_part.GetProcessInfo()[TIME]/mTimeUnitConverter;
         double value = mpTable->GetValue(Time);
-        
+
         const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
 
         if(nnodes != 0)
@@ -171,7 +171,7 @@ protected:
     double mTimeUnitConverter;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
 private:
 
     /// Assignment operator.
@@ -179,7 +179,7 @@ private:
 
     /// Copy constructor.
     //ApplyComponentTableProcess(ApplyComponentTableProcess const& rOther);
-    
+
 }; // Class ApplyComponentTableProcess
 
 /// input stream function

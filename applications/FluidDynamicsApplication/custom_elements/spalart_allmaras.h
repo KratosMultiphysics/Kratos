@@ -77,7 +77,7 @@ public:
     /// Default constructor.
     SpalartAllmaras(IndexType NewId = 0) :
         Element(NewId),
-        mIntegrationMethod(GeometryData::GI_GAUSS_1)
+        mIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_1)
     {}
 
     /// Constructor using a Geometry instance
@@ -126,16 +126,16 @@ public:
     /// Check that all required data containers are properly initialized and registered in Kratos
     /** @return 0 if no errors are detected.
       */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     /// Calculate Shape function derivatives for the element
-    void Initialize() override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Calculates the projection term for stabilization
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 //    /// Compute projection of convective term for stabilization
-//    virtual void InitializeNonLinearIteration(ProcessInfo &CurrentProcessInfo);
+//    virtual void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
 
     /// Evaluate the elemental contribution to the problem for turbulent viscosity.
     /**
@@ -143,21 +143,21 @@ public:
      * @param rRightHandSideVector Elemental right hand side vector
      * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containg the element
      */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 //    {
 //        KRATOS_THROW_ERROR(std::logic_error, "SplartAllmaras::CalculateRightHandSide method not implemented", "");
 //    }
 
     /// Fill given array with containing the element's degrees of freedom
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Fill given vector with the linear system row index for the element's degrees of freedom
-    void EquationIdVector(Element::EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(Element::EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Fill given vector with nodal values of the problem variable (TURBULENT_VISCOSITY)
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     ///@}
     ///@name Access
@@ -186,7 +186,7 @@ public:
     {
         rOStream << "SpalartAllmaras" << this->GetGeometry().WorkingSpaceDimension() << "D #" << Id() << std::endl;
         rOStream << "Number of Nodes: " << this->GetGeometry().PointsNumber() << std::endl;
-        rOStream << "Integration method: " << this->mIntegrationMethod;
+        rOStream << "Integration method: " << static_cast<int>(this->mIntegrationMethod);
     }
 
     /// Print object's data.
@@ -259,7 +259,7 @@ protected:
 
     template< class TVariableType >
     void EvaluateInPoint(TVariableType& rResult,
-                         const Kratos::Variable<TVariableType> Var,
+                         const Kratos::Variable<TVariableType>& Var,
                          const ShapeFunctionsType& rShapeFunc)
     {
         rResult = rShapeFunc[0] * this->GetGeometry()[0].FastGetSolutionStepValue(Var);
@@ -334,23 +334,23 @@ private:
         unsigned int IntMethod = 0;
         switch(mIntegrationMethod)
         {
-        case GeometryData::GI_GAUSS_1:
+        case GeometryData::IntegrationMethod::GI_GAUSS_1:
             IntMethod = 1;
             break;
-        case GeometryData::GI_GAUSS_2:
+        case GeometryData::IntegrationMethod::GI_GAUSS_2:
             IntMethod = 2;
             break;
-        case GeometryData::GI_GAUSS_3:
+        case GeometryData::IntegrationMethod::GI_GAUSS_3:
             IntMethod = 3;
             break;
-        case GeometryData::GI_GAUSS_4:
+        case GeometryData::IntegrationMethod::GI_GAUSS_4:
             IntMethod = 4;
             break;
-        case GeometryData::GI_GAUSS_5:
+        case GeometryData::IntegrationMethod::GI_GAUSS_5:
             IntMethod = 5;
             break;
         default:
-            KRATOS_THROW_ERROR(std::invalid_argument,"Unknown integration method encountered on serializer save for SpalartAllmaras element: ",mIntegrationMethod);
+            KRATOS_ERROR << "Unknown integration method encountered on serializer save for SpalartAllmaras element: " << static_cast<int>(mIntegrationMethod) << std::endl;
             break;
         }
         rSerializer.save("IntMethod",IntMethod);
@@ -367,23 +367,23 @@ private:
         rSerializer.load("IntMethod",IntMethod);
         switch(mIntegrationMethod)
         {
-        case 1:
-            mIntegrationMethod = GeometryData::GI_GAUSS_1;
+        case GeometryData::IntegrationMethod::GI_GAUSS_1:
+            mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
             break;
-        case 2:
-            mIntegrationMethod = GeometryData::GI_GAUSS_2;
+        case GeometryData::IntegrationMethod::GI_GAUSS_2:
+            mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
             break;
-        case 3:
-            mIntegrationMethod = GeometryData::GI_GAUSS_3;
+        case GeometryData::IntegrationMethod::GI_GAUSS_3:
+            mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
             break;
-        case 4:
-            mIntegrationMethod = GeometryData::GI_GAUSS_4;
+        case GeometryData::IntegrationMethod::GI_GAUSS_4:
+            mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
             break;
-        case 5:
-            mIntegrationMethod = GeometryData::GI_GAUSS_5;
+        case GeometryData::IntegrationMethod::GI_GAUSS_5:
+            mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
             break;
         default:
-            KRATOS_THROW_ERROR(std::invalid_argument,"Unknown integration method encountered on serializer load for SpalartAllmaras element: ",IntMethod);
+            KRATOS_ERROR << "Unknown integration method encountered on serializer load for SpalartAllmaras element: " << static_cast<int>(IntMethod) << std::endl;
             break;
         }
         rSerializer.load("mDN_DX",mDN_DX);
@@ -461,5 +461,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_SPALART_ALLMARAS_H_INCLUDED  defined
-
-

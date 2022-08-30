@@ -126,7 +126,8 @@
                 "model_part_name"             : "Structure",
                 "contact_model_part"          : { "0" : ["Contact_Part"]},
                 "contact_type"                : "FrictionalWithNormalUpdate",
-                "assume_master_slave"         : { "0" : ["Parts_punch"]}
+                "assume_master_slave"         : { "0" : ["Parts_punch"]},
+                "friction_coefficients"       : { "0" : 0.75}
             }
         }
         ],
@@ -152,7 +153,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
                 "result_file_configuration" : {
@@ -183,7 +184,7 @@
             "process_name"  : "VtkOutputProcess",
             "help"          : "This process writes postprocessing files for Paraview",
             "Parameters"    : {
-                "model_part_name"                    : "Structure.computing_domain",
+                "model_part_name"                    : "Structure",
                 "output_control_type"                : "step",
                 "output_frequency"                   : 1,
                 "file_format"                        : "ascii",

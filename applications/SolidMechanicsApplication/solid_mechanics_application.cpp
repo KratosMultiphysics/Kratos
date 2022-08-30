@@ -321,7 +321,7 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication()
                  Element::GeometryType::PointsArrayType(3))),
       mLargeDisplacementBeamSEMCElement3D2N(
           0, Kratos::make_shared< LineGaussLobatto3D2<Node<3> > >(
-                 Element::GeometryType::PointsArrayType(2))),
+                 Element::GeometryType::PointsArrayType(2))), 
       mGeometricallyExactRodElement3D2N(
           0, Kratos::make_shared< Line3D2<Node<3> > >(
                  Element::GeometryType::PointsArrayType(2))),
@@ -488,9 +488,6 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication()
 {}
 
 void KratosSolidMechanicsApplication::Register() {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
-
     std::stringstream banner;
 
     banner << "            ___      _ _    _           \n"

@@ -103,7 +103,7 @@ namespace Kratos
       mDeltaTime.Fraction         = rDeltaTimeFraction;
 
       // Allocate auxiliary memory
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+      const unsigned int NumThreads = ParallelUtilities::GetNumThreads();
 
       mMatrix.resize(NumThreads);
       mVector.resize(NumThreads);
@@ -215,7 +215,7 @@ namespace Kratos
       mTime.Delta     = rCurrentProcessInfo[DELTA_TIME];
       mTime.Middle    = 0.5 * ( mTime.Previous + mTime.Current );
 
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+      const unsigned int NumThreads = ParallelUtilities::GetNumThreads();
 
       OpenMPUtils::PartitionVector NodePartition;
       OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
@@ -383,14 +383,6 @@ namespace Kratos
       int ErrorCode = 0;
       ErrorCode  = BaseType::Check(rModelPart);
 
-      // Check that all required variables have been registered
-      KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-      KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-      KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-      KRATOS_CHECK_VARIABLE_KEY(NODAL_MASS);
-      KRATOS_CHECK_VARIABLE_KEY(MIDDLE_VELOCITY);
-      KRATOS_CHECK_VARIABLE_KEY(FORCE_RESIDUAL);
-
       // Check that variables are correctly allocated
       for(ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); ++it)
         {
@@ -465,7 +457,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+      const unsigned int NumThreads = ParallelUtilities::GetNumThreads();
 
       OpenMPUtils::PartitionVector NodePartition;
       OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
@@ -490,7 +482,7 @@ namespace Kratos
 
       ProcessInfo& rCurrentProcessInfo= rModelPart.GetProcessInfo();
 
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+      const unsigned int NumThreads = ParallelUtilities::GetNumThreads();
 
       //most autors recommend a value near 0.80 (Belytschko - Nonlinear FE.. 2000. chap 6. pag. 315)
       double safety_factor     = 0.5;
@@ -561,7 +553,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+      const unsigned int NumThreads = ParallelUtilities::GetNumThreads();
 
       OpenMPUtils::PartitionVector NodePartition;
       OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
@@ -592,7 +584,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+      const unsigned int NumThreads = ParallelUtilities::GetNumThreads();
 
       OpenMPUtils::PartitionVector NodePartition;
       OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
@@ -830,4 +822,3 @@ namespace Kratos
 }  //namespace Kratos.
 
 #endif // KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_H_INCLUDED  defined
-

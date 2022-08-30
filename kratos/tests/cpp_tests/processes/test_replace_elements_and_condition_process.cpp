@@ -83,11 +83,17 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess1, KratosCoreFastSu
     this_model_part.AddElement(p_elem_2);
     this_model_part.AddElement(p_elem_3);
 
+    const double pressure = 3.0;
+    for (auto& r_element : this_model_part.Elements()) {
+        r_element.SetValue(PRESSURE, pressure);
+        r_element.Set(VISITED);
+    }
+
     // Compute process
     Parameters settings( R"(
     {
         "element_name":"Element2D3N",
-        "condition_name": "Condition2D2N"
+        "condition_name": "LineCondition2D2N"
     }  )" );
 
     ReplaceElementsAndConditionsProcess process(this_model_part, settings);
@@ -98,6 +104,8 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess1, KratosCoreFastSu
     for (auto& r_element : this_model_part.Elements()) {
         CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
         KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
+        KRATOS_CHECK_NEAR(r_element.GetValue(PRESSURE), pressure, 1e-6);
+        KRATOS_CHECK(r_element.Is(VISITED));
     }
 }
 
@@ -407,7 +415,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess4, KratosCoreFastSu
     Parameters settings( R"(
     {
         "element_name":"Element2D3N",
-        "condition_name": "Condition2D2N"
+        "condition_name": "LineCondition2D2N"
     }  )" );
 
     ReplaceElementsAndConditionsProcess process(this_model_part, settings);

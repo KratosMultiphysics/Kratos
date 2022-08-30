@@ -36,7 +36,7 @@ namespace Kratos
 {
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyWeakSlidingProcess
+class ApplyWeakSlidingProcess
     : public Process
 {
   public:

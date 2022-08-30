@@ -2,12 +2,12 @@
 
 #include "custom_elements/embedded_fluid_element.h"
 #include "custom_elements/qs_vms.h"
-#include "custom_elements/symbolic_navier_stokes.h"
+#include "custom_elements/weakly_compressible_navier_stokes.h"
 
 #include "custom_utilities/embedded_data.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
-#include "custom_utilities/symbolic_navier_stokes_data.h"
+#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
@@ -60,21 +60,21 @@ Element::Pointer EmbeddedFluidElement<TBaseElement>::Create(IndexType NewId,Geom
 }
 
 template <class TBaseElement>
-void EmbeddedFluidElement<TBaseElement>::Initialize()
+void EmbeddedFluidElement<TBaseElement>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
     // Call the base element initialize method to set the constitutive law
-    TBaseElement::Initialize();
+    TBaseElement::Initialize(rCurrentProcessInfo);
 
     // Initialize the nodal EMBEDDED_VELOCITY variable (make it threadsafe)
     const array_1d<double,3> zero_vel = ZeroVector(3);
     for (auto &r_node : this->GetGeometry()) {
+        r_node.SetLock();
         if (!r_node.Has(EMBEDDED_VELOCITY)) {
-            r_node.SetLock();
             r_node.SetValue(EMBEDDED_VELOCITY, zero_vel);
-            r_node.UnSetLock();
         }
+        r_node.UnSetLock();
     }
 
     KRATOS_CATCH("");
@@ -83,7 +83,7 @@ void EmbeddedFluidElement<TBaseElement>::Initialize()
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo) {
+    const ProcessInfo& rCurrentProcessInfo) {
 
     // Resize and intialize output
     if (rLeftHandSideMatrix.size1() != LocalSize)
@@ -144,12 +144,23 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::Calculate(
     const Variable<double> &rVariable,
-    double& rOutput,
-    const ProcessInfo &rCurrentProcessInfo) {
-
-    rOutput = 0.0;
-
-    TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    double &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    if (rVariable == CUTTED_AREA) {
+        // Initialize the embedded element data
+        EmbeddedElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+        this->InitializeGeometryData(data);
+        // Calculate the intersection area as the Gauss weights summation
+        const unsigned int n_int_pos_gauss = data.PositiveInterfaceWeights.size();
+        rOutput = 0.0;
+        for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
+            rOutput += data.PositiveInterfaceWeights[g];
+        }
+    } else {
+        TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    }
 }
 
 template <class TBaseElement>
@@ -163,40 +174,19 @@ void EmbeddedFluidElement<TBaseElement>::Calculate(
     // If the element is split, integrate sigma.n over the interface
     // Note that in the ausas formulation, both interface sides need to be integrated
     if (rVariable == DRAG_FORCE) {
-
+        // Initialize the embedded element data
         EmbeddedElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
         this->InitializeGeometryData(data);
-        const unsigned int number_of_positive_gauss_points = data.PositiveSideWeights.size();
-
-        if ( data.IsCut() ){
-            // Integrate positive interface side drag
-            const unsigned int n_int_pos_gauss = data.PositiveInterfaceWeights.size();
-            for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
-
-                // Update the Gauss pt. data and the constitutive law
-                this->UpdateIntegrationPointData(data, g + number_of_positive_gauss_points,
-                   data.PositiveInterfaceWeights[g],row(data.PositiveInterfaceN, g),data.PositiveInterfaceDNDX[g]);
-
-                // Get the interface Gauss pt. unit noromal
-                const auto &aux_unit_normal = data.PositiveInterfaceUnitNormals[g];
-
-                // Compute Gauss pt. pressure
-                const double p_gauss = inner_prod(data.N, data.Pressure);
-
-                // Get the normal projection matrix in Voigt notation
-                BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
-                FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
-
-                // Add the shear and pressure drag contributions
-                const array_1d<double, Dim> shear_proj = data.Weight * prod(voigt_normal_proj_matrix, data.ShearStress);
-                for (unsigned int i = 0; i < Dim ; ++i){
-                    rOutput(i) -= shear_proj(i);
-                }
-                rOutput += data.Weight * p_gauss * aux_unit_normal;
-            }
-        }
-
+        // Calculate the drag force
+        this->CalculateDragForce(data, rOutput);
+    } else if (rVariable == DRAG_FORCE_CENTER) {
+        // Initialize the embedded element data
+        EmbeddedElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+        this->InitializeGeometryData(data);
+        // Calculate the drag force location
+        this->CalculateDragForceCenter(data, rOutput);
     } else {
         TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
     }
@@ -224,7 +214,7 @@ void EmbeddedFluidElement<TBaseElement>::Calculate(
 // Access
 
 template <class TBaseElement>
-void EmbeddedFluidElement<TBaseElement>::GetValueOnIntegrationPoints(
+void EmbeddedFluidElement<TBaseElement>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>> &rVariable,
     std::vector<array_1d<double, 3>> &rValues,
     const ProcessInfo &rCurrentProcessInfo)
@@ -243,15 +233,14 @@ void EmbeddedFluidElement<TBaseElement>::GetValueOnIntegrationPoints(
             }
         }
     } else {
-        TBaseElement::GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        TBaseElement::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
 }
 
 // Inquiry
 
 template <class TBaseElement>
-int EmbeddedFluidElement<TBaseElement>::Check(
-    const ProcessInfo &rCurrentProcessInfo)
+int EmbeddedFluidElement<TBaseElement>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
 
     int out = EmbeddedElementData::Check(*this,rCurrentProcessInfo);
@@ -264,6 +253,46 @@ int EmbeddedFluidElement<TBaseElement>::Check(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Input and output
+
+template <class TBaseElement>
+const Parameters EmbeddedFluidElement<TBaseElement>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["implicit"],
+        "framework"                  : "ale",
+        "symmetric_lhs"              : false,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : ["EMBEDDED_VELOCITY"],
+            "nodal_historical"       : ["VELOCITY","PRESSURE"],
+            "nodal_non_historical"   : ["EMBEDDED_VELOCITY"],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISTANCE","VELOCITY","PRESSURE","MESH_VELOCITY","MESH_DISPLACEMENT"],
+        "required_dofs"              : [],
+        "flags_used"                 : ["SLIP"],
+        "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : ["Newtonian2DLaw","Newtonian3DLaw","NewtonianTemperatureDependent2DLaw","NewtonianTemperatureDependent3DLaw","Euler2DLaw","Euler3DLaw"],
+            "dimension"   : ["2D","3D"],
+            "strain_size" : [3,6]
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   :
+            "This element implements a Cut-FEM type (a.k.a. embedded) for a continuous (nodal-based) levelset representation. Note that this element is understood to act as un upper-layer implementing the Cut-FEM terms of a template TBaseElement implementing the Navier-Stokeks contribution. Also note that two wall behaviors of the implicit surface can be modelled. If SLIP flag is true, a Navier-Slip boundary condition is imposed using the Nitsche's method. If the SLIP flag is false, a standard no-slip (pure stick) boundary condition is enforced using a modified Nitsche method. The element is able to account for the relative velocity of moving objects by defining the EMBEDDED_VELOCITY variable (this would require switching on the FM-ALE algorithm)."
+    })");
+
+    if (Dim == 2) {
+        std::vector<std::string> dofs_2d({"VELOCITY_X","VELOCITY_Y","PRESSURE"});
+        specifications["required_dofs"].SetStringArray(dofs_2d);
+    } else {
+        std::vector<std::string> dofs_3d({"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"});
+        specifications["required_dofs"].SetStringArray(dofs_3d);
+    }
+
+    return specifications;
+}
 
 template <class TBaseElement>
 std::string EmbeddedFluidElement<TBaseElement>::Info() const {
@@ -340,16 +369,16 @@ void EmbeddedFluidElement<TBaseElement>::DefineCutGeometryData(
     // Fluid side
     p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
         rData.PositiveSideN, rData.PositiveSideDNDX, rData.PositiveSideWeights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Fluid side interface
     p_calculator->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
         rData.PositiveInterfaceN, rData.PositiveInterfaceDNDX,
-        rData.PositiveInterfaceWeights, GeometryData::GI_GAUSS_2);
+        rData.PositiveInterfaceWeights, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Fluid side interface normals
     p_calculator->ComputePositiveSideInterfaceAreaNormals(
-        rData.PositiveInterfaceUnitNormals, GeometryData::GI_GAUSS_2);
+        rData.PositiveInterfaceUnitNormals, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Normalize the normals
     // Note: we calculate h here (and we don't use the value in rData.ElementSize)
@@ -388,11 +417,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
         }
     }
 
-    // Compute the Nitsche normal imposition penalty coefficient
-    const double pen_coef = this->ComputeSlipNormalPenaltyCoefficient(rData);
-
     // Compute LHS contribution
-    // BoundedMatrix<double, LocalSize, LocalSize> aux_LHS = ZeroMatrix(LocalSize, LocalSize);
     const unsigned int number_of_integration_points = rData.PositiveInterfaceWeights.size();
 
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
@@ -400,6 +425,9 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
         const double weight = rData.PositiveInterfaceWeights[g];
         const auto aux_N = row(rData.PositiveInterfaceN, g);
         const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
+
+        // Compute the Nitsche normal imposition penalty coefficient
+        const double pen_coef = this->ComputeSlipNormalPenaltyCoefficient(rData, aux_N);
 
         // Compute the Gauss pt. LHS contribution
         for (unsigned int i = 0; i < NumNodes; ++i){
@@ -688,26 +716,25 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialSymmetricCounterpartCo
 
 template <class TBaseElement>
 double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
-    const EmbeddedElementData& rData) const
+    const EmbeddedElementData& rData,
+    const Vector& rN) const
 {
-    // Compute the element average velocity norm
-    double v_norm = 0.0;
-    for (unsigned int comp = 0; comp < Dim; ++comp){
-        double aux_vel = 0.0;
-        for (unsigned int j = 0; j < NumNodes; ++j){
-            aux_vel += rData.Velocity(j,comp);
-        }
-        aux_vel /= NumNodes;
-        v_norm += aux_vel*aux_vel;
+    // Get the nodal magnitudes at the current Gauss point
+    const auto& r_geom = this->GetGeometry();
+    const unsigned int n_nodes = r_geom.PointsNumber();
+    double gauss_pt_rho = rN(0) * AuxiliaryDensityGetter(rData, 0);
+    array_1d<double,Dim> gauss_pt_v = rN(0) * row(rData.Velocity, 0);
+    for (unsigned int i_node = 1;  i_node < n_nodes; ++i_node) {
+        gauss_pt_rho += rN(i_node) * AuxiliaryDensityGetter(rData, i_node);
+        noalias(gauss_pt_v) += rN(i_node) * row(rData.Velocity, i_node);
     }
-    v_norm = std::sqrt(v_norm);
+    const double gauss_pt_v_norm = norm_2(gauss_pt_v);
 
     // Compute the Nitsche coefficient (including the Winter stabilization term)
-    const double avg_rho = rData.Density;
     const double eff_mu = rData.EffectiveViscosity;
     const double h = rData.ElementSize;
     const double penalty = 1.0/rData.PenaltyCoefficient;
-    const double cons_coef = (eff_mu + eff_mu + avg_rho*v_norm*h + avg_rho*h*h/rData.DeltaTime)/(h*penalty);
+    const double cons_coef = (eff_mu + eff_mu + gauss_pt_rho*gauss_pt_v_norm*h + gauss_pt_rho*h*h/rData.DeltaTime)/(h*penalty);
 
     return cons_coef;
 }
@@ -773,12 +800,9 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionPenaltyContribution
     for (unsigned int g = 0; g < number_of_interface_gauss_points; ++g) {
         const double weight = rData.PositiveInterfaceWeights[g];
         const auto shape_functions = row(rData.PositiveInterfaceN,g);
-        p_gamma += weight*outer_prod(shape_functions,shape_functions);
+        const double penalty_coefficient = this->ComputePenaltyCoefficient(rData, shape_functions);
+        p_gamma += penalty_coefficient * weight * outer_prod(shape_functions,shape_functions);
     }
-
-    // Multiply the penalty matrix by the penalty coefficient
-    const double penalty_coefficient = this->ComputePenaltyCoefficient(rData);
-    p_gamma *= penalty_coefficient;
 
     MatrixType penalty_lhs = ZeroMatrix(LocalSize, LocalSize);
 
@@ -803,7 +827,8 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionPenaltyContribution
 
 template <class TBaseElement>
 double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
-    const EmbeddedElementData& rData) const
+    const EmbeddedElementData& rData,
+    const Vector& rN) const
 {
     // Compute the intersection area using the Gauss pts. weights
     double intersection_area = 0.0;
@@ -811,25 +836,23 @@ double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
         intersection_area += rData.PositiveInterfaceWeights[g];
     }
 
-    // Compute the element average velocity value
-    array_1d<double, Dim> avg_vel = ZeroVector(Dim);
-
-    for (unsigned int i = 0; i < NumNodes; ++i) {
-        avg_vel += row(rData.Velocity, i);
+    // Get the nodal magnitudes at the current Gauss point
+    const auto& r_geom = this->GetGeometry();
+    const unsigned int n_nodes = r_geom.PointsNumber();
+    double gauss_pt_rho = rN(0) * AuxiliaryDensityGetter(rData, 0);
+    array_1d<double,Dim> gauss_pt_v = rN(0) * row(rData.Velocity, 0);
+    for (unsigned int i_node = 1;  i_node < n_nodes; ++i_node) {
+        gauss_pt_rho += rN(i_node) * AuxiliaryDensityGetter(rData, i_node);
+        noalias(gauss_pt_v) += rN(i_node) * row(rData.Velocity, i_node);
     }
-
-    constexpr double weight = 1./double(NumNodes);
-    avg_vel *= weight;
-
-    const double v_norm = norm_2(avg_vel);
+    const double gauss_pt_v_norm = norm_2(gauss_pt_v);
 
     // Compute the penalty constant
     double h = rData.ElementSize;
-    const double rho = rData.Density;
     const double eff_mu = rData.EffectiveViscosity;
-    const double pen_cons = rho*std::pow(h, Dim)/rData.DeltaTime +
-                                rho*eff_mu*std::pow(h,Dim-2) +
-                                rho*v_norm*std::pow(h, Dim-1);
+    const double pen_cons = gauss_pt_rho*std::pow(h, Dim)/rData.DeltaTime +
+                            gauss_pt_rho*eff_mu*std::pow(h,Dim-2) +
+                            gauss_pt_rho*gauss_pt_v_norm*std::pow(h, Dim-1);
 
     // Return the penalty coefficient
     const double K = rData.PenaltyCoefficient;
@@ -970,6 +993,128 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheCont
 // Private functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::CalculateDragForce(
+    EmbeddedElementData& rData,
+    array_1d<double,3>& rDragForce) const
+{
+    const unsigned int n_pos_gauss = rData.PositiveSideWeights.size();
+
+    if (rData.IsCut()) {
+        // Integrate positive interface side drag
+        const unsigned int n_int_pos_gauss = rData.PositiveInterfaceWeights.size();
+        for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
+
+            // Update the Gauss pt. rData and the constitutive law
+            this->UpdateIntegrationPointData(
+                rData,
+                g + n_pos_gauss,
+                rData.PositiveInterfaceWeights[g],
+                row(rData.PositiveInterfaceN, g),
+                rData.PositiveInterfaceDNDX[g]);
+
+            // Get the interface Gauss pt. unit noromal
+            const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
+
+            // Compute Gauss pt. pressure
+            const double p_gauss = inner_prod(rData.N, rData.Pressure);
+
+            // Get the normal projection matrix in Voigt notation
+            BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
+            FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
+
+            // Add the shear and pressure drag contributions
+            const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
+            for (unsigned int i = 0; i < Dim ; ++i) {
+                rDragForce(i) -= shear_proj(i);
+            }
+            rDragForce += rData.Weight * p_gauss * aux_unit_normal;
+        }
+    }
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::CalculateDragForceCenter(
+    EmbeddedElementData& rData,
+    array_1d<double,3>& rDragForceLocation) const
+{
+    const auto &r_geometry = this->GetGeometry();
+    array_1d<double,3> tot_drag = ZeroVector(3);
+    const unsigned int n_pos_gauss = rData.PositiveSideWeights.size();
+
+    if (rData.IsCut()) {
+        // Integrate positive interface side drag
+        const unsigned int n_int_pos_gauss = rData.PositiveInterfaceWeights.size();
+        for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
+            // Calculate the Gauss pt. coordinates
+            array_1d<double,3> g_coords = ZeroVector(3);
+            const auto g_shape_functions = row(rData.PositiveInterfaceN, g);
+            for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+                g_coords += g_shape_functions[i_node] * r_geometry[i_node].Coordinates();
+            }
+
+            // Update the Gauss pt. rData and the constitutive law
+            this->UpdateIntegrationPointData(
+                rData,
+                g + n_pos_gauss,
+                rData.PositiveInterfaceWeights[g],
+                g_shape_functions,
+                rData.PositiveInterfaceDNDX[g]);
+
+            // Get the interface Gauss pt. unit noromal
+            const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
+
+            // Compute Gauss pt. pressure
+            const double p_gauss = inner_prod(rData.N, rData.Pressure);
+
+            // Get the normal projection matrix in Voigt notation
+            BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
+            FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
+
+            // Add the shear and pressure drag contributions
+            const array_1d<double, 3> p_proj = rData.Weight * p_gauss * aux_unit_normal;
+            const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
+            for (unsigned int i = 0; i < Dim ; ++i) {
+                tot_drag(i) -= shear_proj(i);
+                rDragForceLocation(i) += g_coords(i) * p_proj(i);
+                rDragForceLocation(i) -= g_coords(i) * shear_proj(i);
+            }
+            tot_drag += p_proj;
+        }
+
+        // Divide the obtained result by the total drag
+        rDragForceLocation(0) /= tot_drag(0);
+        rDragForceLocation(1) /= tot_drag(1);
+        if (Dim == 3) {
+            rDragForceLocation(2) /= tot_drag(2);
+        }
+    }
+}
+
+template <class TBaseElement>
+double EmbeddedFluidElement<TBaseElement>::AuxiliaryDensityGetter(
+    const EmbeddedElementData& rData,
+    const unsigned int NodeIndex) const
+{
+    return rData.Density;
+}
+
+template <>
+double EmbeddedFluidElement<WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> >>::AuxiliaryDensityGetter(
+    const EmbeddedElementData& rData,
+    const unsigned int NodeIndex) const
+{
+    return rData.Density(NodeIndex);
+}
+
+template <>
+double EmbeddedFluidElement<WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<3,4> >>::AuxiliaryDensityGetter(
+    const EmbeddedElementData& rData,
+    const unsigned int NodeIndex) const
+{
+    return rData.Density(NodeIndex);
+}
+
 // serializer
 
 template <class TBaseElement>
@@ -1008,8 +1153,8 @@ ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<3, 4>(
 template class EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<2,3> > >;
 template class EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > >;
 
-template class EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > >;
-template class EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > >;
+template class EmbeddedFluidElement< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> > >;
+template class EmbeddedFluidElement< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<3,4> > >;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

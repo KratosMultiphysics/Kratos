@@ -16,11 +16,12 @@
 #include <stdio.h>
 #include <vector>
 #include <iostream>
-#ifdef _OPENMP
+#ifdef KRATOS_SMP_OPENMP
 #include <omp.h>
 #else
 #include <ctime>
 #endif
+#include "parallel_utilities.h"
 
 namespace Kratos
 {
@@ -60,15 +61,45 @@ public:
      @return Maximum number of OpenMP threads that will be used in
      parallel regions.
      */
-    static inline int GetNumThreads()
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"ParallelUtilities\" instead") static inline int GetNumThreads()
+    {
+        return ParallelUtilities::GetNumThreads();
+    }
+
+    /// Wrapper for omp_get_num_threads().
+    /**
+     @return Number of OpenMP threads in the current team.
+     */
+    static int GetCurrentNumberOfThreads()
     {
 #ifdef _OPENMP
-        return omp_get_max_threads();
+        return omp_get_num_threads();
 #else
         return 1;
 #endif
     }
 
+    /// Wrapper for omp_get_num_procs().
+    /**
+     @return Number of processors available to the device.
+     */
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"ParallelUtilities\" instead") static int GetNumberOfProcessors()
+    {
+        return ParallelUtilities::GetNumProcs();
+    }
+
+    /// Wrapper for omp_get_dynamic().
+    /**
+     @return Dynamic teams are enabled.
+     */
+    static int IsDynamic()
+    {
+#ifdef _OPENMP
+        return omp_get_dynamic();
+#else
+        return 0;
+#endif
+    }
 
     /// Wrapper for omp_get_thread_num().
     /**
@@ -103,7 +134,7 @@ public:
      (scalar or parallel) timer class.
      @return Current time
      */
-    static double GetCurrentTime()
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"utilities/builtin_timer.h\" instead") static double GetCurrentTime()
     {
 #ifndef _OPENMP
         return std::clock()/static_cast<double>(CLOCKS_PER_SEC);
@@ -173,23 +204,9 @@ public:
      that values greater than the environment variable OMP_NUM_THREADS
      will be ignored.
      */
-    static inline void SetNumThreads(int NumThreads = 1)
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"ParallelUtilities\" instead") static inline void SetNumThreads(int NumThreads = 1)
     {
-#ifdef _OPENMP
-
-      int procs    = omp_get_num_procs();
-      if( procs < NumThreads ){
-	std::cout<<" WARNING: Maximimun number of threads is EXCEEDED "<<std::endl;
-	/* Set thread number */
-	omp_set_num_threads(procs);
-	std::cout<<" Number of Threads Set To : "<<procs<<std::endl;
-      }
-      else{
-	/* Set thread number */
-	omp_set_num_threads(NumThreads);
-      }
-
-#endif
+        ParallelUtilities::SetNumThreads(NumThreads);
     }
 
     /**

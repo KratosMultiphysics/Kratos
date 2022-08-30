@@ -15,8 +15,6 @@
 // External includes
 
 // Project includes
-#include "geometries/triangle_2d_3.h"
-#include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
 #include "containers/model.h"
@@ -63,10 +61,10 @@ namespace Kratos
             NodeType::Pointer p_node_6 = r_model_part.CreateNewNode(6, 2.0, 1.0, 0.0);
 
             // Creating the elements
-            Element::Pointer p_elem_1 = r_model_part.CreateNewElement("Element2D3N", 1, {{1,2,3}}, p_properties);
-            Element::Pointer p_elem_2 = r_model_part.CreateNewElement("Element2D3N", 2, {{1,3,4}}, p_properties);
-            Element::Pointer p_elem_3 = r_model_part.CreateNewElement("Element2D3N", 3, {{2,5,3}}, p_properties);
-            Element::Pointer p_elem_4 = r_model_part.CreateNewElement("Element2D3N", 4, {{5,6,3}}, p_properties);
+            Element::Pointer p_elem_1 = r_model_part.CreateNewElement("Element2D3N", 1, {{1,2,4}}, p_properties);
+            Element::Pointer p_elem_2 = r_model_part.CreateNewElement("Element2D3N", 2, {{2,5,4}}, p_properties);
+            Element::Pointer p_elem_3 = r_model_part.CreateNewElement("Element2D3N", 3, {{2,6,5}}, p_properties);
+            Element::Pointer p_elem_4 = r_model_part.CreateNewElement("Element2D3N", 4, {{2,3,6}}, p_properties);
 
             // Adding elements and its nodes to the sub model part
             r_sub_model_part_1.AddNode(p_node_1);
@@ -81,10 +79,7 @@ namespace Kratos
             r_sub_model_part_1.AddElement(p_elem_4);
 
             // Creating the conditions
-            std::vector<NodeType::Pointer> line_nodes(2);
-            line_nodes[0] = p_node_1;
-            line_nodes[1] = p_node_4;
-            Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("Condition2D2N", 1, PointerVector<NodeType>{line_nodes}, p_properties);
+            Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("LineCondition2D2N", 1, {{1,4}}, p_properties);
 
             // Adding conditions and its nodes to the sub model part
             r_sub_model_part_2.AddNode(p_node_1);
@@ -272,12 +267,7 @@ namespace Kratos
             Element::Pointer p_elem_1 = r_model_part.CreateNewElement("Element3D8N", 1, {{1,2,3,4,5,6,7,8}}, p_properties);
 
             // Creating the conditions
-            PointerVector<NodeType> quadrilateral_nodes(4);
-            quadrilateral_nodes(0) = p_node_1;
-            quadrilateral_nodes(1) = p_node_2;
-            quadrilateral_nodes(2) = p_node_3;
-            quadrilateral_nodes(3) = p_node_4;
-            Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("SurfaceCondition3D4N", 1, quadrilateral_nodes, p_properties);
+            Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("SurfaceCondition3D4N", 1, {{1,2,3,4}}, p_properties);
 
             r_sub_model_part_1.AddElement(p_elem_1);
             r_sub_model_part_2.AddCondition(p_cond_1);
@@ -336,19 +326,8 @@ namespace Kratos
             Element::Pointer p_elem_5 = r_model_part.CreateNewElement("Element3D4N", 5, {{3,8,4,5}}, p_properties);
             Element::Pointer p_elem_6 = r_model_part.CreateNewElement("Element3D4N", 6, {{1,3,4,5}}, p_properties);
 
-            // Creating the conditions
-            PointerVector<NodeType> triangle_nodes_1(3);
-            triangle_nodes_1(0) = p_node_1;
-            triangle_nodes_1(1) = p_node_5;
-            triangle_nodes_1(2) = p_node_4;
-
-            PointerVector<NodeType> triangle_nodes_2(3);
-            triangle_nodes_2(0) = p_node_4;
-            triangle_nodes_2(1) = p_node_5;
-            triangle_nodes_2(2) = p_node_8;
-
-            Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_nodes_1, p_properties);
-            Condition::Pointer p_cond_2 = r_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_nodes_2, p_properties);
+            Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, {{1,5,4}}, p_properties);
+            Condition::Pointer p_cond_2 = r_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, {{4,5,8}}, p_properties);
 
             r_sub_model_part_1.AddElement(p_elem_1);
             r_sub_model_part_1.AddElement(p_elem_2);

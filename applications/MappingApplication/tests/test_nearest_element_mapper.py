@@ -1,10 +1,9 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics as KM
+import KratosMultiphysics.MappingApplication # registering the mappers
 import basic_mapper_tests
 import blade_mapping_test
 
-class NearestElementBasicTestsLine(basic_mapper_tests.BasicMapperTests):
+class BasicTestsLine(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
@@ -13,9 +12,29 @@ class NearestElementBasicTestsLine(basic_mapper_tests.BasicMapperTests):
             "interface_submodel_part_destination": "line_quad",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsLine, cls).setUpMapper(mapper_params)
+        super().setUpMapper(mapper_params)
 
-class NearestElementBasicTestsLineSwitchedSides(basic_mapper_tests.BasicMapperTests):
+class BasicTestsLineInitialConfig(basic_mapper_tests.BasicMapperTests):
+    @classmethod
+    def setUpClass(cls):
+        mapper_params = KM.Parameters("""{
+            "mapper_type": "nearest_element",
+            "interface_submodel_part_origin": "line_tri",
+            "interface_submodel_part_destination": "line_quad",
+            "use_initial_configuration" : true,
+            "echo_level" : 0
+        }""")
+        super().setUpMapper(mapper_params)
+        for node in cls.model_part_origin.Nodes:
+            node.X = node.X + 111.1
+            node.Y = node.Y - 693.1
+            node.Z = node.Z + 15698
+
+    def _GetFileName(self, file_appendix):
+        file_name = super()._GetFileName(file_appendix)
+        return file_name.replace("InitialConfig", "")
+
+class BasicTestsLineSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
@@ -24,9 +43,9 @@ class NearestElementBasicTestsLineSwitchedSides(basic_mapper_tests.BasicMapperTe
             "interface_submodel_part_destination": "line_tri",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsLineSwitchedSides, cls).setUpMapper(mapper_params, switch_sides=True)
+        super().setUpMapper(mapper_params, switch_sides=True)
 
-class NearestElementBasicTestsSurface(basic_mapper_tests.BasicMapperTests):
+class BasicTestsSurface(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
@@ -35,9 +54,9 @@ class NearestElementBasicTestsSurface(basic_mapper_tests.BasicMapperTests):
             "interface_submodel_part_destination": "surface_quad",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsSurface, cls).setUpMapper(mapper_params)
+        super().setUpMapper(mapper_params)
 
-class NearestElementBasicTestsSurfaceSwitchedSides(basic_mapper_tests.BasicMapperTests):
+class BasicTestsSurfaceSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
@@ -46,9 +65,9 @@ class NearestElementBasicTestsSurfaceSwitchedSides(basic_mapper_tests.BasicMappe
             "interface_submodel_part_destination": "surface_tri",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsSurfaceSwitchedSides, cls).setUpMapper(mapper_params, switch_sides=True)
+        super().setUpMapper(mapper_params, switch_sides=True)
 
-class NearestElementBasicTestsVolume(basic_mapper_tests.BasicMapperTests):
+class BasicTestsVolume(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
@@ -57,9 +76,9 @@ class NearestElementBasicTestsVolume(basic_mapper_tests.BasicMapperTests):
             "interface_submodel_part_destination": "volume_quad",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsVolume, cls).setUpMapper(mapper_params)
+        super().setUpMapper(mapper_params)
 
-class NearestElementBasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapperTests):
+class BasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
@@ -68,16 +87,56 @@ class NearestElementBasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapper
             "interface_submodel_part_destination": "volume_tri",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsVolumeSwitchedSides, cls).setUpMapper(mapper_params, switch_sides=True)
+        super().setUpMapper(mapper_params, switch_sides=True)
 
-class NearestElementBladeMapping(blade_mapping_test.BladeMappingTests):
+class BladeMapping(blade_mapping_test.BladeMappingTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_element",
             "echo_level" : 0
         }""")
-        super(NearestElementBladeMapping, cls).setUpMapper(mapper_params)
+        super().setUpMapper(mapper_params)
+        cls.print_output = False
+
+class BladeMappingSerialModelPart(blade_mapping_test.BladeMappingTestsSerialModelPart):
+    @classmethod
+    def setUpClass(cls):
+        mapper_params = KM.Parameters("""{
+            "mapper_type": "nearest_element",
+            "echo_level" : 0
+        }""")
+        super().setUpMapper(mapper_params)
+        cls.print_output = False
+
+class BladeMappingAllRanksExceptLast(blade_mapping_test.BladeMappingTestsAllRanksExceptLast):
+    @classmethod
+    def setUpClass(cls):
+        mapper_params = KM.Parameters("""{
+            "mapper_type": "nearest_element",
+            "echo_level" : 0
+        }""")
+        super().setUpMapper(mapper_params)
+        cls.print_output = False
+
+class BladeMappingAllRanksExceptFirst(blade_mapping_test.BladeMappingTestsAllRanksExceptFirst):
+    @classmethod
+    def setUpClass(cls):
+        mapper_params = KM.Parameters("""{
+            "mapper_type": "nearest_element",
+            "echo_level" : 0
+        }""")
+        super().setUpMapper(mapper_params)
+        cls.print_output = False
+
+class BladeMappingUnevenRanks(blade_mapping_test.BladeMappingTestsUnevenRanks):
+    @classmethod
+    def setUpClass(cls):
+        mapper_params = KM.Parameters("""{
+            "mapper_type": "nearest_element",
+            "echo_level" : 0
+        }""")
+        super().setUpMapper(mapper_params)
         cls.print_output = False
 
 if __name__ == '__main__':

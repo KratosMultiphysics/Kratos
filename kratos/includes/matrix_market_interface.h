@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -45,10 +45,42 @@ extern "C"
 namespace Kratos
 {
 
+// Type checks
+template<typename T>
+constexpr bool IsCorrectType(MM_typecode& mm_code);
+
+template<>
+constexpr inline bool IsCorrectType<double>(MM_typecode& mm_code)
+{
+    return mm_is_real(mm_code);
+}
+
+template<>
+constexpr inline bool IsCorrectType<std::complex<double>>(MM_typecode& mm_code)
+{
+    return mm_is_complex(mm_code);
+}
+
 // Matrix I/O routines
+inline bool ReadMatrixMarketMatrixEntry(FILE *f, int& I, int& J, double& V)
+{
+
+    return fscanf(f, "%d %d %lg", &I, &J, &V) == 3;
+}
+
+inline bool ReadMatrixMarketMatrixEntry(FILE *f, int& I, int& J, std::complex<double>& V)
+{
+    double real;
+    double imag;
+    const int i = fscanf(f, "%d %d %lg %lg", &I, &J, &real, &imag);
+    V = std::complex<double>(real, imag);
+    return i == 4;
+}
 
 template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M)
 {
+    typedef typename CompressedMatrixType::value_type ValueType;
+
     // Open MM file for reading
     FILE *f = fopen(FileName, "r");
 
@@ -76,9 +108,9 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     }
 
     // Check for supported types of MM file
-    if (!((mm_is_real(mm_code) || mm_is_integer(mm_code) || mm_is_pattern(mm_code)) && mm_is_coordinate(mm_code) && mm_is_sparse(mm_code)))
+    if (!(mm_is_coordinate(mm_code) && mm_is_sparse(mm_code)))
     {
-        printf("ReadMatrixMarketMatrix(): invalid MatrixMarket type, \"%s\".\n",  mm_typecode_to_str(mm_code));
+        printf("ReadMatrixMarketMatrix(): unspported MatrixMarket type, \"%s\".\n",  mm_typecode_to_str(mm_code));
         fclose(f);
         return false;
     }
@@ -96,7 +128,15 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     // Allocate temporary arrays
     int *I = new int[nnz];
     int *J = new int[nnz];
-    double *V = new double[nnz];
+    ValueType *V = new ValueType[nnz];
+
+    // Check if matrix type matches MM file
+    if (!IsCorrectType<ValueType>(mm_code))
+    {
+        printf("ReadMatrixMarketMatrix(): MatrixMarket type, \"%s\" does not match provided matrix type.\n",  mm_typecode_to_str(mm_code));
+        fclose(f);
+        return false;
+    }
 
     // Read MM file
 
@@ -126,7 +166,7 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     else
         for (int i = 0; i < nnz; i++)
         {
-            if (fscanf(f, "%d %d %lg", &I[i], &J[i], &V[i]) != 3)
+            if (! ReadMatrixMarketMatrixEntry(f, I[i], J[i], V[i]))
             {
                 printf("ReadMatrixMarketMatrix(): invalid data.\n");
                 fclose(f);
@@ -187,7 +227,7 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     int *filled = new int[size1];
     int *indices = new int[size1];
     int *columns = new int[nnz2];
-    double *values = new double[nnz2];
+    ValueType *values = new ValueType[nnz2];
 
     indices[0] = 0;
     for (int i = 1; i < size1; i++)
@@ -258,6 +298,26 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     return true;
 }
 
+inline void SetMatrixMarketValueTypeCode(MM_typecode& mm_code, const double& value)
+{
+    mm_set_real(&mm_code);
+}
+
+inline void SetMatrixMarketValueTypeCode(MM_typecode& mm_code, const std::complex<double>& value)
+{
+    mm_set_complex(&mm_code);
+}
+
+inline int WriteMatrixMarketMatrixEntry(FILE *f, int I, int J, const double& entry)
+{
+    return fprintf(f, "%d %d %.12e\n", I, J, entry);
+}
+
+inline int WriteMatrixMarketMatrixEntry(FILE *f, int I, int J, const std::complex<double>& entry)
+{
+    return fprintf(f, "%d %d %.12e %.12e\n", I, J, std::real(entry), std::imag(entry));
+}
+
 template <typename CompressedMatrixType> inline bool WriteMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M, bool Symmetric)
 {
     // Open MM file for writing
@@ -276,7 +336,7 @@ template <typename CompressedMatrixType> inline bool WriteMatrixMarketMatrix(con
 
     mm_set_matrix(&mm_code);
     mm_set_coordinate(&mm_code);
-    mm_set_real(&mm_code);
+    SetMatrixMarketValueTypeCode(mm_code, *M.begin1().begin());
 
     if (Symmetric)
         mm_set_symmetric(&mm_code);
@@ -330,7 +390,7 @@ template <typename CompressedMatrixType> inline bool WriteMatrixMarketMatrix(con
                 int I = a_iterator.index1(), J = row_iterator.index2();
 
                 if (I >= J)
-                    if (fprintf(f, "%d %d %g\n", I + 1, J + 1, *row_iterator) < 0)
+                    if (WriteMatrixMarketMatrixEntry(f, I+1, J+1, *row_iterator) < 0)
                     {
                         printf("WriteMatrixMarketMatrix(): unable to write data.\n");
                         fclose(f);
@@ -355,7 +415,7 @@ template <typename CompressedMatrixType> inline bool WriteMatrixMarketMatrix(con
             {
                 int I = a_iterator.index1(), J = row_iterator.index2();
 
-                if (fprintf(f, "%d %d %g\n", I + 1, J + 1, *row_iterator) < 0)
+                if (WriteMatrixMarketMatrixEntry(f, I+1, J+1, *row_iterator) < 0)
                 {
                     printf("WriteMatrixMarketMatrix(): unable to write data.\n");
                     fclose(f);
@@ -374,8 +434,24 @@ template <typename CompressedMatrixType> inline bool WriteMatrixMarketMatrix(con
 
 // Vector I/O routines
 
+inline bool ReadMatrixMarketVectorEntry(FILE *f, double& entry)
+{
+    return fscanf(f, "%lg", &entry) == 1;
+}
+
+inline bool ReadMatrixMarketVectorEntry(FILE *f, std::complex<double>& entry)
+{
+    double real;
+    double imag;
+    const int i = fscanf(f, "%lg %lg", &real, &imag);
+    entry = std::complex<double>(real, imag);
+    return i == 2;
+}
+
 template <typename VectorType> inline bool ReadMatrixMarketVector(const char *FileName, VectorType &V)
 {
+    typedef typename VectorType::value_type ValueType;
+
     // Open MM file for reading
     FILE *f = fopen(FileName, "r");
 
@@ -403,9 +479,9 @@ template <typename VectorType> inline bool ReadMatrixMarketVector(const char *Fi
     }
 
     // Check for supported types of MM file
-    if (!((mm_is_real(mm_code) || mm_is_integer(mm_code)) && mm_is_array(mm_code)))
+    if (!((!mm_is_pattern(mm_code)) && mm_is_array(mm_code)))
     {
-        printf("ReadMatrixMarketVector(): invalid MatrixMarket type, \"%s\".\n",  mm_typecode_to_str(mm_code));
+        printf("ReadMatrixMarketVector(): unsupported MatrixMarket type, \"%s\".\n",  mm_typecode_to_str(mm_code));
         fclose(f);
         return false;
     }
@@ -429,13 +505,21 @@ template <typename VectorType> inline bool ReadMatrixMarketVector(const char *Fi
     }
 
     VectorType *v = new VectorType(size1);
-    double T;
+    ValueType T;
+
+    // Check if vector type matches MM file
+    if (!IsCorrectType<ValueType>(mm_code))
+    {
+        printf("ReadMatrixMarketVector(): MatrixMarket type, \"%s\" does not match provided vector type.\n",  mm_typecode_to_str(mm_code));
+        fclose(f);
+        return false;
+    }
 
     // Read MM file
 
     for (int i = 0; i < size1; i++)
     {
-        if (fscanf(f, "%lg", &T) != 1)
+        if (! ReadMatrixMarketVectorEntry(f, T))
         {
             printf("ReadMatrixMarketVector(): invalid data.\n");
             fclose(f);
@@ -453,6 +537,16 @@ template <typename VectorType> inline bool ReadMatrixMarketVector(const char *Fi
     delete v;
 
     return true;
+}
+
+inline int WriteMatrixMarketVectorEntry(FILE *f, const double& entry)
+{
+    return fprintf(f, "%e\n", entry);
+}
+
+inline int WriteMatrixMarketVectorEntry(FILE *f, const std::complex<double>& entry)
+{
+    return fprintf(f, "%e %e\n", std::real(entry), std::imag(entry));
 }
 
 template <typename VectorType> inline bool WriteMatrixMarketVector(const char *FileName, VectorType &V)
@@ -473,7 +567,7 @@ template <typename VectorType> inline bool WriteMatrixMarketVector(const char *F
 
     mm_set_matrix(&mm_code);
     mm_set_array(&mm_code);
-    mm_set_real(&mm_code);
+    SetMatrixMarketValueTypeCode(mm_code, V(0));
 
     mm_write_banner(f, mm_code);
 
@@ -481,7 +575,7 @@ template <typename VectorType> inline bool WriteMatrixMarketVector(const char *F
     mm_write_mtx_array_size(f, V.size(), 1);
 
     for (unsigned int i = 0; i < V.size(); i++)
-        if (fprintf(f, "%g\n", V(i)) < 0)
+        if (WriteMatrixMarketVectorEntry(f, V(i)) < 0)
         {
             printf("WriteMatrixMarketVector(): unable to write data.\n");
             fclose(f);
@@ -496,4 +590,3 @@ template <typename VectorType> inline bool WriteMatrixMarketVector(const char *F
 } // namespace Kratos
 
 #endif // KRATOS_MATRIX_MARKET_INTERFACE_H_INCLUDED  defined
-

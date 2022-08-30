@@ -12,6 +12,7 @@
 #include "embedded_incompressible_potential_flow_element.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_utilities/potential_flow_utilities.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -50,11 +51,10 @@ Element::Pointer EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Clon
 
 template <int Dim, int NumNodes>
 void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     const EmbeddedIncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
-    const int kutta = r_this.GetValue(KUTTA);
 
     BoundedVector<double,NumNodes> distances;
     for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
@@ -62,16 +62,28 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
     }
     const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(distances);
 
-    if (is_embedded && wake == 0 && kutta == 0)
+    if (is_embedded && wake == 0) {
         CalculateEmbeddedLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-    else
-        BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        if (std::abs(rCurrentProcessInfo[STABILIZATION_FACTOR]) > std::numeric_limits<double>::epsilon()) {
+            PotentialFlowUtilities::AddPotentialGradientStabilizationTerm<Dim, NumNodes>(*this,rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+        }
+    }
+    else {
+        if (this->Is(STRUCTURE)) {
+            CalculateKuttaWakeLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        } else {
+            BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        }
+    }
 
+    if (std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
+        PotentialFlowUtilities::AddKuttaConditionPenaltyTerm<Dim, NumNodes>(r_this,rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+    }
 }
 
 template <int Dim, int NumNodes>
 void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbeddedLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
         rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
@@ -94,17 +106,52 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
         positive_side_sh_func,
         positive_side_sh_func_gradients,
         positive_side_weights,
-        GeometryData::GI_GAUSS_1);
+        GeometryData::IntegrationMethod::GI_GAUSS_1);
 
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
     BoundedMatrix<double,NumNodes,Dim> DN_DX;
     for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
         DN_DX=positive_side_sh_func_gradients(i_gauss);
-        noalias(rLeftHandSideMatrix) += free_stream_density*prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);;
+        noalias(rLeftHandSideMatrix) += free_stream_density*prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);
     }
 
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, potential);
+}
+
+template <int Dim, int NumNodes>
+void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateKuttaWakeLocalSystem(
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+{
+    // Note that the lhs and rhs have double the size
+    if (rLeftHandSideMatrix.size1() != 2 * NumNodes ||
+        rLeftHandSideMatrix.size2() != 2 * NumNodes)
+        rLeftHandSideMatrix.resize(2 * NumNodes, 2 * NumNodes, false);
+    if (rRightHandSideVector.size() != 2 * NumNodes)
+        rRightHandSideVector.resize(2 * NumNodes, false);
+    rLeftHandSideMatrix.clear();
+    rRightHandSideVector.clear();
+
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{this->GetGeometry()};
+
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+
+    data.distances = PotentialFlowUtilities::GetWakeDistances<Dim, NumNodes>(*this);
+
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_total = data.vol*free_stream_density*prod(data.DN_DX, trans(data.DN_DX));
+
+    for (unsigned int i = 0; i < NumNodes; ++i)
+    {
+        for (unsigned int j = 0; j < NumNodes; ++j)
+        {
+            rLeftHandSideMatrix(i, j) = lhs_total(i, j);
+            rLeftHandSideMatrix(i + NumNodes, j + NumNodes) = lhs_total(i, j);
+        }
+    }
+
+    BoundedVector<double, 2*NumNodes> split_element_values;
+    split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
+    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
 }
 
 template <>
@@ -121,7 +168,7 @@ ModifiedShapeFunctions::Pointer EmbeddedIncompressiblePotentialFlowElement<3,4>:
 // Inquiry
 
 template <int Dim, int NumNodes>
-int EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

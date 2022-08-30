@@ -59,6 +59,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "Structure.SelfWeight3D_Surface_Q4_thick",
             "variable_name"   : "VOLUME_ACCELERATION",
+            "constrained"     : false,
             "modulus"         : 9.81,
             "direction"       : [0.0,0.0,-1.0],
             "interval"        : [0.0,"End"]
@@ -73,6 +74,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "Structure.SelfWeight3D_Surface_Q4_thin",
             "variable_name"   : "VOLUME_ACCELERATION",
+            "constrained"     : false,
             "modulus"         : 9.81,
             "direction"       : [0.0,0.0,-1.0],
             "interval"        : [0.0,"End"]
@@ -87,6 +89,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "Structure.SelfWeight3D_Surface_T3_thick",
             "variable_name"   : "VOLUME_ACCELERATION",
+            "constrained"     : false,
             "modulus"         : 9.81,
             "direction"       : [0.0,0.0,-1.0],
             "interval"        : [0.0,"End"]
@@ -101,6 +104,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "Structure.SelfWeight3D_Surface_T3_thin",
             "variable_name"   : "VOLUME_ACCELERATION",
+            "constrained"     : false,
             "modulus"         : 9.81,
             "direction"       : [0.0,0.0,-1.0],
             "interval"        : [0.0,"End"]

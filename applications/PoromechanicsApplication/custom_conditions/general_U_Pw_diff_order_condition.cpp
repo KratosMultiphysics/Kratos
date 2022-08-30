@@ -50,7 +50,7 @@ Condition::Pointer GeneralUPwDiffOrderCondition::Create(IndexType NewId,NodesArr
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::Initialize()
+void GeneralUPwDiffOrderCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -80,7 +80,7 @@ void GeneralUPwDiffOrderCondition::Initialize()
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
+void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -129,7 +129,7 @@ void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList,
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void GeneralUPwDiffOrderCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -160,7 +160,7 @@ void GeneralUPwDiffOrderCondition::CalculateLocalSystem( MatrixType& rLeftHandSi
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void GeneralUPwDiffOrderCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -171,7 +171,7 @@ void GeneralUPwDiffOrderCondition::CalculateLeftHandSide( MatrixType& rLeftHandS
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void GeneralUPwDiffOrderCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -194,7 +194,7 @@ void GeneralUPwDiffOrderCondition::CalculateRightHandSide( VectorType& rRightHan
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo)
+void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -225,7 +225,7 @@ void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResul
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo,
+void GeneralUPwDiffOrderCondition::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo,
                                         bool CalculateLHSMatrixFlag, bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
@@ -246,7 +246,7 @@ void GeneralUPwDiffOrderCondition::CalculateAll(MatrixType& rLeftHandSideMatrix,
         this->CalculateConditionVector(Variables,PointNumber);
 
         //Calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( Variables, PointNumber, integration_points[PointNumber].Weight(), rCurrentProcessInfo );
+        this->CalculateIntegrationCoefficient( Variables, PointNumber, integration_points[PointNumber].Weight() );
 
         //Contributions to the left hand side
         if ( CalculateLHSMatrixFlag )
@@ -312,7 +312,7 @@ void GeneralUPwDiffOrderCondition::CalculateConditionVector(ConditionVariables& 
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight, const ProcessInfo& rCurrentProcessInfo)
+void GeneralUPwDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight)
 {
     KRATOS_TRY
 

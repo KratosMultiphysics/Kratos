@@ -202,7 +202,7 @@ const std::string Parameters::const_iterator_adaptor::name()
 
 Parameters::Parameters()
 {
-    mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( "{}" ));
+    mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( "{}", nullptr, true, true));
     mpValue = mpRoot.get();
 }
 
@@ -211,7 +211,17 @@ Parameters::Parameters()
 
 Parameters::Parameters(const std::string& rJsonString)
 {
-    mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rJsonString ));
+    mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rJsonString, nullptr, true, true));
+    mpValue = mpRoot.get();
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters::Parameters(std::ifstream& rStringStream)
+{
+    mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rStringStream, nullptr, true, true));
     mpValue = mpRoot.get();
 }
 
@@ -239,10 +249,10 @@ Parameters::Parameters(Parameters&& rOther) : Parameters()
 Parameters& Parameters::operator=(Parameters const& rOther)
 {
     if(mpRoot.get() ==  mpValue || mpRoot == nullptr) {
-        mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse(rOther.WriteJsonString()));
+        mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse(rOther.WriteJsonString(), nullptr, true, true));
         mpValue = mpRoot.get();
     } else {
-        *mpValue = nlohmann::json( nlohmann::json::parse( rOther.WriteJsonString() ) );
+        *mpValue = nlohmann::json( nlohmann::json::parse( rOther.WriteJsonString(), nullptr, true, true));
         // note that mpRoot is unchanged
     }
 
@@ -651,6 +661,21 @@ void Parameters::SetString(const std::string& rValue)
 /***********************************************************************************/
 /***********************************************************************************/
 
+void Parameters::SetStringArray(const std::vector<std::string>& rValue)
+{
+    const SizeType size = rValue.size();
+
+    nlohmann::json j_array(0.0, size);
+    (*mpValue) = j_array;
+
+    for (IndexType i = 0; i < size; ++i) {
+        (*mpValue)[i] = rValue[i];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Parameters::SetVector(const Vector& rValue)
 {
     const SizeType size = rValue.size();
@@ -682,6 +707,97 @@ void Parameters::SetMatrix(const Matrix& rValue)
             (*mpValue)[i][j] = rValue(i, j);
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::AddDouble(
+    const std::string& rEntry,
+    const double Value
+    )
+{
+    Parameters aux_parameters(R"({"value": 0.0})");
+    aux_parameters["value"].SetDouble(Value);
+    this->AddValue(rEntry, aux_parameters["value"]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::AddInt(
+    const std::string& rEntry,
+    const int Value
+    )
+{
+    Parameters aux_parameters(R"({"value": 0})");
+    aux_parameters["value"].SetInt(Value);
+    this->AddValue(rEntry, aux_parameters["value"]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::AddBool(
+    const std::string& rEntry,
+    const bool Value
+    )
+{
+    Parameters aux_parameters(R"({"value": false})");
+    aux_parameters["value"].SetBool(Value);
+    this->AddValue(rEntry, aux_parameters["value"]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::AddString(
+    const std::string& rEntry,
+    const std::string& rValue
+    )
+{
+    Parameters aux_parameters(R"({"value": ""})");
+    aux_parameters["value"].SetString(rValue);
+    this->AddValue(rEntry, aux_parameters["value"]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::AddStringArray(
+    const std::string& rEntry,
+    const std::vector<std::string>& rValue
+    )
+{
+    Parameters aux_parameters(R"({"value": []})");
+    aux_parameters["value"].SetStringArray(rValue);
+    this->AddValue(rEntry, aux_parameters["value"]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::AddVector(
+    const std::string& rEntry,
+    const Vector& rValue
+    )
+{
+    Parameters aux_parameters(R"({"value": []})");
+    aux_parameters["value"].SetVector(rValue);
+    this->AddValue(rEntry, aux_parameters["value"]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::AddMatrix(
+    const std::string& rEntry,
+    const Matrix& rValue
+    )
+{
+    Parameters aux_parameters(R"({"value": []})");
+    aux_parameters["value"].SetMatrix(rValue);
+    this->AddValue(rEntry, aux_parameters["value"]);
 }
 
 /***********************************************************************************/
@@ -846,15 +962,7 @@ void Parameters::Append(const std::string& rValue)
 void Parameters::Append(const Vector& rValue)
 {
     KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
-    const SizeType size = rValue.size();
-
-    nlohmann::json j_array(0.0, size);
-
-    for (IndexType i = 0; i < size; ++i) {
-        j_array = rValue[i];
-    }
-
-    mpValue->push_back(j_array);
+    mpValue->push_back(nlohmann::json(rValue));
 }
 
 /***********************************************************************************/
@@ -886,7 +994,7 @@ void Parameters::Append(const Matrix& rValue)
 void Parameters::Append(const Parameters& rValue)
 {
     KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
-    nlohmann::json j_object = nlohmann::json( nlohmann::json::parse( rValue.WriteJsonString() ) );
+    nlohmann::json j_object = nlohmann::json( nlohmann::json::parse( rValue.WriteJsonString(), nullptr, true, true));
     mpValue->push_back(j_object);
 }
 
@@ -899,11 +1007,13 @@ void Parameters::RecursivelyFindValue(
     ) const
 {
     for (auto itr = rBaseValue.begin(); itr != rBaseValue.end(); ++itr) {
-        if (&(itr.value()) == &rValueToFind) {
-            KRATOS_INFO("Parameters") << "Base = " << PrettyPrintJsonString() << std::endl
-                        << "Problematic var name " << itr.key() << " value " << itr.value() << std::endl;
+        const auto value = itr.value();
+        if (&(value) == &rValueToFind) {
+            const std::string value_string = value.dump();
+            KRATOS_INFO("Parameters") << "Base = " << PrettyPrintJsonString()
+                        << "\nProblematic var name " << itr.key() << " value " << value_string << std::endl;
         } else {
-            if (itr->is_object()) RecursivelyFindValue(itr.value(), rValueToFind);
+            if (itr->is_object()) RecursivelyFindValue(value, rValueToFind);
             //TODO: it could be an array
         }
     }
@@ -915,21 +1025,21 @@ void Parameters::RecursivelyFindValue(
 bool Parameters::IsEquivalentTo(Parameters& rParameters)
 {
     for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
-        const std::string& item_name = itr.key();
+        const std::string& r_item_name = itr.key();
 
         bool found = false;
 
-        for (auto itr_ref = rParameters.mpValue->begin(); itr_ref != rParameters.mpValue->end(); ++itr_ref) {
-            if (item_name == itr_ref.key()) {
+        for (auto& r_parameter_reference : rParameters.items()) {
+            if (r_item_name == r_parameter_reference.key()) {
                 found = true;
-                Parameters subobject = (*this)[item_name];
-                Parameters reference_subobject = rParameters[item_name];
+                Parameters subobject = (*this)[r_item_name];
+                Parameters reference_subobject = rParameters[r_item_name];
 
                 if (itr->is_object()) {
                     if (!subobject.IsEquivalentTo(reference_subobject))
                         return false;
                 } else {
-                    if (itr.value() != itr_ref.value())
+                    if (itr.value() != r_parameter_reference.value())
                         return false;
                 }
                 break;
@@ -941,13 +1051,13 @@ bool Parameters::IsEquivalentTo(Parameters& rParameters)
     }
 
     // Reverse check: the rParameters can contain fields that are missing in the object
-    for (auto itr = rParameters.mpValue->begin();  itr != rParameters.mpValue->end(); ++itr) {
-        const std::string& item_name = itr.key();
+    for (auto& r_parameter : rParameters.items()) {
+        const std::string& r_item_name = r_parameter.key();
 
         bool found = false;
 
-        for (auto itr_ref = this->mpValue->begin(); itr_ref != this->mpValue->end(); ++itr_ref) {
-            if (item_name == itr_ref.key()) {
+        for (auto& r_parameter_reference : this->items()) {
+            if (r_item_name == r_parameter_reference.key()) {
                 found = true;
                 // No need to check the values here, if they were found in the previous loop, values were checked there
                 break;
@@ -967,21 +1077,21 @@ bool Parameters::IsEquivalentTo(Parameters& rParameters)
 bool Parameters::HasSameKeysAndTypeOfValuesAs(Parameters& rParameters)
 {
     for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
-        const std::string& item_name = itr.key();
+        const std::string& r_item_name = itr.key();
 
         bool found = false;
 
-        for (auto itr_ref = rParameters.mpValue->begin(); itr_ref != rParameters.mpValue->end(); ++itr_ref) {
-            if (item_name == itr_ref.key()) {
+        for (auto& r_parameter_reference : rParameters.items()) {
+            if (r_item_name == r_parameter_reference.key()) {
                 found = true;
-                Parameters subobject = (*this)[item_name];
-                Parameters reference_subobject = rParameters[item_name];
+                Parameters subobject = (*this)[r_item_name];
+                Parameters reference_subobject = rParameters[r_item_name];
 
                 if (itr->is_object()) {
                     if (!subobject.HasSameKeysAndTypeOfValuesAs(reference_subobject))
                         return false;
                 } else {
-                    if (itr.value().type() != itr_ref.value().type()) {
+                    if (itr.value().type() != r_parameter_reference.value().type()) {
                         return false;
                     }
                 }
@@ -994,13 +1104,13 @@ bool Parameters::HasSameKeysAndTypeOfValuesAs(Parameters& rParameters)
     }
 
     // Reverse check: the rParameters can contain fields that are missing in the object
-    for (auto itr = rParameters.mpValue->begin(); itr != rParameters.mpValue->end(); ++itr) {
-        const std::string& item_name = itr.key();
+    for (auto& r_parameter : rParameters.items()) {
+        const std::string& r_item_name = r_parameter.key();
 
         bool found = false;
 
-        for (auto itr_ref =  this->mpValue->begin(); itr_ref != this->mpValue->end(); ++itr_ref) {
-            if (item_name == itr_ref.key()) {
+        for (auto& r_parameter_reference : this->items()) {
+            if (r_item_name == r_parameter_reference.key()) {
                 found = true;
                 // No need to check the types here, if they were found in the previous loop, types were checked there
                 break;
@@ -1086,10 +1196,10 @@ void Parameters::AddMissingParameters(const Parameters& rDefaultParameters)
 
     // Iterate over all the rDefaultParameters. In the case a default value is not assigned in the current Parameters add an item copying its value
     if (rDefaultParameters.IsSubParameter()) {
-        for (auto itr = rDefaultParameters.mpValue->begin(); itr != rDefaultParameters.mpValue->end(); ++itr) {
-            const std::string& r_item_name = itr.key();
+        for (auto& r_parameter : rDefaultParameters.items()) {
+            const std::string& r_item_name = r_parameter.key();
             if(mpValue->find(r_item_name) == mpValue->end()) {
-                (*mpValue)[r_item_name] = itr.value();
+                (*mpValue)[r_item_name] = r_parameter.value();
             }
         }
     }
@@ -1296,7 +1406,7 @@ void Parameters::SetUnderlyingRootStorage(Kratos::shared_ptr<nlohmann::json> pNe
 void Parameters::InternalSetValue(const Parameters& rOtherValue)
 {
     delete[] mpValue;
-    mpValue = new nlohmann::json( nlohmann::json::parse( rOtherValue.WriteJsonString()));
+    mpValue = new nlohmann::json( nlohmann::json::parse( rOtherValue.WriteJsonString(), nullptr, true, true));
 }
 
 }  // namespace Kratos.

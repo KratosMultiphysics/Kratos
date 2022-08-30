@@ -22,7 +22,6 @@
 // Project includes
 #include "containers/pointer_vector.h"
 #include "includes/define.h"
-#include "includes/model_part.h"
 #include "includes/ublas_interface.h"
 #include "statistics_utilities.h"
 
@@ -33,6 +32,8 @@ namespace Kratos
 
 ///@name Kratos Classes
 ///@{
+
+class ModelPart; // forward-declaring to not having to include it here
 
 /// Main class for online statistics calculation.
 /** This class manages the definition, update and output of statistics calculated during a simulation.

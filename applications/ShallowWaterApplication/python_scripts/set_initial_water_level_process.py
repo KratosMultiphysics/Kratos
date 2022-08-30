@@ -16,17 +16,27 @@ class SetInitialWaterLevelProcess(KM.Process):
         default_settings = KM.Parameters("""
             {
                 "model_part_name"      : "please_specify_model_part_name",
-                "interval"             : [0.0, 1e30],
                 "variable_name"        : "HEIGHT",
                 "constrained"          : false,
-                "value"                : "1.0"
+                "interval"             : [0.0, 0.0],
+                "value"                : 1.0,
+                "set_minimum_height"   : true,
+                "minimum_height_value" : 1e-4
             }
             """
             )
+        if settings.Has("value"):
+            if settings["value"].IsString():
+                default_settings["value"].SetString("1.0")
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.variable = settings["variable_name"].GetString()
         self.model_part = Model[settings["model_part_name"].GetString()]
+
+        self.set_minimum_height = settings["set_minimum_height"].GetBool()
+        self.minimum_height = settings["minimum_height_value"].GetDouble()
+        settings.RemoveValue("set_minimum_height")
+        settings.RemoveValue("minimum_height_value")
 
         from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
         self.process = AssignScalarVariableProcess(Model, settings)
@@ -37,3 +47,7 @@ class SetInitialWaterLevelProcess(KM.Process):
             SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.model_part)
         elif self.variable == "FREE_SURFACE_ELEVATION":
             SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.model_part)
+
+        if self.set_minimum_height:
+            SW.ShallowWaterUtilities().SetMinimumValue(self.model_part, SW.HEIGHT, self.minimum_height)
+            SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.model_part)

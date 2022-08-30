@@ -156,7 +156,7 @@ print ("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 
 
 model=ConnectivityPreserveModeler()
-model.GenerateModelPart(fluid_model_part,temperature_model_part,"ConvDiff2D","Condition2D");
+model.GenerateModelPart(fluid_model_part,temperature_model_part,"ConvDiff2D","LineCondition2D2N");
 #print (temperature_model_part)
 #print (fluid_model_part)
 
@@ -278,7 +278,7 @@ while (time < final_time):
 	
         print ("Before generating model part")
 	
-        model.GenerateModelPart(fluid_model_part,temperature_model_part, "ConvDiff2D","Condition2D");
+        model.GenerateModelPart(fluid_model_part,temperature_model_part, "ConvDiff2D","LineCondition2D2N");
         print ("After generating model part")
         print (temperature_model_part)
         print (fluid_model_part)

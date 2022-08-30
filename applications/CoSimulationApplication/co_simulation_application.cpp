@@ -26,8 +26,6 @@ KratosCoSimulationApplication::KratosCoSimulationApplication():
 
 void KratosCoSimulationApplication::Register()
 {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
 	KRATOS_INFO("") << "    KRATOS  / ___|___/ ___|(_)_ __ ___  _   _| | __ _| |_(_) ___  _ __\n"
 	                << "           | |   / _ \\___ \\| | '_ ` _ \\| | | | |/ _` | __| |/ _ \\| '_ \\\n"
 	                << "           | |__| (_) |__) | | | | | | | |_| | | (_| | |_| | (_) | | | |\n"
@@ -41,6 +39,15 @@ void KratosCoSimulationApplication::Register()
     KRATOS_REGISTER_VARIABLE(SCALAR_FORCE);
     KRATOS_REGISTER_VARIABLE(SCALAR_VOLUME_ACCELERATION);
 
+    KRATOS_REGISTER_VARIABLE(NODES_ID_INDEX_MAP);
+    KRATOS_REGISTER_VARIABLE(ELEMENTS_ID_INDEX_MAP);
+
+    KRATOS_REGISTER_VARIABLE(COUPLING_ITERATION_NUMBER)
+
+    KRATOS_REGISTER_VARIABLE(INTERFACE_EQUATION_ID)
+    KRATOS_REGISTER_VARIABLE(EXPLICIT_EQUATION_ID)
+
+    KRATOS_REGISTER_VARIABLE(MIDDLE_VELOCITY)
 
 }
 }  // namespace Kratos.

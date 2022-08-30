@@ -24,6 +24,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/math_utils.h"
 
 // Application includes
@@ -104,7 +105,7 @@ public:
         // #pragma omp parallel for
         for(int i = 0; i < NNodes; i++) {
             ModelPart::NodesContainerType::iterator it_node = node_begin + i;
-            noalias(InitialStressTensor) = it_node->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+            noalias(InitialStressTensor) = it_node->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
             initial_stresses_mdpa << it_node->Id() << " 0 [3,3] ((" <<
                 InitialStressTensor(0,0) << "," << InitialStressTensor(0,1) << "," << InitialStressTensor(0,2) << "),(" <<
                 InitialStressTensor(1,0) << "," << InitialStressTensor(1,1) << "," << InitialStressTensor(1,2) << "),(" <<
@@ -319,7 +320,7 @@ private:
         ModelPart& rModelPart)
     {
         // Compute X, Y and Z limits of the current geometry
-        unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+        unsigned int NumThreads = ParallelUtilities::GetNumThreads();
         std::vector<double> X_max_partition(NumThreads);
         std::vector<double> X_min_partition(NumThreads);
         std::vector<double> Y_max_partition(NumThreads);
@@ -421,14 +422,14 @@ private:
         {
             ModelPart::NodesContainerType::iterator it_node = node_begin + i;
             it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-            Matrix& rNodalStress = it_node->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+            Matrix& rNodalStress = it_node->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
             if(rNodalStress.size1() != 3) // Dimension
                 rNodalStress.resize(3,3,false);
             noalias(rNodalStress) = ZeroMatrix(3,3);
         }
 
         // Calculate and Extrapolate Stresses
-        ProcessInfo& r_current_process_info = rCurrentModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rCurrentModelPart.GetProcessInfo();
         const auto it_elem_begin = rCurrentModelPart.ElementsBegin();
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rCurrentModelPart.Elements().size()); ++i) {
@@ -445,7 +446,7 @@ private:
             if (NodalArea>1.0e-20)
             {
                 const double InvNodalArea = 1.0/NodalArea;
-                Matrix& rNodalStress = it_node->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+                Matrix& rNodalStress = it_node->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
                 for(unsigned int i = 0; i<3; i++) // Dimension
                 {
                     for(unsigned int j = 0; j<3; j++)

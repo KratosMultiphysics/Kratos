@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#if !defined(KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED )
-#define  KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED
+#ifndef KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED
+#define KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED
 
 ///@defgroup ShallowWaterApplication Kratos Shallow Water Application
 ///@brief Basic set of tools to solve the shallow water equations.
@@ -31,12 +31,18 @@
 #include "includes/kratos_application.h"
 
 // Shallow water includes
-#include "custom_elements/shallow_element.h"
-#include "custom_elements/rv_swe.h"
-#include "custom_elements/cv_swe.h"
 #include "custom_elements/swe.h"
-#include "custom_elements/conserved_element.h"
-#include "custom_conditions/nothing_condition.hpp"
+#include "custom_elements/wave_element.h"
+#include "custom_elements/crank_nicolson_wave_element.h"
+#include "custom_elements/boussinesq_element.h"
+#include "custom_elements/conservative_element.h"
+#include "custom_elements/conservative_element_rv.h"
+#include "custom_elements/conservative_element_fc.h"
+#include "custom_elements/shallow_water_2d_3.h"
+#include "custom_conditions/wave_condition.h"
+#include "custom_conditions/boussinesq_condition.h"
+#include "custom_conditions/conservative_condition.h"
+#include "custom_modelers/mesh_moving_modeler.h"
 
 
 namespace Kratos
@@ -96,8 +102,6 @@ namespace Kratos
 
         virtual void Register() override;
 
-
-
         ///@}
         ///@name Access
         ///@{
@@ -148,43 +152,6 @@ namespace Kratos
 
         ///@}
 
-    protected:
-        ///@name Protected static Member Variables
-        ///@{
-
-
-        ///@}
-        ///@name Protected member Variables
-        ///@{
-
-
-        ///@}
-        ///@name Protected Operators
-        ///@{
-
-
-        ///@}
-        ///@name Protected Operations
-        ///@{
-
-
-        ///@}
-        ///@name Protected  Access
-        ///@{
-
-
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
-
-
-        ///@}
-
     private:
         ///@name Static Member Variables
         ///@{
@@ -195,24 +162,30 @@ namespace Kratos
         ///@{
 
         // Elements
-        const ShallowElement mShallowElement2D3N;
-        const RV_SWE<3, Eulerian> mRVSWE2D3N;
-        const RV_SWE<4, Eulerian> mRVSWE2D4N;
-        const RV_SWE<3, PFEM2> mPFEM2RVSWE2D3N;
-        const RV_SWE<4, PFEM2> mPFEM2RVSWE2D4N;
-        const CV_SWE<3, Eulerian> mCVSWE2D3N;
-        const CV_SWE<4, Eulerian> mCVSWE2D4N;
-        const CV_SWE<3, PFEM2> mPFEM2CVSWE2D3N;
-        const CV_SWE<4, PFEM2> mPFEM2CVSWE2D4N;
         const SWE<3, Eulerian> mSWE2D3N;
         const SWE<4, Eulerian> mSWE2D4N;
         const SWE<3, PFEM2> mLagrangianSWE2D3N;
         const SWE<4, PFEM2> mLagrangianSWE2D4N;
-        const ConservedElement<3> mConservedElement2D3N;
-        const ConservedElement<4> mConservedElement2D4N;
-        // Condition
-        const NothingCondition<2> mNothingCondition2D2N;
+        const WaveElement<3> mWaveElement2D3N;
+        const WaveElement<6> mWaveElement2D6N;
+        const WaveElement<4> mWaveElement2D4N;
+        const WaveElement<8> mWaveElement2D8N;
+        const WaveElement<9> mWaveElement2D9N;
+        const CrankNicolsonWaveElement<3> mCrankNicolsonWaveElement2D3N;
+        const BoussinesqElement<3> mBoussinesqElement2D3N;
+        const BoussinesqElement<4> mBoussinesqElement2D4N;
+        const ConservativeElement<3> mConservativeElementGJ2D3N;
+        const ConservativeElementRV<3> mConservativeElementRV2D3N;
+        const ConservativeElementFC<3> mConservativeElementFC2D3N;
+        const ShallowWater2D3 mShallowWater2D3N;
+        // Conditions
+        const WaveCondition<2> mWaveCondition2D2N;
+        const WaveCondition<3> mWaveCondition2D3N;
+        const BoussinesqCondition<2> mBoussinesqCondition2D2N;
+        const ConservativeCondition<2> mConservativeCondition2D2N;
 
+        // Modelers
+        const MeshMovingModeler mMeshMovingModeler;
 
         ///@}
         ///@name Private Operators

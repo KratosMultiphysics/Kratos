@@ -22,7 +22,6 @@
         "time_stepping"                   : {
             "time_step" : 1.1
         },
-        "line_search"                     : false,
         "convergence_criterion"           : "residual_criterion",
         "displacement_relative_tolerance" : 0.0001,
         "displacement_absolute_tolerance" : 1e-9,
@@ -69,6 +68,7 @@
             "Parameters"    : {
                 "model_part_name" : "Structure.SelfWeight3D_Self_weight_Auto1",
                 "variable_name"   : "VOLUME_ACCELERATION",
+                "constrained"     : false,
                 "modulus"         : 9000.81,
                 "direction"       : [0.0,-1.0,0.0],
                 "interval"        : [0.0,"End"]
@@ -85,7 +85,7 @@
                 "check_variables"      : ["DISPLACEMENT_X"],
                 "input_file_name"      : "mpc_contact_tests/plate_test_results.json",
                 "model_part_name"      : "Structure.CONTACT_Contact_slave_Auto1",
-                "check_for_flag"       : "ACTIVE",
+                "check_for_flag"       : "SLAVE",
                 "time_frequency"       : 0.0
             }
         }

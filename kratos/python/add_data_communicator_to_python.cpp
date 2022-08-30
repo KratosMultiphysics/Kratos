@@ -19,6 +19,7 @@
 #include "add_data_communicator_to_python.h"
 #include "includes/define_python.h"
 #include "includes/data_communicator.h"
+#include "includes/parallel_environment.h"
 
 namespace Kratos {
 
@@ -109,11 +110,18 @@ void AddDataCommunicatorToPython(pybind11::module &m)
         rSelf.Broadcast(SourceMessage,SourceRank);
         return SourceMessage;
     })
+    .def("Broadcast", [](DataCommunicator& rSelf, const std::string& rSourceMessage, const int SourceRank){
+        rSelf.Broadcast(rSourceMessage, SourceRank);
+        return rSourceMessage;
+    })
     .def("BroadcastInts", [](DataCommunicator& rSelf, const std::vector<int>& rSourceMessage, const int SourceRank) {
         return VectorBroadcastWrapper<int>(rSelf, &DataCommunicator::Broadcast, rSourceMessage, SourceRank);
     })
     .def("BroadcastDoubles", [](DataCommunicator& rSelf, const std::vector<double>& rSourceMessage, const int SourceRank) {
         return VectorBroadcastWrapper<double>(rSelf, &DataCommunicator::Broadcast, rSourceMessage, SourceRank);
+    })
+    .def("BroadcastStrings", [](DataCommunicator& rSelf, const std::vector<std::string>& rSourceMessage, const int SourceRank){
+        return VectorBroadcastWrapper<std::string>(rSelf, &DataCommunicator::Broadcast, rSourceMessage, SourceRank);
     })
     // Scatter
     .def("ScatterInts", (std::vector<int> (DataCommunicator::*)(const std::vector<int>&, const int) const) &DataCommunicator::Scatter)
@@ -133,7 +141,12 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     .def("Rank", &DataCommunicator::Rank)
     .def("Size", &DataCommunicator::Size)
     .def("IsDistributed", &DataCommunicator::IsDistributed)
-    .def_static("GetDefault", &DataCommunicator::GetDefault, py::return_value_policy::reference)
+    .def("IsDefinedOnThisRank", &DataCommunicator::IsDefinedOnThisRank)
+    .def("IsNullOnThisRank", &DataCommunicator::IsNullOnThisRank)
+    .def_static("GetDefault", []() -> DataCommunicator& {
+        KRATOS_WARNING("DataCommunicator") << "This function is deprecated, please retrieve the DataCommunicator through the ModelPart (or by name in special cases)" << std::endl;
+        return ParallelEnvironment::GetDefaultDataCommunicator();
+    }, py::return_value_policy::reference)
     .def("__str__", PrintObject<DataCommunicator>);
 }
 

@@ -60,7 +60,7 @@ public:
 
     void GetLawFeatures(Features& rFeatures) override;
 
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const override;
 
     void InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues ) override;
 
@@ -86,8 +86,12 @@ protected:
         double DamageThreshold;
         double YieldStress;
         double YoungModulus;
+        double PoissonCoefficient;
         double FrictionCoefficient;
         double PenaltyStiffness;
+        double MaxTensileStress;
+        double MaxCompresiveStress;
+        double Cohesion;
 
         Matrix CompressionMatrix;
         Matrix WeightMatrix;

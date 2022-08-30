@@ -16,6 +16,7 @@
 
 
 // Project includes
+#include "includes/define_python.h"
 
 
 namespace Kratos
@@ -24,7 +25,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddMemoryInfoToPython();
+void  AddMemoryInfoToPython(pybind11::module& m);
 
 }  // namespace Python.
 

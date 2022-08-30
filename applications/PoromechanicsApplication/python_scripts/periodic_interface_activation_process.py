@@ -22,9 +22,9 @@ class PeriodicInterfaceActivationProcess(KratosMultiphysics.Process):
         self.process = KratosPoro.PeriodicInterfaceProcess(self.model_part, self.params)
 
         if(settings["dimension"].GetInt() == 2):
-            self.FindNodalNeigh = KratosMultiphysics.FindNodalNeighboursProcess(self.model_part,2,5)
+            self.FindNodalNeigh = KratosMultiphysics.FindNodalNeighboursProcess(self.model_part)
         else:
-            self.FindNodalNeigh = KratosMultiphysics.FindNodalNeighboursProcess(self.model_part,10,10)
+            self.FindNodalNeigh = KratosMultiphysics.FindNodalNeighboursProcess(self.model_part)
 
     def ExecuteInitialize(self):
 

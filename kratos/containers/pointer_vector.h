@@ -68,7 +68,7 @@ namespace Kratos
 template<class TDataType,
          class TPointerType = typename TDataType::Pointer,
          class TContainerType = std::vector<TPointerType> >
-class PointerVector
+class PointerVector final
 {
 public:
     ///@name Type Definitions
@@ -120,17 +120,9 @@ public:
     explicit PointerVector(std::size_t NewSize) :  mData(NewSize)
     {
     }
-/*
-    template<class TOtherDataType>
-    PointerVector(std::size_t NewSize, TOtherDataType const& Value) :  mData(NewSize)
-    {
-        for(size_type i = 0 ; i < NewSize ; i++)
-            mData[i] = pointer(new TOtherDataType(Value));
-    }*/
 
     /// Destructor.
-    virtual ~PointerVector() {}
-
+    ~PointerVector() {}
 
     ///@}
     ///@name Operators
@@ -280,17 +272,6 @@ public:
         mData.push_back(x);
     }
 
-//     template<class TOtherDataType>
-//     void push_back(TOtherDataType const& x)
-//     {
-//         push_back(TPointerType(new TOtherDataType(x)));
-//     }
-/*
-    template<class TOtherDataType>
-    iterator insert(iterator Position, const TOtherDataType& rData)
-    {
-        return iterator(mData.insert(Position, TPointerType(new TOtherDataType(rData))));
-    }*/
 
     iterator insert(iterator Position, const TPointerType pData)
     {
@@ -320,7 +301,12 @@ public:
         mData.clear();
     }
 
-    void reserve(int dim)
+    void resize(size_type dim)
+    {
+        mData.resize(dim);
+    }
+
+    void reserve(size_type dim)
     {
         mData.reserve(dim);
     }
@@ -346,8 +332,6 @@ public:
         return mData;
     }
 
-
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -362,7 +346,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "PointerVector (size = " << size() << ") : ";
@@ -371,22 +355,16 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const
     {
         std::copy(begin(), end(), std::ostream_iterator<TDataType>(rOStream, "\n "));
     }
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
 
     ///@}
 

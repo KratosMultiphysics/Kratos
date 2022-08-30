@@ -56,7 +56,7 @@ public:
     ///@{
 
     /// Pointer definition of TransientConvectionDiffusionPFEM2FICElement
-    KRATOS_CLASS_POINTER_DEFINITION(TransientConvectionDiffusionPFEM2FICElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientConvectionDiffusionPFEM2FICElement);
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -86,7 +86,7 @@ public:
     TransientConvectionDiffusionPFEM2FICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : TransientConvectionDiffusionFICElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
     /// Destructor.
-    virtual ~TransientConvectionDiffusionPFEM2FICElement() {}
+    ~TransientConvectionDiffusionPFEM2FICElement() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -145,7 +145,16 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
+    void CalculateAndAddSourceForce(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
+    
+
     void CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo) override;
+
+    void CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo) override;
 
     void CalculateAndAddAdvectionMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override {}
 

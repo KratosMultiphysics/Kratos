@@ -18,8 +18,7 @@
 #include "utilities/openmp_utils.h"
 #include "utilities/timer.h"
 #include "Particle_Contact_Element.h"
-#include "../custom_constitutive/DEM_continuum_constitutive_law.h"
-#include "containers/vector_component_adaptor.h"
+#include "custom_constitutive/DEM_continuum_constitutive_law.h"
 
 #define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
@@ -87,23 +86,21 @@ namespace Kratos
             return std::unique_ptr<SphericParticle::ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
         }
 
-        void SetInitialSphereContacts(ProcessInfo& r_process_info);
+        virtual void SetInitialSphereContacts(const ProcessInfo& r_process_info);
         void SetInitialFemContacts();
-        void CreateContinuumConstitutiveLaws();
-        //void InitializeSolutionStep(ProcessInfo& r_process_info) override;
-        void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
+        virtual void CreateContinuumConstitutiveLaws();
+        void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
         void GetStressTensorFromNeighbourStep1();
         void GetStressTensorFromNeighbourStep2();
         void GetStressTensorFromNeighbourStep3();
-        //void CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere) override;
 
         void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
 
         void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& mTempNeighbourElements);
-        virtual void UpdateContinuumNeighboursVector(ProcessInfo& r_process_info);
+        virtual void UpdateContinuumNeighboursVector(const ProcessInfo& r_process_info);
+        virtual void ReorderFEMneighbours();
         virtual void ComputeForceWithNeighbourFinalOperations();
 
-        virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) override;
         virtual double CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info);
         virtual bool OverlappedParticleRemoval();
         virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info);
@@ -146,23 +143,24 @@ namespace Kratos
         unsigned int mContinuumInitialNeighborsSize;
         unsigned int mInitialNeighborsSize;
         std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
+        double mLocalRadiusAmplificationFactor = 1.0;
 
     protected:
 
         SphericContinuumParticle();
 
-        virtual void Initialize(const ProcessInfo& r_process_info) override;
+        void Initialize(const ProcessInfo& r_process_info) override;
         virtual double GetInitialDeltaWithFEM(int index) override;
         virtual void ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer &,
-                                                   ProcessInfo& r_process_info,
-                                                   array_1d<double, 3>& rElasticForce,
-                                                   array_1d<double, 3>& rContactForce,
-                                                   double& RollingResistance) override final;
+                                                const ProcessInfo& r_process_info,
+                                                array_1d<double, 3>& rElasticForce,
+                                                array_1d<double, 3>& rContactForce,
+                                                double& RollingResistance) override;
 
         virtual void ComputeRollingResistance(double& RollingResistance,
-                                              const double& NormalLocalContactForce,
-                                              const double& equiv_rolling_friction_coeff,
-                                              const unsigned int i) override;
+                                            const double& NormalLocalContactForce,
+                                            const double& equiv_rolling_friction_coeff,
+                                            const unsigned int i) override;
 
         virtual void ComputeBrokenBondsRatio();
         virtual void AddContributionToRepresentativeVolume(const double distance,

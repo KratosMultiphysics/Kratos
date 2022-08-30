@@ -57,16 +57,7 @@ KratosFluidTransportApplication::KratosFluidTransportApplication():
 
 void KratosFluidTransportApplication::Register()
 {
- 	// calling base class register to register Kratos components
- 	KratosApplication::Register();
  	std::cout << "Initializing KratosFluidTransportApplication... " << std::endl;
-
-    KRATOS_REGISTER_VARIABLE(PECLET);
-    KRATOS_REGISTER_VARIABLE(THETA);
-    KRATOS_REGISTER_VARIABLE(PHI_THETA);
-    KRATOS_REGISTER_VARIABLE(NODAL_ANALYTIC_SOLUTION);
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_PHI_GRADIENT);
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PHI_GRADIENT);
 
     KRATOS_REGISTER_ELEMENT( "SteadyConvectionDiffusionFICElement2D3N", mSteadyConvectionDiffusionFICElement2D3N )
     KRATOS_REGISTER_ELEMENT( "SteadyConvectionDiffusionFICElement2D4N", mSteadyConvectionDiffusionFICElement2D4N )
@@ -87,6 +78,13 @@ void KratosFluidTransportApplication::Register()
     KRATOS_REGISTER_ELEMENT( "TransientConvectionDiffusionPFEM2FICElement2D4N", mTransientConvectionDiffusionPFEM2FICElement2D4N )
     KRATOS_REGISTER_ELEMENT( "TransientConvectionDiffusionPFEM2FICElement3D4N", mTransientConvectionDiffusionPFEM2FICElement3D4N )
     KRATOS_REGISTER_ELEMENT( "TransientConvectionDiffusionPFEM2FICElement3D8N", mTransientConvectionDiffusionPFEM2FICElement3D8N )
+
+    KRATOS_REGISTER_VARIABLE(PECLET);
+    KRATOS_REGISTER_VARIABLE(THETA);
+    KRATOS_REGISTER_VARIABLE(PHI_THETA);
+    KRATOS_REGISTER_VARIABLE(NODAL_ANALYTIC_SOLUTION);
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_PHI_GRADIENT);
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PHI_GRADIENT);
 }
 
 }  // namespace Kratos.

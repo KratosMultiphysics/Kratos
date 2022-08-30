@@ -98,6 +98,11 @@ namespace Testing
       ));
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4Area, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
+        KRATOS_CHECK_NEAR(geom->Area(), 1.0, TOLERANCE);
+    }
+
     /** Test a box and quadrilateral HasIntersection which should give true
      */
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4NodeBoxIntersection, KratosCoreGeometriesFastSuite) {

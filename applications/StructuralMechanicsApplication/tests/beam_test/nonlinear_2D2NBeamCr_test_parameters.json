@@ -75,6 +75,7 @@
         "Parameters"    : {
                 "mesh_id"         : 0,
                 "model_part_name" : "Structure.PointLoad3D_neumann",
+                "constrained"     : false,
                 "variable_name"   : "POINT_MOMENT",
                 "value"           : [0.0,0.0,"25000*t"]
         }

@@ -916,7 +916,7 @@ void SmallDisplacementBbar::CalculateAndAddResidualVector(
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBbar::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementBbar::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     // Create and initialize element variables:
     const SizeType number_of_nodes = GetGeometry().size();
@@ -963,20 +963,6 @@ void SmallDisplacementBbar::FinalizeSolutionStep( ProcessInfo& rCurrentProcessIn
                 row(GetGeometry().ShapeFunctionsValues(), point_number),
                 rCurrentProcessInfo);
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-int  SmallDisplacementBbar::Check( const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    int ier = BaseSolidElement::Check(rCurrentProcessInfo);
-
-    return ier;
-
-    KRATOS_CATCH( "" );
 }
 
 //************************************************************************************

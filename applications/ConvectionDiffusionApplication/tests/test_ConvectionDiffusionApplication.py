@@ -6,31 +6,22 @@ import run_cpp_unit_tests
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-try:
-    import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-    missing_external_dependencies = False
-    missing_application = ''
-except ImportError as e:
-    missing_external_dependencies = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-                                    '{0}'.format(e)).group(1)
-
-# Import the tests or test_classes to create the suites
-
 ##### SELF-CONTAINED TESTS #####
 from bfecc_convection_test import BFECCConvectionTest
 from source_term_test import SourceTermTest
 from thermal_coupling_test import ThermalCouplingTest
 from test_apply_thermal_face_process import ApplyThermalFaceProcessTest
 from adjoint_heat_diffusion_test import AdjointHeatDiffusionTest
+from response_function_tests import TestAdjointPointTemperatureResponseFunction
 
 ##### SMALL TESTS #####
 from convection_diffusion_test_factory import BasicConvectionDiffusionStationaryTest as TBasicConvectionDiffusionStationaryTest
 from convection_diffusion_test_factory import BasicConvectionDiffusionTransientTest as TBasicConvectionDiffusionTransientTest
+from convection_diffusion_test_factory import BasicConvectionDiffusionTransientSemiImplicitTest as TBasicConvectionDiffusionTransientSemiImplicitTest
 from convection_diffusion_test_factory import BasicDiffusionStationaryTest as TBasicDiffusionStationaryTest
 from convection_diffusion_test_factory import SimpleThermoMechanicalTest as TSimpleThermoMechanicalTest
+from test_convection_diffusion_bar import TestConvectionDiffusionBar
+from test_convection_diffusion_embedded_solver import TestEmbeddedSolver
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -54,8 +45,6 @@ def AssembleTestSuites():
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
 
     ### Adding the self-contained tests
-    smallSuite.addTest(BFECCConvectionTest('testBFECCConvection'))
-    smallSuite.addTest(BFECCConvectionTest('testBFECCElementalLimiterConvection'))
     smallSuite.addTest(SourceTermTest('testPureDiffusion'))
     smallSuite.addTest(SourceTermTest('testDiffusionDominated'))
     smallSuite.addTest(SourceTermTest('testConvectionDominated'))
@@ -64,23 +53,33 @@ def AssembleTestSuites():
     smallSuite.addTest(ApplyThermalFaceProcessTest('testThermalFaceProcess'))
     smallSuite.addTest(AdjointHeatDiffusionTest('testAdjointHeatDiffusion'))
     smallSuite.addTest(AdjointHeatDiffusionTest('testAdjointHeatDiffusionWithSourceTerm'))
+    smallSuite.addTest(TestAdjointPointTemperatureResponseFunction("test_execution"))
 
     ### Adding Small Tests
     smallSuite.addTest(TBasicConvectionDiffusionStationaryTest('test_execution'))
     smallSuite.addTest(TBasicConvectionDiffusionTransientTest('test_execution'))
+    smallSuite.addTest(TBasicConvectionDiffusionTransientSemiImplicitTest('test_execution'))
     smallSuite.addTest(TBasicDiffusionStationaryTest('test_execution'))
     smallSuite.addTest(TSimpleThermoMechanicalTest('test_execution'))
+    smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarSemiImplicit'))
+    smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyDOSS'))
+    smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyQOSS'))
+    smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyDASGS'))
+    smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyQASGS'))
+    smallSuite.addTest(TestEmbeddedSolver('testEmbeddedSolverDirichletCircle'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite.addTests(smallSuite)
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
-    validationSuite.addTests(smallSuite)
+    validationSuite.addTests(nightSuite)
+    validationSuite.addTest(BFECCConvectionTest('testBFECCConvection'))
+    validationSuite.addTest(BFECCConvectionTest('testBFECCElementalLimiterConvection'))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(nightSuite)
+    allSuite.addTests(validationSuite)
 
     return suites
 

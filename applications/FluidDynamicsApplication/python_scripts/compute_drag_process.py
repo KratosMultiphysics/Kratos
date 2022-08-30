@@ -64,8 +64,8 @@ class ComputeDragProcess(KratosMultiphysics.Process):
         self.print_drag_to_screen = self.params["print_drag_to_screen"].GetBool()
         self.write_drag_output_file = self.params["write_drag_output_file"].GetBool()
 
-        if (self.model_part.GetCommunicator().MyPID() == 0):
-            if (self.write_drag_output_file):
+        if (self.write_drag_output_file):
+            if (self.model_part.GetCommunicator().MyPID() == 0):
 
                 output_file_name = self.params["model_part_name"].GetString() + "_drag.dat"
 
@@ -82,6 +82,7 @@ class ComputeDragProcess(KratosMultiphysics.Process):
                 file_header = self._GetFileHeader()
                 self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part,
                     file_handler_params, file_header).file
+                self.output_file.flush()
 
     def ExecuteFinalizeSolutionStep(self):
         current_step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
@@ -101,10 +102,12 @@ class ComputeDragProcess(KratosMultiphysics.Process):
                 # in the file writer when restarting
                 if (self.write_drag_output_file):
                     self.output_file.write(str(current_time)+" "+format(drag_force[0],self.format)+" "+format(drag_force[1],self.format)+" "+format(drag_force[2],self.format)+"\n")
+                    self.output_file.flush()
 
     def ExecuteFinalize(self):
-        if (self.model_part.GetCommunicator().MyPID() == 0):
-            self.output_file.close()
+        if (self.write_drag_output_file):
+            if (self.model_part.GetCommunicator().MyPID() == 0):
+                self.output_file.close()
 
     def _GetFileHeader(self):
         err_msg  = 'ComputeDragProcess: _GetFileHeader called in base class\n'

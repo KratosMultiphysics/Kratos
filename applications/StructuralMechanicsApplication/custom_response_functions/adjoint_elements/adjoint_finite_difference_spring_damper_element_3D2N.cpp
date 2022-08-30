@@ -19,28 +19,6 @@ namespace Kratos
 {
 
 template <class TPrimalElement>
-void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF_NOT(this->Has(NODAL_DISPLACEMENT_STIFFNESS) || this->Has(NODAL_ROTATIONAL_STIFFNESS)) <<
-        "Neither NODAL_DISPLACEMENT_STIFFNESS nor NODAL_ROTATIONAL_STIFFNESS available!" << std::endl;
-
-    // As the stiffness parameters are saved in the non-historical database of the element these parameters
-    // have to be explicitly transfered from the adjoint to the primal element. Please note: if the stiffness parameters
-    // would be part of the element properties this transferring would be not necessary. The stiffness parameters
-    // are needed by the primal element in order to compute later on the element stiffness matrix for the
-    // adjoint problem and the sensitivity matrix as the element contribution to the pseudo-load.
-    const auto& r_const_this = *this;
-    this->pGetPrimalElement()->SetValue(NODAL_DISPLACEMENT_STIFFNESS, r_const_this.GetValue(NODAL_DISPLACEMENT_STIFFNESS));
-    this->pGetPrimalElement()->SetValue(NODAL_ROTATIONAL_STIFFNESS, r_const_this.GetValue(NODAL_ROTATIONAL_STIFFNESS));
-
-    BaseType::InitializeSolutionStep(rCurrentProcessInfo);
-
-    KRATOS_CATCH("")
-}
-
-template <class TPrimalElement>
 void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensitivityMatrix(
                                             const Variable<double>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
@@ -77,23 +55,24 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
         }
         noalias(rOutput) = ZeroMatrix(dimension*number_of_nodes, local_size);
     }
-    else if (rDesignVariable == NODAL_ROTATIONAL_STIFFNESS || rDesignVariable == NODAL_DISPLACEMENT_STIFFNESS ) {
+    else if (this->Has(rDesignVariable) && (rDesignVariable == NODAL_ROTATIONAL_STIFFNESS || rDesignVariable == NODAL_DISPLACEMENT_STIFFNESS)) {
         if ((rOutput.size1() != dimension) || (rOutput.size2() != local_size)) {
                 rOutput.resize(dimension, local_size, false);
         }
 
-        // reset original stiffness parameters before computing the derivatives
-        this->pGetPrimalElement()->SetValue(NODAL_ROTATIONAL_STIFFNESS, rDesignVariable.Zero());
-        this->pGetPrimalElement()->SetValue(NODAL_DISPLACEMENT_STIFFNESS, rDesignVariable.Zero());
+        // save original stiffness parameters
+        const auto variable_value = this->pGetPrimalElement()->GetValue(rDesignVariable);
 
-        ProcessInfo process_info = rCurrentProcessInfo;
+        // reset original stiffness parameters before computing the derivatives
+        this->pGetPrimalElement()->SetValue(rDesignVariable, rDesignVariable.Zero());
+
         Vector RHS;
         for(IndexType dir_i = 0; dir_i < dimension; ++dir_i) {
             // The following approach assumes a linear dependency between RHS and spring stiffness
             array_1d<double, 3> perturbed_nodal_stiffness = ZeroVector(3);
             perturbed_nodal_stiffness[dir_i] = 1.0;
             this->pGetPrimalElement()->SetValue(rDesignVariable, perturbed_nodal_stiffness);
-            this->pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
+            this->pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
 
             KRATOS_ERROR_IF_NOT(RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
             for(IndexType i = 0; i < RHS.size(); ++i) {
@@ -101,10 +80,8 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
             }
         }
 
-        // give original stiffness parameters back.
-        const auto& r_const_this = *this;
-        this->pGetPrimalElement()->SetValue(NODAL_DISPLACEMENT_STIFFNESS, r_const_this.GetValue(NODAL_DISPLACEMENT_STIFFNESS));
-        this->pGetPrimalElement()->SetValue(NODAL_ROTATIONAL_STIFFNESS, r_const_this.GetValue(NODAL_ROTATIONAL_STIFFNESS));
+        // give original stiffness parameters back
+        this->pGetPrimalElement()->SetValue(rDesignVariable, variable_value);
     }
     else {
         if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) {
@@ -117,38 +94,16 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
 }
 
 template <class TPrimalElement>
-int AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::Check( const ProcessInfo& rCurrentProcessInfo )
+int AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
     KRATOS_ERROR_IF_NOT(this->pGetPrimalElement()) << "Primal element pointer is nullptr!" << std::endl;
 
-    // Check that all required variables have been registered
-
-    // The displacement terms
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_MASS)
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_DISPLACEMENT_STIFFNESS)
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT)
-
-    // The rotational terms
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION)
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_INERTIA)
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_ROTATIONAL_STIFFNESS)
-
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_DAMPING_RATIO)
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_ROTATIONAL_DAMPING_RATIO)
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION)
-
     // Verify that the dofs exist
     for ( std::size_t i = 0; i < this->GetGeometry().size(); i++ ) {
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-        NodeType& rnode = this->GetGeometry()[i];
+        const NodeType& rnode = this->GetGeometry()[i];
 
         // The displacement terms
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT,rnode)

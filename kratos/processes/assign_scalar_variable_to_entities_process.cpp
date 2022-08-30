@@ -31,23 +31,14 @@ AssignScalarVariableToEntitiesProcess<TEntity>::AssignScalarVariableToEntitiesPr
 {
     KRATOS_TRY
 
-    Parameters default_parameters( R"(
-    {
-        "model_part_name" : "MODEL_PART_NAME",
-        "mesh_id"         : 0,
-        "variable_name"   : "VARIABLE_NAME",
-        "value"           : 1.0
-    }  )" );
-
     // Validate against defaults -- this ensures no type mismatch
+    const Parameters default_parameters = GetDefaultParameters();
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
     mMeshId       = rParameters["mesh_id"].GetInt();
     mVariableName = rParameters["variable_name"].GetString();
 
     if( KratosComponents< Variable<double> >::Has( mVariableName )) { //case of double variable
-        mDoubleValue = rParameters["value"].GetDouble();
-    } else if( KratosComponents<array_1d_component_type>::Has( mVariableName ) ) { //case of component variable
         mDoubleValue = rParameters["value"].GetDouble();
     } else if( KratosComponents< Variable<int> >::Has( mVariableName ) ) { //case of int variable
         mIntValue = rParameters["value"].GetInt();
@@ -70,8 +61,6 @@ void AssignScalarVariableToEntitiesProcess<TEntity>::Execute()
 
     if( KratosComponents< Variable<double> >::Has( mVariableName )) { //case of double variable
         InternalAssignValue<>(KratosComponents< Variable<double> >::Get(mVariableName), mDoubleValue);
-    } else if( KratosComponents<array_1d_component_type>::Has( mVariableName )  ) { //case of component variable
-        InternalAssignValueSerial<>(KratosComponents<array_1d_component_type>::Get(mVariableName), mDoubleValue);
     } else if( KratosComponents< Variable<int> >::Has( mVariableName ) ) { //case of int variable
         InternalAssignValue<>(KratosComponents< Variable<int> >::Get(mVariableName) , mIntValue);
     } else if( KratosComponents< Variable<bool> >::Has( mVariableName ) ) { //case of bool variable
@@ -81,6 +70,22 @@ void AssignScalarVariableToEntitiesProcess<TEntity>::Execute()
     }
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+const Parameters AssignScalarVariableToEntitiesProcess<TEntity>::GetDefaultParameters() const
+{
+    const Parameters default_parameters( R"(
+    {
+        "model_part_name" : "MODEL_PART_NAME",
+        "mesh_id"         : 0,
+        "variable_name"   : "VARIABLE_NAME",
+        "value"           : 1.0
+    }  )" );
+    return default_parameters;
 }
 
 /***********************************************************************************/

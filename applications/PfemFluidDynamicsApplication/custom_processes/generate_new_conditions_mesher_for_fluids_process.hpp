@@ -103,7 +103,7 @@ public:
 
     bool success = false;
 
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
 
     if (mEchoLevel > 0)
       std::cout << " [ Build Boundary on ModelPart [" << mrModelPart.Name() << "] ]" << std::endl;
@@ -114,15 +114,15 @@ public:
     {
       std::cout << "  ERROR:  BOUNDARY BUILD FAILED ModelPart : [" << mrModelPart << "] " << std::endl;
     }
-    else
-    {
-      if (mEchoLevel >= 1)
-      {
-        double end_time = OpenMPUtils::GetCurrentTime();
-        std::cout << " [ Search performed in Time = " << end_time - begin_time << " ]" << std::endl;
-      }
-      //PrintSkin(mrModelPart);
-    }
+    // else
+    // {
+    //   if (mEchoLevel >= 1)
+    //   {
+    //     double end_time = OpenMPUtils::GetCurrentTime();
+    //     std::cout << " [ Search performed in Time = " << end_time - begin_time << " ]" << std::endl;
+    //   }
+    //   //PrintSkin(mrModelPart);
+    // }
 
     KRATOS_CATCH(" ")
   }
@@ -217,7 +217,7 @@ protected:
     if (!rModelPart.Conditions().size())
     {
 
-      for (ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.GetParentModelPart()->ConditionsBegin(); i_cond != rModelPart.GetParentModelPart()->ConditionsEnd(); ++i_cond)
+      for (ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.GetParentModelPart().ConditionsBegin(); i_cond != rModelPart.GetParentModelPart().ConditionsEnd(); ++i_cond)
       {
         TemporaryConditions.push_back(*(i_cond.base()));
         i_cond->SetId(ConditionId);
@@ -284,8 +284,8 @@ protected:
     this->ClearMasterEntities(rModelPart, rTemporaryConditions);
 
     //properties to be used in the generation
-    int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
-    Properties::Pointer properties = rModelPart.GetParentModelPart()->pGetProperties(number_properties - 1);
+    int number_properties = rModelPart.GetParentModelPart().NumberOfProperties();
+    Properties::Pointer properties = rModelPart.GetParentModelPart().pGetProperties(number_properties - 1);
 
     ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 

@@ -13,13 +13,22 @@
 // Project includes
 #include "apply_far_field_process.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos {
 
 // Constructor for ApplyFarFieldProcess Process
-ApplyFarFieldProcess::ApplyFarFieldProcess(ModelPart& rModelPart, const double ReferencePotential, const bool InitializeFlowField)
-    : Process(), mrModelPart(rModelPart), mReferencePotential(ReferencePotential), mInitializeFlowField(InitializeFlowField), mFreeStreamVelocity(mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY])
-{}
+ApplyFarFieldProcess::ApplyFarFieldProcess(ModelPart& rModelPart,
+                                           const double ReferencePotential,
+                                           const bool InitializeFlowField,
+                                           const bool PerturbationField)
+    : Process(),
+      mrModelPart(rModelPart),
+      mReferencePotential(ReferencePotential),
+      mInitializeFlowField(InitializeFlowField),
+      mPerturbationField(PerturbationField),
+      mFreeStreamVelocity(mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY]) {
+}
 
 void ApplyFarFieldProcess::Execute()
 {
@@ -28,12 +37,14 @@ void ApplyFarFieldProcess::Execute()
     if (mInitializeFlowField){
         InitializeFlowField();
     }
+    VariableUtils().SetNonHistoricalVariable(FAR_FIELD, false, mrModelPart.GetRootModelPart().Nodes());
+    VariableUtils().SetNonHistoricalVariable(FAR_FIELD, true, mrModelPart.Nodes());
 }
 
 void ApplyFarFieldProcess::FindFarthestUpstreamBoundaryNode()
 {
     // Declaring omp variables, generating vectors of size = num_threads
-    std::size_t num_threads = OpenMPUtils::GetNumThreads();
+    std::size_t num_threads = ParallelUtilities::GetNumThreads();
     std::vector<double> min_projections(num_threads, std::numeric_limits<double>::max());
     std::vector<std::size_t> nodes_id_list(num_threads, 0);
 
@@ -91,8 +102,13 @@ void ApplyFarFieldProcess::AssignDirichletFarFieldBoundaryCondition(Geometry<Nod
     // Fixing nodes in the domain that are part of the inlet, and initializing its value
     // according to the free stream velocity.
     for (std::size_t i_node = 0; i_node < rGeometry.size(); i_node++){
-        array_1d<double,3> relative_coordinates = rGeometry[i_node].Coordinates() - mpReferenceNode->Coordinates();
-        const double inlet_potential = inner_prod(relative_coordinates, mFreeStreamVelocity);
+        double inlet_potential = 0.0;
+
+        if(!mPerturbationField){
+            array_1d<double,3> relative_coordinates = rGeometry[i_node].Coordinates() - mpReferenceNode->Coordinates();
+            inlet_potential = inner_prod(relative_coordinates, mFreeStreamVelocity);
+        }
+
         // Checking if its the primal or the adjoint case.
         if (!rGeometry[i_node].SolutionStepsDataHas(ADJOINT_VELOCITY_POTENTIAL)) {
             rGeometry[i_node].SetLock();

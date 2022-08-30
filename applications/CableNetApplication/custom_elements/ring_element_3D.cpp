@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/checks.h"
+#include "utilities/atomic_utilities.h"
 
 
 namespace Kratos {
@@ -51,7 +52,7 @@ RingElement3D::Create(IndexType NewId, GeometryType::Pointer pGeom,
 RingElement3D::~RingElement3D() {}
 
 void RingElement3D::EquationIdVector(EquationIdVectorType &rResult,
-                                        ProcessInfo &rCurrentProcessInfo) {
+                                     const ProcessInfo &rCurrentProcessInfo) const {
 
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -71,7 +72,7 @@ void RingElement3D::EquationIdVector(EquationIdVectorType &rResult,
   }
 }
 void RingElement3D::GetDofList(DofsVectorType &rElementalDofList,
-                                  ProcessInfo &rCurrentProcessInfo) {
+                               const ProcessInfo &rCurrentProcessInfo) const {
 
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -92,12 +93,8 @@ void RingElement3D::GetDofList(DofsVectorType &rElementalDofList,
   }
 }
 
-void RingElement3D::Initialize() {
-  KRATOS_TRY
-  KRATOS_CATCH("")
-}
 
-void RingElement3D::GetValuesVector(Vector &rValues, int Step) {
+void RingElement3D::GetValuesVector(Vector &rValues, int Step) const {
 
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -119,7 +116,7 @@ void RingElement3D::GetValuesVector(Vector &rValues, int Step) {
   KRATOS_CATCH("")
 }
 
-void RingElement3D::GetFirstDerivativesVector(Vector &rValues, int Step) {
+void RingElement3D::GetFirstDerivativesVector(Vector &rValues, int Step) const {
 
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -141,7 +138,7 @@ void RingElement3D::GetFirstDerivativesVector(Vector &rValues, int Step) {
   KRATOS_CATCH("")
 }
 
-void RingElement3D::GetSecondDerivativesVector(Vector &rValues, int Step) {
+void RingElement3D::GetSecondDerivativesVector(Vector &rValues, int Step) const {
 
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -415,7 +412,7 @@ inline Matrix RingElement3D::TotalStiffnessMatrix() const
 
 void RingElement3D::CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
-            ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -430,7 +427,7 @@ void RingElement3D::CalculateLeftHandSide(
 }
 
 void RingElement3D::CalculateRightHandSide(
-    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+    VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
 {
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -444,8 +441,8 @@ void RingElement3D::CalculateRightHandSide(
 }
 
 void RingElement3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
-                                            VectorType &rRightHandSideVector,
-                                            ProcessInfo &rCurrentProcessInfo)
+                                         VectorType &rRightHandSideVector,
+                                         const ProcessInfo &rCurrentProcessInfo)
 {
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -462,7 +459,9 @@ void RingElement3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
   KRATOS_CATCH("")
 }
 
-void RingElement3D::CalculateLumpedMassVector(VectorType &rMassVector)
+void RingElement3D::CalculateLumpedMassVector(
+    VectorType &rLumpedMassVector,
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -476,8 +475,9 @@ void RingElement3D::CalculateLumpedMassVector(VectorType &rMassVector)
     const SizeType local_size = dimension*points_number;
 
     // Clear matrix
-    if (rMassVector.size() != local_size)
-        rMassVector.resize( local_size );
+    if (rLumpedMassVector.size() != local_size) {
+      rLumpedMassVector.resize(local_size);
+    }
 
     const double A = this->GetProperties()[CROSS_AREA];
     const double L = this->GetRefLength();
@@ -488,8 +488,7 @@ void RingElement3D::CalculateLumpedMassVector(VectorType &rMassVector)
     for (int i = 0; i < points_number; ++i) {
         for (int j = 0; j < dimension; ++j) {
             int index = i * dimension + j;
-
-            rMassVector[index] = total_mass;
+            rLumpedMassVector[index] = total_mass;
         }
     }
 
@@ -498,7 +497,7 @@ void RingElement3D::CalculateLumpedMassVector(VectorType &rMassVector)
 
 void RingElement3D::CalculateMassMatrix(
     MatrixType &rMassMatrix,
-    ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
     const int points_number = GetGeometry().PointsNumber();
@@ -507,7 +506,7 @@ void RingElement3D::CalculateMassMatrix(
 
     // Compute lumped mass matrix
     VectorType temp_vector(local_size);
-    CalculateLumpedMassVector(temp_vector);
+    CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
 
     // Clear matrix
     if (rMassMatrix.size1() != local_size || rMassMatrix.size2() != local_size)
@@ -522,7 +521,7 @@ void RingElement3D::CalculateMassMatrix(
 }
 
 void RingElement3D::CalculateDampingMatrix(
-    MatrixType &rDampingMatrix, ProcessInfo &rCurrentProcessInfo) {
+    MatrixType &rDampingMatrix, const ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -560,7 +559,7 @@ void RingElement3D::CalculateDampingMatrix(
 void RingElement3D::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double >& rDestinationVariable,
+    const Variable<double >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -573,14 +572,13 @@ void RingElement3D::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_MASS) {
         VectorType element_mass_vector(local_size);
-        this->CalculateLumpedMassVector(element_mass_vector);
+        this->CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
 
         for (int i = 0; i < points_number; ++i) {
             double &r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
             int index = i * dimension;
 
-            #pragma omp atomic
-            r_nodal_mass += element_mass_vector(index);
+            AtomicAdd(r_nodal_mass, element_mass_vector(index));
         }
     }
     KRATOS_CATCH("")
@@ -588,7 +586,7 @@ void RingElement3D::AddExplicitContribution(
 
 void RingElement3D::AddExplicitContribution(
     const VectorType &rRHSVector, const Variable<VectorType> &rRHSVariable,
-    Variable<array_1d<double, 3>> &rDestinationVariable,
+    const Variable<array_1d<double, 3>> &rDestinationVariable,
     const ProcessInfo &rCurrentProcessInfo
     )
 {
@@ -612,34 +610,26 @@ void RingElement3D::AddExplicitContribution(
             size_t index = dimension * i;
             array_1d<double, 3> &r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
             for (size_t j = 0; j < dimension; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+                AtomicAdd(r_force_residual[j], rRHSVector[index + j] - damping_residual_contribution[index + j] );
             }
         }
     } else if (rDestinationVariable == NODAL_INERTIA) {
 
         // Getting the vector mass
         VectorType mass_vector(local_size);
-        CalculateLumpedMassVector(mass_vector);
+        CalculateLumpedMassVector(mass_vector, rCurrentProcessInfo);
 
         for (int i = 0; i < points_number; ++i) {
             double &r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
-            array_1d<double, dimension> &r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
             int index = i * dimension;
 
-            #pragma omp atomic
-            r_nodal_mass += mass_vector[index];
-
-            for (int k = 0; k < dimension; ++k) {
-                #pragma omp atomic
-                r_nodal_inertia[k] += 0.0;
-            }
+            AtomicAdd(r_nodal_mass, mass_vector[index]);
         }
     }
     KRATOS_CATCH("")
 }
 
-int RingElement3D::Check(const ProcessInfo& rCurrentProcessInfo)
+int RingElement3D::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

@@ -20,6 +20,7 @@
 #include <algorithm>
 
 #include "tree.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -466,9 +467,10 @@ public:
 
     void SearchNearestPoint( PointType* const& ThisPoints, SizeType const& NumberOfPoints, IteratorType &Results, std::vector<CoordinateType> ResultsDistances)
     {
-        #pragma omp parallel for
-        for(int k=0; k< NumberOfPoints; k++)
-            Results[k] = SearchNearestPoint(ThisPoints[k],ResultsDistances[k]);
+        IndexPartition<SizeType>(NumberOfPoints).for_each(
+            [&](SizeType iPoint)
+            { Results[iPoint] = SearchNearestPoint(ThisPoints[iPoint],ResultsDistances[iPoint]); }
+        );
     }
 
     //************************************************************************
@@ -542,9 +544,10 @@ public:
     void SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateVectorType const& Radius, IteratorVectorType Results,
                          DistanceIteratorVectorType ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults )
     {
-        #pragma omp parallel for
-        for(int k=0; k< NumberOfPoints; k++)
-            NumberOfResults[k] = SearchInRadius(ThisPoints[k],Radius[k],Results[k],ResultsDistances[k],MaxNumberOfResults);
+        IndexPartition<SizeType>(NumberOfPoints).for_each(
+            [&](SizeType iPoint)
+            { NumberOfResults[iPoint] = SearchInRadius(ThisPoints[iPoint],Radius[iPoint],Results[iPoint],ResultsDistances[iPoint],MaxNumberOfResults); }
+        );
     }
 
     // **** THREAD SAFE

@@ -52,6 +52,7 @@
             "Parameters"    : {
                 "model_part_name" : "Structure.SelfWeight2D_Self_weight_Auto1",
                 "variable_name"   : "VOLUME_ACCELERATION",
+                "constrained"     : false,
                 "modulus"         : 9.81,
                 "direction"       : [0.0,-1.0,0.0],
                 "interval"        : [0.0,"End"]
@@ -86,13 +87,10 @@
                 "damping_ratio_1"     : -1.0,
                 "eigen_system_settings" : {
                     "solver_type"                : "feast",
-                    "print_feast_output"         : false,
-                    "perform_stochastic_estimate": true,
-                    "solve_eigenvalue_problem"   : true,
-                    "lambda_min"                 : 0.0,
-                    "lambda_max"                 : 4.0e5,
-                    "number_of_eigenvalues"      : 2,
-                    "search_dimension"           : 15
+                    "symmetric"             : true,
+                    "e_min"                 : 3000.0,
+                    "e_max"                 : 4.0e5,
+                    "subspace_size"         : 15
                 }
             }
         }]

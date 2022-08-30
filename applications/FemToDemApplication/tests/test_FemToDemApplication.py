@@ -1,53 +1,47 @@
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication
-
-# Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suits
-from generalTests import KratosFemToDemGeneralTests
-
+# Small femdem cases
+import main_coupling_for_testing
+import main_coupling_total_lagrangian_for_testing
+import main_coupling_for_testing_face_load
+import main_coupling_for_testing_tables
+import main_coupling_fracture_3_point_for_testing
+import main_coupling_free_fall_testing
+import main_fsi_aitken_for_testing
 
 def AssembleTestSuites():
-    ''' Populates the test suites to run.
-
-    Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
-
-    Return
-    ------
-
-    suites: A dictionary of suites
-        The set of suites with its test_cases added.
-    '''
 
     suites = KratosUnittest.KratosSuites
 
-    # Create a test suit with the selected tests (Small tests):
-    # smallSuite will contain the following tests:
-    # - testSmallExample
     smallSuite = suites['small']
-    smallSuite.addTest(KratosFemToDemGeneralTests('testSmallExample'))
 
-    # Create a test suit with the selected tests
-    # nightSuite will contain the following tests:
-    # - testSmallExample
-    # - testNightlyFirstExample
-    # - testNightlySecondExample
+    smallSuite.addTest(main_coupling_for_testing.TestAnalytics("small_strain")) #defined inside main_coupling_for_testing
+    smallSuite.addTest(main_coupling_total_lagrangian_for_testing.TestAnalytics("total_lagrangian")) #defined inside main_coupling_total_lagrangian_for_testing
+    smallSuite.addTest(main_coupling_for_testing_tables.TestAnalytics("tables")) #defined inside main_coupling_for_testing_tables
+    smallSuite.addTest(main_coupling_fracture_3_point_for_testing.TestAnalytics("fracture_3_point")) #defined inside main_coupling_fracture_3_point_for_testing
+    smallSuite.addTest(main_coupling_free_fall_testing.TestAnalytics("free_fall")) #defined inside main_coupling_fracture_3_point_for_testing
+    smallSuite.addTest(main_fsi_aitken_for_testing.TestAnalytics("two_dimensional_fsi")) #defined inside main_fsi_aitken_for_testing
+    smallSuite.addTest(main_coupling_for_testing_face_load.TestAnalytics("face_load")) #defined inside main_coupling_for_testing_face_load
+
+    # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
-    nightSuite.addTests(smallSuite)
 
-    # Create a test suit that contains all the tests from every testCase
-    # in the list:
+    # nightSuite.addTests(smallSuite)
+
+    validationSuite = suites['validation']
+
+    # Create a test suit that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            KratosFemToDemGeneralTests
-        ])
+        smallSuite
+        #KratosUnittest.TestLoader().loadTestsFromTestCases([])
     )
 
     return suites
+
 
 if __name__ == '__main__':
     KratosUnittest.runTests(AssembleTestSuites())

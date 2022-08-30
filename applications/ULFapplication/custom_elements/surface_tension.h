@@ -23,9 +23,9 @@
 #include <fstream>
 #include <vector>
 #include <ctime>
-#include <stdlib.h>
+#include <cstdlib>
 #include <iomanip>
-#include <math.h>
+#include <cmath>
 
 
 // External includes
@@ -94,7 +94,7 @@ public:
     ///@{
 
     /// Pointer definition of SurfaceTension
-    KRATOS_CLASS_POINTER_DEFINITION(SurfaceTension);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SurfaceTension);
 
     ///base type: an IndexedObject that automatically has a unique number
     typedef IndexedObject BaseType;
@@ -407,7 +407,7 @@ public:
 
 	// Surface tension contribution
 	int k = 0;
-	if(TDim < 3)
+	if constexpr (TDim < 3)
 	{
 	    array_1d<double,3> node_indx;
 	    node_indx[0] = 0.0;
@@ -479,7 +479,7 @@ public:
 	    k++;
 	  }
 	}
-	if(TDim < 3 && k > 2)
+	if constexpr (TDim < 3 && k > 2)
 	    this->AddViscousStress2D();
 
         // Now calculate an additional contribution to the residual: r -= rDampingMatrix * (u,p)
@@ -902,22 +902,6 @@ public:
         int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
         if(ErrorCode != 0) return ErrorCode;
 
-        // Check that all required variables have been registered
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-        KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY);
-        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-        KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
-        KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-        KRATOS_CHECK_VARIABLE_KEY(VISCOSITY);
-        KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE);
-        KRATOS_CHECK_VARIABLE_KEY(OSS_SWITCH);
-        KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU);
-        KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
-        KRATOS_CHECK_VARIABLE_KEY(ADVPROJ);
-        KRATOS_CHECK_VARIABLE_KEY(DIVPROJ);
-        KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
-        KRATOS_CHECK_VARIABLE_KEY(C_SMAGORINSKY);
-        KRATOS_CHECK_VARIABLE_KEY(ERROR_RATIO);
         // Additional variables, only required to print results:
         // SUBSCALE_VELOCITY, SUBSCALE_PRESSURE, TAUONE, TAUTWO, MU, VORTICITY.
 
@@ -938,7 +922,7 @@ public:
 
             KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
             KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,rNode);
-            if (TDim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
+            if constexpr (TDim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
             KRATOS_CHECK_DOF_IN_NODE(PRESSURE,rNode);
         }
         // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1

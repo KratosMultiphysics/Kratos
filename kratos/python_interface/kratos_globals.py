@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 class KratosGlobalsImpl(object):
 
     def __init__(self, ThisKernel, ApplicationsRoot):
@@ -44,8 +42,6 @@ class KratosGlobalsImpl(object):
             return kernel.GetArray6Variable(VarName)
         elif kernel.HasArray9Variable(VarName):
             return kernel.GetArray9Variable(VarName)
-        elif kernel.HasVariableComponent(VarName):
-            return kernel.GetVariableComponent(VarName)
         elif kernel.HasBoolVariable(VarName):
             return kernel.GetBoolVariable(VarName)
         elif kernel.HasIntVariable(VarName):
@@ -83,8 +79,6 @@ class KratosGlobalsImpl(object):
         elif kernel.HasArray6Variable(VarName):
             return True
         elif kernel.HasArray9Variable(VarName):
-            return True
-        elif kernel.HasVariableComponent(VarName):
             return True
         elif kernel.HasBoolVariable(VarName):
             return True
@@ -136,8 +130,6 @@ class KratosGlobalsImpl(object):
             return "Matrix"
         elif kernel.HasStringVariable(VarName):
             return "String"
-        elif kernel.HasVariableComponent(VarName):
-            return "Component"
         elif kernel.HasFlagsVariable(VarName):
             return "Flag"
         else:

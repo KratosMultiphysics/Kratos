@@ -1,0 +1,77 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "femB",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 5,
+        "start_time"    : 0.0,
+        "end_time"      : 0.25
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "Dynamic",
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 2,
+        "echo_level"                         : 0,
+        "analysis_type"                      : "linear",
+        "time_integration_method"         : "explicit",
+		"scheme_type"                     : "central_differences",
+        "compute_reactions": true,
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "fem_fem/dynamic_2d_cantilever/femB_05"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "fem_fem/dynamic_2d_cantilever/StructuralMaterials.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 0.00025
+        },
+        "line_search"                        : false,
+        "move_mesh_flag"                     : true,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "rotation_dofs"                      : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.PointLoad2D_load",
+                "variable_name"   : "POINT_LOAD",
+                "modulus"         : 10000.0,
+                "direction"       : [0.0,-1.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "list_other_processes"     : [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["DISPLACEMENT","VELOCITY","ACCELERATION","VECTOR_LAGRANGE_MULTIPLIER"],
+                "input_file_name"  : "fem_fem/dynamic_2d_cantilever/implicit_explicit/mixed_nonconforming_results.json",
+                "model_part_name"  : "Structure.DISPLACEMENT_left_edge",
+                "time_frequency"   : 0.00001
+            }
+        }]
+    },
+    "print_output_process" : [{
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables" : ["DISPLACEMENT","VELOCITY","ACCELERATION","VECTOR_LAGRANGE_MULTIPLIER"],
+            "output_file_name" : "fem_fem/dynamic_2d_cantilever/implicit_explicit/mixed_nonconforming_results.json",
+            "model_part_name"  : "Structure.DISPLACEMENT_left_edge",
+            "time_frequency"   : 0.00001
+        }
+    }]
+}

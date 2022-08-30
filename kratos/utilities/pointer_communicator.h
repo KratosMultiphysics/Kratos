@@ -78,23 +78,45 @@ public:
     /// Destructor.
     virtual ~ResultsProxy() {}
 
-    /**this function returns the effect of "user_function(gp)" both if the gp is locally owned
+    /**this function returns the effect of "user_function(rGlobalPointer)" both if the rGlobalPointer is locally owned
      * and if it is remotely owned
      */
-    TSendType Get(GlobalPointer<TPointerDataType>& gp)
+    TSendType Get(GlobalPointer<TPointerDataType>& rGlobalPointer) const
     {
-        if(gp.GetRank() == mCurrentRank)
-            return mUserFunctor(gp);
-        else
-            return mNonLocalData[gp];
+        if(rGlobalPointer.GetRank() == mCurrentRank)
+            return mUserFunctor(rGlobalPointer);
+        else {
+            auto non_local_gp = mNonLocalData.find(rGlobalPointer);
+            KRATOS_DEBUG_ERROR_IF(non_local_gp == mNonLocalData.end()) << "Missing entry in NonLocalData" << std::endl;
+            return non_local_gp->second;
+        }
     }
 
-    TSendType Get(GlobalPointer<TPointerDataType> const& gp)
+    TSendType Get(const GlobalPointer<TPointerDataType>& rGlobalPointer) const
     {
-        if(gp.GetRank() == mCurrentRank)
-            return mUserFunctor(gp);
+        if(rGlobalPointer.GetRank() == mCurrentRank)
+            return mUserFunctor(rGlobalPointer);
+        else {
+            auto non_local_gp = mNonLocalData.find(rGlobalPointer);
+            KRATOS_DEBUG_ERROR_IF(non_local_gp == mNonLocalData.end()) << "Missing entry in NonLocalData" << std::endl;
+            return non_local_gp->second;
+        }
+    }
+    
+    bool Has(GlobalPointer<TPointerDataType>& rGlobalPointer) const 
+    {
+        if(rGlobalPointer.GetRank() == mCurrentRank)
+            return true;
         else
-            return mNonLocalData[gp];
+            return mNonLocalData.find(rGlobalPointer) != mNonLocalData.end();
+    }   
+
+    bool Has(const GlobalPointer<TPointerDataType>& rGlobalPointer) const
+    {
+        if(rGlobalPointer.GetRank() == mCurrentRank)
+            return true;
+        else
+            return mNonLocalData.find(rGlobalPointer) != mNonLocalData.end();
     }
 
     void Update()

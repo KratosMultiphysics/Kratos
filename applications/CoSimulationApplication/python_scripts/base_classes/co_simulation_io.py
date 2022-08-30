@@ -1,21 +1,20 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
-def Create(settings, model, solver_name):
+def Create(*args):
     raise Exception('"CoSimulationIO" is a baseclass and cannot be used directly!')
 
-class CoSimulationIO(object):
+class CoSimulationIO:
     """Baseclass defining the interface for the input and output methods
     for the communication with external solvers
     """
-    def __init__(self, settings, model, solver_name):
+    def __init__(self, settings, model, solver_name, data_communicator):
         self.model = model
         self.solver_name = solver_name # name of the owning solver
+        self.data_communicator = data_communicator # data-comm of the solver that it does IO for (not the parent coupling solver)
 
         self.settings = settings
-        self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
+        self.settings.ValidateAndAssignDefaults(self._GetDefaultParameters())
         self.echo_level = self.settings["echo_level"].GetInt()
 
     def Initialize(self):
@@ -67,7 +66,7 @@ class CoSimulationIO(object):
         return cls.__name__
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         return KM.Parameters("""{
             "type"        : "",
             "echo_level"  : 0

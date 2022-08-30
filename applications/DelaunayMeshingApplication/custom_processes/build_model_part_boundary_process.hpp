@@ -128,7 +128,7 @@ class BuildModelPartBoundaryProcess
 
     bool success=false;
 
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
 
     unsigned int NumberOfSubModelParts=mrModelPart.NumberOfSubModelParts();
 
@@ -148,14 +148,14 @@ class BuildModelPartBoundaryProcess
         {
           std::cout<<"  ERROR: BOUNDARY CONSTRUCTION FAILED ModelPart : ["<<i_mp.Name()<<"] "<<std::endl;
         }
-        else
-        {
-          if( mEchoLevel >= 1 ){
-            double end_time = OpenMPUtils::GetCurrentTime();
-            std::cout<<" [ Performed in Time = "<<end_time-begin_time<<" ]"<<std::endl;
-          }
-          //PrintSkin(i_mp);
-        }
+        // else
+        // {
+        //   if( mEchoLevel >= 1 ){
+        //     double end_time = OpenMPUtils::GetCurrentTime();
+        //     std::cout<<" [ Performed in Time = "<<end_time-begin_time<<" ]"<<std::endl;
+        //   }
+        //   //PrintSkin(i_mp);
+        // }
       }
     }
     else{
@@ -170,14 +170,14 @@ class BuildModelPartBoundaryProcess
       {
         std::cout<<"  ERROR: BOUNDARY CONSTRUCTION FAILED on ModelPart : ["<<rModelPart.Name()<<"] "<<std::endl;
       }
-      else
-      {
-        if( mEchoLevel >= 1 ){
-          double end_time = OpenMPUtils::GetCurrentTime();
-          std::cout<<" [ Performed in Time = "<<end_time-begin_time<<" ]"<<std::endl;
-        }
-        //PrintSkin(rModelPart);
-      }
+      // else
+      // {
+      //   if( mEchoLevel >= 1 ){
+      //     double end_time = OpenMPUtils::GetCurrentTime();
+      //     std::cout<<" [ Performed in Time = "<<end_time-begin_time<<" ]"<<std::endl;
+      //   }
+      //   //PrintSkin(rModelPart);
+      // }
     }
 
     if( NumberOfSubModelParts > 1 ){
@@ -630,7 +630,7 @@ class BuildModelPartBoundaryProcess
     //if there are no conditions check main modelpart mesh conditions
     if( !rModelPart.Conditions().size() ){
 
-      ModelPart::ConditionsContainerType& rConditions = rModelPart.GetParentModelPart()->Conditions();
+      ModelPart::ConditionsContainerType& rConditions = rModelPart.GetParentModelPart().Conditions();
 
       for(auto i_cond(rConditions.begin()); i_cond != rConditions.end(); ++i_cond)
       {
@@ -788,12 +788,12 @@ class BuildModelPartBoundaryProcess
     this->ClearMasterEntities(rModelPart, rTemporaryConditions);
 
     //properties to be used in the generation
-    int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
+    int number_properties = rModelPart.GetParentModelPart().NumberOfProperties();
 
     if(number_properties<0)
       KRATOS_ERROR<<" number of properties is "<<number_properties<<std::endl;
 
-    Properties::Pointer properties = rModelPart.GetParentModelPart()->GetMesh().pGetProperties(number_properties-1);
+    Properties::Pointer properties = rModelPart.GetParentModelPart().GetMesh().pGetProperties(number_properties-1);
 
     //clear nodal boundary flag
     for(auto& i_elem : rModelPart.Elements())

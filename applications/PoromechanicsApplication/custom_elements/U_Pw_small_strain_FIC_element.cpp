@@ -34,20 +34,19 @@ Element::Pointer UPwSmallStrainFICElement<TDim,TNumNodes>::Create(IndexType NewI
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainFICElement<TDim,TNumNodes>::Initialize()
+void UPwSmallStrainFICElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    UPwElement<TDim,TNumNodes>::Initialize();
+    UPwElement<TDim,TNumNodes>::Initialize(rCurrentProcessInfo);
 
-    unsigned int VoigtSize = 6;
-    if(TDim == 2) VoigtSize = 3;
+    const unsigned int strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
     for(unsigned int i = 0; i < TDim; i++)
     {
-        mNodalConstitutiveTensor[i].resize(VoigtSize);
+        mNodalConstitutiveTensor[i].resize(strain_size);
 
-        for(unsigned int j = 0; j < VoigtSize; j++)
+        for(unsigned int j = 0; j < strain_size; j++)
         {
             for(unsigned int k = 0; k < TNumNodes; k++)
                 mNodalConstitutiveTensor[i][j][k] = 0.0;
@@ -66,7 +65,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::Initialize()
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainFICElement<TDim,TNumNodes>::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void UPwSmallStrainFICElement<TDim,TNumNodes>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     //Defining necessary variables
     const GeometryType& Geom = this->GetGeometry();
@@ -74,20 +73,19 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::InitializeNonLinearIteration(Proc
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
     GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
     Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
+    const unsigned int strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
-    unsigned int VoigtSize = 6;
-    if(TDim == 2) VoigtSize = 3;
-    Matrix B(VoigtSize,TNumNodes*TDim);
-    noalias(B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
+    Matrix B(strain_size,TNumNodes*TDim);
+    noalias(B) = ZeroMatrix(strain_size,TNumNodes*TDim);
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
     array_1d<double,TNumNodes*TDim> VelocityVector;
     PoroElementUtilities::GetNodalVariableVector(VelocityVector,Geom,VELOCITY);
 
     //Create constitutive law parameters:
-    Vector StrainVector(VoigtSize);
-    Vector StressVector(VoigtSize);
-    Matrix ConstitutiveMatrix(VoigtSize,VoigtSize);
+    Vector StrainVector(strain_size);
+    Vector StressVector(strain_size);
+    Matrix ConstitutiveMatrix(strain_size,strain_size);
     Vector Np(TNumNodes);
     Matrix GradNpT(TNumNodes,TDim);
     Matrix F = identity_matrix<double>(TDim);
@@ -107,7 +105,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::InitializeNonLinearIteration(Proc
     array_1d<Matrix,TDim> ConstitutiveTensorContainer;
     for(unsigned int i = 0; i < TDim; i++)
     {
-        ConstitutiveTensorContainer[i].resize(NumGPoints,VoigtSize,false);
+        ConstitutiveTensorContainer[i].resize(NumGPoints,strain_size,false);
     }
     Matrix DtStressContainer(NumGPoints,TDim);
 
@@ -115,11 +113,10 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::InitializeNonLinearIteration(Proc
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
         noalias(Np) = row(NContainer,GPoint);
-        noalias(GradNpT) = DN_DXContainer[GPoint];
-        this->CalculateBMatrix(B, GradNpT);
+
+        this->CalculateKinematics(GradNpT,B,StrainVector,DN_DXContainer,DisplacementVector,GPoint);
 
         // Compute ConstitutiveTensor
-        noalias(StrainVector) = prod(B,DisplacementVector);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
         this->SaveGPConstitutiveTensor(ConstitutiveTensorContainer,ConstitutiveMatrix,GPoint);
 
@@ -136,7 +133,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::InitializeNonLinearIteration(Proc
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainFICElement<TDim,TNumNodes>::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void UPwSmallStrainFICElement<TDim,TNumNodes>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     //Defining necessary variables
     const GeometryType& Geom = this->GetGeometry();
@@ -144,20 +141,19 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::FinalizeNonLinearIteration(Proces
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
     GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
     Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
+    const unsigned int strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
-    unsigned int VoigtSize = 6;
-    if(TDim == 2) VoigtSize = 3;
-    Matrix B(VoigtSize,TNumNodes*TDim);
-    noalias(B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
+    Matrix B(strain_size,TNumNodes*TDim);
+    noalias(B) = ZeroMatrix(strain_size,TNumNodes*TDim);
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
     array_1d<double,TNumNodes*TDim> VelocityVector;
     PoroElementUtilities::GetNodalVariableVector(VelocityVector,Geom,VELOCITY);
 
     //Create constitutive law parameters:
-    Vector StrainVector(VoigtSize);
-    Vector StressVector(VoigtSize);
-    Matrix ConstitutiveMatrix(VoigtSize,VoigtSize);
+    Vector StrainVector(strain_size);
+    Vector StressVector(strain_size);
+    Matrix ConstitutiveMatrix(strain_size,strain_size);
     Vector Np(TNumNodes);
     Matrix GradNpT(TNumNodes,TDim);
     Matrix F = identity_matrix<double>(TDim);
@@ -180,11 +176,10 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::FinalizeNonLinearIteration(Proces
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
         noalias(Np) = row(NContainer,GPoint);
-        noalias(GradNpT) = DN_DXContainer[GPoint];
-        this->CalculateBMatrix(B, GradNpT);
+
+        this->CalculateKinematics(GradNpT,B,StrainVector,DN_DXContainer,DisplacementVector,GPoint);
 
         // Compute ConstitutiveTensor
-        noalias(StrainVector) = prod(B,DisplacementVector);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         // Compute DtStress
@@ -203,7 +198,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::SaveGPConstitutiveTensor(array_1d
 {
     for(unsigned int i = 0; i < TDim; i++)
     {
-        for(unsigned int j = 0; j < ConstitutiveMatrix.size1(); j++) //VoigtSize
+        for(unsigned int j = 0; j < ConstitutiveMatrix.size1(); j++)
         {
             rConstitutiveTensorContainer[i](GPoint,j) = ConstitutiveMatrix(i,j);
         }
@@ -247,17 +242,17 @@ template< >
 void UPwSmallStrainFICElement<2,3>::ExtrapolateGPConstitutiveTensor(const array_1d<Matrix,2>& ConstitutiveTensorContainer)
 {
     // Triangle_2d_3 with GI_GAUSS_2
-
+    
     BoundedMatrix<double,3,3> ExtrapolationMatrix;
     PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
 
-    BoundedMatrix<double,3,3> AuxNodalConstitutiveTensor;
+    Matrix AuxNodalConstitutiveTensor(3,strain_size);
 
     for(unsigned int i = 0; i < 2; i++) //TDim
     {
         noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix,ConstitutiveTensorContainer[i]);
 
-        for(unsigned int j = 0; j < 3; j++) // VoigtSize
+        for(unsigned int j = 0; j < strain_size; j++)
             noalias(mNodalConstitutiveTensor[i][j]) = column(AuxNodalConstitutiveTensor,j);
     }
 
@@ -277,17 +272,17 @@ template< >
 void UPwSmallStrainFICElement<2,4>::ExtrapolateGPConstitutiveTensor(const array_1d<Matrix,2>& ConstitutiveTensorContainer)
 {
     // Quadrilateral_2d_4 with GI_GAUSS_2
-
+    
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
     PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
 
-    BoundedMatrix<double,4,3> AuxNodalConstitutiveTensor;
+    Matrix AuxNodalConstitutiveTensor(4,strain_size);
 
     for(unsigned int i = 0; i < 2; i++) //TDim
     {
         noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix,ConstitutiveTensorContainer[i]);
 
-        for(unsigned int j = 0; j < 3; j++) // VoigtSize
+        for(unsigned int j = 0; j < strain_size; j++)
             noalias(mNodalConstitutiveTensor[i][j]) = column(AuxNodalConstitutiveTensor,j);
     }
 }
@@ -447,9 +442,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHa
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
         //Compute GradNpT, B and StrainVector
-        noalias(Variables.GradNpT) = DN_DXContainer[GPoint];
-        this->CalculateBMatrix(Variables.B, Variables.GradNpT);
-        noalias(Variables.StrainVector) = prod(Variables.B,Variables.DisplacementVector);
+        this->CalculateKinematics(Variables.GradNpT,Variables.B,Variables.StrainVector,DN_DXContainer,Variables.DisplacementVector,GPoint);
 
         //Compute Np, Nu and BodyAcceleration
         noalias(Variables.Np) = row(NContainer,GPoint);
@@ -463,7 +456,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHa
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight(), CurrentProcessInfo );
+        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
 
         //Contributions to the left hand side
         this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -514,9 +507,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightH
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
         //Compute GradNpT, B and StrainVector
-        noalias(Variables.GradNpT) = DN_DXContainer[GPoint];
-        this->CalculateBMatrix(Variables.B, Variables.GradNpT);
-        noalias(Variables.StrainVector) = prod(Variables.B,Variables.DisplacementVector);
+        this->CalculateKinematics(Variables.GradNpT,Variables.B,Variables.StrainVector,DN_DXContainer,Variables.DisplacementVector,GPoint);
 
         //Compute Np, Nu and BodyAcceleration
         noalias(Variables.Np) = row(NContainer,GPoint);
@@ -530,7 +521,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightH
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight(), CurrentProcessInfo );
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
 
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
@@ -738,10 +729,12 @@ void UPwSmallStrainFICElement<3,8>::CalculateElementLength(double& rElementLengt
 template<>
 void UPwSmallStrainFICElement<2,3>::InitializeSecondOrderTerms(FICElementVariables& rFICVariables)
 {
-    for(unsigned int i = 0; i < 2; i++) //TDim
-        rFICVariables.ConstitutiveTensorGradients[i].resize(3); //VoigtSize
+    const unsigned int strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
-    rFICVariables.DimVoigtMatrix.resize(2,3,false); //TDim X VoigtSize
+    for(unsigned int i = 0; i < 2; i++) //TDim
+        rFICVariables.ConstitutiveTensorGradients[i].resize(strain_size); //VoigtSize
+
+    rFICVariables.DimVoigtMatrix.resize(2,strain_size,false); //TDim X VoigtSize
 }
 
 //----------------------------------------------------------------------------------------
@@ -749,20 +742,28 @@ void UPwSmallStrainFICElement<2,3>::InitializeSecondOrderTerms(FICElementVariabl
 template<>
 void UPwSmallStrainFICElement<2,4>::InitializeSecondOrderTerms(FICElementVariables& rFICVariables)
 {
+    const unsigned int strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+
     //Voigt identity matrix
-    rFICVariables.VoigtMatrix.resize(3,3,false); //VoigtSize X VoigtSize
-    noalias(rFICVariables.VoigtMatrix) = ZeroMatrix(3,3);
+    rFICVariables.VoigtMatrix.resize(strain_size,strain_size,false); //VoigtSize X VoigtSize
+    noalias(rFICVariables.VoigtMatrix) = ZeroMatrix(strain_size,strain_size);
     rFICVariables.VoigtMatrix(0,0) = 1.0;
     rFICVariables.VoigtMatrix(1,1) = 1.0;
     rFICVariables.VoigtMatrix(2,2) = 0.5;
+    if (strain_size == 6) {
+        rFICVariables.VoigtMatrix(2,2) = 0.0;
+        rFICVariables.VoigtMatrix(3,3) = 0.5;
+        rFICVariables.VoigtMatrix(4,4) = 0.0;
+        rFICVariables.VoigtMatrix(5,5) = 0.0;
+    }
 
     for(unsigned int i = 0; i < 4; i++) //TNumNodes
-        rFICVariables.ShapeFunctionsSecondOrderGradients[i].resize(3,false); //VoigtSize
+        rFICVariables.ShapeFunctionsSecondOrderGradients[i].resize(strain_size,false); //VoigtSize
 
     for(unsigned int i = 0; i < 2; i++) //TDim
-        rFICVariables.ConstitutiveTensorGradients[i].resize(3); //VoigtSize
+        rFICVariables.ConstitutiveTensorGradients[i].resize(strain_size); //VoigtSize
 
-    rFICVariables.DimVoigtMatrix.resize(2,3,false); //TDim X VoigtSize
+    rFICVariables.DimVoigtMatrix.resize(2,strain_size,false); //TDim X VoigtSize
 }
 
 //----------------------------------------------------------------------------------------
@@ -942,10 +943,10 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateAndAddDtStressGradientMa
 
 template< >
 void UPwSmallStrainFICElement<2,3>::CalculateConstitutiveTensorGradients(FICElementVariables& rFICVariables, const ElementVariables& Variables)
-{
+{    
     for(unsigned int i = 0; i < 2; i++) //TDim
     {
-        for(unsigned int j = 0; j < 3; j++) //VoigtSize
+        for(unsigned int j = 0; j < strain_size; j++)
         {
             for(unsigned int k = 0; k < 2; k++) //TDim
             {
@@ -959,7 +960,7 @@ void UPwSmallStrainFICElement<2,3>::CalculateConstitutiveTensorGradients(FICElem
 
     for(unsigned int i = 0; i < 2; i++) //TDim
     {
-        for(unsigned int j = 0; j < 3; j++) //VoigtSize
+        for(unsigned int j = 0; j < strain_size; j++)
         {
             rFICVariables.DimVoigtMatrix(i,j) = 0.0;
 
@@ -986,10 +987,10 @@ void UPwSmallStrainFICElement<2,3>::CalculateConstitutiveTensorGradients(FICElem
 
 template< >
 void UPwSmallStrainFICElement<2,4>::CalculateConstitutiveTensorGradients(FICElementVariables& rFICVariables, const ElementVariables& Variables)
-{
+{    
     for(unsigned int i = 0; i < 2; i++) //TDim
     {
-        for(unsigned int j = 0; j < 3; j++) //VoigtSize
+        for(unsigned int j = 0; j < strain_size; j++)
         {
             for(unsigned int k = 0; k < 2; k++) //TDim
             {
@@ -1003,7 +1004,7 @@ void UPwSmallStrainFICElement<2,4>::CalculateConstitutiveTensorGradients(FICElem
 
     for(unsigned int i = 0; i < 2; i++) //TDim
     {
-        for(unsigned int j = 0; j < 3; j++) //VoigtSize
+        for(unsigned int j = 0; j < strain_size; j++)
         {
             rFICVariables.DimVoigtMatrix(i,j) = 0.0;
 

@@ -1,10 +1,11 @@
-// KRATOS  ___|  |       |       |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//           | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License: BSD License
-//   license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:  Vicente Mataix Ferrandiz
 //
@@ -95,7 +96,7 @@ namespace Kratos
             MortarKinematicVariablesWithDerivatives<TDim, TNumNodes> rVariables; // These are the kinematic variables for the current configuration
 
             // Create the initial contact data
-            DerivativeData<TDim, TNumNodes, true> rDerivativeData0;
+            DerivativeData<TDim, TNumNodes> rDerivativeData0;
             rDerivativeData0.Initialize(r_slave_geometry_0, rModelPart.GetProcessInfo());
 
             // We call the exact integration utility
@@ -146,7 +147,7 @@ namespace Kratos
                 }
 
                 // Create the current contact data
-                DerivativeData<TDim, TNumNodes, true> rDerivativeData;
+                DerivativeData<TDim, TNumNodes> rDerivativeData;
                 rDerivativeData.Initialize(r_slave_geometry_1, rModelPart.GetProcessInfo());
 
                 // We compute the normal derivatives
@@ -165,11 +166,9 @@ namespace Kratos
                 const bool is_inside0 = integration_utility.GetExactIntegration(r_slave_geometry_0, r_normal_slave_0, r_master_geometry_0, r_normal_master_0, conditions_points_slave0);
                 const bool is_inside = integration_utility.GetExactIntegration(r_slave_geometry_1, r_normal_slave_1, r_master_geometry_1, r_normal_master_1, conditions_points_slave);
 
-                IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_2;
+                IntegrationMethod this_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
                 if (is_inside && is_inside0) {
-                    // if (Check == CheckLevel::LEVEL_FULL_DEBUG) IntegrationUtility::MathematicaDebug(SlaveCondition1->Id(), r_slave_geometry_1, MasterCondition1->Id(), r_master_geometry_1, conditions_points_slave);
-
                     // Initialize general variables for the current master element
                     rVariables0.Initialize();
                     rVariables.Initialize();
@@ -269,7 +268,7 @@ namespace Kratos
                                     rVariables.jMaster = r_master_geometry_1.Jacobian( rVariables.jMaster, projected_gp_local);
 
                                     // Now we compute the derivatives
-                                    if (TDim == 3) DerivativesUtilitiesType::CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, r_slave_geometry_1, r_master_geometry_1, r_normal_slave_1);
+                                    if constexpr (TDim == 3) DerivativesUtilitiesType::CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, r_slave_geometry_1, r_master_geometry_1, r_normal_slave_1);
 
                                     // Update the derivative of DetJ
                                     DerivativesUtilitiesType::CalculateDeltaDetjSlave(decomp_geom, rVariables, rDerivativeData);
@@ -472,7 +471,7 @@ namespace Kratos
             Point aux_point;
             aux_point.Coordinates() = ZeroVector(3);
 
-            if (TDim == 2 && TNumNodes == 2) {
+            if constexpr (TDim == 2 && TNumNodes == 2) {
                 rModelPart.CreateNewNode(5, rModelPart.pGetNode(1)->X(), rModelPart.pGetNode(1)->Y(), rModelPart.pGetNode(1)->Z());
                 rModelPart.CreateNewNode(6, rModelPart.pGetNode(2)->X(), rModelPart.pGetNode(2)->Y(), rModelPart.pGetNode(2)->Z());
 
@@ -480,9 +479,9 @@ namespace Kratos
                 rModelPart.CreateNewNode(8, rModelPart.pGetNode(4)->X(), rModelPart.pGetNode(4)->Y(), rModelPart.pGetNode(4)->Z());
 
                 // Now we create the "conditions"
-                Condition::Pointer p_cond_0 = rModelPart.CreateNewCondition("Condition2D2N", 1, {{1, 2}}, p_cond_prop);
+                Condition::Pointer p_cond_0 = rModelPart.CreateNewCondition("LineCondition2D2N", 1, {{1, 2}}, p_cond_prop);
                 const array_1d<double, 3>& normal_0 = p_cond_0->GetGeometry().UnitNormal(aux_point);
-                Condition::Pointer p_cond0_0 = rModelPart.CreateNewCondition("Condition2D2N", 3, {{5, 6}}, p_cond_prop);
+                Condition::Pointer p_cond0_0 = rModelPart.CreateNewCondition("LineCondition2D2N", 3, {{5, 6}}, p_cond_prop);
 
                 p_cond0_0->SetValue(NORMAL, normal_0);
                 p_cond_0->SetValue(NORMAL, normal_0);
@@ -494,9 +493,9 @@ namespace Kratos
                     p_cond_0->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
                 }
 
-                Condition::Pointer p_cond_1 = rModelPart.CreateNewCondition("Condition2D2N", 2, {{3, 4}}, p_cond_prop);
+                Condition::Pointer p_cond_1 = rModelPart.CreateNewCondition("LineCondition2D2N", 2, {{3, 4}}, p_cond_prop);
                 const array_1d<double, 3>& normal_1 = p_cond_1->GetGeometry().UnitNormal(aux_point);
-                Condition::Pointer p_cond0_1 = rModelPart.CreateNewCondition("Condition2D2N", 4, {{7, 8}}, p_cond_prop);
+                Condition::Pointer p_cond0_1 = rModelPart.CreateNewCondition("LineCondition2D2N", 4, {{7, 8}}, p_cond_prop);
 
                 p_cond0_1->SetValue(NORMAL, normal_1);
                 p_cond_1->SetValue(NORMAL, normal_1);
@@ -509,7 +508,7 @@ namespace Kratos
                 }
 
                 TestDerivatives<2, 2>( rModelPart, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, rNodesPerturbation, IndexPerturbation, rCoefficients, NumberIterations, Derivative, Check);
-            } else if (TDim == 3 && TNumNodes == 3) {
+            } else if constexpr (TDim == 3 && TNumNodes == 3) {
                 rModelPart.CreateNewNode(7, rModelPart.pGetNode(1)->X(), rModelPart.pGetNode(1)->Y(), rModelPart.pGetNode(1)->Z());
                 rModelPart.CreateNewNode(8, rModelPart.pGetNode(2)->X(), rModelPart.pGetNode(2)->Y(), rModelPart.pGetNode(2)->Z());
                 rModelPart.CreateNewNode(9, rModelPart.pGetNode(3)->X(), rModelPart.pGetNode(3)->Y(), rModelPart.pGetNode(3)->Z());
@@ -548,7 +547,7 @@ namespace Kratos
                 }
 
                 TestDerivatives<3, 3>( rModelPart, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, rNodesPerturbation, IndexPerturbation, rCoefficients, NumberIterations, Derivative, Check);
-            } else if (TDim == 3 && TNumNodes == 4) {
+            } else if constexpr (TDim == 3 && TNumNodes == 4) {
                 rModelPart.CreateNewNode(9, rModelPart.pGetNode(1)->X(), rModelPart.pGetNode(1)->Y(), rModelPart.pGetNode(1)->Z());
                 rModelPart.CreateNewNode(10, rModelPart.pGetNode(2)->X(), rModelPart.pGetNode(2)->Y(), rModelPart.pGetNode(2)->Z());
                 rModelPart.CreateNewNode(11, rModelPart.pGetNode(3)->X(), rModelPart.pGetNode(3)->Y(), rModelPart.pGetNode(3)->Z());
@@ -605,7 +604,7 @@ namespace Kratos
             const std::size_t PairIndex
             )
         {
-            if (TDim == 2 && TNumNodes == 2) {
+            if constexpr (TDim == 2 && TNumNodes == 2) {
                 if (PairIndex == 1) {
                     rModelPart.CreateNewNode(1, -1.0,0.0,0.0);
                     rModelPart.CreateNewNode(2,  1.0,0.0,0.0);
@@ -633,7 +632,7 @@ namespace Kratos
                 } else {
                     KRATOS_ERROR << "NOT IMPLEMENTED YET" << std::endl;
                 }
-            } else if (TDim == 3 && TNumNodes == 3) {
+            } else if constexpr (TDim == 3 && TNumNodes == 3) {
                 if (PairIndex == 1) {
                     rModelPart.CreateNewNode(1, 0.0,0.0,0.0);
                     rModelPart.CreateNewNode(2, 1.0,0.0,0.0);
@@ -685,7 +684,7 @@ namespace Kratos
                 } else {
                     KRATOS_ERROR << "NOT IMPLEMENTED YET" << std::endl;
                 }
-            } else if (TDim == 3 && TNumNodes == 4) {
+            } else if constexpr (TDim == 3 && TNumNodes == 4) {
                 if (PairIndex == 1) {
                     rModelPart.CreateNewNode(1, 0.0,0.2,1.0e-3);
                     rModelPart.CreateNewNode(2, 1.0,0.2,1.0e-3);

@@ -5282,7 +5282,7 @@ Begin Elements	SmallDisplacementElement3D6N
 	2502	0	1153	1230	923	1149	1217	916	
 End Elements
 
-Begin Conditions	Condition3D
+Begin Conditions	SurfaceCondition3D3N
 	1	0	58	53	41	
 	2	0	2680	2762	2765	
 	3	0	67	82	53	

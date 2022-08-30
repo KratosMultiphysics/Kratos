@@ -18,8 +18,7 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "spaces/ublas_space.h"
-#include "includes/linear_master_slave_constraint.h"
-#include "custom_conditions/line_load_condition_2d.h"
+#include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -37,7 +36,7 @@ typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > Bu
 typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
 typedef Scheme< SparseSpaceType, LocalSpaceType >  SchemeType;
 typedef ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> ResidualBasedIncrementalUpdateStaticSchemeType;
-typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
+typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
 typedef ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedLinearStrategyType;
 
 KRATOS_TEST_CASE_IN_SUITE(PatchTestMPCPlateTension, KratosStructuralMechanicsFastSuite)
@@ -102,7 +101,7 @@ KRATOS_TEST_CASE_IN_SUITE(PatchTestMPCPlateTension, KratosStructuralMechanicsFas
     SchemeType::Pointer p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticSchemeType>();
     LinearSolverType::Pointer p_solver = Kratos::make_shared<SkylineLUFactorizationSolverType>();
     BuilderAndSolverType::Pointer p_builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolverType>(p_solver);
-    SolvingStrategyType::Pointer p_strategy = Kratos::make_shared<ResidualBasedLinearStrategyType>(model_part, p_scheme, p_solver, p_builder_and_solver, true);
+    SolvingStrategyType::Pointer p_strategy = Kratos::make_shared<ResidualBasedLinearStrategyType>(model_part, p_scheme, p_builder_and_solver, true);
     p_strategy->SetEchoLevel(0);
     p_strategy->Solve();
     //Output to GID

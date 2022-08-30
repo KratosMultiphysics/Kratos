@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -12,7 +11,11 @@ def Factory(settings, Model):
 
 import sys
 
+# Import base search process
 import KratosMultiphysics.ContactStructuralMechanicsApplication.search_base_process as search_base_process
+
+# Import auxiliar methods
+from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_methods_solvers
 
 class MPCContactProcess(search_base_process.SearchBaseProcess):
     """This class is used in order to compute the contact using a mortar MPC formulation
@@ -56,10 +59,10 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
             "help"                        : "This class is used in order to compute the contact using a mortar MPC formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
             "mesh_id"                         : 0,
             "model_part_name"                 : "Structure",
-            "computing_model_part_name"       : "computing_domain",
             "contact_model_part"              : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"             : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "contact_property_ids"            : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
+            "friction_coefficients"           : {"0": 0.0,"1": 0.0,"2": 0.0,"3": 0.0,"4": 0.0,"5": 0.0,"6": 0.0,"7": 0.0,"8": 0.0,"9": 0.0},
             "contact_type"                    : "Frictionless",
             "not_normal_update_frictional"    : false,
             "interval"                        : [0.0,"End"],
@@ -69,6 +72,8 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
             "zero_tolerance_factor"           : 1.0e2,
             "reaction_check_stiffness_factor" : 1.0e-10,
             "integration_order"               : 2,
+            "consider_tessellation"           : false,
+            "normal_check_proportion"         : 0.1,
             "clear_inactive_for_post"         : true,
             "update_condition_relation_step"  : false,
             "search_parameters" : {
@@ -107,20 +112,21 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         base_process_settings = KM.Parameters("""{}""")
         base_process_settings.AddValue("mesh_id", self.contact_settings["mesh_id"])
         base_process_settings.AddValue("model_part_name", self.contact_settings["model_part_name"])
-        base_process_settings.AddValue("computing_model_part_name", self.contact_settings["computing_model_part_name"])
         base_process_settings.AddValue("search_model_part", self.contact_settings["contact_model_part"])
         base_process_settings.AddValue("assume_master_slave", self.contact_settings["assume_master_slave"])
         base_process_settings.AddValue("search_property_ids", self.contact_settings["contact_property_ids"])
         base_process_settings.AddValue("interval", self.contact_settings["interval"])
         base_process_settings.AddValue("zero_tolerance_factor", self.contact_settings["zero_tolerance_factor"])
         base_process_settings.AddValue("integration_order", self.contact_settings["integration_order"])
+        base_process_settings.AddValue("consider_tessellation", self.contact_settings["consider_tessellation"])
+        base_process_settings.AddValue("normal_check_proportion", self.contact_settings["normal_check_proportion"])
         base_process_settings.AddValue("search_parameters", self.contact_settings["search_parameters"])
 
         # Construct the base process.
-        super(MPCContactProcess, self).__init__(Model, base_process_settings)
+        super().__init__(Model, base_process_settings)
 
         # Getting the normal variation flag
-        self.normal_variation = super(MPCContactProcess, self)._get_enum_flag(self.contact_settings, "normal_variation", self.__normal_computation)
+        self.normal_variation = super()._get_enum_flag(self.contact_settings, "normal_variation", self.__normal_computation)
 
         # Name of the frictional law
         self.frictional_law = self.contact_settings["frictional_law"].GetString()
@@ -153,15 +159,15 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
 
         # We consider frictional contact (We use the SLIP flag because was the easiest way)
         if self.is_frictional:
-            self.computing_model_part.Set(KM.SLIP, True)
+            self.main_model_part.Set(KM.SLIP, True)
         else:
-            self.computing_model_part.Set(KM.SLIP, False)
+            self.main_model_part.Set(KM.SLIP, False)
 
         # We consider mesh tying (We use the RIGID flag because was the easiest way)
         if self.mesh_tying:
-            self.computing_model_part.Set(KM.RIGID, True)
+            self.main_model_part.Set(KM.RIGID, True)
         else:
-            self.computing_model_part.Set(KM.RIGID, False)
+            self.main_model_part.Set(KM.RIGID, False)
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -170,8 +176,23 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         self -- It signifies an instance of a class.
         """
 
+        # If we compute a frictional contact simulation we do an additional check
+        contact_type = self.contact_settings["contact_type"].GetString()
+        if "Frictional" in contact_type:
+            if "PureSlip" in contact_type:
+                self.pure_slip = True
+            else:
+                auxiliar_total_friction_coefficient = 0.0
+                for key in self.settings["search_model_part"].keys():
+                    if self.settings["search_model_part"][key].size() > 0:
+                        auxiliar_total_friction_coefficient += self.contact_settings["friction_coefficients"][key].GetDouble()
+                if auxiliar_total_friction_coefficient < sys.float_info.epsilon:
+                    self.pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.main_model_part)
+                else:
+                    self.pure_slip = False
+
         # We call to the base process
-        super(MPCContactProcess, self).ExecuteInitialize()
+        super().ExecuteInitialize()
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
@@ -180,7 +201,7 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         self -- It signifies an instance of a class.
         """
         # We call to the base process
-        super(MPCContactProcess, self).ExecuteBeforeSolutionLoop()
+        super().ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
@@ -190,11 +211,11 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         """
 
         # We call to the base process
-        super(MPCContactProcess, self).ExecuteInitializeSolutionStep()
+        super().ExecuteInitializeSolutionStep()
 
         # We set the flag SLIP on frictional conditions
         if self.is_frictional:
-            KM.VariableUtils().SetFlag(KM.SLIP, True, self.computing_model_part.Conditions)
+            KM.VariableUtils().SetFlag(KM.SLIP, True, self.main_model_part.Conditions)
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -203,7 +224,7 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         self -- It signifies an instance of a class.
         """
         # We call to the base process
-        super(MPCContactProcess, self).ExecuteFinalizeSolutionStep()
+        super().ExecuteFinalizeSolutionStep()
 
         # Debug we compute if the total load corresponds with the total contact force and the reactions
         if self.settings["search_parameters"]["debug_mode"].GetBool():
@@ -218,14 +239,14 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
             total_contact_force = 0
 
             # Computing total load applied (I will consider only surface loads for now)
-            for cond in self.computing_model_part.Conditions:
+            for cond in self.main_model_part.Conditions:
                 geom = cond.GetGeometry()
                 if cond.Has(SMA.LINE_LOAD):
                     total_load += geom.Length() * cond.GetValue(SMA.LINE_LOAD)
                 if cond.Has(SMA.SURFACE_LOAD):
                     total_load += geom.Area() * cond.GetValue(SMA.SURFACE_LOAD)
 
-            for node in self.computing_model_part.Nodes:
+            for node in self.main_model_part.Nodes:
                 if node.Has(KM.NODAL_AREA) and node.Has(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE):
                     total_contact_force += node.GetValue(KM.NODAL_AREA) * node.GetValue(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE)
 
@@ -243,7 +264,7 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         """
 
         # We call to the base process
-        super(MPCContactProcess, self).ExecuteBeforeOutputStep()
+        super().ExecuteBeforeOutputStep()
 
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation
@@ -253,7 +274,7 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         """
 
         # We call to the base process
-        super(MPCContactProcess, self).ExecuteAfterOutputStep()
+        super().ExecuteAfterOutputStep()
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current time step
@@ -263,11 +284,11 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         """
 
         # We call to the base process
-        super(MPCContactProcess, self).ExecuteFinalizeSolutionStep()
+        super().ExecuteFinalizeSolutionStep()
 
         # Blocking the conditions
         if not self.contact_settings["update_condition_relation_step"].GetBool():
-            KM.VariableUtils().SetFlag(KM.BLOCKED, True, self.computing_model_part.Conditions)
+            KM.VariableUtils().SetFlag(KM.BLOCKED, True, self.main_model_part.Conditions)
 
     def ExecuteFinalize(self):
         """ This method is executed in order to finalize the current computation
@@ -277,7 +298,7 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         """
 
         # We call to the base process
-        super(MPCContactProcess, self).ExecuteFinalize()
+        super().ExecuteFinalize()
 
     def _set_additional_parameters(self, param):
         """ This sets additional parameters for the search
@@ -309,9 +330,9 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         key -- The key to identify the current pair
         """
         # Determine the geometry of the element
-        super(MPCContactProcess, self)._get_final_string(key)
+        super()._get_final_string(key)
         # We compute the number of nodes of the conditions
-        number_nodes, number_nodes_master = super(MPCContactProcess, self)._compute_number_nodes()
+        number_nodes, number_nodes_master = super()._compute_number_nodes()
         if number_nodes != number_nodes_master:
             return str(number_nodes_master) + "N"
         else:
@@ -333,7 +354,7 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         """
 
         # We call to the base process
-        super(MPCContactProcess, self)._initialize_process_info()
+        super()._initialize_process_info()
 
         # We call the process info
         process_info = self.main_model_part.ProcessInfo
@@ -349,17 +370,17 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         """
 
         # We call to the base process
-        super(MPCContactProcess, self)._initialize_search_values()
+        super()._initialize_search_values()
 
         # We set the CONTACT flag
-        self.computing_model_part.Set(KM.CONTACT, True)
+        self.main_model_part.Set(KM.CONTACT, True)
         self._get_process_model_part().Set(KM.CONTACT, True)
         # We consider frictional contact (We use the SLIP flag because was the easiest way)
         if self.is_frictional:
-            self.computing_model_part.Set(KM.SLIP, True)
+            self.main_model_part.Set(KM.SLIP, True)
             self._get_process_model_part().Set(KM.SLIP, True)
         else:
-            self.computing_model_part.Set(KM.SLIP, False)
+            self.main_model_part.Set(KM.SLIP, False)
             self._get_process_model_part().Set(KM.SLIP, False)
 
         # We call the process info
@@ -377,7 +398,7 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         """
 
         # We call to the base process
-        super(MPCContactProcess, self)._initialize_problem_parameters()
+        super()._initialize_problem_parameters()
 
         # We call the process info
         process_info = self.main_model_part.ProcessInfo
@@ -390,7 +411,22 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         """
 
         # We call to the base process
-        super(MPCContactProcess, self)._initialize_search_conditions()
+        super()._initialize_search_conditions()
+
+        # Assign the friction friction_coefficients
+        if self.is_frictional:
+            for key in self.settings["search_model_part"].keys():
+                if self.settings["search_model_part"][key].size() > 0:
+                    sub_search_model_part_name = "ContactSub"+key
+                    if self._get_process_model_part().HasSubModelPart(sub_search_model_part_name):
+                        sub_search_model_part = self._get_process_model_part().GetSubModelPart(sub_search_model_part_name)
+                    else:
+                        sub_search_model_part = self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
+                    for prop in sub_search_model_part.GetProperties():
+                        if not prop.Has(KM.FRICTION_COEFFICIENT):
+                            prop[KM.FRICTION_COEFFICIENT] = self.contact_settings["friction_coefficients"][key].GetDouble()
+                        else:
+                            KM.Logger.PrintWarning("FRICTION_COEFFICIENT: ", "{:.2e}".format(prop[KM.FRICTION_COEFFICIENT]), " already defined in Properties, please define it as a condition pair property")
 
         alm_init_var = CSMA.ALMFastInit(self._get_process_model_part())
         alm_init_var.Execute()
@@ -406,4 +442,4 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         search_parameters = self._create_search_parameters(key)
 
         # We create the search process
-        self.search_utility_list[key] = CSMA.MPCContactSearchProcess(self.computing_model_part, search_parameters)
+        self.search_utility_list[key] = CSMA.MPCContactSearchProcess(self.main_model_part, search_parameters)

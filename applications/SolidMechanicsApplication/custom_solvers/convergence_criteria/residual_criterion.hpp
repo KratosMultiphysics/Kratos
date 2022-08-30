@@ -62,13 +62,13 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
   typedef typename BaseType::SystemVectorType           SystemVectorType;
 
   typedef array_1d<double,3>                                  VectorType;
-  typedef VectorComponentAdaptor<VectorType>         VectorComponentType;
+  typedef Variable<double>                           VectorComponentType;
   typedef Variable<VectorType>                        VariableVectorType;
   typedef Variable<double>                            VariableScalarType;
   typedef const VariableVectorType*                VariableVectorPointer;
   typedef const VariableScalarType*                VariableScalarPointer;
 
-  typedef std::vector<VariableComponent<VectorComponentType> > ComponentVariableVector;
+  typedef std::vector<Variable<double> >         ComponentVariableVector;
 
   /// Pointer definition of ResidualCriterion
   KRATOS_CLASS_POINTER_DEFINITION(ResidualCriterion);
@@ -350,9 +350,9 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
     KRATOS_TRY
 
     const std::string& variable_name = mpVectorVariable->Name();
-    const VariableComponent<VectorComponentType>& var_x = KratosComponents<VariableComponent<VectorComponentType> >::Get(variable_name+"_X");
-    const VariableComponent<VectorComponentType>& var_y = KratosComponents<VariableComponent<VectorComponentType> >::Get(variable_name+"_Y");
-    const VariableComponent<VectorComponentType>& var_z = KratosComponents<VariableComponent<VectorComponentType> >::Get(variable_name+"_Z");
+    const Variable<double>& var_x = KratosComponents<Variable<double> >::Get(variable_name+"_X");
+    const Variable<double>& var_y = KratosComponents<Variable<double> >::Get(variable_name+"_Y");
+    const Variable<double>& var_z = KratosComponents<Variable<double> >::Get(variable_name+"_Z");
 
     if( rDofIter->GetVariable() == var_x || rDofIter->GetVariable() == var_y || rDofIter->GetVariable() == var_z )
       return true;

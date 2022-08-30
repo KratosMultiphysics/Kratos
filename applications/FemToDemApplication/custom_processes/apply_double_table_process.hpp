@@ -46,7 +46,7 @@ public:
     {
         KRATOS_TRY;
                 
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const Variable<double>& var = KratosComponents< Variable<double> >::Get(mVariableName);
         const int number_nodes = static_cast<int>(mrModelPart.Nodes().size());
 
         if(number_nodes != 0) {
@@ -69,7 +69,7 @@ public:
     {
         KRATOS_TRY;
         
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const Variable<double>& var = KratosComponents< Variable<double> >::Get(mVariableName);
         
         double time;
         if (mTimeUnitConverter != 0) {

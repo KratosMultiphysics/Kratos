@@ -82,7 +82,7 @@ public:
     /**
      * @brief This enums allows to differentiate the interpolation types
      */
-    enum class Interpolation {CONSTANT = 0, LINEAR = 1, EXPONENTIAL = 2};
+    enum class Interpolation {CONSTANT = 0, LINEAR = 1, EXPONENTIAL = 2, PIECEWISE_LINEAR = 3};
 
     ///@}
     ///@name Life Cycle
@@ -96,7 +96,7 @@ public:
      */
     ComputeLevelSetSolMetricProcess(
         ModelPart& rThisModelPart,
-        const Variable<array_1d<double,3>> rVariableGradient = DISTANCE_GRADIENT,
+        const Variable<array_1d<double,3>>& rVariableGradient = DISTANCE_GRADIENT,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
@@ -111,6 +111,11 @@ public:
     {
         Execute();
     }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Operations
@@ -207,6 +212,7 @@ private:
     double mAnisotropicRatio;                             /// The minimal anisotropic ratio (0 < ratio < 1)
     double mBoundLayer;                                   /// The boundary layer limit Distance for the anisotropic ratio
     double mSizeBoundLayer;                               /// The boundary layer limit Distance for the element size
+    Table<double> mSizeDistributionTable;                 /// Table containing the [DISTANCE, SIZE] for the piecewise linear interpolation
     Interpolation mInterpolation;                         /// The interpolation type for the anisotropic ratio
     Interpolation mSizeInterpolation;                     /// The interpolation type for the element size
 
@@ -245,6 +251,8 @@ private:
             return Interpolation::LINEAR;
         else if(Str == "Exponential" || Str == "EXPONENTIAL"  || Str == "exponential")
             return Interpolation::EXPONENTIAL;
+        else if(Str == "piecewise_linear" || Str == "PIECEWISE_LINEAR")
+            return Interpolation::PIECEWISE_LINEAR;
         else
             return Interpolation::LINEAR;
     }

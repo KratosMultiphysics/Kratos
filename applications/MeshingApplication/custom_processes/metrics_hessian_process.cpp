@@ -14,6 +14,8 @@
 #include "utilities/math_utils.h"
 #include "utilities/variable_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/atomic_utilities.h"
+#include "utilities/parallel_utilities.h"
 #include "custom_utilities/metrics_math_utils.h"
 #include "processes/compute_nodal_gradient_process.h"
 #include "custom_processes/metrics_hessian_process.h"
@@ -29,7 +31,7 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
     KRATOS_WARNING_IF("ComputeHessianSolMetricProcess", !ThisParameters.Has("enforce_anisotropy_relative_variable")) << "enforce_anisotropy_relative_variable not defined. By default is considered false" << std::endl;
 
     // We check the parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
     InitializeVariables(ThisParameters);
 
@@ -37,9 +39,7 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
 
     // We push the list of double variables
     if (KratosComponents<Variable<double>>::Has(r_metric_variable_name)) {
-        mrOriginVariableDoubleList.push_back(&KratosComponents<Variable<double>>::Get(r_metric_variable_name));
-    } else if (KratosComponents<ComponentType>::Has(r_metric_variable_name)) {
-        mrOriginVariableComponentsList.push_back(&KratosComponents<ComponentType>::Get(r_metric_variable_name));
+        mpOriginVariable = &KratosComponents<Variable<double>>::Get(r_metric_variable_name);
     } else {
         KRATOS_ERROR << "Only components and doubles are allowed as variables" << std::endl;
     }
@@ -52,37 +52,14 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
     ModelPart& rThisModelPart,
     Variable<double>& rVariable,
     Parameters ThisParameters
-    ) : mrModelPart(rThisModelPart)
+    ) : mrModelPart(rThisModelPart),
+        mpOriginVariable(&rVariable)
 {
-    // We push the list of double variables
-    mrOriginVariableDoubleList.push_back(&rVariable);
-
     // TODO: Remove this warning in the future
     KRATOS_WARNING_IF("ComputeHessianSolMetricProcess", !ThisParameters.Has("enforce_anisotropy_relative_variable")) << "enforce_anisotropy_relative_variable not defined. By default is considered false" << std::endl;
 
     // We check the parameters
-    Parameters default_parameters = GetDefaultParameters();
-    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-    InitializeVariables(ThisParameters);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
-    ModelPart& rThisModelPart,
-    ComponentType& rVariable,
-    Parameters ThisParameters
-    ):mrModelPart(rThisModelPart)
-{
-    // We push the components list
-    mrOriginVariableComponentsList.push_back(&rVariable);
-
-    // TODO: Remove this warning in the future
-    KRATOS_WARNING_IF("ComputeHessianSolMetricProcess", !ThisParameters.Has("enforce_anisotropy_relative_variable")) << "enforce_anisotropy_relative_variable not defined. By default is considered false" << std::endl;
-
-    // We check the parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
     InitializeVariables(ThisParameters);
 }
@@ -95,36 +72,30 @@ void ComputeHessianSolMetricProcess::Execute()
     // Computing auxiliar Hessian
     CalculateAuxiliarHessian();
 
-    // Some checks
-    NodesArrayType& r_nodes_array = mrModelPart.Nodes();
-    if (!mNonHistoricalVariable) {
-        if (mrOriginVariableDoubleList.size() > 0) {
-            VariableUtils().CheckVariableExists(*mrOriginVariableDoubleList[0], r_nodes_array);
+    if (mrModelPart.NumberOfNodes() > 0) {
+        // Some checks
+        NodesArrayType& r_nodes_array = mrModelPart.Nodes();
+        if (!mNonHistoricalVariable) {
+            VariableUtils().CheckVariableExists(*mpOriginVariable, r_nodes_array);
         } else {
-            VariableUtils().CheckVariableExists(*mrOriginVariableComponentsList[0], r_nodes_array);
+            KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mpOriginVariable)) << "Variable " << mpOriginVariable->Name() << " not defined on non-historial database" << std::endl;
         }
-    } else {
-        if (mrOriginVariableDoubleList.size() > 0) {
-            KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mrOriginVariableDoubleList[0])) << "Variable " << mrOriginVariableDoubleList[0]->Name() << " not defined on non-historial database" << std::endl;
+
+        // Checking NODAL_H
+        for (const auto& r_node : r_nodes_array)
+            KRATOS_ERROR_IF_NOT(r_node.Has(NODAL_H)) << "NODAL_H must be computed" << std::endl;
+
+        // Getting dimension
+        const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+
+        // Computing metric
+        if (dimension == 2) { // 2D
+            CalculateMetric<2>();
+        } else if (dimension == 3) { // 3D
+            CalculateMetric<3>();
         } else {
-            KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mrOriginVariableComponentsList[0])) << "Variable " << mrOriginVariableComponentsList[0]->Name() << " not defined on non-historial database" << std::endl;
+            KRATOS_ERROR << "Dimension can be only 2D or 3D. Dimension: " << dimension << std::endl;
         }
-    }
-
-    // Checking NODAL_H
-    for (const auto& r_node : r_nodes_array)
-        KRATOS_ERROR_IF_NOT(r_node.Has(NODAL_H)) << "NODAL_H must be computed" << std::endl;
-
-    // Getting dimension
-    const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
-    // Computing metric
-    if (dimension == 2) { // 2D
-        CalculateMetric<2>();
-    } else if (dimension == 3) { // 3D
-        CalculateMetric<3>();
-    } else {
-        KRATOS_ERROR << "Dimension can be only 2D or 3D. Dimension: " << dimension << std::endl;
     }
 }
 
@@ -205,9 +176,9 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
     MathUtils<double>::BDBtProductOperation(metric_matrix, eigen_values_matrix, eigen_vector_matrix);
 
     // Finally we transform to a vector
-    const TensorArrayType& r_metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
+    const TensorArrayType metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
 
-    return r_metric;
+    return metric;
 }
 
 /***********************************************************************************/
@@ -217,8 +188,6 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
 {
     // Iterate in the elements
     ElementsArrayType& r_elements_array = mrModelPart.Elements();
-    const int num_elements = static_cast<int>(r_elements_array.size());
-    const auto it_element_begin = r_elements_array.begin();
 
     // Geometry information
     const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -229,49 +198,51 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
 
     // Iterate in the nodes
     NodesArrayType& r_nodes_array = mrModelPart.Nodes();
-    const int num_nodes = static_cast<int>(r_nodes_array.size());
 
     // We get the normalization factor
-    const double normalization_factor = mThisParameters["normalization_factor"].GetDouble();
+    const Normalization normalization_method = ConvertNormalization(mThisParameters["normalization_method"].GetString());
+    const double normalization_factor = normalization_method == Normalization::CONSTANT ? mThisParameters["normalization_factor"].GetDouble() : 1.0;
+    const double normalization_alpha = mThisParameters["normalization_alpha"].GetDouble();
 
     // Initialize auxiliar variables
-    const auto& it_nodes_begin = r_nodes_array.begin();
-    #pragma omp parallel for
-    for(int i_node = 0; i_node < num_nodes; ++i_node) {
-        auto it_node = it_nodes_begin + i_node;
-        it_node->SetValue(NODAL_AREA, 0.0);
-        it_node->SetValue(AUXILIAR_HESSIAN, aux_zero_hessian);
-        it_node->SetValue(AUXILIAR_GRADIENT, aux_zero_vector);
+    block_for_each(r_nodes_array,
+        [this,&aux_zero_hessian,&aux_zero_vector,&normalization_factor](NodeType& rNode) {
+        rNode.SetValue(NODAL_AREA, 0.0);
+        rNode.SetValue(AUXILIAR_HESSIAN, aux_zero_hessian);
+        rNode.SetValue(AUXILIAR_GRADIENT, aux_zero_vector);
 
         // Saving auxiliar value
-        const double value = mNonHistoricalVariable ? (mrOriginVariableDoubleList.size() > 0 ? it_node->GetValue(*mrOriginVariableDoubleList[0]) : it_node->GetValue(*mrOriginVariableComponentsList[0])) : (mrOriginVariableDoubleList.size() > 0 ? it_node->FastGetSolutionStepValue(*mrOriginVariableDoubleList[0]) : it_node->FastGetSolutionStepValue(*mrOriginVariableComponentsList[0]));
-        it_node->SetValue(NODAL_MAUX, value * normalization_factor);
-    }
+        const double value = mNonHistoricalVariable ? rNode.GetValue(*(mpOriginVariable)) : rNode.FastGetSolutionStepValue(*(mpOriginVariable));
+        rNode.SetValue(NODAL_MAUX, value * normalization_factor);
+    });
 
     // Compute auxiliar gradient
     auto gradient_process = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mrModelPart, NODAL_MAUX, AUXILIAR_GRADIENT, NODAL_AREA, true);
     gradient_process.Execute();
 
     // Auxiliar containers
-    Matrix DN_DX, J0;
-    Vector N;
+    struct fe_containers
+    {
+        Matrix DN_DX, J0, InvJ0;
+        Vector N;
+        double detJ0;
+    };
 
-    #pragma omp parallel for firstprivate(DN_DX,  N, J0)
-    for(int i_elem = 0; i_elem < num_elements; ++i_elem) {
-        auto it_elem = it_element_begin + i_elem;
-        auto& r_geometry = it_elem->GetGeometry();
+    block_for_each(r_elements_array, fe_containers(),
+        [&dimension](Element& rElement, fe_containers& fe) {
+        auto& r_geometry = rElement.GetGeometry();
 
         // Current geometry information
         const std::size_t local_space_dimension = r_geometry.LocalSpaceDimension();
         const std::size_t number_of_nodes = r_geometry.PointsNumber();
 
         // Resize if needed
-        if (DN_DX.size1() != number_of_nodes || DN_DX.size2() != dimension)
-            DN_DX.resize(number_of_nodes, dimension);
-        if (N.size() != number_of_nodes)
-            N.resize(number_of_nodes);
-        if (J0.size1() != dimension || J0.size2() != local_space_dimension)
-            J0.resize(dimension, local_space_dimension);
+        if (fe.DN_DX.size1() != number_of_nodes || fe.DN_DX.size2() != dimension)
+            fe.DN_DX.resize(number_of_nodes, dimension);
+        if (fe.N.size() != number_of_nodes)
+            fe.N.resize(number_of_nodes);
+        if (fe.J0.size1() != dimension || fe.J0.size2() != local_space_dimension)
+            fe.J0.resize(dimension, local_space_dimension);
 
         // The integration points
         const auto& integration_method = r_geometry.GetDefaultIntegrationMethod();
@@ -286,17 +257,15 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
         if (dimension == 2) {
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
                 // Getting the shape functions
-                noalias(N) = row(rNcontainer, point_number);
+                noalias(fe.N) = row(rNcontainer, point_number);
 
                 // Getting the jacobians and local gradients
-                GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], J0);
-                double detJ0;
-                Matrix InvJ0;
-                MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
+                GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], fe.J0);
+                MathUtils<double>::GeneralizedInvertMatrix(fe.J0, fe.InvJ0, fe.detJ0);
                 const Matrix& rDN_De = rDN_DeContainer[point_number];
-                GeometryUtils::ShapeFunctionsGradients(rDN_De, InvJ0, DN_DX);
+                GeometryUtils::ShapeFunctionsGradients(rDN_De, fe.InvJ0, fe.DN_DX);
 
-                const double gauss_point_volume = integration_points[point_number].Weight() * detJ0;
+                const double gauss_point_volume = integration_points[point_number].Weight() * fe.detJ0;
 
                 Matrix values(number_of_nodes, 2);
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
@@ -305,31 +274,28 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
                         values(i_node, i_dim) = aux_grad[i_dim];
                 }
 
-                const BoundedMatrix<double,2, 2>& hessian = prod(trans(DN_DX), values);
+                const BoundedMatrix<double,2, 2>& hessian = prod(trans(fe.DN_DX), values);
                 const array_1d<double, 3>& hessian_cond = MathUtils<double>::StressTensorToVector<BoundedMatrix<double, 2, 2>, array_1d<double, 3>>(hessian);
 
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     auto& aux_hessian = r_geometry[i_node].GetValue(AUXILIAR_HESSIAN);
                     for(IndexType k = 0; k < 3; ++k) {
-                        #pragma omp atomic
-                        aux_hessian[k] += N[i_node] * gauss_point_volume * hessian_cond[k];
+                        AtomicAdd(aux_hessian[k], fe.N[i_node] * gauss_point_volume * hessian_cond[k]);
                     }
                 }
             }
         } else { // 3D case
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
                 // Getting the shape functions
-                noalias(N) = row(rNcontainer, point_number);
+                noalias(fe.N) = row(rNcontainer, point_number);
 
                 // Getting the jacobians and local gradients
-                GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], J0);
-                double detJ0;
-                Matrix InvJ0;
-                MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
+                GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], fe.J0);
+                MathUtils<double>::GeneralizedInvertMatrix(fe.J0, fe.InvJ0, fe.detJ0);
                 const Matrix& rDN_De = rDN_DeContainer[point_number];
-                GeometryUtils::ShapeFunctionsGradients(rDN_De, InvJ0, DN_DX);
+                GeometryUtils::ShapeFunctionsGradients(rDN_De, fe.InvJ0, fe.DN_DX);
 
-                const double gauss_point_volume = integration_points[point_number].Weight() * detJ0;
+                const double gauss_point_volume = integration_points[point_number].Weight() * fe.detJ0;
 
                 Matrix values(number_of_nodes, 3);
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
@@ -338,28 +304,48 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
                         values(i_node, i_dim) = aux_grad[i_dim];
                 }
 
-                const BoundedMatrix<double, 3, 3> hessian = prod(trans(DN_DX), values);
+                const BoundedMatrix<double, 3, 3> hessian = prod(trans(fe.DN_DX), values);
                 const array_1d<double, 6>& hessian_cond = MathUtils<double>::StressTensorToVector<BoundedMatrix<double, 3, 3>, array_1d<double, 6>>(hessian);
 
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     auto& aux_hessian = r_geometry[i_node].GetValue(AUXILIAR_HESSIAN);
                     for(IndexType k = 0; k < 6; ++k) {
-                        #pragma omp atomic
-                        aux_hessian[k] += N[i_node] * gauss_point_volume * hessian_cond[k];
+                        AtomicAdd(aux_hessian[k], fe.N[i_node] * gauss_point_volume * hessian_cond[k]);
                     }
                 }
             }
         }
+    });
+
+    mrModelPart.GetCommunicator().AssembleNonHistoricalData(AUXILIAR_HESSIAN);
+
+    // We normalize the value of the NODAL_AREA
+    if (normalization_method == Normalization::VALUE) {
+        block_for_each(r_nodes_array,
+        [&](NodeType& rNode) {
+            const double factor = rNode.GetValue(NODAL_MAUX);
+            if (factor > std::numeric_limits<double>::epsilon()) {
+                rNode.GetValue(NODAL_AREA) *= factor;
+            }
+        });
+    } else if (normalization_method == Normalization::NORM_GRADIENT) {
+        block_for_each(r_nodes_array,
+        [&normalization_alpha](NodeType& rNode) {
+            const double factor = norm_2(rNode.GetValue(AUXILIAR_GRADIENT)) * rNode.GetValue(NODAL_H) + normalization_alpha * rNode.GetValue(NODAL_MAUX);
+            if (factor > std::numeric_limits<double>::epsilon()) {
+                rNode.GetValue(NODAL_AREA) *= factor;
+            }
+        });
     }
 
-    #pragma omp parallel for
-    for(int i_node = 0; i_node < num_nodes; ++i_node) {
-        auto it_node = r_nodes_array.begin() + i_node;
-        const double nodal_area = it_node->GetValue(NODAL_AREA);
+    // We average considering the NODAL_AREA
+    block_for_each(r_nodes_array,
+        [&](NodeType& rNode) {
+        const double nodal_area = rNode.GetValue(NODAL_AREA);
         if (nodal_area > std::numeric_limits<double>::epsilon()) {
-            it_node->GetValue(AUXILIAR_HESSIAN) /= nodal_area;
+            rNode.GetValue(AUXILIAR_HESSIAN) /= nodal_area;
         }
-    }
+    });
 }
 
 /***********************************************************************************/
@@ -415,7 +401,6 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
 
     // Iterate in the nodes
     NodesArrayType& r_nodes_array = mrModelPart.Nodes();
-    const int num_nodes = static_cast<int>(r_nodes_array.size());
     const auto it_node_begin = r_nodes_array.begin();
 
     // Tensor variable definition
@@ -432,13 +417,12 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
     KRATOS_ERROR_IF(mpRatioReferenceVariable == NULL) << "Variable reference is not defined" << std::endl;
     const auto& r_reference_var = *mpRatioReferenceVariable;
 
-    #pragma omp parallel for firstprivate(aux_variables)
-    for(int i = 0; i < num_nodes; ++i) {
-        auto it_node = it_node_begin + i;
+    block_for_each(r_nodes_array, aux_variables,
+        [&minimal_size,&maximal_size,&enforce_current,&anisotropy_remeshing,&enforce_anisotropy_relative_variable,&hmin_over_hmax_anisotropic_ratio,&boundary_layer_max_distance,this,&r_reference_var,&r_tensor_variable](NodeType& rNode, AuxiliarHessianComputationVariables& aux_variables) {
 
-        const Vector& r_hessian = it_node->GetValue(AUXILIAR_HESSIAN);
+        const Vector& r_hessian = rNode.GetValue(AUXILIAR_HESSIAN);
 
-        aux_variables.mNodalH = it_node->GetValue(NODAL_H);
+        aux_variables.mNodalH = rNode.GetValue(NODAL_H);
 
         aux_variables.mElementMinSize = ((minimal_size < aux_variables.mNodalH) && enforce_current) ? aux_variables.mNodalH : minimal_size;
         aux_variables.mElementMaxSize = ((maximal_size > aux_variables.mNodalH) && enforce_current) ? aux_variables.mNodalH : maximal_size;
@@ -446,36 +430,36 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
         // Isotropic by default
         aux_variables.mAnisotropicRatio = 1.0;
 
-        if (it_node->SolutionStepsDataHas(r_reference_var) && anisotropy_remeshing && enforce_anisotropy_relative_variable) {
-            const double ratio_reference = it_node->FastGetSolutionStepValue(r_reference_var);
+        if (rNode.SolutionStepsDataHas(r_reference_var) && anisotropy_remeshing && enforce_anisotropy_relative_variable) {
+            const double ratio_reference = rNode.FastGetSolutionStepValue(r_reference_var);
             aux_variables.mAnisotropicRatio = CalculateAnisotropicRatio(ratio_reference, hmin_over_hmax_anisotropic_ratio, boundary_layer_max_distance, mInterpolation);
         }
 
         // For postprocess pourposes
-        it_node->SetValue(ANISOTROPIC_RATIO, aux_variables.mAnisotropicRatio);
+        rNode.SetValue(ANISOTROPIC_RATIO, aux_variables.mAnisotropicRatio);
 
         // We compute the metric
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(TDim) + "D  not defined for node " << it_node->Id() << std::endl;
-        TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
+        KRATOS_DEBUG_ERROR_IF_NOT(rNode.Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(TDim) + "D  not defined for node " << rNode.Id() << std::endl;
+        TensorArrayType& r_metric = rNode.GetValue(r_tensor_variable);
 
         const double norm_metric = norm_2(r_metric);
         if (norm_metric > 0.0) { // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
-            const TensorArrayType& r_old_metric = it_node->GetValue(r_tensor_variable);
+            const TensorArrayType& r_old_metric = rNode.GetValue(r_tensor_variable);
             const TensorArrayType new_metric = ComputeHessianMetricTensor<TDim>(r_hessian, aux_variables);
 
             noalias(r_metric) = MetricsMathUtils<TDim>::IntersectMetrics(r_old_metric, new_metric);
         } else {
             noalias(r_metric) = ComputeHessianMetricTensor<TDim>(r_hessian, aux_variables);
         }
-    }
+    });
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
+const Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "minimal_size"                         : 0.1,
         "maximal_size"                         : 10.0,
@@ -491,6 +475,8 @@ Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
             "metric_variable"                      : "DISTANCE",
             "non_historical_metric_variable"       : false,
             "normalization_factor"                 : 1.0,
+            "normalization_alpha"                  : 0.0,
+            "normalization_method"                 : "constant",
             "estimate_interpolation_error"         : false,
             "interpolation_error"                  : 1.0e-6,
             "mesh_dependent_constant"              : 0.28125
@@ -528,7 +514,7 @@ Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
 void ComputeHessianSolMetricProcess::InitializeVariables(Parameters ThisParameters)
 {
     // Get default variables
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
 
     // In case we have isotropic remeshing (default values)
     const bool default_values = !ThisParameters["anisotropy_remeshing"].GetBool();
@@ -542,6 +528,8 @@ void ComputeHessianSolMetricProcess::InitializeVariables(Parameters ThisParamete
     mThisParameters.AddValue("metric_variable", ThisParameters["hessian_strategy_parameters"]["metric_variable"]);
     mThisParameters.AddValue("non_historical_metric_variable", ThisParameters["hessian_strategy_parameters"]["non_historical_metric_variable"]);
     mThisParameters.AddValue("normalization_factor", ThisParameters["hessian_strategy_parameters"]["normalization_factor"]);
+    mThisParameters.AddValue("normalization_alpha", ThisParameters["hessian_strategy_parameters"]["normalization_alpha"]);
+    mThisParameters.AddValue("normalization_method", ThisParameters["hessian_strategy_parameters"]["normalization_method"]);
     mThisParameters.AddValue("estimate_interpolation_error", considered_parameters["hessian_strategy_parameters"]["estimate_interpolation_error"]);
     mThisParameters.AddValue("mesh_dependent_constant", considered_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"]);
     mThisParameters.AddValue("hmin_over_hmax_anisotropic_ratio", considered_parameters["enforced_anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"]);

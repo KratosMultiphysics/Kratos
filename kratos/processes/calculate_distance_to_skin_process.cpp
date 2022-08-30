@@ -43,6 +43,44 @@ namespace Kratos
 	}
 
 	template<std::size_t TDim>
+	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
+		ModelPart& rVolumePart,
+		ModelPart& rSkinPart,
+		Parameters& rParameters)
+		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart)
+	{
+		rParameters.RecursivelyValidateAndAssignDefaults(GetDefaultParameters());
+		mRayCastingRelativeTolerance = rParameters["ray_casting_relative_tolerance"].GetDouble();
+        CalculateDiscontinuousDistanceToSkinProcess<TDim>::mpElementalDistancesVariable = &KratosComponents<Variable<Vector>>::Get(rParameters["elemental_distances_variable"].GetString());;
+        mpDistanceVariable = &KratosComponents<Variable<double>>::Get(rParameters["distance_variable"].GetString());;
+		const std::string distance_database = rParameters["distance_database"].GetString();
+		if (distance_database == "nodal_historical") {
+			mDistanceDatabase = DistanceDatabase::NodeHistorical;
+		} else if (distance_database == "nodal_non_historical") {
+			mDistanceDatabase = DistanceDatabase::NodeNonHistorical;
+		} else {
+			KRATOS_ERROR << "Provided 'distance_database' is '" << distance_database << "'. Available options are 'nodal_historical' and 'nodal_non_historical'." <<  std::endl;
+		}
+	}
+
+	template<std::size_t TDim>
+	const Parameters CalculateDistanceToSkinProcess<TDim>::GetDefaultParameters() const
+	{
+		Parameters default_parameters = Parameters(R"(
+		{
+			"distance_variable"                     : "DISTANCE",
+			"distance_database"                     : "nodal_historical",
+			"ray_casting_relative_tolerance"        : 1.0e-8
+		})" );
+
+		// Getting base class default parameters
+		const Parameters base_default_parameters = CalculateDiscontinuousDistanceToSkinProcess<TDim>::GetDefaultParameters();
+		default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+
+		return default_parameters;
+	}
+
+	template<std::size_t TDim>
 	CalculateDistanceToSkinProcess<TDim>::~CalculateDistanceToSkinProcess()
 	{
 	}
@@ -64,10 +102,10 @@ namespace Kratos
 		const double char_length = this->CalculateCharacteristicLength();
 
 		// Initialize the nodal distance values to a maximum positive value
-		#pragma omp parallel for firstprivate(char_length)
-		for (int i_node = 0; i_node < static_cast<int>(ModelPart1.NumberOfNodes()); ++i_node) {
-			auto it_node = ModelPart1.NodesBegin() + i_node;
-			it_node->GetSolutionStepValue(DISTANCE) = char_length;
+		if (mDistanceDatabase == DistanceDatabase::NodeHistorical) {
+			VariableUtils().SetVariable(*mpDistanceVariable, char_length, ModelPart1.Nodes());
+		} else {
+			VariableUtils().SetNonHistoricalVariable(*mpDistanceVariable, char_length, ModelPart1.Nodes());
 		}
 	}
 
@@ -84,8 +122,18 @@ namespace Kratos
 			// Use a naive elemental distance computation (without plane optimization)
 			this->CalculateElementalDistances(rIntersectedObjects);
 		}
+
+		// Set the getter function according to the database to be used
+		NodeScalarGetFunctionType node_distance_getter;
+		if (mDistanceDatabase == DistanceDatabase::NodeHistorical) {
+			node_distance_getter = [](NodeType& rNode, const Variable<double>& rDistanceVariable)->double&{return rNode.FastGetSolutionStepValue(rDistanceVariable);};
+		} else {
+			node_distance_getter = [](NodeType& rNode, const Variable<double>& rDistanceVariable)->double&{return rNode.GetValue(rDistanceVariable);};
+		}
+
 		// Get the minimum elemental distance value for each node
-		this->CalculateNodalDistances();
+		this->CalculateNodalDistances(node_distance_getter);
+
 		// Perform raycasting to sign the previous distance field
 		this->CalculateRayDistances();
 	}
@@ -95,6 +143,7 @@ namespace Kratos
 	{
 		const int number_of_elements = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess.GetModelPart1()).NumberOfElements();
 		auto& r_elements = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess.GetModelPart1()).ElementsArray();
+		auto& r_elemental_dist_variable = *CalculateDiscontinuousDistanceToSkinProcess<TDim>::mpElementalDistancesVariable;
 
 		#pragma omp parallel for schedule(dynamic)
 		for (int i = 0; i < number_of_elements; ++i) {
@@ -108,7 +157,7 @@ namespace Kratos
 				// This function assumes tetrahedra element and triangle intersected object as input at this moment
 				constexpr int number_of_tetrahedra_points = TDim + 1;
 				constexpr double epsilon = std::numeric_limits<double>::epsilon();
-				Vector &elemental_distances = r_element.GetValue(ELEMENTAL_DISTANCES);
+				Vector &elemental_distances = r_element.GetValue(r_elemental_dist_variable);
 
 				if (elemental_distances.size() != number_of_tetrahedra_points){
 					elemental_distances.resize(number_of_tetrahedra_points, false);
@@ -172,17 +221,18 @@ namespace Kratos
 	}
 
 	template<std::size_t TDim>
-	void CalculateDistanceToSkinProcess<TDim>::CalculateNodalDistances()
+	void CalculateDistanceToSkinProcess<TDim>::CalculateNodalDistances(NodeScalarGetFunctionType& rGetDistanceFunction)
 	{
 		ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess).GetModelPart1();
 
 		constexpr int number_of_tetrahedra_points = TDim + 1;
+		auto& r_elemental_dist_variable = *CalculateDiscontinuousDistanceToSkinProcess<TDim>::mpElementalDistancesVariable;
 		for (auto& element : ModelPart1.Elements()) {
 			if (element.Is(TO_SPLIT)) {
-				const auto& r_elemental_distances = element.GetValue(ELEMENTAL_DISTANCES);
+				const auto& r_elemental_distances = element.GetValue(r_elemental_dist_variable);
 				for (int i = 0; i < number_of_tetrahedra_points; i++) {
 					Node<3>& r_node = element.GetGeometry()[i];
-					double& r_distance = r_node.GetSolutionStepValue(DISTANCE);
+					double& r_distance = rGetDistanceFunction(r_node, *mpDistanceVariable);
 					if (std::abs(r_distance) > std::abs(r_elemental_distances[i])){
 						r_distance = r_elemental_distances[i];
 					}
@@ -194,7 +244,11 @@ namespace Kratos
 	template<std::size_t TDim>
 	void CalculateDistanceToSkinProcess<TDim>::CalculateRayDistances()
 	{
-		ApplyRayCastingProcess<TDim> ray_casting_process(CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess, mRayCastingRelativeTolerance);
+		ApplyRayCastingProcess<TDim> ray_casting_process(
+			CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess,
+			mRayCastingRelativeTolerance,
+			mpDistanceVariable,
+			mDistanceDatabase);
 		ray_casting_process.Execute();
 	}
 

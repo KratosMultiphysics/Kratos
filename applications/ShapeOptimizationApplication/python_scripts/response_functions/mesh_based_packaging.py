@@ -42,7 +42,7 @@ class MeshBasedPackaging(PackagingResponseBase):
         self.packaging_model_part.AddNodalSolutionStepVariable(KSO.NORMALIZED_SURFACE_NORMAL)
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "packaging_model_part_name"       : "UNKNOWN_NAME",
             "packaging_domain_size"           : 3,
@@ -51,7 +51,7 @@ class MeshBasedPackaging(PackagingResponseBase):
                 "input_filename" : "UNKNOWN_NAME"
             }
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def Initialize(self):
@@ -67,11 +67,4 @@ class MeshBasedPackaging(PackagingResponseBase):
     def _CalculateDistances(self):
         geometry_tools = KSO.GeometryUtilities(self.model_part)
 
-        self.signed_distances = []
-        self.directions = []
-
-        geometry_tools.ComputeDistancesToBoundingModelPart(
-            self.packaging_model_part,
-            self.signed_distances,
-            self.directions
-        )
+        self.signed_distances, self.directions = geometry_tools.ComputeDistancesToBoundingModelPart(self.packaging_model_part)

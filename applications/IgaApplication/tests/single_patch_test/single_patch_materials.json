@@ -1,0 +1,19 @@
+{
+    "properties": [
+        {
+            "model_part_name": "IgaModelPart.StructuralAnalysis",
+            "properties_id": 3,
+            "Material": {
+                "name": "LIN_ELAST_ISOTROPIC",
+                "material_id": 1,
+                "constitutive_law": { "name": "LinearElasticPlaneStress2DLaw" },
+                "Variables": {
+                    "THICKNESS": 1,
+                    "YOUNG_MODULUS": 200000,
+                    "POISSON_RATIO": 0
+                },
+                "Tables": {}
+            }
+        }
+    ]
+}

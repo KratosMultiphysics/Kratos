@@ -77,7 +77,7 @@ void MPINormalCalculationUtils::OrientFaces(ModelPart& rModelPart,
         Geometry< Node<3> >& rGeom = itElem->GetGeometry();
         GeometryData::KratosGeometryType GeoType = rGeom.GetGeometryType();
 
-        if (GeoType == GeometryData::Kratos_Tetrahedra3D4  || GeoType == GeometryData::Kratos_Triangle2D3)
+        if (GeoType == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || GeoType == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
         {
             bool Switched = this->OrientElement(rGeom);
             if (Switched)
@@ -110,9 +110,9 @@ void MPINormalCalculationUtils::OrientFaces(ModelPart& rModelPart,
         GeometryData::KratosGeometryType GeoType = rGeom.GetGeometryType();
         array_1d<double,3> FaceNormal(3,0.0);
 
-        if ( GeoType == GeometryData::Kratos_Triangle3D3 )
+        if (GeoType == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
             FaceNormal3D(FaceNormal,rGeom);
-        else if ( GeoType == GeometryData::Kratos_Line2D2 )
+        else if (GeoType == GeometryData::KratosGeometryType::Kratos_Line2D2)
             FaceNormal2D(FaceNormal,rGeom);
 
         const unsigned int NumNodes = rGeom.PointsNumber();
@@ -288,7 +288,7 @@ void MPINormalCalculationUtils::InitializeNormalData(ModelPart& rModelPart,
         {
             for (Geometry< Node<3> >::iterator i_node = r_geometry.begin(); i_node != r_geometry.end(); i_node++)
             {
-                const int node_index = static_cast<const int>(i_node->FastGetSolutionStepValue(AUX_INDEX));
+                const int node_index = static_cast<int>(i_node->FastGetSolutionStepValue(AUX_INDEX));
                 //if (node_index == 0) std::cout << rModelPart.GetCommunicator().MyPID() << " found AUX_INDEX 0: node " << i_node->Id() << std::endl;
 
                 int offset = 3*( MaxNeigh*node_index + rActiveNeigh[node_index] );
@@ -326,7 +326,7 @@ void MPINormalCalculationUtils::InitializeNormalData(ModelPart& rModelPart,
                 if (i_node->FastGetSolutionStepValue(NODAL_PAUX) > 0.0)
                 {
                     node_send_size++;
-                    const int node_index = static_cast<const int>( i_node->FastGetSolutionStepValue(AUX_INDEX) );
+                    const int node_index = static_cast<int>( i_node->FastGetSolutionStepValue(AUX_INDEX) );
                     data_send_size += 3*rActiveNeigh[ node_index ];
                 }
 
@@ -507,7 +507,7 @@ void MPINormalCalculationUtils::DetectEdges(ModelPart &rModelPart,
 bool MPINormalCalculationUtils::OrientElement(Geometry<Node<3> > &rGeom)
 {
     const unsigned int PointIndex = 0;
-    const GeometryData::IntegrationMethod Method = GeometryData::GI_GAUSS_1;
+    const GeometryData::IntegrationMethod Method = GeometryData::IntegrationMethod::GI_GAUSS_1;
 
     // Re-orient the element if needed
     double DetJ = rGeom.DeterminantOfJacobian(PointIndex,Method);
@@ -529,7 +529,7 @@ void MPINormalCalculationUtils::NormalContribution(Geometry<Node<3> > &rGeom)
     const unsigned int Dim = rGeom.WorkingSpaceDimension();
 
     const unsigned int PointIndex = 0;
-    const GeometryData::IntegrationMethod Method = GeometryData::GI_GAUSS_1;
+    const GeometryData::IntegrationMethod Method = GeometryData::IntegrationMethod::GI_GAUSS_1;
     double DetJ = rGeom.DeterminantOfJacobian(PointIndex,Method);
 
     Geometry< Node<3> >::ShapeFunctionsGradientsType DN_DX;

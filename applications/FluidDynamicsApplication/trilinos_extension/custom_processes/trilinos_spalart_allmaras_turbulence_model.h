@@ -24,7 +24,7 @@
 #include "mpi/includes/mpi_communicator.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 
-#include "../FluidDynamicsApplication/custom_processes/spalart_allmaras_turbulence_model.h"
+#include "custom_processes/spalart_allmaras_turbulence_model.h"
 
 namespace Kratos
 {
@@ -127,7 +127,7 @@ public:
 
         // Create a communicator for the new model part and copy the partition information about nodes.
         Communicator& rReferenceComm = BaseSpAlType::mr_model_part.GetCommunicator();
-        typename Communicator::Pointer pSpalartMPIComm = typename Communicator::Pointer( new MPICommunicator( &(BaseSpAlType::mr_model_part.GetNodalSolutionStepVariablesList()) ) );
+        typename Communicator::Pointer pSpalartMPIComm = typename Communicator::Pointer( new MPICommunicator(&(BaseSpAlType::mr_model_part.GetNodalSolutionStepVariablesList()), rReferenceComm.GetDataCommunicator()));
         pSpalartMPIComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() ) ;
         pSpalartMPIComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
         pSpalartMPIComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
@@ -159,9 +159,9 @@ public:
 
         std::string ConditionName;
         if (BaseSpAlType::mdomain_size == 2)
-            ConditionName = std::string("Condition2D");
+            ConditionName = std::string("LineCondition2D2N");
         else
-            ConditionName = std::string("Condition3D");
+            ConditionName = std::string("SurfaceCondition3D3N");
         const Condition& rReferenceCondition = KratosComponents<Condition>::Get(ConditionName);
 
         for (ModelPart::ConditionsContainerType::iterator iii = BaseSpAlType::mr_model_part.ConditionsBegin(); iii != BaseSpAlType::mr_model_part.ConditionsEnd(); iii++)
@@ -172,7 +172,7 @@ public:
         }
 
         // Create a communicator for the new model part
-        ParallelFillCommunicator CommunicatorGeneration(BaseSpAlType::mrSpalartModelPart);
+        ParallelFillCommunicator CommunicatorGeneration(BaseSpAlType::mrSpalartModelPart, BaseSpAlType::mrSpalartModelPart.GetCommunicator().GetDataCommunicator());
         CommunicatorGeneration.Execute();
         //CommunicatorGeneration.PrintDebugInfo()
 
@@ -180,7 +180,7 @@ public:
         typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
         typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
-        typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
+        typedef typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
         // Solution scheme: Aitken iterations
         const double DefaultAitkenOmega = 1.0;
@@ -202,7 +202,7 @@ public:
         bool CalculateReactions = false;
         bool MoveMesh = false;
 
-        BaseSpAlType::mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(BaseSpAlType::mrSpalartModelPart,pScheme,pLinearSolver,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
+        BaseSpAlType::mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(BaseSpAlType::mrSpalartModelPart,pScheme,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
         BaseSpAlType::mpSolutionStrategy->SetEchoLevel(0);
         BaseSpAlType::mpSolutionStrategy->Check();
 

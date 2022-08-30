@@ -7,7 +7,8 @@ from KratosMultiphysics.HDF5Application.core import operations
 from KratosMultiphysics.HDF5Application.core import file_io
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
-from unittest.mock import patch, MagicMock
+import pathlib
+from unittest.mock import call, patch, MagicMock
 
 
 def _SurrogateModelPart():
@@ -103,77 +104,118 @@ class TestFileIO(KratosUnittest.TestCase):
         with self.assertRaisesRegex(ValueError, r'"io_type" has invalid value "abcdefg"'):
             file_io._GetIO('abcdefg')
 
-    def test_FilenameGetter_WithFileExtension(self):
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FilenameGetter_WithFileExtension(self, mock_class):
         settings = self._FilenameGetterSettings(file_name='kratos.h5')
         obj = file_io._FilenameGetter(settings)
-        self.assertEqual(obj.Get(), 'kratos.h5')
+        model_part = _SurrogateModelPart()
+        obj.Get(model_part)
+        mock_class.assert_called_once_with(model_part, 'kratos.h5', {'<time>':''})
 
-    def test_FilenameGetter_WithoutFileExtension(self):
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FilenameGetter_WithoutFileExtension(self, mock_class):
         settings = self._FilenameGetterSettings(file_name='kratos')
         obj = file_io._FilenameGetter(settings)
-        self.assertEqual(obj.Get(), 'kratos.h5')
+        model_part = _SurrogateModelPart()
+        obj.Get(model_part)
+        mock_class.assert_called_once_with(model_part, 'kratos.h5', {'<time>':''})
 
-    def test_FilenameGetter_TimeFormat(self):
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FilenameGetter_TimeFormat(self, mock_class):
         settings = self._FilenameGetterSettings(time_format='0.4f')
         obj = file_io._FilenameGetter(settings)
-        self.assertEqual(obj.Get(_SurrogateModelPart()), 'kratos.h5')
+        model_part = _SurrogateModelPart()
+        obj.Get(model_part)
+        mock_class.assert_called_once_with(model_part, 'kratos.h5', {'<time>':'0.4f'})
 
-    def test_FilenameGetter_NonTerminalTime(self):
-        settings = self._FilenameGetterSettings(file_name='kratos-<time>.h5')
-        obj = file_io._FilenameGetter(settings)
-        self.assertEqual(obj.Get(_SurrogateModelPart()),
-                         'kratos-1.23456789.h5')
-
-    def test_FilenameGetter_FormattedNonTerminalTime(self):
-        settings = self._FilenameGetterSettings(
-            file_name='kratos-<time>.h5', time_format='0.2f')
-        obj = file_io._FilenameGetter(settings)
-        self.assertEqual(obj.Get(_SurrogateModelPart()), 'kratos-1.23.h5')
-
-    def test_FilenameGetter_NonTerminalIdentifier(self):
-        settings = self._FilenameGetterSettings(
-            file_name='<model_part_name>-<time>.h5', time_format='0.2f')
-        obj = file_io._FilenameGetter(settings)
-        self.assertEqual(obj.Get(_SurrogateModelPart()), 'model_part-1.23.h5')
-
-    def test_FilenameGetterWithDirectoryInitialization_WithoutDirectory(self):
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FilenameGetterWithDirectoryInitialization_WithoutDirectory(self, mock_class):
+        mock_instance = mock_class.return_value
+        mock_instance.GetFileName.return_value = 'kratos.h5'
         settings = self._FilenameGetterSettings()
         with patch('os.makedirs', autospec=True) as p:
-            obj = file_io._FilenameGetterWithDirectoryInitialization(settings)
+            data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
+            obj = file_io._FilenameGetterWithDirectoryInitialization(settings, data_comm)
             obj.Get(_SurrogateModelPart())
             self.assertEqual(p.call_count, 0)
 
-    def test_FilenameGetterWithDirectoryInitialization_DirectoryExists(self):
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FilenameGetterWithDirectoryInitialization_DirectoryExists(self, mock_class):
+        mock_instance = mock_class.return_value
+        mock_instance.GetFileName.return_value = '/foo/kratos.h5'
         settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
-        patcher1 = patch('os.path.exists', autospec=True)
-        patcher2 = patch('os.makedirs', autospec=True)
-        pathexists = patcher1.start()
-        makedirs = patcher2.start()
-        pathexists.return_value = True
-        obj = file_io._FilenameGetterWithDirectoryInitialization(settings)
+        patcher = patch('KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories', autospec=True)
+        makedirs = patcher.start()
+        data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
+        obj = file_io._FilenameGetterWithDirectoryInitialization(settings, data_comm)
         obj.Get(_SurrogateModelPart())
-        pathexists.assert_called_once_with('/foo')
-        self.assertEqual(makedirs.call_count, 0)
-        patcher1.stop()
-        patcher2.stop()
-
-    def test_FilenameGetterWithDirectoryInitialization_DirectoryDoesNotExist(self):
-        settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
-        patcher1 = patch('os.path.exists', autospec=True)
-        patcher2 = patch('os.makedirs', autospec=True)
-        pathexists = patcher1.start()
-        makedirs = patcher2.start()
-        pathexists.return_value = False
-        obj = file_io._FilenameGetterWithDirectoryInitialization(settings)
-        obj.Get(_SurrogateModelPart())
-        pathexists.assert_called_once_with('/foo')
         makedirs.assert_called_once_with('/foo')
-        patcher1.stop()
-        patcher2.stop()
+        patcher.stop()
+
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FilenameGetterWithDirectoryInitialization_DirectoryDoesNotExist(self, mock_class):
+        mock_instance = mock_class.return_value
+        mock_instance.GetFileName.return_value = '/foo/kratos.h5'
+        settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
+        patcher = patch('KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories', autospec=True)
+        makedirs = patcher.start()
+        data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
+        obj = file_io._FilenameGetterWithDirectoryInitialization(settings, data_comm)
+        obj.Get(_SurrogateModelPart())
+        makedirs.assert_called_once_with('/foo')
+        patcher.stop()
+
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FileIOMaxFilesToKeepExclusiveNoDeletion(self, mock_class):
+        mock_class_instance = mock_class.return_value
+        mock_class_instance.GetSortedFileNamesList.return_value = ['file_1', 'file_2', 'file_3', 'file_4', 'file_5']
+        settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
+        settings['file_access_mode'] = 'exclusive'
+        settings['max_files_to_keep'] = 4
+        obj = file_io._FilenameGetter(settings)
+        with patch("os.path.isdir", autospec=True) as mock_dir:
+            mock_dir.return_value = True
+            with patch("KratosMultiphysics.kratos_utilities.DeleteFileIfExisting", autospec=True) as p:
+                obj.Get(_SurrogateModelPart())
+                self.assertEqual(p.call_count, 0)
+            self.assertEqual(mock_dir.call_args_list, [])
+
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FileIOMaxFilesToKeepTruncateNoDeletion(self, mock_class):
+        mock_class_instance = mock_class.return_value
+        mock_class_instance.GetSortedFileNamesList.return_value = ['file_1', 'file_2', 'file_3']
+        settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
+        settings['file_access_mode'] = 'truncate'
+        settings['max_files_to_keep'] = 4
+        obj = file_io._FilenameGetter(settings)
+        with patch("pathlib.Path.parents", autospec=True) as mock_path:
+            mock_is_dir = mock_path.__getitem__().is_dir
+            mock_is_dir.return_value = True
+            with patch("KratosMultiphysics.kratos_utilities.DeleteFileIfExisting", autospec=True) as p:
+                obj.Get(_SurrogateModelPart())
+                self.assertEqual(p.call_count, 0)
+            self.assertEqual(mock_is_dir.call_count, 1)
+
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FileIOMaxFilesToKeepTruncateDeletion(self, mock_class):
+        mock_class_instance = mock_class.return_value
+        mock_class_instance.GetSortedFileNamesList.return_value = ['file_1', 'file_2', 'file_3', 'file_4', 'file_5']
+        settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
+        settings['file_access_mode'] = 'truncate'
+        settings['max_files_to_keep'] = 4
+        obj = file_io._FilenameGetter(settings)
+        with patch("pathlib.Path.parents", autospec=True) as mock_path:
+            mock_is_dir = mock_path.__getitem__().is_dir
+            mock_is_dir.return_value = True
+            with patch("KratosMultiphysics.kratos_utilities.DeleteFileIfExisting", autospec=True) as p:
+                obj.Get(_SurrogateModelPart())
+                self.assertEqual(p.call_args_list, [call('file_2'), call('file_3')])
+            self.assertEqual(mock_is_dir.call_count, 1)
 
     def test_Create_Settings(self):
         settings = ParametersWrapper()
-        file_io.Create(settings)
+        data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
+        file_io.Create(settings, data_comm)
         self.assertTrue(settings.Has('io_type'))
         self.assertTrue(settings.Has('file_name'))
         self.assertTrue(settings.Has('file_access_mode'))
@@ -189,7 +231,8 @@ class TestFileIO(KratosUnittest.TestCase):
 
     def test_Create_Attributes(self):
         settings = ParametersWrapper()
-        io = file_io.Create(settings)
+        data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
+        io = file_io.Create(settings, data_comm)
         self.assertIsInstance(io, file_io._HDF5SerialFileIO)
         self.assertTrue(hasattr(io, 'filename_getter'))
         self.assertEqual(io.file_access_mode, 'exclusive')
@@ -332,6 +375,23 @@ class TestOperations(KratosUnittest.TestCase):
             self.assertEqual(p.call_count, 1)
             self.assertEqual(nodal_data_value_io.WriteNodalResults.call_count, 1)
 
+    def test_NodalFlagValueOutput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'nodal_flag_value_output'
+        nodal_flag_value_output = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(nodal_flag_value_output, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5NodalFlagValueIO', autospec=True) as p:
+            nodal_flag_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            nodal_flag_value_output(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(nodal_flag_value_io.WriteNodalFlags.call_count, 1)
+
+
     def test_NodalDataValueInput(self):
         settings = ParametersWrapper()
         settings['operation_type'] = 'nodal_data_value_input'
@@ -347,6 +407,22 @@ class TestOperations(KratosUnittest.TestCase):
             nodal_data_value_input(model_part, hdf5_file)
             self.assertEqual(p.call_count, 1)
             self.assertEqual(nodal_data_value_io.ReadNodalResults.call_count, 1)
+
+    def test_NodalFlagValueInput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'nodal_flag_value_input'
+        nodal_flag_value_input = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(nodal_flag_value_input, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5NodalFlagValueIO', autospec=True) as p:
+            nodal_flag_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            nodal_flag_value_input(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(nodal_flag_value_io.ReadNodalFlags.call_count, 1)
 
     def test_ElementDataValueOutput(self):
         settings = ParametersWrapper()
@@ -364,6 +440,22 @@ class TestOperations(KratosUnittest.TestCase):
             self.assertEqual(p.call_count, 1)
             self.assertEqual(element_data_value_io.WriteElementResults.call_count, 1)
 
+    def test_ElementFlagValueOutput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'element_flag_value_output'
+        element_flag_value_output = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(element_flag_value_output, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ElementFlagValueIO', autospec=True) as p:
+            element_flag_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            element_flag_value_output(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(element_flag_value_io.WriteElementFlags.call_count, 1)
+
     def test_ElementDataValueInput(self):
         settings = ParametersWrapper()
         settings['operation_type'] = 'element_data_value_input'
@@ -379,6 +471,86 @@ class TestOperations(KratosUnittest.TestCase):
             element_data_value_input(model_part, hdf5_file)
             self.assertEqual(p.call_count, 1)
             self.assertEqual(element_data_value_io.ReadElementResults.call_count, 1)
+
+    def test_ElementFlagValueInput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'element_flag_value_input'
+        element_flag_value_input = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(element_flag_value_input, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ElementFlagValueIO', autospec=True) as p:
+            element_flag_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            element_flag_value_input(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(element_flag_value_io.ReadElementFlags.call_count, 1)
+
+    def test_ConditionDataValueOutput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'condition_data_value_output'
+        condition_data_value_output = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(condition_data_value_output, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionDataValueIO', autospec=True) as p:
+            condition_data_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            condition_data_value_output(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(condition_data_value_io.WriteConditionResults.call_count, 1)
+
+    def test_ConditionFlagValueOutput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'condition_flag_value_output'
+        condition_flag_value_output = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(condition_flag_value_output, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionFlagValueIO', autospec=True) as p:
+            condition_flag_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            condition_flag_value_output(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(condition_flag_value_io.WriteConditionFlags.call_count, 1)
+
+    def test_ConditionDataValueInput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'condition_data_value_input'
+        condition_data_value_input = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(condition_data_value_input, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionDataValueIO', autospec=True) as p:
+            condition_data_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            condition_data_value_input(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(condition_data_value_io.ReadConditionResults.call_count, 1)
+
+    def test_ConditionFlagValueInput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'condition_flag_value_input'
+        condition_flag_value_input = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(condition_flag_value_input, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionFlagValueIO', autospec=True) as p:
+            condition_flag_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            condition_flag_value_input(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(condition_flag_value_io.ReadConditionFlags.call_count, 1)
 
     def test_PrimalBossakOutput(self):
         settings = ParametersWrapper()
@@ -419,15 +591,19 @@ class TestControllers(KratosUnittest.TestCase):
         settings = ParametersWrapper()
         settings['controller_type'] = 'abcdefg'
         with self.assertRaisesRegex(ValueError, r'"controller_type" has invalid value "abcdefg"'):
-            controllers.Create(MagicMock(), MagicMock(), settings)
+            controllers.Factory(MagicMock(), MagicMock(), settings)
 
-    def test_DefaultController(self):
+    @patch('KratosMultiphysics.FileNameDataCollector', autospec=True)
+    def test_DefaultController(self, mock_class):
+        mock_instance = mock_class.return_value
+        mock_instance.GetFileName.return_value = 'kratos.h5'
         model_part = _SurrogateModelPart()
+        data_comm = model_part.GetCommunicator().GetDataCommunicator()
         io_settings = ParametersWrapper()
         controller_settings = ParametersWrapper()
         with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5FileSerial', autospec=True):
-            io = file_io.Create(io_settings)
-            controller = controllers.Create(
+            io = file_io.Create(io_settings, data_comm)
+            controller = controllers.Factory(
                 model_part, io, controller_settings)
             self.assertTrue(controller_settings.Has('controller_type'))
             self.assertEqual(
@@ -443,10 +619,11 @@ class TestControllers(KratosUnittest.TestCase):
 
     def test_TemporalController_CreateWithDefaults(self):
         model_part = _SurrogateModelPart()
-        io = file_io.Create(ParametersWrapper())
+        data_comm = model_part.GetCommunicator().GetDataCommunicator()
+        io = file_io.Create(ParametersWrapper(), data_comm)
         controller_settings = ParametersWrapper()
         controller_settings['controller_type'] = 'temporal_controller'
-        controller = controllers.Create(model_part, io, controller_settings)
+        controller = controllers.Factory(model_part, io, controller_settings)
         self.assertEqual(controller.model_part, model_part)
         self.assertEqual(controller.io, io)
         self.assertEqual(controller.time_frequency, 1.0)
@@ -456,23 +633,25 @@ class TestControllers(KratosUnittest.TestCase):
 
     def test_TemporalController_CreateWithParameters(self):
         model_part = _SurrogateModelPart()
-        io = file_io.Create(ParametersWrapper())
+        data_comm = model_part.GetCommunicator().GetDataCommunicator()
+        io = file_io.Create(ParametersWrapper(), data_comm)
         controller_settings = ParametersWrapper()
         controller_settings['controller_type'] = 'temporal_controller'
         controller_settings['time_frequency'] = 2.0
         controller_settings['step_frequency'] = 3
-        controller = controllers.Create(model_part, io, controller_settings)
+        controller = controllers.Factory(model_part, io, controller_settings)
         self.assertEqual(controller.time_frequency, 2.0)
         self.assertEqual(controller.step_frequency, 3)
 
     def test_TemporalController_StepFrequency(self):
         model_part = _SurrogateModelPart()
+        data_comm = model_part.GetCommunicator().GetDataCommunicator()
         controller_settings = ParametersWrapper()
         controller_settings['step_frequency'] = 2
         controller_settings['controller_type'] = 'temporal_controller'
         with patch('KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO', autospec=True):
-            io = file_io.Create(ParametersWrapper())
-            controller = controllers.Create(
+            io = file_io.Create(ParametersWrapper(), data_comm)
+            controller = controllers.Factory(
                 model_part, io, controller_settings)
             for i in range(10):
                 controller()
@@ -481,13 +660,14 @@ class TestControllers(KratosUnittest.TestCase):
 
     def test_TemporalController_TimeFrequency(self):
         model_part = _SurrogateModelPart()
+        data_comm = model_part.GetCommunicator().GetDataCommunicator()
         controller_settings = ParametersWrapper()
         controller_settings['step_frequency'] = 100
         controller_settings['time_frequency'] = 0.5
         controller_settings['controller_type'] = 'temporal_controller'
         with patch('KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO', autospec=True):
-            io = file_io.Create(ParametersWrapper())
-            controller = controllers.Create(
+            io = file_io.Create(ParametersWrapper(), data_comm)
+            controller = controllers.Factory(
                 model_part, io, controller_settings)
             for i in range(10):
                 controller()
@@ -496,26 +676,31 @@ class TestControllers(KratosUnittest.TestCase):
 
     def test_TemporalController_NearlyTheSameTimeFrequency(self):
         model_part = _SurrogateModelPart()
+        data_comm = model_part.GetCommunicator().GetDataCommunicator()
         controller_settings = ParametersWrapper()
         controller_settings['step_frequency'] = 100
         controller_settings['time_frequency'] = 0.2000001
         controller_settings['controller_type'] = 'temporal_controller'
         with patch('KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO', autospec=True):
-            io = file_io.Create(ParametersWrapper())
-            controller = controllers.Create(
+            io = file_io.Create(ParametersWrapper(), data_comm)
+            controller = controllers.Factory(
                 model_part, io, controller_settings)
             for _ in range(10):
                 controller()
             io.Get.assert_called_with(model_part)
             self.assertEqual(io.Get.call_count, 5)
 
-    def test_TemporalController_OperationCall(self):
+    @patch('KratosMultiphysics.FileNameDataCollector', autospec=True)
+    def test_TemporalController_OperationCall(self, mock_class):
+        mock_instance = mock_class.return_value
+        mock_instance.GetFileName.return_value = 'kratos.h5'
         model_part = _SurrogateModelPart()
+        data_comm = model_part.GetCommunicator().GetDataCommunicator()
         controller_settings = ParametersWrapper()
         controller_settings['controller_type'] = 'temporal_controller'
-        io = file_io.Create(ParametersWrapper())
+        io = file_io.Create(ParametersWrapper(), data_comm)
         operation = MagicMock(spec=operations.ModelPartOutput)
-        controller = controllers.Create(
+        controller = controllers.Factory(
             model_part, io, controller_settings)
         controller.Add(operation)
         with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5FileSerial', autospec=True):
@@ -530,7 +715,7 @@ class TestFactory(KratosUnittest.TestCase):
         model = KratosMultiphysics.Model()
         settings = KratosMultiphysics.Parameters()
         with self.assertRaisesRegex(ValueError, r'Expected settings as an array'):
-            core.Factory(settings, model)
+            core.Factory(settings, model, KratosMultiphysics.Process)
 
     def test_EmptyArraySettings(self):
         model = KratosMultiphysics.Model()
@@ -539,8 +724,9 @@ class TestFactory(KratosUnittest.TestCase):
                 "list_of_controllers" : []
             }
             ''')
+        settings = ParametersWrapper(settings)
         with self.assertRaisesRegex(RuntimeError, '"PLEASE_SPECIFY_MODEL_PART_NAME" was not found'):
-            core.Factory(settings['list_of_controllers'], model)
+            core.Factory(settings['list_of_controllers'], model, KratosMultiphysics.Process)
 
     def test_DefaultSettings(self):
         model = KratosMultiphysics.Model()
@@ -554,7 +740,8 @@ class TestFactory(KratosUnittest.TestCase):
                 ]
             }
             ''')
-        core.Factory(parent_settings['list_of_controllers'], model)
+        parent_settings = ParametersWrapper(parent_settings)
+        core.Factory(parent_settings['list_of_controllers'], model, KratosMultiphysics.Process)
         settings = parent_settings['list_of_controllers'][0]
         self.assertTrue(settings.Has('model_part_name'))
         self.assertTrue(settings.Has('process_step'))
@@ -579,8 +766,9 @@ class TestFactory(KratosUnittest.TestCase):
                 ]
             }
             ''')
+        parent_settings = ParametersWrapper(parent_settings)
         process = core.Factory(
-            parent_settings['list_of_controllers'], model)
+            parent_settings['list_of_controllers'], model, KratosMultiphysics.Process)
         patcher1 = patch(
             'KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5FileSerial', autospec=True)
         patcher2 = patch(
@@ -592,6 +780,57 @@ class TestFactory(KratosUnittest.TestCase):
         model_part_io.WriteModelPart.assert_called_once_with(model_part)
         patcher1.stop()
         patcher2.stop()
+
+
+    def test_TemporalController_PrintOutput(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("test")
+        parameters = ParametersWrapper("""[{
+            "model_part_name" : "test",
+            "process_step" : "finalize_solution_step",
+            "controller_settings" : {
+                "controller_type" : "temporal_controller",
+                "time_frequency" : 5.0,
+                "step_frequency" : 5
+            },
+            "list_of_operations" : [{"operation_type" : "model_part_output"}]
+        }]""")
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ModelPartIO', autospec=True) as MockedModelPartIO:
+            with patch("KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO", autospec = True) as MockedSerialFileIO:
+                process = core.Factory(parameters, model, KratosMultiphysics.OutputProcess)
+
+                process.ExecuteInitialize()
+                process.ExecuteBeforeSolutionLoop()
+
+                MockedModelPartIO.reset_mock() # discard initial calls
+
+                # No writes should be performed here
+                for step in range(4):
+                    model_part.CloneTimeStep(step)
+                    model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+                    process.ExecuteFinalizeSolutionStep()
+                process.ExecuteFinalize()
+                MockedModelPartIO.assert_not_called()
+
+                # This should trigger a single write
+                process.PrintOutput()
+                MockedModelPartIO.assert_called_once()
+
+
+    def test_TemporalController_OutputStep(self):
+        model = KratosMultiphysics.Model()
+        model.CreateModelPart("test")
+        parameters = ParametersWrapper("""[{
+            "model_part_name" : "test",
+            "process_step" : "output",
+            "controller_settings" : {
+                "controller_type" : "temporal_controller"
+            },
+            "list_of_operations" : []
+        }]""")
+        with patch("KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO", autospec = True):
+            with self.assertRaises(TypeError):
+                core.Factory(parameters, model, KratosMultiphysics.OutputProcess)
 
 
 class TestParametersWrapper(KratosUnittest.TestCase):
@@ -700,7 +939,7 @@ class TestParametersWrapper(KratosUnittest.TestCase):
         count = 0
         for k in settings['array_of_double_values']:
             self.assertEqual(k, count)
-        count += 1
+            count += 1
 
     def test_nonarray_keys(self):
         settings = ParametersWrapper(self.get_params)

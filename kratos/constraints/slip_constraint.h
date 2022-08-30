@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/linear_master_slave_constraint.h"
+#include "constraints/linear_master_slave_constraint.h"
 
 namespace Kratos
 {
@@ -85,9 +85,6 @@ public:
     /// The variable type definition (double)
     typedef BaseType::VariableType VariableType;
 
-    /// The component variable type definition
-    typedef BaseType::VariableComponentType VariableComponentType;
-
     /// Pointer definition of DataValueContainer
     KRATOS_CLASS_POINTER_DEFINITION(SlipConstraint);
 
@@ -106,7 +103,7 @@ public:
 
     /**
      * @brief Constructor2D
-     */    
+     */
     SlipConstraint(
         IndexType Id,
         Dof<double>* pDofX,
@@ -193,7 +190,7 @@ public:
     void PrintInfo(std::ostream &rOStream) const override;
 
     ///@}
-protected:        
+protected:
     void ConstructorHelper(
         DofPointerVectorType& rAllDofs,
         array_1d<double,3>& rNormalVector

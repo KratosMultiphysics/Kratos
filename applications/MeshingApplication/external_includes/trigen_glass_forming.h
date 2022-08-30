@@ -16,10 +16,7 @@
 // System includes
 
 // External includes
-#if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
-#define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
 #include "triangle.h"
-#endif
 
 // Project includes
 #include "includes/define.h"
@@ -832,14 +829,14 @@ private:
             nfluid += int( temp[2].FastGetSolutionStepValue(IS_FLUID) );
 
             //check the number of nodes of boundary
-            int nboundary = int( temp[0].FastGetSolutionStepValue(IS_BOUNDARY) );
-            nboundary += int( temp[1].FastGetSolutionStepValue(IS_BOUNDARY) );
-            nboundary += int( temp[2].FastGetSolutionStepValue(IS_BOUNDARY) );
+            // int nboundary = int( temp[0].FastGetSolutionStepValue(IS_BOUNDARY) );
+            // nboundary += int( temp[1].FastGetSolutionStepValue(IS_BOUNDARY) );
+            // nboundary += int( temp[2].FastGetSolutionStepValue(IS_BOUNDARY) );
 
         //check the number of nodes of interface - this is how we mark the outer surface in the GLASS FORMING MODELING
-            int n_int = int( temp[0].FastGetSolutionStepValue(IS_INTERFACE) );
-            n_int += int( temp[1].FastGetSolutionStepValue(IS_INTERFACE) );
-            n_int += int( temp[2].FastGetSolutionStepValue(IS_INTERFACE) );
+            // int n_int = int( temp[0].FastGetSolutionStepValue(IS_INTERFACE) );
+            // n_int += int( temp[1].FastGetSolutionStepValue(IS_INTERFACE) );
+            // n_int += int( temp[2].FastGetSolutionStepValue(IS_INTERFACE) );
             //first check that we are working with fluid elements, otherwise throw an error
             //if (nfluid!=3)
             //    KRATOS_THROW_ERROR(std::logic_error,"THATS NOT FLUID or NOT TRIANGLE!!!!!! ERROR","");

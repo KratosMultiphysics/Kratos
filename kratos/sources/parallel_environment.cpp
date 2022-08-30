@@ -10,13 +10,14 @@
 //  Main author:     Jordi Cotela
 //
 
-#ifdef _OPENMP
-#include "omp.h"
-#endif
+// System includes
+#include <mutex>
 
+// Project includes
 #include "includes/parallel_environment.h"
 #include "includes/kratos_components.h"
 #include "input_output/logger.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 
@@ -52,13 +53,77 @@ int ParallelEnvironment::GetDefaultSize()
     return env.mDefaultSize;
 }
 
+void ParallelEnvironment::SetUpMPIEnvironment(EnvironmentManager::Pointer pEnvironmentManager)
+{
+    ParallelEnvironment& env = GetInstance();
+    env.SetUpMPIEnvironmentDetail(std::move(pEnvironmentManager));
+}
+
+template<class TDataCommunicatorInputType>
+void ParallelEnvironment::RegisterFillCommunicatorFactory(std::function<FillCommunicator::Pointer(ModelPart&, TDataCommunicatorInputType&)> FillCommunicatorFactory)
+{
+    ParallelEnvironment& env = GetInstance();
+    env.RegisterFillCommunicatorFactoryDetail<TDataCommunicatorInputType>(FillCommunicatorFactory);
+}
+
+template<class TDataCommunicatorInputType>
+void ParallelEnvironment::RegisterCommunicatorFactory(std::function<Communicator::UniquePointer(ModelPart&, TDataCommunicatorInputType&)> CommunicatorFactory)
+{
+    ParallelEnvironment& env = GetInstance();
+    env.RegisterCommunicatorFactoryDetail<TDataCommunicatorInputType>(CommunicatorFactory);
+}
+
+FillCommunicator::Pointer ParallelEnvironment::CreateFillCommunicator(ModelPart& rModelPart)
+{
+    ParallelEnvironment& env = GetInstance();
+    return env.mFillCommunicatorReferenceFactory(rModelPart, GetDefaultDataCommunicator());
+}
+
+FillCommunicator::Pointer ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(
+    ModelPart& rModelPart,
+    const std::string& rDataCommunicatorName)
+{
+    ParallelEnvironment& env = GetInstance();
+    return env.mFillCommunicatorStringFactory(rModelPart, rDataCommunicatorName);
+}
+
+FillCommunicator::Pointer ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(
+    ModelPart& rModelPart,
+    const DataCommunicator& rDataCommunicator)
+{
+    ParallelEnvironment& env = GetInstance();
+    return env.mFillCommunicatorReferenceFactory(rModelPart, rDataCommunicator);
+}
+
+Communicator::UniquePointer ParallelEnvironment::CreateCommunicatorFromGlobalParallelism(
+    ModelPart& rModelPart,
+    const std::string& rDataCommunicatorName)
+{
+    ParallelEnvironment& env = GetInstance();
+    return env.mCommunicatorStringFactory(rModelPart, rDataCommunicatorName);
+}
+
+Communicator::UniquePointer ParallelEnvironment::CreateCommunicatorFromGlobalParallelism(
+    ModelPart& rModelPart,
+    const DataCommunicator& rDataCommunicator)
+{
+    ParallelEnvironment& env = GetInstance();
+    return env.mCommunicatorReferenceFactory(rModelPart, rDataCommunicator);
+}
+
 void ParallelEnvironment::RegisterDataCommunicator(
     const std::string& Name,
-    const DataCommunicator& rPrototype,
+    DataCommunicator::UniquePointer pPrototype,
     const bool Default)
 {
     ParallelEnvironment& env = GetInstance();
-    env.RegisterDataCommunicatorDetail(Name, rPrototype, Default);
+    env.RegisterDataCommunicatorDetail(Name, std::move(pPrototype), Default);
+}
+
+void ParallelEnvironment::UnregisterDataCommunicator(const std::string& Name)
+{
+    ParallelEnvironment& env = GetInstance();
+    env.UnregisterDataCommunicatorDetail(Name);
 }
 
 bool ParallelEnvironment::HasDataCommunicator(const std::string& rName)
@@ -71,6 +136,18 @@ std::string ParallelEnvironment::GetDefaultDataCommunicatorName()
 {
     const ParallelEnvironment& env = GetInstance();
     return env.mDefaultCommunicator->first;
+}
+
+bool ParallelEnvironment::MPIIsInitialized()
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.MPIIsInitializedDetail();
+}
+
+bool ParallelEnvironment::MPIIsFinalized()
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.MPIIsFinalizedDetail();
 }
 
 std::string ParallelEnvironment::Info()
@@ -93,32 +170,87 @@ void ParallelEnvironment::PrintData(std::ostream &rOStream)
 
 // Implementation details /////////////////////////////////////////////////////
 
+template<>
+void ParallelEnvironment::RegisterFillCommunicatorFactoryDetail(std::function<FillCommunicator::Pointer(ModelPart&, const std::string&)> FillCommunicatorFactory)
+{
+    mFillCommunicatorStringFactory = FillCommunicatorFactory;
+}
+
+template<>
+void ParallelEnvironment::RegisterFillCommunicatorFactoryDetail(std::function<FillCommunicator::Pointer(ModelPart&, const DataCommunicator&)> FillCommunicatorFactory)
+{
+    mFillCommunicatorReferenceFactory = FillCommunicatorFactory;
+}
+
+template<>
+void ParallelEnvironment::RegisterCommunicatorFactoryDetail(std::function<Communicator::UniquePointer(ModelPart&, const std::string&)> CommunicatorFactory)
+{
+    mCommunicatorStringFactory = CommunicatorFactory;
+}
+
+template<>
+void ParallelEnvironment::RegisterCommunicatorFactoryDetail(std::function<Communicator::UniquePointer(ModelPart&, const DataCommunicator&)> CommunicatorFactory)
+{
+    mCommunicatorReferenceFactory = CommunicatorFactory;
+}
+
 ParallelEnvironment::ParallelEnvironment()
 {
-    RegisterDataCommunicatorDetail("Serial", DataCommunicator(), MakeDefault);
+    RegisterDataCommunicatorDetail("Serial", DataCommunicator::Create(), MakeDefault);
+
+    RegisterCommunicatorFactoryDetail<const std::string>([](ModelPart& rModelPart, const std::string& rDataCommunicatorName)->Communicator::UniquePointer{
+        const auto& r_data_communicator = ParallelEnvironment::GetDataCommunicator("Serial");
+        return Kratos::make_unique<Communicator>(r_data_communicator);
+    });
+    RegisterCommunicatorFactoryDetail<const DataCommunicator>([](ModelPart& rModelPart, const DataCommunicator& rDataCommunicator)->Communicator::UniquePointer{
+        KRATOS_ERROR_IF(rDataCommunicator.IsDistributed()) << "Trying to create an serial communicator with a distributed data communicator." << std::endl;
+        return Kratos::make_unique<Communicator>(rDataCommunicator);
+    });
+
+    RegisterFillCommunicatorFactoryDetail<const std::string>([](ModelPart& rModelPart, const std::string& rDataCommunicatorName)->FillCommunicator::Pointer{
+        const auto& r_data_communicator = ParallelEnvironment::GetDataCommunicator("Serial");
+        return Kratos::make_shared<FillCommunicator>(rModelPart, r_data_communicator);
+    });
+    RegisterFillCommunicatorFactoryDetail<const DataCommunicator>([](ModelPart& rModelPart, const DataCommunicator& rDataCommunicator)->FillCommunicator::Pointer{
+        KRATOS_ERROR_IF(rDataCommunicator.IsDistributed()) << "Trying to create an serial communicator with a distributed data communicator." << std::endl;
+        return Kratos::make_shared<FillCommunicator>(rModelPart, rDataCommunicator);
+    });
 }
 
 ParallelEnvironment::~ParallelEnvironment()
 {
+    // First release the registered DataCommunicators
+    mDataCommunicators.clear();
+
+    // Then finalize MPI if necessary by freeing the manager instance
+    if (mpEnvironmentManager)
+    {
+        mpEnvironmentManager.reset();
+    }
+
     mDestroyed = true;
     mpInstance = nullptr;
+}
+
+std::string ParallelEnvironment::RetrieveRegisteredName(const DataCommunicator& rComm)
+{
+    ParallelEnvironment& env = GetInstance();
+    for(const auto& item : env.mDataCommunicators){
+        if(&*(item.second) == &rComm)
+            return item.first;
+    }
+    KRATOS_ERROR << "the required communicator was not registered" << std::endl;
 }
 
 ParallelEnvironment& ParallelEnvironment::GetInstance()
 {
     // Using double-checked locking to ensure thread safety in the first creation of the singleton.
-    if (mpInstance == nullptr)
-    {
-        #ifdef _OPENMP
-        #pragma omp critical
-        if (mpInstance == nullptr)
-        {
-        #endif
+    if (!mpInstance) {
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+        if (!mpInstance) {
             KRATOS_ERROR_IF(mDestroyed) << "Accessing ParallelEnvironment after its destruction" << std::endl;
             Create();
-        #ifdef _OPENMP
         }
-        #endif
     }
 
     return *mpInstance;
@@ -139,15 +271,23 @@ void ParallelEnvironment::Create()
     mpInstance = &parallel_environment;
 }
 
+void ParallelEnvironment::SetUpMPIEnvironmentDetail(EnvironmentManager::Pointer pEnvironmentManager)
+{
+    KRATOS_ERROR_IF(MPIIsInitialized() || MPIIsFinalized())
+    << "Trying to configure run for MPI twice. This should not be happening!" << std::endl;
+
+    mpEnvironmentManager = std::move(pEnvironmentManager);
+}
+
 void ParallelEnvironment::RegisterDataCommunicatorDetail(
     const std::string& Name,
-    const DataCommunicator& rPrototype,
+    DataCommunicator::UniquePointer pPrototype,
     const bool Default)
 {
     auto found = mDataCommunicators.find(Name);
     if (found == mDataCommunicators.end())
     {
-        auto result = mDataCommunicators.emplace(Name, rPrototype.Clone());
+        auto result = mDataCommunicators.emplace(Name, std::move(pPrototype));
         // result.first returns the created pair, pair_iterator->second the cloned prototype (which is a UniquePointer)
         auto pair_iterator = result.first;
         KratosComponents<DataCommunicator>::Add(Name, *(pair_iterator->second));
@@ -163,6 +303,23 @@ void ParallelEnvironment::RegisterDataCommunicatorDetail(
         << " but a DataCommunicator with the same name already exists: "
         << *(found->second)
         << " The provided DataCommunicator has not been added." << std::endl;
+    }
+}
+
+void ParallelEnvironment::UnregisterDataCommunicatorDetail(const std::string& Name)
+{
+    KRATOS_ERROR_IF(Name == mDefaultCommunicator->first)
+    << "Trying to unregister the default DataCommunicator \"" << Name
+    << "\". Please define a new default before unregistering the current one."
+    << std::endl;
+    int num_erased = mDataCommunicators.erase(Name);
+    KRATOS_WARNING_IF("ParallelEnvironment", num_erased == 0)
+    << "Trying to unregister a DataCommunicator with name " << Name
+    << " but no DataCommunicator of that name exsits."
+    << " No changes were made." << std::endl;
+    if (num_erased == 1)
+    {
+        KratosComponents<DataCommunicator>::Remove(Name);
     }
 }
 
@@ -194,6 +351,15 @@ bool ParallelEnvironment::HasDataCommunicatorDetail(const std::string& rName) co
     return (mDataCommunicators.find(rName) != mDataCommunicators.end());
 }
 
+bool ParallelEnvironment::MPIIsInitializedDetail() const
+{
+    return (mpEnvironmentManager == nullptr) ? false : mpEnvironmentManager->IsInitialized();
+}
+
+bool ParallelEnvironment::MPIIsFinalizedDetail() const
+{
+    return (mpEnvironmentManager == nullptr) ? false : mpEnvironmentManager->IsFinalized();
+}
 
 std::string ParallelEnvironment::InfoDetail() const
 {
@@ -219,5 +385,12 @@ void ParallelEnvironment::PrintDataDetail(std::ostream &rOStream) const
 
 ParallelEnvironment* ParallelEnvironment::mpInstance = nullptr;
 bool ParallelEnvironment::mDestroyed = false;
+
+// Explicit template instantiation
+template void ParallelEnvironment::RegisterFillCommunicatorFactory<const std::string>(std::function<FillCommunicator::Pointer(ModelPart&, const std::string&)> CommunicatorFactory);
+template void ParallelEnvironment::RegisterFillCommunicatorFactory<const DataCommunicator>(std::function<FillCommunicator::Pointer(ModelPart&, const DataCommunicator&)> CommunicatorFactory);
+
+template void ParallelEnvironment::RegisterCommunicatorFactory<const std::string>(std::function<Communicator::UniquePointer(ModelPart&, const std::string&)> CommunicatorFactory);
+template void ParallelEnvironment::RegisterCommunicatorFactory<const DataCommunicator>(std::function<Communicator::UniquePointer(ModelPart&, const DataCommunicator&)> CommunicatorFactory);
 
 }

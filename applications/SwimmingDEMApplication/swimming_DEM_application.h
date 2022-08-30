@@ -24,7 +24,6 @@
 #include "includes/variables.h"
 #include "includes/dem_variables.h"  //TODO: must be removed eventually
 #include "includes/cfd_variables.h"  //TODO: must be removed eventually
-#include "includes/legacy_structural_app_vars.h"  //TODO: must be removed eventually
 #include "custom_elements/monolithic_dem_coupled.h"
 #include "custom_elements/monolithic_dem_coupled_weak.h"
 #include "custom_elements/calculate_laplacian_simplex_element.h"
@@ -39,9 +38,9 @@
 #include "custom_conditions/calculate_laplacian_simplex_condition.h"
 #include "custom_elements/swimming_particle.h"
 
-#include "../DEMApplication/custom_elements/spheric_particle.h"
-#include "../DEMApplication/custom_elements/nanoparticle.h"
-#include "../DEMApplication/custom_elements/analytic_spheric_particle.h"
+#include "custom_elements/spheric_particle.h"
+#include "custom_elements/nanoparticle.h"
+#include "custom_elements/analytic_spheric_particle.h"
 
 namespace Kratos
 {

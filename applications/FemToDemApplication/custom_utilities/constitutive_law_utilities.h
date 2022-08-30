@@ -108,6 +108,68 @@ class ConstitutiveLawUtilities
     ///@{
 
     /**
+     * @brief This method computes the elastic ConstitutiveMatrix
+     */
+    static void CalculateElasticMatrix(
+        Matrix &rConstitutiveMatrix,
+        const double E,
+        const double nu);
+
+    /**
+     * @brief This method computes the deviatoric part of the strain
+     * @param rStrainVector The total strain
+     * @param rVolumetricStrainVector The volumetric strain part
+     * @param rDeviatoricStrainVector The deviatoric strain part
+     */
+    static void CalculateDeviatoricStrainVector(
+        const Vector &rStrainVector,
+        const Vector &rVolumetricStrainVector,
+        Vector &rDeviatoricStrainVector);
+
+    /**
+     * @brief This method computes the volumetric part of the strain
+     * @param rStrainVector The total strain
+     * @param rVolumetricStrainVector The volumetric strain part
+     */
+    static void CalculateVolumetricStrainVector(
+        const Vector &rStrainVector,
+        Vector &rVolumetricStrainVector);
+
+
+    /**
+     * @brief This method creates an identity vector
+     * @param rIdentityVector The resulting Identity Vector
+     */
+    static void CalculateIdentityVector(
+        BoundedVectorType& rIdentityVector
+    )
+    {
+        if (rIdentityVector.size() != VoigtSize) {
+            rIdentityVector.resize(VoigtSize);
+            noalias(rIdentityVector) = ZeroVector(VoigtSize);
+        }
+
+        for (IndexType i = 0; i < Dimension; ++i)
+            rIdentityVector[i] = 1.0;
+    }
+
+    /**
+     * @brief This method computes the Bulk modulus K = E / (2(1+nu))
+     * @param rValues Parameters of the constitutive law
+     */
+    static double CalculateBulkModulus(
+        const double YoungModulus,
+        const double PoissonRatio);
+
+    /**
+     * @brief This method computes the Shear modulus G = E / (3(1-2nu))
+     * @param rValues Parameters of the constitutive law
+     */
+    static double CalculateShearModulus(
+        const double YoungModulus,
+        const double PoissonRatio);
+
+    /**
      * @brief This method computes the first invariant from a given stress vector
      * @param rStressVector The stress vector on Voigt notation
      * @param rI1 The first invariant
@@ -483,7 +545,7 @@ class ConstitutiveLawUtilities
         double& rThreshold)
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
-        const double cohesion = r_material_properties[COHESION];
+        const double cohesion = r_material_properties[COHESION_MC];
         const double friction_angle = r_material_properties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0;
         rThreshold = cohesion * std::cos(friction_angle);
     }
@@ -600,7 +662,7 @@ class ConstitutiveLawUtilities
         const Properties& r_material_properties = rValues.GetMaterialProperties();
         const double fracture_energy = r_material_properties[FRAC_ENERGY_T];
         const double young_modulus = r_material_properties[YOUNG_MODULUS];
-        const double cohesion = r_material_properties[COHESION];
+        const double cohesion = r_material_properties[COHESION_MC];
         rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(cohesion, 2)) - 0.5);
         KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
     }

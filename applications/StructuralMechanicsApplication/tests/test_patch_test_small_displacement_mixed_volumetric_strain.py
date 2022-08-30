@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -10,7 +9,14 @@ from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCase):
     def setUp(self):
-        self.tolerance = 1.0e-6
+        self.tolerances = {
+            "relative" : 1e-6,
+            "absolute" : {
+                "displacement" : 1e-6,
+                "stress"       : 1e2,
+                "strain"       : 1e-2
+            }
+        }
         self.print_output = True
 
     def _add_variables(self, ModelPart):
@@ -106,7 +112,6 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
         strategy = KratosMultiphysics.ResidualBasedLinearStrategy(
             ModelPart,
             scheme,
-            linear_solver,
             builder_and_solver,
             compute_reactions,
             reform_step_dofs,
@@ -134,10 +139,10 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
             d = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
             for i in range(3):
                 if abs(u[i]) > 0.0:
-                    error = (d[i] - u[i])/u[i]
-                    if error > self.tolerance:
-                       print("NODE ", node.Id,": Component ", coor_list[i],":\t",u[i],"\t",d[i], "\tError: ", error)
-                    self.assertLess(error, self.tolerance)
+                    error = abs((d[i] - u[i])/u[i])
+                    self.assertLess(error, self.tolerances["relative"], msg=f"NODE {node.Id}: Component {coor_list[i]}: {u[i]} {d[i]} Error: {error}")
+                else:
+                    self.assertLess(abs(d[i]), self.tolerances["absolute"]["displacement"])
 
     def _calculate_reference_strain(self, A, dim):
         # Given the matrix A, the analytic deformation gradient is F+I
@@ -216,7 +221,9 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
             for stress in out:
                 for i in range(len(reference_stress)):
                     if abs(stress[i]) > 0.0:
-                        self.assertLess((reference_stress[i] - stress[i])/stress[i], self.tolerance)
+                        self.assertLess((reference_stress[i] - stress[i])/stress[i], self.tolerances["relative"])
+                    else:
+                        self.assertLess(abs(stress[i]), self.tolerances["absolute"]["stress"])
 
     def _check_stress_user_provided(self, model_part, A, dim):
         # Calculate the reference strain
@@ -231,7 +238,9 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
             for stress in out:
                 for i in range(len(reference_stress)):
                     if abs(stress[i]) > 0.0:
-                        self.assertLess((reference_stress[i] - stress[i])/stress[i], self.tolerance)
+                        self.assertLess((reference_stress[i] - stress[i])/stress[i], self.tolerances["relative"])
+                    else:
+                        self.assertLess(abs(stress[i]), self.tolerances["absolute"]["stress"])
 
     def testSmallDisplacementMixedVolumetricStrainElement2DTriangle(self):
         dimension = 2
@@ -325,6 +334,27 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
 
         #set the user-provided anisotropic elasticity tensor
         elasticity_tensor = KratosMultiphysics.Matrix(6,6)
+        # for i in range(6):
+        #     for j in range(6):
+        #         elasticity_tensor[i,j] = 0.0
+        # E = 2.0e11
+        # NU = 0.3
+        # c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
+        # c2 = c1 * ( 1 - NU );
+        # c3 = c1 * NU;
+        # c4 = c1 * 0.5 * ( 1 - 2 * NU );
+        # elasticity_tensor[0, 0] = c2;
+        # elasticity_tensor[0, 1] = c3;
+        # elasticity_tensor[0, 2] = c3;
+        # elasticity_tensor[1, 0] = c3;
+        # elasticity_tensor[1, 1] = c2;
+        # elasticity_tensor[1, 2] = c3;
+        # elasticity_tensor[2, 0] = c3;
+        # elasticity_tensor[2, 1] = c3;
+        # elasticity_tensor[2, 2] = c2;
+        # elasticity_tensor[3, 3] = c4;
+        # elasticity_tensor[4, 4] = c4;
+        # elasticity_tensor[5, 5] = c4;
         aux_elasticity_tensor = [
             [5.99E+11,5.57E+11,5.34E+11,0,0,4.44E+09],
             [5.57E+11,5.71E+11,5.34E+11,0,0,-3.00E+09],
@@ -335,6 +365,26 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
         for i in range(6):
             for j in range(6):
                 elasticity_tensor[i,j] = aux_elasticity_tensor[i][j]
+
+        # T = KratosMultiphysics.Matrix(6,6)
+        # T.fill(0.0)
+        # aux_E = 0.0
+        # aux_G = 0.0
+        # for i in range(6):
+        #     if i < 3:
+        #         aux_E += elasticity_tensor[i,i]
+        #     else:
+        #         aux_G += elasticity_tensor[i,i]
+        # aux_E /= 3.0
+        # aux_G /= 3.0
+        # for i in range(6):
+        #     if i < 3:
+        #         T[i,i] = math.sqrt(aux_E/elasticity_tensor[i,i])
+        #     else:
+        #         T[i,i] = math.sqrt(aux_G/elasticity_tensor[i,i])
+
+        # elasticity_tensor = T * elasticity_tensor * T
+
         model_part.GetProperties()[1].SetValue(StructuralMechanicsApplication.ELASTICITY_TENSOR, elasticity_tensor)
 
         #create nodes
@@ -369,10 +419,10 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
 
         self._apply_BCs(boundary_model_part, A, b)
         self._solve(model_part)
-        self._check_results(model_part, A, b)
-        self._check_stress_user_provided(model_part, A, dimension)
         if self.print_output:
             self.__post_process(model_part)
+        self._check_results(model_part, A, b)
+        self._check_stress_user_provided(model_part, A, dimension)
 
     def __post_process(self, main_model_part, post_type = "gid"):
         if post_type == "gid":
@@ -389,7 +439,7 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
                         "MultiFileFlag": "SingleFile"
                     },
                     "nodal_results"       : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
-                    "gauss_point_results" : []
+                    "gauss_point_results" : ["CAUCHY_STRESS_VECTOR"]
                     }
                 }"""))
 
@@ -406,7 +456,7 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
                 "model_part_name": "",
                 "extrapolate_gauss_points": false,
                 "nodal_solution_step_data_variables" : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
-                "gauss_point_variables": []
+                "gauss_point_variables": ["CAUCHY_STRESS_VECTOR"]
             }""")
             vtk_output_parameters["model_part_name"].SetString(main_model_part.Name)
             self.vtk_output_process = VtkOutputProcess(

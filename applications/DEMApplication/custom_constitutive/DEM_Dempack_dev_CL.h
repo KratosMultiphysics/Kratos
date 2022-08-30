@@ -9,16 +9,16 @@
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_Dempack_dev : public DEM_Dempack {
+
+        typedef DEM_Dempack BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack_dev);
 
         DEM_Dempack_dev() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
-        ~DEM_Dempack_dev() {
-        }
+        ~DEM_Dempack_dev() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
@@ -43,13 +43,15 @@ namespace Kratos {
                                        double equiv_poisson,
                                        double calculation_area,
                                        SphericContinuumParticle* element1,
-                                       SphericContinuumParticle* element2) override;
+                                       SphericContinuumParticle* element2, double indentation) override;
 
         void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
                 double LocalElasticExtraContactForce[3],
+                double ViscoDampingLocalContactForce[3],
                 double LocalCoordSystem[3][3],
                 double LocalDeltDisp[3],
+                double LocalRelVel[3],
                 const double kt_el,
                 const double equiv_shear,
                 double& contact_sigma,
@@ -61,8 +63,6 @@ namespace Kratos {
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
                 bool& sliding,
-                int search_control,
-                DenseVector<int>& search_control_vector,
                 const ProcessInfo& r_process_info) override;
 
         void CalculateNormalForces(double LocalElasticContactForce[3],

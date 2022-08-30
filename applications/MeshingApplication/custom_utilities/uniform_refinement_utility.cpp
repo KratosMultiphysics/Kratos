@@ -250,7 +250,7 @@ void UniformRefinementUtility::ExecuteDivision(
         // Get the geometry
         Geometry<NodeType>& geom = i_element->GetGeometry();
 
-        if (geom.GetGeometryType() == GeometryData::Kratos_Triangle2D3)
+        if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
         {
             // Initialize the vector of middle nodes
             IndexType i_node = 0;
@@ -268,7 +268,7 @@ void UniformRefinementUtility::ExecuteDivision(
                 CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
             }
         }
-        else if (geom.GetGeometryType() == GeometryData::Kratos_Quadrilateral2D4)
+        else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
         {
             // Initialize the vector of middle nodes
             IndexType i_node = 0;
@@ -287,7 +287,7 @@ void UniformRefinementUtility::ExecuteDivision(
                 CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
             }
         }
-        else if (geom.GetGeometryType() == GeometryData::Kratos_Tetrahedra3D4)
+        else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4)
         {
             // Initialize the vector of middle nodes
             IndexType i_node = 0;
@@ -305,7 +305,7 @@ void UniformRefinementUtility::ExecuteDivision(
                 CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
             }
         }
-        else if (geom.GetGeometryType() == GeometryData::Kratos_Hexahedra3D8)
+        else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8)
         {
             // Initialize the vector of middle nodes
             IndexType i_node = 0;
@@ -328,7 +328,7 @@ void UniformRefinementUtility::ExecuteDivision(
         }
         else
         {
-            KRATOS_ERROR << "Your geometry contains " << geom.GetGeometryType() << " which cannot be refined" << std::endl;
+            KRATOS_ERROR << "Your geometry contains " << static_cast<int>(geom.GetGeometryType()) << " which cannot be refined" << std::endl;
         }
 
         // Once we have created all the sub elements, the origin element must be deleted
@@ -351,7 +351,7 @@ void UniformRefinementUtility::ExecuteDivision(
         // Get the geometry
         Geometry<NodeType>& geom = i_condition->GetGeometry();
 
-        if (geom.GetGeometryType() == GeometryData::Kratos_Line2D2)
+        if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2)
         {
             NodeType::Pointer middle_node = GetNodeInEdge(EdgeType{geom}, step_divisions_level, rTagNodes, collection_tag);
 
@@ -363,7 +363,7 @@ void UniformRefinementUtility::ExecuteDivision(
                 CreateCondition(i_condition, sub_condition_nodes, step_divisions_level, rTagConds);
             }
         }
-        else if (geom.GetGeometryType() == GeometryData::Kratos_Triangle3D3)
+        else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
         {
             // Initialize the middle nodes vector
             IndexType i_node = 0;
@@ -379,7 +379,7 @@ void UniformRefinementUtility::ExecuteDivision(
                 CreateCondition(i_condition, sub_condition_nodes, step_divisions_level, rTagConds);
             }
         }
-        else if (geom.GetGeometryType() == GeometryData::Kratos_Quadrilateral3D4)
+        else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4)
         {
             // Initialize the middle nodes vector
             IndexType i_node = 0;
@@ -398,7 +398,7 @@ void UniformRefinementUtility::ExecuteDivision(
         }
         else
         {
-            KRATOS_ERROR << "Your geometry contains " << geom.GetGeometryType() << " which cannot be refined" << std::endl;
+            KRATOS_ERROR << "Your geometry contains " << static_cast<int>(geom.GetGeometryType()) << " which cannot be refined" << std::endl;
         }
 
         // Once we have created all the sub conditions, the origin conditions must be deleted
@@ -828,22 +828,22 @@ PointerVector<NodeType> UniformRefinementUtility::GetSubTriangleNodes(
     {
         // First sub triangle
         sub_triangle_nodes(0) = rGeom.pGetPoint(0);
-        sub_triangle_nodes(1) = rMiddleNodes[0];
-        sub_triangle_nodes(2) = rMiddleNodes[2];
+        sub_triangle_nodes(1) = rMiddleNodes[2];
+        sub_triangle_nodes(2) = rMiddleNodes[1];
     }
     else if (Position == 1)
     {
         // Second sub triangle
         sub_triangle_nodes(0) = rGeom.pGetPoint(1);
-        sub_triangle_nodes(1) = rMiddleNodes[1];
-        sub_triangle_nodes(2) = rMiddleNodes[0];
+        sub_triangle_nodes(1) = rMiddleNodes[0];
+        sub_triangle_nodes(2) = rMiddleNodes[2];
     }
     else if (Position == 2)
     {
         // Third sub triangle
         sub_triangle_nodes(0) = rGeom.pGetPoint(2);
-        sub_triangle_nodes(1) = rMiddleNodes[2];
-        sub_triangle_nodes(2) = rMiddleNodes[1];
+        sub_triangle_nodes(1) = rMiddleNodes[1];
+        sub_triangle_nodes(2) = rMiddleNodes[0];
     }
     else if (Position == 3)
     {

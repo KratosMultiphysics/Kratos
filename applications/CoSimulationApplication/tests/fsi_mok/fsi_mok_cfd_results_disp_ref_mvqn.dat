@@ -1,4 +1,4 @@
-# Results for "node" with Id # 111 at position: x: 0.5; y: 0.25; z: 0
+# Results for "node" with Id # 111 for search config "initial" at position: x0: 0.5; y0: 0.25; z0: 0
 # time MESH_DISPLACEMENT_X MESH_DISPLACEMENT_Y MESH_VELOCITY_X MESH_VELOCITY_Y
 0.1 2.026980820311272e-05 -1.8063642565920586e-07 0.0 0.0
 0.2 4.015555607197922e-05 -5.765389902614193e-07 0.0001139910391683387 -1.9974740920367112e-06

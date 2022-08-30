@@ -33,8 +33,6 @@ KratosMeshingApplication::KratosMeshingApplication()
       {}
 
 void KratosMeshingApplication::Register() {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
     KRATOS_INFO("") << "Initializing KratosMeshingApplication..." << std::endl;
 
     KRATOS_REGISTER_VARIABLE(AVERAGE_NODAL_ERROR);                                  // The average nodal error

@@ -16,7 +16,6 @@ try:
 except ImportError:
     SpacialMapperFactory = None
 from ..custom_ios.wrl_io import WrlIO
-from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 
 class InPlaneVertexMorphingMapper():
     """
@@ -33,6 +32,7 @@ class InPlaneVertexMorphingMapper():
     """
 
     def __init__(self, origin_model_part, destination_model_part, settings):
+        from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
         if not SpacialMapperFactory:
             raise Exception("InPlaneVertexMorphingMapper: MappingApplication is required!")
 

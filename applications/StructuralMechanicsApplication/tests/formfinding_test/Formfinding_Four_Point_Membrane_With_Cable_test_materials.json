@@ -1,0 +1,34 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_membrane",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"             : 1.0,
+                "PRESTRESS_VECTOR"      : [1.0,1.0,0],
+                "DENSITY"               : 0.0,
+                "YOUNG_MODULUS"         : 0.0,
+                "POISSON_RATIO"         : 0.0
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_edgeCabl",
+        "properties_id"   : 2,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "TrussConstitutiveLaw"
+            },
+            "Variables"        : {
+                "DENSITY"               : 0.0,
+                "YOUNG_MODULUS"         : 0.000000000000001,
+                "CROSS_AREA"            : 1.0,
+                "TRUSS_PRESTRESS_PK2"   : 4.0
+            },
+            "Tables"           : {}
+        }
+    }]
+}

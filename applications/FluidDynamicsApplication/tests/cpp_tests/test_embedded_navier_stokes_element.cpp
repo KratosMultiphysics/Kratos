@@ -44,8 +44,6 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
 			modelPart.AddNodalSolutionStepVariable(REACTION);
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
-			modelPart.AddNodalSolutionStepVariable(DENSITY);
-			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
 			modelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
@@ -86,12 +84,6 @@ namespace Kratos {
 			vel_original(1,0) = 0.1; vel_original(1,1) = 0.2;
 			vel_original(2,0) = 0.2; vel_original(2,1) = 0.3;
 
-			// Set the nodal DENSITY and DYNAMIC_VISCOSITY values
-			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
-				it_node->FastGetSolutionStepValue(DENSITY) = pElemProp->GetValue(DENSITY);
-				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
-			}
-
 			array_1d<double, 3> embedded_vel;
 			embedded_vel(0) = 1.0;
 			embedded_vel(1) = 2.0;
@@ -118,8 +110,9 @@ namespace Kratos {
 			Vector RHS = ZeroVector(9);
 			Matrix LHS = ZeroMatrix(9,9);
 
-			pElement->Initialize(); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
+			const auto& r_process_info = modelPart.GetProcessInfo();
+			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
 			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
@@ -144,8 +137,6 @@ namespace Kratos {
 
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
-			modelPart.AddNodalSolutionStepVariable(DENSITY);
-			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
 			modelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
@@ -188,12 +179,6 @@ namespace Kratos {
 			vel_original(2,0) = 0.2; vel_original(2,1) = 0.3; vel_original(2,2) = 0.4;
 			vel_original(3,0) = 0.3; vel_original(3,1) = 0.4; vel_original(3,2) = 0.5;
 
-			// Set the nodal DENSITY and DYNAMIC_VISCOSITY values
-			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
-				it_node->FastGetSolutionStepValue(DENSITY) = pElemProp->GetValue(DENSITY);
-				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
-			}
-
 			array_1d<double, 3> embedded_vel;
 			embedded_vel(0) = 1.0;
 			embedded_vel(1) = 2.0;
@@ -221,8 +206,9 @@ namespace Kratos {
 			Vector RHS = ZeroVector(16);
 			Matrix LHS = ZeroMatrix(16,16);
 
-			pElement->Initialize(); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
+			const auto& r_process_info = modelPart.GetProcessInfo();
+			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
 			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)

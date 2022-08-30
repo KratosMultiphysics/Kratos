@@ -1,0 +1,78 @@
+{
+    "problem_data"    : {
+        "problem_name"  : "Kratos_Balken_eigFreq",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings" : {
+        "solver_type"              : "eigen_value",
+        "model_part_name"          : "Structure",
+        "domain_size"              : 3,
+        "echo_level"               : 0,
+        "model_import_settings"           : {
+            "input_type"     : "mdpa",
+            "input_filename" : "eigen_test/Eigen_different_dofs"
+        },
+        "block_builder": true,
+        "material_import_settings" : {
+            "materials_filename" : "eigen_test/Eigen_different_dofs_materials.json"
+        },
+        "time_stepping"            : {
+            "time_step" : 1.1
+        },
+        "eigensolver_settings"     : {
+            "solver_type"           : "eigen_eigensystem",
+            "max_iteration"         : 1000,
+            "tolerance"             : 1e-9,
+            "number_of_eigenvalues" : 2,
+            "echo_level"            : 0
+        },
+        "rotation_dofs"            : true
+    },
+    "processes"       : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.Dirichlet_Beam",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.Dirichlet_Truss",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.Dirichlet_Beam",
+                "variable_name"   : "ROTATION",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list"       : []
+    },
+    "list_out_other_processes"     : [{
+        "python_module" : "postprocess_eigenvalues_process",
+        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "Parameters"    : {
+            "result_file_name" : "eigen_different_dofs",
+            "animation_steps"  : 20,
+            "file_format"      : "vtk",
+            "label_type"       : "frequency"
+        }
+    }]
+}

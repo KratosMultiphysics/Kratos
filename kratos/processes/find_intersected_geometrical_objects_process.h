@@ -405,6 +405,7 @@ public:
      * @brief This function is designed for being called at the beginning of the computations right after reading the model and the groups
      * @todo This should be moved to ExecuteInitialize (base class of Process)
      */
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - Use ExecuteInitialize instead\"")
     virtual void Initialize();
 
     /**
@@ -446,7 +447,7 @@ public:
      * @brief This clears the database
      * @warning This conflicts with flags Clear
      */
-    virtual void Clear();
+    void Clear() override;
 
     /**
      * @brief Execute method is used to execute the Process algorithms.
@@ -467,6 +468,11 @@ public:
         GeometricalObject::Pointer pGeometricalObject,
         OtreeCellVectorType& rLeaves
         );
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Input and output
@@ -534,46 +540,6 @@ protected:
         GeometryType& rSecondGeometry
         );
 
-    /**
-     * @brief This method check if there is an intersection between two geometries in 2D
-     * @param rFirstGeometry The first geometry
-     * @param rSecondGeometry The second geometry
-     */
-    virtual bool HasIntersection2D(
-        GeometryType& rFirstGeometry,
-        GeometryType& rSecondGeometry
-        );
-
-    /**
-     * @brief This method check if there is an intersection between two geometries in 2D (directly between geometries)
-     * @param rFirstGeometry The first geometry
-     * @param rSecondGeometry The second geometry
-     */
-    virtual bool HasDirectIntersection2D(
-        GeometryType& rFirstGeometry,
-        GeometryType& rSecondGeometry
-        );
-
-    /**
-     * @brief This method check if there is an intersection between two geometries in 3D
-     * @param rFirstGeometry The first geometry
-     * @param rSecondGeometry The second geometry
-     */
-    virtual bool HasIntersection3D(
-        GeometryType& rFirstGeometry,
-        GeometryType& rSecondGeometry
-        );
-
-    /**
-     * @brief This method check if there is an intersection between two geometries in 3D (directly between geometries)
-     * @param rFirstGeometry The first geometry
-     * @param rSecondGeometry The second geometry
-     */
-    virtual bool HasDirectIntersection3D(
-        GeometryType& rFirstGeometry,
-        GeometryType& rSecondGeometry
-        );
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -622,11 +588,6 @@ private:
         OtreeCellVectorType& rLeaves,
         PointerVector<GeometricalObject>& rResults
         );
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Un accessible methods

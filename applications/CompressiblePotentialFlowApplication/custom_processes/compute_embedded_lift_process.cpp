@@ -57,11 +57,11 @@ void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
             ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(it_elem->pGetGeometry(), Vector(geometry_distances));
 
             // Computing Normal
-            std::vector<Vector> cut_normal;
-            pModifiedShFunc -> ComputePositiveSideInterfaceAreaNormals(cut_normal,GeometryData::GI_GAUSS_1);
+            std::vector<array_1d<double,3>> cut_normal;
+            pModifiedShFunc -> ComputePositiveSideInterfaceAreaNormals(cut_normal,GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             std::vector<double> pressure_coefficient;
-            it_elem->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient,mrModelPart.GetProcessInfo());
+            it_elem->CalculateOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient,mrModelPart.GetProcessInfo());
 
             //Storing the local cp and cut normal
             it_elem->SetValue(PRESSURE_COEFFICIENT,pressure_coefficient[0]);

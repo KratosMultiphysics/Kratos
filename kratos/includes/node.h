@@ -28,6 +28,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/lock_object.h"
 #include "geometries/point.h"
 #include "includes/dof.h"
 #include "containers/pointer_vector_set.h"
@@ -35,12 +36,10 @@
 #include "containers/flags.h"
 #include "intrusive_ptr/intrusive_ptr.hpp"
 #include "containers/global_pointers_vector.h"
+#include "containers/data_value_container.h"
 
 #include "containers/nodal_data.h"
 
-#ifdef _OPENMP
-#include "omp.h"
-#endif
 
 
 namespace Kratos
@@ -118,20 +117,9 @@ public:
         , mDofs()
         , mData()
         , mInitialPosition()
-#ifdef _OPENMP
         , mNodeLock()
-#endif
-        , mReferenceCounter(0)
     {
-
         CreateSolutionStepData();
-
-#ifdef _OPENMP
-        omp_init_lock(&mNodeLock);
-#endif
-
-
-
     }
 
     explicit Node(IndexType NewId )
@@ -141,14 +129,10 @@ public:
         , mDofs()
         , mData()
         , mInitialPosition()
-#ifdef _OPENMP
         , mNodeLock()
-#endif
-        , mReferenceCounter(0)
     {
         KRATOS_ERROR <<  "Calling the default constructor for the node ... illegal operation!!" << std::endl;
         CreateSolutionStepData();
-
     }
 
     /// 1d constructor.
@@ -159,16 +143,9 @@ public:
         , mDofs()
         , mData()
         , mInitialPosition(NewX)
-#ifdef _OPENMP
         , mNodeLock()
-#endif
-        , mReferenceCounter(0)
     {
-#ifdef _OPENMP
-        omp_init_lock(&mNodeLock);
-#endif
         CreateSolutionStepData();
-
     }
 
     /// 2d constructor.
@@ -179,16 +156,9 @@ public:
         , mDofs()
         , mData()
         , mInitialPosition(NewX, NewY)
-#ifdef _OPENMP
         , mNodeLock()
-#endif
-        , mReferenceCounter(0)
     {
-#ifdef _OPENMP
-        omp_init_lock(&mNodeLock);
-#endif
         CreateSolutionStepData();
-
     }
 
     /// 3d constructor.
@@ -199,18 +169,9 @@ public:
         , mDofs()
         , mData()
         , mInitialPosition(NewX, NewY, NewZ)
-#ifdef _OPENMP
         , mNodeLock()
-#endif
-        , mReferenceCounter(0)
     {
         CreateSolutionStepData();
-
-#ifdef _OPENMP
-        omp_init_lock(&mNodeLock);
-#endif
-
-
     }
 
     /// Point constructor.
@@ -221,19 +182,9 @@ public:
         , mDofs()
         , mData()
         , mInitialPosition(rThisPoint)
-#ifdef _OPENMP
         , mNodeLock()
-#endif
-        , mReferenceCounter(0)
     {
-
         CreateSolutionStepData();
-
-#ifdef _OPENMP
-        omp_init_lock(&mNodeLock);
-#endif
-
-
     }
 
     /** Copy constructor. Initialize this node with given node.*/
@@ -255,17 +206,9 @@ public:
         , mDofs()
         , mData()
         , mInitialPosition(rOtherCoordinates)
-#ifdef _OPENMP
         , mNodeLock()
-#endif
     {
-
         CreateSolutionStepData();
-
-#ifdef _OPENMP
-        omp_init_lock(&mNodeLock);
-#endif
-
     }
 
 
@@ -279,17 +222,9 @@ public:
         , mDofs()
         , mData()
         , mInitialPosition()
-#ifdef _OPENMP
         , mNodeLock()
-#endif
     {
         CreateSolutionStepData();
-
-#ifdef _OPENMP
-        omp_init_lock(&mNodeLock);
-#endif
-
-
     }
 
     /// 3d with variables list and data constructor.
@@ -300,14 +235,8 @@ public:
         , mDofs()
         , mData()
         , mInitialPosition(NewX, NewY, NewZ)
-#ifdef _OPENMP
         , mNodeLock()
-#endif
-        , mReferenceCounter(0)
     {
-#ifdef _OPENMP
-        omp_init_lock(&mNodeLock);
-#endif
     }
 
     typename Node<TDimension>::Pointer Clone()
@@ -332,9 +261,6 @@ public:
     /// Destructor.
     ~Node() override
     {
-#ifdef _OPENMP
-        omp_destroy_lock(&mNodeLock);
-#endif
         ClearSolutionStepsData();
     }
 
@@ -361,27 +287,19 @@ public:
         mNodalData.SetId(NewId);
     }
 
-#ifdef _OPENMP
-    omp_lock_t& GetLock()
+    LockObject& GetLock()
     {
         return mNodeLock;
     }
-#endif
 
     inline void SetLock()
     {
-        //does nothing if openMP is not present
-#ifdef _OPENMP
-        omp_set_lock(&mNodeLock);
-#endif
+        mNodeLock.lock();
     }
 
     inline void UnSetLock()
     {
-        //does nothing if openMP is not present
-#ifdef _OPENMP
-        omp_unset_lock(&mNodeLock);
-#endif
+        mNodeLock.unlock();
     }
 
     ///@}
@@ -453,16 +371,6 @@ public:
         return GetValue(rThisVariable);
     }
 
-    template<class TAdaptorType> typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable)
-    {
-        return GetValue(rThisVariable);
-    }
-
-    template<class TAdaptorType> const typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return GetValue(rThisVariable);
-    }
-
     double& operator[](IndexType ThisIndex)
     {
         return BaseType::operator[](ThisIndex);
@@ -512,12 +420,18 @@ public:
         return mNodalData.GetSolutionStepData();
     }
 
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use 'GetData()' instead.")
     DataValueContainer& Data()
     {
         return mData;
     }
 
-    const DataValueContainer& Data() const
+    DataValueContainer& GetData()
+    {
+        return mData;
+    }
+
+    const DataValueContainer& GetData() const
     {
         return mData;
     }
@@ -544,10 +458,6 @@ public:
 
 
     template<class TDataType> bool SolutionStepsDataHas(const Variable<TDataType>& rThisVariable) const
-    {
-        return SolutionStepData().Has(rThisVariable);
-    }
-    template<class TAdaptorType> bool SolutionStepsDataHas(const VariableComponent<TAdaptorType>& rThisVariable) const
     {
         return SolutionStepData().Has(rThisVariable);
     }
@@ -619,10 +529,6 @@ public:
     }
 
     template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
-    {
-        return mData.Has(rThisVariable);
-    }
-    template<class TAdaptorType> bool Has(const VariableComponent<TAdaptorType>& rThisVariable) const
     {
         return mData.Has(rThisVariable);
     }
@@ -746,7 +652,12 @@ public:
     ///@name Dofs
     ///@{
 
-    //advanced functions by Riccardo
+    /**
+     * @brief Get DoF  position with a given position
+     * @param rDofVariable Name of the variable to search the position
+     * @tparam TVariableType The variable type template argument
+     * @return The position of the given DoF variable
+     */
     template<class TVariableType>
     inline unsigned int GetDofPosition(TVariableType const& rDofVariable) const
     {
@@ -760,6 +671,13 @@ public:
         return it_dof - mDofs.begin();
     }
 
+    /**
+     * @brief Get dof with a given position. If not found it is search
+     * @param rDofVariable Name of the variable
+     * @param pos Position of the DoF
+     * @tparam TVariableType The variable type template argument
+     * @return The DoF associated to the given variable
+     */
     template<class TVariableType>
     inline const DofType& GetDof(TVariableType const& rDofVariable, int pos) const
     {
@@ -786,7 +704,12 @@ public:
         KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
     }
 
-    /** returns the Dof asociated with variable  */
+    /**
+     * @brief Get DoF for a given variable
+     * @param rDofVariable Name of the variable
+     * @tparam TVariableType The variable type template argument
+     * @return The DoF associated to the given variable
+     */
     template<class TVariableType>
     inline const DofType& GetDof(TVariableType const& rDofVariable) const
     {
@@ -806,7 +729,17 @@ public:
         return mDofs;
     }
 
-    /** returns a counted pointer to the Dof asociated with variable  */
+    const DofsContainerType& GetDofs() const
+    {
+        return mDofs;
+    }
+
+    /**
+     * @brief Get DoF counted pointer for a given variable
+     * @param rDofVariable Name of the variable
+     * @tparam TVariableType The variable type template argument
+     * @return The DoF associated to the given variable
+     */
     template<class TVariableType>
     inline const typename DofType::Pointer pGetDof(TVariableType const& rDofVariable) const
     {
@@ -819,6 +752,40 @@ public:
         KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
 
     }
+
+    /**
+     * @brief Get DoF counted pointer with a given position. If not found it is search
+     * @param rDofVariable Name of the variable
+     * @param Position Position of the DoF
+     * @tparam TVariableType The variable type template argument
+     * @return The DoF associated to the given variable
+     */
+    template<class TVariableType>
+    inline const typename DofType::Pointer pGetDof(
+        TVariableType const& rDofVariable,
+        int Position
+        ) const
+    {
+        const auto it_begin = mDofs.begin();
+        const auto it_end = mDofs.end();
+        // If the guess is exact return the guess
+        if(Position < it_end-it_begin) {
+            auto it_dof = it_begin + Position;
+            if( (*it_dof)->GetVariable() == rDofVariable) {
+                return (*it_dof).get();
+            }
+        }
+
+        // Otherwise do a find
+        for(auto it_dof = it_begin; it_dof != it_end; ++it_dof){
+            if((*it_dof)->GetVariable() == rDofVariable){
+                return (*it_dof).get();
+            }
+        }
+
+        KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
+    }
+
 
     /** adds a Dof to the node and return new added dof or existed one. */
     template<class TVariableType>
@@ -1065,16 +1032,14 @@ private:
     ///Initial Position of the node
     PointType mInitialPosition;
 
-#ifdef _OPENMP
-    omp_lock_t mNodeLock;
-#endif
+    LockObject mNodeLock;
 
     ///@}
     ///@name Private Operators
     ///@{
     //*********************************************
     //this block is needed for refcounting
-    mutable std::atomic<int> mReferenceCounter;
+    mutable std::atomic<int> mReferenceCounter{0};
 
     friend void intrusive_ptr_add_ref(const NodeType* x)
     {

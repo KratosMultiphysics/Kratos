@@ -17,10 +17,10 @@
         },
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "linear_truss_structure"
+            "input_filename" : "adjoint_sensitivity_analysis_tests/adjoint_truss_stucture_3d2n/linear_truss_structure"
         },
         "material_import_settings"           : {
-            "materials_filename" : "StructuralMaterials.json"
+            "materials_filename" : "adjoint_sensitivity_analysis_tests/adjoint_truss_stucture_3d2n/StructuralMaterials.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",

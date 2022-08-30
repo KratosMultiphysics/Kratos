@@ -18,7 +18,7 @@ namespace Kratos {
         // TODO: make mDoApplyFaxenCorrections an option
         ElSamniLiftLaw(){}
 
-        ElSamniLiftLaw(Parameters& r_parameters);
+        ElSamniLiftLaw(Parameters r_parameters);
 
         ~ElSamniLiftLaw(){}
 

@@ -28,15 +28,16 @@ GenerateInitialSkinDEMProcess::GenerateInitialSkinDEMProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenerateInitialSkinDEMProcess::Execute() 
+void GenerateInitialSkinDEMProcess::Execute()
 {
-    auto nodal_neigh_process = FindNodalNeighboursProcess(mrModelPart, 5, 5);
+    FindNodalNeighboursProcess nodal_neigh_process (mrModelPart);
     nodal_neigh_process.Execute();
     auto p_DEM_properties = mrDEMModelPart.pGetProperties(1);
 
     auto &r_submodel_part = mrModelPart.GetSubModelPart("SkinDEMModelPart");
     const auto it_node_begin = r_submodel_part.NodesBegin();
     double num_DEM = 0;
+    const int max_id_FEM_nodes = this->GetMaximumFEMId();
     // #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(r_submodel_part.Nodes().size()); i++) {
         auto it_node = it_node_begin + i;
@@ -45,7 +46,7 @@ void GenerateInitialSkinDEMProcess::Execute()
             auto& r_neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
             Vector potential_radii(r_neigh_nodes.size());
             Vector distances(r_neigh_nodes.size());
-    
+
             // Loop over the neighbours of that node
             bool has_dem_neigh = false;
             for (int neigh = 0; neigh < r_neigh_nodes.size(); neigh++) {
@@ -60,6 +61,7 @@ void GenerateInitialSkinDEMProcess::Execute()
                         auto& pDEM_particle = r_neighbour_node.GetValue(DEM_PARTICLE_POINTER);
                         auto& r_radius_neigh_old = pDEM_particle->GetGeometry()[0].GetSolutionStepValue(RADIUS);
                         r_radius_neigh_old = new_radius;
+                        pDEM_particle->SetRadius(new_radius);
                         r_neighbour_node.SetValue(RADIUS, new_radius);
                         potential_radii(neigh) = new_radius;
                     }
@@ -76,7 +78,11 @@ void GenerateInitialSkinDEMProcess::Execute()
             }
             const array_1d<double,3>& r_coordinates = it_node->Coordinates();
             const int id = this->GetMaximumDEMId() + 1;
-            this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, radius, it_node);
+
+            if (mrDEMModelPart.Elements().size() == 0)
+                this->CreateDEMParticle(id + max_id_FEM_nodes, r_coordinates, p_DEM_properties, 0.8*radius, it_node);
+            else
+                this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, 0.8*radius, it_node);
             num_DEM++;
         }
     }
@@ -94,7 +100,14 @@ void GenerateInitialSkinDEMProcess::CreateDEMParticle(
 	NodeIteratorType rNode
 )
 {
-    auto spheric_particle = mParticleCreator.CreateSphericParticleRaw(mrDEMModelPart, Id, Coordinates, pProperties, Radius, "SphericParticle3D");
+    auto &r_process_info = mrModelPart.GetProcessInfo();
+    std::string sphere_type;
+    if (r_process_info[DEMFEM_CONTACT])
+        sphere_type = "PolyhedronSkinSphericParticle3D";
+    else
+        sphere_type = "SphericParticle3D";
+
+    auto spheric_particle = mParticleCreator.CreateSphericParticleRaw(mrDEMModelPart, Id, Coordinates, pProperties, Radius, sphere_type);
     rNode->SetValue(IS_DEM, true);
     rNode->SetValue(RADIUS, Radius);
     rNode->SetValue(DEM_PARTICLE_POINTER, spheric_particle);
@@ -105,7 +118,7 @@ void GenerateInitialSkinDEMProcess::CreateDEMParticle(
 /***********************************************************************************/
 
 double GenerateInitialSkinDEMProcess::CalculateDistanceBetweenNodes(
-    NodeIteratorType rNode1, 
+    NodeIteratorType rNode1,
     const NodeType& rNode2
     )
 {
@@ -126,8 +139,8 @@ double GenerateInitialSkinDEMProcess::GetMinimumValue(
     )
 { // this method assumes that the Vector is NOT full of 0.0's
     double aux = 1.0e10;
-    for (int i = 0; i < rValues.size(); i++) 
-        if (aux > rValues[i] && rValues[i] != 0.0) 
+    for (int i = 0; i < rValues.size(); i++)
+        if (aux > rValues[i] && rValues[i] != 0.0)
             aux = rValues[i];
     return aux;
 }
@@ -137,16 +150,43 @@ double GenerateInitialSkinDEMProcess::GetMinimumValue(
 
 int GenerateInitialSkinDEMProcess::GetMaximumDEMId()
 {
-    int max_id = 0;
     const auto it_DEM_begin = mrDEMModelPart.ElementsBegin();
-    // #pragma omp parallel for
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    std::vector<int> max_vector(num_threads, 0.0);
+
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrDEMModelPart.Elements().size()); i++) {
         auto it_DEM = it_DEM_begin + i;
         auto& r_geometry = it_DEM->GetGeometry();
         const int DEM_id = r_geometry[0].Id();
-        max_id = (max_id < DEM_id) ? DEM_id : max_id;
+
+        const int thread_id = OpenMPUtils::ThisThread();
+
+        if (DEM_id > max_vector[thread_id])
+            max_vector[thread_id] = DEM_id;
     }
-    return max_id;
+    return *std::max_element(max_vector.begin(), max_vector.end());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+int GenerateInitialSkinDEMProcess::GetMaximumFEMId()
+{
+    const auto it_FEM_node_begin = mrModelPart.NodesBegin();
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    std::vector<int> max_vector(num_threads, 0.0);
+
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
+        auto it_FEM_node = it_FEM_node_begin + i;
+        const int FEM_node_id = it_FEM_node->Id();
+
+        const int thread_id = OpenMPUtils::ThisThread();
+        if (FEM_node_id > max_vector[thread_id])
+            max_vector[thread_id] = FEM_node_id;
+    }
+    return *std::max_element(max_vector.begin(), max_vector.end());
 }
 
 }  // namespace Kratos

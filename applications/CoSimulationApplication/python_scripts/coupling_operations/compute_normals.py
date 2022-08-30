@@ -1,23 +1,17 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
-# CoSimulation imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-
-def Create(settings, solver_wrappers):
-    cs_tools.SettingsTypeCheck(settings)
-    return ComputeNormalsOperation(settings, solver_wrappers)
+def Create(*args):
+    return ComputeNormalsOperation(*args)
 
 class ComputeNormalsOperation(CoSimulationCouplingOperation):
     """This operation computes the Normals (NORMAL) on a given ModelPart
     """
-    def __init__(self, settings, solver_wrappers):
-        super(ComputeNormalsOperation, self).__init__(settings)
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
+        super().__init__(settings, process_info, data_communicator)
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
@@ -41,6 +35,8 @@ class ComputeNormalsOperation(CoSimulationCouplingOperation):
         pass
 
     def Execute(self):
+        if not self.interface_data.IsDefinedOnThisRank(): return
+
         smp_normal_calculator = self.interface_data.GetModelPart()
         KM.NormalCalculationUtils().CalculateOnSimplex(smp_normal_calculator, smp_normal_calculator.ProcessInfo[KM.DOMAIN_SIZE])
 
@@ -52,12 +48,12 @@ class ComputeNormalsOperation(CoSimulationCouplingOperation):
         pass
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver"    : "UNSPECIFIED",
             "data_name" : "UNSPECIFIED"
         }""")
-        this_defaults.AddMissingParameters(super(ComputeNormalsOperation, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
 
 

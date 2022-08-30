@@ -19,6 +19,7 @@
 #include "containers/model.h"
 #include "includes/kratos_flags.h"
 #include "includes/mapping_variables.h"
+#include "utilities/normal_calculation_utils.h"
 // #include "includes/gid_io.h"
 
 /* Processes */
@@ -90,8 +91,8 @@ namespace Kratos
             condition_nodes_1[2] = p_node_6;
             Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
-            Condition::Pointer p_cond_0 = this_model_part.CreateNewCondition("Condition3D", 1, triangle_0, p_cond_prop);
-            Condition::Pointer p_cond_1 = this_model_part.CreateNewCondition("Condition3D", 2, triangle_1, p_cond_prop);
+            Condition::Pointer p_cond_0 = this_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_cond_prop);
+            Condition::Pointer p_cond_1 = this_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1, p_cond_prop);
 
             // Adding map
             IndexSet this_set;
@@ -110,7 +111,7 @@ namespace Kratos
             master_model_part.AddCondition(p_cond_1);
 
             // We compute the normals
-            MortarUtilities::ComputeNodesMeanNormalModelPart(this_model_part);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(this_model_part, true);
 
             p_node_4->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_4->X(), 2) + std::pow(p_node_4->Y(), 2);
             p_node_5->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_5->X(), 2) + std::pow(p_node_5->Y(), 2);
@@ -184,8 +185,8 @@ namespace Kratos
             condition_nodes_1[3] = p_node_5;
             Quadrilateral3D4 <NodeType> quad_1( PointerVector<NodeType>{condition_nodes_1} );
 
-            Condition::Pointer p_cond_0 = this_model_part.CreateNewCondition("Condition3D4N", 1, quad_0, p_cond_prop);
-            Condition::Pointer p_cond_1 = this_model_part.CreateNewCondition("Condition3D4N", 2, quad_1, p_cond_prop);
+            Condition::Pointer p_cond_0 = this_model_part.CreateNewCondition("SurfaceCondition3D4N", 1, quad_0, p_cond_prop);
+            Condition::Pointer p_cond_1 = this_model_part.CreateNewCondition("SurfaceCondition3D4N", 2, quad_1, p_cond_prop);
 
             // Adding map
             IndexSet this_set;
@@ -206,7 +207,7 @@ namespace Kratos
             master_model_part.AddCondition(p_cond_1);
 
             // We compute the normals
-            MortarUtilities::ComputeNodesMeanNormalModelPart(this_model_part);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(this_model_part, true);
 
             p_node_5->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_5->X(), 2) + std::pow(p_node_5->Y(), 2);
             p_node_6->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_6->X(), 2) + std::pow(p_node_6->Y(), 2);
@@ -285,10 +286,10 @@ namespace Kratos
             condition_nodes_3[2] = p_node_6;
             Triangle3D3 <NodeType> triangle_4( PointerVector<NodeType>{condition_nodes_3} );
 
-            Condition::Pointer p_cond_0 = this_model_part.CreateNewCondition("Condition3D", 1, triangle_0, p_cond_prop);
-            Condition::Pointer p_cond_1 = this_model_part.CreateNewCondition("Condition3D", 2, triangle_1, p_cond_prop);
-            Condition::Pointer p_cond_2 = this_model_part.CreateNewCondition("Condition3D", 3, triangle_3, p_cond_prop);
-            Condition::Pointer p_cond_3 = this_model_part.CreateNewCondition("Condition3D", 4, triangle_4, p_cond_prop);
+            Condition::Pointer p_cond_0 = this_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_cond_prop);
+            Condition::Pointer p_cond_1 = this_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_1, p_cond_prop);
+            Condition::Pointer p_cond_2 = this_model_part.CreateNewCondition("SurfaceCondition3D3N", 3, triangle_3, p_cond_prop);
+            Condition::Pointer p_cond_3 = this_model_part.CreateNewCondition("SurfaceCondition3D3N", 4, triangle_4, p_cond_prop);
 
             // Adding map
             IndexSet this_set0, this_set1;
@@ -315,7 +316,7 @@ namespace Kratos
             master_model_part.AddCondition(p_cond_3);
 
             // We compute the normals
-            MortarUtilities::ComputeNodesMeanNormalModelPart(this_model_part);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(this_model_part, true);
 
             p_node_5->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_5->Z(), 2) + std::pow(p_node_5->Y(), 2);
             p_node_6->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_6->Z(), 2) + std::pow(p_node_6->Y(), 2);

@@ -1,43 +1,57 @@
-from __future__ import absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
-# Importing the Kratos Library
-import KratosMultiphysics
-from KratosMultiphysics.MultilevelMonteCarloApplication.tools import ParametersWrapper
-
-# Import packages
+# Import Python libraries
 import numpy as np
 from scipy.stats import norm
 import copy
 import time
 import sys
 import os
+import pickle
 try:
     from threadpoolctl import *
 except:
     pass
 
-# Importing the analysis stage classes of the different problems
+# Import Kratos
+import KratosMultiphysics
+from KratosMultiphysics.MultilevelMonteCarloApplication.tools import ParametersWrapper
+
+# Importing application utilities
 from simulation_definition import SimulationScenario
-
-# Import the StatisticalVariable class
 from KratosMultiphysics.MultilevelMonteCarloApplication.statistical_variable_utilities import StatisticalVariable
-
-# Import refinement library
 from KratosMultiphysics.MultilevelMonteCarloApplication.adaptive_refinement_utilities import AdaptiveRefinement
-
-# Import random variable generator
 import KratosMultiphysics.MultilevelMonteCarloApplication.generator_utilities as generator
 
-# Import PyCOMPSs
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
+# Import distributed framework
+from exaqute import *
 
-# Import cpickle to pickle the serializer
 try:
-    import cpickle as pickle  # Use cPickle on Python 2.7
-except ImportError:
-    import pickle
+    computing_units_auxiliar_utilities = int(os.environ["computing_units_auxiliar_utilities"])
+except:
+    computing_units_auxiliar_utilities = 1
+try:
+    computing_units_mlmc_execute_0 = int(os.environ["computing_units_mlmc_execute_0"])
+except:
+    computing_units_mlmc_execute_0 = 1
+try:
+    computing_units_mlmc_execute_1 = int(os.environ["computing_units_mlmc_execute_1"])
+except:
+    computing_units_mlmc_execute_1 = 1
+try:
+    computing_units_mlmc_execute_2 = int(os.environ["computing_units_mlmc_execute_2"])
+except:
+    computing_units_mlmc_execute_2 = 1
+try:
+    computing_units_mlmc_execute_3 = int(os.environ["computing_units_mlmc_execute_3"])
+except:
+    computing_units_mlmc_execute_3 = 1
+try:
+    computing_units_mlmc_execute_4 = int(os.environ["computing_units_mlmc_execute_4"])
+except:
+    computing_units_mlmc_execute_4 = 1
+try:
+    computing_units_mlmc_execute_5 = int(os.environ["computing_units_mlmc_execute_5"])
+except:
+    computing_units_mlmc_execute_5 = 1
 
 
 """
@@ -47,8 +61,8 @@ input:  level              : working level
 output: new_difference_QoI_power_sum_batches : power sums up to level 4 of difference QoI
         new_time_ML_power_sum_batches        : power sums up to level 4 of time MLMC instance
 """
-@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
-@ExaquteTask(returns=2,priority=True)
+@constraint(computing_units=computing_units_auxiliar_utilities)
+@task(keep=True,returns=2,priority=True)
 def AddResultsAux_Task(level,*simulation_results):
     def computePowers(value):
         return value, value**2, value**3, value**4
@@ -79,8 +93,8 @@ output: auxiliary_MLMC_object.rates_error       : rates error of the MultilevelM
         auxiliary_MLMC_object.total_error       :  total error of the MultilevelMonteCarlo class
         auxiliary_MLMC_object.number_samples    : number of samples of the MultilevelMonteCarlo class
 """
-@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
-@ExaquteTask(returns=5,priority=True)
+@constraint(computing_units=computing_units_auxiliar_utilities)
+@task(keep=True,returns=5,priority=True)
 def FinalizePhaseAux_Task(ConstructorCallback,aux_settings_serialized,aux_mesh_parameters,\
 aux_current_number_levels,aux_current_iteration,aux_number_samples,*args):
     # retrieve lists
@@ -196,11 +210,11 @@ def ExecuteInstanceSingleRefinement_Wrapper(current_MLMC_level,pickled_model,pic
 
 ############################### ConcurrentAdaptiveRefinementAllAtOnce ##############################
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
-@ExaquteTask(returns=1)
+@constraint(computing_units=computing_units_mlmc_execute_0)
+@task(keep=True,returns=1)
 def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev0_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_0"])
+        open_mp_threads = computing_units_mlmc_execute_0
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -212,11 +226,11 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev0_Task(current_MLM
         del(pickled_current_model)
     return mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
-@ExaquteTask(returns=1)
+@constraint(computing_units=computing_units_mlmc_execute_1)
+@task(keep=True,returns=1)
 def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev1_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_1"])
+        open_mp_threads = computing_units_mlmc_execute_1
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -228,11 +242,11 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev1_Task(current_MLM
         del(pickled_current_model)
     return mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
-@ExaquteTask(returns=1)
+@constraint(computing_units=computing_units_mlmc_execute_2)
+@task(keep=True,returns=1)
 def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev2_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_2"])
+        open_mp_threads = computing_units_mlmc_execute_2
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -247,11 +261,11 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev2_Task(current_MLM
 
 ############################# ConcurrentAdaptiveRefinementMultipleTasks ############################
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
-@ExaquteTask(returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_0)
+@task(keep=True,returns=2)
 def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev0_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_0"])
+        open_mp_threads = computing_units_mlmc_execute_0
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -259,11 +273,11 @@ def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev0_Task(current
         ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
     return mlmc_results,pickled_current_model
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
-@ExaquteTask(returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_1)
+@task(keep=True,returns=2)
 def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev1_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_1"])
+        open_mp_threads = computing_units_mlmc_execute_1
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -271,11 +285,11 @@ def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev1_Task(current
         ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
     return mlmc_results,pickled_current_model
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
-@ExaquteTask(returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_2)
+@task(keep=True,returns=2)
 def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev2_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_2"])
+        open_mp_threads = computing_units_mlmc_execute_2
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -286,11 +300,11 @@ def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev2_Task(current
 
 ################################### OnlySingleAdaptiveRefinement ###################################
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
-@ExaquteTask(returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_0)
+@task(keep=True,returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev0_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_0"])
+        open_mp_threads = computing_units_mlmc_execute_0
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -298,11 +312,11 @@ def executeInstanceOnlyAdaptiveRefinementAuxLev0_Task(pickled_model,pickled_proj
         ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
     return pickled_model,mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
-@ExaquteTask(returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_1)
+@task(keep=True,returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev1_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_1"])
+        open_mp_threads = computing_units_mlmc_execute_1
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -310,11 +324,11 @@ def executeInstanceOnlyAdaptiveRefinementAuxLev1_Task(pickled_model,pickled_proj
         ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
     return pickled_model,mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
-@ExaquteTask(returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_2)
+@task(keep=True,returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev2_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_2"])
+        open_mp_threads = computing_units_mlmc_execute_2
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -322,11 +336,11 @@ def executeInstanceOnlyAdaptiveRefinementAuxLev2_Task(pickled_model,pickled_proj
         ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
     return pickled_model,mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_3}")
-@ExaquteTask(returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_3)
+@task(keep=True,returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev3_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_3"])
+        open_mp_threads = computing_units_mlmc_execute_3
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -334,11 +348,11 @@ def executeInstanceOnlyAdaptiveRefinementAuxLev3_Task(pickled_model,pickled_proj
         ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
     return pickled_model,mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_4}")
-@ExaquteTask(returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_4)
+@task(keep=True,returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev4_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_4"])
+        open_mp_threads = computing_units_mlmc_execute_4
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -346,11 +360,11 @@ def executeInstanceOnlyAdaptiveRefinementAuxLev4_Task(pickled_model,pickled_proj
         ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
     return pickled_model,mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_5}")
-@ExaquteTask(returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_5)
+@task(keep=True,returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev5_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_5"])
+        open_mp_threads = computing_units_mlmc_execute_5
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -361,11 +375,11 @@ def executeInstanceOnlyAdaptiveRefinementAuxLev5_Task(pickled_model,pickled_proj
 
 ################################### SingleAdaptiveRefinement ###################################
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
-@ExaquteTask(returns=1)
+@constraint(computing_units=computing_units_mlmc_execute_0)
+@task(keep=True,returns=1)
 def ExecuteInstanceSingleRefinementAuxLev0_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_0"])
+        open_mp_threads = computing_units_mlmc_execute_0
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -374,11 +388,11 @@ def ExecuteInstanceSingleRefinementAuxLev0_Task(pickled_model,pickled_project_pa
     return mlmc_results
 
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
-@ExaquteTask(returns=1)
+@constraint(computing_units=computing_units_mlmc_execute_1)
+@task(keep=True,returns=1)
 def ExecuteInstanceSingleRefinementAuxLev1_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_1"])
+        open_mp_threads = computing_units_mlmc_execute_1
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -386,11 +400,11 @@ def ExecuteInstanceSingleRefinementAuxLev1_Task(pickled_model,pickled_project_pa
         ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
     return mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
-@ExaquteTask(returns=1)
+@constraint(computing_units=computing_units_mlmc_execute_2)
+@task(keep=True,returns=1)
 def ExecuteInstanceSingleRefinementAuxLev2_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_2"])
+        open_mp_threads = computing_units_mlmc_execute_2
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -398,11 +412,11 @@ def ExecuteInstanceSingleRefinementAuxLev2_Task(pickled_model,pickled_project_pa
         ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
     return mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_3}")
-@ExaquteTask(returns=1)
+@constraint(computing_units=computing_units_mlmc_execute_3)
+@task(keep=True,returns=1)
 def ExecuteInstanceSingleRefinementAuxLev3_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_3"])
+        open_mp_threads = computing_units_mlmc_execute_3
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -410,11 +424,11 @@ def ExecuteInstanceSingleRefinementAuxLev3_Task(pickled_model,pickled_project_pa
         ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
     return mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_4}")
-@ExaquteTask(returns=1)
+@constraint(computing_units=computing_units_mlmc_execute_4)
+@task(keep=True,returns=1)
 def ExecuteInstanceSingleRefinementAuxLev4_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_4"])
+        open_mp_threads = computing_units_mlmc_execute_4
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -422,11 +436,11 @@ def ExecuteInstanceSingleRefinementAuxLev4_Task(pickled_model,pickled_project_pa
         ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
     return mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_5}")
-@ExaquteTask(returns=1)
+@constraint(computing_units=computing_units_mlmc_execute_5)
+@task(keep=True,returns=1)
 def ExecuteInstanceSingleRefinementAuxLev5_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_5"])
+        open_mp_threads = computing_units_mlmc_execute_5
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
@@ -1018,12 +1032,16 @@ class MultilevelMonteCarlo(object):
         # save problem name
         self.problem_name = parameters["problem_data"]["problem_name"].GetString()
         # serialize parmeters (to avoid adding new data dependent on the application)
-        parameters = self.wrapper.SetModelImportSettingsInputType("use_input_model_part")
+        self.wrapper.SetModelImportSettingsInputType("use_input_model_part")
+        materials_filename = self.wrapper.GetMaterialsFilename()
+        self.wrapper.SetMaterialsFilename("")
         serialized_project_parameters = KratosMultiphysics.StreamSerializer()
         serialized_project_parameters.Save("ParametersSerialization",parameters)
         self.serialized_project_parameters.append(serialized_project_parameters)
         # reset to read the model part
-        parameters = self.wrapper.SetModelImportSettingsInputType("mdpa")
+        self.wrapper.SetModelImportSettingsInputType("mdpa")
+        self.wrapper.SetMaterialsFilename(materials_filename)
+
         # prepare the model to serialize
         model = KratosMultiphysics.Model()
         fake_sample = generator.GenerateSample(self.problem_name) # only used to serialize

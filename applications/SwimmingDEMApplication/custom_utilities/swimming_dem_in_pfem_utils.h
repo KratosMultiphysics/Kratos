@@ -50,7 +50,7 @@ void TransferWalls(ModelPart& r_source_model_part, ModelPart& r_destination_mode
   }
   else {
     props = Properties::Pointer(new Properties(0));
-    props->SetValue(WALL_FRICTION, 0.5773502691896257);
+    props->SetValue(STATIC_FRICTION, 0.5773502691896257);
     props->SetValue(WALL_COHESION, 0.0);
     props->SetValue(COMPUTE_WEAR, 0);
     props->SetValue(SEVERITY_OF_WEAR, 0.001);

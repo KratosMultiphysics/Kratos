@@ -6,30 +6,11 @@ The SolidMechanics application team are in charge of all developments related to
 
 ## Getting Started
 
-This application is part of the Kratos Multiphysics Platform. Instructions on how to get you a copy of the project up and running on your local machine for development and testing purposes are available for both [Linux](http://kratos-wiki.cimne.upc.edu/index.php/LinuxInstall) and [Windows](http://kratos-wiki.cimne.upc.edu/index.php/Windows_7_Download_and_Installation) systems.
+This application is part of the Kratos Multiphysics Platform.
+Instructions on how to update, build and run it on your local machine are available.
+Please contact:
 
-### Prerequisites
-
-Build [Kratos](https://github.com/KratosMultiphysics/Kratos/wiki) and make sure that you put
-
-``` cmake
--DSOLID_MECHANICS_APPLICATION=ON
--DCONSTITUTIVE_MODELS_APPLICATION=ON
-```
-
-between the compilation options, so the Solid Mechanics Application, and Constitutive Models Application are compiled.
-
-Auxiliar external libraries can be added for the solvers: (recommended)
-
-``` cmake
--DEXTERNAL_SOLVERS_APPLICATION=ON
-```
-
-when frequency analysis is needed, this module has to be activated:
-
-``` cmake
--DINCLUDE_FEAST=ON
-```
+* **Josep Maria Carbonell** - *Core Development* - [cpuigbo@cimne.upc.edu](mailto:cpuigbo@cimne.upc.edu)
 
 ## Theory
 

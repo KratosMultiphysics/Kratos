@@ -15,10 +15,6 @@ import KratosMultiphysics
 from KratosMultiphysics.HDF5Application.core.utils import ParametersWrapper
 
 
-def IsDistributed():
-    return KratosMultiphysics.DataCommunicator.GetDefault().IsDistributed()
-
-
 def CreateOperationSettings(operation_type, user_settings):
     """Return core settings for an operation type.
 

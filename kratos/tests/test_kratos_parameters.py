@@ -1,7 +1,3 @@
-﻿from __future__ import print_function, absolute_import, division
-
-import sys
-
 from KratosMultiphysics import Parameters
 from KratosMultiphysics import Vector
 from KratosMultiphysics import Matrix
@@ -17,16 +13,15 @@ try:
     import cPickle as pickle
     have_pickle_module = True
 except ImportError:
-    if sys.version_info > (3, 0):
-        try:
-            import pickle
-            have_pickle_module = True
-        except ImportError:
-            have_pickle_module = False
-            pickle_message = "No pickle module found"
-    else:
+    try:
+        import pickle
+        have_pickle_module = True
+    except ImportError:
         have_pickle_module = False
-        pickle_message = "No valid pickle module found"
+        pickle_message = "No pickle module found"
+
+# Import copy
+import copy
 
 # input string with ugly formatting
 json_string = """
@@ -470,13 +465,50 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertFalse(kp.Has("int_value"))
         self.assertFalse(kp.Has("level1"))
 
+    def test_copy_deepcopy(self):
+        kp = Parameters(json_string)
+
+        # Copy values
+        kp_copy1 = kp.__copy__()
+        kp_copy2 = copy.copy(kp)
+        kp_deepcopy1 = kp.__deepcopy__()
+        kp_deepcopy2 = copy.deepcopy(kp)
+
+        # Check is the same
+        self.assertTrue(kp.Has("int_value"))
+        self.assertTrue(kp.Has("level1"))
+        self.assertTrue(kp_copy1.Has("int_value"))
+        self.assertTrue(kp_copy1.Has("level1"))
+        self.assertTrue(kp_copy2.Has("int_value"))
+        self.assertTrue(kp_copy2.Has("level1"))
+        self.assertTrue(kp_deepcopy1.Has("int_value"))
+        self.assertTrue(kp_deepcopy1.Has("level1"))
+        self.assertTrue(kp_deepcopy2.Has("int_value"))
+        self.assertTrue(kp_deepcopy2.Has("level1"))
+
+        # Remove values
+        kp.RemoveValue("int_value")
+        kp.RemoveValue("level1")
+
+        # Check the deep copies is the same
+        self.assertFalse(kp.Has("int_value"))
+        self.assertFalse(kp.Has("level1"))
+        self.assertFalse(kp_copy1.Has("int_value"))
+        self.assertFalse(kp_copy1.Has("level1"))
+        self.assertFalse(kp_copy2.Has("int_value"))
+        self.assertFalse(kp_copy2.Has("level1"))
+        self.assertTrue(kp_deepcopy1.Has("int_value"))
+        self.assertTrue(kp_deepcopy1.Has("level1"))
+        self.assertTrue(kp_deepcopy2.Has("int_value"))
+        self.assertTrue(kp_deepcopy2.Has("level1"))
+
     def test_is_methods(self):
         # This method checks all the "IsXXX" Methods
         tmp = Parameters("""{
-            "int_value" : 10,
-            "double_value": 2.0,
-            "bool_value" : true,
-            "string_value" : "hello",
+            "int_value" : 10, /* This is comment to check that comments work */
+            "double_value": 2.0, // This is comment too, but using another comment
+            "bool_value" : true, // This is another comment being meta as realizing that all the possibilities are already check
+            "string_value" : "hello",/* This is a nihilist comment about the futile existence of the previous comment as a metacomment */
             "vector_value" : [5,3,4],
             "matrix_value" : [[1,2],[3,6]]
         }""") # if you add more values to this, make sure to add the corresponding in the loop
@@ -576,6 +608,134 @@ class TestParameters(KratosUnittest.TestCase):
                 with self.assertRaises(RuntimeError):
                     tmp[key].GetMatrix()
 
+    def test_set_methods(self):
+        # This method checks all the "GetXXX" Methods if they throw an error
+        tmp = Parameters("""{
+            "int_value" : 0,
+            "double_value": 0.0,
+            "bool_value" : false,
+            "string_value" : "",
+            "vector_value" : [],
+            "matrix_value" : [[0]]
+        }""") # if you add more values to this, make sure to add the corresponding in the loop
+
+        for key in tmp.keys():
+            val_type = key[:-6] # removing "_value"
+
+            # Int and Double are checked tgth bcs both internally call "IsNumber"
+            if val_type == "int" or val_type == "double":
+                if val_type == "int":
+                    tmp[key].SetInt(10)
+                    self.assertEqual(tmp[key].GetInt(),10)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetInt()
+
+            if val_type == "double" or val_type == "int":
+                if val_type == "double":
+                    tmp[key].SetDouble(2.0)
+                    self.assertEqual(tmp[key].GetDouble(),2.0)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetDouble()
+
+            if val_type == "bool":
+                tmp[key].SetBool(True)
+                self.assertEqual(tmp[key].GetBool(),True)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetBool()
+
+            if val_type == "string":
+                tmp[key].SetString("hello")
+                self.assertEqual(tmp[key].GetString(),"hello")
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetString()
+
+            if val_type == "vector":
+                vector = Vector(3)
+                vector[0] = 5.2
+                vector[1] = -3.1
+                vector[2] = 4.33
+                tmp[key].SetVector(vector)
+                V = tmp[key].GetVector()
+                self.assertEqual(V[0],5.2)
+                self.assertEqual(V[1],-3.1)
+                self.assertEqual(V[2],4.33)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetVector()
+
+            if val_type == "matrix":
+                matrix = Matrix(3,2)
+                matrix[0,0] = 1.0
+                matrix[0,1] = 2.0
+                matrix[1,0] = 3.0
+                matrix[1,1] = 4.0
+                matrix[2,0] = 5.0
+                matrix[2,1] = 6.0
+                tmp[key].SetMatrix(matrix)
+                A = tmp[key].GetMatrix()
+                self.assertEqual(A[0,0],1.0)
+                self.assertEqual(A[0,1],2.0)
+                self.assertEqual(A[1,0],3.0)
+                self.assertEqual(A[1,1],4.0)
+                self.assertEqual(A[2,0],5.0)
+                self.assertEqual(A[2,1],6.0)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetMatrix()
+
+    def test_add_methods(self):
+        # This method checks all the "GetXXX" Methods if they throw an error
+        tmp = Parameters("""{}""")
+
+        key = "int"
+        tmp.AddInt(key, 10)
+        self.assertEqual(tmp[key].GetInt(),10)
+
+        key = "double"
+        tmp.AddDouble(key, 2.0)
+        self.assertEqual(tmp[key].GetDouble(),2.0)
+
+        key = "bool"
+        tmp.AddBool(key, True)
+        self.assertEqual(tmp[key].GetBool(),True)
+
+        key = "string"
+        tmp.AddString(key, "hello")
+        self.assertEqual(tmp[key].GetString(),"hello")
+
+        key = "vector"
+        vector = Vector(3)
+        vector[0] = 5.2
+        vector[1] = -3.1
+        vector[2] = 4.33
+        tmp.AddVector(key, vector)
+        V = tmp[key].GetVector()
+        self.assertEqual(V[0],5.2)
+        self.assertEqual(V[1],-3.1)
+        self.assertEqual(V[2],4.33)
+
+        key = "matrix"
+        matrix = Matrix(3,2)
+        matrix[0,0] = 1.0
+        matrix[0,1] = 2.0
+        matrix[1,0] = 3.0
+        matrix[1,1] = 4.0
+        matrix[2,0] = 5.0
+        matrix[2,1] = 6.0
+        tmp.AddMatrix(key, matrix)
+        A = tmp[key].GetMatrix()
+        self.assertEqual(A[0,0],1.0)
+        self.assertEqual(A[0,1],2.0)
+        self.assertEqual(A[1,0],3.0)
+        self.assertEqual(A[1,1],4.0)
+        self.assertEqual(A[2,0],5.0)
+        self.assertEqual(A[2,1],6.0)
+
+
     def test_vector_interface(self):
         # Read and check Vectors from a Parameters-Object
         tmp = Parameters("""{
@@ -593,11 +753,29 @@ class TestParameters(KratosUnittest.TestCase):
             ]
         }""")
 
-        # Check the IsVector Method
+        # Populate "valid_vectors" and test Parameters::Append
+        tmp["valid_vectors"].Append(Vector([1, 2, 3]))
+        tmp["valid_vectors"].Append([4, 5, 6])
+        tmp["valid_vectors"].Append([0])
+        tmp["valid_vectors"].Append([])
+
+        # Check valid vectors
         for i in range(tmp["valid_vectors"].size()):
             valid_vector = tmp["valid_vectors"][i]
             self.assertTrue(valid_vector.IsVector())
 
+        self.assertEqual(tmp["valid_vectors"][0].size(), 0)
+
+        self.assertEqual(tmp["valid_vectors"][1].size(), 3)
+        self.assertVectorAlmostEqual(tmp["valid_vectors"][1].GetVector(), [1, 2, 3])
+
+        self.assertEqual(tmp["valid_vectors"][2].size(), 3)
+        self.assertVectorAlmostEqual(tmp["valid_vectors"][2].GetVector(), [4, 5, 6])
+
+        self.assertEqual(tmp["valid_vectors"][3].size(), 1)
+        self.assertEqual(tmp["valid_vectors"][3].GetVector()[0], 0)
+
+        # Check invalid vectors
         for i in range(tmp["false_vectors"].size()):
             false_vector = tmp["false_vectors"][i]
             self.assertFalse(false_vector.IsVector())
@@ -646,11 +824,31 @@ class TestParameters(KratosUnittest.TestCase):
             ]
         }""")
 
-        # Check the IsMatrix Method
+        # Populate "valid_matrices" and test Parameters::Append
+        tmp["valid_matrices"].Append(Matrix([[1, 2, 3], [4, 5, 6]]))
+        tmp["valid_matrices"].Append(Matrix([[0]]))
+
+        # Check valid matrices
         for i in range(tmp["valid_matrices"].size()):
             valid_matrix = tmp["valid_matrices"][i]
             self.assertTrue(valid_matrix.IsMatrix())
 
+        # Check matrix values
+        matrix = tmp["valid_matrices"][0].GetMatrix()
+        self.assertEqual(matrix.Size1(), 1) # Number of rows in an empty matrix is non-zero! Is this intentional?
+        self.assertEqual(matrix.Size2(), 0)
+
+        matrix = tmp["valid_matrices"][3].GetMatrix()
+        self.assertEqual(matrix.Size1(), 2)
+        self.assertEqual(matrix.Size2(), 3)
+        self.assertMatrixAlmostEqual(matrix, Matrix([[1, 2, 3], [4, 5, 6]]))
+
+        matrix = tmp["valid_matrices"][4].GetMatrix()
+        self.assertEqual(matrix.Size1(), 1)
+        self.assertEqual(matrix.Size2(), 1)
+        self.assertAlmostEqual(matrix[0, 0], 0)
+
+        # Check invalid matrices
         for i in range(tmp["false_matrices"].size()):
             false_matrix = tmp["false_matrices"][i]
             self.assertFalse(false_matrix.IsMatrix())
@@ -753,6 +951,33 @@ class TestParameters(KratosUnittest.TestCase):
         } """)
         with self.assertRaisesRegex(RuntimeError, r'Error: Argument must be a string'):
             tmp["parameter"].GetStringArray()
+
+    def test_set_string_array_valid(self):
+        initial = Parameters("""{
+            "parameter": ["foo", "bar"]
+        } """)
+        string_array = initial["parameter"].GetStringArray()
+
+        new_param = Parameters()
+        new_param.AddEmptyValue("new_parameter")
+        new_param["new_parameter"].SetStringArray(string_array)
+
+        new_string_array = initial["parameter"].GetStringArray()
+
+        self.assertListEqual(new_string_array, string_array)
+
+    def test_add_string_array_valid(self):
+        initial = Parameters("""{
+            "parameter": ["foo", "bar"]
+        } """)
+        string_array = initial["parameter"].GetStringArray()
+
+        new_param = Parameters()
+        new_param.AddStringArray("new_parameter", string_array)
+
+        new_string_array = initial["parameter"].GetStringArray()
+
+        self.assertListEqual(new_string_array, string_array)
 
     @KratosUnittest.skipUnless(have_pickle_module, "Pickle module error: : " + pickle_message)
     def test_stream_serialization(self):

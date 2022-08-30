@@ -27,7 +27,6 @@
 
 ///VARIABLES used:
 //Data:
-//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked)
 //          (set)
 //          (modified)
@@ -71,7 +70,7 @@ public:
       : mrModelPart(rModelPart),
         mrRemesh(rRemeshingParameters)
   {
-    KRATOS_INFO("ComputeAveragePfemMeshParametersProcess") << " inlet_management CONSTRUCTOR ";
+    KRATOS_INFO("ComputeAveragePfemMeshParametersProcess") << " activated "<< std::endl;
 
     mEchoLevel = EchoLevel;
   }
@@ -113,8 +112,8 @@ public:
     double fluidNodes = 0;
     double meanNodalSize = 0;
 
-    double refinedFluidNodes = 0;
-    double refinedMeanNodalSize = 0;
+    // double refinedFluidNodes = 0;
+    // double refinedMeanNodalSize = 0;
 
     const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
     // unsigned int count=0;
@@ -162,19 +161,19 @@ public:
               meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
             }
           }
-          else
-          {
-            if (i_node->Is(FLUID))
-            {
-              refinedFluidNodes += 1.0;
-              refinedMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
-            }
-          }
+          // else
+          // {
+          //   if (i_node->Is(FLUID))
+          //   {
+          //     refinedFluidNodes += 1.0;
+          //     refinedMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
+          //   }
+          // }
         }
       }
     }
     meanNodalSize *= 1.0 / fluidNodes;
-    refinedMeanNodalSize *= 1.0 / refinedFluidNodes;
+    // refinedMeanNodalSize *= 1.0 / refinedFluidNodes;
 
     mrRemesh.Refine->CriticalRadius = meanNodalSize;
     mrRemesh.Refine->InitialRadius = meanNodalSize;
@@ -184,8 +183,8 @@ public:
       mrRemesh.RefiningBoxMeshSize *= 0.8;
     }
 
-    // std::cout << fluidNodes << " mrRemesh.Refine->CriticalRadius " << mrRemesh.Refine->CriticalRadius << std::endl;
-    // std::cout << refinedFluidNodes << " mrRemesh.RefiningBoxMeshSize " << mrRemesh.RefiningBoxMeshSize << std::endl;
+    // std::cout << fluidNodes << " nodes in Not Refined area with mean element size: " << mrRemesh.Refine->CriticalRadius << std::endl;
+    // std::cout << refinedFluidNodes << " nodes in Refined area with mean element size:  " << mrRemesh.RefiningBoxMeshSize << std::endl;
     // std::cout << " othermeanNodalSize " << refinedMeanNodalSize << std::endl;
 
     double smallSize = meanNodalSize;

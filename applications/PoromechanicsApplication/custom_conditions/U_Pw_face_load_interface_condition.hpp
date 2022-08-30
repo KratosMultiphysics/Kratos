@@ -54,7 +54,7 @@ public:
     UPwFaceLoadInterfaceCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
     {
         // Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
     }
 
     // Destructor
@@ -64,7 +64,7 @@ public:
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ protected:
                                 const BoundedMatrix<double,TDim,TDim>& RotationMatrix,
                                 array_1d<double,TDim>& rLocalRelDispVector, const double& MinimumJointWidth, const unsigned int& GPoint );
 
-    void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight, const double& JointWidth, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight, const double& JointWidth);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

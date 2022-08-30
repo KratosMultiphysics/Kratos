@@ -352,6 +352,21 @@ private:
      */
     static std::string GetInternalName(const std::string& rName);
 
+    static std::vector<std::string>& GetLabelsStackInstance()
+    {
+      static std::vector<std::string> instance;
+      return instance;
+    }
+
+    static std::string CreateFullLabel(){
+        const auto& r_labels_stack = GetLabelsStackInstance();
+        std::string result;
+        for(const auto& r_label : r_labels_stack){
+        result += "/" + r_label;
+        }
+        return result;
+    }
+
     ///@}
     ///@name Private Operations
     ///@{

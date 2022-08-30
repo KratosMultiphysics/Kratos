@@ -810,7 +810,7 @@ Begin Elements Element2D3N// GUI group identifier: Fluid
       497          1         37         43         45
 End Elements
 
-Begin Conditions Condition2D2N// GUI group identifier: Inlet
+Begin Conditions LineCondition2D2N// GUI group identifier: Inlet
     1 0 298 297
     2 0 297 296
     3 0 296 295
@@ -828,7 +828,7 @@ Begin Conditions Condition2D2N// GUI group identifier: Inlet
     15 0 276 275
 End Conditions
 
-Begin Conditions Condition2D2N// GUI group identifier: Outlet
+Begin Conditions LineCondition2D2N// GUI group identifier: Outlet
     16 0 1 2
     17 0 2 5
     18 0 5 8
@@ -836,7 +836,7 @@ Begin Conditions Condition2D2N// GUI group identifier: Outlet
     20 0 11 15
 End Conditions
 
-Begin Conditions Condition2D2N// GUI group identifier: Top
+Begin Conditions LineCondition2D2N// GUI group identifier: Top
     21 0 275 261
     22 0 261 252
     23 0 252 244
@@ -859,7 +859,7 @@ Begin Conditions Condition2D2N// GUI group identifier: Top
     40 0 3 1
 End Conditions
 
-Begin Conditions Condition2D2N// GUI group identifier: Bottom
+Begin Conditions LineCondition2D2N// GUI group identifier: Bottom
     41 0 214 180
     42 0 180 131
     43 0 131 83
@@ -888,7 +888,7 @@ Begin Conditions Condition2D2N// GUI group identifier: Bottom
     66 0 16 15
 End Conditions
 
-Begin Conditions Condition2D2N// GUI group identifier: FSI
+Begin Conditions LineCondition2D2N// GUI group identifier: FSI
     67 0 111 117
     68 0 117 124
     69 0 124 132

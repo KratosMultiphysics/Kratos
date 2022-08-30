@@ -87,18 +87,18 @@ public:
      * Called at the begining at each nonlinear iteration
      * @param rCurrentProcessInfo the current process info instance
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the end of the iteration process
      */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Operations
@@ -124,11 +124,24 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
+
 
     ///@}
-    ///@name Access
+    ///@name Access Get Values
     ///@{
+
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    ///@}
+    ///@name Access Set Values
+    ///@{
+
+    void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        const std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -187,14 +200,14 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag
         ) override;
 
-    virtual void CalculateNodalContactForce( const VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, const bool CalculateResidualVectorFlag );
+    virtual void CalculateNodalContactForce( const VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo, const bool CalculateResidualVectorFlag );
 
-    virtual void CalculateInterfaceContactForce( ProcessInfo& rCurrentProcessInfo );
+    virtual void CalculateInterfaceContactForce( const ProcessInfo& rCurrentProcessInfo );
 
     ///@}
     ///@name Protected  Access
@@ -221,6 +234,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    array_1d<double, 3> m_contact_force;
 
     ///@}
     ///@name Private Operators
@@ -249,11 +264,15 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticlePenaltyDirichletCondition );
+        rSerializer.save("ContactForce", m_contact_force);
+        rSerializer.save("ReactionIsAdded", mReactionIsAdded);
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticlePenaltyDirichletCondition );
+        rSerializer.load("ContactForce", m_contact_force);
+        rSerializer.load("ReactionIsAdded", mReactionIsAdded);
     }
 
 

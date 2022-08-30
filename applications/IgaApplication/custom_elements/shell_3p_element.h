@@ -144,8 +144,7 @@ public:
     {};
 
     /// Destructor.
-    virtual ~Shell3pElement() override
-    {};
+    virtual ~Shell3pElement() = default;
 
     ///@}
     ///@name Life Cycle
@@ -185,7 +184,7 @@ public:
     */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType mat_size = number_of_nodes * 3;
@@ -208,7 +207,7 @@ public:
     */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType mat_size = number_of_nodes * 3;
@@ -234,7 +233,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType mat_size = number_of_nodes * 3;
@@ -252,14 +251,36 @@ public:
     }
 
     /**
+    * @brief This is called during the assembling process in order to calculate the elemental mass matrix
+    * @param rMassMatrix The elemental mass matrix
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * @brief This is called during the assembling process in order to calculate the elemental damping matrix
+    * @param rDampingMatrix The elemental damping matrix
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
     * @param rResult The vector containing the equation id
     * @param rCurrentProcessInfo The current process info instance
     */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-    ) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
 
     /**
     * @brief Sets on rConditionDofList the degrees of freedom of the considered element geometry
@@ -268,26 +289,50 @@ public:
     */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-    ) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
 
     ///@}
     ///@name Base Class Operations
     ///@{
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValuesVector(
         Vector& rValues,
-        int Step) override;
+        int Step) const override;
 
     void GetFirstDerivativesVector(
         Vector& rValues,
-        int Step) override;
+        int Step) const override;
 
     void GetSecondDerivativesVector(
         Vector& rValues,
-        int Step) override;
+        int Step) const override;
+
+    /**
+    * @brief Calculate a double Variable on the Element Constitutive Law
+    * @param rVariable The variable we want to get
+    * @param rValues The values obtained int the integration points
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * @brief Calculate a Vector Variable on the Element Constitutive Law
+    * @param rVariable The variable we want to get
+    * @param rValues The values obtained int the integration points
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     ///@}
     ///@name Check
@@ -300,7 +345,7 @@ public:
     * or that no common error is found.
     * @param rCurrentProcessInfo
     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output
@@ -310,18 +355,19 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "KLElement #" << Id();
+        buffer << "Kirchhoff-Love Shell3pElement #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "KLElement #" << Id();
+        rOStream << "Kirchhoff-Love Shell3pElement #" << Id();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const override
+    {
         pGetGeometry()->PrintData(rOStream);
     }
 
@@ -355,38 +401,43 @@ private:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
-    );
+    ) const;
 
     /// Initialize Operations
     void InitializeMaterial();
 
     void CalculateKinematics(
-        IndexType IntegrationPointIndex,
-        KinematicVariables& rKinematicVariables);
+        const IndexType IntegrationPointIndex,
+        KinematicVariables& rKinematicVariables) const;
 
     // Computes transformation
     void CalculateTransformation(
         const KinematicVariables& rKinematicVariables,
-        Matrix& rT);
+        Matrix& rT) const;
+
+    // Computes transformation for the stress tensor 
+    void CalculateTransformationFromCovariantToCartesian(
+        const KinematicVariables& rKinematicVariables,
+        Matrix& rTCovToCar) const;
 
     void CalculateBMembrane(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         Matrix& rB,
-        const KinematicVariables& rActualKinematic);
+        const KinematicVariables& rActualKinematic) const;
 
     void CalculateBCurvature(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         Matrix& rB,
-        const KinematicVariables& rActualKinematic);
+        const KinematicVariables& rActualKinematic) const;
 
     void CalculateSecondVariationStrainCurvature(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         SecondVariations& rSecondVariationsStrain,
         SecondVariations& rSecondVariationsCurvature,
-        const KinematicVariables& rActualKinematic);
+        const KinematicVariables& rActualKinematic) const;
 
     /**
     * This functions updates the constitutive variables
@@ -396,25 +447,84 @@ private:
     * @param ThisStressMeasure: The stress measure considered
     */
     void CalculateConstitutiveVariables(
-        IndexType IntegrationPointIndex,
+        const IndexType IntegrationPointIndex,
         KinematicVariables& rActualMetric,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
-    );
+    ) const;
 
     inline void CalculateAndAddKm(
         MatrixType& rLeftHandSideMatrix,
         const Matrix& B,
         const Matrix& D,
-        const double IntegrationWeight);
+        const double IntegrationWeight) const;
 
     inline void CalculateAndAddNonlinearKm(
         Matrix& rLeftHandSideMatrix,
         const SecondVariations& rSecondVariationsStrain,
         const Vector& rSD,
-        const double IntegrationWeight);
+        const double IntegrationWeight) const;
+
+    // Calculation of the PK2 stress
+    void CalculatePK2Stress(
+        const IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rPK2MembraneStressCartesian,
+        array_1d<double, 3>& rPK2BendingStressCartesian,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    // Calculation of the Cauchy stress by transforming the PK2 stress
+    void CalculateCauchyStress(
+        const IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rCauchyMembraneStressesCartesian, 
+        array_1d<double, 3>& rCauchyBendingStressesCartesian, 
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    // Calculation of the shear force, shear force = derivative of moment
+    void CalculateShearForce(
+        const IndexType IntegrationPointIndex,
+        array_1d<double, 2>& rq, 
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    void CalculateDerivativeOfCurvatureInitial(
+        const IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rDCurvature_D1,
+        array_1d<double, 3>& rDCurvature_D2,
+        const Matrix& rHessian) const;
+
+    void CalculateDerivativeOfCurvatureActual(
+        const IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rDCurvature_D1,
+        array_1d<double, 3>& rDCurvature_D2,
+        const Matrix& rHessian,
+        const KinematicVariables& rKinematicVariables) const;
+
+    void CalculateDerivativeTransformationMatrices(
+        const IndexType IntegrationPointIndex,
+        std::vector<Matrix>& rDQ_Dalpha_init,
+        std::vector<Matrix>& rDTransCartToCov_Dalpha_init,
+        const Matrix& rHessian) const;
+
+    /**
+     * @brief This method gets a value directly from the CL
+     * @details Avoids code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained at the integration points
+     * @tparam TType The variable type
+     */
+    template<class TType>
+    void GetValueOnConstitutiveLaw(
+        const Variable<TType>& rVariable,
+        std::vector<TType>& rOutput
+        )
+    {
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+            mConstitutiveLawVector[point_number]->GetValue(rVariable, rOutput[point_number]);
+        }
+    }
 
     ///@}
     ///@name Geometrical Functions
@@ -422,7 +532,14 @@ private:
 
     void CalculateHessian(
         Matrix& Hessian,
-        const Matrix& rDDN_DDe);
+        const Matrix& rDDN_DDe) const;
+
+    void CalculateSecondDerivativesOfBaseVectors(
+        const Matrix& rDDDN_DDDe,
+        array_1d<double, 3>& rDDa1_DD11,
+        array_1d<double, 3>& rDDa1_DD12,
+        array_1d<double, 3>& rDDa2_DD21,
+        array_1d<double, 3>& rDDa2_DD22) const;
 
     ///@}
     ///@name Serialization
@@ -430,7 +547,7 @@ private:
 
     friend class Serializer;
 
-    void load(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
         rSerializer.save("A_ab_covariant_vector", m_A_ab_covariant_vector);

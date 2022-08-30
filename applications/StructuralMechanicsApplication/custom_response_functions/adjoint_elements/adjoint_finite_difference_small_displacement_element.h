@@ -91,7 +91,7 @@ public:
             NewId, pGeometry, pProperties);
     }
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 private:
 

@@ -53,7 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <iostream>
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 
 // External includes
 
@@ -321,12 +321,6 @@ public:
 
     void AddPeriodicVariable(Properties& rProperties,
                              Variable<double>& rVariable)
-    {
-        rProperties.GetValue(PERIODIC_VARIABLES).Add(rVariable);
-    }
-
-    void AddPeriodicVariable(Properties &rProperties,
-                             VariableComponent< VectorComponentAdaptor< array_1d<double, 3> > >&rVariable)
     {
         rProperties.GetValue(PERIODIC_VARIABLES).Add(rVariable);
     }

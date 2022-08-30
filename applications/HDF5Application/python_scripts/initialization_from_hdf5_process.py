@@ -10,7 +10,6 @@ __all__ = ["Factory"]
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application.core as core
 from KratosMultiphysics.HDF5Application.utils import ParametersWrapper
-from KratosMultiphysics.HDF5Application.utils import IsDistributed
 from KratosMultiphysics.HDF5Application.utils import CreateOperationSettings
 
 
@@ -35,16 +34,28 @@ def Factory(settings, Model):
     | "element_data_value_settings"       | Parameters | "prefix": "/ResultsData"        |
     |                                     |            | "list_of_variables": []         |
     +-------------------------------------+------------+---------------------------------+
+    | "nodal_flag_value_settings"         | Parameters | "prefix": "/ResultsData"        |
+    |                                     |            | "list_of_variables": []         |
+    +-------------------------------------+------------+---------------------------------+
+    | "element_flag_value_settings"       | Parameters | "prefix": "/ResultsData"        |
+    |                                     |            | "list_of_variables": []         |
+    +-------------------------------------+------------+---------------------------------+
+    | "condition_flag_value_settings"     | Parameters | "prefix": "/ResultsData"        |
+    |                                     |            | "list_of_variables": []         |
+    +-------------------------------------+------------+---------------------------------+
+    | "condition_data_value_settings"     | Parameters | "prefix": "/ResultsData"        |
+    |                                     |            | "list_of_variables": []         |
+    +-------------------------------------+------------+---------------------------------+
     """
-    core_settings = CreateCoreSettings(settings["Parameters"])
+    core_settings = CreateCoreSettings(settings["Parameters"], Model)
     return InitializationFromHDF5ProcessFactory(core_settings, Model)
 
 
 def InitializationFromHDF5ProcessFactory(core_settings, Model):
-    return core.Factory(core_settings, Model)
+    return core.Factory(core_settings, Model, KratosMultiphysics.Process)
 
 
-def CreateCoreSettings(user_settings):
+def CreateCoreSettings(user_settings, model):
     """Return the core settings."""
     # Configure the defaults:
     core_settings = ParametersWrapper("""
@@ -67,7 +78,11 @@ def CreateCoreSettings(user_settings):
                 "file_settings" : {},
                 "nodal_solution_step_data_settings" : {},
                 "nodal_data_value_settings": {},
-                "element_data_value_settings" : {}
+                "element_data_value_settings" : {},
+                "nodal_flag_value_settings": {},
+                "element_flag_value_settings" : {},
+                "condition_data_value_settings" : {},
+                "condition_flag_value_settings" : {}
             }
             """))
     user_settings = ParametersWrapper(user_settings)
@@ -75,7 +90,8 @@ def CreateCoreSettings(user_settings):
     for key in user_settings["file_settings"]:
         core_settings[0]["io_settings"][key] = user_settings["file_settings"][key]
     core_settings[0]["file_access_mode"] = "read_only"
-    if IsDistributed():
+    model_part_name = user_settings["model_part_name"]
+    if model[model_part_name].IsDistributed():
         core_settings[0]["io_settings"]["io_type"] = "parallel_hdf5_file_io"
     else:
         core_settings[0]["io_settings"]["io_type"] = "serial_hdf5_file_io"
@@ -85,6 +101,14 @@ def CreateCoreSettings(user_settings):
         CreateOperationSettings("nodal_data_value_input",
                                 user_settings["nodal_data_value_settings"]),
         CreateOperationSettings("element_data_value_input",
-                                user_settings["element_data_value_settings"])
+                                user_settings["element_data_value_settings"]),
+        CreateOperationSettings("nodal_flag_value_input",
+                                user_settings["nodal_flag_value_settings"]),
+        CreateOperationSettings("element_flag_value_input",
+                                user_settings["element_flag_value_settings"]),
+        CreateOperationSettings("condition_flag_value_input",
+                                user_settings["condition_flag_value_settings"]),
+        CreateOperationSettings("condition_data_value_input",
+                                user_settings["condition_data_value_settings"])
     ]
     return core_settings

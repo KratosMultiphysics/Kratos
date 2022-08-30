@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -21,8 +19,8 @@ class TrilinosStaticMechanicalSolver(TrilinosMechanicalSolver):
     """
     def __init__(self, model, custom_settings):
         # Construct the base solver.
-        super(TrilinosStaticMechanicalSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosStaticMechanicalSolver]:: ", "Construction finished")
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         return TrilinosApplication.TrilinosResidualBasedIncrementalUpdateStaticScheme()

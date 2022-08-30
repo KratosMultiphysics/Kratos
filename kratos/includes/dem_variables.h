@@ -35,8 +35,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
 #include "includes/kratos_components.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
@@ -55,7 +53,6 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, RADIUS )
     KRATOS_DEFINE_VARIABLE( double, SEARCH_RADIUS_INCREMENT )
     KRATOS_DEFINE_VARIABLE( double, SEARCH_RADIUS_INCREMENT_FOR_WALLS )
-    KRATOS_DEFINE_VARIABLE( double, AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION )
     KRATOS_DEFINE_VARIABLE( double, DEM_DELTA_TIME )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( TOTAL_FORCES )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( DAMP_FORCES )
@@ -82,6 +79,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
 
     // Swimming DEM Application BEGINNING
+    KRATOS_DEFINE_VARIABLE( Matrix, PERMEABILITY)
     KRATOS_DEFINE_VARIABLE( int, NUMBER_OF_INIT_BASSET_STEPS )
     KRATOS_DEFINE_VARIABLE( int, COUPLING_TYPE)
     KRATOS_DEFINE_VARIABLE( int, NON_NEWTONIAN_OPTION )

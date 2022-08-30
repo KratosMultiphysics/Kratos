@@ -24,29 +24,12 @@ file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
 ## StructuralMechanics python interface sources
 file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
-if(${STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS} MATCHES ON)
-    add_definitions(-DSTRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS)
-    message("**** WARNING: Manually disabled advanced Constitutive laws ****")
-    list(REMOVE_ITEM KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_advanced_constitutive_laws_to_python.cpp)
-else(${STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
-        ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_advanced_constitutive/*.cpp
-    )
-endif(${STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS} MATCHES ON)
-
 list(REMOVE_ITEM KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp)
 list(INSERT KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE 0 ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp)
 
 # StructuralMechanics testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
-    if(NOT(DEFINED ${STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS} OR ${STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS}))
-        file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES
-            ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES}
-            ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_advanced_constitutive_tests/*.cpp
-    )
-    endif(NOT(DEFINED ${STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS} OR ${STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS}))
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosStructuralMechanicsCore SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE} ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES})
@@ -58,6 +41,12 @@ pybind11_add_module(KratosStructuralMechanicsApplication MODULE THIN_LTO ${KRATO
 target_link_libraries(KratosStructuralMechanicsApplication PUBLIC KratosStructuralMechanicsCore)
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosStructuralMechanicsCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosStructuralMechanicsApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosStructuralMechanicsApplication PROPERTIES SUFFIX .pyd)
@@ -67,12 +56,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosStructuralMechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosStructuralMechanicsCore)
-    cotire(KratosStructuralMechanicsApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/StructuralMechanicsApplication.py KratosMultiphysics/StructuralMechanicsApplication/__init__.py )
@@ -94,3 +77,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${C
 # Install targets
 install(TARGETS KratosStructuralMechanicsCore DESTINATION libs )
 install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosStructuralMechanicsCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosStructuralMechanicsApplication" PARENT_SCOPE)

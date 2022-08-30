@@ -26,9 +26,9 @@ Condition::Pointer UPwNormalFluxFICCondition<TDim,TNumNodes>::Create(IndexType N
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-GeometryData::IntegrationMethod UPwNormalFluxFICCondition<TDim,TNumNodes>::GetIntegrationMethod()
+GeometryData::IntegrationMethod UPwNormalFluxFICCondition<TDim,TNumNodes>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -58,8 +58,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftH
     this->CalculateElementLength(FICVariables.ElementLength,Geom);
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
-    const double BulkModulus = Prop[YOUNG_MODULUS]/(3.0*(1.0-2.0*Prop[POISSON_RATIO]));
-    const double BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
+    const double BiotCoefficient = Prop[BIOT_COEFFICIENT];
     FICVariables.BiotModulusInverse = (BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_FLUID];
     for(unsigned int i=0; i<TNumNodes; i++)
     {
@@ -81,7 +80,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftH
         noalias(Variables.Np) = row(NContainer,GPoint);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, JContainer[GPoint], integration_points[GPoint].Weight(), CurrentProcessInfo );
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, JContainer[GPoint], integration_points[GPoint].Weight() );
 
         //Contributions to the left hand side
         this->CalculateAndAddLHSStabilization(rLeftHandSideMatrix, Variables, FICVariables);
@@ -120,8 +119,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRight
     this->CalculateElementLength(FICVariables.ElementLength,Geom);
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
-    const double BulkModulus = Prop[YOUNG_MODULUS]/(3.0*(1.0-2.0*Prop[POISSON_RATIO]));
-    const double BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
+    const double BiotCoefficient = Prop[BIOT_COEFFICIENT];
     FICVariables.BiotModulusInverse = (BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_FLUID];
     for(unsigned int i=0; i<TNumNodes; i++)
     {
@@ -143,7 +141,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRight
         noalias(Variables.Np) = row(NContainer,GPoint);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, JContainer[GPoint], integration_points[GPoint].Weight(), CurrentProcessInfo );
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, JContainer[GPoint], integration_points[GPoint].Weight() );
 
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);

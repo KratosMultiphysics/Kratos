@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 from KratosMultiphysics import Logger, Parameters
 from KratosMultiphysics.python_solver import PythonSolver
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
@@ -14,6 +12,116 @@ def Say(*args):
     Logger.Flush()
 
 class SwimmingDEMSolver(PythonSolver):
+
+    def GetDefaultParameters(cls):
+        # default settings string in json format
+        default_settings = Parameters("""{
+        "echo_level" : 1,
+
+        "gravity_parameters" : {
+            "modulus" : 9.81,
+            "direction" : [0.0, 0.0, -1.0]
+        },
+
+        "time_stepping" : {
+            "automatic_time_step" : true,
+            "time_step" : 0.001
+        },
+
+        "problem_data"  : {
+            "problem_name"  : "",
+            "echo_level" : 1,
+            "start_time" : 0.0,
+            "end_time"   : 1,
+            "parallel_type": "OpenMP",
+            "number_of_threads": 1
+        },
+
+        "ElementType" : "SwimmingDEMElement",
+        "body_force_per_unit_mass_variable_name" : "BODY_FORCE",
+        "error_projection_parameters"   :{
+            "u_characteristic"  : 1.0
+        },
+        "do_print_results_option" : true,
+        "output_interval" : 0.5,
+
+        "processes" : {},
+
+        "coupling" : {
+            "coupling_level_type" : 1,
+            "coupling_weighing_type" : 2,
+            "coupling_weighing_type_comment" : "{fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)",
+            "interaction_start_time" : 0.0,
+
+            "forward_coupling" : {},
+
+            "backward_coupling" : {}
+        },
+
+        "frame_of_reference" : {},
+
+        "non_newtonian_fluid" : {},
+
+        "similarity" : {},
+
+        "stationarity" : {},
+
+        "debug_tool_cycle" : 10,
+        "debug_tool_cycle_comment" : " number of 'ticks' per debug computations cycle",
+        "print_debug_info_option" : false,
+        "print_debug_info_option_comment" : " print a summary of global physical measures",
+        "do_process_analytic_data" : true,
+        "fluid_domain_volume" : 1.0,
+        "fluid_domain_volume_comment" : "write down the volume you know it has, if available",
+
+        "full_particle_history_watcher" : "Empty",
+
+
+        "gradient_calculation_type" : 1,
+        "gradient_calculation_type_comment" : "(Not calculated (0), volume-weighed average(1), Superconvergent recovery(2))",
+        "material_acceleration_calculation_type" : 1,
+        "laplacian_calculation_type" : 0,
+        "laplacian_calculation_type_comment" : "(Not calculated (0), Finite element projection (1), Superconvergent recovery(2))",
+        "vorticity_calculation_type" : 5,
+        "store_full_gradient_option" : false,
+        "add_each_hydro_force_option" : true,
+        "add_each_hydro_force_option_comment" : " add each of the hydrodynamic forces (drag, lift and virtual mass)",
+        "pressure_grad_recovery_type" : 0,
+        "recovery_echo_level" : 1,
+        "store_fluid_pressure_option" : false,
+
+        "print_distance_option" : false,
+        "print_steps_per_plot_step" : 1,
+        "print_particles_results_option" : false,
+        "make_results_directories_option" : true,
+        "make_results_directories_option_comment": "results are written into a folder (../results) inside the problem folder",
+        "print_particles_results_cycle" : 1,
+        "print_particles_results_cycle_comment" : " number of 'ticks' per printing cycle",
+
+        "drag_modifier_type" : 2,
+        "drag_modifier_type_comment" : " Hayder (2), Chien (3)",
+
+        "json_output_process" : [],
+        "sdem_output_processes" : {},
+        "properties": [{}],
+
+        "fluid_parameters" : {},
+
+        "custom_fluid" : {},
+
+        "dem_parameters" : {},
+
+        "custom_dem" : {},
+
+        "dem_nodal_results" : {},
+
+        "fluid_nodal_results" : {}
+
+        }""")
+
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
+        return default_settings
+
     def _ValidateSettings(self, project_parameters):
 
         default_processes_settings = Parameters("""{
@@ -74,6 +182,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.fluid_dt = fluid_solver.settings["time_stepping"]["time_step"].GetDouble()
         self.do_solve_dem = project_parameters["custom_dem"]["do_solve_dem"].GetBool()
         self.solve_system = not self.project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool()
+        self.fluid_model_type = self.project_parameters["fluid_parameters"]["solver_settings"]["formulation"]["element_type"].GetString()
 
         self.fluid_step = 0
         self.calculating_fluid_in_current_step = True
@@ -83,7 +192,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.ConstructDerivativeRecoverer()
         self.ConstructHistoryForceUtility()
         # Call the base Python solver constructor
-        super(SwimmingDEMSolver, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
     def ConstructStationarityTool(self):
         self.stationarity = False
@@ -108,6 +217,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.vars_man.coupling_dem_vars,
         self.vars_man.coupling_fluid_vars,
         self.vars_man.time_filtered_vars,
+        self.fluid_model_type,
         flow_field=self.field_utility,
         domain_size=self.fluid_domain_dimension
         )
@@ -239,12 +349,7 @@ class SwimmingDEMSolver(PythonSolver):
         else:
             Say("Skipping solving system for the fluid phase...\n")
 
-        self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
-            self.project_parameters,
-            self.fluid_solver.computing_model_part,
-            SDP.FunctionsCalculator(self.fluid_domain_dimension))
-
-        self.derivative_recovery_counter.Activate(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)
+        self.derivative_recovery_counter.SetActivation(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)
 
         if self.derivative_recovery_counter.Tick():
             self.recovery.Recover()

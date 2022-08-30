@@ -33,9 +33,6 @@ namespace Kratos
 namespace Testing
 {
 
-    // Tolerance
-    static constexpr double tolerance = 1.0e-6;
-
     typedef ParticleHardeningLaw HL;
 
     typedef CamClayHardeningLaw CCHL;
@@ -166,12 +163,12 @@ namespace Testing
         mcc_yc_pointer->CalculateYieldFunctionSecondDerivative(principal_stress, MCC_derivative2_result);
 
         // Check results
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[0], MCC_derivative2_analytical[0], tolerance);
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[1], MCC_derivative2_analytical[1], tolerance);
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[2], MCC_derivative2_analytical[2], tolerance);
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[3], MCC_derivative2_analytical[3], tolerance);
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[4], MCC_derivative2_analytical[4], tolerance);
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[5], MCC_derivative2_analytical[5], tolerance);
+        KRATOS_CHECK_NEAR(MCC_derivative2_result[0], MCC_derivative2_analytical[0], 1e-6);
+        KRATOS_CHECK_NEAR(MCC_derivative2_result[1], MCC_derivative2_analytical[1], 1e-6);
+        KRATOS_CHECK_NEAR(MCC_derivative2_result[2], MCC_derivative2_analytical[2], 1e-6);
+        KRATOS_CHECK_NEAR(MCC_derivative2_result[3], MCC_derivative2_analytical[3], 1e-6);
+        KRATOS_CHECK_NEAR(MCC_derivative2_result[4], MCC_derivative2_analytical[4], 1e-6);
+        KRATOS_CHECK_NEAR(MCC_derivative2_result[5], MCC_derivative2_analytical[5], 1e-6);
 
     }
 

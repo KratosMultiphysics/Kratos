@@ -46,7 +46,12 @@ void SerializerLoad(Serializer& rSerializer, std::string const & rName, TObjectT
     return rSerializer.load(rName, rObject);
 }
 
-
+template< class TObjectType >
+void SerializerLoadFromBeginning(Serializer& rSerializer, std::string const & rName, TObjectType& rObject)
+{
+    rSerializer.SetLoadState();
+    return rSerializer.load(rName, rObject);
+}
 
 void SerializerPrint(Serializer& rSerializer)
 {
@@ -57,7 +62,7 @@ void SerializerPrint(Serializer& rSerializer)
 void  AddSerializerToPython(pybind11::module& m)
 {
 
-    py::class_<Serializer, Serializer::Pointer >(m,"Serializer")
+    auto serializer_py_interface = py::class_<Serializer, Serializer::Pointer >(m,"Serializer")
     .def(py::init([](const std::string& FileName) {
                     KRATOS_WARNING("DEPRECATION") << "Please use FileSerializer(FileName) instead of Serializer(FileName)" << std::endl;
                     return std::make_shared<FileSerializer>(FileName);
@@ -71,13 +76,23 @@ void  AddSerializerToPython(pybind11::module& m)
             )
         )
     .def("Load",SerializerLoad<ModelPart>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<ModelPart>)
     .def("Save",SerializerSave<ModelPart>)
+
     .def("Load",SerializerLoad<Parameters>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<Parameters>)
     .def("Save",SerializerSave<Parameters>)
+
     .def("Load",SerializerLoad<Model>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<Model>)
     .def("Save",SerializerSave<Model>)
+
+    .def("Set",   &Serializer::Set)
     .def("Print", SerializerPrint)
     ;
+
+    serializer_py_interface.attr("MPI") = Serializer::MPI;
+    serializer_py_interface.attr("SHALLOW_GLOBAL_POINTERS_SERIALIZATION") = Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION;
 
     py::class_<FileSerializer, FileSerializer::Pointer, Serializer >(m,"FileSerializer")
     .def(py::init<std::string const&>())

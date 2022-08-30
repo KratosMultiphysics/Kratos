@@ -97,6 +97,7 @@
                 "assume_master_slave" : {
                     "0" : ["CONTACT_Contact_slave_Auto1"]
                 },
+                "friction_coefficients"       : { "0" : 1.0e-1},
                 "contact_type"                  : "Frictional"
             }
         }],
@@ -138,7 +139,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "friction_test",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
@@ -170,7 +171,7 @@
             "process_name"  : "VtkOutputProcess",
             "help"          : "This process writes postprocessing files for Paraview",
             "Parameters"    : {
-                "model_part_name"                    : "Structure.computing_domain",
+                "model_part_name"                    : "Structure",
                 "output_control_type"                : "step",
                 "output_frequency"                   : 1,
                 "file_format"                        : "ascii",

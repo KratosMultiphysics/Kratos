@@ -126,20 +126,17 @@ namespace Kratos
     {
         // Set the split utility and compute the splitting pattern
         const auto &r_geom = pElement->GetGeometry();
-        DivideGeometry::Pointer p_split_utility = this->SetDivideGeometryUtility(r_geom, rNodalDistances);
+        DivideGeometry<Node<3>>::Pointer p_split_utility = this->SetDivideGeometryUtility(r_geom, rNodalDistances);
         p_split_utility->GenerateDivision();
         p_split_utility->GenerateIntersectionsSkin();
 
         // Get the interface geometries from the splitting pattern (consider only the positive side)
-        const unsigned int n_interface_geom = (p_split_utility->mPositiveInterfaces).size();
-
-        std::vector<DivideGeometry::IndexedPointGeometryPointerType> split_interface_geometries;
-        split_interface_geometries.reserve(n_interface_geom);
-        split_interface_geometries.insert(split_interface_geometries.end(), (p_split_utility->mPositiveInterfaces).begin(), (p_split_utility->mPositiveInterfaces).end());
+        const auto& r_split_interface_geometries = p_split_utility->GetPositiveInterfaces();
+        const unsigned int n_interface_geom = r_split_interface_geometries.size();
 
         // Create the split interface geometries in the skin model part
         for (unsigned int i_int_geom = 0; i_int_geom < n_interface_geom; ++i_int_geom){
-            const auto p_int_sub_geom = split_interface_geometries[i_int_geom];
+            const auto p_int_sub_geom = r_split_interface_geometries[i_int_geom];
             const auto p_int_sub_geom_type = p_int_sub_geom->GetGeometryType();
             const unsigned int sub_int_geom_n_nodes = p_int_sub_geom->PointsNumber();
 
@@ -237,7 +234,7 @@ namespace Kratos
             case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
                 return Kratos::make_shared<Triangle3D3< Node<3> > >(rNewNodesArray);
             default:
-                KRATOS_ERROR << "Implement the skin generation for the intersection geometry type: " << rOriginGeometryType;
+                KRATOS_ERROR << "Implement the skin generation for the intersection geometry type: " << static_cast<int>(rOriginGeometryType);
         }
     }
 
@@ -255,7 +252,7 @@ namespace Kratos
     template<>
     const std::string EmbeddedSkinUtility<2>::GetConditionType()
     {
-        return "Condition2D2N";
+        return "LineCondition2D2N";
     }
 
     template<>
@@ -322,7 +319,7 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    DivideGeometry::Pointer EmbeddedSkinUtility<TDim>::SetDivideGeometryUtility(
+    typename DivideGeometry<Node<3>>::Pointer EmbeddedSkinUtility<TDim>::SetDivideGeometryUtility(
         const Geometry<Node<3>> &rGeometry,
         const Vector& rNodalDistances)
     {
@@ -332,9 +329,9 @@ namespace Kratos
         // Return the divide geometry utility
         switch (geometry_type){
             case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-                return Kratos::make_shared<DivideTriangle2D3>(rGeometry, rNodalDistances);
+                return Kratos::make_shared<DivideTriangle2D3<Node<3>>>(rGeometry, rNodalDistances);
             case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-                return Kratos::make_shared<DivideTetrahedra3D4>(rGeometry, rNodalDistances);
+                return Kratos::make_shared<DivideTetrahedra3D4<Node<3>>>(rGeometry, rNodalDistances);
             default:
                 KRATOS_ERROR << "Asking for a non-implemented divide geometry utility.";
         }
@@ -386,13 +383,13 @@ namespace Kratos
                 int_sh_func,
                 int_grads,
                 w_int,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
         } else if (rInterfaceSide == "negative") {
             rpModifiedShapeFunctions->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
                 int_sh_func,
                 int_grads,
                 w_int,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
         } else {
             KRATOS_ERROR << "Interface side must be either 'positive' or 'negative'. Got " << rInterfaceSide;
         }

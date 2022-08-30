@@ -1,6 +1,6 @@
 #include "custom_io/hdf5_data_value_container_io.h"
 
-#include "custom_utilities/registered_variable_lookup.h"
+#include "custom_utilities/registered_component_lookup.h"
 
 namespace Kratos
 {
@@ -43,7 +43,7 @@ void ReadDataValueContainer(File& rFile, std::string const& rPrefix, DataValueCo
     KRATOS_TRY;
     std::vector<std::string> attr_names = rFile.GetAttributeNames(rPrefix + "/DataValues");
     for (const auto& r_name : attr_names)
-        RegisteredVariableLookup<Variable<int>, Variable<double>,
+        RegisteredComponentLookup<Variable<int>, Variable<double>,
                                  Variable<Vector<double>>, Variable<Matrix<double>>>(r_name)
             .Execute<ReadVariableFunctor>(rFile, rPrefix, rData);
     KRATOS_CATCH("Path: \"" + rPrefix + "/DataValues\".");
@@ -56,7 +56,7 @@ void WriteDataValueContainer(File& rFile, std::string const& rPrefix, DataValueC
     for (auto it = rData.begin(); it != rData.end(); ++it)
         try
         {
-            RegisteredVariableLookup<Variable<int>, Variable<double>, Variable<Vector<double>>,
+            RegisteredComponentLookup<Variable<int>, Variable<double>, Variable<Vector<double>>,
                                      Variable<Matrix<double>>>(it->first->Name())
                 .Execute<WriteVariableFunctor>(rFile, rPrefix, rData);
         }

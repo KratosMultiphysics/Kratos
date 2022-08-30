@@ -20,10 +20,10 @@
 #include "add_custom_utilities_to_python.h"
 #include "custom_utilities/move_shallow_water_particle_utility.h"
 #include "custom_utilities/estimate_dt_utility.h"
-#include "custom_utilities/replicate_model_part_utility.h"
 #include "custom_utilities/shallow_water_utilities.h"
-#include "custom_utilities/post_process_utilities.h"
 #include "custom_utilities/bfecc_convection_utility.h"
+#include "custom_utilities/move_shallow_mesh_utility.h"
+#include "custom_utilities/derivatives_recovery_utility.h"
 
 
 namespace Kratos
@@ -32,8 +32,35 @@ namespace Kratos
 namespace Python
 {
 
-  void  AddCustomUtilitiesToPython(pybind11::module& m)
-  {
+typedef ModelPart::NodesContainerType NodesContainerType;
+
+typedef ModelPart::ElementsContainerType ElementsContainerType;
+
+typedef ModelPart::ConditionsContainerType ConditionsContainerType;
+
+typedef ModelPart::PropertiesContainerType PropertiesContainerType;
+
+template<class TContainerType>
+array_1d<double,3> ComputeHydrostaticForces1(
+    ShallowWaterUtilities& rUtility,
+    TContainerType& rContainer,
+    const ProcessInfo& rProcessInfo)
+{
+    return rUtility.ComputeHydrostaticForces(rContainer, rProcessInfo);
+}
+
+template<class TContainerType>
+array_1d<double,3> ComputeHydrostaticForces2(
+    ShallowWaterUtilities& rUtility,
+    TContainerType& rContainer,
+    const ProcessInfo& rProcessInfo,
+    const double RelativeDryHeight)
+{
+    return rUtility.ComputeHydrostaticForces(rContainer, rProcessInfo, RelativeDryHeight);
+}
+
+void  AddCustomUtilitiesToPython(pybind11::module& m)
+{
     namespace py = pybind11;
 
     py::class_< MoveShallowWaterParticleUtility<2> > (m, "MoveShallowWaterParticleUtility")
@@ -58,49 +85,50 @@ namespace Python
         .def("ComputeHeightFromFreeSurface", &ShallowWaterUtilities::ComputeHeightFromFreeSurface)
         .def("ComputeVelocity", &ShallowWaterUtilities::ComputeVelocity)
         .def("ComputeMomentum", &ShallowWaterUtilities::ComputeMomentum)
-        .def("UpdatePrimitiveVariables", py::overload_cast<ModelPart&>(&ShallowWaterUtilities::UpdatePrimitiveVariables))
-        .def("UpdatePrimitiveVariables", py::overload_cast<ModelPart&,double>(&ShallowWaterUtilities::UpdatePrimitiveVariables))
-        .def("ComputeAccelerations", &ShallowWaterUtilities::ComputeAccelerations)
+        .def("ComputeFroude", &ShallowWaterUtilities::ComputeFroude<true>)
+        .def("ComputeFroudeNonHistorical", &ShallowWaterUtilities::ComputeFroude<false>)
+        .def("ComputeEnergy", &ShallowWaterUtilities::ComputeEnergy<true>)
+        .def("ComputeEnergyNonHistorical", &ShallowWaterUtilities::ComputeEnergy<false>)
         .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
-        .def("IdentifyWetDomain", &ShallowWaterUtilities::IdentifyWetDomain)
-        .def("ResetDryDomain", &ShallowWaterUtilities::ResetDryDomain)
-        .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::NodesContainerType>)
-        .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::ElementsContainerType>)
-        .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::ConditionsContainerType>)
-        .def("ComputeVisualizationWaterHeight", &ShallowWaterUtilities::ComputeVisualizationWaterHeight)
-        .def("ComputeVisualizationWaterSurface", &ShallowWaterUtilities::ComputeVisualizationWaterSurface)
         .def("NormalizeVector", &ShallowWaterUtilities::NormalizeVector)
+        .def("SmoothHistoricalVariable", &ShallowWaterUtilities::SmoothHistoricalVariable<double>)
+        .def("SmoothHistoricalVariable", &ShallowWaterUtilities::SmoothHistoricalVariable<array_1d<double,3>>)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<double>&>)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>&>)
+        .def("SetMinimumValue", &ShallowWaterUtilities::SetMinimumValue)
+        .def("SetMeshZCoordinateToZero", &ShallowWaterUtilities::SetMeshZCoordinateToZero)
+        .def("SetMeshZ0CoordinateToZero", &ShallowWaterUtilities::SetMeshZ0CoordinateToZero)
+        .def("SetMeshZCoordinate", &ShallowWaterUtilities::SetMeshZCoordinate)
+        .def("OffsetMeshZCoordinate", &ShallowWaterUtilities::OffsetMeshZCoordinate)
+        .def("SwapYZCoordinates", &ShallowWaterUtilities::SwapYZCoordinates)
+        .def("SwapY0Z0Coordinates", &ShallowWaterUtilities::SwapY0Z0Coordinates)
+        .def("SwapYZComponents", &ShallowWaterUtilities::SwapYZComponents)
+        .def("SwapYZComponentsNonHistorical", &ShallowWaterUtilities::SwapYZComponentsNonHistorical<NodesContainerType>)
+        .def("SwapYZComponentsNonHistorical", &ShallowWaterUtilities::SwapYZComponentsNonHistorical<ElementsContainerType>)
+        .def("SwapYZComponentsNonHistorical", &ShallowWaterUtilities::SwapYZComponentsNonHistorical<ConditionsContainerType>)
+        .def("StoreNonHistoricalGiDNoDataIfDry", &ShallowWaterUtilities::StoreNonHistoricalGiDNoDataIfDry)
+        .def("ComputeL2Norm", &ShallowWaterUtilities::ComputeL2Norm<true>)
+        .def("ComputeL2Norm", &ShallowWaterUtilities::ComputeL2NormAABB<true>)
+        .def("ComputeL2NormNonHistorical", &ShallowWaterUtilities::ComputeL2Norm<false>)
+        .def("ComputeL2NormNonHistorical", &ShallowWaterUtilities::ComputeL2NormAABB<false>)
+        .def("ComputeHydrostaticForces", ComputeHydrostaticForces1<ElementsContainerType>)
+        .def("ComputeHydrostaticForces", ComputeHydrostaticForces2<ElementsContainerType>)
+        .def("ComputeHydrostaticForces", ComputeHydrostaticForces1<ConditionsContainerType>)
+        .def("ComputeHydrostaticForces", ComputeHydrostaticForces2<ConditionsContainerType>)
+        .def("OffsetIds", [](ShallowWaterUtilities& self, NodesContainerType&      rContainer){self.OffsetIds(rContainer);})
+        .def("OffsetIds", [](ShallowWaterUtilities& self, ElementsContainerType&   rContainer){self.OffsetIds(rContainer);})
+        .def("OffsetIds", [](ShallowWaterUtilities& self, ConditionsContainerType& rContainer){self.OffsetIds(rContainer);})
+        .def("OffsetIds", [](ShallowWaterUtilities& self, PropertiesContainerType& rContainer){self.OffsetIds(rContainer);})
+        .def("OffsetIds", [](ShallowWaterUtilities& self, NodesContainerType&      rContainer, const double Value){self.OffsetIds(rContainer, Value);})
+        .def("OffsetIds", [](ShallowWaterUtilities& self, ElementsContainerType&   rContainer, const double Value){self.OffsetIds(rContainer, Value);})
+        .def("OffsetIds", [](ShallowWaterUtilities& self, ConditionsContainerType& rContainer, const double Value){self.OffsetIds(rContainer, Value);})
+        .def("OffsetIds", [](ShallowWaterUtilities& self, PropertiesContainerType& rContainer, const double Value){self.OffsetIds(rContainer, Value);})
         ;
 
-    py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
+    py::class_< EstimateTimeStepUtility > (m, "EstimateTimeStepUtility")
         .def(py::init<ModelPart&, Parameters>())
-        .def("EstimateDt", &EstimateDtShallow::EstimateDt)
-        ;
-
-    py::class_< ReplicateModelPartUtility > (m, "ReplicateModelPartUtility")
-        .def(py::init<ModelPart&, ModelPart&>())
-        .def(py::init<ModelPart&, ModelPart&, bool>())
-        .def("Replicate", &ReplicateModelPartUtility::Replicate)
-        .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<Variable<double>>)
-        .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<Variable<array_1d<double, 3>>>)
-        .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
-        .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<double>>)
-        .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<array_1d<double, 3>>>)
-        .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
-        .def("SetOriginMeshZCoordinate", py::overload_cast<>(&ReplicateModelPartUtility::SetOriginMeshZCoordinate))
-        .def("SetOriginMeshZCoordinate", py::overload_cast<Variable<double>&>(&ReplicateModelPartUtility::SetOriginMeshZCoordinate))
-        .def("SetDestinationMeshZCoordinate", py::overload_cast<>(&ReplicateModelPartUtility::SetDestinationMeshZCoordinate))
-        .def("SetDestinationMeshZCoordinate", py::overload_cast<Variable<double>&>(&ReplicateModelPartUtility::SetDestinationMeshZCoordinate))
-        ;
-
-    py::class_< PostProcessUtilities > (m, "PostProcessUtilities")
-        .def(py::init<ModelPart&>())
-        .def("DefineAuxiliaryProperties", &PostProcessUtilities::DefineAuxiliaryProperties)
-        .def("AssignDryWetProperties", &PostProcessUtilities::AssignDryWetProperties)
-        .def("RestoreDryWetProperties", &PostProcessUtilities::RestoreDryWetProperties)
+        .def("Execute", &EstimateTimeStepUtility::Execute)
         ;
 
     py::class_< BFECCConvectionUtility<2> > (m, "BFECCConvectionUtility")
@@ -110,12 +138,53 @@ namespace Python
         .def("Convect", &BFECCConvectionUtility<2>::Convect<Variable<array_1d<double,3>>,array_1d<double,3>>)
         .def("UpdateSearchDatabase", &BFECCConvectionUtility<2>::UpdateSearchDatabase)
         .def("ResetBoundaryConditions", &BFECCConvectionUtility<2>::ResetBoundaryConditions<Variable<double>>)
-        .def("ResetBoundaryConditions", &BFECCConvectionUtility<2>::ResetBoundaryConditions<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>)
         .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<double>>)
         .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>>)
         ;
 
-  }
+    py::class_<MoveShallowMeshUtility>(m, "MoveShallowMeshUtility")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Check", &MoveShallowMeshUtility::Check)
+        .def("Initialize", &MoveShallowMeshUtility::Initialize)
+        .def("MoveMesh", &MoveShallowMeshUtility::MoveMesh)
+        .def("MapResults", &MoveShallowMeshUtility::MapResults)
+        ;
+
+    py::class_<DerivativesRecoveryUtility<2>>(m, "DerivativesRecoveryUtility2D")
+        .def_static("Check", &DerivativesRecoveryUtility<2>::Check)
+        .def_static("CalculatePolynomialWeights", &DerivativesRecoveryUtility<2>::CalculatePolynomialWeights)
+        .def_static("RecoverDivergence", &DerivativesRecoveryUtility<2>::RecoverDivergence)
+        .def_static("RecoverGradient", &DerivativesRecoveryUtility<2>::RecoverGradient)
+        .def_static("RecoverLaplacian", [](ModelPart& rModelPart,
+            const Variable<double>& rOriginVariable,
+            const Variable<double>& rDestinationVariable,
+            const std::size_t BufferStep) {
+                DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
+        .def_static("RecoverLaplacian", [](ModelPart& rModelPart,
+            const Variable<array_1d<double,3>>& rOriginVariable,
+            const Variable<array_1d<double,3>>& rDestinationVariable,
+            const std::size_t BufferStep) {
+                DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
+        ;
+
+    py::class_<DerivativesRecoveryUtility<3>>(m, "DerivativesRecoveryUtility3D")
+        .def_static("Check", &DerivativesRecoveryUtility<3>::Check)
+        .def_static("CalculatePolynomialWeights", &DerivativesRecoveryUtility<3>::CalculatePolynomialWeights)
+        .def_static("RecoverDivergence", &DerivativesRecoveryUtility<3>::RecoverDivergence)
+        .def_static("RecoverGradient", &DerivativesRecoveryUtility<3>::RecoverGradient)
+        .def_static("RecoverLaplacian", [](ModelPart& rModelPart,
+            const Variable<double>& rOriginVariable,
+            const Variable<double>& rDestinationVariable,
+            const std::size_t BufferStep) {
+                DerivativesRecoveryUtility<3>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
+        .def_static("RecoverLaplacian", [](ModelPart& rModelPart,
+            const Variable<array_1d<double,3>>& rOriginVariable,
+            const Variable<array_1d<double,3>>& rDestinationVariable,
+            const std::size_t BufferStep) {
+                DerivativesRecoveryUtility<3>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
+        ;
+
+}
 
 }  // namespace Python.
 

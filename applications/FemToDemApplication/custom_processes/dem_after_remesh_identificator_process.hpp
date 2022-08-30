@@ -59,7 +59,7 @@ class DemAfterRemeshIdentificatorProcess : public Process
         } // DemAfterRemeshingNodes SubModelPart Filled with nodes
 
         // Let's assign the DEM radius to those nodes...
-        FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(mrModelPart, 4, 4);
+        FindNodalNeighboursProcess neighbour_finder(mrModelPart);
         neighbour_finder.Execute();
 
         for (ModelPart::NodeIterator it = (*p_auxiliar_model_part).NodesBegin(); it != (*p_auxiliar_model_part).NodesEnd(); ++it) {

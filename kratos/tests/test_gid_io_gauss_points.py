@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as UnitTest
 
@@ -152,10 +150,4 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
 
 
 if __name__ == '__main__':
-    test = TestGiDIOGaussPoints()
-    test.setUp()
-    test.test_write_active_only()
-    test.tearDown()
-    test.setUp()
-    test.test_write_dynamic_deactivation()
-    test.tearDown()
+    UnitTest.main()

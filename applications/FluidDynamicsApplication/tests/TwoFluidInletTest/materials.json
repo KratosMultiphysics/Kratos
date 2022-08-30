@@ -1,10 +1,10 @@
 {
     "properties" : [{
-        "model_part_name" : "MainModelPart.Parts_Fluid",
+        "model_part_name" : "FluidModelPart.Parts_Fluid",
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "Newtonian2DLaw"
+                "name" : "Newtonian3DLaw"
             },
             "Variables"        : {
                 "DENSITY": 1.0E+03,
@@ -13,11 +13,11 @@
             "Tables"           : {}
         }
     },{
-        "model_part_name" : "MainModelPart.Parts_Fluid",
+        "model_part_name" : "FluidModelPart.Parts_Fluid",
         "properties_id"   : 2,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "Newtonian2DLaw"
+                "name" : "Newtonian3DLaw"
             },
             "Variables"        : {
                 "DENSITY": 1.0E+00,

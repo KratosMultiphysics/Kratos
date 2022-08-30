@@ -76,26 +76,28 @@ public:
     Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override;
 
     // Find the condition's parent element.
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override;
+                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult,
-                          ProcessInfo& rCurrentProcessInfo) override;
+                          const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ConditionDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValuesVector(Vector& rValues, int Step=0)  override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetValuesVector(Vector& rValues, int Step=0) const override;
 
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                         Matrix& rOutput,
@@ -105,7 +107,7 @@ public:
                                         Matrix& rOutput,
                                         const ProcessInfo& rCurrentProcessInfo)  override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     std::string Info() const override;
 

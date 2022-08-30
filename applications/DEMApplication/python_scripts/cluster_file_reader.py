@@ -1,3 +1,5 @@
+import KratosMultiphysics as Kratos
+
 
 def ReadNextLine(f):
     while True:
@@ -30,7 +32,6 @@ def ReadClusterFile(filename):
                     break
                 data = nextline.split()
                 coordinates = [float(data[0]), float(data[1]), float(data[2])]
-                #print(coordinates)
                 radius = float(data[3])
                 list_of_coordinates.append(coordinates)
                 list_of_radii.append(radius)
@@ -52,20 +53,22 @@ def ReadClusterFile(filename):
             IZ = float(data[0])
             inertias = [IX, IY, IZ]
 
+    f.close()
+
     try:
         center
     except NameError:
         message = "\n\n" + "************  ERROR!   Problems reading cluster file: " + filename + "  The center could not be found ***************\n\n"
-        print(message)
+        Kratos.Logger.PrintInfo(message)
 
     for i in range(len(list_of_coordinates)):
         list_of_coordinates[i] = [list_of_coordinates[i][0] - center[0], list_of_coordinates[i][1] - center[1], list_of_coordinates[i][2] - center[2]]
 
     if len(inertias)==0 or len(volume)==0 or len(size)==0 or len(list_of_radii)==0 or len(list_of_coordinates)==0 :
         message = "\n\n" + "************  ERROR!   Problems reading cluster file: " + filename + "   ***************\n\n"
-        print(message)
+        Kratos.Logger.PrintInfo(message)
     else:
-        print("Cluster file "+ filename + " was read correctly")
+        Kratos.Logger.PrintInfo("Cluster file "+ filename + " was read correctly")
 
     return [name, list_of_coordinates, list_of_radii, size[0], volume[0], inertias]
 

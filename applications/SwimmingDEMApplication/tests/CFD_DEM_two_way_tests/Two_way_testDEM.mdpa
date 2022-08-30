@@ -1,0 +1,55 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 2
+End Properties
+
+Begin Nodes
+  380   0.0000000000   0.0000000000   0.2500000000
+End Nodes
+
+
+Begin Nodes
+  380   0.0000000000   0.0000000000   0.2500000000
+End Nodes
+
+
+Begin Elements SphericSwimmingParticle3D// GUI group identifier: DEM_Particle
+     6399          2   380
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: DEM_Particle
+        380 0  0.0368887
+End NodalData
+
+Begin SubModelPart DEMParts_DEM_Particle // Group DEM_Particle // Subtree DEMParts
+    Begin SubModelPartNodes
+          380
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         6399
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart 1 // GUI DEM-VelocityIC - DEM-VelocityIC - group identifier: DEM_Particle
+  Begin SubModelPartData // DEM-VelocityIC. Group name: DEM_Particle
+    INITIAL_VELOCITY_X_VALUE 0.0
+    INITIAL_VELOCITY_Y_VALUE 0.0
+    INITIAL_VELOCITY_Z_VALUE -1.0
+    INITIAL_ANGULAR_VELOCITY_X_VALUE 0.0
+    INITIAL_ANGULAR_VELOCITY_Y_VALUE 0.0
+    INITIAL_ANGULAR_VELOCITY_Z_VALUE 0.0
+    RIGID_BODY_MOTION 0
+    FORCE_INTEGRATION_GROUP 0
+    IDENTIFIER DEM_Particle
+  End SubModelPartData
+  Begin SubModelPartElements
+       6399
+  End SubModelPartElements
+  Begin SubModelPartNodes
+       380
+  End SubModelPartNodes
+End SubModelPart
+

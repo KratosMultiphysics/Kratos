@@ -31,7 +31,7 @@
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
-#include "element_finite_difference_utility.h"
+#include "finite_difference_utility.h"
 
 // ==============================================================================
 
@@ -117,23 +117,28 @@ public:
 	{
 		KRATOS_TRY;
 
-		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
+		const ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 		double strain_energy = 0.0;
 
 		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
 		for (auto& elem_i : mrModelPart.Elements())
 		{
-			Matrix LHS;
-			Vector RHS;
-			Vector u;
+			const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
+			if(element_is_active)
+			{
+				Matrix LHS;
+				Vector RHS;
+				Vector u;
 
-			// Get state solution relevant for energy calculation
-			elem_i.GetValuesVector(u,0);
+				// Get state solution relevant for energy calculation
+				const auto& rConstElemRef = elem_i;
+				rConstElemRef.GetValuesVector(u,0);
 
-			elem_i.CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
+				elem_i.CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
 
-			// Compute strain energy
-			strain_energy += 0.5 * inner_prod(u,prod(LHS,u));
+				// Compute strain energy
+				strain_energy += 0.5 * inner_prod(u,prod(LHS,u));
+			}
 		}
 
 		return strain_energy;
@@ -243,42 +248,47 @@ protected:
 		KRATOS_TRY;
 
 		// Working variables
-		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
+		const ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
 		// Computation of: \frac{1}{2} u^T \cdot ( - \frac{\partial K}{\partial x} )
 		for (auto& elem_i : mrModelPart.Elements())
 		{
-			Vector u;
-			Vector lambda;
-			Vector RHS;
-
-			// Get state solution
-			elem_i.GetValuesVector(u,0);
-
-			// Get adjoint variables (Corresponds to 1/2*u)
-			lambda = 0.5*u;
-
-			// Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
-			elem_i.CalculateRightHandSide(RHS, CurrentProcessInfo);
-			for (auto& node_i : elem_i.GetGeometry())
+			const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
+			if(element_is_active)
 			{
-				array_3d gradient_contribution(3, 0.0);
-				Vector derived_RHS = Vector(0);
+				Vector u;
+				Vector lambda;
+				Vector RHS;
 
-				// x-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
-				gradient_contribution[0] = inner_prod(lambda, derived_RHS);
+				// Get state solution
+				const auto& rConstElemRef = elem_i;
+				rConstElemRef.GetValuesVector(u,0);
 
-                // y-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
-				gradient_contribution[1] = inner_prod(lambda, derived_RHS);
+				// Get adjoint variables (Corresponds to 1/2*u)
+				lambda = 0.5*u;
 
-                // z-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
-				gradient_contribution[2] = inner_prod(lambda, derived_RHS);
+				// Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
+				elem_i.CalculateRightHandSide(RHS, CurrentProcessInfo);
+				for (auto& node_i : elem_i.GetGeometry())
+				{
+					array_3d gradient_contribution(3, 0.0);
+					Vector derived_RHS = Vector(0);
 
-				// Assemble sensitivity to node
-				noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
+					// x-direction
+					FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+					gradient_contribution[0] = inner_prod(lambda, derived_RHS);
+
+					// y-direction
+					FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+					gradient_contribution[1] = inner_prod(lambda, derived_RHS);
+
+					// z-direction
+					FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+					gradient_contribution[2] = inner_prod(lambda, derived_RHS);
+
+					// Assemble sensitivity to node
+					noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
+				}
 			}
 		}
 
@@ -287,10 +297,7 @@ protected:
 		{
 			//detect if the condition is active or not. If the user did not make any choice the element
 			//is active by default
-			bool condition_is_active = true;
-			if (cond_i.IsDefined(ACTIVE))
-				condition_is_active = cond_i.Is(ACTIVE);
-
+			const bool condition_is_active = cond_i.IsDefined(ACTIVE) ? cond_i.Is(ACTIVE) : true;
 			if (condition_is_active)
 			{
 				Vector u;
@@ -298,7 +305,8 @@ protected:
 				Vector RHS;
 
 				// Get adjoint variables (Corresponds to 1/2*u)
-				cond_i.GetValuesVector(u,0);
+				const auto& rConstCondRef = cond_i;
+				rConstCondRef.GetValuesVector(u,0);
 				lambda = 0.5*u;
 
 				// Semi-analytic computation of partial derivative of force vector w.r.t. node coordinates
@@ -347,24 +355,22 @@ protected:
 		KRATOS_TRY;
 
 		// Working variables
-		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
+		const ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
 		// Computation of \frac{1}{2} u^T \cdot ( \frac{\partial f_{ext}}{\partial x} )
 		for (auto& cond_i : mrModelPart.Conditions())
 		{
 			//detect if the condition is active or not. If the user did not make any choice the element
 			//is active by default
-			bool condition_is_active = true;
-			if (cond_i.IsDefined(ACTIVE))
-				condition_is_active = cond_i.Is(ACTIVE);
-
+			const bool condition_is_active = cond_i.IsDefined(ACTIVE) ? cond_i.Is(ACTIVE) : true;
 			if (condition_is_active)
 			{
 				Vector u;
 				Vector RHS;
 
 				// Get state solution
-				cond_i.GetValuesVector(u,0);
+				const auto& rConstCondRef = cond_i;
+				rConstCondRef.GetValuesVector(u,0);
 
 				// Perform finite differencing of RHS vector
 				cond_i.CalculateRightHandSide(RHS, CurrentProcessInfo);

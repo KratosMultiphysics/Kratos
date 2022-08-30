@@ -1,9 +1,10 @@
 import setuptools
 import os
 import json
+import glob
+import shutil
 
 kratos_version = os.environ["KRATOS_VERSION"]
-
 
 def replaceKeyword(str):
     return str.replace("${KRATOS_VERSION}", kratos_version).replace("${PYTHON}", os.environ["PYTHON"])
@@ -11,20 +12,27 @@ def replaceKeyword(str):
 def replaceKeywords(stringArray):
     return list(map(lambda str: replaceKeyword(str), stringArray))
 
+
 with open("wheel.json", "r") as conf_file:
     conf = json.loads(conf_file.read())
 
 with open(os.path.join(os.environ["KRATOS_ROOT"], conf["readme"]), "r") as fh:
     long_description = fh.read()
 
-
-import shutil
-
 for module in conf["included_modules"]:
-    shutil.copytree(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", "KratosMultiphysics", module), os.path.join("KratosMultiphysics", module))
+    src = os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "KratosMultiphysics", module)
+    dst = os.path.join("KratosMultiphysics", module)
+    if os.path.exists(dst):
+        shutil.rmtree(dst)
+    try:
+        shutil.copytree(src, dst)
+    except Exception as e:
+        print("Warning copying {}: {}".format(src,e))
 
 for binary in conf["included_binaries"]:
-    shutil.copy(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", "libs", replaceKeyword(binary)), os.path.join("KratosMultiphysics", ".libs"))
+    for file in glob.glob(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "libs", replaceKeyword(binary))):
+        print("Adding {} matching binary: {}".format(file, binary))
+        shutil.copy(file, os.path.join("KratosMultiphysics", ".libs"))
 
 if "excluded_binaries" in conf:
     f = open("excluded.txt", "w")
@@ -54,9 +62,11 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: C++",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Physics",
         "Topic :: Scientific/Engineering :: Mathematics",
@@ -71,7 +81,7 @@ setuptools.setup(
     package_data={
         'KratosMultiphysics': list(map(lambda x: ".libs/" + x, os.listdir("KratosMultiphysics/.libs")))
     },
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     ext_modules=EmptyListWithLength(),
     distclass=BinaryDistribution
 )

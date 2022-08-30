@@ -16,7 +16,9 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_filesystem.h"
 #include "utilities/read_materials_utility.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 namespace {
@@ -68,12 +70,12 @@ ReadMaterialsUtility::ReadMaterialsUtility(
     Params.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Read json string in materials file, create Parameters
-    const std::string& materials_filename = Params["Parameters"]["materials_filename"].GetString();
-    std::ifstream infile(materials_filename);
-    KRATOS_ERROR_IF_NOT(infile.good()) << "Materials file: " << materials_filename << " cannot be found" << std::endl;
-    std::stringstream buffer;
-    buffer << infile.rdbuf();
-    Parameters materials(buffer.str());
+    const std::string& r_materials_filename = Params["Parameters"]["materials_filename"].GetString();
+
+    KRATOS_ERROR_IF_NOT(Kratos::filesystem::exists(r_materials_filename)) << "The material file specified with name \"" << r_materials_filename << "\" does not exist!" << std::endl;
+
+    std::ifstream ifs(r_materials_filename);
+    Parameters materials(ifs);
 
     GetPropertyBlock(materials);
 
@@ -128,10 +130,11 @@ void ReadMaterialsUtility::GetPropertyBlock(Parameters Materials)
         // Get the properties for the specified model part.
         ModelPart& r_model_part = mrModel.GetModelPart(material["model_part_name"].GetString());
         const IndexType property_id = material["properties_id"].GetInt();
-        const bool has_properties = r_model_part.RecursivelyHasProperties(property_id, mesh_id);
+        const bool has_properties = r_model_part.RecursivelyHasProperties(property_id);
         KRATOS_WARNING_IF("ReadMaterialsUtility", has_properties) << "WARNING:: The properties ID: " << property_id
-            << " in mesh ID: 0 is already defined. This will overwrite the existing values" << std::endl;
-        Properties::Pointer p_prop = has_properties ? r_model_part.pGetProperties(property_id, mesh_id) : r_model_part.CreateNewProperties(property_id, mesh_id);
+            << " is already defined in model part " << material["model_part_name"].GetString()
+            <<". This will overwrite the existing values" << std::endl;
+        Properties::Pointer p_prop = has_properties ? r_model_part.pGetProperties(property_id) : r_model_part.CreateNewProperties(property_id);
     }
 
     // Now we assign the property block
@@ -169,15 +172,15 @@ void ReadMaterialsUtility::AssignMaterialToProperty(
     )
 {
     KRATOS_TRY;
-    
-    // Assign CL
-    AssignConstitutiveLawToProperty(MaterialData, rProperty);
 
     // Assign variables
     AssignVariablesToProperty(MaterialData, rProperty);
-    
+
     // Assign tables
     AssignTablesToProperty(MaterialData, rProperty);
+
+    // Assign CL
+    AssignConstitutiveLawToProperty(MaterialData, rProperty);
 
     KRATOS_CATCH("");
 }
@@ -191,7 +194,7 @@ void ReadMaterialsUtility::AssignConstitutiveLawToProperty(
     )
 {
     KRATOS_TRY;
-    
+
     // Set the CONSTITUTIVE_LAW for the current p_properties.
     if (MaterialData.Has("constitutive_law")) {
         Parameters cl_parameters = MaterialData["constitutive_law"];
@@ -205,7 +208,7 @@ void ReadMaterialsUtility::AssignConstitutiveLawToProperty(
     } else {
         KRATOS_INFO("Read materials") << "No constitutive law defined for material ID: " << rProperty.Id() << std::endl;
     }
-    
+
     KRATOS_CATCH("");
 }
 
@@ -218,12 +221,14 @@ void ReadMaterialsUtility::AssignVariablesToProperty(
     )
 {
     KRATOS_TRY;
- 
+
     // Add / override the values of material parameters in the p_properties
     if (MaterialData.Has("Variables")) {
         Parameters variables = MaterialData["Variables"];
-        for (auto iter = variables.begin(); iter != variables.end(); ++iter) {
-            const Parameters value = variables.GetValue(iter.name());
+        const Parameters variables_considered = FilterVariables(variables, rProperty.Id());
+
+        for (auto iter = variables_considered.begin(); iter != variables_considered.end(); ++iter) {
+            const Parameters value = variables_considered.GetValue(iter.name());
 
             std::string variable_name = iter.name();
             TrimComponentName(variable_name);
@@ -278,7 +283,7 @@ void ReadMaterialsUtility::AssignVariablesToProperty(
     } else {
         KRATOS_INFO("Read materials") << "No variables defined for material ID: " << rProperty.Id() << std::endl;
     }
-    
+
     KRATOS_CATCH("");
 }
 
@@ -291,7 +296,7 @@ void ReadMaterialsUtility::AssignTablesToProperty(
     )
 {
     KRATOS_TRY;
-    
+
     // Add / override tables in the p_properties
     if (MaterialData.Has("Tables")) {
         Parameters tables = MaterialData["Tables"];
@@ -319,8 +324,19 @@ void ReadMaterialsUtility::AssignTablesToProperty(
     } else {
         KRATOS_INFO("Read materials") << "No tables defined for material ID: " << rProperty.Id() << std::endl;
     }
-    
+
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters ReadMaterialsUtility::FilterVariables(
+    const Parameters VariablesParameters,
+    const IndexType PropertyId
+    )
+{
+    return VariablesParameters;
 }
 
 /***********************************************************************************/
@@ -354,8 +370,8 @@ void ReadMaterialsUtility::CreateSubProperties(
             bool already_defined = false;
             if (r_use_existing_property != "") { // NOTE: This means that is not marked as existing
                 if (r_use_existing_property.size() > 1) {
-                    if (rModelPart.HasProperties(r_use_existing_property, mesh_id)) {
-                        p_new_sub_prop = rModelPart.pGetProperties(r_use_existing_property, mesh_id);
+                    if (rModelPart.HasProperties(r_use_existing_property)) {
+                        p_new_sub_prop = rModelPart.pGetProperties(r_use_existing_property);
                         already_defined = true;
                     }
                 } else {
@@ -375,7 +391,7 @@ void ReadMaterialsUtility::CreateSubProperties(
             const int sub_property_id = sub_prop["properties_id"].GetInt();
 
             // Actually creating it (ensures uniqueness)
-            p_new_sub_prop = rModelPart.CreateNewProperties(sub_property_id, mesh_id);
+            p_new_sub_prop = rModelPart.CreateNewProperties(sub_property_id);
 
             // If existing, assigning the materials
             if (sub_prop.Has("Material")) {
@@ -404,11 +420,10 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     // Get the properties for the specified model part.
     ModelPart& r_model_part = mrModel.GetModelPart(Data["model_part_name"].GetString());
     const IndexType property_id = Data["properties_id"].GetInt();
-    const IndexType mesh_id = 0;
     Parameters material_data = Data["Material"];
     Properties::Pointer p_prop;
-    if (r_model_part.RecursivelyHasProperties(property_id, mesh_id)) {
-        p_prop = r_model_part.pGetProperties(property_id, mesh_id);
+    if (r_model_part.RecursivelyHasProperties(property_id)) {
+        p_prop = r_model_part.pGetProperties(property_id);
 
         // Compute the size using the iterators
         std::size_t variables_size = 0;
@@ -429,24 +444,24 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
         KRATOS_WARNING_IF("ReadMaterialsUtility", tables_size > 0 && p_prop->HasTables())
             << "WARNING:: The properties ID: " << property_id << " already has tables." << std::endl;
     } else {
-        p_prop = r_model_part.CreateNewProperties(property_id, mesh_id);
+        p_prop = r_model_part.CreateNewProperties(property_id);
     }
 
     // Assign the p_properties to the model part's elements and conditions.
     auto& r_elements_array = r_model_part.Elements();
     auto& r_conditions_array = r_model_part.Conditions();
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-        auto it_elem = r_elements_array.begin() + i;
-        it_elem->SetProperties(p_prop);
-    }
+    block_for_each(
+        r_elements_array,
+        [&p_prop](Element& rElement)
+        { rElement.SetProperties(p_prop); }
+    );
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-        auto it_cond = r_conditions_array.begin() + i;
-        it_cond->SetProperties(p_prop);
-    }
+    block_for_each(
+        r_conditions_array,
+        [&p_prop](Condition& rCondition)
+        { rCondition.SetProperties(p_prop); }
+    );
 
     // Assigning the materials
     AssignMaterialToProperty(material_data, *p_prop);

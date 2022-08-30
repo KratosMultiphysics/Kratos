@@ -347,7 +347,7 @@ private:
      * @param rNodalDistances Vector containing the distance values
      * @return A pointer to the divide geometry utility
      */
-    DivideGeometry::Pointer SetDivideGeometryUtility(
+    DivideGeometry<Node<3>>::Pointer SetDivideGeometryUtility(
         const Geometry<Node<3>> &rGeometry,
         const Vector &rNodalDistances);
 
@@ -381,7 +381,7 @@ private:
     /**
      * @brief Get the condition type
      * Depending on the dimension template argument, this method returns
-     * the condition type name (Condition2D2N or SurfaceCondition3D3N)
+     * the condition type name (LineCondition2D2N or SurfaceCondition3D3N)
      * @return std::sting condition type name
      */
     static const std::string GetConditionType();

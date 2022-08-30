@@ -56,7 +56,7 @@ namespace Kratos
     /**
      * This process computes the element average in time of the divergence and of the seminorm of the velocity field.
      * We define VELOCITY_H1_SEMINORM as: \left \| \nabla u_{h} \right \|_{L^2(K)}^2 ,
-     * and DIVERGENCE_WEIGHTED as \left \| \nabla \cdot u_{h} \right \|_{L^2(K)}^2 ,
+     * and AVERAGED_DIVERGENCE as \left \| \nabla \cdot u_{h} \right \|_{L^2(K)}^2 ,
      * where u is the velocity field and K an element of the domain \Omega.
      * The time average does not consider the transient 20% first part of the simulation.
      */

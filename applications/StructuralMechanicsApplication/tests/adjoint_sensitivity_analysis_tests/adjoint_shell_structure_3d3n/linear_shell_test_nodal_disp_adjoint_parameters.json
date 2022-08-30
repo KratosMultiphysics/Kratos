@@ -22,8 +22,9 @@
             "gradient_mode"     : "semi_analytic",
             "step_size"         : 1.0e-6,
             "adapt_step_size"   : true,
-            "traced_node_id"       : 5,
-            "traced_dof"        : "DISPLACEMENT_Z"
+            "response_part_name": "response_mp",
+            "direction"         : [0.0,0.0,1.0],
+            "traced_dof"        : "DISPLACEMENT"
         },
         "sensitivity_settings" : {
             "sensitivity_model_part_name" :"Parts_AREAS",
@@ -34,15 +35,12 @@
         },
         "echo_level"                   : 0,
         "rotation_dofs"                : true,
-        "linear_solver_settings"       : {
-            "solver_type"         : "ExternalSolversApplication.super_lu"
-        },
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename"   : "rectangular_plate"
+            "input_filename"   : "adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/rectangular_plate"
         },
         "material_import_settings" :{
-            "materials_filename" : "StructuralMaterials.json"
+            "materials_filename" : "adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/StructuralMaterials.json"
         }
     },
     "processes" : {
@@ -97,7 +95,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY"],
-                "input_file_name"  : "linear_shell_test_nodal_disp_results.json",
+                "input_file_name"  : "adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/linear_shell_test_nodal_disp_results.json",
                 "model_part_name"  : "Structure",
                 "tolerance"            : 1e-5,
                 "time_frequency"   : -2.0

@@ -28,14 +28,19 @@
 namespace Kratos
 {
 
+    /// Constructor for variables.
+	VariableData::VariableData(const std::string& NewName, std::size_t NewSize) : mName(NewName), mKey(0), mSize(NewSize), mpSourceVariable(this), mIsComponent(false) {
+        mKey = GenerateKey(mName, mSize, mIsComponent, 0);
+    }
+
     /// Constructor.
-	VariableData::VariableData(const std::string& NewName, std::size_t NewSize, bool Iscomponent, char ComponentIndex) : mName(NewName), mKey(0), mSize(NewSize), mIsComponent(Iscomponent) {
-        mKey = GenerateKey(mName, mSize, Iscomponent, ComponentIndex);
+	VariableData::VariableData(const std::string& NewName, std::size_t NewSize, const VariableData* pSourceVariable, char ComponentIndex) : mName(NewName), mKey(0), mSize(NewSize), mpSourceVariable(pSourceVariable), mIsComponent(true) {
+        mKey = GenerateKey(mpSourceVariable->Name(), mSize, mIsComponent, ComponentIndex);
     }
 
 	/// Copy constructor
     VariableData::VariableData(const VariableData& rOtherVariable)
-        : mName(rOtherVariable.mName), mKey(rOtherVariable.mKey), mSize(rOtherVariable.mSize), mIsComponent(rOtherVariable.mIsComponent) {}
+        : mName(rOtherVariable.mName), mKey(rOtherVariable.mKey), mSize(rOtherVariable.mSize),mpSourceVariable(rOtherVariable.mpSourceVariable) , mIsComponent(rOtherVariable.mIsComponent) {}
 
 	VariableData::KeyType VariableData::GenerateKey(const std::string& Name, std::size_t Size, bool IsComponent, char ComponentIndex)
 	{

@@ -1,10 +1,8 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_io import CoSimulationIO
 
-def Create(model, settings, solver_name):
-    return DummyIO(model, settings, solver_name)
+def Create(*args):
+    return DummyIO(*args)
 
 class DummyIO(CoSimulationIO):
     """This class is used if a Solver directly uses Kratos as a data-structure
