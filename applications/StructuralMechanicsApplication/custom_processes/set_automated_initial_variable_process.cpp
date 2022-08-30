@@ -10,18 +10,15 @@
 //                   Alejandro Cornejo
 //
 
-#include "custom_processes/set_automated_initial_variable_process.h"
-#include "utilities/parallel_utilities.h"
-#include "utilities/math_utils.h"
-#include "custom_utilities/constitutive_law_utilities.h"
-#include "structural_mechanics_application_variables.h"
-
 // System includes
 
 // External includes
 
 // Project includes
 #include "includes/model_part.h"
+#include "custom_processes/set_automated_initial_variable_process.h"
+#include "utilities/parallel_utilities.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
