@@ -73,7 +73,7 @@ void SetAutomatedInitialVariableProcess::ExecuteInitialize()
                 centroid_relative_distance = 0.0;
             }
             else {
-                KRATOS_ERROR << "Thickness of element " << rElement.Id() << " is too small." << std::endl;
+                KRATOS_ERROR << "The relative centroid distance may not be negative. Check the hole radius offset and the thickness of element " << rElement.Id() << std::endl;
             }
         }
         
