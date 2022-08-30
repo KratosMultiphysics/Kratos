@@ -10,8 +10,7 @@
 //                   Alejandro Cornejo
 //
 
-#if !defined(KRATOS_SET_AUTOMATED_INITIAL_VARIABLE_PROCESS )
-#define  KRATOS_SET_AUTOMATED_INITIAL_VARIABLE_PROCESS
+#pragma once
 
 // System includes
 
@@ -114,4 +113,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif /* KRATOS_SET_CYLINDRICAL_LOCAL_AXES_PROCESS defined */
