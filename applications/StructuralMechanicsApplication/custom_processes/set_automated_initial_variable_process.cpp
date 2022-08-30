@@ -40,7 +40,7 @@ void SetAutomatedInitialVariableProcess::ExecuteInitialize()
     KRATOS_TRY
 
     const array_1d<double, 3> hole_generatrix_axis = mThisParameters["hole_generatrix_axis"].GetVector();
-    KRATOS_ERROR_IF(MathUtils<double>::Norm3(hole_generatrix_axis) < std::numeric_limits<double>::epsilon()) << "The hole generatrix axis has norm zero" << std::endl;
+    KRATOS_ERROR_IF(MathUtils<double>::Norm3(hole_generatrix_axis) < machine_tolerance) << "The hole generatrix axis has norm zero" << std::endl;
     
     const array_1d<double, 3> hole_generatrix_point = mThisParameters["hole_generatrix_point"].GetVector();  
 
