@@ -11,7 +11,6 @@
 //                   Riccardo Rossi
 //
 
-
 #if !defined(KRATOS_NODE_H_INCLUDED )
 #define  KRATOS_NODE_H_INCLUDED
 
@@ -22,9 +21,7 @@
 #include <cstddef>
 #include <atomic>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -37,10 +34,10 @@
 #include "intrusive_ptr/intrusive_ptr.hpp"
 #include "containers/global_pointers_vector.h"
 #include "containers/data_value_container.h"
-
 #include "containers/nodal_data.h"
-
-
+#if KRATOS_DEBUG
+#include "utilities/openmp_utils.h"
+#endif
 
 namespace Kratos
 {
@@ -69,7 +66,7 @@ class Element;
 /// This class defines the node
 /** The node class from Kratos is defined in this class
 */
-template<std::size_t TDimension, class TDofType = Dof<double> >
+template<class TDofType = Dof<double> >
 class Node : public Point, public Flags
 {
 
@@ -77,12 +74,10 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of Node
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Node);
 
-    typedef Node<TDimension, TDofType> NodeType;
-
-    /// Pointer definition of Node
-
+    typedef Node<TDofType> NodeType;
 
     typedef Point BaseType;
 
@@ -190,11 +185,6 @@ public:
     /** Copy constructor. Initialize this node with given node.*/
     Node(Node const& rOtherNode) = delete;
 
-    /** Copy constructor from a node with different dimension.*/
-    template<SizeType TOtherDimension>
-    Node(Node<TOtherDimension> const& rOtherNode) = delete;
-
-
     /**
      * Constructor using coordinates stored in given array. Initialize
     this point with the coordinates in the array. */
@@ -239,12 +229,12 @@ public:
     {
     }
 
-    typename Node<TDimension>::Pointer Clone()
+    typename Node::Pointer Clone()
     {
-        Node<3>::Pointer p_new_node = Kratos::make_intrusive<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
+        Node::Pointer p_new_node = Kratos::make_intrusive<Node >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
         p_new_node->mNodalData = this->mNodalData;
 
-        Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
+        Node::DofsContainerType& my_dofs = (this)->GetDofs();
         for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
         {
             p_new_node->pAddDof(**it_dof);
@@ -306,6 +296,7 @@ public:
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
     Node& operator=(const Node& rOther)
     {
         BaseType::operator=(rOther);
@@ -325,48 +316,31 @@ public:
         return *this;
     }
 
-    /// Assignment operator.
-    template<SizeType TOtherDimension>
-    Node& operator=(const Node<TOtherDimension>& rOther)
-    {
-        BaseType::operator=(rOther);
-        Flags::operator =(rOther);
-
-        mNodalData = rOther.mNodalData;
-
-        for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++)
-        {
-            pAddDof(**it_dof);
-        }
-
-        mData = rOther.mData;
-        mInitialPosition = rOther.mInitialPosition;
-
-        return *this;
-
-    }
-
     bool operator==(const Node& rOther)
     {
         return PointType::operator ==(rOther);
     }
 
-    template<class TVariableType> typename TVariableType::Type& operator()(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    template<class TVariableType> 
+    typename TVariableType::Type& operator()(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
         return GetSolutionStepValue(rThisVariable, SolutionStepIndex);
     }
 
-    template<class TVariableType> typename TVariableType::Type& operator()(const TVariableType& rThisVariable)
+    template<class TVariableType> 
+    typename TVariableType::Type& operator()(const TVariableType& rThisVariable)
     {
         return GetSolutionStepValue(rThisVariable);
     }
 
-    template<class TDataType> TDataType& operator[](const Variable<TDataType>& rThisVariable)
+    template<class TDataType> 
+    TDataType& operator[](const Variable<TDataType>& rThisVariable)
     {
         return GetValue(rThisVariable);
     }
 
-    template<class TDataType> const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
+    template<class TDataType> 
+    const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
     {
         return GetValue(rThisVariable);
     }
@@ -436,28 +410,33 @@ public:
         return mData;
     }
 
-    template<class TVariableType> typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable)
+    template<class TVariableType> 
+    typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable)
     {
         return SolutionStepData().GetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable) const
+    template<class TVariableType> 
+    typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable) const
     {
         return SolutionStepData().GetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    template<class TVariableType> 
+    typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
         return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
-    template<class TVariableType> typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
+    template<class TVariableType> 
+    typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
     {
         return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
 
-    template<class TDataType> bool SolutionStepsDataHas(const Variable<TDataType>& rThisVariable) const
+    template<class TDataType> 
+    bool SolutionStepsDataHas(const Variable<TDataType>& rThisVariable) const
     {
         return SolutionStepData().Has(rThisVariable);
     }
@@ -465,48 +444,57 @@ public:
     //*******************************************************************************************
     //By Riccardo
     //very similar to the one before BUT throws an error if the variable does not exist
-    template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable)
+    template<class TVariableType> 
+    typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable)
     {
         return SolutionStepData().FastGetValue(rThisVariable);
     }
 
-    template<class TVariableType> const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable) const
+    template<class TVariableType> 
+    const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable) const
     {
         return SolutionStepData().FastGetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    template<class TVariableType> 
+    typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
         return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex);
     }
 
-    template<class TVariableType> const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
+    template<class TVariableType> 
+    const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
     {
         return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex);
     }
 
-    template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex, IndexType ThisPosition)
+    template<class TVariableType> 
+    typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex, IndexType ThisPosition)
     {
         return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex, ThisPosition);
     }
 
-    template<class TVariableType> typename TVariableType::Type& FastGetCurrentSolutionStepValue(const TVariableType& rThisVariable, IndexType ThisPosition)
+    template<class TVariableType> 
+    typename TVariableType::Type& FastGetCurrentSolutionStepValue(const TVariableType& rThisVariable, IndexType ThisPosition)
     {
         return SolutionStepData().FastGetCurrentValue(rThisVariable, ThisPosition);
     }
 //*******************************************************************************************
 
-    template<class TVariableType> typename TVariableType::Type& GetValue(const TVariableType& rThisVariable)
+    template<class TVariableType> 
+    typename TVariableType::Type& GetValue(const TVariableType& rThisVariable)
     {
         return mData.GetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable) const
+    template<class TVariableType> 
+    typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable) const
     {
         return mData.GetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    template<class TVariableType> 
+    typename TVariableType::Type& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
         if(!mData.Has(rThisVariable))
             return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
@@ -514,7 +502,8 @@ public:
         return mData.GetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
+    template<class TVariableType> 
+    typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
     {
         if(!mData.Has(rThisVariable))
             return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
@@ -528,7 +517,8 @@ public:
         mData.SetValue(rThisVariable, rValue);
     }
 
-    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+    template<class TDataType> 
+    bool Has(const Variable<TDataType>& rThisVariable) const
     {
         return mData.Has(rThisVariable);
     }
@@ -547,12 +537,10 @@ public:
             }
         }
 
-#ifdef KRATOS_DEBUG
-        if(OpenMPUtils::IsInParallel() != 0)
-        {
-            KRATOS_ERROR << "Attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
-        }
-#endif
+#if KRATOS_DEBUG
+        KRATOS_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "Attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+#endif 
+
         pAddDof(rDofVariable)->FixDof();
     }
 
@@ -566,12 +554,10 @@ public:
             }
         }
 
-#ifdef KRATOS_DEBUG
-        if(OpenMPUtils::IsInParallel() != 0)
-        {
-            KRATOS_ERROR << "Attempting to Free the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
-        }
+#if KRATOS_DEBUG
+        KRATOS_ERROR_IF(OpenMPUtils::IsInParallel() != 0) "Attempting to Free the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
 #endif
+
         pAddDof(rDofVariable)->FreeDof();
     }
 
@@ -1127,14 +1113,14 @@ private:
 
 
 /// input stream function
-template<std::size_t TDimension, class TDofType>
+template<class TDofType>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  Node<TDimension, TDofType>& rThis);
+                                  Node<TDofType>& rThis);
 
 /// output stream function
-template<std::size_t TDimension, class TDofType>
+template<class TDofType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const Node<TDimension, TDofType>& rThis)
+                                  const Node<TDofType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : ";
@@ -1147,7 +1133,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 //     namespace Globals
 //     {
-// 	extern Node<3> DefaultNode3;
+// 	extern Node DefaultNode3;
 //     }
 
 
