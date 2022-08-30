@@ -552,39 +552,6 @@ public:
                 GiD_fWriteGaussPoint2D( MeshFile, 1.0/6.0, 2.0/3.0 );
                 GiD_fEndGaussPoint(MeshFile);
             }
-            else if (mGidElementFamily == GiD_Triangle && mSize == 4)
-            {
-                GiD_fBeginGaussPoint(MeshFile, mGPTitle, GiD_Triangle, NULL, 4, 0, 0);
-                GiD_fWriteGaussPoint2D(MeshFile, 1.0 / 5.0, 1.0 / 5.0);
-                GiD_fWriteGaussPoint2D(MeshFile, 3.0 / 5.0, 1.0 / 5.0);
-                GiD_fWriteGaussPoint2D(MeshFile, 1.0 / 5.0, 3.0 / 5.0);
-                GiD_fWriteGaussPoint2D(MeshFile, 1.0 / 3.0, 1.0 / 3.0);
-                GiD_fEndGaussPoint(MeshFile);
-            }
-            else if (mGidElementFamily == GiD_Triangle && mSize == 12)
-            {
-                const double N1 = 0.87382197101699554332;
-                const double N2 = 0.063089014491502228340;
-                const double N3 = 0.50142650965817915742;
-                const double N4 = 0.24928674517091042129;
-                const double N5 = 0.053145049844816947353;
-                const double N6 = 0.31035245103378440542;
-                const double N7 = 0.63650249912139864723;
-                GiD_fBeginGaussPoint(MeshFile, mGPTitle, GiD_Triangle, NULL, 12, 0, 0);
-                GiD_fWriteGaussPoint2D(MeshFile, N1, N2);
-                GiD_fWriteGaussPoint2D(MeshFile, N2, N1);
-                GiD_fWriteGaussPoint2D(MeshFile, N2, N2);
-                GiD_fWriteGaussPoint2D(MeshFile, N3, N4);
-                GiD_fWriteGaussPoint2D(MeshFile, N4, N3);
-                GiD_fWriteGaussPoint2D(MeshFile, N4, N4);
-                GiD_fWriteGaussPoint2D(MeshFile, N5, N6);
-                GiD_fWriteGaussPoint2D(MeshFile, N6, N5);
-                GiD_fWriteGaussPoint2D(MeshFile, N5, N7);
-                GiD_fWriteGaussPoint2D(MeshFile, N6, N7);
-                GiD_fWriteGaussPoint2D(MeshFile, N7, N5);
-                GiD_fWriteGaussPoint2D(MeshFile, N7, N6);
-                GiD_fEndGaussPoint(MeshFile);
-            }
             else if ( mGidElementFamily == GiD_Prism  && mSize > 1)
             {
                 GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, NULL, 6, 0, 0 );
