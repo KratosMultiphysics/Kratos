@@ -341,6 +341,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         with open("MeanContactVelocity.log", "w") as CvelLogFile:
             CvelLogFile.write( "time_step" + "\t" + "mean_velocity" + "\n" )
 
+        with open("Distance.log", "a") as DistanceLogFile:
+            DistanceLogFile.write( "node.Id" + "\t" + "node.X" + "\t" + "node.Y" + "\t" + "node.Z" + "\t" + "distance" + "\n" )
+        
+        with open("DistanceGradient.log", "a") as DistanceGradLogFile:
+            DistanceGradLogFile.write( "node.Id" + "\t" + "node.X" + "\t" + "node.Y" + "\t" + "node.Z" + "\t" + "gradX" + "\t" +  "gradY" + "\t" +  "gradZ" + "\n" )
+
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
