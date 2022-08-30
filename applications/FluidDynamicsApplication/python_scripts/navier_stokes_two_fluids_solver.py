@@ -455,6 +455,18 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 print("Writing Reinitialized Levelset: Started")
                 print(time.time())
 
+                with open("Distance.log", "a") as DistanceLogFile, open("DistanceGradient.log", "a") as DistanceGradLogFile:
+                    DistanceLogFile.write( "\n" + str(TimeStep*DT) + "\n" )
+                    DistanceGradLogFile.write( "\n" + str(TimeStep*DT) + "\n" )
+                    for node in self.main_model_part.Nodes:
+                        dist = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
+                        if (dist > -0.1 and dist < 0.1):
+                            DistanceLogFile.write( str(node.Id) + "\t" + str(node.X) + "\t" + str(node.Y) + "\t" + str(node.Z) + "\t" + str(dist) + "\n" )
+                            gradX = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X)
+                            gradY = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y)
+                            gradZ = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Z)
+                            DistanceGradLogFile.write( str(node.Id) + "\t" + str(node.X) + "\t" + str(node.Y) + "\t" + str(node.Z) + "\t" +  str(gradX) + "\t" +  str(gradY) + "\t" +  str(gradZ) + "\n" )
+
                 self.manual_output.ExecuteInitializeSolutionStep()
                 #if self.manual_output.IsOutputStep(): #Not needed, manually controlled here!!?
                 self.manual_output.PrintOutput()
