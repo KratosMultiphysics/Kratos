@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - master
-    paths-ignore:
+    paths-ignore: # this must be the same as .github/workflows/ci_dummy.yml - "paths" !
       - '**.md'
       - '/documents/**'
 
