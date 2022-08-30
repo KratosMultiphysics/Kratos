@@ -158,6 +158,7 @@ namespace Kratos
     mContactParamsWall.clear();
 
     // Initialze accumulated energy dissipations
+    mThermalGenerationEnergy    = 0.0;
     mPreviousViscodampingEnergy = 0.0;
     mPreviousFrictionalEnergy   = 0.0;
     mPreviousRollResistEnergy   = 0.0;
@@ -316,8 +317,10 @@ namespace Kratos
 
     // Heat generation
     // ASSUMPTION: Heat is generated even when neighbor is adiabatic
-    if (r_process_info[HEAT_GENERATION_OPTION] && mHasMotion)
+    if (r_process_info[HEAT_GENERATION_OPTION] && mHasMotion) {
       mGenerationHeatFlux += GetGenerationModel().ComputeHeatGeneration(r_process_info, this);
+      mThermalGenerationEnergy += mGenerationHeatFlux * mNumStepsEval * r_process_info[DELTA_TIME];
+    }
 
     // Check if neighbor is adiabatic
     if (CheckAdiabaticNeighbor())

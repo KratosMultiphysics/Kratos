@@ -233,6 +233,7 @@ namespace Kratos
       double mTotalHeatFlux;
 
       // Energy properties
+      double mThermalGenerationEnergy;    // accumulated thermal energy generated due to mechanical dissipation
       double mPreviousViscodampingEnergy; // accumulated viscodamping energy dissipation from previous interaction
       double mPreviousFrictionalEnergy;   // accumulated frictional energy dissipation from previous interaction
       double mPreviousRollResistEnergy;   // accumulated rolling resistance energy dissipation from previous step

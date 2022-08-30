@@ -90,7 +90,7 @@ namespace Kratos {
     if (mGraph_ParticleEnergyContributions) {
       mFile_ParticleEnergyContributions.open("graph_energy_contributions.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleEnergyContributions) << "Could not open graph file for energy contributions!" << std::endl;
-      mFile_ParticleEnergyContributions << "1 - TIME STEP | 2 - TIME | 3 - GRAVITATIONAL | 4 - ELASTIC | 5 - KINETIC TRANSLATION | 6 - KINETIC ROTATION | 7 - TOTAL | 8 - ACCUMULATED DISSIP FRICTION | 9 - ACCUMULATED DISSIP ROLL | 10 - ACCUMULATED DISSIP DAMPING | 11 - TOTAL DISSIP | 12 - TOTAL ENERGY + DISSIP" << std::endl;
+      mFile_ParticleEnergyContributions << "1 - TIME STEP | 2 - TIME | 3 - GRAVITATIONAL | 4 - ELASTIC | 5 - KINETIC TRANSLATION | 6 - KINETIC ROTATION | 7 - TOTAL ENERGY | 8 - ACCUMULATED DISSIP FRICTION | 9 - ACCUMULATED DISSIP ROLL | 10 - ACCUMULATED DISSIP DAMPING | 11 - TOTAL ACCUMULATED DISSIP | 12 - ACCUMULATED THERMAL GENERATION | 13 - TOTAL ENERGY + ACCUMULATED DISSIP" << std::endl;
     }
 
     KRATOS_CATCH("")
@@ -137,6 +137,7 @@ namespace Kratos {
     double    total_accum_energy_dissip_roll      =  0.0;
     double    total_accum_energy_dissip_damp      =  0.0;
     double    total_accum_energy_dissip           =  0.0;
+    double    total_accum_thermal_generation      =  0.0;
 
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < num_of_particles; i++) {
@@ -153,6 +154,7 @@ namespace Kratos {
       double accum_energy_dissip_slid   = 0.0;
       double accum_energy_dissip_roll   = 0.0;
       double accum_energy_dissip_damp   = 0.0;
+      double accum_thermal_generation   = particle.mThermalGenerationEnergy;
       particle.Calculate(PARTICLE_GRAVITATIONAL_ENERGY,           energy_potential_gravity,   r_process_info);
       particle.Calculate(PARTICLE_ELASTIC_ENERGY,                 energy_potential_elastic,   r_process_info);
       particle.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY, energy_kinetic_translation, r_process_info);
@@ -178,6 +180,7 @@ namespace Kratos {
         total_accum_energy_dissip_roll   += accum_energy_dissip_roll;
         total_accum_energy_dissip_damp   += accum_energy_dissip_damp;
         total_accum_energy_dissip        += accum_energy_dissip_slid + accum_energy_dissip_roll + accum_energy_dissip_damp;
+        total_accum_thermal_generation   += accum_thermal_generation;
       }
 
       if (mGraph_ParticleHeatFluxContributions) {
@@ -328,6 +331,7 @@ namespace Kratos {
                                         << total_accum_energy_dissip_roll   << " "
                                         << total_accum_energy_dissip_damp   << " "
                                         << total_accum_energy_dissip        << " "
+                                        << total_accum_thermal_generation   << " "
                                         << total_energy+total_accum_energy_dissip
                                         << std::endl;
 
