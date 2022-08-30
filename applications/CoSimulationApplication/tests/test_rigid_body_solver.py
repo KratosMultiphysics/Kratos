@@ -1702,12 +1702,6 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
 
     def test_CreateListOfProcesses(self):
         Parameters = KM.Parameters('''{
-            "problem_data": {
-                "problem_name": "RigidBodyStandalone",
-                "start_time": 0.1,
-                "end_time": 1.23,
-                "echo_level" : 0
-            },
             "output_processes": [
                 {
                     "python_module" : "point_output_process",
@@ -1947,8 +1941,107 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
 
 
     def test_CreateListOfOutputProcesses(self):
-        pass
+        Parameters = KM.Parameters('''{
+            "output_processes": [
+                {
+                    "python_module" : "point_output_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"  : "PointOutputProcess",
+                    "Parameters": {
+                        "model_part_name"  : "Main.RigidBody",
+                        "entity_type"      : "node",
+                        "interval"         : [0.0, "End"],
+                        "position"         : [0, 0, 0],
+                        "output_variables" : ["DISPLACEMENT", "ROTATION", "VELOCITY", "ANGULAR_VELOCITY", "ACCELERATION", "ANGULAR_ACCELERATION"],
+                        "output_file_settings": {
+                            "file_name": "RigidBody",
+                            "output_path": "results/RBS1"
+                        }
+                    }
+                },
+                {
+                    "python_module" : "point_output_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"  : "PointOutputProcess",
+                    "Parameters": {
+                        "model_part_name"  : "Main.RootPoint",
+                        "entity_type"      : "node",
+                        "interval"         : [0.0, "End"],
+                        "position"         : [0, 0, 0],
+                        "output_variables" : ["REACTION", "REACTION_MOMENT"],
+                        "output_file_settings": {
+                            "file_name": "RootPoint",
+                            "output_path": "results/RBS1"
+                        }
+                    }
+                }
+            ],
+            "processes": {
+                "gravity": [
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "BODY_FORCE_Y",
+                            "is_fixed": true,
+                            "value": -981
+                        }
+                    }
+                ],
+                "initial_conditions_process_list": [
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "DISPLACEMENT_X",
+                            "value": 1
+                        }
+                    }
+                ],
+                "boundary_conditions_process_list": [
+                    {
+                        "python_module" : "assign_vector_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name" : "Main.RigidBody",
+                            "variable_name"   : "PRESCRIBED_FORCE",
+                            "interval"        : [0, "End"],
+                            "constrained"     : [false,false,false],
+                            "value"           : ["5*sin((5+2*t)*t)", "3*sin((5+2*t)*t)", "2*sin((5+2*t)*t)"]
+                        }
+                    }
+                ],
+                "auxiliar_process_list": [
+                    {
+                        "python_module"   : "json_output_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "help"                  : "",
+                        "process_name"          : "JsonOutputProcess",
+                        "Parameters"            : {
+                            "output_variables" : [
+                                "DISPLACEMENT_X",
+                                "DISPLACEMENT_Y",
+                                "DISPLACEMENT_Z"
+                            ],
+                            "output_file_name" : "rbs_test/RBS_standalone/RBS_standalone_test_result.json",
+                            "model_part_name"  : "Main.RigidBody",
+                            "time_frequency"   : 0.01
+                        }
+                    }
+                ]
+            }
+        }''')
+        Parameters.RecursivelyAddMissingParameters(self.default_parameters)
 
+        # Without restart (2 processes)
+        list_of_processes = input_check._CreateListOfOutputProcesses(self.model, Parameters)
+        self.assertEqual(2, len(list_of_processes))
+        
 
 if __name__ == '__main__':
     KratosUnittest.main()
