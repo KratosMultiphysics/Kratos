@@ -10,8 +10,8 @@
 //  Main authors:    Ariadna Cortés
 //
 
-#if !defined(KRATOS_SIMPLE_TO_QUADRATIC_TETRAHEDRA_MESH_CONVERTER_UTILITY)
-#define  KRATOS_SIMPLE_TO_QUADRATIC_TETRAHEDRA_MESH_CONVERTER_UTILITY
+#if !defined(KRATOS_LINEAR_TO_QUADRATIC_TETRAHEDRA_MESH_CONVERTER_UTILITY)
+#define  KRATOS_LINEAR_TO_QUADRATIC_TETRAHEDRA_MESH_CONVERTER_UTILITY
 
 // System includes
 
@@ -36,7 +36,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class SimpleToQuadraticTetrahedraMeshConverter : public LocalRefineTetrahedraMesh
+class LinearToQuadraticTetrahedraMeshConverter : public LocalRefineTetrahedraMesh
 {
 public:
 
@@ -52,13 +52,13 @@ public:
     ///@{
 
     /// Default constructors
-    SimpleToQuadraticTetrahedraMeshConverter(ModelPart& ModelPart) : LocalRefineTetrahedraMesh(ModelPart)
+    LinearToQuadraticTetrahedraMeshConverter(ModelPart& ModelPart) : LocalRefineTetrahedraMesh(ModelPart)
     {
 
     }
 
     /// Destructor
-    ~SimpleToQuadraticTetrahedraMeshConverter() 
+    ~LinearToQuadraticTetrahedraMeshConverter() 
     = default;
 
     ///@}
@@ -76,7 +76,7 @@ public:
     * @param RefineOnReference: Boolean that defines if refine or not the mesh according to the reference
     * @param InterpolateInternalVariables: Boolean that defines if to interpolate or not the internal variables
     */
-    void LocalConvertSimpleToQuadraticTetrahedraMesh(
+    void LocalConvertLinearToQuadraticTetrahedraMesh(
         bool RefineOnReference, 
         bool InterpolateInternalVariables) 
     {
@@ -340,8 +340,8 @@ private:
     ///@{
     ///@}
 
-}; // Class SimpleToQuadraticTetrahedraMeshConverter
+}; // Class LinearToQuadraticTetrahedraMeshConverter
 
 } // namespace Kratos.
 
-#endif // KRATOS_SIMPLE_TO_QUADRATIC_TETRAHEDRA_MESH_CONVERTER_UTILITY  defined
+#endif // KRATOS_LINEAR_TO_QUADRATIC_TETRAHEDRA_MESH_CONVERTER_UTILITY  defined

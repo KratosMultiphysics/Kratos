@@ -16,7 +16,7 @@
 #include "includes/checks.h"
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "custom_utilities/simple_to_quadratic_tetrahedra_mesh_converter_utility.h"
+#include "custom_utilities/linear_to_quadratic_tetrahedra_mesh_converter_utility.h"
 
 
 namespace Kratos {
@@ -49,7 +49,7 @@ namespace {
     }
 } //unnamed namespace
 
-    KRATOS_TEST_CASE_IN_SUITE(SimpleToQuadraticTetrahedraMeshConverter, KratosMeshingApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(LinearToQuadraticTetrahedraMeshConverter, KratosMeshingApplicationFastSuite)
     {
         Model MyModel;
         ModelPart& modelpart = MyModel.CreateModelPart("Tetrahedras"); 
@@ -83,8 +83,8 @@ namespace {
         GeometryPtrType geom3 = cond1->pGetGeometry();
         volumes[cond1->Id()] = geom3->Area(); 
 
-        SimpleToQuadraticTetrahedraMeshConverter refineTetra(modelpart); 
-        refineTetra.LocalConvertSimpleToQuadraticTetrahedraMesh(false,false);
+        LinearToQuadraticTetrahedraMeshConverter refineTetra(modelpart); 
+        refineTetra.LocalConvertLinearToQuadraticTetrahedraMesh(false,false);
 
         KRATOS_CHECK_EQUAL(modelpart.Nodes().size(),14); //There are 14 nodes (10 for each tetra but 6 are shared)
         KRATOS_CHECK_EQUAL(subMp0.Nodes().size(),14); //Also in the first level submodelpart
