@@ -36,7 +36,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class LinearToQuadraticTetrahedraMeshConverter : public LocalRefineTetrahedraMesh
+class KRATOS_API(MESHING_APPLICATION) LinearToQuadraticTetrahedraMeshConverter : public LocalRefineTetrahedraMesh
 {
 public:
 
@@ -49,7 +49,7 @@ public:
     typedef GeometryType::Pointer GeometryPtrType;
 
      /// Pointer definition of VoxelInsideVolume
-    KRATOS_CLASS_POINTER_DEFINITION( SimpleToQuadraticTetrahedraMeshConverter );
+    KRATOS_CLASS_POINTER_DEFINITION( LinearToQuadraticTetrahedraMeshConverter );
 
     ///@name Life Cycle
     ///@{
