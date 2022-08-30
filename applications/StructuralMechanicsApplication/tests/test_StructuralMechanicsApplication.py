@@ -18,6 +18,7 @@ has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("
 from test_constitutive_law import TestConstitutiveLaw as TTestConstitutiveLaw
 # Processes test
 from test_mass_calculation import TestMassCalculation as TTestMassCalculation
+from structural_mechanics_test_factory import AutomatedInitialVariableProcessTest as TAutomatedInitialVariableProcessTest
 from test_compute_center_of_gravity import TestComputeCenterOfGravity as TTestComputeCenterOfGravity
 from test_compute_mass_moment_of_inertia import TestComputeMassMomentOfInertia as TTestComputeMassMomentOfInertia
 from test_axis_projection import TestAxisProjection as TTestAxisProjection
@@ -262,6 +263,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TInitialStateElasticityTest('test_execution'))
     nightSuite.addTest(TInitialStrainShellQ4ThickTest('test_execution'))
     # Mass calculation tests
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TAutomatedInitialVariableProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeCenterOfGravity]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeMassMomentOfInertia]))
