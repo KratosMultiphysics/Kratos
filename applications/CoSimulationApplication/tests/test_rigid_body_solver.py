@@ -1701,7 +1701,249 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
 
 
     def test_CreateListOfProcesses(self):
-        pass
+        Parameters = KM.Parameters('''{
+            "problem_data": {
+                "problem_name": "RigidBodyStandalone",
+                "start_time": 0.1,
+                "end_time": 1.23,
+                "echo_level" : 0
+            },
+            "output_processes": [
+                {
+                    "python_module" : "point_output_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"  : "PointOutputProcess",
+                    "Parameters": {
+                        "model_part_name"  : "Main.RigidBody",
+                        "entity_type"      : "node",
+                        "interval"         : [0.0, "End"],
+                        "position"         : [0, 0, 0],
+                        "output_variables" : ["DISPLACEMENT", "ROTATION", "VELOCITY", "ANGULAR_VELOCITY", "ACCELERATION", "ANGULAR_ACCELERATION"],
+                        "output_file_settings": {
+                            "file_name": "RigidBody",
+                            "output_path": "results/RBS1"
+                        }
+                    }
+                }
+            ],
+            "processes": {
+                "gravity": [
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "BODY_FORCE_Y",
+                            "is_fixed": true,
+                            "value": -981
+                        }
+                    },
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "BODY_MOMENT_Y",
+                            "is_fixed": true,
+                            "value": -98.1
+                        }
+                    }
+                ],
+                "initial_conditions_process_list": [
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "DISPLACEMENT_X",
+                            "value": 1
+                        }
+                    },
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "ACCELERATION_X",
+                            "value": -400
+                        }
+                    },
+                    {
+                        "python_module": "process_factory",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "ApplyConstantScalarValueProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "ANGULAR_VELOCITY_Z",
+                            "value": -10
+                        }
+                    }
+                ],
+                "boundary_conditions_process_list": [
+                    {
+                        "python_module" : "assign_vector_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name" : "Main.RigidBody",
+                            "variable_name"   : "PRESCRIBED_FORCE",
+                            "interval"        : [0, "End"],
+                            "constrained"     : [false,false,false],
+                            "value"           : ["5*sin((5+2*t)*t)", "3*sin((5+2*t)*t)", "2*sin((5+2*t)*t)"]
+                        }
+                    },
+                    {
+                        "python_module" : "assign_vector_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name" : "Main.RigidBody",
+                            "variable_name"   : "FORCE",
+                            "interval"        : [0, "End"],
+                            "constrained"     : [false,false,false],
+                            "value"           : ["5", "3", "2"]
+                        }
+                    },
+                    {
+                        "python_module" : "assign_vector_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name" : "Main.RigidBody",
+                            "variable_name"   : "MOMENT",
+                            "interval"        : [0, "End"],
+                            "constrained"     : [false,false,false],
+                            "value"           : ["4", "3", "5"]
+                        }
+                    },
+                    {
+                        "python_module": "assign_vector_variable_process",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RootPoint",
+                            "variable_name": "PRESCRIBED_DISPLACEMENT",
+                            "interval": [
+                                0,
+                                "End"
+                            ],
+                            "constrained": [
+                                false,
+                                false,
+                                false
+                            ],
+                            "value": [
+                                "0.05*sin(20*t)",
+                                "0.05*sin(10*t)",
+                                "0.05*sin(5*t)"
+                            ]
+                        }
+                    },
+                    {
+                        "python_module": "assign_vector_variable_process",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RootPoint",
+                            "variable_name": "PRESCRIBED_ROTATION",
+                            "interval": [
+                                0,
+                                "End"
+                            ],
+                            "constrained": [
+                                false,
+                                false,
+                                false
+                            ],
+                            "value": [
+                                "0.05*sin(6*t)",
+                                "0.05*sin(8*t)",
+                                "0.05*sin(13*t)"
+                            ]
+                        }
+                    },
+                    {
+                        "python_module": "assign_vector_variable_process",
+                        "kratos_module": "KratosMultiphysics",
+                        "process_name": "AssignVectorVariableProcess",
+                        "Parameters": {
+                            "model_part_name": "Main.RigidBody",
+                            "variable_name": "PRESCRIBED_MOMENT",
+                            "interval": [
+                                0,
+                                "End"
+                            ],
+                            "constrained": [
+                                false,
+                                false,
+                                false
+                            ],
+                            "value": [
+                                "100*sin(4*t)",
+                                "100*sin(3*t)",
+                                "100*sin(10*t)"
+                            ]
+                        }
+                    }
+                ],
+                "auxiliar_process_list": [
+                    {
+                        "python_module"   : "json_output_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "help"                  : "",
+                        "process_name"          : "JsonOutputProcess",
+                        "Parameters"            : {
+                            "output_variables" : [
+                                "DISPLACEMENT_X",
+                                "DISPLACEMENT_Y",
+                                "DISPLACEMENT_Z"
+                            ],
+                            "output_file_name" : "rbs_test/RBS_standalone/RBS_standalone_test_result.json",
+                            "model_part_name"  : "Main.RigidBody",
+                            "time_frequency"   : 0.01
+                        }
+                    }
+                ]
+            }
+        }''')
+        Parameters.RecursivelyAddMissingParameters(self.default_parameters)
+        main_model_part = self.model.CreateModelPart("Main")
+        rigid_body_model_part = main_model_part.CreateSubModelPart("RigidBody")
+        root_point_model_part = main_model_part.CreateSubModelPart("RootPoint")
+
+        main_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+        main_model_part.AddNodalSolutionStepVariable(KM.ROTATION)
+        main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+        main_model_part.AddNodalSolutionStepVariable(KM.ANGULAR_VELOCITY)
+        main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
+        main_model_part.AddNodalSolutionStepVariable(KM.ANGULAR_ACCELERATION)
+
+        rigid_body_model_part.AddNodalSolutionStepVariable(KM.FORCE)
+        rigid_body_model_part.AddNodalSolutionStepVariable(KM.MOMENT)
+        rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_FORCE)
+        rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_MOMENT)
+        rigid_body_model_part.AddNodalSolutionStepVariable(KMC.EFFECTIVE_FORCE)
+        rigid_body_model_part.AddNodalSolutionStepVariable(KMC.EFFECTIVE_MOMENT)
+        rigid_body_model_part.AddNodalSolutionStepVariable(KM.BODY_FORCE)
+        rigid_body_model_part.AddNodalSolutionStepVariable(KM.BODY_MOMENT)
+
+        root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION)
+        root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION_MOMENT)
+        root_point_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_DISPLACEMENT)
+        root_point_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_ROTATION)
+
+        # Without restart (12 processes)
+        list_of_processes = input_check._CreateListOfProcesses(self.model, Parameters, main_model_part)
+        self.assertEqual(12, len(list_of_processes))
+        
+        # With restart (9 processes) where initial_conditions_process_list supposed to be ignored
+        main_model_part.ProcessInfo[KM.IS_RESTARTED] = True
+        list_of_processes = input_check._CreateListOfProcesses(self.model, Parameters, main_model_part)
+        self.assertEqual(9, len(list_of_processes))
 
 
     def test_CreateListOfOutputProcesses(self):
