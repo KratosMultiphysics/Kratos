@@ -73,7 +73,7 @@ public:
     - GI_GAUSS_4 gaussian integration with order 4.
     - GI_GAUSS_5 gaussian integration with order 5.
     */
-    enum IntegrationMethod {
+    enum class IntegrationMethod {
         GI_GAUSS_1,
         GI_GAUSS_2,
         GI_GAUSS_3,
@@ -84,10 +84,10 @@ public:
         GI_EXTENDED_GAUSS_3,
         GI_EXTENDED_GAUSS_4,
         GI_EXTENDED_GAUSS_5,
-        NumberOfIntegrationMethods
+        NumberOfIntegrationMethods // Note that this entry needs to be always the last to be used as integration methods counter
     };
 
-    enum KratosGeometryFamily
+    enum class KratosGeometryFamily
     {
         Kratos_NoElement,
         Kratos_Point,
@@ -97,10 +97,16 @@ public:
         Kratos_Tetrahedra,
         Kratos_Hexahedra,
         Kratos_Prism,
-        Kratos_generic_family
+        Kratos_Pyramid,
+        Kratos_Nurbs,
+        Kratos_Brep,
+        Kratos_Quadrature_Geometry,
+        Kratos_Composite,
+        Kratos_generic_family,
+        NumberOfGeometryFamilies // Note that this entry needs to be always the last to be used as geometry families counter
     };
 
-    enum KratosGeometryType
+    enum class KratosGeometryType
     {
         Kratos_generic_type,
         Kratos_Hexahedra3D20,
@@ -108,6 +114,8 @@ public:
         Kratos_Hexahedra3D8,
         Kratos_Prism3D15,
         Kratos_Prism3D6,
+        Kratos_Pyramid3D13,
+        Kratos_Pyramid3D5,
         Kratos_Quadrilateral2D4,
         Kratos_Quadrilateral2D8,
         Kratos_Quadrilateral2D9,
@@ -126,10 +134,21 @@ public:
         Kratos_Line3D3,
         Kratos_Point2D,
         Kratos_Point3D,
-        Kratos_Sphere3D1
+        Kratos_Sphere3D1,
+        Kratos_Nurbs_Curve,
+        Kratos_Nurbs_Surface,
+        Kratos_Nurbs_Volume,
+        Kratos_Nurbs_Curve_On_Surface,
+        Kratos_Surface_In_Nurbs_Volume,
+        Kratos_Brep_Curve,
+        Kratos_Brep_Surface,
+        Kratos_Brep_Curve_On_Surface,
+        Kratos_Quadrature_Point_Geometry,
+        Kratos_Coupling_Geometry,
+        Kratos_Quadrature_Point_Curve_On_Surface_Geometry,
+        Kratos_Quadrature_Point_Surface_In_Volume_Geometry,
+        NumberOfGeometryTypes // Note that this entry needs to be always the last to be used as geometry types counter
     };
-
-
     ///@}
     ///@name Type Definitions
     ///@{
@@ -277,7 +296,7 @@ public:
     * Constructor which has a precomputed shape function container.
     * @param pThisGeometryDimension pointer to the dimensional data
     * @param ThisGeometryShapeFunctionContainer including the evaluated
-    *        values for the shape functions, it's derivatives and the 
+    *        values for the shape functions, it's derivatives and the
     *        integration points.
     */
     GeometryData(GeometryDimension const *pThisGeometryDimension,
@@ -318,6 +337,23 @@ public:
     void SetGeometryDimension(GeometryDimension const* pGeometryDimension)
     {
         mpGeometryDimension = pGeometryDimension;
+    }
+
+    ///@}
+    ///@name Geometry Shape Function Container
+    ///@{
+
+    /// SetGeometryShapeFunctionContainer updates the GeometryShapeFunctionContainer.
+    void SetGeometryShapeFunctionContainer(
+        const GeometryShapeFunctionContainer<IntegrationMethod>& rGeometryShapeFunctionContainer)
+    {
+        mGeometryShapeFunctionContainer = rGeometryShapeFunctionContainer;
+    }
+
+    /// Returns the GeometryShapeFunctionContainer.
+    const GeometryShapeFunctionContainer<IntegrationMethod>& GetGeometryShapeFunctionContainer() const
+    {
+        return mGeometryShapeFunctionContainer;
     }
 
     ///@}
@@ -776,5 +812,3 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_GEOMETRY_DATA_H_INCLUDED  defined
-
-

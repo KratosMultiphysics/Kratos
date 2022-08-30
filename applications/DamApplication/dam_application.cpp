@@ -180,6 +180,11 @@ void KratosDamApplication::Register()
     Serializer::Register("ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw",mThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw);
     Serializer::Register("ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw",mThermalModifiedMisesNonlocalDamagePlaneStress2DLaw);
 
+    Serializer::Register("JointCohesionDriven3DLaw",mJointCohesionDriven3DLaw);
+    Serializer::Register("JointCohesionDriven2DLaw",mJointCohesionDriven2DLaw);
+    Serializer::Register("JointStressDriven3DLaw",mJointStressDriven3DLaw);
+    Serializer::Register("JointStressDriven2DLaw",mJointStressDriven2DLaw);
+
     //Register Variables
     KRATOS_REGISTER_VARIABLE( TIME_UNIT_CONVERTER )
     KRATOS_REGISTER_VARIABLE( THERMAL_EXPANSION )
@@ -217,6 +222,11 @@ void KratosDamApplication::Register()
     //From Solid
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FORCE_LOAD)
     KRATOS_REGISTER_VARIABLE(COMPUTE_CONSISTENT_MASS_MATRIX)
+
+    // Joints
+    KRATOS_REGISTER_VARIABLE( MAX_COMPRESSIVE_STRESS )
+    KRATOS_REGISTER_VARIABLE( MAX_TENSILE_STRESS )
+    KRATOS_REGISTER_VARIABLE( COHESION )
 }
 
 }// namespace Kratos.

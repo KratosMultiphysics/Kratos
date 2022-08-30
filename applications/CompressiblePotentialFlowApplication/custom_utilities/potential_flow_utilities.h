@@ -16,23 +16,43 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/ublas_interface.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
-    class Element; // forward-declaring to not having to include it here
-    class ProcessInfo; // forward-declaring to not having to include it here
-    class ModelPart; // forward-declaring to not having to include it here
+    // forward-declaring
+    class Element;
+    class ProcessInfo;
+    class ModelPart;
+    template< class TDataType >
+    class GlobalPointersVector;
+    template< class TDataType >
+    class Dof;
+    template< std::size_t TDimension, class TDofType >
+    class Node;
+    template< class TPointType >
+    class Geometry;
 
 namespace PotentialFlowUtilities
 {
 template <unsigned int TNumNodes, unsigned int TDim>
-struct ElementalData{
+struct ElementalData
+{
+    template<typename TGeometryType>
+    ElementalData(const TGeometryType& rGeometry)
+    {
+        GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, vol);
+    }
+
     array_1d<double, TNumNodes> potentials, distances;
     double vol;
 
     BoundedMatrix<double, TNumNodes, TDim> DN_DX;
     array_1d<double, TNumNodes> N;
 };
+
+typedef Node < 3, Dof<double> > NodeType;
+typedef Geometry<NodeType> GeometryType;
 
 template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetWakeDistances(const Element& rElement);
@@ -65,6 +85,23 @@ template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocity(const Element& rElement);
 
 template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputePerturbedVelocity(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputePerturbedVelocityLowerElement(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo);
+
+double ComputeVacuumVelocitySquared(const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeClampedVelocitySquared(const array_1d<double, Dim>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeVelocityMagnitude(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
 double ComputeIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
@@ -80,13 +117,61 @@ template <int Dim, int NumNodes>
 double ComputeLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
+double ComputeLocalSpeedofSoundSquared(const array_1d<double, Dim>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeSquaredSpeedofSoundFactor(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
 double ComputePerturbationLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
 double ComputeLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
+double ComputeLocalMachNumberSquared(const array_1d<double, Dim>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeDerivativeLocalMachSquaredWRTVelocitySquared(const array_1d<double, Dim>& rVelocity, const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
 double ComputePerturbationLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeUpwindFactor(double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double SelectMaxUpwindFactor(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+size_t ComputeUpwindFactorCase(array_1d<double, 3>& rUpwindFactorOptions);
+
+template <int Dim, int NumNodes>
+double ComputeUpwindFactorDerivativeWRTMachSquared(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeUpwindFactorDerivativeWRTVelocitySquared(const array_1d<double, Dim>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeDensity(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeUpwindedDensity(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeDensityDerivativeWRTVelocitySquared(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating(const array_1d<double, Dim>& rCurrentVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating(const array_1d<double, Dim>& rUpwindVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
@@ -98,6 +183,43 @@ void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const do
 
 template <int Dim, int NumNodes>
 bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+
+template <int Dim, int NumNodes>
+void GetSortedIds(std::vector<size_t>& Ids, const GeometryType& rGeom);
+
+template <int Dim, int NumNodes>
+void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
+
+template<int Dim>
+Vector ComputeKuttaNormal(const double angle);
+
+template <class TContainerType>
+double CalculateArea(TContainerType& rContainer);
+
+template <int Dim, int NumNodes>
+void ComputePotentialJump(ModelPart& rWakeModelPart);
+
+template <int Dim, int NumNodes>
+void AddKuttaConditionPenaltyTerm(const Element& rElement,
+                              Matrix& rLeftHandSideMatrix,
+                              Vector& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+void AddKuttaConditionPenaltyPerturbationRHS(const Element& rElement,
+                              Vector& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+void AddKuttaConditionPenaltyPerturbationLHS(const Element& rElement,
+                              Matrix& rLeftHandSideMatrix,
+                              const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+void AddPotentialGradientStabilizationTerm(Element& rElement,
+                              Matrix& rLeftHandSideMatrix,
+                              Vector& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo);
 
 } // namespace PotentialFlow
 } // namespace Kratos

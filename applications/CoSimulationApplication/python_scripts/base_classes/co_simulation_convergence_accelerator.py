@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -7,16 +5,16 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
-class CoSimulationConvergenceAccelerator(object):
+class CoSimulationConvergenceAccelerator:
     """Baseclass for the convergence acceleratos used for CoSimulation
     Relaxes the solution to increase the speed of convergence in a (strongly) coupled simulation
 
-    Note that the interface matches the convergence accelerators in the FSIApplication such that they can be used interchangeable
-    ("FSIApplication/custom_utilities/convergence_accelerator.hpp")
+    Note that the interface matches the convergence accelerators in the KratosCore such that they can be used interchangeable
+    ("kratos/solving_strategies/convergence_accelerators/convergence_accelerator.h")
     """
     def __init__(self, settings):
         self.settings = settings
-        self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
+        self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultParameters())
 
         self.echo_level = self.settings["echo_level"].GetInt()
 
@@ -45,7 +43,7 @@ class CoSimulationConvergenceAccelerator(object):
         cs_tools.cs_print_info("Convergence Accelerator", colors.bold(self._ClassName()))
 
     def Check(self):
-        print("ConvAcc does not yet implement Check")
+        cs_tools.cs_print_warning("Convergence Accelerator", "The convergence accelerators do not yet implement Check!")
 
     def UpdateSolution(self, residual, iteration_guess):
         # TODO this should update the solution in place, otherwise not compatible with the conv-acc in the FSI-App
@@ -61,7 +59,7 @@ class CoSimulationConvergenceAccelerator(object):
         return cls.__name__
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         return KM.Parameters("""{
             "type"       : "UNSPECIFIED",
             "echo_level" : 0

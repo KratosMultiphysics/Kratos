@@ -1,17 +1,28 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as romapp
 import KratosMultiphysics.StructuralMechanicsApplication
+from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom as solver_wrapper
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 import json
+import numpy as np
 
 class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
 
-    def __init__(self,model,project_parameters):
-        super(StructuralMechanicsAnalysisROM,self).__init__(model,project_parameters)
+    def __init__(self,model,project_parameters, hyper_reduction_element_selector = None):
+        KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[DEPRECATED CLASS] \x1b[0m',"\'StructuralMechanicsAnalysisROM\'", "class is deprecated. Use the \'RomAnalysis\' one instead.")
+        super().__init__(model,project_parameters)
+        if hyper_reduction_element_selector != None :
+            if hyper_reduction_element_selector == "EmpiricalCubature":
+                self.hyper_reduction_element_selector = EmpiricalCubatureMethod()
+                self.time_step_residual_matrix_container = []
+            else:
+                err_msg =  "The requested element selection method \"" + hyper_reduction_element_selector + "\" is not in the rom application\n"
+                err_msg += "Available options are: \"EmpiricalCubature\""
+                raise Exception(err_msg)
+        else:
+            self.hyper_reduction_element_selector = None
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -25,9 +36,9 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
     def _GetSimulationName(self):
         return "::[ROM Simulation]:: "
 
-    def ModifyInitialGeometry(self):
-        """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node"""
-        super(StructuralMechanicsAnalysisROM,self).ModifyInitialGeometry()
+    def ModifyAfterSolverInitialize(self):
+        """Here is where the ROM_BASIS is imposed to each node"""
+        super().ModifyAfterSolverInitialize()
         computing_model_part = self._solver.GetComputingModelPart()
         with open('RomParameters.json') as f:
             data = json.load(f)
@@ -42,8 +53,25 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
                     for i in range(rom_dofs):
                         aux[j,i] = nodal_modes[Counter][j][i]
                 node.SetValue(romapp.ROM_BASIS, aux ) # ROM basis
-                node.SetValue(romapp.AUX_ID, counter) # Aux ID
                 counter+=1
+        if self.hyper_reduction_element_selector != None:
+            if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
+                self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], self._GetSolver()._GetScheme())
 
+    def FinalizeSolutionStep(self):
+        if self.hyper_reduction_element_selector != None:
+            if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
+                print('\n\n\n\nGenerating matrix of residuals')
+                ResMat = self.ResidualUtilityObject.GetResiduals()
+                NP_ResMat = np.array(ResMat, copy=False)
+                self.time_step_residual_matrix_container.append(NP_ResMat)
+        super().FinalizeSolutionStep()
 
-
+    def Finalize(self):
+        super().Finalize()
+        if self.hyper_reduction_element_selector != None:
+            if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
+                OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()
+                ModelPartName = self._GetSolver().settings["model_import_settings"]["input_filename"].GetString()
+                self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container, OriginalNumberOfElements, ModelPartName)
+                self.hyper_reduction_element_selector.Run()

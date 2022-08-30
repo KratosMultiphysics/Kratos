@@ -47,7 +47,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class MCYieldCriterion
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MCYieldCriterion
     : public ParticleYieldCriterion
 {
 public:

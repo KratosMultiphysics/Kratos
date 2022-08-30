@@ -190,7 +190,7 @@ protected:
      * @param rContainer the container which is beging output
      */
     template<typename TContainerType>
-    unsigned int DetermineVtkCellListSize(const TContainerType& rContainer) const;
+    std::size_t DetermineVtkCellListSize(const TContainerType& rContainer) const;
 
     /**
      * @brief Write the element/condition WriteConnectivity provided the container they are in
@@ -433,7 +433,7 @@ protected:
     {
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
             for (const auto& r_data_comp : rData) {
-                rFileStream << r_data_comp << " ";
+                rFileStream << float(r_data_comp) << " ";
             }
         } else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
             for (const auto& r_data_comp : rData ) {

@@ -19,7 +19,7 @@
 #include "processes/process.h"
 #include "fem_to_dem_application_variables.h"
 #include "custom_utilities/create_and_destroy.h"
-#include "processes/find_nodal_neighbours_process.h"
+#include "processes/find_global_nodal_neighbours_process.h"
 
 namespace Kratos {
 
@@ -27,7 +27,7 @@ typedef std::size_t SizeType;
 typedef Node<3> NodeType;
 typedef ModelPart::ElementsContainerType::iterator ElementIteratorType;
 
-class GenerateDemProcess : public Process 
+class GenerateDemProcess : public Process
 {
  public:
 
@@ -57,8 +57,8 @@ class GenerateDemProcess : public Process
     /**
      * @brief This creates one particle
      */
-  void CreateDEMParticle(const int Id, const array_1d<double, 3> Coordinates, 
-      const Properties::Pointer pProperties, const double Radius, NodeType& rNode); 
+  void CreateDEMParticle(const int Id, const array_1d<double, 3> Coordinates,
+      const Properties::Pointer pProperties, const double Radius, NodeType& rNode);
 
     /**
      * @brief This returns the min value of a vector
@@ -81,6 +81,7 @@ protected:
   ModelPart& mrModelPart;
   ModelPart& mrDEMModelPart;
   ParticleCreatorDestructor mParticleCreator = ParticleCreatorDestructor();
+  bool mIsDynamic = false;
 
 };  // Class
 

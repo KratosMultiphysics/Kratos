@@ -4,8 +4,6 @@
 # Some parts of the original fluid script have been kept practically untouched and are clearly marked.
 # Whenever a minor modification has been made on one of these parts, the corresponding line is indicated with a comment: # MOD.
 
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import sys
 
 # Kratos
@@ -15,7 +13,6 @@ import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.IncompressibleFluidApplication
 import KratosMultiphysics.DEMApplication
 import KratosMultiphysics.SwimmingDEMApplication
-import KratosMultiphysics.PfemApplication
 import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.PfemSolidMechanicsApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication

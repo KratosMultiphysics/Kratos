@@ -135,6 +135,13 @@ template<> struct SendTraits< Matrix >
     }
 };
 
+template<> struct SendTraits< Quaternion<double> >
+{
+    using SendType = double;
+    using BufferType = std::vector<SendType>;
+    constexpr static bool IsFixedSize = true;
+    constexpr static std::size_t BlockSize = 4;
+};
 
 template<typename TVectorValue> struct SendTraits< DenseVector<TVectorValue> >
 {
@@ -225,6 +232,31 @@ struct SendTools< Vector >: public DynamicArrayTypeTransfer<Vector> {};
 
 template<>
 struct SendTools< Matrix >: public DynamicArrayTypeTransfer<Matrix> {};
+
+// template<>
+// struct SendTools< Quaternion<double> >: public DirectCopyTransfer<Quaternion<double>> {};
+
+template<>
+struct SendTools< Quaternion<double> >
+{
+    using SendType = SendTraits< Quaternion<double> >::SendType;
+
+    static inline void WriteBuffer(const Quaternion<double>& rValue, SendType* pBuffer)
+    {
+        *(pBuffer) = rValue.X();
+        *(pBuffer + 1) = rValue.Y();
+        *(pBuffer + 2) = rValue.Z();
+        *(pBuffer + 3) = rValue.W();
+    }
+
+    static inline void ReadBuffer(const SendType* pBuffer, Quaternion<double>& rValue)
+    {
+        rValue.SetX(*(pBuffer));
+        rValue.SetY(*(pBuffer + 1));
+        rValue.SetZ(*(pBuffer + 2));
+        rValue.SetW(*(pBuffer + 3));
+    }
+};
 
 template<typename TVectorValue>
 struct SendTools< DenseVector<TVectorValue> >
@@ -551,6 +583,7 @@ enum class OperationType {
     Replace,
     SumValues,
     MinValues,
+    MaxValues,
     OrAccessedFlags,
     AndAccessedFlags,
     ReplaceAccessedFlags
@@ -669,7 +702,7 @@ public:
     ///@{
 
     /// Constructor using the VariablesList of the ModelPart that will use this communicator.
-    MPICommunicator(VariablesList* Variables_list) : BaseType(DataCommunicator::GetDefault()), mpVariables_list(Variables_list)
+    KRATOS_DEPRECATED_MESSAGE("This constructor is deprecated, please use the one that accepts a DataCommunicator") MPICommunicator(VariablesList* Variables_list) : BaseType(DataCommunicator::GetDefault()), mpVariables_list(Variables_list)
     {}
 
     /// Constructor using the VariablesList and a custom DataCommunicator.
@@ -679,7 +712,9 @@ public:
     MPICommunicator(VariablesList* pVariablesList, const DataCommunicator& rDataCommunicator)
     : BaseType(rDataCommunicator)
     , mpVariables_list(pVariablesList)
-    {}
+    {
+        KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Trying to create an MPICommunicator with a non-distributed DataCommunicator!" << std::endl;
+    }
 
     /// Copy constructor.
 
@@ -688,12 +723,7 @@ public:
     , mpVariables_list(rOther.mpVariables_list)
     {}
 
-
-
-    Communicator::Pointer Create() const override
-    {
-        return Create(DataCommunicator::GetDefault());
-    }
+    using BaseType::Create;
 
     Communicator::Pointer Create(const DataCommunicator& rDataCommunicator) const override
     {
@@ -814,6 +844,13 @@ public:
         return true;
     }
 
+    bool SynchronizeVariable(Variable<Quaternion<double>> const& rThisVariable) override
+    {
+        MPIInternals::NodalSolutionStepValueAccess<Quaternion<double>> solution_step_value_access(rThisVariable);
+        SynchronizeFixedSizeValues(solution_step_value_access);
+        return true;
+    }
+
     bool SynchronizeNonHistoricalVariable(Variable<int> const& rThisVariable) override
     {
         MPIInternals::NodalDataAccess<int> nodal_data_access(rThisVariable);
@@ -874,6 +911,47 @@ public:
     {
         MPIInternals::NodalDataAccess<Matrix> nodal_data_access(rThisVariable);
         SynchronizeDynamicMatrixValues(nodal_data_access);
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalVariable(Variable<Quaternion<double>> const& rThisVariable) override
+    {
+        MPIInternals::NodalDataAccess<Quaternion<double>> nodal_data_access(rThisVariable);
+        SynchronizeFixedSizeValues(nodal_data_access);
+        return true;
+    }
+
+    bool SynchronizeCurrentDataToMax(Variable<double> const& ThisVariable) override
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        constexpr Operation<OperationType::MaxValues> max;
+        MPIInternals::NodalSolutionStepValueAccess<double> nodal_solution_step_access(ThisVariable);
+
+        // Calculate max on owner rank
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_solution_step_access, max);
+
+        // Synchronize result on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_solution_step_access, replace);
+
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalDataToMax(Variable<double> const& ThisVariable) override
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        constexpr Operation<OperationType::MaxValues> max;
+        MPIInternals::NodalDataAccess<double> nodal_data_access(ThisVariable);
+
+        // Calculate max on owner rank
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_data_access, max);
+
+        // Synchronize result on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_data_access, replace);
+
         return true;
     }
 
@@ -1556,6 +1634,22 @@ private:
         ValueType recv_value(r_current); // creating by copy to have the correct size in dynamic types
         MPIInternals::SendTools<ValueType>::ReadBuffer(pBuffer, recv_value);
         r_current += recv_value;
+
+        return MPIInternals::BufferAllocation<TDatabaseAccess>::GetSendSize(recv_value);
+    }
+
+    template<class TDatabaseAccess>
+    std::size_t ReduceValues(
+        const typename TDatabaseAccess::SendType* pBuffer,
+        TDatabaseAccess& rAccess,
+        typename TDatabaseAccess::IteratorType ContainerIterator,
+        Operation<OperationType::MaxValues>)
+    {
+        using ValueType = typename TDatabaseAccess::ValueType;
+        ValueType& r_current = rAccess.GetValue(ContainerIterator);
+        ValueType recv_value(r_current); // creating by copy to have the correct size in dynamic types
+        MPIInternals::SendTools<ValueType>::ReadBuffer(pBuffer, recv_value);
+        if (recv_value > r_current) r_current = recv_value;
 
         return MPIInternals::BufferAllocation<TDatabaseAccess>::GetSendSize(recv_value);
     }

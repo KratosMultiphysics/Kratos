@@ -11,7 +11,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    RubinowAndKellerTorqueLaw::RubinowAndKellerTorqueLaw(Parameters& r_parameters)
+    RubinowAndKellerTorqueLaw::RubinowAndKellerTorqueLaw(Parameters r_parameters)
     {
 
     }

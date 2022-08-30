@@ -31,7 +31,7 @@ double CellularFlowPartialDerivatives::U2(const int i){return 0.0;}
 // First-order derivatives
 
 double CellularFlowPartialDerivatives::U0DT(const int i)
-{   if (mOmega == 0.0){
+{   if (std::abs(mOmega) < std::numeric_limits<double>::epsilon()){
         return 0.0;
     }
     else {
@@ -49,7 +49,7 @@ double CellularFlowPartialDerivatives::U0D1(const int i)
 double CellularFlowPartialDerivatives::U0D2(const int i){return 0.0;}
 
 double CellularFlowPartialDerivatives::U1DT(const int i)
-{   if (mOmega == 0.0){
+{   if (std::abs(mOmega) < std::numeric_limits<double>::epsilon()){
         return 0.0;
     }
     else {
@@ -73,7 +73,7 @@ double CellularFlowPartialDerivatives::U2D2(const int i){return 0.0;}
 // Second-order derivatives
 
 double CellularFlowPartialDerivatives::U0DTDT(const int i)
-{   if (mOmega == 0.0){
+{   if (std::abs(mOmega) < std::numeric_limits<double>::epsilon()){
         return 0.0;
     }
     else {
@@ -82,7 +82,7 @@ double CellularFlowPartialDerivatives::U0DTDT(const int i)
 }
 double CellularFlowPartialDerivatives::U0DTD0(const int i)
 {
-    if (mOmega == 0.0){
+    if (std::abs(mOmega) < std::numeric_limits<double>::epsilon()){
             return 0.0;
     }
     else {
@@ -90,7 +90,7 @@ double CellularFlowPartialDerivatives::U0DTD0(const int i)
     }
 }
 double CellularFlowPartialDerivatives::U0DTD1(const int i)
-{   if (mOmega == 0.0){
+{   if (std::abs(mOmega) < std::numeric_limits<double>::epsilon()){
         return 0.0;
     }
     else {
@@ -115,7 +115,7 @@ double CellularFlowPartialDerivatives::U0D1D2(const int i){return 0.0;}
 double CellularFlowPartialDerivatives::U0D2D2(const int i){return 0.0;}
 
 double CellularFlowPartialDerivatives::U1DTDT(const int i)
-{   if (mOmega == 0.0){
+{   if (std::abs(mOmega) < std::numeric_limits<double>::epsilon()){
         return 0.0;
     }
     else {
@@ -123,7 +123,7 @@ double CellularFlowPartialDerivatives::U1DTDT(const int i)
     }
 }
 double CellularFlowPartialDerivatives::U1DTD0(const int i)
-{   if (mOmega == 0.0){
+{   if (std::abs(mOmega) < std::numeric_limits<double>::epsilon()){
         return 0.0;
     }
     else {
@@ -131,7 +131,7 @@ double CellularFlowPartialDerivatives::U1DTD0(const int i)
     }
 }
 double CellularFlowPartialDerivatives::U1DTD1(const int i)
-{   if (mOmega == 0.0){
+{   if (std::abs(mOmega) < std::numeric_limits<double>::epsilon()){
         return 0.0;
     }
     else {

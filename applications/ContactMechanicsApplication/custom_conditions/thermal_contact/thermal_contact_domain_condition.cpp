@@ -95,7 +95,7 @@ ThermalContactDomainCondition::~ThermalContactDomainCondition()
 //************************************************************************************
 //************************************************************************************
 
-ThermalContactDomainCondition::IntegrationMethod ThermalContactDomainCondition::GetIntegrationMethod()
+ThermalContactDomainCondition::IntegrationMethod ThermalContactDomainCondition::GetIntegrationMethod() const
 {
   return mThisIntegrationMethod;
 }
@@ -104,7 +104,7 @@ ThermalContactDomainCondition::IntegrationMethod ThermalContactDomainCondition::
 //************************************************************************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::GetDofList( DofsVectorType& rConditionalDofList, ProcessInfo& rCurrentProcessInfo )
+void ThermalContactDomainCondition::GetDofList( DofsVectorType& rConditionalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
   rConditionalDofList.resize( 0 );
 
@@ -117,7 +117,7 @@ void ThermalContactDomainCondition::GetDofList( DofsVectorType& rConditionalDofL
 //************************************************************************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void ThermalContactDomainCondition::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
   int number_of_nodes = GetGeometry().size();
   unsigned int elementdimension = number_of_nodes;
@@ -136,7 +136,7 @@ void ThermalContactDomainCondition::EquationIdVector( EquationIdVectorType& rRes
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::GetValuesVector( Vector& rValues, int Step )
+void ThermalContactDomainCondition::GetValuesVector( Vector& rValues, int Step ) const
 {
   const unsigned int number_of_nodes = GetGeometry().size();
   unsigned int MatSize = number_of_nodes;
@@ -154,7 +154,7 @@ void ThermalContactDomainCondition::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+void ThermalContactDomainCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
   const unsigned int number_of_nodes = GetGeometry().size();
   unsigned int MatSize = number_of_nodes;
@@ -172,7 +172,7 @@ void ThermalContactDomainCondition::GetFirstDerivativesVector( Vector& rValues, 
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+void ThermalContactDomainCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
   const unsigned int number_of_nodes = GetGeometry().size();
   unsigned int MatSize = number_of_nodes;
@@ -189,8 +189,8 @@ void ThermalContactDomainCondition::GetSecondDerivativesVector( Vector& rValues,
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
-                                                                 std::vector<double>& rValues,
+void ThermalContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
+                                                                 const std::vector<double>& rValues,
                                                                  const ProcessInfo& rCurrentProcessInfo )
 {
 
@@ -199,8 +199,8 @@ void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<
 //*********************************SET VECTOR VALUE***********************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
-                                                                 std::vector<Vector>& rValues,
+void ThermalContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
+                                                                 const std::vector<Vector>& rValues,
                                                                  const ProcessInfo& rCurrentProcessInfo )
 {
 
@@ -210,51 +210,19 @@ void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<
 //*********************************SET MATRIX VALUE***********************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-                                                                 std::vector<Matrix>& rValues,
+void ThermalContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
+                                                                 const std::vector<Matrix>& rValues,
                                                                  const ProcessInfo& rCurrentProcessInfo )
 {
 
 }
-
-//*********************************GET DOUBLE VALUE***********************************
-//************************************************************************************
-
-void ThermalContactDomainCondition::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-                                                                 std::vector<double>& rValues,
-                                                                 const ProcessInfo& rCurrentProcessInfo )
-{
-  this->CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
-}
-
-
-//**********************************GET VECTOR VALUE**********************************
-//************************************************************************************
-
-void ThermalContactDomainCondition::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
-                                                                 std::vector<Vector>& rValues,
-                                                                 const ProcessInfo& rCurrentProcessInfo )
-{
-  this->CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
-
-}
-
-//***********************************GET MATRIX VALUE*********************************
-//************************************************************************************
-
-void ThermalContactDomainCondition::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-                                                                 std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
-{
-  this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
 
 
 //************* STARTING - ENDING  METHODS
 //************************************************************************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::Initialize()
+void ThermalContactDomainCondition::Initialize(const ProcessInfo& CurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -268,7 +236,7 @@ void ThermalContactDomainCondition::Initialize()
 ////************************************************************************************
 ////************************************************************************************
 
-void ThermalContactDomainCondition::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void ThermalContactDomainCondition::InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo)
 {
 
   //0.- Initialize Iteration Counter
@@ -284,7 +252,7 @@ void ThermalContactDomainCondition::InitializeSolutionStep( ProcessInfo& Current
 ////************************************************************************************
 ////************************************************************************************
 
-void ThermalContactDomainCondition::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+void ThermalContactDomainCondition::InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
 {
 }
 
@@ -292,7 +260,7 @@ void ThermalContactDomainCondition::InitializeNonLinearIteration( ProcessInfo& C
 //************************************************************************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void ThermalContactDomainCondition::FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo)
 {
 }
 
@@ -346,7 +314,7 @@ void ThermalContactDomainCondition::CalculateHeatConductivity()
 //************************************************************************************
 
 
-void ThermalContactDomainCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void ThermalContactDomainCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
   //calculation flags
   Flags CalculationFlags;
@@ -366,7 +334,7 @@ void ThermalContactDomainCondition::CalculateLocalSystem( MatrixType& rLeftHandS
 //************************************************************************************
 
 
-void ThermalContactDomainCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void ThermalContactDomainCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
   //calculation flags
   Flags CalculationFlags;
@@ -387,7 +355,7 @@ void ThermalContactDomainCondition::CalculateRightHandSide( VectorType& rRightHa
 //************************************************************************************
 
 
-void ThermalContactDomainCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void ThermalContactDomainCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
   //calculation flags
   Flags CalculationFlags;
@@ -445,7 +413,7 @@ void ThermalContactDomainCondition::InitializeSystemMatrices(MatrixType& rLeftHa
 
 void ThermalContactDomainCondition::CalculateConditionalSystem( MatrixType& rLeftHandSideMatrix,
 								VectorType& rRightHandSideVector,
-								ProcessInfo& rCurrentProcessInfo,
+								const ProcessInfo& rCurrentProcessInfo,
 								Flags& rCalculationFlags )
 {
   KRATOS_TRY
@@ -616,7 +584,7 @@ void ThermalContactDomainCondition::CalculateOnIntegrationPoints( const Variable
 //************************************************************************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::CalculateRelativeVelocity(GeneralVariables& rVariables, PointType & TangentVelocity, ProcessInfo& rCurrentProcessInfo)
+void ThermalContactDomainCondition::CalculateRelativeVelocity(GeneralVariables& rVariables, PointType & TangentVelocity, const ProcessInfo& rCurrentProcessInfo)
 {
   //if current tangent is not previously computed, do it here.
   rVariables.CurrentSurface.Tangent = this->CalculateCurrentTangent( rVariables.CurrentSurface.Tangent );
@@ -653,7 +621,7 @@ void ThermalContactDomainCondition::CalculateRelativeVelocity(GeneralVariables& 
 
   //Filter for low velocities (relatives to dynamic waves)
   CurrentVelocity.clear();
-  CalculateRelativeDisplacement(rVariables, CurrentVelocity,rCurrentProcessInfo);
+  CalculateRelativeDisplacement(rVariables, CurrentVelocity, rCurrentProcessInfo);
 
   if( norm_2(TangentVelocity)>0 ){
 
@@ -672,7 +640,7 @@ void ThermalContactDomainCondition::CalculateRelativeVelocity(GeneralVariables& 
 //************************************************************************************
 
 
-void ThermalContactDomainCondition::CalculateRelativeDisplacement(GeneralVariables& rVariables, PointType & TangentDisplacement, ProcessInfo& rCurrentProcessInfo)
+void ThermalContactDomainCondition::CalculateRelativeDisplacement(GeneralVariables& rVariables, PointType & TangentDisplacement, const ProcessInfo& rCurrentProcessInfo)
 {
 
   // (Tangent vector previously computed)
@@ -710,7 +678,7 @@ void ThermalContactDomainCondition::CalculateRelativeDisplacement(GeneralVariabl
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  ThermalContactDomainCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int  ThermalContactDomainCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
   KRATOS_TRY
 

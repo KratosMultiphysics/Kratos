@@ -1,7 +1,6 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
@@ -9,15 +8,15 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupl
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-def Create(settings, solver_wrappers):
-    cs_tools.SettingsTypeCheck(settings)
-    return CreatePointLoadModelPart(settings, solver_wrappers)
+def Create(*args):
+    return CreatePointLoadModelPart(*args)
 
 class CreatePointLoadModelPart(CoSimulationCouplingOperation):
     """This operation creates a submodelpart containing PointLoad Conidtions for transferring loads
     """
-    def __init__(self, settings, solver_wrappers):
-        super(CreatePointLoadModelPart, self).__init__(settings)
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
+        IssueDeprecationWarning('CreatePointLoadModelPart', 'please use CreatePointBasedEntitiesProcess" instead')
+        super().__init__(settings, process_info, data_communicator)
         self.model = solver_wrappers[self.settings["solver"].GetString()].model
 
     def Initialize(self):
@@ -38,13 +37,13 @@ class CreatePointLoadModelPart(CoSimulationCouplingOperation):
         struct_smp.AddNodes(node_id_list)
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver"    : "UNSPECIFIED",
             "sub_model_part_name" : "UNSPECIFIED",
             "computing_model_part_name" : "UNSPECIFIED"
         }""")
-        this_defaults.AddMissingParameters(super(CreatePointLoadModelPart, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
 
 

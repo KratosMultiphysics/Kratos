@@ -235,6 +235,7 @@ public:
         const Parameters default_parameters = Parameters(R"(
         {
             "echo_level"                       : 0,
+            "consider_tessellation"            : false,
             "using_average_nodal_normal"       : true,
             "discontinuous_interface"          : false,
             "discontinous_interface_factor"    : 1.0e-4,

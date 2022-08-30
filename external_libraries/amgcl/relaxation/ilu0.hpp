@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -50,6 +50,8 @@ namespace relaxation {
 template <class Backend>
 struct ilu0 {
     typedef typename Backend::value_type      value_type;
+    typedef typename Backend::col_type        col_type;
+    typedef typename Backend::ptr_type        ptr_type;
     typedef typename Backend::vector          vector;
     typedef typename Backend::matrix          matrix;
     typedef typename Backend::matrix_diagonal matrix_diagonal;
@@ -72,7 +74,7 @@ struct ilu0 {
             : AMGCL_PARAMS_IMPORT_VALUE(p, damping)
             , AMGCL_PARAMS_IMPORT_CHILD(p, solve)
         {
-            check_params(p, {"damping", "solve"});
+            check_params(p, {"damping", "solve"}, {"k"});
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
@@ -87,7 +89,7 @@ struct ilu0 {
     ilu0( const Matrix &A, const params &prm, const typename Backend::params &bprm)
       : prm(prm)
     {
-        typedef typename backend::builtin<value_type>::matrix build_matrix;
+        typedef typename backend::builtin<value_type, col_type, ptr_type>::matrix build_matrix;
         const size_t n = backend::rows(A);
 
         size_t Lnz = 0, Unz = 0;
@@ -162,16 +164,43 @@ struct ilu0 {
                 *work[c] = tl;
 
                 // Perform linear combination
-                for(ptrdiff_t k = U->ptr[c]; k < U->ptr[c+1]; ++k) {
+                for(ptrdiff_t k = U->ptr[c]; k < static_cast<ptrdiff_t>(U->ptr[c+1]); ++k) {
                     value_type *w = work[U->col[k]];
                     if (w) *w -= tl * U->val[k];
                 }
             }
 
+            // Get rid of zeros in the factors
+            Lhead = L->ptr[i];
+            Uhead = U->ptr[i];
+
+            for(ptrdiff_t j = Lhead, e = L->ptr[i+1]; j < e; ++j) {
+                auto v = L->val[j];
+                if (!math::is_zero(v)) {
+                    L->col[Lhead] = L->col[j];
+                    L->val[Lhead] = v;
+                    ++Lhead;
+                }
+            }
+
+            for(ptrdiff_t j = Uhead, e = U->ptr[i+1]; j < e; ++j) {
+                auto v = U->val[j];
+                if (!math::is_zero(v)) {
+                    U->col[Uhead] = U->col[j];
+                    U->val[Uhead] = v;
+                    ++Uhead;
+                }
+            }
+            L->ptr[i+1] = Lhead;
+            U->ptr[i+1] = Uhead;
+
             // Refresh work
             for(ptrdiff_t j = row_beg; j < row_end; ++j)
                 work[A.col[j]] = NULL;
         }
+
+        L->nnz = Lhead;
+        U->nnz = Uhead;
 
         ilu = std::make_shared<ilu_solve>(L, U, D, prm.solve, bprm);
     }

@@ -4,7 +4,6 @@ message("**** configuring KratosTrilinosApplication ****")
 
 include(pybind11Tools)
 
-
 if(${TRILINOS_EXCLUDE_ML_SOLVER} MATCHES ON)
     add_definitions(-DTRILINOS_EXCLUDE_ML_SOLVER)
     message("**** WARNING: Manually disabled ML-Solver ****")
@@ -23,11 +22,20 @@ endif(${TRILINOS_EXCLUDE_AMESOS_SOLVER} MATCHES ON)
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 # Find trilinos solver package -- this is our own find package!!
-if (NOT TRILINOS_FOUND)
-    find_package(TRILINOS REQUIRED)
-endif()
-include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
-link_directories(${TRILINOS_LIBRARIES})
+IF(NOT TRILINOS_FOUND)
+    MESSAGE( FATAL_ERROR "Could not find Trilinos or one of its packages. Please set the cmake var TRILINOS_ROOT or the environment vars TRILINOS_INCLUDE_DIR and TRILINOS_LIBRARY_DIR, note also that if in your system the library have a prefix, like \"libtrilinos_epetra.so\" instead of \"libepetra.so\" you can specify the prefix by the variable -DTRILINOS_LIBRARY_PREFIX=\"trilinos_\" "    )
+ENDIF(NOT TRILINOS_FOUND)
+
+# Amesos2 is currenlty under development and is disabled by default. This can be removed in the future to enable it by default.
+OPTION ( TRILINOS_EXCLUDE_AMESOS2_SOLVER "Exclude Amesos2 Solver" ON )
+
+if(${TRILINOS_EXCLUDE_AMESOS2_SOLVER} MATCHES ON)
+    add_definitions(-DTRILINOS_EXCLUDE_AMESOS2_SOLVER)
+    message("**** WARNING: Manually disabled Amesos2-Solver ****")
+elseif(NOT HAVE_AMESOS2)
+    add_definitions(-DTRILINOS_EXCLUDE_AMESOS2_SOLVER)
+    message("**** WARNING: Amesos2-Solver could not be found and will be disabled ****")
+endif(${TRILINOS_EXCLUDE_AMESOS2_SOLVER} MATCHES ON)
 
 # Including the amgcl, which is header only
 include_directories("../../external_libraries")
@@ -35,8 +43,9 @@ include_directories("../../external_libraries")
 # Sources for the Trilinos application core
 set( KRATOS_TRILINOS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/amgcl_mpi_solver_impl.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/amgcl_mpi_solver_impl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/trilinos_linear_solver_factory.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/trilinos_solver_utilities.cpp
 )
 
 # Sources for the Python module
@@ -54,13 +63,21 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 # ###############################################################
 ## TrilinosApplication core library (C++ parts)
 add_library( KratosTrilinosCore SHARED ${KRATOS_TRILINOS_APPLICATION_CORE_SOURCES} ${KRATOS_TRILINOS_TEST_SOURCES} )
-target_link_libraries(KratosTrilinosCore PRIVATE KratosCore KratosMPICore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} )
+target_link_libraries(KratosTrilinosCore PRIVATE KratosCore KratosMPICore ${TRILINOS_LIBRARIES} )
 set_target_properties( KratosTrilinosCore PROPERTIES COMPILE_DEFINITIONS "TRILINOS_APPLICATION=EXPORT,API")
+
+target_include_directories(KratosTrilinosCore SYSTEM PUBLIC ${TRILINOS_INCLUDE_DIR})
 
 ## TrilinosApplication python module
 pybind11_add_module( KratosTrilinosApplication MODULE THIN_LTO ${KRATOS_TRILINOS_PYTHON_INTERFACE_SOURCES} )
 target_link_libraries( KratosTrilinosApplication PRIVATE KratosTrilinosCore)
 set_target_properties( KratosTrilinosApplication PROPERTIES PREFIX "")
+
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosTrilinosCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosTrilinosApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 # Changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -71,12 +88,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosTrilinosApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosTrilinosCore)
-    cotire(KratosTrilinosApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/TrilinosApplication.py KratosMultiphysics/TrilinosApplication/__init__.py )
@@ -104,3 +115,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 ## Install targets
 install(TARGETS KratosTrilinosCore DESTINATION libs )
 install(TARGETS KratosTrilinosApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosTrilinosCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosTrilinosApplication" PARENT_SCOPE)

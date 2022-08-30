@@ -2,7 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosMultilevelMonteCarloApplication ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## define application core sources (pure C++ parts)
 set( KRATOS_MULTILEVEL_MONTE_CARLO_APPLICATION_SOURCES
@@ -35,6 +35,12 @@ pybind11_add_module(KratosMultilevelMonteCarloApplication MODULE THIN_LTO ${KRAT
 target_link_libraries(KratosMultilevelMonteCarloApplication PRIVATE KratosMultilevelMonteCarloCore)
 set_target_properties(KratosMultilevelMonteCarloApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosMultilevelMonteCarloCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosMultilevelMonteCarloApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 ## changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosMultilevelMonteCarloApplication PROPERTIES SUFFIX .pyd)
@@ -44,12 +50,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosMultilevelMonteCarloApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-## Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosMultilevelMonteCarloCore)
-    cotire(KratosMultilevelMonteCarloApplication)
-endif(USE_COTIRE MATCHES ON)
 
 ## add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/MultilevelMonteCarloApplication.py KratosMultiphysics/MultilevelMonteCarloApplication/__init__.py )
@@ -73,3 +73,13 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 ## install targets
 install(TARGETS KratosMultilevelMonteCarloCore DESTINATION libs )
 install(TARGETS KratosMultilevelMonteCarloApplication DESTINATION libs )
+
+# Install PyCOMPSs mockup library
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/PyCOMPSs KratosMultiphysics/${CURRENT_DIR_NAME}/PyCOMPSs )
+
+# Install XMC library
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC KratosMultiphysics/${CURRENT_DIR_NAME}/XMC )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMultilevelMonteCarloCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosMultilevelMonteCarloApplication" PARENT_SCOPE)

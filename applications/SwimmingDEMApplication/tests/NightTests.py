@@ -1,71 +1,76 @@
 # Definition of the classes for the NIGHTLY TESTS
 
-# Import TestFactory
-import InterpolationTestFactory as InterpolationTF
-import TestFactory as TF
-import FluidDEMTestFactory as FDEMTF
-import SPFEMTestFactory as SPFEMTF
+#Iimport Kratos
+import KratosMultiphysics
+import KratosMultiphysics.DEMApplication
+import KratosMultiphysics.SwimmingDEMApplication
+from KratosMultiphysics import Logger
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import SmallTests
+import GentleInjectionAndErasureTestFactory as GentleTF
+import PeriodicBackwardCouplingTestFactory as PeriodicBackwardTF
 
-class candelier_no_history_test(TF.TestFactory):
-     file_name = "candelier_tests/candelier"
-     file_parameters = "candelier_tests/ProjectParametersNoHistory.json"
 
-class candelier_no_history_with_lift_test(TF.TestFactory):
-     file_name = "candelier_tests/candelier"
-     file_parameters = "candelier_tests/ProjectParametersNoHistoryWithLift.json"
+# class gentle_injection_test(GentleTF.GentleInjectionAndErasureTestFactory):
+#      file_name = "fluid_convergence_tests/cube_cavity_with_inlet"
+#      file_parameters_harsh = "fluid_convergence_tests/ProjectParametersInjectionHarsh.json"
+#      file_parameters_gentle = "fluid_convergence_tests/ProjectParametersInjectionGentle.json"
+#      def GetGentleParameterValueAndName(self, parameters):
+#          parameter_name = 'initiation_interval'
+#          return parameters['coupling']['gentle_coupling_initiation'][parameter_name].GetDouble(), parameter_name
+# class gentle_erasure_test(GentleTF.GentleInjectionAndErasureTestFactory):
+#      file_name = "fluid_convergence_tests/cube_cavity"
+#      file_parameters_harsh = "fluid_convergence_tests/ProjectParametersErasureHarsh.json"
+#      file_parameters_gentle = "fluid_convergence_tests/ProjectParametersErasureGentle.json"
+#      def GetGentleParameterValueAndName(self, parameters):
+#          parameter_name = 'destruction_delay_interval'
+#          return parameters['dem_parameters']['creator_destructor_settings'][parameter_name].GetDouble(), parameter_name
 
-class candelier_no_history_non_inertial_test(TF.TestFactory):
-     file_name = "candelier_tests/candelier"
-     file_parameters = "candelier_tests/ProjectParametersNoHistoryNonInertial.json"
+# class periodic_backward_coupling(PeriodicBackwardTF.PeriodicBackwardCouplingTestFactory):
+#      file_name = "fluid_convergence_tests/cube_cavity"
+#      file_parameters_harsh = "fluid_convergence_tests/ProjectParametersPeriodicHarsh.json"
+#      file_parameters_gentle = "fluid_convergence_tests/ProjectParametersPeriodicHarsh.json"
+#      def GetGentleParameterValueAndName(self, parameters):
+#          parameter_name = 'initiation_interval'
+#          return parameters['coupling']['gentle_coupling_initiation'][parameter_name].GetDouble(), parameter_name
 
-class candelier_with_history_test(TF.TestFactory):
-     file_name = "candelier_tests/candelier"
-     file_parameters = "candelier_tests/ProjectParametersWithHistory.json"
+# class gentle_injection_test(GentleTF.GentleInjectionAndErasureTestFactory):
+#      file_name = "fluid_convergence_tests/cube_cavity_with_inlet"
+#      file_parameters_harsh = "fluid_convergence_tests/ProjectParametersInjectionHarshPeriodic.json"
+#      file_parameters_gentle = "fluid_convergence_tests/ProjectParametersInjectionHarshPeriodic.json"
+#      def GetGentleParameterValueAndName(self, parameters):
+#          parameter_name = 'initiation_interval'
+#          return parameters['coupling']['gentle_coupling_initiation'][parameter_name].GetDouble
 
-class candelier_with_history_hinsberg_test(TF.TestFactory):
-     file_name = "candelier_tests/candelier"
-     file_parameters = "candelier_tests/ProjectParametersWithHistoryHinsberg.json"
-
-# This test is ready to run but the implementation is not complete
-# (it is non-trivial), so the result is not correct
-class candelier_with_history_non_inertial_test(TF.TestFactory):
-     file_name = "candelier_tests/candelier"
-     file_parameters = "candelier_tests/ProjectParametersWithHistoryNonInertial.json"
-
-class interpolation_test_linear(InterpolationTF.TestFactory):
-     file_name = "interpolation_tests/cube"
-     file_parameters = "interpolation_tests/ProjectParametersCubeLinear.json"
-
-class interpolation_test_nonlinear_time_no_substepping(InterpolationTF.TestFactory):
-     file_name = "interpolation_tests/cube"
-     file_parameters = "interpolation_tests/ProjectParametersCubeNonlinearTimeNoSubstepping.json"
-
-class fluid_dem_coupling_one_way_test(FDEMTF.TestFactory):
-     file_name = "fluid_dem_tests/settling_cube"
-     file_parameters = "fluid_dem_tests/ProjectParameters.json"
-
-class sdem_pfem_coupling_one_way_test(SPFEMTF.TestFactory):
-     file_name = "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test"
-     file_parameters = "PFEM-DEM_tests/ProjectParameters.json"
+# List of tests that are available
+available_tests = []
+available_tests += [test_class for test_class in GentleTF.GentleInjectionAndErasureTestFactory.__subclasses__()]
+available_tests += [test_class for test_class in PeriodicBackwardTF.PeriodicBackwardCouplingTestFactory.__subclasses__()]
 
 def SetTestSuite(suites):
     night_suite = suites['nightly']
 
-    night_suite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-          candelier_no_history_test,
-          candelier_no_history_with_lift_test,
-          candelier_no_history_non_inertial_test,
-          candelier_with_history_test,
-          candelier_with_history_hinsberg_test,
-          interpolation_test_linear,
-          interpolation_test_nonlinear_time_no_substepping,
-          fluid_dem_coupling_one_way_test,
-          sdem_pfem_coupling_one_way_test
-          ])
-    )
+    night_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(available_tests))
 
     return night_suite
+
+def AssembleTestSuites():
+    suites = KratosUnittest.KratosSuites
+    # small_suite = SmallTests.SetTestSuite(suites)
+    # suites['all'].addTests(small_suite)
+    night_suite = SetTestSuite(suites)
+    suites['all'].addTests(night_suite)
+
+    return suites
+
+if __name__ == '__main__':
+    debug_mode = False
+    if debug_mode:
+        severity = Logger.Severity.DETAIL
+    else:
+        severity = Logger.Severity.WARNING
+    Logger.GetDefaultOutput().SetSeverity(severity)
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+    KratosUnittest.runTests(AssembleTestSuites())

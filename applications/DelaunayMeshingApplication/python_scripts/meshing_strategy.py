@@ -89,8 +89,6 @@ class MeshingStrategy(object):
         self.number_of_elements   = 0
         self.number_of_conditions = 0
 
-        print(self._class_prefix()+" Ready")
-
     #
     def GetMeshers(self):
 
@@ -172,11 +170,6 @@ class MeshingStrategy(object):
     def FinalizeMeshGeneration(self):
 
         self.SetMeshInfo()
-
-        info_parameters    = self.MeshingParameters.GetInfoParameters()
-        smoothing_required = info_parameters.CheckMechanicalSmoothing()
-
-        refining_parameters = self.MeshingParameters.GetRefiningParameters()
 
         if( self.global_transfer == True ):
             self.MeshDataTransfer.TransferNodalValuesToElements(self.TransferParameters,self.model_part)

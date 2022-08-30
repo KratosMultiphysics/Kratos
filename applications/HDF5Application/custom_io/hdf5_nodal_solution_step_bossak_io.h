@@ -44,7 +44,7 @@ namespace HDF5
  * This class performs regular IO of nodal solution step data except for the
  * ACCELERATION, which is stored as a weighted combination of the current and
  * previous time step according to the Bossak scheme.
- * 
+ *
  */
 class NodalSolutionStepBossakIO : private NodalSolutionStepDataIO
 {
@@ -66,9 +66,9 @@ public:
     ///@name Operations
     ///@{
 
-    void WriteNodalResults(NodesContainerType const& rNodes);
+    void WriteNodalResults(ModelPart& rModelPart);
 
-    void ReadNodalResults(NodesContainerType& rNodes, Communicator& rComm);
+    void ReadNodalResults(ModelPart& rModelPart);
 
     void SetAlphaBossak(double alpha) noexcept;
 

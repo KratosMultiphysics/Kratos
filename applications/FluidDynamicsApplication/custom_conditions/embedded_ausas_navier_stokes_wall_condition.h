@@ -123,13 +123,13 @@ public:
         MatrixType N_pos_face;                          // Positive interface Gauss pts. shape functions values
         ShapeFunctionsGradientsType DN_DX_pos_face;     // Positive interface Gauss pts. shape functions gradients values
         VectorType w_gauss_pos_face;                    // Positive interface Gauss pts. weights
-        std::vector<VectorType> pos_face_area_normals;  // Positive interface unit normal vector in each Gauss pt.
+        std::vector<array_1d<double,3>> pos_face_area_normals;  // Positive interface unit normal vector in each Gauss pt.
 
         // Negative face geometry data
         MatrixType N_neg_face;                          // Positive interface Gauss pts. shape functions values
         ShapeFunctionsGradientsType DN_DX_neg_face;     // Positive interface Gauss pts. shape functions gradients values
         VectorType w_gauss_neg_face;                    // Positive interface Gauss pts. weights
-        std::vector<VectorType> neg_face_area_normals;  // Positive interface unit normal vector in each Gauss pt.
+        std::vector<array_1d<double,3>> neg_face_area_normals;  // Positive interface unit normal vector in each Gauss pt.
 
         unsigned int n_pos = 0;     // Number of positive distance nodes
         unsigned int n_neg = 0;     // Number of negative distance nodes
@@ -232,7 +232,7 @@ public:
      * Note that this needs to be done at each time step for that cases
      * in where the distance function varies.
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override {
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override {
         KRATOS_TRY;
 
         // Set a reference to the current condition geometry
@@ -325,7 +325,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override
+                              const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -421,7 +421,7 @@ public:
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override
+                               const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -501,7 +501,7 @@ public:
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+                                        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -584,7 +584,7 @@ public:
     /**
      * @param rCurrentProcessInfo reference to the ProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY;
 
@@ -595,24 +595,6 @@ public:
         if (Check != 0) {
             return Check;
         } else {
-            // Check that all required variables have been registered
-            if(VELOCITY.Key() == 0)
-                KRATOS_ERROR << "VELOCITY Key is 0. Check if the application was correctly registered.";
-            if(MESH_VELOCITY.Key() == 0)
-                KRATOS_ERROR << "MESH_VELOCITY Key is 0. Check if the application was correctly registered.";
-            if(ACCELERATION.Key() == 0)
-                KRATOS_ERROR << "ACCELERATION Key is 0. Check if the application was correctly registered.";
-            if(PRESSURE.Key() == 0)
-                KRATOS_ERROR << "PRESSURE Key is 0. Check if the application was correctly registered.";
-            if(DENSITY.Key() == 0)
-                KRATOS_ERROR << "DENSITY Key is 0. Check if the application was correctly registered.";
-            if(DYNAMIC_VISCOSITY.Key() == 0)
-                KRATOS_ERROR << "DYNAMIC_VISCOSITY Key is 0. Check if the application was correctly registered.";
-            if(EXTERNAL_PRESSURE.Key() == 0)
-                KRATOS_ERROR << "EXTERNAL_PRESSURE Key is 0. Check if the application was correctly registered.";
-            if(DISTANCE.Key() == 0)
-                KRATOS_ERROR << "DISTANCE Key is 0. Check if the application was correctly registered.";
-
             // Checks on nodes
             // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
             for(unsigned int i = 0; i < rGeom.size(); ++i) {
@@ -645,14 +627,14 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ConditionDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -804,36 +786,36 @@ protected:
                 rData.DN_DX_pos_face,
                 rData.w_gauss_pos_face,
                 face_id,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             p_ausas_modified_sh_func->ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
                 rData.N_neg_face,
                 rData.DN_DX_neg_face,
                 rData.w_gauss_neg_face,
                 face_id,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             p_ausas_modified_sh_func->ComputePositiveExteriorFaceAreaNormals(
                 rData.pos_face_area_normals,
                 face_id,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             p_ausas_modified_sh_func->ComputeNegativeExteriorFaceAreaNormals(
                 rData.neg_face_area_normals,
                 face_id,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
         } else {
             // If the condition is not split, take the geometry shape function values
-            GeometryType::IntegrationPointsArrayType integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
+            GeometryType::IntegrationPointsArrayType integration_points = r_geometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
             const unsigned int n_gauss = integration_points.size();
 
             // Get the condition geometry shape functions values
-            rData.N_container = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            rData.N_container = r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             // Compute each Gauss pt. weight
             Vector gauss_pts_J_det(n_gauss);
-            r_geometry.DeterminantOfJacobian(gauss_pts_J_det, GeometryData::GI_GAUSS_2);
+            r_geometry.DeterminantOfJacobian(gauss_pts_J_det, GeometryData::IntegrationMethod::GI_GAUSS_2);
             (rData.w_gauss_container).resize(n_gauss);
             for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
                 rData.w_gauss_container(i_gauss) = integration_points[i_gauss].Weight() * gauss_pts_J_det(i_gauss);

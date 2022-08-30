@@ -14,11 +14,14 @@
 #define  SHELL_THIN_ELEMENT_3D4N_H_INCLUDED
 
 // System includes
+#include <type_traits>
 
 // External includes
 
 // Project includes
 #include "custom_elements/base_shell_element.h"
+#include "custom_utilities/shell_utilities.h"
+#include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
 #include "custom_utilities/shellq4_local_coordinate_system.hpp"
 
 namespace Kratos
@@ -30,10 +33,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 ///@}
-
-class ShellQ4_CoordinateTransformation;
-
-class ShellQ4_LocalCoordinateSystem;
 
 ///@name  Enum's
 ///@{
@@ -82,7 +81,11 @@ quadrilateral thin flat layered shell element for the modeling of reinforced
 concrete walls". Dissertation. Los Angeles, California: University of
 Southern California, 2012. */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N : public BaseShellElement
+template <ShellKinematics TKinematics>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N : public
+    BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellQ4_CorotationalCoordinateTransformation,
+        ShellQ4_CoordinateTransformation>::type>
 {
 public:
 
@@ -90,81 +93,42 @@ public:
     ///@{
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThinElement3D4N);
 
-    typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
-
-    typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
-
-    typedef array_1d<double, 3> Vector3Type;
+    using BaseType = BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellQ4_CorotationalCoordinateTransformation,
+        ShellQ4_CoordinateTransformation>::type>;
 
     typedef Quaternion<double> QuaternionType;
 
-    ///@}
+    using GeometryType = Element::GeometryType;
 
-    ///@name Classes
-    ///@{
-    /** \brief JacobianOperator
-    *
-    * This class is a utility to compute at a given integration point,
-    * the Jacobian, its inverse, its determinant
-    * and the derivatives of the shape functions in the local
-    * cartesian coordinate system.
-    */
+    using PropertiesType = Element::PropertiesType;
 
-    class JacobianOperator // TODO cannot this be taken from the Geometry?
-    {
-    public:
+    using NodesArrayType = Element::NodesArrayType;
 
-        JacobianOperator();
+    using MatrixType = Element::MatrixType;
 
-        void Calculate(const ShellQ4_LocalCoordinateSystem& CS, const Matrix& dN);
+    using VectorType = Element::VectorType;
 
-        inline const Matrix& Jacobian()const
-        {
-            return mJac;
-        }
+    using SizeType = Element::SizeType;
 
-        inline const Matrix& Inverse()const
-        {
-            return mInv;
-        }
+    using Element::GetGeometry;
 
-        inline const Matrix& XYDerivatives()const
-        {
-            return mXYDeriv;
-        }
+    using Element::GetProperties;
 
-        inline double Determinant()const
-        {
-            return mDet;
-        }
-
-    private:
-
-        Matrix mJac;     //!< Jacobian matrix
-        Matrix mInv;    //!< Inverse of the Jacobian matrix
-        Matrix mXYDeriv; //*!< Shape function derivatives in cartesian coordinates
-        double mDet;     //*!< Determinant of the Jacobian matrix
-    };
+    using Vector3Type = typename BaseType::Vector3Type;
 
     ///@}
 
     ///@name Life Cycle
     ///@{
     ShellThinElement3D4N(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         bool NLGeom = false);
+                         GeometryType::Pointer pGeometry);
 
     ShellThinElement3D4N(IndexType NewId,
                          GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties,
-                         bool NLGeom = false);
+                         PropertiesType::Pointer pProperties);
 
-    ShellThinElement3D4N(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties,
-                         CoordinateTransformationBasePointerType pCoordinateTransformation);
-
-    ~ShellThinElement3D4N() override;
+    ~ShellThinElement3D4N() override = default;
 
     ///@}
 
@@ -198,34 +162,27 @@ public:
         PropertiesType::Pointer pProperties
     ) const override;
 
-    void Initialize() override;
-
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
-
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
-
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
-
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
-
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             ProcessInfo& rCurrentProcessInfo) override;
 
     // More results calculation on integration points to interface with python
+
+    using BaseType::CalculateOnIntegrationPoints;
+
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-                                      3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
-    // Calculate functions
-    void Calculate(const Variable<Matrix >& rVariable,
-                   Matrix& Output,
-                   const ProcessInfo& rCurrentProcessInfo) override;
+    /**
+    * This method provides the place to perform checks on the completeness of the input
+    * and the compatibility with the problem options as well as the contitutive laws selected
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rCurrentProcessInfo
+    * this method is: MANDATORY
+    */
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
 
@@ -240,7 +197,7 @@ protected:
     /**
     * Protected empty constructor
     */
-    ShellThinElement3D4N() : BaseShellElement()
+    ShellThinElement3D4N() : BaseType()
     {
     }
 
@@ -341,7 +298,7 @@ private:
         std::vector<VectorType> rlaminateStrains;    /*!< laminate strain vector at all surfaces at the current integration point */
         std::vector<VectorType> rlaminateStresses;    /*!< laminate stress vector at all surfaces at the current integration point */
 
-        JacobianOperator jacOp;
+        ShellUtilities::JacobianOperator jacOp;
         ShellCrossSection::SectionParameters SectionParameters; /*!< parameters for cross section calculations */
 
     public:
@@ -374,10 +331,6 @@ private:
     void CalculateShellElementEnergy(const CalculationData& data, const Variable<double>& rVariable, double& rEnergy_Result);
 
     void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& iJob, bool& bGlobal);
-
-    void DecimalCorrection(Vector& a);
-
-    void SetupOrientationAngles() override;
 
     void InitializeCalculationData(CalculationData& data);
 
@@ -415,7 +368,6 @@ private:
 
     ///@name Member Variables
     ///@{
-    CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
     ///@}
 

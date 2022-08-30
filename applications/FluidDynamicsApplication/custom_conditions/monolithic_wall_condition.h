@@ -213,7 +213,7 @@ public:
       */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = TDim + 1;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -232,8 +232,9 @@ public:
     /** The actual local contributions are computed in the Damping functions
       @see DampingMatrix
       */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = TDim + 1;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -249,7 +250,7 @@ public:
       @see CalculateLocalVelocityContribution
       */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = TDim + 1;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -263,7 +264,7 @@ public:
 
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                            ProcessInfo& rCurrentProcessInfo) override
+                            const ProcessInfo& rCurrentProcessInfo) override
     {
         VectorType RHS;
         this->CalculateLocalVelocityContribution(rDampingMatrix,RHS,rCurrentProcessInfo);
@@ -279,11 +280,11 @@ public:
       */
     void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Check that all data required by this condition is available and reasonable
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY;
 
@@ -295,27 +296,7 @@ public:
         }
         else
         {
-            // Check that all required variables have been registered
-            if(VELOCITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-            if(MESH_VELOCITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
-            if(ACCELERATION.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check if the application was correctly registered.","");
-            if(PRESSURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
-            if(DENSITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
-            if(VISCOSITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
-            if(Y_WALL.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"Y_WALL Key is 0. Check if the application was correctly registered.","");
-            if(EXTERNAL_PRESSURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"EXTERNAL_PRESSURE Key is 0. Check if the application was correctly registered.","");
-
-
                 // Checks on nodes
-
                 // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
                 for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
                 {
@@ -350,7 +331,7 @@ public:
      * @param rCurrentProcessInfo the current process info object (unused)
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+                          const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     /// Returns a list of the element's Dofs
@@ -359,7 +340,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void GetDofList(DofsVectorType& ConditionDofList,
-                            ProcessInfo& CurrentProcessInfo) override;
+                    const ProcessInfo& CurrentProcessInfo) const override;
 
 
     /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
@@ -368,7 +349,7 @@ public:
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
     void GetFirstDerivativesVector(Vector& Values,
-                                           int Step = 0) override
+                                           int Step = 0) const override
     {
         const SizeType LocalSize = (TDim + 1) * TNumNodes;
         unsigned int LocalIndex = 0;
@@ -378,7 +359,7 @@ public:
 
         for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
         {
-            array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
+            const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
             for (unsigned int d = 0; d < TDim; ++d)
                 Values[LocalIndex++] = rVelocity[d];
             Values[LocalIndex++] = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE, Step);
@@ -392,7 +373,7 @@ public:
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
     void GetSecondDerivativesVector(Vector& Values,
-                                            int Step = 0) override
+                                            int Step = 0) const override
     {
         const SizeType LocalSize = (TDim + 1) * TNumNodes;
         unsigned int LocalIndex = 0;
@@ -402,7 +383,7 @@ public:
 
         for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
         {
-            array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
+            const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
             for (unsigned int d = 0; d < TDim; ++d)
                 Values[LocalIndex++] = rVelocity[d];
             Values[LocalIndex++] = 0.0; // No value on pressure positions
@@ -410,30 +391,30 @@ public:
     }
 
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                                             std::vector<array_1d<double, 3 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 6 > >& rVariable,
+        std::vector<array_1d<double, 6 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                             std::vector<double>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                                             std::vector<array_1d<double, 6 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                             std::vector<Vector>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                             std::vector<Matrix>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
-
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -500,7 +481,7 @@ protected:
       */
     virtual void ApplyWallLaw(MatrixType& rLocalMatrix,
                       VectorType& rLocalVector,
-		      ProcessInfo& rCurrentProcessInfo)
+		              const ProcessInfo& rCurrentProcessInfo)
     {
         GeometryType& rGeometry = this->GetGeometry();
         const size_t BlockSize = TDim + 1;

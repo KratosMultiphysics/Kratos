@@ -99,7 +99,7 @@
             }
         },
         "output" : {
-            "design_output_mode" : "WriteDesignSurface",
+            "design_output_mode" : "none",
             "nodal_results"      : [ "SHAPE_CHANGE" ],
             "output_format" : {
                 "name": "gid"

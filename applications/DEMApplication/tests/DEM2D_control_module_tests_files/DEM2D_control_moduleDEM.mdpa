@@ -1,0 +1,37 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+End Properties
+
+Begin Nodes
+    1   0.0   0.0   0.0
+End Nodes
+
+Begin Elements CylinderContinuumParticle2D// GUI group identifier: dems
+      1    1  1
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: dems
+       1 0   0.0025
+End NodalData
+
+Begin NodalData COHESIVE_GROUP // GUI group identifier: dems
+       1 0 1
+End NodalData
+
+Begin NodalData SKIN_SPHERE
+       1 0 1
+End NodalData
+
+Begin SubModelPart dems // Group dems // Subtree Parts
+    Begin SubModelPartNodes
+          1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+          1
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

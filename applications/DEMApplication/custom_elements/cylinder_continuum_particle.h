@@ -52,7 +52,7 @@ namespace Kratos
 
       void ContactAreaWeighting() override;
 
-      void FinalizeStressTensor(ProcessInfo& r_process_info, double& rRepresentative_Volume) override;
+      void FinalizeStressTensor(const ProcessInfo& r_process_info, double& rRepresentative_Volume) override;
 
     protected:
 

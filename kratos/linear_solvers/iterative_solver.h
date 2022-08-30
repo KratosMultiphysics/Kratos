@@ -83,6 +83,9 @@ public:
 
     typedef  TPreconditionerType PreconditionerType;
 
+    /// The index type definition to be consistent
+    typedef typename TSparseSpaceType::IndexType IndexType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -284,7 +287,7 @@ public:
         mMaxIterationsNumber = NewMaxIterationsNumber;
     }
 
-    virtual unsigned int GetMaxIterationsNumber()
+    virtual IndexType GetMaxIterationsNumber()
     {
         return mMaxIterationsNumber;
     }
@@ -294,7 +297,7 @@ public:
         mIterationsNumber = NewIterationNumber;
     }
 
-    virtual unsigned int GetIterationsNumber()
+    IndexType GetIterationsNumber() override
     {
         return mIterationsNumber;
     }
@@ -397,7 +400,7 @@ protected:
 
     double mFirstResidualNorm;
 
-    unsigned int mIterationsNumber;
+    IndexType mIterationsNumber;
 
     double mBNorm;
 
@@ -454,7 +457,7 @@ private:
 
     double mTolerance;
 
-    unsigned int mMaxIterationsNumber;
+    IndexType mMaxIterationsNumber;
 
     ///@}
     ///@name Private Operators

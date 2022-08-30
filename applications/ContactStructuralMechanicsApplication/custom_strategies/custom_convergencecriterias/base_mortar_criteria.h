@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -21,6 +22,7 @@
 #include "custom_utilities/contact_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/variable_utils.h"
+#include "utilities/normal_calculation_utils.h"
 #include "custom_processes/aalm_adapt_penalty_value_process.h"
 #include "custom_processes/compute_dynamic_factor_process.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -74,21 +76,23 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( IO_DEBUG );
     KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
 
-    /// The base class definition (and it subclasses)
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
-    typedef typename BaseType::TDataType                    TDataType;
-    typedef typename BaseType::DofsArrayType            DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType    TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType    TSystemVectorType;
+    /// The base class definition
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >            BaseType;
 
-    /// The sparse space used
-    typedef TSparseSpace                              SparseSpaceType;
+    /// The definition of the current class
+    typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace > ClassType;
 
-    /// The components containers
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
-    typedef ModelPart::NodesContainerType              NodesArrayType;
+    /// The dofs array type
+    typedef typename BaseType::DofsArrayType                       DofsArrayType;
 
-    typedef GidIO<> GidIOBaseType;
+    /// The sparse matrix type
+    typedef typename BaseType::TSystemMatrixType               TSystemMatrixType;
+
+    /// The dense vector type
+    typedef typename BaseType::TSystemVectorType               TSystemVectorType;
+
+    /// The GidIO type
+    typedef GidIO<>                                                GidIOBaseType;
 
     ///@}
     ///@name Life Cycle
@@ -100,7 +104,7 @@ public:
         const bool IODebug = false,
         const bool PureSlip = false
         )
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
+        : BaseType(),
           mpIO(nullptr)
     {
         // Set local flags
@@ -111,6 +115,18 @@ public:
         if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
             mpIO = Kratos::make_shared<GidIOBaseType>("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
         }
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit BaseMortarConvergenceCriteria(Kratos::Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     ///Copy constructor
@@ -127,6 +143,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Criterias that need to be called before getting the solution
@@ -213,14 +242,10 @@ public:
         ) override
     {
         // We save the current WEIGHTED_GAP in the buffer
-        NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
-            it_node->FastGetSolutionStepValue(WEIGHTED_GAP, 1) = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-        }
+        auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            rNode.FastGetSolutionStepValue(WEIGHTED_GAP, 1) = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
+        });
 
         // Set to zero the weighted gap
         ResetWeightedGap(rModelPart);
@@ -300,7 +325,7 @@ public:
     {
         // Update normal of the conditions
         ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
-        MortarUtilities::ComputeNodesMeanNormalModelPart(r_contact_model_part);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(r_contact_model_part, true);
         const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
         if (frictional_problem) {
             const bool has_lm = rModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
@@ -366,9 +391,34 @@ public:
         r_process_info.SetValue(ACTIVE_SET_COMPUTED, false);
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                   : "base_mortar_criteria",
+            "compute_dynamic_factor" : false,
+            "gidio_debug"            : false,
+            "pure_slip"              : false
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "base_mortar_criteria";
+    }
 
     ///@}
     ///@name Acces
@@ -377,6 +427,28 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "BaseMortarConvergenceCriteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -402,12 +474,30 @@ protected:
     ///@{
 
     /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // Set local flags
+        mOptions.Set(BaseMortarConvergenceCriteria::COMPUTE_DYNAMIC_FACTOR, ThisParameters["compute_dynamic_factor"].GetBool());
+        mOptions.Set(BaseMortarConvergenceCriteria::IO_DEBUG, ThisParameters["gidio_debug"].GetBool());
+        mOptions.Set(BaseMortarConvergenceCriteria::PURE_SLIP, ThisParameters["pure_slip"].GetBool());
+
+        if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
+            mpIO = Kratos::make_shared<GidIOBaseType>("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+        }
+    }
+
+    /**
      * @brief This method resets the weighted gap in the nodes of the problem
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      */
     virtual void ResetWeightedGap(ModelPart& rModelPart)
     {
-        NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
         VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
     }
 
@@ -450,25 +540,20 @@ private:
     {
         // Compute normal and tangent
         ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
-        MortarUtilities::ComputeNodesMeanNormalModelPart(r_contact_model_part);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(r_contact_model_part, true);
 
         // Iterate over the computing conditions
         ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
-        ConditionsArrayType& r_conditions_array = r_computing_contact_model_part.Conditions();
-        const auto it_cond_begin = r_conditions_array.begin();
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-
+        auto& r_conditions_array = r_computing_contact_model_part.Conditions();
+        block_for_each(r_conditions_array, [&](Condition& rCond) {
             // Aux coordinates
             Point::CoordinatesArrayType aux_coords;
 
             // We update the paired normal
-            GeometryType& r_parent_geometry = it_cond->GetGeometry().GetGeometryPart(0);
+            GeometryType& r_parent_geometry = rCond.GetGeometry().GetGeometryPart(0);
             aux_coords = r_parent_geometry.PointLocalCoordinates(aux_coords, r_parent_geometry.Center());
-            it_cond->SetValue(NORMAL, r_parent_geometry.UnitNormal(aux_coords));
-        }
+            rCond.SetValue(NORMAL, r_parent_geometry.UnitNormal(aux_coords));
+        });
     }
 
     ///@}

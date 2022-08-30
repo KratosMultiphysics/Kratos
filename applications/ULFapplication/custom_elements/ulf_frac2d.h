@@ -101,7 +101,7 @@ public:
     ///@{
 
     /// Counted pointer of UlfFrac2D
-    KRATOS_CLASS_POINTER_DEFINITION(UlfFrac2D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UlfFrac2D);
 
     ///@}
     ///@name Life Cycle

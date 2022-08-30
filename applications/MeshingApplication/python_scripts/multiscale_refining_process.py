@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
@@ -28,7 +27,7 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
                     "variable_threshold"              : 1e-3,
                     "increase_threshold"              : true,
                     "only_refine_wet_domain"          : true
-                }   
+                }
             },
             "variables_to_apply_fixity"       : [],
             "variables_to_set_at_interface"   : [],

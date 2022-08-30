@@ -91,19 +91,17 @@ void FIC<TElementData>::Calculate(const Variable<Matrix>& rVariable,
 // Inquiry
 
 template< class TElementData >
-int FIC<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int FIC<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
-    // Extra variables
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-
+    const auto& r_geom = this->GetGeometry();
     for(unsigned int i=0; i<NumNodes; ++i)
     {
-        Node<3>& rNode = this->GetGeometry()[i];
+        const auto& rNode = r_geom[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
     }
 
@@ -113,52 +111,86 @@ int FIC<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FIC<TElementData>::GetValueOnIntegrationPoints(
+void FIC<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 3 > > const& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template< class TElementData >
-void FIC<TElementData>::GetValueOnIntegrationPoints(
+void FIC<TElementData>::CalculateOnIntegrationPoints(
     Variable<double> const& rVariable,
     std::vector<double>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void FIC<TElementData>::GetValueOnIntegrationPoints(
+void FIC<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 6>> const& rVariable,
     std::vector<array_1d<double, 6>>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void FIC<TElementData>::GetValueOnIntegrationPoints(
+void FIC<TElementData>::CalculateOnIntegrationPoints(
     Variable<Vector> const& rVariable,
     std::vector<Vector>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void FIC<TElementData>::GetValueOnIntegrationPoints(
+void FIC<TElementData>::CalculateOnIntegrationPoints(
     Variable<Matrix> const& rVariable,
     std::vector<Matrix>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Input and output
+
+template<class TElementData>
+const Parameters FIC<TElementData>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["implicit"],
+        "framework"                  : "ale",
+        "symmetric_lhs"              : false,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : ["VORTICITY","Q_VALUE","VORTICITY_MAGNITUDE"],
+            "nodal_historical"       : ["VELOCITY","PRESSURE"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["VELOCITY","ACCELERATION","MESH_VELOCITY","PRESSURE","IS_STRUCTURE","DISPLACEMENT","BODY_FORCE","NODAL_AREA","NODAL_H","ADVPROJ","DIVPROJ","REACTION","REACTION_WATER_PRESSURE","EXTERNAL_PRESSURE","NORMAL","Y_WALL","Q_VALUE"]
+        "required_dofs"              : [],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Triangle2D3","Quadrilateral2D4","Tetrahedra3D4","Hexahedra3D8"],
+        "element_integrates_in_time" : false,
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   : "This implements a Navier-Stokes element with Finite Increment Calculus (FIC) stabilization."
+    })");
+
+    if (Dim == 2) {
+        std::vector<std::string> dofs_2d({"VELOCITY_X","VELOCITY_Y","PRESSURE"});
+        specifications["required_dofs"].SetStringArray(dofs_2d);
+    } else {
+        std::vector<std::string> dofs_3d({"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"});
+        specifications["required_dofs"].SetStringArray(dofs_3d);
+    }
+
+    return specifications;
+}
 
 template< class TElementData >
 std::string FIC<TElementData>::Info() const
@@ -482,6 +514,7 @@ void FIC<TElementData>::CalculateTau(
 
     constexpr double c1 = 8.0;
     constexpr double c2 = 2.0;
+    constexpr double c3 = 3.0;
 
     const double Beta = rData.FICBeta;
     const double Nobeta = 1.0-Beta;
@@ -502,7 +535,7 @@ void FIC<TElementData>::CalculateTau(
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.EffectiveViscosity,rData.N);
 
-    double InvTau = c1 * viscosity / (Havg*Havg) + density * c2 * velocity_norm / Havg;
+    double InvTau = c1 * viscosity / (Havg*Havg) + density * (c3 * velocity_norm / Havg + rData.DynamicTau / rData.DeltaTime);
     TauIncompr = 1.0/InvTau;
     TauMomentum = (Hvel / (density * c2 * velocity_norm) );
 

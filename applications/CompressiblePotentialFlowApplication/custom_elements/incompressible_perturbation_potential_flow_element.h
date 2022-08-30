@@ -123,33 +123,31 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
     ///@{
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                      std::vector<double>& rValues,
                                      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
                                      std::vector<int>& rValues,
                                      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                      std::vector<array_1d<double, 3>>& rValues,
                                      const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -157,7 +155,7 @@ public:
     ///@name Inquiry
     ///@{
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output
@@ -177,8 +175,6 @@ public:
 private:
     ///@name Private Operators
     ///@{
-
-    void GetWakeDistances(array_1d<double, NumNodes>& distances) const;
 
     void GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const;
 
@@ -201,8 +197,17 @@ private:
     void CalculateLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
                                          const ProcessInfo& rCurrentProcessInfo);
 
+    void CalculateBlockLeftHandSideWakeElement(BoundedMatrix<double, NumNodes, NumNodes>& rLhs_total,
+                                             BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
+                                             const ElementalData<NumNodes, Dim>& rData,
+                                             const ProcessInfo& rCurrentProcessInfo);
+
     void CalculateRightHandSideWakeElement(VectorType& rRightHandSideVector,
                                          const ProcessInfo& rCurrentProcessInfo);
+
+    BoundedVector<double, NumNodes> CalculateRightHandSideWakeCondition(const ElementalData<NumNodes, Dim>& rData,
+                                             const ProcessInfo& rCurrentProcessInfo,
+                                             const array_1d<double, Dim>& rDiff_velocity);
 
     void CalculateLeftHandSideSubdividedElement(BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
                                                BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
@@ -220,14 +225,17 @@ private:
                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+                                            BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
                                             const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
                                       BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+                                      BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
                                       const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLeftHandSideWakeNode(MatrixType& rLeftHandSideMatrix,
                                    BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+                                   BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
                                    const ElementalData<NumNodes, Dim>& data,
                                    unsigned int& row) const;
 
@@ -237,8 +245,6 @@ private:
                                    const BoundedVector<double, NumNodes>& rWake_rhs,
                                    const ElementalData<NumNodes, Dim>& rData,
                                    unsigned int& rRow) const;
-
-    void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Serialization

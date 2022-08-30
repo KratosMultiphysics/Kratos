@@ -64,6 +64,8 @@ public:
 
     typedef ResidualBasedImplicitTimeScheme<TSparseSpace,TDenseSpace> ImplicitBaseType;
 
+    typedef ResidualBasedBossakDisplacementScheme<TSparseSpace, TDenseSpace> ClassType;
+
     typedef typename ImplicitBaseType::TDataType                             TDataType;
 
     typedef typename ImplicitBaseType::DofsArrayType                     DofsArrayType;
@@ -88,7 +90,7 @@ public:
 
     typedef typename BaseType::Pointer                                 BaseTypePointer;
 
-    typedef VectorComponentAdaptor< array_1d< double, 3 > >              ComponentType;
+    typedef double              ComponentType;
 
     ///@}
     ///@name Life Cycle
@@ -100,17 +102,16 @@ public:
      * @param ThisParameters The parameters containing the configuration
      */
     explicit ResidualBasedBossakDisplacementScheme(Parameters ThisParameters)
-        : ResidualBasedBossakDisplacementScheme(ThisParameters.Has("damp_factor_m") ? ThisParameters["damp_factor_m"].GetDouble() : -0.3,
-                                                ThisParameters.Has("newmark_beta") ? ThisParameters["newmark_beta"].GetDouble() : 0.25)
+        : ImplicitBaseType()
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"          : "ResidualBasedBossakDisplacementScheme",
-            "damp_factor_m" : -0.3,
-            "newmark_beta"  : 0.25
-        })" );
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // For pure Newmark Scheme
+        mNewmark.gamma = 0.5;
+
+        AuxiliarInitializeBossak();
     }
 
     /**
@@ -138,16 +139,7 @@ public:
         mNewmark.beta = NewmarkBeta;
         mNewmark.gamma = 0.5;
 
-        CalculateBossakCoefficients();
-
-        // Allocate auxiliary memory
-        const std::size_t num_threads = OpenMPUtils::GetNumThreads();
-
-        mVector.v.resize(num_threads);
-        mVector.a.resize(num_threads);
-        mVector.ap.resize(num_threads);
-
-        KRATOS_DETAIL("MECHANICAL SCHEME: The Bossak Time Integration Scheme ") << "[alpha_m= " << mBossak.alpha << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
+        AuxiliarInitializeBossak();
     }
 
     /**
@@ -183,6 +175,15 @@ public:
     ///@{
 
     /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
+
+    /**
      * @brief Recalculates the Newmark coefficients, taking into account the alpha parameters
      * @param beta The Bossak beta coefficient
      * @param gamma The Bossak gamma coefficient
@@ -215,26 +216,18 @@ public:
         mpDofUpdater->UpdateDofs(rDofSet, rDx);
 
         // Updating time derivatives (nodally for efficiency)
-        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
-        const auto it_node_begin = rModelPart.Nodes().begin();
+        block_for_each(rModelPart.Nodes(), array_1d<double,3>(), [&](Node<3>& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
+            noalias(rDeltaDisplacementTLS) = rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-        #pragma omp parallel for
-        for(int i = 0;  i < num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
+            array_1d<double, 3>& r_current_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3>& r_previous_velocity = rNode.FastGetSolutionStepValue(VELOCITY, 1);
 
-            array_1d<double, 3 > delta_displacement;
+            array_1d<double, 3>& r_current_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION);
+            const array_1d<double, 3>& r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
 
-            noalias(delta_displacement) = it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-            array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double, 3>& r_previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
-
-            array_1d<double, 3>& r_current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
-            const array_1d<double, 3>& r_previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
-
-            UpdateVelocity(r_current_velocity, delta_displacement, r_previous_velocity, r_previous_acceleration);
-            UpdateAcceleration(r_current_acceleration, delta_displacement, r_previous_velocity, r_previous_acceleration);
-        }
+            UpdateVelocity(r_current_velocity, rDeltaDisplacementTLS, r_previous_velocity, r_previous_acceleration);
+            UpdateAcceleration(r_current_acceleration, rDeltaDisplacementTLS, r_previous_velocity, r_previous_acceleration);
+        });
 
         KRATOS_CATCH( "" );
     }
@@ -263,14 +256,13 @@ public:
         const double delta_time = r_current_process_info[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
-        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
         const auto it_node_begin = rModelPart.Nodes().begin();
 
         // Getting position
         KRATOS_ERROR_IF_NOT(it_node_begin->HasDofFor(DISPLACEMENT_X)) << "ResidualBasedBossakDisplacementScheme:: DISPLACEMENT is not added" << std::endl;
         const int disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
-        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
-        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
+        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_X)) : -1;
+        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? static_cast<int>(it_node_begin->GetDofPosition(ACCELERATION_X)) : -1;
 
         // Getting dimension
         KRATOS_WARNING_IF("ResidualBasedBossakDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
@@ -279,54 +271,58 @@ public:
         // Auxiliar variables
         array_1d<double, 3 > delta_displacement;
         std::array<bool, 3> predicted = {false, false, false};
-        const std::array<VariableComponent<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
-        const std::array<VariableComponent<ComponentType>, 3> vel_components = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
-        const std::array<VariableComponent<ComponentType>, 3> accel_components = {ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z};
+        const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
+        const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
+        const std::array<const Variable<ComponentType>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &ACCELERATION_Z};
 
-        #pragma omp parallel for private(delta_displacement, predicted)
-        for(int i = 0;  i < num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
+        typedef std::tuple<array_1d<double,3>, std::array<bool,3>> TLSContainerType;
+        TLSContainerType aux_TLS = std::make_tuple(delta_displacement, predicted);
 
-            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim)
-                predicted[i_dim] = false;
+        block_for_each(rModelPart.Nodes(), aux_TLS, [&](Node<3>& rNode, TLSContainerType& rAuxTLS){
+            auto& r_delta_displacement = std::get<0>(rAuxTLS);
+            auto& r_predicted = std::get<1>(rAuxTLS);
+
+            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                r_predicted[i_dim] = false;
+            }
 
             // Predicting: NewDisplacement = r_previous_displacement + r_previous_velocity * delta_time;
-            const array_1d<double, 3>& r_previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
-            const array_1d<double, 3>& r_previous_velocity     = it_node->FastGetSolutionStepValue(VELOCITY,     1);
-            const array_1d<double, 3>& r_previous_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            array_1d<double, 3>& r_current_acceleration        = it_node->FastGetSolutionStepValue(ACCELERATION);
-            array_1d<double, 3>& r_current_velocity            = it_node->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3>& r_current_displacement        = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3>& r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
+            const array_1d<double, 3>& r_previous_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,     1);
+            const array_1d<double, 3>& r_previous_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+            array_1d<double, 3>& r_current_acceleration        = rNode.FastGetSolutionStepValue(ACCELERATION);
+            array_1d<double, 3>& r_current_velocity            = rNode.FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3>& r_current_displacement        = rNode.FastGetSolutionStepValue(DISPLACEMENT);
 
             if (accelpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->GetDof(accel_components[i_dim], accelpos + i_dim).IsFixed()) {
-                        delta_displacement[i_dim] = (r_current_acceleration[i_dim] + mBossak.c3 * r_previous_acceleration[i_dim] +  mBossak.c2 * r_previous_velocity[i_dim])/mBossak.c0;
-                        r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + delta_displacement[i_dim];
-                        predicted[i_dim] = true;
+                    if (rNode.GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
+                        r_delta_displacement[i_dim] = (r_current_acceleration[i_dim] + mBossak.c3 * r_previous_acceleration[i_dim] +  mBossak.c2 * r_previous_velocity[i_dim])/mBossak.c0;
+                        r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + r_delta_displacement[i_dim];
+                        r_predicted[i_dim] = true;
                     }
                 }
             }
             if (velpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->GetDof(vel_components[i_dim], velpos + i_dim).IsFixed() && !predicted[i_dim]) {
-                        delta_displacement[i_dim] = (r_current_velocity[i_dim] + mBossak.c4 * r_previous_velocity[i_dim] + mBossak.c5 * r_previous_acceleration[i_dim])/mBossak.c1;
-                        r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + delta_displacement[i_dim];
-                        predicted[i_dim] = true;
+                    if (rNode.GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !r_predicted[i_dim]) {
+                        r_delta_displacement[i_dim] = (r_current_velocity[i_dim] + mBossak.c4 * r_previous_velocity[i_dim] + mBossak.c5 * r_previous_acceleration[i_dim])/mBossak.c1;
+                        r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + r_delta_displacement[i_dim];
+                        r_predicted[i_dim] = true;
                     }
                 }
             }
             for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                if (!it_node->GetDof(disp_components[i_dim], disppos + i_dim).IsFixed() && !predicted[i_dim]) {
+                if (!rNode.GetDof(*disp_components[i_dim], disppos + i_dim).IsFixed() && !r_predicted[i_dim]) {
                     r_current_displacement[i_dim] = r_previous_displacement[i_dim] + delta_time * r_previous_velocity[i_dim] + 0.5 * std::pow(delta_time, 2) * r_previous_acceleration[i_dim];
                 }
             }
 
             // Updating time derivatives ::: Please note that displacements and its time derivatives can not be consistently fixed separately
-            noalias(delta_displacement) = r_current_displacement - r_previous_displacement;
-            UpdateVelocity(r_current_velocity, delta_displacement, r_previous_velocity, r_previous_acceleration);
-            UpdateAcceleration(r_current_acceleration, delta_displacement, r_previous_velocity, r_previous_acceleration);
-        }
+            noalias(r_delta_displacement) = r_current_displacement - r_previous_displacement;
+            UpdateVelocity(r_current_velocity, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
+            UpdateAcceleration(r_current_acceleration, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
+        });
 
         KRATOS_CATCH( "" );
     }
@@ -363,7 +359,6 @@ public:
         mBossak.c5 = ( delta_time * 0.5 * ( ( mBossak.gamma / mBossak.beta ) - 2.0 ) );
 
         // Updating time derivatives (nodally for efficiency)
-        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
         const auto it_node_begin = rModelPart.Nodes().begin();
 
         // Getting dimension
@@ -371,37 +366,35 @@ public:
         const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
 
         // Getting position
-        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
-        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
+        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_X)) : -1;
+        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? static_cast<int>(it_node_begin->GetDofPosition(ACCELERATION_X)) : -1;
 
         std::array<bool, 3> fixed = {false, false, false};
-        const std::array<VariableComponent<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
-        const std::array<VariableComponent<ComponentType>, 3> vel_components = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
-        const std::array<VariableComponent<ComponentType>, 3> accel_components = {ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z};
+        const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
+        const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
+        const std::array<const Variable<ComponentType>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &ACCELERATION_Z};
 
-        #pragma omp parallel for private(fixed)
-        for(int i = 0;  i < num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
-
-            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim)
-                fixed[i_dim] = false;
+        block_for_each(rModelPart.Nodes(), fixed, [&](Node<3>& rNode, std::array<bool,3>& rFixedTLS){
+            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                rFixedTLS[i_dim] = false;
+            }
 
             if (accelpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->GetDof(accel_components[i_dim], accelpos + i_dim).IsFixed()) {
-                        it_node->Fix(disp_components[i_dim]);
-                        fixed[i_dim] = true;
+                    if (rNode.GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
+                        rNode.Fix(*disp_components[i_dim]);
+                        rFixedTLS[i_dim] = true;
                     }
                 }
             }
             if (velpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->GetDof(vel_components[i_dim], velpos + i_dim).IsFixed() && !fixed[i_dim]) {
-                        it_node->Fix(disp_components[i_dim]);
+                    if (rNode.GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !rFixedTLS[i_dim]) {
+                        rNode.Fix(*disp_components[i_dim]);
                     }
                 }
             }
-        }
+        });
 
         KRATOS_CATCH( "" );
     }
@@ -414,18 +407,12 @@ public:
      * @param rModelPart The model of the problem to solve
      * @return Zero means  all ok
      */
-    int Check(ModelPart& rModelPart) override
+    int Check(const ModelPart& rModelPart) const override
     {
         KRATOS_TRY;
 
         const int err = ImplicitBaseType::Check(rModelPart);
         if(err != 0) return err;
-
-        // Check for variables keys
-        // Verify that the variables are correctly initialized
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
 
         // Check that variables are correctly allocated
         for (const auto& rnode : rModelPart.Nodes()) {
@@ -467,6 +454,34 @@ public:
     void Clear() override
     {
         this->mpDofUpdater->Clear();
+    }
+
+        /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"          : "bossak_scheme",
+            "damp_factor_m" : -0.3,
+            "newmark_beta"  : 0.25
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = ImplicitBaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "bossak_scheme";
     }
 
     ///@}
@@ -604,7 +619,7 @@ protected:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         // Adding mass contribution to the dynamic stiffness
@@ -618,28 +633,30 @@ protected:
 
     /**
      * @brief It adds the dynamic RHS contribution of the elements b - (1-alpha)*M*a_n+1 - alpha*M*a_n - D*v_n
-     * @param pElement The element to compute
+     * @param rElement The element to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
     void AddDynamicsToRHS(
-        Element::Pointer pElement,
+        Element& rElement,
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
 
+        const auto& r_const_elem_ref = rElement;
         // Adding inertia contribution
         if (M.size1() != 0) {
-            pElement->GetSecondDerivativesVector(mVector.a[this_thread], 0);
+
+            r_const_elem_ref.GetSecondDerivativesVector(mVector.a[this_thread], 0);
             mVector.a[this_thread] *= (1.00 - mBossak.alpha);
 
-            pElement->GetSecondDerivativesVector(mVector.ap[this_thread], 1);
+            r_const_elem_ref.GetSecondDerivativesVector(mVector.ap[this_thread], 1);
             noalias(mVector.a[this_thread]) += mBossak.alpha * mVector.ap[this_thread];
 
             noalias(RHS_Contribution) -= prod(M, mVector.a[this_thread]);
@@ -647,36 +664,36 @@ protected:
 
         // Adding damping contribution
         if (D.size1() != 0) {
-            pElement->GetFirstDerivativesVector(mVector.v[this_thread], 0);
-
+            r_const_elem_ref.GetFirstDerivativesVector(mVector.v[this_thread], 0);
             noalias(RHS_Contribution) -= prod(D, mVector.v[this_thread]);
         }
     }
 
     /**
      * @brief It adds the dynamic RHS contribution of the condition b - (1-alpha)*M*a_n+1 - alpha*M*a_n - D*v_n
-     * @param pCondition The condition to compute
+     * @param rCondition The condition to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
     void AddDynamicsToRHS(
-        Condition::Pointer pCondition,
+        Condition& rCondition,
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
+        const auto& r_const_cond_ref = rCondition;
 
         // Adding inertia contribution
         if (M.size1() != 0) {
-            pCondition->GetSecondDerivativesVector(mVector.a[this_thread], 0);
+            r_const_cond_ref.GetSecondDerivativesVector(mVector.a[this_thread], 0);
             mVector.a[this_thread] *= (1.00 - mBossak.alpha);
 
-            pCondition->GetSecondDerivativesVector(mVector.ap[this_thread], 1);
+            r_const_cond_ref.GetSecondDerivativesVector(mVector.ap[this_thread], 1);
             noalias(mVector.a[this_thread]) += mBossak.alpha * mVector.ap[this_thread];
 
             noalias(RHS_Contribution) -= prod(M, mVector.a[this_thread]);
@@ -685,10 +702,21 @@ protected:
         // Adding damping contribution
         // Damping contribution
         if (D.size1() != 0) {
-            pCondition->GetFirstDerivativesVector(mVector.v[this_thread], 0);
+            r_const_cond_ref.GetFirstDerivativesVector(mVector.v[this_thread], 0);
 
             noalias(RHS_Contribution) -= prod(D, mVector.v[this_thread]);
         }
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        ImplicitBaseType::AssignSettings(ThisParameters);
+        mBossak.alpha = ThisParameters["damp_factor_m"].GetDouble();
+        mNewmark.beta = ThisParameters["newmark_beta"].GetDouble();
     }
 
     ///@}
@@ -719,6 +747,24 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method does an auziliar initialization of some member variables of the class
+     */
+    void AuxiliarInitializeBossak()
+    {
+        // Initialize Bossak coefficients
+        CalculateBossakCoefficients();
+
+        // Allocate auxiliary memory
+        const std::size_t num_threads = ParallelUtilities::GetNumThreads();
+
+        mVector.v.resize(num_threads);
+        mVector.a.resize(num_threads);
+        mVector.ap.resize(num_threads);
+
+        KRATOS_DETAIL("MECHANICAL SCHEME: The Bossak Time Integration Scheme ") << "[alpha_m= " << mBossak.alpha << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
+    }
 
     ///@}
     ///@name Private  Access

@@ -36,7 +36,7 @@ namespace Kratos
 {
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
+class EdgeCableElementProcess
     : public Process
 {
   public:

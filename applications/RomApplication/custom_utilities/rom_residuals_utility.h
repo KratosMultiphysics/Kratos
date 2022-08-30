@@ -21,6 +21,7 @@
 
 /* Application includes */
 #include "rom_application_variables.h"
+#include "custom_utilities/rom_auxiliary_utilities.h"
 
 namespace Kratos
 {
@@ -61,42 +62,13 @@ namespace Kratos
                 const auto& var = KratosComponents<Variable<double>>::Get(mNodalVariablesNames[k]);
                 MapPhi[var.Key()] = k;
             }
-            else if(KratosComponents<ModelPart::VariableComponentType>::Has(mNodalVariablesNames[k]))
-            {
-                const auto& var = KratosComponents<ModelPart::VariableComponentType>::Get(mNodalVariablesNames[k]);
-                MapPhi[var.Key()] = k;
-            }
             else
                 KRATOS_ERROR << "variable \""<< mNodalVariablesNames[k] << "\" not valid" << std::endl;
 
-        }
-    }
-
-        ~RomResidualsUtility()= default;
-
-
-        void GetPhiElemental(
-            Matrix &PhiElemental,
-            const Element::DofsVectorType &dofs,
-            const Element::GeometryType &geom)
-        {
-            const auto *pcurrent_rom_nodal_basis = &(geom[0].GetValue(ROM_BASIS));
-            int counter = 0;
-            for(unsigned int k = 0; k < dofs.size(); ++k){
-                auto variable_key = dofs[k]->GetVariable().Key();
-                if(k==0)
-                    pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
-                else if(dofs[k]->Id() != dofs[k-1]->Id()){
-                    counter++;
-                    pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
-                }
-                if (dofs[k]->IsFixed())
-                    noalias(row(PhiElemental, k)) = ZeroVector(PhiElemental.size2());
-                else
-                    noalias(row(PhiElemental, k)) = row(*pcurrent_rom_nodal_basis, MapPhi[variable_key]);
             }
         }
 
+        ~RomResidualsUtility()= default;
 
         Matrix Calculate()
         {
@@ -104,9 +76,9 @@ namespace Kratos
             const int nelements = static_cast<int>(mpModelPart.Elements().size());
             const int nconditions = static_cast<int>(mpModelPart.Conditions().size());
 
-            auto& CurrentProcessInfo = mpModelPart.GetProcessInfo();
-            auto el_begin = mpModelPart.ElementsBegin();
-            auto cond_begin = mpModelPart.ConditionsBegin();
+            const auto& CurrentProcessInfo = mpModelPart.GetProcessInfo();
+            const auto el_begin = mpModelPart.ElementsBegin();
+            const auto cond_begin = mpModelPart.ConditionsBegin();
 
             //contributions to the system
             Matrix LHS_Contribution = ZeroMatrix(0, 0);
@@ -127,7 +99,7 @@ namespace Kratos
                         element_is_active = (it_el)->Is(ACTIVE);
                     if (element_is_active){
                         //calculate elemental contribution
-                        mpScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                        mpScheme->CalculateSystemContributions(*it_el, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                         Element::DofsVectorType dofs;
                         it_el->GetDofList(dofs, CurrentProcessInfo);
                         //assemble the elemental contribution - here is where the ROM acts
@@ -135,11 +107,8 @@ namespace Kratos
                         const auto& geom = it_el->GetGeometry();
                         if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
                             PhiElemental.resize(dofs.size(), mRomDofs,false);
-                        GetPhiElemental(PhiElemental, dofs, geom);
+                        RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, MapPhi);
                         noalias(row(MatrixResiduals, k)) = prod(trans(PhiElemental), RHS_Contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
-
-                        // clean local elemental me overridemory
-                        mpScheme->CleanMemory(*(it_el.base()));
                     }
 
                 }
@@ -155,31 +124,28 @@ namespace Kratos
                         Condition::DofsVectorType dofs;
                         it->GetDofList(dofs, CurrentProcessInfo);
                         //calculate elemental contribution
-                        mpScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                        mpScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                         //assemble the elemental contribution - here is where the ROM acts
                         //compute the elemental reduction matrix PhiElemental
                         const auto& geom = it->GetGeometry();
                         if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
                             PhiElemental.resize(dofs.size(), mRomDofs,false);
-                        GetPhiElemental(PhiElemental, dofs, geom);
+                        RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, MapPhi);
                         noalias(row(MatrixResiduals, k+nelements)) = prod(trans(PhiElemental), RHS_Contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
-
-                        // clean local elemental memory
-                        mpScheme->CleanMemory(*(it.base()));
                     }
                 }
             }
         return MatrixResiduals;
         }
 
-        protected:
-            std::vector< std::string > mNodalVariablesNames;
-            int mNodalDofs;
-            unsigned int mRomDofs;
-            BaseSchemeType::Pointer mpScheme;
-            ModelPart& mpModelPart;
-            std::unordered_map<Kratos::VariableData::KeyType,int> MapPhi;
-        };
+    protected:
+        std::vector< std::string > mNodalVariablesNames;
+        int mNodalDofs;
+        unsigned int mRomDofs;
+        ModelPart& mpModelPart;
+        BaseSchemeType::Pointer mpScheme;
+        std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type> MapPhi;
+    };
 
 
 

@@ -28,46 +28,4 @@ Mises)
 damage model with the insertion of interface elements after remeshing
 with GiD
 
-### How to use MPI in Poromechanics Application (Linux only)
 
-First, install the following packages from a terminal:
-
-- trilinos-dev
-- libmetis-dev
-- libmetis5
-- libopenmpi-dev
-- libscotch-dev
-- libtrilinos-amesos-dev
-- libtrilinos-aztecoo-dev
-- libtrilinos-epetra-dev
-- libtrilinos-epetraext-dev
-- libtrilinos-ifpack-dev
-- libtrilinos-ml-dev
-- libtrilinos-teuchos-dev
-- openmpi-bin
-
-Then, make sure that the following applications are added in the configure.sh file:
-
-> add_app ${KRATOS_APP_DIR}/ExternalSolversApplication;
->
-> add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
->
-> add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
->
-> add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
->
-> add_app ${KRATOS_APP_DIR}/MetisApplication;
->
-> add_app ${KRATOS_APP_DIR}/TrilinosApplication;
-
-And also that the following options are set:
-
-> -DUSE_MPI=ON \\
->
-> -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \\
->
-> -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \\
->
-> -DTRILINOS_LIBRARY_PREFIX="trilinos_" \\
-
-*Note*: For the moment, MPI only works in Linux. Non-local Damage and Fracture Propagation features do not work in MPI.

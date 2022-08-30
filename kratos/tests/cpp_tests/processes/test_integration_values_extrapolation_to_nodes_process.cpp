@@ -58,9 +58,11 @@ namespace Kratos
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+
             // Initialize Elements
             for (auto& r_elem : rModelPart.Elements())
-                r_elem.Initialize();
+                r_elem.Initialize(r_process_info);
         }
 
         void Create3DModelPartForExtrapolation(ModelPart& rModelPart)
@@ -73,9 +75,11 @@ namespace Kratos
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+
             // Initialize Elements
             for (auto& r_elem : rModelPart.Elements())
-                r_elem.Initialize();
+                r_elem.Initialize(r_process_info);
         }
 
         void CreateQuadratic3DModelPartForExtrapolation(ModelPart& rModelPart)
@@ -88,9 +92,11 @@ namespace Kratos
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+
             // Initialize Elements
             for (auto& r_elem : rModelPart.Elements())
-                r_elem.Initialize();
+                r_elem.Initialize(r_process_info);
         }
 
         /**
@@ -99,16 +105,14 @@ namespace Kratos
         */
         KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTriangle, KratosCoreFastSuite)
         {
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
             r_current_process_info[DOMAIN_SIZE] = 2;
 
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-
-            // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
-                return void();
 
             Create2DModelPartForExtrapolation(r_model_part);
 
@@ -143,16 +147,14 @@ namespace Kratos
         */
         KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTetra, KratosCoreFastSuite)
         {
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
             r_current_process_info[DOMAIN_SIZE] = 3;
 
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-
-            // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
-                return void();
 
             Create3DModelPartForExtrapolation(r_model_part);
 
@@ -187,16 +189,14 @@ namespace Kratos
         */
         KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessQuadTetra, KratosCoreFastSuite)
         {
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
             r_current_process_info[DOMAIN_SIZE] = 3;
 
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-
-            // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
-                return void();
 
             CreateQuadratic3DModelPartForExtrapolation(r_model_part);
 

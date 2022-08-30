@@ -64,7 +64,6 @@ public:
     FormfindingStrategy(
         ModelPart& model_part,
         typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         ModelPart& rFormFindingModelPart,
@@ -77,7 +76,7 @@ public:
         bool MoveMeshFlag = false
     )
     : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
-        pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep,
+        pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep,
         MoveMeshFlag),
         mProjectionSettings(ProjectionSetting),
         mrFormFindingModelPart(rFormFindingModelPart),
@@ -96,7 +95,7 @@ public:
         const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         for(auto& r_element : rModelPart.Elements()){
             r_element.Calculate(MEMBRANE_PRESTRESS,output_matrix,r_process_info);
-            r_element.Data().Clear();
+            r_element.GetData().Clear();
             r_element.SetValue(MEMBRANE_PRESTRESS,output_matrix);
         }
 
@@ -163,7 +162,7 @@ private:
             "output_precision"                   : 7,
             "output_control_type"                : "step",
             "save_output_files_in_folder"        : true,
-            "folder_name"                        : "formfinding_results_vtk",
+            "output_path"                        : "formfinding_results_vtk",
             "nodal_data_value_variables"         : ["DISPLACEMENT"]
         })");
 

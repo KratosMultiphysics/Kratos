@@ -1,0 +1,657 @@
+Begin Properties 0
+    DENSITY  1.225
+    DYNAMIC_VISCOSITY  1.846e-05
+
+End Properties
+
+Begin Nodes
+	1	200	-75	0
+	2	-75	0.454461	0
+	3	129.356	-47.7355	0
+	4	141.281	-75	0
+	5	155.104	-4.07604	0
+	6	102.984	-30.5134	0
+	7	90.2132	-75	0
+	8	102.795	5.89479	0
+	9	78.2947	-16.831	0
+	10	71.1866	-46.0978	0
+	11	13.4934	75	0
+	12	45.2536	-75	0
+	13	200	75	0
+	14	153.235	75	0
+	15	139.56	44.1295	0
+	16	49.9303	-34.6269	0
+	17	89.3501	38.1454	0
+	18	48.8009	-10.8566	0
+	19	30.9515	-26.5679	0
+	20	28.6733	-47.0622	0
+	21	59.7225	37.3848	0
+	22	38.9944	5.67844	0
+	23	49.3844	19.4057	0
+	24	28.4292	-8.19647	0
+	25	116.699	75	0
+	26	21.841	7.42134	0
+	27	32.7712	28.4379	0
+	28	9.38978	-36.2573	0
+	29	16.4741	-6.2379	0
+	30	17.1684	-19.3348	0
+	31	4.96563	-11.4019	0
+	32	40.4077	75	0
+	33	40.7914	56.5586	0
+	34	10.5968	0.377705	0
+	35	5	-0.5	0
+	36	5	0.5	0
+	37	14.0957	21.7191	0
+	38	0	-0.5	0
+	39	0	0.5	0
+	40	-5.12454	-23.1981	0
+	41	-16.6071	-75	0
+	42	-7.59603	-8.57918	0
+	43	13.3007	36.4009	0
+	44	-1.19707	24.4148	0
+	45	-6.43646	10.5203	0
+	46	-30.067	-49.7494	0
+	47	-19.5785	-32.4729	0
+	48	-19.0542	-15.4523	0
+	49	-18.0353	-0.453582	0
+	50	-35.7065	-27.5512	0
+	51	-16.9497	25.1045	0
+	52	-8.95132	44.2181	0
+	53	-31.0264	-6.23118	0
+	54	-32.9974	20.8055	0
+	55	-13.7396	75	0
+	56	-42.1964	6.30465	0
+	57	-31.7399	37.7652	0
+	58	-53.1109	-48.3219	0
+	59	-53.8584	-16.3909	0
+	60	-29.6323	57.6072	0
+	61	-75	-75	0
+	62	-75	-45.6946	0
+	63	9.46609	55.4071	0
+	64	-52.3151	26.6344	0
+	65	-75	-20.0404	0
+	66	-58.4826	8.64088	0
+	67	-75	21.5934	0
+	68	-53.9621	51.4769	0
+	69	-75	46.3739	0
+	70	-75	75	0
+	71	171.264	-41.3749	0
+	72	-43.3843	-75	0
+	73	-7.10914	0.552263	0
+	74	75.592	75	0
+	75	65.8172	7.87781	0
+	76	-42.971	75	0
+	77	200	0.678183	0
+	78	15.0436	-75	0
+	79	-7.3851	-49.8589	0
+	80	-23.0819	9.76459	0
+	81	5.17549	10.0462	0
+End Nodes
+
+Begin Elements	Element2D3N
+	1	0	35	34	36	
+	2	0	81	39	36	
+	3	0	81	36	34	
+	4	0	40	31	42	
+	5	0	73	49	42	
+	6	0	5	3	71	
+	7	0	37	81	26	
+	8	0	40	42	48	
+	9	0	43	44	37	
+	10	0	28	31	40	
+	11	0	42	49	48	
+	12	0	49	53	48	
+	13	0	22	24	18	
+	14	0	24	30	19	
+	15	0	30	31	28	
+	16	0	40	48	47	
+	17	0	53	80	56	
+	18	0	54	80	51	
+	19	0	80	54	56	
+	20	0	33	43	27	
+	21	0	30	28	19	
+	22	0	46	79	47	
+	23	0	47	50	46	
+	24	0	20	16	19	
+	25	0	53	56	59	
+	26	0	50	53	59	
+	27	0	56	54	64	
+	28	0	63	43	33	
+	29	0	57	64	54	
+	30	0	56	64	66	
+	31	0	59	66	2	
+	32	0	57	52	60	
+	33	0	20	12	16	
+	34	0	58	59	62	
+	35	0	66	59	56	
+	36	0	79	46	41	
+	37	0	64	68	69	
+	38	0	62	59	65	
+	39	0	10	9	16	
+	40	0	57	68	64	
+	41	0	9	10	6	
+	42	0	74	17	25	
+	43	0	74	33	21	
+	44	0	60	55	76	
+	45	0	7	10	12	
+	46	0	64	69	67	
+	47	0	11	33	32	
+	48	0	10	16	12	
+	49	0	64	67	66	
+	50	0	69	68	70	
+	51	0	74	21	17	
+	52	0	78	79	41	
+	53	0	61	58	62	
+	54	0	72	58	61	
+	55	0	17	15	25	
+	56	0	25	15	14	
+	57	0	3	6	7	
+	58	0	5	6	3	
+	59	0	14	15	13	
+	60	0	71	4	1	
+	61	0	18	24	19	
+	62	0	78	20	28	
+	63	0	26	29	24	
+	64	0	47	79	40	
+	65	0	15	8	5	
+	66	0	17	8	15	
+	67	0	21	75	17	
+	68	0	16	18	19	
+	69	0	57	51	52	
+	70	0	79	78	28	
+	71	0	28	20	19	
+	72	0	44	43	52	
+	73	0	52	51	44	
+	74	0	18	75	22	
+	75	0	50	47	48	
+	76	0	53	50	48	
+	77	0	27	43	37	
+	78	0	71	3	4	
+	79	0	80	53	49	
+	80	0	80	49	45	
+	81	0	51	80	45	
+	82	0	24	29	30	
+	83	0	6	10	7	
+	84	0	68	57	60	
+	85	0	58	50	59	
+	86	0	55	52	63	
+	87	0	66	67	2	
+	88	0	15	5	13	
+	89	0	58	46	50	
+	90	0	77	5	71	
+	91	0	63	33	11	
+	92	0	22	23	27	
+	93	0	38	31	35	
+	94	0	77	71	1	
+	95	0	4	3	7	
+	96	0	27	37	26	
+	97	0	38	39	73	
+	98	0	42	31	38	
+	99	0	52	43	63	
+	100	0	31	30	29	
+	101	0	42	38	73	
+	102	0	34	31	29	
+	103	0	34	26	81	
+	104	0	26	34	29	
+	105	0	73	39	45	
+	106	0	45	81	44	
+	107	0	37	44	81	
+	108	0	45	39	81	
+	109	0	59	2	65	
+	110	0	22	26	24	
+	111	0	27	21	33	
+	112	0	22	75	23	
+	113	0	41	46	72	
+	114	0	54	51	57	
+	115	0	23	75	21	
+	116	0	9	18	16	
+	117	0	75	18	9	
+	118	0	17	75	8	
+	119	0	8	75	9	
+	120	0	32	33	74	
+	121	0	55	63	11	
+	122	0	9	6	8	
+	123	0	68	76	70	
+	124	0	60	76	68	
+	125	0	5	77	13	
+	126	0	12	20	78	
+	127	0	8	6	5	
+	128	0	58	72	46	
+	129	0	27	26	22	
+	130	0	27	23	21	
+	131	0	45	44	51	
+	132	0	60	52	55	
+	133	0	35	31	34	
+	134	0	40	79	28	
+	135	0	45	49	73	
+End Elements
+
+Begin Conditions	LineCondition2D2N
+	1	0	36	35	
+	2	0	39	36	
+	3	0	65	62	
+	4	0	25	74	
+	5	0	55	76	
+	6	0	12	7	
+	7	0	69	67	
+	8	0	32	11	
+	9	0	70	69	
+	10	0	41	78	
+	11	0	62	61	
+	12	0	61	72	
+	13	0	14	25	
+	14	0	13	14	
+	15	0	4	1	
+	16	0	67	2	
+	17	0	35	38	
+	18	0	1	77	
+	19	0	7	4	
+	20	0	38	39	
+	21	0	2	65	
+	22	0	72	41	
+	23	0	74	32	
+	24	0	11	55	
+	25	0	76	70	
+	26	0	77	13	
+	27	0	78	12	
+End Conditions
+
+Begin SubModelPart	Outlet2D_Outlet_pressure_Auto1
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		1
+		13
+		77
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+		18
+		26
+	End SubModelPartConditions
+End SubModelPart	
+
+Begin SubModelPart	Corners
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		61
+		70
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart	
+
+Begin SubModelPart	Parts_Parts_Auto1
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		1
+		2
+		3
+		4
+		5
+		6
+		7
+		8
+		9
+		10
+		11
+		12
+		13
+		14
+		15
+		16
+		17
+		18
+		19
+		20
+		21
+		22
+		23
+		24
+		25
+		26
+		27
+		28
+		29
+		30
+		31
+		32
+		33
+		34
+		35
+		36
+		37
+		38
+		39
+		40
+		41
+		42
+		43
+		44
+		45
+		46
+		47
+		48
+		49
+		50
+		51
+		52
+		53
+		54
+		55
+		56
+		57
+		58
+		59
+		60
+		61
+		62
+		63
+		64
+		65
+		66
+		67
+		68
+		69
+		70
+		71
+		72
+		73
+		74
+		75
+		76
+		77
+		78
+		79
+		80
+		81
+	End SubModelPartNodes
+	Begin SubModelPartElements
+		1
+		2
+		3
+		4
+		5
+		6
+		7
+		8
+		9
+		10
+		11
+		12
+		13
+		14
+		15
+		16
+		17
+		18
+		19
+		20
+		21
+		22
+		23
+		24
+		25
+		26
+		27
+		28
+		29
+		30
+		31
+		32
+		33
+		34
+		35
+		36
+		37
+		38
+		39
+		40
+		41
+		42
+		43
+		44
+		45
+		46
+		47
+		48
+		49
+		50
+		51
+		52
+		53
+		54
+		55
+		56
+		57
+		58
+		59
+		60
+		61
+		62
+		63
+		64
+		65
+		66
+		67
+		68
+		69
+		70
+		71
+		72
+		73
+		74
+		75
+		76
+		77
+		78
+		79
+		80
+		81
+		82
+		83
+		84
+		85
+		86
+		87
+		88
+		89
+		90
+		91
+		92
+		93
+		94
+		95
+		96
+		97
+		98
+		99
+		100
+		101
+		102
+		103
+		104
+		105
+		106
+		107
+		108
+		109
+		110
+		111
+		112
+		113
+		114
+		115
+		116
+		117
+		118
+		119
+		120
+		121
+		122
+		123
+		124
+		125
+		126
+		127
+		128
+		129
+		130
+		131
+		132
+		133
+		134
+		135
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart	
+
+Begin SubModelPart	AutomaticInlet2D_Automatic_inlet_velocity_Auto1
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		2
+		61
+		62
+		65
+		67
+		69
+		70
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+		3
+		7
+		9
+		11
+		16
+		21
+	End SubModelPartConditions
+End SubModelPart	
+
+Begin SubModelPart	NoSlip2D_No_Slip_Auto1
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		35
+		36
+		38
+		39
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+		1
+		2
+		17
+		20
+	End SubModelPartConditions
+End SubModelPart	
+
+Begin SubModelPart	Slip2D
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		1
+		4
+		7
+		11
+		12
+		13
+		14
+		25
+		32
+		41
+		55
+		61
+		70
+		72
+		74
+		76
+		78
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+		4
+		5
+		6
+		8
+		10
+		12
+		13
+		14
+		15
+		19
+		22
+		23
+		24
+		25
+		27
+	End SubModelPartConditions
+	Begin SubModelPart	Slip2D_Slip_Auto1
+		Begin SubModelPartData
+		End SubModelPartData
+		Begin SubModelPartTables
+		End SubModelPartTables
+		Begin SubModelPartNodes
+			1
+			4
+			7
+			11
+			12
+			13
+			14
+			25
+			32
+			41
+			55
+			61
+			70
+			72
+			74
+			76
+			78
+		End SubModelPartNodes
+		Begin SubModelPartElements
+		End SubModelPartElements
+		Begin SubModelPartConditions
+			4
+			5
+			6
+			8
+			10
+			12
+			13
+			14
+			15
+			19
+			22
+			23
+			24
+			25
+			27
+		End SubModelPartConditions
+	End SubModelPart	
+
+End SubModelPart	
+

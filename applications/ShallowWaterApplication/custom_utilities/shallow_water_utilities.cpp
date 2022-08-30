@@ -17,8 +17,10 @@
 
 
 // Project includes
-#include "shallow_water_application_variables.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "shallow_water_utilities.h"
+#include "phase_function.h"
 
 
 namespace Kratos
@@ -26,246 +28,389 @@ namespace Kratos
 
 void ShallowWaterUtilities::ComputeFreeSurfaceElevation(ModelPart& rModelPart)
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rModelPart.NodesBegin() + i;
-        it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = it_node->FastGetSolutionStepValue(HEIGHT) - it_node->FastGetSolutionStepValue(BATHYMETRY);
-    }
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = rNode.FastGetSolutionStepValue(HEIGHT) + rNode.FastGetSolutionStepValue(TOPOGRAPHY);
+    });
 }
 
 void ShallowWaterUtilities::ComputeHeightFromFreeSurface(ModelPart& rModelPart)
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rModelPart.NodesBegin() + i;
-        it_node->FastGetSolutionStepValue(HEIGHT) = it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) + it_node->FastGetSolutionStepValue(BATHYMETRY);
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        rNode.FastGetSolutionStepValue(HEIGHT) = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) - rNode.FastGetSolutionStepValue(TOPOGRAPHY);
+    });
+}
+
+void ShallowWaterUtilities::ComputeVelocity(ModelPart& rModelPart, bool PerformProjection)
+{
+    if (PerformProjection) {
+        ComputeSmoothVelocity(rModelPart);
+    } else {
+        const double rel_dry_h = rModelPart.GetProcessInfo()[RELATIVE_DRY_HEIGHT];
+        block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
+            const double h = r_node.FastGetSolutionStepValue(HEIGHT);
+            const double inv_h = PhaseFunction::InverseHeight(h, rel_dry_h * r_node.GetValue(NODAL_H));
+            r_node.FastGetSolutionStepValue(VELOCITY) = inv_h * r_node.FastGetSolutionStepValue(MOMENTUM);
+        });
     }
 }
 
-void ShallowWaterUtilities::ComputeVelocity(ModelPart& rModelPart)
+void ShallowWaterUtilities::ComputeSmoothVelocity(ModelPart& rModelPart)
 {
-    const double epsilon = rModelPart.GetProcessInfo()[DRY_HEIGHT];
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rModelPart.NodesBegin() + i;
-        const double height = it_node->FastGetSolutionStepValue(HEIGHT);
-        it_node->FastGetSolutionStepValue(VELOCITY) = it_node->FastGetSolutionStepValue(MOMENTUM) / (std::abs(height) + epsilon);
-    }
+    block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
+        r_node.FastGetSolutionStepValue(VELOCITY) = ZeroVector(3);
+        r_node.SetValue(INTEGRATION_WEIGHT, 0.0);
+    });
+    Matrix mass_matrix;
+    const double rel_dry_h = rModelPart.GetProcessInfo()[RELATIVE_DRY_HEIGHT];
+    block_for_each(rModelPart.Elements(), mass_matrix, [&](Element& r_element, Matrix& r_local_mass_matrix){
+        auto& r_geom = r_element.GetGeometry();
+        const size_t num_nodes = r_geom.size();
+        double height = 0.0;
+        Vector nodal_discharge_x(num_nodes);
+        Vector nodal_discharge_y(num_nodes);
+        for (size_t i = 0; i < num_nodes; ++i) {
+            height += r_geom[i].FastGetSolutionStepValue(HEIGHT);
+            nodal_discharge_x[i] = r_geom[i].FastGetSolutionStepValue(MOMENTUM_X);
+            nodal_discharge_y[i] = r_geom[i].FastGetSolutionStepValue(MOMENTUM_Y);
+        }
+        height /= num_nodes;
+        CalculateMassMatrix(r_local_mass_matrix, r_geom);
+        r_local_mass_matrix *= PhaseFunction::InverseHeight(height, rel_dry_h * r_geom.Length());
+        Vector nodal_velocity_x(num_nodes);
+        Vector nodal_velocity_y(num_nodes);
+        nodal_velocity_x = num_nodes * prod(r_local_mass_matrix, nodal_discharge_x);
+        nodal_velocity_y = num_nodes * prod(r_local_mass_matrix, nodal_discharge_y);
+        for (unsigned int i = 0; i < num_nodes; ++i)
+        {
+            r_geom[i].SetLock();
+            r_geom[i].FastGetSolutionStepValue(VELOCITY_X) += nodal_velocity_x[i];
+            r_geom[i].FastGetSolutionStepValue(VELOCITY_Y) += nodal_velocity_y[i];
+            r_geom[i].GetValue(INTEGRATION_WEIGHT) += 1.0;
+            r_geom[i].UnSetLock();
+        }
+    });
+    block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
+        r_node.FastGetSolutionStepValue(VELOCITY) /= r_node.GetValue(INTEGRATION_WEIGHT);
+    });
 }
 
 void ShallowWaterUtilities::ComputeMomentum(ModelPart& rModelPart)
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rModelPart.NodesBegin() + i;
-        it_node->FastGetSolutionStepValue(MOMENTUM) = it_node->FastGetSolutionStepValue(VELOCITY) * it_node->FastGetSolutionStepValue(HEIGHT);
-    }
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        noalias(rNode.FastGetSolutionStepValue(MOMENTUM)) = rNode.FastGetSolutionStepValue(VELOCITY) * rNode.FastGetSolutionStepValue(HEIGHT);
+    });
 }
 
-void ShallowWaterUtilities::ComputeAccelerations(ModelPart& rModelPart)
+void ShallowWaterUtilities::ComputeLinearizedMomentum(ModelPart& rModelPart)
 {
-    double dt_inv = rModelPart.GetProcessInfo()[DELTA_TIME];
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        noalias(rNode.FastGetSolutionStepValue(MOMENTUM)) = -rNode.FastGetSolutionStepValue(VELOCITY) * rNode.FastGetSolutionStepValue(TOPOGRAPHY);
+    });
+}
 
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rModelPart.NodesBegin() + i;
+template<bool THistorical>
+void ShallowWaterUtilities::ComputeFroude(ModelPart& rModelPart, const double Epsilon)
+{
+    const double g = rModelPart.GetProcessInfo()[GRAVITY_Z];
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        const double height = rNode.FastGetSolutionStepValue(HEIGHT);
+        const double velocity = norm_2(rNode.FastGetSolutionStepValue(VELOCITY));
+        const double inverse_c = std::sqrt(PhaseFunction::InverseHeight(height, Epsilon) / g);
+        GetValue<THistorical>(rNode, FROUDE) = velocity * inverse_c;
+    });
+}
 
-        // Free suface derivative or vertical velocity
-        auto delta_surface = it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) - it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION,1);
-        it_node->FastGetSolutionStepValue(VELOCITY_Z) = dt_inv * delta_surface;
-
-        // Acceleration
-        auto delta_vel = it_node->FastGetSolutionStepValue(VELOCITY) - it_node->FastGetSolutionStepValue(VELOCITY,1);
-        it_node->SetValue(ACCELERATION, dt_inv * delta_vel);
-    }
+template<bool THistorical>
+void ShallowWaterUtilities::ComputeEnergy(ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        const double height = rNode.FastGetSolutionStepValue(HEIGHT);
+        const double velocity = norm_2(rNode.FastGetSolutionStepValue(VELOCITY));
+        GetValue<THistorical>(rNode, INTERNAL_ENERGY) = height + 0.5 * std::pow(velocity, 2);
+    });
 }
 
 void ShallowWaterUtilities::FlipScalarVariable(Variable<double>& rOriginVariable, Variable<double>& rDestinationVariable, ModelPart& rModelPart)
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rModelPart.NodesBegin() + i;
-        it_node->FastGetSolutionStepValue(rDestinationVariable) = -it_node->FastGetSolutionStepValue(rOriginVariable);
-    }
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        rNode.FastGetSolutionStepValue(rDestinationVariable) = -rNode.FastGetSolutionStepValue(rOriginVariable);
+    });
 }
 
 void ShallowWaterUtilities::IdentifySolidBoundary(ModelPart& rSkinModelPart, double SeaWaterLevel, Flags SolidBoundaryFlag)
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rSkinModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rSkinModelPart.NodesBegin() + i;
-        if (it_node->FastGetSolutionStepValue(TOPOGRAPHY) < SeaWaterLevel)
+    block_for_each(rSkinModelPart.Nodes(), [&](NodeType& rNode){
+        if (rNode.FastGetSolutionStepValue(TOPOGRAPHY) < SeaWaterLevel)
         {
-            it_node->Set(SolidBoundaryFlag, true);
+            rNode.Set(SolidBoundaryFlag, true);
         }
         else
         {
-            auto topography_gradient = it_node->FastGetSolutionStepValue(TOPOGRAPHY_GRADIENT);
-            auto normal = it_node->FastGetSolutionStepValue(NORMAL);
+            auto topography_gradient = rNode.GetValue(TOPOGRAPHY_GRADIENT);
+            array_1d<double,3> normal = rNode.FastGetSolutionStepValue(NORMAL);
             double sign = inner_prod(normal, topography_gradient);
             // NOTE: Normal is positive outwards
             // NOTE: The flowstream is opposite to the topography gradient
             // An inwards flow will produce a positive sign: a SOLID boundary
-            it_node->Set(SolidBoundaryFlag, (sign >= 0.0));
+            rNode.Set(SolidBoundaryFlag, (sign >= 0.0));
         }
-    }
+    });
 
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rSkinModelPart.NumberOfConditions()); ++i)
-    {
-        auto it_cond = rSkinModelPart.ConditionsBegin() + i;
+    block_for_each(rSkinModelPart.Conditions(), [&](Condition& rCondition){
         bool is_solid = true;
-        for (auto& node : it_cond->GetGeometry())
+        for (auto& node : rCondition.GetGeometry())
         {
             if (node.IsNot(SolidBoundaryFlag)) {
                 is_solid = false;
             }
         }
-        it_cond->Set(SolidBoundaryFlag, is_solid);
-    }
+        rCondition.Set(SolidBoundaryFlag, is_solid);
+    });
 }
 
-void ShallowWaterUtilities::IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double Thickness)
+void ShallowWaterUtilities::FlagWetElements(ModelPart& rModelPart, Flags WetFlag, double RelativeDryHeight)
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rModelPart.NodesBegin() + i;
-        const double height = it_node->FastGetSolutionStepValue(HEIGHT);
-        it_node->Set(WetFlag, (height > Thickness));
+    if (RelativeDryHeight < 0.0) {
+        RelativeDryHeight = rModelPart.GetProcessInfo()[RELATIVE_DRY_HEIGHT];
     }
+    block_for_each(rModelPart.Elements(), [&](Element& rElement){
+        const auto& r_geom = rElement.GetGeometry();
+        const bool is_wet = IsWet(r_geom, RelativeDryHeight);
+        rElement.Set(WetFlag, is_wet);
+    });
+}
 
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfElements()); ++i)
-    {
-        int method = 1;
-
-        auto it_elem = rModelPart.ElementsBegin() + i;
-        auto& geom = it_elem->GetGeometry();
-
-        bool is_wet = geom[0].Is(WetFlag);
-        bool is_shoreline = false;
-        for (size_t j = 1; j < geom.size(); ++j)
+void ShallowWaterUtilities::ExtrapolateElementalFlagToNodes(ModelPart& rModelPart, Flags Flag)
+{
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        rNode.Set(Flag, false);
+    });
+    block_for_each(rModelPart.Elements(), [&](Element& rElement){
+        const auto& r_geom = rElement.GetGeometry();
+        for (auto& r_node : r_geom)
         {
-            if (geom[j].Is(WetFlag) != is_wet)
-                is_shoreline = true;
-        }
-
-        if (!is_shoreline)
-        {
-            it_elem->Set(WetFlag, is_wet);
-        }
-        else
-        {
-            if (method == 0) {
-                it_elem->Set(WetFlag, false);
-            }
-            else if (method == 1) {
-                it_elem->Set(WetFlag, true);
-            }
-            else if (method == 2) {
-                double height_acc = 0.0;
-                for (auto& node : geom)
+            if (rElement.Is(Flag))
+            {
+                if (r_node.IsNot(Flag))
                 {
-                    height_acc += node.FastGetSolutionStepValue(VELOCITY_Z);
+                    r_node.SetLock();
+                    r_node.Set(Flag);
+                    r_node.UnSetLock();
                 }
-                it_elem->Set(WetFlag, (height_acc > 0.0));
-            }
-            else if (method == 3) {
-                Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX(1);
-                geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
-                array_1d<double,3> height_grad = ZeroVector(3);
-                array_1d<double,3> velocity = ZeroVector(3);
-                for (size_t j = 0; j < geom.size(); ++j)
-                {
-                    height_grad[0] += DN_DX[0](j,0) * geom[j].FastGetSolutionStepValue(HEIGHT);
-                    height_grad[1] += DN_DX[0](j,1) * geom[j].FastGetSolutionStepValue(HEIGHT);
-                    velocity += geom[j].FastGetSolutionStepValue(VELOCITY);
-                }
-                velocity /= geom.size();
-
-                double run_up = -inner_prod(height_grad, velocity);
-
-                it_elem->Set(WetFlag, (run_up > 0.0));
             }
         }
-    }
+    });
 }
 
-void ShallowWaterUtilities::ResetDryDomain(ModelPart& rModelPart, double Thickness)
+void ShallowWaterUtilities::NormalizeVector(ModelPart& rModelPart, const Variable<array_1d<double,3>>& rVariable)
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rModelPart.NodesBegin() + i;
-        double& height = it_node->FastGetSolutionStepValue(HEIGHT);
-        if (height < Thickness)
-        {
-            height = 0.1 * Thickness;
-            it_node->FastGetSolutionStepValue(MOMENTUM) = ZeroVector(3);
-        }
-    }
-}
-
-void ShallowWaterUtilities::ComputeVisualizationWaterHeight(ModelPart& rModelPart, Flags WetFlag, double SeaWaterLevel)
-{
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rModelPart.NodesBegin() + i;
-        if (it_node->Is(WetFlag)) {
-            if (it_node->FastGetSolutionStepValue(TOPOGRAPHY) > SeaWaterLevel) {
-                it_node->SetValue(WATER_HEIGHT, it_node->FastGetSolutionStepValue(HEIGHT));
-            }
-            else {
-                it_node->SetValue(WATER_HEIGHT, it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) - SeaWaterLevel);
-            }
-        }
-        else {
-            // This is the undefined value for GiD
-            it_node->SetValue(WATER_HEIGHT, std::numeric_limits<float>::lowest());
-        }
-    }
-}
-
-void ShallowWaterUtilities::ComputeVisualizationWaterSurface(ModelPart& rModelPart)
-{
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rModelPart.NodesBegin() + i;
-        it_node->SetValue(WATER_SURFACE_Z, it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION));
-    }
-}
-
-void ShallowWaterUtilities::NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable)
-{
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = rModelPart.NodesBegin() + i;
-        auto& vector = it_node->FastGetSolutionStepValue(rVariable);
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        auto& vector = rNode.FastGetSolutionStepValue(rVariable);
         const auto modulus = norm_2(vector);
         if (modulus > std::numeric_limits<double>::epsilon())
             vector /= modulus;
-    }
+    });
 }
 
 void ShallowWaterUtilities::SetMinimumValue(ModelPart& rModelPart, const Variable<double>& rVariable, double MinValue)
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-    {
-        auto& value = (rModelPart.NodesBegin() + i)->FastGetSolutionStepValue(rVariable);
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        double& value = rNode.FastGetSolutionStepValue(rVariable);
         value = std::max(value, MinValue);
+    });
+}
+
+void ShallowWaterUtilities::SetMeshZCoordinateToZero(ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        rNode.Z() = 0.0;
+    });
+}
+
+void ShallowWaterUtilities::SetMeshZ0CoordinateToZero(ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        rNode.Z0() = 0.0;
+    });
+}
+
+void ShallowWaterUtilities::SetMeshZCoordinate(ModelPart& rModelPart, const Variable<double>& rVariable)
+{
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        rNode.Z() = rNode.FastGetSolutionStepValue(rVariable);
+    });
+}
+
+void ShallowWaterUtilities::OffsetMeshZCoordinate(ModelPart& rModelPart, const double Increment)
+{
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        rNode.Z() += Increment;
+    });
+}
+
+void ShallowWaterUtilities::SwapYZCoordinates(ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+        std::swap(rNode.Y(), rNode.Z());
+    });
+}
+
+void ShallowWaterUtilities::SwapY0Z0Coordinates(ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+        std::swap(rNode.Y0(), rNode.Z0());
+    });
+}
+
+void ShallowWaterUtilities::StoreNonHistoricalGiDNoDataIfDry(ModelPart& rModelPart, const Variable<double>& rVariable)
+{
+    const double relative_dry_height = rModelPart.GetProcessInfo()[RELATIVE_DRY_HEIGHT];
+    const double length = rModelPart.ElementsBegin()->GetGeometry().Length();
+    const double dry_height = relative_dry_height * length;
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        const double height = rNode.FastGetSolutionStepValue(HEIGHT);
+        const bool is_wet = IsWet(height, dry_height);
+        const double value = (is_wet) ? rNode.FastGetSolutionStepValue(rVariable) : std::numeric_limits<float>::lowest();
+        rNode.SetValue(rVariable, value);
+    });
+}
+
+template<bool THistorical>
+double ShallowWaterUtilities::ComputeL2Norm(ModelPart& rModelPart, const Variable<double>& rVariable)
+{
+    double l2_norm = block_for_each<SumReduction<double>>(rModelPart.Elements(), [&](Element& rElem){
+        double partial_l2_norm = 0.0;
+        for (auto& r_node : rElem.GetGeometry()) {
+            partial_l2_norm += std::pow(GetValue<THistorical>(r_node, rVariable), 2);
+        }
+        partial_l2_norm *= rElem.GetGeometry().Area();
+        partial_l2_norm /= rElem.GetGeometry().size();
+        return partial_l2_norm;
+    });
+    return std::sqrt(l2_norm);
+}
+
+template<bool THistorical>
+double ShallowWaterUtilities::ComputeL2NormAABB(
+    ModelPart& rModelPart,
+    const Variable<double>& rVariable,
+    Point& rLow,
+    Point& rHigh)
+{
+    double l2_norm = block_for_each<SumReduction<double>>(rModelPart.Elements(), [&](Element& rElem){
+        double partial_l2_norm = 0.0;
+        if (rElem.GetGeometry().HasIntersection(rLow, rHigh)) {
+            for (auto& r_node : rElem.GetGeometry()) {
+                partial_l2_norm += std::pow(GetValue<THistorical>(r_node, rVariable), 2);
+            }
+            partial_l2_norm *= rElem.GetGeometry().Area();
+            partial_l2_norm /= rElem.GetGeometry().size();
+        }
+        return partial_l2_norm;
+    });
+    return std::sqrt(l2_norm);
+}
+
+void ShallowWaterUtilities::CalculateMassMatrix(Matrix& rMassMatrix, const GeometryType& rGeometry)
+{
+    const size_t num_nodes = rGeometry.size();
+    if (rMassMatrix.size1() != num_nodes) {
+        rMassMatrix.resize(num_nodes, num_nodes, false);
+    }
+    if (num_nodes == 2)
+    {
+        double one_sixth = 1.0 / 6.0;
+        rMassMatrix(0,0) = 2.0 * one_sixth;
+        rMassMatrix(0,1) = 1.0 * one_sixth;
+        rMassMatrix(1,0) = 1.0 * one_sixth;
+        rMassMatrix(1,1) = 2.0 * one_sixth;
+    }
+    else if (num_nodes == 3)
+    {
+        double one_twelve = 1.0 / 12.0;
+        rMassMatrix(0,0) = 2.0 * one_twelve;
+        rMassMatrix(0,1) = 1.0 * one_twelve;
+        rMassMatrix(0,2) = 1.0 * one_twelve;
+        rMassMatrix(1,0) = 1.0 * one_twelve;
+        rMassMatrix(1,1) = 2.0 * one_twelve;
+        rMassMatrix(1,2) = 1.0 * one_twelve;
+        rMassMatrix(2,0) = 1.0 * one_twelve;
+        rMassMatrix(2,1) = 1.0 * one_twelve;
+        rMassMatrix(2,2) = 2.0 * one_twelve;
+    }
+    else if (num_nodes == 4)
+    {
+        double one_thirty_sixth = 1.0 / 36.0;
+        rMassMatrix(0,0) = 4 * one_thirty_sixth;
+        rMassMatrix(0,1) = 2 * one_thirty_sixth;
+        rMassMatrix(0,2) = 1 * one_thirty_sixth;
+        rMassMatrix(0,3) = 2 * one_thirty_sixth;
+        rMassMatrix(1,0) = 2 * one_thirty_sixth;
+        rMassMatrix(1,1) = 4 * one_thirty_sixth;
+        rMassMatrix(1,2) = 2 * one_thirty_sixth;
+        rMassMatrix(1,3) = 1 * one_thirty_sixth;
+        rMassMatrix(2,0) = 1 * one_thirty_sixth;
+        rMassMatrix(2,1) = 2 * one_thirty_sixth;
+        rMassMatrix(2,2) = 4 * one_thirty_sixth;
+        rMassMatrix(2,3) = 2 * one_thirty_sixth;
+        rMassMatrix(3,0) = 2 * one_thirty_sixth;
+        rMassMatrix(3,1) = 1 * one_thirty_sixth;
+        rMassMatrix(3,2) = 2 * one_thirty_sixth;
+        rMassMatrix(3,3) = 4 * one_thirty_sixth;
+    }
+    else
+    {
+        KRATOS_ERROR << "ShallowWaterUtilities::MassMatrix. Method implemented for lines, triangles and quadrilaterals" << std::endl;
     }
 }
+
+template<>
+double& ShallowWaterUtilities::GetValue<true>(NodeType& rNode, const Variable<double>& rVariable)
+{
+    return rNode.FastGetSolutionStepValue(rVariable);
+}
+
+template<>
+double& ShallowWaterUtilities::GetValue<false>(NodeType& rNode, const Variable<double>& rVariable)
+{
+    return rNode.GetValue(rVariable);
+}
+
+
+bool ShallowWaterUtilities::IsWet(const GeometryType& rGeometry, const double RelativeDryHeight)
+{
+    double height = 0.0;
+    for (const auto& r_node : rGeometry)
+    {
+        height += r_node.FastGetSolutionStepValue(HEIGHT);
+    }
+    height /= rGeometry.size();
+    return IsWet(rGeometry, height, RelativeDryHeight);
+}
+
+bool ShallowWaterUtilities::IsWet(const GeometryType& rGeometry, const double Height, const double RelativeDryHeight)
+{
+    const double epsilon = RelativeDryHeight * rGeometry.Length();
+    return IsWet(Height, epsilon);
+}
+
+bool ShallowWaterUtilities::IsWet(const double Height, const double DryHeight)
+{
+    const double wet_fraction = PhaseFunction::WetFraction(Height, DryHeight);
+    const double threshold = 1.0 - 1e-6;
+    return (wet_fraction >= threshold);
+}
+
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void ShallowWaterUtilities::ComputeFroude<true>(ModelPart&, const double);
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void ShallowWaterUtilities::ComputeFroude<false>(ModelPart&, const double);
+
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void ShallowWaterUtilities::ComputeEnergy<true>(ModelPart&);
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void ShallowWaterUtilities::ComputeEnergy<false>(ModelPart&);
+
+template KRATOS_API(SHALLOW_WATER_APPLICATION) double ShallowWaterUtilities::ComputeL2Norm<true>(ModelPart&, const Variable<double>&);
+template KRATOS_API(SHALLOW_WATER_APPLICATION) double ShallowWaterUtilities::ComputeL2Norm<false>(ModelPart&, const Variable<double>&);
+
+template KRATOS_API(SHALLOW_WATER_APPLICATION) double ShallowWaterUtilities::ComputeL2NormAABB<true>(ModelPart&, const Variable<double>&, Point&, Point&);
+template KRATOS_API(SHALLOW_WATER_APPLICATION) double ShallowWaterUtilities::ComputeL2NormAABB<false>(ModelPart&, const Variable<double>&, Point&, Point&);
 
 }  // namespace Kratos.

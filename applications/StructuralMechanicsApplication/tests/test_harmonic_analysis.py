@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -6,10 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_analysis
-
-external_solvers_application_available = kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication")
-eigen_solvers_application_available = kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication")
-hdf5_application_available = kratos_utils.CheckIfApplicationsAvailable("HDF5Application")
+from KratosMultiphysics import eigen_solver_factory
 
 from math import sqrt
 from cmath import phase
@@ -31,27 +27,30 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
 
     def _solve_eigen(self,mp,echo=0):
-        feast_system_solver_settings = KratosMultiphysics.Parameters("""{ }""")
+        self.skipTestIfApplicationsNotAvailable("LinearSolversApplication")
+        from KratosMultiphysics import LinearSolversApplication
+        if not LinearSolversApplication.HasFEAST():
+            self.skipTest("FEAST is missing in the compilation")
 
-        eigensolver_settings = KratosMultiphysics.Parameters("""
-        {
-                "perform_stochastic_estimate": false,
-                "lambda_min": 1.0e-2,
-                "lambda_max": 25.0,
-                "search_dimension": 7
-        }
-        """)
-        if not (hasattr(KratosMultiphysics.ExternalSolversApplication,"PastixComplexSolver")):
-            self.skipTest('"PastixComplexSolver" not available')
+        eigensolver_settings = KratosMultiphysics.Parameters("""{
+            "solver_type": "feast",
+            "symmetric": true,
+            "e_min": 1.0e-2,
+            "e_max": 25.0,
+            "subspace_size": 7
+        }""")
 
-        feast_system_solver = ExternalSolversApplication.PastixComplexSolver(feast_system_solver_settings)
-        eigen_solver = ExternalSolversApplication.FEASTSolver(eigensolver_settings, feast_system_solver)
+        eigen_solver = eigen_solver_factory.ConstructSolver(eigensolver_settings)
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_solver)
 
         eigen_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
+        mass_matrix_diagonal_value = 1.0
+        stiffness_matrix_diagonal_value = -1.0
         eig_strategy = StructuralMechanicsApplication.EigensolverStrategy(mp,
                                                                     eigen_scheme,
-                                                                    builder_and_solver)
+                                                                    builder_and_solver,
+                                                                    mass_matrix_diagonal_value,
+                                                                    stiffness_matrix_diagonal_value)
 
         eig_strategy.SetEchoLevel(echo)
         eig_strategy.Solve()
@@ -104,11 +103,9 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
 
         return mp
 
-    @KratosUnittest.skipUnless(external_solvers_application_available,"Missing required application: ExternalSolversApplication")
     def test_undamped_mdof_harmonic(self):
-        import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-        current_model = KratosMultiphysics.Model()
         #analytic solution taken from Humar - Dynamics of Structures p. 675
+        current_model = KratosMultiphysics.Model()
 
         #material properties
         stiffness = 10.0
@@ -143,12 +140,9 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
 
             exfreq = exfreq + df
 
-    @KratosUnittest.skipUnless(external_solvers_application_available,"Missing required application: ExternalSolversApplication")
     def test_damped_mdof_harmonic(self):
-        import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-        current_model = KratosMultiphysics.Model()
-
         #analytic solution taken from Humar - Dynamics of Structures p. 677
+        current_model = KratosMultiphysics.Model()
 
         #material properties
         stiffness = 10.0
@@ -203,7 +197,8 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
             exfreq = exfreq + df
 
 class HarmonicAnalysisTestsWithHDF5(KratosUnittest.TestCase):
-    @KratosUnittest.skipUnless(hdf5_application_available and eigen_solvers_application_available,"Missing required application: HDF5Application, EigenSolversApplication")
+    @KratosUnittest.expectedFailure #FIXME see #8330
+    @KratosUnittest.skipIfApplicationsNotAvailable("HDF5Application")
     def test_harmonic_mdpa_input(self):
 
         with KratosUnittest.WorkFolderScope(".",__file__):

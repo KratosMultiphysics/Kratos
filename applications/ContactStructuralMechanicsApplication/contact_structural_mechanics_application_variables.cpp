@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix
 //
@@ -26,6 +27,7 @@ KRATOS_CREATE_VARIABLE( MasterSlaveConstraint::Pointer, CONSTRAINT_POINTER )    
 KRATOS_CREATE_VARIABLE( double, REACTION_CHECK_STIFFNESS_FACTOR )                 // The reaction factor to be considered on the tension check
 
 /* Mortar method general variables */
+KRATOS_CREATE_VARIABLE( bool, CONSIDER_TESSELLATION )                             // If we consider tesellation when doing the mortar segmentation
 KRATOS_CREATE_VARIABLE( int , INNER_LOOP_ITERATION )                              // The number of loops in the simplified semi-smooth inner iteration
 KRATOS_CREATE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                         // The integration order computed in the contact
 KRATOS_CREATE_VARIABLE( double, DISTANCE_THRESHOLD )                              // The distance threshold considered

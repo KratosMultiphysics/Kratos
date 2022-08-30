@@ -1,11 +1,14 @@
-# makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
+
+import KratosMultiphysics.MeshingApplication
+import KratosMultiphysics.PfemFluidDynamicsApplication
+import KratosMultiphysics.DEMApplication
+import KratosMultiphysics.StructuralMechanicsApplication
+import KratosMultiphysics.ConstitutiveLawsApplication
 
 # Application dependent names and paths
-import KratosMultiphysics as KM
+from KratosMultiphysics import _ImportApplication
 from KratosFemToDemApplication import *
 application = KratosFemToDemApplication()
 application_name = "KratosFemToDemApplication"
-application_folder = "FemToDemApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+_ImportApplication(application, application_name)

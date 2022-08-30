@@ -11,7 +11,7 @@ namespace Kratos
  */
 template <>
 void WallConditionDiscontinuous<2,2>::EquationIdVector(EquationIdVectorType& rResult,
-                                                    ProcessInfo& rCurrentProcessInfo)
+                                                    const ProcessInfo& rCurrentProcessInfo) const 
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     unsigned int step = r_process_info[FRACTIONAL_STEP];
@@ -55,7 +55,7 @@ void WallConditionDiscontinuous<2,2>::EquationIdVector(EquationIdVectorType& rRe
  */
 template <>
 void WallConditionDiscontinuous<3,3>::EquationIdVector(EquationIdVectorType& rResult,
-                                                    ProcessInfo& rCurrentProcessInfo)
+                                                    const ProcessInfo& rCurrentProcessInfo) const 
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     unsigned int step = r_process_info[FRACTIONAL_STEP];
@@ -100,7 +100,7 @@ void WallConditionDiscontinuous<3,3>::EquationIdVector(EquationIdVectorType& rRe
  */
 template <>
 void WallConditionDiscontinuous<2,2>::GetDofList(DofsVectorType& rElementalDofList,
-                                              ProcessInfo& rCurrentProcessInfo)
+                                              const ProcessInfo& rCurrentProcessInfo) const 
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     unsigned int step = r_process_info[FRACTIONAL_STEP];
@@ -147,7 +147,7 @@ void WallConditionDiscontinuous<2,2>::GetDofList(DofsVectorType& rElementalDofLi
  */
 template <>
 void WallConditionDiscontinuous<3,3>::GetDofList(DofsVectorType& rElementalDofList,
-                                    ProcessInfo& rCurrentProcessInfo)
+                                    const ProcessInfo& rCurrentProcessInfo) const 
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     unsigned int step = r_process_info[FRACTIONAL_STEP];

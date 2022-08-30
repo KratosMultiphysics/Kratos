@@ -4,25 +4,30 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Ruben Zorrilla
 //
-//
 
-#if !defined(KRATOS_SOLVING_STRATEGY )
-#define  KRATOS_SOLVING_STRATEGY
+#if !defined(KRATOS_SOLVING_STRATEGY)
+#define KRATOS_SOLVING_STRATEGY
 
-/* System includes */
+// System includes
 
-/* External includes */
 
-/* Project includes */
+// External includes
+
+
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "includes/kratos_parameters.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -35,6 +40,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -44,25 +50,21 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
+
 ///@}
 ///@name Kratos Classes
 ///@{
 
-/** @brief Solving strategy base class
- * @details This is the base class from which we will derive all the strategies (line-search, NR, etc...)
+/**
+ * @brief Solving strategy base class
+ * This is the base class from which we will derive all the strategies (implicit and explicit)
  */
-
-template<class TSparseSpace,
-         class TDenseSpace,
-         class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
-         >
+template<class TSparseSpace, class TDenseSpace>
 class SolvingStrategy
 {
 public:
     ///@name Type Definitions
     ///@{
-
-//     typedef std::set<Dof::Pointer,ComparePDof>                                    DofSetType;
 
     typedef typename TSparseSpace::DataType                                        TDataType;
 
@@ -78,23 +80,11 @@ public:
 
     typedef typename TDenseSpace::VectorType                           LocalSystemVectorType;
 
-    typedef Scheme<TSparseSpace, TDenseSpace>                                    TSchemeType;
-
-    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> TBuilderAndSolverType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace>                             ClassType;
 
     typedef typename ModelPart::DofType                                             TDofType;
 
     typedef typename ModelPart::DofsArrayType                                  DofsArrayType;
-
-//     typedef Dof<TDataType>                                                          TDofType;
-
-//     typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> >            DofsArrayType;
-
-//     typedef PointerVectorSet<TDofType, IndexedObject>                          DofsArrayType;
-
-    typedef typename DofsArrayType::iterator                                 DofIteratorType;
-
-    typedef typename DofsArrayType::const_iterator                   DofConstantIteratorType;
 
     typedef ModelPart::NodesContainerType                                     NodesArrayType;
 
@@ -110,15 +100,23 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit SolvingStrategy() { }
+
+    /**
      * @brief Default constructor. (with parameters)
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
-    explicit SolvingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : mrModelPart(rModelPart)
+    explicit SolvingStrategy(
+        ModelPart& rModelPart,
+        Parameters ThisParameters)
+        : mpModelPart(&rModelPart)
     {
-        const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
-        SetMoveMeshFlag(move_mesh_flag);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -128,8 +126,8 @@ public:
      */
     explicit SolvingStrategy(
         ModelPart& rModelPart,
-        bool MoveMeshFlag = false
-        ) : mrModelPart(rModelPart)
+        bool MoveMeshFlag = false)
+        : mpModelPart(&rModelPart)
     {
         SetMoveMeshFlag(MoveMeshFlag);
     }
@@ -137,14 +135,27 @@ public:
     /** Destructor.
      */
     virtual ~SolvingStrategy(){}
-    
+
     ///@}
     ///@name Operators
     ///@{
 
+
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    virtual typename ClassType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters) const
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
 
     /**
      * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
@@ -163,7 +174,7 @@ public:
 
     /**
      * @brief The problem of interest is solved.
-     * @details 
+     * @details
      * {
      * This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep() and FinalizeSolutionStep().
      * All those functions can otherwise be called separately.
@@ -233,7 +244,7 @@ public:
     /**
      * @brief This sets the level of echo for the solving strategy
      * @param Level of echo for the solving strategy
-     * @details 
+     * @details
      * {
      * 0 -> Mute... no echo at all
      * 1 -> Printing time and basic informations
@@ -257,40 +268,9 @@ public:
      * }
      * @return Level of echo for the solving strategy
      */
-    virtual int GetEchoLevel()
+    int GetEchoLevel()
     {
         return mEchoLevel;
-    }
-
-    /**
-     * This sets the build level
-     * @param Level The build level
-     * @details
-     * {
-     * 0 -> Build StiffnessMatrix just once
-     * 1 -> Build StiffnessMatrix at the beginning of each solution step
-     * 2 -> build StiffnessMatrix at each iteration
-     * }
-     */
-    virtual void SetRebuildLevel(int Level)
-    {
-        mRebuildLevel = Level;
-        mStiffnessMatrixIsBuilt = false;
-    }
-
-    /**
-     * @brief This returns the build level
-     * @details
-     * {
-     * 0 -> Build StiffnessMatrix just once
-     * 1 -> Build StiffnessMatrix at the beginning of each solution step
-     * 2 -> build StiffnessMatrix at each iteration
-     * }
-     * @return The build level
-     */
-    virtual int GetRebuildLevel()
-    {
-        return mRebuildLevel;
     }
 
     /**
@@ -302,6 +282,7 @@ public:
         mMoveMeshFlag = Flag;
     }
 
+    // TODO: DEPRECATE THIS IN FAVOR OF GetMoveMeshFlag()
     /**
      * @brief This function returns the flag that says if the mesh is moved
      * @return True if the mesh is moved, false otherwise
@@ -312,6 +293,37 @@ public:
     }
 
     /**
+     * @brief This function returns the flag that says if the mesh is moved
+     * @return True if the mesh is moved, false otherwise
+     */
+    bool GetMoveMeshFlag()
+    {
+        return mMoveMeshFlag;
+    }
+
+    /**
+     * @brief Set the Rebuild Level value
+     * This functions sets the rebuild level of the strategy
+     * It is only intended to be used in implicit strategies
+     * @param Level Level of rebuild
+     */
+    virtual void SetRebuildLevel(int Level)
+    {
+        KRATOS_ERROR << "Accessing the strategy base class \'SetRebuildLevel\'. Please implement it in your derived class." << std::endl;
+    }
+
+    /**
+     * @brief Get the Rebuild Level value
+     * This function returns the rebuild level of the strategy
+     * It is only intended to be used in implicit strategies
+     * @return int Rebuild Level value
+     */
+    virtual int GetRebuildLevel() const
+    {
+        KRATOS_ERROR << "Accessing the strategy base class \'GetRebuildLevel\'. Please implement it in your derived class." << std::endl;
+    }
+
+    /**
      * @brief This function is designed to move the mesh
      * @note Be careful it just consider displacements, derive this method to adapt to your own strategies (ALE, FSI, etc...)
      */
@@ -319,31 +331,34 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF(GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
+        KRATOS_ERROR_IF_NOT(GetModelPart().HasNodalSolutionStepVariable(DISPLACEMENT_X)) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
 
-        NodesArrayType& NodesArray = GetModelPart().Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
+        block_for_each(GetModelPart().Nodes(), [](Node<3>& rNode){
+            noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
+            noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
+        });
 
-        #pragma omp parallel for
-        for(int i = 0; i < numNodes; ++i) {
-            auto it_node = NodesArray.begin() + i;
-
-            noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
-            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
-        }
-             
-        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0) <<" MESH MOVED "<<std::endl;
+        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0) << " MESH MOVED " << std::endl;
 
         KRATOS_CATCH("")
     }
 
     /**
      * @brief Operations to get the pointer to the model
-     * @return mrModelPart: The model part member variable
+     * @return *mpModelPart: The model part member variable
      */
-    inline ModelPart& GetModelPart()
+    ModelPart& GetModelPart()
     {
-        return mrModelPart;
+        return *mpModelPart;
+    };
+
+    /**
+     * @brief Operations to get the pointer to the model
+     * @return *mpModelPart: The model part member variable
+     */
+    const ModelPart& GetModelPart() const
+    {
+        return *mpModelPart;
     };
 
     /**
@@ -364,33 +379,78 @@ public:
         KRATOS_TRY
 
         // Check if displacement var is needed
-        if (mMoveMeshFlag == true)
-        {
-            for (ModelPart::NodesContainerType::iterator itNode = GetModelPart().NodesBegin();
-                 itNode != GetModelPart().NodesEnd(); itNode++)
-            {
-                if (itNode->SolutionStepsDataHas(DISPLACEMENT) == false)
-                {
-                    KRATOS_ERROR << "ERROR:: Problem on node with Id " << itNode->Id() << "\nIt is impossible to move the mesh since the DISPLACEMENT var is not in the rModelPart. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
-                }
-            }
+        if (mMoveMeshFlag) {
+            VariableUtils().CheckVariableExists<>(DISPLACEMENT, GetModelPart().Nodes());
         }
 
-        for (ModelPart::ElementsContainerType::iterator it_elem = GetModelPart().ElementsBegin();
-             it_elem != GetModelPart().ElementsEnd(); it_elem++)
-        {
-            it_elem->Check(GetModelPart().GetProcessInfo());
-        }
-
-        for (ModelPart::ConditionsContainerType::iterator it_cond = GetModelPart().ConditionsBegin();
-             it_cond != GetModelPart().ConditionsEnd(); it_cond++)
-        {
-            it_cond->Check(GetModelPart().GetProcessInfo());
-        }
+        GetModelPart().Check();
 
         return 0;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    virtual Parameters GetDefaultParameters() const
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "name"                         : "solving_strategy",
+            "move_mesh_flag"               : false,
+            "echo_level"                   : 1
+        })");
+        return default_parameters;
+    }
+
+    /**
+     * @brief This method returns the LHS matrix
+     * @return The LHS matrix
+     */
+    virtual TSystemMatrixType& GetSystemMatrix()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "\'GetSystemMatrix\' not implemented in base \'SolvingStrategy\'" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method returns the RHS vector
+     * @return The RHS vector
+     */
+    virtual TSystemVectorType& GetSystemVector()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "\'GetSystemVector\' not implemented in base \'SolvingStrategy\'" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method returns the solution vector
+     * @return The Dx vector
+     */
+    virtual TSystemVectorType& GetSolutionVector()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "\'GetSolutionVector\' not implemented in base \'SolvingStrategy\'" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "solving_strategy";
     }
 
     ///@}
@@ -424,13 +484,10 @@ protected:
     // Level of echo for the solving strategy
     int mEchoLevel;
 
-    // Settings for the rebuilding of the stiffness matrix
-    int mRebuildLevel;
-    bool mStiffnessMatrixIsBuilt;
-
     ///@}
     ///@name Protected member Variables
     ///@{
+
 
     ///@}
     ///@name Protected Operators
@@ -441,6 +498,32 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method validate and assign default parameters
+     * @param rParameters Parameters to be validated
+     * @param DefaultParameters The default parameters
+     * @return Returns validated Parameters
+     */
+    virtual Parameters ValidateAndAssignParameters(
+        Parameters ThisParameters,
+        const Parameters DefaultParameters) const
+    {
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        return ThisParameters;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
+        // By default mesh is not moved
+        mMoveMeshFlag = ThisParameters["move_mesh_flag"].GetBool();
+
+        // Be default the minimal information is shown
+        mEchoLevel = ThisParameters["echo_level"].GetInt();
+    }
 
     ///@}
     ///@name Protected  Access
@@ -467,7 +550,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    ModelPart* mpModelPart = nullptr;
 
     bool mMoveMeshFlag;
 
@@ -499,10 +582,9 @@ private:
      */
     SolvingStrategy(const SolvingStrategy& Other);
 
-
     ///@}
 
-}; /* Class NewSolvingStrategy */
+}; /* Class SolvingStrategy */
 
 ///@}
 

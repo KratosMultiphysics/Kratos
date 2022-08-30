@@ -24,7 +24,6 @@
 #include "custom_utilities/omp_dem_search.h"
 #include "custom_utilities/dem_fem_search.h"
 #include "custom_utilities/dem_fem_utilities.h"
-#include "custom_utilities/benchmark_utilities.h"
 #include "custom_utilities/inlet.h"
 #include "custom_utilities/force_based_inlet.h"
 #include "custom_utilities/reorder_consecutive_from_given_ids_model_part_io.h"
@@ -33,6 +32,11 @@
 #include "custom_utilities/analytic_tools/particles_history_watcher.h"
 #include "custom_utilities/move_mesh_utility.h"
 #include "custom_utilities/stationarity_checker.h"
+#include "custom_utilities/multiaxial_control_module_generalized_2d_utilities.hpp"
+#include "custom_utilities/random_variable.h"
+#include "custom_utilities/piecewise_linear_random_variable.h"
+#include "custom_utilities/discrete_random_variable.h"
+
 
 namespace Kratos {
 
@@ -149,9 +153,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<ParticleCreatorDestructor, ParticleCreatorDestructor::Pointer>(m, "ParticleCreatorDestructor")
         .def(py::init<>())
+        .def(py::init<Parameters>())
         .def(py::init<AnalyticWatcher::Pointer>())
+        .def(py::init<AnalyticWatcher::Pointer, const Parameters&>())
         .def("CalculateSurroundingBoundingBox", &ParticleCreatorDestructor::CalculateSurroundingBoundingBox)
-        .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox)
+        .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox<SphericParticle>)
+        .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox<Cluster3D>)
         .def("MarkParticlesForErasingGivenScalarVariableValue", &ParticleCreatorDestructor::MarkParticlesForErasingGivenScalarVariableValue)
         .def("MarkParticlesForErasingGivenVectorVariableModulus", &ParticleCreatorDestructor::MarkParticlesForErasingGivenVectorVariableModulus)
         .def("MarkParticlesForErasingGivenCylinder", &ParticleCreatorDestructor::MarkParticlesForErasingGivenCylinder)
@@ -161,7 +168,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("SetHighNode", &ParticleCreatorDestructor::SetHighNode)
         .def("SetLowNode", &ParticleCreatorDestructor::SetLowNode)
         .def("SetMaxNodeId", &ParticleCreatorDestructor::SetMaxNodeId)
-        .def("DestroyParticlesOutsideBoundingBox", &ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox)
+        .def("DestroyParticlesOutsideBoundingBox", &ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox<SphericParticle>)
+        .def("DestroyParticlesOutsideBoundingBox", &ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox<Cluster3D>)
         .def("DestroyContactElementsOutsideBoundingBox", &ParticleCreatorDestructor::DestroyContactElementsOutsideBoundingBox)
         .def("FindMaxNodeIdInModelPart", &ParticleCreatorDestructor::FindMaxNodeIdInModelPart)
         .def("FindMaxElementIdInModelPart", &ParticleCreatorDestructor::FindMaxElementIdInModelPart)
@@ -173,20 +181,26 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CreateSphericParticle", CreateSphericParticle4)
         .def("CreateSphericParticle", CreateSphericParticle5)
         .def("CreateSphericParticle", CreateSphericParticle6)
+        .def("DestroyMarkedParticles", &ParticleCreatorDestructor::DestroyMarkedParticles)
         ;
 
     py::class_<DEM_Inlet, DEM_Inlet::Pointer>(m, "DEM_Inlet")
         .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, const int>())
+        .def(py::init<ModelPart&, Parameters&, const int>())
         .def("CreateElementsFromInletMesh", &DEM_Inlet::CreateElementsFromInletMesh)
         .def("InitializeDEM_Inlet", &DEM_Inlet::InitializeDEM_Inlet
             ,py::arg("model_part")
             ,py::arg("creator_destructor")
             ,py::arg("using_strategy_for_continuum") = false
             )
-        .def("GetNumberOfParticlesInjectedSoFar", &DEM_Inlet::CreateElementsFromInletMesh)
+        .def("GetTotalNumberOfParticlesInjectedSoFar", &DEM_Inlet::GetTotalNumberOfParticlesInjectedSoFar)
+        .def("GetTotalMassInjectedSoFar", &DEM_Inlet::GetTotalMassInjectedSoFar)
+        .def("GetMaxRadius", &DEM_Inlet::GetMaxRadius)
         ;
 
     py::class_<DEM_Force_Based_Inlet, DEM_Force_Based_Inlet::Pointer, DEM_Inlet>(m, "DEM_Force_Based_Inlet")
+        .def(py::init<ModelPart&, array_1d<double, 3>, const int>())
         .def(py::init<ModelPart&, array_1d<double, 3>>())
         ;
 
@@ -293,8 +307,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("MarkToEraseParticlesOutsideRadius", &PreUtilities::MarkToEraseParticlesOutsideRadius)
         .def("ApplyConcentricForceOnParticles", &PreUtilities::ApplyConcentricForceOnParticles)
         .def("ResetSkinParticles", &PreUtilities::ResetSkinParticles)
-        .def("SetSkinParticlesInnerBoundary", &PreUtilities::SetSkinParticlesInnerBoundary)
-        .def("SetSkinParticlesOuterBoundary", &PreUtilities::SetSkinParticlesOuterBoundary)
+        .def("SetSkinParticlesInnerCircularBoundary", &PreUtilities::SetSkinParticlesInnerCircularBoundary)
+        .def("SetSkinParticlesOuterCircularBoundary", &PreUtilities::SetSkinParticlesOuterCircularBoundary)
+        .def("SetSkinParticlesOuterSquaredBoundary", &PreUtilities::SetSkinParticlesOuterSquaredBoundary)
+        .def("PrintNumberOfNeighboursHistogram", &PreUtilities::PrintNumberOfNeighboursHistogram)
         ;
 
     py::class_<PostUtilities, PostUtilities::Pointer>(m, "PostUtilities")
@@ -316,11 +332,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CreateRigidFacesFromAllElements", &DEMFEMUtilities::CreateRigidFacesFromAllElements)
         ;
 
-    py::class_<BenchmarkUtils, BenchmarkUtils::Pointer>(m, "BenchmarkUtils")
-        .def(py::init<>())
-        .def("ComputeHydrodynamicForces", &BenchmarkUtils::ComputeHydrodynamicForces)
-        ;
-
     py::class_<ReorderConsecutiveFromGivenIdsModelPartIO, ReorderConsecutiveFromGivenIdsModelPartIO::Pointer, ReorderConsecutiveModelPartIO>(m, "ReorderConsecutiveFromGivenIdsModelPartIO")
         .def(py::init<std::string const& >())
         .def(py::init<std::string const&, const int, const int, const int>())
@@ -330,6 +341,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     py::class_<AuxiliaryUtilities, AuxiliaryUtilities::Pointer>(m, "AuxiliaryUtilities")
         .def(py::init<>())
         .def("ComputeAverageZStressFor2D", &AuxiliaryUtilities::ComputeAverageZStressFor2D)
+        .def("UpdateTimeInOneModelPart", &AuxiliaryUtilities::UpdateTimeInOneModelPart)
         ;
 
     py::class_<PropertiesProxiesManager, PropertiesProxiesManager::Pointer>(m, "PropertiesProxiesManager")
@@ -360,8 +372,39 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     py::class_<StationarityChecker, StationarityChecker::Pointer>(m, "StationarityChecker")
         .def(py::init<>())
         .def("CheckIfItsTimeToChangeGravity", &StationarityChecker::CheckIfItsTimeToChangeGravity)
+        .def("CheckIfVariableIsNullInModelPart", &StationarityChecker::CheckIfVariableIsNullInModelPart)
         ;
+
+    py::class_<MultiaxialControlModuleGeneralized2DUtilities, MultiaxialControlModuleGeneralized2DUtilities::Pointer>(m, "MultiaxialControlModuleGeneralized2DUtilities")
+        .def(py::init<ModelPart&,ModelPart&,Parameters&>())
+        .def("ExecuteInitialize", &MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitialize)
+        .def("ExecuteInitializeSolutionStep", &MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitializeSolutionStep)
+        .def("ExecuteFinalizeSolutionStep", &MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep)
+        ;
+
+    py::class_<RandomVariable, RandomVariable::Pointer>(m, "RandomVariable")
+        .def(py::init<const Parameters>())
+        .def("GetSupport", &RandomVariable::GetSupport)
+        ;
+
+    py::class_<PiecewiseLinearRandomVariable, PiecewiseLinearRandomVariable::Pointer, RandomVariable>(m, "PiecewiseLinearRandomVariable")
+        .def(py::init<const Parameters>())
+        .def(py::init<const Parameters, const int>())
+        .def("Sample", &PiecewiseLinearRandomVariable::Sample)
+        .def("ProbabilityDensity", &PiecewiseLinearRandomVariable::ProbabilityDensity)
+        .def("GetMean", &PiecewiseLinearRandomVariable::GetMean)
+        ;
+
+    py::class_<DiscreteRandomVariable, DiscreteRandomVariable::Pointer, RandomVariable>(m, "DiscreteRandomVariable")
+        .def(py::init<const Parameters>())
+        .def(py::init<const Parameters, const int>())
+        .def("Sample", &DiscreteRandomVariable::Sample)
+        .def("ProbabilityDensity", &DiscreteRandomVariable::ProbabilityDensity)
+        .def("GetMean", &DiscreteRandomVariable::GetMean)
+        ;
+
     }
+
 
 
 

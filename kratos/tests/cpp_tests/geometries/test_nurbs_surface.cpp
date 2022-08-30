@@ -20,6 +20,7 @@
 #include "testing/testing.h"
 #include "containers/pointer_vector.h"
 #include "geometries/nurbs_surface_geometry.h"
+#include "geometries/nurbs_shape_function_utilities/nurbs_surface_refinement_utilities.h"
 
 #include "tests/cpp_tests/geometries/test_geometry.h"
 
@@ -140,7 +141,7 @@ namespace Testing {
         knot_u[1] = 0.0;
         knot_u[2] = 10.0;
         knot_u[3] = 10.0;
-        Vector knot_v = ZeroVector(2); 
+        Vector knot_v = ZeroVector(2);
         knot_v[0] = 0.0;
         knot_v[1] = 5.0;
 
@@ -293,9 +294,14 @@ namespace Testing {
         array_1d<double, 3> result(0.0);
 
         surface.GlobalCoordinates(result, parameter);
+
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
+        KRATOS_CHECK_EQUAL(surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(surface.GetGeometryType(), geometry_type);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(NurbsCylinderSurface, KratosCoreNurbsGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceCylinder, KratosCoreNurbsGeometriesFastSuite) {
         auto surface = GenerateReferencePieceOfCylinderNurbsSurface();
 
         // Check general information, input to ouput
@@ -362,6 +368,11 @@ namespace Testing {
         KRATOS_CHECK_NEAR(derivatives_2[2][0], 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(derivatives_2[2][1], 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(derivatives_2[2][2], 1.0, TOLERANCE);
+
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
+        KRATOS_CHECK_EQUAL(surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(surface.GetGeometryType(), geometry_type);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceNode, KratosCoreNurbsGeometriesFastSuite) {
@@ -407,9 +418,282 @@ namespace Testing {
         KRATOS_CHECK_NEAR(result[0], 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(result[1], 4.0, TOLERANCE);
         KRATOS_CHECK_NEAR(result[2], 0.0, TOLERANCE);
+
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
+        KRATOS_CHECK_EQUAL(surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(surface.GetGeometryType(), geometry_type);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(NurbsQuarterSphereSurface, KratosCoreNurbsGeometriesFastSuite) {
+    /// Check creation of integration of nurbs surface.
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceCreateIntegrationPoints, KratosCoreNurbsGeometriesFastSuite) {
+        auto surface = GenerateReferenceNodeSurface();
+
+        // Check general information, input to ouput
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        IntegrationInfo integration_info({3,2}, {IntegrationInfo::QuadratureMethod::GAUSS, IntegrationInfo::QuadratureMethod::GAUSS});
+        surface.CreateIntegrationPoints(integration_points, integration_info);
+
+        KRATOS_CHECK_EQUAL(integration_points.size(), 6);
+        double area = 0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            area += integration_points[i].Weight();
+        }
+        KRATOS_CHECK_NEAR(area, 50.0, TOLERANCE);
+    }
+
+    /// Check quadrature point geometries of nurbs surface.
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceQuadraturePointGeometries, KratosCoreNurbsGeometriesFastSuite) {
+        auto surface = GenerateReferenceNodeSurface();
+
+        // Check general information, input to ouput
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        IntegrationInfo integration_info({ 3,2 }, { IntegrationInfo::QuadratureMethod::GAUSS, IntegrationInfo::QuadratureMethod::GAUSS });
+        surface.CreateIntegrationPoints(integration_points, integration_info);
+
+        typename Geometry<Node<3>>::GeometriesArrayType quadrature_points;
+        surface.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points, integration_info);
+
+        KRATOS_CHECK_EQUAL(quadrature_points.size(), 6);
+        double area = 0;
+        for (IndexType i = 0; i < quadrature_points.size(); ++i) {
+            for (IndexType j = 0; j < quadrature_points[i].IntegrationPointsNumber(); ++j) {
+                area += quadrature_points[i].IntegrationPoints()[j].Weight();
+            }
+        }
+        KRATOS_CHECK_NEAR(area, 50.0, TOLERANCE);
+
+        auto element = Element(0, quadrature_points(2));
+
+        // Check polynomial degree
+        KRATOS_CHECK_EQUAL(quadrature_points(2)->PolynomialDegree(0), 2);
+        KRATOS_CHECK_EQUAL(quadrature_points(2)->PolynomialDegree(1), 1);
+
+        // Check element sizes / knot span size
+        array_1d<double, 3> characteristic_length;
+        quadrature_points(2)->Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_length);
+        KRATOS_CHECK_NEAR(characteristic_length[0], 10.7703296, TOLERANCE);
+        KRATOS_CHECK_NEAR(characteristic_length[1], 5, TOLERANCE);
+
+        // Check shape functions
+        KRATOS_CHECK_MATRIX_NEAR(
+            element.pGetGeometry()->ShapeFunctionsValues(),
+            quadrature_points(2)->ShapeFunctionsValues(),
+            TOLERANCE);
+
+        // Check first derivatives
+        KRATOS_CHECK_MATRIX_NEAR(
+            element.GetGeometry().ShapeFunctionDerivatives(1, 0),
+            quadrature_points(2)->ShapeFunctionLocalGradient(0),
+            TOLERANCE);
+
+        // Check second derivatives
+        KRATOS_CHECK_MATRIX_NEAR(
+            element.GetGeometry().ShapeFunctionDerivatives(2, 0),
+            quadrature_points(2)->ShapeFunctionDerivatives(2, 0),
+            TOLERANCE);
+
+        // check location of quadrature points
+        array_1d<double, 3> global_coords;
+        array_1d<double, 3> local_coords;
+        local_coords[0] = integration_points[2][0];
+        local_coords[1] = integration_points[2][1];
+        surface.GlobalCoordinates(global_coords, local_coords);
+        KRATOS_CHECK_VECTOR_NEAR(quadrature_points[2].Center(), global_coords, TOLERANCE);
+
+        local_coords[0] = integration_points[5][0];
+        local_coords[1] = integration_points[5][1];
+        surface.GlobalCoordinates(global_coords, local_coords);
+        KRATOS_CHECK_VECTOR_NEAR(quadrature_points[5].Center(), global_coords, TOLERANCE);
+
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
+        KRATOS_CHECK_EQUAL(surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(surface.GetGeometryType(), geometry_type);
+    }
+
+    /// Check refinement of nurbs surface in direction u.
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceRefinementU, KratosCoreNurbsGeometriesFastSuite) {
+        auto surface = GenerateReferenceNodeSurface();
+
+        // Check general information, input to ouput
+        std::vector<double> knots_to_insert_u;
+        knots_to_insert_u.push_back(2.0);
+        knots_to_insert_u.push_back(4.0);
+
+        PointerVector<NodeType> PointsRefined;
+        Vector KnotsURefined;
+        Vector WeightsRefined;
+
+        NurbsSurfaceRefinementUtilities::KnotRefinementU(surface, knots_to_insert_u,
+            PointsRefined, KnotsURefined, WeightsRefined);
+        surface.SetInternals(PointsRefined,
+            surface.PolynomialDegreeU(), surface.PolynomialDegreeV(),
+            KnotsURefined, surface.KnotsV(),
+            WeightsRefined);
+
+        std::vector<double> knots_to_insert_u_2;
+        knots_to_insert_u_2.push_back(8.0);
+        knots_to_insert_u_2.push_back(3.0);
+
+
+        NurbsSurfaceRefinementUtilities::KnotRefinementU(surface, knots_to_insert_u_2,
+            PointsRefined, KnotsURefined, WeightsRefined);
+        surface.SetInternals(PointsRefined,
+            surface.PolynomialDegreeU(), surface.PolynomialDegreeV(),
+            KnotsURefined, surface.KnotsV(),
+            WeightsRefined);
+
+        // Check knot span
+        KRATOS_CHECK_NEAR(surface.KnotsU()[3], 3.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(surface.KnotsU()[4], 4.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(surface.KnotsU()[5], 8.0, TOLERANCE);
+
+        // Check general information, input to ouput
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        IntegrationInfo integration_info = surface.GetDefaultIntegrationInfo();
+        surface.CreateIntegrationPoints(integration_points, integration_info);
+
+        KRATOS_CHECK_EQUAL(integration_points.size(), 30);
+        double area = 0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            area += integration_points[i].Weight();
+        }
+        KRATOS_CHECK_NEAR(area, 50.0, TOLERANCE);
+
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
+        KRATOS_CHECK_EQUAL(surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(surface.GetGeometryType(), geometry_type);
+    }
+
+    /// Check refinement of nurbs surface in direction v.
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceRefinementV, KratosCoreNurbsGeometriesFastSuite) {
+        auto surface = GenerateReferenceNodeSurface();
+
+        // Check general information, input to ouput
+        std::vector<double> knots_to_insert_v;
+        knots_to_insert_v.push_back(4.8);
+        knots_to_insert_v.push_back(2.0);
+        knots_to_insert_v.push_back(4.0);
+
+        PointerVector<NodeType> PointsRefined;
+        Vector KnotsVRefined;
+        Vector WeightsRefined;
+
+        NurbsSurfaceRefinementUtilities::KnotRefinementV(surface, knots_to_insert_v,
+            PointsRefined, KnotsVRefined, WeightsRefined);
+        surface.SetInternals(PointsRefined,
+            surface.PolynomialDegreeU(), surface.PolynomialDegreeV(),
+            surface.KnotsU(), KnotsVRefined,
+            WeightsRefined);
+
+        // Check knot span
+        KRATOS_CHECK_NEAR(surface.KnotsV()[1], 2.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(surface.KnotsV()[2], 4.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(surface.KnotsV()[3], 4.8, TOLERANCE);
+
+        // Check general information, input to ouput
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        IntegrationInfo integration_info = surface.GetDefaultIntegrationInfo();
+        surface.CreateIntegrationPoints(integration_points, integration_info);
+
+        KRATOS_CHECK_EQUAL(integration_points.size(), 24);
+        double area = 0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            area += integration_points[i].Weight();
+        }
+        KRATOS_CHECK_NEAR(area, 50.0, TOLERANCE);
+
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
+        KRATOS_CHECK_EQUAL(surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(surface.GetGeometryType(), geometry_type);
+    }
+
+    /// Check refinement of nurbs surface in direction u due to degree elevation.
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceDegreeElevationU, KratosCoreNurbsGeometriesFastSuite) {
+        auto surface = GenerateReferenceNodeSurface();
+
+        // Check general information, input to ouput
+        SizeType degree_u_to_elevate = 2;
+
+        PointerVector<NodeType> PointsRefined;
+        Vector KnotsURefined;
+        Vector WeightsRefined;
+
+        NurbsSurfaceRefinementUtilities::DegreeElevationU(surface, degree_u_to_elevate,
+            PointsRefined, KnotsURefined, WeightsRefined);
+        surface.SetInternals(PointsRefined,
+            surface.PolynomialDegreeU() + degree_u_to_elevate, surface.PolynomialDegreeV(),
+            KnotsURefined, surface.KnotsV(),
+            WeightsRefined);
+
+        // Check knot span
+        KRATOS_CHECK_NEAR(surface.KnotsU()[3], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(surface.KnotsU()[4], 10.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(surface.KnotsU()[5], 10.0, TOLERANCE);
+
+        // Check general information, input to ouput
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        IntegrationInfo integration_info = surface.GetDefaultIntegrationInfo();
+        surface.CreateIntegrationPoints(integration_points, integration_info);
+
+        KRATOS_CHECK_EQUAL(integration_points.size(), 10);
+        double area = 0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            area += integration_points[i].Weight();
+        }
+        KRATOS_CHECK_NEAR(area, 50.0, TOLERANCE);
+
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
+        KRATOS_CHECK_EQUAL(surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(surface.GetGeometryType(), geometry_type);
+    }
+
+    /// Check refinement of nurbs surface in direction v due to degree elevation.
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceDegreeElevationV, KratosCoreNurbsGeometriesFastSuite) {
+        auto surface = GenerateReferenceNodeSurface();
+
+        // Check general information, input to ouput
+        SizeType degree_v_to_elevate = 3;
+
+        PointerVector<NodeType> PointsRefined;
+        Vector KnotsVRefined;
+        Vector WeightsRefined;
+
+        NurbsSurfaceRefinementUtilities::DegreeElevationV(surface, degree_v_to_elevate,
+            PointsRefined, KnotsVRefined, WeightsRefined);
+        surface.SetInternals(PointsRefined,
+            surface.PolynomialDegreeU(), surface.PolynomialDegreeV() + degree_v_to_elevate,
+            surface.KnotsU(), KnotsVRefined,
+            WeightsRefined);
+
+        // Check knot span
+        KRATOS_CHECK_NEAR(surface.KnotsV()[3], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(surface.KnotsV()[4], 5.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(surface.KnotsV()[5], 5.0, TOLERANCE);
+
+        // Check general information, input to ouput
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        IntegrationInfo integration_info = surface.GetDefaultIntegrationInfo();
+        surface.CreateIntegrationPoints(integration_points, integration_info);
+
+        KRATOS_CHECK_EQUAL(integration_points.size(), 15);
+        double area = 0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            area += integration_points[i].Weight();
+        }
+        KRATOS_CHECK_NEAR(area, 50.0, TOLERANCE);
+
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
+        KRATOS_CHECK_EQUAL(surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(surface.GetGeometryType(), geometry_type);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceQuarterSphere, KratosCoreNurbsGeometriesFastSuite) {
         auto surface = GenerateReferenceQuarterSphereGeometry();
 
         // Check general information, input to ouput

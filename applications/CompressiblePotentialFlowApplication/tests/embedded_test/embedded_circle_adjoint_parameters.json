@@ -23,7 +23,6 @@
                 "step_size"         : 1e-6
         },
         "sensitivity_settings" : {
-                "sensitivity_model_part_name" : "Parts_Parts_Auto1",
                 "nodal_solution_step_sensitivity_variables"  : ["NORMAL_SENSITIVITY"],
                 "nodal_solution_step_sensitivity_calculation_is_thread_safe" : false,
                 "build_mode": "static"

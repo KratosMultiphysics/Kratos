@@ -19,13 +19,16 @@
 
 // Project includes
 #include "estimate_dt_utility.h"
+#include "includes/model_part.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "shallow_water_application_variables.h"
 
 
 namespace Kratos
 {
 
-EstimateDtShallow::EstimateDtShallow(
+EstimateTimeStepUtility::EstimateTimeStepUtility(
     ModelPart& rThisModelPart,
     Parameters ThisParameters
 ) : mrModelPart(rThisModelPart)
@@ -33,9 +36,9 @@ EstimateDtShallow::EstimateDtShallow(
 
     Parameters default_parameters(R"({
         "automatic_time_step"   : true,
+        "adaptive_time_step"    : true,
         "time_step"             : 1.0,
         "courant_number"        : 1.0,
-        "consider_froude"       : true,
         "minimum_delta_time"    : 1e-4,
         "maximum_delta_time"    : 1e+6
     })");
@@ -43,40 +46,36 @@ EstimateDtShallow::EstimateDtShallow(
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     mEstimateDt = ThisParameters["automatic_time_step"].GetBool();
+    mAdaptiveDt = ThisParameters["adaptive_time_step"].GetBool();
     mConstantDt = ThisParameters["time_step"].GetDouble();
     mCourant = ThisParameters["courant_number"].GetDouble();
-    mConsiderFroude = ThisParameters["consider_froude"].GetBool();
     mMinDt = ThisParameters["minimum_delta_time"].GetDouble();
     mMaxDt = ThisParameters["maximum_delta_time"].GetDouble();
 
+    if (mEstimateDt && !mAdaptiveDt) {
+        mConstantDt = EstimateTimeStep();
+    }
 }
 
-
-double EstimateDtShallow::EstimateDt() const
+double EstimateTimeStepUtility::Execute() const
 {
     if (mEstimateDt) {
-        return EstimateTimeStep();
+        if (mAdaptiveDt) {
+            return EstimateTimeStep();
+        } else {
+            return mConstantDt;
+        }
     } else {
         return mConstantDt;
     }
 }
 
-
-double EstimateDtShallow::EstimateTimeStep() const
+double EstimateTimeStepUtility::EstimateTimeStep() const
 {
     const double gravity = mrModelPart.GetProcessInfo().GetValue(GRAVITY_Z);
-    const auto nodes_begin = mrModelPart.NodesBegin();
-    double min_characteristic_time = std::numeric_limits<double>::max();
-
-    #pragma omp parallel for shared(min_characteristic_time)
-    for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
-    {
-        const double local_thread_min_characteristic_time = NodalCharacteristicTime(*(nodes_begin+i), gravity);
-        #pragma omp critical
-        {
-            min_characteristic_time = std::min(min_characteristic_time, local_thread_min_characteristic_time);
-        }
-    }
+    const double min_characteristic_time = block_for_each<MinReduction<double>>(
+        mrModelPart.Elements(), [&](Element& rElement){return ElementCharacteristicTime(rElement.GetGeometry(), gravity);
+        });
 
     double current_time = min_characteristic_time * mCourant;
 
@@ -86,17 +85,18 @@ double EstimateDtShallow::EstimateTimeStep() const
     return current_time;
 }
 
-
-double EstimateDtShallow::NodalCharacteristicTime(const Node<3>& rNode, double gravity) const
+double EstimateTimeStepUtility::ElementCharacteristicTime(const GeometryType& rGeometry, double Gravity) const
 {
-    double velocity = norm_2(rNode.FastGetSolutionStepValue(VELOCITY));
-    double wave_vel = 0.0;
-    const double epsilon = std::numeric_limits<double>::epsilon();
-    if (mConsiderFroude)
+    array_1d<double,3> velocity = ZeroVector(3);
+    double height = 0.0;
+    for (auto& r_node : rGeometry)
     {
-        wave_vel = std::sqrt(gravity * rNode.FastGetSolutionStepValue(HEIGHT));
+        velocity += r_node.FastGetSolutionStepValue(VELOCITY);
+        height += r_node.FastGetSolutionStepValue(HEIGHT);
     }
-    return rNode.FastGetSolutionStepValue(NODAL_H) / (velocity + wave_vel + epsilon);
+    const double lambda = norm_2(velocity) + std::sqrt(Gravity * height);
+    const double epsilon = std::numeric_limits<double>::epsilon();
+    return rGeometry.Length() / (lambda + epsilon);
 }
 
 }  // namespace Kratos.

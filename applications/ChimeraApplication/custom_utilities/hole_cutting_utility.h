@@ -126,7 +126,7 @@ public:
                                    const ChimeraHoleCuttingUtility::SideToExtract Side = ChimeraHoleCuttingUtility::SideToExtract::OUTSIDE);
 
     /**
-     * @brief Extracts the outside surface/edges of a modelpart.This uses the flag CHIMERA_INTERNAL_BOUNDARY
+     * @brief Extracts the outside surface/edges of a modelpart.This uses the bool variable CHIMERA_INTERNAL_BOUNDARY
      *                  to check if there is an internal boundary in the given ModelPart. The flag GetInternal
      *                  specifies weather to get the internal boundary marked by CHIMERA_INTERNAL_BOUNDARY or the outside one.
      * @param rVolumeModelPart The modelpart on which the boundary is to be found.

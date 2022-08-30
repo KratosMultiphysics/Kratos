@@ -32,7 +32,7 @@ namespace Kratos
  * The functionality is limited to large displacements
  */
 
-class HenckyElasticPlasticPlaneStrain2DLaw : public HenckyElasticPlastic3DLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) HenckyElasticPlasticPlaneStrain2DLaw : public HenckyElasticPlastic3DLaw
 {
 public:
     /**
@@ -107,7 +107,7 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return 3;
     };

@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 #if !defined(KRATOS_QUADRATURE_H_INCLUDED )
@@ -122,36 +122,38 @@ public:
         return msIntegrationPointsVector;
     }
 
-    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType GenerateIntegrationPoints()
     {
         IntegrationPointsArrayType results;
-        GenerateIntegrationPoints(results, Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>());
+        IntegrationPoints(results, Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>());
         return results;
     }
 
     template<class TIntegrationPointsArrayType>
-    static void GenerateIntegrationPoints(TIntegrationPointsArrayType& Result,
+    static void IntegrationPoints(TIntegrationPointsArrayType& Result,
                                           Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType> const& Dummy)
     {
         typename Quadrature<TQuadraturePointsType, TDimension - 1, TIntegrationPointType>::IntegrationPointsArrayType points;
-        Quadrature<TQuadraturePointsType, TDimension - 1, TIntegrationPointType>::GenerateIntegrationPoints(points, Quadrature<TQuadraturePointsType, TDimension - 1, TIntegrationPointType>());
+        Quadrature<TQuadraturePointsType, TDimension - 1, TIntegrationPointType>::IntegrationPoints(points, Quadrature<TQuadraturePointsType, TDimension - 1, TIntegrationPointType>());
 
+        const auto integration_points = TQuadraturePointsType::IntegrationPoints();
         for(SizeType i = 0 ; i < TQuadraturePointsType::IntegrationPointsNumber() ; i++)
             for(SizeType j = 0 ; j < points.size() ; j++)
             {
                 IntegrationPointType temp(points[j]);
-                temp[TDimension -1] = TQuadraturePointsType::IntegrationPoints()[i].X();
-                temp.Weight() *= TQuadraturePointsType::IntegrationPoints()[i].Weight();
+                temp[TDimension -1] = integration_points[i].X();
+                temp.Weight() *= integration_points[i].Weight();
                 Result.push_back(temp);
             }
     }
 
-    static void GenerateIntegrationPoints(IntegrationPointsArrayType& Result,
+    static void IntegrationPoints(IntegrationPointsArrayType& Result,
                                           Quadrature<TQuadraturePointsType, TQuadraturePointsType::Dimension, TIntegrationPointType> const& Dummy)
     {
+        const auto integration_points = TQuadraturePointsType::IntegrationPoints();
         for(SizeType i = 0 ; i < TQuadraturePointsType::IntegrationPointsNumber() ; i++)
         {
-            Result.push_back(TQuadraturePointsType::IntegrationPoints()[i]);
+            Result.push_back(integration_points[i]);
         }
     }
 
@@ -287,9 +289,9 @@ private:
 template<class TQuadraturePointsType, std::size_t TDimension, class TIntegrationPointType>
 const typename Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::IntegrationPointsArrayType
 Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::msIntegrationPointsVector =
-    Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::GenerateIntegrationPoints();
+    Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::IntegrationPoints();
 #else
-template<class TQuadraturePointsType, std::size_t TDimension, class TIntegrationPointType> const typename Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::IntegrationPointsArrayType 		Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::msIntegrationPointsVector( Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::GenerateIntegrationPoints());
+template<class TQuadraturePointsType, std::size_t TDimension, class TIntegrationPointType> const typename Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::IntegrationPointsArrayType 		Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::msIntegrationPointsVector( Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::IntegrationPoints());
 #endif
 ///@name Type Definitions
 ///@{
@@ -321,6 +323,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_QUADRATURE_H_INCLUDED  defined 
+#endif // KRATOS_QUADRATURE_H_INCLUDED  defined
 
 

@@ -49,7 +49,7 @@ public:
     GidMeshContainer ( GeometryData::KratosGeometryType geometryType,
                        GiD_ElementType elementType, const char* mesh_title )
         :mGeometryType (geometryType), mGidElementType (elementType), mMeshTitle (mesh_title) {}
-    bool AddElement ( const ModelPart::ElementsContainerType::iterator pElemIt )
+    bool AddElement ( const ModelPart::ElementConstantIterator pElemIt )
     {
         KRATOS_TRY
         if ( pElemIt->GetGeometry().GetGeometryType() == mGeometryType )
@@ -66,7 +66,7 @@ public:
             return false;
         KRATOS_CATCH ("")
     }
-    bool AddCondition (const ModelPart::ConditionsContainerType::iterator pCondIt)
+    bool AddCondition (const ModelPart::ConditionConstantIterator pCondIt)
     {
         KRATOS_TRY
         if ( pCondIt->GetGeometry().GetGeometryType() == mGeometryType )
@@ -172,8 +172,7 @@ public:
                         for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
                             nodes_id[i] = (it)->GetGeometry() [i].Id();
 
-                        if ( mGeometryType == GeometryData::Kratos_Line2D3
-                                || mGeometryType == GeometryData::Kratos_Line3D3 )
+                        if (mGeometryType == GeometryData::KratosGeometryType::Kratos_Line2D3 || mGeometryType == GeometryData::KratosGeometryType::Kratos_Line3D3)
                         {
                             nodes_id[0] = (it)->GetGeometry() [0].Id();
                             nodes_id[1] = (it)->GetGeometry() [1].Id();
@@ -274,7 +273,7 @@ public:
                         for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
                             nodes_id[i] = (it)->GetGeometry() [i].Id();
                         //workaround: reordering node ids for Hexahedra20 elements
-                        if ( mGeometryType == GeometryData::Kratos_Hexahedra3D20 )
+                        if (mGeometryType == GeometryData::KratosGeometryType::Kratos_Hexahedra3D20)
                         {
                             nodes_id[12] = (it)->GetGeometry() [16].Id();
                             nodes_id[13] = (it)->GetGeometry() [17].Id();

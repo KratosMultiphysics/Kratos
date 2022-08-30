@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -88,13 +89,7 @@ public:
     {
         KRATOS_TRY
 
-        Parameters default_parameters = Parameters(R"(
-        {
-            "stiffness_factor"                     : 10.0,
-            "penalty_scale_factor"                 : 1.0
-        })" );
-
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
         mFactorStiffness = ThisParameters["stiffness_factor"].GetDouble();
         mPenaltyScale = ThisParameters["penalty_scale_factor"].GetDouble();
@@ -138,6 +133,20 @@ public:
     ///@{
 
     void Execute() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "stiffness_factor"                     : 10.0,
+            "penalty_scale_factor"                 : 1.0
+        })" );
+
+        return default_parameters;
+    }
 
     ///@}
     ///@name Access

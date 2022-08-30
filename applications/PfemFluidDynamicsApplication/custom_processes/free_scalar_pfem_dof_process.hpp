@@ -56,17 +56,7 @@ public:
 
         mvariable_name = rParameters["variable_name"].GetString();
 
-        if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(mvariable_name)) //case of component variable
-        {
-            typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> component_type;
-            component_type var_component = KratosComponents<component_type>::Get(mvariable_name);
-
-            if (model_part.GetNodalSolutionStepVariablesList().Has(var_component.GetSourceVariable()) == false)
-            {
-                KRATOS_THROW_ERROR(std::runtime_error, "trying to set a variable that is not in the model_part - variable name is ", mvariable_name);
-            }
-        }
-        else if (KratosComponents<Variable<double>>::Has(mvariable_name)) //case of double variable
+        if (KratosComponents<Variable<double>>::Has(mvariable_name)) //case of double variable
         {
             if (model_part.GetNodalSolutionStepVariablesList().Has(KratosComponents<Variable<double>>::Get(mvariable_name)) == false)
             {
@@ -106,22 +96,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    FreeScalarPfemDofProcess(ModelPart &model_part,
-                             const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> &rVariable) : Process(), mrModelPart(model_part)
-    {
-        KRATOS_TRY;
-
-        if (model_part.GetNodalSolutionStepVariablesList().Has(rVariable.GetSourceVariable()) == false)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error, "trying to set a variable that is not in the model_part - variable name is ", rVariable);
-        }
-
-        mvariable_name = rVariable.Name();
-
-        KRATOS_CATCH("");
-    }
-
-    FreeScalarPfemDofProcess(ModelPart &model_part,
+	FreeScalarPfemDofProcess(ModelPart &model_part,
                              const Variable<int> &rVariable) : Process(), mrModelPart(model_part)
     {
         KRATOS_TRY;
@@ -174,13 +149,7 @@ public:
 
         KRATOS_TRY;
 
-        if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(mvariable_name)) //case of component variable
-        {
-            typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> component_type;
-            component_type var_component = KratosComponents<component_type>::Get(mvariable_name);
-            InternalFreeDof<component_type>(var_component);
-        }
-        else if (KratosComponents<Variable<double>>::Has(mvariable_name)) //case of double variable
+        if (KratosComponents<Variable<double>>::Has(mvariable_name)) //case of double variable
         {
             InternalFreeDof<>(KratosComponents<Variable<double>>::Get(mvariable_name));
         }

@@ -18,6 +18,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "custom_elements/compressible_potential_flow_element.h"
 #include "custom_elements/embedded_compressible_potential_flow_element.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 namespace Kratos {
 namespace Testing {
@@ -77,7 +78,7 @@ void GenerateCompressibleEmbeddedElement(ModelPart& rModelPart) {
     rModelPart.CreateNewElement("EmbeddedCompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
 }
 
-/** Checks the IncompressiblePotentialFlowElement element.
+/** Checks the CompressiblePotentialFlowElement element.
  * Checks the LHS and RHS computation.
  */
 KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementRHS, CompressiblePotentialApplicationFastSuite) {
@@ -85,7 +86,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementRHS, CompressiblePoten
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressibleElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     // Define the nodal values
     std::array<double, 3> potential;
@@ -94,13 +95,14 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementRHS, CompressiblePoten
     potential[2] = 3.0;
 
     for (unsigned int i = 0; i < 3; i++) {
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
     }
     // Compute RHS and LHS
     Vector RHS = ZeroVector(3);
     Matrix LHS = ZeroMatrix(3, 3);
 
-    pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    p_element->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
     std::vector<double> reference({0.615561780, 0.0, -0.615561780});
 
@@ -109,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementRHS, CompressiblePoten
     }
 }
 
-/** Checks the IncompressiblePotentialFlowElement element.
+/** Checks the CompressiblePotentialFlowElement element.
  * Checks the LHS and RHS computation.
  */
 KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
@@ -117,7 +119,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHS, CompressiblePoten
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressibleElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     // Define the nodal values
     std::array<double, 3> potential;
@@ -126,13 +128,14 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHS, CompressiblePoten
     potential[2] = 3.0;
 
     for (unsigned int i = 0; i < 3; i++) {
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
     }
     // Compute RHS and LHS
     Vector RHS = ZeroVector(3);
     Matrix LHS = ZeroMatrix(3, 3);
 
-    pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    p_element->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
     std::array<double, 9> reference{0.615556466, -0.615561780, 5.314318652e-06, -0.615561780, 1.231123561, -0.615561780, 5.314318652e-06, -0.615561780, 0.615556466};
 
@@ -143,12 +146,48 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHS, CompressiblePoten
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(PingCompressiblePotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateCompressibleElement(model_part);
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+    const std::array<double, 3> potential{1.0, 20.0, 50.0};
+
+    Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes, number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
+
+    PotentialFlowTestUtilities::ComputeElementalSensitivities<3>(model_part, LHS_finite_diference, LHS_analytical, potential);
+
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PingCompressiblePotentialFlowElementLHSClamping, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateCompressibleElement(model_part);
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+    std::array<double, 3> potential{1.2495, 794.1948, 582.149583};
+
+    Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes, number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
+
+    PotentialFlowTestUtilities::ComputeElementalSensitivities<3>(model_part, LHS_finite_diference, LHS_analytical, potential);
+
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocalSystemRHS, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressibleEmbeddedElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     // Define the nodal values
     std::array<double, 3> potential{1.0, 2.0, 3.0};
@@ -156,15 +195,16 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocal
     std::array<double, 3> level_set{1.0, -1.0, -1.0};
 
     for (unsigned int i = 0; i < 3; i++) {
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = level_set[i];
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = level_set[i];
     }
 
     // Compute RHS and LHS
     Vector RHS = ZeroVector(3);
     Matrix LHS = ZeroMatrix(3, 3);
 
-    pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    p_element->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
     std::vector<double> reference{0.125625, 0.0, -0.125625};
 
@@ -176,24 +216,25 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocal
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressibleEmbeddedElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     // Define the nodal values
     std::array<double, 3> potential{1.0, 2.0, 3.0};
     // Define the distance values
     std::array<double, 3> level_set{1.0, -1.0, -1.0};
     for (unsigned int i = 0; i < 3; i++) {
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = level_set[i];
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = level_set[i];
     }
 
     // Compute RHS and LHS
     Vector RHS = ZeroVector(3);
     Matrix LHS = ZeroMatrix(3, 3);
 
-    pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    p_element->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
-    std::array<double, 9> reference_array{0.251249, -0.25125, 1.08455e-06, -0.25125, 0.502499, -0.25125, 1.08455e-06, -0.25125, 0.251249};
+    std::array<double, 9> reference_array{0.125624, -0.125625, 1.08455e-06, -0.125625, 0.25125, -0.125625, 1.08455e-06, -0.125625, 0.125624};
     // Copying to a 3x3 matrix to check against LHS
     Matrix reference(3, 3);
     for (unsigned int i = 0; i < reference.size1(); i++) {
@@ -205,12 +246,117 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocal
     KRATOS_CHECK_MATRIX_NEAR(LHS, reference, 1e-6);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedCompressiblePotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateCompressibleEmbeddedElement(model_part);
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+    // Define the distance values
+    std::array<double, 3> level_set{1.0, -1.0, -1.0};
+    for (unsigned int i = 0; i < 3; i++) {
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = level_set[i];
+    }
+
+    const std::array<double, 3> potential{1.0, 20.0, 50.0};
+
+    Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes, number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
+
+    PotentialFlowTestUtilities::ComputeElementalSensitivities<3>(model_part, LHS_finite_diference, LHS_analytical, potential);
+
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedCompressiblePotentialFlowElementLHSPenalty, CompressiblePotentialApplicationFastSuite) {
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      GenerateCompressibleEmbeddedElement(model_part);
+      model_part.GetProcessInfo()[PENALTY_COEFFICIENT] = 100.0;
+      Element::Pointer p_element = model_part.pGetElement(1);
+      const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+      // Define the distance values
+      std::array<double, 3> level_set{1.0, -1.0, -1.0};
+      for (unsigned int i = 0; i < 3; i++) {
+          p_element->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = level_set[i];
+      }
+
+      const std::array<double, 3> potential{1.0, 20.0, 50.0};
+
+      Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes, number_of_nodes);
+      Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
+
+      PotentialFlowTestUtilities::ComputeElementalSensitivities<3>(model_part, LHS_finite_diference, LHS_analytical, potential);
+
+      KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PingWakeEmbeddedCompressiblePotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateCompressibleEmbeddedElement(model_part);
+    model_part.GetProcessInfo()[PENALTY_COEFFICIENT] = 100.0;
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+    Vector distances(3);
+    distances(0) = 1.0;
+    distances(1) = -1.0;
+    distances(2) = -1.0;
+    p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+    p_element->GetValue(WAKE) = true;
+
+    // Define the distance values
+    std::array<double, 3> level_set{1.0, -1.0, -1.0};
+    for (unsigned int i = 0; i < 3; i++) {
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = level_set[i];
+    }
+
+    const std::array<double, 6> potential{1.0, 40.0, 35.0, 6.0, 26.0, 14.0};
+
+    Matrix LHS_finite_diference = ZeroMatrix(2*number_of_nodes, 2*number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(2*number_of_nodes, 2*number_of_nodes);
+
+    PotentialFlowTestUtilities::ComputeWakeElementalSensitivities<3>(model_part, LHS_finite_diference, LHS_analytical, potential);
+    KRATOS_WATCH(LHS_analytical)
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+}
+
+
+KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedCompressiblePotentialFlowElementLHSClamping, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateCompressibleEmbeddedElement(model_part);
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+    // Define the distance values
+    std::array<double, 3> level_set{1.0, -1.0, -1.0};
+    for (unsigned int i = 0; i < 3; i++) {
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = level_set[i];
+    }
+
+    std::array<double, 3> potential{1.2495, 794.1948, 582.149583};
+
+    Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes, number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
+
+    PotentialFlowTestUtilities::ComputeElementalSensitivities<3>(model_part, LHS_finite_diference, LHS_analytical, potential);
+
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementRHSWake, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressibleElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     // Define the nodal values
     std::array<double, 3> potential;
@@ -223,23 +369,23 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementRHSWake, CompressibleP
     distances(1) = -1.0;
     distances(2) = -1.0;
 
-    pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-    pElement->GetValue(WAKE) = true;
+    p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+    p_element->GetValue(WAKE) = true;
 
     for (unsigned int i = 0; i < 3; i++) {
         if (distances(i) > 0.0) {
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
         }
         else {
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i];
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i];
         }
     }
     for (unsigned int i = 0; i < 3; i++) {
         if (distances(i) < 0.0) {
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i] + 5;
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i] + 5;
         }
         else {
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i] + 5;
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i] + 5;
         }
     }
 
@@ -247,7 +393,8 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementRHSWake, CompressibleP
     Vector RHS = ZeroVector(6);
     Matrix LHS = ZeroMatrix(6, 6);
 
-    pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    p_element->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
     std::array<double, 6> reference{0.615561780, 0.0, 0.0, 0.0, 0.0, -0.615561780};
 
@@ -261,7 +408,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHSWake, CompressibleP
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressibleElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     // Define the nodal values
     std::array<double, 3> potential;
@@ -274,23 +421,23 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHSWake, CompressibleP
     distances(1) = -1.0;
     distances(2) = -1.0;
 
-    pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-    pElement->GetValue(WAKE) = true;
+    p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+    p_element->GetValue(WAKE) = true;
 
     for (unsigned int i = 0; i < 3; i++) {
         if (distances(i) > 0.0) {
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
         }
         else {
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i];
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i];
         }
     }
     for (unsigned int i = 0; i < 3; i++) {
         if (distances(i) < 0.0) {
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i] + 5;
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i] + 5;
         }
         else {
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i] + 5;
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i] + 5;
         }
     }
 
@@ -298,16 +445,17 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHSWake, CompressibleP
     Vector RHS = ZeroVector(6);
     Matrix LHS = ZeroMatrix(6, 6);
 
-    pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    p_element->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
     // Check the RHS values (the RHS is computed as the LHS x previous_solution,
     // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-    std::array<double,36> reference{0.615556466,-0.615561780,5.314318652e-06,0.0,0.0,0.0,
-                                  -0.615561780,1.231123561,-0.615561780,0.615561780,-1.231123561,0.615561780,
-                                  5.314318652e-06,-0.615561780, 0.615556466,-5.314318652e-06,0.615561780, -0.615556466,
-                                  -0.615556466, 0.615561780,-5.314318652e-06,0.615556466, -0.615561780,5.314318652e-06,
-                                  0.0,0.0,0.0,-0.615561780,1.231123561,-0.615561780,
-                                  0.0,0.0,0.0,5.314318652e-06,-0.615561780,0.615556466};
+    std::array<double,36> reference{0.6155564666297989,-0.6155617809484512,5.314318652279458e-06,0,0,0,
+                                    -0.6125,1.225,-0.6125,0.6125,-1.225,0.6125,
+                                    0,-0.6125,0.6125,-0,0.6125,-0.6125,
+                                    -0.6125,0.6125,-0,0.6125,-0.6125,0,
+                                    0,0,0,-0.6155617809484512,1.231123561896902,-0.6155617809484512,
+                                    0,0,0,5.314318652279458e-06,-0.6155617809484512,0.6155564666297989};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
@@ -316,7 +464,85 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHSWake, CompressibleP
     }
 }
 
-/** Checks the IncompressiblePotentialFlowElement element.
+KRATOS_TEST_CASE_IN_SUITE(PingWakeCompressiblePotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateCompressibleElement(model_part);
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+    const std::array<double, 6> potential{1.0, 40.0, 35.0, 6.0, 26.0, 14.0};
+
+    Matrix LHS_finite_diference = ZeroMatrix(2*number_of_nodes, 2*number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(2*number_of_nodes, 2*number_of_nodes);
+
+    PotentialFlowTestUtilities::ComputeWakeElementalSensitivities<3>(model_part, LHS_finite_diference, LHS_analytical, potential);
+
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PingWakeCompressiblePotentialFlowElementLHSClamping, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateCompressibleElement(model_part);
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+    const std::array<double, 6> potential{1.285837, 570.29384, 635.1583, 6.0, 796.345, 814.254};
+
+    Matrix LHS_finite_diference = ZeroMatrix(2*number_of_nodes, 2*number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(2*number_of_nodes, 2*number_of_nodes);
+
+    PotentialFlowTestUtilities::ComputeWakeElementalSensitivities<3>(model_part, LHS_finite_diference, LHS_analytical, potential);
+
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateCompressibleElement(model_part);
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+    p_element->Set(STRUCTURE);
+    p_element->GetGeometry()[number_of_nodes-1].SetValue(TRAILING_EDGE, true);
+
+    const std::array<double, 6> potential{1.285837, 30.29384, 35.1583, 6.0, 46.345, 64.0};
+
+    Matrix LHS_finite_diference = ZeroMatrix(2*number_of_nodes, 2*number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(2*number_of_nodes, 2*number_of_nodes);
+
+    PotentialFlowTestUtilities::ComputeWakeElementalSensitivities<3>(model_part, LHS_finite_diference, LHS_analytical, potential);
+
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePotentialFlowElementLHSClamping, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateCompressibleElement(model_part);
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+    p_element->Set(STRUCTURE);
+    p_element->GetGeometry()[number_of_nodes-1].SetValue(TRAILING_EDGE, true);
+
+    const std::array<double, 6> potential{1.285837, 170.29384, 135.1583, 6.0, 196.345, 114.0};
+
+    Matrix LHS_finite_diference = ZeroMatrix(2*number_of_nodes, 2*number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(2*number_of_nodes, 2*number_of_nodes);
+
+    PotentialFlowTestUtilities::ComputeWakeElementalSensitivities<3>(model_part, LHS_finite_diference, LHS_analytical, potential);
+
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+}
+
+/** Checks the CompressiblePotentialFlowElement element.
 * Checks the EquationIdVector.
 */
 KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementEquationIdVector, CompressiblePotentialApplicationFastSuite) {
@@ -324,21 +550,22 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementEquationIdVector, Comp
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressibleElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     for (unsigned int i = 0; i < 3; i++) {
-        pElement->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
+        p_element->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
     }
 
     Element::DofsVectorType ElementalDofList;
-    pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    p_element->GetDofList(ElementalDofList, r_current_process_info);
 
     for (int i = 0; i < 3; i++) {
         ElementalDofList[i]->SetEquationId(i);
     }
 
     Element::EquationIdVectorType EquationIdVector;
-    pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
+    p_element->EquationIdVector(EquationIdVector, r_current_process_info);
 
     // Check the EquationIdVector values
     for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
@@ -346,7 +573,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementEquationIdVector, Comp
     }
 }
 
-/** Checks the IncompressiblePotentialFlowElement element.
+/** Checks the CompressiblePotentialFlowElement element.
 * Checks the EquationIdVector for the Wake.
 */
 KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementEquationIdVectorWake, CompressiblePotentialApplicationFastSuite) {
@@ -354,29 +581,30 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementEquationIdVectorWake, 
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressibleElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
-    pElement->SetValue(WAKE, true);
+    Element::Pointer p_element = model_part.pGetElement(1);
+    p_element->SetValue(WAKE, true);
 
     Vector distances(3);
     distances(0) = -0.5;
     distances(1) = -0.5;
     distances(2) = 0.5;
-    pElement->SetValue(WAKE_ELEMENTAL_DISTANCES, distances);
+    p_element->SetValue(WAKE_ELEMENTAL_DISTANCES, distances);
 
     for (unsigned int i = 0; i < 3; i++) {
-        pElement->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
-        pElement->GetGeometry()[i].AddDof(AUXILIARY_VELOCITY_POTENTIAL);
+        p_element->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
+        p_element->GetGeometry()[i].AddDof(AUXILIARY_VELOCITY_POTENTIAL);
     }
 
     Element::DofsVectorType ElementalDofList;
-    pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    p_element->GetDofList(ElementalDofList, r_current_process_info);
 
     for (int i = 0; i < 6; i++) {
         ElementalDofList[i]->SetEquationId(i);
     }
 
     Element::EquationIdVectorType EquationIdVector;
-    pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
+    p_element->EquationIdVector(EquationIdVector, r_current_process_info);
 
     // Check the EquationIdVector values
     for (unsigned int i = 0; i < EquationIdVector.size(); i++) {

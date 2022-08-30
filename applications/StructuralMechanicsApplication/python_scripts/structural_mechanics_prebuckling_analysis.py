@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing Kratos
 import KratosMultiphysics
 # Importing the base class
@@ -7,7 +5,7 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_anal
 
 class StructuralMechanicsPrebucklingAnalysis(StructuralMechanicsAnalysis):
     def __init__(self, model, project_parameters):
-        super(StructuralMechanicsPrebucklingAnalysis, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
     def Initialize(self):
         """This function initializes the StructuralMechanicsPrebucklingAnalysis
@@ -62,7 +60,7 @@ class StructuralMechanicsPrebucklingAnalysis(StructuralMechanicsAnalysis):
             is_converged = self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
-            if self._GetSolver().get_mechanical_solution_strategy().GetSolutionFoundFlag():
+            if self._GetSolver()._GetSolutionStrategy().GetSolutionFoundFlag():
                 break
 
     def KeepAdvancingSolutionLoop(self):
@@ -98,4 +96,3 @@ class StructuralMechanicsPrebucklingAnalysis(StructuralMechanicsAnalysis):
 
             for process in self._GetListOfProcesses():
                 process.ExecuteAfterOutputStep()
-

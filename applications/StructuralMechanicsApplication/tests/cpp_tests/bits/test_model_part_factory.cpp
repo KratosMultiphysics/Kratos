@@ -7,7 +7,7 @@ namespace Kratos
 namespace
 { // cpp internals
 namespace test_model_part_factory_cpp
-{ // cotire unity guard
+{ // unity build unity guard
 void AddVariables(ModelPart* pModelPart);
 void CreateNodes(ModelPart* pModelPart, const Element& rElementPrototype);
 void CreatePropertiesAndElements(ModelPart* pModelPart,
@@ -43,7 +43,7 @@ ModelPart& CreateStructuralMechanicsTestModelPart(Model* pModel,
 namespace
 { // cpp internals
 namespace test_model_part_factory_cpp
-{ // cotire unity guard
+{ // unity build unity guard
 void AddVariables(ModelPart* pModelPart)
 {
     pModelPart->AddNodalSolutionStepVariable(DISPLACEMENT);

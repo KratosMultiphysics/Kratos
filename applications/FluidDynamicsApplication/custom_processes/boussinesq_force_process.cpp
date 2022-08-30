@@ -85,16 +85,6 @@ namespace Kratos
 
     void BoussinesqForceProcess::ValidateModelPart()
     {
-        // Variable registration
-        KRATOS_ERROR_IF( AMBIENT_TEMPERATURE.Key() == 0 ) <<
-        "\'AMBIENT_TEMPERATURE\' variable is not registered in Kratos." << std::endl;
-
-        KRATOS_ERROR_IF( TEMPERATURE.Key() == 0 ) <<
-        "\'TEMPERATURE\' variable is not registered in Kratos." << std::endl;
-
-        KRATOS_ERROR_IF( BODY_FORCE.Key() == 0 ) <<
-        "\'BODY_FORCE\' variable is not registered in Kratos." << std::endl;
-
         // Nodal variables
         KRATOS_ERROR_IF_NOT( mrModelPart.GetNodalSolutionStepVariablesList().Has(TEMPERATURE) ) <<
         "\'TEMPERATURE\' variable is not added to the ModelPart nodal data." << std::endl;

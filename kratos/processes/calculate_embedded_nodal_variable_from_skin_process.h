@@ -166,7 +166,7 @@ public:
     typedef typename TLinearSolver::Pointer LinearSolverPointerType;
     typedef typename Scheme<TSparseSpace,TDenseSpace>::Pointer SchemePointerType;
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverPointerType;
-    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::UniquePointer SolvingStrategyPointerType;
+    typedef typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::UniquePointer SolvingStrategyPointerType;
     typedef typename FindIntersectedGeometricalObjectsProcess::UniquePointer FindIntersectedGeometricalObjectsProcessPointerType;
 
     typedef std::unordered_set<std::pair<std::size_t, std::size_t>, PairHasher<std::size_t, std::size_t>, PairComparor<std::size_t, std::size_t>> EdgesSetType;
@@ -182,42 +182,6 @@ public:
     ///@{
 
     /**
-     * @brief Get the Default Settings object
-     * This method returns the default parameters for this proces.
-     * Note that it is required to be static since it is called during
-     * the construction of the object so no instantation exists yet.
-     * @return Parameters Default parameters json string
-     */
-    static Parameters GetDefaultSettings()
-    {
-        Parameters default_settings(R"(
-        {
-            "base_model_part_name": "",
-            "skin_model_part_name": "",
-            "skin_variable_name": "",
-            "embedded_nodal_variable_name": "",
-            "buffer_position": 0,
-            "gradient_penalty_coefficient": 0.0,
-            "aux_model_part_name": "IntersectedElementsModelPart",
-            "linear_solver_settings": {
-                "preconditioner_type": "amg",
-                "solver_type": "amgcl",
-                "smoother_type": "ilu0",
-                "krylov_type": "cg",
-                "max_iteration": 1000,
-                "verbosity": 0,
-                "tolerance": 1e-8,
-                "scaling": false,
-                "block_size": 1,
-                "use_block_matrices_if_possible": true
-            }
-        }
-        )");
-
-        return default_settings;
-    }
-
-    /**
      * @brief Construct a new Calculate Embedded Nodal Variable From Skin Process object
      * Constructor with model and json settings
      * @param rModel Model container
@@ -229,7 +193,7 @@ public:
         : CalculateEmbeddedNodalVariableFromSkinProcess(
             rModel.GetModelPart(rSettings["base_model_part_name"].GetString()),
             rModel.GetModelPart(rSettings["skin_model_part_name"].GetString()),
-            [] (Parameters x) -> Parameters {x.ValidateAndAssignDefaults(GetDefaultSettings()); return x;} (rSettings))
+            [] (Parameters x) -> Parameters {x.ValidateAndAssignDefaults(StaticGetDefaultParameters()); return x;} (rSettings))
     {
     }
 
@@ -253,9 +217,11 @@ public:
         const Variable<TVarType> &rEmbeddedNodalVariable,
         const double GradientPenaltyCoefficient = 0.0,
         const unsigned int BufferPosition = 0,
-        const std::string AuxPartName = "IntersectedElementsModelPart")
-        : Process(),
-          mBufferPosition(BufferPosition),
+        const std::string AuxPartName = "IntersectedElementsModelPart",
+        const std::size_t EchoLevel = 0)
+        : Process()
+        , mEchoLevel(EchoLevel)
+        , mBufferPosition(BufferPosition),
           mAuxModelPartName(AuxPartName),
           mGradientPenaltyCoefficient(GradientPenaltyCoefficient),
           mrBaseModelPart(rBaseModelPart),
@@ -281,10 +247,10 @@ public:
         const auto &r_aux_geom = (mrBaseModelPart.ElementsBegin())->GetGeometry();
         const unsigned int dim = r_aux_geom.Dimension();
         if(dim == 2){
-            KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
+            KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle) <<
                 "In 2D the element type is expected to be a triangle." << std::endl;
         } else if(dim == 3) {
-            KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
+            KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) <<
                 "In 3D the element type is expected to be a tetrahedron" << std::endl;
         } else {
             KRATOS_ERROR << "Wrong geometry Dimension(). Expected 2 or 3 and obtained: " << dim;
@@ -328,10 +294,9 @@ public:
     void Execute() override
     {
         KRATOS_TRY;
-
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         this->GenerateIntersectedEdgesElementsModelPart();
-
+        
         // Set the linear strategy to solve the regression problem
         this->SetLinearStrategy();
 
@@ -344,7 +309,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         Model& current_model = mrBaseModelPart.GetModel();
         ModelPart& r_intersected_edges_model_part = current_model.GetModelPart( mAuxModelPartName );
@@ -353,6 +318,51 @@ public:
         r_intersected_edges_model_part.Conditions().clear();
 
         mpSolvingStrategy->Clear();
+    }
+
+    /**
+     * @brief Get the Default Settings object
+     * This method returns the default parameters for this proces.
+     * Note that it is required to be static since it is called during
+     * the construction of the object so no instantation exists yet.
+     * @return Parameters Default parameters json string
+     */
+    static Parameters StaticGetDefaultParameters()
+    {
+        Parameters default_settings(R"(
+        {
+            "echo_level" : 0,
+            "base_model_part_name": "",
+            "skin_model_part_name": "",
+            "skin_variable_name": "",
+            "embedded_nodal_variable_name": "",
+            "buffer_position": 0,
+            "gradient_penalty_coefficient": 0.0,
+            "aux_model_part_name": "IntersectedElementsModelPart",
+            "linear_solver_settings": {
+                "preconditioner_type": "amg",
+                "solver_type": "amgcl",
+                "smoother_type": "ilu0",
+                "krylov_type": "cg",
+                "max_iteration": 1000,
+                "verbosity": 0,
+                "tolerance": 1e-8,
+                "scaling": false,
+                "block_size": 1,
+                "use_block_matrices_if_possible": true
+            }
+        }
+        )");
+
+        return default_settings;
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        return StaticGetDefaultParameters();
     }
 
     ///@}
@@ -398,6 +408,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    const std::size_t mEchoLevel;
     const unsigned int mBufferPosition;
     const std::string mAuxModelPartName;
     const double mGradientPenaltyCoefficient;
@@ -463,12 +474,11 @@ protected:
     {
         const auto &rUnknownVariable = EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable();
         const auto &r_int_elems_model_part = (mrBaseModelPart.GetModel()).GetModelPart(mAuxModelPartName);
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(r_int_elems_model_part.NumberOfNodes()); ++i_node) {
-            const auto it_node = r_int_elems_model_part.NodesBegin() + i_node;
-            auto &r_emb_nod_val = (mrBaseModelPart.GetNode(it_node->Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable, mBufferPosition);
-            r_emb_nod_val = it_node->FastGetSolutionStepValue(rUnknownVariable);
-        }
+
+        block_for_each(r_int_elems_model_part.Nodes(), [&](Node<3>& rNode){
+            auto &r_emb_nod_val = (mrBaseModelPart.GetNode(rNode.Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable, mBufferPosition);
+            r_emb_nod_val = rNode.FastGetSolutionStepValue(rUnknownVariable);
+        });
     }
 
     inline void AddIntersectedElementsVariables(ModelPart &rModelPart) const
@@ -499,6 +509,10 @@ protected:
 
         // Get the unknown variable from Kratos components
         const auto &rUnknownVariable = EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable();
+
+        // Temporary container of nodes
+        // This is intentionally done to add the nodes at once and avoid the sort at each CreateNewNode call
+        std::unordered_map<unsigned int, Node<3>::Pointer> map_of_nodes;
 
         // Loop the base model part elements
         std::size_t new_elem_id = 1;
@@ -556,12 +570,12 @@ protected:
                             i_edge_val /= n_int_obj;
 
                             // If not added yet, add the edge nodes
-                            this->AddEdgeNodes(r_i_edge_geom, rModelPart);
+                            this->AddEdgeNodes(r_i_edge_geom, rModelPart, map_of_nodes);
 
                             // Create a new element with the intersected edge geometry and fake properties
                             auto p_element = Kratos::make_intrusive<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(
                                 new_elem_id,
-                                this->pSetEdgeElementGeometry(rModelPart, r_i_edge_geom, i_edge_pair),
+                                this->pSetEdgeElementGeometry(map_of_nodes, r_i_edge_geom, i_edge_pair),
                                 rModelPart.pGetProperties(0));
 
                             // Save the edge values in the new element
@@ -581,6 +595,16 @@ protected:
                 }
             }
         }
+
+
+        // Populate the modelpart with all the nodes in NodesMap
+        // Note that a temporary vector is created from the set to add all nodes at once
+        PointerVectorSet<Node<3>> tmp;
+        tmp.reserve(rModelPart.NumberOfElements()*2);
+        for(auto& item: map_of_nodes){
+            tmp.push_back(item.second);
+        }
+        rModelPart.AddNodes(tmp.begin(), tmp.end());    
     }
 
     void SetLinearStrategy()
@@ -599,13 +623,13 @@ protected:
         mpSolvingStrategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(
             r_aux_model_part,
             p_scheme,
-            mpLinearSolver,
             p_builder_and_solver,
             calculate_reactions,
             reform_dof_at_each_iteration,
             calculate_norm_dx);
 
         mpSolvingStrategy->Check();
+        mpSolvingStrategy->SetEchoLevel(mEchoLevel);
     }
 
     ///@}
@@ -646,7 +670,8 @@ protected:
             KratosComponents<Variable<TVarType>>::Get(rSettings["embedded_nodal_variable_name"].GetString()),
             rSettings["gradient_penalty_coefficient"].GetDouble(),
             rSettings["buffer_position"].GetInt(),
-            rSettings["aux_model_part_name"].GetString())
+            rSettings["aux_model_part_name"].GetString(),
+            rSettings["echo_level"].GetInt())
     {
     }
 
@@ -673,7 +698,7 @@ private:
     void CalculateIntersections()
     {
         mpFindIntersectedGeometricalObjectsProcess = Kratos::make_unique<FindIntersectedGeometricalObjectsProcess>(mrBaseModelPart, mrSkinModelPart);
-        mpFindIntersectedGeometricalObjectsProcess->Initialize();
+        mpFindIntersectedGeometricalObjectsProcess->ExecuteInitialize();
         mpFindIntersectedGeometricalObjectsProcess->FindIntersections();
     }
 
@@ -711,27 +736,38 @@ private:
 
     void AddEdgeNodes(
         const Geometry<Node<3>> &rEdgeGeometry,
-        ModelPart &rModelPart) const
+        ModelPart &rModelPart,
+        std::unordered_map<unsigned int, Node<3>::Pointer>& rNodesMap
+        ) const
     {
+        const auto& rp_var_list = rModelPart.pGetNodalSolutionStepVariablesList();
+        unsigned int buffer_size = rModelPart.GetBufferSize();
+        
         // Loop the edge nodes
         for (std::size_t i = 0; i < 2; ++i) {
             auto p_i_node = rEdgeGeometry(i);
             // Check if the node has been already added
             if (!p_i_node->Is(VISITED)) {
                 p_i_node->Set(VISITED, true);
-                rModelPart.CreateNewNode(p_i_node->Id(), *p_i_node);
+                auto p_node_copy = Kratos::make_intrusive< Node<3> >(
+                    p_i_node->Id(), 
+                    p_i_node->Coordinates());
+                p_node_copy->SetSolutionStepVariablesList(rp_var_list);
+                p_node_copy->SetBufferSize(buffer_size);
+
+                rNodesMap[p_i_node->Id()] = p_node_copy;
             }
         }
     }
 
     Element::GeometryType::Pointer pSetEdgeElementGeometry(
-        ModelPart &rModelPart,
+        std::unordered_map<unsigned int, Node<3>::Pointer>& rNodesMap,
         const Element::GeometryType &rCurrentEdgeGeometry,
         const std::pair<std::size_t, std::size_t> NewEdgeIds) const
     {
         Element::GeometryType::PointsArrayType points_array;
-        points_array.push_back(rModelPart.pGetNode(std::get<0>(NewEdgeIds)));
-        points_array.push_back(rModelPart.pGetNode(std::get<1>(NewEdgeIds)));
+        points_array.push_back(rNodesMap[std::get<0>(NewEdgeIds)]);
+        points_array.push_back(rNodesMap[std::get<1>(NewEdgeIds)]);
         return rCurrentEdgeGeometry.Create(points_array);
     }
 

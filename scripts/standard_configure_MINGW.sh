@@ -31,7 +31,7 @@ export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"location_python/python.exe"}
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
-add_app ${KRATOS_APP_DIR}/EigenSolversApplication
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
@@ -46,7 +46,8 @@ cmake ..                                                                        
 -H"${KRATOS_SOURCE}"                                                                                \
 -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
 -DUSE_MPI=OFF                                                                                       \
--DUSE_EIGEN_MKL=OFF
+-DUSE_EIGEN_MKL=OFF                                                                                 \
+-DKRATOS_GENERATE_PYTHON_STUBS=ON                                                                   \
 
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)

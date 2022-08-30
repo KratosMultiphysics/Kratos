@@ -47,20 +47,20 @@ Condition::Pointer AdjointPotentialWallCondition<TPrimalCondition>::Clone(IndexT
 }
 
 template <class TPrimalCondition>
-void AdjointPotentialWallCondition<TPrimalCondition>::Initialize()
+void AdjointPotentialWallCondition<TPrimalCondition>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    mpPrimalCondition->Initialize();
+    mpPrimalCondition->Initialize(rCurrentProcessInfo);
 }
 
 template <class TPrimalCondition>
-void AdjointPotentialWallCondition<TPrimalCondition>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void AdjointPotentialWallCondition<TPrimalCondition>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    mpPrimalCondition->Data() = this->Data();
+    mpPrimalCondition->GetData() = this->GetData();
     mpPrimalCondition->Set(Flags(*this));
     mpPrimalCondition->InitializeSolutionStep(rCurrentProcessInfo);
 }
 template <class TPrimalCondition>
-void AdjointPotentialWallCondition<TPrimalCondition>::GetValuesVector(Vector& rValues, int Step)
+void AdjointPotentialWallCondition<TPrimalCondition>::GetValuesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -68,23 +68,8 @@ void AdjointPotentialWallCondition<TPrimalCondition>::GetValuesVector(Vector& rV
     if(rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
 
-    bool is_kutta=false;
-    const auto& r_geometry = GetGeometry();
     for(unsigned int i=0; i<TNumNodes; i++){
-        if (r_geometry[i].GetValue(WAKE_DISTANCE)<0.0){
-            is_kutta=true;
-            break;
-        }
-    }
-    for(unsigned int i=0; i<TNumNodes; i++){
-        if(is_kutta){
-            if(r_geometry[i].GetValue(WAKE_DISTANCE)<0.0)
-                rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
-            else
-                rValues[i] = r_geometry[i].FastGetSolutionStepValue(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
-        }
-        else
-            rValues[i] = r_geometry[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
+        rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
     }
 
     KRATOS_CATCH("");
@@ -93,7 +78,7 @@ void AdjointPotentialWallCondition<TPrimalCondition>::GetValuesVector(Vector& rV
 
 template <class TPrimalCondition>
 void AdjointPotentialWallCondition<TPrimalCondition>::CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
-                            ProcessInfo &rCurrentProcessInfo)
+                            const ProcessInfo& rCurrentProcessInfo)
 {
     VectorType RHS;
     this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
@@ -123,7 +108,7 @@ void AdjointPotentialWallCondition<TPrimalCondition>::CalculateSensitivityMatrix
 template <class TPrimalCondition>
 void AdjointPotentialWallCondition<TPrimalCondition>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                             VectorType &rRightHandSideVector,
-                            ProcessInfo &rCurrentProcessInfo)
+                            const ProcessInfo &rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != TNumNodes)
         rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
@@ -134,11 +119,12 @@ void AdjointPotentialWallCondition<TPrimalCondition>::CalculateLocalSystem(Matri
 
 /// Check that all data required by this condition is available and reasonable
 template <class TPrimalCondition>
-int AdjointPotentialWallCondition<TPrimalCondition>::Check(const ProcessInfo& rCurrentProcessInfo)
+int AdjointPotentialWallCondition<TPrimalCondition>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
-    int Check = mpPrimalCondition->Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
+    const auto& r_const_cond_ref = *mpPrimalCondition;
+    int Check = r_const_cond_ref.Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
 
     if (Check != 0)
     {
@@ -164,62 +150,47 @@ int AdjointPotentialWallCondition<TPrimalCondition>::Check(const ProcessInfo& rC
 
 template <class TPrimalCondition>
 void AdjointPotentialWallCondition<TPrimalCondition>::EquationIdVector(EquationIdVectorType& rResult,
-                                ProcessInfo& rCurrentProcessInfo)
+                                const ProcessInfo& rCurrentProcessInfo) const
 {
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
 
-    bool is_kutta=false;
     const auto& r_geometry = GetGeometry();
     for(unsigned int i=0; i<TNumNodes; i++){
-        if (r_geometry[i].GetValue(WAKE_DISTANCE)<0.0){
-            is_kutta=true;
-            break;
-        }
-    }
-    for(unsigned int i=0; i<TNumNodes; i++){
-        if(is_kutta){
-            if(r_geometry[i].GetValue(WAKE_DISTANCE)<0.0)
-                rResult[i] = r_geometry[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
-            else
-                rResult[i] = r_geometry[i].GetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL).EquationId();
-        }
-        else
-            rResult[i] = r_geometry[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
+        rResult[i] = r_geometry[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
     }
 }
 
 template <class TPrimalCondition>
 void AdjointPotentialWallCondition<TPrimalCondition>::GetDofList(DofsVectorType& ConditionDofList,
-                        ProcessInfo& CurrentProcessInfo)
+                        const ProcessInfo& CurrentProcessInfo) const
 {
     if (ConditionDofList.size() != TNumNodes)
     ConditionDofList.resize(TNumNodes);
 
-    bool is_kutta=false;
     const auto& r_geometry = GetGeometry();
     for(unsigned int i=0; i<TNumNodes; i++){
-        if (r_geometry[i].GetValue(WAKE_DISTANCE)<0.0){
-            is_kutta=true;
-            break;
-        }
-    }
-    for(unsigned int i=0; i<TNumNodes; i++){
-        if(is_kutta){
-            if(r_geometry[i].GetValue(WAKE_DISTANCE)<0.0)
-                ConditionDofList[i] = r_geometry[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
-            else
-                ConditionDofList[i] = r_geometry[i].pGetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
-        }
-        else
-            ConditionDofList[i] = r_geometry[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
+        ConditionDofList[i] = r_geometry[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
     }
 }
 
 template <class TPrimalCondition>
-void AdjointPotentialWallCondition<TPrimalCondition>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void AdjointPotentialWallCondition<TPrimalCondition>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     mpPrimalCondition -> FinalizeSolutionStep(rCurrentProcessInfo);
+}
+
+template <class TPrimalCondition>
+void AdjointPotentialWallCondition<TPrimalCondition>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    mpPrimalCondition -> FinalizeNonLinearIteration(rCurrentProcessInfo);
+
+    const auto& velocity = mpPrimalCondition -> GetValue(VELOCITY);
+    const double density = mpPrimalCondition -> GetValue(DENSITY);
+    const double pressure = mpPrimalCondition -> GetValue(PRESSURE_COEFFICIENT);
+    this->SetValue(VELOCITY, velocity);
+    this->SetValue(DENSITY, density);
+    this->SetValue(PRESSURE_COEFFICIENT, pressure);
 }
 
 /// Turn back information as a string.
@@ -261,7 +232,7 @@ void AdjointPotentialWallCondition<TPrimalCondition>::load(Serializer& rSerializ
 }
 
 template class AdjointPotentialWallCondition<PotentialWallCondition<2,2>>;
+template class AdjointPotentialWallCondition<PotentialWallCondition<3,3>>;
 
 
 }  // namespace Kratos.
-

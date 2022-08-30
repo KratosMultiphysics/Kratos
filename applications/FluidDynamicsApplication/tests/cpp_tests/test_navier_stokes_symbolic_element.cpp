@@ -41,8 +41,6 @@ namespace Kratos {
 
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
-			modelPart.AddNodalSolutionStepVariable(DENSITY);
-			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
 			modelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
@@ -87,12 +85,6 @@ namespace Kratos {
 			perturbation_matrix(1,0) = 0.1; perturbation_matrix(1,1) = 0.2;
 			perturbation_matrix(2,0) = 0.2; perturbation_matrix(2,1) = 0.3;
 
-			// Set the nodal DENSITY and DYNAMIC_VISCOSITY values
-			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
-				it_node->FastGetSolutionStepValue(DENSITY) = pElemProp->GetValue(DENSITY);
-				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
-			}
-
 			for(unsigned int i=0; i<3; i++){
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
@@ -111,8 +103,9 @@ namespace Kratos {
 			Vector RHS = ZeroVector(9);
 			Matrix LHS = ZeroMatrix(9,9);
 
-			pElement->Initialize(); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
+			const auto& r_process_info = modelPart.GetProcessInfo();
+			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
 			// Compute the error of the perturbation
 			double perturbation = 2e-2;
@@ -138,7 +131,8 @@ namespace Kratos {
 				Vector RHS_perturbed = ZeroVector(9);
 				Vector solution_increment = ZeroVector(9);
 
-				pElement->CalculateRightHandSide(RHS_perturbed, modelPart.GetProcessInfo());
+				const auto& r_process_info = modelPart.GetProcessInfo();
+				pElement->CalculateRightHandSide(RHS_perturbed, r_process_info);
 
 				solution_increment = prod(LHS, perturbation_vector);
 				noalias(RHS_obtained) = RHS - solution_increment;
@@ -171,8 +165,6 @@ namespace Kratos {
 
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
-			modelPart.AddNodalSolutionStepVariable(DENSITY);
-			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
 			modelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
@@ -217,16 +209,15 @@ namespace Kratos {
 			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
 				it_node->FastGetSolutionStepValue(PRESSURE) = pressure_value;
 				it_node->FastGetSolutionStepValue(VELOCITY) = velocity_values;
-				it_node->FastGetSolutionStepValue(DENSITY) = pElemProp->GetValue(DENSITY);
-				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
 			}
 
 			// Compute RHS and LHS
 			Vector RHS = ZeroVector(9);
 			Matrix LHS = ZeroMatrix(9,9);
 
-			pElement->Initialize(); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
+			const auto& r_process_info = modelPart.GetProcessInfo();
+			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
 			// Check obtained RHS
 			double sum_RHS = 0.0;
@@ -272,8 +263,6 @@ namespace Kratos {
 
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
-			modelPart.AddNodalSolutionStepVariable(DENSITY);
-			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
 			modelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
@@ -321,12 +310,6 @@ namespace Kratos {
 			perturbation_matrix(2,0) = 0.2; perturbation_matrix(2,1) = 0.3; perturbation_matrix(2,2) = 0.7;
 			perturbation_matrix(3,0) = 0.3; perturbation_matrix(3,1) = 0.4; perturbation_matrix(3,2) = 0.8;
 
-			// Set the nodal DENSITY and DYNAMIC_VISCOSITY values
-			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
-				it_node->FastGetSolutionStepValue(DENSITY) = pElemProp->GetValue(DENSITY);
-				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
-			}
-
 			for(unsigned int i=0; i<4; i++){
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
@@ -345,8 +328,9 @@ namespace Kratos {
 			Vector RHS = ZeroVector(16);
 			Matrix LHS = ZeroMatrix(16,16);
 
-			pElement->Initialize(); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
+			const auto& r_process_info = modelPart.GetProcessInfo();
+			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
 			// Compute the error of the perturbation
 			double perturbation = 2e-2;
@@ -372,7 +356,8 @@ namespace Kratos {
 				Vector RHS_perturbed = ZeroVector(16);
 				Vector solution_increment = ZeroVector(16);
 
-				pElement->CalculateRightHandSide(RHS_perturbed, modelPart.GetProcessInfo());
+				const auto& r_process_info = modelPart.GetProcessInfo();
+				pElement->CalculateRightHandSide(RHS_perturbed, r_process_info);
 
 				solution_increment = prod(LHS, perturbation_vector);
 				noalias(RHS_obtained) = RHS - solution_increment;
@@ -402,8 +387,6 @@ namespace Kratos {
 
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
-			modelPart.AddNodalSolutionStepVariable(DENSITY);
-			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
 			modelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
@@ -449,16 +432,15 @@ namespace Kratos {
 			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
 				it_node->FastGetSolutionStepValue(PRESSURE) = pressure_value;
 				it_node->FastGetSolutionStepValue(VELOCITY) = velocity_values;
-				it_node->FastGetSolutionStepValue(DENSITY) = pElemProp->GetValue(DENSITY);
-				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
 			}
 
 			// Compute RHS and LHS
 			Vector RHS = ZeroVector(16);
 			Matrix LHS = ZeroMatrix(16,16);
 
-			pElement->Initialize(); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
+			const auto& r_process_info = modelPart.GetProcessInfo();
+			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
 			// Check obtained RHS
 			double sum_RHS = 0.0;

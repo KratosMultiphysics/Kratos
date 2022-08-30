@@ -2,24 +2,23 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand, Daniel Diez
-//                   
+//
 //
 
 
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
-#include "containers/variable_component.h"
 #include "containers/data_value_container.h"
 
 
@@ -63,6 +62,8 @@ namespace Kratos
 
     void DataValueContainer::save(Serializer& rSerializer) const
     {
+        KRATOS_TRY
+
         std::size_t size = mData.size();
         rSerializer.save("Size", size);
         for (std::size_t i = 0; i < size; i++)
@@ -70,10 +71,14 @@ namespace Kratos
             rSerializer.save("Variable Name", mData[i].first->Name());
             mData[i].first->Save(rSerializer, mData[i].second);
         }
+
+        KRATOS_CATCH("")
     }
 
     void DataValueContainer::load(Serializer& rSerializer)
     {
+        KRATOS_TRY
+
         std::size_t size;
         rSerializer.load("Size", size);
         mData.resize(size);
@@ -85,9 +90,11 @@ namespace Kratos
             mData[i].first->Allocate(&(mData[i].second));
             mData[i].first->Load(rSerializer, mData[i].second);
         }
+
+        KRATOS_CATCH("")
     }
 
-    
+
 }  // namespace Kratos.
 
 

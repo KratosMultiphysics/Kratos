@@ -16,10 +16,13 @@
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
+#include "custom_utilities/qsvms_dem_coupled_data.h"
 #include "custom_utilities/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
-#include "custom_utilities/symbolic_navier_stokes_data.h"
+#include "custom_utilities/symbolic_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
+#include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
+#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/vorticity_utilities.h"
 
@@ -76,7 +79,7 @@ Element::Pointer FluidElement<TElementData>::Create(IndexType NewId, GeometryTyp
 }
 
 template< class TElementData >
-void FluidElement<TElementData>::Initialize() {
+void FluidElement<TElementData>::Initialize(const ProcessInfo& rCurrentProcessInfo) {
     KRATOS_TRY;
 
     // If we are restarting, the constitutive law will be already defined
@@ -90,7 +93,7 @@ void FluidElement<TElementData>::Initialize() {
         mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
 
         const GeometryType& r_geometry = this->GetGeometry();
-        const auto& r_shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+        const auto& r_shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
         mpConstitutiveLaw->InitializeMaterial(r_properties,r_geometry,row(r_shape_functions,0));
     }
 
@@ -100,7 +103,7 @@ void FluidElement<TElementData>::Initialize() {
 template <class TElementData>
 void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                       VectorType& rRightHandSideVector,
-                                                      ProcessInfo& rCurrentProcessInfo)
+                                                      const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     if (rLeftHandSideMatrix.size1() != LocalSize)
@@ -112,7 +115,7 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideM
     noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-    if (TElementData::ElementManagesTimeIntegration) {
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
@@ -139,7 +142,7 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideM
 
 template <class TElementData>
 void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                                       ProcessInfo& rCurrentProcessInfo)
+                                                       const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     if (rLeftHandSideMatrix.size1() != LocalSize)
@@ -147,7 +150,7 @@ void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSide
 
     noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
-    if (TElementData::ElementManagesTimeIntegration) {
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
@@ -172,14 +175,14 @@ void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSide
 
 template <class TElementData>
 void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                                        ProcessInfo& rCurrentProcessInfo)
+                                                        const ProcessInfo& rCurrentProcessInfo)
 {
     if (rRightHandSideVector.size() != LocalSize)
         rRightHandSideVector.resize(LocalSize, false);
 
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-    if (TElementData::ElementManagesTimeIntegration) {
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
@@ -204,7 +207,7 @@ void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSi
 
 template <class TElementData>
 void FluidElement<TElementData>::CalculateLocalVelocityContribution(
-    MatrixType& rDampMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rDampMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     if( rDampMatrix.size1() != LocalSize )
@@ -242,7 +245,7 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
 
 template <class TElementData>
 void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
-                                                     ProcessInfo& rCurrentProcessInfo)
+                                                     const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     if (rMassMatrix.size1() != LocalSize)
@@ -274,9 +277,9 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
 }
 
 template< class TElementData >
-void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
+void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
-    GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetGeometry();
 
     unsigned int LocalIndex = 0;
 
@@ -297,30 +300,32 @@ void FluidElement< TElementData >::EquationIdVector(EquationIdVectorType &rResul
 
 
 template< class TElementData >
-void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &rCurrentProcessInfo)
+void FluidElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const
 {
-    GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetGeometry();
 
-     if (rElementalDofList.size() != LocalSize)
+    if (rElementalDofList.size() != LocalSize)
          rElementalDofList.resize(LocalSize);
 
-     unsigned int LocalIndex = 0;
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+    const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
 
-     for (unsigned int i = 0; i < NumNodes; ++i)
-     {
-         rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_X);
-         rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Y);
-         if (Dim == 3) rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Z);
-         rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(PRESSURE);
-     }
+    unsigned int LocalIndex = 0;
+    for (unsigned int i = 0; i < NumNodes; ++i)
+    {
+        rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_X,xpos);
+        rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Y,xpos+1);
+        if (Dim == 3) rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Z,xpos+2);
+        rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(PRESSURE,ppos);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step)
+void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step) const
 {
-    GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetGeometry();
 
     if (rValues.size() != LocalSize)
         rValues.resize(LocalSize,false);
@@ -338,9 +343,9 @@ void FluidElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int 
 
 
 template< class TElementData >
-void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step)
+void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step) const
 {
-    GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetGeometry();
 
     if (rValues.size() != LocalSize)
         rValues.resize(LocalSize,false);
@@ -359,14 +364,14 @@ void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int
 template< class TElementData >
 GeometryData::IntegrationMethod FluidElement<TElementData>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
 
 template< class TElementData >
-int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     // Generic geometry check
     int out = Element::Check(rCurrentProcessInfo);
@@ -379,9 +384,6 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Something is wrong with the elemental data of Element "
         << this->Info() << std::endl;
-
-    // Extra variables used in computing projections
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
 
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -427,7 +429,7 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 3 > > const& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -446,7 +448,7 @@ void FluidElement<TElementData>::GetValueOnIntegrationPoints(
 
 
 template< class TElementData >
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<double> const& rVariable,
     std::vector<double>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -479,21 +481,21 @@ void FluidElement<TElementData>::GetValueOnIntegrationPoints(
 }
 
 template <class TElementData>
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 6>> const& rVariable,
     std::vector<array_1d<double, 6>>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {}
 
 template <class TElementData>
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<Vector> const& rVariable,
     std::vector<Vector>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {}
 
 template <class TElementData>
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<Matrix> const& rVariable,
     std::vector<Matrix>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -553,6 +555,20 @@ array_1d<double, 3> FluidElement<TElementData>::GetAtCoordinate(
 }
 
 template <class TElementData>
+BoundedMatrix<double, TElementData::Dim, TElementData::Dim> FluidElement<TElementData>::GetAtCoordinate(
+    const typename TElementData::NodalTensorData &rValues,
+    const typename TElementData::ShapeFunctionsType &rN) const
+{
+    BoundedMatrix<double,Dim,Dim> result = ZeroMatrix(Dim,Dim);
+
+    for (size_t i = 0; i < NumNodes; i++) {
+        noalias(result) += rN[i] * rValues[i];
+    }
+
+    return result;
+}
+
+template <class TElementData>
 double FluidElement<TElementData>::GetAtCoordinate(
     const double Value,
     const typename TElementData::ShapeFunctionsType& rN) const
@@ -574,20 +590,31 @@ void FluidElement<TElementData>::UpdateIntegrationPointData(
 }
 
 template <class TElementData>
-void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) const {
-
-    Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(rData.StrainRate,rData.Velocity,rData.DN_DX);
+void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) const
+{
+    this->CalculateStrainRate(rData);
 
     auto& Values = rData.ConstitutiveLawValues;
 
-    const Vector shape_functions_vector(rData.N);
+    const Vector& shape_functions_vector = rData.N;
+    const Matrix& shape_functions_derivative_matrix = rData.DN_DX;
     Values.SetShapeFunctionsValues(shape_functions_vector);
+    Values.SetShapeFunctionsDerivatives(shape_functions_derivative_matrix);
 
     //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
     //this is ok under the hypothesis that no history dependent behavior is employed
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
 
     mpConstitutiveLaw->CalculateValue(Values,EFFECTIVE_VISCOSITY,rData.EffectiveViscosity);
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::CalculateStrainRate(TElementData& rData) const
+{
+    Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(
+        rData.StrainRate,
+        rData.Velocity,
+        rData.DN_DX);
 }
 
 template< class TElementData >
@@ -615,6 +642,78 @@ void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
 
     for (unsigned int g = 0; g < number_of_gauss_points; g++)
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::Calculate(
+    const Variable<double> &rVariable,
+    double &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::Calculate(
+    const Variable<array_1d<double, 3>> &rVariable,
+    array_1d<double, 3> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::Calculate(
+    const Variable<Vector >& rVariable,
+    Vector& rOutput,
+    const ProcessInfo& rCurrentProcessInfo )
+{
+    noalias( rOutput ) = ZeroVector( StrainSize );
+
+    if (rVariable == FLUID_STRESS) {
+
+        // creating a new data container that goes out of scope after the function is left
+        TElementData data_local;
+
+        // transferring the velocity (among other variables)
+        data_local.Initialize(*this, rCurrentProcessInfo);
+
+        Vector gauss_weights;
+        Matrix shape_functions;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+
+        // computing DN_DX values for the strain rate
+        this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+        const unsigned int number_of_gauss_points = gauss_weights.size();
+
+        double sum_of_gauss_weights = 0.0;
+
+        for (unsigned int g = 0; g < number_of_gauss_points; g++){
+
+            this->UpdateIntegrationPointData(data_local, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+
+            const Vector gauss_point_contribution = data_local.ShearStress;
+
+            noalias( rOutput ) += gauss_point_contribution * gauss_weights[g];
+            sum_of_gauss_weights += gauss_weights[g];
+        }
+
+        for (unsigned int i = 0; i < StrainSize; i++){
+            rOutput[i] = ( 1.0 / sum_of_gauss_weights ) * rOutput[i];
+        }
+
+    } else {
+        Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    }
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::Calculate(
+    const Variable<Matrix> &rVariable,
+    Matrix &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -804,8 +903,14 @@ void StrainRateSpecialization<TElementData,3>::Calculate(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template class instantiation
 
-template class FluidElement< SymbolicNavierStokesData<2,3> >;
-template class FluidElement< SymbolicNavierStokesData<3,4> >;
+template class FluidElement< SymbolicStokesData<2,3> >;
+template class FluidElement< SymbolicStokesData<2,4> >;
+template class FluidElement< SymbolicStokesData<3,4> >;
+template class FluidElement< SymbolicStokesData<3,6> >;
+template class FluidElement< SymbolicStokesData<3,8> >;
+
+template class FluidElement< WeaklyCompressibleNavierStokesData<2,3> >;
+template class FluidElement< WeaklyCompressibleNavierStokesData<3,4> >;
 
 template class FluidElement< QSVMSData<2,3> >;
 template class FluidElement< QSVMSData<3,4> >;
@@ -815,6 +920,12 @@ template class FluidElement< QSVMSData<3,8> >;
 
 template class FluidElement< TimeIntegratedQSVMSData<2,3> >;
 template class FluidElement< TimeIntegratedQSVMSData<3,4> >;
+
+template class FluidElement< QSVMSDEMCoupledData<2,3> >;
+template class FluidElement< QSVMSDEMCoupledData<3,4> >;
+
+template class FluidElement< QSVMSDEMCoupledData<2,4> >;
+template class FluidElement< QSVMSDEMCoupledData<3,8> >;
 
 template class FluidElement< FICData<2,3> >;
 template class FluidElement< FICData<3,4> >;
@@ -828,6 +939,8 @@ template class FluidElement< TimeIntegratedFICData<3,4> >;
 template class FluidElement< TwoFluidNavierStokesData<2, 3> >;
 template class FluidElement< TwoFluidNavierStokesData<3, 4> >;
 
+template class FluidElement<TwoFluidNavierStokesAlphaMethodData<2, 3>>;
+template class FluidElement< TwoFluidNavierStokesAlphaMethodData<3, 4> >;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 }

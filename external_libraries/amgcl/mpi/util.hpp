@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2014, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -34,6 +34,7 @@ THE SOFTWARE.
 
 #include <vector>
 #include <numeric>
+#include <complex>
 
 #include <type_traits>
 #include <amgcl/value_type/interface.hpp>
@@ -96,6 +97,16 @@ struct datatype_impl<unsigned long long> {
     static MPI_Datatype get() { return MPI_UNSIGNED_LONG_LONG; }
 };
 
+template <>
+struct datatype_impl< std::complex<double> > {
+    static MPI_Datatype get() { return MPI_CXX_DOUBLE_COMPLEX; }
+};
+
+template <>
+struct datatype_impl< std::complex<float> > {
+    static MPI_Datatype get() { return MPI_CXX_FLOAT_COMPLEX; }
+};
+
 template <typename T>
 struct datatype_impl<T,
     typename std::enable_if<
@@ -131,6 +142,29 @@ MPI_Datatype datatype() {
     return datatype_impl<T>::get();
 }
 
+/// Convenience wrapper around MPI_Init/MPI_Finalize.
+struct init {
+    init(int* argc, char ***argv) {
+        MPI_Init(argc, argv);
+    }
+
+    ~init() {
+        MPI_Finalize();
+    }
+};
+
+/// Convenience wrapper around MPI_Init_threads/MPI_Finalize.
+struct init_thread {
+    init_thread(int* argc, char ***argv) {
+        int _;
+        MPI_Init_thread(argc, argv, MPI_THREAD_MULTIPLE, &_);
+    }
+
+    ~init_thread() {
+        MPI_Finalize();
+    }
+};
+
 /// Convenience wrapper around MPI_Comm.
 struct communicator {
     MPI_Comm comm;
@@ -159,9 +193,7 @@ struct communicator {
 
     template <typename T>
     T reduce(MPI_Op op, const T &lval) const {
-        typedef typename math::scalar_of<T>::type S;
-
-        const int elems = sizeof(T) / sizeof(S);
+        const int elems = math::static_rows<T>::value * math::static_cols<T>::value;
         T gval;
 
         MPI_Allreduce((void*)&lval, &gval, elems, datatype<T>(), op, comm);

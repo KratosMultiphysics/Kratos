@@ -21,7 +21,7 @@ namespace Kratos {
 
         VorticityInducedLiftLaw(){}
 
-        VorticityInducedLiftLaw(Parameters& r_parameters){}
+        VorticityInducedLiftLaw(Parameters r_parameters){}
 
         ~VorticityInducedLiftLaw(){}
 

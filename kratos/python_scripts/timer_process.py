@@ -1,10 +1,11 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if not settings.Has("Parameters"):
+        settings.AddValue("Parameters", KratosMultiphysics.Parameters())
     return TimerProcess(Model, settings["Parameters"])
 
 # All the processes python processes should be derived from "Process"
@@ -68,6 +69,6 @@ class TimerProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         self.timer.Stop(self.interval_name)
+        self.timer.PrintTimingInformation()
         if self.output_filename != "":
-            self.timer.PrintTimingInformation(self.timer)
             self.timer.CloseOuputFile()

@@ -11,7 +11,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    RubinowAndKellerLiftLaw::RubinowAndKellerLiftLaw(Parameters& r_parameters)
+    RubinowAndKellerLiftLaw::RubinowAndKellerLiftLaw(Parameters r_parameters)
     {
 
     }

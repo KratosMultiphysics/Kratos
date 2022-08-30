@@ -91,11 +91,11 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef Geometry<NodeType>::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-    constexpr static unsigned int Dim = TBaseElement::Dim;
-    constexpr static unsigned int NumNodes = TBaseElement::NumNodes;
-    constexpr static unsigned int BlockSize = TBaseElement::BlockSize;
-    constexpr static unsigned int LocalSize = TBaseElement::LocalSize;
-    constexpr static unsigned int StrainSize = TBaseElement::StrainSize;
+    constexpr static std::size_t Dim = TBaseElement::Dim;
+    constexpr static std::size_t NumNodes = TBaseElement::NumNodes;
+    constexpr static std::size_t BlockSize = TBaseElement::BlockSize;
+    constexpr static std::size_t LocalSize = TBaseElement::LocalSize;
+    constexpr static std::size_t StrainSize = TBaseElement::StrainSize;
 
     using BaseElementData = typename TBaseElement::ElementData;
     using EmbeddedDiscontinuousElementData = EmbeddedDiscontinuousData< BaseElementData >;
@@ -175,7 +175,7 @@ public:
     /** For EmbeddedFluidElementDiscontinuous, this initializes the discontinuous
      * level set (ELEMENTAL_DISTANCES) and the nodal imposed velocity (EMBEDDED_VELOCITY)
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Calculates both LHS and RHS contributions
     /**
@@ -187,7 +187,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Computes an elemental double value
     /**
@@ -249,11 +249,13 @@ public:
     ///@name Inquiry
     ///@{
 
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output
     ///@{
+
+    const Parameters GetSpecifications() const override;
 
     /// Turn back information as a string.
     std::string Info() const override;
@@ -307,11 +309,20 @@ protected:
     /**
      * @brief Intersected element geometry data fill
      * This method sets the data structure geometry fields (shape functions, gradients, interface normals, ...) for an
-     * intersected element. To do that, the modified shape functions utility is firstly created and then called to perform
-     * all operations in both the positive and negative sides of the element.
+     * intersected element. To do that, the modified shape functions utility is firstly created and then called
+     * to perform all operations on both, the positive and negative, sides of the element.
      * @param rData reference to the element data structure
      */
     void DefineCutGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+     * @brief Intersected element geometry data fill
+     * This method sets the data structure geometry fields (shape functions, gradients, interface normals, ...) for an
+     * incised element. To do that, the modified shape functions utility is firstly created and then called
+     * to perform all operations on both, the positive and negative, sides of the element.
+     * @param rData reference to the element data structure
+     */
+    void DefineIncisedGeometryData(EmbeddedDiscontinuousElementData& rData) const;
 
     /**
      * @brief For an intersected element, normalize the interface normals
@@ -370,8 +381,12 @@ protected:
     /**
      * This method computes the penalty coefficient for the Nitsche normal imposition
      * @param rData reference to element data structure
+     * @param rN the current Gauss pt. shape functions vector
+     * @return double The normal penalty coefficient value
      */
-    double ComputeNormalPenaltyCoefficient(const EmbeddedDiscontinuousElementData& rData) const;
+    double ComputeNormalPenaltyCoefficient(
+        const EmbeddedDiscontinuousElementData& rData,
+        const Vector& rN) const;
 
     /**
      * This method computes the Nitsche coefficients for the Nitsche normal imposition
@@ -454,6 +469,19 @@ private:
         EmbeddedDiscontinuousElementData& rData,
         array_1d<double,3>& rDragForceLocation) const;
 
+    /**
+     * @brief Auxiliary method to get the density value
+     * This auxiliary method interfaces the density get in order to make possible the
+     * use of the embedded element with both property-based and nodal-based density formulations.
+     * For the standard case (property-based formulations) the method is not specialized.
+     * In case a nodal density base formulation is used, it needs to be specialized.
+     * @param rData Embedded element data container
+     * @param NodeIndex The local index node for which the density is retrieved (only used in nodal density formulations)
+     * @return double The density value
+     */
+    inline double AuxiliaryDensityGetter(
+        const EmbeddedDiscontinuousElementData& rData,
+        const std::size_t NodeIndex) const;
 
     ///@}
     ///@name Private  Access
@@ -483,7 +511,7 @@ private:
 namespace EmbeddedDiscontinuousInternals {
 
 template <size_t TDim, size_t TNumNodes>
-ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator(
+ModifiedShapeFunctions::UniquePointer GetShapeFunctionCalculator(
     const Element &rElement,
     const Vector &rElementalDistances);
 
@@ -491,6 +519,12 @@ template <size_t TDim, size_t TNumNodes>
 ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator(
     const Element &rElement,
     const Vector &rElementalDistances);
+
+template <size_t TDim, size_t TNumNodes>
+ModifiedShapeFunctions::UniquePointer GetIncisedShapeFunctionCalculator(
+    const Element &rElement,
+    const Vector &rElementalDistancesWithExtrapolated,
+    const Vector &rElementalEdgeDistancesExtrapolated);
 }
 
 ///@}

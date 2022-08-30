@@ -52,6 +52,15 @@ namespace Kratos
     };
 
     /**
+     * @brief This enum defines the type of PMMG libray used
+     */
+    enum class PMMGLibrary
+    {
+        PMMG3D = 1
+    };
+
+
+    /**
      * @brief This enums allows to differentiate the working framework
      */
     enum class FrameworkEulerLagrange {EULERIAN = 0, LAGRANGIAN = 1, ALE = 2};

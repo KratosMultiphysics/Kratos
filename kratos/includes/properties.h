@@ -26,7 +26,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/node.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "containers/data_value_container.h"
 #include "includes/process_info.h"
 #include "includes/table.h"
@@ -198,6 +198,12 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    template<class TVariableType>
+    void Erase(const TVariableType& rV)
+    {
+        mData.Erase(rV);
+    }
 
     template<class TVariableType>
     typename TVariableType::Type& GetValue(const TVariableType& rV)

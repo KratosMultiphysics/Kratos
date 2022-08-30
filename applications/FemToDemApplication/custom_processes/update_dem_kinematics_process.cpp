@@ -18,10 +18,8 @@
 namespace Kratos {
 
 UpdateDemKinematicsProcess::UpdateDemKinematicsProcess(
-    ModelPart& rModelPart,
-    ModelPart& rDemModelPart)
-    : mrModelPart(rModelPart),
-      mrDEMModelPart(rDemModelPart)
+    ModelPart& rModelPart)
+    : mrModelPart(rModelPart)
 {
 }
 

@@ -138,15 +138,6 @@ public:
         NodesArrayType const& rThisNodes
         ) const override;
 
-    /**
-     * @brief This function provides the place to perform checks on the completeness of the input.
-     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
     ///@}
     ///@name Access
     ///@{
@@ -244,24 +235,6 @@ protected:
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints
-        ) override;
-
-    /**
-     * @brief This functions updates the constitutive variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated
-     * @param rThisConstitutiveVariables The constitutive variables
-     * @param rValues The CL parameters
-     * @param PointNumber The integration point considered
-     * @param IntegrationPoints The list of integration points
-     * @param ThisStressMeasure The stress measure considered
-     */
-    void CalculateConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables,
-        ConstitutiveVariables& rThisConstitutiveVariables,
-        ConstitutiveLaw::Parameters& rValues,
-        const IndexType PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure
         ) override;
 
     /**

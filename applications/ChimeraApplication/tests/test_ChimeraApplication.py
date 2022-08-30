@@ -29,20 +29,21 @@ def AssembleTestSuites():
     # - testSmallExample
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ChimeraRotateRegionTest]))
-    ### Single-Patch tests
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossMonolithic]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossFractionalStep]))
-    ### Multi-Patch tests
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
 
     ## Validation suite. Big cases go here
-    # validationSuite = suites['validation']
+    validationSuite = suites['validation']
+    ### Single-Patch tests
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossMonolithic]))
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossFractionalStep]))
+    ### Multi-Patch tests
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
     allSuite.addTests(nightSuite)
+    allSuite.addTests(validationSuite)
 
 
     return suites

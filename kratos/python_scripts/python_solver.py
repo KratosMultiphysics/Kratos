@@ -1,14 +1,11 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing Kratos
 import KratosMultiphysics
-from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.restart_utility import RestartUtility
 
 # Other imports
 import os
 
-class PythonSolver(object):
+class PythonSolver:
     """The base class for the Python Solvers in the applications
     Changes to this BaseClass have to be discussed first!
     """
@@ -17,7 +14,7 @@ class PythonSolver(object):
 
         It is intended to be called from the constructor
         of deriving classes:
-        super(DerivedSolver, self).__init__(settings)
+        super().__init__(settings)
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -33,26 +30,25 @@ class PythonSolver(object):
         self.model = model
         self.settings = settings
 
-        # TODO remove the check once the derived solvers implement this
-        if hasattr(self, '_validate_settings_in_baseclass'):
-            self.ValidateSettings()
-        else:
-            IssueDeprecationWarning('PythonSolver', 'the settings are not validated in the baseclass for solver "%s", please implement it' %(self.__class__.__name__))
+        self.ValidateSettings()
 
         self.echo_level = self.settings["echo_level"].GetInt()
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         """This function returns the default-settings used by this class
         """
         return KratosMultiphysics.Parameters("""{
-            "echo_level" : 0
+            "echo_level" : 0,
+            "model_import_settings" : {
+                "input_type" : "use_input_model_part"
+            }
         }""")
 
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
-        default_settings = self.GetDefaultSettings()
+        default_settings = self.GetDefaultParameters()
         self.settings.ValidateAndAssignDefaults(default_settings)
 
     def AddVariables(self):
@@ -66,6 +62,14 @@ class PythonSolver(object):
         It has to be called AFTER the ModelPart is read!
         """
         pass
+
+    def GetDofsList(self):
+        """This function returns a list containing the DOFs required by this PythonSolver
+        In needs to be reimplemented in the derived solvers according to the physics to be solved
+        Ideally, DOFs list must be retrieved from the elements and conditions GetSpecification method
+        (see GetDofsListFromSpecifications in the SpecificationUtilities)
+        """
+        raise Exception("This function has to be implemented in the derived class")
 
     def ImportModelPart(self):
         """This function reads the ModelPart
@@ -140,17 +144,6 @@ class PythonSolver(object):
         """
         pass
 
-    def Solve(self):
-        warning_msg  = 'Using "Solve" is deprecated and will be removed in the future!\n'
-        warning_msg += 'Use the separate calls to "Initialize", "InitializeSolutionStep", "Predict", '
-        warning_msg += '"SolveSolutionStep" and "FinalizeSolutionStep"'
-        IssueDeprecationWarning('PythonSolver', warning_msg)
-        self.Initialize()
-        self.InitializeSolutionStep()
-        self.Predict()
-        self.SolveSolutionStep()
-        self.FinalizeSolutionStep()
-
     def GetComputingModelPart(self):
         raise Exception("This function has to be implemented in the derived class")
 
@@ -160,41 +153,15 @@ class PythonSolver(object):
         KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part.")
         input_type = model_part_import_settings["input_type"].GetString()
 
-        if (input_type == "mdpa"):
-            problem_path = os.getcwd()
-            input_filename = model_part_import_settings["input_filename"].GetString()
-
-            # Setting some mdpa-import-related flags
-            import_flags = KratosMultiphysics.ModelPartIO.READ
-            if model_part_import_settings.Has("ignore_variables_not_in_solution_step_data"):
-                if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool():
-                    import_flags = KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR|import_flags
-            skip_timer = True
-            if model_part_import_settings.Has("skip_timer"):
-                skip_timer = model_part_import_settings["skip_timer"].GetBool()
-            if skip_timer:
-                import_flags = KratosMultiphysics.ModelPartIO.SKIP_TIMER|import_flags
-
-            # Import model part from mdpa file.
-            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
-            if (model_part_import_settings.Has("reorder_consecutive") and model_part_import_settings["reorder_consecutive"].GetBool()):
-                KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
-            else:
-                KratosMultiphysics.ModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
-
-            if (model_part_import_settings.Has("reorder") and model_part_import_settings["reorder"].GetBool()):
-                tmp = KratosMultiphysics.Parameters("{}")
-                KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part, tmp).Execute()
-            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading model part from mdpa file.")
-
-        elif (input_type == "rest"):
+        if input_type == "mdpa": # NOTE: Add more types in the future
+            KratosMultiphysics.SingleImportModelPart.Import(model_part, model_part_import_settings, input_type)
+        elif input_type == "rest":
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
             RestartUtility(model_part, self._GetRestartSettings(model_part_import_settings)).LoadRestart()
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
 
-        elif(input_type == "use_input_model_part"):
+        elif input_type == "use_input_model_part":
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Using already imported model part - no reading necessary.")
-
         else:
             raise Exception("Other model part input options are not yet implemented.")
 
@@ -210,76 +177,3 @@ class PythonSolver(object):
             restart_settings.AddValue("echo_level", model_part_import_settings["echo_level"])
 
         return restart_settings
-
-    #### Auxiliar functions ####
-
-    def print_on_rank_zero(self, *args):
-        IssueDeprecationWarning('PythonSolver', '"print_on_rank_zero" is deprecated, please use the Logger directly')
-        # This function will be overridden in the trilinos-solvers
-        KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
-
-    def print_warning_on_rank_zero(self, *args):
-        IssueDeprecationWarning('PythonSolver', '"print_warning_on_rank_zero" is deprecated, please use the Logger directly')
-        # This function will be overridden in the trilinos-solvers
-        KratosMultiphysics.Logger.PrintWarning(" ".join(map(str,args)))
-
-    def validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
-        IssueDeprecationWarning('PythonSolver', '"validate_and_transfer_matching_settings" is deprecated, please use the functionalities provided by "GetDefaultSettings"')
-
-        """Transfer matching settings from origin to destination.
-
-        If a name in origin matches a name in destination, then the setting is
-        validated against the destination.
-
-        The typical use is for validating and extracting settings in derived classes:
-
-        class A:
-            def __init__(self, model_part, a_settings):
-                default_a_settings = Parameters('''{
-                    ...
-                }''')
-                a_settings.ValidateAndAssignDefaults(default_a_settings)
-        class B(A):
-            def __init__(self, model_part, custom_settings):
-                b_settings = Parameters('''{
-                    ...
-                }''') # Here the settings contain default values.
-                self.validate_and_transfer_matching_settings(custom_settings, b_settings)
-                super().__init__(model_part, custom_settings)
-        """
-        for name, dest_value in destination_settings.items():
-            if origin_settings.Has(name): # Validate and transfer value.
-                orig_value = origin_settings[name]
-                if dest_value.IsDouble() and orig_value.IsDouble():
-                    destination_settings[name].SetDouble(origin_settings[name].GetDouble())
-                elif dest_value.IsInt() and orig_value.IsInt():
-                    destination_settings[name].SetInt(origin_settings[name].GetInt())
-                elif dest_value.IsBool() and orig_value.IsBool():
-                    destination_settings[name].SetBool(origin_settings[name].GetBool())
-                elif dest_value.IsString() and orig_value.IsString():
-                    destination_settings[name].SetString(origin_settings[name].GetString())
-                elif dest_value.IsArray() and orig_value.IsArray():
-                    if dest_value.size() != orig_value.size():
-                        raise Exception('len("' + name + '") != ' + str(dest_value.size()))
-                    for i in range(dest_value.size()):
-                        if dest_value[i].IsDouble() and orig_value[i].IsDouble():
-                            dest_value[i].SetDouble(orig_value[i].GetDouble())
-                        elif dest_value[i].IsInt() and orig_value[i].IsInt():
-                            dest_value[i].SetInt(orig_value[i].GetInt())
-                        elif dest_value[i].IsBool() and orig_value[i].IsBool():
-                            dest_value[i].SetBool(orig_value[i].GetBool())
-                        elif dest_value[i].IsString() and orig_value[i].IsString():
-                            dest_value[i].SetString(orig_value[i].GetString())
-                        elif dest_value[i].IsSubParameter() and orig_value[i].IsSubParameter():
-                            self.validate_and_transfer_matching_settings(orig_value[i], dest_value[i])
-                            if len(orig_value[i].items()) != 0:
-                                raise Exception('Json settings not found in default settings: ' + orig_value[i].PrettyPrintJsonString())
-                        else:
-                            raise Exception('Unsupported parameter type.')
-                elif dest_value.IsSubParameter() and orig_value.IsSubParameter():
-                    self.validate_and_transfer_matching_settings(orig_value, dest_value)
-                    if len(orig_value.items()) != 0:
-                        raise Exception('Json settings not found in default settings: ' + orig_value.PrettyPrintJsonString())
-                else:
-                    raise Exception('Unsupported parameter type.')
-                origin_settings.RemoveValue(name)

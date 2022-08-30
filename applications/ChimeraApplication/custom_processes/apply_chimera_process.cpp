@@ -17,6 +17,7 @@
 #include <omp.h>
 #include "custom_processes/apply_chimera_process.h"
 #include "containers/model.h"
+#include "includes/deprecated_variables.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/variable_utils.h"
 
@@ -602,7 +603,7 @@ void ApplyChimera<TDim>::MakeConstraints(
                                StartConstraintId + init_index,
                                rConstraintIdVector, rVelocityMsConstraintsVector);
     init_index += (TDim + 1);
-    if (TDim == 3) {
+    if constexpr (TDim == 3) {
         ApplyContinuityWithElement(r_geom, rNodeToFind, rWeights, VELOCITY_Z,
                                    StartConstraintId + init_index, rConstraintIdVector,
                                    rVelocityMsConstraintsVector);

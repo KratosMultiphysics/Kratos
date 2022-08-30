@@ -52,16 +52,16 @@ public:
         mGaussPoint(0),
         mNodalFluxes(TNodeNumber,0.0)
     {
-        NumGauss = rGeometry.IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
+        NumGauss = rGeometry.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2);
         Vector DetJ = ZeroVector(NumGauss);
-        rGeometry.DeterminantOfJacobian(DetJ,GeometryData::GI_GAUSS_2);
+        rGeometry.DeterminantOfJacobian(DetJ,GeometryData::IntegrationMethod::GI_GAUSS_2);
 
         mShapeFunctionValues.resize(NumGauss,TNodeNumber);
         mIntegrationWeights.resize(NumGauss);
 
-        noalias(mShapeFunctionValues) = rGeometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+        noalias(mShapeFunctionValues) = rGeometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-        const auto& IntegrationPoints = rGeometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const auto& IntegrationPoints = rGeometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
         for (unsigned int g = 0; g < NumGauss; g++)
         {
@@ -176,41 +176,46 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(
         DofsVectorType& ConditionalDofList,
-        ProcessInfo& CurrentProcessInfo) override;
+        const ProcessInfo& CurrentProcessInfo) const override;
 
-    GeometryData::IntegrationMethod GetIntegrationMethod() override;
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                                             std::vector<array_1d<double, 3 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                             std::vector<double>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                                             std::vector<array_1d<double, 6 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 6 > >& rVariable,
+        std::vector<array_1d<double, 6 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                             std::vector<Vector>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                             std::vector<Matrix>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output

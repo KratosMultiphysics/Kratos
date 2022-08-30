@@ -293,17 +293,13 @@ namespace Kratos
   //***********************************************************************************
 
 
-  int SurfaceMomentCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int SurfaceMomentCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 
     // Perform base condition checks
     int ErrorCode = 0;
     ErrorCode = MomentCondition::Check(rCurrentProcessInfo);
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD);
-    KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD_VECTOR);
 
     return ErrorCode;
 

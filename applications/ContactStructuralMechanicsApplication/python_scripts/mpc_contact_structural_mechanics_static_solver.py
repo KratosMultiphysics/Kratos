@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -38,7 +36,7 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
         self._validate_settings_in_baseclass=True # To be removed eventually
 
         # Construct the base solver.
-        super(MPCContactStaticSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
 
         self.mpc_contact_settings = self.settings["mpc_contact_settings"]
         self.mpc_contact_settings.RecursivelyAddMissingParameters(GetDefaults()["mpc_contact_settings"])
@@ -56,7 +54,7 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
 
     def AddVariables(self):
 
-        super(MPCContactStaticSolver, self).AddVariables()
+        super().AddVariables()
 
         # We add the contact related variables
         contact_type = self.mpc_contact_settings["contact_type"].GetString()
@@ -65,7 +63,7 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
     def Initialize(self):
         KratosMultiphysics.Logger.PrintInfo("::[MPCContactStaticSolver]:: ", "Initializing ...")
 
-        super(MPCContactStaticSolver, self).Initialize() # The mechanical solver is created here.
+        super().Initialize() # The mechanical solver is created here.
 
         # We set the flag INTERACTION
         if self.mpc_contact_settings["simplified_semi_smooth_newton"].GetBool():
@@ -79,26 +77,25 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
 
     #### Private functions ####
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         conv_criteria = convergence_criterion.mechanical_convergence_criterion
         contact_criteria = ContactStructuralMechanicsApplication.MPCContactCriteria()
         return KratosMultiphysics.AndCriteria(conv_criteria, contact_criteria)
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         mechanical_solution_strategy = self._create_contact_newton_raphson_strategy()
         return mechanical_solution_strategy
 
     def _create_contact_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        self.mechanical_scheme = self.get_solution_scheme()
-        self.linear_solver = self.get_linear_solver()
-        self.mechanical_convergence_criterion = self.get_convergence_criterion()
-        self.builder_and_solver = self.get_builder_and_solver()
-        return auxiliar_methods_solvers.AuxiliarMPCNewton(computing_model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.mpc_contact_settings)
+        self.mechanical_scheme = self._GetScheme()
+        self.mechanical_convergence_criterion = self._GetConvergenceCriterion()
+        self.builder_and_solver = self._GetBuilderAndSolver()
+        return auxiliar_methods_solvers.AuxiliarMPCNewton(computing_model_part, self.mechanical_scheme, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.mpc_contact_settings)
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = GetDefaults()
-        this_defaults.RecursivelyAddMissingParameters(super(MPCContactStaticSolver, cls).GetDefaultSettings())
+        this_defaults.RecursivelyAddMissingParameters(super(MPCContactStaticSolver, cls).GetDefaultParameters())
         return this_defaults

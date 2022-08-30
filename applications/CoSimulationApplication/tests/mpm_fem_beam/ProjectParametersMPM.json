@@ -35,18 +35,15 @@
         },
         "pressure_dofs"                      : false,
         "linear_solver_settings"             :{
-            "solver_type"   : "ExternalSolversApplication.super_lu",
+            "solver_type"   : "LinearSolversApplication.sparse_qr",
             "scaling": false
         }
-    },
-    "coupling_settings": {
-        "interface_model_part_name"  : "MPM_Material.INTERFACE_coupling_to_fem"
     },
     "processes"        : {
         "constraints_process_list" : [],
         "loads_process_list"       : [],
         "list_other_processes": [{
-            "python_module" : "apply_mpm_coupling_interface_condition_process",
+            "python_module" : "apply_mpm_coupling_interface_dirichlet_condition_process",
             "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
             "Parameters"    : {
                 "model_part_name" : "Background_Grid.INTERFACE_coupling_to_fem",
@@ -63,7 +60,8 @@
                 "check_variables"  : ["MP_DISPLACEMENT"],
                 "input_file_name"  : "mpm_fem_beam/cosim_mpm_fem_beam_particle_results.json",
                 "model_part_name"  : "MPM_Material",
-                "time_frequency"   : 1.0
+                "time_frequency"   : 1.0,
+                "tolerance"        : 5e-3
             }
         }],
         "gravity"                  : [{
@@ -73,6 +71,7 @@
             "Parameters"    : {
                 "model_part_name" : "MPM_Material",
                 "variable_name"   : "MP_VOLUME_ACCELERATION",
+                "constrained"     : false,
                 "modulus"         : 9.81,
                 "direction"       : [0.0,-1.0,0.0]
             }

@@ -41,6 +41,7 @@ namespace Python
         binder.def("Resize", [](TMatrixType& self, const typename TMatrixType::size_type new_size1, const typename TMatrixType::size_type new_size2)
                             {if(self.size1() != new_size1 || self.size2() != new_size2)
                                 self.resize(new_size1, new_size2, false);} );
+        binder.def("__len__", [](const TMatrixType& self){return self.size1() * self.size2();} );
         binder.def("__setitem__", [](TMatrixType& self, const std::pair<int,int> index, const  typename TMatrixType::value_type value)
                                     {
                                         const int index_i = index.first;
@@ -88,6 +89,26 @@ namespace Python
 
           return matrix;
         }));
+
+        matrix_binder.def(py::init([](const py::list& input){
+          std::size_t num_rows = input.size();
+          if( num_rows == 0 || ( (num_rows == 1) && (py::len(input[0]) == 0) ) )
+            return DenseMatrix<double>(0,0);
+          else{
+            std::size_t num_cols = py::len(input[0]);
+            DenseMatrix<double>matrix = DenseMatrix<double>(num_rows, num_cols);
+            for(std::size_t i = 0; i < num_rows; i++){
+              const auto row = py::cast<py::list>(input[i]);
+              KRATOS_ERROR_IF( py::len(row) != num_cols ) << "Wrong size of a row " << i << "! Expected " << num_cols << ", got " << py::len(row) << std::endl;;
+              for(std::size_t j = 0; j < num_cols; j++){
+                  matrix(i,j) = py::cast<double>(row[j]);
+              }
+            }
+            return matrix;
+          }
+        }));
+
+
       #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         // This constructor is not supported by AMatrix
         //matrix_binder.def(py::init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
@@ -97,6 +118,7 @@ namespace Python
         matrix_binder.def(py::init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
         matrix_binder.def("fill", [](DenseMatrix<double>& self, const typename DenseMatrix<double>::value_type value) { noalias(self) = DenseMatrix<double>(self.size1(),self.size2(),value); });
         matrix_binder.def("fill_identity", [](DenseMatrix<double>& self) { noalias(self) = IdentityMatrix(self.size1()); });
+        matrix_binder.def("transpose", [](DenseMatrix<double>& self) { return Matrix(trans(self)); });
       #endif // KRATOS_USE_AMATRIX
         matrix_binder.def(py::init<const DenseMatrix<double>& >());
         matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const Vector& v){ return Vector(prod(m1,v));}, py::is_operator());
@@ -169,6 +191,11 @@ namespace Python
 
           return matrix;
         }));
+
+
+        py::implicitly_convertible<py::buffer, DenseMatrix<double>>();
+
+
       #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         // This constructor is not supported by AMatrix
         //cplx_matrix_binder.def(py::init<const ComplexMatrix::size_type, const ComplexMatrix::size_type, const ComplexMatrix::value_type >());

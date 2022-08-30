@@ -1,4 +1,7 @@
-#include <math.h>
+#if !defined(U_ELEMENTS_CLUSTER_H )
+#define  U_ELEMENTS_CLUSTER_H
+
+#include <cmath>
 #include "Math3D.h"
 #include "u_Types.h"
 
@@ -165,3 +168,4 @@ return ;
 }
 */
 
+#endif

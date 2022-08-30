@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
 // System includes
@@ -21,13 +22,62 @@ namespace Kratos
 {
 namespace EntitiesUtilities
 {
+
+template<> KRATOS_API(KRATOS_CORE) PointerVectorSet<Element, IndexedObject>& GetEntities<Element>(ModelPart& rModelPart);
+template<> KRATOS_API(KRATOS_CORE) PointerVectorSet<Condition, IndexedObject>& GetEntities<Condition>(ModelPart& rModelPart);
+template<> KRATOS_API(KRATOS_CORE) PointerVectorSet<MasterSlaveConstraint, IndexedObject>& GetEntities<MasterSlaveConstraint>(ModelPart& rModelPart);
+
 void InitializeAllEntities(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
-    InitializeEntities<Condition>(rModelPart);
     InitializeEntities<Element>(rModelPart);
+    InitializeEntities<Condition>(rModelPart);
     InitializeEntities<MasterSlaveConstraint>(rModelPart);
+
+    KRATOS_CATCH("")
+}
+
+void InitializeSolutionStepAllEntities(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    InitializeSolutionStepEntities<Element>(rModelPart);
+    InitializeSolutionStepEntities<Condition>(rModelPart);
+    InitializeSolutionStepEntities<MasterSlaveConstraint>(rModelPart);
+
+    KRATOS_CATCH("")
+}
+
+void FinalizeSolutionStepAllEntities(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    FinalizeSolutionStepEntities<Element>(rModelPart);
+    FinalizeSolutionStepEntities<Condition>(rModelPart);
+    FinalizeSolutionStepEntities<MasterSlaveConstraint>(rModelPart);
+
+    KRATOS_CATCH("")
+}
+
+void InitializeNonLinearIterationAllEntities(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    InitializeNonLinearIterationEntities<Element>(rModelPart);
+    InitializeNonLinearIterationEntities<Condition>(rModelPart);
+    InitializeNonLinearIterationEntities<MasterSlaveConstraint>(rModelPart);
+
+    KRATOS_CATCH("")
+}
+
+void FinalizeNonLinearIterationAllEntities(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    FinalizeNonLinearIterationEntities<Element>(rModelPart);
+    FinalizeNonLinearIterationEntities<Condition>(rModelPart);
+    FinalizeNonLinearIterationEntities<MasterSlaveConstraint>(rModelPart);
 
     KRATOS_CATCH("")
 }
@@ -62,9 +112,5 @@ PointerVectorSet<MasterSlaveConstraint, IndexedObject>& GetEntities<MasterSlaveC
 /***********************************************************************************/
 /***********************************************************************************/
 
-template KRATOS_API(KRATOS_CORE) PointerVectorSet<Element, IndexedObject>& GetEntities<Element>(ModelPart& rModelPart);
-template KRATOS_API(KRATOS_CORE) PointerVectorSet<Condition, IndexedObject>& GetEntities<Condition>(ModelPart& rModelPart);
-template KRATOS_API(KRATOS_CORE) PointerVectorSet<MasterSlaveConstraint, IndexedObject>& GetEntities<MasterSlaveConstraint>(ModelPart& rModelPart);
-    
 } // namespace EntitiesUtilities
 } // namespace Kratos

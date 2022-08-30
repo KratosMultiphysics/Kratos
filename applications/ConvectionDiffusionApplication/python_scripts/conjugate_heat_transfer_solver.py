@@ -18,7 +18,23 @@ def CreateSolver(main_model_part, custom_settings):
 
 class ConjugateHeatTransferSolver(PythonSolver):
 
-    def _validate_settings(self, custom_settings):
+    def __init__(self, model, custom_settings):
+        super().__init__(model, custom_settings)
+
+        ## Get domain size
+        self.domain_size = self.settings["domain_size"].GetInt()
+
+        ## Set the fluid dynamics solver
+        from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
+        self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_domain_solver_settings"]["fluid_solver_settings"], "OpenMP")
+
+        # Set the fluid and solid heat solvers
+        from KratosMultiphysics.ConvectionDiffusionApplication import python_solvers_wrapper_convection_diffusion
+        self.fluid_thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model, self.settings["fluid_domain_solver_settings"]["thermal_solver_settings"], "OpenMP")
+        self.solid_thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model, self.settings["solid_domain_solver_settings"]["thermal_solver_settings"], "OpenMP")
+
+    @classmethod
+    def GetDefaultParameters(cls):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -96,8 +112,14 @@ class ConjugateHeatTransferSolver(PythonSolver):
         }
         """)
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
+        return default_settings
+
+    def ValidateSettings(self):
+        default_settings = self.GetDefaultParameters()
+
+        ## Base class settings validation
+        super().ValidateSettings()
 
         ## Validate fluid and solid domains settings
         self.settings["fluid_domain_solver_settings"].ValidateAndAssignDefaults(default_settings["fluid_domain_solver_settings"])
@@ -105,23 +127,6 @@ class ConjugateHeatTransferSolver(PythonSolver):
 
         ## Validate coupling settings
         self.settings["coupling_settings"].ValidateAndAssignDefaults(default_settings["coupling_settings"])
-
-    def __init__(self, model, custom_settings):
-        super(ConjugateHeatTransferSolver, self).__init__(model, custom_settings)
-        ## Validate custom settings against defaults
-        self._validate_settings(custom_settings)
-
-        ## Get domain size
-        self.domain_size = self.settings["domain_size"].GetInt()
-
-        ## Set the fluid dynamics solver
-        from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
-        self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_domain_solver_settings"]["fluid_solver_settings"], "OpenMP")
-
-        # Set the fluid and solid heat solvers
-        from KratosMultiphysics.ConvectionDiffusionApplication import python_solvers_wrapper_convection_diffusion
-        self.fluid_thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model, self.settings["fluid_domain_solver_settings"]["thermal_solver_settings"], "OpenMP")
-        self.solid_thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model, self.settings["solid_domain_solver_settings"]["thermal_solver_settings"], "OpenMP")
 
     def AddVariables(self):
         self.fluid_solver.AddVariables()

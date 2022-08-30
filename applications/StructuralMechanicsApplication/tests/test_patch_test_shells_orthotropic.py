@@ -1,9 +1,12 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 from KratosMultiphysics import *
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    from KratosMultiphysics import ConstitutiveLawsApplication
 
 class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
     def setUp(self):
@@ -73,6 +76,7 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
 
     def _apply_material_properties(self,mp):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         #define properties
         orthotropic_props = Matrix(4,16)
 
@@ -109,7 +113,7 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
         g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
-        cl = StructuralMechanicsApplication.LinearElasticOrthotropic2DLaw()
+        cl = ConstitutiveLawsApplication.LinearElasticOrthotropic2DLaw()
 
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
@@ -129,7 +133,6 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                         scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         max_iters,
@@ -218,8 +221,8 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
-                                displacement_results, 
+                                element_name,
+                                displacement_results,
                                 rotation_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
@@ -237,8 +240,8 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
-                                displacement_results, 
+                                element_name,
+                                displacement_results,
                                 rotation_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
@@ -256,9 +259,9 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
-                                displacement_results, 
-                                rotation_results, 
+                                element_name,
+                                displacement_results,
+                                rotation_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
                                 tsai_wu_result,
@@ -275,8 +278,8 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
-                                displacement_results, 
+                                element_name,
+                                displacement_results,
                                 rotation_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,

@@ -27,14 +27,14 @@ void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
 {
     const double current_time = analytic_model_part.GetProcessInfo()[TIME];
 
-    std::vector<InterParticleImpactDataOfAllParticlesSingleTimeStep> time_step_database_by_threads(OpenMPUtils::GetNumThreads(), current_time);
-    std::vector<FaceParticleImpactDataOfAllParticlesSingleTimeStep> face_time_step_database_by_threads(OpenMPUtils::GetNumThreads(), current_time);
+    std::vector<InterParticleImpactDataOfAllParticlesSingleTimeStep> time_step_database_by_threads(ParallelUtilities::GetNumThreads(), current_time);
+    std::vector<FaceParticleImpactDataOfAllParticlesSingleTimeStep> face_time_step_database_by_threads(ParallelUtilities::GetNumThreads(), current_time);
 
     std::vector<std::map<int, InterParticleImpactDataOfAllTimeStepsSingleParticle> > inter_particle_impact_data_of_all_time_steps_by_threads;
-    inter_particle_impact_data_of_all_time_steps_by_threads.resize(OpenMPUtils::GetNumThreads());
+    inter_particle_impact_data_of_all_time_steps_by_threads.resize(ParallelUtilities::GetNumThreads());
 
     std::vector<std::map<int, FaceParticleImpactDataOfAllTimeStepsSingleParticle> > face_particle_impact_data_of_all_time_steps_by_threads;
-    face_particle_impact_data_of_all_time_steps_by_threads.resize(OpenMPUtils::GetNumThreads());
+    face_particle_impact_data_of_all_time_steps_by_threads.resize(ParallelUtilities::GetNumThreads());
 
     #pragma omp parallel for if(analytic_model_part.NumberOfElements(0)>100)
     for (int k=0; k<(int)analytic_model_part.NumberOfElements(0); k++) {
@@ -76,7 +76,7 @@ void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
     InterParticleImpactDataOfAllParticlesSingleTimeStep time_step_database(current_time);
     FaceParticleImpactDataOfAllParticlesSingleTimeStep face_time_step_database(current_time);
 
-    for (int i=0; i<OpenMPUtils::GetNumThreads(); i++) {
+    for (int i=0; i<ParallelUtilities::GetNumThreads(); i++) {
         time_step_database.PushBackImpacts(time_step_database_by_threads[i]);
         face_time_step_database.PushBackImpacts(face_time_step_database_by_threads[i]);
         for(std::map<int, InterParticleImpactDataOfAllTimeStepsSingleParticle>::iterator it = inter_particle_impact_data_of_all_time_steps_by_threads[i].begin(); it != inter_particle_impact_data_of_all_time_steps_by_threads[i].end(); ++it) {

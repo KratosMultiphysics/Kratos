@@ -14,12 +14,6 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEM_Rankine::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        KRATOS_INFO("DEM") << "Assigning DEM_KDEM_Rankine to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-        this->Check(pProp);
-    }
-
     void DEM_KDEM_Rankine::Check(Properties::Pointer pProp) const {
         DEM_KDEM::Check(pProp);
         if(!pProp->Has(CONTACT_SIGMA_MIN)) {
@@ -35,7 +29,7 @@ namespace Kratos {
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
         if (failure_type == 0) {
-            double tension_limit = 0.5 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2)); //N/m2
+            double tension_limit = GetContactSigmaMax();
 
             BoundedMatrix<double, 3, 3> average_stress_tensor = ZeroMatrix(3,3);
             for (int i = 0; i < 3; i++) {
@@ -92,8 +86,10 @@ namespace Kratos {
     void DEM_KDEM_Rankine::CalculateTangentialForces(double OldLocalElasticContactForce[3],
             double LocalElasticContactForce[3],
             double LocalElasticExtraContactForce[3],
+            double ViscoDampingLocalContactForce[3],
             double LocalCoordSystem[3][3],
             double LocalDeltDisp[3],
+            double LocalRelVel[3],
             const double kt_el,
             const double equiv_shear,
             double& contact_sigma,
@@ -105,8 +101,6 @@ namespace Kratos {
             SphericContinuumParticle* element2,
             int i_neighbour_count,
             bool& sliding,
-            int search_control,
-            DenseVector<int>& search_control_vector,
             const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
@@ -125,13 +119,16 @@ namespace Kratos {
             LocalElasticExtraContactForce[1] = 0.0;
 
             double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
-            const double equiv_tg_of_fri_ang = 0.5 * (element1->GetTgOfFrictionAngle() + element2->GetTgOfFrictionAngle());
 
-            if(equiv_tg_of_fri_ang < 0.0) {
-                KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
-            }
+            const double& equiv_tg_of_static_fri_ang = (*mpProperties)[STATIC_FRICTION];
+            const double& equiv_tg_of_dynamic_fri_ang = (*mpProperties)[DYNAMIC_FRICTION];
+            const double& equiv_friction_decay_coefficient = (*mpProperties)[FRICTION_DECAY];
 
-            double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
+
+            const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
+            double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
+
+            double Frictional_ShearForceMax = equiv_friction * LocalElasticContactForce[2];
 
             if (Frictional_ShearForceMax < 0.0) {
                 Frictional_ShearForceMax = 0.0;

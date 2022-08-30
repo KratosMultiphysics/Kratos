@@ -155,7 +155,6 @@
                 "check_variables"     : ["REACTION"],
                 "input_file_name"     : "mpc_contact_tests/3D_contact_patch_nonmatching_test_results_LM.json",
                 "model_part_name"     : "Structure.Contact_Part",
-                "historical_value"    : false,
                 "time_frequency"      : 0.5
             }
         }
@@ -266,7 +265,6 @@
             "output_variables"     : ["REACTION"],
             "output_file_name"     : "mpc_contact_tests/3D_contact_patch_nonmatching_test_results_LM.json",
             "model_part_name"      : "Structure.Contact_Part",
-            "historical_value"     : false,
             "time_frequency"       : 0.5
         }
     }

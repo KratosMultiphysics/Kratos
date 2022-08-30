@@ -29,6 +29,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -60,14 +61,7 @@ public:
         KRATOS_TRY
 
 //only include validation with c++11 since raw_literals do not exist in c++03
-        Parameters default_parameters( R"(
-            {
-                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
-                "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "is_fixed": false,
-                "value" : 1.0
-            }  )" );
+
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         // So that an error is thrown if they don't exist
@@ -77,7 +71,7 @@ public:
 
         // Now validate agains defaults -- this also ensures no type mismatch
 
-        rParameters.ValidateAndAssignDefaults(default_parameters);
+        rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
         mmesh_id = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
@@ -91,18 +85,6 @@ public:
             {
                 KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",mvariable_name);
             }
-        }
-        else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
-        {
-            typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-            component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
-
-            if( model_part.GetNodalSolutionStepVariablesList().Has( var_component.GetSourceVariable() ) == false )
-            {
-                KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",mvariable_name);
-            }
-
-            mdouble_value = rParameters["value"].GetDouble();
         }
         else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
         {
@@ -156,30 +138,6 @@ public:
         }
 
         mvariable_name = rVariable.Name();
-
-        KRATOS_CATCH("");
-    }
-
-    ApplyConstantScalarValueProcess(ModelPart& model_part,
-                              const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rVariable,
-                              const double double_value,
-                              std::size_t mesh_id,
-                              Flags options
-                                   ) : Process(options) , mr_model_part(model_part),mdouble_value(double_value), mint_value(0), mbool_value(false),mmesh_id(mesh_id)
-    {
-        KRATOS_TRY;
-
-        if(this->IsDefined(VARIABLE_IS_FIXED) == false )
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","")
-        }
-
-        mvariable_name = rVariable.Name();
-
-        if( model_part.GetNodalSolutionStepVariablesList().Has( rVariable.GetSourceVariable() ) == false )
-        {
-                KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",rVariable);
-        }
 
         KRATOS_CATCH("");
     }
@@ -255,6 +213,18 @@ public:
         Execute();
     }
 
+    const Parameters GetDefaultParameters() const override
+    {
+        const Parameters default_parameters( R"(
+        {
+            "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
+            "mesh_id": 0,
+            "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
+            "is_fixed": false,
+            "value" : 1.0
+        }  )" );
+        return default_parameters;
+    }
 
     ///@}
     ///@name Operations
@@ -274,12 +244,6 @@ public:
         if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
         {
             InternalApplyValue<>(KratosComponents< Variable<double> >::Get(mvariable_name) , is_fixed, mdouble_value);
-        }
-        else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
-        {
-            typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-            component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
-            InternalApplyValue< component_type, double>(var_component , is_fixed,  mdouble_value);
         }
         else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
         {
@@ -385,47 +349,30 @@ private:
     ///@name Static Member Variables
     ///@{
     template< class TVarType, class TDataType >
-    void InternalApplyValue(TVarType& rVar, const bool to_be_fixed, const TDataType value)
+    void InternalApplyValue(const TVarType& rVar, const bool to_be_fixed, const TDataType value)
     {
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
-//             ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
-
-             #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
+            block_for_each(mr_model_part.GetMesh(mmesh_id).Nodes(), [&](Node<3>& rNode){
                 if(to_be_fixed)
                 {
-                    it->Fix(rVar);
+                    rNode.Fix(rVar);
                 }
-
-                it->FastGetSolutionStepValue(rVar) = value;
-            }
+                rNode.FastGetSolutionStepValue(rVar) = value;
+            });
         }
     }
 
     template< class TVarType, class TDataType >
-    void InternalApplyValueWithoutFixing(TVarType& rVar, const TDataType value)
+    void InternalApplyValueWithoutFixing(const TVarType& rVar, const TDataType value)
     {
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
-//             ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
-
-             #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                it->FastGetSolutionStepValue(rVar) = value;
-            }
+            VariableUtils().SetVariable(rVar, value, mr_model_part.GetMesh(mmesh_id).Nodes());
         }
     }
 

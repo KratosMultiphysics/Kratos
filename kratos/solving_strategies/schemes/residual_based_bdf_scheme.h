@@ -126,7 +126,7 @@ public:
          mpBDFUtility(Kratos::make_unique<TimeDiscretization::BDF>(Order))
     {
         // Allocate auxiliary memory
-        const std::size_t num_threads = OpenMPUtils::GetNumThreads();
+        const std::size_t num_threads = ParallelUtilities::GetNumThreads();
 
         mVector.dotun0.resize(num_threads);
         mVector.dot2un0.resize(num_threads);
@@ -249,8 +249,10 @@ public:
         mpBDFUtility->ComputeAndSaveBDFCoefficients(r_current_process_info);
         mBDF = r_current_process_info[BDF_COEFFICIENTS];
 
-        KRATOS_WARNING_IF("ResidualBasedBDFScheme", mOrder > 2)
-        << "For higher orders than 2 the time step is assumed to be constant.\n";
+        const double dt_0 = r_current_process_info[DELTA_TIME];
+        const double dt_1 = r_current_process_info.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+        KRATOS_ERROR_IF(mOrder > 2 && std::abs(dt_0 - dt_1) > 1e-10*(dt_0 + dt_1))
+        << "ResidualBasedBDFScheme. For higher orders than 2 the time step must be constant.\nPrevious time step : " << dt_1 << "\nCurrent time step : " << dt_0 << std::endl;
 
         KRATOS_CATCH( "" );
     }
@@ -261,7 +263,7 @@ public:
      * @param rModelPart The model of the problem to solve
      * @return Zero means  all ok
      */
-    int Check(ModelPart& rModelPart) override
+    int Check(const ModelPart& rModelPart) const override
     {
         KRATOS_TRY;
 
@@ -294,6 +296,24 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"               : "base_bdf_scheme",
+            "integration_order"  : 2
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = ImplicitBaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
 
     /// Turn back information as a string.
     std::string Info() const override
@@ -368,13 +388,12 @@ protected:
         // Getting first node iterator
         const auto it_node_begin = rModelPart.Nodes().begin();
 
-        #pragma omp parallel for
-        for(int i = 0;  i< num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
+        IndexPartition<std::size_t>(num_nodes).for_each([&](std::size_t Index){
+            auto it_node = it_node_begin + Index;
 
             UpdateFirstDerivative(it_node);
             UpdateSecondDerivative(it_node);
-        }
+        });
     }
 
     /**
@@ -407,7 +426,7 @@ protected:
         LocalSystemMatrixType& rLHS_Contribution,
         LocalSystemMatrixType& rD,
         LocalSystemMatrixType& rM,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         // Adding mass contribution to the dynamic stiffness
@@ -430,26 +449,27 @@ protected:
      * @param rM The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-    template <typename TObjectType>
+    template <class TObjectType>
     void TemplateAddDynamicsToRHS(
-        TObjectType rObject,
+        TObjectType& rObject,
         LocalSystemVectorType& rRHS_Contribution,
         LocalSystemMatrixType& rD,
         LocalSystemMatrixType& rM,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
+        const auto& r_const_obj_ref = rObject;
 
         // Adding inertia contribution
         if (rM.size1() != 0) {
-            rObject->GetSecondDerivativesVector(mVector.dot2un0[this_thread], 0);
+            r_const_obj_ref.GetSecondDerivativesVector(mVector.dot2un0[this_thread], 0);
             noalias(rRHS_Contribution) -= prod(rM, mVector.dot2un0[this_thread]);
         }
 
         // Adding damping contribution
         if (rD.size1() != 0) {
-            rObject->GetFirstDerivativesVector(mVector.dotun0[this_thread], 0);
+            r_const_obj_ref.GetFirstDerivativesVector(mVector.dotun0[this_thread], 0);
             noalias(rRHS_Contribution) -= prod(rD, mVector.dotun0[this_thread]);
         }
     }
@@ -457,41 +477,41 @@ protected:
     /**
      * @brief It adds the dynamic RHS contribution of the elements
      * \f[ \mathbf{b} - \mathbf{M} a - \mathbf{D} v \f]
-     * @param pElement The element to compute
+     * @param rElement The element to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
     void AddDynamicsToRHS(
-        Element::Pointer pElement,
+        Element& rElement,
         LocalSystemVectorType& rRHS_Contribution,
         LocalSystemMatrixType& rD,
         LocalSystemMatrixType& rM,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        TemplateAddDynamicsToRHS<Element::Pointer>(pElement, rRHS_Contribution, rD, rM, rCurrentProcessInfo);
+        TemplateAddDynamicsToRHS<Element>(rElement, rRHS_Contribution, rD, rM, rCurrentProcessInfo);
     }
 
     /**
      * @brief It adds the dynamic RHS contribution of the condition
      *  \f[ RHS = f_{ext} - \ddot{u}_{n0} \mathbf{M} + \dot{u}_{n0} \mathbf{D} + u_{n0} \mathbf{K} \f]
-     * @param pCondition The condition to compute
+     * @param rCondition The condition to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
     void AddDynamicsToRHS(
-        Condition::Pointer pCondition,
+        Condition& rCondition,
         LocalSystemVectorType& rRHS_Contribution,
         LocalSystemMatrixType& rD,
         LocalSystemMatrixType& rM,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        TemplateAddDynamicsToRHS<Condition::Pointer>(pCondition, rRHS_Contribution, rD, rM, rCurrentProcessInfo);
+        TemplateAddDynamicsToRHS<Condition>(rCondition, rRHS_Contribution, rD, rM, rCurrentProcessInfo);
     }
 
     ///@}

@@ -20,6 +20,7 @@
 #include "geometries/line_2d_2.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "utilities/intersection_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -80,7 +81,8 @@ FindIntersectedGeometricalObjectsProcess::FindIntersectedGeometricalObjectsProce
 
 void FindIntersectedGeometricalObjectsProcess::Initialize()
 {
-    GenerateOctree();
+    KRATOS_WARNING("Using FindIntersectedGeometricalObjectsProcess.Initialize() method is deprecated. Please use the ExecuteInitialize() method instead.");
+    this->ExecuteInitialize();
 }
 
 /***********************************************************************************/
@@ -177,8 +179,6 @@ void FindIntersectedGeometricalObjectsProcess::Execute()
     // Calling initialize first (initialize Octree)
     ExecuteInitialize();
 
-    OtreeCellVectorType leaves;
-
     // Iterate over elements
     if (mOptions.Is(FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS)) {
         auto& r_elements_array = mrModelPartIntersected.Elements();
@@ -186,12 +186,11 @@ void FindIntersectedGeometricalObjectsProcess::Execute()
 
         const auto it_elements_begin = r_elements_array.begin();
 
-        #pragma omp parallel for private(leaves)
-        for (int i = 0; i < static_cast<int>(number_of_elements); i++) {
-            auto it_elem = it_elements_begin + i;
-            leaves.clear();
-            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_elem.base()), leaves);
-        }
+        IndexPartition<std::size_t>(number_of_elements).for_each(OtreeCellVectorType() ,[&](std::size_t index, OtreeCellVectorType& rLocalLeaves){
+            auto it_elem = it_elements_begin + index;
+            rLocalLeaves.clear();
+            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_elem.base()), rLocalLeaves);
+        });
     }
 
     // Iterate over conditions
@@ -201,12 +200,11 @@ void FindIntersectedGeometricalObjectsProcess::Execute()
 
         const auto it_conditions_begin = r_conditions_array.begin();
 
-        #pragma omp parallel for private(leaves)
-        for (int i = 0; i < static_cast<int>(number_of_conditions); i++) {
-            auto it_cond = it_conditions_begin + i;
-            leaves.clear();
-            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), leaves);
-        }
+        IndexPartition<std::size_t>(number_of_conditions).for_each(OtreeCellVectorType(), [&](std::size_t index, OtreeCellVectorType& rLocalLeaves){
+            auto it_cond = it_conditions_begin + index;
+            rLocalLeaves.clear();
+            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), rLocalLeaves);
+        });
     }
 }
 
@@ -215,7 +213,9 @@ void FindIntersectedGeometricalObjectsProcess::Execute()
 
 void FindIntersectedGeometricalObjectsProcess::ExecuteInitialize()
 {
-    GenerateOctree();
+    if (mrModelPartIntersected.NumberOfNodes() > 0) {
+        GenerateOctree();
+    }
 }
 
 /***********************************************************************************/
@@ -344,7 +344,7 @@ void  FindIntersectedGeometricalObjectsProcess::MarkIfIntersected(
     for (auto p_leaf : rLeaves) {
         auto& r_leaf = *(p_leaf->pGetObjects());
         for (auto p_intersecting_entity : r_leaf) {
-            if (HasIntersection(rIntersectedElement.GetGeometry(),p_intersecting_entity->GetGeometry())) {
+            if (HasIntersection(rIntersectedElement.GetGeometry(), p_intersecting_entity->GetGeometry())) {
                 rIntersectedElement.Set(SELECTED);
                 return;
             }
@@ -360,142 +360,8 @@ bool FindIntersectedGeometricalObjectsProcess::HasIntersection(
     GeometryType& rSecondGeometry
     )
 {
-    const IndexType working_space_dimension = rFirstGeometry.WorkingSpaceDimension(); // TODO: DOMAIN_SIZE should be considered for consistency with other implementations
-    const IndexType local_space_dimension = rFirstGeometry.LocalSpaceDimension();
-    if (working_space_dimension == 2) {
-        if (local_space_dimension == 2) {
-            return this->HasIntersection2D(rFirstGeometry, rSecondGeometry);
-        } else {
-            return this->HasDirectIntersection2D(rFirstGeometry, rSecondGeometry);
-        }
-    } else {
-        if (local_space_dimension == 3) {
-            return this->HasIntersection3D(rFirstGeometry, rSecondGeometry);
-        } else {
-            return this->HasDirectIntersection3D(rFirstGeometry, rSecondGeometry);
-        }
-    }
+    return rFirstGeometry.HasIntersection(rSecondGeometry);
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-bool FindIntersectedGeometricalObjectsProcess::HasIntersection2D(
-    GeometryType& rFirstGeometry,
-    GeometryType& rSecondGeometry
-    )
-{
-    // Check the intersection of each edge against the intersecting object
-    const array_1d<double, 3>& r_coordinates_second_geometry_1 = rSecondGeometry[0].Coordinates();
-    const array_1d<double, 3>& r_coordinates_second_geometry_2 = rSecondGeometry[1].Coordinates();
-    const auto edges = rFirstGeometry.GenerateEdges();
-    PointType int_pt(0.0,0.0,0.0);
-    for (auto& edge : edges) {
-        const int int_id = IntersectionUtilities::ComputeLineLineIntersection<Line2D2<NodeType>>(
-            Line2D2<NodeType>{edge},
-            r_coordinates_second_geometry_1,
-            r_coordinates_second_geometry_2,
-            int_pt.Coordinates());
-
-        if (int_id != 0){
-            return true;
-        }
-    }
-
-    // Let check second geometry is inside the first one.
-    // Considering that there are no intersection, if one point is inside all of it is inside.
-    array_1d<double, 3> local_point;
-    if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
-        return true;
-    }
-
-    return false;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-bool FindIntersectedGeometricalObjectsProcess::HasDirectIntersection2D(
-    GeometryType& rFirstGeometry,
-    GeometryType& rSecondGeometry
-    )
-{
-    // Check the intersection of each edge against the intersecting object
-    const array_1d<double, 3>& r_coordinates_second_geometry_1 = rSecondGeometry[0].Coordinates();
-    const array_1d<double, 3>& r_coordinates_second_geometry_2 = rSecondGeometry[1].Coordinates();
-    PointType int_pt(0.0,0.0,0.0);
-    const int int_id = IntersectionUtilities::ComputeLineLineIntersection<Line2D2<NodeType>>(
-        Line2D2<NodeType>{rFirstGeometry},
-        r_coordinates_second_geometry_1,
-        r_coordinates_second_geometry_2,
-        int_pt.Coordinates());
-
-    if (int_id != 0){
-        return true;
-    }
-
-    // Let check second geometry is inside the first one.
-    // Considering that there are no intersection, if one point is inside all of it is inside.
-    array_1d<double, 3> local_point;
-    if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
-        return true;
-    }
-
-    return false;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-bool FindIntersectedGeometricalObjectsProcess::HasIntersection3D(
-    GeometryType& rFirstGeometry,
-    GeometryType& rSecondGeometry
-    )
-{
-    // Check the intersection of each face against the intersecting object
-    const auto faces = rFirstGeometry.GenerateFaces();
-    for (auto& face : faces) {
-        if (face.HasIntersection(rSecondGeometry)){
-            return true;
-        }
-    }
-
-    // Let check second geometry is inside the first one.
-    // Considering that there are no intersection, if one point is inside all of it is inside.
-    array_1d<double, 3> local_point;
-    if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
-        return true;
-    }
-
-    return false;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-bool FindIntersectedGeometricalObjectsProcess::HasDirectIntersection3D(
-    GeometryType& rFirstGeometry,
-    GeometryType& rSecondGeometry
-    )
-{
-    // Check the intersection of each face against the intersecting object
-    if (rFirstGeometry.HasIntersection(rSecondGeometry)){
-        return true;
-    }
-
-    // Let check second geometry is inside the first one.
-    // Considering that there are no intersection, if one point is inside all of it is inside.
-    array_1d<double, 3> local_point;
-    if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
-        return true;
-    }
-
-    return false;
-}
-
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(
     GeometricalObject& rIntersectedEntity,

@@ -5,14 +5,14 @@ message("**** configuring KratosPfemFluidDynamicsApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication )
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication)
 
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/triangle/)
+  set(TRIANGLE_INSTALL_DIR ${KRATOS_SOURCE_DIR}/external_libraries/triangle/)
   include_directories( ${TRIANGLE_INSTALL_DIR} )
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
@@ -28,7 +28,12 @@ endif(NOT DEFINED ${INCLUDE_TETGEN})
 set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/pfem_fluid_dynamics_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/pfem_fluid_dynamics_application_variables.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/three_step_updated_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/three_step_first_order_updated_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/three_step_second_order_updated_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/three_step_second_order_pspg_updated_lagrangian_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_solid_element.cpp
@@ -36,8 +41,42 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_fluid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_V_implicit_solid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_FIC_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_PSPG_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_DEM_coupling_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_scalar_variable_to_pfem_entities_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/fix_free_velocity_on_nodes_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/move_mesh_utility.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/calculate_wave_height_utility.cpp
+
+
+    # Fluid constitutive laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/fluid_constitutive_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/bingham_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/bingham_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/herschel_bulkley_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/herschel_bulkley_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/frictional_viscoplastic_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/frictional_viscoplastic_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/bingham_temperature_dependent_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/bingham_temperature_dependent_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/newtonian_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/newtonian_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/newtonian_temperature_dependent_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/newtonian_temperature_dependent_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/papanastasiou_mu_I_rheology_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/papanastasiou_mu_I_rheology_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/barker_mu_I_rheology_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/bercovier_mu_I_rheology_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/barker_bercovier_mu_I_rheology_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/jop_mu_I_rheology_3D_law.cpp
+
+    # Solid constitutive laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/solid_laws/solid_constitutive_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/solid_laws/hypoelastic_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/solid_laws/hypoelastic_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/solid_laws/hypoelastic_temperature_dependent_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/solid_laws/hypoelastic_temperature_dependent_3D_law.cpp
 )
 
 set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_PYTHON_INTERFACE
@@ -62,6 +101,12 @@ pybind11_add_module(KratosPfemFluidDynamicsApplication MODULE THIN_LTO ${KRATOS_
 target_link_libraries(KratosPfemFluidDynamicsApplication PRIVATE KratosPfemFluidDynamicsCore)
 set_target_properties(KratosPfemFluidDynamicsApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosPfemFluidDynamicsCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosPfemFluidDynamicsApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
@@ -74,12 +119,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosPfemFluidDynamicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosPfemFluidDynamicsCore)
-    cotire(KratosPfemFluidDynamicsApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/PfemFluidDynamicsApplication.py KratosMultiphysics/PfemFluidDynamicsApplication/__init__.py )
@@ -103,3 +142,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosPfemFluidDynamicsCore DESTINATION libs )
 install(TARGETS KratosPfemFluidDynamicsApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosPfemFluidDynamicsCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosPfemFluidDynamicsApplication" PARENT_SCOPE)

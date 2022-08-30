@@ -63,7 +63,7 @@ public:
 };
 
 template <class Type>
-class MultAndAddValue : public std::binary_function<Type, Type, Type>
+class MultAndAddValue
 {
 private:
     Type Factor; // The value to multiply by
@@ -352,7 +352,8 @@ public:
 #endif
     }
 
-    static void TransposeMult(MatrixType& rA, VectorType& rX, VectorType& rY)
+    template< class TOtherMatrixType >
+    static void TransposeMult(TOtherMatrixType& rA, VectorType& rX, VectorType& rY)
     {
 		boost::numeric::ublas::axpy_prod(rX, rA, rY, true);
     } // rY = rAT * rX

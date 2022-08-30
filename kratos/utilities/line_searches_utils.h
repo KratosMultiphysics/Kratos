@@ -26,7 +26,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 //default builder and solver
@@ -48,7 +48,7 @@ public:
 
     typedef ConvergenceCriteria<TSparseSpace,TDenseSpace> TConvergenceCriteriaType;
 
-    typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 

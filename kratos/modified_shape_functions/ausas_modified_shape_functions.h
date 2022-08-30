@@ -101,7 +101,6 @@ public:
     ///@{
 
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -117,6 +116,21 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void SetCondensationMatrix(Matrix& rIntPointCondMatrix) override
+    {
+        KRATOS_ERROR << "\'SetCondensationMatrix\' cannot be used with the Ausas FE space. Use either \'SetPositiveSideCondensationMatrix\' or \'SetNegativeSideCondensationMatrix\' instead." << std::endl;
+    }
+
+    void SetPositiveSideCondensationMatrix(Matrix& rPosSideCondMatrix) override
+    {
+        KRATOS_ERROR << "Calling Ausas base class \'SetPositiveSideCondensationMatrix\'. Call the derived class one instead." << std::endl;
+    }
+
+    void SetNegativeSideCondensationMatrix(Matrix& rNegSideCondMatrix) override
+    {
+        KRATOS_ERROR << "Calling Ausas base class \'SetNegativeSideCondensationMatrix\'. Call the derived class one instead." << std::endl;
+    }
 
     /**
     * Returns the intersection points condensation matrix for positive side Ausas sh functions.
