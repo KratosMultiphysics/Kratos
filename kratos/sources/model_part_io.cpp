@@ -14,7 +14,6 @@
 
 // System includes
 #include <unordered_set>
-#include <filesystem>
 
 // Project includes
 #include "includes/model_part_io.h"
