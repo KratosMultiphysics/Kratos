@@ -155,14 +155,77 @@ namespace {
 
      KRATOS_TEST_CASE_IN_SUITE(DualCountouringRemesherCube, KratosMeshingApplicationFastSuite) {
 
+        Kratos::shared_ptr<std::iostream> p_input(new std::stringstream(
+R"input(
+Begin ModelPartData
+End ModelPartData
+Begin Properties 0
+End Properties
+Begin Properties 1
+End Properties
+Begin Nodes
+		1     0.03     0.03    0.09    
+		2     0.03    -0.03    0.09    
+		3     0.03    -0.03    0.03    
+		4     0.03     0.03    0.03    
+		5    -0.03     0.03    0.09    
+		6    -0.03     0.03    0.03    
+		7    -0.03    -0.03    0.09    
+		8    -0.03    -0.03    0.03    
+End Nodes
+Begin Elements Element3D3N
+		1     1    1    2    3    
+		2     1    3    4    1    
+		3     1    5    1    4    
+		4     1    4    6    5    
+		5     1    7    5    6    
+		6     1    6    8    7    
+		7     1    7    8    3    
+		8     1    3    2    7    
+		9     1    7    2    1    
+		10    1    1    5    7    
+		11    1    8    6    4    
+		12    1    4    3    8    
+End Elements
+Begin SubModelPart workpiece
+Begin SubModelPartNodes
+		1
+		2
+		3
+		4
+		5
+		6
+		7
+		8
+End SubModelPartNodes
+Begin SubModelPartElements
+		1
+		2
+		3
+		4
+		5
+		6
+		7
+		8
+		9
+		10
+		11
+		12
+End SubModelPartElements
+End SubModelPart
+	)input"));
+
         Model my_model;
         ModelPart& skin_model_part = my_model.CreateModelPart("skin_model_part");
         ModelPart& voxels_part = my_model.CreateModelPart("voxels_part");
+        ModelPart& fited_mesh = my_model.CreateModelPart("fited_mesh");
         skin_model_part.AddNodalSolutionStepVariable(DISTANCE);
         voxels_part.AddNodalSolutionStepVariable(DISTANCE); 
 
+        ModelPartIO model_part_io(p_input);
+        model_part_io.ReadModelPart(skin_model_part);
+
         //KRATOS_WATCH(voxels_part.Elements().size());
-        //KRATOS_CHECK_EQUAL(voxels_part.Elements().size(),30*30*30);
 
         AddCube(skin_model_part);
         KRATOS_CHECK_EQUAL(skin_model_part.Nodes().size(),8);
@@ -171,24 +234,11 @@ namespace {
         //Output(skin_model_part,"cube_pre");
 
         DualCountouringMesher mesher; 
-        mesher.DualCountourAdaptativeRemesh(skin_model_part, my_model); 
+        mesher.DualCountourAdaptativeRemesh(skin_model_part, voxels_part, fited_mesh); 
 
         //Output(skin_model_part,"cube_post");
         
         //KRATOS_CHECK_EQUAL(voxels_part.Elements().size(),1);
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(DualCountouringRemesherTetra, KratosMeshingApplicationFastSuite) {
-
-        Model my_model;
-        ModelPart& voxels = my_model.CreateModelPart("Voxels");
-        ModelPart& skin_part = my_model.CreateModelPart("skin_part");
-        voxels.AddNodalSolutionStepVariable(DISTANCE); 
-        skin_part.AddNodalSolutionStepVariable(DISTANCE); 
-        
-        AddTetra(skin_part);
-
-        Output(skin_part,"tetra_pre");
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DualCountouringRemesherCubeLimit, KratosMeshingApplicationFastSuite) {

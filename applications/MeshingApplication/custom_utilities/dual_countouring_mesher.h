@@ -99,69 +99,40 @@ public:
     */
     void DualCountourAdaptativeRemesh(
         ModelPart& rSkinModelPart,
-        Model& rModel) 
+        ModelPart& rVoxelMesh,
+        ModelPart& rFitedMesh) 
     {     
-        unsigned int current_element_id = 1;
-
-        GeometricalObjectsBins voxel_bin(rSkinModelPart.ElementsBegin(), rSkinModelPart.ElementsEnd());
-        ModelPart& fited_mesh = rModel.CreateModelPart("fited_mesh");
-        fited_mesh.AddNodalSolutionStepVariable(DISTANCE); 
-
+        array_1d<double,3> cell_size{0.1,0.1,0.1};
+        GeometricalObjectsBins voxel_bin(rSkinModelPart.ElementsBegin(), rSkinModelPart.ElementsEnd(),cell_size);
         const auto& number_of_cells = voxel_bin.GetNumberOfCells();
-        const auto& cell_size = voxel_bin.GetCellSizes();
+        //const auto& cell_size = voxel_bin.GetCellSizes();
 
-        Parameters param(R"({
-                "output_model_part_name" : "fited_mesh",
-                "input_model_part_name" : "skin_model_part",
-                "mdpa_file_name" : "",
-                "key_plane_generator": {
-                    "Parameters" : {
-                        "voxel_sizes" : [0.1, 0.1, 0.1],
-                        "min_point" : [ -1.5, -1.5, -1.5],
-                        "max_point" : [ 1.5, 1.5, 1.5]
-                    }
-                },
-                "coloring_settings_list": [
-				{
-                    "type" : "outer_faces_of_cells_with_color",
-					"color": -2,
-                    "cell_color": 1
-				}
-                ],
-                "entities_generator_list": [
-                {
-                    "type" : "elements_with_cell_color",
-					"model_part_name": "fited_mesh.workpiece",
-					"color": 1,
-                    "properties_id": 1
-				},
-                {
-                    "type" : "conditions_with_face_color",
-                    "model_part_name": "fited_mesh.workpiece_boundaries",
-                    "color": -2,
-                    "properties_id": 2
-                }
-                ]
-        })");
-
-        VoxelMeshGeneratorModeler modeler(rModel,param);
-        modeler.SetupGeometryModel();
-        modeler.PrepareGeometryModel();
-        modeler.SetupModelPart();
+        //KRATOS_CHECK_EQUAL(voxel_mesh.Elements().size(),30*30*30);
 
         for (std::size_t i = 0; i < number_of_cells[0]; i++) {
             for (std::size_t j = 0; j < number_of_cells[1]; j++) {
                 for (std::size_t k = 0; k < number_of_cells[2]; k++) {
                     BoundingBox<Point> box = voxel_bin.GetCellBoundingBox(i,j,k);
                     std::vector<GeometricalObject*> triangles =  voxel_bin.GetCell(i,j,k);
-                    int new_id = i * number_of_cells[1]*number_of_cells[2] + j * number_of_cells[2] + k; 
+                    
+                    int new_id = i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1; 
 
                     array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(box,triangles);
-                    fited_mesh.CreateNewNode(new_id, qef[0], qef[1], qef[2]);
-                    fited_mesh.pGetNode(new_id)->FastGetSolutionStepValue(DISTANCE) = 1;  //?                  
+                    rFitedMesh.CreateNewNode(new_id, qef[0], qef[1], qef[2]);
+                    rFitedMesh.pGetNode(new_id)->FastGetSolutionStepValue(DISTANCE) = 1;  //?                  
                 }
             }
         }
+
+        for (std::size_t i = 0; i < number_of_cells[0]; i++) {
+            for (std::size_t j = 0; j < number_of_cells[1]; j++) {
+                for (std::size_t k = 0; k < number_of_cells[2]; k++) {
+                                   
+                }
+            }
+        }
+
+        unsigned int current_element_id = 1;
 
         /********************************************************************************************
         Properties::Pointer p_properties_1(new Properties(0)); 
@@ -188,6 +159,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
     //This functions implementation should be moveed to VoxelUtilities
     double MeanDistance(GeometryType& rVoxel) {
         double mean = 0;
