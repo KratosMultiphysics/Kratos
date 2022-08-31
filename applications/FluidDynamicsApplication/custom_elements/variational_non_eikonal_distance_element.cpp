@@ -325,17 +325,19 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
         grad_phi_old = prod(trans(DN_DX[gp]),distances0);
 
-        /* if (norm_grad_phi_avg >= 1.0) { //tolerance){
+        if (norm_grad_phi_avg >= 1.0) { //tolerance){
             diffusion = 1.0/norm_grad_phi_avg;
             diffusion_prime_to_s = -1.0/(norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg);
         } else{
-            diffusion = 1.2/(norm_grad_phi_avg+tolerance);
+            //diffusion = 1.2/(norm_grad_phi_avg+tolerance);
             //diffusion = 2.0-norm_grad_phi_avg;
-            diffusion_prime_to_s = -1.2/(norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg+tolerance);
+            diffusion = 2.0 - 1.0/(2.0 - norm_grad_phi_avg);
+            //diffusion_prime_to_s = -1.2/(norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg+tolerance);
             //diffusion_prime_to_s = -1.0/(norm_grad_phi_avg+tolerance);
-        } */
+            diffusion_prime_to_s = 1.0/(norm_grad_phi_avg+tolerance)/(2.0 - norm_grad_phi_avg)/(2.0 - norm_grad_phi_avg);
+        }
 
-        if (norm_grad_phi_avg > 1.0){
+        /* if (norm_grad_phi_avg > 1.0){
             diffusion = 1.0/norm_grad_phi_avg;
             diffusion_prime_to_s = -1.0/(norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg);
         } else{
@@ -343,7 +345,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                 + (1.0 - norm_grad_phi_avg)*norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg; //(3.0 - 2.0*norm_grad_phi)*norm_grad_phi;
             diffusion_prime_to_s = -(4.0*(1.0 - norm_grad_phi_avg)*(1.0 - norm_grad_phi_avg)
                 + 7.0*norm_grad_phi_avg*(norm_grad_phi_avg - 1.0) + norm_grad_phi_avg*norm_grad_phi_avg );
-        }
+        } */
 
         for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
 

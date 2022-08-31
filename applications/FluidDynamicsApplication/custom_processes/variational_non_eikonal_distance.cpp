@@ -261,7 +261,7 @@ void VariationalNonEikonalDistance::Execute()
     double max_grad_norm_deviation = 1.0e2;
     double norm_grad_norm_deviation = 0.0;
 
-    while (max_grad_norm_deviation > 1.0e-2 && iteration < 333){
+    while (max_grad_norm_deviation > 1.0e-2 && iteration < 33){
 
         KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, about to solve the LSE" << std::endl;
         mp_solving_strategy->Solve();
