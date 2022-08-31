@@ -7,8 +7,9 @@
               "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
           },
           "Variables": {
-              "YOUNG_MODULUS"            :  3.0e7,
-              "POISSON_RATIO"            :  0.2,
+              "IGNORE_UNDRAINED"         :  true,
+              "YOUNG_MODULUS"            :  1.0e9,
+              "POISSON_RATIO"            :  0.495,
               "DENSITY_SOLID"            :  2.0e3,
               "DENSITY_WATER"            :  1.0e3,
               "POROSITY"                 :  0.3,
@@ -30,6 +31,7 @@
               "name"             :  "SmallStrainUDSM2DInterfaceLaw" 
           },
           "Variables": {
+              "IGNORE_UNDRAINED"         :  true,
               "DENSITY_SOLID"            :  2.0e3,
               "DENSITY_WATER"            :  1.0e3,
               "POROSITY"                 :  0.3,
@@ -41,12 +43,12 @@
               "UDSM_NAME"                :  "../../MohrCoulomb64.dll",
               "UDSM_NUMBER"              :  1,
               "IS_FORTRAN_UDSM"          :  true,
-              "UMAT_PARAMETERS"          :  [100000000,
-                                            0.0,
+              "UMAT_PARAMETERS"          :  [1e10,
+                                            0.495,
                                             10000,
                                             0.0,
                                             0.0,
-                                            1e9,
+                                            1e30,
                                             1,
                                             0.0]
          },

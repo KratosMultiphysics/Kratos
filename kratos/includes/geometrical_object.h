@@ -204,7 +204,13 @@ public:
     /**
      * Access Data:
      */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use 'GetData()' instead.")
     DataValueContainer& Data()
+    {
+        return pGetGeometry()->GetData();
+    }
+
+    DataValueContainer& GetData()
     {
         return pGetGeometry()->GetData();
     }
@@ -234,7 +240,7 @@ public:
         const TVariableType& rThisVariable,
         typename TVariableType::Type const& rValue)
     {
-        Data().SetValue(rThisVariable, rValue);
+        GetData().SetValue(rThisVariable, rValue);
     }
 
     /**
@@ -243,7 +249,7 @@ public:
     template<class TVariableType> typename TVariableType::Type& GetValue(
         const TVariableType& rThisVariable)
     {
-        return Data().GetValue(rThisVariable);
+        return GetData().GetValue(rThisVariable);
     }
 
     template<class TVariableType> typename TVariableType::Type const& GetValue(

@@ -61,7 +61,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
-    @classmethod
     def GetMainPath(self):
         return os.getcwd()
 
@@ -111,6 +110,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.dem_default_project_parameters = dem_defaults.GetDefaultInputParameters()
 
         self.project_parameters.ValidateAndAssignDefaults(self.swimming_dem_default_project_parameters)
+        self.project_parameters["coupling"].ValidateAndAssignDefaults(self.swimming_dem_default_project_parameters["coupling"])
         self.project_parameters["coupling"]["backward_coupling"].ValidateAndAssignDefaults(self.swimming_dem_default_project_parameters["coupling"]["backward_coupling"])
         self.project_parameters["dem_parameters"].ValidateAndAssignDefaults(self.dem_default_project_parameters)
 

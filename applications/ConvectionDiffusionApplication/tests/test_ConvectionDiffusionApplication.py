@@ -21,6 +21,7 @@ from convection_diffusion_test_factory import BasicConvectionDiffusionTransientS
 from convection_diffusion_test_factory import BasicDiffusionStationaryTest as TBasicDiffusionStationaryTest
 from convection_diffusion_test_factory import SimpleThermoMechanicalTest as TSimpleThermoMechanicalTest
 from test_convection_diffusion_bar import TestConvectionDiffusionBar
+from test_convection_diffusion_embedded_solver import TestEmbeddedSolver
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -65,19 +66,20 @@ def AssembleTestSuites():
     smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyQOSS'))
     smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyDASGS'))
     smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyQASGS'))
+    smallSuite.addTest(TestEmbeddedSolver('testEmbeddedSolverDirichletCircle'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite.addTests(smallSuite)
-    nightSuite.addTest(BFECCConvectionTest('testBFECCConvection'))
-    nightSuite.addTest(BFECCConvectionTest('testBFECCElementalLimiterConvection'))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
-    validationSuite.addTests(smallSuite)
+    validationSuite.addTests(nightSuite)
+    validationSuite.addTest(BFECCConvectionTest('testBFECCConvection'))
+    validationSuite.addTest(BFECCConvectionTest('testBFECCElementalLimiterConvection'))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(nightSuite)
+    allSuite.addTests(validationSuite)
 
     return suites
 

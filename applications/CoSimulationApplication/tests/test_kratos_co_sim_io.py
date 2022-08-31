@@ -18,7 +18,7 @@ class TestKratosCoSimIO(KratosUnittest.TestCase):
             "connect_to" : "partner_b"
         }""")
         solver_name = "partner_a" # aka "my_name" for the CoSimIO
-        kratos_co_sim_io = CreateKratosCoSimIO(io_settings, model, solver_name) # this connects
+        kratos_co_sim_io = CreateKratosCoSimIO(io_settings, model, solver_name, KM.Testing.GetDefaultDataCommunicator()) # this connects
         kratos_co_sim_io.Initialize()
 
         kratos_co_sim_io.Finalize() # this disconnects
@@ -33,7 +33,7 @@ class TestKratosCoSimIO(KratosUnittest.TestCase):
             "connect_to" : "impExp"
         }""")
         solver_name = "ExpImp" # aka "my_name" for the CoSimIO
-        kratos_co_sim_io = CreateKratosCoSimIO(io_settings, model, solver_name) # this connects
+        kratos_co_sim_io = CreateKratosCoSimIO(io_settings, model, solver_name, KM.Testing.GetDefaultDataCommunicator()) # this connects
         kratos_co_sim_io.Initialize()
 
         model_part = model.CreateModelPart("for_test")
@@ -77,7 +77,7 @@ class TestKratosCoSimIO(KratosUnittest.TestCase):
             "connect_to" : "impExpMesh"
         }""")
         solver_name = "ExpImpMesh" # aka "my_name" for the CoSimIO
-        kratos_co_sim_io = CreateKratosCoSimIO(io_settings, model, solver_name) # this connects
+        kratos_co_sim_io = CreateKratosCoSimIO(io_settings, model, solver_name, KM.Testing.GetDefaultDataCommunicator()) # this connects
         kratos_co_sim_io.Initialize()
 
         model_part = model.CreateModelPart("mesh_exchange_1")

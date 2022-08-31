@@ -221,7 +221,7 @@ void SymbolicStokes<TElementData>::Calculate(
         }
         data.N = data_N;
         // Shape functions gradients
-        const GeometryData::IntegrationMethod integration_method = GeometryData::GI_GAUSS_2;
+        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
         ShapeFunctionDerivativesArrayType shape_derivatives;
         Vector DetJ;
         r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, DetJ, integration_method);
@@ -244,7 +244,7 @@ void SymbolicStokes<TElementData>::Calculate(
         }
         data.N = data_N;
         // Shape function gradients
-        const GeometryData::IntegrationMethod integration_method = GeometryData::GI_GAUSS_2;
+        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
         ShapeFunctionDerivativesArrayType shape_derivatives;
         Vector DetJ;
         r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, DetJ, integration_method);

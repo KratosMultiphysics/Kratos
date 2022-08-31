@@ -23,7 +23,6 @@ class TestRedistance(KratosUnittest.TestCase):
 
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere")).ReadModelPart(model_part)
         model_part.SetBufferSize(2)
 
@@ -54,7 +53,6 @@ class TestRedistance(KratosUnittest.TestCase):
 
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
 
         model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0)
         model_part.CreateNewNode(2, 1.0 , 2.0 , 0.0)
@@ -90,7 +88,6 @@ class TestRedistance(KratosUnittest.TestCase):
 
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
 
         model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0)
         model_part.CreateNewNode(2, 1.0 , 2.0 , 0.0)
@@ -151,14 +148,15 @@ class TestRedistance(KratosUnittest.TestCase):
 
         model_part.CloneTimeStep(1.0)
 
-        distance_calculator = KratosMultiphysics.ParallelDistanceCalculator3D()
-        distance_calculator.CalculateDistances(
-            model_part,
-            KratosMultiphysics.DISTANCE,
-            KratosMultiphysics.NODAL_VOLUME,
-            2,
-            2.0,
-            KratosMultiphysics.ParallelDistanceCalculator3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        settings = KratosMultiphysics.Parameters("""{
+            "model_part_name" : "Main",
+            "nodal_area_variable": "NODAL_VOLUME",
+            "max_levels" : 2,
+            "max_distance" : 2.0,
+            "calculate_exact_distances_to_plane": true
+        }""")
+        distance_calculator = KratosMultiphysics.ParallelDistanceCalculationProcess3D(current_model, settings)
+        distance_calculator.Execute()
 
         for node in model_part.Nodes:
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), node.Y - free_surface_level, 10 )

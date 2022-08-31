@@ -31,7 +31,7 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
 {
     KRATOS_TRY
 
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         // Fill up the elements corresponding to the slave DOFs - the rest remains zero
         for ( IndexType i_slave = 0, i = 0; i_slave < TNumNodes; ++i_slave, i += TDim ) {
             rDerivativeData.DeltaDetjSlave[i    ] = rVariables.jSlave( 0, 0 ) * rVariables.DNDeSlave( i_slave, 0) / rVariables.DetjSlave;
@@ -81,7 +81,7 @@ inline array_1d<array_1d<double, 3>, TDim * TNumNodes> DerivativesUtilities<TDim
     array_1d<double,3> j0 = ZeroVector(3), j1 = ZeroVector(3);
 
     // Using the Jacobian tangent directions
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         j1[2] = 1.0;
         for (IndexType i_dim = 0; i_dim < 2; ++i_dim)
             j0[i_dim]  = rJacobian(i_dim, 0);
@@ -112,7 +112,7 @@ inline array_1d<array_1d<double, 3>, TDim * TNumNodes> DerivativesUtilities<TDim
             delta_j1 = zero_array;
 
             delta_j0[i_dim] += rDNDe(i_node, 0);
-            if (TDim == 3)
+            if constexpr (TDim == 3)
                 delta_j1[i_dim] += rDNDe(i_node, 1);
 
             MathUtils<double>::CrossProduct(aux_delta_normal0, j0, delta_j1);
@@ -144,7 +144,7 @@ inline array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> DerivativesUtilitie
     array_1d<double,3> j0 = ZeroVector(3), j1 = ZeroVector(3);
 
     // Using the Jacobian tangent directions
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         j1[2] = 1.0;
         for (IndexType i_dim = 0; i_dim < 2; ++i_dim)
             j0[i_dim]  = rJacobian(i_dim, 0);
@@ -175,7 +175,7 @@ inline array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> DerivativesUtilitie
             noalias(delta_j1) = zero_array;
 
             delta_j0[i_dim] += rDNDe(i_node, 0);
-            if (TDim == 3)
+            if constexpr (TDim == 3)
                 delta_j1[i_dim] += rDNDe(i_node, 1);
 
             MathUtils<double>::CrossProduct(aux_delta_normal0, j0, delta_j1);
@@ -568,7 +568,7 @@ inline void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation,
     Vector N_decomp;
     rDecompGeom.ShapeFunctionsValues( N_decomp, rLocalPointDecomp.Coordinates() );
 
-    if (TDim == 3) { // NOTE: This is not used in 2D
+    if constexpr (TDim == 3) { // NOTE: This is not used in 2D
         array_1d<double, 3> delta_normal, aux_RHS1, aux_delta_node;
         array_1d<double, 2> aux_delta_coords1;
         for ( IndexType i_node = 0; i_node < (TNumNodesMaster + TNumNodes); ++i_node) {
@@ -641,7 +641,7 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
     Vector N_decomp;
     rDecompGeom.ShapeFunctionsValues( N_decomp, rLocalPointDecomp.Coordinates() );
 
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         array_1d<PointType, TNumNodes> projected_in_slave, projected_in_master;
 
         for (IndexType i_mortar_node = 0; i_mortar_node < TNumNodes; ++i_mortar_node) {
@@ -979,7 +979,7 @@ bool DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
                 rVariables.jMaster = rMasterGeometry.Jacobian( rVariables.jMaster, projected_gp_local);
 
                 // Update the derivative of the integration vertex (just in 3D)
-                if (TDim == 3) CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, rSlaveNormal);
+                if constexpr (TDim == 3) CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, rSlaveNormal);
 
                 // Update the derivative of DetJ
                 CalculateDeltaDetjSlave(decomp_geom, rVariables, rDerivativeData);
@@ -1152,7 +1152,7 @@ inline array_1d<double, 3> DerivativesUtilities<TDim, TNumNodes, TFrictional, TN
     array_1d<double,3> tangent_xi = ZeroVector(3), tangent_eta = ZeroVector(3);
 
     // Using the Jacobian tangent directions
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         tangent_eta[2] = 1.0;
         for (IndexType i_dim = 0; i_dim < TDim; i_dim++)
             tangent_xi[i_dim]  = previous_jacobian(i_dim, 0);

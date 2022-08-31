@@ -347,7 +347,7 @@ private:
      * @param rNodalDistances Vector containing the distance values
      * @return A pointer to the divide geometry utility
      */
-    DivideGeometry::Pointer SetDivideGeometryUtility(
+    DivideGeometry<Node<3>>::Pointer SetDivideGeometryUtility(
         const Geometry<Node<3>> &rGeometry,
         const Vector &rNodalDistances);
 

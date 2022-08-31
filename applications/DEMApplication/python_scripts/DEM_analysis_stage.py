@@ -52,15 +52,12 @@ class DEMAnalysisStage(AnalysisStage):
         self.project_parameters["problem_data"]["end_time"].SetDouble(final_time)
         self.project_parameters["problem_data"]["problem_name"].SetString(problem_name)
 
-    @classmethod
     def GetDefaultInputParameters(self):
         return KratosMultiphysics.DEMApplication.dem_default_input_parameters.GetDefaultInputParameters()
 
-    @classmethod
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid, IO.SKIP_TIMER)
 
-    @classmethod
     def GetMainPath(self):
         return os.getcwd()
 
@@ -80,7 +77,7 @@ class DEMAnalysisStage(AnalysisStage):
             self.write_mdpa_from_results = False
         else:
             self.write_mdpa_from_results = self.DEM_parameters["WriteMdpaFromResults"].GetBool()
-        self.creator_destructor = self.SetParticleCreatorDestructor()
+        self.creator_destructor = self.SetParticleCreatorDestructor(DEM_parameters["creator_destructor_settings"])
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
         self.PreUtilities = PreUtilities()
@@ -160,21 +157,19 @@ class DEMAnalysisStage(AnalysisStage):
     def SetProcedures(self):
         return DEM_procedures.Procedures(self.DEM_parameters)
 
-    @classmethod
     def SetDemFemSearch(self):
         return DEM_FEM_Search()
 
-    @classmethod
     def GetParticleHistoryWatcher(self):
         return None
 
-    def SetParticleCreatorDestructor(self):
+    def SetParticleCreatorDestructor(self, creator_destructor_settings):
 
         self.watcher = self.GetParticleHistoryWatcher()
 
         if self.watcher is None:
-            return ParticleCreatorDestructor()
-        return ParticleCreatorDestructor(self.watcher)
+            return ParticleCreatorDestructor(creator_destructor_settings)
+        return ParticleCreatorDestructor(self.watcher, creator_destructor_settings)
 
     def SelectTranslationalScheme(self):
         if self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler':
@@ -276,6 +271,8 @@ class DEMAnalysisStage(AnalysisStage):
         self.analytic_model_part = self.spheres_model_part.GetSubModelPart('AnalyticParticlesPart')
         analytic_particle_ids = [elem.Id for elem in self.spheres_model_part.Elements]
         self.analytic_model_part.AddElements(analytic_particle_ids)
+        analytic_node_ids = [node.Id for node in self.spheres_model_part.Nodes]
+        self.analytic_model_part.AddNodes(analytic_node_ids)
 
     def FillAnalyticSubModelPartsWithNewParticles(self):
         self.analytic_model_part = self.spheres_model_part.GetSubModelPart('AnalyticParticlesPart')
@@ -496,6 +493,24 @@ class DEMAnalysisStage(AnalysisStage):
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
         self.ConvertClusterFileNamesFromRelativePathToAbsolutePath()
+        self.CheckConsistencyOfElementsAndNodesInEverySubModelPart()
+
+    def CheckConsistencyOfElementsAndNodesInEverySubModelPart(self):
+        def ErrorMessage(name):
+            raise Exception(" ModelPart (or SubModelPart) "+ name + " has a different number of nodes and elements (particles)! \n")
+
+        if self.spheres_model_part.NumberOfNodes(0) != self.spheres_model_part.NumberOfElements(0):
+            ErrorMessage(self.spheres_model_part.Name)
+        if self.cluster_model_part.NumberOfNodes(0) != self.cluster_model_part.NumberOfElements(0):
+            ErrorMessage(self.cluster_model_part.Name)
+
+        for submp in self.spheres_model_part.SubModelParts:
+            if submp.NumberOfNodes(0) != submp.NumberOfElements(0):
+                ErrorMessage(submp.Name)
+
+        for submp in self.cluster_model_part.SubModelParts:
+            if submp.NumberOfNodes(0) != submp.NumberOfElements(0):
+                ErrorMessage(submp.Name)
 
     def ConvertClusterFileNamesFromRelativePathToAbsolutePath(self):
         for properties in self.cluster_model_part.Properties:
@@ -560,7 +575,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.UpdateIsTimeToPrintInOneModelPart(self.dem_inlet_model_part, is_time_to_print)
         self.UpdateIsTimeToPrintInOneModelPart(self.rigid_face_model_part, is_time_to_print)
 
-    @classmethod
     def UpdateIsTimeToPrintInOneModelPart(self, model_part, is_time_to_print):
         model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 

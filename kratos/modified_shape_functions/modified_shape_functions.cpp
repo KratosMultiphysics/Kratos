@@ -54,7 +54,7 @@ namespace Kratos
     };
 
     // Returns a pointer to the splitting utility
-    const DivideGeometry::Pointer ModifiedShapeFunctions::pGetSplittingUtil() const {
+    const DivideGeometry<Node<3>>::Pointer ModifiedShapeFunctions::pGetSplittingUtil() const {
         KRATOS_ERROR << "Trying to retrieve the splitting utility from the modified shape functions base class. \n" <<
                          "Implement the pGetSplittingUtil according to the input geometry in the proper modified shape functions derived class.";
     };
@@ -530,7 +530,7 @@ namespace Kratos
             // Get the subdivision shape function values
             const Matrix subdivision_sh_func_values = r_subdivision_geom.ShapeFunctionsValues(IntegrationMethod);
             ShapeFunctionsGradientsType subdivision_sh_func_gradients_values;
-            subdivision_sh_func_gradients_values = r_subdivision_geom.ShapeFunctionsIntegrationPointsGradients(subdivision_sh_func_gradients_values, IntegrationMethod);
+            r_subdivision_geom.ShapeFunctionsIntegrationPointsGradients(subdivision_sh_func_gradients_values, IntegrationMethod);
 
             // Get the subdivision Jacobian values on all Gauss pts.
             Vector subdivision_jacobians_values;

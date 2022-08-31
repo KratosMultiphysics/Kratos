@@ -66,7 +66,7 @@ class AdaptativeRemeshingContactStaticMechanicalSolver(contact_structural_mechan
 
         return metric_process
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         error_criteria = self.settings["convergence_criterion"].GetString()
         conv_settings = self._get_convergence_criterion_settings()
         return self.adaptative_remeshing_utilities.GetConvergenceCriteria(error_criteria, conv_settings)

@@ -39,6 +39,7 @@ def GetDefaultInputParameters():
             "CleanIndentationsOption"          : false,
             "RemoveBallsInEmbeddedOption"      : false,
             "solver_settings" : {},
+            "creator_destructor_settings" : {},
             "echo_level"                  : 1,
             "problem_data"     : {
                 "problem_name"  : "dummy_name.Provide_a_real_one",

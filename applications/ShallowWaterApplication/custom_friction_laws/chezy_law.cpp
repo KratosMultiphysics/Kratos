@@ -18,8 +18,8 @@
 
 // Project includes
 #include "chezy_law.h"
+#include "custom_utilities/phase_function.h"
 #include "shallow_water_application_variables.h"
-#include "custom_utilities/shallow_water_utilities.h"
 
 
 namespace Kratos
@@ -45,7 +45,7 @@ void ChezyLaw::Initialize(
 
 double ChezyLaw::CalculateLHS(const double& rHeight, const array_1d<double,3>& rVelocity)
 {
-    const double inv_height = ShallowWaterUtilities().InverseHeight(rHeight, mEpsilon);
+    const double inv_height = PhaseFunction::InverseHeight(rHeight, mEpsilon);
     return mCoefficient * norm_2(rVelocity) * inv_height;
 }
 

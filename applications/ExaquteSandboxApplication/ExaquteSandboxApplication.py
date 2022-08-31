@@ -2,6 +2,7 @@
 from __future__ import print_function, absolute_import, division
 
 from KratosMultiphysics import _ImportApplication
+import KratosMultiphysics.MeshingApplication
 from KratosExaquteSandboxApplication import *
 application = KratosExaquteSandboxApplication()
 application_name = "KratosExaquteSandboxApplication"

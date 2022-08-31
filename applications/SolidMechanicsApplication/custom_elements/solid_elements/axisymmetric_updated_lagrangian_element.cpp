@@ -29,8 +29,8 @@ AxisymmetricUpdatedLagrangianElement::AxisymmetricUpdatedLagrangianElement( Inde
     : LargeDisplacementElement( NewId, pGeometry, pProperties )
 {
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-    //mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
-    //mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+    //mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+    //mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 

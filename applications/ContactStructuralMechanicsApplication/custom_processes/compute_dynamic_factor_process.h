@@ -218,7 +218,7 @@ private:
      * @param MaxGapThreshold The maximum gap considered for the interpolation
      * @param CurrentGap The current gap
      */
-    double ComputeLogisticFactor(
+    static inline double ComputeLogisticFactor(
         const double MaxGapThreshold,
         const double CurrentGap
         );

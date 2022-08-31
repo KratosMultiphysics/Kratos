@@ -16,6 +16,7 @@
 #include <pybind11/pybind11.h>
 
 // Project includes
+#include "includes/parallel_environment.h"
 #include "add_mpi_utilities_to_python.h"
 #include "mpi/utilities/model_part_communicator_utilities.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
@@ -51,15 +52,19 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
     .def_static("SetMPICommunicator", [](ModelPart& rModelPart, const DataCommunicator& rDataCommunicator){
         ModelPartCommunicatorUtilities::SetMPICommunicator(rModelPart, rDataCommunicator);
     })
+    .def("SetMPICommunicatorRecursively", &ModelPartCommunicatorUtilities::SetMPICommunicatorRecursively)
     .def_static("SetMPICommunicator", [](ModelPart& rModelPart){
         KRATOS_WARNING("ModelPartCommunicatorUtilities") << "This function is deprecated, please use the one that accepts a DataCommunicator" << std::endl;
         // passing the default data comm as a temp solution until this function is removed to avoid the deprecation warning in the interface
-        ModelPartCommunicatorUtilities::SetMPICommunicator(rModelPart, DataCommunicator::GetDefault());
+        ModelPartCommunicatorUtilities::SetMPICommunicator(rModelPart, ParallelEnvironment::GetDefaultDataCommunicator());
     })
     ;
 
     py::class_<ParallelFillCommunicator, ParallelFillCommunicator::Pointer, FillCommunicator>(m,"ParallelFillCommunicator")
-    .def(py::init<ModelPart& >() )
+    .def(py::init([](ModelPart& rModelPart){
+        KRATOS_WARNING("ParallelFillCommunicator") << "Using deprecated constructor. Please use constructor with data communicator!";
+        return Kratos::make_shared<ParallelFillCommunicator>(rModelPart, ParallelEnvironment::GetDefaultDataCommunicator());
+    }) )
     .def(py::init<ModelPart&, const DataCommunicator& >() )
     ;
 
@@ -87,9 +92,11 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<DistributedModelPartInitializer>(m, "DistributedModelPartInitializer")
-        .def(py::init<ModelPart&, int>())
+        .def(py::init<ModelPart&, const DataCommunicator&, int>())
+        .def("CopySubModelPartStructure", &DistributedModelPartInitializer::CopySubModelPartStructure)
         .def("Execute", &DistributedModelPartInitializer::Execute)
         ;
+
 }
 
 } // namespace Python

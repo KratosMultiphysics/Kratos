@@ -433,7 +433,7 @@ protected:
     {
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
             for (const auto& r_data_comp : rData) {
-                rFileStream << r_data_comp << " ";
+                rFileStream << float(r_data_comp) << " ";
             }
         } else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
             for (const auto& r_data_comp : rData ) {

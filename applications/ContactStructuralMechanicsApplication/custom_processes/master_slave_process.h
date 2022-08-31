@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
 

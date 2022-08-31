@@ -14,7 +14,6 @@ def GetFilePath(fileName):
 
 class DEM2DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_tests_files")
 
@@ -24,20 +23,24 @@ class DEM2DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEM
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         tolerance = 1e-3
-        for node in self.spheres_model_part.Nodes:
+        if self.time > 0.2:
+            node = self.spheres_model_part.GetNode(1)
             normal_impact_vel = node.GetSolutionStepValue(Kratos.VELOCITY_X)
-            if node.Id == 1:
-                if self.time > 0.2:
-                    self.assertAlmostEqual(normal_impact_vel, 6.135616337653889, delta=tolerance)
-            if node.Id == 2:
-                if self.time > 0.2:
-                    self.assertAlmostEqual(normal_impact_vel, 3.532381836682557, delta=tolerance)
-            if node.Id == 3:
-                if self.time > 0.2:
-                    self.assertAlmostEqual(normal_impact_vel, 9.828777134668575, delta=tolerance)
+            self.assertAlmostEqual(normal_impact_vel, 6.135616337653889, delta=tolerance)
+
+            node = self.spheres_model_part.GetNode(2)
+            normal_impact_vel = node.GetSolutionStepValue(Kratos.VELOCITY_X)
+            self.assertAlmostEqual(normal_impact_vel, 3.532381836682557, delta=tolerance)
+
+            node = self.spheres_model_part.GetNode(3)
+            normal_impact_vel = node.GetSolutionStepValue(Kratos.VELOCITY_X)
+            self.assertAlmostEqual(normal_impact_vel, 9.828777134668575, delta=tolerance)
+
+            self.check_mark_1 = True
 
 
     def Finalize(self):
+        self.assertTrue(self.check_mark_1)
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
 
@@ -46,7 +49,6 @@ class TestDEM2D(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
     def test_DEM2D_1(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")

@@ -113,7 +113,7 @@ class Mpi(object):
         if "runner" not in kwargs:
             raise ExaquteException("Runner must be specified")
         for k, v in kwargs.items():
-            if k not in ("processes", "runner", "flags"):
+            if k not in ("processes", "runner", "flags", "processes_per_node"):
                 if not k.endswith("_layout"):
                     raise ExaquteException("Argument '{}' is not valid".format(k))
 

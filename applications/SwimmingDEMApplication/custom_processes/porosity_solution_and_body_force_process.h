@@ -104,24 +104,6 @@ public:
     ///@name Operations
     ///@{
 
-    void CheckDefaultsAndProcessSettings(Parameters &rParameters);
-
-    const Parameters GetDefaultParameters() const override;
-
-    void CalculateKinematicViscosity();
-
-    void CalculatePermeability(double &dynamic_viscosity);
-
-    void SetInitialBodyForceAndPorosityField();
-
-    void SetFluidProperties();
-
-    bool IsInsideEllipticalSupport(
-        const double x1,
-        const double x2,
-        const double c,
-        const double R);
-
     ///@}
     ///@name Access
     ///@{
@@ -152,19 +134,25 @@ public:
     double                                              mDensity;
     double                                            mViscosity;
     double                                         mPermeability;
+    double                                                mAlpha;
     double                                                mUchar;
-    double                                           mDeltaAlpha;
-    double                                               mLength;
-    double                                   mMaxSqueezeFraction;
-    double                                                mOmega;
-    double                                     mSqueezeAmplitude;
-    double                                              mNSafety;
-    double                                             mX1Origin;
-    double                                             mX2Origin;
-    double                                       mReynoldsNumber;
-    double                                      mDamKohlerNumber;
     bool                                      mInitialConditions;
     bool                                 mAlternativeFormulation;
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    void CheckDefaultsAndProcessSettings(Parameters &rParameters);
+
+    const Parameters GetDefaultParameters() const override;
+
+    void SetInitialBodyForceAndPorosityField();
+
+    void SetBodyForceAndPorosityField();
+
+    void SetFluidProperties();
     ///@}
     ///@name Friends
     ///@{

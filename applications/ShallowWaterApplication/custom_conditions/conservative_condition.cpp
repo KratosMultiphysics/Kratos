@@ -20,10 +20,21 @@
 #include "conservative_condition.h"
 #include "includes/checks.h"
 #include "shallow_water_application_variables.h"
-#include "custom_utilities/shallow_water_utilities.h"
 
 namespace Kratos
 {
+
+template<std::size_t TNumNodes>
+const Parameters ConservativeCondition<TNumNodes>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "required_variables"         : ["MOMENTUM","VELOCITY","HEIGHT","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY"],
+        "required_dofs"              : ["MOMENTUM_X","MOMENTUM_Y","HEIGHT"],
+        "compatible_geometries"      : ["Triangle2D3"],
+        "element_integrates_in_time" : false
+    })");
+    return specifications;
+}
 
 template<std::size_t TNumNodes>
 const Variable<double>& ConservativeCondition<TNumNodes>::GetUnknownComponent(int Index) const
@@ -91,8 +102,7 @@ void ConservativeCondition<TNumNodes>::CalculateGaussPointData(
     rData.b2[2] = 0;
 
     auto integration_point = this->GetGeometry().IntegrationPoints()[PointIndex];
-    rData.normal = this->GetGeometry().Normal(integration_point);
-    rData.normal /= norm_2(rData.normal);
+    rData.normal = this->GetGeometry().UnitNormal(integration_point);
 }
 
 template class ConservativeCondition<2>;

@@ -18,7 +18,6 @@
 
 // Project includes
 #include "wind_water_friction.h"
-#include "custom_utilities/shallow_water_utilities.h"
 
 
 namespace Kratos

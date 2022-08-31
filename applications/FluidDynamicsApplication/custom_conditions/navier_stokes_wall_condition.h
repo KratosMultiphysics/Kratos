@@ -451,7 +451,7 @@ private:
     void ProjectViscousStress(
         const Vector& rViscousStress,
         const array_1d<double,3> rNormal,
-        array_1d<double,3> rProjectedViscousStress);
+        array_1d<double,3>& rProjectedViscousStress);
 
     ///@}
     ///@name Private  Access

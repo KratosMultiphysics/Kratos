@@ -21,8 +21,8 @@
 #include "utilities/geometry_utilities.h"
 #include "includes/mesh_moving_variables.h"
 #include "shallow_water_application_variables.h"
-#include "custom_utilities/shallow_water_utilities.h"
 #include "custom_friction_laws/friction_laws_factory.h"
+#include "custom_utilities/phase_function.h"
 #include "shallow_water_2d_3.h"
 
 namespace Kratos
@@ -316,7 +316,7 @@ void ShallowWater2D3::AddDesingularizationTerm(
     const ElementData& rData)
 {
     double factor = 1e3 / GetGeometry().Length();
-    factor *= 1.0 - ShallowWaterUtilities().WetFraction(rData.height, rData.dry_height);
+    factor *= 1.0 - PhaseFunction::WetFraction(rData.height, rData.dry_height);
     for (size_t i = 0; i < 3; ++i) {
         const size_t block = 3 * i;
         rLHS(block, block) += factor;
@@ -716,7 +716,7 @@ void ShallowWater2D3::ShockCapturingParameters(
     // slope limits
     const double min_slope = 0.1;
     const double max_slope = 1.0;
-    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.height);
+    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * std::abs(rData.height));
     const double min_q_slope = std::max(eigenvalue * 1.0, min_slope);
     const double max_q_slope = std::max(eigenvalue * 10.0, max_slope);
 
@@ -921,7 +921,7 @@ double ShallowWater2D3::StabilizationParameter(const ElementData& rData)
     const double e = std::numeric_limits<double>::epsilon(); // small value to avoid division by zero
     const double length = this->GetGeometry().Length();
     const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.height);
-    const double wet_fraction = ShallowWaterUtilities().WetFraction(rData.height, rData.dry_height);
+    const double wet_fraction = PhaseFunction::WetFraction(rData.height, rData.dry_height);
 
     return length * wet_fraction * rData.stab_factor / (eigenvalue + e);
 }
