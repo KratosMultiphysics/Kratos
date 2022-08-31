@@ -325,7 +325,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
         grad_phi_old = prod(trans(DN_DX[gp]),distances0);
 
-        if (norm_grad_phi_avg >= 1.0 /* tolerance */){
+        /* if (norm_grad_phi_avg >= 1.0) { //tolerance){
             diffusion = 1.0/norm_grad_phi_avg;
             diffusion_prime_to_s = -1.0/(norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg);
         } else{
@@ -333,17 +333,17 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
             //diffusion = 2.0-norm_grad_phi_avg;
             diffusion_prime_to_s = -1.2/(norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg+tolerance);
             //diffusion_prime_to_s = -1.0/(norm_grad_phi_avg+tolerance);
-        }
-
-        /* if (norm_grad_phi > 1.0){
-            diffusion = 1.0/norm_grad_phi;
-            diffusion_prime_to_s = -1.0/(norm_grad_phi*norm_grad_phi*norm_grad_phi);
-        } else{
-            diffusion = 1.0 - 2.0*norm_grad_phi*norm_grad_phi*(1.0 - norm_grad_phi)*(1.0 - norm_grad_phi)
-                + (1.0 - norm_grad_phi)*norm_grad_phi*norm_grad_phi*norm_grad_phi; //(3.0 - 2.0*norm_grad_phi)*norm_grad_phi;
-            diffusion_prime_to_s = -(4.0*(1.0 - norm_grad_phi)*(1.0 - norm_grad_phi)
-                + 7.0*norm_grad_phi*(norm_grad_phi - 1.0) + norm_grad_phi*norm_grad_phi );
         } */
+
+        if (norm_grad_phi_avg > 1.0){
+            diffusion = 1.0/norm_grad_phi_avg;
+            diffusion_prime_to_s = -1.0/(norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg);
+        } else{
+            diffusion = 1.0 - 2.0*norm_grad_phi_avg*norm_grad_phi_avg*(1.0 - norm_grad_phi_avg)*(1.0 - norm_grad_phi_avg)
+                + (1.0 - norm_grad_phi_avg)*norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg; //(3.0 - 2.0*norm_grad_phi)*norm_grad_phi;
+            diffusion_prime_to_s = -(4.0*(1.0 - norm_grad_phi_avg)*(1.0 - norm_grad_phi_avg)
+                + 7.0*norm_grad_phi_avg*(norm_grad_phi_avg - 1.0) + norm_grad_phi_avg*norm_grad_phi_avg );
+        }
 
         for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
 
@@ -367,7 +367,6 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                         lhs(i_node, j_node) += 1.0/scale * weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
                         //lhs(i_node, j_node) += - diffusion * weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
                     }
-
                     else{    // Elliptic reinitialization
                         lhs(i_node, j_node) += weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
                     }

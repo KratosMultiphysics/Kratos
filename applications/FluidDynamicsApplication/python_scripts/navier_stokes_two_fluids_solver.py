@@ -466,7 +466,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     DistanceGradLogFile.write( "\n" + str(TimeStep*DT) + "\n" )
                     for node in self.main_model_part.Nodes:
                         dist = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
-                        if (dist > -0.1 and dist < 0.1):
+                        if (dist > -0.03 and dist < 0.03):
                             DistanceLogFile.write( str(node.Id) + "\t" + str(node.X) + "\t" + str(node.Y) + "\t" + str(node.Z) + "\t" + str(dist) + "\n" )
                             gradX = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X)
                             gradY = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y)

@@ -261,7 +261,7 @@ void VariationalNonEikonalDistance::Execute()
     double max_grad_norm_deviation = 1.0e2;
     double norm_grad_norm_deviation = 0.0;
 
-    while (max_grad_norm_deviation > 1.0e-2 && iteration < 5){
+    while (max_grad_norm_deviation > 1.0e-2 && iteration < 333){
 
         KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, about to solve the LSE" << std::endl;
         mp_solving_strategy->Solve();
@@ -291,7 +291,7 @@ void VariationalNonEikonalDistance::Execute()
     for (unsigned int k = 0; k < NumNodes; ++k) {
         auto it_node = mrModelPart.NodesBegin() + k;
         const double dist = it_node->FastGetSolutionStepValue(DISTANCE_AUX2);
-        if (/* dist > 5.0*h_min || */ dist < -1.0*h_min){
+        if (dist > 5.0*h_min || dist < -3.0*h_min){
             it_node->Fix(DISTANCE_AUX2);
             NumFreeNodes -= 1;
         }
@@ -303,7 +303,7 @@ void VariationalNonEikonalDistance::Execute()
     max_grad_norm_deviation = 1.0e2;
     norm_grad_norm_deviation = 0.0;
 
-    while (max_grad_norm_deviation > 1.0e-2 && iteration < 10){
+    while (max_grad_norm_deviation > 1.0e-2 && iteration < 0){
 
         KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, about to solve the LSE" << std::endl;
         mp_solving_strategy->Solve();
