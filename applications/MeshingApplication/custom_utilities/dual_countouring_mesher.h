@@ -1,0 +1,162 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ariadna Cortes
+//
+//
+
+#pragma once
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "includes/geometrical_object.h"
+#include "spatial_containers/geometrical_objects_bins.h"
+#include "includes/node.h"
+#include "geometries/geometry.h"
+#include "geometries/hexahedra_3d_8.h"
+#include "utilities/qef_utility.h"
+#include "utilities/parallel_utilities.h"
+
+namespace Kratos
+{ 
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/**
+ * @class Dual countouring mesher
+ * @ingroup KratosCore
+ * @brief Utilities to re-mesh a shape using dual countouring
+ */
+class DualCountouringMesher
+{
+public:
+
+    ///@name Type Definitions
+    ///@{
+
+    typedef Node<3> NodeType;
+    typedef Node<3>::Pointer NodePtrType;
+    typedef Geometry<NodeType> GeometryType;
+    typedef GeometryType::Pointer GeometryPtrType;
+    typedef GeometryType::GeometriesArrayType GeometryArrayType;
+    typedef GeometryType::PointsArrayType PointsArrayType;
+
+    /// Pointer definition of VoxelInsideVolume
+    KRATOS_CLASS_POINTER_DEFINITION( DualCountouringMesher );
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /**
+     * @brief Default constructor
+     */
+    DualCountouringMesher(){}
+
+    /// Destructor
+    virtual ~DualCountouringMesher(){}
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+    * @brief Creates a mesh adapting to the shape of the rSkinPart passed
+    * @param rVoxelBin Geometrical Object containing rSkinPart and its information
+    * @param rHexahedraMesh the resulting mesh (initially empty!)
+    */
+    void DualCountourAdaptativeRemesh(
+        GeometricalObjectsBins& rVoxelBin, 
+        ModelPart& rHexahedraMesh) 
+    {     
+        unsigned int current_element_id = 1;
+
+        const auto& number_of_cells = rVoxelBin.GetNumberOfCells();
+
+        for (std::size_t i = 0; i < number_of_cells[0]; i++) {
+            for (std::size_t j = 0; j < number_of_cells[1]; j++) {
+                for (std::size_t k = 0; k < number_of_cells[2]; k++) {
+                    BoundingBox<Point> box = rVoxelBin.GetCellBoundingBox(i,j,k);
+                    std::vector<GeometricalObject*> triangles =  rVoxelBin.GetCell(i,j,k);
+                    int new_id = i * number_of_cells[1]*number_of_cells[2] + j * number_of_cells[2] + k; 
+
+                    //array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(box,triangles);
+                    //rHexahedraMesh.CreateNewNode(new_id, qef[0], qef[1], qef[2]);
+                    //rHexahedraMesh.pGetNode(new_id)->FastGetSolutionStepValue(DISTANCE) = 1;  //?                  
+                }
+            }
+        }
+
+        /********************************************************************************************
+        Properties::Pointer p_properties_1(new Properties(0)); 
+        rVoxelMesh.CreateNewElement("Element3D8N", 8, 
+            {id+1, id+2, id+3, id+4, id+5, id+6, id+7, id+8}, p_properties_1);    
+
+        /********************************************************************************************/
+
+    }
+
+private:
+
+    ///@name Private static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+    //This functions implementation should be moveed to VoxelUtilities
+    double MeanDistance(GeometryType& rVoxel) {
+        double mean = 0;
+        int nodes_inside = 0;
+        for (NodeType& node : rVoxel.Points()) {
+            double dist = node.FastGetSolutionStepValue(DISTANCE);
+            if (dist > 0) {
+                nodes_inside++;
+                mean += dist;
+            }
+        };
+
+        if(nodes_inside > 0) return mean/nodes_inside;
+        else return -1;
+    }
+
+}; /* Class DualCountouringMesher */
+
+}  /* namespace Kratos.*/
