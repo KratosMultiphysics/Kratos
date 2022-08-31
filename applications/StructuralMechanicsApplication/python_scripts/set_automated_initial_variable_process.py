@@ -43,7 +43,7 @@ def Factory(settings, Model):
     layer_list = [file for file in file_path.parent.iterdir() if file.name.split("_")[0] == layer_name]
 
     if not layer_list:
-        ErrorMsg = "Tables of " + layer_name + " not found"
+        ErrorMsg = f"Tables of "{layer_name} not found"
         raise RuntimeError(ErrorMsg)
     else:
         component_list = []
@@ -55,7 +55,7 @@ def Factory(settings, Model):
                 component_list.append(component_number)
                 table_id = int(layer_name[-1] + str(component_number - 1))
                 table_id_list.append(table_id)
-                process_settings["initial_variable_table"]["filename"].SetString(layer_list[i].as_posix())
+                process_settings["initial_variable_table"]["filename"].SetString(str(layer_list[i]))
                 process_settings["initial_variable_table"]["table_id"].SetInt(table_id)
                 ReadCsvTableUtility(process_settings["initial_variable_table"]).Read(computing_model_part)
             else:
@@ -67,7 +67,7 @@ def Factory(settings, Model):
 
     if len(out_of_range_component_list) != 0:
         if len(out_of_range_component_list) == 1:
-            Logger.PrintInfo("::[WARNING]:: : SetAutomatedInitialVariableProcess ", variable_name.capitalize() + " component " + str(out_of_range_component_list[0]) + " of " + layer_name + " is out of range. The correspoding table will be negleted")
+            Logger.PrintWarning("SetAutomatedInitialVariableProcess ", f"{variable_name} component [out_of_range_component_list[0]} of {layer_name} is out of range. The corresponding table will be neglected")
         else:
             out_of_range_component_name = ", ".join(str(out_of_range_component) for (out_of_range_component) in out_of_range_component_list)
             Logger.PrintInfo("::[WARNING]:: : SetAutomatedInitialVariableProcess ", variable_name.capitalize() + " components " + out_of_range_component_name + " of " + layer_name + " are out of range. Correspoding tables will be negleted")       
