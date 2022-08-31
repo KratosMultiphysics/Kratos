@@ -25,6 +25,8 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "utilities/qef_utility.h"
 #include "utilities/parallel_utilities.h"
+#include "custom_modelers/voxel_mesh_generator_modeler.h"
+
 
 namespace Kratos
 { 
@@ -91,27 +93,72 @@ public:
 
     /**
     * @brief Creates a mesh adapting to the shape of the rSkinPart passed
-    * @param rVoxelBin Geometrical Object containing rSkinPart and its information
-    * @param rHexahedraMesh the resulting mesh (initially empty!)
+    * @param rSkinModelPart Geometrical Object containing rSkinPart and its information
+    * @param rModel the model that will be containing the resulting mesh (the resulting mesh 
+    * will be a modelPart named "fited_mesh")
     */
     void DualCountourAdaptativeRemesh(
-        GeometricalObjectsBins& rVoxelBin, 
-        ModelPart& rHexahedraMesh) 
+        ModelPart& rSkinModelPart,
+        Model& rModel) 
     {     
         unsigned int current_element_id = 1;
 
-        const auto& number_of_cells = rVoxelBin.GetNumberOfCells();
+        GeometricalObjectsBins voxel_bin(rSkinModelPart.ElementsBegin(), rSkinModelPart.ElementsEnd());
+        ModelPart& fited_mesh = rModel.CreateModelPart("fited_mesh");
+        fited_mesh.AddNodalSolutionStepVariable(DISTANCE); 
+
+        const auto& number_of_cells = voxel_bin.GetNumberOfCells();
+        const auto& cell_size = voxel_bin.GetCellSizes();
+
+        Parameters param(R"({
+                "output_model_part_name" : "fited_mesh",
+                "input_model_part_name" : "skin_model_part",
+                "mdpa_file_name" : "",
+                "key_plane_generator": {
+                    "Parameters" : {
+                        "voxel_sizes" : [0.1, 0.1, 0.1],
+                        "min_point" : [ -1.5, -1.5, -1.5],
+                        "max_point" : [ 1.5, 1.5, 1.5]
+                    }
+                },
+                "coloring_settings_list": [
+				{
+                    "type" : "outer_faces_of_cells_with_color",
+					"color": -2,
+                    "cell_color": 1
+				}
+                ],
+                "entities_generator_list": [
+                {
+                    "type" : "elements_with_cell_color",
+					"model_part_name": "fited_mesh.workpiece",
+					"color": 1,
+                    "properties_id": 1
+				},
+                {
+                    "type" : "conditions_with_face_color",
+                    "model_part_name": "fited_mesh.workpiece_boundaries",
+                    "color": -2,
+                    "properties_id": 2
+                }
+                ]
+        })");
+
+        VoxelMeshGeneratorModeler modeler(rModel,param);
+        modeler.SetupGeometryModel();
+        modeler.PrepareGeometryModel();
+        modeler.SetupModelPart();
 
         for (std::size_t i = 0; i < number_of_cells[0]; i++) {
             for (std::size_t j = 0; j < number_of_cells[1]; j++) {
                 for (std::size_t k = 0; k < number_of_cells[2]; k++) {
-                    BoundingBox<Point> box = rVoxelBin.GetCellBoundingBox(i,j,k);
-                    std::vector<GeometricalObject*> triangles =  rVoxelBin.GetCell(i,j,k);
+                    BoundingBox<Point> box = voxel_bin.GetCellBoundingBox(i,j,k);
+                    std::vector<GeometricalObject*> triangles =  voxel_bin.GetCell(i,j,k);
                     int new_id = i * number_of_cells[1]*number_of_cells[2] + j * number_of_cells[2] + k; 
 
-                    //array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(box,triangles);
-                    //rHexahedraMesh.CreateNewNode(new_id, qef[0], qef[1], qef[2]);
-                    //rHexahedraMesh.pGetNode(new_id)->FastGetSolutionStepValue(DISTANCE) = 1;  //?                  
+                    array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(box,triangles);
+                    fited_mesh.CreateNewNode(new_id, qef[0], qef[1], qef[2]);
+                    fited_mesh.pGetNode(new_id)->FastGetSolutionStepValue(DISTANCE) = 1;  //?                  
                 }
             }
         }

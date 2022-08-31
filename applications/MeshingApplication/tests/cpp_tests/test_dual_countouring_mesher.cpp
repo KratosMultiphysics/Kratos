@@ -21,7 +21,6 @@
 #include "includes/checks.h"
 #include "testing/testing.h"
 #include "custom_utilities/dual_countouring_mesher.h"
-#include "custom_modelers/voxel_mesh_generator_modeler.h"
 
 #include "input_output/vtk_output.h"
 
@@ -162,63 +161,21 @@ namespace {
         skin_model_part.AddNodalSolutionStepVariable(DISTANCE);
         voxels_part.AddNodalSolutionStepVariable(DISTANCE); 
 
-        Parameters param(R"({
-                "output_model_part_name" : "voxels_part",
-                "input_model_part_name" : "skin_model_part",
-                "mdpa_file_name" : "",
-                "key_plane_generator": {
-                    "Parameters" : {
-                        "voxel_sizes" : [0.1, 0.1, 0.1],
-                        "min_point" : [ -1.5, -1.5, -1.5],
-                        "max_point" : [ 1.5, 1.5, 1.5]
-                    }
-                },
-                "coloring_settings_list": [
-				{
-                    "type" : "outer_faces_of_cells_with_color",
-					"color": -2,
-                    "cell_color": 1
-				}
-                ],
-                "entities_generator_list": [
-                {
-                    "type" : "elements_with_cell_color",
-					"model_part_name": "voxels_part.workpiece",
-					"color": 1,
-                    "properties_id": 1
-				},
-                {
-                    "type" : "conditions_with_face_color",
-                    "model_part_name": "voxels_part.workpiece_boundaries",
-                    "color": -2,
-                    "properties_id": 2
-                }
-                ]
-        })");
-
-        VoxelMeshGeneratorModeler modeler(my_model,param);
-        modeler.SetupGeometryModel();
-        modeler.PrepareGeometryModel();
-        modeler.SetupModelPart();
-
-        KRATOS_WATCH(voxels_part.Elements().size());
-        KRATOS_CHECK_EQUAL(voxels_part.Elements().size(),30*30*30);
+        //KRATOS_WATCH(voxels_part.Elements().size());
+        //KRATOS_CHECK_EQUAL(voxels_part.Elements().size(),30*30*30);
 
         AddCube(skin_model_part);
         KRATOS_CHECK_EQUAL(skin_model_part.Nodes().size(),8);
         KRATOS_CHECK_EQUAL(skin_model_part.Elements().size(),12);
 
-        array_1d<double,3> cell_size{0.1,0.1,0.1};
-        //GeometricalObjectsBins bins(skin_model_part.ElementsBegin(), skin_model_part.ElementsEnd(),cell_size);
-
-        /*Output(skin_part,"cube_pre");
+        //Output(skin_model_part,"cube_pre");
 
         DualCountouringMesher mesher; 
-        mesher.DualCountourAdaptativeRemesh(bins, voxels_part); 
+        mesher.DualCountourAdaptativeRemesh(skin_model_part, my_model); 
 
-        Output(skin_part,"cube_post");
+        //Output(skin_model_part,"cube_post");
         
-        KRATOS_CHECK_EQUAL(voxels_part.Elements().size(),1); */
+        //KRATOS_CHECK_EQUAL(voxels_part.Elements().size(),1);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DualCountouringRemesherTetra, KratosMeshingApplicationFastSuite) {
