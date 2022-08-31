@@ -32,6 +32,7 @@
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
 #include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_bfecc.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/adaptive_residualbased_newton_raphson_strategy.h"
@@ -425,7 +426,7 @@ namespace Kratos
             //********************************************************************
             //Builder and Solver
             typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-
+            typedef typename ModelPart::DofsArrayType DofsArrayType;
 
             py::class_< BuilderAndSolverType, typename BuilderAndSolverType::Pointer>(m,"BuilderAndSolver")
             .def(py::init<LinearSolverType::Pointer > ())
@@ -449,7 +450,7 @@ namespace Kratos
                 .def("ApplyDirichletConditions", &BuilderAndSolverType::ApplyDirichletConditions)
                 .def("ApplyConstraints", &BuilderAndSolverType::ApplyConstraints)
                 .def("SetUpDofSet", &BuilderAndSolverType::SetUpDofSet)
-                .def("GetDofSet", &BuilderAndSolverType::GetDofSet, py::return_value_policy::reference_internal)
+                .def("GetDofSet",  [](BuilderAndSolverType& self) -> DofsArrayType& {return self.GetDofSet();}, py::return_value_policy::reference_internal)
                 .def("SetUpSystem", &BuilderAndSolverType::SetUpSystem)
                 .def("ResizeAndInitializeVectors", &BuilderAndSolverType::ResizeAndInitializeVectors)
                 .def("InitializeSolutionStep", &BuilderAndSolverType::InitializeSolutionStep)
@@ -464,7 +465,6 @@ namespace Kratos
                 ;
 
             // Explicit builder
-            typedef typename ModelPart::DofsArrayType DofsArrayType;
             typedef ExplicitBuilder< SparseSpaceType, LocalSpaceType > ExplicitBuilderType;
 
             py::class_<ExplicitBuilderType, typename ExplicitBuilderType::Pointer>(m, "ExplicitBuilder")
@@ -602,6 +602,13 @@ namespace Kratos
 
             typedef ExplicitSolvingStrategyRungeKutta1< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta1Type;
             py::class_<ExplicitSolvingStrategyRungeKutta1Type, typename ExplicitSolvingStrategyRungeKutta1Type::Pointer, BaseExplicitSolvingStrategyType>(m, "ExplicitSolvingStrategyRungeKutta1")
+                .def(py::init<ModelPart&, bool, int>())
+                .def(py::init<ModelPart&, Parameters>())
+                .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
+                ;
+
+            typedef ExplicitSolvingStrategyBFECC< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyBFECCType;
+            py::class_<ExplicitSolvingStrategyBFECCType, typename ExplicitSolvingStrategyBFECCType::Pointer, BaseExplicitSolvingStrategyType>(m, "ExplicitSolvingStrategyBFECC")
                 .def(py::init<ModelPart&, bool, int>())
                 .def(py::init<ModelPart&, Parameters>())
                 .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())

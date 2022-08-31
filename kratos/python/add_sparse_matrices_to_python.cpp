@@ -14,6 +14,7 @@
 // System includes
 
 // External includes
+#include <pybind11/numpy.h>
 
 // Project includes
 #include "includes/define_python.h"
@@ -43,13 +44,12 @@ void AddSparseMatricesToPython(pybind11::module& m)
     py::class_<SparseGraph<IndexType>, SparseGraph<IndexType>::Pointer >(m, "SparseGraph")
     .def(py::init<>())
     .def(py::init<IndexType>())
-    .def("GetComm", &SparseGraph<IndexType>::GetComm)
-    .def("pGetComm", &SparseGraph<IndexType>::pGetComm)
+    .def("GetComm", &SparseGraph<IndexType>::GetComm, py::return_value_policy::reference_internal)
     .def("Size", &SparseGraph<IndexType>::Size)
     .def("IsEmpty", &SparseGraph<IndexType>::IsEmpty)
     .def("AddEntry", &SparseGraph<IndexType>::AddEntry)
     .def("Finalize", &SparseGraph<IndexType>::Finalize)
-    .def("GetGraph", &SparseGraph<IndexType>::GetGraph)
+    .def("GetGraph", &SparseGraph<IndexType>::GetGraph, py::return_value_policy::reference_internal)
     .def("AddEntries", [](SparseGraph<IndexType>& self, std::vector<IndexType>& indices){
         self.AddEntries(indices);
     })
@@ -64,8 +64,7 @@ void AddSparseMatricesToPython(pybind11::module& m)
     //************************************************************************************************************
     py::class_<SparseContiguousRowGraph<IndexType>, SparseContiguousRowGraph<IndexType>::Pointer >(m, "SparseContiguousRowGraph")
     .def(py::init<IndexType>())
-    .def("GetComm", &SparseContiguousRowGraph<IndexType>::GetComm)
-    .def("pGetComm", &SparseContiguousRowGraph<IndexType>::pGetComm)
+    .def("GetComm", &SparseContiguousRowGraph<IndexType>::GetComm, py::return_value_policy::reference_internal)
     .def("Size", &SparseContiguousRowGraph<IndexType>::Size)
     .def("AddEntry", &SparseContiguousRowGraph<IndexType>::AddEntry)
     .def("AddEntries", [](SparseContiguousRowGraph<IndexType>& self, std::vector<IndexType>& indices){
@@ -84,31 +83,42 @@ void AddSparseMatricesToPython(pybind11::module& m)
     //************************************************************************************************************
     //************************************************************************************************************
     py::class_<CsrMatrix<double,IndexType>, CsrMatrix<double,IndexType>::Pointer >(m, "CsrMatrix")
+    .def(py::init<>())
+    .def(py::init<const DataCommunicator&>())
+    .def(py::init<const CsrMatrix<double,IndexType>&>())
     .def(py::init<SparseGraph<IndexType>&>())
     .def(py::init<SparseContiguousRowGraph<IndexType>&>())
-    .def("GetComm", &CsrMatrix<double,IndexType>::GetComm)
-    .def("pGetComm", &CsrMatrix<double,IndexType>::pGetComm)
+    .def("copy", [](const CsrMatrix<double,IndexType>& self){
+        return Kratos::make_shared<CsrMatrix<double,IndexType>>(self);
+    })
+    .def("GetComm", &CsrMatrix<double,IndexType>::GetComm, py::return_value_policy::reference_internal)
     .def("SetValue", &CsrMatrix<double,IndexType>::SetValue)
     .def("Size1", &CsrMatrix<double,IndexType>::size1)
     .def("Size2", &CsrMatrix<double,IndexType>::size2)
     .def("size1", &CsrMatrix<double,IndexType>::size1)
     .def("size2", &CsrMatrix<double,IndexType>::size2)
     .def("nnz", &CsrMatrix<double,IndexType>::nnz)
-    .def("index1_data", [](CsrMatrix<double,IndexType>& rA){
-        const auto& data = rA.index1_data();
-        std::vector<IndexType> v(data.begin(), data.end());
-        return v;
-    })
-    .def("index2_data", [](CsrMatrix<double,IndexType>& rA){
-        const auto& data = rA.index2_data();
-        std::vector<IndexType> v(data.begin(), data.end());
-        return v;
-    })
-    .def("value_data", [](CsrMatrix<double,IndexType>& rA){
-        const auto& data = rA.value_data();
-        std::vector<double> v(data.begin(), data.end());
-        return v;
-    })
+    .def("index1_data", [](CsrMatrix<double,IndexType>& self){
+            return py::array_t<IndexType>(
+                self.index1_data().size(),
+                self.index1_data().begin(),
+                py::cast(self) //this is fundamental to avoid copying
+            );
+    }, py::return_value_policy::reference_internal)
+    .def("index2_data", [](CsrMatrix<double,IndexType>& self){
+            return py::array_t<IndexType>(
+                self.index2_data().size(),
+                self.index2_data().begin(),
+                py::cast(self) //this is fundamental to avoid copying
+            );
+    }, py::return_value_policy::reference_internal)
+    .def("value_data", [](CsrMatrix<double,IndexType>& self){
+            return py::array_t<double>(
+                self.value_data().size(),
+                self.value_data().begin(),
+                py::cast(self) //this is fundamental to avoid copying
+            );
+    }, py::return_value_policy::reference_internal)
     .def("__setitem__", [](CsrMatrix<double,IndexType>& self, const std::pair<int,int> index, const  double value)
         {
             const int index_i = index.first;
@@ -121,12 +131,24 @@ void AddSparseMatricesToPython(pybind11::module& m)
             const int index_j = index.second;
             return self(index_i, index_j);
         })        
-    .def("SpMV", [](CsrMatrix<double,IndexType>& rA,SystemVector<double,IndexType>& x, SystemVector<double,IndexType>& y){
+    .def("SpMV", [](const CsrMatrix<double,IndexType>& rA,const SystemVector<double,IndexType>& x, SystemVector<double,IndexType>& y){
         rA.SpMV(x,y);
     })
-    // .def("__matmul__", [](CsrMatrix<double,IndexType>& rA,SystemVector<double,IndexType>& x, SystemVector<double,IndexType>& y){
-    //     rA.SpMV(x,y);
-    // })
+    .def("SpMV", [](const CsrMatrix<double,IndexType>& rA,const Vector& x, Vector& y){
+        rA.SpMV(x,y);
+    })
+    .def("__matmul__", [](const CsrMatrix<double,IndexType>& rA,const SystemVector<double,IndexType>& x){
+        auto py  = std::make_shared<SystemVector<double,IndexType>>(rA.size1());
+        py->SetValue(0.0); 
+        rA.SpMV(x,*py);
+        return py;
+    }, py::is_operator())
+    .def("__matmul__", [](const CsrMatrix<double,IndexType>& rA,const Vector& x){
+        auto py  = std::make_shared<SystemVector<double,IndexType>>(rA.size1());
+        py->SetValue(0.0);
+        rA.SpMV(x,*py);
+        return py;
+    }, py::is_operator())
     .def("TransposeSpMV", [](CsrMatrix<double,IndexType>& rA,SystemVector<double,IndexType>& x, SystemVector<double,IndexType>& y){
         rA.TransposeSpMV(x,y);
     })
@@ -135,6 +157,9 @@ void AddSparseMatricesToPython(pybind11::module& m)
     })
     .def("__matmul__", [](CsrMatrix<double,IndexType>& rA,CsrMatrix<double,IndexType>& rB){
         return AmgclCSRSpMMUtilities::SparseMultiply(rA,rB);
+    }, py::is_operator())
+    .def("Transpose", [](CsrMatrix<double,IndexType>& rA){
+        return AmgclCSRConversionUtilities::Transpose<double,IndexType>(rA);
     })
     .def("BeginAssemble", &CsrMatrix<double,IndexType>::BeginAssemble)
     .def("FinalizeAssemble", &CsrMatrix<double,IndexType>::FinalizeAssemble)
@@ -152,6 +177,8 @@ void AddSparseMatricesToPython(pybind11::module& m)
     .def("AssembleEntry", [](CsrMatrix<double,IndexType>& rA, double value, IndexType I, IndexType J){
         rA.AssembleEntry(value,I,J);
     })
+    .def("ApplyHomogeneousDirichlet", &CsrMatrix<double,IndexType>::ApplyHomogeneousDirichlet<Vector>)
+    .def("ApplyHomogeneousDirichlet", &CsrMatrix<double,IndexType>::ApplyHomogeneousDirichlet<SystemVector<double,IndexType>>)
     .def("__str__", PrintObject<CsrMatrix<double,IndexType>>);
 
 
@@ -163,8 +190,11 @@ void AddSparseMatricesToPython(pybind11::module& m)
     .def(py::init<IndexType, DataCommunicator&>())
     .def(py::init<SparseGraph<IndexType>&>())
     .def(py::init<SparseContiguousRowGraph<IndexType>&>())
-    .def("GetComm", &SystemVector<double,IndexType>::GetComm)
-    .def("pGetComm", &SystemVector<double,IndexType>::pGetComm)
+    .def(py::init<Vector&>())
+    .def("copy", [](const SystemVector<double,IndexType>& self){
+        return Kratos::make_shared<SystemVector<double,IndexType>>(self);
+    })
+    .def("GetComm", &SystemVector<double,IndexType>::GetComm, py::return_value_policy::reference_internal)
     .def("Size", &SystemVector<double,IndexType>::size)
     .def("size", &SystemVector<double,IndexType>::size)
     .def("Clear", &SystemVector<double,IndexType>::Clear)
@@ -175,9 +205,11 @@ void AddSparseMatricesToPython(pybind11::module& m)
     .def("BeginAssemble", &SystemVector<double,IndexType>::BeginAssemble)
     .def("FinalizeAssemble", &SystemVector<double,IndexType>::FinalizeAssemble)
     .def("BeginAssemble", &SystemVector<double,IndexType>::BeginAssemble)
-    .def("data", [](SystemVector<double,IndexType>& self){
+    .def("Data", [](SystemVector<double,IndexType>& self) -> DenseVector<double>&{
        return self.data();
-    })
+    }, py::return_value_policy::reference_internal)
+    .def("SetData", [](SystemVector<double,IndexType>& self, const DenseVector<double>& other_data) { noalias(self.data()) = other_data; })
+    .def("Assign", [](SystemVector<double,IndexType>& self, const SystemVector<double,IndexType>& other_vec){self = other_vec; } )
     .def_buffer([](SystemVector<double,IndexType>& self) -> py::buffer_info {
         return py::buffer_info(
             &(self.data())[0],                               /* Pointer to buffer */
@@ -194,13 +226,29 @@ void AddSparseMatricesToPython(pybind11::module& m)
        self.Assemble(values,indices);
     })
     //inplace
-    .def("__iadd__", [](SystemVector<double,IndexType>& self, const SystemVector<double,IndexType>& other_vec){self += other_vec; }, py::is_operator())
-    .def("__isub__", [](SystemVector<double,IndexType>& self, const SystemVector<double,IndexType>& other_vec){self -= other_vec;  }, py::is_operator())
-    .def("__imul__", [](SystemVector<double,IndexType>& self, const double& value){ self*=value; }, py::is_operator())
-    .def("__itruediv__", [](SystemVector<double,IndexType>& self, const double& value){ self/=value; }, py::is_operator())
+    .def("__mul__", [](const SystemVector<double,IndexType>& self, const double factor) 
+        {auto paux = std::make_shared<SystemVector<double,IndexType>>(self);
+         (*paux) *= factor;
+         return paux;}, py::is_operator())
+    .def("__rmul__", [](const SystemVector<double,IndexType>& self, const double factor) 
+        {auto paux = std::make_shared<SystemVector<double,IndexType>>(self);
+         (*paux) *= factor;
+         return paux;}, py::is_operator())
+    .def("__iadd__", [](SystemVector<double,IndexType>& self, const SystemVector<double,IndexType>& other_vec) -> SystemVector<double,IndexType>& {self += other_vec; return self;}, py::is_operator())
+    .def("__isub__", [](SystemVector<double,IndexType>& self, const SystemVector<double,IndexType>& other_vec) -> SystemVector<double,IndexType>& {self -= other_vec;  return self;}, py::is_operator())
+    .def("__imul__", [](SystemVector<double,IndexType>& self, const double& value) -> SystemVector<double,IndexType>& { self*=value; return self;}, py::is_operator())
+    .def("__itruediv__", [](SystemVector<double,IndexType>& self, const double& value) -> SystemVector<double,IndexType>& { self/=value; return self;}, py::is_operator())
     //out of place
-    //.def("__add__", [](const SystemVector<double,IndexType>& vec1, const SystemVector<double,IndexType>& vec2){SystemVector<double,IndexType> aux(vec1); aux += vec2; return std::move(aux);}, py::is_operator())
-    // .def("__sub__", [](const SystemVector<double,IndexType>& vec1, const SystemVector<double,IndexType>& vec2){SystemVector<double,IndexType> aux(vec1); aux -= vec2; return aux;}, py::is_operator())
+    .def("__add__", [](const SystemVector<double,IndexType>& vec1, const SystemVector<double,IndexType>& vec2){ //implies an internal copy
+            auto paux = std::make_shared<SystemVector<double,IndexType>>(vec1);
+            *paux += vec2;
+            return paux;}
+            , py::is_operator())
+    .def("__sub__", [](const SystemVector<double,IndexType>& vec1, const SystemVector<double,IndexType>& vec2){ //implies an internal copy
+            auto paux = std::make_shared<SystemVector<double,IndexType>>(vec1);
+            *paux -= vec2;
+            return paux;}
+            , py::is_operator())
     //access operators
     .def("__setitem__", [](SystemVector<double,IndexType>& self, const unsigned int i, const double value){self[i] = value;} )
     .def("__getitem__", [](const SystemVector<double,IndexType>& self, const unsigned int i){return self[i];} )

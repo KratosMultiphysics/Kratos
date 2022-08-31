@@ -42,18 +42,20 @@ class DerivativesRecoveryProcess(KM.Process):
             "laplacian"  : "RecoverLaplacian"
         }
 
-        def __init__(self, settings, recovery_tool):
+        def __init__(self, settings, recovery_tool, model_part):
             KM.Process.__init__(self)
             settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
             self.operation = self.__operations[settings["operation"].GetString()]
             self.primitive_variable = KM.KratosGlobals.GetVariable(settings["primitive_variable"].GetString())
             self.derivative_variable = KM.KratosGlobals.GetVariable(settings["derivative_variable"].GetString())
             self.buffer_step = settings["buffer_step"].GetInt()
+            self.process_step = settings["process_step"].GetString()
+            self.model_part = model_part
+            self.differentiation = getattr(recovery_tool, self.operation)
+            setattr(self, self.process_step, self.ExecuteDifferentiation)
 
-            def execute_differenctiation():
-                getattr(recovery_tool, self.operation)(self.primitive_variable, self.derivative_variable, self.buffer_step)
-            self.function = getattr(recovery_tool, self.operation)
-            setattr(self, settings["process_step"].GetString(), execute_differenctiation)
+        def ExecuteDifferentiation(self):
+            self.differentiation(self.model_part, self.primitive_variable, self.derivative_variable, self.buffer_step)
 
         def Check(self):
             if self.operation == "RecoverGradient":
@@ -96,10 +98,11 @@ class DerivativesRecoveryProcess(KM.Process):
 
         self.operations = []
         for operation_settings in self.settings["list_of_operations"]:
-            self.operations.append(self.DifferentialOperator(operation_settings, self.recovery_tool))
+            operation = self.DifferentialOperator(operation_settings, self.recovery_tool, self.model_part)
+            self.operations.append(operation)
 
     def Check(self):
-        self.recovery_tool.Check()
+        self.recovery_tool.Check(self.model_part)
         for operation in self.operations:
             operation.Check()
 

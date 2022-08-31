@@ -110,11 +110,18 @@ void AddDataCommunicatorToPython(pybind11::module &m)
         rSelf.Broadcast(SourceMessage,SourceRank);
         return SourceMessage;
     })
+    .def("Broadcast", [](DataCommunicator& rSelf, const std::string& rSourceMessage, const int SourceRank){
+        rSelf.Broadcast(rSourceMessage, SourceRank);
+        return rSourceMessage;
+    })
     .def("BroadcastInts", [](DataCommunicator& rSelf, const std::vector<int>& rSourceMessage, const int SourceRank) {
         return VectorBroadcastWrapper<int>(rSelf, &DataCommunicator::Broadcast, rSourceMessage, SourceRank);
     })
     .def("BroadcastDoubles", [](DataCommunicator& rSelf, const std::vector<double>& rSourceMessage, const int SourceRank) {
         return VectorBroadcastWrapper<double>(rSelf, &DataCommunicator::Broadcast, rSourceMessage, SourceRank);
+    })
+    .def("BroadcastStrings", [](DataCommunicator& rSelf, const std::vector<std::string>& rSourceMessage, const int SourceRank){
+        return VectorBroadcastWrapper<std::string>(rSelf, &DataCommunicator::Broadcast, rSourceMessage, SourceRank);
     })
     // Scatter
     .def("ScatterInts", (std::vector<int> (DataCommunicator::*)(const std::vector<int>&, const int) const) &DataCommunicator::Scatter)

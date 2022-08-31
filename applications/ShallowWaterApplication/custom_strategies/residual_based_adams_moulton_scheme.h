@@ -22,9 +22,6 @@
 #include "utilities/entities_utilities.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "processes/calculate_nodal_area_process.h"
-#include "processes/find_global_nodal_neighbours_process.h"
-#include "custom_utilities/derivatives_recovery_utility.h"
-#include "custom_utilities/shallow_water_utilities.h"
 
 namespace Kratos
 {
@@ -143,8 +140,6 @@ public:
     {
         BaseType::Initialize(rModelPart);
         CalculateNodalAreaProcess<true>(rModelPart).Execute();
-        FindGlobalNodalNeighboursProcess(rModelPart).Execute();
-        DerivativesRecoveryUtility<2>::CalculatePolynomialWeights(rModelPart);
     }
 
     /**
@@ -172,16 +167,13 @@ public:
         // Prediction of the derivatives
         PredictDerivatives(rModelPart, rDofSet, rA, rDx, rb);
 
-        // Setting to zero the laplacian and the prediction
+        // Recover the laplacian
+        InitializeNonLinIteration(rModelPart, rA, rDx, rb);
+
+        // Setting to zero the the prediction
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
             rNode.FastGetSolutionStepValue(RHS) = ZeroVector(3);
         });
-
-        // Recover the laplacian
-        ShallowWaterUtilities().ComputeLinearizedMomentum(rModelPart);
-        DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, VELOCITY, VELOCITY_LAPLACIAN);
-        DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, MOMENTUM, VELOCITY_H_LAPLACIAN);
-        ApplyLaplacianBoundaryConditions(rModelPart);
 
         // Calculate the prediction
         block_for_each(rModelPart.Elements(), [&](Element& rElement){
@@ -222,9 +214,22 @@ public:
         TSystemVectorType& rb
     ) override
     {
-        ShallowWaterUtilities().ComputeLinearizedMomentum(rModelPart);
-        DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, VELOCITY, VELOCITY_LAPLACIAN);
-        DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, MOMENTUM, VELOCITY_H_LAPLACIAN);
+        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = ZeroVector(3);
+            rNode.FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN) = ZeroVector(3);
+        });
+        block_for_each(rModelPart.Elements(), [&](Element& rElement){
+            rElement.InitializeNonLinearIteration(r_process_info);
+        });
+        block_for_each(rModelPart.Conditions(), [&](Condition& rCondition){
+            rCondition.InitializeNonLinearIteration(r_process_info);
+        });
+        block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+            const double nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
+            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) /= nodal_area;
+            rNode.FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN) /= nodal_area;
+        });
         ApplyLaplacianBoundaryConditions(rModelPart);
     }
 
@@ -668,6 +673,10 @@ private:
         KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.TCalculateRHSContribution");
     }
 
+    /**
+     * @brief This function applies the additional BC required by the dispersive terms
+     * @param rModelPart The computational model part
+     */
     void ApplyLaplacianBoundaryConditions(ModelPart& rModelPart)
     {
         block_for_each(rModelPart.Nodes(), [](NodeType& rNode){

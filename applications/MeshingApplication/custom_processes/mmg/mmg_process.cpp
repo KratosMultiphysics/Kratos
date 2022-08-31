@@ -485,6 +485,11 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
         r_old_auxiliar_model_part.AddElements( r_auxiliar_model_part.ElementsBegin(), r_auxiliar_model_part.ElementsEnd() );
     }
 
+    // Apply local entity parameters if there are any
+    if (mThisParameters["advanced_parameters"]["local_entity_parameters_list"].size() > 0) {
+        ApplyLocalParameters();
+    }
+
     // Calling the library functions
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         mMmgUtilities.MMGLibCallIsoSurface(mThisParameters);
@@ -635,7 +640,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
         interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
         interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
         interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
-        if (TMMGLibrary == MMGLibrary::MMGS) interpolate_parameters["surface_elements"].SetBool(!collapse_prisms_elements);
+        if constexpr (TMMGLibrary == MMGLibrary::MMGS) interpolate_parameters["surface_elements"].SetBool(!collapse_prisms_elements);
         NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_model_part, mrThisModelPart, interpolate_parameters);
         interpolate_nodal_values_process.Execute();
     }
@@ -725,6 +730,50 @@ void MmgProcess<TMMGLibrary>::InitializeElementsAndConditions()
     });
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::ApplyLocalParameters() {
+
+    // Find colors with a unique submodelpart (size == 1)
+    std::unordered_map<std::string, IndexType> string_to_color;
+    for (auto& r_color : mColors) {
+        if (r_color.second.size() == 1)  {
+            string_to_color[r_color.second[0]] = r_color.first;
+        }
+    }
+
+    // Count number of parameters given by the user
+    const auto parameter_array = mThisParameters["advanced_parameters"]["local_entity_parameters_list"];
+    IndexType n_parameters = parameter_array.size();
+    for (auto& parameter_settings : parameter_array) {
+        n_parameters += parameter_settings["model_part_name_list"].size();
+    }
+
+    // Set the number of tags references on which you will impose local parameters
+    mMmgUtilities.SetNumberOfLocalParameters(n_parameters);
+
+    // For each local parameter, set the type of the entity on which the parameter will
+    // apply (triangle or tetra), the reference of these entities and the hmin, hmax and
+    // hausdorff values to apply
+    for (auto parameter_settings : parameter_array) {
+        for (auto model_part_name_object : parameter_settings["model_part_name_list"])
+        {
+            KRATOS_ERROR_IF_NOT(parameter_settings.Has("hmin")) << "hmin is missing in the local entity parameters list";
+            const double hmin = parameter_settings["hmin"].GetDouble();
+            KRATOS_ERROR_IF_NOT(parameter_settings.Has("hmax")) << "hmax is missing in the local entity parameters list";
+            const double hmax = parameter_settings["hmax"].GetDouble();
+            KRATOS_ERROR_IF_NOT(parameter_settings.Has("hausdorff_value")) << "hausdorff is missing in the local entity parameters list";
+            const double hausdorff = parameter_settings["hausdorff_value"].GetDouble();
+            const auto model_part_name = model_part_name_object.GetString();
+            KRATOS_ERROR_IF(string_to_color.find(model_part_name) == string_to_color.end()) << "model_part_name " << model_part_name << " is not found in the colors list";
+            const IndexType color = string_to_color[model_part_name];
+            mMmgUtilities.SetLocalParameter(color, hmin, hmax, hausdorff);
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -1052,7 +1101,7 @@ void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
         } else {
             std::vector<IndexType> aux_cond_id(1);
             aux_cond_id[0] = r_cond.Id();
-            faces_map.insert( HashMapType::value_type(std::pair<DenseVector<IndexType>, std::vector<IndexType>>({ids, aux_cond_id})) );
+            faces_map.insert({ids, aux_cond_id});
         }
     }
 
@@ -1314,9 +1363,12 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
             "no_swap_mesh"                        : false,
             "normal_regularization_mesh"          : false,
             "deactivate_detect_angle"             : false,
+            "force_angle_detection_value"         : false,
+            "angle_detection_value"               : 45.0,
             "force_gradation_value"               : false,
             "mesh_optimization_only"              : false,
-            "gradation_value"                     : 1.3
+            "gradation_value"                     : 1.3,
+            "local_entity_parameters_list"        : []
         },
         "collapse_prisms_elements"             : false,
         "save_external_files"                  : false,

@@ -1,7 +1,3 @@
-from KratosMultiphysics.RomApplication.element_selection_strategy import ElementSelectionStrategy
-from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
-import KratosMultiphysics
-
 import numpy as np
 import json
 
@@ -12,7 +8,7 @@ except ImportError as e:
     missing_matplotlib = True
 
 
-class EmpiricalCubatureMethod(ElementSelectionStrategy):
+class EmpiricalCubatureMethod():
     """
     This class selects a subset of elements and corresponding positive weights necessary for the construction of a hyper-reduced order model
     Reference: Hernandez 2020. "A multiscale method for periodic structures using domain decomposition and ECM-hyperreduction"
@@ -22,56 +18,34 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
     """
     Constructor setting up the parameters for the Element Selection Strategy
         ECM_tolerance: approximation tolerance for the element selection algorithm
-        SVD_tolerance: approximation tolerance for the singular value decomposition of the ResidualSnapshots matrix
         Filter_tolerance: parameter limiting the number of candidate points (elements) to those above this tolerance
-        Take_into_account_singular_values: whether to multiply the matrix of singular values by the matrix of left singular vectors. If false, convergence is easier
         Plotting: whether to plot the error evolution of the element selection algorithm
     """
-    def __init__(self, ECM_tolerance = 1e-6, SVD_tolerance = 1e-6, Filter_tolerance = 1e-16, Take_into_account_singular_values = False, Plotting = False):
-        super().__init__()
+    def __init__(self, ECM_tolerance = 0, Filter_tolerance = 1e-16, Plotting = False):
         self.ECM_tolerance = ECM_tolerance
-        self.SVD_tolerance = SVD_tolerance
         self.Filter_tolerance = Filter_tolerance
         self.Name = "EmpiricalCubature"
-        self.Take_into_account_singular_values = Take_into_account_singular_values
         self.Plotting = Plotting
 
 
 
     """
     Method for setting up the element selection
-    input:  ResidualSnapshots: numpy array containing the matrix of residuals projected onto a basis
-            OriginalNumberOfElements: number of elements in the original model part. Necessary for the construction of the hyperreduced mdpa
-            ModelPartName: name of the original model part. Necessary for the construction of the hyperreduced mdpa
+    input:  ResidualsBasis: numpy array containing a basis to the residuals projected
     """
-    def SetUp(self, ResidualSnapshots, OriginalNumberOfElements, ModelPartName):
-        super().SetUp()
-        self.ModelPartName = ModelPartName
-        self.OriginalNumberOfElements = OriginalNumberOfElements
-        u , s  = self._ObtainBasis(ResidualSnapshots)
+    def SetUp(self, ResidualsBasis, constrain_sum_of_weights=True):
 
-        self.W = np.ones(np.shape(u)[0])
-        if self.Take_into_account_singular_values == True:
-            G = u*s
-            G = G.T
-            G = np.vstack([ G , np.ones( np.shape(G)[1] )]  )
-            b = G @ self.W
-            bEXACT = b
-        else:
-            G = u.T
-            b = G @ self.W
-            bEXACT = b * s
-            self.SingularValues = s
+        self.W = np.ones(np.shape(ResidualsBasis)[0])
+        self.G = ResidualsBasis.T
+        if constrain_sum_of_weights:
+            self.G = np.vstack([ self.G , np.ones( np.shape(self.G)[1] )]  )
+        self.b = self.G @ self.W
 
-        self.b = b
-        self.G = G
-        self.ExactNorm = np.linalg.norm(bEXACT)
 
     """
     Method performing calculations required before launching the Calculate method
     """
     def Initialize(self):
-        super().Initialize()
         self.Gnorm = np.sqrt(sum(np.multiply(self.G, self.G), 0))
         M = np.shape(self.G)[1]
         normB = np.linalg.norm(self.b)
@@ -89,12 +63,15 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         self.nerrorACTUAL = self.nerror
 
 
+    def Run(self):
+        self.Initialize()
+        self.Calculate()
+
 
     """
     Method launching the element selection algorithm to find a set of elements: self.z, and wiegths: self.w
     """
     def Calculate(self):
-        super().Calculate()
 
         k = 1 # number of iterations
         while self.nerrorACTUAL > self.ECM_tolerance and self.mPOS < self.m and len(self.y) != 0:
@@ -134,12 +111,6 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
                 Aux = self.G[:,self.z] @ alpha
                 self.r = np.squeeze(self.b - Aux.T)
             self.nerror = np.linalg.norm(self.r) / np.linalg.norm(self.b)  # Relative error (using r and b)
-
-            if self.Take_into_account_singular_values == False:
-                self.nerrorACTUAL = self.SingularValues * self.r
-                self.nerrorACTUAL = np.linalg.norm(self.nerrorACTUAL / self.ExactNorm )
-
-
             self.nerrorACTUAL = self.nerror
 
             # STEP 7
@@ -214,116 +185,6 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
 
 
 
-    """
-    Method calculating the singular value decomposition of the ResidualSnapshots matrix
-    input:  ResidualSnapshots: numpy array containing a matrix of residuals projected onto a basis
-    output: u: numpy array containing the matrix of left singular vectors
-            s: numpy array containing the matrix of singular values
-    """
-    def _ObtainBasis(self,ResidualSnapshots):
-        ### Building the Snapshot matrix ####
-        for i in range (len(ResidualSnapshots)):
-            if i == 0:
-                SnapshotMatrix = ResidualSnapshots[i]
-            else:
-                SnapshotMatrix = np.c_[SnapshotMatrix,ResidualSnapshots[i]]
-        ### Taking the SVD ###  (randomized and truncated here)
-        u,s,_,_ = RandomizedSingularValueDecomposition().Calculate(SnapshotMatrix, self.SVD_tolerance)
-        return u, s
 
 
 
-    """
-    Method to write a json file containing the selected elements and corresponding weights
-    """
-    def WriteSelectedElements(self):
-        w = np.squeeze(self.w)
-        ### Saving Elements and conditions
-        ElementsAndWeights = {}
-        ElementsAndWeights["Elements"] = {}
-        ElementsAndWeights["Conditions"] = {}
-        #Only one element found !
-        if type(self.z)==np.int64 or type(self.z)==np.int32:
-            if self.z <= self.OriginalNumberOfElements-1:
-                ElementsAndWeights["Elements"][int(self.z)] = (float(w))
-            else:
-                ElementsAndWeights["Conditions"][int(self.z)-self.OriginalNumberOfElements] = (float(w))
-        #Many elements found
-        else:
-            for j in range (0,len(self.z)):
-                if self.z[j] <= self.OriginalNumberOfElements-1:
-                    ElementsAndWeights["Elements"][int(self.z[j])] = (float(w[j]))
-                else:
-                    ElementsAndWeights["Conditions"][int(self.z[j])-self.OriginalNumberOfElements] = (float(w[j]))
-
-        with open('ElementsAndWeights.json', 'w') as f:
-            json.dump(ElementsAndWeights,f, indent=2)
-        print('\n\n Elements and conditions selected have been saved in a json file\n\n')
-        self._CreateHyperReducedModelPart()
-
-
-
-    """
-    Method to create an mdpa file containing the selected elements and the skin
-    """
-    def _CreateHyperReducedModelPart(self):
-        current_model = KratosMultiphysics.Model()
-        computing_model_part = current_model.CreateModelPart("main")
-        model_part_io = KratosMultiphysics.ModelPartIO(self.ModelPartName)
-        model_part_io.ReadModelPart(computing_model_part)
-        hyper_reduced_model_part_help =   current_model.CreateModelPart("Helping")
-
-        with open('ElementsAndWeights.json') as f:
-            HR_data = json.load(f)
-            for key in HR_data["Elements"].keys():
-                for node in computing_model_part.GetElement(int(key)+1).GetNodes():
-                    hyper_reduced_model_part_help.AddNode(node,0)
-            for key in HR_data["Conditions"].keys():
-                for node in computing_model_part.GetCondition(int(key)+1).GetNodes():
-                    hyper_reduced_model_part_help.AddNode(node,0)
-
-        # The HROM model part. It will include two sub-model parts. One for caculation, another one for visualization
-        HROM_Model_Part =  current_model.CreateModelPart("HROM_Model_Part")
-
-        # Building the COMPUTE_HROM submodel part
-        hyper_reduced_model_part = HROM_Model_Part.CreateSubModelPart("COMPUTE_HROM")
-
-        # TODO implement the hyper-reduced model part creation in C++
-        with open('ElementsAndWeights.json') as f:
-            HR_data = json.load(f)
-            for originalSubmodelpart in computing_model_part.SubModelParts:
-                hyperReducedSubmodelpart = hyper_reduced_model_part.CreateSubModelPart(originalSubmodelpart.Name)
-                print(f'originalSubmodelpart.Name {originalSubmodelpart.Name}')
-                print(f'originalSubmodelpart.Elements {len(originalSubmodelpart.Elements)}')
-                print(f'originalSubmodelpart.Conditions {len(originalSubmodelpart.Conditions)}')
-                for originalNode in originalSubmodelpart.Nodes:
-                    if originalNode in hyper_reduced_model_part_help.Nodes:
-                        hyperReducedSubmodelpart.AddNode(originalNode,0)
-                ## More eficient way to implement this is possible
-                for originalElement in originalSubmodelpart.Elements:
-                    for key in HR_data["Elements"].keys():
-                        if originalElement.Id == int(key)+1:
-                            hyperReducedSubmodelpart.AddElement(originalElement,0)
-                            print(f'For the submodelpart {hyperReducedSubmodelpart.Name}, the element with the Id {originalElement.Id} is assigned the key {key}')
-                for originalCondition in originalSubmodelpart.Conditions:
-                    for key in HR_data["Conditions"].keys():
-                        if originalCondition.Id == int(key)+1:
-                            hyperReducedSubmodelpart.AddCondition(originalCondition,0)
-                            print(f'For the submodelpart {hyperReducedSubmodelpart.Name}, the condition with the Id {originalCondition.Id} is assigned the key {key}')
-
-
-        # Building the VISUALIZE_HROM submodel part
-        print('Adding skin for visualization...')
-        hyper_reduced_model_part2 = HROM_Model_Part.CreateSubModelPart("VISUALIZE_HROM")
-        for condition in computing_model_part.Conditions:
-            for node in condition.GetNodes():
-                hyper_reduced_model_part2.AddNode(node, 0)
-            hyper_reduced_model_part2.AddCondition(condition, 0)
-        for node in computing_model_part.Nodes:
-            hyper_reduced_model_part2.AddNode(node, 0)
-
-        ## Creating the mdpa file using ModelPartIO object
-        print('About to print ...')
-        KratosMultiphysics.ModelPartIO("Hyper_Reduced_Model_Part", KratosMultiphysics.IO.WRITE| KratosMultiphysics.IO.MESH_ONLY ).WriteModelPart(HROM_Model_Part)
-        print('\nHyper_Reduced_Model_Part.mdpa created!\n')
-        KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("Hyper_Reduced_Model_Part.time")

@@ -420,7 +420,7 @@ public:
    * Returns the currently selected integration method
    * @return current integration method selected
    */
-  IntegrationMethod GetIntegrationMethod() override;
+  IntegrationMethod GetIntegrationMethod() const override;
 
   /**
    * Sets on rConditionalDofList the degrees of freedom of the considered element geometry

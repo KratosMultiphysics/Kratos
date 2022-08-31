@@ -16,7 +16,6 @@
 #include <chrono>
 
 // External includes
-#include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
 
 // Project includes
 #include "includes/kratos_filesystem.h"
@@ -26,59 +25,59 @@ namespace filesystem {
 
 bool exists(const std::string& rPath)
 {
-    return ghc::filesystem::exists(rPath);
+    return std::filesystem::exists(rPath);
 }
 
 
 bool is_regular_file(const std::string& rPath)
 {
-    return ghc::filesystem::is_regular_file(rPath);
+    return std::filesystem::is_regular_file(rPath);
 }
 
 
 bool is_directory(const std::string& rPath)
 {
-    return ghc::filesystem::is_directory(rPath);
+    return std::filesystem::is_directory(rPath);
 }
 
 
 bool create_directory(const std::string& rPath)
 {
-    return ghc::filesystem::create_directory(rPath);
+    return std::filesystem::create_directory(rPath);
 }
 
 
 bool create_directories(const std::string& rPath)
 {
-    return ghc::filesystem::create_directories(rPath);
+    return std::filesystem::create_directories(rPath);
 }
 
 
 bool remove(const std::string& rPath)
 {
-    return ghc::filesystem::remove(rPath);
+    return std::filesystem::remove(rPath);
 }
 
 
 std::uintmax_t remove_all(const std::string& rPath)
 {
-    return ghc::filesystem::remove_all(rPath);
+    return std::filesystem::remove_all(rPath);
 }
 
 
 void rename(const std::string& rPathFrom, const std::string& rPathTo)
 {
-    return ghc::filesystem::rename(rPathFrom, rPathTo);
+    return std::filesystem::rename(rPathFrom, rPathTo);
 }
 
 std::string parent_path(const std::string& rPath)
 {
-    return ghc::filesystem::path(rPath).parent_path().string();
+    return std::filesystem::path(rPath).parent_path().string();
 }
 
 std::string filename(const std::string& rPath)
 {
-    return ghc::filesystem::path(rPath).filename().string();
+    return std::filesystem::path(rPath).filename().string();
 }
 
 } // namespace filesystem
@@ -88,7 +87,7 @@ namespace FilesystemExtensions {
 
 std::string CurrentWorkingDirectory()
 {
-    return ghc::filesystem::current_path().string();
+    return std::filesystem::current_path().string();
 }
 
 std::string JoinPaths(const std::vector<std::string>& rPaths)
@@ -117,7 +116,7 @@ std::string JoinPaths(const std::vector<std::string>& rPaths)
 std::vector<std::string> ListDirectory(const std::string& rPath)
 {
     std::vector<std::string> result;
-    for (const auto& current_directory : ghc::filesystem::directory_iterator(rPath)) {
+    for (const auto& current_directory : std::filesystem::directory_iterator(rPath)) {
         result.push_back(current_directory.path().string());
     }
     return result;
@@ -125,10 +124,10 @@ std::vector<std::string> ListDirectory(const std::string& rPath)
 
 void MPISafeCreateDirectories(const std::string& rPath)
 {
-    if (!ghc::filesystem::exists(rPath)) {
-        ghc::filesystem::create_directories(rPath);
+    if (!std::filesystem::exists(rPath)) {
+        std::filesystem::create_directories(rPath);
     }
-    if (!ghc::filesystem::exists(rPath)) { // wait for the path to appear in the filesystem
+    if (!std::filesystem::exists(rPath)) { // wait for the path to appear in the filesystem
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }

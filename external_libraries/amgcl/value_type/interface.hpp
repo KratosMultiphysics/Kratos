@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -45,6 +45,12 @@ struct scalar_of {
 /// RHS type corresponding to a non-scalar type.
 template <class T, class Enable = void>
 struct rhs_of {
+    typedef T type;
+};
+
+/// Element type of a non-scalar type
+template <class T, class Enable = void>
+struct element_of {
     typedef T type;
 };
 

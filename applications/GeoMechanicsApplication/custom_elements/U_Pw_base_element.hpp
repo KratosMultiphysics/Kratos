@@ -118,6 +118,23 @@ public:
                                       std::vector<ConstitutiveLaw::Pointer>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo ) override;
 
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+
     void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
                                       const std::vector<double>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
@@ -170,19 +187,19 @@ protected:
                                const bool CalculateResidualVectorFlag);
 
     virtual double CalculateIntegrationCoefficient( const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                                    const IndexType& PointNumber,
-                                                    const double& detJ);
+                                                    unsigned int PointNumber,
+                                                    double detJ);
 
     void CalculateDerivativesOnInitialConfiguration(double& detJ,
                                                     Matrix& J0,
                                                     Matrix& InvJ0,
                                                     Matrix& DN_DX,
-                                                    const IndexType& PointNumber) const;
+                                                    unsigned int PointNumber) const;
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ,
                                                  Matrix& rJ,
                                                  Matrix& rInvJ,
-                                                 const IndexType& GPoint) const;
+                                                 unsigned int GPoint) const;
 
     /**
      * @brief This functions calculate the derivatives in the reference frame
@@ -197,7 +214,7 @@ protected:
                                                  Matrix& J0,
                                                  Matrix& InvJ0,
                                                  Matrix& DN_DX,
-                                                 const IndexType &PointNumber) const;
+                                                 unsigned int PointNumber) const;
 
     /**
      * @brief This functions calculate the derivatives in the current frame

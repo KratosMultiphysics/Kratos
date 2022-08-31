@@ -403,10 +403,10 @@ By default, each _SolverWrapper_ makes use of all ranks in MPI. This can be chan
 
 The base _SolverWrapper_ provides the `_GetDataCommunicator` funciton for this purpose. In the baseclass, the default _DataCommunicator_ (which contains all ranks in MPI) is returned. The _SolverWrapper_ will be instantiated on all the ranks on which this _DataCommunicator_ is defined (i.e. on the ranks where `data_communicator.IsDefinedOnThisRank() == True`).
 
-If a solver does not support MPI-parallelism then it can only run on one rank. In such cases it should return a _DataCommunicator_ which contains only one rank. For this purpose the function `KratosMultiphysics.CoSimulationApplication.utilities.data_communicator_utilities.GetRankZeroDataCommunicator` cam be used. Other custom solutions are also possible, see for example the [structural_solver_wrapper](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/CoSimulationApplication/python_scripts/solver_wrappers/kratos/structural_mechanics_wrapper.py).
+If a solver does not support MPI-parallelism then it can only run on one rank. In such cases it should return a _DataCommunicator_ which contains only one rank. For this purpose the function `KratosMultiphysics.CoSimulationApplication.utilities.data_communicator_utilities.GetRankZeroDataCommunicator` can be used. Other custom solutions are also possible, see for example the [structural_solver_wrapper](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/CoSimulationApplication/python_scripts/solver_wrappers/kratos/structural_mechanics_wrapper.py).
 
 
 ## References
 
 - [1] Wall, Wolfgang A., _Fluid structure interaction with stabilized finite elements_, PhD Thesis, University of Stuttgart, 1999, http://dx.doi.org/10.18419/opus-127
-- [2] Bucher et al., _Realizing CoSimulation in and with a multiphysics framework_, conference proceedings, IX International Conference on Computational Methods for Coupled Problems in Science and Engineering, 2021, under review
+- [2] Bucher et al., _Realizing CoSimulation in and with a multiphysics framework_, conference proceedings, IX International Conference on Computational Methods for Coupled Problems in Science and Engineering, 2021, https://www.scipedia.com/public/Bucher_et_al_2021a

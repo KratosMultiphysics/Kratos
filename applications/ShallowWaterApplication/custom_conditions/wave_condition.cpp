@@ -27,6 +27,19 @@ namespace Kratos
 {
 
 template<std::size_t TNumNodes>
+const Parameters WaveCondition<TNumNodes>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "required_variables"         : ["VELOCITY","HEIGHT","FREE_SURFACE_ELEVATION","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY"],
+        "required_dofs"              : ["VELOCITY_X","VELOCITY_Y","HEIGHT"],
+        "compatible_geometries"      : ["Line2D2"],
+        "element_integrates_in_time" : false
+    })");
+    return specifications;
+}
+
+
+template<std::size_t TNumNodes>
 int WaveCondition<TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
@@ -145,7 +158,7 @@ void WaveCondition<TNumNodes>::Calculate(
 {
     if (rVariable == FORCE)
     {
-        rOutput = ZeroVector();
+        rOutput = ZeroVector(3);
         const double gravity = rCurrentProcessInfo[GRAVITY_Z];
         const double density = this->GetProperties()[DENSITY];
         const auto& r_geometry = this->GetGeometry();

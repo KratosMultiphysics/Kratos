@@ -230,7 +230,7 @@ public:
                 const array_1d<double, 3>& r_normal = rGeometry[i_node].FastGetSolutionStepValue(NORMAL);
                 array_1d<double, 3> tangent_xi, tangent_eta;
                 MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
-                if (TDim == 3) {
+                if constexpr (TDim == 3) {
                     for (std::size_t i_dof = 0; i_dof < 3; ++i_dof)
                         tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
                 } else  {

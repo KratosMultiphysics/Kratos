@@ -174,6 +174,16 @@ public:
     void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
+    ///@name Inquiry
+    ///@{
+
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -205,7 +215,8 @@ protected:
         const Vector& rWeights);
 
     void AddAuxiliaryLaplacian(
-        LocalMatrixType& rLaplacian,
+        LocalMatrixType& rVelocityLaplacian,
+        LocalMatrixType& rMomentumLaplacian,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
@@ -220,6 +231,20 @@ protected:
     void UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
 
     double StabilizationParameter(const ElementData& rData) const override;
+
+    void CalculateArtificialViscosity(
+        BoundedMatrix<double,3,3>& rViscosity,
+        BoundedMatrix<double,2,2>& rDiffusion,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX) override;
+
+    void AlgebraicResidual(
+        double& rMassResidual,
+        array_1d<double,2>& rFreeSurfaceGradient,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX) const;
 
     void AddDispersiveTerms(
         LocalVectorType& rVector,

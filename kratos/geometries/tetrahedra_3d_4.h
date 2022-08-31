@@ -24,7 +24,6 @@
 // Project includes
 #include "geometries/triangle_3d_3.h"
 #include "integration/tetrahedron_gauss_legendre_integration_points.h"
-
 #include "geometries/plane.h"
 
 namespace Kratos
@@ -184,18 +183,6 @@ public:
     /**
      * Life Cycle
      */
-
-//     Tetrahedra3D4( const PointType& Point1, const PointType& Point2,
-//                    const PointType& Point3, const PointType& Point4 )
-//         : BaseType(PointsArrayType(), &msGeometryData)
-//     {
-//         this->Points().reserve(4);
-//         this->Points().push_back(typename PointType::Pointer(new PointType(Point1)));
-//         this->Points().push_back(typename PointType::Pointer(new PointType(Point2)));
-//         this->Points().push_back(typename PointType::Pointer(new PointType(Point3)));
-//         this->Points().push_back(typename PointType::Pointer(new PointType(Point4)));
-//     }
-
     Tetrahedra3D4( typename PointType::Pointer pPoint1,
                    typename PointType::Pointer pPoint2,
                    typename PointType::Pointer pPoint3,
@@ -212,8 +199,7 @@ public:
     explicit Tetrahedra3D4( const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
-        if( this->PointsNumber() != 4)
-            KRATOS_ERROR << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
+        KRATOS_ERROR_IF( this->PointsNumber() != 4 ) << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
     }
 
     /// Constructor with Geometry Id
@@ -222,7 +208,7 @@ public:
         const PointsArrayType& rThisPoints
     ) : BaseType(GeometryId, rThisPoints, &msGeometryData)
     {
-        KRATOS_ERROR_IF( this->PointsNumber() != 4 ) << "Invalid points number. Expected 2, given " << this->PointsNumber() << std::endl;
+        KRATOS_ERROR_IF( this->PointsNumber() != 4 ) << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
     }
 
     /// Constructor with Geometry Name
@@ -231,7 +217,7 @@ public:
         const PointsArrayType& rThisPoints
     ) : BaseType( rGeometryName, rThisPoints, &msGeometryData )
     {
-        KRATOS_ERROR_IF(this->PointsNumber() != 4) << "Invalid points number. Expected 2, given " << this->PointsNumber() << std::endl;
+        KRATOS_ERROR_IF(this->PointsNumber() != 4) << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -454,7 +440,7 @@ public:
      * :TODO: might be necessary to reimplement
      */
     double Volume() const override {
-        //closed formula for the linear triangle
+        //Closed formula for the linear tetrahedra
         const double onesixth = 1.0/6.0;
 
         const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
@@ -462,20 +448,20 @@ public:
         const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
         const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
 
-        double x10 = rP1[0] - rP0[0];
-        double y10 = rP1[1] - rP0[1];
-        double z10 = rP1[2] - rP0[2];
+        const double x10 = rP1[0] - rP0[0];
+        const double y10 = rP1[1] - rP0[1];
+        const double z10 = rP1[2] - rP0[2];
 
-        double x20 = rP2[0] - rP0[0];
-        double y20 = rP2[1] - rP0[1];
-        double z20 = rP2[2] - rP0[2];
+        const double x20 = rP2[0] - rP0[0];
+        const double y20 = rP2[1] - rP0[1];
+        const double z20 = rP2[2] - rP0[2];
 
-        double x30 = rP3[0] - rP0[0];
-        double y30 = rP3[1] - rP0[1];
-        double z30 = rP3[2] - rP0[2];
+        const double x30 = rP3[0] - rP0[0];
+        const double y30 = rP3[1] - rP0[1];
+        const double z30 = rP3[2] - rP0[2];
 
-        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
-        return  detJ*onesixth;
+        const double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+        return detJ*onesixth;
     }
 
     double DomainSize() const override {
@@ -490,19 +476,19 @@ public:
      * @see AverageEdgeLength()
      */
     double MinEdgeLength() const override {
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
-      auto d = this->GetPoint(3) - this->GetPoint(0);
-      auto e = this->GetPoint(3) - this->GetPoint(1);
-      auto f = this->GetPoint(3) - this->GetPoint(2);
+      const auto a = this->GetPoint(0) - this->GetPoint(1);
+      const auto b = this->GetPoint(1) - this->GetPoint(2);
+      const auto c = this->GetPoint(2) - this->GetPoint(0);
+      const auto d = this->GetPoint(3) - this->GetPoint(0);
+      const auto e = this->GetPoint(3) - this->GetPoint(1);
+      const auto f = this->GetPoint(3) - this->GetPoint(2);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
-      double sd = (d[0]*d[0])+(d[1]*d[1])+(d[2]*d[2]);
-      double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
-      double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
+      const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+      const double sd = (d[0]*d[0])+(d[1]*d[1])+(d[2]*d[2]);
+      const double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
+      const double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
 
       return CalculateMinEdgeLength(sa, sb, sc, sd, se, sf);
     }
@@ -516,19 +502,19 @@ public:
      * @see AverageEdgeLength()
      */
     double MaxEdgeLength() const override {
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
-      auto d = this->GetPoint(3) - this->GetPoint(0);
-      auto e = this->GetPoint(3) - this->GetPoint(1);
-      auto f = this->GetPoint(3) - this->GetPoint(2);
+      const auto a = this->GetPoint(0) - this->GetPoint(1);
+      const auto b = this->GetPoint(1) - this->GetPoint(2);
+      const auto c = this->GetPoint(2) - this->GetPoint(0);
+      const auto d = this->GetPoint(3) - this->GetPoint(0);
+      const auto e = this->GetPoint(3) - this->GetPoint(1);
+      const auto f = this->GetPoint(3) - this->GetPoint(2);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
-      double sd = (d[0]*d[0])+(d[1]*d[1])+(d[2]*d[2]);
-      double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
-      double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
+      const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+      const double sd = (d[0]*d[0])+(d[1]*d[1])+(d[2]*d[2]);
+      const double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
+      const double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
 
       return CalculateMaxEdgeLength(sa, sb, sc, sd, se, sf);
     }
@@ -565,31 +551,31 @@ public:
       const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
       const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
 
-      double aDot = rP0[0] * rP0[0] + rP0[1] * rP0[1] + rP0[2] * rP0[2];
-      double bDot = rP1[0] * rP1[0] + rP1[1] * rP1[1] + rP1[2] * rP1[2];
-      double cDot = rP2[0] * rP2[0] + rP2[1] * rP2[1] + rP2[2] * rP2[2];
-      double dDot = rP3[0] * rP3[0] + rP3[1] * rP3[1] + rP3[2] * rP3[2];
+      const double aDot = rP0[0] * rP0[0] + rP0[1] * rP0[1] + rP0[2] * rP0[2];
+      const double bDot = rP1[0] * rP1[0] + rP1[1] * rP1[1] + rP1[2] * rP1[2];
+      const double cDot = rP2[0] * rP2[0] + rP2[1] * rP2[1] + rP2[2] * rP2[2];
+      const double dDot = rP3[0] * rP3[0] + rP3[1] * rP3[1] + rP3[2] * rP3[2];
 
       // Build the simplified matrices
-      double s10 = aDot - dDot;
-      double x10 = rP0[0] - rP3[0];
-      double y10 = rP0[1] - rP3[1];
-      double z10 = rP0[2] - rP3[2];
+      const double s10 = aDot - dDot;
+      const double x10 = rP0[0] - rP3[0];
+      const double y10 = rP0[1] - rP3[1];
+      const double z10 = rP0[2] - rP3[2];
 
-      double s20 = bDot - dDot;
-      double x20 = rP1[0] - rP3[0];
-      double y20 = rP1[1] - rP3[1];
-      double z20 = rP1[2] - rP3[2];
+      const double s20 = bDot - dDot;
+      const double x20 = rP1[0] - rP3[0];
+      const double y20 = rP1[1] - rP3[1];
+      const double z20 = rP1[2] - rP3[2];
 
-      double s30 = cDot - dDot;
-      double x30 = rP2[0] - rP3[0];
-      double y30 = rP2[1] - rP3[1];
-      double z30 = rP2[2] - rP3[2];
+      const double s30 = cDot - dDot;
+      const double x30 = rP2[0] - rP3[0];
+      const double y30 = rP2[1] - rP3[1];
+      const double z30 = rP2[2] - rP3[2];
 
-      double detJMX = s10 * y20 * z30 + y10 * z20 * s30 + z10 * s20 * y30 - s30 * y20 * z10 - y30 * z20 * s10 - z30 * s20 * y10;
-      double detJMY = s10 * x20 * z30 + x10 * z20 * s30 + z10 * s20 * x30 - s30 * x20 * z10 - x30 * z20 * s10 - z30 * s20 * x10;
-      double detJMZ = s10 * x20 * y30 + x10 * y20 * s30 + y10 * s20 * x30 - s30 * x20 * y10 - x30 * y20 * s10 - y30 * s20 * x10;
-      double detJAL = x10 * y20 * z30 + y10 * z20 * x30 + z10 * x20 * y30 - x30 * y20 * z10 - y30 * z20 * x10 - z30 * x20 * y10;
+      const double detJMX = s10 * y20 * z30 + y10 * z20 * s30 + z10 * s20 * y30 - s30 * y20 * z10 - y30 * z20 * s10 - z30 * s20 * y10;
+      const double detJMY = s10 * x20 * z30 + x10 * z20 * s30 + z10 * s20 * x30 - s30 * x20 * z10 - x30 * z20 * s10 - z30 * s20 * x10;
+      const double detJMZ = s10 * x20 * y30 + x10 * y20 * s30 + y10 * s20 * x30 - s30 * x20 * y10 - x30 * y20 * s10 - y30 * s20 * x10;
+      const double detJAL = x10 * y20 * z30 + y10 * z20 * x30 + z10 * x20 * y30 - x30 * y20 * z10 - y30 * z20 * x10 - z30 * x20 * y10;
 
       return std::sqrt( (detJMX*detJMX + detJMY*detJMY + detJMZ*detJMZ)) / (2*std::abs(detJAL));
     }
@@ -616,25 +602,25 @@ public:
       MathUtils<double>::CrossProduct(c023, rP3-rP0, rP2-rP0);
       MathUtils<double>::CrossProduct(c123, rP3-rP1, rP2-rP1);
 
-      double n012 = std::sqrt(c012[0]*c012[0] + c012[1]*c012[1] + c012[2]*c012[2]);
-      double n013 = std::sqrt(c013[0]*c013[0] + c013[1]*c013[1] + c013[2]*c013[2]);
-      double n023 = std::sqrt(c023[0]*c023[0] + c023[1]*c023[1] + c023[2]*c023[2]);
-      double n123 = std::sqrt(c123[0]*c123[0] + c123[1]*c123[1] + c123[2]*c123[2]);
+      const double n012 = std::sqrt(c012[0]*c012[0] + c012[1]*c012[1] + c012[2]*c012[2]);
+      const double n013 = std::sqrt(c013[0]*c013[0] + c013[1]*c013[1] + c013[2]*c013[2]);
+      const double n023 = std::sqrt(c023[0]*c023[0] + c023[1]*c023[1] + c023[2]*c023[2]);
+      const double n123 = std::sqrt(c123[0]*c123[0] + c123[1]*c123[1] + c123[2]*c123[2]);
 
       // Build the simplified matrices
-      double x10 = rP0[0] - rP3[0];
-      double y10 = rP0[1] - rP3[1];
-      double z10 = rP0[2] - rP3[2];
+      const double x10 = rP0[0] - rP3[0];
+      const double y10 = rP0[1] - rP3[1];
+      const double z10 = rP0[2] - rP3[2];
 
-      double x20 = rP1[0] - rP3[0];
-      double y20 = rP1[1] - rP3[1];
-      double z20 = rP1[2] - rP3[2];
+      const double x20 = rP1[0] - rP3[0];
+      const double y20 = rP1[1] - rP3[1];
+      const double z20 = rP1[2] - rP3[2];
 
-      double x30 = rP2[0] - rP3[0];
-      double y30 = rP2[1] - rP3[1];
-      double z30 = rP2[2] - rP3[2];
+      const double x30 = rP2[0] - rP3[0];
+      const double y30 = rP2[1] - rP3[1];
+      const double z30 = rP2[2] - rP3[2];
 
-      double detJAL = x10 * y20 * z30 + y10 * z20 * x30 + z10 * x20 * y30 - x30 * y20 * z10 - y30 * z20 * x10 - z30 * x20 * y10;
+      const double detJAL = x10 * y20 * z30 + y10 * z20 * x30 + z10 * x20 * y30 - x30 * y20 * z10 - y30 * z20 * x10 - z30 * x20 * y10;
 
       return std::abs(detJAL) / (n012 + n013 + n023 + n123);
     }
@@ -670,19 +656,19 @@ public:
     double InradiusToLongestEdgeQuality() const override {
       constexpr double normFactor = 4.89897982161;
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
-      auto d = this->GetPoint(3) - this->GetPoint(0);
-      auto e = this->GetPoint(3) - this->GetPoint(1);
-      auto f = this->GetPoint(3) - this->GetPoint(2);
+      const auto a = this->GetPoint(0) - this->GetPoint(1);
+      const auto b = this->GetPoint(1) - this->GetPoint(2);
+      const auto c = this->GetPoint(2) - this->GetPoint(0);
+      const auto d = this->GetPoint(3) - this->GetPoint(0);
+      const auto e = this->GetPoint(3) - this->GetPoint(1);
+      const auto f = this->GetPoint(3) - this->GetPoint(2);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
-      double sd = (d[0]*d[0])+(d[1]*d[1])+(d[2]*d[2]);
-      double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
-      double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
+      const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+      const double sd = (d[0]*d[0])+(d[1]*d[1])+(d[2]*d[2]);
+      const double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
+      const double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
 
       return normFactor * Inradius() / CalculateMaxEdgeLength(sa,sb,sc,sd,se,sf);
     }
@@ -698,19 +684,19 @@ public:
      * @return [description]
      */
     double ShortestToLongestEdgeQuality() const override {
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
-      auto d = this->GetPoint(3) - this->GetPoint(0);
-      auto e = this->GetPoint(3) - this->GetPoint(1);
-      auto f = this->GetPoint(3) - this->GetPoint(2);
+      const auto a = this->GetPoint(0) - this->GetPoint(1);
+      const auto b = this->GetPoint(1) - this->GetPoint(2);
+      const auto c = this->GetPoint(2) - this->GetPoint(0);
+      const auto d = this->GetPoint(3) - this->GetPoint(0);
+      const auto e = this->GetPoint(3) - this->GetPoint(1);
+      const auto f = this->GetPoint(3) - this->GetPoint(2);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
-      double sd = (d[0]*d[0])+(d[1]*d[1])+(d[2]*d[2]);
-      double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
-      double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
+      const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+      const double sd = (d[0]*d[0])+(d[1]*d[1])+(d[2]*d[2]);
+      const double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
+      const double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
 
       return CalculateMinEdgeLength(sa,sb,sc,sd,se,sf) / CalculateMaxEdgeLength(sa,sb,sc,sd,se,sf);
     }
@@ -755,21 +741,21 @@ public:
     double VolumeToEdgeLengthQuality() const override {
       constexpr double normFactor = 12.0;
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
-      auto d = this->GetPoint(3) - this->GetPoint(0);
-      auto e = this->GetPoint(3) - this->GetPoint(1);
-      auto f = this->GetPoint(3) - this->GetPoint(2);
+      const auto a = this->GetPoint(0) - this->GetPoint(1);
+      const auto b = this->GetPoint(1) - this->GetPoint(2);
+      const auto c = this->GetPoint(2) - this->GetPoint(0);
+      const auto d = this->GetPoint(3) - this->GetPoint(0);
+      const auto e = this->GetPoint(3) - this->GetPoint(1);
+      const auto f = this->GetPoint(3) - this->GetPoint(2);
 
-      double sa = (a[0]*a[0]) + (a[1]*a[1]) + (a[2]*a[2]);
-      double sb = (b[0]*b[0]) + (b[1]*b[1]) + (b[2]*b[2]);
-      double sc = (c[0]*c[0]) + (c[1]*c[1]) + (c[2]*c[2]);
-      double sd = (d[0]*d[0]) + (d[1]*d[1]) + (d[2]*d[2]);
-      double se = (e[0]*e[0]) + (e[1]*e[1]) + (e[2]*e[2]);
-      double sf = (f[0]*f[0]) + (f[1]*f[1]) + (f[2]*f[2]);
+      const double sa = (a[0]*a[0]) + (a[1]*a[1]) + (a[2]*a[2]);
+      const double sb = (b[0]*b[0]) + (b[1]*b[1]) + (b[2]*b[2]);
+      const double sc = (c[0]*c[0]) + (c[1]*c[1]) + (c[2]*c[2]);
+      const double sd = (d[0]*d[0]) + (d[1]*d[1]) + (d[2]*d[2]);
+      const double se = (e[0]*e[0]) + (e[1]*e[1]) + (e[2]*e[2]);
+      const double sf = (f[0]*f[0]) + (f[1]*f[1]) + (f[2]*f[2]);
 
-      double vol = Volume();
+      const double vol = Volume();
 
       return std::abs(normFactor * std::pow(9 * vol * vol, 1.0 / 3.0) / (sa + sb + sc + sd + se + sf)) * (vol < 0 ? -1 : 1);
     }
@@ -803,19 +789,19 @@ public:
     double VolumeToRMSEdgeLength() const override {
       constexpr double normFactor = 6.0 * 1.41421356237309504880;
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
-      auto d = this->GetPoint(3) - this->GetPoint(0);
-      auto e = this->GetPoint(3) - this->GetPoint(1);
-      auto f = this->GetPoint(3) - this->GetPoint(2);
+      const auto a = this->GetPoint(0) - this->GetPoint(1);
+      const auto b = this->GetPoint(1) - this->GetPoint(2);
+      const auto c = this->GetPoint(2) - this->GetPoint(0);
+      const auto d = this->GetPoint(3) - this->GetPoint(0);
+      const auto e = this->GetPoint(3) - this->GetPoint(1);
+      const auto f = this->GetPoint(3) - this->GetPoint(2);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
-      double sd = (d[0]*d[0])+(d[1]*d[1])+(d[2]*d[2]);
-      double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
-      double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
+      const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+      const double sd = (d[0]*d[0])+(d[1]*d[1])+(d[2]*d[2]);
+      const double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
+      const double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
 
       return normFactor * Volume() / std::pow(std::sqrt(1.0/6.0 * (sa + sb + sc + sd + se + sf)), 3.0);
     }
@@ -831,8 +817,7 @@ public:
       Vector dihedral_angles(6);
       ComputeDihedralAngles(dihedral_angles);
       double min_dihedral_angle = 1000.0;
-      for (unsigned int i = 0; i < 6; i++)
-      {
+      for (unsigned int i = 0; i < 6; i++) {
          if (dihedral_angles[i]<min_dihedral_angle)  min_dihedral_angle=dihedral_angles[i];
       }
       return min_dihedral_angle;
@@ -848,8 +833,7 @@ public:
         Vector dihedral_angles(6);
         ComputeDihedralAngles(dihedral_angles);
         double max_dihedral_angle = -1000.0;
-        for (unsigned int i = 0; i < 6; i++)
-        {
+        for (unsigned int i = 0; i < 6; i++) {
             if (dihedral_angles[i] > max_dihedral_angle)  max_dihedral_angle = dihedral_angles[i];
         }
         return max_dihedral_angle;
@@ -867,8 +851,7 @@ public:
       Vector solid_angles(4);
       ComputeSolidAngles(solid_angles);
       double min_solid_angle = 1000.0;
-      for (unsigned int i = 0; i < 4; i++)
-      {
+      for (unsigned int i = 0; i < 4; i++) {
         if (solid_angles[i]<min_solid_angle) min_solid_angle = solid_angles[i];
       }
       return min_solid_angle;
@@ -906,10 +889,8 @@ public:
       if(rDihedralAngles.size() != 6)
           rDihedralAngles.resize(6, false);
 
-
       BoundedMatrix<double, 4, 3 > coords;
-      for (unsigned int i = 0; i < 4; i++)
-      {
+      for (unsigned int i = 0; i < 4; i++) {
           const array_1d<double, 3 > & xyz = this->GetPoint(i);
           for (unsigned int j = 0; j < 3; j++)
               coords(i, j) = xyz[j];
@@ -924,12 +905,10 @@ public:
 
       array_1d<double,3> edge1,edge2a,edge2b,normal1,normal2;
 
-     //now we only loop through the six edges to see which one has the lowest angle
-      for (unsigned int i = 0; i < 6; i++)
-      {
+      //now we only loop through the six edges to see which one has the lowest angle
+      for (unsigned int i = 0; i < 6; i++) {
         //first we find the edges
-        for (unsigned int j = 0; j < 3; ++j)
-        {
+        for (unsigned int j = 0; j < 3; ++j) {
             edge1[j]  = coords(node1[i],j)  - coords(node0[i],j) ;
             edge2a[j] = coords(node2a[i],j) - coords(node0[i],j) ;
             edge2b[j] = coords(node2b[i],j) - coords(node0[i],j) ;
@@ -944,7 +923,6 @@ public:
         const double angle_cos = (  normal1[0]*normal2[0] + normal1[1]*normal2[1] + normal1[2]*normal2[2] );
         rDihedralAngles[i] = std::acos(angle_cos);
       }
-
     }
 
     /**
@@ -1086,14 +1064,10 @@ public:
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
-        if( rResult[0] >= 0.0-Tolerance )
-        {
-            if( rResult[1] >= 0.0-Tolerance )
-            {
-                if( rResult[2] >= 0.0-Tolerance )
-                {
-                    if( (rResult[0] + rResult[1] + rResult[2]) <= (1.0+Tolerance))
-                    {
+        if( rResult[0] >= 0.0-Tolerance ) {
+            if( rResult[1] >= 0.0-Tolerance ) {
+                if( rResult[2] >= 0.0-Tolerance ) {
+                    if( (rResult[0] + rResult[1] + rResult[2]) <= (1.0+Tolerance)) {
                         return true;
                     }
                 }
@@ -1341,8 +1315,7 @@ public:
     {
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber(ThisMethod);
-        if(integration_points_number == 0)
-            KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
+        KRATOS_ERROR_IF(integration_points_number == 0) << "This integration method is not supported" << *this << std::endl;
 
         BoundedMatrix<double,4,3> DN_DX;
         const double x10 = this->Points()[1].X() - this->Points()[0].X();
@@ -1373,13 +1346,12 @@ public:
         DN_DX(3,2) = x10 * y20 - y10 * x20;
 
         DN_DX /= detJ;
-        if(rResult.size() != integration_points_number)
-        {
+        if(rResult.size() != integration_points_number) {
             rResult.resize(integration_points_number,false);
         }
 
         for(unsigned int i=0; i<integration_points_number; i++)
-                rResult[i] = DN_DX;
+            rResult[i] = DN_DX;
     }
 
 
@@ -1390,8 +1362,7 @@ public:
     {
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber(ThisMethod);
-        if(integration_points_number == 0)
-            KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
+        KRATOS_ERROR_IF(integration_points_number == 0) << "This integration method is not supported" << *this << std::endl;
 
         BoundedMatrix<double,4,3> DN_DX;
         const double x10 = this->Points()[1].X() - this->Points()[0].X();
@@ -1432,8 +1403,7 @@ public:
         // Volume = detJ*0.1666666666666666666667;
 
         // Workaround by riccardo
-        if(rResult.size() != integration_points_number)
-        {
+        if(rResult.size() != integration_points_number) {
             rResult.resize(integration_points_number,false);
         }
         for(unsigned int i=0; i<integration_points_number; i++)
@@ -1468,11 +1438,9 @@ public:
 
         GetPlanes(plane);
         intersections.push_back(rThisGeometry);
-        for (unsigned int i = 0; i < 4; ++i)
-        {
+        for (unsigned int i = 0; i < 4; ++i) {
             std::vector<BaseType> inside;
-            for (unsigned int j = 0; j < intersections.size(); ++j)
-            {
+            for (unsigned int j = 0; j < intersections.size(); ++j) {
                 SplitAndDecompose(intersections[j], plane[i], inside);
             }
             intersections = inside;
@@ -1526,8 +1494,7 @@ public:
         neg[3] = 0;
         zer[3] = 0;
 
-        for (i = 0; i < 4; ++i)
-        {
+        for (i = 0; i < 4; ++i) {
             const array_1d<double,3>& p = tetra[i].Coordinates();
             C[i] = plane.DistanceTo(p);
             if (C[i] > 0.00)
@@ -1538,17 +1505,14 @@ public:
                 zer[zero++] = i;
         }
 
-
         // For a split to occur, one of the c_i must be positive and one must
         // be negative.
-        if (negative == 0)
-        {
+        if (negative == 0) {
             // Tetrahedron is completely on the positive side of plane, full clip.
             return;
         }
 
-        if (positive == 0)
-        {
+        if (positive == 0) {
             // Tetrahedron is completely on the negative side of plane.
             inside.push_back(tetra);
             return;
@@ -1558,33 +1522,25 @@ public:
         array_1d<array_1d<double, 3 >, 4> intp;
         array_1d<array_1d<double, 3 >, 4> V;
 
-        if (positive == 3)
-        {
+        if (positive == 3) {
             // +++-
-            for (i = 0; i < positive; ++i)
-            {
+            for (i = 0; i < positive; ++i) {
                 invCDiff = 1.00/(C[pos[i]] - C[neg[0]]);
                 w0        = -C[neg[0]]*invCDiff;
                 w1        = +C[pos[i]]*invCDiff;
                 V[pos[i]] = w0*tetra[pos[i]].Coordinates() +  w1*tetra[neg[0]].Coordinates();
             }
             inside.push_back(tetra);
-        }
-
-        else if (positive == 2)
-        {
-            if (negative == 2)
-            {
+        } else if (positive == 2) {
+            if (negative == 2) {
                 // ++--
-                for (i = 0; i < positive; ++i)
-                {
+                for (i = 0; i < positive; ++i) {
                     invCDiff = (1.00)/(C[pos[i]] - C[neg[0]]);
                     w0 = -C[neg[0]]*invCDiff;
                     w1 = +C[pos[i]]*invCDiff;
                     intp[i] = w0*tetra[pos[i]].Coordinates() + w1*tetra[neg[0]].Coordinates();
                 }
-                for (i = 0; i < negative; ++i)
-                {
+                for (i = 0; i < negative; ++i) {
                     invCDiff = (1.00)/(C[pos[i]] - C[neg[1]]);
                     w0 = -C[neg[1]]*invCDiff;
                     w1 = +C[pos[i]]*invCDiff;
@@ -1594,12 +1550,9 @@ public:
                 V[pos[0]] = intp[2];
                 V[pos[1]] = intp[1];
                 inside.push_back(tetra);
-            }
-            else
-            {
+            } else {
                 // ++-0
-                for (i = 0; i < positive; ++i)
-                {
+                for (i = 0; i < positive; ++i) {
                     invCDiff = (1.00)/(C[pos[i]] - C[neg[0]]);
                     w0 = -C[neg[0]]*invCDiff;
                     w1 = +C[pos[i]]*invCDiff;
@@ -1607,16 +1560,10 @@ public:
                 }
                 inside.push_back(tetra);
             }
-        }
-
-
-        else if (positive == 1)
-        {
-            if (negative == 3)
-            {
+        } else if (positive == 1) {
+            if (negative == 3) {
                 // +---
-                for (i = 0; i < negative; ++i)
-                {
+                for (i = 0; i < negative; ++i) {
                     invCDiff = (1.00)/(C[pos[0]] - C[neg[i]]);
                     w0       = -C[neg[i]]*invCDiff;
                     w1       = +C[pos[0]]*invCDiff;
@@ -1625,12 +1572,9 @@ public:
 
                 V[pos[0]] = intp[0];
                 inside.push_back(tetra);
-            }
-            else if (negative == 2)
-            {
+            } else if (negative == 2) {
                 // +--0
-                for (i = 0; i < negative; ++i)
-                {
+                for (i = 0; i < negative; ++i) {
                     invCDiff = (1.00)/(C[pos[0]] - C[neg[i]]);
                     w0 = -C[neg[i]]*invCDiff;
                     w1 = +C[pos[0]]*invCDiff;
@@ -1639,9 +1583,7 @@ public:
 
                 V[pos[0]] = intp[0];
                 inside.push_back(tetra);
-            }
-            else
-            {
+            } else {
                 // +-00
                 invCDiff        = (1.00)/(C[pos[0]] - C[neg[0]]);
                 w0              = -C[neg[0]]*invCDiff;
@@ -1667,21 +1609,17 @@ public:
         MathUtils<double>::UnitCrossProduct(plane[2].mNormal, edge20, edge30);  // <v0,v3,v2>
         MathUtils<double>::UnitCrossProduct(plane[3].mNormal, edge31, edge21);  // <v1,v2,v3>
 
-        double det = inner_prod(edge10, plane[3].mNormal);
-        if (det < 0.00)
-        {
+        const double det = inner_prod(edge10, plane[3].mNormal);
+        if (det < 0.00) {
             // The normals are inner pointing, reverse their directions.
-            for (int i = 0; i < 4; ++i)
-            {
+            for (unsigned int i = 0; i < 4; ++i) {
                 plane[i].mNormal = -plane[i].mNormal;
             }
         }
 
-        for (int i = 0; i < 4; ++i)
-        {
+        for (unsigned int i = 0; i < 4; ++i) {
             plane[i].mConstant = inner_prod(geom_1[i].Coordinates(), plane[i].mNormal);
         }
-
     }
 
     /**

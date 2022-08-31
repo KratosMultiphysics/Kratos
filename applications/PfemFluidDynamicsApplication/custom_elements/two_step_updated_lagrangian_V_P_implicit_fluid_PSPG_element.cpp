@@ -13,7 +13,7 @@
 // Project includes
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_PSPG_element.h"
 #include "includes/cfd_variables.h"
-#include <math.h>
+#include <cmath>
 
 namespace Kratos
 {
@@ -489,7 +489,6 @@ namespace Kratos
   {
 
     double RHSi = 0;
-    //////////////////////////// TO CHEEEEEEEEEEEEEEEEEEEEEEECCCCCCCCCCCCCCCCCCCCKKKKKKKKKKKKKKK///////////////////////
 
     // LHS contribution
     const SizeType NumNodes = this->GetGeometry().PointsNumber();

@@ -57,7 +57,6 @@ class MechanicalSolver(PythonSolver):
 
 
         settings_have_use_block_builder = custom_settings.Has("block_builder")
-
         if settings_have_use_block_builder:
             kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "block_builder", please move it to "builder_and_solver_settings" as "use_block_builder"')
             if not custom_settings.Has("builder_and_solver_settings"):
@@ -65,6 +64,17 @@ class MechanicalSolver(PythonSolver):
 
             custom_settings["builder_and_solver_settings"].AddValue("use_block_builder", custom_settings["block_builder"])
             custom_settings.RemoveValue("block_builder")
+
+        settings_have_line_search = custom_settings.Has("line_search")
+        if settings_have_line_search:
+            kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "line_search", please move it to "solving_strategy_settings" as "type"')
+            if custom_settings["line_search"].GetBool():
+                if not custom_settings.Has("solving_strategy_settings"):
+                    custom_settings.AddEmptyValue("solving_strategy_settings")
+
+                custom_settings["solving_strategy_settings"].AddEmptyValue("type")
+                custom_settings["solving_strategy_settings"]["type"].SetString("line_search")
+            custom_settings.RemoveValue("line_search")
 
         self._validate_settings_in_baseclass=True # To be removed eventually
         super().__init__(model, custom_settings)
@@ -113,7 +123,6 @@ class MechanicalSolver(PythonSolver):
             "pressure_dofs": false,
             "displacement_control": false,
             "reform_dofs_at_each_step": false,
-            "line_search": false,
             "use_old_stiffness_in_first_iteration": false,
             "compute_reactions": true,
             "solving_strategy_settings": {
@@ -368,27 +377,11 @@ class MechanicalSolver(PythonSolver):
             KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Constitutive law was not imported.")
 
     def _set_and_fill_buffer(self):
-        """Prepare nodal solution step data containers and time step information. """
-        # Set the buffer size for the nodal solution steps data. Existing nodal
-        # solution step data may be lost.
         required_buffer_size = self.settings["buffer_size"].GetInt()
         if required_buffer_size < self.GetMinimumBufferSize():
             required_buffer_size = self.GetMinimumBufferSize()
-        current_buffer_size = self.main_model_part.GetBufferSize()
-        buffer_size = max(current_buffer_size, required_buffer_size)
-        self.main_model_part.SetBufferSize(buffer_size)
-        # Cycle the buffer. This sets all historical nodal solution step data to
-        # the current value and initializes the time stepping in the process info.
         delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        step =-buffer_size
-        time = time - delta_time * buffer_size
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
-        for i in range(0, buffer_size):
-            step = step + 1
-            time = time + delta_time
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
-            self.main_model_part.CloneTimeStep(time)
+        auxiliary_solver_utilities.SetAndFillBuffer(self.main_model_part, required_buffer_size, delta_time)
 
     def _add_dynamic_variables(self):
         # For being consistent for Serial and Trilinos
@@ -465,11 +458,6 @@ class MechanicalSolver(PythonSolver):
         if analysis_type == "linear":
             mechanical_solution_strategy = self._create_linear_strategy()
         elif analysis_type == "non_linear":
-            # Deprecation checks
-            if self.settings.Has("line_search"):
-                kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "line_search", please move it to "solving_strategy_settings" as "type"')
-                if self.settings["line_search"].GetBool():
-                    self.settings["solving_strategy_settings"]["type"].SetString("line_search")
             # Create strategy
             if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
                 mechanical_solution_strategy = self._create_newton_raphson_strategy()
