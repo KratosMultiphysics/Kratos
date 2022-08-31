@@ -7,11 +7,8 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 Contains neural network models for Pytorch, only by loading models from this pytorch learned paramaters can be used
 """
-# from neural_net.layer_init import layer_initialisation
 
-# torch.set_default_dtype(torch.DoubleTensor) 
 # this is one way to define a network
-
 class Fullyconnected(torch.nn.Module):
     """
     A class which defines model architecture with ´n_layer´ number of hidden 
@@ -85,3 +82,23 @@ class FullyConnected_2d_t(torch.nn.Module):
             # x = self.dropout(x)
         x = self.predict(x)
         return x
+
+class ConstructModel():
+    def __init__(self, filename):
+        #load file and read the parameters in it 
+        with open(filename) as f:
+            contents = f.readlines()
+        name = contents[0]
+        n_neurons = int(contents[1])
+        n_layers = int(contents[2])
+  
+        if str(name).strip() == "Fullyconnected":
+            self.model = Fullyconnected(n_neurons, n_layers)
+        elif str(name).strip() == "FullyConnected_2d_t":
+            self.model = FullyConnected_2d_t(n_neurons, n_layers)
+        else:
+            self.model = None  
+        print("Constructing the model completed and printing it now")
+
+    def get_model(self):
+        return self.model

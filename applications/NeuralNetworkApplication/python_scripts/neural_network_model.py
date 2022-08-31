@@ -1,15 +1,17 @@
 import tensorflow.keras as keras
 import numpy as np
 import torch
-from KratosMultiphysics.NeuralNetworkApplication.neural_net import Fullyconnected
+from KratosMultiphysics.NeuralNetworkApplication.neural_net import Fullyconnected, ConstructModel
 
 class MachineLearningModel():
     """
     This class deals with the machine learning models constructed using different ML libraries like Keras, Pytorch, Julia etc
     """
-    def __init__(self, library_name):      
-        
-        self.library_name = library_name
+    def __init__(self, param):  
+
+        self.paramaters = param        
+        self.library_name = self.paramaters["library_name"].GetString()    
+        self.net_arch_filename = self.paramaters["net_arch_filename"].GetString()    
         self.model = None 
         
     def load_model(self, file_name):
@@ -21,9 +23,8 @@ class MachineLearningModel():
 
         elif self.library_name=="pytorch":
             device = torch.device('cpu')
-            """ Need a method to automate this part, presently the best architecture is hardcoded here"""
-            print("Network architecture is hardcoded here, please update this to automate")
-            self.model = Fullyconnected(128, 4)
+            model_constructor = ConstructModel(self.net_arch_filename)
+            self.model = model_constructor.get_model()
             self.model.load_state_dict(torch.load(file_name, map_location=device))
         else: 
             print("Please use either keras or pytorch model")

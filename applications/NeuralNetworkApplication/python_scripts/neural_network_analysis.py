@@ -20,7 +20,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
         self.project_parameters = project_parameters
         self.problem_type = self.project_parameters["problem_data"]["problem_type"].GetString()
         try:
-            self.ml_model = MachineLearningModel(self.project_parameters["problem_data"]["library_name"].GetString())
+            self.ml_model = MachineLearningModel(self.project_parameters["problem_data"])
         except RuntimeError:
             self.ml_model = MachineLearningModel('keras')
 
