@@ -317,8 +317,8 @@ endif(NOT DEFINED KRATOS_ENABLE_LTO)
 message("AR VERSION: ${CMAKE_AR}")
 
 # check version of Python, needs to be done after including pybind
-if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 5))
-message( FATAL_ERROR "Kratos only supports Python version 3.5 and above")
+if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 6))
+message( FATAL_ERROR "Kratos only supports Python version 3.6 and above")
 endif()
 set(PYTHON_INTERFACE_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
 
@@ -647,3 +647,6 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+
+# Perform post-install tasks (add_subdirectory commands are guaranteed to be executed in order)
+add_subdirectory("scripts/post_install")

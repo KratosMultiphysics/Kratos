@@ -82,12 +82,12 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
             for (auto& node : geom) {
                 node.FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
                 node.FastGetSolutionStepValue(VELOCITY_Y, 0) = 0.0;
-                if (TDim > 2)
+                if constexpr (TDim > 2)
                     node.FastGetSolutionStepValue(VELOCITY_Z, 0) = 0.0;
                 node.FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
                 node.FastGetSolutionStepValue(VELOCITY_X, 1) = 0.0;
                 node.FastGetSolutionStepValue(VELOCITY_Y, 1) = 0.0;
-                if (TDim > 2)
+                if constexpr (TDim > 2)
                     node.FastGetSolutionStepValue(VELOCITY_Z, 1) = 0.0;
                 node.FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
                 if (Side == ChimeraHoleCuttingUtility::SideToExtract::INSIDE)
@@ -175,9 +175,9 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
     for (int i_e = 0; i_e < num_elements; ++i_e) {
         auto i_element = elements_begin + i_e;
         Element::GeometryType::GeometriesArrayType faces;
-        if (TDim == 2)
+        if constexpr (TDim == 2)
             faces = i_element->GetGeometry().GenerateEdges();
-        else if (TDim == 3)
+        else if constexpr (TDim == 3)
             faces = i_element->GetGeometry().GenerateFaces();
 
         for (IndexType i_face = 0; i_face < faces.size(); i_face++) {
@@ -206,9 +206,9 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
     for (int i_e = 0; i_e < num_elements; ++i_e) {
         auto i_element = elements_begin + i_e;
         Element::GeometryType::GeometriesArrayType faces;
-        if (TDim == 2)
+        if constexpr (TDim == 2)
             faces = i_element->GetGeometry().GenerateEdges();
-        else if (TDim == 3)
+        else if constexpr (TDim == 3)
             faces = i_element->GetGeometry().GenerateFaces();
 
         for (IndexType i_face = 0; i_face < faces.size(); i_face++) {

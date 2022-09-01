@@ -62,8 +62,8 @@ set( KRATOS_THERMAL_DEM_APPLICATION_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/nusselt_hanz_marshall.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/nusselt_li_mason.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/convection/nusselt_whitaker.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/friction/friction_model.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/friction/friction_coulomb.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generation/generation_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generation/generation_dissipation.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/radiation/radiation_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/radiation/radiation_continuum_krause.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/radiation/radiation_continuum_zhou.cpp
