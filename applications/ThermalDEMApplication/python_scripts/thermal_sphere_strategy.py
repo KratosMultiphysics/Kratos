@@ -150,17 +150,20 @@ class ExplicitStrategy(BaseStrategy):
         self.indirect_conduction_model = self.thermal_settings["indirect_conduction_model"].GetString()
         self.nusselt_correlation       = self.thermal_settings["nusselt_correlation"].GetString()
         self.radiation_model           = self.thermal_settings["radiation_model"].GetString()
-        self.friction_model            = self.thermal_settings["friction_model"].GetString()
         self.adjusted_contact_model    = self.thermal_settings["adjusted_contact_model"].GetString()
         self.voronoi_method            = self.thermal_settings["voronoi_method"].GetString()
         self.porosity_method           = self.thermal_settings["porosity_method"].GetString()
+
+        self.heat_generation_model = []
+        for model in self.thermal_settings["heat_generation_model"]:
+            self.heat_generation_model.append(model.GetString())
 
         # Active heat transfer mechanisms
         self.compute_direct_conduction_option   = GetBoolParameterIfItExists(self.thermal_settings, "compute_direct_conduction")
         self.compute_indirect_conduction_option = GetBoolParameterIfItExists(self.thermal_settings, "compute_indirect_conduction")
         self.compute_convection_option          = GetBoolParameterIfItExists(self.thermal_settings, "compute_convection")
         self.compute_radiation_option           = GetBoolParameterIfItExists(self.thermal_settings, "compute_radiation")
-        self.compute_friction_heat_option       = GetBoolParameterIfItExists(self.thermal_settings, "compute_friction_heat")
+        self.compute_heat_generation_option     = GetBoolParameterIfItExists(self.thermal_settings, "compute_heat_generation")
         self.compute_adjusted_contact_option    = GetBoolParameterIfItExists(self.thermal_settings, "compute_adjusted_contact")
         
         # Model parameters
@@ -170,7 +173,7 @@ class ExplicitStrategy(BaseStrategy):
         self.fluid_layer_thickness    = self.thermal_settings["fluid_layer_thickness"].GetDouble()
         self.isothermal_core_radius   = self.thermal_settings["isothermal_core_radius"].GetDouble()
         self.max_radiation_distance   = self.thermal_settings["max_radiation_distance"].GetDouble()
-        self.friction_heat_conversion = self.thermal_settings["friction_heat_conversion_ratio"].GetDouble()
+        self.heat_generation_ratio    = self.thermal_settings["heat_generation_ratio"].GetDouble()
         self.global_porosity          = self.thermal_settings["global_porosity"].GetDouble()
         self.alpha_parameter          = self.thermal_settings["alpha_shape_parameter"].GetDouble()
         self.integral_tolerance       = self.thermal_settings["integral_tolerance"].GetDouble()
@@ -193,7 +196,8 @@ class ExplicitStrategy(BaseStrategy):
         self.PostGraphParticleTempAvg   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAvg")
         self.PostGraphParticleTempDev   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempDev")
         self.PostGraphModelTempAvg      = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphModelTempAvg")
-        self.PostGraphFluxContributions = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphFluxContributions")
+        self.PostGraphFluxContributions = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatFluxContributions")
+        self.PostGraphGenContributions  = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatGenContributions")
 
     #----------------------------------------------------------------------------------------------
     def CheckProjectParameters(self):
@@ -229,8 +233,11 @@ class ExplicitStrategy(BaseStrategy):
             self.radiation_model != "continuum_krause"):
             raise Exception('ThermalDEM', 'Thermal radiation model \'' + self.radiation_model + '\' is not implemented.')
 
-        if (self.friction_model != "coulomb"):
-            raise Exception('ThermalDEM', 'Frictional heat generation model \'' + self.friction_model + '\' is not implemented.')
+        for model in self.heat_generation_model:
+            if (model != "sliding_friction" and
+                model != "rolling_friction" and
+                model != "contact_damping"):
+                raise Exception('ThermalDEM', 'Heat generation model \'' + model + '\' is not implemented.')
 
         if (self.adjusted_contact_model != "zhou" and
             self.adjusted_contact_model != "lu"   and
@@ -268,8 +275,8 @@ class ExplicitStrategy(BaseStrategy):
             self.isothermal_core_radius = 1
         if (self.max_radiation_distance < 0 ):
             self.max_radiation_distance = 0
-        if (self.friction_heat_conversion < 0 or self.friction_heat_conversion > 1):
-            raise Exception('ThermalDEM', '"friction_heat_conversion_ratio" must be between zero and one.')
+        if (self.heat_generation_ratio < 0 or self.heat_generation_ratio > 1):
+            raise Exception('ThermalDEM', '"heat_generation_ratio" must be between zero and one.')
         if (self.global_porosity < 0 or self.global_porosity >= 1):
             raise Exception('ThermalDEM', '"global_porosity" must be between zero and one.')
         if (self.alpha_parameter < 0):
@@ -316,12 +323,13 @@ class ExplicitStrategy(BaseStrategy):
     
     #----------------------------------------------------------------------------------------------
     def SetGraphFlags(self):
-        if (self.PostGraphParticleTempMin  or
-            self.PostGraphParticleTempMax  or
-            self.PostGraphParticleTempAvg  or 
-            self.PostGraphParticleTempDev  or
-            self.PostGraphModelTempAvg     or
-            self.PostGraphFluxContributions):
+        if (self.PostGraphParticleTempMin   or
+            self.PostGraphParticleTempMax   or
+            self.PostGraphParticleTempAvg   or 
+            self.PostGraphParticleTempDev   or
+            self.PostGraphModelTempAvg      or
+            self.PostGraphFluxContributions or
+            self.PostGraphGenContributions):
             self.write_graph = True
         else:
             self.write_graph = False
@@ -457,15 +465,12 @@ class ExplicitStrategy(BaseStrategy):
             raise Exception('The class corresponding to the thermal radiation model named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
         object.SetHeatExchangeMechanismInProperties(properties, True)
 
-        # Friction
-        if self.friction_model == "coulomb":
-            class_name = "FrictionCoulomb"
-        else:
-            raise Exception('ThermalDEM', 'Frictional heat generation model \'' + self.friction_model + '\' is not implemented.')
+        # Heat generation
+        class_name = "GenerationDissipation"
         try:
             object = eval(class_name)()
         except:
-            raise Exception('The class corresponding to the frictional heat generation model named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
+            raise Exception('The class corresponding to the heat generation model named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
         object.SetHeatGenerationMechanismInProperties(properties, True)
 
         # Real contact
@@ -495,7 +500,6 @@ class ExplicitStrategy(BaseStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(INDIRECT_CONDUCTION_MODEL_NAME, self.indirect_conduction_model)
         self.spheres_model_part.ProcessInfo.SetValue(CONVECTION_MODEL_NAME,          self.nusselt_correlation)
         self.spheres_model_part.ProcessInfo.SetValue(RADIATION_MODEL_NAME,           self.radiation_model)
-        self.spheres_model_part.ProcessInfo.SetValue(FRICTION_MODEL_NAME,            self.friction_model)
         self.spheres_model_part.ProcessInfo.SetValue(REAL_CONTACT_MODEL_NAME,        self.adjusted_contact_model)
         self.spheres_model_part.ProcessInfo.SetValue(VORONOI_METHOD_NAME,            self.voronoi_method)
         self.spheres_model_part.ProcessInfo.SetValue(POROSITY_METHOD_NAME,           self.porosity_method)
@@ -505,7 +509,10 @@ class ExplicitStrategy(BaseStrategy):
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, INDIRECT_CONDUCTION_OPTION, self.compute_indirect_conduction_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, CONVECTION_OPTION,          self.compute_convection_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, RADIATION_OPTION,           self.compute_radiation_option)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, FRICTION_HEAT_OPTION,       self.compute_friction_heat_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, HEAT_GENERATION_OPTION,     self.compute_heat_generation_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GENERATION_SLIDING_OPTION,  self.compute_heat_generation_option and "sliding_friction" in self.heat_generation_model)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GENERATION_ROLLING_OPTION,  self.compute_heat_generation_option and "rolling_friction" in self.heat_generation_model)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GENERATION_DAMPING_OPTION,  self.compute_heat_generation_option and "contact_damping"  in self.heat_generation_model)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, REAL_CONTACT_OPTION,        self.compute_adjusted_contact_option)
 
         # Model parameters
@@ -515,7 +522,7 @@ class ExplicitStrategy(BaseStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_LAYER_THICKNESS,    self.fluid_layer_thickness)
         self.spheres_model_part.ProcessInfo.SetValue(ISOTHERMAL_CORE_RADIUS,   self.isothermal_core_radius)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_RADIATION_DISTANCE,   self.max_radiation_distance)
-        self.spheres_model_part.ProcessInfo.SetValue(FRICTION_HEAT_CONVERSION, self.friction_heat_conversion)
+        self.spheres_model_part.ProcessInfo.SetValue(HEAT_GENERATION_RATIO,    self.heat_generation_ratio)
         self.spheres_model_part.ProcessInfo.SetValue(AVERAGE_POROSITY,         self.global_porosity)
         self.spheres_model_part.ProcessInfo.SetValue(ALPHA_SHAPE_PARAMETER,    self.alpha_parameter)
         self.spheres_model_part.ProcessInfo.SetValue(INTEGRAL_TOLERANCE,       self.integral_tolerance)
@@ -558,7 +565,8 @@ class ExplicitStrategy(BaseStrategy):
                                                self.PostGraphParticleTempAvg,
                                                self.PostGraphParticleTempDev,
                                                self.PostGraphModelTempAvg,
-                                               self.PostGraphFluxContributions)
+                                               self.PostGraphFluxContributions,
+                                               self.PostGraphGenContributions)
 
     #----------------------------------------------------------------------------------------------
     def IsTimeToUpdateVoronoi(self):
