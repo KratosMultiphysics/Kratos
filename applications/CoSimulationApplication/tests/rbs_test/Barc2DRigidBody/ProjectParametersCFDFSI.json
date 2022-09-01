@@ -4,7 +4,7 @@
         "parallel_type": "OpenMP",
         "echo_level": 0,
         "start_time": 0.0,
-        "end_time": 5.0
+        "end_time": 1.0
     },
     "output_processes": {
         "gid_output": [],
@@ -162,9 +162,9 @@
                     "variable_name": "VELOCITY",
                     "interval": [
                         0.0,
-                        1.5
+                        0.4
                     ],
-                    "modulus": "15.26*t/1.5",
+                    "modulus": "4*t/0.4",
                     "direction": "automatic_inwards_normal"
                 }
             },
@@ -175,10 +175,10 @@
                     "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
                     "variable_name": "VELOCITY",
                     "interval": [
-                        1.5,
-                        2.5
+                        0.4,
+                        0.6
                     ],
-                    "modulus": "15.26",
+                    "modulus": "4",
                     "direction": "automatic_inwards_normal"
                 }
             },
@@ -189,24 +189,10 @@
                     "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
                     "variable_name": "VELOCITY",
                     "interval": [
-                        2.5,
-                        4.0
+                        0.6,
+                        1.0
                     ],
-                    "modulus": "15.26*(4-t)/1.5",
-                    "direction": "automatic_inwards_normal"
-                }
-            },
-            {
-                "python_module": "apply_inlet_process",
-                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
-                    "variable_name": "VELOCITY",
-                    "interval": [
-                        4.0,
-                        5.0
-                    ],
-                    "modulus": "0",
+                    "modulus": "4*(1-t)/0.4",
                     "direction": "automatic_inwards_normal"
                 }
             },
