@@ -188,7 +188,7 @@ void ModelPartIO::WriteProperties(PropertiesContainerType const& rThisProperties
             std::string::size_type it_constitutive_law_begin = aux_string.find("CONSTITUTIVE_LAW");
 
             if (it_constitutive_law_begin != std::string::npos) {
-            std::string::size_type it_constitutive_law_end = aux_string.find("\n", it_constitutive_law_begin);
+            std::string::size_type it_constitutive_law_end = aux_string.find('\n', it_constitutive_law_begin);
                 aux_string.erase(it_constitutive_law_begin, it_constitutive_law_end);
             }
 
