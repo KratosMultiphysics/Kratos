@@ -158,7 +158,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, self.settings["gravity"].GetDouble())
 
     def _ImportMaterials(self):
-    # Add the properties from json file to model parts.
+        # Add the properties from json file to model parts.
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
             material_settings = KM.Parameters("""{"Parameters": {} }""")
