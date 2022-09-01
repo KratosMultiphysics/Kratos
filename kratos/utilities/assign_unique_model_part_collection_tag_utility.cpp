@@ -161,6 +161,7 @@ void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
             aux_set.insert(r_name);
         }
         std::vector<std::string> aux_vector;
+        aux_vector.reserve(aux_set.size());
         for (auto& r_name : aux_set) {
             aux_vector.push_back(r_name);
         }
