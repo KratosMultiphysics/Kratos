@@ -135,6 +135,14 @@ public:
 
     }
 
+    template<typename TArrayType>
+    void SetBoundingBox(const TArrayType& rMins, const TArrayType& rMaxs) {
+        for (int i = 0; i < Dimension; i++){
+            GetMinPoint()[i] = rMins[i];
+            GetMaxPoint()[i] = rMaxs[i];
+        }
+    }
+
 
     ///@}
     ///@name Access

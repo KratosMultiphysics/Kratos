@@ -87,20 +87,15 @@ public:
         AddObjectsToCells(GeometricalObjectsBegin, GeometricalObjectsEnd);
     }
 
-    template<typename TIteratorType,typename TCellSizesType>
+    template<typename TIteratorType,typename TArrayType>
     GeometricalObjectsBins(
         TIteratorType GeometricalObjectsBegin, 
         TIteratorType GeometricalObjectsEnd, 
-        const TCellSizesType& rCellSize) 
+        const TArrayType& rCellSize,
+        const TArrayType& rMinBoundingBox,
+        const TArrayType& rMaxBoundingBox) 
     {
-        std::size_t number_of_objects = std::distance(GeometricalObjectsBegin, GeometricalObjectsEnd);
-        if(number_of_objects > 0){
-            mBoundingBox.Set(GeometricalObjectsBegin->GetGeometry().begin(), GeometricalObjectsBegin->GetGeometry().end());
-            for(TIteratorType i_object = GeometricalObjectsBegin ; i_object != GeometricalObjectsEnd ; i_object++){
-                mBoundingBox.Extend(i_object->GetGeometry().begin() , i_object->GetGeometry().end());
-            }
-        }
-        mBoundingBox.Extend(Tolerance);
+        mBoundingBox.SetBoundingBox(rMinBoundingBox,rMaxBoundingBox);
         AssignCellSize(rCellSize);
         mCells.resize(GetTotalNumberOfCells());  
         AddObjectsToCells(GeometricalObjectsBegin, GeometricalObjectsEnd);
@@ -370,7 +365,7 @@ private:
         }
 
         for (int i = 0; i < Dimension; i++) {
-            mNumberOfCells[i] = static_cast<std::size_t>(lengths[i] / rCellSize[i]);
+            mNumberOfCells[i] = static_cast<std::size_t>(std::round(lengths[i] / rCellSize[i]));
             mCellSizes[i] = rCellSize[i];
             mInverseOfCellSize[i] = 1.00 / mCellSizes[i];
         }
