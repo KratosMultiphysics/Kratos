@@ -1,13 +1,9 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics ThermalDEM Application
+//  Kratos Multi-Physics - ThermalDEM Application
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
+//  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
 #if !defined(DIRECT_CONDUCTION_MODEL_BOB_COMPLETE_H_INCLUDED)
@@ -45,6 +41,10 @@ namespace Kratos
       double ComputeHeatTransferCoeff (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
       double ContactCoeff             (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
       double SeparatedCoeff           (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
+      double ContactCoeffEtaMin       (const double Reff, const double kf, const double eta, const double kpf);
+      double ContactCoeffEtaMax       (const double Reff, const double kf, const double eta, const double kpf);
+      double SeparatedCoeffLambMin    (const double Reff, const double kf, const double kpf2);
+      double SeparatedCoeffLambMax    (const double Reff, const double kf, const double Rcyl, const double Ds);
 
       // Clone
       HeatExchangeMechanism* CloneRaw() const override {

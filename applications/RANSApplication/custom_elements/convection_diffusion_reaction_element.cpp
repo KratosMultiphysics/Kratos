@@ -49,7 +49,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
         TConvectionDiffusionReactionData::GetScalarVariable();
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rResult[i] = Element::GetGeometry()[i].GetDof(r_variable).EquationId();
+        rResult[i] = this->GetGeometry()[i].GetDof(r_variable).EquationId();
     }
 }
 
@@ -66,7 +66,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
         TConvectionDiffusionReactionData::GetScalarVariable();
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rElementalDofList[i] = Element::GetGeometry()[i].pGetDof(r_variable);
+        rElementalDofList[i] = this->GetGeometry()[i].pGetDof(r_variable);
     }
 }
 

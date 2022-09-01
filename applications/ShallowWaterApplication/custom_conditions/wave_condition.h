@@ -210,14 +210,14 @@ public:
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
     ///@name Inquiry
     ///@{
 
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
 
     ///@}
     ///@name Input and output

@@ -59,8 +59,8 @@ namespace Kratos
  * @author Felix Nagel
  */
 template<class TPointType>
-
-class Line2D3 : public Geometry<TPointType>
+class Line2D3
+  : public Geometry<TPointType>
 {
 public:
     ///@}

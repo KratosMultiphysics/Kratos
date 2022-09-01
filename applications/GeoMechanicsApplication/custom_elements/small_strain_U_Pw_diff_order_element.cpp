@@ -226,7 +226,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
 
     // resize mStressVector:
     const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType VoigtSize  = ( Dim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    const SizeType VoigtSize  = ( Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
     if ( mStressVector.size() != IntegrationPoints.size() ) {
        mStressVector.resize(IntegrationPoints.size());
        for (unsigned int i=0; i < mStressVector.size(); ++i) {
@@ -1141,7 +1141,7 @@ void SmallStrainUPwDiffOrderElement::
             //Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
 
-            Variables.FluidPressure = CalculateFluidPressure(Variables, GPoint);
+            Variables.FluidPressure = CalculateFluidPressure(Variables);
             SetRetentionParameters(Variables, RetentionParameters);
 
             if (rVariable == DEGREE_OF_SATURATION)     rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
@@ -1242,11 +1242,15 @@ void SmallStrainUPwDiffOrderElement::
                     BodyAcceleration[idim] += Variables.Nu[i]*Variables.BodyAcceleration[Index++];
             }
 
-            CalculateFluidPressure(Variables, GPoint);
+            CalculateFluidPressure(Variables);
             SetRetentionParameters(Variables, RetentionParameters);
 
             const double RelativePermeability = 
                 mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
+
+            //Compute strain, need to update porosity
+            this->CalculateStrain(Variables, GPoint);
+            this->CalculatePermeabilityUpdateFactor(Variables);
 
             Vector GradPressureTerm(Dim);
             noalias(GradPressureTerm)  =  prod(trans(Variables.DNp_DX), Variables.PressureVector);
@@ -1258,6 +1262,7 @@ void SmallStrainUPwDiffOrderElement::
             AuxFluidFlux =   PORE_PRESSURE_SIGN_FACTOR
                            * Variables.DynamicViscosityInverse
                            * RelativePermeability
+                           * Variables.PermeabilityUpdateFactor
                            * prod(Variables.IntrinsicPermeability, GradPressureTerm );
 
             Vector FluidFlux = ZeroVector(3);
@@ -1287,6 +1292,7 @@ void SmallStrainUPwDiffOrderElement::
 
     const GeometryType& rGeom = GetGeometry();
     const unsigned int& IntegrationPointsNumber = rGeom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+    const SizeType Dim = rGeom.WorkingSpaceDimension();
 
     if ( rOutput.size() != IntegrationPointsNumber )
         rOutput.resize( IntegrationPointsNumber );
@@ -1358,8 +1364,8 @@ void SmallStrainUPwDiffOrderElement::
 
         const SizeType VoigtSize = mStressVector[0].size();
         Vector VoigtVector = ZeroVector(VoigtSize);
-
-        for (unsigned int i=0; i < rGeom.WorkingSpaceDimension(); ++i) VoigtVector[i] = 1.0;
+        const SizeType StressTensorSize = (Dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
+        for (unsigned int i=0; i < StressTensorSize; ++i) VoigtVector[i] = 1.0;
 
         // create general parametes of retention law
         RetentionLaw::Parameters RetentionParameters(rGeom, GetProperties(), rCurrentProcessInfo);
@@ -1537,6 +1543,7 @@ void SmallStrainUPwDiffOrderElement::
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
+        this->CalculatePermeabilityUpdateFactor(Variables);
 
         //calculating weighting coefficient for integration
         Variables.IntegrationCoefficient =
@@ -1725,6 +1732,9 @@ void SmallStrainUPwDiffOrderElement::
     rVariables.RelativePermeability = 1.0;
     rVariables.BishopCoefficient = 1.0;
 
+    // permeability change
+    rVariables.PermeabilityUpdateFactor = 1.0;
+
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeElementVariables") << std::endl;
     KRATOS_CATCH( "" )
 }
@@ -1831,7 +1841,7 @@ void SmallStrainUPwDiffOrderElement::
 
     if (!IgnoreUndrained) {
         rVariables.BiotModulusInverse = (rVariables.BiotCoefficient - rProp[POROSITY]) / rProp[BULK_MODULUS_SOLID] 
-                                    + rProp[POROSITY]/rProp[BULK_MODULUS_FLUID];
+                                       + rProp[POROSITY]/rProp[BULK_MODULUS_FLUID];
     } else {
         rVariables.BiotModulusInverse = (rVariables.BiotCoefficient - rProp[POROSITY]) / rProp[BULK_MODULUS_SOLID] 
                                        + rProp[POROSITY]/TINY;
@@ -1841,6 +1851,30 @@ void SmallStrainUPwDiffOrderElement::
     rVariables.BiotModulusInverse -= rVariables.DerivativeOfSaturation*rProp[POROSITY];
 
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients") << std::endl;
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SmallStrainUPwDiffOrderElement::
+    CalculatePermeabilityUpdateFactor( ElementVariables &rVariables)
+{
+    KRATOS_TRY
+
+    const PropertiesType& rProp = this->GetProperties();
+
+    if (rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
+        const double InverseCK = rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR];
+        StressStrainUtilities EquivalentStress;
+        const double epsV = EquivalentStress.CalculateTrace(rVariables.StrainVector);
+        const double ePrevious = rProp[POROSITY] / (1.0 - rProp[POROSITY]);
+        const double eCurrent = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
+        const double permLog10 = (eCurrent - ePrevious) * InverseCK;
+        rVariables.PermeabilityUpdateFactor = pow(10.0, permLog10);
+    } else {
+        rVariables.PermeabilityUpdateFactor = 1.0;
+    }
+
+    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -1885,7 +1919,7 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties( ElementVariables& rVa
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
     CalculateKinematics( ElementVariables& rVariables,
-                         const unsigned int &GPoint )
+                         unsigned int GPoint )
 
 {
     KRATOS_TRY
@@ -1922,7 +1956,7 @@ void SmallStrainUPwDiffOrderElement::
                                                Matrix& J0,
                                                Matrix& InvJ0,
                                                Matrix& DNu_DX0,
-                                               const IndexType& GPoint) const
+                                               unsigned int GPoint) const
 {
     KRATOS_TRY
 
@@ -2012,8 +2046,8 @@ void SmallStrainUPwDiffOrderElement::
 //----------------------------------------------------------------------------------------
 double SmallStrainUPwDiffOrderElement::
     CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                    const IndexType& GPoint,
-                                    const double& detJ)
+                                    unsigned int GPoint,
+                                    double detJ)
 {
     return IntegrationPoints[GPoint].Weight() * detJ;
 }
@@ -2101,11 +2135,12 @@ void SmallStrainUPwDiffOrderElement::
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType VoigtSize  = ( Dim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    const SizeType VoigtSize  = ( Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    const SizeType StressTensorSize = (Dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
 
     Vector VoigtVector = ZeroVector(VoigtSize);
 
-    for (unsigned int i=0; i < Dim; ++i) VoigtVector[i] = 1.0;
+    for (unsigned int i=0; i < StressTensorSize; ++i) VoigtVector[i] = 1.0;
 
     Matrix CouplingMatrix =   PORE_PRESSURE_SIGN_FACTOR
                             * rVariables.BiotCoefficient
@@ -2190,6 +2225,7 @@ void SmallStrainUPwDiffOrderElement::
     Matrix PermeabilityMatrix = - PORE_PRESSURE_SIGN_FACTOR
                                 * rVariables.DynamicViscosityInverse
                                 * rVariables.RelativePermeability
+                                * rVariables.PermeabilityUpdateFactor
                                 * prod( rVariables.DNp_DX, Matrix( prod(rVariables.IntrinsicPermeability, trans(rVariables.DNp_DX)) ) )
                                 * rVariables.IntegrationCoefficient ;
 
@@ -2333,10 +2369,11 @@ void SmallStrainUPwDiffOrderElement::
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType VoigtSize  = ( Dim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    const SizeType VoigtSize  = ( Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    const SizeType StressTensorSize = (Dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
 
     Vector VoigtVector = ZeroVector(VoigtSize);
-    for (SizeType idim=0; idim < Dim; ++idim)  VoigtVector[idim] = 1.0;
+    for (SizeType idim=0; idim < StressTensorSize; ++idim)  VoigtVector[idim] = 1.0;
 
     Matrix CouplingMatrix = - PORE_PRESSURE_SIGN_FACTOR
                             * rVariables.BiotCoefficient
@@ -2415,6 +2452,7 @@ void SmallStrainUPwDiffOrderElement::
     Matrix PermeabilityMatrix = - PORE_PRESSURE_SIGN_FACTOR
                                 * rVariables.DynamicViscosityInverse
                                 * rVariables.RelativePermeability
+                                * rVariables.PermeabilityUpdateFactor
                                 * prod( rVariables.DNp_DX, Matrix( prod(rVariables.IntrinsicPermeability, trans(rVariables.DNp_DX)) ) )
                                 * rVariables.IntegrationCoefficient;
 
@@ -2446,6 +2484,7 @@ void SmallStrainUPwDiffOrderElement::
     Matrix GradNpTPerm =  rVariables.DynamicViscosityInverse
                         * GetProperties()[DENSITY_WATER]
                         * rVariables.RelativePermeability
+                        * rVariables.PermeabilityUpdateFactor
                         * prod( rVariables.DNp_DX, rVariables.IntrinsicPermeability )
                         * rVariables.IntegrationCoefficient;
 
@@ -2481,7 +2520,7 @@ GeometryData::IntegrationMethod
 
 //----------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
-    CalculateStrain( ElementVariables& rVariables, const IndexType& GPoint )
+    CalculateStrain( ElementVariables& rVariables, unsigned int GPoint )
 {
     if (rVariables.UseHenckyStrain) {
         this->CalculateDeformationGradient(rVariables, GPoint);
@@ -2538,7 +2577,7 @@ void SmallStrainUPwDiffOrderElement::
 //----------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
     CalculateDeformationGradient( ElementVariables& rVariables,
-                                  const IndexType& GPoint)
+                                  unsigned int GPoint)
 {
     KRATOS_TRY
     // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateDeformationGradient()") << std::endl;
@@ -2669,7 +2708,7 @@ void SmallStrainUPwDiffOrderElement::
     CalculateJacobianOnCurrentConfiguration(double& detJ,
                                             Matrix& rJ,
                                             Matrix& rInvJ,
-                                            const IndexType& GPoint) const
+                                            unsigned int GPoint) const
 {
     KRATOS_TRY
 
@@ -2686,7 +2725,7 @@ void SmallStrainUPwDiffOrderElement::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 double SmallStrainUPwDiffOrderElement::
-    CalculateFluidPressure(const ElementVariables &rVariables, const unsigned int &GPoint)
+    CalculateFluidPressure(const ElementVariables &rVariables)
 {
     KRATOS_TRY
 
@@ -2713,11 +2752,11 @@ void SmallStrainUPwDiffOrderElement::
 void SmallStrainUPwDiffOrderElement::
     CalculateRetentionResponse( ElementVariables& rVariables,
                                 RetentionLaw::Parameters& rRetentionParameters,
-                                const unsigned int &GPoint )
+                                unsigned int GPoint )
 {
     KRATOS_TRY
 
-    rVariables.FluidPressure = CalculateFluidPressure(rVariables, GPoint);
+    rVariables.FluidPressure = CalculateFluidPressure(rVariables);
     SetRetentionParameters(rVariables, rRetentionParameters);
 
     rVariables.DegreeOfSaturation = mRetentionLawVector[GPoint]->CalculateSaturation(rRetentionParameters);

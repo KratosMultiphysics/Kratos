@@ -36,7 +36,6 @@ class TimeStepTester():
 
         self.stable_time_steps_list.append(previous_dt)
 
-    @classmethod
     def RunTestCaseWithCustomizedDtAndScheme(self, dt, scheme):
         model = KratosMultiphysics.Model()
         CustomizedSolutionForTimeStepTesting(model, dt, scheme).Run()
@@ -241,7 +240,6 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
 
         return this_test_total_energy
 
-    @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
         properties[PARTICLE_DENSITY] = 2650.0
         properties[KratosMultiphysics.YOUNG_MODULUS] = 7.0e6

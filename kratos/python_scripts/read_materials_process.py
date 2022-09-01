@@ -164,8 +164,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         # Get the properties for the specified model part.
         model_part = self.Model[data["model_part_name"].GetString()]
         property_id = data["properties_id"].GetInt()
-        mesh_id = 0
-        prop = model_part.GetProperties(property_id, mesh_id)
+        prop = model_part.GetProperties(property_id)
 
         if len(data["Material"]["Variables"].keys()) > 0 and prop.HasVariables():
             KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Property", str(property_id), "already has variables." )

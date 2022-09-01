@@ -19,7 +19,7 @@
 
 // Project includes
 #include "processes/process.h"
-#include "processes/find_elements_neighbours_process.h"
+#include "processes/generic_find_elements_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "processes/find_global_nodal_elemental_neighbours_process.h"
 #include "includes/define.h"
@@ -393,10 +393,8 @@ private:
         FindGlobalNodalNeighboursProcess nodal_neighbour_process_new(r_smoothing_model_part);
         nodal_neighbour_process_new.Execute();
 
-        const unsigned int num_neighbouring_elements = TDim + 1;
-
-        FindElementalNeighboursProcess neighbour_elements_finder_new(r_smoothing_model_part, TDim, num_neighbouring_elements);
-        neighbour_elements_finder_new.Execute();
+        GenericFindElementalNeighboursProcess neighbour_elements_finder_new(r_smoothing_model_part);
+        neighbour_elements_finder_new.ExecuteInitialize();
 
         if (mAllConditionsAsBoundary)
         {
