@@ -165,7 +165,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
             previous_dt = rProcessInfo[DELTA_TIME];
         }
         // Get the absolute volume error from the ProcessInfo and calculate the time rate
-        this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
+        this->FillFromProcessInfo(VolumeErrorRate,VOLUME_ERROR,rProcessInfo);
         VolumeErrorRate /= -previous_dt;
     } else {
         VolumeErrorRate = 0.0;
