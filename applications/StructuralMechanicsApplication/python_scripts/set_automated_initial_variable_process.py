@@ -84,8 +84,7 @@ def Factory(settings, Model):
     default_table_id_vector = KM.Parameters("""{
     "table_id_vector": [10,11,12,13,14,15]
     }""")
-    process_settings.AddValue("table_id_vector", default_table_id_vector)
-    process_settings["table_id_vector"].SetVector(table_id_list)
+    process_settings.AddEmptyValue("table_id_vector").SetVector(table_id_list)
 
     process_settings.RemoveValue("help")
     process_settings.RemoveValue("model_part_name")
