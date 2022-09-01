@@ -126,7 +126,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         strategy.Solve()
 
 
-    def _check_results(self,mp,A,b, threshold = 1.0e-6):
+    def _check_results(self,mp,A,b):
 
         ##check that the results are exact on the nodes
         for node in mp.Nodes:
@@ -144,9 +144,9 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             for i in range(3):
                 if abs(u[i]) > 0.0:
                     error = abs((d[i] - u[i])/u[i])
-                    if error > threshold:
-                       print("NODE ", node.Id,": Component ", coor_list[i],":\t",u[i],"\t",d[i], "\tError: ", error)
-                    self.assertLess(error, threshold)
+                    self.assertLess(error, self.tolerances["relative"], msg=f"NODE {node.Id}: Component {coor_list[i]}: {u[i]} {d[i]} Error: {error}")
+                else:
+                    self.assertLess(abs(d[i]), self.tolerances["absolute"]["displacement"])
 
     def _check_outputs(self,mp,A,dim):
 
