@@ -452,7 +452,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         simulation = RigidBodySolver(self.model, self.default_parameters)
         buffer = 0
         random_vector = np.random.rand(simulation.system_size)
-        self.assertRaises(Exception, simulation._SetCompleteVector, "false_model_part", KM.DISPLACEMENT, KM.ROTATION, random_vector, buffer)
+        with self.assertRaisesRegex(Exception, 'model_part_name should be "rigid_body" or "root_point".'):
+            simulation._SetCompleteVector("false_model_part", KM.DISPLACEMENT, KM.ROTATION, random_vector, buffer)
 
 
     def test_GetCompleteVector_rigid_body(self):
@@ -486,7 +487,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
     def test_GetCompleteVector_false_model_part(self):
         simulation = RigidBodySolver(self.model, self.default_parameters)
         buffer = 0
-        self.assertRaises(Exception, simulation._GetCompleteVector, "false_model_part", KM.DISPLACEMENT, KM.ROTATION, buffer)
+        with self.assertRaisesRegex(Exception, 'model_part_name should be "rigid_body" or "root_point".'):
+            simulation._GetCompleteVector("false_model_part", KM.DISPLACEMENT, KM.ROTATION, buffer)
 
 
     def test_ResetExternalVariables(self):
@@ -968,8 +970,11 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
 
     def test_init(self):
         # Check that the input parameters are in the right format
-        self.assertRaises(Exception, RigidBodySolver, "Not a Kratos Model object", self.default_parameters)
-        self.assertRaises(Exception, RigidBodySolver, self.model, "Not a Kratos Parameters object")
+        with self.assertRaisesRegex(Exception, "Input is expected to be provided as a Kratos Model object"):
+            RigidBodySolver("Not a Kratos Model object", self.default_parameters)
+
+        with self.assertRaisesRegex(Exception, "Input is expected to be provided as a Kratos Parameters object"):
+            RigidBodySolver(self.model, "Not a Kratos Parameters object")
         
         Parameters = KM.Parameters('''{
             "problem_data": {
@@ -1216,18 +1221,30 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
     def test_CheckMandatoryInputParameters1(self):
         # Missing problem_data
         Parameters = KM.Parameters('''{
+            "solver_settings": {
+            },
+            "output_processes": [
+            ],
+            "processes": {
+            }
         }''')
-        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+        with self.assertRaisesRegex(Exception, 'The key "problem_data" was not found in the project parameters and it is necessary to configure the RigidBodySolver.'):
+            input_check._CheckMandatoryInputParameters(Parameters)        
 
 
     def test_CheckMandatoryInputParameters2(self):
         # Missing solver_settings
         Parameters = KM.Parameters('''{
             "problem_data": {
+            },
+            "output_processes": [
+            ],
+            "processes": {
             }
         }''')
         
-        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+        with self.assertRaisesRegex(Exception, 'The key "solver_settings" was not found in the project parameters and it is necessary to configure the RigidBodySolver.'):
+            input_check._CheckMandatoryInputParameters(Parameters)
 
 
     def test_CheckMandatoryInputParameters3(self):
@@ -1236,10 +1253,13 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
             "problem_data": {
             },
             "solver_settings": {
+            },
+            "processes": {
             }
         }''')
         
-        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+        with self.assertRaisesRegex(Exception, 'The key "output_processes" was not found in the project parameters and it is necessary to configure the RigidBodySolver.'):
+            input_check._CheckMandatoryInputParameters(Parameters)
 
 
     def test_CheckMandatoryInputParameters4(self):
@@ -1253,13 +1273,16 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
             ]
         }''')
         
-        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+        with self.assertRaisesRegex(Exception, 'The key "processes" was not found in the project parameters and it is necessary to configure the RigidBodySolver.'):
+            input_check._CheckMandatoryInputParameters(Parameters)
 
 
     def test_CheckMandatoryInputParameters5(self):
         # Missing problem_name in problem_data
         Parameters = KM.Parameters('''{
             "problem_data": {
+                "start_time": 0.0,
+                "end_time": 1.0
             },
             "solver_settings": {
             },
@@ -1269,14 +1292,16 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
             }
         }''')
         
-        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+        with self.assertRaisesRegex(Exception, '"problem_name" should be given as par of "problem_data" in the project parameters.'):
+            input_check._CheckMandatoryInputParameters(Parameters)
 
 
     def test_CheckMandatoryInputParameters6(self):
         # Missing start_time in problem_data
         Parameters = KM.Parameters('''{
             "problem_data": {
-                "problem_name": "RigidBodyStandalone"
+                "problem_name": "RigidBodyStandalone",
+                "end_time": 1.0
             },
             "solver_settings": {
             },
@@ -1286,7 +1311,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
             }
         }''')
         
-        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+        with self.assertRaisesRegex(Exception, '"start_time" should be given as par of "problem_data" in the project parameters.'):
+            input_check._CheckMandatoryInputParameters(Parameters)
 
 
     def test_CheckMandatoryInputParameters7(self):
@@ -1304,7 +1330,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
             }
         }''')
         
-        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+        with self.assertRaisesRegex(Exception, '"end_time" should be given as par of "problem_data" in the project parameters.'):
+            input_check._CheckMandatoryInputParameters(Parameters)
 
 
     def test_CheckMandatoryInputParameters8(self):
@@ -1323,7 +1350,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
             }
         }''')
         
-        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+        with self.assertRaisesRegex(Exception, '"time_step" should be given as par of "time_integration_parameters" in "solver_settings" of the project parameters.'):
+            input_check._CheckMandatoryInputParameters(Parameters)
         
         
     def test_CheckMandatoryInputParameters9(self):
@@ -1344,7 +1372,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
             }
         }''')
         
-        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+        with self.assertRaisesRegex(Exception, '"time_step" should be given as par of "time_integration_parameters" in "solver_settings" of the project parameters.'):
+            input_check._CheckMandatoryInputParameters(Parameters)
 
 
     def test_CheckMandatoryInputParameters10(self):
@@ -1369,7 +1398,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
             }
         }''')
         
-        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+        with self.assertRaisesRegex(Exception, '"input_type" must be either "none" or "rest".'):
+            input_check._CheckMandatoryInputParameters(Parameters)
 
         
     def test_CheckMandatoryInputParameters11(self):
@@ -1394,7 +1424,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
             }
         }''')
         
-        self.assertRaises(Exception, input_check._CheckMandatoryInputParameters, Parameters)
+        with self.assertRaisesRegex(Exception, '"restart_load_file_label" must be specified when starting from a restart-file!'):
+            input_check._CheckMandatoryInputParameters(Parameters)
 
 
     def test_ValidateAndAssignRigidBodySolverDefaults1(self):
@@ -1459,7 +1490,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         }''')
         solver_settings = Parameters["solver_settings"]
         
-        self.assertRaises(Exception, input_check._ValidateAndAssignRigidBodySolverDefaults, solver_settings)
+        with self.assertRaisesRegex(Exception, 'The domain size can only be 2 or 3.'):
+            input_check._ValidateAndAssignRigidBodySolverDefaults(solver_settings)
 
 
     def test_ValidateAndAssignRigidBodySolverDefaults3(self):
@@ -1483,7 +1515,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         }''')
         solver_settings = Parameters["solver_settings"]
         
-        self.assertRaises(Exception, input_check._ValidateAndAssignRigidBodySolverDefaults, solver_settings)
+        with self.assertRaisesRegex(Exception, 'The 2D version of the solver is yet to be implemented. Use 3 as "domain_size" and activate only the necessary degrees of freedom instead.'):
+            input_check._ValidateAndAssignRigidBodySolverDefaults(solver_settings)
 
 
     def test_ValidateAndAssignRigidBodySolverDefaults4(self):
@@ -1508,7 +1541,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         }''')
         solver_settings = Parameters["solver_settings"]
         
-        self.assertRaises(Exception, input_check._ValidateAndAssignRigidBodySolverDefaults, solver_settings)
+        with self.assertRaisesRegex(Exception, 'The buffer size needs to be equal or bigger than 1.'):
+            input_check._ValidateAndAssignRigidBodySolverDefaults(solver_settings)
 
 
     def test_ValidateAndAssignDofDefaults1(self):
@@ -1639,7 +1673,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         }''')
         available_dofs = ['displacement_x', 'displacement_y', 'displacement_z', 'rotation_x', 'rotation_y', 'rotation_z']
         
-        self.assertRaises(Exception, input_check._ValidateAndAssignDofDefaults, dof_settings["active_dofs"], available_dofs)
+        with self.assertRaisesRegex(Exception, 'At least an active degree of freedom is needed to use the solver  and none where provided in "active_dofs".'):
+            input_check._ValidateAndAssignDofDefaults(dof_settings["active_dofs"], available_dofs)
 
 
     def test_ValidateAndAssignDofDefaults3(self):
@@ -1668,7 +1703,11 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         }''')
         available_dofs = ['displacement_x', 'displacement_y', 'displacement_z', 'rotation_x', 'rotation_y', 'rotation_z']
         
-        self.assertRaises(Exception, input_check._ValidateAndAssignDofDefaults, dof_settings["active_dofs"], available_dofs)
+        msg = "The degree of freedom " + '"displacemen_y"'
+        msg +=" is not among the available ones. Select one of the following: "
+        msg += "'displacement_x', 'displacement_y', 'displacement_z', 'rotation_x', 'rotation_y', 'rotation_z'"
+        with self.assertRaisesRegex(Exception, msg):
+            input_check._ValidateAndAssignDofDefaults(dof_settings["active_dofs"], available_dofs)
 
 
     def test_ValidateAndAssignDofDefaults4(self):
@@ -1697,7 +1736,9 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         }''')
         available_dofs = ['displacement_x', 'displacement_y', 'displacement_z', 'rotation_x', 'rotation_y', 'rotation_z']
         
-        self.assertRaises(Exception, input_check._ValidateAndAssignDofDefaults, dof_settings["active_dofs"], available_dofs)
+        msg = "The degree of freedom " + '"displacement_x"' +" was repeated in the list "+ '"active dofs"' +"."
+        with self.assertRaisesRegex(Exception, msg):
+            input_check._ValidateAndAssignDofDefaults(dof_settings["active_dofs"], available_dofs)
 
 
     def test_CreateListOfProcesses(self):
