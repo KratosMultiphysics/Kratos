@@ -7,9 +7,10 @@ on:
   pull_request:
     branches:
       - master
-    paths: # this must be the same as .github/workflows/ci.yml - "paths-ignore" !
+    paths:              # This must be the same as .github/workflows/ci.yml - "paths-ignore" !
       - '**.md'
       - '/documents/**'
+      - '/scripts/**'
 
 jobs:
   ubuntu:
