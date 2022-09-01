@@ -9,7 +9,14 @@ from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 class TestPatchTestSmallStrain(KratosUnittest.TestCase):
     def setUp(self):
-        pass
+        self.tolerances = {
+            "relative" : 1e-6,
+            "absolute" : {
+                "displacement" : 1e-6,
+                "stress"       : 1e2,
+                "strain"       : 1e-2
+            }
+        }
 
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -79,8 +86,6 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             b[0] = 0.5e-10
             b[1] = -0.2e-10
             b[2] = 0.7e-10
-
-
 
         return A,b
 
@@ -192,7 +197,10 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             for strain in out:
                 for i in range(len(reference_strain)):
                     if abs(strain[i]) > 0.0:
-                        self.assertLess((reference_strain[i] - strain[i])/strain[i], 1.0e-6)
+                        if abs(reference_strain[i]) > 0.0:
+                            self.assertLess(abs((reference_strain[i] - strain[i])/reference_strain[i]), self.tolerances["relative"])
+                        else:
+                            self.assertLess(abs(strain[i]), self.tolerances["absolute"]["strain"])
 
         # Finally compute stress
         if(dim == 2):
@@ -222,7 +230,10 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             for stress in out:
                 for i in range(len(reference_stress)):
                     if abs(stress[i]) > 0.0:
-                        self.assertLess((reference_stress[i] - stress[i])/stress[i], 1.0e-6)
+                        if abs(reference_stress[i]) > 0.0: 
+                            self.assertLess(abs((reference_stress[i] - stress[i])/reference_stress[i]), self.tolerances["relative"])
+                        else:
+                            self.assertLess(abs(stress[i]), self.tolerances["absolute"]["stress"])
 
     def test_SmallDisplacementElement_2D_triangle(self):
         dim = 2
