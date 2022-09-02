@@ -52,6 +52,7 @@ void SetAutomatedInitialVariableProcess::ExecuteInitialize()
     const double hole_radius_offset = mThisParameters["hole_radius_offset"].GetDouble();
 
     Vector table_id_vector = mThisParameters["table_id_vector"].GetVector();
+    const Variable<Vector>& r_variable = KratosComponents<Variable<Vector>>::Get(mThisParameters["variable_name"].GetString());
 
     block_for_each(mrThisModelPart.Elements(), [&](auto& rElement) {
 
@@ -89,7 +90,6 @@ void SetAutomatedInitialVariableProcess::ExecuteInitialize()
                 initial_variable_vector[varible_id] = mrThisModelPart.GetTable(table_id).GetValue(centroid_relative_distance);  
         }
     
-        const Variable<Vector>& r_variable = KratosComponents<Variable<Vector>>::Get(mThisParameters["variable_name"].GetString());
         rElement.SetValue(r_variable, initial_variable_vector);
 
     });
