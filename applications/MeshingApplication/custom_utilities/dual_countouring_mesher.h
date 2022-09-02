@@ -107,14 +107,21 @@ public:
     {     
         rFitedMesh.AddNodalSolutionStepVariable(DISTANCE); //This should be smth like Kratos_error_if_not(rFitedMesh.Has(DISTANCE))
         
-        GeometricalObjectsBins& voxel_bin = ConstructBins();
-        mpModel->CreateModelPart("Skin");
+        array_1d<double,3> cell_size(3); 
+        array_1d<double,3> min_bounding_box(3);
+        array_1d<double,3> max_bounding_box(3);
 
-        KRATOS_WATCH(voxel_bin.GetCellSizes());
-        KRATOS_WATCH(voxel_bin.GetBoundingBox().GetMinPoint());
-        KRATOS_WATCH(voxel_bin.GetBoundingBox().GetMaxPoint());
+        for(int i = 0; i < 3; i++) {
+            std::vector<double> planes = GetKeyPlanes(i);
+            cell_size[i] = planes[1] - planes[0];
+            min_bounding_box[i] = planes[0];
+            max_bounding_box[i] = planes[planes.size() -1];
+        }
+        
+        GeometricalObjectsBins voxel_bin(mpInputModelPart->ElementsBegin(), mpInputModelPart->ElementsEnd(),cell_size,min_bounding_box,max_bounding_box);
 
         const auto& number_of_cells = voxel_bin.GetNumberOfCells();
+        KRATOS_WATCH(number_of_cells);
 
         for (std::size_t i = 0; i < number_of_cells[0]; i++) {
             for (std::size_t j = 0; j < number_of_cells[1]; j++) {
@@ -125,6 +132,7 @@ public:
                     int new_id = i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1; 
 
                     array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(box,triangles);
+                    KRATOS_WATCH(qef);
                     rFitedMesh.CreateNewNode(new_id, qef[0], qef[1], qef[2]);
                     rFitedMesh.pGetNode(new_id)->FastGetSolutionStepValue(DISTANCE) = 1;  //?                  
                 }
@@ -150,16 +158,6 @@ public:
                 }
             }
         }
-
-        KRATOS_WATCH('fin');
-
-        /********************************************************************************************
-        Properties::Pointer p_properties_1(new Properties(0)); 
-        rVoxelMesh.CreateNewElement("Element3D8N", 8, 
-            {id+1, id+2, id+3, id+4, id+5, id+6, id+7, id+8}, p_properties_1);    
-
-        *******************************************************************************************/
-
     }
 
      void ThisIsTheRemix(
@@ -201,21 +199,6 @@ private:
         else return -1;
     }
 
-    GeometricalObjectsBins& ConstructBins() {
-        array_1d<double,3> cell_size(3); 
-        array_1d<double,3> min_bounding_box(3);
-        array_1d<double,3> max_bounding_box(3);
-
-        for(int i = 0; i < 3; i++) {
-            std::vector<double> planes = GetKeyPlanes(i);
-            cell_size[i] = planes[1] - planes[0];
-            min_bounding_box[i] = planes[0];
-            max_bounding_box[i] = planes[planes.size() -1];
-        }
-        
-        GeometricalObjectsBins voxel_bin(mpInputModelPart->ElementsBegin(), mpInputModelPart->ElementsEnd(),cell_size,min_bounding_box,max_bounding_box);
-        return voxel_bin;
-    }
 
 }; /* Class DualCountouringMesher */
 

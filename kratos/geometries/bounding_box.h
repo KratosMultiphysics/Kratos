@@ -138,8 +138,8 @@ public:
     template<typename TArrayType>
     void SetBoundingBox(const TArrayType& rMins, const TArrayType& rMaxs) {
         for (int i = 0; i < Dimension; i++){
-            GetMinPoint()[i] = rMins[i];
-            GetMaxPoint()[i] = rMaxs[i];
+            mMinMaxPoints[0][i] = rMins[i];
+            mMinMaxPoints[1][i] = rMaxs[i];
         }
     }
 
