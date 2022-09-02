@@ -174,7 +174,22 @@ namespace {
                     "min_point" : [-1, -1, -1],
                     "max_point" : [1, 1, 1]
                 }
+            },
+            "coloring_settings_list": [
+            {
+                "type" : "cells_in_touch",
+                "model_part_name": "skin_model_part.workpiece",
+                "color": -1
             }
+            ],
+            "entities_generator_list": [
+            {
+                "type" : "elements_with_cell_color",
+                "model_part_name": "voxel_model_part.workpiece",
+                "color": -1,
+                "properties_id": 1
+            } 
+            ]
         })");
 
         Model my_model;
@@ -199,8 +214,8 @@ namespace {
         modeler.DualCountourAdaptativeRemesh(fited_mesh);
 
         //Output(skin_model_part,"cube_post");
-        
         KRATOS_CHECK_EQUAL(fited_mesh.Elements().size(),1); 
+        KRATOS_CHECK_EQUAL(voxels_part.Elements().size(),8); 
     }
 } //Namespace Testing
 } //Namespace Kratos
