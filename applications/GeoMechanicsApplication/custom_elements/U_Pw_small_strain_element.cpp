@@ -78,7 +78,7 @@ int UPwSmallStrainElement<TDim,TNumNodes>::
         if ( rProp.Has( PERMEABILITY_XY ) == false || rProp[PERMEABILITY_XY] < 0.0 )
             KRATOS_ERROR << "PERMEABILITY_XY has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
-        if (TDim > 2) {
+        if constexpr (TDim > 2) {
             if ( rProp.Has( PERMEABILITY_ZZ ) == false || rProp[PERMEABILITY_ZZ] < 0.0 )
                 KRATOS_ERROR << "PERMEABILITY_ZZ has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
@@ -625,7 +625,74 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
             rOutput[GPoint] = HydraulicHead;
         }
-    } else {
+    } 
+    else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
+        size_t variable_index;
+        if (rVariable == CONFINED_STIFFNESS)
+        {
+            if (TDim == 2)
+            {
+                variable_index = INDEX_2D_PLANE_STRAIN_XX;
+            }
+            else if (TDim == 3)
+            {
+                variable_index = INDEX_3D_XX;
+            }
+            else
+            {
+                KRATOS_ERROR << "CONFINED_STIFFNESS can not be retrieved for dim " << TDim << " in element: " << this->Id() << std::endl;
+            }
+        }
+        else if (rVariable == SHEAR_STIFFNESS)
+        {
+            if (TDim == 2)
+            {
+                variable_index = INDEX_2D_PLANE_STRAIN_XY;
+            }
+            else if (TDim == 3)
+            {
+                variable_index = INDEX_3D_XZ;
+            }
+            else
+            {
+                KRATOS_ERROR << "SHEAR_STIFFNESS can not be retrieved for dim " << TDim << " in element: " << this->Id() << std::endl;
+            }
+        }
+            
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables,
+            rCurrentProcessInfo);
+
+        if (rOutput.size() != mConstitutiveLawVector.size())
+            rOutput.resize(mConstitutiveLawVector.size());
+
+        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
+            const PropertiesType& rProp = this->GetProperties();
+
+            ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, rProp, rCurrentProcessInfo);
+            ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+            ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+
+            //Compute Np, GradNpT, B and StrainVector
+            this->CalculateKinematics(Variables, GPoint);
+
+            //Compute infinitessimal strain
+            this->CalculateStrain(Variables, GPoint);
+
+            //set gauss points variables to constitutivelaw parameters
+            this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+
+            //compute constitutive tensor and/or stresses
+            noalias(Variables.StressVector) = mStressVector[GPoint];
+            ConstitutiveParameters.SetStressVector(Variables.StressVector);
+
+            mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+
+            rOutput[GPoint] = Variables.ConstitutiveMatrix(variable_index, variable_index);
+        }
+    }
+    else {
         if ( rOutput.size() != mConstitutiveLawVector.size() )
             rOutput.resize(mConstitutiveLawVector.size());
 
@@ -1367,7 +1434,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
     unsigned int index;
 
-    if (TDim > 2) {
+    if constexpr (TDim > 2) {
         for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             index = TDim * i;
 
@@ -1866,7 +1933,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         ETensor(i,i) -= 1.0;
     ETensor *= 0.5;
 
-    if (TDim==2) {
+    if constexpr (TDim==2) {
         Vector StrainVector;
         StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
@@ -1904,7 +1971,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
     ETensor *= 0.5;
 
-    if (TDim==2) {
+    if constexpr (TDim==2) {
         Vector StrainVector;
         StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
@@ -1948,7 +2015,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     MathUtils<double>::BDBtProductOperation(ETensor, EigenValuesMatrix, EigenVectorsMatrix);
 
     // Hencky Strain Calculation
-    if (TDim==2) {
+    if constexpr (TDim==2) {
         Vector StrainVector;
         StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
