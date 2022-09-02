@@ -8,6 +8,16 @@ from KratosMultiphysics.read_csv_table_utility import ReadCsvTableUtility
 def Factory(settings, Model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
+    
+    """
+    This process reads tables in csv format containing the strain/stress components as function of the spatial radial coordinate from the edge of a given hole.
+    Tables are defined by layers ortogonally to the radial direction (generatrix hole direction). Each layer of elements must be allocated in a modelpart.
+    Stress components provided by the tables (linear picewise tables) are interpolated according to each element centroid. 
+    Interpolated components are transfered to the initial variable (INITIAL_STRAIN_VECTOR/INITIAL_STRESS_VECTOR).
+    A minimum of one table per layer must be provided to the process. 
+    Missing stress component are considered to be zero in the INITIAL_STRAIN_VECTOR/INITIAL_STRESS_VECTOR variables. 
+    Tables corresponding to out of range strain/stress components are neglect (e.g. Layer1_StresComp7, Layer2_StresComp8).
+    """
 
     default_settings = KM.Parameters(
         """{
@@ -38,8 +48,7 @@ def Factory(settings, Model):
 
     file_path = Path(process_settings["initial_variable_table"]["filename"].GetString())
     layer_name = file_path.name.split("_")[0]
-    
-    # List composed by the csv files containning the stress components applied to elements of a given model part (element layer)
+
     layer_list = [file for file in file_path.parent.iterdir() if file.name.split("_")[0] == layer_name]
 
     if not layer_list:
