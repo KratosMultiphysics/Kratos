@@ -109,8 +109,10 @@ namespace Kratos {
             array_1d<double,3> intersection;
             std::size_t j = 0; 
             while(!result && j < 12) { 
-                Point end0 = FirstEnd(i, rBox);
-                Point end1 = SecondEnd(i, rBox);
+                Point end0 = FirstEnd(j, rBox);
+                Point end1 = SecondEnd(j, rBox);
+                //KRATOS_WATCH(end0);
+                //KRATOS_WATCH(end1);
                 result = IntersectionUtilities::ComputeTriangleLineIntersection(*rTriangles[i]->pGetGeometry(),end0,end1,intersection);
                 j++;
             }
