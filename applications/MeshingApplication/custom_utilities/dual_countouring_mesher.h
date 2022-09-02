@@ -102,12 +102,31 @@ public:
         ModelPart& rVoxelMesh,
         ModelPart& rFitedMesh) 
     {     
-        array_1d<double,3> cell_size{0.1,0.1,0.1};
-        GeometricalObjectsBins voxel_bin(rSkinModelPart.ElementsBegin(), rSkinModelPart.ElementsEnd(),cell_size);
+        array_1d<double,3> cell_size(3); 
+        array_1d<double,3> min_bounding_box(3);
+        array_1d<double,3> max_bounding_box(3);
+
+        for(int i = 0; i < 3; i++) {
+            std::vector<double> planes = GetKeyPlanes(i);
+            cell_size[i] = planes[1] - planes[0];
+            min_bounding_box[i] = planes[0];
+            max_bounding_box[i] = planes[planes.size() -1];
+        }
+        
+        //cell size tiene que venir de rVoxelMesh
+        //modificar constructor per a desierd boundingbox
+        GeometricalObjectsBins voxel_bin(rSkinModelPart.ElementsBegin(), rSkinModelPart.ElementsEnd(),cell_size,min_bounding_box,max_bounding_box);
         const auto& number_of_cells = voxel_bin.GetNumberOfCells();
+
+        rFitedMesh.AddNodalSolutionStepVariable(DISTANCE); 
         //const auto& cell_size = voxel_bin.GetCellSizes();
 
+        KRATOS_WATCH(voxel_bin.GetCellSizes());
+        KRATOS_WATCH(voxel_bin.GetBoundingBox().GetMinPoint());
+        KRATOS_WATCH(voxel_bin.GetBoundingBox().GetMaxPoint());
+
         //KRATOS_CHECK_EQUAL(voxel_mesh.Elements().size(),30*30*30);
+        
 
         for (std::size_t i = 0; i < number_of_cells[0]; i++) {
             for (std::size_t j = 0; j < number_of_cells[1]; j++) {
@@ -123,25 +142,43 @@ public:
                 }
             }
         }
+        
+        Properties::Pointer p_properties(new Properties(0)); 
 
-        for (std::size_t i = 0; i < number_of_cells[0]; i++) {
-            for (std::size_t j = 0; j < number_of_cells[1]; j++) {
-                for (std::size_t k = 0; k < number_of_cells[2]; k++) {
-                                   
+        for (std::size_t i = 1; i < number_of_cells[0]; i++) {
+            for (std::size_t j = 1; j < number_of_cells[1]; j++) {
+                for (std::size_t k = 1; k < number_of_cells[2]; k++) {
+                    rFitedMesh.CreateNewElement( "Element3D8N", 
+                        i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1,  //id
+                        {(i-1) + (j-1) * number_of_cells[0] + (k-1) * number_of_cells[1] * number_of_cells[0] + 1,  //nodes
+                        i + (j-1) * number_of_cells[0] + (k-1) * number_of_cells[1] * number_of_cells[0] + 1,
+                        i + j * number_of_cells[0] + (k-1) * number_of_cells[1] * number_of_cells[0] + 1,
+                        (i-1) + j * number_of_cells[0] + (k-1) * number_of_cells[1] * number_of_cells[0] + 1,
+                        (i-1) + (j-1) * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1,
+                        i + (j-1) * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1,
+                        i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1,
+                        (i-1) + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1},
+                        p_properties);      
                 }
             }
         }
 
-        unsigned int current_element_id = 1;
+        KRATOS_WATCH('fin');
 
         /********************************************************************************************
         Properties::Pointer p_properties_1(new Properties(0)); 
         rVoxelMesh.CreateNewElement("Element3D8N", 8, 
             {id+1, id+2, id+3, id+4, id+5, id+6, id+7, id+8}, p_properties_1);    
 
-        /********************************************************************************************/
+        *******************************************************************************************/
 
     }
+
+     void ThisIsTheRemix(
+        ModelPart& rSkinModelPart,
+        ModelPart& rVoxelMesh,
+        ModelPart& rFitedMesh) 
+    {   }
 
 private:
 

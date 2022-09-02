@@ -220,10 +220,11 @@ End SubModelPart
         ModelPart& voxels_part = my_model.CreateModelPart("voxels_part");
         ModelPart& fited_mesh = my_model.CreateModelPart("fited_mesh");
         skin_model_part.AddNodalSolutionStepVariable(DISTANCE);
-        voxels_part.AddNodalSolutionStepVariable(DISTANCE); 
+        voxels_part.AddNodalSolutionStepVariable(DISTANCE);
+        fited_mesh.AddNodalSolutionStepVariable(DISTANCE);  
 
-        ModelPartIO model_part_io(p_input);
-        model_part_io.ReadModelPart(skin_model_part);
+        //ModelPartIO model_part_io(p_input);
+        //model_part_io.ReadModelPart(skin_model_part);
 
         //KRATOS_WATCH(voxels_part.Elements().size());
 
@@ -235,7 +236,8 @@ End SubModelPart
 
         DualCountouringMesher mesher; 
         mesher.DualCountourAdaptativeRemesh(skin_model_part, voxels_part, fited_mesh); 
-
+        KRATOS_WATCH('yas');
+        
         //Output(skin_model_part,"cube_post");
         
         //KRATOS_CHECK_EQUAL(voxels_part.Elements().size(),1);

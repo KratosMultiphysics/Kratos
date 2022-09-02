@@ -95,14 +95,13 @@ namespace Testing {
         ModelPart& skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
 
         array_1d<double,3> cell_size{0.2,0.1,0.05};
-        array_1d<double,3> min_bounding_box{-0.6,-0.9,-0.3};
+        array_1d<double,3> min_bounding_box{-1.2,-0.9,-0.3};
         array_1d<double,3> max_bounding_box{0.6,0.9,0.3};
 
         GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd(), cell_size, min_bounding_box,max_bounding_box);
 
         auto number_of_cells = bins.GetNumberOfCells();
-        KRATOS_WATCH(number_of_cells);
-        KRATOS_CHECK_EQUAL(number_of_cells[0], 6);
+        KRATOS_CHECK_EQUAL(number_of_cells[0], 9);
         KRATOS_CHECK_EQUAL(number_of_cells[1], 18);
         KRATOS_CHECK_EQUAL(number_of_cells[2], 12);
 
