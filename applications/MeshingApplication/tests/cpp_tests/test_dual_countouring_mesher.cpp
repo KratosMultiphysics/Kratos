@@ -193,8 +193,8 @@ namespace {
 
         //Output(skin_model_part,"cube_pre");
 
-        DualCountouringMesher mesher; 
-        mesher.DualCountourAdaptativeRemesh(skin_model_part, voxels_part, fited_mesh); 
+        DualCountouringMesher mesher(my_model,mesher_parameters); 
+        mesher.DualCountourAdaptativeRemesh(fited_mesh); 
         KRATOS_WATCH('yas');
         
         //Output(skin_model_part,"cube_post");

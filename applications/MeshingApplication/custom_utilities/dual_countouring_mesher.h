@@ -54,7 +54,7 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief Utilities to re-mesh a shape using dual countouring
  */
-class DualCountouringMesher
+class DualCountouringMesher : public VoxelMeshGeneratorModeler
 {
 public:
 
@@ -84,6 +84,11 @@ public:
      */
     DualCountouringMesher(){}
 
+    //Constructor
+    DualCountouringMesher(
+        Model& rModel, Parameters rParameters = Parameters()) 
+        : VoxelMeshGeneratorModeler(rModel, rParameters ) {}
+
     /// Destructor
     virtual ~DualCountouringMesher(){}
 
@@ -98,35 +103,18 @@ public:
     * will be a modelPart named "fited_mesh")
     */
     void DualCountourAdaptativeRemesh(
-        ModelPart& rSkinModelPart,
-        ModelPart& rVoxelMesh,
         ModelPart& rFitedMesh) 
     {     
-        array_1d<double,3> cell_size(3); 
-        array_1d<double,3> min_bounding_box(3);
-        array_1d<double,3> max_bounding_box(3);
-
-        for(int i = 0; i < 3; i++) {
-            std::vector<double> planes = rVoxelMesh.GetKeyPlanes(i);
-            cell_size[i] = planes[1] - planes[0];
-            min_bounding_box[i] = planes[0];
-            max_bounding_box[i] = planes[planes.size() -1];
-        }
+        rFitedMesh.AddNodalSolutionStepVariable(DISTANCE); //This should be smth like Kratos_error_if_not(rFitedMesh.Has(DISTANCE))
         
-        //cell size tiene que venir de rVoxelMesh
-        //modificar constructor per a desierd boundingbox
-        GeometricalObjectsBins voxel_bin(rSkinModelPart.ElementsBegin(), rSkinModelPart.ElementsEnd(),cell_size,min_bounding_box,max_bounding_box);
-        const auto& number_of_cells = voxel_bin.GetNumberOfCells();
-
-        rFitedMesh.AddNodalSolutionStepVariable(DISTANCE); 
-        //const auto& cell_size = voxel_bin.GetCellSizes();
+        GeometricalObjectsBins& voxel_bin = ConstructBins();
+        mpModel->CreateModelPart("Skin");
 
         KRATOS_WATCH(voxel_bin.GetCellSizes());
         KRATOS_WATCH(voxel_bin.GetBoundingBox().GetMinPoint());
         KRATOS_WATCH(voxel_bin.GetBoundingBox().GetMaxPoint());
 
-        //KRATOS_CHECK_EQUAL(voxel_mesh.Elements().size(),30*30*30);
-        
+        const auto& number_of_cells = voxel_bin.GetNumberOfCells();
 
         for (std::size_t i = 0; i < number_of_cells[0]; i++) {
             for (std::size_t j = 0; j < number_of_cells[1]; j++) {
@@ -211,6 +199,22 @@ private:
 
         if(nodes_inside > 0) return mean/nodes_inside;
         else return -1;
+    }
+
+    GeometricalObjectsBins& ConstructBins() {
+        array_1d<double,3> cell_size(3); 
+        array_1d<double,3> min_bounding_box(3);
+        array_1d<double,3> max_bounding_box(3);
+
+        for(int i = 0; i < 3; i++) {
+            std::vector<double> planes = GetKeyPlanes(i);
+            cell_size[i] = planes[1] - planes[0];
+            min_bounding_box[i] = planes[0];
+            max_bounding_box[i] = planes[planes.size() -1];
+        }
+        
+        GeometricalObjectsBins voxel_bin(mpInputModelPart->ElementsBegin(), mpInputModelPart->ElementsEnd(),cell_size,min_bounding_box,max_bounding_box);
+        return voxel_bin;
     }
 
 }; /* Class DualCountouringMesher */

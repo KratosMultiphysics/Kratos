@@ -109,6 +109,12 @@ public:
     const Parameters GetDefaultParameters() const override ;
 
     ///@}
+
+protected:
+    //Member variables
+    ModelPart* mpInputModelPart = nullptr;
+    Model* mpModel = nullptr;
+
 private:
     // Data that I store in the internal data structure for each node of the cartesian grid
     class CartesianNodalData
@@ -163,9 +169,7 @@ private:
 
     std::size_t mStartNodeId;
     std::size_t mStartElementId;
-    std::size_t mStartConditionId;
-    Model* mpModel = nullptr;
-    ModelPart* mpInputModelPart = nullptr;
+    std::size_t mStartConditionId;    
     array_1d<std::vector<double>,3> mKeyPlanes;
     std::map<std::size_t,ModelPart&> mModelPartsColors;
     Internals::CartesianMeshColors mColors;
