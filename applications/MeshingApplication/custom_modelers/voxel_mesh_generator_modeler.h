@@ -111,11 +111,6 @@ public:
     ///@}
 
 protected:
-    //Member variables
-    ModelPart* mpInputModelPart = nullptr;
-    Model* mpModel = nullptr;
-
-private:
     // Data that I store in the internal data structure for each node of the cartesian grid
     class CartesianNodalData
     {
@@ -169,7 +164,9 @@ private:
 
     std::size_t mStartNodeId;
     std::size_t mStartElementId;
-    std::size_t mStartConditionId;    
+    std::size_t mStartConditionId; 
+    ModelPart* mpInputModelPart = nullptr;
+    Model* mpModel = nullptr;   
     array_1d<std::vector<double>,3> mKeyPlanes;
     std::map<std::size_t,ModelPart&> mModelPartsColors;
     Internals::CartesianMeshColors mColors;
@@ -215,7 +212,7 @@ private:
     void ColorConnectedCellsToThisCell(std::size_t I, std::size_t J, std::size_t K, double InsideColor, double CellColor);
    
 
-    void GenerateElementsWithCellColor(ModelPart& rTheVolumeModelPart, Parameters EntityGeneratorParameters);
+    virtual void GenerateElementsWithCellColor(ModelPart& rTheVolumeModelPart, Parameters EntityGeneratorParameters);
 
     void GenerateTetrahedralElementsWithCellColor(ModelPart& rTheVolumeModelPart, Parameters EntityGeneratorParameters);
 

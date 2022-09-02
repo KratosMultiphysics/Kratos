@@ -98,9 +98,7 @@ public:
 
     /**
     * @brief Creates a mesh adapting to the shape of the rSkinPart passed
-    * @param rSkinModelPart Geometrical Object containing rSkinPart and its information
-    * @param rModel the model that will be containing the resulting mesh (the resulting mesh 
-    * will be a modelPart named "fited_mesh")
+    * @param rFitedMesh The resulting modelPart containing the mesh adapted to the surface
     */
     void DualCountourAdaptativeRemesh(
         ModelPart& rFitedMesh) 
@@ -130,7 +128,7 @@ public:
                     int new_id = i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1; 
 
                     array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(box,triangles);
-                    KRATOS_WATCH(qef);
+                    //KRATOS_WATCH(qef);
                     rFitedMesh.CreateNewNode(new_id, qef[0], qef[1], qef[2]);
                     rFitedMesh.pGetNode(new_id)->FastGetSolutionStepValue(DISTANCE) = 1;  //?                  
                 }
@@ -196,6 +194,53 @@ private:
         if(nodes_inside > 0) return mean/nodes_inside;
         else return -1;
     }
+
+    void GenerateElementsWithCellColor(ModelPart& rTheVolumeModelPart, Parameters EntityGeneratorParameters) override {
+         double inside_color = EntityGeneratorParameters["color"].GetDouble();
+        std::size_t properties_id = EntityGeneratorParameters["properties_id"].GetInt();
+
+        if(!rTheVolumeModelPart.HasProperties(properties_id)){
+            rTheVolumeModelPart.CreateNewProperties(properties_id);
+        }    
+        Properties::Pointer p_properties = rTheVolumeModelPart.pGetProperties(properties_id);
+
+        std::size_t cell_index = 0;
+        array_1d<std::size_t, 3> number_of_cells;
+        for(int i = 0 ; i < 3 ; i++){
+            number_of_cells[i]=mKeyPlanes[i].size() - 1;
+        }
+
+        ModelPart::NodesContainerType new_nodes;
+        ModelPart::ElementsContainerType new_elements;
+        auto& r_prototype_element = KratosComponents<Element>::Get("Element3D8N");
+            
+    
+        Element::NodesArrayType cell_nodes(8);
+        for (std::size_t k = 0; k < number_of_cells[2]; k++) {
+            for (std::size_t j = 0; j < number_of_cells[1]; j++) {
+                for (std::size_t i = 0; i < number_of_cells[0]; i++) {
+                    if(mColors.GetElementalColor(i,j,k) == inside_color){
+                        cell_nodes(0) = GenerateOrRetriveNode(rTheVolumeModelPart, new_nodes, i  , j  , k);
+                        cell_nodes(1) = GenerateOrRetriveNode(rTheVolumeModelPart, new_nodes, i+1, j  , k);
+                        cell_nodes(2) = GenerateOrRetriveNode(rTheVolumeModelPart, new_nodes, i+1, j+1, k);
+                        cell_nodes(3) = GenerateOrRetriveNode(rTheVolumeModelPart, new_nodes, i  , j+1, k);
+                        cell_nodes(4) = GenerateOrRetriveNode(rTheVolumeModelPart, new_nodes, i  , j  , k+1);
+                        cell_nodes(5) = GenerateOrRetriveNode(rTheVolumeModelPart, new_nodes, i+1, j  , k+1);
+                        cell_nodes(6) = GenerateOrRetriveNode(rTheVolumeModelPart, new_nodes, i+1, j+1, k+1);
+                        cell_nodes(7) = GenerateOrRetriveNode(rTheVolumeModelPart, new_nodes, i  , j+1, k+1);
+
+                        //create the new element
+                        Element::Pointer p_element = r_prototype_element.Create(mStartElementId + cell_index, cell_nodes, p_properties);
+                        new_elements.push_back(p_element);
+                        cell_index++;
+                    }
+                }
+            }
+        }
+    
+        rTheVolumeModelPart.AddNodes(new_nodes.begin(), new_nodes.end());
+        rTheVolumeModelPart.AddElements(new_elements.begin(), new_elements.end());
+   }
 
 
 }; /* Class DualCountouringMesher */
