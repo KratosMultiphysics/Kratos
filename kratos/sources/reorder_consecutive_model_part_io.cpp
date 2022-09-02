@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
@@ -30,22 +30,9 @@ namespace Kratos
 {
     /// Constructor with  filenames.
     ReorderConsecutiveModelPartIO::ReorderConsecutiveModelPartIO(std::string const& Filename, const Flags Options )
-        : ModelPartIO(Filename, Options),
-		mNumberOfNodes(0),
-		mNumberOfElements(0),
-		mNumberOfConditions(0),
-		mNodeIdMap(),
-		mElementIdMap(),
-		mConditionIdMap()
+        : ModelPartIO(Filename, Options)
     {
     }
-
-
-    /// Destructor.
-    ReorderConsecutiveModelPartIO::~ReorderConsecutiveModelPartIO() {}
-
-	
-
 	ModelPartIO::SizeType ReorderConsecutiveModelPartIO::ReorderedNodeId(ModelPartIO::SizeType NodeId)
 	{
 		IdMapType::iterator i = mNodeIdMap.find(NodeId);
