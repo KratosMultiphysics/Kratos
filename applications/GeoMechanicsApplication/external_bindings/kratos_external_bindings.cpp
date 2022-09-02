@@ -18,7 +18,7 @@ extern "C"
     EXPORT int __stdcall DGeoFlow(Kratos::KratosExecute *instance, char *workingDirectory, char *projectFile,
                                   double minCriticalHead, double maxCriticalHead, double stepCriticalHead, char *criticalHeadBoundaryModelPartName)
     {
-        return instance->geoflow(workingDirectory, projectFile, minCriticalHead, maxCriticalHead, stepCriticalHead, criticalHeadBoundaryModelPartName);
+    	return instance->geoflow(workingDirectory, projectFile, minCriticalHead, maxCriticalHead, stepCriticalHead, criticalHeadBoundaryModelPartName);
     }
 
 #endif

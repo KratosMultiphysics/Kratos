@@ -16,6 +16,9 @@
 
 /* External includes */
 
+
+#include <geo_mechanics_application.h>
+
 /* Utility includes */
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
@@ -142,7 +145,7 @@ namespace Kratos
     class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosExecute
     {
     public:
-        KratosExecute(){};
+        KratosExecute();
         ~KratosExecute(){};
 
         int geoflow(std::string workingDirectory, std::string parameterName,
@@ -197,7 +200,13 @@ namespace Kratos
         void outputGiD(Model &model, ModelPart &model_part, Parameters parameters, std::string workingDirectory);
 
     private:
-        int echoLevel = 1;
+    	
+        // Initial Setup
+        Model current_model;
+        KratosGeoMechanicsApplication application;
+        void KratosExecute::ResetModelParts();
+    	
+    	int echoLevel = 1;
 
         int GetEchoLevel();
 
