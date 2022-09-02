@@ -47,6 +47,7 @@ cmake ..                                                                        
 -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
 -DUSE_MPI=OFF                                                                                       \
 -DUSE_EIGEN_MKL=OFF                                                                                 \
+-DKRATOS_BUILD_TESTING=OFF                                                                          \
 -DKRATOS_GENERATE_PYTHON_STUBS=ON                                                                   \
 
 # Buid

@@ -42,6 +42,7 @@ cmake -G"Ninja"                                                         ^
 -H"%KRATOS_SOURCE%"                                                     ^
 -B"%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%"                                  ^
 -DCMAKE_BUILD_TYPE=%KRATOS_BUILD_TYPE%                                  ^
+-DKRATOS_BUILD_TESTING=OFF                                              ^
 -DCMAKE_PDB_OUTPUT_DIRECTORY=%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%/PDB     ^
 -DUSE_EIGEN_MKL=OFF                                                     ^
 -DKRATOS_GENERATE_PYTHON_STUBS=ON                                       ^

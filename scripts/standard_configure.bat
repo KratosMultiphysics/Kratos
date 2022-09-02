@@ -43,6 +43,7 @@ rem Configure
 @echo on
 cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"          ^
 -DUSE_EIGEN_MKL=OFF                                                                                 ^
+-DKRATOS_BUILD_TESTING=OFF                                                                          ^
 -DCMAKE_CXX_FLAGS=" %KRATOS_PARALLEL_BUILD_FLAG% "                                                  ^
 -DKRATOS_GENERATE_PYTHON_STUBS=ON                                                                   ^
 
