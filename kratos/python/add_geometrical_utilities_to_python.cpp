@@ -11,7 +11,6 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 // System includes
 
 // External includes
@@ -181,7 +180,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("FindCondition", &BruteForcePointLocator::FindCondition)
         ;
 
-    //isoprinter
+    // IsosurfacePrinterApplication
     py::class_<IsosurfacePrinterApplication >(m,"IsosurfacePrinterApplication")
         .def(py::init<ModelPart& >() )
         .def("AddScalarVarIsosurface", &IsosurfacePrinterApplication::AddScalarVarIsosurface)
@@ -192,31 +191,31 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("CreateNodesArray", &IsosurfacePrinterApplication::CreateNodesArray)
         ;
 
-    //binbased locators
+    // BinBasedFastPointLocator
     py::class_< BinBasedFastPointLocator < 2 >, BinBasedFastPointLocator < 2 >::Pointer >(m,"BinBasedFastPointLocator2D")
         .def(py::init<ModelPart& >())
         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabase)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabaseAssignedSize)
         .def("FindPointOnMesh", &BinBasedFastPointLocator < 2 > ::FindPointOnMeshSimplified)
-        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& self, const array_1d<double,3>& coords ){
-            Element::Pointer pelem=nullptr;
+        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& rSelf, const array_1d<double,3>& rCoords ){
+            Element::Pointer p_elem = nullptr;
             Vector N;
-            const bool is_found = self.FindPointOnMeshSimplified(coords,N,pelem);
-            return std::tuple<bool,Vector,Element::Pointer>{is_found,N,pelem};
+            const bool is_found = rSelf.FindPointOnMeshSimplified(rCoords,N,p_elem);
+            return std::tuple<bool,Vector,Element::Pointer>{is_found,N,p_elem};
         })
         ;
 
     py::class_< BinBasedFastPointLocator < 3 >, BinBasedFastPointLocator < 3 >::Pointer >(m,"BinBasedFastPointLocator3D")
         .def(py::init<ModelPart&  >())
         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabase)
+        .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
         .def("FindPointOnMesh", &BinBasedFastPointLocator < 3 > ::FindPointOnMeshSimplified)
-        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 3 >& self, const array_1d<double,3>& coords ){
-            Element::Pointer pelem=nullptr;
+        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 3 >& rSelf, const array_1d<double,3>& rCoords ){
+            Element::Pointer p_elem = nullptr;
             Vector N;
-            const bool is_found = self.FindPointOnMeshSimplified(coords,N,pelem);
+            const bool is_found = rSelf.FindPointOnMeshSimplified(rCoords,N,p_elem);
             return std::tuple<bool,Vector,Element::Pointer>{is_found,N,pelem};
         })
-        .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
         ;
 
     py::class_< BinBasedFastPointLocatorConditions < 2 > >(m,"BinBasedFastPointLocatorConditions2D")
