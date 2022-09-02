@@ -107,7 +107,7 @@ public:
         array_1d<double,3> max_bounding_box(3);
 
         for(int i = 0; i < 3; i++) {
-            std::vector<double> planes = GetKeyPlanes(i);
+            std::vector<double> planes = rVoxelMesh.GetKeyPlanes(i);
             cell_size[i] = planes[1] - planes[0];
             min_bounding_box[i] = planes[0];
             max_bounding_box[i] = planes[planes.size() -1];

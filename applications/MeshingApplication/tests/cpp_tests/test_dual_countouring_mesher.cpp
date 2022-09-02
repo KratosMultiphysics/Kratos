@@ -153,71 +153,30 @@ namespace {
     }
 }
 
-     KRATOS_TEST_CASE_IN_SUITE(DualCountouringRemesherCube, KratosMeshingApplicationFastSuite) {
-
-        Kratos::shared_ptr<std::iostream> p_input(new std::stringstream(
-R"input(
-Begin ModelPartData
-End ModelPartData
-Begin Properties 0
-End Properties
-Begin Properties 1
-End Properties
-Begin Nodes
-		1     0.03     0.03    0.09    
-		2     0.03    -0.03    0.09    
-		3     0.03    -0.03    0.03    
-		4     0.03     0.03    0.03    
-		5    -0.03     0.03    0.09    
-		6    -0.03     0.03    0.03    
-		7    -0.03    -0.03    0.09    
-		8    -0.03    -0.03    0.03    
-End Nodes
-Begin Elements Element3D3N
-		1     1    1    2    3    
-		2     1    3    4    1    
-		3     1    5    1    4    
-		4     1    4    6    5    
-		5     1    7    5    6    
-		6     1    6    8    7    
-		7     1    7    8    3    
-		8     1    3    2    7    
-		9     1    7    2    1    
-		10    1    1    5    7    
-		11    1    8    6    4    
-		12    1    4    3    8    
-End Elements
-Begin SubModelPart workpiece
-Begin SubModelPartNodes
-		1
-		2
-		3
-		4
-		5
-		6
-		7
-		8
-End SubModelPartNodes
-Begin SubModelPartElements
-		1
-		2
-		3
-		4
-		5
-		6
-		7
-		8
-		9
-		10
-		11
-		12
-End SubModelPartElements
-End SubModelPart
-	)input"));
+    KRATOS_TEST_CASE_IN_SUITE(DualCountouringRemesherCube, KratosMeshingApplicationFastSuite) {
+        Parameters mesher_parameters(R"(
+        {
+            "output_model_part_name" : "voxel_model_part",
+            "input_model_part_name" : "skin_model_part",
+            "mdpa_file_name" : "cube_skin_mesh",
+            "key_plane_generator": {
+                "Parameters" : {
+                    "voxel_sizes" : [0.10, 0.1, 0.1],
+                    "min_point" : [-1, -1, -1],
+                    "max_point" : [1, 1, 1]
+                }
+            }
+        })");
 
         Model my_model;
+        ModelPart& voxels_part = my_model.CreateModelPart("voxel_model_part");
         ModelPart& skin_model_part = my_model.CreateModelPart("skin_model_part");
-        ModelPart& voxels_part = my_model.CreateModelPart("voxels_part");
+        // Generating the mesh
+        VoxelMeshGeneratorModeler modeler(my_model, mesher_parameters);
+        modeler.SetupGeometryModel();
+        modeler.PrepareGeometryModel();
+        modeler.SetupModelPart();
+    
         ModelPart& fited_mesh = my_model.CreateModelPart("fited_mesh");
         skin_model_part.AddNodalSolutionStepVariable(DISTANCE);
         voxels_part.AddNodalSolutionStepVariable(DISTANCE);
