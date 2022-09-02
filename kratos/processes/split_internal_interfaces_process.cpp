@@ -57,7 +57,7 @@ void SplitInternalInterfacesProcess::ExecuteInitialize()
     }
 
     if(property_ids.size()) {
-        GenericFindElementalNeighboursProcess(mrModelPart).ExecuteInitialize();
+        GenericFindElementalNeighboursProcess(mrModelPart).Execute();
         for (auto it=property_ids.begin(); it!=(--property_ids.end()); ++it) {
             std::size_t id = *it;
             KRATOS_INFO("") << "Splitting the interface between the domain identified with property Id "  << id <<" and properties with bigger Ids ..."<< std::endl;

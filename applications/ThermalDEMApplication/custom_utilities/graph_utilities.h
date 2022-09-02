@@ -37,7 +37,8 @@ namespace Kratos
                              bool ParticleTempAvg,
                              bool ParticleTempDev,
                              bool ModelTempAvg,
-                             bool ParticleHeatFluxContributions);
+                             bool ParticleHeatFluxContributions,
+                             bool ParticleHeatGenContributions);
       void ExecuteFinalizeSolutionStep(ModelPart& rModelPart);
       void ExecuteFinalize(void);
 
@@ -50,6 +51,7 @@ namespace Kratos
       bool mGraph_ParticleTempDev;
       bool mGraph_ModelTempAvg;
       bool mGraph_ParticleHeatFluxContributions;
+      bool mGraph_ParticleHeatGenContributions;
 
       std::ofstream mFile_ParticleTempMin;
       std::ofstream mFile_ParticleTempMax;
@@ -57,6 +59,7 @@ namespace Kratos
       std::ofstream mFile_ParticleTempDev;
       std::ofstream mFile_ModelTempAvg;
       std::ofstream mFile_ParticleHeatFluxContributions;
+      std::ofstream mFile_ParticleHeatGenContributions;
 
     private:
 

@@ -157,6 +157,14 @@ private:
     void CalculateElasticMatrix(VoigtSizeMatrixType& C, ConstitutiveLaw::Parameters& rValues) override;
 
     /**
+     * It calculates the pk2 stress vector
+     * @param rStrainVector: The strain vector
+     * @param rStressVector: The stress vector
+     * @param rValues: The rvalues of the CL
+     */
+    void CalculatePK2Stress(const Vector &rStrainVector, ConstitutiveLaw::StressVectorType &rStressVector, ConstitutiveLaw::Parameters &rValues) override;
+
+    /**
      * It calculates the strain vector
      * @param rValues: The Internalvalues of the law
      * @param rStrainVector: The strain vector in Voigt notation
