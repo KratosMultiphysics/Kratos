@@ -59,7 +59,7 @@ class AnalysisStage(object):
         It can be overridden by derived classes
         """
         while self.KeepAdvancingSolutionLoop():
-            self.time = self._GetSolver().AdvanceInTime(self.time)
+            self.time = self._AdvanceTime()
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
             is_converged = self._GetSolver().SolveSolutionStep()
@@ -211,7 +211,13 @@ class AnalysisStage(object):
         """Create the solver
         """
         raise Exception("Creation of the solver must be implemented in the derived class.")
-
+        
+    def _AdvanceTime(self):
+        """ Computes the following time 
+            The default method simply calls the solver
+        """
+        return self._GetSolver().AdvanceInTime(self.time)
+    
     ### Modelers
     def _ModelersSetupGeometryModel(self):
         # Import or generate geometry models from external input.
