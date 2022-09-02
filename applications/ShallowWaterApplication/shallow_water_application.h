@@ -17,8 +17,7 @@
 ///@brief Basic set of tools to solve the shallow water equations.
 /// The Shallow Water Application implements a basic set of tools to
 /// solve shallow water problems. This applications contains a basic FEM
-/// implementation of common techniques using both explicit pfem2 and
-/// eulerian shemes.
+/// implementation of common techniques using eulerian schemes.
 
 
 // System includes
