@@ -182,7 +182,9 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloud
                 sum_dist_cloud_nodes += pos_node->FastGetSolutionStepValue(DISTANCE);
             }
             //TODO: case: small cut for positive side - change!!!  // TODO: scale slave_distance using edge length/elements size?
-            //sum_dist_cloud_nodes = n_cloud_nodes;
+            if (sum_dist_cloud_nodes < 1e-10) {
+                sum_dist_cloud_nodes = n_cloud_nodes;
+            }
 
             // Calculate averaged coordinates of intersection points
             array_1d<double,3> avg_int_pt_coord;
