@@ -65,7 +65,7 @@ void EmbeddedMLSConstraintProcess::Execute()
     // NOTE: this will deactivate all negative as well as intersected elements
     SetInterfaceFlags();
 
-    // Calculate the conforming extension basis 
+    // Calculate the conforming extension basis
     CalculateConformingExtensionBasis(ext_op_map);
 
     // Reactivate intersected and negative elements as well as their nodes depending on the process settings
@@ -78,7 +78,7 @@ void EmbeddedMLSConstraintProcess::Execute()
 /* Protected functions ****************************************************/
 
 /* Private functions ****************************************************/
-   
+
 void EmbeddedMLSConstraintProcess::CalculateConformingExtensionBasis(NodesCloudMapType& rExtensionOperatorMap)
 {
     // Get the MLS shape functions function
@@ -127,8 +127,8 @@ void EmbeddedMLSConstraintProcess::ApplyExtensionConstraints(NodesCloudMapType& 
 {
     // Initialize counter of master slave constraints
     ModelPart::IndexType id = mpModelPart->NumberOfMasterSlaveConstraints()+1;
-    // Get variable to constrain 
-    const auto& r_var = KratosComponents<Variable<double>>::Get("VELOCITY");
+    // Define variables to constrain
+    std::array<std::string,4> variables = {"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"};
 
     // Loop through all negative nodes of split elements (slave nodes)
     for (auto it_slave = rExtensionOperatorMap.begin(); it_slave != rExtensionOperatorMap.end(); ++it_slave) {
@@ -142,12 +142,17 @@ void EmbeddedMLSConstraintProcess::ApplyExtensionConstraints(NodesCloudMapType& 
             auto p_support_node = std::get<0>(r_node_data);
             const double support_node_N = std::get<1>(r_node_data);
 
-            // Add master slave constraint, the support node MLS shape function value N serves as weight of the constraint
-            mpModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id++, 
-            *p_support_node, r_var, *p_slave_node, r_var, 
-            support_node_N, 0.0);
+            for (auto var : variables) {
+                // Get variable to constrain
+                const auto& r_var = KratosComponents<Variable<double>>::Get(var);
+                // Add master slave constraint, the support node MLS shape function value N serves as weight of the constraint
+                mpModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id++,
+                *p_support_node, r_var, *p_slave_node, r_var,
+                support_node_N, 0.0);
+            }
+
         }
-    }  
+    }
 }
 
 void EmbeddedMLSConstraintProcess::SetInterfaceFlags()
@@ -235,13 +240,59 @@ void EmbeddedMLSConstraintProcess::ReactivateElementsAndNodes()
                 }
             }
         }
+    } else {
+        ModelPart::NodesContainerType& rNodes = mpModelPart->Nodes();
+        ModelPart::ElementsContainerType& rElements = mpModelPart->Elements();
+
+        // Initialize the EMBEDDED_IS_ACTIVE variable flag to 0
+        #pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
+            ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
+            it_node->SetValue(EMBEDDED_IS_ACTIVE, 0);
+        }
+
+        // Deactivate those elements whose negative distance nodes summation is equal to their number of nodes
+        #pragma omp parallel for
+        for (int k = 0; k < static_cast<int>(rElements.size()); ++k){
+            ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
+            auto& rGeometry = itElement->GetGeometry();
+
+            // If the element is ACTIVE, all its nodes are active as well
+            if (itElement->Is(ACTIVE)){
+                for (unsigned int i_node = 0; i_node < rGeometry.size(); ++i_node){
+                    int& activation_index = rGeometry[i_node].GetValue(EMBEDDED_IS_ACTIVE);
+                    #pragma omp atomic
+                    activation_index += 1;
+                }
+            }
+        }
+
+        // Synchronize the EMBEDDED_IS_ACTIVE variable flag
+        mpModelPart->GetCommunicator().AssembleNonHistoricalData(EMBEDDED_IS_ACTIVE);
+
+        const std::array<std::string,4> components = {"PRESSURE","VELOCITY_X","VELOCITY_Y","VELOCITY_Z"};
+
+        // Set to zero and fix the DOFs in the remaining inactive nodes
+        #pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
+            auto it_node = rNodes.begin() + i_node;
+            if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
+                for (std::size_t i_var = 0; i_var < components.size(); i_var++){
+                    const auto& r_double_var = KratosComponents<Variable<double>>::Get(components[i_var]);
+                    // Fix the nodal DOFs
+                    it_node->Fix(r_double_var);
+                    // Set to zero the nodal DOFs
+                    it_node->FastGetSolutionStepValue(r_double_var) = 0.0;
+                }
+            }
+        }
     }
 }
 
 void EmbeddedMLSConstraintProcess::ModifyDistances()
 {
     auto& r_nodes = mpModelPart->Nodes();
-    double tol_d = 1.0e-12;
+    double tol_d = 1.0e-11;
 
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
@@ -249,8 +300,8 @@ void EmbeddedMLSConstraintProcess::ModifyDistances()
         double& d = it_node->FastGetSolutionStepValue(DISTANCE);
 
         // Check if the distance values are close to zero, if so set the tolerance as distance value
-        if (std::abs(d) < tol_d) { 
-            d = (d > 0.0) ? tol_d : -tol_d; 
+        if (std::abs(d) < tol_d) {
+            d = (d > 0.0) ? tol_d : -tol_d;
         }
     }
 }

@@ -385,14 +385,19 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
+        self.apply_DistMod = False
+        self.apply_MLSConstraints = True
+        self.apply_LocalConstraints = False
+        self.apply_LocalConstraintsABC = False
+
         # Set the distance modification process  # TODO check if continuous? FSI? parallelization?
-        if True:
+        if self.apply_DistMod:
             self.GetDistanceModificationProcess().ExecuteInitialize()
-        else:
-            if True:
-                self.GetMLSConstraintProcess(mls_order=1).Execute()
-            else:
-                self.GetLocalConstraintProcess(use_mls_sf=False, use_bc=False).Execute()
+        # else:
+        #     if True:
+        #         self.GetMLSConstraintProcess(mls_order=1).Execute()
+        #     else:
+        #         self.GetLocalConstraintProcess(use_mls_sf=False, use_bc=False).Execute()
 
         # For the primitive Ausas formulation, set the find nodal neighbours process
         # Recall that the Ausas condition requires the nodal neighbours.
@@ -442,7 +447,19 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             # Correct the distance field
             # Note that this is intentionally placed in here (and not in the InitializeSolutionStep() of the solver
             # It has to be done before each call to the Solve() in case an outer non-linear iteration is performed (FSI)
-            self.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+
+            if self.apply_DistMod:
+                self.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+
+            if self.apply_MLSConstraints:
+                self.GetMLSConstraintProcess(mls_order=1).Execute()
+                self.apply_MLSConstraints = False
+            if self.apply_LocalConstraints:
+                self.GetLocalConstraintProcess(use_mls_sf=False,use_bc=False).Execute()
+                self.apply_LocalConstraints = False
+            if self.apply_LocalConstraintsABC:
+                self.GetLocalConstraintProcess(use_mls_sf=False,use_bc=True).Execute()
+                self.apply_LocalConstraintsABC = False
 
             # Perform the FM-ALE operations
             # Note that this also sets the EMBEDDED_VELOCITY from the MESH_VELOCITY
@@ -457,7 +474,9 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             # Restore the fluid node fixity to its original status
             # Note that this is intentionally placed in here (and not in the FinalizeSolutionStep() of the solver
             # It has to be done after each call to the Solve() and the FM-ALE in case an outer non-linear iteration is performed (FSI)
-            self.GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+
+            if self.apply_DistMod:
+                self.GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
             return is_converged
         else:

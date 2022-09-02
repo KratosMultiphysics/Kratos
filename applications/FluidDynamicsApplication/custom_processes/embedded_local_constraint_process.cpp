@@ -63,7 +63,7 @@ void EmbeddedLocalConstraintProcess::Execute()
     if (mAvoidZeroDistances) { ModifyDistances(); }
 
     // Deactivate intersected and negative elements as well as their nodes depending on the process settings
-    DeactivateElementsAndNodes();
+    if (mDeactivateNegativeElements) { DeactivateElementsAndNodes(); }
 
     // Calculate the negative nodes' clouds
     CalculateNodeClouds(clouds_map, offsets_map);
@@ -101,7 +101,7 @@ void EmbeddedLocalConstraintProcess::CalculateNodeClouds(NodesCloudMapType& rClo
     // Loop through all elements to get negative and positive nodes of split elements
     for (auto& rElement : mpModelPart->Elements()) {
     auto& r_geom = rElement.GetGeometry();
-        if (IsSplit(r_geom)) { 
+        if (IsSplit(r_geom)) {
             if (mApplyToAllNegativeCutNodes || IsSmallCut(r_geom)) {
                 // Containers for negative and positive side nodes of split element
                 std::vector<NodeType::Pointer> neg_nodes_element = {};
@@ -183,10 +183,12 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloud
                 sum_dist_cloud_nodes += pos_node->FastGetSolutionStepValue(DISTANCE);
             }
             //TODO: case: small cut for positive side - change!!!  // TODO: scale slave_distance using edge length/elements size?
-            //sum_dist_cloud_nodes = n_cloud_nodes;
+            if (sum_dist_cloud_nodes < 1e-10) {
+                sum_dist_cloud_nodes = n_cloud_nodes;
+            }
 
             // Calculate averaged coordinates of intersection points
-            array_1d<double,3> avg_int_pt_coord;
+            /*array_1d<double,3> avg_int_pt_coord;
             avg_int_pt_coord[0] = 0.0;
             avg_int_pt_coord[1] = 0.0;
             avg_int_pt_coord[2] = 0.0;
@@ -202,13 +204,13 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloud
                     n_intersections++;
                 }
             }
-            avg_int_pt_coord /= n_intersections;
+            avg_int_pt_coord /= n_intersections;*/
 
             // Get boundary condition value for averaged intersection point  // TODO  different boundary condition?!?
             //const double temp_bc = rElement.GetValue(EMBEDDED_SCALAR);
             const double value_bc = 0.0; //std::pow(avg_int_pt_coord[0],2) + std::pow(avg_int_pt_coord[1],2);
 
-            // Calculate weight  // =0.0 if value_bc = 0.0 ???
+            // Calculate weight
             const double cloud_node_weight = dist_slave / sum_dist_cloud_nodes;
             KRATOS_WATCH(cloud_node_weight);
 
@@ -359,8 +361,11 @@ void EmbeddedLocalConstraintProcess::ApplyConstraints(NodesCloudMapType& rClouds
 {
     // Initialize counter of master slave constraints
     ModelPart::IndexType id = mpModelPart->NumberOfMasterSlaveConstraints()+1;
-    // Get variable to constrain  //TODO: different variable??
-    const auto& r_var = KratosComponents<Variable<double>>::Get("VELOCITY");
+    KRATOS_WATCH("BEGINNING TO APPLY CONSTRAINTS ... ");
+
+    // Define variables to constrain  //TODO: use DofPointerVectorType for LinearMasterSlaveConstraint
+    // TODO: wrong to constraint PRESSURE to 0.0 boundary condition for LocalConstraintsBC?!? instability if not constraint? constrain p without BC?
+    std::array<std::string,4> variables = {"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"};  // PRESSURE; TODO EMBEDDED_VELOCITY
 
     // Loop through all negative nodes of split elements (slave nodes)
     for (auto it_slave = rCloudsMap.begin(); it_slave != rCloudsMap.end(); ++it_slave) {
@@ -375,48 +380,74 @@ void EmbeddedLocalConstraintProcess::ApplyConstraints(NodesCloudMapType& rClouds
             auto p_support_node = std::get<0>(r_node_data);
             const double support_node_N = std::get<1>(r_node_data);
 
-            // Add master slave constraint, the support node MLS shape function value N serves as weight of the constraint
-            mpModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id++,
-            *p_support_node, r_var, *p_slave_node, r_var,
-            support_node_N, offset);
+            for (auto var : variables) {
+                // Get variable to constrain
+                const auto& r_var = KratosComponents<Variable<double>>::Get(var);
+                // Add master slave constraint, the support node MLS shape function value N serves as weight of the constraint
+                mpModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id++,
+                *p_support_node, r_var, *p_slave_node, r_var,
+                support_node_N, offset);
+            }
             offset = 0.0;
         }
     }
+    KRATOS_WATCH(id);
 }
 
 void EmbeddedLocalConstraintProcess::DeactivateElementsAndNodes()
 {
-    // Initialize flags to true //TODO: necessary??
-    block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
-        rNode.Set(ACTIVE, true);  // Nodes that belong to the elements to be assembled
-    });
-    block_for_each(mpModelPart->Elements(), [](Element& rElement){
-        rElement.Set(ACTIVE, true);  // Elements in the positive distance region (the ones to be assembled)
-    });
+    ModelPart::NodesContainerType& rNodes = mpModelPart->Nodes();
+    ModelPart::ElementsContainerType& rElements = mpModelPart->Elements();
 
-    // Deactivate intersected elements and their nodes  //TODO: move to where the constraints are applied??
-    if ( mDeactivateIntersectedElements ) {
-        for (auto& rElement : mpModelPart->Elements()) {
-            // Check if the element is split
-            const auto& r_geom = rElement.GetGeometry();
-            if (IsSplit(r_geom)) {
-                rElement.Set(ACTIVE, false);
-                for (auto& rNode : r_geom) {
-                    rNode.Set(ACTIVE, false);
-                }
+    // Initialize the EMBEDDED_IS_ACTIVE variable flag to 0
+    #pragma omp parallel for
+    for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
+        ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
+        it_node->SetValue(EMBEDDED_IS_ACTIVE, 0);
+    }
+
+    // Deactivate those elements whose negative distance nodes summation is equal to their number of nodes
+    #pragma omp parallel for
+    for (int k = 0; k < static_cast<int>(rElements.size()); ++k){
+        unsigned int n_neg = 0;
+        ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
+        auto& rGeometry = itElement->GetGeometry();
+
+        // Check the distance function sign at the element nodes
+        for (unsigned int i_node=0; i_node<rGeometry.size(); i_node++){
+            if (rGeometry[i_node].FastGetSolutionStepValue(DISTANCE) < 0.0){
+                n_neg++;
+            }
+        }
+
+        (n_neg == rGeometry.size()) ? itElement->Set(ACTIVE, false) : itElement->Set(ACTIVE, true);
+
+        // If the element is ACTIVE, all its nodes are active as well
+        if (itElement->Is(ACTIVE)){
+            for (unsigned int i_node = 0; i_node < rGeometry.size(); ++i_node){
+                int& activation_index = rGeometry[i_node].GetValue(EMBEDDED_IS_ACTIVE);
+                #pragma omp atomic
+                activation_index += 1;
             }
         }
     }
-    // Deactivate negative elements and their nodes
-    if ( mDeactivateNegativeElements ) {
-        for (auto& rElement : mpModelPart->Elements()) {
-            // Check if the element is negative
-            const auto& r_geom = rElement.GetGeometry();
-            if (IsNegative(r_geom)) {
-                rElement.Set(ACTIVE, false);
-                for (auto& rNode : r_geom) {
-                    rNode.Set(ACTIVE, false);
-                }
+
+    // Synchronize the EMBEDDED_IS_ACTIVE variable flag
+    mpModelPart->GetCommunicator().AssembleNonHistoricalData(EMBEDDED_IS_ACTIVE);
+
+    const std::array<std::string,4> components = {"PRESSURE","VELOCITY_X","VELOCITY_Y","VELOCITY_Z"};
+
+    // Set to zero and fix the DOFs in the remaining inactive nodes
+    #pragma omp parallel for
+    for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
+        auto it_node = rNodes.begin() + i_node;
+        if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
+            for (std::size_t i_var = 0; i_var < components.size(); i_var++){
+                const auto& r_double_var = KratosComponents<Variable<double>>::Get(components[i_var]);
+                // Fix the nodal DOFs
+                it_node->Fix(r_double_var);
+                // Set to zero the nodal DOFs
+                it_node->FastGetSolutionStepValue(r_double_var) = 0.0;
             }
         }
     }
@@ -425,7 +456,7 @@ void EmbeddedLocalConstraintProcess::DeactivateElementsAndNodes()
 void EmbeddedLocalConstraintProcess::ModifyDistances()
 {
     auto& r_nodes = mpModelPart->Nodes();
-    const double tol_d = 1.0e-12;
+    const double tol_d = 1.0e-11;
 
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
