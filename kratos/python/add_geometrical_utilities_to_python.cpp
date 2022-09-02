@@ -201,7 +201,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& self, const array_1d<double,3>& coords ){
             Element::Pointer pelem=nullptr;
             Vector N;
-            bool is_found = self.FindPointOnMeshSimplified(coords,N,pelem);
+            const bool is_found = self.FindPointOnMeshSimplified(coords,N,pelem);
             return std::tuple<bool,Vector,Element::Pointer>{is_found,N,pelem};
         })
         ;
@@ -213,7 +213,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("FindPointOnMesh", [](BinBasedFastPointLocator < 3 >& self, const array_1d<double,3>& coords ){
             Element::Pointer pelem=nullptr;
             Vector N;
-            bool is_found = self.FindPointOnMeshSimplified(coords,N,pelem);
+            const bool is_found = self.FindPointOnMeshSimplified(coords,N,pelem);
             return std::tuple<bool,Vector,Element::Pointer>{is_found,N,pelem};
         })
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
