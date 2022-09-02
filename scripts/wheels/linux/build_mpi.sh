@@ -24,24 +24,24 @@ build_core_wheel () {
     cd $KRATOS_ROOT
 
     PREFIX_LOCATION=$1
-    
+
     mkdir ${WHEEL_ROOT}/KratosMultiphysics
 
     cp ${PREFIX_LOCATION}/KratosMultiphysics/*       ${WHEEL_ROOT}/KratosMultiphysics
     cp ${KRATOS_ROOT}/kratos/KratosMultiphysics.json ${WHEEL_ROOT}/wheel.json
     cp ${KRATOS_ROOT}/scripts/wheels/__init__.py     ${WHEEL_ROOT}/KratosMultiphysics/__init__.py
-    
+
     cd $WHEEL_ROOT
 
     $PYTHON_LOCATION setup.py bdist_wheel
 
     cd ${WHEEL_ROOT}/dist
-    
+
     auditwheel repair *.whl
-    
+
     mkdir $CORE_LIB_DIR
     unzip -j wheelhouse/KratosMultiphysics* 'KratosMultiphysics.libs/*' -d $CORE_LIB_DIR
-    
+
     cp wheelhouse/* ${WHEEL_OUT}/
     cd
     rm -r $WHEEL_ROOT
@@ -53,15 +53,15 @@ build_application_wheel () {
 
     cp ${KRATOS_ROOT}/applications/${1}/${1}.json ${WHEEL_ROOT}/wheel.json
     cd $WHEEL_ROOT
-    
+
     $PYTHON_LOCATION setup.py bdist_wheel
 
     auditwheel repair dist/*.whl
-    
+
     optimize_wheel
 
     cp ${WHEEL_ROOT}/wheelhouse/* ${WHEEL_OUT}/
-    
+
     cd
     rm -r $WHEEL_ROOT
 }
@@ -87,7 +87,7 @@ optimize_wheel(){
     mkdir tmp
     unzip ${ARCHIVE_NAME} -d tmp
     rm $ARCHIVE_NAME
-    
+
     echo "Begin exclude list for ${APPNAME}"
     echo "List of core libs to be excluded:"
     echo "$(ls ${CORE_LIB_DIR})"
@@ -105,9 +105,9 @@ optimize_wheel(){
             echo "-- Keeping ${LIBRARY}"
         fi
     done
-    
+
     # Alson clean the possible copies done in the setup.py
-    rm tmp/KratosMultiphysics/.libs/libKratos* 
+    rm tmp/KratosMultiphysics/.libs/libKratos*
 
     cd tmp
     zip -r ../${ARCHIVE_NAME} ./*
@@ -159,8 +159,10 @@ do
 	PYTHON_LOCATION=/opt/python/$(ls /opt/python | grep $PYTHON_VERSION)/bin/python
     PREFIX_LOCATION=$KRATOS_ROOT/bin/Release/python_$PYTHON
 
+    $PYTHON_LOCATION -m pip install mypy
+
     build_interface $PYTHON_LOCATION $PREFIX_LOCATION
-	
+
 	cd $KRATOS_ROOT
 	export HASH=$(git show -s --format=%h) # Used in version number
 	export LD_LIBRARY_PATH=${PREFIX_LOCATION}/libs:$BASE_LD_LIBRARY_PATH
@@ -176,7 +178,7 @@ do
         APPNAME=$(basename "$APPLICATION")
         echo "Building ${APPNAME} Wheel"
         build_application_wheel $APPNAME
-    done         
+    done
 
     echo "Building Bundle Wheel"
     build_kratos_all_wheel $PREFIX_LOCATION
