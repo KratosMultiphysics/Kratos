@@ -439,7 +439,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 print("Smoothing: Finished")
 
             # Recompute the distance field according to the new level-set position
-            if (TimeStep % 1 == 0):
+            if (TimeStep % 4 == 0):
                 print("Elliptic Redistancing: Started")
                 print(time.time())
 
@@ -453,33 +453,36 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 print("Elliptic Redistancing: Finished")
                 print(time.time())
 
-                print("Calculating DISTANCE GRADIENT, prior to writing: Start")
-                (self.distance_gradient_process).Execute() # Always check if calculated above
-                # (self.curvature_calculation_process).Execute()
-                print("Calculating DISTANCE GRADIENT, prior to writing: End")
+                if (TimeStep % 20 == 0):
 
-                print("Writing Reinitialized Levelset: Started")
-                print(time.time())
+                    print("Calculating DISTANCE GRADIENT, prior to writing: Start")
+                    (self.distance_gradient_process).Execute() # Always check if calculated above
+                    # (self.curvature_calculation_process).Execute()
+                    print("Calculating DISTANCE GRADIENT, prior to writing: End")
 
-                with open("Distance.log", "a") as DistanceLogFile, open("DistanceGradient.log", "a") as DistanceGradLogFile:
-                    DistanceLogFile.write( "\n" + str(TimeStep*DT) + "\n" )
-                    DistanceGradLogFile.write( "\n" + str(TimeStep*DT) + "\n" )
-                    for node in self.main_model_part.Nodes:
-                        dist = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
-                        if (dist > -0.03 and dist < 0.03):
-                            DistanceLogFile.write( str(node.Id) + "\t" + str(node.X) + "\t" + str(node.Y) + "\t" + str(node.Z) + "\t" + str(dist) + "\n" )
-                            gradX = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X)
-                            gradY = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y)
-                            gradZ = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Z)
-                            DistanceGradLogFile.write( str(node.Id) + "\t" + str(node.X) + "\t" + str(node.Y) + "\t" + str(node.Z) + "\t" +  str(gradX) + "\t" +  str(gradY) + "\t" +  str(gradZ) + "\n" )
+                    print("Writing Reinitialized Levelset: Started")
+                    print(time.time())
 
-                self.manual_output.ExecuteInitializeSolutionStep()
-                #if self.manual_output.IsOutputStep(): #Not needed, manually controlled here!!?
-                self.manual_output.PrintOutput()
-                self.manual_output.ExecuteFinalizeSolutionStep()
+                    with open("Distance.log", "a") as DistanceLogFile, open("DistanceGradient.log", "a") as DistanceGradLogFile:
+                        DistanceLogFile.write( "\n" + str(TimeStep*DT) + "\n" )
+                        DistanceGradLogFile.write( "\n" + str(TimeStep*DT) + "\n" )
+                        for node in self.main_model_part.Nodes:
+                            dist = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
+                            if (dist > -0.0001 and dist < 0.0001):
+                                DistanceLogFile.write( str(node.Id) + "\t" + str(node.X) + "\t" + str(node.Y) + "\t" + str(node.Z) + "\t" + str(dist) + "\n" )
+                                gradX = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X)
+                                gradY = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y)
+                                gradZ = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Z)
+                                DistanceGradLogFile.write( str(node.Id) + "\t" + str(node.X) + "\t" + str(node.Y) + "\t" + str(node.Z) + "\t" +  str(gradX) + "\t" +  str(gradY) + "\t" +  str(gradZ) + "\n" )
 
-                print("Writing Reinitialized Levelset: Finished")
-                print(time.time())
+                    
+                    self.manual_output.ExecuteInitializeSolutionStep()
+                    #if self.manual_output.IsOutputStep(): #Not needed, manually controlled here!!?
+                    self.manual_output.PrintOutput()
+                    self.manual_output.ExecuteFinalizeSolutionStep()
+
+                    print("Writing Reinitialized Levelset: Finished")
+                    print(time.time())
 
             #########################################
             ##

@@ -262,7 +262,7 @@ void VariationalNonEikonalDistance::Execute()
     std::ofstream gradient_error_file;
     gradient_error_file.open ("gradient_error_file.txt");
 
-    while (max_grad_norm_deviation > 1.0e-3 && iteration < 33){
+    while (max_grad_norm_deviation > 1.0e-3 && iteration < 15){
         mpGradientCalculator->Execute();
         
         max_grad_norm_deviation = 0.0;
@@ -295,7 +295,7 @@ void VariationalNonEikonalDistance::Execute()
     for (unsigned int k = 0; k < NumNodes; ++k) {
         auto it_node = mrModelPart.NodesBegin() + k;
         const double dist = it_node->FastGetSolutionStepValue(DISTANCE_AUX2);
-        if (dist > 5.0*h_min || dist < -3.0*h_min){
+        if (dist > 3.0*h_min || dist < -3.0*h_min){
             it_node->Fix(DISTANCE_AUX2);
             NumFreeNodes -= 1;
         }
@@ -305,7 +305,7 @@ void VariationalNonEikonalDistance::Execute()
     max_grad_norm_deviation = 1.0e2;
     norm_grad_norm_deviation = 0.0;
 
-    while (max_grad_norm_deviation > 1.0e-2 && iteration < 0){
+    while (max_grad_norm_deviation > 1.0e-2 && iteration < 1){
 
         mpGradientCalculator->Execute();
 
