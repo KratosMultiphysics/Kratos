@@ -87,13 +87,13 @@ namespace {
     Begin Properties 1
     End Properties
     Begin Nodes
-            1     0.035     0.032    0.091    
-            2     0.035    -0.03    0.091    
+            1     0.035     0.032    -0.091    
+            2     0.035    -0.03    -0.091    
             3     0.035    -0.03    0.03    
             4     0.035     0.032    0.03    
-            5    -0.035     0.032    0.091    
+            5    -0.035     0.032    -0.091    
             6    -0.035     0.032    0.03    
-            7    -0.035    -0.03    0.091    
+            7    -0.035    -0.03    -0.091    
             8    -0.035    -0.03    0.03    
     End Nodes
     Begin Elements Element3D3N
@@ -196,12 +196,11 @@ namespace {
         KRATOS_CHECK_EQUAL(skin_model_part.Nodes().size(),8);
         KRATOS_CHECK_EQUAL(skin_model_part.Elements().size(),12); 
     
-        modeler.DualCountourAdaptativeRemesh(fited_mesh); /*
-        KRATOS_WATCH('yas');
-        
+        modeler.DualCountourAdaptativeRemesh(fited_mesh);
+
         //Output(skin_model_part,"cube_post");
         
-        //KRATOS_CHECK_EQUAL(fited_mesh.Elements().size(),1); */
+        KRATOS_CHECK_EQUAL(fited_mesh.Elements().size(),1); 
     }
 } //Namespace Testing
 } //Namespace Kratos

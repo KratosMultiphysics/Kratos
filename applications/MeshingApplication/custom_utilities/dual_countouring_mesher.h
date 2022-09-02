@@ -121,14 +121,12 @@ public:
         GeometricalObjectsBins voxel_bin(mpInputModelPart->ElementsBegin(), mpInputModelPart->ElementsEnd(),cell_size,min_bounding_box,max_bounding_box);
 
         const auto& number_of_cells = voxel_bin.GetNumberOfCells();
-        KRATOS_WATCH(number_of_cells);
 
         for (std::size_t i = 0; i < number_of_cells[0]; i++) {
             for (std::size_t j = 0; j < number_of_cells[1]; j++) {
                 for (std::size_t k = 0; k < number_of_cells[2]; k++) {
                     BoundingBox<Point> box = voxel_bin.GetCellBoundingBox(i,j,k);
                     std::vector<GeometricalObject*> triangles =  voxel_bin.GetCell(i,j,k);
-                    
                     int new_id = i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1; 
 
                     array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(box,triangles);
