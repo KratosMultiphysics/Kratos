@@ -214,7 +214,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
             Element::Pointer p_elem = nullptr;
             Vector N;
             const bool is_found = rSelf.FindPointOnMeshSimplified(rCoords,N,p_elem);
-            return std::tuple<bool,Vector,Element::Pointer>{is_found,N,pelem};
+            return std::tuple<bool,Vector,Element::Pointer>{is_found,N,p_elem};
         })
         ;
 
