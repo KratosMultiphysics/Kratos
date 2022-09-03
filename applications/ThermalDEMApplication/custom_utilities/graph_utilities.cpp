@@ -63,34 +63,34 @@ namespace Kratos {
     if (mGraph_ParticleTempMax) {
       mFile_ParticleTempMax.open("graph_particle_temp_max.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleTempMax) << "Could not open graph file for maximum particle temperature!" << std::endl;
-      mFile_ParticleTempMin << "1 - TIME STEP | ";
-      mFile_ParticleTempMin << "2 - TIME | ";
-      mFile_ParticleTempMin << "3 - MAX PARTICLE TEMPERATURE";
-      mFile_ParticleTempMin << std::endl;
+      mFile_ParticleTempMax << "1 - TIME STEP | ";
+      mFile_ParticleTempMax << "2 - TIME | ";
+      mFile_ParticleTempMax << "3 - MAX PARTICLE TEMPERATURE";
+      mFile_ParticleTempMax << std::endl;
     }
     if (mGraph_ParticleTempAvg) {
       mFile_ParticleTempAvg.open("graph_particle_temp_avg.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleTempAvg) << "Could not open graph file for average particle temperature!" << std::endl;
-      mFile_ParticleTempMin << "1 - TIME STEP | ";
-      mFile_ParticleTempMin << "2 - TIME | ";
-      mFile_ParticleTempMin << "3 - AVERAGE PARTICLE TEMPERATURE";
-      mFile_ParticleTempMin << std::endl;
+      mFile_ParticleTempAvg << "1 - TIME STEP | ";
+      mFile_ParticleTempAvg << "2 - TIME | ";
+      mFile_ParticleTempAvg << "3 - AVERAGE PARTICLE TEMPERATURE";
+      mFile_ParticleTempAvg << std::endl;
     }
     if (mGraph_ParticleTempDev) {
       mFile_ParticleTempDev.open("graph_particle_temp_dev.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleTempDev) << "Could not open graph file for deviation of particle temperature!" << std::endl;
-      mFile_ParticleTempMin << "1 - TIME STEP | ";
-      mFile_ParticleTempMin << "2 - TIME | ";
-      mFile_ParticleTempMin << "3 - PARTICLE TEMPERATURE STANDARD DEVIATION";
-      mFile_ParticleTempMin << std::endl;
+      mFile_ParticleTempDev << "1 - TIME STEP | ";
+      mFile_ParticleTempDev << "2 - TIME | ";
+      mFile_ParticleTempDev << "3 - PARTICLE TEMPERATURE STANDARD DEVIATION";
+      mFile_ParticleTempDev << std::endl;
     }
     if (mGraph_ModelTempAvg) {
       mFile_ModelTempAvg.open("graph_model_temp_avg.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ModelTempAvg) << "Could not open graph file for average model temperature!" << std::endl;
-      mFile_ParticleTempMin << "1 - TIME STEP | ";
-      mFile_ParticleTempMin << "2 - TIME | ";
-      mFile_ParticleTempMin << "3 - AVERAGE MODEL TEMPERATURE";
-      mFile_ParticleTempMin << std::endl;
+      mFile_ModelTempAvg << "1 - TIME STEP | ";
+      mFile_ModelTempAvg << "2 - TIME | ";
+      mFile_ModelTempAvg << "3 - AVERAGE MODEL TEMPERATURE";
+      mFile_ModelTempAvg << std::endl;
     }
     if (mGraph_ParticleHeatFluxContributions) {
       mFile_ParticleHeatFluxContributions.open("graph_flux_contributions.txt", std::ios::out);
