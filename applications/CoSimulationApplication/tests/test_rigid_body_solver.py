@@ -1454,9 +1454,9 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
             }
         }''')
         
-        self.assertEqual(ref_solver_settings.PrettyPrintJsonString(), checked_solver_settings.PrettyPrintJsonString())
+        self.assertTrue(ref_solver_settings.IsEquivalentTo(checked_solver_settings))
 
-
+        
     def test_ValidateAndAssignRigidBodySolverDefaults2(self):
         # Raise Exception: The domain size can only be 2 or 3.
         Parameters = KM.Parameters('''{
