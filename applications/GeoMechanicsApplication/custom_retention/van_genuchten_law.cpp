@@ -131,7 +131,7 @@ double VanGenuchtenLaw::
     const double &gn = rMaterialProperties[VAN_GENUCHTEN_GN];
 
     //double relPerm = pow(effSat, gl) * pow(1.0 - pow(1.0 - pow(effSat, gn/(gn-1.0)), (gn-1.0)/gn), 2);
-    double relPerm = pow(effSat, gl)
+    double relPerm = pow(effSat, gl);
     const double &minRelPerm = rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY];
 
     relPerm = std::max(relPerm, minRelPerm);
