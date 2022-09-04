@@ -53,11 +53,10 @@ double BrooksCoreyLaw::
     const double &p = rParameters.GetFluidPressure();
     const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
     const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
-   const double &pe     = rMaterialProperties[AIR_EXPULSION_PRESSURE];
-   const double &pl     = rMaterialProperties[LAST_STEP_PRESSURE];
+    const double &pe     = rMaterialProperties[AIR_EXPULSION_PRESSURE];
     if (p > 0.0 && p >= pb )
       {
-        if(p>=pl)
+        if(p>=Lastp)
        {
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
@@ -67,7 +66,6 @@ double BrooksCoreyLaw::
 
         double sat = satMin + (satMax - satMin) *  pow(pb/p, Lambda);
         return sat;
-        double pl=p;
         }
         else if (p>=pe)
 
@@ -80,24 +78,24 @@ double BrooksCoreyLaw::
 
         double sat = satMin + (satMax - satMin) *  pow(pe/p, Lambdawet);
         return sat;
-        double pl=p;
+        
         }
         else
         {
             double sat = rMaterialProperties[SATURATED_SATURATION];
         return sat;
-        double pl=p;
+        
         }
 
         } 
-    else if(p > 0.0 && p >= pe && p>=pl) 
+    else if(p > 0.0 && p >= pe && p>=Lastp) 
     {   
         
         double sat = rMaterialProperties[SATURATED_SATURATION];
         return sat;
-        double pl=p;
+        
     }
-    else if(p > 0.0 && p >= pe && p<pl)
+    else if(p > 0.0 && p >= pe && p<Lastp)
     {
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
@@ -106,7 +104,6 @@ double BrooksCoreyLaw::
         
         double sat = satMin + (satMax - satMin) *  pow(pe/p, Lambdawet);
         return sat;
-        double pl=p;
     }
     
     
@@ -115,7 +112,7 @@ double BrooksCoreyLaw::
     {
         double sat = rMaterialProperties[SATURATED_SATURATION];
         return sat;
-        double pl=p;
+        
     }
 
     KRATOS_CATCH("")
@@ -149,11 +146,11 @@ double BrooksCoreyLaw::
     const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
     const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
     const double &pe     = rMaterialProperties[AIR_EXPULSION_PRESSURE];
-    const double &pl     = rMaterialProperties[LAST_STEP_PRESSURE];
+    
 
     if (p > 0.0 && p >= pb )
       {
-        if(p>=pl)
+        if(p>=Lastp)
        {
        	const auto &rMaterialProperties = rParameters.GetMaterialProperties();
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
@@ -165,7 +162,7 @@ double BrooksCoreyLaw::
         double dSdp = (satMax - satMin) * (-Lambda) * pow(pb,Lambda)*pow(p, (-Lambda-1.0));
     
         return dSdp;
-        double pl=p;
+        
         }
         else if (p>=pe)
 
@@ -180,22 +177,22 @@ double BrooksCoreyLaw::
          double dSdp = (satMax - satMin) * (-Lambdawet) * pow(pe,Lambdawet)*pow(p, (-Lambdawet-1.0));
     
         return dSdp;
-        double pl=p;
+       
         }
         else
         {
             return 0.0;
-        double pl=p;
+       
         }
 
         } 
-    else if(p > 0.0 && p >= pe && p>=pl ) 
+    else if(p > 0.0 && p >= pe && p>=Lastp ) 
          {
 
        	  return 0.0;
-          double pl=p;
+          
           }
-    else if(p > 0.0 && p >= pe && p<pl)
+    else if(p > 0.0 && p >= pe && p<Lastp)
          {
     	 const auto &rMaterialProperties = rParameters.GetMaterialProperties();
          const double &satMax = rMaterialProperties[SATURATED_SATURATION];
@@ -206,14 +203,14 @@ double BrooksCoreyLaw::
          double dSdp = (satMax - satMin) * (-Lambdawet) * pow(pe,Lambdawet)*pow(p, (-Lambdawet-1.0));
     
          return dSdp;
-         double pl=p;
+         
          }
     
 
     else 
     {
          return 0.0;
-        double pl=p;
+        
     }
 
     KRATOS_CATCH("")
@@ -252,11 +249,11 @@ double BrooksCoreyLaw::
      const auto &rMaterialProperties = rParameters.GetMaterialProperties();
      const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
      const double &pe     = rMaterialProperties[AIR_EXPULSION_PRESSURE];
-     const double &pl     = rMaterialProperties[LAST_STEP_PRESSURE];
+     
      
 if (p > 0.0 && p >= pb )
       {
-        if(p>=pl)
+        if(p>=Lastp)
        {
        	const auto &rMaterialProperties = rParameters.GetMaterialProperties();
         const double &Porosity = rMaterialProperties[POROSITY];
@@ -268,7 +265,6 @@ if (p > 0.0 && p >= pb )
         double BishopCo = pow(pb/p, Beta)+pow(pb/p, 1+Beta)*Porosity*(Lambda/(Lambda-1))*(1-satMin)*(1-pow(pb/p, Lambda-1)); 
    
         return BishopCo;
-        double pl=p;
         }
         else if (p>=pe)
 
@@ -283,26 +279,24 @@ if (p > 0.0 && p >= pb )
         double BishopCo = pow(pe/p, Betawet)+pow(pe/p, 1+Betawet)*Porosity*(Lambdawet/(Lambdawet-1))*(1-satMin)*(1-pow(pe/p, Lambdawet-1)); 
    
         return BishopCo;
-        double pl=p;
+        
         }
         else
         {
            double BishopCo =1;
         return 1.0;
-        double pl=p;
         }
 
         } 
-    else if(p > 0.0 && p >= pe && p>=pl) 
+    else if(p > 0.0 && p >= pe && p>=Lastp) 
         {
          
          
           double BishopCo =1;
           return 1.0;
-          double pl=p;
           
          }
-    else if(p > 0.0 && p >= pe && p<pl)
+    else if(p > 0.0 && p >= pe && p<Lastp)
          {
     	 const auto &rMaterialProperties = rParameters.GetMaterialProperties();
          const double &Porosity = rMaterialProperties[POROSITY];
@@ -315,7 +309,7 @@ if (p > 0.0 && p >= pb )
          double BishopCo = pow(pe/p, Betawet)+pow(pe/p, 1+Betawet)*Porosity*(Lambdawet/(Lambdawet-1))*(1-satMin)*(1-pow(pe/p, Lambdawet-1)); 
    
          return BishopCo;
-         double pl=p;
+         
          }
     
 
@@ -323,7 +317,6 @@ if (p > 0.0 && p >= pb )
     {
         double BishopCo =1;
         return 1.0;
-        double pl=p;
     }
 
 
@@ -378,7 +371,7 @@ void BrooksCoreyLaw::
 void BrooksCoreyLaw::
     Initialize(Parameters &rParameters)
 {
-    // nothing is needed
+    Lastp = rParameters.GetFluidPressure();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -399,7 +392,7 @@ void BrooksCoreyLaw::
 void BrooksCoreyLaw::
     FinalizeSolutionStep(Parameters &rParameters)
 {
-    // nothing is needed
+    Lastp = rParameters.GetFluidPressure();
 }
 
 //-------------------------------------------------------------------------------------------------
