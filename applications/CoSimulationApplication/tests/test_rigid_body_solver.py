@@ -706,20 +706,35 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         self.simulation = RigidBodySolver(self.model, Parameters)
         self.simulation.Initialize()
 
-        while self.simulation.main_model_part.ProcessInfo[KM.TIME] < 0.1:
-            self.simulation.AdvanceInTime(self.simulation.main_model_part.ProcessInfo[KM.TIME])
-            self.simulation.InitializeSolutionStep()
-            self.simulation.Predict()
-            self.simulation.SolveSolutionStep()
-            self.simulation.FinalizeSolutionStep()
-            self.simulation.OutputSolutionStep()
+        buffer = 0
+        linear = np.array([3.1488 , 0.5647, 0.1417])
+        angular = np.array([1.8998 , 2.1987, 0.9874])
+        self.simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.BODY_FORCE, buffer, linear)
+        self.simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.BODY_MOMENT, buffer, angular)
 
-        self.simulation.AdvanceInTime(self.simulation.main_model_part.ProcessInfo[KM.TIME])
-        self.simulation.InitializeSolutionStep()
-        self.simulation.Predict()
-        self.simulation.SolveSolutionStep()
+        linear = np.array([1.1588 , 1.3647, 1.1417])
+        angular = np.array([1.4898 , 1.4987, 1.2874])
+        self.simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.FORCE, buffer, linear)
+        self.simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KM.MOMENT, buffer, angular)
 
-        reference = [14.47730397, -954.52993411, 30.97172112, 56.62280302, -20.61982872, 98.25390568]
+        linear = np.array([7.486 , 3.5861, 2.1867])
+        angular = np.array([3.4861 , 1.1848, 0.0486])
+        self.simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KMC.PRESCRIBED_FORCE, buffer, linear)
+        self.simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KMC.PRESCRIBED_MOMENT, buffer, angular)
+
+        linear = np.array([2.5488 , 0.1647, 2.4846])
+        angular = np.array([2.1558 , 1.1817, 1.8574])
+        self.simulation.root_point_model_part.Nodes[2].SetSolutionStepValue(KM.DISPLACEMENT, buffer, linear)
+        self.simulation.root_point_model_part.Nodes[2].SetSolutionStepValue(KM.ROTATION, buffer, angular)
+
+        linear = np.array([0.1488 , 0.5267, 0.1217])
+        angular = np.array([0.8998 , 0.1487, 0.9124])
+        self.simulation.root_point_model_part.Nodes[2].SetSolutionStepValue(KMC.PRESCRIBED_DISPLACEMENT, buffer, linear)
+        self.simulation.root_point_model_part.Nodes[2].SetSolutionStepValue(KMC.PRESCRIBED_ROTATION, buffer, angular)
+        
+        self.simulation._CalculateEffectiveLoad()
+
+        reference = [3.2489136e+03, 1.0426155e+03, 7.8223701e+03, 1.8402357e+03, 3.9960822e+03, 5.0932000e+00]
         simulation_effective_load = self.simulation._GetCompleteVector("rigid_body", KMC.EFFECTIVE_FORCE, KMC.EFFECTIVE_MOMENT)
 
         self.assertVectorAlmostEqual(reference, simulation_effective_load)
