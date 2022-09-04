@@ -54,7 +54,7 @@ double BrooksCoreyLaw::
     const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
     const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
     const double &pe     = rMaterialProperties[AIR_EXPULSION_PRESSURE];
-    if (p > 0.0 && p >= pb )
+    if (p > 0.0 && p > pb )
       {
         if(p>=Lastp)
        {
@@ -67,7 +67,7 @@ double BrooksCoreyLaw::
         double sat = satMin + (satMax - satMin) *  pow(pb/p, Lambda);
         return sat;
         }
-        else if (p>=pe)
+        else if (p>pe)
 
         {
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
@@ -88,14 +88,14 @@ double BrooksCoreyLaw::
         }
 
         } 
-    else if(p > 0.0 && p >= pe && p>=Lastp) 
+    else if(p > 0.0 && p > pe && p>=Lastp) 
     {   
         
         double sat = rMaterialProperties[SATURATED_SATURATION];
         return sat;
         
     }
-    else if(p > 0.0 && p >= pe && p<Lastp)
+    else if(p > 0.0 && p > pe && p<Lastp)
     {
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
@@ -148,7 +148,7 @@ double BrooksCoreyLaw::
     const double &pe     = rMaterialProperties[AIR_EXPULSION_PRESSURE];
     
 
-    if (p > 0.0 && p >= pb )
+    if (p > 0.0 && p > pb )
       {
         if(p>=Lastp)
        {
@@ -186,13 +186,13 @@ double BrooksCoreyLaw::
         }
 
         } 
-    else if(p > 0.0 && p >= pe && p>=Lastp ) 
+    else if(p > 0.0 && p > pe && p>=Lastp ) 
          {
 
        	  return 0.0;
           
           }
-    else if(p > 0.0 && p >= pe && p<Lastp)
+    else if(p > 0.0 && p > pe && p<Lastp)
          {
     	 const auto &rMaterialProperties = rParameters.GetMaterialProperties();
          const double &satMax = rMaterialProperties[SATURATED_SATURATION];
@@ -251,7 +251,7 @@ double BrooksCoreyLaw::
      const double &pe     = rMaterialProperties[AIR_EXPULSION_PRESSURE];
      
      
-if (p > 0.0 && p >= pb )
+if (p > 0.0 && p > pb )
       {
         if(p>=Lastp)
        {
@@ -288,7 +288,7 @@ if (p > 0.0 && p >= pb )
         }
 
         } 
-    else if(p > 0.0 && p >= pe && p>=Lastp) 
+    else if(p > 0.0 && p > pe && p>=Lastp) 
         {
          
          
@@ -296,7 +296,7 @@ if (p > 0.0 && p >= pb )
           return 1.0;
           
          }
-    else if(p > 0.0 && p >= pe && p<Lastp)
+    else if(p > 0.0 && p > pe && p<Lastp)
          {
     	 const auto &rMaterialProperties = rParameters.GetMaterialProperties();
          const double &Porosity = rMaterialProperties[POROSITY];
