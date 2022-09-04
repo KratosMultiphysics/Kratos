@@ -140,11 +140,11 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         
         Constrains = {'displacement_x': False, 'displacement_y': False, 'displacement_z': False, 'rotation_x': False, 'rotation_y': False, 'rotation_z': False}
         M = [[ 40.,  0. ,   0. ,  0.,   0.,   0.],
-            [  0. , 50. ,   0. ,  0. ,  0. ,  0.],
-            [  0. ,  0. , 100. ,  0. ,  0. ,  0.],
-            [  0. ,  0. ,   0. ,  2. ,  0. ,  0.],
-            [  0. ,  0. ,   0. ,  0. , 10. ,  0.],
-            [  0. ,  0. ,   0. ,  0. ,  0. ,  5.]]
+             [  0. , 50. ,   0. ,  0. ,  0. ,  0.],
+             [  0. ,  0. , 100. ,  0. ,  0. ,  0.],
+             [  0. ,  0. ,   0. ,  2. ,  0. ,  0.],
+             [  0. ,  0. ,   0. ,  0. , 10. ,  0.],
+             [  0. ,  0. ,   0. ,  0. ,  0. ,  5.]]
         C = [[ 4.,  0.,  0.,  0.,  0.,  0.],
              [ 0.,  5.,  0.,  0.,  0.,  0.],
              [ 0.,  0., 10.,  0.,  0.,  0.],
@@ -158,13 +158,13 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
              [   0.,    0.,    0.,    0., 1000.,    0.],
              [   0.,    0.,    0.,    0.,    0.,  500.]]
 
-        for i, dof in enumerate(['displacement_x', 'displacement_y', 'displacement_z', 'rotation_x', 'rotation_y', 'rotation_z']):
-            self.assertEqual(simulation.is_constrained[dof], Constrains[dof])
-            for j in range(6):
-                self.assertEqual(simulation.M[i][j], M[i][j])
-                self.assertEqual(simulation.C[i][j], C[i][j])
-                self.assertEqual(simulation.K[i][j], K[i][j])
-
+        for i in range(6):
+            self.assertVectorAlmostEqual(M[i], simulation.M[i])
+            self.assertVectorAlmostEqual(C[i], simulation.C[i])
+            self.assertVectorAlmostEqual(K[i], simulation.K[i])
+            
+        self.assertVectorAlmostEqual(simulation.is_constrained, Constrains)
+       
 
     def test_InitializeDofsVariables2(self):
         Parameters = KM.Parameters('''{
@@ -242,12 +242,12 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
              [   0.,    0.,    0.,    0., 1000.,    0.],
              [   0.,    0.,    0.,    0.,    0.,  1.]]
 
-        for i, dof in enumerate(['displacement_x', 'displacement_y', 'displacement_z', 'rotation_x', 'rotation_y', 'rotation_z']):
-            self.assertEqual(simulation.is_constrained[dof], Constrains[dof])
-            for j in range(6):
-                self.assertEqual(simulation.M[i][j], M[i][j])
-                self.assertEqual(simulation.C[i][j], C[i][j])
-                self.assertEqual(simulation.K[i][j], K[i][j])
+        for i in range(6):
+            self.assertVectorAlmostEqual(M[i], simulation.M[i])
+            self.assertVectorAlmostEqual(C[i], simulation.C[i])
+            self.assertVectorAlmostEqual(K[i], simulation.K[i])
+        
+        self.assertVectorAlmostEqual(simulation.is_constrained, Constrains)
 
 
     def test_InitializeGeneralizedAlphaParameters1(self):
@@ -281,10 +281,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
               [    0. ,     0. ,     0. ,     0. , 20000.5,     0. ],
               [    0. ,     0. ,     0. ,     0. ,     0. , 20000.5]]
 
-
         for i in range(6):
-            for j in range(6):
-                self.assertAlmostEqual(simulation.LHS[i][j], LHS[i][j])
+            self.assertVectorAlmostEqual(LHS[i], simulation.LHS[i])
 
 
     def test_InitializeGeneralizedAlphaParameters2(self):
@@ -375,10 +373,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
               [    0. ,     0. ,     0. ,     0. , 215722.06896552,     0. ],
               [    0. ,     0. ,     0. ,     0. ,     0. , 21344.86206897]]
 
-
         for i in range(6):
-            for j in range(6):
-                self.assertAlmostEqual(simulation.LHS[i][j], LHS[i][j])
+            self.assertVectorAlmostEqual(LHS[i], simulation.LHS[i])
 
 
     def test_check_variables(self):
