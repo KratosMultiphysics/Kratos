@@ -119,6 +119,12 @@ public:
         GeometricalObjectsBins voxel_bin(mpInputModelPart->ElementsBegin(), mpInputModelPart->ElementsEnd(),cell_size,min_bounding_box,max_bounding_box);
 
         const auto& number_of_cells = voxel_bin.GetNumberOfCells();
+        array_1d<std::size_t, 3> number_of_cells2;
+        for(int i = 0 ; i < 3 ; i++){
+            number_of_cells2[i]=mKeyPlanes[i].size() - 1;
+        }
+        KRATOS_WATCH(cell_size);
+        KRATOS_WATCH(number_of_cells);
 
         for (std::size_t i = 0; i < number_of_cells[0]; i++) {
             for (std::size_t j = 0; j < number_of_cells[1]; j++) {
@@ -128,14 +134,19 @@ public:
                     int new_id = i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1; 
 
                     array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(box,triangles);
-                    //KRATOS_WATCH(qef);
+                    KRATOS_WATCH(qef);
                     rFitedMesh.CreateNewNode(new_id, qef[0], qef[1], qef[2]);
-                    rFitedMesh.pGetNode(new_id)->FastGetSolutionStepValue(DISTANCE) = 1;  //?                  
+                    if (mIsInside[i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1]) {
+                        rFitedMesh.pGetNode(new_id)->FastGetSolutionStepValue(DISTANCE) = 1;                   
+                    } else {
+                        rFitedMesh.pGetNode(new_id)->FastGetSolutionStepValue(DISTANCE) = 0;
+                    }
                 }
             }
         }
         
         Properties::Pointer p_properties(new Properties(0)); 
+        KRATOS_WATCH(rFitedMesh.Nodes())
 
         for (std::size_t i = 1; i < number_of_cells[0]; i++) {
             for (std::size_t j = 1; j < number_of_cells[1]; j++) {
@@ -170,6 +181,8 @@ private:
     ///@}
     ///@name Private member Variables
     ///@{
+
+        std::vector<int> mIsInside; //bools
 
     ///@}
     ///@name Private Operators
@@ -214,7 +227,8 @@ private:
         ModelPart::ElementsContainerType new_elements;
         auto& r_prototype_element = KratosComponents<Element>::Get("Element3D8N");
             
-    
+        mIsInside.resize(number_of_cells[0]*number_of_cells[1]*number_of_cells[2]);
+
         Element::NodesArrayType cell_nodes(8);
         for (std::size_t k = 0; k < number_of_cells[2]; k++) {
             for (std::size_t j = 0; j < number_of_cells[1]; j++) {
@@ -233,10 +247,16 @@ private:
                         Element::Pointer p_element = r_prototype_element.Create(mStartElementId + cell_index, cell_nodes, p_properties);
                         new_elements.push_back(p_element);
                         cell_index++;
+
+                        mIsInside[i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1] = 1;
+                    } else {
+                        mIsInside[i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1] = 0;
                     }
                 }
             }
         }
+
+        KRATOS_WATCH(mIsInside);
     
         rTheVolumeModelPart.AddNodes(new_nodes.begin(), new_nodes.end());
         rTheVolumeModelPart.AddElements(new_elements.begin(), new_elements.end());

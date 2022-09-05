@@ -170,7 +170,7 @@ namespace {
             "mdpa_file_name" : "cube_skin_mesh",
             "key_plane_generator": {
                 "Parameters" : {
-                    "voxel_sizes" : [1, 1, 1],
+                    "voxel_sizes" : [0.5, 0.5, 0.5],
                     "min_point" : [-1, -1, -1],
                     "max_point" : [1, 1, 1]
                 }
@@ -201,21 +201,25 @@ namespace {
 
         //AddCube(skin_model_part);
 
-        //Output(skin_model_part,"cube_pre");
-
         DualCountouringMesher modeler(my_model,mesher_parameters); 
         modeler.SetupGeometryModel();
         modeler.PrepareGeometryModel();
         modeler.SetupModelPart(); 
+
+        Output(skin_model_part,"cube_pre");
 
         KRATOS_CHECK_EQUAL(skin_model_part.Nodes().size(),8);
         KRATOS_CHECK_EQUAL(skin_model_part.Elements().size(),12); 
     
         modeler.DualCountourAdaptativeRemesh(fited_mesh);
 
-        //Output(skin_model_part,"cube_post");
-        KRATOS_CHECK_EQUAL(fited_mesh.Elements().size(),1); 
-        KRATOS_CHECK_EQUAL(voxels_part.Elements().size(),8); 
+        Output(fited_mesh,"cube_post");
+        KRATOS_CHECK_EQUAL(fited_mesh.Elements().size(),27); 
+
+        for(Element& elem : fited_mesh.Elements()) {
+            KRATOS_WATCH(elem);
+        }
+        //KRATOS_CHECK_EQUAL(voxels_part.Elements().size(),8); 
     }
 } //Namespace Testing
 } //Namespace Kratos
