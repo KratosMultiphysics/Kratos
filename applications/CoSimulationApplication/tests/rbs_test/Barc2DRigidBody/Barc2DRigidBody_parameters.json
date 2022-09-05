@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 1.0,
+        "end_time" : 0.05,
         "echo_level" : 0,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
@@ -86,31 +86,31 @@
                 },
                 "data" : {
                     "disp" : {
-                        "model_part_name" : "FluidModelPart.NoSlip2D_structure",
+                        "model_part_name" : "FluidModelPart.NoSlip2D_Boundary_NoSlipStructure",
                         "variable_name" : "GLOBAL_DISPLACEMENT",
                         "dimension" : 3,
                         "location"      : "model_part"
                     },
                     "rot" : {
-                        "model_part_name" : "FluidModelPart.NoSlip2D_structure",
+                        "model_part_name" : "FluidModelPart.NoSlip2D_Boundary_NoSlipStructure",
                         "variable_name" : "GLOBAL_ROTATION",
                         "dimension" : 3,
                         "location"      : "model_part"
                     },
                     "force" : {
-                        "model_part_name" : "FluidModelPart.NoSlip2D_structure",
+                        "model_part_name" : "FluidModelPart.NoSlip2D_Boundary_NoSlipStructure",
                         "variable_name" : "RESULTANT_FORCE",
                         "dimension" : 3,
                         "location"      : "model_part"
                     },
                     "moment" : {
-                        "model_part_name" : "FluidModelPart.NoSlip2D_structure",
+                        "model_part_name" : "FluidModelPart.NoSlip2D_Boundary_NoSlipStructure",
                         "variable_name" : "RESULTANT_MOMENT",
                         "dimension" : 3,
                         "location"      : "model_part"
                     },
                     "reaction" : {
-                        "model_part_name" : "FluidModelPart.NoSlip2D_structure",
+                        "model_part_name" : "FluidModelPart.NoSlip2D_Boundary_NoSlipStructure",
                         "variable_name" : "REACTION",
                         "dimension" : 3
                     }

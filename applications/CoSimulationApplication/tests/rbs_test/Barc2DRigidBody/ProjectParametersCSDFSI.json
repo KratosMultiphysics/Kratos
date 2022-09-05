@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name": "RigidBody",
         "start_time": 0.0,
-        "end_time": 1.0
+        "end_time": 0.05
     },
     "solver_settings": {
         "domain_size": 3,
@@ -48,7 +48,9 @@
             }
         ]
     },
-    "output_processes": [],
+    "output_processes": [
+         
+    ],
     "processes": {
         "gravity": [],
         "initial_conditions_process_list": [

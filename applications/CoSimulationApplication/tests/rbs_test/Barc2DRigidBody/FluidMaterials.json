@@ -1,6 +1,6 @@
 {
     "properties" : [{
-        "model_part_name" : "FluidModelPart.FluidParts_fluid",
+        "model_part_name" : "FluidModelPart.FluidParts_Fluid",
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
