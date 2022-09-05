@@ -47,6 +47,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
  -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 -L/usr/local/opt/llvm/lib"                         \
  -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 -L/usr/local/opt/llvm/lib"                                        \
  -DUSE_EIGEN_MKL=OFF                                                                                        \
+ -DKRATOS_ARCHITECTURE_EXTENSION="native"                                                                   \
  -DKRATOS_GENERATE_PYTHON_STUBS=ON                                                                          \
 
 # Buid
