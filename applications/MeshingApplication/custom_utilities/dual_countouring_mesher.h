@@ -142,7 +142,6 @@ public:
         }
         
         Properties::Pointer p_properties(new Properties(0)); 
-        KRATOS_WATCH(rFitedMesh.Nodes())
 
         for (std::size_t i = 1; i < number_of_cells[0]; i++) {
             for (std::size_t j = 1; j < number_of_cells[1]; j++) {
@@ -252,7 +251,7 @@ private:
             }
         }
 
-        KRATOS_WATCH(mIsInside);
+        //KRATOS_WATCH(mIsInside);
     
         rTheVolumeModelPart.AddNodes(new_nodes.begin(), new_nodes.end());
         rTheVolumeModelPart.AddElements(new_elements.begin(), new_elements.end());
