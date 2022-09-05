@@ -1,0 +1,13 @@
+{
+    "side_bar_name": "particle_mechanics_application",
+    "landing_page": "General/Overview.md",
+    "additional_menu_options": {
+        "title": "sidebar",
+        "product": "Particle Mechanics Application"
+    },
+    "custom_entries": [
+        "General",
+        "How to set up an example with MPM",
+        "Examples"
+    ]
+}
