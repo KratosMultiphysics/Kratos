@@ -43,6 +43,9 @@ EmbeddedMLSConstraintProcess::EmbeddedMLSConstraintProcess(
     const std::string model_part_name = ThisParameters["model_part_name"].GetString();
     mpModelPart = &rModel.GetModelPart(model_part_name);
 
+    // Set to which elements constraints are applied
+    mApplyToAllNegativeCutNodes = ThisParameters["apply_to_all_negative_cut_nodes"].GetBool();
+
     // Set the order of the MLS extension operator used in the MLS shape functions utility
     mMLSExtensionOperatorOrder = ThisParameters["mls_extension_operator_order"].GetInt();
 
@@ -89,34 +92,36 @@ void EmbeddedMLSConstraintProcess::CalculateConformingExtensionBasis(NodesCloudM
         // Check if the element is split
         const auto& r_geom = rElement.GetGeometry();
         if (IsSplit(r_geom)) {
-            // Find the intersected element negative nodes
-            for (auto& r_node : r_geom) {
-                // Check whether node is negative (not ACTIVE) or already was added because of a previous element
-                const std::size_t found = rExtensionOperatorMap.count(&r_node);
-                if (r_node.IsNot(ACTIVE) && !found) {
+            if (mApplyToAllNegativeCutNodes || IsSmallCut(r_geom)) {
+                // Find the intersected element negative nodes
+                for (auto& r_node : r_geom) {
+                    // Check whether node is negative (not ACTIVE) or already was added because of a previous element
+                    const std::size_t found = rExtensionOperatorMap.count(&r_node);
+                    if (r_node.IsNot(ACTIVE) && !found) {
 
-                    // Get the current negative node neighbours cloud
-                    Matrix cloud_nodes_coordinates;
-                    PointerVector<NodeType> cloud_nodes;
-                    SetNegativeNodeSupportCloud(r_node, cloud_nodes, cloud_nodes_coordinates);
+                        // Get the current negative node neighbours cloud
+                        Matrix cloud_nodes_coordinates;
+                        PointerVector<NodeType> cloud_nodes;
+                        SetNegativeNodeSupportCloud(r_node, cloud_nodes, cloud_nodes_coordinates);
 
-                    // Calculate the MLS basis in the current negative node
-                    Vector N_container;
-                    const array_1d<double,3> r_coords = r_node.Coordinates();
-                    const double mls_kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
-                    p_mls_sh_func(cloud_nodes_coordinates, r_coords, 1.01 * mls_kernel_rad, N_container);
+                        // Calculate the MLS basis in the current negative node
+                        Vector N_container;
+                        const array_1d<double,3> r_coords = r_node.Coordinates();
+                        const double mls_kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
+                        p_mls_sh_func(cloud_nodes_coordinates, r_coords, 1.01 * mls_kernel_rad, N_container);
 
-                    // Save the extension operator nodal data
-                    std::size_t n_cl_nod = cloud_nodes.size();
-                    CloudDataVectorType cloud_data_vector(n_cl_nod);
-                    for (std::size_t i_cl_nod = 0; i_cl_nod < n_cl_nod; ++i_cl_nod) {
-                        auto p_cl_node = cloud_nodes(i_cl_nod);
-                        auto i_data = std::make_pair(p_cl_node, N_container[i_cl_nod]);
-                        cloud_data_vector(i_cl_nod) = i_data;
+                        // Save the extension operator nodal data
+                        std::size_t n_cl_nod = cloud_nodes.size();
+                        CloudDataVectorType cloud_data_vector(n_cl_nod);
+                        for (std::size_t i_cl_nod = 0; i_cl_nod < n_cl_nod; ++i_cl_nod) {
+                            auto p_cl_node = cloud_nodes(i_cl_nod);
+                            auto i_data = std::make_pair(p_cl_node, N_container[i_cl_nod]);
+                            cloud_data_vector(i_cl_nod) = i_data;
+                        }
+
+                        auto ext_op_key_data = std::make_pair(&r_node, cloud_data_vector);
+                        rExtensionOperatorMap.insert(ext_op_key_data);
                     }
-
-                    auto ext_op_key_data = std::make_pair(&r_node, cloud_data_vector);
-                    rExtensionOperatorMap.insert(ext_op_key_data);
                 }
             }
         }
@@ -128,7 +133,8 @@ void EmbeddedMLSConstraintProcess::ApplyExtensionConstraints(NodesCloudMapType& 
     // Initialize counter of master slave constraints
     ModelPart::IndexType id = mpModelPart->NumberOfMasterSlaveConstraints()+1;
     // Define variables to constrain
-    std::array<std::string,4> variables = {"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"};
+    //std::array<std::string,4> variables = {"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"}; //,"PRESSURE"
+    std::array<std::string,3> variables = {"VELOCITY_X","VELOCITY_Y","VELOCITY_Z"};
 
     // Loop through all negative nodes of split elements (slave nodes)
     for (auto it_slave = rExtensionOperatorMap.begin(); it_slave != rExtensionOperatorMap.end(); ++it_slave) {
@@ -157,6 +163,7 @@ void EmbeddedMLSConstraintProcess::ApplyExtensionConstraints(NodesCloudMapType& 
 
 void EmbeddedMLSConstraintProcess::SetInterfaceFlags()
 {
+    //TODO only set ACTIVE or not, no need for BOUNDARY and INTERFACE ?
     // Initialize flags to false
     block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
         rNode.Set(ACTIVE, false); // Nodes that belong to the elements to be assembled
@@ -318,6 +325,17 @@ bool EmbeddedMLSConstraintProcess::IsSplit(const GeometryType& rGeometry)
         }
     }
     return (n_pos != 0 && n_neg != 0);
+}
+
+bool EmbeddedMLSConstraintProcess::IsSmallCut(const GeometryType& rGeometry)
+{
+    const double tol_d = 0.001;
+    for (const auto& r_node : rGeometry) {
+        if (abs(r_node.FastGetSolutionStepValue(DISTANCE)) < tol_d) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool EmbeddedMLSConstraintProcess::IsNegative(const GeometryType& rGeometry)

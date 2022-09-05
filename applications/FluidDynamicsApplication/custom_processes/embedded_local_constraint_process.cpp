@@ -365,7 +365,8 @@ void EmbeddedLocalConstraintProcess::ApplyConstraints(NodesCloudMapType& rClouds
 
     // Define variables to constrain  //TODO: use DofPointerVectorType for LinearMasterSlaveConstraint
     // TODO: wrong to constraint PRESSURE to 0.0 boundary condition for LocalConstraintsBC?!? instability if not constraint? constrain p without BC?
-    std::array<std::string,4> variables = {"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"};  // PRESSURE; TODO EMBEDDED_VELOCITY
+    //std::array<std::string,4> variables = {"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"};  // TODO EMBEDDED_VELOCITY
+    std::array<std::string,3> variables = {"VELOCITY_X","VELOCITY_Y","VELOCITY_Z"};
 
     // Loop through all negative nodes of split elements (slave nodes)
     for (auto it_slave = rCloudsMap.begin(); it_slave != rCloudsMap.end(); ++it_slave) {

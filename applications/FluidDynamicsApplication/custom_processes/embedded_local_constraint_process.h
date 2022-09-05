@@ -106,7 +106,7 @@ public:
     {
         const Parameters default_parameters = Parameters(R"({
             "model_part_name" : "",
-            "apply_to_all_negative_cut_nodes" : false,
+            "apply_to_all_negative_cut_nodes" : true,
             "use_mls_shape_functions" : true,
             "include_intersection_points" : true,
             "avoid_zero_distances" : true,

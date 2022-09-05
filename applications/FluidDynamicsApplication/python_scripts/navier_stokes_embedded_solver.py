@@ -16,6 +16,8 @@ class EmbeddedFormulation(object):
     """Helper class to define embedded-dependent parameters."""
     def __init__(self, formulation_settings):
         self.element_name = None
+        self.small_cut_treatment = None
+        self.apply_constraints_to_all_cut_elements = True
         self.condition_name = None
         self.process_info_data = {}
         self.element_has_nodal_properties = False
@@ -80,13 +82,17 @@ class EmbeddedFormulation(object):
             "slip_length": 1.0e8,
             "penalty_coefficient": 10.0,
             "dynamic_tau": 1.0,
-            "level_set_type": "continuous"
+            "level_set_type": "continuous",
+            "small_cut_treatment": "distmod",
+            "apply_constraints_to_all_cut_elements": true
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "EmbeddedWeaklyCompressibleNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
+        self.small_cut_treatment = formulation_settings["small_cut_treatment"].GetString()
+        self.apply_constraints_to_all_cut_elements = formulation_settings["apply_constraints_to_all_cut_elements"].GetBool()
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
         self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY]
@@ -315,6 +321,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         self.element_has_nodal_properties = self.embedded_formulation.element_has_nodal_properties
         self.historical_nodal_properties_variables_list = self.embedded_formulation.historical_nodal_properties_variables_list
         self.non_historical_nodal_properties_variables_list = self.embedded_formulation.non_historical_nodal_properties_variables_list
+        self.small_cut_treatment = self.embedded_formulation.small_cut_treatment
+        self.apply_constraints_to_all_cut_elements = self.embedded_formulation.apply_constraints_to_all_cut_elements
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
@@ -385,10 +393,23 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
+        # Set type of small cut treatment
         self.apply_DistMod = False
-        self.apply_MLSConstraints = True
+        self.apply_MLSConstraints = False
         self.apply_LocalConstraints = False
         self.apply_LocalConstraintsABC = False
+        if self.small_cut_treatment == None:
+            self.apply_DistMod = True
+        elif self.small_cut_treatment == "distmod":
+            self.apply_DistMod = True
+        elif self.small_cut_treatment == "mls":
+            self.apply_MLSConstraints = True
+        elif self.small_cut_treatment == "local":
+            self.apply_LocalConstraints = True
+        elif self.small_cut_treatment == "localbc":
+            self.apply_LocalConstraintsABC = True
+        else:
+            raise RuntimeError("Given \'small_cut_treatment'\' not found.")
 
         # Set the distance modification process  # TODO check if continuous? FSI? parallelization?
         if self.apply_DistMod:
@@ -455,10 +476,10 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                 self.GetMLSConstraintProcess(mls_order=1).Execute()
                 self.apply_MLSConstraints = False
             if self.apply_LocalConstraints:
-                self.GetLocalConstraintProcess(use_mls_sf=False,use_bc=False).Execute()
+                self.GetLocalConstraintProcess(use_bc=False, apply_to_all=self.apply_constraints_to_all_cut_elements).Execute()
                 self.apply_LocalConstraints = False
             if self.apply_LocalConstraintsABC:
-                self.GetLocalConstraintProcess(use_mls_sf=False,use_bc=True).Execute()
+                self.GetLocalConstraintProcess(use_bc=True, apply_to_all=self.apply_constraints_to_all_cut_elements).Execute()
                 self.apply_LocalConstraintsABC = False
 
             # Perform the FM-ALE operations
@@ -569,7 +590,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self._distance_modification_process = self.__CreateDistanceModificationProcess()
         return self._distance_modification_process
 
-    def GetMLSConstraintProcess(self, mls_order=1):
+    def GetMLSConstraintProcess(self, mls_order=1, apply_to_all=True):
         if not hasattr(self, '_mls_constraint_process'):
             # Calculate the required neighbours
             nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.main_model_part)
@@ -582,6 +603,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             # NOTE: the nodal distances will still be modified slightly to avoid levelset zeros (tol=1e-12)
             # NOTE: elements in the negative distance region will be deactivated
             settings = KratosMultiphysics.Parameters("""{}""")
+            settings.AddEmptyValue("apply_to_all_negative_cut_nodes").SetBool(apply_to_all)
             settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
             settings.AddEmptyValue("mls_extension_operator_order").SetInt(mls_order)
             settings.AddEmptyValue("avoid_zero_distances").SetBool(True)
@@ -590,13 +612,13 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self._mls_constraint_process = KratosCFD.EmbeddedMLSConstraintProcess(self.model, settings)
         return self._mls_constraint_process
 
-    def GetLocalConstraintProcess(self, use_mls_sf=False, use_bc=False):
+    def GetLocalConstraintProcess(self, use_mls_sf=False, use_bc=False, apply_to_all=True):
         if not hasattr(self, '_local_constraint_process'):
             # Create a single point constraint for all negative nodes of intersected elements
             # NOTE: the nodal distances will still be modified slightly to avoid levelset zeros (tol=1e-12)
             # NOTE: elements in the negative distance region will be deactivated
             settings = KratosMultiphysics.Parameters("""{}""")
-            settings.AddEmptyValue("apply_to_all_negative_cut_nodes").SetBool(True)
+            settings.AddEmptyValue("apply_to_all_negative_cut_nodes").SetBool(apply_to_all)
             settings.AddEmptyValue("use_mls_shape_functions").SetBool(use_mls_sf)
             settings.AddEmptyValue("include_intersection_points").SetBool(use_bc)
             settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)

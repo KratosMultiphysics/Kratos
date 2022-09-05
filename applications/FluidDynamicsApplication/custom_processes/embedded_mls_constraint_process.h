@@ -49,7 +49,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Utility to add MLS-based master-slave-constraints to negative nodes of intersected elements 
+/// Utility to add MLS-based master-slave-constraints to negative nodes of intersected elements
 /// in order to prevent small cut instabilities.
 /// By default, the process also deactivates full negative distance elements.
 class EmbeddedMLSConstraintProcess : public Process
@@ -105,7 +105,8 @@ public:
     const Parameters GetDefaultParameters() const override
     {
         const Parameters default_parameters = Parameters(R"({
-            "model_part_name" : "",
+            "model_part_name" : "",,
+            "apply_to_all_negative_cut_nodes" : true,
             "mls_extension_operator_order" : 1,
             "avoid_zero_distances" : true,
             "deactivate_negative_elements" : true,
@@ -194,6 +195,8 @@ private:
 
     std::size_t mMLSExtensionOperatorOrder;
 
+    bool mApplyToAllNegativeCutNodes;
+
     bool mAvoidZeroDistances;
 
     bool mDeactivateNegativeElements;
@@ -220,6 +223,8 @@ private:
     void ModifyDistances();
 
     bool IsSplit(const GeometryType& rGeometry);
+
+    bool IsSmallCut(const GeometryType& rGeometry);
 
     bool IsNegative(const GeometryType& rGeometry);
 
