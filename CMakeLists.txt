@@ -230,7 +230,6 @@ else(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Old non-compatible versions of VS
-# Old non-compatible versions of VS
 if(${MSVC})
   if(${MSVC_TOOLSET_VERSION} LESS 140)
     message( "DEPRECATED: detected compiler as ${MSVC_TOOLSET_VERSION}")
