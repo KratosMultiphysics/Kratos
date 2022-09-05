@@ -6,8 +6,8 @@ on:
       - master
     paths-ignore:       # This must be the same as .github/workflows/ci_dummy.yml - "paths" !
       - '**.md'
-      - '/documents/**'
-      - '/scripts/**'   # Docker builds will be triggered by `build_docker_image_****.yml` workflows.
+      - 'documents/**'
+      - 'scripts/**'   # Docker builds will be triggered by `build_docker_image_****.yml` workflows.
 
   workflow_dispatch:
 
