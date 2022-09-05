@@ -159,9 +159,10 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
              [   0.,    0.,    0.,    0.,    0.,  500.]]
 
         for i in range(6):
-            self.assertVectorAlmostEqual(M[i], self.simulation.M[i])
-            self.assertVectorAlmostEqual(C[i], self.simulation.C[i])
-            self.assertVectorAlmostEqual(K[i], self.simulation.K[i])
+            for j in range(6):
+                self.assertAlmostEqual(M[i][j], self.simulation.M[i][j])
+                self.assertAlmostEqual(C[i][j], self.simulation.C[i][j])
+                self.assertAlmostEqual(K[i][j], self.simulation.K[i][j])
             
         self.assertVectorAlmostEqual(self.simulation.is_constrained, Constrains)
        
@@ -243,9 +244,10 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
              [   0.,    0.,    0.,    0.,    0.,  1.]]
 
         for i in range(6):
-            self.assertVectorAlmostEqual(M[i], self.simulation.M[i])
-            self.assertVectorAlmostEqual(C[i], self.simulation.C[i])
-            self.assertVectorAlmostEqual(K[i], self.simulation.K[i])
+            for j in range(6):
+                self.assertAlmostEqual(M[i][j], self.simulation.M[i][j])
+                self.assertAlmostEqual(C[i][j], self.simulation.C[i][j])
+                self.assertAlmostEqual(K[i][j], self.simulation.K[i][j])
         
         self.assertVectorAlmostEqual(self.simulation.is_constrained, Constrains)
 
@@ -280,7 +282,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
               [    0. ,     0. ,     0. ,     0. ,     0. , 20000.5]]
 
         for i in range(6):
-            self.assertVectorAlmostEqual(LHS[i], self.simulation.LHS[i])
+            for j in range(6):
+                self.assertAlmostEqual(LHS[i][j], self.simulation.LHS[i][j])
 
 
     def test_InitializeGeneralizedAlphaParameters2(self):
