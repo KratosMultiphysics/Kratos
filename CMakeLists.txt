@@ -231,10 +231,10 @@ endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Old non-compatible versions of VS
 if(${MSVC})
-  if(${MSVC_TOOLSET_VERSION} LESS 140)
+  if(${MSVC_TOOLSET_VERSION} LESS 141)
     message( "DEPRECATED: detected compiler as ${MSVC_TOOLSET_VERSION}")
-    message( FATAL_ERROR "Please use VisualStudio Toolset 140 (VisualStudio 2015) or greater")
-  endif(${MSVC_TOOLSET_VERSION} LESS 140)
+    message( FATAL_ERROR "Please use VisualStudio Toolset 141 (VisualStudio 2017) or greater")
+  endif(${MSVC_TOOLSET_VERSION} LESS 141)
 endif(${MSVC})
 
 # Common flags for MSVC
