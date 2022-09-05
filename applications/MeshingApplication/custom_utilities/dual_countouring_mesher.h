@@ -119,12 +119,8 @@ public:
         GeometricalObjectsBins voxel_bin(mpInputModelPart->ElementsBegin(), mpInputModelPart->ElementsEnd(),cell_size,min_bounding_box,max_bounding_box);
 
         const auto& number_of_cells = voxel_bin.GetNumberOfCells();
-        array_1d<std::size_t, 3> number_of_cells2;
-        for(int i = 0 ; i < 3 ; i++){
-            number_of_cells2[i]=mKeyPlanes[i].size() - 1;
-        }
-        KRATOS_WATCH(cell_size);
-        KRATOS_WATCH(number_of_cells);
+        
+        //KRATOS_WATCH(number_of_cells);
 
         for (std::size_t i = 0; i < number_of_cells[0]; i++) {
             for (std::size_t j = 0; j < number_of_cells[1]; j++) {
