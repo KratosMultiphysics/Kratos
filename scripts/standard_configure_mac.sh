@@ -28,7 +28,7 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 # Set basic configuration
 export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"Release"}
 export BOOST_ROOT=${BOOST_ROOT:-"/path/to/boost"}
-export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/Library/Frameworks/Python.framework/Versions/3.7/bin/python3"}
+export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/Library/Frameworks/Python.framework/Versions/3.9/bin/python3"}
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
@@ -43,11 +43,13 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 # Configure
-/Applications/CMake.app/Contents/bin/cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"    \
- -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 -L/usr/local/opt/llvm/lib"                         \
- -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 -L/usr/local/opt/llvm/lib"                                        \
- -DUSE_EIGEN_MKL=OFF                                                                                        \
- -DKRATOS_GENERATE_PYTHON_STUBS=ON                                                                          \
+/Applications/CMake.app/Contents/bin/cmake                                                 \
+ -H"${KRATOS_SOURCE}"                                                                      \
+ -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                  \
+ -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -march=native -std=c++17 -L/usr/local/opt/llvm/lib" \
+ -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -march=native -L/usr/local/opt/llvm/lib"                \
+ -DUSE_EIGEN_MKL=OFF                                                                       \
+ -DKRATOS_GENERATE_PYTHON_STUBS=ON                                                         \
 
 # Buid
 /Applications/CMake.app/Contents/bin/cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(sysctl -n hw.physicalcpu)
