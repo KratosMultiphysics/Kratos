@@ -620,6 +620,7 @@ message("\t Geometry old closest point methods deprecation: https://github.com/K
 message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
 message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
 message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
+message("\t Typo fix auxiliar_process_list is now auxiliary_process_list in the process list: https://github.com/KratosMultiphysics/Kratos/pull/10180")
 
 # Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
