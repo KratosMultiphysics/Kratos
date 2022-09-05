@@ -48,6 +48,13 @@ namespace Kratos {
 #define KRATOS_ARCH_TYPE "Unknown architecture"
 #endif
 
+// Adding architecture extension
+#if defined(KRATOS_ARCHITECTURE_EXTENSION)
+#define TMP_KRATOS_ARCH_TYPE KRATOS_ARCH_TYPE
+#undef KRATOS_ARCH_TYPE
+#define KRATOS_ARCH_TYPE TMP_KRATOS_ARCH_TYPE "-" KRATOS_ARCHITECTURE_EXTENSION
+#endif
+
 // Full version
 #define KRATOS_TO_STRING_(X) #X
 #define KRATOS_TO_STRING(X) KRATOS_TO_STRING_(X)
@@ -57,12 +64,7 @@ KRATOS_TO_STRING(KRATOS_MINOR_VERSION) "." \
 KRATOS_TO_STRING(KRATOS_PATCH_VERSION) "-" \
 KRATOS_SHA1_NUMBER "-" \
 KRATOS_BUILD_TYPE  "-" \
-#if defined(KRATOS_ARCHITECTURE_EXTENSION) // Adding architecture extension
-KRATOS_ARCH_TYPE "-" \
-KRATOS_ARCHITECTURE_EXTENSION
-#else
 KRATOS_ARCH_TYPE
-#endif
 
 std::string GetPatchVersion() {
     return KRATOS_PATCH_VERSION;
