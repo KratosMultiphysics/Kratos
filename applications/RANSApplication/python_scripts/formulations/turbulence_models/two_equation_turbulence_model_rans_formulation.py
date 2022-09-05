@@ -35,8 +35,15 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
 
     def Initialize(self):
         factory = KratosProcessFactory(self.GetBaseModelPart().GetModel())
-        self.auxiliary_process_list = factory.ConstructListOfProcesses(
-            self.GetParameters()["auxiliary_process_list"])
+        parameters = self.GetParameters()
+        if parameters.Has("auxiliary_process_list"):
+            auxiliary_process_list_parameters = parameters["auxiliary_process_list"]
+        elif parameters.Has("auxiliar_process_list"):
+            Kratos.Logger.PrintWarning(self.__class__.__name__ + ":: auxiliar_process_list is deprecated, please use auxiliary_process_list instead")
+            auxiliary_process_list_parameters = parameters["auxiliar_process_list"]
+        else:
+            auxiliary_process_list_parameters = KratosMultiphysics.Parameters(KratosMultiphysics.Parameters("""{}"""))
+        self.auxiliary_process_list = factory.ConstructListOfProcesses(auxiliary_process_list_parameters)
         for process in self.auxiliary_process_list:
             self.AddProcess(process)
 

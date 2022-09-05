@@ -45,7 +45,8 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
     def _GetOrderOfProcessesInitialization(self):
         return ["constraints_process_list",
                 "loads_process_list",
-                "auxiliary_process_list"]
+                "auxiliary_process_list",
+                "auxiliar_process_list"] # TODO: Must be removed in the future
 
     def _GetSimulationName(self):
         return "GeoMechanics Analysis"

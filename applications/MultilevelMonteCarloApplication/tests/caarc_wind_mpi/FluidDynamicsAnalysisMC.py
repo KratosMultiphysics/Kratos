@@ -24,7 +24,14 @@ class FluidDynamicsAnalysisMC(FluidDynamicsAnalysis):
         input:  self: an instance of the class
         """
         super().ModifyInitialProperties()
-        for aux_process in self.project_parameters["processes"]["auxiliary_process_list"]:
+        if self.project_parameters["processes"].Has("auxiliary_process_list"):
+            aux_parameters = self.project_parameters["processes"]["auxiliary_process_list"]
+        elif self.project_parameters["processes"].Has("auxiliar_process_list"):
+            KratosMultiphysics.Logger.PrintWarning("FluidDynamicsAnalysisMC:: auxiliar_process_list is deprecated, please use auxiliary_process_list instead")
+            aux_parameters = self.project_parameters["processes"]["auxiliar_process_list"]
+        else:
+            aux_parameters = KratosMultiphysics.Parameters(KratosMultiphysics.Parameters("""{}"""))
+        for aux_process in aux_parameters:
             if aux_process["python_module"].GetString() == "temporal_statistics_process":
                 aux_process["Parameters"]["statistics_start_point_control_value"].SetDouble(self.project_parameters["problem_data"]["burnin_time"].GetDouble())
 
