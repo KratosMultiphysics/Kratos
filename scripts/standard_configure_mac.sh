@@ -43,13 +43,13 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 # Configure
-/Applications/CMake.app/Contents/bin/cmake                                                 \
- -H"${KRATOS_SOURCE}"                                                                      \
- -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                  \
- -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -march=native -std=c++17 -L/usr/local/opt/llvm/lib" \
- -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -march=native -L/usr/local/opt/llvm/lib"                \
- -DUSE_EIGEN_MKL=OFF                                                                       \
- -DKRATOS_GENERATE_PYTHON_STUBS=ON                                                         \
+/Applications/CMake.app/Contents/bin/cmake                                                    \
+ -H"${KRATOS_SOURCE}"                                                                         \
+ -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                     \
+ -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -march=native -mtune=native -L/usr/local/opt/llvm/lib" \
+ -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -march=native -mtune=native -L/usr/local/opt/llvm/lib"     \
+ -DUSE_EIGEN_MKL=OFF                                                                          \
+ -DKRATOS_GENERATE_PYTHON_STUBS=ON                                                            \
 
 # Buid
 /Applications/CMake.app/Contents/bin/cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(sysctl -n hw.physicalcpu)
