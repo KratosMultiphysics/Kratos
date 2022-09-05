@@ -534,7 +534,7 @@ void DynamicVMS<TDim>::SetValuesOnIntegrationPoints(const Variable<double> &rVar
 //        for (unsigned int g = 0; g < NumGauss; g++)
 //            mExtraTerm[g][1] = rValues[g];
 //    }
-//    else if (TDim == 2 && rVariable == SUBSCALE_VELOCITY_Z)
+//    else if constexpr (TDim == 2 && rVariable == SUBSCALE_VELOCITY_Z)
 //    {
 //        for (unsigned int g = 0; g < NumGauss; g++)
 //            mExtraTerm[g][2] = rValues[g];

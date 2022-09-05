@@ -205,7 +205,7 @@ void RegeneratePfemPressureConditionsProcess<TDim>::Execute()
 {
     // We search the neighbours for the generation of line loads
     auto find_neigh = GenericFindElementalNeighboursProcess(mrModelPart);
-    find_neigh.ExecuteInitialize();
+    find_neigh.Execute();
 
     if (!mrModelPart.HasSubModelPart("PFEMPressureConditions")) {
         mrModelPart.CreateSubModelPart("PFEMPressureConditions");

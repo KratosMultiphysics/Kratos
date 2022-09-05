@@ -1,6 +1,6 @@
 project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 
 # Setting some policies
 # No recursive dereferencing
@@ -165,9 +165,10 @@ endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11 -Wl,--no-as-needed -ldl")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+    message( "DEPRECATED: detected compiler as GCC " ${CMAKE_CXX_COMPILER_VERSION} )
+    message( FATAL_ERROR "Please use Version 8 or greater")
   endif()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
@@ -177,6 +178,7 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
 endif(${CMAKE_COMPILER_IS_GNUCXX})
 
 message(STATUS "CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
+message(STATUS "CMAKE_CXX_COMPILER_ID = ${CMAKE_CXX_COMPILER_ID}")
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   	  if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
@@ -202,8 +204,14 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		  message( "DEPRECATED: detected compiler as Intel " ${CMAKE_CXX_COMPILER_VERSION} )
 		  message( FATAL_ERROR "Please use Version 18 or greater")
 		endif()
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops -lpthread -wd654 -wd10010  ")
-		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -lpthread -wd654 -wd10010  ")
+		if (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+			# "IntelLLVM": Intel's NextGen LLVM compiler (icx)
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -diag-disable 654 -diag-disable 10010 -diag-disable 1011")
+		else (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+			# "Intel": Intel's Classic compiler (icc)
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -lpthread -wd654 -wd10010 -wd1011")
+		endif()
+		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops  ")
 		set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
 		message("additional default options were set for intel compiler")
 		message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
@@ -212,8 +220,8 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if(${CMAKE_C_COMPILER} MATCHES "icc.*$")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops  ") #-lpthread -wd654 -wd10010  ")
-    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops  ") #-lpthread -wd654 -wd10010  ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops  ")
+    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops  ")
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
     message("additional default options were set for intel compiler")
     message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
@@ -309,8 +317,8 @@ endif(NOT DEFINED KRATOS_ENABLE_LTO)
 message("AR VERSION: ${CMAKE_AR}")
 
 # check version of Python, needs to be done after including pybind
-if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 5))
-message( FATAL_ERROR "Kratos only supports Python version 3.5 and above")
+if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 6))
+message( FATAL_ERROR "Kratos only supports Python version 3.6 and above")
 endif()
 set(PYTHON_INTERFACE_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
 
@@ -381,8 +389,11 @@ find_package(Boost)
 
 if(NOT Boost_FOUND)
   # Trying to find in in external libraries
-	set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost")
+  set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost")
   find_package(Boost)
+  if(NOT Boost_FOUND)
+    message(FATAL_ERROR "It was not possible to find Boost in your machine, please define properly BOOST_ROOT if you have not")
+  endif(NOT Boost_FOUND)
 endif(NOT Boost_FOUND)
 
 set(Boost_USE_STATIC_LIBS   OFF)
@@ -608,6 +619,7 @@ message("\t Geometry old projection methods deprecation: https://github.com/Krat
 message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
 message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
 message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
+message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
 
 # Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
@@ -635,3 +647,6 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+
+# Perform post-install tasks (add_subdirectory commands are guaranteed to be executed in order)
+add_subdirectory("scripts/post_install")

@@ -158,7 +158,7 @@ namespace Kratos
 		}
 
         double distance = (std::abs(distances[0]) > std::abs(distances[1])) ? distances[1] : distances[0];
-		if (TDim == 3){
+		if constexpr (TDim == 3){
         	distance = (std::abs(distance) > std::abs(distances[2])) ? distances[2] : distance;
 		}
 
@@ -372,7 +372,7 @@ namespace Kratos
 		rp_octree->ScaleBackToOriginalCoordinate(ray_point2);
 
 		// This is a workaround to avoid the z-component in 2D
-		if (TDim == 2){
+		if constexpr (TDim == 2){
 			ray_point1[2] = 0.0;
 			ray_point2[2] = 0.0;
 		}
