@@ -230,30 +230,12 @@ else(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Old non-compatible versions of VS
-if(${MSVC80})
-  message( "DEPRECATED: detected compiler as MSVC80")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC80})
-
-if(${MSVC90})
-  message( "DEPRECATED: detected compiler as MSVC90")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC90})
-
-if(${MSVC10})
-  message( "DEPRECATED: detected compiler as MSVC10")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC10})
-
-if(${MSVC11})
-  message( "DEPRECATED: detected compiler as MSVC11")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC11})
-
-if(${MSVC12})
-  message( "DEPRECATED: detected compiler as MSVC12")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC12})
+if(${MSVC})
+  if(${MSVC_TOOLSET_VERSION} LESS 141)
+    message( "DEPRECATED: detected compiler as ${MSVC_TOOLSET_VERSION}")
+    message( FATAL_ERROR "Please use VisualStudio Toolset 141 (VisualStudio 2017) or greater")
+  endif(${MSVC_TOOLSET_VERSION} LESS 141)
+endif(${MSVC})
 
 # Common flags for MSVC
 if(${MSVC})
