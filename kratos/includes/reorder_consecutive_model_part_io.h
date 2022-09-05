@@ -10,35 +10,15 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-
-
-
-
-
-
-
-
-
-
-
 #if !defined(KRATOS_REORDER_CONSECUTIVE_MODEL_PART_IO_H_INCLUDED )
 #define  KRATOS_REORDER_CONSECUTIVE_MODEL_PART_IO_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <fstream>
-#include <set>
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part_io.h"
-#include "utilities/timer.h"
 
 
 namespace Kratos
@@ -93,7 +73,7 @@ public:
 
     typedef BaseType::OutputFilesContainerType OutputFilesContainerType;
 
-	typedef std::map<SizeType, SizeType> IdMapType;
+    typedef std::map<SizeType, SizeType> IdMapType;
 
     typedef std::size_t SizeType;
 
@@ -101,10 +81,13 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor with  filenames.
-	ReorderConsecutiveModelPartIO(
-        std::string const& Filename,
-        const Flags Options = IO::READ | IO::IGNORE_VARIABLES_ERROR.AsFalse());
+    // inherit constructors of baseclass
+    using ModelPartIO::ModelPartIO;
+
+    // this (inherited) constructor cannot be used with this class
+    ReorderConsecutiveModelPartIO(
+        Kratos::shared_ptr<std::iostream> Stream,
+        const Flags Options) = delete;
 
     ///@}
     ///@name Operators
@@ -123,9 +106,9 @@ protected:
 
     ///@}
     ///@name Protected member Variables
-	SizeType mNumberOfNodes = 0;
-	SizeType mNumberOfElements = 0;
-	SizeType mNumberOfConditions = 0;
+    SizeType mNumberOfNodes = 0;
+    SizeType mNumberOfElements = 0;
+    SizeType mNumberOfConditions = 0;
     ///@{
 
 
@@ -139,9 +122,9 @@ protected:
     ///@{
 
 
-	SizeType ReorderedNodeId(ModelPartIO::SizeType NodeId) override;
-	SizeType ReorderedElementId(ModelPartIO::SizeType ElementId) override;
-	SizeType ReorderedConditionId(ModelPartIO::SizeType ConditionId) override;
+    SizeType ReorderedNodeId(ModelPartIO::SizeType NodeId) override;
+    SizeType ReorderedElementId(ModelPartIO::SizeType ElementId) override;
+    SizeType ReorderedConditionId(ModelPartIO::SizeType ConditionId) override;
 
     ///@}
     ///@name Protected  Access
@@ -165,9 +148,9 @@ private:
     ///@name Member Variables
     ///@{
 
-	IdMapType mNodeIdMap = {};
-	IdMapType mElementIdMap = {};
-	IdMapType mConditionIdMap = {};
+    IdMapType mNodeIdMap = {};
+    IdMapType mElementIdMap = {};
+    IdMapType mConditionIdMap = {};
 
     ///@}
     ///@name Private  Access
