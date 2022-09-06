@@ -204,7 +204,7 @@ namespace Kratos
         // Initial Setup
         Model current_model;
         KratosGeoMechanicsApplication application;
-        void KratosExecute::ResetModelParts();
+        void ResetModelParts();
     	
     	int echoLevel = 1;
 
