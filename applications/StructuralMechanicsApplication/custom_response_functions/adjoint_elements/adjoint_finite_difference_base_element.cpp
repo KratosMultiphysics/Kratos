@@ -140,7 +140,6 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::Calculate(const Varia
 
     if(rVariable == STRESS_DISP_DERIV_ON_GP)
     {
-        KRATOS_WATCH("2");
         this->CalculateStressDisplacementDerivative(STRESS_ON_GP, rOutput, rCurrentProcessInfo);
     }
     else if(rVariable == STRESS_DISP_DERIV_ON_NODE)
@@ -215,9 +214,9 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
         // Write scalar result value on all Gauss-Points
         for(IndexType i = 0; i < gauss_points_number; ++i)
             rValues[i] = output_value;
-    } else {
-        mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
+    else
+        KRATOS_ERROR << "Unsupported output variable." << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -245,7 +244,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
         }
 
     } else {
-        mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        KRATOS_ERROR << "Unsupported output variable." << std::endl;
     }
 
     KRATOS_CATCH("")
@@ -371,9 +370,6 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDispla
 {
     KRATOS_TRY;
 
-    KRATOS_WATCH("3.3");
-    std::exit(-1);
-
     const SizeType num_nodes = mpPrimalElement->GetGeometry().PointsNumber();
     const SizeType dimension = mpPrimalElement->GetGeometry().WorkingSpaceDimension();
     const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
@@ -415,7 +411,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDispla
         for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
         {
             initial_state_variables[index + j] = mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]);
-            this->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 0.0;
+            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 0.0;
         }
     }
     for (IndexType i = 0; i < num_nodes; ++i)
@@ -423,32 +419,27 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDispla
         const IndexType index = i * num_dofs_per_node;
         for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
         {
-            this->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 1.0;
+            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 1.0;
 
             TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
-            std::vector<double> tmp;
-            this->CalculateOnIntegrationPoints(VON_MISES_STRESS, tmp, rCurrentProcessInfo);
-                        KRATOS_WATCH(this->GetGeometry()[i].Id());
-                KRATOS_WATCH(tmp);
-                std::exit(-1);
-            // if (rStressVariable == STRESS_ON_GP)
-            //     StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, tmp, rCurrentProcessInfo);
-            // else
-            //     StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, tmp, rCurrentProcessInfo);
+            if (rStressVariable == STRESS_ON_GP)
+                StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_derivatives_vector, rCurrentProcessInfo);
+            else
+                StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_derivatives_vector, rCurrentProcessInfo);
 
-            for(IndexType k = 0; k < tmp.size(); ++k)
-                rOutput(index+j, k) = tmp[k];
+            for(IndexType k = 0; k < stress_derivatives_vector.size(); ++k)
+                rOutput(index+j, k) = stress_derivatives_vector[k];
 
-            tmp.clear();
+            stress_derivatives_vector.clear();
 
-            this->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 0.0;
+            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 0.0;
         }
     }
     for (IndexType i = 0; i < num_nodes; ++i)
     {
         const IndexType index = i * num_dofs_per_node;
         for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
-            this->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = initial_state_variables[index + j];
+            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = initial_state_variables[index + j];
     }
 
     KRATOS_CATCH("")

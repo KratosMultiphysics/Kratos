@@ -12,7 +12,6 @@
 
 // System includes
 #include <string>
-#include <limits>
 
 // External includes
 
@@ -26,6 +25,68 @@
 namespace Kratos
 {
 
+template<class TDataType>
+void GaussPointKreisselmeierAggregationResponseFunction::SetGaussPointVariable(
+    const Variable<TDataType>*& rpVariable,
+    const std::string& rVariableName,
+    const std::string& rMsg)
+{
+    KRATOS_TRY
+
+    if (rVariableName == "") {
+        KRATOS_INFO_IF("GaussPointKreisselmeierAggregationResponseFunction", mEchoLevel > 0) << rMsg << std::endl;
+    } else {
+        rpVariable = &KratosComponents<Variable<TDataType>>::Get(rVariableName);
+    }
+
+    KRATOS_CATCH("")
+}
+
+template<class TEntityType>
+void GaussPointKreisselmeierAggregationResponseFunction::CalculateGaussPointDerivatives(
+    Vector& rOutput,
+    TEntityType& rEntity,
+    const double Factor,
+    const Variable<Matrix>* pVariable,
+    const Matrix& rResidualGradient,
+    const ProcessInfo& rProcessInfo) const
+{
+
+    KRATOS_TRY
+
+    if (rOutput.size() != rResidualGradient.size1()) {
+        rOutput.resize(rResidualGradient.size1(), false);
+    }
+
+    rOutput.clear();
+
+    const auto& p_entity_ks_pre_factor = mKSPrefactors.find(rEntity.Id());
+    if (pVariable && p_entity_ks_pre_factor != mKSPrefactors.end()) {
+        KRATOS_ERROR_IF_NOT(mAreKSPrefactorsInitialized)
+            << "Kreisselmeier aggregation prefactors are not initialized. "
+            << "Please run GaussPointKreisselmeierAggregationResponseFunction::CalculateValue to initialize them.\n";
+
+        // may be we can move these matrices to thread local storage
+        Matrix gauss_point_derivatives;
+        rEntity.Calculate(*pVariable, gauss_point_derivatives, rProcessInfo);
+
+        for (IndexType i = 0; i < gauss_point_derivatives.size2(); ++i) {
+            noalias(rOutput) += column(gauss_point_derivatives, i);
+        }
+
+        noalias(rOutput) = rOutput * (Factor * p_entity_ks_pre_factor->second / (mSumKSPrefactors * gauss_point_derivatives.size2() * mGaussPointValueScalingFactor));
+    }
+
+    KRATOS_CATCH("");
+
+}
+
+//template instantiations
+template void GaussPointKreisselmeierAggregationResponseFunction::SetGaussPointVariable<double>(const Variable<double>*&, const std::string&, const std::string&);
+template void GaussPointKreisselmeierAggregationResponseFunction::SetGaussPointVariable<Vector>(const Variable<Vector>*&, const std::string&, const std::string&);
+
+template void GaussPointKreisselmeierAggregationResponseFunction::CalculateGaussPointDerivatives<ModelPart::ElementType>(Vector&, ModelPart::ElementType&, const double, const Variable<Matrix>*,  const Matrix&, const ProcessInfo&) const;
+
 GaussPointKreisselmeierAggregationResponseFunction::GaussPointKreisselmeierAggregationResponseFunction(
     Parameters Settings,
     ModelPart& rModelPart)
@@ -35,53 +96,70 @@ GaussPointKreisselmeierAggregationResponseFunction::GaussPointKreisselmeierAggre
 
     Parameters default_settings(R"(
     {
-        "model_part_name"                   : "PLEASE_SPECIFY_VOLUME_MODEL_PART_NAME",
-        "gauss_point_values_scalar_variable": "PLEASE_SPECIFY_A_SCALAR_VARIABLE",
-        "rho"                               : 1.0,
-        "gauss_point_value_scaling_factor"  : 0.0,
-        "echo_level"                        : 0,
-        "gradient_mode"                     : "semi_analytic",
-        "gradient_mode_settings"            : {
-            "perturbation_variable_name"                             : "PLEASE_SPECIFY_PERTURBATION_SCALAR_VARIABLE_NAME",
-            "perturbation_size"                                      : 1e-6,
-            "list_of_scalar_primal_state_variables"                  : ["PLEASE_SPECIFY_PRIMAL_STATE_SCALAR_VARIABLES_LIST"],
-            "list_of_scalar_primal_state_first_derivative_variables" : [],
-            "list_of_scalar_primal_state_second_derivative_variables": []
+        "model_part_name"                               : "PLEASE_SPECIFY_VOLUME_MODEL_PART_NAME",
+        "gauss_point_values_scalar_variable"            : "PLEASE_SPECIFY_A_SCALAR_VARIABLE",
+        "gauss_point_gradient_matrix_variable"          : "PLEASE_SPECIFY_A_MATRIX_VARIABLE",
+        "gauss_point_first_derivatives_matrix_variable" : "PLEASE_SPECIFY_A_MATRIX_VARIABLE",
+        "gauss_point_second_derivatives_matrix_variable": "PLEASE_SPECIFY_A_MATRIX_VARIABLE",
+        "gauss_point_shape_derivatives_matrix_variable" : "PLEASE_SPECIFY_A_MATRIX_VARIABLE",
+        "gauss_point_value_scaling_factor"              : "max",
+        "aggregation_penalty"                           : 50.0,
+        "echo_level"                                    : 0,
+        "gradient_mode"                                 : "semi_analytic",
+        "gradient_mode_settings": {
+            "perturbation_variable_name"           : "PLEASE_SPECIFY_PERTURBATION_SCALAR_VARIABLE_NAME",
+            "perturbation_size"                    : 1e-6,
+            "design_variable_name_storage_variable": "PLEASE_SPECIFY_STRING_VARIABLE"
         }
     })");
 
-    Settings.RecursivelyValidateAndAssignDefaults(default_settings);
+    if (Settings.Has("gauss_point_value_scaling_factor") && Settings["gauss_point_value_scaling_factor"].IsDouble()) {
+        default_settings["gauss_point_value_scaling_factor"].SetDouble(1.0);
+    }
+    Settings.ValidateAndAssignDefaults(default_settings);
 
     mCriticalModelPartName = Settings["model_part_name"].GetString();
-    mPerturbationVariableName = Settings["gradient_mode_settings"]["perturbation_variable_name"].GetString();
-    KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mPerturbationVariableName))
-        << mPerturbationVariableName << " is not found in the scalar variables list for perturbation_variable_name.\n";
+    mAggregationPenalty = Settings["aggregation_penalty"].GetDouble();
 
-    mGaussPointValueScalingFactor = Settings["gauss_point_value_scaling_factor"].GetDouble();
-    mRho = Settings["rho"].GetDouble();
-    mStepSize = Settings["gradient_mode_settings"]["perturbation_size"].GetDouble();
+    // set the gradient mode settings
+    const std::string& gradient_mode = Settings["gradient_mode"].GetString();
+    if (gradient_mode == "semi_analytic") {
+        Parameters default_semi_analytic_gradient_mode_settings(R"(
+        {
+            "perturbation_variable_name"           : "PLEASE_SPECIFY_PERTURBATION_SCALAR_VARIABLE_NAME",
+            "perturbation_size"                    : 1e-6,
+            "design_variable_name_storage_variable": "PLEASE_SPECIFY_STRING_VARIABLE"
+        })");
 
-    const auto& r_gauss_point_values_scalar_variable = Settings["gauss_point_values_scalar_variable"].GetString();
-    KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_gauss_point_values_scalar_variable))
-        << r_gauss_point_values_scalar_variable << " is not found in the scalar variables list for gauss_point_values_scalar_variable.\n";
-    mpGaussPointValueScalarVariable = &(KratosComponents<Variable<double>>::Get(r_gauss_point_values_scalar_variable));
+        Settings["gradient_mode_settings"].ValidateAndAssignDefaults(default_semi_analytic_gradient_mode_settings);
 
-    for (const auto& r_scalar_primal_state_variable_name : Settings["gradient_mode_settings"]["list_of_scalar_primal_state_variables"].GetStringArray()) {
-        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_scalar_primal_state_variable_name))
-            << r_scalar_primal_state_variable_name << " is not found in the scalar variables list used in list_of_scalar_primal_state_variables.\n";
-        mPrimalStateScalarVariablePointersList.push_back(&(KratosComponents<Variable<double>>::Get(r_scalar_primal_state_variable_name)));
+        mGradientMode = GradientMode::SEMI_ANALITIC;
+        mpPerturbationVariable = &KratosComponents<Variable<double>>::Get(Settings["gradient_mode_settings"]["perturbation_variable_name"].GetString());
+        mpDeisgnVariableNameStorageVariable = &KratosComponents<Variable<std::string>>::Get(Settings["gradient_mode_settings"]["design_variable_name_storage_variable"].GetString());
+        mPerturbationSize = Settings["gradient_mode_settings"]["perturbation_size"].GetDouble();
+    } else if (gradient_mode == "analytic") {
+        mGradientMode = GradientMode::ANALYTIC;
+    } else {
+        KRATOS_ERROR << "Unsupported gradient mode requested. [ gradient_mode " << gradient_mode << ". Supported gradient modes:"
+                     << "\n\tsemi_analytic"
+                     << "\n\tanalytic" << std::endl;
     }
 
-    for (const auto& r_scalar_primal_state_variable_name : Settings["gradient_mode_settings"]["list_of_scalar_primal_state_first_derivative_variables"].GetStringArray()) {
-        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_scalar_primal_state_variable_name))
-            << r_scalar_primal_state_variable_name << " is not found in the scalar variables list used in list_of_scalar_primal_state_first_derivative_variables.\n";
-        mPrimalStateFirstDerivativeScalarVariablePointersList.push_back(&(KratosComponents<Variable<double>>::Get(r_scalar_primal_state_variable_name)));
-    }
+    // set variables
+    mpGaussPointValueScalarVariable = &KratosComponents<Variable<double>>::Get(Settings["gauss_point_values_scalar_variable"].GetString());
+    mpGaussPointValueShapeDerivativeVariable = &KratosComponents<Variable<Matrix>>::Get(Settings["gauss_point_shape_derivatives_matrix_variable"].GetString());
 
-    for (const auto& r_scalar_primal_state_variable_name : Settings["gradient_mode_settings"]["list_of_scalar_primal_state_second_derivative_variables"].GetStringArray()) {
-        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_scalar_primal_state_variable_name))
-            << r_scalar_primal_state_variable_name << " is not found in the scalar variables list used in list_of_scalar_primal_state_second_derivative_variables.\n";
-        mPrimalStateSecondDerivativeScalarVariablePointersList.push_back(&(KratosComponents<Variable<double>>::Get(r_scalar_primal_state_variable_name)));
+    // rest of the variables can be optional as well depending on the type of problem being solved.
+    SetGaussPointVariable(mpGaussPointValueGradientVariable, Settings["gauss_point_gradient_matrix_variable"].GetString(), "No gauss_point_gradient_matrix_variable provided.");
+    SetGaussPointVariable(mpGaussPointValueFirstDerivativeVariable, Settings["gauss_point_first_derivatives_matrix_variable"].GetString(), "No gauss_point_first_derivatives_matrix_variable provided.");
+    SetGaussPointVariable(mpGaussPointValueSecondDerivativeVariable, Settings["gauss_point_second_derivatives_matrix_variable"].GetString(), "No gauss_point_second_derivatives_matrix_variable provided.");
+
+    // set gauss point scaling factor
+    if (Settings["gauss_point_value_scaling_factor"].IsDouble()) {
+        mGaussPointValueScalingFactor = Settings["gauss_point_value_scaling_factor"].GetDouble();
+        KRATOS_ERROR_IF(mGaussPointValueScalingFactor <= 0.0)
+            << "\"gauss_point_value_scaling_factor\" needs to be a positive value. [ gauss_point_value_scaling_factor = "
+            << mGaussPointValueScalingFactor << " ].\n";
     }
 
     KRATOS_CATCH("");
@@ -91,8 +169,13 @@ void GaussPointKreisselmeierAggregationResponseFunction::Initialize()
 {
     KRATOS_TRY
 
-    const auto& r_perturbation_variable = KratosComponents<Variable<double>>::Get(mPerturbationVariableName);
-    mrModelPart.GetProcessInfo()[r_perturbation_variable] = mStepSize;
+    if (mGradientMode == GradientMode::SEMI_ANALITIC) {
+        mrModelPart.GetProcessInfo()[*mpPerturbationVariable] = mPerturbationSize;
+        KRATOS_INFO_IF("GaussPointKreisselmeierAggregationResponseFunction", mEchoLevel > 0)
+                << "Initialized " << mpPerturbationVariable->Name() << " with " << mPerturbationSize
+                << " in " << mrModelPart.FullName()
+                << " process info for semi-analytic derivative computation.\n";
+    }
 
     KRATOS_CATCH("");
 }
@@ -108,7 +191,7 @@ double GaussPointKreisselmeierAggregationResponseFunction::CalculateValue(ModelP
         mKSPrefactors[r_element.Id()] = 0.0;
     }
 
-    const double max_mean_gp_value = block_for_each<MaxReduction<double>>(r_critical_model_part.Elements(), std::vector<double>(), [&](ModelPart::ElementType& rElement, std::vector<double>& rTLS) -> double {
+    const double max_mean_gp_value = block_for_each<MaxReduction<double>>(r_critical_model_part.Elements(), std::vector<double>(), [&](auto& rElement, std::vector<double>& rTLS) -> double {
         rElement.CalculateOnIntegrationPoints(*mpGaussPointValueScalarVariable, rTLS, r_process_info);
 
         double mean_gp_value = 0.0;
@@ -124,147 +207,20 @@ double GaussPointKreisselmeierAggregationResponseFunction::CalculateValue(ModelP
 
     if (mGaussPointValueScalingFactor == 0.0) {
         mGaussPointValueScalingFactor = max_mean_gp_value;
+        KRATOS_INFO_IF("GaussPointKreisselmeierAggregationResponseFunction", mEchoLevel > 0)
+            << "Using maximum gauss point value as gauss_point_scaling_factor [ gauss_point_scaling_factor = "
+            << mGaussPointValueScalingFactor << " ].\n";
     }
 
-    mSumKSPrefactors = block_for_each<SumReduction<double>>(r_critical_model_part.Elements(), [&](const ModelPart::ElementType& rElement) -> double {
+    mSumKSPrefactors = block_for_each<SumReduction<double>>(r_critical_model_part.Elements(), [&](const auto& rElement) -> double {
         double& r_element_ks_prefactor = mKSPrefactors.find(rElement.Id())->second;
-        r_element_ks_prefactor = std::exp(mRho * r_element_ks_prefactor / mGaussPointValueScalingFactor);
+        r_element_ks_prefactor = std::exp(mAggregationPenalty * r_element_ks_prefactor / mGaussPointValueScalingFactor);
         return r_element_ks_prefactor;
     });
 
     mAreKSPrefactorsInitialized = true;
 
-    return std::log(mSumKSPrefactors) / mRho;
-
-    KRATOS_CATCH("");
-}
-
-void GaussPointKreisselmeierAggregationResponseFunction::CalculateFiniteDifferenceStateVariableSensitivities(
-    Vector& rOutput,
-    ModelPart::ElementType& rElement,
-    const std::vector<const Variable<double>*>& rDerivativeVariablePointersList,
-    const ProcessInfo& rProcessInfo)
-{
-    KRATOS_TRY
-
-    Matrix output;
-
-    CalculateFiniteDifferenceSensitivity(
-        output, rElement, [&](Vector &rValues)
-        {
-            std::vector<double> values;
-            rElement.CalculateOnIntegrationPoints(*mpGaussPointValueScalarVariable, values, rProcessInfo);
-            if (rValues.size() != values.size()) {
-                rValues.resize(values.size());
-            }
-            for (IndexType i = 0; i < values.size(); ++i) {
-                rValues[i] = values[i];
-            }
-        },
-        [&](ModelPart::NodeType &rNode, const Variable<double> &rVariable, const double Perturbation)
-        {
-            KRATOS_WATCH(rNode.Id());
-            KRATOS_WATCH(rVariable);
-            KRATOS_WATCH(Perturbation);
-            rNode.FastGetSolutionStepValue(rVariable) += Perturbation;
-        },
-        rDerivativeVariablePointersList, {2, 2, 2}, 1e-8, 100);
-
-    if (rOutput.size() != output.size1()) {
-        rOutput.resize(output.size1(), false);
-    }
-
-    rOutput.clear();
-
-    for (IndexType i = 0; i < output.size1(); ++i) {
-        for (IndexType j = 0; j < output.size2(); ++j) {
-            rOutput[i] += output(i, j);
-        }
-    }
-
-    rOutput /= output.size2();
-
-    KRATOS_WATCH(output);
-    KRATOS_WATCH(rOutput);
-    std::exit(-1);
-
-    KRATOS_CATCH("");
-}
-
-void GaussPointKreisselmeierAggregationResponseFunction::CalculateFiniteDifferenceShapeVariableSensitivities(
-    Vector& rOutput,
-    ModelPart::ElementType& rElement,
-    const ProcessInfo& rProcessInfo)
-{
-    KRATOS_TRY
-    auto& r_geometry = rElement.GetGeometry();
-
-    const IndexType number_of_nodes = r_geometry.PointsNumber();
-    const IndexType number_of_dofs_per_node = rProcessInfo[DOMAIN_SIZE];
-    const IndexType local_derivative_size = number_of_nodes * number_of_dofs_per_node;
-
-    std::vector<double> ref_gp_values;
-    rElement.CalculateOnIntegrationPoints(*mpGaussPointValueScalarVariable, ref_gp_values, rProcessInfo);
-
-    if (rOutput.size() != local_derivative_size) {
-        rOutput.resize(local_derivative_size, false);
-    }
-
-    rOutput.clear();
-    #pragma omp critical
-    {
-        std::vector<double> gp_values;
-        for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-
-            auto& r_node = r_geometry[i_node];
-            for (IndexType i_var = 0; i_var < number_of_dofs_per_node; ++i_var) {
-                double& position = r_node.Coordinates()[i_var];
-                double& initial_position = r_node.GetInitialPosition()[i_var];
-
-                position += mStepSize;
-                initial_position += mStepSize;
-
-                rElement.CalculateOnIntegrationPoints(*mpGaussPointValueScalarVariable, gp_values, rProcessInfo);
-                for (IndexType i = 0; i < gp_values.size(); ++i) {
-                    rOutput(i_node * number_of_dofs_per_node + i_var) += (gp_values[i] - ref_gp_values[i]) / mStepSize;
-                }
-
-                gp_values.clear();
-
-                position -= mStepSize;
-                initial_position -= mStepSize;
-            }
-        }
-    }
-
-    rOutput /= ref_gp_values.size();
-
-    KRATOS_CATCH("");
-}
-
-void GaussPointKreisselmeierAggregationResponseFunction::CalculateStateDerivative(
-    const Element& rAdjointElement,
-    const Matrix& rResidualGradient,
-    Vector& rResponseGradient,
-    const std::vector<const Variable<double>*>& rDerivativeVariablesList,
-    const ProcessInfo& rProcessInfo)
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF_NOT(mAreKSPrefactorsInitialized)
-        << "GaussPointKreisselmeierAggregationResponseFunction::CalculateGradient: Prefactors missing. First calculate value before calculating gradients!"
-        << std::endl;
-
-    if (mKSPrefactors.find(rAdjointElement.Id()) != mKSPrefactors.end() && rDerivativeVariablesList.size() != 0) {
-        ModelPart::ElementType& r_element = *(mrModelPart.pGetElement(rAdjointElement.Id()));
-        CalculateFiniteDifferenceStateVariableSensitivities(rResponseGradient, r_element, rDerivativeVariablesList, rProcessInfo);
-        rResponseGradient *= mKSPrefactors.find(r_element.Id())->second / (mGaussPointValueScalingFactor * mSumKSPrefactors);
-    } else {
-        if(rResponseGradient.size() != rResidualGradient.size1()) {
-            rResponseGradient.resize(rResidualGradient.size1(), false);
-        }
-        rResponseGradient.clear();
-    }
+    return std::log(mSumKSPrefactors) / mAggregationPenalty;
 
     KRATOS_CATCH("");
 }
@@ -277,10 +233,12 @@ void GaussPointKreisselmeierAggregationResponseFunction::CalculateGradient(
 {
     KRATOS_TRY
 
-    CalculateStateDerivative(rAdjointElement, rResidualGradient, rResponseGradient, mPrimalStateScalarVariablePointersList, rProcessInfo);
+    CalculateGaussPointDerivatives(rResponseGradient, const_cast<ModelPart::ElementType&>(rAdjointElement), -1.0 ,mpGaussPointValueGradientVariable, rResidualGradient, rProcessInfo);
 
     KRATOS_CATCH("");
 }
+
+
 
 void GaussPointKreisselmeierAggregationResponseFunction::CalculateGradient(
     const Condition& rAdjointCondition,
@@ -306,7 +264,7 @@ void GaussPointKreisselmeierAggregationResponseFunction::CalculateFirstDerivativ
 {
     KRATOS_TRY
 
-    CalculateStateDerivative(rAdjointElement, rResidualGradient, rResponseGradient, mPrimalStateFirstDerivativeScalarVariablePointersList, rProcessInfo);
+    CalculateGaussPointDerivatives(rResponseGradient, const_cast<ModelPart::ElementType&>(rAdjointElement), -1.0, mpGaussPointValueFirstDerivativeVariable, rResidualGradient, rProcessInfo);
 
     KRATOS_CATCH("");
 }
@@ -322,6 +280,7 @@ void GaussPointKreisselmeierAggregationResponseFunction::CalculateFirstDerivativ
     if(rResponseGradient.size() != rResidualGradient.size1()) {
         rResponseGradient.resize(rResidualGradient.size1(), false);
     }
+
     rResponseGradient.clear();
 
     KRATOS_CATCH("");
@@ -335,7 +294,7 @@ void GaussPointKreisselmeierAggregationResponseFunction::CalculateSecondDerivati
 {
     KRATOS_TRY
 
-    CalculateStateDerivative(rAdjointElement, rResidualGradient, rResponseGradient, mPrimalStateSecondDerivativeScalarVariablePointersList, rProcessInfo);
+    CalculateGaussPointDerivatives(rResponseGradient, const_cast<ModelPart::ElementType&>(rAdjointElement), -1.0, mpGaussPointValueSecondDerivativeVariable, rResidualGradient, rProcessInfo);
 
     KRATOS_CATCH("");
 }
@@ -351,6 +310,7 @@ void GaussPointKreisselmeierAggregationResponseFunction::CalculateSecondDerivati
     if(rResponseGradient.size() != rResidualGradient.size1()) {
         rResponseGradient.resize(rResidualGradient.size1(), false);
     }
+
     rResponseGradient.clear();
 
     KRATOS_CATCH("");
@@ -365,22 +325,19 @@ void GaussPointKreisselmeierAggregationResponseFunction::CalculatePartialSensiti
 {
     KRATOS_TRY
 
-    if (rVariable == SHAPE_SENSITIVITY) {
-        KRATOS_ERROR_IF_NOT(mAreKSPrefactorsInitialized)
-            << "GaussPointKreisselmeierAggregationResponseFunction::CalculateGradient: Prefactors missing. First calculate value before calculating gradients!"
-            << std::endl;
+    if (mGradientMode == GradientMode::SEMI_ANALITIC) {
+        rAdjointElement.SetValue(*mpDeisgnVariableNameStorageVariable, rVariable.Name());
+    }
 
-        if (mKSPrefactors.find(rAdjointElement.Id()) != mKSPrefactors.end()) {
-            CalculateFiniteDifferenceShapeVariableSensitivities(rSensitivityGradient, rAdjointElement, rProcessInfo);
-            rSensitivityGradient *= mKSPrefactors.find(rAdjointElement.Id())->second / (mGaussPointValueScalingFactor * mSumKSPrefactors);
-        } else {
-            if(rSensitivityGradient.size() != rSensitivityMatrix.size1()) {
-                rSensitivityGradient.resize(rSensitivityMatrix.size1(), false);
-            }
-            rSensitivityGradient.clear();
-        }
+    if (rVariable == SHAPE_SENSITIVITY) {
+        CalculateGaussPointDerivatives(rSensitivityGradient, rAdjointElement, 1.0, mpGaussPointValueShapeDerivativeVariable, rSensitivityMatrix, rProcessInfo);
+        KRATOS_ERROR_IF(rSensitivityGradient.size() != rSensitivityMatrix.size1()) << "Size of partial stress design variable derivative does not fit!" << std::endl;
     } else {
         KRATOS_ERROR << "CalculatePartialSensitivity for " << rVariable.Name() << " is not defined.\n";
+    }
+
+    if (mGradientMode == GradientMode::SEMI_ANALITIC) {
+        rAdjointElement.SetValue(*mpDeisgnVariableNameStorageVariable, "");
     }
 
     KRATOS_CATCH("");

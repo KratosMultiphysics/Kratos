@@ -8,6 +8,8 @@
 #
 # ==============================================================================
 
+import KratosMultiphysics.ShapeOptimizationApplication as KratosShape
+
 from . import plane_based_packaging
 from . import mesh_based_packaging
 from . import surface_normal_shape_change
@@ -34,6 +36,8 @@ def CreateResponseFunction(response_id, response_settings, model):
         return airfoil_2d_responses.PerimeterResponseFunction(response_id, response_settings, model)
     elif response_type == "total_volume":
         return total_volume.TotalVolume(response_id, response_settings, model)
+    elif response_type == "gauss_kresselmeier_aggregation":
+        return KratosShape.GaussPointKreisselmeierAggregationResponseFunction()
     else:
         raise NameError("The type of the following response function is not specified: "+ response_id +
                         ".\nAvailable types are: 'plane_based_packaging', 'mesh_based_packaging', 'face_angle', " +

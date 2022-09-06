@@ -269,59 +269,6 @@ Vector& ElasticIsotropic3D::CalculateValue(
 
 /***********************************************************************************/
 /***********************************************************************************/
-void ElasticIsotropic3D::CalculateDerivative(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<Vector>& rFunctionVariable,
-    const Variable<double>& rDerivativeVariable,
-    Vector& rOutput)
-{
-    KRATOS_TRY
-
-    const Flags& r_flags = rParameterValues.GetOptions();
-
-    if (rFunctionVariable == STRESSES ||
-        rFunctionVariable == CAUCHY_STRESS_VECTOR ||
-        rFunctionVariable == KIRCHHOFF_STRESS_VECTOR ||
-        rFunctionVariable == PK2_STRESS_VECTOR)
-    {
-        if (rOutput.size() != VoigtSize) {
-            rOutput.resize(VoigtSize);
-        }
-
-        if (rDerivativeVariable.IsComponent()) {
-            if (rDerivativeVariable.GetSourceVariable() == DEFORMATION_GRADIENT_3D_TENSOR) {
-                Vector strain_derivative(VoigtSize);
-                if( r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-                    //Since we are in small strains, any strain measure works, e.g. CAUCHY_GREEN
-                    CalculateCauchyGreenStrainDeformationGradientDerivative(rParameterValues, strain_derivative, rDerivativeVariable.GetComponentIndex());
-                } else {
-                    strain_derivative.clear();
-                }
-                CalculatePK2Stress(strain_derivative, rOutput, rParameterValues);
-            } else {
-                KRATOS_ERROR << "Unsupported derivative " << rDerivativeVariable.Name() << " requested for function " << rFunctionVariable.Name() << ".\n";
-            }
-        } else if (rDerivativeVariable == YOUNG_MODULUS) {
-            Vector strain(VoigtSize);
-            CalculateCauchyGreenStrain(rParameterValues, strain);
-            CalculatePK2StressYoungModulusDerivative(strain, rOutput, rParameterValues);
-
-        } else if (rDerivativeVariable == POISSON_RATIO) {
-            Vector strain(VoigtSize);
-            CalculateCauchyGreenStrain(rParameterValues, strain);
-            CalculatePK2StressPoissonRatioDerivative(strain, rOutput, rParameterValues);
-        } else {
-            KRATOS_ERROR << "Unsupported derivative " << rDerivativeVariable.Name() << " requested for function " << rFunctionVariable.Name() << ".\n";
-        }
-    } else {
-        KRATOS_ERROR << "Unsupported derivative for function " << rFunctionVariable.Name() << " requested.\n";
-    }
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 Matrix& ElasticIsotropic3D::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
@@ -430,53 +377,6 @@ void ElasticIsotropic3D::CalculatePK2Stress(
     rStressVector[5] = c4 * rStrainVector[5];
 }
 
-void ElasticIsotropic3D::CalculatePK2StressYoungModulusDerivative(
-    const Vector& rStrainVector,
-    ConstitutiveLaw::StressVectorType& rStressDerivativeVector,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double NU = r_material_properties[POISSON_RATIO];
-
-    const double c1_derivative = 1.0 / ((1.00 + NU) * (1 - 2 * NU));
-    const double c2_derivative = c1_derivative * (1 - NU);
-    const double c3_derivative = c1_derivative * NU;
-    const double c4_derivative = c1_derivative * 0.5 * (1 - 2 * NU);
-
-    rStressDerivativeVector[0] = c2_derivative * rStrainVector[0] + c3_derivative * rStrainVector[1] + c3_derivative * rStrainVector[2];
-    rStressDerivativeVector[1] = c3_derivative * rStrainVector[0] + c2_derivative * rStrainVector[1] + c3_derivative * rStrainVector[2];
-    rStressDerivativeVector[2] = c3_derivative * rStrainVector[0] + c3_derivative * rStrainVector[1] + c2_derivative * rStrainVector[2];
-    rStressDerivativeVector[3] = c4_derivative * rStrainVector[3];
-    rStressDerivativeVector[4] = c4_derivative * rStrainVector[4];
-    rStressDerivativeVector[5] = c4_derivative * rStrainVector[5];
-}
-
-void ElasticIsotropic3D::CalculatePK2StressPoissonRatioDerivative(
-    const Vector& rStrainVector,
-    ConstitutiveLaw::StressVectorType& rStressDerivativeVector,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
-
-    const double c1 = E / ((1.00 + NU) * (1 - 2 * NU));
-    const double c1_derivative = E * (1 + 4 * NU) / ((1.00 + NU) * (1 - 2 * NU) * (1.00 + NU) * (1 - 2 * NU));
-    const double c2_derivative = c1_derivative * (1 - NU) - c1;
-    const double c3_derivative = c1_derivative * NU + c1;
-    const double c4_derivative = c1_derivative * 0.5 * (1 - 2 * NU) - c1;
-
-    rStressDerivativeVector[0] = c2_derivative * rStrainVector[0] + c3_derivative * rStrainVector[1] + c3_derivative * rStrainVector[2];
-    rStressDerivativeVector[1] = c3_derivative * rStrainVector[0] + c2_derivative * rStrainVector[1] + c3_derivative * rStrainVector[2];
-    rStressDerivativeVector[2] = c3_derivative * rStrainVector[0] + c3_derivative * rStrainVector[1] + c2_derivative * rStrainVector[2];
-    rStressDerivativeVector[3] = c4_derivative * rStrainVector[3];
-    rStressDerivativeVector[4] = c4_derivative * rStrainVector[4];
-    rStressDerivativeVector[5] = c4_derivative * rStrainVector[5];
-}
-
-
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -498,36 +398,6 @@ void ElasticIsotropic3D::CalculateCauchyGreenStrain(
     E_tensor *= 0.5;
 
     noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
-}
-
-void ElasticIsotropic3D::CalculateCauchyGreenStrainDeformationGradientDerivative(
-    ConstitutiveLaw::Parameters& rValues,
-    ConstitutiveLaw::StrainVectorType& rStrainDerivativeVector,
-    const SizeType ComponentIndex
-    )
-{
-    const SizeType space_dimension = this->WorkingSpaceDimension();
-
-    const SizeType c = ComponentIndex / 3;
-    const SizeType d = ComponentIndex % 3;
-
-    //1.-Compute total deformation gradient
-    const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();
-
-    KRATOS_DEBUG_ERROR_IF(F.size1()!= space_dimension || F.size2() != space_dimension)
-        << "expected size of F " << space_dimension << "x" << space_dimension << ", got " << F.size1() << "x" << F.size2() << std::endl;
-
-    ConstitutiveLaw::DeformationGradientMatrixType E_tensor_derivative(space_dimension, space_dimension);
-    for (SizeType i = 0; i < space_dimension; ++i) {
-        for (SizeType j = 0; j < space_dimension; ++j) {
-            E_tensor_derivative(i, j)  = F(c, i) * (d == j);
-            E_tensor_derivative(i, j) += F(c, j) * (d == i);
-        }
-    }
-    E_tensor_derivative *= 0.5;
-
-    // convert it to voigt notation
-    noalias(rStrainDerivativeVector) = MathUtils<double>::StrainTensorToVector(E_tensor_derivative);
 }
 
 } // Namespace Kratos

@@ -123,24 +123,17 @@ namespace Kratos
             Matrix stress_displacement_derivative;
 
             Element::Pointer pElem = mrAdjointModelPart.pGetElement(rAdjointElement.Id());
-            KRATOS_WATCH("1");
-            // std::exit(-1);
             pElem->Calculate(STRESS_DISP_DERIV_ON_GP,
                              stress_displacement_derivative,
                              rProcessInfo);
             this->ExtractMeanStressDerivative(stress_displacement_derivative,
                                               rResponseGradient);
 
-            KRATOS_WATCH(stress_displacement_derivative);
-            KRATOS_WATCH(rResponseGradient);
-            std::exit(-1);
-
             KRATOS_ERROR_IF(rResponseGradient.size() != rResidualGradient.size1())
                 << "AdjointKSMaxStressResponseFunction::CalculateGradient: Size of stress displacement derivative does not fit!" << std::endl;
 
             //double mean_stress = mean_stress_vector[rAdjointElement.Id()];
             rResponseGradient *= (-1) *std::exp(pKS*(mean_stress_vector[rAdjointElement.Id()]/1e+5))/(KS_exp_sum);
-            // KRATOS_WATCH(rResponseGradient);
         }
         else
         {
@@ -207,7 +200,6 @@ namespace Kratos
                                                                    rProcessInfo);
 
             rSensitivityGradient *= std::exp(pKS*(mean_stress_vector[rAdjointElement.Id()]/1e+5))/KS_exp_sum;
-            // KRATOS_WATCH(rSensitivityGradient);
 
         }
         else

@@ -436,7 +436,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             "adjoint_max_stress" : "MaxStress",
             "adjoint_nodal_reaction" : "NodalReaction",
             "adjoint_KS_max_stress" : "KSMaxStress",
-            "adjoint_kreisselmeier_aggregated_stress": "KreisselmeierAggragatedStress"
+            "adjoint_gauss_point_kreisselmeier_aggregation": "GaussPointKreisselmeierAggragation"
         }
         response_type = self.response_settings["response_type"].GetString()
         return "Adjoint" + type_labels[response_type] + "Response"

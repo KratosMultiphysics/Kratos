@@ -281,12 +281,6 @@ public:
         Vector& rValue
         ) override;
 
-    void CalculateDerivative(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Vector>& rFunctionVariable,
-        const Variable<double>& rDerivativeVariable,
-        Vector& rOutput) override;
-
     // /**
     //  * @brief It calculates the value of a specified variable (StrainVectorType case)
     //  * @param rParameterValues the needed parameters for the CL calculation
@@ -411,18 +405,6 @@ protected:
         ConstitutiveLaw::Parameters& rValues
         );
 
-    void CalculatePK2StressYoungModulusDerivative(
-        const Vector& rStrainVector,
-        ConstitutiveLaw::StressVectorType& rStressDerivativeVector,
-        ConstitutiveLaw::Parameters& rValues
-        );
-
-    void CalculatePK2StressPoissonRatioDerivative(
-        const Vector& rStrainVector,
-        ConstitutiveLaw::StressVectorType& rStressDerivativeVector,
-        ConstitutiveLaw::Parameters& rValues
-        );
-
     /**
      * @brief It calculates the strain vector
      * @param rValues The internal values of the law
@@ -431,12 +413,6 @@ protected:
     virtual void CalculateCauchyGreenStrain(
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveLaw::StrainVectorType& rStrainVector
-        );
-
-    void CalculateCauchyGreenStrainDeformationGradientDerivative(
-        ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw::StrainVectorType& rStrainDerivativeVector,
-        const SizeType ComponentIndex
         );
 
     ///@}

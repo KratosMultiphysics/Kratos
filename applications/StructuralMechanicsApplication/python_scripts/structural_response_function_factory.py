@@ -28,7 +28,7 @@ def CreateResponseFunction(response_id, response_settings, model):
     elif response_type == "adjoint_nodal_reaction":
         return structural_response.AdjointResponseFunction(response_id, response_settings, model)
 
-    elif response_type == "adjoint_kreisselmeier_aggregated_stress":
+    elif response_type == "adjoint_gauss_point_kreisselmeier_aggregation":
         return structural_response.AdjointResponseFunction(response_id, response_settings, model)
     elif response_type == "adjoint_KS_max_stress":
         return structural_response.AdjointResponseFunction(response_id, response_settings, model)
