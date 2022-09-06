@@ -262,6 +262,14 @@ public:
     } 
     // --------------------------------------------------------------------------
     double CalculateElementStress(Element& elem_i, const ProcessInfo &rCurrentProcessInfo){
+
+
+        if(elem_i.GetProperties().Has(E_PR)){
+            double e_pr = elem_i.GetProperties().GetValue(E_PR);
+            double re_pr = std::pow(e_pr,1.0/2.0);
+            elem_i.GetProperties().SetValue(YOUNG_MODULUS,re_pr);
+        }
+ 
         std::vector<Vector> stress_gp_vector;
         elem_i.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_gp_vector, rCurrentProcessInfo);
         std::vector<double> gp_weights_vector;
@@ -272,6 +280,12 @@ public:
             if(sum_11_22_33>0)
                 elem_stress += (gp_weights_vector[i] * sum_11_22_33);
         }
+
+        if(elem_i.GetProperties().Has(E_PE)){
+            double e_pe = elem_i.GetProperties().GetValue(E_PE);
+            elem_i.GetProperties().SetValue(YOUNG_MODULUS,e_pe);
+        }
+
         return elem_stress;          
     }
     // --------------------------------------------------------------------------
@@ -301,71 +315,76 @@ public:
             const std::size_t domain_size = r_eval_object.GetProcessInfo()[DOMAIN_SIZE];
             for (auto& elem_i : r_eval_object.Elements())
             {
-                // Some working variables
-                const SizeType num_nodes = elem_i.GetGeometry().PointsNumber();
-                const SizeType dimension = elem_i.GetGeometry().WorkingSpaceDimension();
-                const SizeType num_dofs_per_node = dimension;
-                const SizeType num_dofs = num_nodes * num_dofs_per_node;
+                double elem_stress = CalculateElementStress(elem_i,rCurrentProcessInfo);
+                
+                if(elem_stress>0.0){
 
-                // Build vector of variables containing the DOF-variables of the primal problem
-                std::vector<const Variable<double>*> primal_solution_variable_list {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
+                    double e_pr = elem_i.GetProperties().GetValue(E_PR);
+                    double re_pr = std::pow(e_pr,1.0/2.0);
+                    elem_i.GetProperties().SetValue(YOUNG_MODULUS,re_pr);
+                     
+                    // Some working variables
+                    const SizeType num_nodes = elem_i.GetGeometry().PointsNumber();
+                    const SizeType dimension = elem_i.GetGeometry().WorkingSpaceDimension();
+                    const SizeType num_dofs_per_node = dimension;
+                    const SizeType num_dofs = num_nodes * num_dofs_per_node;
 
-                // Build vector of variables containing the ADJOINT_RHS
-                std::vector<const Variable<double>*> adj_rhs_variable_list {&ADJOINT_RHS_X, &ADJOINT_RHS_Y, &ADJOINT_RHS_Z};                
+                    // Build vector of variables containing the DOF-variables of the primal problem
+                    std::vector<const Variable<double>*> primal_solution_variable_list {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
 
-                std::vector<Vector> stress_gp_vector;
-                elem_i.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_gp_vector, rCurrentProcessInfo);
-                std::vector<double> gp_weights_vector;
-                elem_i.CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, gp_weights_vector, rCurrentProcessInfo);
+                    // Build vector of variables containing the ADJOINT_RHS
+                    std::vector<const Variable<double>*> adj_rhs_variable_list {&ADJOINT_RHS_X, &ADJOINT_RHS_Y, &ADJOINT_RHS_Z};                
 
-                const unsigned int number_integration_points = stress_gp_vector.size();
+                    std::vector<double> gp_weights_vector;
+                    elem_i.CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, gp_weights_vector, rCurrentProcessInfo);
 
-                // Store primal results and initialize deformation
-                Vector initial_state_variables;
-                initial_state_variables.resize(num_dofs, false);
+                    const unsigned int number_integration_points = gp_weights_vector.size();
 
-                for (IndexType i = 0; i < num_nodes; ++i)
-                {
-                    const IndexType index = i * num_dofs_per_node;
-                    for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
+                    // Store primal results and initialize deformation
+                    Vector initial_state_variables;
+                    initial_state_variables.resize(num_dofs, false);
+
+                    for (IndexType i = 0; i < num_nodes; ++i)
                     {
-                        initial_state_variables[index + j] = elem_i.GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]);
-                        elem_i.GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 0.0;
-                    }
-                }
-
-                std::vector<Vector> partial_stress_derivatives;
-
-                for (IndexType i = 0; i < num_nodes; ++i)
-                {
-                    const IndexType index = i * num_dofs_per_node;
-
-                    for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
-                    {
-                        elem_i.GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 1.0;
-                        elem_i.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, partial_stress_derivatives, rCurrentProcessInfo);
-
-                        double sensitivity = 0.0;
-                        for(IndexType k = 0; k < number_integration_points; ++k)
+                        const IndexType index = i * num_dofs_per_node;
+                        for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
                         {
-                            double sum_11_22_33 = stress_gp_vector[k][0] + stress_gp_vector[k][1] + stress_gp_vector[k][2];
-                            if(sum_11_22_33>0)
-                                sensitivity += gp_weights_vector[k] * (partial_stress_derivatives[k][0] + partial_stress_derivatives[k][1] + partial_stress_derivatives[k][2]);
+                            initial_state_variables[index + j] = elem_i.GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]);
+                            elem_i.GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 0.0;
                         }
-                        elem_i.GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 0.0;
-                        sensitivity += elem_i.GetGeometry()[i].FastGetSolutionStepValue(*adj_rhs_variable_list[j]);
-                        elem_i.GetGeometry()[i].FastGetSolutionStepValue(*adj_rhs_variable_list[j]) = sensitivity;
                     }
-                }
 
-                // Recall primal solution
-                for (IndexType i = 0; i < num_nodes; ++i)
-                {
-                    const IndexType index = i * num_dofs_per_node;
-                    for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
-                        elem_i.GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = initial_state_variables[index + j];
-                }
+                    std::vector<Vector> partial_stress_derivatives;
 
+                    for (IndexType i = 0; i < num_nodes; ++i)
+                    {
+                        const IndexType index = i * num_dofs_per_node;
+
+                        for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
+                        {
+                            elem_i.GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 1.0;
+                            elem_i.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, partial_stress_derivatives, rCurrentProcessInfo);
+                            double sensitivity = 0.0;
+                            for(IndexType k = 0; k < number_integration_points; ++k)
+                                sensitivity += gp_weights_vector[k] * (partial_stress_derivatives[k][0] + partial_stress_derivatives[k][1] + partial_stress_derivatives[k][2]);
+
+                            elem_i.GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 0.0;                            
+                            elem_i.GetGeometry()[i].FastGetSolutionStepValue(*adj_rhs_variable_list[j]) += sensitivity;
+                        }
+                    }
+
+                    // Recall primal solution
+                    for (IndexType i = 0; i < num_nodes; ++i)
+                    {
+                        const IndexType index = i * num_dofs_per_node;
+                        for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
+                            elem_i.GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = initial_state_variables[index + j];
+                    }
+
+                    double e_pe = elem_i.GetProperties().GetValue(E_PE);
+                    elem_i.GetProperties().SetValue(YOUNG_MODULUS,e_pe);
+                    
+                }
             }
         }
     }
@@ -403,8 +422,8 @@ public:
 				if(element_is_active){
                     if(control_type=="shape")
                         CalculateElementShapeGradients(elem_i,grad_field_name,CurrentProcessInfo);
-                    // if(control_type=="material")
-                    //     CalculateElementMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);                                              
+                    if(control_type=="material")
+                        CalculateElementMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);                                              
                 }
             }
 
@@ -423,8 +442,8 @@ public:
 				if(element_is_active){
                     if(control_type=="shape")
                         CalculateElementObjShapeGradients(elem_i,grad_field_name,CurrentProcessInfo);
-                    // if(control_type=="material")
-                    //     CalculateElementMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);                                               
+                    if(control_type=="material")
+                        CalculateElementObjMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);                                               
                 }
             }
 
@@ -536,6 +555,29 @@ public:
 
     };
 
+    void CalculateElementObjMaterialGradients(Element& elem_i, std::string material_gradien_name, const ProcessInfo &rCurrentProcessInfo){
+
+        // We get the element geometry
+        auto& r_this_geometry = elem_i.GetGeometry();
+        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
+        const std::size_t number_of_nodes = r_this_geometry.size();
+
+        double current_elem_stress = CalculateElementStress(elem_i,rCurrentProcessInfo);
+        if(current_elem_stress>0){
+
+            double e_pr = elem_i.GetProperties().GetValue(E_PR);
+            double e_pe = elem_i.GetProperties().GetValue(E_PE);
+            elem_i.GetProperties().SetValue(YOUNG_MODULUS,1.0);
+            double elem_sens = CalculateElementStress(elem_i,rCurrentProcessInfo);
+            elem_i.GetProperties().SetValue(YOUNG_MODULUS,e_pe);
+
+            for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
+                const auto& d_pe_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PE_D_FD);
+                r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pe_d_fd * 0.5 * std::pow(e_pr,-0.5) * elem_sens / number_of_nodes;
+            }
+        }
+    };    
+
     void CalculateConditionShapeGradients(Condition& cond_i, std::string shape_gradien_name, const ProcessInfo &rCurrentProcessInfo){
 
         // We get the element geometry
@@ -601,6 +643,7 @@ public:
 
     void CalculateElementMaterialGradients(Element& elem_i, std::string material_gradien_name, const ProcessInfo &rCurrentProcessInfo){
 
+
         // We get the element geometry
         auto& r_this_geometry = elem_i.GetGeometry();
         const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
@@ -608,31 +651,38 @@ public:
 
         Vector u;
         Vector lambda;
-        Vector RHS;
-
+        
         // Get state solution
         const auto& rConstElemRef = elem_i;
         rConstElemRef.GetValuesVector(u,0);
 
         // Get adjoint variables (Corresponds to 1/2*u)
-        lambda = 0.5*u;
+        GetElementAdjointVector(elem_i,lambda);
+
+
+        Vector d_RHS_d_E;
+        double e_max = elem_i.GetProperties().GetValue(E_MAX);
+        double e_min = elem_i.GetProperties().GetValue(E_MIN);
+        double e_pr = elem_i.GetProperties().GetValue(E_PR);
+        double e_pe = elem_i.GetProperties().GetValue(E_PE);
+        elem_i.GetProperties().SetValue(YOUNG_MODULUS,1.0);
+        elem_i.CalculateRightHandSide(d_RHS_d_E,rCurrentProcessInfo);
+        elem_i.GetProperties().SetValue(YOUNG_MODULUS,e_pe);
+
+
+        // Vector d_RHS_d_D;
+        // double curr_density = elem_i.GetProperties().GetValue(DENSITY);
+        // elem_i.GetProperties().SetValue(DENSITY,1.0);
+        // elem_i.CalculateRightHandSide(d_RHS_d_D,rCurrentProcessInfo);
+        // elem_i.GetProperties().SetValue(DENSITY,curr_density);
+
 
         for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
             const auto& d_pe_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PE_D_FD);
-            auto& pe = r_this_geometry[i_node].FastGetSolutionStepValue(PE);
-            double current_pe = pe;
-            pe = 1.0;
-            elem_i.CalculateRightHandSide(RHS, rCurrentProcessInfo);
-            pe = current_pe;
-            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pe_d_fd * inner_prod(RHS,lambda);
+            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pe_d_fd * 3 * std::pow(e_pr,2.0) * inner_prod(d_RHS_d_E,lambda) / number_of_nodes;
 
-            const auto& d_pd_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PD_D_FD);
-            auto& pd = r_this_geometry[i_node].FastGetSolutionStepValue(PD);
-            double current_pd = pd;
-            pd = 1.0;
-            elem_i.CalculateRightHandSide(RHS, rCurrentProcessInfo);
-            pd = current_pd;
-            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pd_d_fd * inner_prod(RHS,lambda);
+            // const auto& d_pd_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PD_D_FD);
+            // r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pd_d_fd * inner_prod(d_RHS_d_D,lambda);
         }
 
     };    

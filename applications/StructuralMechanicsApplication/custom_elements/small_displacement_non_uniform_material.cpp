@@ -183,7 +183,9 @@ void SmallDisplacementNonUniformMaterial::CalculateAll(
 
         double this_young_modulus = 0;    
         for(unsigned int node_element = 0; node_element<number_of_nodes; node_element++)
-            this_young_modulus += r_geometry[node_element].FastGetSolutionStepValue(PE) * this_kinematic_variables.N(node_element);
+            this_young_modulus += std::pow(r_geometry[node_element].FastGetSolutionStepValue(PE),3)  * this_kinematic_variables.N(node_element);
+
+        this_young_modulus = 1.0;
 
 
         if ( CalculateStiffnessMatrixFlag ) { // Calculation of the matrix is required

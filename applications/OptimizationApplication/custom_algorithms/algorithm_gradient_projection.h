@@ -166,8 +166,8 @@ public:
                         ratio = 0.8;                    
                     scale = ratio;
                 }
-                // else
-                //     scale = 1.2;
+                else
+                    scale = 1.2;
                 
                 objective_weight *= scale;
                 objetive["weight"].SetDouble(objective_weight);
@@ -202,7 +202,7 @@ public:
                     }
                 }
                 L2_norm = std::sqrt(L2_norm); 
-                L2_norm = 1.0;        
+                // L2_norm = 1.0;        
 
                 int node_index=0;
                 for(auto& node : objective_controlled_obj_model_part.Nodes()){
@@ -301,8 +301,8 @@ public:
                         } 
                         node_index++;
                     }
-                    L2_norm = 1.0;
-                    // L2_norm = std::sqrt(L2_norm);
+                    // L2_norm = 1.0;
+                    L2_norm = std::sqrt(L2_norm);
                     // now do the l2_norm scaling
                     for (int i=0;i<constraint_controlled_object_size*constraint_controlled_obj_model_part.Nodes().size();i++)
                         active_constraints_gradients(constraint_index,constraint_controlled_object_start_index+i) *= (constraint_control_weight/L2_norm);

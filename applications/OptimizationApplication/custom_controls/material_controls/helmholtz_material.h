@@ -175,8 +175,6 @@ public:
 
         }        
 
-        // ComputeInitialControlDensities();
-
         KRATOS_INFO("HelmholtzMaterial:Initialize") << "Finished initialization of material control "<<mControlName<<" in " << timer.ElapsedSeconds() << " s." << std::endl;
 
     };
@@ -416,8 +414,9 @@ private:
             for (int i = 0; i < (int)r_controlling_object.Elements().size(); i++) {
                 ModelPart::ElementsContainerType::iterator it = r_controlling_object.ElementsBegin() + i;
                 const Properties& elem_i_prop = it->GetProperties();
-                if(!elem_i_prop.Has(DENSITY))
-                    KRATOS_ERROR << "HelmholtzMaterial:CreateModelParts : element " << it->Id()<<" of controlling model part "<<control_obj.GetString()<<" does not have desnity property !"<<std::endl;
+                Properties::Pointer elem_i_new_prop = r_controlling_object.CreateNewProperties(r_controlling_object.NumberOfProperties()+1);
+                *elem_i_new_prop = elem_i_prop;
+                it->SetProperties(elem_i_new_prop);
                 Element::Pointer p_element = new HelmholtzBulkTopologyElement(it->Id(), it->pGetGeometry(), p_vm_model_part_property);
                 rmesh_elements.push_back(p_element);
             }   
@@ -544,7 +543,8 @@ private:
         }        
     } 
 
-    void ComputePhyiscalDensity(){            
+    void ComputePhyiscalDensity(){
+
         for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
             //now do the projection and then set the PD
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
@@ -553,6 +553,19 @@ private:
                 auto& physical_density_der = node_i.FastGetSolutionStepValue(D_PD_D_FD);
                 physical_density = ProjectForward(filtered_density,filtered_densities,physical_densities,beta);
                 physical_density_der = FirstFilterDerivative(filtered_density,filtered_densities,physical_densities,beta);
+            }
+        }
+
+        // update elements' density
+        for(auto& control_obj : mControlSettings["controlling_objects"]){
+            ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
+            for (int i = 0; i < (int)r_controlling_object.Elements().size(); i++) {
+                ModelPart::ElementsContainerType::iterator it = r_controlling_object.ElementsBegin() + i;
+                double elem_i_density = 0.0;
+                for(unsigned int node_element = 0; node_element<it->GetGeometry().size(); node_element++)
+                    elem_i_density += it->GetGeometry()[node_element].FastGetSolutionStepValue(PD);
+                elem_i_density /= it->GetGeometry().size();
+                it->GetProperties().SetValue(DENSITY,elem_i_density);
             }
         }
     }
@@ -566,6 +579,34 @@ private:
                 auto& youngs_modulus_der = node_i.FastGetSolutionStepValue(D_PE_D_FD);
                 youngs_modulus = ProjectForward(filtered_density,filtered_densities,youngs_modules,beta);
                 youngs_modulus_der = FirstFilterDerivative(filtered_density,filtered_densities,youngs_modules,beta);
+            }
+        }
+
+        // update elements' ym
+        for(auto& control_obj : mControlSettings["controlling_objects"]){
+            ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
+            for (int i = 0; i < (int)r_controlling_object.Elements().size(); i++) {
+                ModelPart::ElementsContainerType::iterator it = r_controlling_object.ElementsBegin() + i;
+                double elem_i_young_modulus = 0.0;
+                for(unsigned int node_element = 0; node_element<it->GetGeometry().size(); node_element++)
+                    elem_i_young_modulus += it->GetGeometry()[node_element].FastGetSolutionStepValue(PE);
+                elem_i_young_modulus /= it->GetGeometry().size();
+
+                double E_min,E_max;
+
+                for(int i=0;i<youngs_modules.size()-1;i++){
+                    if(elem_i_young_modulus>=youngs_modules[i] && elem_i_young_modulus<=youngs_modules[i+1]){
+                        E_min = youngs_modules[i];
+                        E_max = youngs_modules[i+1];
+                        break;
+                    }
+                }           
+                double penal_elem_i_young_modulus = E_min + std::pow((elem_i_young_modulus-E_min)/(E_max-E_min),3.0) * (E_max-E_min); 
+                it->GetProperties().SetValue(YOUNG_MODULUS,penal_elem_i_young_modulus);
+                it->GetProperties().SetValue(E_MIN,E_min);
+                it->GetProperties().SetValue(E_MAX,E_max);
+                it->GetProperties().SetValue(E_PR,elem_i_young_modulus);
+                it->GetProperties().SetValue(E_PE,penal_elem_i_young_modulus);
             }
         }
     }
@@ -603,20 +644,15 @@ private:
         
         double pow_val = -2.0*beta*(x-(x1+x2)/2);
 
-        if(index_x1>0){
-            double prev_x1,prev_x2,prev_y1,prev_y2;
-            prev_x1 = x_limits[index_x1-1];
-            prev_x2 = x_limits[index_x1];
-            prev_y1 = y_limits[index_x1-1];
-            prev_y2 = y_limits[index_x1];
-            double prev_pow_val = -2.0*beta*(x1-(prev_x1+prev_x2)/2);
-            y1 = (prev_y2-prev_y1)/(1+std::exp(prev_pow_val)) + prev_y1;     
-        }
-
-        // if(pow_val<-600)
-        //     pow_val = -600;
-        // if(pow_val>600)
-        //     pow_val = 600;
+        // if(index_x1>0){
+        //     double prev_x1,prev_x2,prev_y1,prev_y2;
+        //     prev_x1 = x_limits[index_x1-1];
+        //     prev_x2 = x_limits[index_x1];
+        //     prev_y1 = y_limits[index_x1-1];
+        //     prev_y2 = y_limits[index_x1];
+        //     double prev_pow_val = -2.0*beta*(x1-(prev_x1+prev_x2)/2);
+        //     y1 = (prev_y2-prev_y1)/(1+std::exp(prev_pow_val)) + prev_y1;     
+        // }
 
         return (y2-y1)/(1+std::exp(pow_val)) + y1;
     }
@@ -681,15 +717,10 @@ private:
         }
 
         double pow_val = -2.0*beta*(x-(x1+x2)/2);
-        // if(pow_val<-600)
-        //     pow_val = -600;
-        // if(pow_val>600)
-        //     pow_val = 600;
+        double dydx = (1.0/(1+std::exp(pow_val))) * (1.0/(1+std::exp(pow_val))) * 2.0 * beta * std::exp(pow_val);
 
-        double dydx = (y2-y1) * (1.0/(1+std::exp(pow_val))) * (1.0/(1+std::exp(pow_val))) * 2.0 * beta * std::exp(pow_val);
-
-        // if (y2<y1)
-        //     dydx *=-1;
+        if (y2<y1)
+            dydx *=-1;
 
         return dydx;
 
