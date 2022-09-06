@@ -408,6 +408,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self.apply_LocalConstraints = True
         elif self.small_cut_treatment == "localbc":
             self.apply_LocalConstraintsABC = True
+        elif self.small_cut_treatment == "none":
+            pass
         else:
             raise RuntimeError("Given \'small_cut_treatment'\' not found.")
 
