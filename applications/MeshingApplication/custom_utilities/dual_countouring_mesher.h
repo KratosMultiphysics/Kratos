@@ -278,8 +278,6 @@ private:
                 }
             }
         }
-
-        //KRATOS_WATCH(mIsInside);
     
         rTheVolumeModelPart.AddNodes(new_nodes.begin(), new_nodes.end());
         rTheVolumeModelPart.AddElements(new_elements.begin(), new_elements.end());
