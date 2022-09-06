@@ -198,12 +198,24 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabase)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabaseAssignedSize)
         .def("FindPointOnMesh", &BinBasedFastPointLocator < 2 > ::FindPointOnMeshSimplified)
+        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& self, const array_1d<double,3>& coords ){
+            Element::Pointer pelem=nullptr;
+            Vector N;
+            bool is_found = self.FindPointOnMeshSimplified(coords,N,pelem);
+            return std::tuple<bool,Vector,Element::Pointer>{is_found,N,pelem};
+        })
         ;
 
     py::class_< BinBasedFastPointLocator < 3 >, BinBasedFastPointLocator < 3 >::Pointer >(m,"BinBasedFastPointLocator3D")
         .def(py::init<ModelPart&  >())
         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabase)
         .def("FindPointOnMesh", &BinBasedFastPointLocator < 3 > ::FindPointOnMeshSimplified)
+        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 3 >& self, const array_1d<double,3>& coords ){
+            Element::Pointer pelem=nullptr;
+            Vector N;
+            bool is_found = self.FindPointOnMeshSimplified(coords,N,pelem);
+            return std::tuple<bool,Vector,Element::Pointer>{is_found,N,pelem};
+        })
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
         ;
 

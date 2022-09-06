@@ -189,14 +189,19 @@ namespace Kratos
         KRATOS_ERROR_IF(mrVirtualModelPart.NumberOfElements() == 0) << "Virtual model part has no elements.";
 
         // Set the binbased fast point locator utility
+        KRATOS_WATCH(__LINE__)
         BinBasedFastPointLocator<TDim> bin_based_point_locator(mrVirtualModelPart);
+        KRATOS_WATCH(__LINE__)
         bin_based_point_locator.UpdateSearchDatabase();
-
+        KRATOS_WATCH(__LINE__)
+        KRATOS_WATCH(mSearchMaxResults)
+        KRATOS_WATCH(mSearchTolerance)
         // Search the origin model part nodes in the virtual mesh elements and
         // interpolate the values in the virtual element to the origin model part node
+        typename BinBasedFastPointLocator<TDim>::ResultContainerType results_array(mSearchMaxResults);
         block_for_each(
             rOriginModelPart.Nodes(),
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType(mSearchMaxResults),
+            results_array,
             [&](auto& rNode, auto& rSearchResults){
                 // Find the origin model part node in the virtual mesh
                 Vector aux_N(TDim+1);
@@ -248,6 +253,7 @@ namespace Kratos
                         << "Origin model part node " << rNode.Id() << " has not been found in any virtual model part element. Origin node coordinates: (" << rNode.X() << " , " << rNode.Y() << " , " << rNode.Z() << ")" << std::endl;
                 } // else ( is_found )
             } );
+KRATOS_WATCH(__LINE__)
 
     }
 
@@ -283,7 +289,7 @@ namespace Kratos
             "structure_model_part_name": "",
             "projected_variable_names" : ["PRESSURE","VELOCITY"],
             "search_tolerance" : 1.0e-5,
-            "search_max_results" : 10000,
+            "search_max_results" : 100000,
             "linear_solver_settings": {
                 "solver_type": "cg",
                 "tolerance": 1.0e-8,
