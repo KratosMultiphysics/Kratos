@@ -68,7 +68,14 @@ void GaussPointKreisselmeierAggregationResponseFunction::CalculateGaussPointDeri
 
         // may be we can move these matrices to thread local storage
         Matrix gauss_point_derivatives;
-        rEntity.Calculate(*pVariable, gauss_point_derivatives, rProcessInfo);
+        if (mGradientMode == GradientMode::SEMI_ANALITIC) {
+            #pragma omp critical
+            {
+                rEntity.Calculate(*pVariable, gauss_point_derivatives, rProcessInfo);
+            }
+        } else {
+            rEntity.Calculate(*pVariable, gauss_point_derivatives, rProcessInfo);
+        }
 
         for (IndexType i = 0; i < gauss_point_derivatives.size2(); ++i) {
             noalias(rOutput) += column(gauss_point_derivatives, i);
