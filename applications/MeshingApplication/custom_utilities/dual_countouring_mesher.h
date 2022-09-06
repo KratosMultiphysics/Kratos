@@ -130,8 +130,6 @@ public:
 
         const auto& number_of_cells = voxel_bin.GetNumberOfCells();
         
-        //KRATOS_WATCH(number_of_cells);
-
         for (std::size_t i = 0; i < number_of_cells[0]; i++) {
             for (std::size_t j = 0; j < number_of_cells[1]; j++) {
                 for (std::size_t k = 0; k < number_of_cells[2]; k++) {
@@ -139,8 +137,17 @@ public:
                     std::vector<GeometricalObject*> triangles =  voxel_bin.GetCell(i,j,k);
                     int new_id = i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1; 
 
-                    array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(box,triangles); //no triangles --> center 
-                    KRATOS_WATCH(qef);
+                    array_1d<double,3> qef;
+                    if (triangles.size() == 0) {
+                        //no triangles --> qef = center 
+                        qef(0) = min_bounding_box[0] + (i + 0.5)* cell_size(0);
+                        qef(1) = min_bounding_box[1] + (j + 0.5)* cell_size(1);
+                        qef(2) = min_bounding_box[2] + (k + 0.5)* cell_size(2);
+                    } else {
+                        qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(box,triangles); 
+                        //bool in_touch = true;
+                    }
+
                     rFitedMesh.CreateNewNode(new_id, qef[0], qef[1], qef[2]);
                     if (mIsInside[i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1]) {
                         rFitedMesh.pGetNode(new_id)->FastGetSolutionStepValue(DISTANCE) = 1;                   
