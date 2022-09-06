@@ -15,6 +15,10 @@
  * file docs/README.md.                                                     *
 \****************************************************************************/
 
+#if defined(__INTEL_COMPILER)
+#pragma GCC system_header
+#endif
+
 #ifndef INCLUDE_NLOHMANN_JSON_HPP_
 #define INCLUDE_NLOHMANN_JSON_HPP_
 
@@ -16713,7 +16717,7 @@ class binary_writer
 
     void write_compact_float(const number_float_t n, detail::input_format_t format)
     {
-#ifdef __GNUC__
+#if (defined(__clang__) || defined(__GNUC__) || defined(__GNUG__)) && !defined(__INTEL_COMPILER)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 #endif
@@ -16733,7 +16737,7 @@ class binary_writer
                                 : get_msgpack_float_prefix(n));
             write_number(n);
         }
-#ifdef __GNUC__
+#if (defined(__clang__) || defined(__GNUC__) || defined(__GNUG__)) && !defined(__INTEL_COMPILER)
 #pragma GCC diagnostic pop
 #endif
     }
