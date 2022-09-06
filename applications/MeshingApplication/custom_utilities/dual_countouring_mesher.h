@@ -87,7 +87,16 @@ public:
     //Constructor
     DualCountouringMesher(
         Model& rModel, Parameters rParameters = Parameters()) 
-        : VoxelMeshGeneratorModeler(rModel, rParameters ) {}
+        : VoxelMeshGeneratorModeler(rModel, rParameters ) {
+
+            bool cells_in_touch = false;
+            for(auto parameters : rParameters["coloring_settings_list"]){
+                cells_in_touch = cells_in_touch || (parameters["type"].GetString() == "cells_in_touch");
+            }
+
+            KRATOS_ERROR_IF(!cells_in_touch) 
+                << "Dual Mesher Function only works including cells_in_touch in the colouring settings" << std::endl;
+        }
 
     /// Destructor
     virtual ~DualCountouringMesher(){}
@@ -103,7 +112,8 @@ public:
     void DualCountourAdaptativeRemesh(
         ModelPart& rFitedMesh) 
     {     
-        rFitedMesh.AddNodalSolutionStepVariable(DISTANCE); //This should be smth like Kratos_error_if_not(rFitedMesh.Has(DISTANCE))
+        KRATOS_ERROR_IF(!rFitedMesh.HasNodalSolutionStepVariable(DISTANCE)) 
+            << "Input mesh is expected to have DISTANCE as nodal variable" << std::endl;
         
         array_1d<double,3> cell_size(3); 
         array_1d<double,3> min_bounding_box(3);
