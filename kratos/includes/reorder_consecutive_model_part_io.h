@@ -106,11 +106,6 @@ public:
         std::string const& Filename,
         const Flags Options = IO::READ | IO::IGNORE_VARIABLES_ERROR.AsFalse());
 
-
-    /// Destructor.
-    ~ReorderConsecutiveModelPartIO() override;
-
-
     ///@}
     ///@name Operators
     ///@{
@@ -128,9 +123,9 @@ protected:
 
     ///@}
     ///@name Protected member Variables
-	SizeType mNumberOfNodes;
-	SizeType mNumberOfElements;
-	SizeType mNumberOfConditions;
+	SizeType mNumberOfNodes = 0;
+	SizeType mNumberOfElements = 0;
+	SizeType mNumberOfConditions = 0;
     ///@{
 
 
@@ -170,9 +165,9 @@ private:
     ///@name Member Variables
     ///@{
 
-	IdMapType mNodeIdMap;
-	IdMapType mElementIdMap;
-	IdMapType mConditionIdMap;
+	IdMapType mNodeIdMap = {};
+	IdMapType mElementIdMap = {};
+	IdMapType mConditionIdMap = {};
 
     ///@}
     ///@name Private  Access
@@ -187,13 +182,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    ReorderConsecutiveModelPartIO& operator=(ReorderConsecutiveModelPartIO const& rOther);
-
-    /// Copy constructor.
-    ReorderConsecutiveModelPartIO(ReorderConsecutiveModelPartIO const& rOther);
-
 
     ///@}
 
