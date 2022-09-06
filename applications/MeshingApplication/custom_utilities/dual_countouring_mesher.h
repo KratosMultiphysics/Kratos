@@ -163,17 +163,19 @@ public:
         for (std::size_t i = 1; i < number_of_cells[0]; i++) {
             for (std::size_t j = 1; j < number_of_cells[1]; j++) {
                 for (std::size_t k = 1; k < number_of_cells[2]; k++) {
-                    rFitedMesh.CreateNewElement( "Element3D8N", 
-                        i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1,  //id
-                        {(i-1) + (j-1) * number_of_cells[0] + (k-1) * number_of_cells[1] * number_of_cells[0] + 1,  //nodes
-                        i + (j-1) * number_of_cells[0] + (k-1) * number_of_cells[1] * number_of_cells[0] + 1,
-                        i + j * number_of_cells[0] + (k-1) * number_of_cells[1] * number_of_cells[0] + 1,
-                        (i-1) + j * number_of_cells[0] + (k-1) * number_of_cells[1] * number_of_cells[0] + 1,
-                        (i-1) + (j-1) * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1,
-                        i + (j-1) * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1,
-                        i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1,
-                        (i-1) + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1},
-                        p_properties);      
+                    if (CheckAllNeighbourQEFAreInside(i,j,k)) {
+                        rFitedMesh.CreateNewElement( "Element3D8N", 
+                            i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1,  //id
+                            {(i-1) + (j-1) * number_of_cells[0] + (k-1) * number_of_cells[1] * number_of_cells[0] + 1,  //nodes
+                            i + (j-1) * number_of_cells[0] + (k-1) * number_of_cells[1] * number_of_cells[0] + 1,
+                            i + j * number_of_cells[0] + (k-1) * number_of_cells[1] * number_of_cells[0] + 1,
+                            (i-1) + j * number_of_cells[0] + (k-1) * number_of_cells[1] * number_of_cells[0] + 1,
+                            (i-1) + (j-1) * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1,
+                            i + (j-1) * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1,
+                            i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1,
+                            (i-1) + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1},
+                            p_properties); 
+                    }     
                 }
             }
         }
@@ -189,6 +191,7 @@ private:
     ///@{
 
         std::vector<int> mIsInside; //bools
+        double mInsideColor;
 
     ///@}
     ///@name Private Operators
@@ -198,8 +201,21 @@ private:
     ///@name Private Operations
     ///@{
 
+    bool CheckAllNeighbourQEFAreInside(int i, int j, int k) {
+        bool res = (mColors.GetElementalColor(i-1,j-1,k-1) == mInsideColor) &&
+                    (mColors.GetElementalColor(i,j-1,k-1) == mInsideColor) &&
+                    (mColors.GetElementalColor(i,j,k-1) == mInsideColor) &&
+                    (mColors.GetElementalColor(i-1,j,k-1) == mInsideColor) &&
+                    (mColors.GetElementalColor(i-1,j-1,k) == mInsideColor) &&
+                    (mColors.GetElementalColor(i,j-1,k) == mInsideColor) &&
+                    (mColors.GetElementalColor(i,j,k) == mInsideColor) &&
+                    (mColors.GetElementalColor(i-1,j,k) == mInsideColor);
+        return res;
+    }
+
     void GenerateElementsWithCellColor(ModelPart& rTheVolumeModelPart, Parameters EntityGeneratorParameters) override {
-         double inside_color = EntityGeneratorParameters["color"].GetDouble();
+        double inside_color = EntityGeneratorParameters["color"].GetDouble();
+        mInsideColor = inside_color;
         std::size_t properties_id = EntityGeneratorParameters["properties_id"].GetInt();
 
         if(!rTheVolumeModelPart.HasProperties(properties_id)){
