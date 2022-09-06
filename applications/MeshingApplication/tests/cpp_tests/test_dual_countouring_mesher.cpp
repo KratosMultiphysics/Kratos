@@ -220,7 +220,7 @@ namespace {
 
         Output(fited_mesh,"cube_post");
 
-        //KRATOS_CHECK_EQUAL(fited_mesh.Elements().size(),2); 
+        KRATOS_CHECK_EQUAL(fited_mesh.Elements().size(),269); 
     }
 } //Namespace Testing
 } //Namespace Kratos
