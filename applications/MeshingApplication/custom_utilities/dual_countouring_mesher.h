@@ -129,7 +129,7 @@ public:
                     std::vector<GeometricalObject*> triangles =  voxel_bin.GetCell(i,j,k);
                     int new_id = i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1; 
 
-                    array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(box,triangles);
+                    array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(box,triangles); //no triangles --> center 
                     KRATOS_WATCH(qef);
                     rFitedMesh.CreateNewNode(new_id, qef[0], qef[1], qef[2]);
                     if (mIsInside[i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1]) {
@@ -162,12 +162,6 @@ public:
         }
     }
 
-     void ThisIsTheRemix(
-        ModelPart& rSkinModelPart,
-        ModelPart& rVoxelMesh,
-        ModelPart& rFitedMesh) 
-    {   }
-
 private:
 
     ///@name Private static Member Variables
@@ -186,22 +180,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    //This functions implementation should be moveed to VoxelUtilities
-    double MeanDistance(GeometryType& rVoxel) {
-        double mean = 0;
-        int nodes_inside = 0;
-        for (NodeType& node : rVoxel.Points()) {
-            double dist = node.FastGetSolutionStepValue(DISTANCE);
-            if (dist > 0) {
-                nodes_inside++;
-                mean += dist;
-            }
-        };
-
-        if(nodes_inside > 0) return mean/nodes_inside;
-        else return -1;
-    }
 
     void GenerateElementsWithCellColor(ModelPart& rTheVolumeModelPart, Parameters EntityGeneratorParameters) override {
          double inside_color = EntityGeneratorParameters["color"].GetDouble();
