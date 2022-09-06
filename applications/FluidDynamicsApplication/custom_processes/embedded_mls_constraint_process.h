@@ -105,7 +105,7 @@ public:
     const Parameters GetDefaultParameters() const override
     {
         const Parameters default_parameters = Parameters(R"({
-            "model_part_name" : "",,
+            "model_part_name" : "",
             "apply_to_all_negative_cut_nodes" : true,
             "mls_extension_operator_order" : 1,
             "avoid_zero_distances" : true,
