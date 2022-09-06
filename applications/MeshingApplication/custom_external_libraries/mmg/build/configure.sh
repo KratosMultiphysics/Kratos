@@ -21,5 +21,5 @@ cmake                                                        \
 -DLIBMMG3D_SHARED=ON                                         \
 -DLIBMMG3D_STATIC=OFF                                        \
 
-# Buid
+# Build
 cmake --build $(pwd) -- -j$(nproc)
