@@ -32,10 +32,10 @@ namespace Kratos {
         }
 
         //Normal and Tangent elastic constants
+        //Taken from 'Contact between two cylinders with parallel axes' 
+        //https://en.wikipedia.org/wiki/Contact_mechanics#Contact_between_a_sphere_and_a_half-space
         mKn = 0.25 * Globals::Pi * equiv_young; // Here length is 1.0m
-        //mKn = 2.0 * equiv_young;    // 2.0 * equiv_young * sqrt_equiv_radius;
         mKt = mKn * (1.0 - equiv_poisson) / (1.0 - 0.5 * equiv_poisson);
-        //mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
 
     void DEM_D_Linear_viscous_Coulomb2D::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
@@ -66,10 +66,10 @@ namespace Kratos {
         */
 
         //Normal and Tangent elastic constants
+        //Taken from 'Contact between two cylinders with parallel axes' 
+        //https://en.wikipedia.org/wiki/Contact_mechanics#Contact_between_a_sphere_and_a_half-space
         mKn = 0.25 * Globals::Pi * equiv_young; // Here length is 1.0m
-        //mKn = 2.0 * equiv_young;    // 2.0 * equiv_young * sqrt_equiv_radius;
         mKt = mKn * (1.0 - equiv_poisson) / (1.0 - 0.5 * equiv_poisson);
-        //mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
 
 } /* namespace Kratos.*/

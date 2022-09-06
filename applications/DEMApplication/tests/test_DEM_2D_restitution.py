@@ -28,7 +28,7 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def Finalize(self):
-        tolerance = 0.03
+        tolerance = 0.05
         for node in self.spheres_model_part.Nodes:
             final_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
             Logger.PrintInfo("initial velocity:", self.initial_normal_vel)

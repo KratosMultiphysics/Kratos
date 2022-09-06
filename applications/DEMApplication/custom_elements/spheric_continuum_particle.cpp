@@ -385,7 +385,7 @@ namespace Kratos {
                
                 if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                     mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                    mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment);
+                    mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment, indentation);
                 }
 
             } else { //for unbonded particles
@@ -397,7 +397,7 @@ namespace Kratos {
                 
                 if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                     mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                    mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment);
+                    mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment, indentation);
                 }
             }
             //*****************Moments calculation end******************
@@ -463,9 +463,7 @@ namespace Kratos {
 
     void SphericContinuumParticle::ComputeBrokenBondsRatio() {
 
-        //Here, although BrokenBondsCounter is an int, we set it a double 
-        //Because we will get an int if we use an int divide an int
-        double BrokenBondsCounter = 0;
+        int BrokenBondsCounter = 0;
 
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
             if(mNeighbourElements[i] == NULL) BrokenBondsCounter++;
@@ -473,7 +471,7 @@ namespace Kratos {
         }        
 
         if(mContinuumInitialNeighborsSize) {
-            GetGeometry()[0].FastGetSolutionStepValue(DAMAGE_RATIO) = BrokenBondsCounter / (int)mContinuumInitialNeighborsSize;
+            GetGeometry()[0].FastGetSolutionStepValue(DAMAGE_RATIO) = double(BrokenBondsCounter) / mContinuumInitialNeighborsSize;
         } else {
             GetGeometry()[0].FastGetSolutionStepValue(DAMAGE_RATIO) = 1.0;
         }
