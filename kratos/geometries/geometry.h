@@ -2423,6 +2423,28 @@ public:
             noalias(rResult) += N(IntegrationPointIndex, i) * (*this)[i];
     }
 
+
+    /** 
+    * @brief This method provides the global coordinates to the corresponding integration point
+    * @param rResult The global coordinates
+    * @param IntegrationPointIndex The index of the integration point
+    * @param ThisMethod The integration method
+    * @return The global coordinates
+    */
+    void GlobalCoordinates(
+        CoordinatesArrayType& rResult,
+        IndexType IntegrationPointIndex,
+        const IntegrationMethod ThisMethod
+        ) const
+    {
+        noalias(rResult) = ZeroVector(3);
+
+        const Matrix& N = this->ShapeFunctionsValues(ThisMethod);
+
+        for (IndexType i = 0; i < this->size(); i++)
+            noalias(rResult) += N(IntegrationPointIndex, i) * (*this)[i];
+    }
+
     /** This method provides the global coordinates corresponding to the local coordinates provided, considering additionally a certain increment in the coordinates
      * @param rResult The array containing the global coordinates corresponding to the local coordinates provided
      * @param LocalCoordinates The local coordinates provided
