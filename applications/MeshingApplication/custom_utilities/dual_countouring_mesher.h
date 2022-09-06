@@ -90,12 +90,17 @@ public:
         : VoxelMeshGeneratorModeler(rModel, rParameters ) {
 
             bool cells_in_touch = false;
+            bool cells_inside = false;
             for(auto parameters : rParameters["coloring_settings_list"]){
                 cells_in_touch = cells_in_touch || (parameters["type"].GetString() == "cells_in_touch");
+                cells_inside = cells_inside || (parameters["type"].GetString() == "cells_in_touch");
             }
 
             KRATOS_ERROR_IF(!cells_in_touch) 
                 << "Dual Mesher Function only works including cells_in_touch in the colouring settings" << std::endl;
+
+            KRATOS_ERROR_IF(!cells_inside) 
+                << "Dual Mesher Function only works including cells_inside in the colouring settings" << std::endl;
         }
 
     /// Destructor
@@ -145,7 +150,6 @@ public:
                         qef(2) = min_bounding_box[2] + (k + 0.5)* cell_size(2);
                     } else {
                         qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(box,triangles); 
-                        //bool in_touch = true;
                     }
 
                     rFitedMesh.CreateNewNode(new_id, qef[0], qef[1], qef[2]);
