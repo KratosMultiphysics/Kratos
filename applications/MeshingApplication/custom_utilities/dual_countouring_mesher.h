@@ -9,7 +9,13 @@
 //
 //  Main authors:    Ariadna Cortes
 //
-//
+
+/** This class does not work in a suitable way. 
+ * The point resulting from qef is not constrained to the cell (it can be anywhere in space, leading to too deformated hexs)
+ * It should be checked if hexs have a real hex shape, so that the are valid.  
+ *  
+ * */
+
 
 #pragma once
 
@@ -68,7 +74,7 @@ public:
     typedef GeometryType::GeometriesArrayType GeometryArrayType;
     typedef GeometryType::PointsArrayType PointsArrayType;
 
-    /// Pointer definition of VoxelInsideVolume
+    /// Pointer definition of DualCountouringMesher
     KRATOS_CLASS_POINTER_DEFINITION( DualCountouringMesher );
 
     ///@}
@@ -113,6 +119,13 @@ public:
     /**
     * @brief Creates a mesh adapting to the shape of the rSkinPart passed
     * @param rFitedMesh The resulting modelPart containing the mesh adapted to the surface
+    * @note How the function works
+    * First of all we get the cell_size and BoundingBox from the voxel mesh that th modeler created. From these, we create
+    * a GeometricalObjectsBins (with found cellsize and BoundingBox), so that we have acces to the SkinModelPart elements
+    * that intersect each of the voxels of the voxel mesh. From this intersections, the QEF point is calculated and a new 
+    * node is created with ID corresponding to the cell position. Finally, these new nodes are connected into new elements 
+    * in such a way that the new element is only created if all the found qef points come from cells that were either in 
+    * touch or inside the surface of the volume we wanted to fit.
     */
     void DualCountourAdaptativeRemesh(
         ModelPart& rFitedMesh) 
@@ -138,7 +151,6 @@ public:
         for (std::size_t i = 0; i < number_of_cells[0]; i++) {
             for (std::size_t j = 0; j < number_of_cells[1]; j++) {
                 for (std::size_t k = 0; k < number_of_cells[2]; k++) {
-                    BoundingBox<Point> box = voxel_bin.GetCellBoundingBox(i,j,k);
                     std::vector<GeometricalObject*> triangles =  voxel_bin.GetCell(i,j,k);
                     int new_id = i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1; 
 
@@ -149,11 +161,12 @@ public:
                         qef(1) = min_bounding_box[1] + (j + 0.5)* cell_size(1);
                         qef(2) = min_bounding_box[2] + (k + 0.5)* cell_size(2);
                     } else {
+                        BoundingBox<Point> box = voxel_bin.GetCellBoundingBox(i,j,k);
                         qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(box,triangles); 
                     }
 
                     rFitedMesh.CreateNewNode(new_id, qef[0], qef[1], qef[2]);
-                    if (mIsInside[i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1]) {
+                    if (mIsInside[new_id]) {
                         rFitedMesh.pGetNode(new_id)->FastGetSolutionStepValue(DISTANCE) = 1;                   
                     } else {
                         rFitedMesh.pGetNode(new_id)->FastGetSolutionStepValue(DISTANCE) = 0;
