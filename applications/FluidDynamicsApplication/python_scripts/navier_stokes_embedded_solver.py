@@ -473,15 +473,19 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
             if self.apply_DistMod:
                 self.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Applied Distance Modification using " + str(self.settings["distance_modification_settings"]["distance_threshold"].GetDouble()) + ".")
 
             if self.apply_MLSConstraints:
                 self.GetMLSConstraintProcess(mls_order=1).Execute()
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Applied MLS Constraints.")
                 self.apply_MLSConstraints = False
             if self.apply_LocalConstraints:
                 self.GetLocalConstraintProcess(use_bc=False, apply_to_all=self.apply_constraints_to_all_cut_elements).Execute()
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Applied Local Constraints.")
                 self.apply_LocalConstraints = False
             if self.apply_LocalConstraintsABC:
                 self.GetLocalConstraintProcess(use_bc=True, apply_to_all=self.apply_constraints_to_all_cut_elements).Execute()
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Applied Local-BC Constraints.")
                 self.apply_LocalConstraintsABC = False
 
             # Perform the FM-ALE operations
