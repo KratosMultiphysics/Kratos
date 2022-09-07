@@ -15,7 +15,6 @@
 
 // External includes
 
-
 // Project includes
 #include "containers/sparse_contiguous_row_graph.h"
 #include "utilities/parallel_utilities.h"
@@ -75,8 +74,6 @@ std::pair<DenseVector<ModelPartGraphUtilities::IndexType>, DenseVector<ModelPart
     graph.ExportCSRArrays(rRowIndices,rColIndices);
     return data;
 }
-
-
 
 std::pair<ModelPartGraphUtilities::IndexType, DenseVector<double>> ModelPartGraphUtilities::ComputeConnectedComponents(
             const ModelPart::NodesContainerType& rNodes,
@@ -202,13 +199,6 @@ std::vector<ModelPartGraphUtilities::IndexType> ModelPartGraphUtilities::ApplyMi
     return fixed_ids;
 }
 
-
-
-
-
-
-
-
 void ModelPartGraphUtilities::BreadthFirstSearch(
     const int startVertex,
     const int color,
@@ -266,9 +256,6 @@ void ModelPartGraphUtilities::BreadthFirstSearch_ActiveNodesCheck(
         }
     }
 }
-
-
-
 
 }  // namespace Kratos.
 
