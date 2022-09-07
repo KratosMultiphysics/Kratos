@@ -22,7 +22,7 @@
 
 /* Project includes */
 #include "includes/kratos_export_api.h"
-#include "includes/shared_pointers.h"
+#include "includes/smart_pointers.h"
 #include "includes/exception.h"
 
 // Defining the OS

@@ -26,7 +26,6 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "includes/shared_pointers.h"
 #include "includes/exception.h"
 
 namespace Kratos 

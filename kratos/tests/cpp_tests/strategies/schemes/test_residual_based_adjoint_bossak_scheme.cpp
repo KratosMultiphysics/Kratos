@@ -18,7 +18,6 @@
 #include "containers/model.h"
 
 #include "includes/define.h"
-#include "includes/shared_pointers.h"
 #include "includes/model_part.h"
 #include "containers/pointer_vector.h"
 #include "spaces/ublas_space.h"
