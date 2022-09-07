@@ -34,7 +34,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class GaussPointKreisselmeierAggregationResponseFunction : public AdjointResponseFunction
+class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) GaussPointKreisselmeierAggregationResponseFunction : public AdjointResponseFunction
 {
 public:
     ///@name Type Definitions
