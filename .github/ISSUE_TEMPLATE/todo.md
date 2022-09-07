@@ -7,6 +7,6 @@ about: List of things that are pending TO DO
 Description of what is the pourpose of this issue, which willl consist in a list of pending tasks 
 
 **TODO**
-[ ] Update XX library
-[ ] Refactor YY class
-[ ] Document ZZ implementation
+- [ ] Update XX library
+- [ ] Refactor YY class
+- [ ] Document ZZ implementation

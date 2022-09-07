@@ -24,7 +24,7 @@
 #include "mpi/includes/mpi_communicator.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 
-#include "../FluidDynamicsApplication/custom_processes/spalart_allmaras_turbulence_model.h"
+#include "custom_processes/spalart_allmaras_turbulence_model.h"
 
 namespace Kratos
 {
@@ -127,7 +127,7 @@ public:
 
         // Create a communicator for the new model part and copy the partition information about nodes.
         Communicator& rReferenceComm = BaseSpAlType::mr_model_part.GetCommunicator();
-        typename Communicator::Pointer pSpalartMPIComm = typename Communicator::Pointer( new MPICommunicator( &(BaseSpAlType::mr_model_part.GetNodalSolutionStepVariablesList()) ) );
+        typename Communicator::Pointer pSpalartMPIComm = typename Communicator::Pointer( new MPICommunicator(&(BaseSpAlType::mr_model_part.GetNodalSolutionStepVariablesList()), rReferenceComm.GetDataCommunicator()));
         pSpalartMPIComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() ) ;
         pSpalartMPIComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
         pSpalartMPIComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
@@ -172,7 +172,7 @@ public:
         }
 
         // Create a communicator for the new model part
-        ParallelFillCommunicator CommunicatorGeneration(BaseSpAlType::mrSpalartModelPart);
+        ParallelFillCommunicator CommunicatorGeneration(BaseSpAlType::mrSpalartModelPart, BaseSpAlType::mrSpalartModelPart.GetCommunicator().GetDataCommunicator());
         CommunicatorGeneration.Execute();
         //CommunicatorGeneration.PrintDebugInfo()
 

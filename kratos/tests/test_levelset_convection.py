@@ -33,6 +33,28 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
         except :
             pass
 
+    def test_wrong_element_name(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        levelset_convection_settings = KratosMultiphysics.Parameters("""{
+            "max_CFL" : 1.0,
+            "max_substeps" : 0,
+            "eulerian_error_compensation" : false,
+            "element_type" : "IDontExistOhGodWhy"
+        }""")
+        from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+        linear_solver = linear_solver_factory.ConstructSolver(
+            KratosMultiphysics.Parameters("""{"solver_type" : "skyline_lu_factorization"}"""))
+        
+        expected_error_msg = "Error: Specified 'IDontExistOhGodWhy' is not in the available elements list: "
+        expected_error_msg+= "\\[levelset_convection_supg, levelset_convection_algebraic_stabilization\\]"
+        expected_error_msg+= " and it is nor registered as a kratos element either. Please check your settings"
+        with self.assertRaisesRegex(RuntimeError, expected_error_msg):
+            KratosMultiphysics.LevelSetConvectionProcess2D(
+                model_part,
+                linear_solver,
+                levelset_convection_settings).Execute()
+
     def test_levelset_convection(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")

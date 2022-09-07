@@ -14,7 +14,7 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "processes/find_global_nodal_elemental_neighbours_process.h"
+#include "processes/find_global_nodal_entity_neighbours_process.h"
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
@@ -89,8 +89,10 @@ public:
     ///@name Operations
     ///@{
 
+    void Execute() override;
+
     void ExecuteInitialize() override;
-    
+
 
     std::vector<bool> HasNeighboursInFaces(const Element&) ;
 
@@ -155,7 +157,8 @@ private:
 
 
     GlobalPointer<Element> CheckForNeighbourElems (const Geometry<Node<3> >& rBoundaryGeom,
-                                                   Element & rElement);
+                                                   Element & rElement,
+                                                   const int Rank);
 
 
     ///@}
@@ -209,4 +212,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GENERIC_FIND_ELEMENTAL_NEIGHBOURS_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_GENERIC_FIND_ELEMENTAL_NEIGHBOURS_PROCESS_H_INCLUDED  defined
