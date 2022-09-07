@@ -167,8 +167,7 @@ public:
             visited[rNode.Id()-1] = -1;
 
         unsigned int color=0;
-        for(unsigned int i=0; i<nindices; ++i)
-        {
+        for(unsigned int i=0; i<nindices; ++i) {
             unsigned int gid = (rNodes.begin()+i)->Id()-1;
             if(visited[gid] == -1 && (rRowIndices[gid+1]-rRowIndices[gid])!=0){
                 unsigned int root=gid;
@@ -252,16 +251,14 @@ public:
         std::vector<unsigned int> fixed_ids;
 
         //count the fixed nodes
-        for(unsigned int i=0; i<rNodes.size(); ++i)
-        {
+        for(unsigned int i=0; i<rNodes.size(); ++i) {
             if(colors[i]>=0 && (rNodes.begin()+i)->IsFixed(rVar)){
                 v[colors[i]] += 1;
             }
         }
 
         //now we need to fix one node per each color (unless there are some fixed)
-        for(unsigned int i=0; i<rNodes.size(); ++i)
-        {
+        for(unsigned int i=0; i<rNodes.size(); ++i) {
             int color = colors[i];
             if(color>=0 && v[color]==0){
                 (rNodes.begin()+i)->Fix(rVar);
