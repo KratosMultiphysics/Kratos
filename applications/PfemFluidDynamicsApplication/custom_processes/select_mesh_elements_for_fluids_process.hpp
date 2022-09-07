@@ -321,11 +321,11 @@ namespace Kratos
                                 meanMeshSize *= 0.5;
                                 meanMeshSize += 0.5 * rigidWallMeshSize;
                             }
-                            else
-                            {
-                                meanMeshSize *= 0.75;
-                                meanMeshSize += 0.25 * rigidWallMeshSize;
-                            }
+                            // else
+                            // {
+                            //     meanMeshSize *= 0.75;
+                            //     meanMeshSize += 0.25 * rigidWallMeshSize;
+                            // }
                         }
                     }
 
