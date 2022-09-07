@@ -15,7 +15,6 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <queue>
 
 // External includes
 
@@ -23,7 +22,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/sparse_contiguous_row_graph.h"
-#include "utilities/parallel_utilities.h"
 
 
 namespace Kratos
