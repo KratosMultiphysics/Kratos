@@ -101,7 +101,7 @@ public:
     
         block_for_each(rModelPart.Elements(), tls_aux, [&Agraph](const auto& rElem, auto& aux_list){
             const auto& geom = rElem.GetGeometry();
-            unsigned int nnodes = geom.size();
+            const unsigned int nnodes = geom.size();
             if(aux_list.size() != nnodes)
                 aux_list.resize(nnodes);
 
@@ -113,7 +113,7 @@ public:
 
         block_for_each(rModelPart.Conditions(), tls_aux, [&Agraph](const auto& rCond, auto& aux_list){
             const auto& geom = rCond.GetGeometry();
-            unsigned int nnodes = geom.size();
+            const unsigned int nnodes = geom.size();
             if(aux_list.size() != nnodes)
                 aux_list.resize(nnodes);
 
