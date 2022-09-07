@@ -121,6 +121,8 @@ void EmbeddedMLSConstraintProcess::CalculateConformingExtensionBasis(NodesCloudM
 
                         auto ext_op_key_data = std::make_pair(&r_node, cloud_data_vector);
                         rExtensionOperatorMap.insert(ext_op_key_data);
+
+                        KRATOS_WATCH("Added mls cloud for a negative node of a cut element");
                     }
                 }
             }
@@ -133,8 +135,8 @@ void EmbeddedMLSConstraintProcess::ApplyExtensionConstraints(NodesCloudMapType& 
     // Initialize counter of master slave constraints
     ModelPart::IndexType id = mpModelPart->NumberOfMasterSlaveConstraints()+1;
     // Define variables to constrain
-    //std::array<std::string,4> variables = {"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"}; //,"PRESSURE"
-    std::array<std::string,3> variables = {"VELOCITY_X","VELOCITY_Y","VELOCITY_Z"};
+    std::array<std::string,4> variables = {"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"}; //,"PRESSURE"
+    //std::array<std::string,3> variables = {"VELOCITY_X","VELOCITY_Y","VELOCITY_Z"};
 
     // Loop through all negative nodes of split elements (slave nodes)
     for (auto it_slave = rExtensionOperatorMap.begin(); it_slave != rExtensionOperatorMap.end(); ++it_slave) {
