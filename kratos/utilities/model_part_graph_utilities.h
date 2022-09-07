@@ -157,7 +157,7 @@ public:
         const DenseVector<unsigned int>& rColIndices
         )
     {
-        unsigned int nindices = rNodes.size();
+        const unsigned int nindices = rNodes.size();
 
         std::unordered_map<unsigned int, int> visited(nindices);
 
@@ -168,7 +168,7 @@ public:
 
         unsigned int color=0;
         for(unsigned int i=0; i<nindices; ++i) {
-            unsigned int gid = (rNodes.begin()+i)->Id()-1;
+            const unsigned int gid = (rNodes.begin()+i)->Id()-1;
             if(visited[gid] == -1 && (rRowIndices[gid+1]-rRowIndices[gid])!=0){
                 unsigned int root=gid;
                 BreadthFirstSearch(root, color, rRowIndices, rColIndices, visited);
@@ -212,9 +212,8 @@ public:
             visited[rNode.Id()-1] = -1; //here we allocate all of the positions that CAN be visited
 
         unsigned int color=0;
-        for(unsigned int i=0; i<nindices; ++i)
-        {
-            unsigned int gid = (rNodes.begin()+i)->Id()-1;
+        for(unsigned int i=0; i<nindices; ++i) {
+            const unsigned int gid = (rNodes.begin()+i)->Id()-1;
 
             if(active_nodes.find(gid)->second && 
                 visited.find(gid)->second == -1 && 

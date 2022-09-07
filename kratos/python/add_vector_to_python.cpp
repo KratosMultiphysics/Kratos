@@ -513,8 +513,7 @@ void  AddVectorToPython(pybind11::module& m)
         KRATOS_ERROR_IF( info.ndim != 1 ) << "Buffer dimension of 1 is required, got: " << info.ndim << std::endl;
         DenseVector<unsigned int> vec(info.shape[0]);
 
-        for( int i=0; i<info.shape[0]; ++i )
-        {
+        for( unsigned int i=0; i<info.shape[0]; ++i ) {
             vec[i]= static_cast<typename DenseVector<unsigned int>::value_type *>(info.ptr)[i];
         }
 
