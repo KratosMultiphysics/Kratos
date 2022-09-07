@@ -130,7 +130,6 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    std::string mCriticalModelPartName;
     double mAggregationPenalty;
     int mEchoLevel;
 
