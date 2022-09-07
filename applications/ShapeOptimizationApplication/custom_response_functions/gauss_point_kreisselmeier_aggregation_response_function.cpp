@@ -189,13 +189,13 @@ double GaussPointKreisselmeierAggregationResponseFunction::CalculateValue(ModelP
 {
     KRATOS_TRY
 
-    const auto& r_process_info = mrModelPart.GetProcessInfo();
+    const auto& r_process_info = rModelPart.GetProcessInfo();
 
-    for (const auto& r_element : mrModelPart.Elements()) {
+    for (const auto& r_element : rModelPart.Elements()) {
         mKSPrefactors[r_element.Id()] = 0.0;
     }
 
-    const double max_mean_gp_value = block_for_each<MaxReduction<double>>(mrModelPart.Elements(), std::vector<double>(), [&](auto& rElement, std::vector<double>& rTLS) -> double {
+    const double max_mean_gp_value = block_for_each<MaxReduction<double>>(rModelPart.Elements(), std::vector<double>(), [&](auto& rElement, std::vector<double>& rTLS) -> double {
         rElement.CalculateOnIntegrationPoints(*mpGaussPointValueScalarVariable, rTLS, r_process_info);
 
         double mean_gp_value = 0.0;
@@ -216,7 +216,7 @@ double GaussPointKreisselmeierAggregationResponseFunction::CalculateValue(ModelP
             << mGaussPointValueScalingFactor << " ].\n";
     }
 
-    mSumKSPrefactors = block_for_each<SumReduction<double>>(mrModelPart.Elements(), [&](const auto& rElement) -> double {
+    mSumKSPrefactors = block_for_each<SumReduction<double>>(rModelPart.Elements(), [&](const auto& rElement) -> double {
         double& r_element_ks_prefactor = mKSPrefactors.find(rElement.Id())->second;
         r_element_ks_prefactor = std::exp(mAggregationPenalty * r_element_ks_prefactor / mGaussPointValueScalingFactor);
         return r_element_ks_prefactor;
