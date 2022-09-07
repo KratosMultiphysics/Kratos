@@ -760,7 +760,7 @@ void MmgProcess<TMMGLibrary>::ApplyLocalParameters() {
     // apply (triangle or tetra), the reference of these entities and the hmin, hmax and
     // hausdorff values to apply
     for (auto parameter_settings : parameter_array) {
-        for (const auto& model_part_name_object : parameter_settings["model_part_name_list"])
+        for (const auto model_part_name_object : parameter_settings["model_part_name_list"])
         {
             KRATOS_ERROR_IF_NOT(parameter_settings.Has("hmin")) << "hmin is missing in the local entity parameters list";
             const double hmin = parameter_settings["hmin"].GetDouble();
