@@ -53,6 +53,9 @@ class CoSimulationAnalysis(AnalysisStage):
         else:
             # flush by default only in OpenMP, can decrease performance in MPI
             self.flush_stdout = (self.parallel_type == "OpenMP")
+        
+        # Define a dummy list of processes, since the baseclass expects it
+        self._list_of_processes = []
 
         self._GetSolver() # this creates the solver
 
