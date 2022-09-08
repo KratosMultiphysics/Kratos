@@ -85,7 +85,7 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
     // Check and add variables to visualization model part
     auto& r_origin_variables_list = r_origin_model_part.GetNodalSolutionStepVariablesList();
     auto& r_visualization_variables_list = r_visualization_model_part.GetNodalSolutionStepVariablesList();
-    for (const auto var_name_param : rParameters["visualization_variables"]) {
+    for (auto var_name_param : rParameters["visualization_variables"]) {
         // Check if variable exists in origin model part
         const std::string var_name = var_name_param.GetString();
         const auto& r_var = KratosComponents<VariableData>::Get(var_name);
@@ -180,7 +180,7 @@ void EmbeddedSkinVisualizationProcess::FillVariablesList(
     std::vector<const Variable<TDataType>*>& rVariablesList)
 {
     rVariablesList.clear();
-    for (const auto i_var_params : rParameters) {
+    for (auto i_var_params : rParameters) {
         const Variable<TDataType>* p_aux = nullptr;
         const std::string i_var_name = i_var_params.GetString();
         if(KratosComponents<Variable<TDataType>>::Has(i_var_name)){
