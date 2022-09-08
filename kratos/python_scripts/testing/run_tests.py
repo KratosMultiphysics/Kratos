@@ -156,7 +156,7 @@ class Commander(object):
             import_module("KratosMultiphysics." + application)
 
         try:
-            KtsMp.Tester.SetVerbosity(KtsMp.Tester.Verbosity.TESTS_LIST)
+            KtsMp.Tester.SetVerbosity(KtsMp.Tester.Verbosity.PROGRESS)
             self.exitCode = KtsMp.Tester.RunAllTestCases()
         except Exception as e:
             print('[Warning]:', e, file=sys.stderr)
