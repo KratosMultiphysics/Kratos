@@ -34,10 +34,10 @@ public:
     IntervalUtility(Parameters Settings);
 
     /// @brief Get the initial time of the interval
-    const double GetIntervalBegin() const;
+    double GetIntervalBegin() const;
 
     /// @brief Get the final time of the interval
-    const double GetIntervalEnd() const;
+    double GetIntervalEnd() const;
 
     /// @brief Check if the time is in interval
     /// @param Time

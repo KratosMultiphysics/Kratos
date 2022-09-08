@@ -38,12 +38,12 @@ IntervalUtility::IntervalUtility(Parameters Settings)
     KRATOS_CATCH("");
 }
 
-const double IntervalUtility::GetIntervalBegin() const
+double IntervalUtility::GetIntervalBegin() const
 {
     return mIntervalBegin;
 }
 
-const double IntervalUtility::GetIntervalEnd() const
+double IntervalUtility::GetIntervalEnd() const
 {
     return mIntervalEnd;
 }
