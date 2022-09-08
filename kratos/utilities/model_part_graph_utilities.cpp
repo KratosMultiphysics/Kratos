@@ -71,7 +71,7 @@ std::pair<DenseVector<ModelPartGraphUtilities::IndexType>, DenseVector<ModelPart
 }
 
 std::pair<ModelPartGraphUtilities::IndexType, DenseVector<double>> ModelPartGraphUtilities::ComputeConnectedComponents(
-    const ModelPart::NodesContainerType& rNodes,   
+    const ModelPart::NodesContainerType& rNodes,
     const DenseVector<ModelPartGraphUtilities::IndexType>& rRowIndices,
     const DenseVector<ModelPartGraphUtilities::IndexType>& rColIndices
         )

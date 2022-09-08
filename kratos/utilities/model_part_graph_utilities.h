@@ -48,7 +48,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// This file computes the graph representing the connectivity of a modelpart. 
+/// This file computes the graph representing the connectivity of a modelpart.
 /** Given a modelpart, it returns the csr_representation of its graph.
 */
 class KRATOS_API(KRATOS_CORE) ModelPartGraphUtilities
@@ -84,7 +84,7 @@ public:
     * @param rModelPart modelpart of which we will compute the graph
     * @retval the Graph being computed
     *
-    * NOTE: this function is suboptimal if discontinuous or very large ids are employed 
+    * NOTE: this function is suboptimal if discontinuous or very large ids are employed
     (the graph will have empty rows from 0 to the id of the largest node)
     */
     Kratos::unique_ptr<SparseContiguousRowGraph<>> ComputeGraph(const ModelPart& rModelPart);
@@ -102,9 +102,9 @@ public:
     This function computes the Connected Components for a given graph, expressed in terms of its CSR representation
     it returns a pair containing the number of columns identified and the "color" associated to each of the nodes
     the returned "colors" array is such that one can directly employ the function
-    VariableUtils.SetSolutionStepValue(model_part.Nodes(), colors) to set the value on the nodes in the modelpart for which it was 
+    VariableUtils.SetSolutionStepValue(model_part.Nodes(), colors) to set the value on the nodes in the modelpart for which it was
     */
-    
+
     std::pair<IndexType, DenseVector<double>> ComputeConnectedComponents(
         const ModelPart::NodesContainerType& rNodes,
         const DenseVector<IndexType>& rRowIndices,
@@ -182,17 +182,17 @@ protected:
     ///@{
     // BFS algorithm for computing connected components - simplest version - only considers connectivity
     void BreadthFirstSearch(
-        const int startVertex, 
-        const int color, 
+        const int startVertex,
+        const int color,
         const DenseVector<IndexType>& rRowIndices,
         const DenseVector<IndexType>& rColIndices,
         std::unordered_map<IndexType, int>& rVisited);
 
-    // BFS algorithm for computing connected components 
+    // BFS algorithm for computing connected components
     // an edge is active only if both endpoints are marked as active in the "active_nodes" map
     void BreadthFirstSearch_ActiveNodesCheck(
-        const int startVertex, 
-        const int color, 
+        const int startVertex,
+        const int color,
         const DenseVector<IndexType>& rRowIndices,
         const DenseVector<IndexType>& rColIndices,
         std::unordered_map<IndexType, int>& rVisited,
