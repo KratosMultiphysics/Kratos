@@ -20,18 +20,14 @@ IntervalUtility::IntervalUtility(Parameters Settings)
 {
     KRATOS_TRY
 
-    if(Settings.Has("interval"))
-    {
-        if(Settings["interval"][1].IsString() )
-        {
+    if(Settings.Has("interval")) {
+        if(Settings["interval"][1].IsString() ) {
             if(Settings["interval"][1].GetString() == std::string("End"))
                 Settings["interval"][1].SetDouble(1e30);
             else
                 KRATOS_ERROR << "the second value of interval can be \"End\" or a number, interval currently: \n"+Settings["interval"].PrettyPrintJsonString();
         }
-    }
-    else
-    {
+    } else {
         Parameters defaults(R"( {"default_interval": [0.0, 1e30]} )");
         Settings.AddValue("interval", defaults["default_interval"]);
     }
