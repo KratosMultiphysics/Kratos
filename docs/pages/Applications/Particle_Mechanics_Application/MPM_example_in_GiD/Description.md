@@ -1,3 +1,10 @@
+---
+title: Description
+keywords: 
+tags: [Description.md]
+sidebar: particle_mechanics_application
+summary: 
+---
 # Setting up a MPM example in GiD
 
 ## 1.Introduction
