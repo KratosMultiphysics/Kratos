@@ -288,140 +288,14 @@ void ModelPartRemoveNodesFromAllLevels(ModelPart& rModelPart, Flags identifier_f
 
 // Properties
 
-ModelPart::SizeType  ModelPartNumberOfProperties1(ModelPart& rModelPart)
-{
-    return rModelPart.NumberOfProperties();
-}
-
-void ModelPartAddProperties1(ModelPart& rModelPart, Properties::Pointer pNewProperties)
-{
-    rModelPart.AddProperties(pNewProperties);
-}
-
-void ModelPartAddProperties2(ModelPart& rModelPart, Properties::Pointer pNewProperties, ModelPart::IndexType ThisIndex)
-{
-    rModelPart.AddProperties(pNewProperties, ThisIndex);
-}
-
-bool ModelPartHasProperties1(const ModelPart& rModelPart, const unsigned int PropertiesId, const unsigned int MeshId)
-{
-    return rModelPart.HasProperties(PropertiesId, MeshId);
-}
-
-bool ModelPartHasProperties2(const ModelPart& rModelPart, const unsigned int PropertiesId)
-{
-    return rModelPart.HasProperties(PropertiesId, 0);
-}
-
-bool ModelPartHasSubProperties1(const ModelPart& rModelPart, const std::string& rAdress, const unsigned int MeshId)
-{
-    return rModelPart.HasProperties(rAdress, MeshId);
-}
-
-bool ModelPartHasSubProperties2(const ModelPart& rModelPart, const std::string& rAdress)
-{
-    return rModelPart.HasProperties(rAdress, 0);
-}
-
-bool ModelPartRecursivelyHasProperties1(const ModelPart& rModelPart, const unsigned int PropertiesId, const unsigned int MeshId)
-{
-    return rModelPart.RecursivelyHasProperties(PropertiesId, MeshId);
-}
-
-bool ModelPartRecursivelyHasProperties2(const ModelPart& rModelPart, const unsigned int PropertiesId)
-{
-    return rModelPart.RecursivelyHasProperties(PropertiesId, 0);
-}
-
-Properties::Pointer ModelPartCreateNewProperties1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
-{
-    return rModelPart.CreateNewProperties(PropertiesId, MeshId);
-}
-
-Properties::Pointer ModelPartCreateNewProperties2(ModelPart& rModelPart, unsigned int PropertiesId)
-{
-    return rModelPart.CreateNewProperties(PropertiesId, 0);
-}
-
-Properties::Pointer ModelPartGetPropertiesDirect1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
-{
-    return rModelPart.pGetProperties(PropertiesId, MeshId);
-}
-
-Properties::Pointer ModelPartGetPropertiesDirect2(ModelPart& rModelPart, unsigned int PropertiesId)
-{
-    return rModelPart.pGetProperties(PropertiesId);
-}
-
-Properties::Pointer ModelPartGetSubProperties1(ModelPart& rModelPart, const std::string& rAdress, unsigned int MeshId)
-{
-    return rModelPart.pGetProperties(rAdress, MeshId);
-}
-
-Properties::Pointer ModelPartSubProperties2(ModelPart& rModelPart, const std::string& rAdress)
-{
-    return rModelPart.pGetProperties(rAdress);
-}
-
-ModelPart::PropertiesContainerType::Pointer ModelPartGetProperties1(ModelPart& rModelPart)
+ModelPart::PropertiesContainerType::Pointer ModelPartGetPropertiesContainer(ModelPart& rModelPart)
 {
     return rModelPart.pProperties();
 }
 
-ModelPart::PropertiesContainerType::Pointer ModelPartGetProperties2(ModelPart& rModelPart, ModelPart::IndexType ThisIndex)
-{
-    return rModelPart.pProperties(ThisIndex);
-}
-
-void ModelPartSetProperties1(ModelPart& rModelPart, ModelPart::PropertiesContainerType::Pointer pOtherProperties)
+void ModelPartSetPropertiesContainer(ModelPart& rModelPart, ModelPart::PropertiesContainerType::Pointer pOtherProperties)
 {
     rModelPart.SetProperties(pOtherProperties);
-}
-
-void ModelPartSetProperties2(ModelPart& rModelPart, ModelPart::PropertiesContainerType::Pointer pOtherProperties, ModelPart::IndexType ThisIndex)
-{
-    rModelPart.SetProperties(pOtherProperties, ThisIndex);
-}
-
-void ModelPartRemoveProperties1(ModelPart& rModelPart, ModelPart::IndexType PropertiesId)
-{
-    rModelPart.RemoveProperties(PropertiesId);
-}
-
-void ModelPartRemoveProperties2(ModelPart& rModelPart, ModelPart::IndexType PropertiesId, ModelPart::IndexType ThisIndex)
-{
-    rModelPart.RemoveProperties(PropertiesId, ThisIndex);
-}
-
-void ModelPartRemoveProperties3(ModelPart& rModelPart, ModelPart::PropertiesType::Pointer pThisProperties)
-{
-    rModelPart.RemoveProperties(pThisProperties);
-}
-
-void ModelPartRemoveProperties4(ModelPart& rModelPart, ModelPart::PropertiesType::Pointer pThisProperties, ModelPart::IndexType ThisIndex)
-{
-    rModelPart.RemoveProperties(pThisProperties, ThisIndex);
-}
-
-
-void ModelPartRemovePropertiesFromAllLevels1(ModelPart& rModelPart, ModelPart::IndexType PropertiesId)
-{
-    rModelPart.RemovePropertiesFromAllLevels(PropertiesId);
-}
-
-void ModelPartRemovePropertiesFromAllLevels2(ModelPart& rModelPart, ModelPart::IndexType PropertiesId, ModelPart::IndexType ThisIndex)
-{
-    rModelPart.RemovePropertiesFromAllLevels(PropertiesId, ThisIndex);
-}
-
-void ModelPartRemovePropertiesFromAllLevels3(ModelPart& rModelPart, ModelPart::PropertiesType::Pointer pThisProperties)
-{
-    rModelPart.RemovePropertiesFromAllLevels(pThisProperties);
-}
-
-void ModelPartRemovePropertiesFromAllLevels4(ModelPart& rModelPart, ModelPart::PropertiesType::Pointer pThisProperties, ModelPart::IndexType ThisIndex)
-{
-    rModelPart.RemovePropertiesFromAllLevels(pThisProperties, ThisIndex);
 }
 
 // Elements
@@ -880,8 +754,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("NumberOfMasterSlaveConstraints", ModelPartNumberOfMasterSlaveConstraints1)
         .def("NumberOfMasterSlaveConstraints", &ModelPart::NumberOfMasterSlaveConstraints)
         .def("NumberOfMeshes", &ModelPart::NumberOfMeshes)
-        .def("NumberOfProperties", &ModelPart::NumberOfProperties)
-        .def("NumberOfProperties", ModelPartNumberOfProperties1)
+        .def("NumberOfProperties", &ModelPart::NumberOfProperties, py::arg("ThisIndex") = 0)
         .def("GetMesh", ModelPartGetMesh)
         .def("GetMesh", ModelPartGetMesh2)
         .def_property("Nodes", ModelPartGetNodes1, ModelPartSetNodes1)
@@ -907,31 +780,20 @@ void AddModelPartToPython(pybind11::module& m)
         .def("NumberOfTables", &ModelPart::NumberOfTables)
         .def("AddTable", &ModelPart::AddTable)
         .def("GetTable", &ModelPart::pGetTable)
-        .def("HasProperties", ModelPartHasProperties1)
-        .def("HasProperties", ModelPartHasProperties2)
-        .def("HasProperties", ModelPartHasSubProperties1)
-        .def("HasProperties", ModelPartHasSubProperties2)
-        .def("RecursivelyHasProperties", ModelPartRecursivelyHasProperties1)
-        .def("RecursivelyHasProperties", ModelPartRecursivelyHasProperties2)
-        .def("CreateNewProperties", ModelPartCreateNewProperties1)
-        .def("CreateNewProperties", ModelPartCreateNewProperties2)
-        .def("GetProperties", ModelPartGetPropertiesDirect1)
-        .def("GetProperties", ModelPartGetSubProperties1)
-        .def_property("Properties", ModelPartGetProperties1, ModelPartSetProperties1)
-        .def("AddProperties", ModelPartAddProperties1)
-        .def("AddProperties", ModelPartAddProperties2)
-        .def("GetProperties", ModelPartGetProperties1)
-        .def("SetProperties", ModelPartSetProperties1)
-        .def("GetProperties", ModelPartGetProperties2)
-        .def("SetProperties", ModelPartSetProperties2)
-        .def("RemoveProperties", ModelPartRemoveProperties1)
-        .def("RemoveProperties", ModelPartRemoveProperties2)
-        .def("RemoveProperties", ModelPartRemoveProperties3)
-        .def("RemoveProperties", ModelPartRemoveProperties4)
-        .def("RemovePropertiesFromAllLevels", ModelPartRemovePropertiesFromAllLevels1)
-        .def("RemovePropertiesFromAllLevels", ModelPartRemovePropertiesFromAllLevels2)
-        .def("RemovePropertiesFromAllLevels", ModelPartRemovePropertiesFromAllLevels3)
-        .def("RemovePropertiesFromAllLevels", ModelPartRemovePropertiesFromAllLevels4)
+        .def("HasProperties", [](ModelPart& rSelf, int Id) {return rSelf.HasProperties(Id);})
+        .def("HasProperties", [](ModelPart& rSelf, const std::string& rAddress) {return rSelf.HasProperties(rAddress);})
+        .def("RecursivelyHasProperties", [](ModelPart& rSelf, int Id) {return rSelf.RecursivelyHasProperties(Id);})
+        .def("CreateNewProperties", [](ModelPart& rSelf, int Id) {return rSelf.CreateNewProperties(Id);})
+        .def("GetProperties", [](ModelPart& rSelf, int Id) {return rSelf.pGetProperties(Id);})
+        .def("GetProperties", [](ModelPart& rSelf, const std::string& rAddress) {return rSelf.pGetProperties(rAddress);})
+        .def("GetProperties", [](ModelPart& rSelf) {return rSelf.pProperties();})
+        .def("AddProperties", [](ModelPart& rSelf, Properties::Pointer pProperties) {rSelf.AddProperties(pProperties);})
+        .def("RemoveProperties", [](ModelPart& rSelf, int Id) {return rSelf.RemoveProperties(Id);})
+        .def("RemoveProperties", [](ModelPart& rSelf, Properties::Pointer pProperties) {return rSelf.RemoveProperties(pProperties);})
+        .def("RemovePropertiesFromAllLevels", [](ModelPart& rSelf, int Id) {return rSelf.RemovePropertiesFromAllLevels(Id);})
+        .def("RemovePropertiesFromAllLevels", [](ModelPart& rSelf, Properties::Pointer pProperties) {return rSelf.RemovePropertiesFromAllLevels(pProperties);})
+        .def_property("Properties", ModelPartGetPropertiesContainer, ModelPartSetPropertiesContainer)
+        .def("SetProperties", ModelPartSetPropertiesContainer)
         .def("PropertiesArray", &ModelPart::PropertiesArray, py::return_value_policy::reference_internal)
         .def_property("Elements", ModelPartGetElements1, ModelPartSetElements1)
         .def("HasElement", ModelPartHasElement1)
