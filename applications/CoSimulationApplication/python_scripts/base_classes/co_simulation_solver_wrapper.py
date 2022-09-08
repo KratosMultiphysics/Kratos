@@ -83,7 +83,6 @@ class CoSimulationSolverWrapper:
     def SolveSolutionStep(self):
         pass
 
-
     def CreateIO(self, io_echo_level):
         if self.__HasIO():
             raise Exception('IO for solver "{}" is already created!'.format(self.name))
