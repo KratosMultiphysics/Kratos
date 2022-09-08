@@ -14,6 +14,8 @@ from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import B
 # Other imports
 from collections import OrderedDict
 
+def Create(settings = None, models = None, solver_name = None, base_type = None):
+    return CoSimulationCoupledSolver(settings, models, solver_name)
 
 class UndefinedSolver:
     def __init__(self, name, settings):
@@ -50,54 +52,55 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
     - Synchronization of Input and Output
     - Handles the coupling sequence
     """
-    def __init__(self, settings, models, solver_name):
-        # perform some initial checks
-        if not settings.Has("coupling_sequence"):
-            err_msg  = 'No "coupling_sequence" was specified for coupled solver\n'
-            err_msg += '"{}" of type "{}"'.format(solver_name, self._ClassName())
-            raise Exception(err_msg)
+    def __init__(self, settings = None, models = None, solver_name = None):
+        if isinstance(settings, KM.Parameters):
+            # Perform some initial checks
+            if not settings.Has("coupling_sequence"):
+                err_msg  = 'No "coupling_sequence" was specified for coupled solver\n'
+                err_msg += '"{}" of type "{}"'.format(solver_name, self._ClassName())
+                raise Exception(err_msg)
 
-        if settings["coupling_sequence"].size() == 0:
-            err_msg  = '"coupling_sequence" is empty for coupled solver\n'
-            err_msg += '"{}" of type "{}"'.format(solver_name, self._ClassName())
-            raise Exception(err_msg)
+            if settings["coupling_sequence"].size() == 0:
+                err_msg  = '"coupling_sequence" is empty for coupled solver\n'
+                err_msg += '"{}" of type "{}"'.format(solver_name, self._ClassName())
+                raise Exception(err_msg)
 
-        if not settings.Has("solvers"):
-            err_msg  = 'No "solvers" are specified for coupled solver\n'
-            err_msg += '"{}" of type "{}"'.format(solver_name, self._ClassName())
-            raise Exception(err_msg)
+            if not settings.Has("solvers"):
+                err_msg  = 'No "solvers" are specified for coupled solver\n'
+                err_msg += '"{}" of type "{}"'.format(solver_name, self._ClassName())
+                raise Exception(err_msg)
 
-        if len(settings["solvers"].keys()) == 0:
-            err_msg  = '"solvers" is empty for coupled solver\n'
-            err_msg += '"{}" of type "{}"'.format(solver_name, self._ClassName())
-            raise Exception(err_msg)
+            if len(settings["solvers"].keys()) == 0:
+                err_msg  = '"solvers" is empty for coupled solver\n'
+                err_msg += '"{}" of type "{}"'.format(solver_name, self._ClassName())
+                raise Exception(err_msg)
 
-        if not isinstance(models, dict) and not models is None:
-            err_msg  = 'A coupled solver can either be passed a dict of Models\n'
-            err_msg += 'or None, got object of type "{}"'.format(type(models))
-            raise Exception(err_msg)
+            if not isinstance(models, dict) and not models is None:
+                err_msg  = 'A coupled solver can either be passed a dict of Models\n'
+                err_msg += 'or None, got object of type "{}"'.format(type(models))
+                raise Exception(err_msg)
 
-        super().__init__(settings, None, solver_name)
+            super().__init__(settings, None, solver_name)
 
-        self.process_info = KM.ProcessInfo()
+            self.process_info = KM.ProcessInfo()
 
-        # TODO initialize this in a restart
-        self.process_info[KM.STEP] = 0
-        self.process_info[KM.TIME] = 0.0
-        self.process_info[KM.IS_RESTARTED] = False
+            # TODO initialize this in a restart
+            self.process_info[KM.STEP] = 0
+            self.process_info[KM.TIME] = 0.0
+            self.process_info[KM.IS_RESTARTED] = False
 
-        self.solver_wrappers = self.__CreateSolverWrappers(models)
+            self.solver_wrappers = self.__CreateSolverWrappers(models)
 
-        # overwriting the Model created in the BaseClass
-        # CoupledSolvers only forward calls to its solvers
-        # this is done with the ModelAccessor
-        self.model = ModelAccessor(self.solver_wrappers)
+            # overwriting the Model created in the BaseClass
+            # CoupledSolvers only forward calls to its solvers
+            # this is done with the ModelAccessor
+            self.model = ModelAccessor(self.solver_wrappers)
 
-        self.coupling_sequence = self.__GetSolverCoSimulationDetails()
+            self.coupling_sequence = self.__GetSolverCoSimulationDetails()
 
-        for solver in self.solver_wrappers.values():
-            solver.CreateIO(self.echo_level)
-            # using the echo_level of the coupled solver, since IO is needed by the coupling
+            for solver in self.solver_wrappers.values():
+                solver.CreateIO(self.echo_level)
+                # using the echo_level of the coupled solver, since IO is needed by the coupling
 
     def _GetSolver(self, solver_name):
         solver_name, *sub_solver_names = solver_name.split(".")
