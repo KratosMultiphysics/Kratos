@@ -55,13 +55,13 @@ class TestGraphUtilities(KratosUnittest.TestCase):
 
         #with color 0
         block1_ids = [100,2,3,4,5,6,9,101]
-        for id in block1_ids:
-            self.assertEqual(model_part.Nodes[id].GetSolutionStepValue(KM.TEMPERATURE,0), 0.0)
+        for n_id in block1_ids:
+            self.assertAlmostEqual(model_part.Nodes[n_id].GetSolutionStepValue(KM.TEMPERATURE,0), 0.0)
 
         #with color 1
         block1_ids = [7,8,110,120]
-        for id in block1_ids:
-            self.assertEqual(model_part.Nodes[id].GetSolutionStepValue(KM.TEMPERATURE,0), 1.0)
+        for n_id in block1_ids:
+            self.assertAlmostEqual(model_part.Nodes[n_id].GetSolutionStepValue(KM.TEMPERATURE,0), 1.0)
 
 
         ################## now let's define a distance fiel, so that it is positive everywhere except in nodes 2,5
@@ -85,32 +85,28 @@ class TestGraphUtilities(KratosUnittest.TestCase):
 
         #with color 0
         block1_ids = [3,4,100]
-        for id in block1_ids:
-            self.assertEqual(model_part.Nodes[id].GetSolutionStepValue(KM.TEMPERATURE,0), 0.0)
+        for n_id in block1_ids:
+            self.assertAlmostEqual(model_part.Nodes[n_id].GetSolutionStepValue(KM.TEMPERATURE,0), 0.0)
 
         #with color 1
         block1_ids = [6,9,101]
-        for id in block1_ids:
-            self.assertEqual(model_part.Nodes[id].GetSolutionStepValue(KM.TEMPERATURE,0), 1.0)
+        for n_id in block1_ids:
+            self.assertAlmostEqual(model_part.Nodes[n_id].GetSolutionStepValue(KM.TEMPERATURE,0), 1.0)
 
         #with color 2
         block1_ids = [7,8,110,120]
-        for id in block1_ids:
-            self.assertEqual(model_part.Nodes[id].GetSolutionStepValue(KM.TEMPERATURE,0), 2.0)
+        for n_id in block1_ids:
+            self.assertAlmostEqual(model_part.Nodes[n_id].GetSolutionStepValue(KM.TEMPERATURE,0), 2.0)
 
         ############# check automatic application of fixity
         model_part.Nodes[2].Fix(KM.TEMPERATURE) #this one will be ignored as inactive
         model_part.Nodes[100].Fix(KM.TEMPERATURE)
-        fixed_ids = KM.ModelPartGraphUtilities().ApplyMinimalScalarFixity(model_part.Nodes,KM.TEMPERATURE, colors, ncolors)
+        KM.ModelPartGraphUtilities().ApplyMinimalScalarFixity(model_part.Nodes,KM.TEMPERATURE, colors, ncolors)
 
-        fixed_list = []
-        for node in model_part.Nodes:
-            fixed_list.append(node.IsFixed(KM.TEMPERATURE))
+        fixed_list = [node.IsFixed(KM.TEMPERATURE) for node in model_part.Nodes]
 
         expected_fixed_list = [True, False, False, False, True, True, False, False, True, False, False, False]
-        for i in range(len(fixed_list)):
-            self.assertEqual(fixed_list[i],expected_fixed_list[i])
-
+        self.assertListEqual(fixed_list, expected_fixed_list)
 
 
 if __name__ == '__main__':
