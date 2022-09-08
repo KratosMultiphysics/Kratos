@@ -726,11 +726,11 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     py::class_<ModelPartGraphUtilities>(m, "ModelPartGraphUtilities")
         .def(py::init<>())
-        .def("ComputeGraph", &ModelPartGraphUtilities::ComputeGraph)
-        .def("ComputeCSRGraph", &ModelPartGraphUtilities::ComputeCSRGraph)
-        .def("ComputeConnectedComponents", &ModelPartGraphUtilities::ComputeConnectedComponents)
-        .def("ComputeConnectedComponents_ActiveNodesCheck", &ModelPartGraphUtilities::ComputeConnectedComponents_ActiveNodesCheck)
-        .def("ApplyMinimalScalarFixity", &ModelPartGraphUtilities::ApplyMinimalScalarFixity)
+        .def_static("ComputeGraph", &ModelPartGraphUtilities::ComputeGraph)
+        .def_static("ComputeCSRGraph", &ModelPartGraphUtilities::ComputeCSRGraph)
+        .def_static("ComputeConnectedComponents", &ModelPartGraphUtilities::ComputeConnectedComponents)
+        .def_static("ComputeConnectedComponents_ActiveNodesCheck", &ModelPartGraphUtilities::ComputeConnectedComponents_ActiveNodesCheck)
+        .def_static("ApplyMinimalScalarFixity", &ModelPartGraphUtilities::ApplyMinimalScalarFixity)
         ;
 
     auto fs_extensions = m.def_submodule("FilesystemExtensions");

@@ -87,7 +87,7 @@ public:
     * NOTE: this function is suboptimal if discontinuous or very large ids are employed
     (the graph will have empty rows from 0 to the id of the largest node)
     */
-    Kratos::unique_ptr<SparseContiguousRowGraph<>> ComputeGraph(const ModelPart& rModelPart);
+    static Kratos::unique_ptr<SparseContiguousRowGraph<>> ComputeGraph(const ModelPart& rModelPart);
 
     /**The following function computes the connectivity graph (based on node.Id()-1 so that ids start in 0)
     * expressed as CSR arrays  for the modelpart used as input.
@@ -96,7 +96,7 @@ public:
     *
     * NOTE: this function is suboptimal if discontinuous or very large ids are employed (the graph will have empty rows from 0 to the id of the largest node)
     */
-    std::pair<DenseVector<IndexType>, DenseVector<IndexType>> ComputeCSRGraph(const ModelPart& rModelPart);
+    static std::pair<DenseVector<IndexType>, DenseVector<IndexType>> ComputeCSRGraph(const ModelPart& rModelPart);
 
     /**
     This function computes the Connected Components for a given graph, expressed in terms of its CSR representation
@@ -105,7 +105,7 @@ public:
     VariableUtils.SetSolutionStepValue(model_part.Nodes(), colors) to set the value on the nodes in the modelpart for which it was
     */
 
-    std::pair<IndexType, DenseVector<double>> ComputeConnectedComponents(
+    static std::pair<IndexType, DenseVector<double>> ComputeConnectedComponents(
         const ModelPart::NodesContainerType& rNodes,
         const DenseVector<IndexType>& rRowIndices,
         const DenseVector<IndexType>& rColIndices
@@ -113,14 +113,14 @@ public:
 
     //similar to the previous version, except that a "active_nodes" array needs to be passed
     //the "active_nodes" array needs to be initialized without gaps in the same order in which the nodes are passed in the rNodes array
-    std::pair<IndexType, DenseVector<double>> ComputeConnectedComponents_ActiveNodesCheck(
+    static std::pair<IndexType, DenseVector<double>> ComputeConnectedComponents_ActiveNodesCheck(
         const ModelPart::NodesContainerType& rNodes,
         const DenseVector<IndexType>& rRowIndices,
         const DenseVector<IndexType>& rColIndices,
         const std::vector<bool>& active_nodes_list
         );
 
-    std::vector<IndexType> ApplyMinimalScalarFixity(
+    static std::vector<IndexType> ApplyMinimalScalarFixity(
         ModelPart::NodesContainerType& rNodes,
         const Variable<double>& rVar,
         const DenseVector<double>& colors,
@@ -181,7 +181,7 @@ protected:
     ///@name Protected Operations
     ///@{
     // BFS algorithm for computing connected components - simplest version - only considers connectivity
-    void BreadthFirstSearch(
+    static void BreadthFirstSearch(
         const int startVertex,
         const int color,
         const DenseVector<IndexType>& rRowIndices,
@@ -190,7 +190,7 @@ protected:
 
     // BFS algorithm for computing connected components
     // an edge is active only if both endpoints are marked as active in the "active_nodes" map
-    void BreadthFirstSearch_ActiveNodesCheck(
+    static void BreadthFirstSearch_ActiveNodesCheck(
         const int startVertex,
         const int color,
         const DenseVector<IndexType>& rRowIndices,
