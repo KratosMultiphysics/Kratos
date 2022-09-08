@@ -4,13 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 
 
 // Project includes
 #include "cad_io_modeler.h"
+#include "input_output/cad_json_input.h"
+#include "input_output/cad_json_output.h"
 
 
 namespace Kratos
