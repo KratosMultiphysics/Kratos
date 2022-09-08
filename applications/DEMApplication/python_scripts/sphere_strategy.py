@@ -280,7 +280,7 @@ class ExplicitStrategy():
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
             for subproperties in properties.GetSubProperties():
-                self.ModifySubProperties(subproperties)
+                self.ModifySubProperties(subproperties, properties.Id)
 
         for submp in self.inlet_model_part.SubModelParts:
             if submp.Has(CLUSTER_FILE_NAME):
@@ -663,7 +663,7 @@ class ExplicitStrategy():
         rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
         rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
 
-    def ModifySubProperties(self, properties, param = 0):
+    def ModifySubProperties(self, properties, parent_id, param = 0):
 
         DiscontinuumConstitutiveLaw = globals().get(properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
         coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
@@ -720,7 +720,7 @@ class ExplicitStrategy():
 
         if not properties.Has(DEM_ROLLING_FRICTION_MODEL_NAME):
             properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelConstantTorque"
-            self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelConstantTorque].")
+            self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelConstantTorque] for material relation with parameter \"material_ids_list\": [" + str(parent_id) + ", " + str(properties.Id) + "]")
 
         rolling_friction_model = globals().get(properties[DEM_ROLLING_FRICTION_MODEL_NAME])()
         rolling_friction_model.SetAPrototypeOfThisInProperties(properties, False)
