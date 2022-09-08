@@ -640,7 +640,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
         interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
         interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
         interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
-        if (TMMGLibrary == MMGLibrary::MMGS) interpolate_parameters["surface_elements"].SetBool(!collapse_prisms_elements);
+        if constexpr (TMMGLibrary == MMGLibrary::MMGS) interpolate_parameters["surface_elements"].SetBool(!collapse_prisms_elements);
         NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_model_part, mrThisModelPart, interpolate_parameters);
         interpolate_nodal_values_process.Execute();
     }

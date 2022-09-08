@@ -153,7 +153,7 @@ void UPwBaseElement<TDim,TNumNodes>::
     // resize mStressVector:
     if ( mStressVector.size() != NumGPoints ) {
        unsigned int VoigtSize = VOIGT_SIZE_3D;
-       if (TDim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
+       if constexpr (TDim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
        mStressVector.resize(NumGPoints);
        for (unsigned int i=0; i < mStressVector.size(); ++i) {
            mStressVector[i].resize(VoigtSize);
@@ -233,7 +233,7 @@ void UPwBaseElement<TDim,TNumNodes>::
     if (rElementalDofList.size() != N_DOF)
       rElementalDofList.resize( N_DOF );
 
-    if (TDim == 3) {
+    if constexpr (TDim == 3) {
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
@@ -241,7 +241,7 @@ void UPwBaseElement<TDim,TNumNodes>::
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
             rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
         }
-    } else if (TDim == 2) {
+    } else if constexpr (TDim == 2) {
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
@@ -360,14 +360,14 @@ void UPwBaseElement<TDim,TNumNodes>::
     if (rResult.size() != N_DOF)
       rResult.resize( N_DOF, false );
 
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
         }
-    } else if (TDim == 3) {
+    } else if constexpr (TDim == 3) {
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
@@ -492,7 +492,7 @@ void UPwBaseElement<TDim,TNumNodes>::
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
             rValues[index++] = 0.0;
         }
-    } else if (TDim == 3) {
+    } else if constexpr (TDim == 3) {
         unsigned int index = 0;
         for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
@@ -527,7 +527,7 @@ void UPwBaseElement<TDim,TNumNodes>::
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
             rValues[index++] = 0.0;
         }
-    } else if (TDim == 3) {
+    } else if constexpr (TDim == 3) {
         unsigned int index = 0;
         for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
@@ -606,7 +606,61 @@ void UPwBaseElement<TDim,TNumNodes>::
 
     KRATOS_CATCH( "" )
 }
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim, TNumNodes>::
+CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
 
+        KRATOS_ERROR << "calling the default CalculateOnIntegrationPoints (array_1d<double, 3>) method for a particular element ... illegal operation!!" << this->Id() << std::endl;
+
+    KRATOS_CATCH("")
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim, TNumNodes>::
+CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    std::vector<Matrix>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+        KRATOS_ERROR << "calling the default CalculateOnIntegrationPoints (Matrix) method for a particular element ... illegal operation!!" << this->Id() << std::endl;
+
+    KRATOS_CATCH("")
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim, TNumNodes>::
+CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+        KRATOS_ERROR << "calling the default CalculateOnIntegrationPoints (Vector) method for a particular element ... illegal operation!!" << this->Id() << std::endl;
+
+    KRATOS_CATCH("")
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim, TNumNodes>::
+CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+        KRATOS_ERROR << "calling the default CalculateOnIntegrationPoints (double) method for a particular element ... illegal operation!!" << this->Id() << std::endl;
+
+    KRATOS_CATCH("")
+}
 //-------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwBaseElement<TDim,TNumNodes>::

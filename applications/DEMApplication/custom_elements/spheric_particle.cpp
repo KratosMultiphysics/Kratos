@@ -932,7 +932,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             }
 
             // Store contact information needed for later processes
-            StoreBallToBallContactInfo(r_process_info, data_buffer, data_buffer.mpOtherParticle, GlobalContactForce, sliding);
+            StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForce, ViscoDampingLocalContactForce, sliding);
 
             DEM_SET_COMPONENTS_TO_ZERO_3(DeltDisp)
             DEM_SET_COMPONENTS_TO_ZERO_3(LocalDeltDisp)
@@ -1000,7 +1000,11 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 
     for (unsigned int i = 0; i < rNeighbours.size(); i++) {
         DEMWall* wall = rNeighbours[i];
-        if(wall == NULL) continue;
+        if (wall == NULL)
+          continue;
+        else
+          data_buffer.mpOtherRigidFace = wall;
+
         if(this->Is(DEMFlags::STICKY)) {
             DEMIntegrationScheme& dem_scheme = this->GetTranslationalIntegrationScheme();
             GluedToWallScheme* p_glued_scheme = dynamic_cast<GluedToWallScheme*>(&dem_scheme);
@@ -1132,7 +1136,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             }
 
             // Store contact information needed for later processes
-            StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, wall, GlobalContactForce, sliding);
+            StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForce, ViscoDampingLocalContactForce, sliding);
 
         } //ContactType if
     } //rNeighbours.size loop
@@ -1931,9 +1935,9 @@ std::unique_ptr<DEMDiscontinuumConstitutiveLaw> SphericParticle::pCloneDiscontin
 
 void SphericParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {}
 
-void SphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, SphericParticle* other_element, double GlobalContactForce[3], bool sliding) {}
+void SphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) {}
 
-void SphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, DEMWall* other_element, double GlobalContactForce[3], bool sliding) {}
+void SphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) {}
 
 double SphericParticle::GetInitialDeltaWithFEM(int index) {//only available in continuum_particle
     return 0.0;

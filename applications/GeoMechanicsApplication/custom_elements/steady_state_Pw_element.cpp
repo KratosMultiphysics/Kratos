@@ -94,7 +94,7 @@ int SteadyStatePwElement<TDim,TNumNodes>::
     if ( Prop.Has( PERMEABILITY_XY ) == false || Prop[PERMEABILITY_XY] < 0.0 )
         KRATOS_ERROR << "PERMEABILITY_XY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-    if (TDim > 2) {
+    if constexpr (TDim > 2) {
         if ( Prop.Has( PERMEABILITY_ZZ ) == false || Prop[PERMEABILITY_ZZ] < 0.0 )
             KRATOS_ERROR << "PERMEABILITY_ZZ does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
