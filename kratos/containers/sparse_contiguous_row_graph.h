@@ -114,7 +114,7 @@ public:
     {
         mpComm = rOther.mpComm;
         mGraph.resize(rOther.mGraph.size());
-        IndexPartition<IndexType>(GraphSize).for_each([&](IndexType i) {
+        IndexPartition<IndexType>(rOther.mGraph.size()).for_each([&](IndexType i) {
             mGraph[i] = std::unordered_set<IndexType>();
         });
         mLocks.resize(rOther.mLocks.size());
