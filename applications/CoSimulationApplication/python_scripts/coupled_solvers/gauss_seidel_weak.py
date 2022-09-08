@@ -5,7 +5,7 @@ def Create(settings, models, solver_name, base_class = CoSimulationCoupledSolver
     return GetGaussSeidelWeakCoupledSolver(base_class)(settings, models, solver_name)
 
 def GetGaussSeidelWeakCoupledSolver(base):
-    class GaussSeidelWeakCoupledSolver(GetGaussSeidelWeakCoupledSolver):
+    class GaussSeidelWeakCoupledSolver(base):
         def SolveSolutionStep(self):
             for coupling_op in self.coupling_operations_dict.values():
                 coupling_op.InitializeCouplingIteration()
