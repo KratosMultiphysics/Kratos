@@ -186,7 +186,7 @@ protected:
         const int color, 
         const DenseVector<IndexType>& rRowIndices,
         const DenseVector<IndexType>& rColIndices,
-        std::unordered_map<IndexType, int>& visited);
+        std::unordered_map<IndexType, int>& rVisited);
 
     // BFS algorithm for computing connected components 
     // an edge is active only if both endpoints are marked as active in the "active_nodes" map
@@ -195,8 +195,8 @@ protected:
         const int color, 
         const DenseVector<IndexType>& rRowIndices,
         const DenseVector<IndexType>& rColIndices,
-        std::unordered_map<IndexType, int>& visited,
-        const std::unordered_map<IndexType, bool>& active_nodes);
+        std::unordered_map<IndexType, int>& rVisited,
+        const std::unordered_map<IndexType, bool>& rActiveNodes);
 
     ///@}
     ///@name Protected  Access
