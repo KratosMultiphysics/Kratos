@@ -5,7 +5,7 @@ def Create(settings, models, solver_name, base_class = CoSimulationCoupledSolver
     return GetJacobiWeakCoupledSolver(base_class)(settings, models, solver_name)
 
 def GetJacobiWeakCoupledSolver(base):
-    class TemplatedJacobiWeakCoupledSolver(base):
+    class JacobiWeakCoupledSolver(base):
         def SolveSolutionStep(self):
             for coupling_op in self.coupling_operations_dict.values():
                 coupling_op.InitializeCouplingIteration()
@@ -24,4 +24,4 @@ def GetJacobiWeakCoupledSolver(base):
 
             return True
 
-    return TemplatedJacobiWeakCoupledSolver
+    return JacobiWeakCoupledSolver

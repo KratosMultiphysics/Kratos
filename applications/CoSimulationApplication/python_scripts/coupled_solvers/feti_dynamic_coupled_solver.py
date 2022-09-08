@@ -13,7 +13,7 @@ def Create(settings, models, solver_name, base_class = CoSimulationCoupledSolver
     return GetFetiDynamicCoupledSolver(base_class)(settings, models, solver_name)
 
 def GetFetiDynamicCoupledSolver(base):
-    class TemplatedFetiDynamicCoupledSolver(CoSimulationCoupledSolver):
+    class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         def __init__(self, settings, models, solver_name):
             super().__init__(settings, models, solver_name)
 
@@ -270,4 +270,4 @@ def GetFetiDynamicCoupledSolver(base):
 
             return this_defaults
             
-    return TemplatedFetiDynamicCoupledSolver
+    return FetiDynamicCoupledSolver

@@ -13,7 +13,7 @@ def Create(settings, models, solver_name, base_class = CoSimulationCoupledSolver
     return GetJacobiStrongCoupledSolver(base_class)(settings, models, solver_name)
 
 def GetJacobiStrongCoupledSolver(base):
-    class TemplatedJacobiStrongCoupledSolver(CoSimulationCoupledSolver):
+    class JacobiStrongCoupledSolver(CoSimulationCoupledSolver):
         def __init__(self, settings, models, solver_name):
             super().__init__(settings, models, solver_name)
 
@@ -157,4 +157,4 @@ def GetJacobiStrongCoupledSolver(base):
             for solver in self.solver_wrappers.values():
                 solver.ExportData(export_config)
 
-    return TemplatedJacobiStrongCoupledSolver
+    return JacobiStrongCoupledSolver
