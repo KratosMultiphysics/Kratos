@@ -725,7 +725,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         ;
 
     py::class_<ModelPartGraphUtilities>(m, "ModelPartGraphUtilities")
-        .def(py::init<>())
         .def_static("ComputeGraph", &ModelPartGraphUtilities::ComputeGraph)
         .def_static("ComputeCSRGraph", &ModelPartGraphUtilities::ComputeCSRGraph)
         .def_static("ComputeConnectedComponents", &ModelPartGraphUtilities::ComputeConnectedComponents)

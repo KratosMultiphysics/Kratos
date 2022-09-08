@@ -41,13 +41,13 @@ class TestGraphUtilities(KratosUnittest.TestCase):
         model_part.CreateNewElement("Element2D3N", 8, [110,120,8], model_part.GetProperties()[1])
 
         #note that we first compute the graph
-        row_indices,col_indices = KM.ModelPartGraphUtilities().ComputeCSRGraph(model_part)
+        row_indices,col_indices = KM.ModelPartGraphUtilities.ComputeCSRGraph(model_part)
 
         #and then the connected components. This is done this way so that the graph can be reused.
         #we also need to pass the Nodes list to this second function as nodes can be numbered non consecutively,
         #however the output is to a vector, which is then designed for use together with VariableUtils().SetSolutionStepValuesVector
         #on that list of nodes
-        ncolors,colors = KM.ModelPartGraphUtilities().ComputeConnectedComponents(model_part.Nodes,row_indices,col_indices)
+        ncolors,colors = KM.ModelPartGraphUtilities.ComputeConnectedComponents(model_part.Nodes,row_indices,col_indices)
 
         self.assertEqual(ncolors,2)
 
@@ -77,7 +77,7 @@ class TestGraphUtilities(KratosUnittest.TestCase):
         active_nodes = np.where(np.array(distances)>0, True, False)
 
         #compute the connected components taking into account active_nodes - note that the graph is the same as before
-        ncolors,colors = KM.ModelPartGraphUtilities().ComputeConnectedComponents_ActiveNodesCheck(model_part.Nodes,row_indices,col_indices,active_nodes)
+        ncolors,colors = KM.ModelPartGraphUtilities.ComputeConnectedComponents_ActiveNodesCheck(model_part.Nodes,row_indices,col_indices,active_nodes)
 
         self.assertEqual(ncolors,3)
 
@@ -101,7 +101,7 @@ class TestGraphUtilities(KratosUnittest.TestCase):
         ############# check automatic application of fixity
         model_part.Nodes[2].Fix(KM.TEMPERATURE) #this one will be ignored as inactive
         model_part.Nodes[100].Fix(KM.TEMPERATURE)
-        KM.ModelPartGraphUtilities().ApplyMinimalScalarFixity(model_part.Nodes,KM.TEMPERATURE, colors, ncolors)
+        KM.ModelPartGraphUtilities.ApplyMinimalScalarFixity(model_part.Nodes,KM.TEMPERATURE, colors, ncolors)
 
         fixed_list = [node.IsFixed(KM.TEMPERATURE) for node in model_part.Nodes]
 
