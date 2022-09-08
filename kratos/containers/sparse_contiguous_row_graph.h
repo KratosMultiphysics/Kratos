@@ -113,6 +113,8 @@ public:
     SparseContiguousRowGraph(const SparseContiguousRowGraph& rOther)
     {
         mpComm = rOther.mpComm;
+        mGraph.resize(rOther.mGraph.size());
+        mLocks.resize(rOther.mLocks.size());
         this->AddEntries(rOther);
     }
 
