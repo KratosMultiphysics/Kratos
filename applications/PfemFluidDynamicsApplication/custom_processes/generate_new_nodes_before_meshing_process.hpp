@@ -1267,22 +1267,26 @@ namespace Kratos
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
 			bool toEraseNodeFound = false;
+			bool freeSurfaceElement = false;
 			for (unsigned int pn = 0; pn < nds; pn++)
 			{
 				if (Element[pn].Is(RIGID))
 				{
 					rigidNodes++;
-					rigidNodeLocalMeshSize += Element[pn].FastGetSolutionStepValue(NODAL_H);
+					rigidNodeLocalMeshSize += Element[pn].FastGetSolutionStepValue(NODAL_H_WALL);
 					rigidNodeMeshCounter += 1.0;
 				}
 				if (Element[pn].Is(TO_ERASE))
 				{
 					toEraseNodeFound = true;
 				}
+				if (Element[pn].Is(FREE_SURFACE))
+				{
+					freeSurfaceElement = true;
+				}
 			}
 
-
-			if (rigidNodeMeshCounter > 0 && rigidNodeMeshCounter < nds)
+			if (rigidNodeMeshCounter > 0 && rigidNodeMeshCounter < nds && freeSurfaceElement == false)
 			{
 				double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
 				meanMeshSize *= 0.5;
@@ -1421,21 +1425,26 @@ namespace Kratos
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
 			bool toEraseNodeFound = false;
+			bool freeSurfaceElement = false;
 			for (unsigned int pn = 0; pn < nds; pn++)
 			{
 				if (Element[pn].Is(RIGID))
 				{
 					rigidNodes++;
-					rigidNodeLocalMeshSize += Element[pn].FastGetSolutionStepValue(NODAL_H);
+					rigidNodeLocalMeshSize += Element[pn].FastGetSolutionStepValue(NODAL_H_WALL);
 					rigidNodeMeshCounter += 1.0;
 				}
 				if (Element[pn].Is(TO_ERASE))
 				{
 					toEraseNodeFound = true;
 				}
+				if (Element[pn].Is(FREE_SURFACE))
+				{
+					freeSurfaceElement = true;
+				}
 			}
 
-			if (rigidNodeMeshCounter > 0 && rigidNodeMeshCounter < nds)
+			if (rigidNodeMeshCounter > 0 && rigidNodeMeshCounter < nds && freeSurfaceElement == false)
 			{
 				double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
 				meanMeshSize *= 0.5;

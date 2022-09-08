@@ -231,7 +231,7 @@ namespace Kratos
                         {
                             if (vertices.back().Is(RIGID))
                             {
-                                rigidNodeLocalMeshSize += vertices.back().FastGetSolutionStepValue(NODAL_H);
+                                rigidNodeLocalMeshSize += vertices.back().FastGetSolutionStepValue(NODAL_H_WALL);
                                 rigidNodeMeshCounter += 1.0;
                             }
 

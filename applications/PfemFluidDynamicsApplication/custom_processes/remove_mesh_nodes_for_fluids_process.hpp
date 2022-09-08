@@ -443,12 +443,18 @@ namespace Kratos
 				double rigidNodeMeshCounter = 0;
 
 				NodeWeakPtrVectorType &rN = in->GetValue(NEIGHBOUR_NODES);
+				bool freeSurfaceElement = false;
+
 				for (unsigned int i = 0; i < rN.size(); i++)
 				{
 					if (rN[i].Is(RIGID))
 					{
-						rigidNodeLocalMeshSize += rN[i].FastGetSolutionStepValue(NODAL_H);
+						rigidNodeLocalMeshSize += rN[i].FastGetSolutionStepValue(NODAL_H_WALL);
 						rigidNodeMeshCounter += 1.0;
+					}
+					if (rN[i].Is(FREE_SURFACE))
+					{
+						freeSurfaceElement = true;
 					}
 				}
 
@@ -467,6 +473,7 @@ namespace Kratos
 					}
 				}
 
+				// if (rigidNodeMeshCounter > 0 && freeSurfaceElement == false)
 				if (rigidNodeMeshCounter > 0)
 				{
 					double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;

@@ -98,7 +98,7 @@ namespace Kratos
       {
         if (i_node->Is(RIGID))
         {
-          i_node->FastGetSolutionStepValue(NODAL_H) = 0;
+          i_node->FastGetSolutionStepValue(NODAL_H_WALL) = 0;
         }
       }
 
@@ -112,23 +112,23 @@ namespace Kratos
         {
           if (r_geom[k].Is(RIGID))
           {
-            double &r_h1 = r_geom[k].FastGetSolutionStepValue(NODAL_H);
+            double &r_h1 = r_geom[k].FastGetSolutionStepValue(NODAL_H_WALL);
             for (IndexType l = k + 1; l < number_of_nodes; ++l)
             {
               if (r_geom[l].Is(RIGID))
               {
                 double hedge = norm_2(r_geom[l].Coordinates() - r_geom[k].Coordinates());
-                double &r_h2 = r_geom[l].FastGetSolutionStepValue(NODAL_H);
+                double &r_h2 = r_geom[l].FastGetSolutionStepValue(NODAL_H_WALL);
                 // Get minimum between the existent value and the considered edge length
-                r_geom[k].FastGetSolutionStepValue(NODAL_H) = std::max(r_h1, hedge);
-                r_geom[l].FastGetSolutionStepValue(NODAL_H) = std::max(r_h2, hedge);
+                r_geom[k].FastGetSolutionStepValue(NODAL_H_WALL) = std::max(r_h1, hedge);
+                r_geom[l].FastGetSolutionStepValue(NODAL_H_WALL) = std::max(r_h2, hedge);
               }
             }
           }
         }
       }
       // Synchronize between processes
-      // mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(NODAL_H);
+      // mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(NODAL_H_WALL);
       KRATOS_CATCH("")
     }
 
