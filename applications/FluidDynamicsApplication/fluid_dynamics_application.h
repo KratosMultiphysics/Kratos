@@ -276,6 +276,7 @@ private:
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mQSVMSDEMCoupled2D4N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mQSVMSDEMCoupled3D8N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mAlternativeQSVMSDEMCoupled2D3N;
+    const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mAlternativeQSVMSDEMCoupled2D6N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mAlternativeQSVMSDEMCoupled3D4N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mAlternativeQSVMSDEMCoupled2D4N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,9> > mAlternativeQSVMSDEMCoupled2D9N;
