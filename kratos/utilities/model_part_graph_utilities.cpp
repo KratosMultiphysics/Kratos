@@ -25,7 +25,6 @@ namespace Kratos
 
 Kratos::unique_ptr<SparseContiguousRowGraph<>> ModelPartGraphUtilities::ComputeGraph(const ModelPart& rModelPart)
 {
-
     ModelPartGraphUtilities::ModelPartGraphUtilities::IndexType largest_id = 0;
     if(rModelPart.Nodes().size() != 0)
         largest_id = (rModelPart.Nodes().end()-1)->Id()-1;
@@ -33,8 +32,7 @@ Kratos::unique_ptr<SparseContiguousRowGraph<>> ModelPartGraphUtilities::ComputeG
     auto Agraph = Kratos::make_unique<SparseContiguousRowGraph<>>(largest_id+1);
     std::vector<ModelPartGraphUtilities::IndexType> tls_aux;
 
-    block_for_each(rModelPart.Elements(), tls_aux, [&Agraph](const auto& rElem, auto& aux_list)
-    {
+    block_for_each(rModelPart.Elements(), tls_aux, [&Agraph](const auto& rElem, auto& aux_list) {
         const auto& r_geom = rElem.GetGeometry();
         const ModelPartGraphUtilities::ModelPartGraphUtilities::IndexType nnodes = r_geom.size();
         if(aux_list.size() != nnodes)
@@ -46,8 +44,7 @@ Kratos::unique_ptr<SparseContiguousRowGraph<>> ModelPartGraphUtilities::ComputeG
         Agraph->AddEntries(aux_list);
     });
 
-    block_for_each(rModelPart.Conditions(), tls_aux, [&Agraph](const auto& rCond, auto& aux_list)
-    {
+    block_for_each(rModelPart.Conditions(), tls_aux, [&Agraph](const auto& rCond, auto& aux_list) {
         const auto& r_geom = rCond.GetGeometry();
         const ModelPartGraphUtilities::IndexType nnodes = r_geom.size();
         if(aux_list.size() != nnodes)
