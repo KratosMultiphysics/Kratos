@@ -49,26 +49,26 @@ public:
             settings.AddValue("interval", defaults["default_interval"]);
         }
 
-        minterval_begin = settings["interval"][0].GetDouble();
-        minterval_end = settings["interval"][1].GetDouble();
+        mIntervalBegin = settings["interval"][0].GetDouble();
+        mIntervalEnd = settings["interval"][1].GetDouble();
 
         KRATOS_CATCH("");
     }
 
     const double GetIntervalBegin() const
     {
-        return minterval_begin;
+        return mIntervalBegin;
     }
 
     const double GetIntervalEnd() const
     {
-        return minterval_end;
+        return mIntervalEnd;
     }
 
     bool IsInInterval(double time )
     {
-        const double eps = std::max(1e-14*minterval_begin, 1e-30);
-        if(time > minterval_begin-eps && time < minterval_end+eps)
+        const double eps = std::max(1e-14*mIntervalBegin, 1e-30);
+        if(time > mIntervalBegin-eps && time < mIntervalEnd+eps)
             return true;
         else
             return false;
@@ -93,8 +93,8 @@ public:
     }
 
 private:
-    double minterval_begin;
-    double minterval_end;
+    double mIntervalBegin;
+    double mIntervalEnd;
 };
 
 
