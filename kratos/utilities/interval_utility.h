@@ -67,8 +67,8 @@ public:
 
     bool IsInInterval(double time )
     {
-        const double eps = std::max(1e-14*minterval_begin, 1e-30);
-        if(time >= minterval_begin-eps && time <= minterval_end+eps)
+        const double eps = std::max(1e-14*(minterval_end-minterval_begin), 1e-30);
+        if(time > minterval_begin-eps && time < minterval_end+eps)
             return true;
         else
             return false;
