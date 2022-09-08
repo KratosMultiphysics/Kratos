@@ -23,7 +23,7 @@ namespace Kratos
 /**this function manages intervals. It aims at being used within processes
 *
 */
-class IntervalUtility
+class KRATOS_API(KRATOS_CORE) IntervalUtility
 {
 public:
 
