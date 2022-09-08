@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "containers/sparse_contiguous_row_graph.h"
 
 
@@ -65,16 +66,18 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    ModelPartGraphUtilities(){}
+    /// no constructor.
+    ModelPartGraphUtilities() = delete;
 
-    /// Destructor.
-    virtual ~ModelPartGraphUtilities(){}
+    /// Copy constructor.
+    ModelPartGraphUtilities(ModelPartGraphUtilities const& rOther) = delete;
 
     ///@}
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
+    ModelPartGraphUtilities& operator=(ModelPartGraphUtilities const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -140,20 +143,6 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-    std::stringstream buffer;
-    buffer << "ModelPartGraphUtilities" ;
-    return buffer.str();
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "ModelPartGraphUtilities";}
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
 
     ///@}
     ///@name Friends
@@ -249,12 +238,6 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    ModelPartGraphUtilities& operator=(ModelPartGraphUtilities const& rOther) = delete;
-
-    /// Copy constructor.
-    ModelPartGraphUtilities(ModelPartGraphUtilities const& rOther) = delete;
-
     ///@}
 
 }; // Class ModelPartGraphUtilities
@@ -269,21 +252,6 @@ private:
 ///@name Input and output
 ///@{
 
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                ModelPartGraphUtilities& rThis){return rIStream;}
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                const ModelPartGraphUtilities& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 ///@}
 
 ///@} addtogroup block
