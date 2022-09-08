@@ -74,10 +74,39 @@ public:
             return false;
     }
 
+    /// Turn back information as a string.
+    std::string Info() const
+    {
+        return "IntervalUtility";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << "[" << GetIntervalBegin() << ", " << GetIntervalEnd() << "]";
+    }
+
 private:
     double minterval_begin;
     double minterval_end;
 };
+
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const IntervalUtility& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << " : ";
+    rThis.PrintData(rOStream);
+    return rOStream;
+}
 
 
 }
