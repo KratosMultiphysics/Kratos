@@ -31,7 +31,9 @@ class ValueLoggerShapeFractionOptimization( ValueLogger ):
             row.append("{:>13s}".format("df_rel[%]"))
             row.append("{:>13s}".format("penalty_value"))
             row.append("{:>13s}".format("penalty_factor"))
+            row.append("{:>13s}".format("df_p"))
             row.append("{:>13s}".format("df_rel_p"))
+            row.append("{:>13s}".format("shape_fraction"))
 
             for itr in range(self.constraints.size()):
                 con_type = self.constraints[itr]["type"].GetString()
@@ -71,7 +73,10 @@ class ValueLoggerShapeFractionOptimization( ValueLogger ):
 
             row.append(" {:> .5E}".format(self.history["penalty_value"][self.current_index]))
             row.append(" {:> .5E}".format(self.history["penalty_factor"][self.current_index]))
+            row.append(" {:> .5E}".format(self.history["df_p"][self.current_index]))
             row.append(" {:> .5E}".format(self.history["df_rel_p"][self.current_index]))
+            row.append(" {:> .5E}".format(self.history["shape_fraction"][self.current_index]))
+
 
             for itr in range(self.constraints.size()):
                 constraint_id = self.constraints[itr]["identifier"].GetString()
