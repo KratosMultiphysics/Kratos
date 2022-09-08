@@ -374,7 +374,7 @@ public:
 
         for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
             const auto& d_pe_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PE_D_FD);
-            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pe_d_fd * 3 * std::pow(e_pr,2.0) * inner_prod(d_RHS_d_E,lambda) / number_of_nodes;
+            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pe_d_fd * (e_min + 3 * std::pow((e_pr-e_min)/(e_max-e_min),2.0) * (e_max-e_min)) * inner_prod(d_RHS_d_E,lambda) / number_of_nodes;
 
             // const auto& d_pd_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PD_D_FD);
             // r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pd_d_fd * inner_prod(d_RHS_d_D,lambda);
