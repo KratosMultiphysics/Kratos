@@ -77,7 +77,7 @@ class TestGraphUtilities(KratosUnittest.TestCase):
         active_nodes = np.where(np.array(distances)>0, True, False)
 
         #compute the connected components taking into account active_nodes - note that the graph is the same as before
-        ncolors,colors = KM.ModelPartGraphUtilities.ComputeConnectedComponents_ActiveNodesCheck(model_part.Nodes,row_indices,col_indices,active_nodes)
+        ncolors,colors = KM.ModelPartGraphUtilities.ComputeConnectedComponentsWithActiveNodesCheck(model_part.Nodes,row_indices,col_indices,active_nodes)
 
         self.assertEqual(ncolors,3)
 

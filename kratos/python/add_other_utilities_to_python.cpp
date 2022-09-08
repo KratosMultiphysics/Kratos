@@ -728,7 +728,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("ComputeGraph", &ModelPartGraphUtilities::ComputeGraph)
         .def_static("ComputeCSRGraph", &ModelPartGraphUtilities::ComputeCSRGraph)
         .def_static("ComputeConnectedComponents", &ModelPartGraphUtilities::ComputeConnectedComponents)
-        .def_static("ComputeConnectedComponents_ActiveNodesCheck", &ModelPartGraphUtilities::ComputeConnectedComponents_ActiveNodesCheck)
+        .def_static("ComputeConnectedComponentsWithActiveNodesCheck", &ModelPartGraphUtilities::ComputeConnectedComponentsWithActiveNodesCheck)
         .def_static("ApplyMinimalScalarFixity", &ModelPartGraphUtilities::ApplyMinimalScalarFixity)
         ;
 

@@ -98,7 +98,7 @@ std::pair<ModelPartGraphUtilities::IndexType, DenseVector<double>> ModelPartGrap
     return std::pair{number_of_colors, colors};
 }
 
-std::pair<ModelPartGraphUtilities::IndexType, DenseVector<double>> ModelPartGraphUtilities::ComputeConnectedComponents_ActiveNodesCheck(
+std::pair<ModelPartGraphUtilities::IndexType, DenseVector<double>> ModelPartGraphUtilities::ComputeConnectedComponentsWithActiveNodesCheck(
     const ModelPart::NodesContainerType& rNodes,
     const DenseVector<ModelPartGraphUtilities::IndexType>& rRowIndices,
     const DenseVector<ModelPartGraphUtilities::IndexType>& rColIndices,
@@ -127,7 +127,7 @@ std::pair<ModelPartGraphUtilities::IndexType, DenseVector<double>> ModelPartGrap
                 visited.find(gid)->second == -1 &&
                 (rRowIndices[gid+1]-rRowIndices[gid])!=0) {
             ModelPartGraphUtilities::IndexType root=gid;
-            BreadthFirstSearch_ActiveNodesCheck(root, color, rRowIndices, rColIndices, visited,active_nodes);
+            BreadthFirstSearchWithActiveNodesCheck(root, color, rRowIndices, rColIndices, visited,active_nodes);
             color += 1;
         }
     }
@@ -202,7 +202,7 @@ void ModelPartGraphUtilities::BreadthFirstSearch(
     }
 }
 
-void ModelPartGraphUtilities::BreadthFirstSearch_ActiveNodesCheck(
+void ModelPartGraphUtilities::BreadthFirstSearchWithActiveNodesCheck(
     const int startVertex,
     const int color,
     const DenseVector<ModelPartGraphUtilities::IndexType>& rRowIndices,

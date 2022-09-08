@@ -116,7 +116,7 @@ public:
 
     //similar to the previous version, except that a "active_nodes" array needs to be passed
     //the "active_nodes" array needs to be initialized without gaps in the same order in which the nodes are passed in the rNodes array
-    static std::pair<IndexType, DenseVector<double>> ComputeConnectedComponents_ActiveNodesCheck(
+    static std::pair<IndexType, DenseVector<double>> ComputeConnectedComponentsWithActiveNodesCheck(
         const ModelPart::NodesContainerType& rNodes,
         const DenseVector<IndexType>& rRowIndices,
         const DenseVector<IndexType>& rColIndices,
@@ -179,7 +179,7 @@ protected:
 
     // BFS algorithm for computing connected components
     // an edge is active only if both endpoints are marked as active in the "active_nodes" map
-    static void BreadthFirstSearch_ActiveNodesCheck(
+    static void BreadthFirstSearchWithActiveNodesCheck(
         const int startVertex,
         const int color,
         const DenseVector<IndexType>& rRowIndices,
