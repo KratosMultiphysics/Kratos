@@ -87,7 +87,7 @@ public:
     * NOTE: this function is suboptimal if discontinuous or very large ids are employed 
     (the graph will have empty rows from 0 to the id of the largest node)
     */
-    SparseContiguousRowGraph<> ComputeGraph(const ModelPart& rModelPart);
+    Kratos::unique_ptr<SparseContiguousRowGraph<>> ComputeGraph(const ModelPart& rModelPart);
 
     /**The following function computes the connectivity graph (based on node.Id()-1 so that ids start in 0)
     * expressed as CSR arrays  for the modelpart used as input.

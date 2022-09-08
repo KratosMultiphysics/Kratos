@@ -23,14 +23,14 @@
 namespace Kratos
 {
 
-SparseContiguousRowGraph<> ModelPartGraphUtilities::ComputeGraph(const ModelPart& rModelPart)
+Kratos::unique_ptr<SparseContiguousRowGraph<>> ModelPartGraphUtilities::ComputeGraph(const ModelPart& rModelPart)
 {
 
     ModelPartGraphUtilities::ModelPartGraphUtilities::IndexType largest_id = 0;
     if(rModelPart.Nodes().size() != 0)
         largest_id = (rModelPart.Nodes().end()-1)->Id()-1;
 
-    SparseContiguousRowGraph<> Agraph(largest_id+1);
+    auto Agraph = Kratos::make_unique<SparseContiguousRowGraph<>>(largest_id+1);
     std::vector<ModelPartGraphUtilities::IndexType> tls_aux;
 
     block_for_each(rModelPart.Elements(), tls_aux, [&Agraph](const auto& rElem, auto& aux_list)
@@ -44,7 +44,7 @@ SparseContiguousRowGraph<> ModelPartGraphUtilities::ComputeGraph(const ModelPart
         {
             aux_list[i] = r_geom[i].Id()-1;
         }
-        Agraph.AddEntries(aux_list);
+        Agraph->AddEntries(aux_list);
     });
 
     block_for_each(rModelPart.Conditions(), tls_aux, [&Agraph](const auto& rCond, auto& aux_list)
@@ -58,9 +58,9 @@ SparseContiguousRowGraph<> ModelPartGraphUtilities::ComputeGraph(const ModelPart
         {
             aux_list[i] = r_geom[i].Id()-1;
         }
-        Agraph.AddEntries(aux_list);
+        Agraph->AddEntries(aux_list);
     });
-    Agraph.Finalize();
+    Agraph->Finalize();
 
     return Agraph;
 }
@@ -70,8 +70,8 @@ std::pair<DenseVector<ModelPartGraphUtilities::IndexType>, DenseVector<ModelPart
     std::pair<DenseVector<ModelPartGraphUtilities::IndexType>, DenseVector<ModelPartGraphUtilities::IndexType>> data;
     auto& rRowIndices = data.first;
     auto& rColIndices = data.second;
-    const auto& graph = ComputeGraph(rModelPart);
-    graph.ExportCSRArrays(rRowIndices,rColIndices);
+    const auto graph = ComputeGraph(rModelPart);
+    graph->ExportCSRArrays(rRowIndices,rColIndices);
     return data;
 }
 
