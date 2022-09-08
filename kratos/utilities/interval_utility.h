@@ -55,12 +55,12 @@ public:
         KRATOS_CATCH("");
     }
 
-    double GetIntervalBegin()
+    const double GetIntervalBegin() const
     {
         return minterval_begin;
     }
 
-    double GetIntervalEnd()
+    const double GetIntervalEnd() const
     {
         return minterval_end;
     }
