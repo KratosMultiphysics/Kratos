@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "containers/sparse_contiguous_row_graph.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/model_part_graph_utilities.h"
 
@@ -25,7 +24,7 @@ namespace Kratos
 
 Kratos::unique_ptr<SparseContiguousRowGraph<>> ModelPartGraphUtilities::ComputeGraph(const ModelPart& rModelPart)
 {
-    ModelPartGraphUtilities::ModelPartGraphUtilities::IndexType largest_id = 0;
+    ModelPartGraphUtilities::IndexType largest_id = 0;
     if(rModelPart.Nodes().size() != 0)
         largest_id = (rModelPart.Nodes().end()-1)->Id()-1;
 
@@ -34,11 +33,11 @@ Kratos::unique_ptr<SparseContiguousRowGraph<>> ModelPartGraphUtilities::ComputeG
 
     block_for_each(rModelPart.Elements(), tls_aux, [&Agraph](const auto& rElem, auto& aux_list) {
         const auto& r_geom = rElem.GetGeometry();
-        const ModelPartGraphUtilities::ModelPartGraphUtilities::IndexType nnodes = r_geom.size();
+        const ModelPartGraphUtilities::IndexType nnodes = r_geom.size();
         if(aux_list.size() != nnodes)
             aux_list.resize(nnodes);
 
-        for(ModelPartGraphUtilities::ModelPartGraphUtilities::IndexType i=0; i<nnodes; ++i) {
+        for(ModelPartGraphUtilities::IndexType i=0; i<nnodes; ++i) {
             aux_list[i] = r_geom[i].Id()-1;
         }
         Agraph->AddEntries(aux_list);
