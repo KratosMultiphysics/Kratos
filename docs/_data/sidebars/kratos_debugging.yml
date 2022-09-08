@@ -27,6 +27,9 @@ entries:
     - title: Profiling Kratos with LineProfile
       url: /pages/Kratos/Debugging/General/Profiling-Kratos-with-LineProfile.html
       output: web
+    - title: Profiling Kratos with cProfile and VTune
+      url: /pages/Kratos/Debugging/General/Profiling Kratos with cProfile and VTune.html
+      output: web
     - title: Serialization
       url: /pages/Kratos/Debugging/General/How-to-use-Serialization.html
       output: web

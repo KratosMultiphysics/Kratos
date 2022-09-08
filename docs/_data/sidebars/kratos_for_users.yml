@@ -54,44 +54,8 @@ entries:
   - title: Getting started
     output: web
     folderitems:
-    - title: Creating a base application
-      url: /pages/Kratos/For_Users/Getting_started/Creating-a-base-application.html
-      output: web
-    - title: Entities creation from scratch
-      url: /pages/Kratos/For_Users/Getting_started/Entities-creation-from-scratch.html
-      output: web
-    - title: Example A simple Fluid   Thermal coupled solver
-      url: /pages/Kratos/For_Users/Getting_started/Example-A-simple-Fluid---Thermal-coupled-solver.html
-      output: web
-    - title: How to Create a New Application using cmake
-      url: /pages/Kratos/For_Users/Getting_started/How-to-Create-a-New-Application-using-cmake.html
-      output: web
-    - title: How to interact with a simulation to visualize real time results
-      url: /pages/Kratos/For_Users/Getting_started/How-to-interact-with-a-simulation-to-visualize-real-time-results.html
-      output: web
-    - title: How to write a JSON configuration file
-      url: /pages/Kratos/For_Users/Getting_started/How-to-write-a-JSON-configuration-file.html
-      output: web
-    - title: Implementing thermal solver
-      url: /pages/Kratos/For_Users/Getting_started/Implementing-thermal-solver.html
-      output: web
-    - title: Input data
-      url: /pages/Kratos/For_Users/Getting_started/Input-data.html
-      output: web
     - title: Kernel and Applications
       url: /pages/Kratos/For_Users/Getting_started/Editing-kratos-kernel-and-application-approach.html
-      output: web
-    - title: Kratos For Dummies Stationary heat transfer
-      url: /pages/Kratos/For_Users/Getting_started/Kratos-For-Dummies-Stationary-heat-transfer.html
-      output: web
-    - title: Kratos For Dummies Transient non linear heat transfer
-      url: /pages/Kratos/For_Users/Getting_started/Kratos-For-Dummies-Transient-non-linear-heat-transfer.html
-      output: web
-    - title: Multiphysics example
-      url: /pages/Kratos/For_Users/Getting_started/Multiphysics-example.html
-      output: web
-    - title: Python Script  Generating New Modelparts
-      url: /pages/Kratos/For_Users/Getting_started/generate-new-modelpart.html
       output: web
     - title: Python Script  Getting Started
       url: /pages/Kratos/For_Users/Getting_started/getting-started.html
@@ -99,28 +63,67 @@ entries:
     - title: Python Script  Hello Kratos
       url: /pages/Kratos/For_Users/Getting_started/hello-world.html
       output: web
-    - title: Python Script  ModelPart Elements and Conditions
-      url: /pages/Kratos/For_Users/Getting_started/elems-and-conds.html
-      output: web
-    - title: Python Script  ModelPart and SubModelPart
-      url: /pages/Kratos/For_Users/Getting_started/modelpart-and-submodelpart.html
-      output: web
-    - title: Python Script  Nodes and Nodal Data
-      url: /pages/Kratos/For_Users/Getting_started/nodes-and-data.html
-      output: web
-    - title: Python Script  Reading ProjectParameters
-      url: /pages/Kratos/For_Users/Getting_started/project-parameters.html
-      output: web
-    - title: Python Script  Writing Output File
-      url: /pages/Kratos/For_Users/Getting_started/writing-output.html
-      output: web
     - title: Python Tutorials
       url: /pages/Kratos/For_Users/Getting_started/tutorials.html
       output: web
       subfolders:
-      - title: File structure
+      - title: Data Structure
         output: web
         subfolderitems:
+        - title: Entities creation from scratch
+          url: /pages/Kratos/For_Users/Getting_started/Data_Structure/Entities-creation-from-scratch.html
+          output: web
+        - title: Python Script  Generating New Modelparts
+          url: /pages/Kratos/For_Users/Getting_started/Data_Structure/generate-new-modelpart.html
+          output: web
+        - title: Python Script  ModelPart Elements and Conditions
+          url: /pages/Kratos/For_Users/Getting_started/Data_Structure/elems-and-conds.html
+          output: web
+        - title: Python Script  ModelPart and SubModelPart
+          url: /pages/Kratos/For_Users/Getting_started/Data_Structure/modelpart-and-submodelpart.html
+          output: web
+        - title: Python Script  Nodes and Nodal Data
+          url: /pages/Kratos/For_Users/Getting_started/Data_Structure/nodes-and-data.html
+          output: web
+      - title: From scratch
+        output: web
+        subfolderitems:
+        - title: Creating a base application
+          url: /pages/Kratos/For_Users/Getting_started/From_scratch/Creating-a-base-application.html
+          output: web
+        - title: Example A simple Fluid   Thermal coupled solver
+          url: /pages/Kratos/For_Users/Getting_started/From_scratch/Example-A-simple-Fluid---Thermal-coupled-solver.html
+          output: web
+        - title: How to Create a New Application using cmake
+          url: /pages/Kratos/For_Users/Getting_started/From_scratch/How-to-Create-a-New-Application-using-cmake.html
+          output: web
+        - title: Implementing thermal solver
+          url: /pages/Kratos/For_Users/Getting_started/From_scratch/Implementing-thermal-solver.html
+          output: web
+        - title: Kratos For Dummies Stationary heat transfer
+          url: /pages/Kratos/For_Users/Getting_started/From_scratch/Kratos-For-Dummies-Stationary-heat-transfer.html
+          output: web
+        - title: Kratos For Dummies Transient non linear heat transfer
+          url: /pages/Kratos/For_Users/Getting_started/From_scratch/Kratos-For-Dummies-Transient-non-linear-heat-transfer.html
+          output: web
+      - title: Input Output and Visualization
+        output: web
+        subfolderitems:
+        - title: How to interact with a simulation to visualize real time results
+          url: /pages/Kratos/For_Users/Getting_started/Input_Output_and_Visualization/How-to-interact-with-a-simulation-to-visualize-real-time-results.html
+          output: web
+        - title: How to write a JSON configuration file
+          url: /pages/Kratos/For_Users/Getting_started/Input_Output_and_Visualization/How-to-write-a-JSON-configuration-file.html
+          output: web
+        - title: Input data
+          url: /pages/Kratos/For_Users/Getting_started/Input_Output_and_Visualization/Input-data.html
+          output: web
         - title: Python Script  Reading ModelPart From Input File
-          url: /pages/Kratos/For_Users/Getting_started/File_structure/reading-input.html
+          url: /pages/Kratos/For_Users/Getting_started/Input_Output_and_Visualization/reading-input.html
+          output: web
+        - title: Python Script  Reading ProjectParameters
+          url: /pages/Kratos/For_Users/Getting_started/Input_Output_and_Visualization/project-parameters.html
+          output: web
+        - title: Python Script  Writing Output File
+          url: /pages/Kratos/For_Users/Getting_started/Input_Output_and_Visualization/writing-output.html
           output: web
