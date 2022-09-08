@@ -51,7 +51,7 @@ namespace Kratos
 /// This file computes the graph representing the connectivity of a modelpart. 
 /** Given a modelpart, it returns the csr_representation of its graph.
 */
-class ModelPartGraphUtilities
+class KRATOS_API(KRATOS_CORE) ModelPartGraphUtilities
 {
 public:
     ///@name Type Definitions
