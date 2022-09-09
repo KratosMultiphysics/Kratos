@@ -9,10 +9,8 @@
 //
 //  Main authors:    Ariadna Cortes
 //
-//
 
-#if !defined(KRATOS_VOLUME_INSIDE_VOXEL_QEF)
-#define  KRATOS_VOLUME_INSIDE_VOXEL_QEF
+#pragma once
 
 // System includes
 
@@ -168,5 +166,3 @@ private:
 ///@{
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_VOXEL_INSIDE_VOLUME  defined */

@@ -9,7 +9,6 @@
 //
 //  Main authors:    Ariadna Cortes
 //
-//
 
 // Project includes
 #include "containers/model.h"
