@@ -10,9 +10,11 @@
 //  Main authors:    Ariadna Cortes
 //
 
-/** This class does not work in a suitable way. 
- * The point resulting from qef is not constrained to the cell (it can be anywhere in space, leading to too deformated hexs)
- * It should be checked if hexs have a real hex shape, so that the are valid.  
+/** This class does not work in a suitable way. TO-DO:
+ * The point resulting from calculating the qef is not constrained to the cell (it can be anywhere in space, leading to too 
+ * deformated hexs). This should be solved in the kratos/ulitilies/qef_utility.cpp, adding some kind of restriction.
+ * It should be checked if hexs have a real hex shape, so that the are valid. If they are not, qef point of that voxel should be 
+ * moved a minimum distance or recalculated with penalizations so that the hex is valid. 
  *  
  * */
 
