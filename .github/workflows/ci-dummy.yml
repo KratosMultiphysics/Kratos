@@ -12,6 +12,9 @@ on:
       - 'documents/**'
       - 'scripts/**'
 
+permissions:
+  contents: read
+
 jobs:
   ubuntu:
     runs-on: ubuntu-latest
