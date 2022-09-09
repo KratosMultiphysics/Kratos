@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ariadna Cortés
+//  Main authors:    Ariadna Cortes
 //
 
 //Project includes
@@ -31,30 +31,6 @@ namespace Kratos {
         for(int i = 0; i < NodesInFaces.size2(); i++) {
             double Portion = GetPortion(Nodes,NodesInFaces,i);
             double dist = NormalizedDistanceToQEF(Nodes, NodesInFaces, qef, i);
-            
-            double PartialVolume = Portion*abs(dist)/3.0;   //Volume of a piramid
-            volume += PartialVolume;
-        }
-        
-        return volume;
-    }
-
-    /***********************************************************************************
-     **********************************************************************************/
-
-    double VolumeInsideVoxelQEF::FacesPortionQEFApproximation(
-        const GeometryType& rVoxel,  
-        const GeometryArrayType& rTriangles     
-    ) {
-        double volume = 0;
-        GeometryArrayType Faces = rVoxel.GenerateFaces();
-
-        array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(rVoxel,rTriangles);
-        //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
-
-        for(int i = 0; i < Faces.size(); i++) {
-            double Portion = EdgesPortionApproximation(Faces[i],rTriangles);
-            double dist = NormalizedDistanceToQEF(Faces[i], qef, i);
             
             double PartialVolume = Portion*abs(dist)/3.0;   //Volume of a piramid
             volume += PartialVolume;

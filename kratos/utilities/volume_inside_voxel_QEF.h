@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ariadna Cortés
+//  Main authors:    Ariadna Cortes
 //
 //
 
@@ -102,17 +102,7 @@ public:
     static double SimpleNodesQEFApproximation(const GeometryType& rVoxel, const GeometryArrayType& rTriangles);
 
     /**
-     * @brief Aproximates the actual volume inside the voxel 
-     * @param rVoxel references to the voxel whose actual volume will be approximated
-     * @param rTriangles references to the triangles which intersect the voxel at some edge.
-     * @return Approximated volume 
-     * @note This approximation finds the portion of each edge that is part of the volume (using
-     * intersection point with triangles of the mesh).
-     */ 
-    static double FacesPortionQEFApproximation(const GeometryType& rVoxel, const GeometryArrayType& rTriangles);
-
-    /**
-     * @brief Aproximates the actual volume inside the voxel 
+     * @brief Aproximates the actual volume inside the voxel based on the triangle intersections at the edges  
      * @param rVoxel references to the voxel whose actual volume will be approximated
      * @param rTriangles references to the triangles which intersect the voxel at some edge.
      * @return Approximated volume 
