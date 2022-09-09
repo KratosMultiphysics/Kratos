@@ -9,8 +9,11 @@ on:
       - master
     paths:              # This must be the same as .github/workflows/ci.yml - "paths-ignore" !
       - '**.md'
-      - '/documents/**'
-      - '/scripts/**'
+      - 'documents/**'
+      - 'scripts/**'
+
+permissions:
+  contents: read
 
 jobs:
   ubuntu:

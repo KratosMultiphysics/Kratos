@@ -1266,21 +1266,22 @@ Vector& SerialParallelRuleOfMixturesLaw::CalculateValue(
         return rValue;
     } else {
         Vector aux_value;
-        Properties material_properties  = rParameterValues.GetMaterialProperties();
-        Properties& r_prop = material_properties.GetSubProperties(0);
+        const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
+        Properties& r_prop = *(it_prop_begin);
 
         rValue.clear();
         rParameterValues.SetMaterialProperties(r_prop);
         mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
         noalias(rValue) += (1.0 - mFiberVolumetricParticipation) * aux_value;
 
-        r_prop = material_properties.GetSubProperties(1);
+        r_prop = *(it_prop_begin + 1);
         rParameterValues.SetMaterialProperties(r_prop);
         mpFiberConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
         noalias(rValue) += (mFiberVolumetricParticipation) * aux_value;
 
         // Reset properties
-        rParameterValues.SetMaterialProperties(material_properties);
+        rParameterValues.SetMaterialProperties(r_material_properties);
     }
     return rValue;
 }
@@ -1486,21 +1487,22 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         return rValue;
     } else {
         Matrix aux_value;
-        Properties material_properties  = rParameterValues.GetMaterialProperties();
-        Properties& r_prop = material_properties.GetSubProperties(0);
+        const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
+        Properties& r_prop = *(it_prop_begin);
 
         rValue.clear();
         rParameterValues.SetMaterialProperties(r_prop);
         mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
         noalias(rValue) += (1.0 - mFiberVolumetricParticipation) * aux_value;
 
-        r_prop = material_properties.GetSubProperties(1);
+        r_prop = *(it_prop_begin + 1);
         rParameterValues.SetMaterialProperties(r_prop);
         mpFiberConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
         noalias(rValue) += (mFiberVolumetricParticipation) * aux_value;
 
         // Reset properties
-        rParameterValues.SetMaterialProperties(material_properties);
+        rParameterValues.SetMaterialProperties(r_material_properties);
     }
     return rValue;
 }
