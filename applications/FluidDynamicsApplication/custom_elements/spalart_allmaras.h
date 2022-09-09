@@ -14,9 +14,8 @@
 #define  KRATOS_SPALART_ALLMARAS_H_INCLUDED
 
 // System includes
-#include <iostream>
 #include <string>
-#include <utility>
+#include <iostream>
 
 
 // External includes
@@ -82,26 +81,26 @@ public:
     {}
 
     /// Constructor using a Geometry instance
-    SpalartAllmaras(IndexType NewId, const GeometryType::Pointer& pGeometry) :
+    SpalartAllmaras(IndexType NewId, GeometryType::Pointer pGeometry) :
         Element(NewId, pGeometry),
         mIntegrationMethod(pGeometry->GetDefaultIntegrationMethod())
     {}
 
     /// Constructor using geometry and properties
-    SpalartAllmaras(IndexType NewId, const GeometryType::Pointer& pGeometry, PropertiesType::Pointer pProperties) :
-        Element(NewId, pGeometry, std::move(pProperties)),
+    SpalartAllmaras(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
+        Element(NewId, pGeometry, pProperties),
         mIntegrationMethod(pGeometry->GetDefaultIntegrationMethod())
     {}
 
     /// Additional constructor using a specific quadrature
     SpalartAllmaras(IndexType NewId, GeometryType::Pointer pGeometry, const Element::IntegrationMethod& ThisIntegrationMethod) :
-        Element(NewId, std::move(pGeometry)),
+        Element(NewId, pGeometry),
         mIntegrationMethod(ThisIntegrationMethod)
     {}
 
     /// Additional constructor using a specific quadrature
     SpalartAllmaras(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, const Element::IntegrationMethod& ThisIntegrationMethod) :
-        Element(NewId,std::move(pGeometry),std::move(pProperties)),
+        Element(NewId,pGeometry,pProperties),
         mIntegrationMethod(ThisIntegrationMethod)
     {}
 
