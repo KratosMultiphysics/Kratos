@@ -885,7 +885,7 @@ namespace Kratos
 
 					//now we invert the matrix
 					BoundedMatrix<double, TDim+1 , TDim+1  > inverse_mass_matrix=ZeroMatrix(TDim+1 , TDim+1);
-					if(TDim==3)
+					if constexpr (TDim==3)
 						InvertMatrix( mass_matrix,  inverse_mass_matrix);
 					else
 						InvertMatrix3x3( mass_matrix,  inverse_mass_matrix);

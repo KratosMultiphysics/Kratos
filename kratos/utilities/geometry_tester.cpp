@@ -15,6 +15,7 @@
 // System includes
 
 // External includes
+#include "spaces/ublas_space.h"
 
 // Project includes
 #include "utilities/geometry_tester.h"
@@ -67,7 +68,7 @@ bool GeometryTesterUtility::RunTest(Model& rModel)
 
     if(StreamTestTriangle2D3N(model_part, error_message) == false) successful=false;
     if(StreamTestTriangle2D6N(model_part, error_message) == false) successful=false;
-    
+
     if(StreamTestQuadrilateral2D4N(model_part, error_message) == false) successful=false;
     if(StreamTestQuadrilateral2D9N(model_part, error_message) == false) successful=false;
     if(StreamTestQuadrilateralInterface2D4N(model_part, error_message) == false) successful=false;
@@ -81,7 +82,7 @@ bool GeometryTesterUtility::RunTest(Model& rModel)
     if(StreamTestHexahedraInterface3D8N(model_part, error_message) == false) successful=false;
 
     if(StreamTestPrism3D6N(model_part, error_message) == false) successful=false;
-    if(StreamTestPrism3D15N(model_part, error_message) == false) successful=false; 
+    if(StreamTestPrism3D15N(model_part, error_message) == false) successful=false;
     if(StreamTestPrismInterface3D6N(model_part, error_message) == false) successful=false;
 
     KRATOS_WARNING_IF("GeometryTesterUtility", !successful) << "Some errors were detected in the GeometryTester Utility\n" << error_message.str() << std::endl;
@@ -214,6 +215,9 @@ bool GeometryTesterUtility::StreamTestTriangle2D3N(
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_4, rErrorMessage);
 //         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_5, rErrorMessage);
 
+    array_1d<double,3> point_in(3,1.0/3.0);
+    if( !VerifyShapeFunctionsSecondDerivativesValues(geometry,point_in,rErrorMessage) ) successful = false;
+
     rErrorMessage << std::endl;
 
     return successful;
@@ -253,6 +257,9 @@ bool GeometryTesterUtility::StreamTestTriangle2D6N(
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_4, rErrorMessage);
 //         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_5, rErrorMessage);
 
+    array_1d<double,3> point_in(3,1.0/3.0);
+    if( !VerifyShapeFunctionsSecondDerivativesValues(geometry,point_in,rErrorMessage) ) successful = false;
+
     rErrorMessage << std::endl;
 
     return successful;
@@ -290,6 +297,9 @@ bool GeometryTesterUtility::StreamTestQuadrilateral2D4N(
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_3, rErrorMessage);
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_4, rErrorMessage);
 //         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_5, rErrorMessage);
+
+    array_1d<double,3> point_in(3,1.0/3.0);
+    if( !VerifyShapeFunctionsSecondDerivativesValues(geometry,point_in,rErrorMessage) ) successful = false;
 
     rErrorMessage << std::endl;
 
@@ -331,6 +341,9 @@ bool GeometryTesterUtility::StreamTestQuadrilateral2D9N(
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_4, rErrorMessage);
 //         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_5, rErrorMessage);
 
+    array_1d<double,3> point_in(3,1.0/3.0);
+    if( !VerifyShapeFunctionsSecondDerivativesValues(geometry,point_in,rErrorMessage) ) successful = false;
+
     rErrorMessage << std::endl;
 
     return successful;
@@ -358,6 +371,9 @@ bool GeometryTesterUtility::StreamTestQuadrilateralInterface2D4N(
                     << " error: area returned by the function geometry.Area() does not deliver the correct result " << std::endl;
         successful=false;
     }
+
+    array_1d<double,3> point_in(3,1.0/3.0);
+    if( !VerifyShapeFunctionsSecondDerivativesValues(geometry,point_in,rErrorMessage) ) successful = false;
 
     return successful;
 }
@@ -402,6 +418,7 @@ bool GeometryTesterUtility::StreamTestHexahedra3D8N(
     if( !VerifyIsInside( geometry, point_in, true, rErrorMessage) ) successful=false;
     if( !VerifyIsInside( geometry, point_out, false, rErrorMessage) ) successful=false;
     if( !VerfiyShapeFunctionsValues(geometry,point_in,rErrorMessage) ) successful = false;
+    if( !VerifyShapeFunctionsSecondDerivativesValues(geometry,point_in,rErrorMessage) ) successful = false;
 
     return successful;
 }
@@ -661,10 +678,10 @@ void GeometryTesterUtility::GenerateNodes(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometryTesterUtility::VerifyAreaByIntegration( 
-    GeometryType& rGeometry, 
-    GeometryType::IntegrationMethod ThisMethod, 
-    const double ReferenceArea, 
+bool GeometryTesterUtility::VerifyAreaByIntegration(
+    GeometryType& rGeometry,
+    GeometryType::IntegrationMethod ThisMethod,
+    const double ReferenceArea,
     std::stringstream& rErrorMessage
     )
 {
@@ -715,9 +732,9 @@ bool GeometryTesterUtility::VerifyAreaByIntegration(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GeometryTesterUtility::VerifyStrainExactness( 
-    GeometryType& rGeometry,  
-    GeometryType::IntegrationMethod ThisMethod, 
+void GeometryTesterUtility::VerifyStrainExactness(
+    GeometryType& rGeometry,
+    GeometryType::IntegrationMethod ThisMethod,
     std::stringstream& rErrorMessage
     )
 {
@@ -944,8 +961,74 @@ bool GeometryTesterUtility::VerfiyShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool GeometryTesterUtility::VerifyShapeFunctionsSecondDerivativesValues(
+    GeometryType& rGeometry,
+    GeometryType::CoordinatesArrayType& rGlobalCoordinates,
+    std::stringstream& rErrorMessage
+    )
+{
+    GeometryType::CoordinatesArrayType local_coordinates;
+    rGeometry.PointLocalCoordinates( local_coordinates, rGlobalCoordinates );
+
+    Vector f_1 = ZeroVector(rGeometry.size());
+    Vector f_2 = ZeroVector(rGeometry.size());
+    Vector f_3 = ZeroVector(rGeometry.size());
+    Vector f_4 = ZeroVector(rGeometry.size());
+
+    DenseVector<Matrix> DDN_DX, H;
+    Vector ei,ej,f;
+
+    double delta = 1e-1;
+    unsigned int dim = rGeometry.Dimension();
+    rGeometry.ShapeFunctionsSecondDerivatives(DDN_DX,local_coordinates);
+
+    if ( H.size() != rGeometry.size() )
+    {
+        // KLUDGE: While there is a bug in
+        // ublas vector resize, I have to put this beside resizing!!
+        DenseVector<Matrix> temp( rGeometry.size() );
+        H.swap( temp );
+    }
+
+
+    for ( unsigned int i = 0; i < rGeometry.size(); i++ ) H[i].resize(dim, dim, false);
+
+    for (unsigned int i = 0; i<dim;i++){
+        for (unsigned int j = 0; j<dim;j++){
+            ei = ZeroVector(3);
+            ei[i] = 1.0;
+            ej = ZeroVector(3);
+            ej[j] = 1.0;
+            std::transform(ei.begin(), ei.end(), ei.begin(), [delta](double c){ return c*delta; });
+            std::transform(ej.begin(), ej.end(), ej.begin(), [delta](double c){ return c*delta; });
+            rGeometry.ShapeFunctionsValues(f_1,local_coordinates + ei + ej);
+            rGeometry.ShapeFunctionsValues(f_2,local_coordinates + ei - ej);
+            rGeometry.ShapeFunctionsValues(f_3,local_coordinates - ei + ej);
+            rGeometry.ShapeFunctionsValues(f_4,local_coordinates - ei - ej);
+            f = f_1-f_2-f_3+f_4;
+            std::transform(f.begin(), f.end(), f.begin(), [delta](double c){ return c/(4.0*std::pow(delta,2)); });
+            for (unsigned int k = 0; k<rGeometry.size();k++){
+                H[k](i,j) = f[k];
+            }
+        }
+    }
+
+    for (unsigned int i = 0; i<rGeometry.size();i++){
+        if(norm_frobenius(DDN_DX[i] - H[i]) > 1e-13) {
+            rErrorMessage << "     error: shape function second derivatives are wrongly calculated in function ShapeFunctionsSecondDerivatives: DDN_DX[point_number] " << DDN_DX[i] << " vs " << H[i] << std::endl;
+            rErrorMessage << " norm_frobenius(DDN_DX[point_number] - H[point_number])/norm_frobenius(H[point_number]) = " << norm_frobenius(DDN_DX[i] - H[i])/norm_frobenius(H[i]) <<std::endl;
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 std::string GeometryTesterUtility::GetIntegrationName(
-    GeometryType& rGeometry, 
+    GeometryType& rGeometry,
     GeometryType::IntegrationMethod ThisMethod
     )
 {
