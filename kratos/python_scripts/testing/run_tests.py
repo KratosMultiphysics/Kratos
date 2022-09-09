@@ -9,6 +9,7 @@ from importlib import import_module
 import KratosMultiphysics as KtsMp
 import KratosMultiphysics.KratosUnittest as KtsUt
 import KratosMultiphysics.kratos_utilities as KtsUtls
+from KratosMultiphysics.testing import utilities as testing_utils
 
 
 def Usage():
@@ -23,7 +24,6 @@ def Usage():
         '\t -a, --applications: List of applications to run separated by \':\'. All compiled applications will be run by default',  # noqa
         '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
         '\t -c, --command: Use the provided command to launch test cases. If not provided, the default \'python\' executable is used',
-        '\t -t, --timer: Use the provided custom time limit for the execution. If not provided, the default values are used',
         '\t --using-mpi: If running in MPI and executing the MPI-tests'
     ]
     for l in lines:
@@ -55,9 +55,6 @@ class Commander(object):
 
         command: string
             command to be used to call the tests. Ex: Python, Python3
-
-        timer: integer
-            limit time considered to execute the tests
 
         '''
 
@@ -181,7 +178,7 @@ def print_summary(exit_codes):
 
 def main():
     # Define the command
-    cmd = sys.executable
+    cmd = testing_utils.GetPython3Command()
 
     verbose_values = [0, 1, 2]
     level_values = ['all', 'nightly', 'small', 'validation']
@@ -191,7 +188,6 @@ def main():
     verbosity = 1
     level = 'all'
     is_mpi = False
-    timer = -1
 
     # Keep the worst exit code
     exit_code = 0
@@ -260,14 +256,6 @@ def main():
         elif o in ('--using-mpi'):
             is_mpi = True
 
-        elif o in ('-t', '--timer'):
-            try:
-                timer = int(a)
-            except:
-                print('Error: Cannot parse command name {0}.'.format(a))
-                Usage()
-                sys.exit()
-
         else:
             assert False, 'unhandled option'
 
@@ -276,13 +264,10 @@ def main():
 
     # Set timeout of the different levels
     signalTime = None
-    if timer > 0:
-        signalTime = timer
-    else:
-        if level == 'small':
-            signalTime = int(90)
-        elif level == 'nightly':
-            signalTime = int(900)
+    if level == 'small':
+        signalTime = int(60)
+    elif level == 'nightly':
+        signalTime = int(900)
 
     # Create the commands
     commander = Commander()
