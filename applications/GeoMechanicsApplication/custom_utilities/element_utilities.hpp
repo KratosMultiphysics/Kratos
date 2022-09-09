@@ -41,7 +41,7 @@ public:
     template< unsigned int TDim, unsigned int TNumNodes >
     static inline void CalculateNuMatrix(BoundedMatrix<double,TDim,TDim*TNumNodes>& rNu,
                                          const Matrix& NContainer,
-                                         const unsigned int& GPoint)
+                                         unsigned int GPoint)
     {
         for (unsigned int i=0; i < TDim; ++i) {
             unsigned int index = i - TDim;
@@ -56,7 +56,7 @@ public:
     template< unsigned int TDim, unsigned int TNumNodes >
     static inline void CalculateNuElementMatrix(BoundedMatrix<double, (TDim+1), TNumNodes*(TDim+1)>& rNut,
                                                 const Matrix& NContainer,
-                                                const unsigned int& GPoint)
+                                                unsigned int GPoint)
     {
         const unsigned int offset = (TDim+1);
 
@@ -74,7 +74,7 @@ public:
     static inline void InterpolateVariableWithComponents(array_1d<double, TDim>& rVector,
                                                          const Matrix& NContainer,
                                                          const array_1d<double, TDim*TNumNodes>& VariableWithComponents,
-                                                         const unsigned int& GPoint)
+                                                         unsigned int GPoint)
     {
         noalias(rVector) = ZeroVector(TDim);
 
@@ -91,7 +91,7 @@ public:
     static inline void InterpolateVariableWithComponents(Vector& rVector,
                                                          const Matrix& NContainer,
                                                          const Vector& VariableWithComponents,
-                                                         const unsigned int& GPoint)
+                                                         unsigned int GPoint)
     {
         if ( rVector.size() != TDof ) rVector.resize( TDof, false );
         KRATOS_ERROR_IF(VariableWithComponents.size() != TDof*TNumNodes) << "Wrong size in InterpolateVariableWithComponents" << std::endl;
@@ -229,7 +229,7 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template< unsigned int TDim>
     static inline void AssembleDensityMatrix(BoundedMatrix<double,TDim+1, TDim+1> &DensityMatrix,
-                                             const double &Density)
+                                             double Density)
     {
         for (unsigned int idim = 0; idim < TDim; ++idim) {
             for (unsigned int jdim = 0; jdim < TDim; ++jdim) {
@@ -240,7 +240,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void AssembleDensityMatrix(Matrix &DensityMatrix,
-                                             const double &Density)
+                                             double Density)
     {
         for (unsigned int idim = 0; idim < DensityMatrix.size1(); ++idim) {
             for (unsigned int jdim = 0; jdim < DensityMatrix.size2(); ++jdim) {
@@ -275,8 +275,8 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void AssembleUBlockMatrix(Matrix &rLeftHandSideMatrix,
                                             const Matrix &UBlockMatrix,
-                                            const double &TNumNodes,
-                                            const double &TDim)
+                                            unsigned int TNumNodes,
+                                            unsigned int TDim)
     {
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             const unsigned int Global_i = i * (TDim + 1);
@@ -353,7 +353,7 @@ public:
     template< unsigned int TDim, unsigned int TNumNodes >
     static inline void AssembleUBlockVector(Vector& rRightHandSideVector,
                                             const array_1d<double,TDim*TNumNodes>& UBlockVector,
-                                            int unsigned OffsetDof = 1)
+                                            unsigned int OffsetDof = 1)
     {
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             const unsigned int Global_i = i * (TDim + OffsetDof);
@@ -495,6 +495,175 @@ public:
         const double Circumference = 2.0 * Globals::Pi * Radius;
         return Circumference;
     }
+
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    static inline void CalculateExtrapolationMatrixTriangle(Matrix& rExtrapolationMatrix, const GeometryData::IntegrationMethod& rIntegrationMethod)
+    {
+        /// The matrix contains the shape functions at each GP evaluated at each node.
+        /// Rows: nodes
+        /// Columns: GP
+
+        //Triangle_2d_3
+        //GI_GAUSS_2
+
+        if (rIntegrationMethod == GeometryData::IntegrationMethod::GI_GAUSS_1)
+        {
+            if ((rExtrapolationMatrix.size1() != 3) || (rExtrapolationMatrix.size2() != 1))
+            {
+                rExtrapolationMatrix.resize(3, 1, false);
+            }
+                
+            rExtrapolationMatrix(0, 0) = 1; 
+            rExtrapolationMatrix(1, 0) = 1; 
+            rExtrapolationMatrix(2, 0) = 1;
+        }
+        else if (rIntegrationMethod == GeometryData::IntegrationMethod::GI_GAUSS_2)
+        {
+            if ((rExtrapolationMatrix.size1() != 3) || (rExtrapolationMatrix.size2() != 3))
+            {
+                rExtrapolationMatrix.resize(3, 3, false);
+            }
+            rExtrapolationMatrix(0, 0) = 1.6666666666666666666; rExtrapolationMatrix(0, 1) = -0.33333333333333333333; rExtrapolationMatrix(0, 2) = -0.33333333333333333333;
+            rExtrapolationMatrix(1, 0) = -0.33333333333333333333; rExtrapolationMatrix(1, 1) = 1.6666666666666666666; rExtrapolationMatrix(1, 2) = -0.33333333333333333333;
+            rExtrapolationMatrix(2, 0) = -0.33333333333333333333; rExtrapolationMatrix(2, 1) = -0.33333333333333333333; rExtrapolationMatrix(2, 2) = 1.6666666666666666666;
+        }
+        else
+        {
+            KRATOS_ERROR << "Extrapolation matrix for triangle is only defined for IntegrationMethod GI_GAUSS_1 and GI_GAUSS_2"<< std::endl;
+        }       
+
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    static inline void CalculateExtrapolationMatrixQuad(Matrix& rExtrapolationMatrix, const GeometryData::IntegrationMethod& rIntegrationMethod)
+    {
+        if (rIntegrationMethod == GeometryData::IntegrationMethod::GI_GAUSS_1)
+        {
+            if ((rExtrapolationMatrix.size1() != 4) || (rExtrapolationMatrix.size2() != 1))
+            {
+                rExtrapolationMatrix.resize(4, 1, false);
+            }
+
+            rExtrapolationMatrix(0, 0) = 1;
+            rExtrapolationMatrix(1, 0) = 1;
+            rExtrapolationMatrix(2, 0) = 1;
+            rExtrapolationMatrix(3, 0) = 1;
+        }
+        else if (rIntegrationMethod == GeometryData::IntegrationMethod::GI_GAUSS_2)
+        {
+            if ((rExtrapolationMatrix.size1() != 4) || (rExtrapolationMatrix.size2() != 4))
+            {
+                rExtrapolationMatrix.resize(4, 4, false);
+            }
+            //Quadrilateral_2d_4
+            //GI_GAUSS_2
+
+            rExtrapolationMatrix(0, 0) = 1.8660254037844386; rExtrapolationMatrix(0, 1) = -0.5; rExtrapolationMatrix(0, 2) = 0.13397459621556132; rExtrapolationMatrix(0, 3) = -0.5;
+            rExtrapolationMatrix(1, 0) = -0.5; rExtrapolationMatrix(1, 1) = 1.8660254037844386; rExtrapolationMatrix(1, 2) = -0.5; rExtrapolationMatrix(1, 3) = 0.13397459621556132;
+            rExtrapolationMatrix(2, 0) = 0.13397459621556132; rExtrapolationMatrix(2, 1) = -0.5; rExtrapolationMatrix(2, 2) = 1.8660254037844386; rExtrapolationMatrix(2, 3) = -0.5;
+            rExtrapolationMatrix(3, 0) = -0.5; rExtrapolationMatrix(3, 1) = 0.13397459621556132; rExtrapolationMatrix(3, 2) = -0.5; rExtrapolationMatrix(3, 3) = 1.8660254037844386;
+        }
+        else
+        {
+            KRATOS_ERROR << "Extrapolation matrix for quad is only defined for IntegrationMethod GI_GAUSS_1 and GI_GAUSS_2" << std::endl;
+        }
+    }
+
+
+    static inline void CalculateExtrapolationMatrixTetra(Matrix& rExtrapolationMatrix, const GeometryData::IntegrationMethod& rIntegrationMethod)
+    {
+        if (rIntegrationMethod == GeometryData::IntegrationMethod::GI_GAUSS_1)
+        {
+            if ((rExtrapolationMatrix.size1() != 4) || (rExtrapolationMatrix.size2() != 1))
+            {
+                rExtrapolationMatrix.resize(4, 1, false);
+            }
+
+            rExtrapolationMatrix(0, 0) = 1;
+            rExtrapolationMatrix(1, 0) = 1;
+            rExtrapolationMatrix(2, 0) = 1;
+            rExtrapolationMatrix(3, 0) = 1;
+        }
+
+        else if (rIntegrationMethod == GeometryData::IntegrationMethod::GI_GAUSS_2)
+        {
+            if ((rExtrapolationMatrix.size1() != 4) || (rExtrapolationMatrix.size2() != 4))
+            {
+                rExtrapolationMatrix.resize(4, 4, false);
+            }
+            //Tetrahedra_3d_4
+            //GI_GAUSS_2
+            rExtrapolationMatrix(0, 0) = -0.309016988749894905; rExtrapolationMatrix(0, 1) = -0.3090169887498949046; rExtrapolationMatrix(0, 2) = -0.309016988749894905; rExtrapolationMatrix(0, 3) = 1.9270509662496847144;
+            rExtrapolationMatrix(1, 0) = 1.9270509662496847144; rExtrapolationMatrix(1, 1) = -0.30901698874989490481; rExtrapolationMatrix(1, 2) = -0.3090169887498949049; rExtrapolationMatrix(1, 3) = -0.30901698874989490481;
+            rExtrapolationMatrix(2, 0) = -0.30901698874989490473; rExtrapolationMatrix(2, 1) = 1.9270509662496847143; rExtrapolationMatrix(2, 2) = -0.3090169887498949049; rExtrapolationMatrix(2, 3) = -0.30901698874989490481;
+            rExtrapolationMatrix(3, 0) = -0.3090169887498949048; rExtrapolationMatrix(3, 1) = -0.30901698874989490471; rExtrapolationMatrix(3, 2) = 1.9270509662496847143; rExtrapolationMatrix(3, 3) = -0.30901698874989490481;
+        }
+        else
+        {
+            KRATOS_ERROR << "Extrapolation matrix for tetrahedral is only defined for IntegrationMethod GI_GAUSS_1 and GI_GAUSS_2" << std::endl;
+        }
+
+    }
+
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    static inline void CalculateExtrapolationMatrixHexa(Matrix& rExtrapolationMatrix, const GeometryData::IntegrationMethod& rIntegrationMethod)
+    {
+        if (rIntegrationMethod == GeometryData::IntegrationMethod::GI_GAUSS_1)
+        {
+            if ((rExtrapolationMatrix.size1() != 8) || (rExtrapolationMatrix.size2() != 1))
+            {
+                rExtrapolationMatrix.resize(8, 1, false);
+            }
+            rExtrapolationMatrix(0, 0) = 1;
+            rExtrapolationMatrix(1, 0) = 1;
+            rExtrapolationMatrix(2, 0) = 1;
+            rExtrapolationMatrix(3, 0) = 1;
+            rExtrapolationMatrix(4, 0) = 1;
+            rExtrapolationMatrix(5, 0) = 1;
+            rExtrapolationMatrix(6, 0) = 1;
+            rExtrapolationMatrix(7, 0) = 1;
+        }
+
+        else if (rIntegrationMethod == GeometryData::IntegrationMethod::GI_GAUSS_2)
+        {
+            if ((rExtrapolationMatrix.size1() != 8) || (rExtrapolationMatrix.size2() != 8))
+            {
+                rExtrapolationMatrix.resize(8, 8, false);
+            }
+            //Hexahedra_3d_8
+            //GI_GAUSS_2
+
+            rExtrapolationMatrix(0, 0) = 2.549038105676658; rExtrapolationMatrix(0, 1) = -0.6830127018922192; rExtrapolationMatrix(0, 2) = 0.18301270189221927; rExtrapolationMatrix(0, 3) = -0.6830127018922192;
+            rExtrapolationMatrix(0, 4) = -0.6830127018922192; rExtrapolationMatrix(0, 5) = 0.18301270189221927; rExtrapolationMatrix(0, 6) = -0.04903810567665795; rExtrapolationMatrix(0, 7) = 0.18301270189221927;
+
+            rExtrapolationMatrix(1, 0) = -0.6830127018922192; rExtrapolationMatrix(1, 1) = 2.549038105676658; rExtrapolationMatrix(1, 2) = -0.6830127018922192; rExtrapolationMatrix(1, 3) = 0.18301270189221927;
+            rExtrapolationMatrix(1, 4) = 0.18301270189221927; rExtrapolationMatrix(1, 5) = -0.6830127018922192; rExtrapolationMatrix(1, 6) = 0.18301270189221927; rExtrapolationMatrix(1, 7) = -0.04903810567665795;
+
+            rExtrapolationMatrix(2, 0) = 0.18301270189221927; rExtrapolationMatrix(2, 1) = -0.6830127018922192; rExtrapolationMatrix(2, 2) = 2.549038105676658; rExtrapolationMatrix(2, 3) = -0.6830127018922192;
+            rExtrapolationMatrix(2, 4) = -0.04903810567665795; rExtrapolationMatrix(2, 5) = 0.18301270189221927; rExtrapolationMatrix(2, 6) = -0.6830127018922192; rExtrapolationMatrix(2, 7) = 0.18301270189221927;
+
+            rExtrapolationMatrix(3, 0) = -0.6830127018922192; rExtrapolationMatrix(3, 1) = 0.18301270189221927; rExtrapolationMatrix(3, 2) = -0.6830127018922192; rExtrapolationMatrix(3, 3) = 2.549038105676658;
+            rExtrapolationMatrix(3, 4) = 0.18301270189221927; rExtrapolationMatrix(3, 5) = -0.04903810567665795; rExtrapolationMatrix(3, 6) = 0.18301270189221927; rExtrapolationMatrix(3, 7) = -0.6830127018922192;
+
+            rExtrapolationMatrix(4, 0) = -0.6830127018922192; rExtrapolationMatrix(4, 1) = 0.18301270189221927; rExtrapolationMatrix(4, 2) = -0.04903810567665795; rExtrapolationMatrix(4, 3) = 0.18301270189221927;
+            rExtrapolationMatrix(4, 4) = 2.549038105676658; rExtrapolationMatrix(4, 5) = -0.6830127018922192; rExtrapolationMatrix(4, 6) = 0.18301270189221927; rExtrapolationMatrix(4, 7) = -0.6830127018922192;
+
+            rExtrapolationMatrix(5, 0) = 0.18301270189221927; rExtrapolationMatrix(5, 1) = -0.6830127018922192; rExtrapolationMatrix(5, 2) = 0.18301270189221927; rExtrapolationMatrix(5, 3) = -0.04903810567665795;
+            rExtrapolationMatrix(5, 4) = -0.6830127018922192; rExtrapolationMatrix(5, 5) = 2.549038105676658; rExtrapolationMatrix(5, 6) = -0.6830127018922192; rExtrapolationMatrix(5, 7) = 0.18301270189221927;
+
+            rExtrapolationMatrix(6, 0) = -0.04903810567665795; rExtrapolationMatrix(6, 1) = 0.18301270189221927; rExtrapolationMatrix(6, 2) = -0.6830127018922192; rExtrapolationMatrix(6, 3) = 0.18301270189221927;
+            rExtrapolationMatrix(6, 4) = 0.18301270189221927; rExtrapolationMatrix(6, 5) = -0.6830127018922192; rExtrapolationMatrix(6, 6) = 2.549038105676658; rExtrapolationMatrix(6, 7) = -0.6830127018922192;
+
+            rExtrapolationMatrix(7, 0) = 0.18301270189221927; rExtrapolationMatrix(7, 1) = -0.04903810567665795; rExtrapolationMatrix(7, 2) = 0.18301270189221927; rExtrapolationMatrix(7, 3) = -0.6830127018922192;
+            rExtrapolationMatrix(7, 4) = -0.6830127018922192; rExtrapolationMatrix(7, 5) = 0.18301270189221927; rExtrapolationMatrix(7, 6) = -0.6830127018922192; rExtrapolationMatrix(7, 7) = 2.549038105676658;
+        }
+        else
+        {
+            KRATOS_ERROR << "Extrapolation matrix for hexahedral is only defined for IntegrationMethod GI_GAUSS_1 and GI_GAUSS_2" << std::endl;
+        }
+     }
 
 }; /* Class GeoElementUtilities*/
 } /* namespace Kratos.*/

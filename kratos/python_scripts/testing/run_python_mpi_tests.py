@@ -27,15 +27,19 @@ def main():
     parser.add_argument('-m', '--mpi_command', default="mpiexec")
     parser.add_argument('-f', '--mpi_flags', default="")
     parser.add_argument('-p', '--num_processes_flag', default="-np")
+    parser.add_argument('-t', '--timer', default=-1)
 
     args = parser.parse_args()
 
     # Set timeout of the different levels
     signalTime = None
-    if args.level == 'small':
-        signalTime = 90
-    elif args.level == 'nightly':
-        signalTime = 900
+    if args.timer > 0:
+        signalTime = args.timer
+    else:
+        if args.level == 'small':
+            signalTime = 90
+        elif args.level == 'nightly':
+            signalTime = 900
 
     # Create the commands
     commander = testing_utils.Commander()

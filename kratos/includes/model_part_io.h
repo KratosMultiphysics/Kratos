@@ -8,6 +8,8 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_MODEL_PART_IO_H_INCLUDED )
@@ -19,7 +21,6 @@
 #include <set>
 #include <typeinfo>
 #include <unordered_set>
-
 
 // External includes
 
@@ -630,6 +631,9 @@ private:
     void DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
                               PartitionIndicesContainerType const& NodesAllPartitions);
 
+    void DivideFlagVariableData(OutputFilesContainerType& OutputFiles,
+                               PartitionIndicesContainerType const& NodesAllPartitions);
+
     void DivideDofVariableData(OutputFilesContainerType& OutputFiles,
                                PartitionIndicesContainerType const& NodesAllPartitions);
 
@@ -762,13 +766,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    ModelPartIO& operator=(ModelPartIO const& rOther);
-
-    /// Copy constructor.
-    ModelPartIO(ModelPartIO const& rOther);
-
 
     ///@}
 

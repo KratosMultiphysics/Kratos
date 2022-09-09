@@ -22,7 +22,6 @@
 
 // Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_utilities/explicit_fixed_mesh_ale_utilities.h"
 #include "custom_utilities/fixed_mesh_ale_utilities.h"
 #include "custom_utilities/mesh_velocity_calculation.h"
 #include "custom_utilities/move_mesh_utilities.h"
@@ -37,23 +36,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<FixedMeshALEUtilities, FixedMeshALEUtilities::Pointer>(m, "FixedMeshALEUtilities")
         .def(py::init<Model &, Parameters &>())
-        .def(py::init<ModelPart &, ModelPart &>())
         .def("Initialize", &FixedMeshALEUtilities::Initialize)
         .def("SetVirtualMeshValuesFromOriginMesh", &FixedMeshALEUtilities::SetVirtualMeshValuesFromOriginMesh)
         .def("ComputeMeshMovement", &FixedMeshALEUtilities::ComputeMeshMovement)
         .def("ProjectVirtualValues2D", &FixedMeshALEUtilities::ProjectVirtualValues<2>)
         .def("ProjectVirtualValues3D", &FixedMeshALEUtilities::ProjectVirtualValues<3>)
         .def("UndoMeshMovement", &FixedMeshALEUtilities::UndoMeshMovement);
-
-    py::class_<ExplicitFixedMeshALEUtilities, ExplicitFixedMeshALEUtilities::Pointer, FixedMeshALEUtilities>(m, "ExplicitFixedMeshALEUtilities")
-        .def(py::init<Model &, Parameters &>())
-        .def(py::init<ModelPart &, ModelPart &, const double>())
-        .def("Initialize", &ExplicitFixedMeshALEUtilities::Initialize)
-        .def("SetVirtualMeshValuesFromOriginMesh", &ExplicitFixedMeshALEUtilities::SetVirtualMeshValuesFromOriginMesh)
-        .def("ComputeMeshMovement", &ExplicitFixedMeshALEUtilities::ComputeMeshMovement)
-        .def("ProjectVirtualValues2D", &ExplicitFixedMeshALEUtilities::ProjectVirtualValues<2>)
-        .def("ProjectVirtualValues3D", &ExplicitFixedMeshALEUtilities::ProjectVirtualValues<3>)
-        .def("UndoMeshMovement", &ExplicitFixedMeshALEUtilities::UndoMeshMovement);
 
     py::class_<LinearTransform, LinearTransform::Pointer>(m, "LinearTransform")
         .def(py::init<const array_1d<double,3>&, const double, const array_1d<double,3>&, const array_1d<double,3>&>())
