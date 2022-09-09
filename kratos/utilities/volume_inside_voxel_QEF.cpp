@@ -20,7 +20,6 @@ namespace Kratos {
         const GeometryArrayType& rTriangles     
     ) {
         double volume = 0;
-        GeometryArrayType edges = rVoxel.GenerateEdges();
         PointsArrayType Nodes = rVoxel.Points();
 
         array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(rVoxel,rTriangles); 
@@ -36,7 +35,6 @@ namespace Kratos {
             double PartialVolume = Portion*abs(dist)/3.0;   //Volume of a piramid
             volume += PartialVolume;
         }
-        //if (volume == 0) return EdgesPortionApproximation(rVoxel,rTriangles);
         
         return volume;
     }
@@ -68,7 +66,7 @@ namespace Kratos {
     /***********************************************************************************
      **********************************************************************************/
 
-    double VolumeInsideVoxelQEF::VoxelVolumeQEFApproximation(
+    double VolumeInsideVoxelQEF::VolumeQEFApproximation(
         const GeometryType& rVoxel,  
         const GeometryArrayType& rTriangles     
     ) {
@@ -84,34 +82,6 @@ namespace Kratos {
             
             double PartialVolume = Portion*abs(Dist)/3.0;   //Volume of a piramid
             Volume += PartialVolume;
-            //KRATOS_WATCH(PartialVolume);    
-        }
-        
-        if (Volume > 1) return NodesApproximation(rVoxel); //if our approximation fails, use a simpler one with nearly no additional cost
-        KRATOS_ERROR_IF(Volume < 0) << "Volume of a mesh element less than 0" << std::endl;
-        return Volume;
-    }
-
-    /***********************************************************************************
-     **********************************************************************************/
-
-    double VolumeInsideVoxelQEF::HexaVolumeQEFApproximation(
-        const GeometryType& rVoxel,  
-        const GeometryArrayType& rTriangles     
-    ) {
-        double Volume = 0;
-        GeometryArrayType Faces = rVoxel.GenerateFaces();
-
-        array_1d<double,3> QEF = QuadraticErrorFunction::QuadraticErrorFunctionPoint(rVoxel,rTriangles); 
-        //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
-
-        for(int i = 0; i < Faces.size(); i++) {
-            double Portion = FaceArea(Faces[i],rTriangles);
-            double Dist = NormalizedDistanceToQEF(Faces[i], QEF, i);
-            
-            double PartialVolume = Portion*abs(Dist)/3.0;   //Volume of a piramid
-            Volume += PartialVolume;
-            //KRATOS_WATCH(PartialVolume);    
         }
         
         if (Volume > 1) return NodesApproximation(rVoxel); //if our approximation fails, use a simpler one with nearly no additional cost

@@ -117,15 +117,7 @@ public:
      * @param rTriangles references to the triangles which intersect the voxel at some edge.
      * @return Approximated volume 
      */
-    static double VoxelVolumeQEFApproximation(const GeometryType& rVoxel,const GeometryArrayType& rTriangles);
-
-    /**
-     * @brief Aproximates the actual volume inside the hexa (can have shifted angles!) 
-     * @param rVoxel references to the hexa whose actual volume will be approximated
-     * @param rTriangles references to the triangles which intersect the hexa at some edge.
-     * @return Approximated volume 
-     */
-    static double HexaVolumeQEFApproximation(const GeometryType& rVoxel, const GeometryArrayType& rTriangles);
+    static double VolumeQEFApproximation(const GeometryType& rVoxel,const GeometryArrayType& rTriangles);
 
 private:
 
