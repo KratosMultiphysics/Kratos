@@ -23,7 +23,7 @@ namespace Kratos {
         GeometryArrayType edges = rVoxel.GenerateEdges();
         PointsArrayType Nodes = rVoxel.Points();
 
-        array_1d<double,3> qef = QEF::QEFPoint(rVoxel,rTriangles); 
+        array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(rVoxel,rTriangles); 
         //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
         
         DenseMatrix<unsigned int> NodesInFaces(4,6);
@@ -51,7 +51,7 @@ namespace Kratos {
         double volume = 0;
         GeometryArrayType Faces = rVoxel.GenerateFaces();
 
-        array_1d<double,3> qef = QEF::QEFPoint(rVoxel,rTriangles);
+        array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(rVoxel,rTriangles);
         //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
 
         for(int i = 0; i < Faces.size(); i++) {
@@ -75,7 +75,7 @@ namespace Kratos {
         double Volume = 0;
         GeometryArrayType Faces = rVoxel.GenerateFaces();
 
-        array_1d<double,3> QEF = QEF::QEFPoint(rVoxel,rTriangles); 
+        array_1d<double,3> QEF = QuadraticErrorFunction::QuadraticErrorFunctionPoint(rVoxel,rTriangles); 
         //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
 
         for(int i = 0; i < Faces.size(); i++) {
@@ -102,7 +102,7 @@ namespace Kratos {
         double Volume = 0;
         GeometryArrayType Faces = rVoxel.GenerateFaces();
 
-        array_1d<double,3> QEF = QEF::QEFPoint(rVoxel,rTriangles); 
+        array_1d<double,3> QEF = QuadraticErrorFunction::QuadraticErrorFunctionPoint(rVoxel,rTriangles); 
         //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
 
         for(int i = 0; i < Faces.size(); i++) {

@@ -370,7 +370,7 @@ namespace Testing {
         Array1.push_back(pTriangle2); 
         Array1.push_back(pTriangle3);
 
-        static array_1d<double,3> QEF = QEF::QEFPoint(*pVoxel, Array1);
+        static array_1d<double,3> QEF = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*pVoxel, Array1);
         KRATOS_CHECK_NEAR(QEF[0],-0.6667,0.01);
         KRATOS_CHECK_NEAR(QEF[1],-0.6667,0.01);
         KRATOS_CHECK_NEAR(QEF[2],-0.6667,0.01);
@@ -519,7 +519,7 @@ namespace Testing {
         Array1.push_back(pTriangle2); 
         Array1.push_back(pTriangle3);
 
-        static array_1d<double,3> QEF = QEF::QEFPoint(*pVoxel, Array1);
+        static array_1d<double,3> QEF = QuadraticErrorFunction::QuadraticErrorFunctionPoint(*pVoxel, Array1);
         KRATOS_CHECK_NEAR(QEF[0],-0.333,0.01);
         KRATOS_CHECK_NEAR(QEF[1],-0.333,0.01);
         KRATOS_CHECK_NEAR(QEF[2],-0.333,0.01);
