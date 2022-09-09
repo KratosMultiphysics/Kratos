@@ -287,6 +287,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
         .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
         .def("IsInInterval", &IntervalUtility ::IsInInterval)
+        .def("__str__", PrintObject<IntervalUtility>)
         ;
 
     //particle convect utility
