@@ -60,7 +60,7 @@ namespace Kratos
 /**
  * @class Dual countouring mesher
  * @ingroup KratosCore
- * @brief Utilities to re-mesh a shape using dual countouring
+ * @brief Utilities to re-mesh a shape (skin) using dual countouring
  */
 class DualCountouringMesher : public VoxelMeshGeneratorModeler
 {
@@ -194,6 +194,8 @@ public:
                             i + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1,
                             (i-1) + j * number_of_cells[0] + k * number_of_cells[1] * number_of_cells[0] + 1},
                             p_properties); 
+                             
+                            //Here it should be checked that the created element is valid 
                     }     
                 }
             }
