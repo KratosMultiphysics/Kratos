@@ -76,6 +76,7 @@ import test_sparse_matrices
 import test_rbf_shape_functions_utility
 import test_generic_find_elemental_neighbours_process
 import test_graph_utilities
+import test_point_locator
 
 if sympy_available:
     import test_sympy_fe_utilities
@@ -169,6 +170,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_generic_find_elemental_neighbours_process.TestGenericFindElementalNeighboursProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_graph_utilities.TestGraphUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_rbf_shape_functions_utility.TestRBFShapeFunctionsUtility]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_point_locator.TestPointLocator]))
 
     if sympy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sympy_fe_utilities.TestSympyFEUtilities]))
