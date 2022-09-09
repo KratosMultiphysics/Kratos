@@ -39,6 +39,7 @@
 #include "utilities/convect_particles_utilities.h"
 #include "utilities/mls_shape_functions_utility.h"
 #include "utilities/tessellation_utilities/delaunator_utilities.h"
+#include "utilities/rbf_shape_functions_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -316,6 +317,19 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def_static("CalculateShapeFunctions3D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<3>)
         .def_static("CalculateShapeFunctionsAndGradients2D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2>)
         .def_static("CalculateShapeFunctionsAndGradients3D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3>)
+        ;
+
+    // Radial Basis FUnctions utility
+    using DenseQRPointerType = typename RBFShapeFunctionsUtility::DenseQRPointerType;
+    py::class_<RBFShapeFunctionsUtility>(m,"RBFShapeFunctionsUtility")
+        .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, Vector& rN){
+            return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, rN);})
+        .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, Vector& rN, DenseQRPointerType pDenseQR){
+            return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, rN, pDenseQR);})
+        .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
+            return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN);})
+        .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, DenseQRPointerType pDenseQR){
+            return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN, pDenseQR);})
         ;
 }
 

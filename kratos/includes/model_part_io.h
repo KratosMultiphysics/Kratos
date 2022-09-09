@@ -767,13 +767,6 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    ModelPartIO& operator=(ModelPartIO const& rOther);
-
-    /// Copy constructor.
-    ModelPartIO(ModelPartIO const& rOther);
-
-
     ///@}
 
 }; // Class ModelPartIO

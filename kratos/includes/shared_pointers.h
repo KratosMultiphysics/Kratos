@@ -11,15 +11,15 @@
 //                   Pooyan Dadvand
 //
 
-#if !defined(KRATOS_MEMORY_H_INCLUDED )
-#define  KRATOS_MEMORY_H_INCLUDED
+#if !defined(KRATOS_SHARED_POINTERS_H_INCLUDED)
+#define KRATOS_SHARED_POINTERS_H_INCLUDED
 
-/* System includes */
+// System includes
 #include <iostream>
 #include <utility>
-
-/* External includes */
 #include <memory>
+
+// External includes
 #include "intrusive_ptr/intrusive_ptr.hpp"
 
 namespace Kratos {
@@ -44,8 +44,7 @@ shared_ptr<C> make_shared(Args &&...args) {
 
 template<typename C, typename...Args>
 unique_ptr<C> make_unique(Args &&...args) {
-    // Note: std::make_unique is C++14, this can be updated once we upgrade from C++11
-    return unique_ptr<C>(new C(std::forward<Args>(args)...));
+    return std::make_unique<C>(std::forward<Args>(args)...);
 }
 
 template<class T>
@@ -82,4 +81,4 @@ typedef Kratos::GlobalPointer<a > WeakPointer; \
 typedef Kratos::unique_ptr<a > UniquePointer; \
 typename a::Pointer shared_from_this(){ return a::Pointer(this); }
 
-#endif /* KRATOS_MEMORY_H_INCLUDED  defined */
+#endif // KRATOS_SHARED_POINTERS_H_INCLUDED defined
