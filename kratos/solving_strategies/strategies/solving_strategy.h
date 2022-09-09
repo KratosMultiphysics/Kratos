@@ -86,10 +86,6 @@ public:
 
     typedef typename ModelPart::DofsArrayType                                  DofsArrayType;
 
-    typedef typename DofsArrayType::iterator                                 DofIteratorType;
-
-    typedef typename DofsArrayType::const_iterator                   DofConstantIteratorType;
-
     typedef ModelPart::NodesContainerType                                     NodesArrayType;
 
     typedef ModelPart::ElementsContainerType                               ElementsArrayType;

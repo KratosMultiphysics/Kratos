@@ -241,6 +241,13 @@ void ShallowWaterUtilities::SetMeshZCoordinate(ModelPart& rModelPart, const Vari
     });
 }
 
+void ShallowWaterUtilities::OffsetMeshZCoordinate(ModelPart& rModelPart, const double Increment)
+{
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        rNode.Z() += Increment;
+    });
+}
+
 void ShallowWaterUtilities::SwapYZCoordinates(ModelPart& rModelPart)
 {
     block_for_each(rModelPart.Nodes(), [](NodeType& rNode){

@@ -47,6 +47,7 @@
 #include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.hpp"
 #include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.hpp"
 #include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.hpp"
+#include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
 
 // elements
 #include "custom_elements/transient_Pw_element.hpp"
@@ -66,6 +67,9 @@
 #include "custom_elements/U_Pw_small_strain_axisymmetric_FIC_element.hpp"
 #include "custom_elements/transient_Pw_interface_element.hpp"
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
+#include "custom_elements/updated_lagrangian_U_Pw_diff_order_axisymmetric_element.hpp"
+#include "custom_elements/updated_lagrangian_U_Pw_axisymmetric_element.hpp"
+#include "custom_elements/updated_lagrangian_U_Pw_axisymmetric_FIC_element.hpp"
 
 /* geo structural element */
 #include "custom_elements/geo_cr_beam_element_3D2N.hpp"
@@ -396,13 +400,26 @@ private:
     const UPwUpdatedLagrangianFICElement<3,4> mUPwUpdatedLagrangianFICElement3D4N;
     const UPwUpdatedLagrangianFICElement<3,8> mUPwUpdatedLagrangianFICElement3D8N;
 
-    // Updated-Lagrangian different order elements
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D6N;
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D8N;
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D9N;
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D10N;
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D20N;
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D27N;
+
+    // Update-Lagrangian axisymmetric elements
+    const UPwUpdatedLagrangianAxisymmetricElement<2,3> mUPwUpdatedLagrangianAxisymmetricElement2D3N;
+    const UPwUpdatedLagrangianAxisymmetricElement<2,4> mUPwUpdatedLagrangianAxisymmetricElement2D4N;
+    const UPwUpdatedLagrangianAxisymmetricElement<2,6> mUPwUpdatedLagrangianAxisymmetricElement2D6N;
+    const UPwUpdatedLagrangianAxisymmetricElement<2,8> mUPwUpdatedLagrangianAxisymmetricElement2D8N;
+    const UPwUpdatedLagrangianAxisymmetricElement<2,9> mUPwUpdatedLagrangianAxisymmetricElement2D9N;
+
+    const UpdatedLagrangianUPwDiffOrderAxisymmetricElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D6N;
+    const UpdatedLagrangianUPwDiffOrderAxisymmetricElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D8N;
+    const UpdatedLagrangianUPwDiffOrderAxisymmetricElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D9N;
+
+    const UPwUpdatedLagrangianAxisymmetricFICElement<2,3> mUPwUpdatedLagrangianAxisymmetricFICElement2D3N;
+    const UPwUpdatedLagrangianAxisymmetricFICElement<2,4> mUPwUpdatedLagrangianAxisymmetricFICElement2D4N;
 
     // geo structural element
     const GeoCrBeamElement2D2N       mGeoCrBeamElement2D2N;
@@ -458,6 +475,11 @@ private:
     const AxisymmetricUPwNormalFaceLoadCondition<2,2>    mAxisymmetricUPwNormalFaceLoadCondition2D2N;
     const AxisymmetricLineNormalLoad2DDiffOrderCondition mAxisymmetricLineNormalLoadDiffOrderCondition2D3N;
     const AxisymmetricLineNormalFluidFlux2DDiffOrderCondition mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N;
+
+    const UPwLysmerAbsorbingCondition<2, 2> mUPwLysmerAbsorbingCondition2D2N;
+    const UPwLysmerAbsorbingCondition<2, 3> mUPwLysmerAbsorbingCondition2D3N;
+    const UPwLysmerAbsorbingCondition<3, 3> mUPwLysmerAbsorbingCondition3D3N;
+    const UPwLysmerAbsorbingCondition<3, 4> mUPwLysmerAbsorbingCondition3D4N;
 
     // constitutive models
     const BilinearCohesive3DLaw             mBilinearCohesive3DLaw;

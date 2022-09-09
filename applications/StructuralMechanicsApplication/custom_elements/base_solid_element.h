@@ -176,7 +176,10 @@ public:
 
     // Constructor using an array of nodes with properties
     BaseSolidElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Element(NewId,pGeometry,pProperties)
-    {};
+    {
+        // This is needed to prevent uninitialised integration method in inactive elements
+        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+    };
 
     // Copy constructor
     BaseSolidElement(BaseSolidElement const& rOther)
@@ -271,6 +274,32 @@ public:
     {
         return mThisIntegrationMethod;
     }
+
+    /**
+    * element can be integrated using the GP provided by the geometry or custom ones
+    * by default, the base element will use the standard integration provided by the geom
+    * @return bool to select if use/not use GPs given by the geometry
+    */
+    bool virtual UseGeometryIntegrationMethod() const
+    {
+        return true;
+    }
+
+    const virtual GeometryType::IntegrationPointsArrayType  IntegrationPoints() const 
+    {
+        return GetGeometry().IntegrationPoints();
+    }
+
+    const virtual GeometryType::IntegrationPointsArrayType  IntegrationPoints(IntegrationMethod ThisMethod) const
+    {
+        return GetGeometry().IntegrationPoints(ThisMethod);
+    }
+
+    const virtual Matrix& ShapeFunctionsValues(IntegrationMethod ThisMethod) const
+    {
+        return GetGeometry().ShapeFunctionsValues(ThisMethod);
+    }
+
 
     /**
      * @brief Sets on rValues the nodal displacements

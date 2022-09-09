@@ -1,13 +1,9 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics ThermalDEM Application
+//  Kratos Multi-Physics - ThermalDEM Application
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
+//  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
 #if !defined(KRATOS_THERMAL_EXPLICIT_SOLVER_STRATEGY_H_INCLUDED)
@@ -49,6 +45,7 @@ namespace Kratos
       virtual ~ThermalExplicitSolverStrategy();
 
       // Public derived methods
+      void Initialize                          (void) override;
       void SetSearchRadiiOnAllParticles        (ModelPart& r_model_part, double added_search_distance = 0.0, double amplification = 1.0) override;
       void SetSearchRadiiWithFemOnAllParticles (ModelPart& r_model_part, double added_search_distance = 0.0, double amplification = 1.0) override;
 
@@ -58,6 +55,7 @@ namespace Kratos
     protected:
 
       // Protected particular methods
+      void SetSolveFrequency             (void);
       void PerformThermalTimeIntegration (void);
       void SetSearchRadii                (ModelPart & r_model_part, double added_search_distance, double amplification);
 

@@ -88,7 +88,13 @@ public:
         //compute the columns size
         TIndexType max_col_index = rSparseGraph.ComputeMaxGlobalColumnIndex();
         TIndexType tot_col_size = max_col_index+1;
-        mpColNumbering = Kratos::make_unique<DistributedNumbering<TIndexType>>(*mpComm, tot_col_size, mpComm->Size());
+            
+        //this ensures that diagonal blocks are square for square matrices
+        if (tot_col_size == mpRowNumbering->Size()) {
+            mpColNumbering = Kratos::make_unique<DistributedNumbering<TIndexType>>(*mpComm, mpRowNumbering->GetCpuBounds());
+        } else {
+            mpColNumbering = Kratos::make_unique<DistributedNumbering<TIndexType>>(*mpComm, tot_col_size, mpComm->Size());
+        }
 
         mOffDiagonalLocalIds.clear(); //this is the map that allows to transform from global_ids to local Ids for entries in the non_diag block
 
@@ -210,19 +216,18 @@ public:
         mpComm(rOtherMatrix.mpComm),
         mpRowNumbering(Kratos::make_unique< DistributedNumbering<TIndexType> >( rOtherMatrix.GetRowNumbering())),
         mpColNumbering(Kratos::make_unique< DistributedNumbering<TIndexType> >( rOtherMatrix.GetColNumbering())),
-        mpDiagonalBlock(Kratos::make_unique<TDataType,IndexType>(rOtherMatrix.GetDiagonalBlock())),
-        mpOffDiagonalBlock(Kratos::make_unique<TDataType,IndexType>(rOtherMatrix.GetOffDiagonalBlock())),
+        mpDiagonalBlock(Kratos::make_unique<CsrMatrix<TDataType,TIndexType>>(rOtherMatrix.GetDiagonalBlock())),
+        mpOffDiagonalBlock(Kratos::make_unique<CsrMatrix<TDataType,TIndexType>>(rOtherMatrix.GetOffDiagonalBlock())),
         mNonLocalData(rOtherMatrix.mNonLocalData),
-        mSendCachedIJ(rOtherMatrix.mSendCachedIJ),
-        mRecvCachedIJ(rOtherMatrix.mRecvCachedIJ),
         mOffDiagonalLocalIds(rOtherMatrix.mOffDiagonalLocalIds),
         mOffDiagonalGlobalIds(rOtherMatrix.mOffDiagonalGlobalIds),
         mfem_assemble_colors(rOtherMatrix.mfem_assemble_colors),
-        mpVectorImporter(rOtherMatrix.mpVectorImporter)
+        mRecvCachedIJ(rOtherMatrix.mRecvCachedIJ),
+        mSendCachedIJ(rOtherMatrix.mSendCachedIJ),
+        mpVectorImporter(Kratos::make_unique<DistributedVectorImporter<TDataType,TIndexType>>(*rOtherMatrix.mpVectorImporter))
     {
         ReconstructDirectAccessVectors();
     }
-
 
     //move constructor
     DistributedCsrMatrix(DistributedCsrMatrix<TDataType,TIndexType>&& rOtherMatrix)
@@ -700,10 +705,9 @@ public:
         for(unsigned int i=0; i<GetDiagonalBlock().size1(); ++i){
             IndexType row_begin = GetDiagonalBlock().index1_data()[i];
             IndexType row_end   = GetDiagonalBlock().index1_data()[i+1];
-            for(IndexType k = row_begin; k < row_end; ++k)
-            {
-                IndexType j = GetDiagonalBlock().index2_data()[k];
-                TDataType v = GetDiagonalBlock().value_data()[k];
+            for(IndexType k = row_begin; k < row_end; ++k){
+                const IndexType j = GetDiagonalBlock().index2_data()[k];
+                const TDataType v = GetDiagonalBlock().value_data()[k];
                 tmp_data.push_back(GetRowNumbering().GlobalId(i));
                 tmp_data.push_back(GetColNumbering().GlobalId(j));
                 tmp_data.push_back(v);
@@ -712,10 +716,9 @@ public:
         for(unsigned int i=0; i<GetOffDiagonalBlock().size1(); ++i){
             IndexType row_begin = GetOffDiagonalBlock().index1_data()[i];
             IndexType row_end   = GetOffDiagonalBlock().index1_data()[i+1];
-            for(IndexType k = row_begin; k < row_end; ++k)
-            {
-                IndexType j = GetOffDiagonalBlock().index2_data()[k]; 
-                TDataType v = GetOffDiagonalBlock().value_data()[k];
+            for(IndexType k = row_begin; k < row_end; ++k){
+                const IndexType j = GetOffDiagonalBlock().index2_data()[k]; 
+                const TDataType v = GetOffDiagonalBlock().value_data()[k];
                 tmp_data.push_back(GetRowNumbering().GlobalId(i));
                 tmp_data.push_back(mOffDiagonalGlobalIds[j]);
                 tmp_data.push_back(v);
@@ -798,7 +801,7 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "DistributedCsrMatrix";
+        rOStream << "DistributedCsrMatrix" << std::endl;
     }
 
     /// Print object's data.

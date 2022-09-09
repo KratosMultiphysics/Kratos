@@ -229,14 +229,12 @@ class ArcLengthStrategy
             KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "Strategy Initialized" << std::endl;
         }
     
-        if (!BaseType::mSolutionStepIsInitialized) {
-            BaseType::InitializeSolutionStep();
-            SaveInitializeSystemVector(mpf);
-            InitializeSystemVector(mpDxf);
-            InitializeSystemVector(mpDxb);
-            InitializeSystemVector(mpDxPred);
-            InitializeSystemVector(mpDxStep);
-        }
+        BaseType::InitializeSolutionStep();
+        SaveInitializeSystemVector(mpf);
+        InitializeSystemVector(mpDxf);
+        InitializeSystemVector(mpDxb);
+        InitializeSystemVector(mpDxPred);
+        InitializeSystemVector(mpDxStep);
 
         KRATOS_CATCH("");
     }
