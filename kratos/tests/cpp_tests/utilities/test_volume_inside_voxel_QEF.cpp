@@ -144,7 +144,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.01);  
 
         Volume = VolumeInsideVoxelQEF::VolumeQEFApproximation(*pVoxel,Array1);
-        ExpectedVolume = 0.067; 
+        ExpectedVolume = 0.046875; 
         KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.01); 
         //Note: the real expected Volume assumed in this case was circa 0.09375     
     }
@@ -218,7 +218,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.01);
 
         Volume = VolumeInsideVoxelQEF::VolumeQEFApproximation(*pVoxel,Array1);
-        ExpectedVolume = 0.66333; 
+        ExpectedVolume = 0.622; 
         KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.01); 
         //Note: the real expected Volume assumed in this case was circa 0.74     
     }
@@ -482,7 +482,7 @@ namespace Testing {
         Array1.push_back(pTriangle3);
 
         double Volume = VolumeInsideVoxelQEF::VolumeQEFApproximation(*pVoxel,Array1);
-        double ExpectedVolume = 0.045; 
+        double ExpectedVolume = 0.036; 
         KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001);
         //The expected result for this case would be circa 0.036
     }
@@ -512,7 +512,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(QEF[2],-0.333,0.01);
 
         double Volume = VolumeInsideVoxelQEF::VolumeQEFApproximation(*pVoxel,Array1);
-        double ExpectedVolume = 0.2083; 
+        double ExpectedVolume = 0.1667; 
         KRATOS_CHECK_NEAR(Volume, ExpectedVolume, 0.001);
         //The expected result for this case would be 1/6 = 0.1667
     }
