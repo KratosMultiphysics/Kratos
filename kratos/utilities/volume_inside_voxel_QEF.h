@@ -132,9 +132,9 @@ private:
      * @return 
      * */
     static double GetPortion(
-        PointsArrayType& Nodes,
-        const DenseMatrix<unsigned int>& NodesInFaces, 
-        int& face);
+        PointsArrayType& rNodes,
+        const DenseMatrix<unsigned int>& rNodesInFaces, 
+        int Face);
 
     /**
      * @brief Calculates the distance from a face (given by its nodes) and the given point, normalized 
@@ -144,10 +144,10 @@ private:
      * @return Distance from the face to the specified point
      * */
     static double NormalizedDistanceToQEF(
-        PointsArrayType& Nodes,
-        const DenseMatrix<unsigned int>& NodesInFaces, 
-        const array_1d<double,3>& Point, 
-        int& face);
+        PointsArrayType& rNodes,
+        const DenseMatrix<unsigned int>& rNodesInFaces, 
+        const array_1d<double,3>& rPoint, 
+        int Face);
 
     /**
      * @brief Calculates the distance from a face (given by its nodes) and the given point, normalized 
@@ -158,8 +158,8 @@ private:
      * */
     static double NormalizedDistanceToQEF(
         GeometryType& rFace, 
-        const array_1d<double,3>& Point, 
-        int& face);
+        const array_1d<double,3>& rPoint, 
+        int Face);
 
 }; /* Class VoxelInsideVolumeQEF */
 

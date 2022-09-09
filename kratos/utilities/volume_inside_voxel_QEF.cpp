@@ -20,20 +20,20 @@ namespace Kratos {
         const GeometryArrayType& rTriangles     
     ) {
         double volume = 0;
-        PointsArrayType Nodes = rVoxel.Points();
+        PointsArrayType nodes = rVoxel.Points();
 
         array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(rVoxel,rTriangles); 
         //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
         
-        DenseMatrix<unsigned int> NodesInFaces(4,6);
-        rVoxel.NodesInFaces(NodesInFaces);
+        DenseMatrix<unsigned int> nodes_in_faces(4,6);
+        rVoxel.NodesInFaces(nodes_in_faces);
 
-        for(int i = 0; i < NodesInFaces.size2(); i++) {
-            double Portion = GetPortion(Nodes,NodesInFaces,i);
-            double dist = NormalizedDistanceToQEF(Nodes, NodesInFaces, qef, i);
+        for(int i = 0; i < nodes_in_faces.size2(); i++) {
+            double portion = GetPortion(nodes,nodes_in_faces,i);
+            double dist = NormalizedDistanceToQEF(nodes, nodes_in_faces, qef, i);
             
-            double PartialVolume = Portion*abs(dist)/3.0;   //Volume of a piramid
-            volume += PartialVolume;
+            double partial_volume = portion*abs(dist)/3.0;   //Volume of a piramid
+            volume += partial_volume;
         }
         
         return volume;
@@ -46,55 +46,59 @@ namespace Kratos {
         const GeometryType& rVoxel,  
         const GeometryArrayType& rTriangles     
     ) {
-        double Volume = 0;
-        GeometryArrayType Faces = rVoxel.GenerateFaces();
+        double volume = 0;
+        GeometryArrayType faces = rVoxel.GenerateFaces();
 
-        array_1d<double,3> QEF = QuadraticErrorFunction::QuadraticErrorFunctionPoint(rVoxel,rTriangles); 
+        array_1d<double,3> qef = QuadraticErrorFunction::QuadraticErrorFunctionPoint(rVoxel,rTriangles); 
         //this is unefficient since we will repeat the same calculations to find the intersections afterwards 
 
-        for(int i = 0; i < Faces.size(); i++) {
-            double Portion = FaceArea(Faces[i],rTriangles);
-            double Dist = NormalizedDistanceToQEF(Faces[i], QEF, i);
+        for(int i = 0; i < faces.size(); i++) {
+            double portion = FaceArea(faces[i],rTriangles);
+            double dist = NormalizedDistanceToQEF(faces[i], qef, i);
             
-            double PartialVolume = Portion*abs(Dist)/3.0;   //Volume of a piramid
-            Volume += PartialVolume;
+            double partial_volume = portion*abs(dist)/3.0;   //Volume of a piramid
+            volume += partial_volume;
         }
         
-        if (Volume > 1) return NodesApproximation(rVoxel); //if our approximation fails, use a simpler one with nearly no additional cost
-        KRATOS_ERROR_IF(Volume < 0) << "Volume of a mesh element less than 0" << std::endl;
-        return Volume;
+        if (volume > 1) return NodesApproximation(rVoxel); //if our approximation fails, use a simpler one with nearly no additional cost
+        KRATOS_ERROR_IF(volume < 0) << "Volume of a mesh element less than 0" << std::endl;
+        return volume;
     }
 
     /***********************************************************************************
      **********************************************************************************/
 
-     double VolumeInsideVoxelQEF::GetPortion(PointsArrayType& Nodes,const DenseMatrix<unsigned int>& NodesInFaces, int& face) 
+     double VolumeInsideVoxelQEF::GetPortion(
+        PointsArrayType& rNodes,
+        const DenseMatrix<unsigned int>& rNodesInFaces,
+        int Face) 
     {
-        double Portion = 0;
-        for(int i = 0; i < NodesInFaces.size1(); i++) {
-            if( Nodes[NodesInFaces(i,face)].GetSolutionStepValue(DISTANCE) > 0) Portion += 1.0/4;
+        double portion = 0;
+        for(int i = 0; i < rNodesInFaces.size1(); i++) {
+            if( rNodes[rNodesInFaces(i,Face)].GetSolutionStepValue(DISTANCE) > 0) portion += 1.0/4;
         }
-        return Portion;
+        return portion;
     }
 
     /***********************************************************************************
      **********************************************************************************/
 
     double VolumeInsideVoxelQEF::NormalizedDistanceToQEF(
-        PointsArrayType& Nodes,
-        const DenseMatrix<unsigned int>& NodesInFaces, 
-        const array_1d<double,3>& Point, int& face) 
+        PointsArrayType& rNodes,
+        const DenseMatrix<unsigned int>& rNodesInFaces, 
+        const array_1d<double,3>& rPoint, 
+        int Face) 
     {
-        array_1d<double, 3> edge1 = Nodes[NodesInFaces(1,face)] - Nodes[NodesInFaces(0,face)];
-        array_1d<double, 3> edge2 = Nodes[NodesInFaces(2,face)] - Nodes[NodesInFaces(0,face)];
+        array_1d<double, 3> edge1 = rNodes[rNodesInFaces(1,Face)] - rNodes[rNodesInFaces(0,Face)];
+        array_1d<double, 3> edge2 = rNodes[rNodesInFaces(2,Face)] - rNodes[rNodesInFaces(0,Face)];
         array_1d<double, 3> mNormal;
         MathUtils<double>::UnitCrossProduct(mNormal, edge1, edge2);
 
-        const double mConstant =  inner_prod(mNormal, Nodes[NodesInFaces(0,face)]);
-        double Side = norm_2(Nodes[NodesInFaces(1,face)].Coordinates() - Nodes[NodesInFaces(0,face)].Coordinates());
-        double Distance = inner_prod(mNormal,Point) - mConstant;
+        const double mConstant =  inner_prod(mNormal, rNodes[rNodesInFaces(0,Face)]);
+        double side = norm_2(rNodes[rNodesInFaces(1,Face)].Coordinates() - rNodes[rNodesInFaces(0,Face)].Coordinates());
+        double distance = inner_prod(mNormal,rPoint) - mConstant;
 
-        return Distance/Side;
+        return distance/side;
     }
 
     /***********************************************************************************
@@ -102,17 +106,13 @@ namespace Kratos {
     
     double VolumeInsideVoxelQEF::NormalizedDistanceToQEF(
         GeometryType& rFace, 
-        const array_1d<double,3>& Point, int& face) 
+        const array_1d<double,3>& Point,
+        int face) 
     {
         PointsArrayType Nodes = rFace.Points();
         array_1d<double, 3> edge1 = Nodes[1]- Nodes[0];
         array_1d<double, 3> edge2 = Nodes[2] - Nodes[0];
         
-        /* The elements used are assumed to have a correct hexahedra form. Therefore, the next check is not needed
-        if (MathUtils<double>::Dot3(edge1,edge2) - MathUtils<double>::Norm3(edge1)*MathUtils<double>::Norm3(edge2) < 10e-8) {
-            edge2 = Nodes[3] - Nodes[0];
-        } */
-
         array_1d<double, 3> mNormal;
         MathUtils<double>::UnitCrossProduct(mNormal, edge1, edge2);
         
