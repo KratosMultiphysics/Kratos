@@ -42,12 +42,12 @@ namespace Kratos
 ///@{
 
 /**
- * @class VolumeInsideVoxel
+ * @class VolumeInsideVoxelQEF
  * @ingroup KratosCore
- * @brief Utilities to compute the real volume inside a voxel
+ * @brief Utilities to compute the real volume inside a voxel using quadratic error functions
  * @details This class provides static methods to compute (using different approximations) the portion of a 
  * voxel that is actually filled with volume.
- * @author Ariadna Cortés
+ * @author Ariadna Cortes
  */
 class VolumeInsideVoxelQEF : public VoxelUtilities
 {
@@ -57,14 +57,13 @@ public:
     ///@{
 
     typedef Node<3> NodeType;
-    typedef Node<3>::Pointer NodePtrType;
     typedef Geometry<NodeType> GeometryType;
     typedef GeometryType::Pointer GeometryPtrType;
     typedef GeometryType::GeometriesArrayType GeometryArrayType;
     typedef GeometryType::PointsArrayType PointsArrayType;
 
 
-    /// Pointer definition of VoxelInsideVolume
+    /// Pointer definition of VoxelInsideVolumeQEF
     KRATOS_CLASS_POINTER_DEFINITION( VolumeInsideVoxelQEF );
 
     ///@}
@@ -92,12 +91,11 @@ public:
      * @param rVoxel references to the voxel whose actual volume will be approximated
      * @param rTriangles references to the triangles which intersect the voxel at some edge.
      * @return Approximated volume 
-     * @note This approximation finds the portion of each edge that is part of the volume (using
-     * intersection point with triangles of the mesh). Even if this class is templated for both 
-     * parameters, it will only work with intersecting TRIANGLES, since the utility used to compute
-     * the intersection does not allow templating.
+     * @note This is cheaper version of VolumeQEFApproximation. 
      */ 
-    static double SimpleNodesQEFApproximation(const GeometryType& rVoxel, const GeometryArrayType& rTriangles);
+    static double SimpleNodesQEFApproximation(
+        const GeometryType& rVoxel, 
+        const GeometryArrayType& rTriangles);
 
     /**
      * @brief Aproximates the actual volume inside the voxel based on the triangle intersections at the edges  
@@ -105,7 +103,9 @@ public:
      * @param rTriangles references to the triangles which intersect the voxel at some edge.
      * @return Approximated volume 
      */
-    static double VolumeQEFApproximation(const GeometryType& rVoxel,const GeometryArrayType& rTriangles);
+    static double VolumeQEFApproximation(
+        const GeometryType& rVoxel,
+        const GeometryArrayType& rTriangles);
 
 private:
 
@@ -131,7 +131,10 @@ private:
      * @param NodesInFaces matrix containing the index of the nodes of the geometry that belong to each faces
      * @return 
      * */
-    static double GetPortion(PointsArrayType& Nodes,const DenseMatrix<unsigned int>& NodesInFaces, int& face);
+    static double GetPortion(
+        PointsArrayType& Nodes,
+        const DenseMatrix<unsigned int>& NodesInFaces, 
+        int& face);
 
     /**
      * @brief Calculates the distance from a face (given by its nodes) and the given point, normalized 
@@ -143,7 +146,8 @@ private:
     static double NormalizedDistanceToQEF(
         PointsArrayType& Nodes,
         const DenseMatrix<unsigned int>& NodesInFaces, 
-        const array_1d<double,3>& Point, int& face);
+        const array_1d<double,3>& Point, 
+        int& face);
 
     /**
      * @brief Calculates the distance from a face (given by its nodes) and the given point, normalized 
@@ -154,7 +158,8 @@ private:
      * */
     static double NormalizedDistanceToQEF(
         GeometryType& rFace, 
-        const array_1d<double,3>& Point, int& face);
+        const array_1d<double,3>& Point, 
+        int& face);
 
 }; /* Class VoxelInsideVolumeQEF */
 
