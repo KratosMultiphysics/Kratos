@@ -91,12 +91,12 @@ namespace Kratos {
     {
         array_1d<double, 3> edge1 = rNodes[rNodesInFaces(1,Face)] - rNodes[rNodesInFaces(0,Face)];
         array_1d<double, 3> edge2 = rNodes[rNodesInFaces(2,Face)] - rNodes[rNodesInFaces(0,Face)];
-        array_1d<double, 3> mNormal;
-        MathUtils<double>::UnitCrossProduct(mNormal, edge1, edge2);
+        array_1d<double, 3> v_normal;
+        MathUtils<double>::UnitCrossProduct(v_normal, edge1, edge2);
 
-        const double mConstant =  inner_prod(mNormal, rNodes[rNodesInFaces(0,Face)]);
+        const double mConstant =  inner_prod(v_normal, rNodes[rNodesInFaces(0,Face)]);
         double side = norm_2(rNodes[rNodesInFaces(1,Face)].Coordinates() - rNodes[rNodesInFaces(0,Face)].Coordinates());
-        double distance = inner_prod(mNormal,rPoint) - mConstant;
+        double distance = inner_prod(v_normal,rPoint) - mConstant;
 
         return distance/side;
     }
@@ -106,21 +106,21 @@ namespace Kratos {
     
     double VolumeInsideVoxelQEF::NormalizedDistanceToQEF(
         GeometryType& rFace, 
-        const array_1d<double,3>& Point,
+        const array_1d<double,3>& rPoint,
         int face) 
     {
-        PointsArrayType Nodes = rFace.Points();
-        array_1d<double, 3> edge1 = Nodes[1]- Nodes[0];
-        array_1d<double, 3> edge2 = Nodes[2] - Nodes[0];
+        PointsArrayType nodes = rFace.Points();
+        array_1d<double, 3> edge1 = nodes[1]- nodes[0];
+        array_1d<double, 3> edge2 = nodes[2] - nodes[0];
         
-        array_1d<double, 3> mNormal;
-        MathUtils<double>::UnitCrossProduct(mNormal, edge1, edge2);
+        array_1d<double, 3> v_normal;
+        MathUtils<double>::UnitCrossProduct(v_normal, edge1, edge2);
         
-        const double mConstant =  inner_prod(mNormal, Nodes[0]);
-        double Side = norm_2(Nodes[1].Coordinates() - Nodes[0].Coordinates());
-        double Distance = inner_prod(mNormal,Point) - mConstant;
+        const double v_constant =  inner_prod(v_normal, nodes[0]);
+        double side = norm_2(nodes[1].Coordinates() - nodes[0].Coordinates());
+        double distance = inner_prod(v_normal,rPoint) - v_constant;
 
-        return Distance/Side;
+        return distance/side;
     }
 
 } //Namespace Kratos
