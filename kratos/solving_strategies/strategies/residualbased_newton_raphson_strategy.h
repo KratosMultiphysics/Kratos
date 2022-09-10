@@ -902,7 +902,6 @@ class ResidualBasedNewtonRaphsonStrategy
      */
     bool SolveSolutionStep() override
     {
-        KRATOS_WATCH("in residualbased_newton_raphson_strategy.h inside SolvesolutionStep");
         // Pointers needed in the solution
         ModelPart& r_model_part = BaseType::GetModelPart();
         typename TSchemeType::Pointer p_scheme = GetScheme();
@@ -1063,7 +1062,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
     void CalculateReactions() override
     {
-        KRATOS_WATCH("in residualbased_newton_raphson_strategy.h inside CalculateReactions");
         // // Pointers needed in the solution
         ModelPart& r_model_part = BaseType::GetModelPart();
         typename TSchemeType::Pointer p_scheme = GetScheme();

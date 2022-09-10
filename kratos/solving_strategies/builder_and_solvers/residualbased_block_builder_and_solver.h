@@ -944,7 +944,6 @@ public:
         TSystemVectorType& b) override
     {
         TSparseSpace::SetToZero(b);
-        KRATOS_WATCH("CalculateReactions has been called");
         //refresh RHS to have the correct reactions
         BuildRHSNoDirichlet(pScheme, rModelPart, b);
 

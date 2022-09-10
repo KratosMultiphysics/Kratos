@@ -154,7 +154,6 @@ namespace Kratos {
             mGammaNewmark = 0.5 - mAlphaBossak;
             mMeshVelocity = 0.0;
 
-            KRATOS_WATCH("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent2");
 
             //Allocate auxiliary memory
             int NumThreads = ParallelUtilities::GetNumThreads();
@@ -184,7 +183,6 @@ namespace Kratos {
             mGammaNewmark = 0.5 - mAlphaBossak;
             mMeshVelocity = MoveMeshStrategy;
 
-            KRATOS_WATCH("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent3");
 
             //Allocate auxiliary memory
             int NumThreads = ParallelUtilities::GetNumThreads();
@@ -214,7 +212,6 @@ namespace Kratos {
             mGammaNewmark = 0.5 - mAlphaBossak;
             mMeshVelocity = MoveMeshStrategy;
 
-            KRATOS_WATCH("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent4");
 
             //Allocate auxiliary memory
             int NumThreads = ParallelUtilities::GetNumThreads();
@@ -246,7 +243,6 @@ namespace Kratos {
             mMeshVelocity = MoveMeshStrategy;
             mRelaxationFactor = RelaxationFactor;
 
-            KRATOS_WATCH("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent5");
 
             //Allocate auxiliary memory
             int NumThreads = ParallelUtilities::GetNumThreads();

@@ -19,22 +19,18 @@ class PfemMeltingAnalysis(AnalysisStage):
     
     def __init__(self, model, project_parameters):
         # Making sure that older cases still work by properly initalizing the parameters
-        print("PfemMeltingAnalysisWithFlush in pfem_melting_analysis.py has been constructed1")
         solver_settings = project_parameters["solver_settings"]
          
         if not solver_settings.Has("domain_size"):
             KratosMultiphysics.Logger.PrintInfo("PfemMeltingAnalysis", "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
             solver_settings["domain_size"].SetInt(project_parameters["problem_data"]["domain_size"].GetInt())
-        print("PfemMeltingAnalysisWithFlush in pfem_melting_analysis.py before super(PfemMeltingAnalysis, self).__init__(model, project_parameters)")
         super(PfemMeltingAnalysis, self).__init__(model, project_parameters)
 
     #### Internal functions ####
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
-        print("In pfem_melting_analysis.py _CreateSolver has been called")
         ## Solver construction
-        print("In pfem_melting_analysis.py before solver_wrapper.CreateSolverByParameters")
         return solver_wrapper.CreateSolverByParameters(self.model, self.project_parameters["solver_settings"],self.project_parameters["problem_data"]["parallel_type"].GetString())
         
     def _GetSimulationName(self):

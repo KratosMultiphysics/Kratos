@@ -63,11 +63,9 @@ class FluidSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
     def AddVariables(self):
-        print("in fluid_solver.py in AddVariables")
         raise Exception("Trying to call FluidSolver.AddVariables(). Implement the AddVariables() method in the specific derived solver.")
 
     def AddDofs(self):
-        print("in fluid_solver.py in AddDofs")
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
@@ -376,9 +374,7 @@ class FluidSolver(PythonSolver):
         if analysis_type == "linear":
             solution_strategy = self._CreateLinearStrategy()
         elif analysis_type == "non_linear":
-            print("in fluid_solver.py before solution_strategy = self._CreateNewtonRaphsonStrategy()")
             solution_strategy = self._CreateNewtonRaphsonStrategy()
-            print("in fluid_solver.py after solution_strategy = self._CreateNewtonRaphsonStrategy()")
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""

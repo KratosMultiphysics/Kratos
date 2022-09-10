@@ -319,13 +319,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
             self.formulation.SetProcessInfo(self.GetComputingModelPart())
 
         # Construct and initialize the solution strategy
-        print("in navier_śtokes_solver_vmsmonolithic before solution_strategy = self._GetSolutionStrategy()")
         solution_strategy = self._GetSolutionStrategy()
-        print("in navier_śtokes_solver_vmsmonolithic before SetEchoLevel(")
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-        print("in navier_śtokes_solver_vmsmonolithic before solution_strategy.Initialize()")
         solution_strategy.Initialize()
-        print("in navier_śtokes_solver_vmsmonolithic after solution_strategy.Initialize()")
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
