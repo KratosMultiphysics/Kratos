@@ -71,9 +71,10 @@ class PFEM2Solver(PythonSolver):
         self.move_mesh_strategy=self.settings["fluid_solver_settings"]["move_mesh_strategy"].GetInt()
         print(self.move_mesh_strategy)
 
-        self.SplittingMethod = "ReverseStrangSplitting"
+        # self.SplittingMethod = "ReverseStrangSplitting"
         # self.SplittingMethod = "StrangSplitting"
         # self.SplittingMethod = "sdfsdfsdx"
+        self.SplittingMethod = "sdfsdddsdsfsdfsdx"
         
         # To take into account
         #0 NS equations including convective terms
