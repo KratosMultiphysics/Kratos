@@ -366,6 +366,7 @@ private:
 
         for (int i = 0; i < Dimension; i++) {
             mNumberOfCells[i] = static_cast<std::size_t>(std::round(lengths[i] / rCellSize[i]));
+            mNumberOfCells[i] = (number_of_cells >= 1) ? number_of_cells : 1;
             mCellSizes[i] = rCellSize[i];
             mInverseOfCellSize[i] = 1.00 / mCellSizes[i];
         }
