@@ -49,17 +49,19 @@ ModelPartIO::ModelPartIO(std::filesystem::path const& Filename, const Flags Opti
         OpenMode = std::fstream::in;
     }
 
-    std::filesystem::path full_file_name(Filename);
-    full_file_name.replace_extension("mdpa");
+    std::filesystem::path mdpa_file_name(Filename);
+    mdpa_file_name += ".mdpa";
+    std::filesystem::path time_file_name(Filename);
+    time_file_name += ".time";
 
-    pFile->open(full_file_name.c_str(), OpenMode);
+    pFile->open(mdpa_file_name.c_str(), OpenMode);
 
-    KRATOS_ERROR_IF_NOT(pFile->is_open()) << "Error opening mdpa file : " << full_file_name << std::endl;
+    KRATOS_ERROR_IF_NOT(pFile->is_open()) << "Error opening mdpa file : " << mdpa_file_name << std::endl;
 
     // Store the pointer as a regular std::iostream
     mpStream = pFile;
 
-    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(full_file_name.replace_extension("time").string());
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(time_file_name.string());
 }
 
 /// Constructor with stream
