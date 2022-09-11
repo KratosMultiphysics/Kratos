@@ -35,7 +35,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         with self.subTest("pathlib.Path"):
             self.execute_test_model_part_io_read_model_part(Path(input_mdpa))
 
-    def execute_test_model_part_io_read_model_part(self, input):
+    def execute_test_model_part_io_read_model_part(self, input_mdpa):
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
@@ -43,7 +43,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
 
-        model_part_io = KratosMultiphysics.ModelPartIO(input)
+        model_part_io = KratosMultiphysics.ModelPartIO(input_mdpa)
         model_part_io.ReadModelPart(model_part)
 
         self.assertEqual(model_part.NumberOfSubModelParts(), 2)
