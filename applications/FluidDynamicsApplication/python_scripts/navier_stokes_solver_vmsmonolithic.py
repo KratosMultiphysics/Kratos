@@ -221,6 +221,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "velocity_relaxation":0.9,
             "pressure_relaxation":0.9,
             "move_mesh_strategy": 0,
+            "splitting_strategy"      : "ReverseStrangSplitting",
             "periodic": "periodic",
             "move_mesh_flag": false
         }""")
