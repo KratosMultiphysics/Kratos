@@ -224,13 +224,25 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("UpdateSearchDatabase", &BinBasedFastPointLocatorConditions < 2 > ::UpdateSearchDatabase)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocatorConditions < 2 > ::UpdateSearchDatabaseAssignedSize)
         .def("FindPointOnMesh", &BinBasedFastPointLocatorConditions < 2 > ::FindPointOnMeshSimplified)
+        .def("FindPointOnMesh", [](BinBasedFastPointLocatorConditions < 2 >& rSelf, const array_1d<double,3>& rCoords ){
+            Condition::Pointer p_cond = nullptr;
+            Vector N;
+            const bool is_found = rSelf.FindPointOnMeshSimplified(rCoords,N,p_cond);
+            return std::tuple<bool,Vector,Condition::Pointer>{is_found,N,p_cond};
+        })
         ;
 
     py::class_< BinBasedFastPointLocatorConditions < 3 > >(m,"BinBasedFastPointLocatorConditions3D")
         .def(py::init<ModelPart&  >())
         .def("UpdateSearchDatabase", &BinBasedFastPointLocatorConditions < 3 > ::UpdateSearchDatabase)
-        .def("FindPointOnMesh", &BinBasedFastPointLocatorConditions < 3 > ::FindPointOnMeshSimplified)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocatorConditions < 3 > ::UpdateSearchDatabaseAssignedSize)
+        .def("FindPointOnMesh", &BinBasedFastPointLocatorConditions < 3 > ::FindPointOnMeshSimplified)
+        .def("FindPointOnMesh", [](BinBasedFastPointLocatorConditions < 3 >& rSelf, const array_1d<double,3>& rCoords ){
+            Condition::Pointer p_cond = nullptr;
+            Vector N;
+            const bool is_found = rSelf.FindPointOnMeshSimplified(rCoords,N,p_cond);
+            return std::tuple<bool,Vector,Condition::Pointer>{is_found,N,p_cond};
+        })
         ;
 
     py::class_< BinBasedNodesInElementLocator < 2 > >(m,"BinBasedNodesInElementLocator2D")
