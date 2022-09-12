@@ -17,13 +17,13 @@
 #if !defined(KRATOS_MATH_UTILS )
 #define  KRATOS_MATH_UTILS
 
-/* System includes */
+// System includes
 #include <cmath>
 #include <type_traits>
 
-/* External includes */
+// External includes
 
-/* External includes */
+// External includes
 #include "input_output/logger.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
@@ -103,20 +103,6 @@ public:
     static inline TDataType GetZeroTolerance()
     {
         return ZeroTolerance;
-    }
-
-    /**
-     * @brief This function calculates the number of elements between first and last.
-     * @param rFirstData First element
-     * @param rSecondData Second element
-     * @return Distance Number of elements
-     */
-    static TDataType Distance(
-        const TDataType& rFirstData,
-        const TDataType& rSecondData
-        )
-    {
-        return rFirstData.Distance(rSecondData);
     }
 
     /**
