@@ -104,7 +104,7 @@ public:
         ModelPart& rPart1,
         ModelPart& rPart2,
         const double BoundingBoxFactor = -1.0,
-        const Flags& Options = BaseProcessType::INTERSECTING_CONDITIONS|
+        const Flags Options = BaseProcessType::INTERSECTING_CONDITIONS|
             BaseProcessType::INTERSECTING_ELEMENTS|
             BaseProcessType::INTERSECTED_CONDITIONS|
             BaseProcessType::INTERSECTED_ELEMENTS|
