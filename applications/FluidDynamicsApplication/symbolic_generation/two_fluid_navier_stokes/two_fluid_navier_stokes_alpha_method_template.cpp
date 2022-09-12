@@ -77,7 +77,7 @@ Element::Pointer TwoFluidNavierStokesAlphaMethod<TElementData>::Create(
 template <>
 void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::CalculateStrainRate(TwoFluidNavierStokesAlphaMethodData<2, 3>& rData) const
 {
-    const double alpha_f=1/(1+rData.MaxSprectraRadius);
+    const double alpha_f = 1/(1+rData.MaxSpectralRadius);
     const BoundedMatrix<double,3,2> velocity_alpha = rData.Velocity_OldStep1+ alpha_f*(rData.Velocity-rData.Velocity_OldStep1);
     auto& rDNDX = rData.DN_DX;
     auto& r_strain_rate = rData.StrainRate;
@@ -92,7 +92,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
 template <>
 void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>::CalculateStrainRate(TwoFluidNavierStokesAlphaMethodData<3, 4>& rData) const
 {
-    const double alpha_f=1/(1+rData.MaxSprectraRadius);
+    const double alpha_f = 1/(1+rData.MaxSpectralRadius);
     const BoundedMatrix<double,4,3> velocity_alpha = rData.Velocity_OldStep1+ alpha_f*(rData.Velocity-rData.Velocity_OldStep1);
     auto& rDNDX = rData.DN_DX;
     auto& r_strain_rate = rData.StrainRate;
@@ -120,12 +120,12 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const double dt = rData.DeltaTime;
 
     const double dyn_tau = rData.DynamicTau;
-    const double max_spectral_radius=rData.MaxSprectraRadius;
+    const double max_spectral_radius = rData.MaxSpectralRadius;
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vmeshn = rData.MeshVelocityOldStep;
-    const double alpha_f=1/(1+rData.MaxSprectraRadius);
+    const double alpha_f = 1/(1+rData.MaxSpectralRadius);
     const BoundedMatrix<double,3,2> vconv =(vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
     // Get constitutive matrix
@@ -155,7 +155,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
     const double h = rData.ElementSize;
-    const double max_spectral_radius=rData.MaxSprectraRadius;
+    const double max_spectral_radius = rData.MaxSpectralRadius;
     const double dt = rData.DeltaTime;
     const double alpha_f=1/(1+max_spectral_radius);
 
@@ -200,7 +200,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
 
     const double dt = rData.DeltaTime;
     const auto &acceleration_alpha_method=rData.AccelerationAlphaMethod;
-    const double max_spectral_radius=rData.MaxSprectraRadius;
+    const double max_spectral_radius = rData.MaxSpectralRadius;
     const double alpha_f=1/(1+max_spectral_radius);
 
     const double dyn_tau = rData.DynamicTau;
@@ -225,7 +225,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    const double volume_error_ratio = rData.VolumeError;
+    const double volume_error_ratio = rData.VolumeErrorRate;
 
     auto &rhs = rData.rhs;
 
@@ -244,7 +244,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
 
     const double h = rData.ElementSize;
     const auto &acceleration_alpha_method=rData.AccelerationAlphaMethod;
-    const double max_spectral_radius=rData.MaxSprectraRadius;
+    const double max_spectral_radius = rData.MaxSpectralRadius;
     const double dt = rData.DeltaTime;
     const double alpha_f=1/(1+max_spectral_radius);
     const double dyn_tau = rData.DynamicTau;
@@ -268,7 +268,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    const double volume_error_ratio = rData.VolumeError;
+    const double volume_error_ratio = rData.VolumeErrorRate;
 
     auto &rhs = rData.rhs;
 
@@ -290,7 +290,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
 
     const double h = rData.ElementSize;
     const auto &acceleration_alpha_method=rData.AccelerationAlphaMethod;
-    const double max_spectral_radius=rData.MaxSprectraRadius;
+    const double max_spectral_radius = rData.MaxSpectralRadius;
     const double dt = rData.DeltaTime;
     const double alpha_f=1/(1+max_spectral_radius);
 
@@ -317,7 +317,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    const double volume_error_ratio = rData.VolumeError;
+    const double volume_error_ratio = rData.VolumeErrorRate;
 
     auto &V = rData.V;
     auto &H = rData.H;
@@ -354,7 +354,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
 
     const double h = rData.ElementSize;
     const auto &acceleration_alpha_method=rData.AccelerationAlphaMethod;
-    const double max_spectral_radius=rData.MaxSprectraRadius;
+    const double max_spectral_radius = rData.MaxSpectralRadius;
     const double dt = rData.DeltaTime;
     const double alpha_f=1/(1-max_spectral_radius);
 
@@ -381,7 +381,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    const double volume_error_ratio = rData.VolumeError;
+    const double volume_error_ratio = rData.VolumeErrorRate;
 
     auto &V = rData.V;
     auto &H = rData.H;
@@ -480,7 +480,7 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::PressureGradientStabilizatio
     const double dt = rData.DeltaTime;
     const auto &v=rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
+    const double alpha_m = 0.5*((3-rData.MaxSpectralRadius)/(1+rData.MaxSpectralRadius));
 
     const auto vmesh=rData.MeshVelocity;
     const auto vmeshn=rData.MeshVelocityOldStep;

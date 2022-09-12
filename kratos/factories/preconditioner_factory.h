@@ -105,7 +105,7 @@ public:
     {
         // remove name of the application (if passed)
         // e.g. "LinearSolversApplication.sparse_lu" => "sparse_lu"
-        const std::string raw_precond_name = rPreconditionerType.substr(rPreconditionerType.find(".") + 1);
+        const std::string raw_precond_name = rPreconditionerType.substr(rPreconditionerType.find('.') + 1);
 
         KRATOS_ERROR_IF_NOT(Has(raw_precond_name))
             << "Trying to construct a preconditioner with preconditioner_type:\n\""

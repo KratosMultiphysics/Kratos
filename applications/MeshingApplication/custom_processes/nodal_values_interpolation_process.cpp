@@ -278,7 +278,7 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(
     KDTreeType tree_points(point_list_destination.begin(), point_list_destination.end(), bucket_size);
 
     // We extrapolate the nodes that cannot been found
-    for (auto p_node : rToExtrapolateNodes) {
+    for (const auto& p_node : rToExtrapolateNodes) {
         // Initialize values
         PointVector points_found(allocation_size);
 

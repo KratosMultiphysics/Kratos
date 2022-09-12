@@ -157,7 +157,7 @@ void MultiscaleRefiningProcess::InitializeVisualizationModelPart(ModelPart& rRef
     sub_model_parts_names = rReferenceModelPart.GetSubModelPartNames();
 
     // Add the entities to the submodel parts
-    for (auto name : sub_model_parts_names)
+    for (const auto& name : sub_model_parts_names)
     {
         ModelPart& destination = rNewModelPart.GetSubModelPart(name);
         ModelPart& origin = rReferenceModelPart.GetSubModelPart(name);
@@ -192,7 +192,7 @@ void MultiscaleRefiningProcess::InitializeNewModelPart(ModelPart& rReferenceMode
     sub_model_parts_names = rReferenceModelPart.GetSubModelPartNames();
 
     // Copy the hierarchy to the refined model part
-    for (auto name : sub_model_parts_names)
+    for (const auto& name : sub_model_parts_names)
     {
         ModelPart& sub_model_part = rNewModelPart.CreateSubModelPart(name);
 
@@ -391,7 +391,7 @@ void MultiscaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
 
     // Adding the nodes to the refined sub model parts
     StringVectorType sub_model_part_names = mrCoarseModelPart.GetSubModelPartNames();
-    for (auto name : sub_model_part_names)
+    for (const auto& name : sub_model_part_names)
     {
         ModelPart& coarse_sub_model_part = mrCoarseModelPart.GetSubModelPart(name);
         ModelPart& refined_sub_model_part = mrRefinedModelPart.GetSubModelPart(name);
@@ -587,7 +587,7 @@ void MultiscaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId, Index
         const auto tag = collection.first;
         if (tag != 0)
         {
-            for (auto name : collection.second)
+            for (const auto& name : collection.second)
             {
                 ModelPart& sub_model_part = mrRefinedModelPart.GetSubModelPart(name);
                 sub_model_part.AddElements(tag_elems_map[tag]);
@@ -637,7 +637,7 @@ void MultiscaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, Ind
         const auto tag = collection.first;
         if (tag != 0)
         {
-            for (auto name : collection.second)
+            for (const auto& name : collection.second)
             {
                 ModelPart& sub_model_part = mrRefinedModelPart.GetSubModelPart(name);
                 sub_model_part.AddConditions(tag_conds_map[tag]);

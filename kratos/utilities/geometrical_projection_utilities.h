@@ -190,7 +190,7 @@ public:
         const array_1d<double, 3>& r_p_b = rGeometry[1].Coordinates();
         const array_1d<double, 3> ab = r_p_b - r_p_a;
 
-        const array_1d<double, 3> p_c = rPointToProject.Coordinates();
+        const array_1d<double, 3>& p_c = rPointToProject.Coordinates();
 
         const double factor = (inner_prod(r_p_b, p_c) - inner_prod(r_p_a, p_c) - inner_prod(r_p_b, r_p_a) + inner_prod(r_p_a, r_p_a)) / inner_prod(ab, ab);
 
