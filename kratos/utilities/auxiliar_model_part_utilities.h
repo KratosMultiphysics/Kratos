@@ -582,7 +582,8 @@ public:
 
     /**
      * @brief This method deep copies a whole model part
-     * @details This means that excepting the Model pointer, if default behaviour, every data is copied, no reference to the original model part is kept.
+     * @details When a pointer to Model is provided the provided Model will be considered for the copy, otherwise the Model of the current ModelPart will be considered. The last is the default behaviour. 
+     * This is deep copy, meaning that every entity is deep copied, so created from scratch. The only thing that would be equal will be the Model if not custom Model is provided
      * @param rNewModelPartName The name of the new model part
      * @param pModel The pointer to the Model that will host the new ModelPart, if nullptr, the current Model will be used.
      * @return The deep copied model part
