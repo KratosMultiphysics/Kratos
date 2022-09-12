@@ -103,7 +103,7 @@ public:
         const double CurrentStress,
         double& rMaximumStress,
         double& rMinimumStress,
-        const Vector PreviousStresses,
+        const Vector& PreviousStresses,
         bool& rMaxIndicator,
         bool& rMinIndicator)
     {
