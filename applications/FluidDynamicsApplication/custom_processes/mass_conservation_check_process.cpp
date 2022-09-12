@@ -442,7 +442,7 @@ double MassConservationCheckProcess::ComputePositiveVolume(){
 }
 
 
-double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flags& boundaryFlag ){
+double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flags boundaryFlag ){
 
     // Convention: "mass" is considered as "water", meaning the volumes with a negative distance is considered
     double inflow_over_boundary = 0.0;
