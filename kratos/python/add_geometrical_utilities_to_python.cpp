@@ -197,7 +197,6 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def(py::init<ModelPart& >())
         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabase)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabaseAssignedSize)
-        .def("FindPointOnMesh", &BinBasedFastPointLocator < 2 > ::FindPointOnMeshSimplified)
         .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& rSelf, const array_1d<double,3>& rCoords ){
             Element::Pointer p_elem = nullptr;
             Vector N;
@@ -210,7 +209,6 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def(py::init<ModelPart&  >())
         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabase)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
-        .def("FindPointOnMesh", &BinBasedFastPointLocator < 3 > ::FindPointOnMeshSimplified)
         .def("FindPointOnMesh", [](BinBasedFastPointLocator < 3 >& rSelf, const array_1d<double,3>& rCoords ){
             Element::Pointer p_elem = nullptr;
             Vector N;
@@ -223,7 +221,6 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def(py::init<ModelPart& >())
         .def("UpdateSearchDatabase", &BinBasedFastPointLocatorConditions < 2 > ::UpdateSearchDatabase)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocatorConditions < 2 > ::UpdateSearchDatabaseAssignedSize)
-        .def("FindPointOnMesh", &BinBasedFastPointLocatorConditions < 2 > ::FindPointOnMeshSimplified)
         .def("FindPointOnMesh", [](BinBasedFastPointLocatorConditions < 2 >& rSelf, const array_1d<double,3>& rCoords ){
             Condition::Pointer p_cond = nullptr;
             Vector N;
@@ -236,7 +233,6 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def(py::init<ModelPart&  >())
         .def("UpdateSearchDatabase", &BinBasedFastPointLocatorConditions < 3 > ::UpdateSearchDatabase)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocatorConditions < 3 > ::UpdateSearchDatabaseAssignedSize)
-        .def("FindPointOnMesh", &BinBasedFastPointLocatorConditions < 3 > ::FindPointOnMeshSimplified)
         .def("FindPointOnMesh", [](BinBasedFastPointLocatorConditions < 3 >& rSelf, const array_1d<double,3>& rCoords ){
             Condition::Pointer p_cond = nullptr;
             Vector N;
