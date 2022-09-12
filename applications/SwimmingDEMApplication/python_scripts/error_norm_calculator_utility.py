@@ -18,37 +18,20 @@ class ErrorNormCalculatorUtility:
 
         self.u_characteristic = parameters["error_projection_parameters"]["u_characteristic"].GetDouble()
 
-        for element in self.model_part.Elements:
-            self.rho = element.Properties.GetValue(KratosMultiphysics.DENSITY)
-            self.nu = element.Properties.GetValue(KratosMultiphysics.VISCOSITY)
-            break
+        self.rho = self.model_part.Elements.__iter__().__next__().Properties.GetValue(KratosMultiphysics.DENSITY)
+        self.nu = self.model_part.Elements.__iter__().__next__().Properties.GetValue(KratosMultiphysics.VISCOSITY)
 
         self.p_characteristic = (1/2)*self.rho*self.u_characteristic**2
 
-        self.model = KratosMultiphysics.Model()
-
-        self.element_name = "AlternativeQSVMSDEMCoupled2D9N"
-
-        self.error_model_part = self.model.CreateModelPart("ErrorModelPart")
-
-        self.error_model_part.AddNodalSolutionStepVariable(SDEM.VECTORIAL_ERROR)
-        self.error_model_part.AddNodalSolutionStepVariable(SDEM.SCALAR_ERROR)
-        self.error_model_part.AddNodalSolutionStepVariable(SDEM.ERROR_X)
-        self.error_model_part.AddNodalSolutionStepVariable(SDEM.ERROR_Y)
-        self.error_model_part.AddNodalSolutionStepVariable(SDEM.ERROR_Z)
-        self.error_model_part.AddNodalSolutionStepVariable(SDEM.ERROR_P)
-
-        model_part_cloner = KratosMultiphysics.ConnectivityPreserveModeler()
-        model_part_cloner.GenerateModelPart(self.model_part, self.error_model_part, self.element_name)
-
-        self.error_model_part.ProcessInfo = self.model_part.ProcessInfo
+        self.model_part.AddNodalSolutionStepVariable(SDEM.VECTORIAL_ERROR)
+        self.model_part.AddNodalSolutionStepVariable(SDEM.SCALAR_ERROR)
 
     def CalculateL2Norm(self):
         self.ComputeDofsErrors()
         self.velocity_L2_error_norm = self.VectorL2ErrorNorm()
         self.pressure_L2_error_norm = self.ScalarL2ErrorNorm()
 
-        return self.velocity_L2_error_norm/self.u_characteristic, self.pressure_L2_error_norm, self.error_model_part
+        return self.velocity_L2_error_norm/self.u_characteristic, self.pressure_L2_error_norm, self.model_part
 
     def CalculateH1SemiNorm(self):
 
@@ -58,16 +41,16 @@ class ErrorNormCalculatorUtility:
         return self.velocity_H1_error_seminorm/self.u_characteristic, self.pressure_H1_error_seminorm/self.p_characteristic
 
     def ComputeDofsErrors(self):
-        SDEM.ErrorNormCalculator().ComputeDofsErrors(self.error_model_part)
+        SDEM.ErrorNormCalculator().ComputeDofsErrors(self.model_part)
 
     def VectorL2ErrorNorm(self):
-        return SDEM.ErrorNormCalculator().GetL2VectorErrorNorm(self.error_model_part, KratosMultiphysics.VELOCITY)
+        return SDEM.ErrorNormCalculator().GetL2VectorErrorNorm(self.model_part, KratosMultiphysics.VELOCITY)
 
     def ScalarL2ErrorNorm(self):
-        return SDEM.ErrorNormCalculator().GetL2ScalarErrorNorm(self.error_model_part, KratosMultiphysics.PRESSURE)
+        return SDEM.ErrorNormCalculator().GetL2ScalarErrorNorm(self.model_part, KratosMultiphysics.PRESSURE)
 
     def ScalarH1ErrorSemiNorm(self):
-        return SDEM.ErrorNormCalculator().GetH1ScalarErrorSemiNorm(self.error_model_part)
+        return SDEM.ErrorNormCalculator().GetH1ScalarErrorSemiNorm(self.model_part)
 
     def VectorH1ErrorSemiNorm(self):
-        return SDEM.ErrorNormCalculator().GetH1VectorErrorSemiNorm(self.error_model_part)
+        return SDEM.ErrorNormCalculator().GetH1VectorErrorSemiNorm(self.model_part)
