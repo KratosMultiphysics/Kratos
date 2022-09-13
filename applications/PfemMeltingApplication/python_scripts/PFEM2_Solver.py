@@ -375,7 +375,7 @@ class PFEM2Solver(PythonSolver):
           self.ConvectScalarX()
           self.ConvectScalarY()    
           self.ApplyBCsToCurrentScalarValues()
-          self.CopyCurrentScalarValuesToOldVelocityValues()  
+          self.CopyCurrentScalarValuesToCurrentVelocityValues()  
           self.IncreaseTimeStep()
 
           self.PrintDragAndLiftCoefficients()
@@ -486,6 +486,14 @@ class PFEM2Solver(PythonSolver):
          node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,1,scalar_vel_x)
          node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,1,scalar_vel_y)
          node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,1,scalar_vel_z) 
+    def CopyCurrentScalarValuesToCurrentVelocityValues(self):
+        for node in self.fluid_solver.main_model_part.Nodes:              
+         scalar_vel_x=node.GetSolutionStepValue(PfemM.SCALARVELOCITY_X,0);    
+         scalar_vel_y=node.GetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0);    
+         scalar_vel_z=node.GetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0);    
+         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0,scalar_vel_x)
+         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,scalar_vel_y)
+         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0,scalar_vel_z)   
     def PrintDragAndLiftCoefficients(self):
         #Export the Drag and Lift Coefficients 
         time=self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME]    
