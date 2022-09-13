@@ -256,7 +256,7 @@ public:
         DerivativeDataType& rDerivativeData,
         const GeometryType& rSlaveGeometry,
         const GeometryType& rMasterGeometry,
-        const array_1d<double, 3> rSlaveNormal,
+        const array_1d<double, 3>& rSlaveNormal,
         const DecompositionType& rDecompGeom,
         const PointType& rLocalPointDecomp,
         const PointType& rLocalPointParent,

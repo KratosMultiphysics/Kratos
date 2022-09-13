@@ -92,7 +92,7 @@ public:
     ResidualDisplacementAndOtherDoFCriteria(
         TDataType RatioTolerance,
         TDataType AbsoluteTolerance,
-        const std::string OtherDoFName = "ROTATION"
+        const std::string& OtherDoFName = "ROTATION"
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mOtherDoFName(OtherDoFName),
