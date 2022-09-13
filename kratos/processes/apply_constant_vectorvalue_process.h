@@ -171,7 +171,7 @@ public:
                               const double modulus,
                               const Vector& direction,
                               std::size_t mesh_id,
-                              const Flags& options
+                              const Flags options
                                    ) : Process(options) , mr_model_part(model_part), mmodulus(modulus),mdirection(direction),mmesh_id(mesh_id)
     {
         KRATOS_TRY;

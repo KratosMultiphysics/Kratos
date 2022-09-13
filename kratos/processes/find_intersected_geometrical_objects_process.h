@@ -373,7 +373,7 @@ public:
     FindIntersectedGeometricalObjectsProcess(
         ModelPart& rModelPartIntersected,
         ModelPart& rModelPartIntersecting,
-        const Flags& Options = INTERSECTING_CONDITIONS|INTERSECTING_ELEMENTS|INTERSECTED_CONDITIONS|INTERSECTED_ELEMENTS
+        const Flags Options = INTERSECTING_CONDITIONS|INTERSECTING_ELEMENTS|INTERSECTED_CONDITIONS|INTERSECTED_ELEMENTS
         );
 
     /**

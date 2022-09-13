@@ -31,7 +31,7 @@ FindIntersectedGeometricalObjectsWithOBBProcess::FindIntersectedGeometricalObjec
     ModelPart& rModelPartIntersected,
     ModelPart& rModelPartIntersecting,
     const double BoundingBoxFactor,
-    const Flags& Options
+    const Flags Options
     ) : BaseType(rModelPartIntersected, rModelPartIntersecting, Options),
         mBoundingBoxFactor(BoundingBoxFactor)
 {

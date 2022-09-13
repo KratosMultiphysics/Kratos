@@ -29,7 +29,7 @@ namespace Kratos
 
     void DataValueContainer::Merge(
         const DataValueContainer& rOther,
-        const Flags& Options)
+        const Flags Options)
     {
         const bool overwrite_values = Options.Is(OVERWRITE_OLD_VALUES);
 

@@ -74,7 +74,7 @@ public:
     CalculateDiscontinuousDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        const Flags& rOptions);
+        const Flags rOptions);
 
     /// Constructor with parameters
     CalculateDiscontinuousDistanceToSkinProcess(

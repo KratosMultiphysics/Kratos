@@ -26,7 +26,7 @@ FastTransferBetweenModelPartsProcess::FastTransferBetweenModelPartsProcess(
     ModelPart& rDestinationModelPart,
     ModelPart& rOriginModelPart,
     const EntityTransfered Entity,
-    const Flags& Flag,
+    const Flags Flag,
     const bool ReplicateEntities
     ) : Process(),
         mrDestinationModelPart(rDestinationModelPart),
