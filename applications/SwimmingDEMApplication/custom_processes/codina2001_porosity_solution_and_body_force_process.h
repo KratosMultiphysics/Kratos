@@ -58,6 +58,17 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Node type (default is: Node<3>)
+    typedef Node<3> NodeType;
+
+    /// Geometry type (using with given NodeType)
+    typedef Geometry<NodeType> GeometryType;
+
+    /// Definition of nodes container type, redefined from GeometryType
+    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+
+    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+
     /// Pointer definition of Codina2001PorositySolutionAndBodyForceProcess
     KRATOS_CLASS_POINTER_DEFINITION(Codina2001PorositySolutionAndBodyForceProcess);
 
@@ -119,7 +130,7 @@ public:
 
     void SetBodyForceAndPorosityField();
 
-    void SetFluidProperties();
+    void SetValuesOnIntegrationPoints();
 
     ///@}
     ///@name Access
