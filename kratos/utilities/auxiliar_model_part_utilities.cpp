@@ -105,7 +105,7 @@ void AuxiliarModelPartUtilities::EnsureModelPartOwnsProperties(const bool Remove
     }
 
     // Add properties to respective model parts
-    for (auto p_prop : list_of_properties) {
+    for (const auto& p_prop : list_of_properties) {
         if (!mrModelPart.HasProperties(p_prop->Id())) {
             mrModelPart.AddProperties(p_prop);
         }

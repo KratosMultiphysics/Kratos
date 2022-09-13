@@ -744,7 +744,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
                 // If not active we check if can be potentially in contact
                 if (mCheckGap == CheckGap::MappingCheck) {
                     for (auto p_leaf : leaves) {
-                        for (auto p_cond_master : *(p_leaf->pGetObjects())) {
+                        for (const auto& p_cond_master : *(p_leaf->pGetObjects())) {
                             if (p_cond_master->Is(SELECTED)) {
                                 const CheckResult condition_checked_right = CheckGeometricalObject(p_indexes_pairs, (*it_cond.base()), p_cond_master, this->Is(BaseContactSearchProcess::INVERTED_SEARCH));
 
@@ -764,7 +764,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
                     const array_1d<double, 3>& r_normal_slave = it_cond->GetValue(NORMAL);
 
                     for (auto p_leaf : leaves) {
-                        for (auto p_cond_master : *(p_leaf->pGetObjects())) {
+                        for (const auto& p_cond_master : *(p_leaf->pGetObjects())) {
                             if (p_cond_master->Is(SELECTED)) {
                                 const array_1d<double, 3>& r_normal_master = (p_cond_master->GetGeometry()).UnitNormal(zero_array);
                                 AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), r_normal_slave, p_cond_master, r_normal_master, p_indexes_pairs, p_prop, active_check_factor, frictional_problem);
