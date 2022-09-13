@@ -102,10 +102,10 @@ namespace Kratos
 
       const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
       const unsigned int numberOfRefiningBoxes = mrRemesh.UseRefiningBox.size();
-      Vector preliminaryInBoxesNodes(numberOfRefiningBoxes);
-      noalias(preliminaryInBoxesNodes) = ZeroVector(numberOfRefiningBoxes);
-      Vector preliminaryInBoxesMeanNodalSize(numberOfRefiningBoxes);
-      noalias(preliminaryInBoxesMeanNodalSize) = ZeroVector(numberOfRefiningBoxes);
+      Vector inBoxesNodes(numberOfRefiningBoxes);
+      noalias(inBoxesNodes) = ZeroVector(numberOfRefiningBoxes);
+      Vector inBoxesMeanNodalSize(numberOfRefiningBoxes);
+      noalias(inBoxesMeanNodalSize) = ZeroVector(numberOfRefiningBoxes);
       double preliminaryOutOfBoxesFluidNodes = 0;
       double preliminaryOutOfBoxesMeanNodalSize = 0;
       bool homogeneousMesh = true;
@@ -134,8 +134,8 @@ namespace Kratos
                       i_node->X() < RefiningBoxMaximumPoint[0] && i_node->Y() < RefiningBoxMaximumPoint[1])
                   {
                     outOfRefiningBoxes = false;
-                    preliminaryInBoxesNodes[index] += 1.0;
-                    preliminaryInBoxesMeanNodalSize[index] += i_node->FastGetSolutionStepValue(NODAL_H); // this is a preliminary evaluation of the local mesh size
+                    inBoxesNodes[index] += 1.0;
+                    inBoxesMeanNodalSize[index] += i_node->FastGetSolutionStepValue(NODAL_H); // this is a preliminary evaluation of the local mesh size
                   }
                 }
                 else if (dimension == 3)
@@ -144,8 +144,8 @@ namespace Kratos
                       i_node->X() < RefiningBoxMaximumPoint[0] && i_node->Y() < RefiningBoxMaximumPoint[1] && i_node->Z() < RefiningBoxMaximumPoint[2])
                   {
                     outOfRefiningBoxes = false;
-                    preliminaryInBoxesNodes[index] += 1.0;
-                    preliminaryInBoxesMeanNodalSize[index] += i_node->FastGetSolutionStepValue(NODAL_H); // this is a preliminary evaluation of the local mesh size
+                    inBoxesNodes[index] += 1.0;
+                    inBoxesMeanNodalSize[index] += i_node->FastGetSolutionStepValue(NODAL_H); // this is a preliminary evaluation of the local mesh size
                   }
                 }
               }
@@ -163,16 +163,11 @@ namespace Kratos
 
       mrRemesh.Refine->CriticalRadius = preliminaryOutOfBoxesMeanNodalSize;
       mrRemesh.Refine->InitialRadius = preliminaryOutOfBoxesMeanNodalSize;
-      std::cout << "preliminaryO " << preliminaryOutOfBoxesMeanNodalSize << std::endl;
 
       if (homogeneousMesh == false)
       {
         double outOfBoxesFluidNodes = 0;
         double outOfBoxesMeanNodalSize = 0;
-        Vector insideBoxesFluidNodes(numberOfRefiningBoxes);
-        noalias(insideBoxesFluidNodes) = ZeroVector(numberOfRefiningBoxes);
-        Vector insideBoxesMeanNodalSize(numberOfRefiningBoxes);
-        noalias(insideBoxesMeanNodalSize) = ZeroVector(numberOfRefiningBoxes);
         for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
         {
           if (i_node->Is(FLUID))
@@ -191,13 +186,6 @@ namespace Kratos
                       i_node->X() < (RefiningBoxMaximumPoint[0] + transitionDistanceInInputMesh) && i_node->Y() < (RefiningBoxMaximumPoint[1] + transitionDistanceInInputMesh))
                   {
                     outOfRefiningBoxes = false;
-                    double localTransitionDistance = 2.0 * (preliminaryInBoxesMeanNodalSize[index] / preliminaryInBoxesNodes[index]); // local size is used to avoid the frontiere zone in the mean mesh size computation
-                    if (i_node->X() > (RefiningBoxMinimumPoint[0] + localTransitionDistance) && i_node->Y() > (RefiningBoxMinimumPoint[1] + localTransitionDistance) &&
-                        i_node->X() < (RefiningBoxMaximumPoint[0] - localTransitionDistance) && i_node->Y() < (RefiningBoxMaximumPoint[1] - localTransitionDistance))
-                    {
-                      insideBoxesFluidNodes[index] += 1.0;
-                      insideBoxesMeanNodalSize[index] += i_node->FastGetSolutionStepValue(NODAL_H);
-                    }
                   }
                 }
                 else if (dimension == 3)
@@ -206,13 +194,6 @@ namespace Kratos
                       i_node->X() < (RefiningBoxMaximumPoint[0] + transitionDistanceInInputMesh) && i_node->Y() < (RefiningBoxMaximumPoint[1] + transitionDistanceInInputMesh) && i_node->Z() < (RefiningBoxMaximumPoint[2] + transitionDistanceInInputMesh))
                   {
                     outOfRefiningBoxes = false;
-                    double localTransitionDistance = 2.0 * (preliminaryInBoxesMeanNodalSize[index] / preliminaryInBoxesNodes[index]); // local size is used to avoid the frontiere zone in the mean mesh size computation
-                    if (i_node->X() > (RefiningBoxMinimumPoint[0] + localTransitionDistance) && i_node->Y() > (RefiningBoxMinimumPoint[1] + localTransitionDistance) && i_node->Z() > (RefiningBoxMinimumPoint[2] + localTransitionDistance) &&
-                        i_node->X() < (RefiningBoxMaximumPoint[0] - localTransitionDistance) && i_node->Y() < (RefiningBoxMaximumPoint[1] - localTransitionDistance) && i_node->Z() < (RefiningBoxMaximumPoint[2] - localTransitionDistance))
-                    {
-                      insideBoxesFluidNodes[index] += 1.0;
-                      insideBoxesMeanNodalSize[index] += i_node->FastGetSolutionStepValue(NODAL_H);
-                    }
                   }
                 }
               }
@@ -229,7 +210,7 @@ namespace Kratos
         {
           mrRemesh.Refine->CriticalRadius = preliminaryOutOfBoxesMeanNodalSize;
           mrRemesh.Refine->InitialRadius = preliminaryOutOfBoxesMeanNodalSize;
-          std::cout<<"the coarse zone is too thin, I'll take the preliminary mesh size estimation: "<<preliminaryOutOfBoxesMeanNodalSize<<std::endl;
+          std::cout << "the coarse zone is too thin, I'll take the preliminary mesh size estimation: " << preliminaryOutOfBoxesMeanNodalSize << std::endl;
         }
         else
         {
@@ -238,21 +219,12 @@ namespace Kratos
           mrRemesh.Refine->InitialRadius = outOfBoxesMeanNodalSize;
         }
 
-        std::cout << "outOfBoxesMeanNodalSize " << outOfBoxesMeanNodalSize << std::endl;
+        std::cout << "Mesh size out of refining boxes " << outOfBoxesMeanNodalSize << std::endl;
         for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
         {
-          double localMeshSize = 0;
-          if (insideBoxesFluidNodes[index] == 0)
-          {
-            localMeshSize = preliminaryInBoxesMeanNodalSize[index] / preliminaryInBoxesNodes[index]; // this means that the transition distance was too big
-            std::cout << "ATTENTION insideBoxesFluidNodes[index] IS ZERO " << std::endl;
-            std::cout << "localMeshSize " << localMeshSize << std::endl;
-          }
-          else
-          {
-            localMeshSize = insideBoxesMeanNodalSize[index] / insideBoxesFluidNodes[index];
-            std::cout << "localMeshSize " << localMeshSize << std::endl;
-          }
+          double localMeshSize = inBoxesMeanNodalSize[index] / inBoxesNodes[index];
+          std::cout << "Mesh size inside refining box " << localMeshSize << std::endl;
+
           mrRemesh.SetRefiningBoxMeshSize(index, localMeshSize);
           double tolerance = mrRemesh.RefiningBoxMeshSize[index] * 0.01;
           double differenceOfSize = outOfBoxesMeanNodalSize - mrRemesh.RefiningBoxMeshSize[index];

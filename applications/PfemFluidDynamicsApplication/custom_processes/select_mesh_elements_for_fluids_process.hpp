@@ -118,13 +118,6 @@ namespace Kratos
 
             const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
             double currentTime = rCurrentProcessInfo[TIME];
-            double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-            bool firstMesh = false;
-            if (currentTime < 2 * timeInterval)
-            {
-                firstMesh = true;
-            }
-
             bool box_side_element = false;
             bool wrong_added_node = false;
             int number_of_slivers = 0;
@@ -288,14 +281,6 @@ namespace Kratos
                         if (dimension == 3)
                         {
                             nodesCoordinates[pn] = vertices.back().Coordinates();
-                            // if (pn > 0)
-                            // {
-                            //     array_1d<double, 3> CoorDifference = nodesCoordinates[pn] - nodesCoordinates[0];
-                            //     double SquaredLength = CoorDifference[0] * CoorDifference[0] +
-                            //                            CoorDifference[1] * CoorDifference[1] +
-                            //                            CoorDifference[2] * CoorDifference[2];
-                            //     Edges[pn - 1] = sqrt(SquaredLength);
-                            // }
                         }
                     }
 
@@ -310,10 +295,7 @@ namespace Kratos
                     if (rigidNodeMeshCounter > 0 && rigidNodeMeshCounter < nds)
                     {
                         double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
-                        // if ((wallMeshSize / meanMeshSize > 1.6 || wallMeshSize / meanMeshSize < 0.625) && numfreesurf == 0 && numisolated == 0)
-                        // {
-                        //     Alpha *= 1.1;
-                        // }
+
                         if (rigidWallMeshSize > meanMeshSize)
                         {
                             if (numfreesurf == 0 && numisolated == 0)
@@ -321,11 +303,6 @@ namespace Kratos
                                 meanMeshSize *= 0.5;
                                 meanMeshSize += 0.5 * rigidWallMeshSize;
                             }
-                            // else
-                            // {
-                            //     meanMeshSize *= 0.75;
-                            //     meanMeshSize += 0.25 * rigidWallMeshSize;
-                            // }
                         }
                     }
 
@@ -401,11 +378,6 @@ namespace Kratos
                             }
                         }
                     }
-                    // if (firstMesh == true)
-                    // {
-                    //     Alpha *= 1.05;
-                    // }
-
                     if (numinlet > 0)
                     {
                         Alpha *= 1.5;
