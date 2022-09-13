@@ -69,7 +69,7 @@ void TestShapeFunctionsLocalGradients_Point(Geometry<Node<3>> const& rGeom)
     KRATOS_TRY;
     Matrix local_gradient;
     auto integration_points = rGeom.IntegrationPoints();
-    for (auto point : integration_points)
+    for (const auto& point : integration_points)
         TestShapeFunctionsLocalGradient(
             rGeom, point, rGeom.ShapeFunctionsLocalGradients(local_gradient, point));
     KRATOS_CATCH("");
