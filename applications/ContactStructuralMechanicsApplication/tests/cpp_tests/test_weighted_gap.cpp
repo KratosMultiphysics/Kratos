@@ -140,8 +140,8 @@ namespace Kratos
 
             // We set the database
             ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
-            for (auto p_slave_cond : slave_conds) {
-                for (auto p_master_cond : master_conds) {
+            for (const auto& p_slave_cond : slave_conds) {
+                for (const auto& p_master_cond : master_conds) {
                     id_cond++;
                     const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("ALMFrictionalMortarContactCondition2D2N"));
                     Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop, p_master_cond->pGetGeometry());
@@ -296,8 +296,8 @@ namespace Kratos
 
             // We set the database
             ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
-            for (auto p_slave_cond : slave_conds) {
-                for (auto p_master_cond : master_conds) {
+            for (const auto& p_slave_cond : slave_conds) {
+                for (const auto& p_master_cond : master_conds) {
                     id_cond++;
                     const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("ALMFrictionalMortarContactCondition3D4N"));
                     Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop_0, p_master_cond->pGetGeometry());
@@ -520,8 +520,8 @@ namespace Kratos
 
             // We set the database
             ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
-            for (auto p_slave_cond : slave_conds) {
-                for (auto p_master_cond : master_conds) {
+            for (const auto& p_slave_cond : slave_conds) {
+                for (const auto& p_master_cond : master_conds) {
                     id_cond++;
                     const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("ALMFrictionalMortarContactCondition3D4N"));
                     Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop_0, p_master_cond->pGetGeometry());
@@ -711,8 +711,8 @@ namespace Kratos
             // We set the database
             const auto& r_process_info = rModelPart.GetProcessInfo();
             ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
-            for (auto p_slave_cond : slave_conds) {
-                for (auto p_master_cond : master_conds) {
+            for (const auto& p_slave_cond : slave_conds) {
+                for (const auto& p_master_cond : master_conds) {
                     id_cond++;
                     const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("ALMFrictionalMortarContactCondition3D4N"));
                     Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop_0, p_master_cond->pGetGeometry());
