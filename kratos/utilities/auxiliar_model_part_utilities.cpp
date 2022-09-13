@@ -577,7 +577,7 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
 
     // We copy the sub model parts 
     // NOTE: It is assumed that the submodelparts that working only with Id of the different entities will be enough, as we have ensured to copy everything, including the ids
-    DeepCopySubModelPart(r_model_part, mrModelPart);
+    DeepCopySubModelPart(mrModelPart, r_model_part);
 
     // Finally the Model is set in the initial creation
 
@@ -587,7 +587,7 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::DeepCopySubModelPart(ModelPart& rNewModelPart, const ModelPart& rOldModelPart)
+void AuxiliarModelPartUtilities::DeepCopySubModelPart(const ModelPart& rOldModelPart, ModelPart& rNewModelPart)
 {
     if (rOldModelPart.NumberOfSubModelParts() == 0) {
         return;
@@ -658,7 +658,7 @@ void AuxiliarModelPartUtilities::DeepCopySubModelPart(ModelPart& rNewModelPart, 
             r_new_sub_model_part.AddGeometries(index_list);
 
             // Finally we do a loop over the submodelparts of the submodelpart to copy them (this is done recursively, so the copy will be done until there are no more submodelparts)
-            DeepCopySubModelPart(r_new_sub_model_part, r_old_sub_model_part);
+            DeepCopySubModelPart(r_old_sub_model_part, r_new_sub_model_part);
         }
     }
 }

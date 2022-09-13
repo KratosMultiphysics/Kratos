@@ -715,10 +715,13 @@ private:
     /**
      * @brief This method copies the submodelpart structure from the original model part to the new one.
      * @details This method is called recursively
-     * @param rNewModelPart The new model part
      * @param rOriginalModelPart The original model part
+     * @param rNewModelPart The new model part
      */
-    void DeepCopySubModelPart(ModelPart& rNewModelPart, const ModelPart& rOldModelPart);
+    void DeepCopySubModelPart(
+        const ModelPart& rOldModelPart, 
+        ModelPart& rNewModelPart
+        );
 
     ///@}
     ///@name Private  Access
