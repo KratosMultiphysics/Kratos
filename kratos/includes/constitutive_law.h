@@ -1165,7 +1165,7 @@ public:
      * @see Parameters
      * @see StressMeasures
      */
-    virtual void FinalizeMaterialResponse (Parameters& rValues,const StressMeasure& rStressMeasure);
+    void FinalizeMaterialResponse (Parameters& rValues,const StressMeasure& rStressMeasure);
 
 
     /**
