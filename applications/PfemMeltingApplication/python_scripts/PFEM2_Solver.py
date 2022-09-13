@@ -73,23 +73,12 @@ class PFEM2Solver(PythonSolver):
             print("NS equations including convective terms")
         if (self.move_mesh_strategy==2):
             print("NS equations without convective terms")  
-            if (self.splitting_strategy=="ReverseStrangSplitting"):  
-                print("Splitting Strategy is: ", self.splitting_strategy) 
-                dsfds
+            print("Splitting Strategy is: ", self.splitting_strategy)    
 
-        
-
-        # self.SplittingMethod = "ReverseStrangSplitting"
-        # self.SplittingMethod = "StrangSplitting"
-        # self.SplittingMethod = "sdfsdfsdx"
-        self.SplittingMethod = "sdfsdddsdsfsdfsdx"
         
         # To take into account
         #0 NS equations including convective terms
         #2 NS equations without convective terms
-
-        #3 NS equations without convective terms Reverse Strang Splitting
-        #4 NS equations without convective terms Strang Splitting
          
         self.settings["fluid_solver_settings"].AddEmptyValue("reform_dofs_at_each_step")
         self.settings["fluid_solver_settings"]["reform_dofs_at_each_step"].SetBool(False)
@@ -255,98 +244,10 @@ class PFEM2Solver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        self.step=1
+        #self.step=1
         #section_nodes = [] 
-        print(self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
+        #print(self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
         #if(self.step==self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]):
-        if(1==2):    
-            for node in self.fluid_solver.main_model_part.Nodes:
-                #if (node.GetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE)==1):
-                    # section_nodes.append(node)
-                #for node in lagrangian_model_part.Nodes :
-                node.Free(KratosMultiphysics.VELOCITY_X)
-                node.Free(KratosMultiphysics.VELOCITY_Y)
-                node.Free(KratosMultiphysics.VELOCITY_Z)
-                node.Free(KratosMultiphysics.PRESSURE)
-                node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_X,0,0.0)
-                node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Y,0,0.0)
-                node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Z,0,0.0)
-        
-                
-                
-                if(node.Y>5.49999):
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0,1.0)
-                    node.Fix(KratosMultiphysics.VELOCITY_X)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,0.0)
-                    node.Fix(KratosMultiphysics.VELOCITY_Y)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0,0.0)
-                    node.Fix(KratosMultiphysics.VELOCITY_Z)
-                    
-                if(node.Y<-5.49999):
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,1,1.0)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,1,0.0)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,1,0.0)
-
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0,1.0)
-                    node.Fix(KratosMultiphysics.VELOCITY_X)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,0.0)
-                    node.Fix(KratosMultiphysics.VELOCITY_Y)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0,0.0)
-                    node.Fix(KratosMultiphysics.VELOCITY_Z)
-                    
-                if(node.X<-5.4999999):
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,1,1.0)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,1,0.0)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,1,0.0)
-
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0,1.0)
-                    node.Fix(KratosMultiphysics.VELOCITY_X)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,0.0)
-                    node.Fix(KratosMultiphysics.VELOCITY_Y)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0,0.0)
-                    node.Fix(KratosMultiphysics.VELOCITY_Z)
-                    
-                if(node.X>15.499999):
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,1,0.0)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,1,0.0)
-
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,0.0)
-                    node.Fix(KratosMultiphysics.VELOCITY_Y)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0,0.0)
-                    node.Fix(KratosMultiphysics.VELOCITY_Z)
-                    #node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,0,0.0);
-                    #node.Fix(KratosMultiphysics.PRESSURE)
-                    
-                if(node.GetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE)==1):
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,1,0.0)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,1,0.0)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,1,0.0)
-
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0,0.0)
-                    node.Fix(KratosMultiphysics.VELOCITY_X)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,0.0)
-                    node.Fix(KratosMultiphysics.VELOCITY_Y)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0,0.0)
-                    node.Fix(KratosMultiphysics.VELOCITY_Z)
-                    
-                    #node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,0,0.0);
-                    #node.Fix(KratosMultiphysics.PRESSURE)
-
-                vel_x=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0);    
-                vel_y=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0);    
-                vel_z=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0);    
-                vel_old_x=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X,1);    
-                vel_old_y=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,1);    
-                vel_old_z=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,1);    
-                node.SetSolutionStepValue(PfemM.SCALARVELOCITY_X,0,vel_x);    
-                node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0,vel_y);  
-                node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0,vel_z);  
-                node.SetSolutionStepValue(PfemM.SCALARVELOCITY_X,1,vel_old_x);    
-                node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Y,1,vel_old_y);  
-                node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,1,vel_old_z);  
-        
-        
-            #self.section_nodes= section_nodes 
 
         self.fluid_solver.InitializeSolutionStep()
 
@@ -434,7 +335,7 @@ class PFEM2Solver(PythonSolver):
     def SolveSolutionStep(self):
 
         if self.move_mesh_strategy==2: 
-         if self.SplittingMethod=="StrangSplitting":   
+         if self.splitting_strategy=="StrangSplitting":   
          # add here the function to evaluate the convective terms  
 
           self.ReduceTimeStep()
@@ -451,8 +352,12 @@ class PFEM2Solver(PythonSolver):
           fluid_is_converged = self.fluid_solver.SolveSolutionStep()
           self.IncreaseTimeStep()
 
+          self.PrintDragAndLiftCoefficients()
 
-         elif self.SplittingMethod=="ReverseStrangSplitting": 
+          return (fluid_is_converged) 
+
+
+         elif self.splitting_strategy=="ReverseStrangSplitting": 
          # add here the function to evaluate the convective terms  
 
           self.ReduceTimeStep()
@@ -464,14 +369,20 @@ class PFEM2Solver(PythonSolver):
 
           self.IncreaseTimeStep()  
           fluid_is_converged = self.fluid_solver.SolveSolutionStep()
-          self.ReduceTimeStep()
+
           self.ReduceTimeStep()
           self.CopyCurrentVelocityToCurrentScalarValues() 
           self.ConvectScalarX()
           self.ConvectScalarY()    
           self.ApplyBCsToCurrentScalarValues()
           self.CopyCurrentScalarValuesToOldVelocityValues()  
-         elif self.SplittingMethod=="FirstOrderSplitting": 
+          self.IncreaseTimeStep()
+
+          self.PrintDragAndLiftCoefficients()
+
+          return (fluid_is_converged)
+
+         elif self.splitting_strategy=="FirstOrderSplitting": 
          # add here the function to evaluate the convective terms  
 
           self.CopyCurrentVelocityToCurrentScalarValues() 
@@ -481,36 +392,23 @@ class PFEM2Solver(PythonSolver):
           self.CopyCurrentScalarValuesToOldVelocityValues()
 
           fluid_is_converged = self.fluid_solver.SolveSolutionStep()
+
+          self.PrintDragAndLiftCoefficients()
+
+          return (fluid_is_converged)
          else:
           raise Exception("Splitting Method has not been defined")
   
         elif (self.move_mesh_strategy==0):  
          fluid_is_converged = self.fluid_solver.SolveSolutionStep()
+
+         self.PrintDragAndLiftCoefficients()
+
+         return (fluid_is_converged)
         else:
           raise Exception("move_mesh_strategy is neither 0 nor 2") 
          
-        #Export the Drag and Lift Coefficients 
-        time=self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME]    
-
-        fx = 0.0
-        fy = 0.0
-        for node in self.section_nodes:
-            fx -= node.GetSolutionStepValue(KratosMultiphysics.REACTION_X,0)
-            fy -= node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y,0)
-        self.outputfile6=open(self.outstring5, 'a')
-        self.outputfile6.write(str(time)+" "+ str(fx) +" "+  str(fy) +" "+ str(0.0) +"\n")
-        self.outputfile6.close()
-
-        self.fluid_solver.CalculateReactions()
-
-        fx = 0.0
-        fy = 0.0
-        for node in self.section_nodes:
-            fx -= node.GetSolutionStepValue(KratosMultiphysics.REACTION_X,0)
-            fy -= node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y,0)
-        self.outputfile8=open(self.outstring7, 'a')
-        self.outputfile8.write(str(time)+" "+ str(fx) +" "+  str(fy) +" "+ str(0.0) +"\n")
-        self.outputfile8.close()
+        
 
 
     
@@ -587,7 +485,30 @@ class PFEM2Solver(PythonSolver):
          scalar_vel_z=node.GetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0);    
          node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,1,scalar_vel_x)
          node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,1,scalar_vel_y)
-         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,1,scalar_vel_z)          
+         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,1,scalar_vel_z) 
+    def PrintDragAndLiftCoefficients(self):
+        #Export the Drag and Lift Coefficients 
+        time=self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME]    
+
+        fx = 0.0
+        fy = 0.0
+        for node in self.section_nodes:
+         fx -= node.GetSolutionStepValue(KratosMultiphysics.REACTION_X,0)
+         fy -= node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y,0)
+        self.outputfile6=open(self.outstring5, 'a')
+        self.outputfile6.write(str(time)+" "+ str(fx) +" "+  str(fy) +" "+ str(0.0) +"\n")
+        self.outputfile6.close()
+
+        self.fluid_solver.CalculateReactions()
+
+        fx = 0.0
+        fy = 0.0
+        for node in self.section_nodes:
+         fx -= node.GetSolutionStepValue(KratosMultiphysics.REACTION_X,0)
+         fy -= node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y,0)
+        self.outputfile8=open(self.outstring7, 'a')
+        self.outputfile8.write(str(time)+" "+ str(fx) +" "+  str(fy) +" "+ str(0.0) +"\n")
+        self.outputfile8.close()         
 
     def Solve(self):
 
