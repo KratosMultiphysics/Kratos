@@ -97,7 +97,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      if (mEchoLevel > -1)
+      if (mEchoLevel > 1)
         std::cout << "  COMPUTE AVERAGE PFEM MESH PARAMETERS PROCESS ]; " << std::endl;
 
       const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();

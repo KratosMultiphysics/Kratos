@@ -160,11 +160,6 @@ class FluidMeshingDomain(object):
     #
     def SetMeshingParameters(self):
 
-        # Create MeshingParameters
-        # self.list_of_meshing_parameters = []
-        # for item in self.settings["list_of_spatial_refining_box"]:
-        #     refining_box = item
-            
         self.MeshingParameters = KratosDelaunay.MeshingParameters()
         self.MeshingParameters.Initialize()
 
@@ -215,7 +210,7 @@ class FluidMeshingDomain(object):
     def GetVariables(self):
 
         nodal_variables = []
-        transfer_variables = self.settings["elemental_variables_to_transfer"]  #
+        transfer_variables = self.settings["elemental_variables_to_transfer"] 
         for i in range(0, transfer_variables.size() ):
             nodal_variables.append(transfer_variables[i].GetString())
 

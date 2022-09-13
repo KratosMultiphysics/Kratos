@@ -482,7 +482,6 @@ class UPwSolver(PythonSolver):
         reform_step_dofs = self.settings["reform_dofs_at_each_step"].GetBool()
         move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
 
-        # Mirar aqui
         self.strategy_params = KratosMultiphysics.Parameters("{}")
         self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
         self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])

@@ -90,7 +90,6 @@ namespace Kratos
     void Execute() override
     {
       KRATOS_TRY
-      std::cout << "FindNodalHProcess in PfemFluidDynamicsApplication" << std::endl;
       // Check if variables are available
 
       // initialize to zero

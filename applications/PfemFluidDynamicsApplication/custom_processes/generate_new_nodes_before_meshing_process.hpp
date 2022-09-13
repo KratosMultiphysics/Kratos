@@ -153,14 +153,12 @@ namespace Kratos
 					std::vector<array_1d<double, 3>> NewPositions;
 					std::vector<double> BiggestVolumes;
 					std::vector<array_1d<unsigned int, 4>> NodesIDToInterpolate;
-					// std::vector<Node<3>::DofsContainerType> NewDofs;
 
 					int CountNodes = 0;
 
 					NewPositions.resize(ElementsToRefine);
 					BiggestVolumes.resize(ElementsToRefine, false);
 					NodesIDToInterpolate.resize(ElementsToRefine);
-					// NewDofs.resize(ElementsToRefine, false);
 
 					for (int nn = 0; nn < ElementsToRefine; nn++)
 					{
@@ -212,7 +210,6 @@ namespace Kratos
 						NewPositions.resize(CountNodes);
 						BiggestVolumes.resize(CountNodes, false);
 						NodesIDToInterpolate.resize(CountNodes);
-						// NewDofs.resize(CountNodes, false);
 					}
 					unsigned int maxId = 0;
 					CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, ElementsToRefine, maxId);
@@ -245,24 +242,12 @@ namespace Kratos
 					ElementsToRefine *= 3;
 				}
 				std::vector<array_1d<double, 3>> NewPositions;
-				// std::vector<double> BiggestVolumes;
 				std::vector<array_1d<unsigned int, 4>> NodesIDToInterpolate;
-				// std::vector<Node<3>::DofsContainerType> NewDofs;
 
 				int CountNodes = 0;
 
-				// NewPositions.resize(ElementsToRefine);
-				// BiggestVolumes.resize(ElementsToRefine, false);
-				// NodesIDToInterpolate.resize(ElementsToRefine);
-
 				NewPositions.resize(0);
-				// BiggestVolumes.resize(0, false);
 				NodesIDToInterpolate.resize(0);
-
-				// for (int nn = 0; nn < ElementsToRefine; nn++)
-				// {
-				// 	BiggestVolumes[nn] = -1.0;
-				// }
 
 				ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
 				for (ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
@@ -282,22 +267,8 @@ namespace Kratos
 
 				} // elements loop
 
-				// mrRemesh.Info->RemovedNodes -= ElementsToRefine;
-				// if (CountNodes < ElementsToRefine)
-				// {
-				// 	mrRemesh.Info->RemovedNodes += ElementsToRefine - CountNodes;
-				// 	NewPositions.resize(CountNodes);
-				// 	BiggestVolumes.resize(CountNodes, false);
-				// 	NodesIDToInterpolate.resize(CountNodes);
-				// 	// NewDofs.resize(CountNodes, false);
-				// }
 				mrRemesh.Info->RemovedNodes -= CountNodes;
-				// NewPositions.resize(CountNodes);
-				// BiggestVolumes.resize(CountNodes, false);
-				// NodesIDToInterpolate.resize(CountNodes);
-
 				unsigned int maxId = 0;
-				// CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, ElementsToRefine, maxId);
 				CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, CountNodes, maxId);
 			}
 
@@ -782,10 +753,9 @@ namespace Kratos
 
 			double limitEdgeLength = 1.4 * mrRemesh.Refine->CriticalRadius;
 			double safetyCoefficient2D = 1.5;
-			double penalization = 1.0; // penalization here should be smaller than 1
+			double penalization = 1.0; // to penalize adding node, penalization here should be smaller than 1
 			if (rigidNodes > 1)
 			{
-				// penalization=0.7;
 				penalization = 0.8;
 				if (inletNodes > 0)
 				{

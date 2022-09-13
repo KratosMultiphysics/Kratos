@@ -357,12 +357,6 @@ namespace Kratos
 
 			//***SIZES :::: parameters do define the tolerance in mesh size:
 
-			// if(dimension==3){
-			//   size_for_distance_inside       = 0.5 * meshSize;//compared to element radius
-			//   size_for_distance_boundary     = 0.5 * meshSize; //compared to element radius
-			//   size_for_wall_tip_contact_side = 0.15 * mrRemesh.Refine->CriticalSide;
-			// }
-
 			bool derefine_wall_tip_contact = false;
 
 			bool any_node_removed = false;
@@ -503,7 +497,6 @@ namespace Kratos
 						// it must be more difficult to erase a free_surface node, otherwise, lot of volume is lost
 						// this value has a strong effect on volume variation due to remeshing
 						radius = 0.475 * meshSize; // compared with element radius
-						// radius = 0.4  * meshSize;//compared with element radius
 						NodeWeakPtrVectorType &neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 						unsigned int countRigid = 0;
 
@@ -541,16 +534,8 @@ namespace Kratos
 							{
 								interfaceElement = true;
 							}
-							// if((nn)->Is(RIGID)){
-							//   rigidNeighNodes++;
-							// }
 						}
 					}
-
-					// if (freeSurfaceNeighNodes > 1 || interfaceElement == true)
-					// {
-					// 	radius = 0.5 * meshSize;
-					// }
 
 					if (freeSurfaceNeighNodes > 1)
 					{

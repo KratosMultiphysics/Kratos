@@ -199,8 +199,6 @@ namespace Kratos
                         if (vertices.back().IsNot(RIGID) && vertices.back().IsNot(SOLID))
                         {
                             isolatedNodesInTheElement += vertices.back().FastGetSolutionStepValue(ISOLATED_NODE);
-                            // if (isolatedNode==true)
-                            // std::cout << el << "node " << vertices.back().Id() << " " << vertices.back().X() << " " << vertices.back().Y() << std::endl;
                         }
                         // check flags on nodes
                         if (vertices.back().Is(ISOLATED))
@@ -308,13 +306,7 @@ namespace Kratos
 
                     if (refiningBox == true)
                     {
-
                         IncreaseAlphaForRefininedZones(Alpha, increaseAlfa, nds, numfreesurf, numrigid, numisolated);
-
-                        // if (dimension == 3)
-                        // {
-                        //     Alpha *= 1.1; // original
-                        // }
                     }
 
                     sumIsolatedFreeSurf = numisolated + numfreesurf;
@@ -356,10 +348,6 @@ namespace Kratos
                         // else
                         // {
                         //     Alpha *= 0.95;
-                        // }
-                        // else if (numfreesurf < nds && numisolated < nds && previouslyIsolatedNodes < 3 && previouslyFreeSurfaceNodes < nds && sumPreviouslyIsolatedFreeSurf < nds && sumIsolatedFreeSurf < nds)
-                        // {
-                        //     Alpha *= 1.05;
                         // }
 
                         if (numrigid == nds)
@@ -781,20 +769,19 @@ namespace Kratos
             {
                 if (numfreesurf < nds && numisolated == 0)
                 {
-                    // Alpha *= 1.275; //original
-                    Alpha *= 1.2; // asSmall
+                    Alpha *= 1.2;
                 }
                 else if (numfreesurf == 0 && numrigid == 0 && numisolated == 0)
                 {
-                    Alpha *= 1.4; // original
+                    Alpha *= 1.4;
                 }
                 else if (numfreesurf == 0 && numrigid > (0.5 * nds) && numisolated == 0)
                 {
-                    Alpha *= 5.0; // original
+                    Alpha *= 5.0;
                 }
                 else if (numfreesurf == 0 && numrigid > 0 && numisolated == 0)
                 {
-                    Alpha *= 1.8; // original
+                    Alpha *= 1.8;
                 }
             }
 
