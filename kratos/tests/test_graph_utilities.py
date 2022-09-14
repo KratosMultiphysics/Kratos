@@ -1,15 +1,9 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics as KM
-
-try:
-    import numpy as np
-    missing_numpy = False
-except ImportError as e:
-    missing_numpy = True
+import numpy as np
 
 class TestGraphUtilities(KratosUnittest.TestCase):
 
-    @KratosUnittest.skipIf(missing_numpy,"Missing python libraries (numpy)")
     def test_graph_and_connected_components_non_consecutive(self):
         current_model = KM.Model()
         model_part = current_model.CreateModelPart("Main")
@@ -113,6 +107,7 @@ class TestGraphUtilities(KratosUnittest.TestCase):
 
         expected_fixed_list = [True, False, False, False, True, True, False, False, True, False, False, False]
         self.assertListEqual(fixed_list, expected_fixed_list)
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
