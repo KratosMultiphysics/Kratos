@@ -40,7 +40,6 @@ def AssembleTestSuites():
     smallSuite.addTest(TestEmpiricalCubatureMethod('test_empirical_cubature_method'))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCompressiblePotentialRom]))
 
-
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']

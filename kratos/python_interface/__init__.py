@@ -3,8 +3,8 @@ import re
 import sys
 from . import kratos_globals
 
-if sys.version_info < (3, 5):
-    raise Exception("Kratos only supports Python version 3.5 and above")
+if sys.version_info < (3, 6):
+    raise Exception("Kratos only supports Python version 3.6 and above")
 
 class KratosPaths(object):
     kratos_install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
