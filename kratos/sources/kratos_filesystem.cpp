@@ -136,16 +136,16 @@ void MPISafeCreateDirectories(const std::string& rPath)
 
 std::string ResolveSymlinks(const std::string& rPath)
 {
-    ghc::filesystem::path path = rPath;
-    KRATOS_ERROR_IF_NOT(ghc::filesystem::exists(path)) << "File not found: " << rPath;
+    std::filesystem::path path = rPath;
+    KRATOS_ERROR_IF_NOT(std::filesystem::exists(path)) << "File not found: " << rPath;
 
-    std::set<ghc::filesystem::path> symlinks;
+    std::set<std::filesystem::path> symlinks;
 
-    while (ghc::filesystem::is_symlink(path))
+    while (std::filesystem::is_symlink(path))
     {
         const auto insert_result = symlinks.insert(path);
         KRATOS_ERROR_IF_NOT(insert_result.second) << rPath << " leads to cyclic symlinks";
-        path = ghc::filesystem::read_symlink(path);
+        path = std::filesystem::read_symlink(path);
     }
 
     return path.string();
