@@ -5,12 +5,14 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Additional imports
 import os
 
+import numpy as np
+
 try:
     from scipy import sparse, io
-    import numpy as np
-    missing_scipy = False
-except ImportError as e:
-    missing_scipy = True
+    import KratosMultiphysics.scipy_conversion_tools
+    scipy_available = True
+except ImportError:
+    scipy_available = False
 
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
@@ -37,11 +39,11 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
         for i, j in np.nditer(A_python.nonzero()):
             self.assertAlmostEqual(A[int(i), int(j)], A_python[int(i), int(j)])
 
-    @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
+    @KratosUnittest.skipIf(not scipy_available,"Missing python libraries (scipy)")
     def test_sparse_matrix_sum_small(self):
         self.__sparse_matrix_sum("auxiliar_files_for_python_unittest/sparse_matrix_files/small_A.mm")
 
-    @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
+    @KratosUnittest.skipIf(not scipy_available,"Missing python libraries (scipy)")
     def test_sparse_matrix_sum_full(self):
         self.__sparse_matrix_sum()
 

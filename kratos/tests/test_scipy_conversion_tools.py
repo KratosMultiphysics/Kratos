@@ -1,16 +1,19 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+import numpy as np
+
 try:
+    import scipy
+    import scipy.sparse
     import KratosMultiphysics.scipy_conversion_tools
-    import numpy as np
-    missing_scipy = False
-except ImportError as e:
-    missing_scipy = True
+    scipy_available = True
+except ImportError:
+    scipy_available = False
 
 class TestScipyConversionTools(KratosUnittest.TestCase):
 
-    @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
+    @KratosUnittest.skipIf(not scipy_available,"Missing python libraries (scipy)")
     def test_scipy_conversion_tools(self):
         # Create a kratos matrix
         A = KratosMultiphysics.CompressedMatrix(3,3)
