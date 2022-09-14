@@ -6,8 +6,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.KratosUnittest import TestLoader
 
 # Small tests
-from shallow_water_test_factory import TestShallowWaterElement
-from shallow_water_test_factory import TestSemiLagrangianShallowWaterElement
 from shallow_water_test_factory import TestConservativeResidualViscosity2D3NElement
 from shallow_water_test_factory import TestConservativeGradientJump2D3NElement
 from shallow_water_test_factory import TestConservativeFluxCorrected2D3NElement
@@ -60,8 +58,6 @@ def AssembleTestSuites():
     # Create a test suit with the selected tests plus all small tests
     nightlySuite = suites['nightly']
     nightlySuite.addTests(smallSuite)
-    nightlySuite.addTests(TestLoader().loadTestsFromTestCase(TestShallowWaterElement))
-    nightlySuite.addTests(TestLoader().loadTestsFromTestCase(TestSemiLagrangianShallowWaterElement))
     nightlySuite.addTests(TestLoader().loadTestsFromTestCase(TestMeshMovingStrategy))
 
     # Create a test suit that contains all the tests:

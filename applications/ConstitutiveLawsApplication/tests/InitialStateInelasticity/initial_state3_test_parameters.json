@@ -63,7 +63,7 @@
             "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Structure",
-            "dimension"       : 2,
+            "dimension"       : 3,
             "imposed_strain"  : [0.1,0,0,0,0,0],
             "imposed_stress"  : [0,0,0,0,0,10000],
             "imposed_deformation_gradient"  : [[1,0,0],[0,1,0],[0,0,1]],
