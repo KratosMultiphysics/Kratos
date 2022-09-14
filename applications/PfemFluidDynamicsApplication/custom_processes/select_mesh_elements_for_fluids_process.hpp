@@ -341,14 +341,14 @@ namespace Kratos
                         {
                             Alpha *= 1.25;
                         }
-                        // else if (numisolated == 0 && previouslyIsolatedNodes == 0 && numfreesurf < nds && previouslyFreeSurfaceNodes < nds)
-                        // {
-                        //     Alpha *= 1.05;
-                        // // }
-                        // else
-                        // {
-                        //     Alpha *= 0.95;
-                        // }
+                        else if (numisolated == 0 && previouslyIsolatedNodes == 0 && numfreesurf < nds && previouslyFreeSurfaceNodes < nds)
+                        {
+                            Alpha *= 1.05;
+                        }
+                        else
+                        {
+                            Alpha *= 0.95;
+                        }
 
                         if (numrigid == nds)
                         {
