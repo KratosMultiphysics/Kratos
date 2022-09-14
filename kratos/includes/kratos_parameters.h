@@ -1029,10 +1029,10 @@ private:
      * @brief This method solves all the include dependencies in a json file
      * @param rJson The json object
      * @param rFileName name of the current json file ("root" if called from the constructor)
-     * @param rAdjacencyMap adjacency map of the include graph for checking cyclic includes
+     * @param rIncludeSequence a stack containing the current sequence of included JSON files
      * @return This method leaves in rJson the final json object with no include dependencies
      */
-    void SolveIncludes(nlohmann::json& rJson, const std::string& rFileName, std::map<std::string,std::set<std::string>>& rAdjacencyMap);
+    void SolveIncludes(nlohmann::json& rJson, const std::string& rFileName, std::vector<std::string>& rIncludeSequence);
 
     /**
      * @brief This method read a json file
