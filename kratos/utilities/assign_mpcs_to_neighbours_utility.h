@@ -13,8 +13,8 @@
 // "DEMApplication/custom_utilities/omp_dem_search.h"
 // and modified to create only once the binary tree
 
-#if !defined(KRATOS_NODE_SEARCH_UTILITY_H_INCLUDED )
-#define  KRATOS_NODE_SEARCH_UTILITY_H_INCLUDED
+#if !defined(KRATOS_ASSIGN_MPCS_TO_NEIGHBOURS_H_INCLUDED )
+#define  KRATOS_ASSIGN_MPCS_TO_NEIGHBOURS_H_INCLUDED
 
 // System includes
 #include <string>
@@ -26,45 +26,42 @@
 
 // Application includes
 #include "utilities/variable_utils.h"
-#include "utilities/mls_shape_functions_utility.h"
 #include "utilities/rbf_shape_functions_utility.h"
 
 
 // Project includes
 #include "spatial_containers/spatial_search.h"
-// #include "spatial_containers/bins_dynamic_objects.h"
 #include "spatial_containers/bins_dynamic.h"
 #include "utilities/builtin_timer.h"
 
 // Configures
-// #include "node_configure_for_node_search.h"
 
 // External includes
 
 namespace Kratos {
-///@addtogroup FluidDynamicsApplication
+///@addtogroup Kratos Core
 ///@{
 
 ///@name Kratos Classes
 ///@{
 
 /**
- * @class NodeSearchUtility
- * @ingroup FluidDynamicsApplication
- * @brief Node Search
+ * @class AssignMPCsToNeighboursUtility
+ * @ingroup Kratos Core
+ * @brief Assing MPCs to Neighbouring Nodes
  * @details This class provides a method to search for neighbouring nodes of one node
- * within a given radius.
+ * within a given radius and assign a multipoint constraint (MPC) using radial basis functions.
  * @author Sebastian Ares de Parga Regalado
  */
 
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
+class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
 {
     public:
       ///@name Type Definitions
       ///@{
 
-      /// Pointer definition of NodeSearchUtility
-      KRATOS_CLASS_POINTER_DEFINITION(NodeSearchUtility);
+      /// Pointer definition of AssignMPCsToNeighboursUtility
+      KRATOS_CLASS_POINTER_DEFINITION(AssignMPCsToNeighboursUtility);
 
       //Node Types
       typedef ModelPart::NodeType                           NodeType;
@@ -75,7 +72,7 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
       //Configure Types
       typedef ModelPart::NodesContainerType                 NodesContainerType;
 
-      // //Bin TypesSearchNodesInRadiusForNode
+      //Bin
       typedef BinsDynamic<3, NodeType, ModelPart::NodesContainerType::ContainerType> NodeBinsType;
 
       /// General containers type definitions
@@ -85,25 +82,23 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
       typedef std::vector<double>                               RadiusArrayType;
 
       typedef std::vector< Dof<double>::Pointer > DofPointerVectorType;
-      typedef std::vector<double> DoubleVector;
 
       ///@}
       ///@name Life Cycle
       ///@{
 
       /// Default constructor.
-      NodeSearchUtility(NodesContainerType& rStructureNodes
+      AssignMPCsToNeighboursUtility(NodesContainerType& rStructureNodes
       ){
         KRATOS_TRY;
         NodesContainerType::ContainerType& nodes_model_part = rStructureNodes.GetContainer();
-        KRATOS_WATCH("OH YEAH")
         mpBins = Kratos::make_unique<NodeBinsType>(nodes_model_part.begin(), nodes_model_part.end());
         mMaxNumberOfNodes = rStructureNodes.size();
         KRATOS_CATCH("");
       }
 
       /// Destructor.
-      ~NodeSearchUtility(){
+      ~AssignMPCsToNeighboursUtility(){
       }
 
       ///@}
@@ -304,6 +299,7 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
           ModelPart& rComputingModelPart,
           const Variable<array_1d<double, 3>>& rVariable
           )
+          //TODO: Do it in parallel and allow rVariable to be a double variable i.e. TEMPERATURE (Make a template)
       {
           KRATOS_TRY;
           // #pragma omp parallel
@@ -335,8 +331,6 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
                 DofPointerVectorType rCloud_of_dofs_x,rCloud_of_dofs_y,rCloud_of_dofs_z,rSlave_dof_x,rSlave_dof_y,rSlave_dof_z;
                 Matrix rCloud_of_nodes_coordinates;
                 array_1d<double,3> rSlave_coordinates;
-                // GetDofsAndCoordinatesForNodes(nodes_array[i], VELOCITY, rSlave_dof_x,rSlave_dof_y,rSlave_dof_z, rSlave_coordinates);
-                // GetDofsAndCoordinatesForNodes(Results, VELOCITY, rCloud_of_dofs_x, rCloud_of_dofs_y, rCloud_of_dofs_z, rCloud_of_nodes_coordinates);
                 GetDofsAndCoordinatesForNodes(nodes_array[i], rVariable, rSlave_dof_x,rSlave_dof_y,rSlave_dof_z, rSlave_coordinates);
                 GetDofsAndCoordinatesForNodes(Results, rVariable, rCloud_of_dofs_x, rCloud_of_dofs_y, rCloud_of_dofs_z, rCloud_of_nodes_coordinates);
 
@@ -354,7 +348,7 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
                 all_constraints.push_back(r_clone_constraint.Create(it+3,rCloud_of_dofs_z,rSlave_dof_z,shape_matrix,constant_vector));
               }
               rComputingModelPart.AddMasterSlaveConstraints(all_constraints.begin(),all_constraints.end());
-              KRATOS_INFO("NodeSearchUtility") << "Build and Assign MPCs Time: " << build_and_assign_mpcs.ElapsedSeconds() << std::endl;
+              KRATOS_INFO("AssignMPCsToNeighboursUtility") << "Build and Assign MPCs Time: " << build_and_assign_mpcs.ElapsedSeconds() << std::endl;
           }
           KRATOS_CATCH("");
       }
@@ -369,13 +363,13 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
       virtual std::string Info() const
       {
           std::stringstream buffer;
-          buffer << "NodeSearchUtility" ;
+          buffer << "AssignMPCsToNeighboursUtility" ;
 
           return buffer.str();
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const  {rOStream << "NodeSearchUtility";}
+      virtual void PrintInfo(std::ostream& rOStream) const  {rOStream << "AssignMPCsToNeighboursUtility";}
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const  {}
@@ -395,20 +389,20 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
       ///@{
 
       /// Assignment operator.
-      NodeSearchUtility& operator=(NodeSearchUtility const& rOther)
+      AssignMPCsToNeighboursUtility& operator=(AssignMPCsToNeighboursUtility const& rOther)
       {
           return *this;
       }
 
       /// Copy constructor.
-      // NodeSearchUtility(NodeSearchUtility const& rOther)
+      // AssignMPCsToNeighboursUtility(AssignMPCsToNeighboursUtility const& rOther)
       // {
       //     *this = rOther;
       // }
 
       ///@}
 
-    }; // Class NodeSearchUtility
+    }; // Class AssignMPCsToNeighboursUtility
 
 
 
@@ -418,4 +412,4 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NODE_SEARCH_UTILITY_H_INCLUDED  defined
+#endif // KRATOS_ASSIGN_MPCS_TO_NEIGHBOURS_H_INCLUDED  defined

@@ -181,14 +181,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("CalculateFluidNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidNegativeVolume)
         ;
 
-        // Radial Node Search Utility 
-    py::class_<NodeSearchUtility>(m, "NodeSearchUtility")
-        .def(py::init<ModelPart::NodesContainerType&>())
-        .def("SearchCloudOfNodesForNodes", &NodeSearchUtility::SearchCloudOfNodesForNodes)
-        .def("AssignRotationToNodes", &NodeSearchUtility::AssignRotationToNodes)
-        .def("AssignMPCsToNodes", &NodeSearchUtility::AssignMPCsToNodes)
-        ;    
-
 }
 
 }  // namespace Python.

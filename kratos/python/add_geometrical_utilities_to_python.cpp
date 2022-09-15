@@ -39,7 +39,7 @@
 #include "utilities/mls_shape_functions_utility.h"
 #include "utilities/rbf_shape_functions_utility.h"
 #include "utilities/tessellation_utilities/delaunator_utilities.h"
-#include "utilities/rbf_shape_functions_utility.h"
+#include "utilities/assign_mpcs_to_neighbours_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -350,6 +350,14 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
             return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN);})
         .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, DenseQRPointerType pDenseQR){
             return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN, pDenseQR);})
+        ;
+
+    // Radial Node Search and MPCs Assignation Utility
+    py::class_<AssignMPCsToNeighboursUtility>(m, "AssignMPCsToNeighboursUtility")
+        .def(py::init<ModelPart::NodesContainerType&>())
+        .def("SearchCloudOfNodesForNodes", &AssignMPCsToNeighboursUtility::SearchCloudOfNodesForNodes)
+        .def("AssignRotationToNodes", &AssignMPCsToNeighboursUtility::AssignRotationToNodes)
+        .def("AssignMPCsToNodes", &AssignMPCsToNeighboursUtility::AssignMPCsToNodes)
         ;
 }
 
