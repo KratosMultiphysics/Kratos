@@ -34,7 +34,7 @@
 #include "v_p_strategy.h"
 
 #include <stdio.h>
-#include <math.h>
+#include <cmath>
 
 namespace Kratos
 {

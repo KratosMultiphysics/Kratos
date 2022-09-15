@@ -79,6 +79,17 @@ def get_displacement(simulation):
 
     return get_nodal_variable(simulation, Kratos.DISPLACEMENT)
 
+
+def get_velocity(simulation):
+    """
+    Gets velocities from kratos simulation
+    :param simulation:
+    :return velocities:
+    """
+
+    return get_nodal_variable(simulation, Kratos.VELOCITY)
+
+
 def get_water_pressure(simulation):
     """
     Gets the water pressure from kratos simulation
@@ -87,6 +98,7 @@ def get_water_pressure(simulation):
     :return:
     """
     return get_nodal_variable(simulation, Kratos.WATER_PRESSURE)
+
 
 def get_hydraulic_discharge(simulation):
     """
@@ -109,6 +121,68 @@ def get_nodal_variable(simulation, variable):
     values = [node.GetSolutionStepValue(variable) for node in nodes]
 
     return values
+
+
+def get_nodal_variable_from_ascii(filename: str, variable: str):
+    """
+    Reads data of Kratos variable from ascii output GID file
+
+   :param filename: ascii output file
+   :param variable: variable name in GID output
+
+    :return values of a variable:
+    """
+
+    # read data
+    with open(filename, "r") as f:
+        all_data = f.readlines()
+
+    add_var = False
+
+    data = []
+    time_steps = []
+    all_var_data = []
+
+    # read all data at each time step of variable
+    for line in all_data:
+
+        if "End Values" in line and add_var:
+            add_var = False
+            all_var_data.append(data)
+            data = []
+        if add_var:
+            data.append(line)
+
+        if r'"' + variable + r'"' in line:
+            time_step = float(line.split()[3])
+
+            time_steps.append(time_step)
+            add_var=True
+
+    # initialise results dictionary
+    res = {"time": time_steps}
+
+    for var_data in all_var_data:
+        var_data.pop(0)
+
+        # convert var data to floats
+        for i, _ in enumerate(var_data):
+            line = var_data[i].split()
+            line[1] = float(line[1])
+            line[2] = float(line[2])
+            line[3] = float(line[3])
+            var_data[i] = line
+
+    # add node numbers as dict keys
+    for line in var_data:
+        res[line[0]] = []
+
+    for var_data in all_var_data:
+        for line in var_data:
+            res[line[0]].append(line[1:])
+
+    return res
+
 
 def get_gauss_coordinates(simulation):
     """
@@ -227,9 +301,23 @@ def compute_distance(point1, point2):
     import math
     return math.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2)
 
+
 def compute_mean_list(list):
     return sum(list)/len(list)
 
-if __name__ == "__main__":
-    file_path = r"C:\Users\noordam\Documenten\Kratos\applications\GeoMechanicsApplication\test_examples\simple_dike_test.gid"
-    run_kratos(file_path)
+
+def find_closest_index_greater_than_value(input_list, value):
+    """
+    Finds closest value in list which is greater than the input value. This method assumes a sorted list from
+    low to high
+
+    :param input_list: sorted list
+    :param value: value to be checked
+    :return:
+
+    """
+
+    for index, list_value in enumerate(input_list):
+        if value < list_value:
+            return index
+    return None

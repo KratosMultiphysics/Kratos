@@ -85,7 +85,7 @@ public:
         const bool PerformCorrections,
         const int CorrectionFreq,
         const bool WriteToLogFile,
-        const std::string LogFileName);
+        const std::string& LogFileName);
 
     /**
      * @brief Constructor with Kratos parameters

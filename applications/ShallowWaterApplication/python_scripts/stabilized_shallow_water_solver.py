@@ -38,7 +38,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         self.main_model_part.ProcessInfo.SetValue(KM.DENSITY, 1e3)
         self.main_model_part.ProcessInfo.SetValue(SW.INTEGRATE_BY_PARTS, False)
         if self.compute_neighbours:
-            KM.GenericFindElementalNeighboursProcess(self.main_model_part).ExecuteInitialize()
+            KM.GenericFindElementalNeighboursProcess(self.main_model_part).Execute()
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
