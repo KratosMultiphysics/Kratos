@@ -8,23 +8,37 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_io im
 from KratosMultiphysics.CoSimulationApplication import CoSimIO
 
 
-def Create(settings, model, solver_name):
-    return KratosCoSimIO(settings, model, solver_name)
+def Create(*args):
+    return KratosCoSimIO(*args)
 
 class KratosCoSimIO(CoSimulationIO):
     """Wrapper for the CoSimIO to be used with Kratos
     """
-    def __init__(self, settings, model, solver_name):
-        super().__init__(settings, model, solver_name)
+    def __init__(self, settings, model, solver_name, data_communicator):
+        # backward compatibility
+        for param in ("connect_to", "communication_format", "print_timing"):
+            if settings.Has(param):
+                if not settings.Has("co_sim_io_settings"):
+                    settings.AddEmptyValue("co_sim_io_settings")
+                co_sim_io_settings = settings["co_sim_io_settings"]
+                co_sim_io_settings.AddValue(param, settings[param])
+                settings.RemoveValue(param)
 
-        connect_to = self.settings["connect_to"].GetString()
-        if connect_to == "":
-            raise Exception('"connect_to" must be specified!')
+        super().__init__(settings, model, solver_name, data_communicator)
 
-        connection_settings = CoSimIO.InfoFromParameters(self.settings)
-        connection_settings.SetString("my_name", solver_name)
+        co_sim_io_settings = settings["co_sim_io_settings"]
 
-        info = CoSimIO.Connect(connection_settings)
+        if not co_sim_io_settings.Has("my_name"):
+            co_sim_io_settings.AddEmptyValue("my_name").SetString(solver_name)
+
+        connection_settings = CoSimIO.InfoFromParameters(co_sim_io_settings)
+
+        if self.data_communicator.IsDistributed():
+            from KratosMultiphysics.CoSimulationApplication.MPIExtension import CoSimIO as CoSimIOMPI
+            info = CoSimIOMPI.ConnectMPI(connection_settings, self.data_communicator)
+        else:
+            info = CoSimIO.Connect(connection_settings)
+
         if info.GetInt("connection_status") != CoSimIO.ConnectionStatus.Connected:
             raise Exception("Connecting failed!")
 
@@ -45,7 +59,7 @@ class KratosCoSimIO(CoSimulationIO):
         info.SetString("connection_name", self.connection_name)
         info.SetString("identifier", model_part_name.replace(".", "-")) # TODO chec if better solution can be found
 
-        CoSimIO.ImportMesh(info, self.model[model_part_name]) # TODO this can also be geometry at some point
+        CoSimIO.ImportMesh(info, self.model[model_part_name], self.data_communicator) # TODO this can also be geometry at some point
 
     def ExportCouplingInterface(self, interface_config):
         model_part_name = interface_config["model_part_name"]
@@ -78,6 +92,17 @@ class KratosCoSimIO(CoSimulationIO):
 
             CoSimIO.ExportData(info, interface_data.GetModelPart(), interface_data.variable, GetDataLocation(interface_data.location))
 
+        elif data_type == "control_signal":
+            info = CoSimIO.Info()
+            info.SetString("connection_name", self.connection_name)
+            info.SetString("identifier", "run_control")
+            info.SetString("control_signal", data_config["control_signal"])
+            settings = data_config.get("settings")
+            if settings:
+                info.SetInfo("settings", CoSimIO.InfoFromParameters(settings))
+
+            CoSimIO.ExportInfo(info)
+
         elif data_type == "repeat_time_step":
             info = CoSimIO.Info()
             info.SetString("connection_name", self.connection_name)
@@ -97,9 +122,7 @@ class KratosCoSimIO(CoSimulationIO):
     @classmethod
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
-            "connect_to"           : "",
-            "communication_format" : "file",
-            "print_timing"         : false
+            "co_sim_io_settings" : { }
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults

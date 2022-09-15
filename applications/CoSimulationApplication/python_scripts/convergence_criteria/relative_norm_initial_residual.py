@@ -36,7 +36,7 @@ class RelativeNormInitialResidualConvergenceCriteria(CoSimulationConvergenceCrit
 
         rel_norm = abs_norm / self.initial_norm
 
-        is_converged = abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance
+        is_converged = bool(abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance)
 
         info_msg = ""
 
