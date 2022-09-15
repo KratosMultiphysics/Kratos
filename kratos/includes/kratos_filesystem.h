@@ -106,7 +106,7 @@ void KRATOS_API(KRATOS_CORE) MPISafeCreateDirectories(const std::string& rPath);
  *  @note The existence of the final result is not checked and is up to the user.
  *  @note The input is returned if it is not a symlink.
  */
-std::string ResolveSymlinks(const std::string& rPath);
+std::filesystem::path ResolveSymlinks(const std::filesystem::path& rPath);
 
 } // namespace FilesystemExtensions
 } // namespace Kratos

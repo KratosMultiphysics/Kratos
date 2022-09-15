@@ -134,11 +134,11 @@ void MPISafeCreateDirectories(const std::string& rPath)
 }
 
 
-std::string ResolveSymlinks(const std::string& rPath)
+std::filesystem::path ResolveSymlinks(const std::filesystem::path& rPath)
 {
-    std::filesystem::path path = rPath;
-    KRATOS_ERROR_IF_NOT(std::filesystem::exists(path)) << "File not found: " << rPath;
+    KRATOS_ERROR_IF_NOT(std::filesystem::exists(rPath)) << "File not found: " << rPath;
 
+    std::filesystem::path path = rPath;
     std::set<std::filesystem::path> symlinks;
 
     while (std::filesystem::is_symlink(path))
@@ -148,7 +148,7 @@ std::string ResolveSymlinks(const std::string& rPath)
         path = std::filesystem::read_symlink(path);
     }
 
-    return path.string();
+    return path;
 }
 
 } // namespace FilesystemExtensions
