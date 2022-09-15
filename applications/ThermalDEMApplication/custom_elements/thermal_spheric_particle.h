@@ -81,8 +81,8 @@ namespace Kratos
       void ComputeHeatFluxes               (const ProcessInfo& r_process_info);
       void ComputeHeatFluxWithNeighbor     (const ProcessInfo& r_process_info);
       void ComputeInteractionProps         (const ProcessInfo& r_process_info);
-      void StoreBallToBallContactInfo      (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3]) override;
-      void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3]) override;
+      void StoreBallToBallContactInfo      (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
+      void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
       void Move                            (const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) override;
 
       // Finalization methods

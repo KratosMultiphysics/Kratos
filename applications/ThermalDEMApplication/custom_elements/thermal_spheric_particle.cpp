@@ -370,10 +370,11 @@ namespace Kratos
                                                           SphericParticle::ParticleDataBuffer& data_buffer,
                                                           double GlobalContactForceTotal[3],
                                                           double LocalContactForceTotal[3],
-                                                          double LocalContactForceDamping[3]) {
+                                                          double LocalContactForceDamping[3],
+                                                          bool   sliding) {
     KRATOS_TRY
 
-    SphericParticle::StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceTotal, LocalContactForceDamping);
+    SphericParticle::StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceTotal, LocalContactForceDamping, sliding);
 
     if (!mStoreContactParam)
       return;
@@ -446,10 +447,11 @@ namespace Kratos
                                                                SphericParticle::ParticleDataBuffer& data_buffer,
                                                                double GlobalContactForceTotal[3],
                                                                double LocalContactForceTotal[3],
-                                                               double LocalContactForceDamping[3]) {
+                                                               double LocalContactForceDamping[3],
+                                                               bool   sliding) {
     KRATOS_TRY
 
-    SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceTotal, LocalContactForceDamping);
+    SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceTotal, LocalContactForceDamping, sliding);
 
     if (!mStoreContactParam)
       return;
