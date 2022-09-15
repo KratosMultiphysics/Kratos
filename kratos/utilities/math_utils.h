@@ -126,7 +126,6 @@ public:
      * @param c Third length
      * @return Heron solution: Heron's formula states that the area of a triangle whose sides have lengths a, b, and c
      */
-
     template<bool TCheck>// = false>
     static inline double Heron(
         double a,
