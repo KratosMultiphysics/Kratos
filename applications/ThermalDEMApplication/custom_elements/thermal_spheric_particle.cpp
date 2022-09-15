@@ -115,18 +115,20 @@ namespace Kratos
   void ThermalSphericParticle::Initialize(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
+    Properties& r_properties = GetProperties();
+
     // Initialize base class
     SphericParticle::Initialize(r_process_info);
 
     // Set pointers to to auxiliary objects
-    ThermalDEMIntegrationScheme::Pointer& thermal_integration_scheme   = GetProperties()[THERMAL_INTEGRATION_SCHEME_POINTER];
-    NumericalIntegrationMethod::Pointer&  numerical_integration_method = GetProperties()[NUMERICAL_INTEGRATION_METHOD_POINTER];
-    HeatExchangeMechanism::Pointer&       direct_conduction_model      = GetProperties()[DIRECT_CONDUCTION_MODEL_POINTER];
-    HeatExchangeMechanism::Pointer&       indirect_conduction_model    = GetProperties()[INDIRECT_CONDUCTION_MODEL_POINTER];
-    HeatExchangeMechanism::Pointer&       convection_model             = GetProperties()[CONVECTION_MODEL_POINTER];
-    HeatExchangeMechanism::Pointer&       radiation_model              = GetProperties()[RADIATION_MODEL_POINTER];
-    HeatGenerationMechanism::Pointer&     generation_model             = GetProperties()[GENERATION_MODEL_POINTER];
-    RealContactModel::Pointer&            real_contact_model           = GetProperties()[REAL_CONTACT_MODEL_POINTER];
+    ThermalDEMIntegrationScheme::Pointer& thermal_integration_scheme   = r_properties[THERMAL_INTEGRATION_SCHEME_POINTER];
+    NumericalIntegrationMethod::Pointer&  numerical_integration_method = r_properties[NUMERICAL_INTEGRATION_METHOD_POINTER];
+    HeatExchangeMechanism::Pointer&       direct_conduction_model      = r_properties[DIRECT_CONDUCTION_MODEL_POINTER];
+    HeatExchangeMechanism::Pointer&       indirect_conduction_model    = r_properties[INDIRECT_CONDUCTION_MODEL_POINTER];
+    HeatExchangeMechanism::Pointer&       convection_model             = r_properties[CONVECTION_MODEL_POINTER];
+    HeatExchangeMechanism::Pointer&       radiation_model              = r_properties[RADIATION_MODEL_POINTER];
+    HeatGenerationMechanism::Pointer&     generation_model             = r_properties[GENERATION_MODEL_POINTER];
+    RealContactModel::Pointer&            real_contact_model           = r_properties[REAL_CONTACT_MODEL_POINTER];
 
     SetThermalIntegrationScheme(thermal_integration_scheme);
     SetNumericalIntegrationMethod(numerical_integration_method);
@@ -140,8 +142,8 @@ namespace Kratos
     // Set flags
     mHasMotion = r_process_info[MOTION_OPTION];
 
-    if ((GetProperties().Has(THERMAL_EXPANSION_COEFFICIENT) && GetProperties()[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
-         GetProperties().HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT)) {
+    if ((r_properties.Has(THERMAL_EXPANSION_COEFFICIENT) && r_properties[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
+         r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT)) {
       mHasVariableRadius = true;
     }
     else {
