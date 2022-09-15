@@ -24,6 +24,7 @@ from test_steady_state_groundwater_flow import KratosGeoMechanicsSteadyStateGrou
 from test_transient_groundwater_flow import KratosGeoMechanicsTransientGroundWaterFlowTests
 from test_soil_weight import KratosGeoMechanicsSoilWeightTests
 from test_curved_beam_elements import KratosGeoMechanicsCurvedBeamElementTests
+from test_absorbing_boundary import KratosGeoMechanicsAbsorbingBoundaryColumnTests
 
 def AssambleTestSuites(is_team_city):
     ''' Populates the test suites to run.
@@ -64,7 +65,8 @@ def AssambleTestSuites(is_team_city):
     # - testNightlyFirstExample
     # - testNightlySecondExample
 
-    night_test_cases = [KratosGeoMechanicsDynamicsTests]
+    night_test_cases = [KratosGeoMechanicsDynamicsTests,
+                        KratosGeoMechanicsAbsorbingBoundaryColumnTests]
     night_test_cases.extend(small_test_cases)
 
     # Create an array that contains all the tests from every testCase

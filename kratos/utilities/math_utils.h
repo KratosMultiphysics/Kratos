@@ -264,14 +264,14 @@ public:
         /* Compute Determinant of the matrix */
         rInputMatrixDet = Det(rInputMatrix);
 
-        if(TDim == 1) {
+        if constexpr (TDim == 1) {
             inverted_matrix(0,0) = 1.0/rInputMatrix(0,0);
             rInputMatrixDet = rInputMatrix(0,0);
-        } else if (TDim == 2) {
+        } else if constexpr (TDim == 2) {
             InvertMatrix2(rInputMatrix, inverted_matrix, rInputMatrixDet);
-        } else if (TDim == 3) {
+        } else if constexpr (TDim == 3) {
             InvertMatrix3(rInputMatrix, inverted_matrix, rInputMatrixDet);
-        } else if (TDim == 4) {
+        } else if constexpr (TDim == 4) {
             InvertMatrix4(rInputMatrix, inverted_matrix, rInputMatrixDet);
         } else {
             KRATOS_ERROR << "Size not implemented. Size: " << TDim << std::endl;

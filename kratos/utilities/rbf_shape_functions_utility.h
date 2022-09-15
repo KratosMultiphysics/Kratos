@@ -108,21 +108,6 @@ public:
      * support the given cloud of points.
      * @param rPoints Matrix containing the coordinates of the support cloud of points
      * @param rX Coordinates where the shape functions are to be computed
-     * @param rN Shape functions container
-     */
-    static void CalculateShapeFunctionsTest(
-        const Matrix& rPoints,
-        const array_1d<double,3>& rX,
-        const double h,
-        Vector& rN,
-        DenseQRPointerType pDenseQR = nullptr);
-
-    /**
-     * @brief Calculates the RBF shape function values
-     * This method calculates the RBF shape function values in one point using as
-     * support the given cloud of points.
-     * @param rPoints Matrix containing the coordinates of the support cloud of points
-     * @param rX Coordinates where the shape functions are to be computed
      * @param h RBF shape parameter
      * @param rN Shape functions container
      * @param Y Function to interpolate (if values of RHS are known apriori)
@@ -133,11 +118,6 @@ public:
         const double h,
         Vector& rN,
         Vector& rY);
-
-    static void CalculateShapeFunctionsAndShapeParameterTest(
-        const Matrix& rPoints,
-        const array_1d<double,3>& rX,
-        Vector& rN);
 
     ///@}
 private:

@@ -760,7 +760,7 @@ private:
                 }
 
                 if (Iteration == 0) { // Just assembled the first iteration
-                    if (TImplicit) {
+                    if constexpr (TImplicit) {
                         /* We compute the residual and assemble */
                         const SizeType variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
                         AssembleRHSAndLHS(rA, rb, variable_size, residual_matrix, r_slave_geometry, rInverseConectivityDatabase, rThisMortarOperators);
@@ -802,7 +802,7 @@ private:
                             }
                         }
                     }
-                } else if (TImplicit) {
+                } else if constexpr (TImplicit) {
                     const SizeType variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
                     AssembleRHS(rb, variable_size, residual_matrix, r_slave_geometry, rInverseConectivityDatabase);
                 }

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from math import sqrt   # Import the square root from python library
 
 # Import utilities
@@ -219,7 +218,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         dis_residual_norm = self._ComputeInitialResidual()
 
         ## FSI nonlinear iteration loop
-        nl_it = 0
+        nl_it = 1
         is_converged = False
         while (nl_it < self.max_nl_it):
             # Check convergence
@@ -227,6 +226,8 @@ class PartitionedFSIBaseSolver(PythonSolver):
                 KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'FSI non-linear iteration convergence achieved in {0} iterations.'.format(nl_it))
                 is_converged = True
                 break
+            else:
+                nl_it += 1
 
             # Perform the displacement convergence accelerator update
             self._GetConvergenceAccelerator().InitializeNonLinearIteration()
@@ -273,11 +274,9 @@ class PartitionedFSIBaseSolver(PythonSolver):
             # Compute the residual vector
             dis_residual_norm = self._GetFSICouplingInterfaceStructure().ComputeResidualVector()
 
-            # Check and update iterator counter
+            # Check if maximum iterations are reached
             if nl_it == self.max_nl_it:
-                KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'FSI non-linear converged not achieved in {0} iterations'.format(self.max_nl_it))
-            else:
-                nl_it += 1
+                KratosMultiphysics.Logger.PrintWarning('PartitionedFSIBaseSolver', 'FSI non-linear maximum iterations {0} reached'.format(self.max_nl_it))
 
         return is_converged
 
@@ -408,9 +407,12 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
     def _AdvanceInTimeCouplingInterfaces(self, new_time):
         self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().CloneTimeStep(new_time)
+        self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().ProcessInfo[KratosMultiphysics.STEP] = self._GetFSICouplingInterfaceStructure().GetFatherModelPart().ProcessInfo[KratosMultiphysics.STEP]
         self._GetFSICouplingInterfaceFluidPositive().GetInterfaceModelPart().CloneTimeStep(new_time)
+        self._GetFSICouplingInterfaceFluidPositive().GetInterfaceModelPart().ProcessInfo[KratosMultiphysics.STEP] = self._GetFSICouplingInterfaceFluidPositive().GetFatherModelPart().ProcessInfo[KratosMultiphysics.STEP]
         if self.double_faced_structure:
             self._GetFSICouplingInterfaceFluidNegative().GetInterfaceModelPart().CloneTimeStep(new_time)
+            self._GetFSICouplingInterfaceFluidNegative().GetInterfaceModelPart().ProcessInfo[KratosMultiphysics.STEP] = self._GetFSICouplingInterfaceFluidNegative().GetFatherModelPart().ProcessInfo[KratosMultiphysics.STEP]
 
     # This method finds the maximum buffer size between mesh,
     # fluid and structure solvers and sets it to all the solvers.

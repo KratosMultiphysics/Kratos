@@ -124,7 +124,7 @@ public:
         const double dt_inv = 1.0 / delta_t;
         const double theta = rCurrentProcessInfo.Has(TIME_INTEGRATION_THETA) ? rCurrentProcessInfo[TIME_INTEGRATION_THETA] : 0.5;
 
-        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+        const ConvectionDiffusionSettings::Pointer& my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
         const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
         const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
@@ -252,7 +252,7 @@ public:
     {
         KRATOS_TRY
 
-        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+        const ConvectionDiffusionSettings::Pointer& my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
         if (rResult.size() != TNumNodes)
@@ -274,7 +274,7 @@ public:
     {
         KRATOS_TRY
 
-        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+        const ConvectionDiffusionSettings::Pointer& my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
         if (ElementalDofList.size() != TNumNodes)
