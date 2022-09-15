@@ -142,8 +142,7 @@ std::filesystem::path ResolveSymlinks(const std::filesystem::path& rPath)
     std::filesystem::path path = rPath;
     std::set<std::filesystem::path> symlinks;
 
-    while (status.type() == std::filesystem::file_type::symlink)
-    {
+    while (status.type() == std::filesystem::file_type::symlink) {
         const auto insert_result = symlinks.insert(path);
         KRATOS_ERROR_IF_NOT(insert_result.second) << rPath << " leads to cyclic symlinks";
         path = std::filesystem::read_symlink(path);
