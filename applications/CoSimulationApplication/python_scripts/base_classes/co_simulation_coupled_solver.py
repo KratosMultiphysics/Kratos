@@ -78,6 +78,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             self.settings["coupling_operations"],
             self.solver_wrappers,
             self.process_info,
+            self.data_communicator,
             self.echo_level)
 
         ### Creating the data transfer operators

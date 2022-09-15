@@ -1,13 +1,15 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication as KMC
-
+print("Here")
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
-
+print("Here2")
 # Other imports
 from .rigid_body_solver import RigidBodySolver
+print("Here3")
 from KratosMultiphysics.CoSimulationApplication.utilities.data_communicator_utilities import GetRankZeroDataCommunicator
+print("Here4")
 
 def Create(settings, model, solver_name):
     return RigidBodySolverWrapper(settings, model, solver_name)
