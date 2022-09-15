@@ -38,6 +38,7 @@
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
+#include "custom_utilities/node_search_utility.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -179,6 +180,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("CalculateFluidPositiveVolume", &FluidAuxiliaryUtilities::CalculateFluidPositiveVolume)
         .def_static("CalculateFluidNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidNegativeVolume)
         ;
+
+        // Radial Node Search Utility 
+    py::class_<NodeSearchUtility>(m, "NodeSearchUtility")
+        .def(py::init<ModelPart::NodesContainerType&>())
+        .def("SearchCloudOfNodesForNodes", &NodeSearchUtility::SearchCloudOfNodesForNodes)
+        .def("AssignRotationToNodes", &NodeSearchUtility::AssignRotationToNodes)
+        .def("AssignMPCsToNodes", &NodeSearchUtility::AssignMPCsToNodes)
+        ;    
 
 }
 

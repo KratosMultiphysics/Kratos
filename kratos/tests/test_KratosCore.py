@@ -73,18 +73,16 @@ import test_model_part_combination_utilities
 import test_force_and_torque_utils
 import test_print_info_in_file
 import test_sparse_matrices
+import test_rbf_shape_functions_utility
 if sympy_available:
     import test_sympy_fe_utilities
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
-
     Populates the test suites to run. At least, it should pupulate the suites:
     "small", "nighlty" and "all"
-
     Return
     ------
-
     suites: A dictionary of suites
         The set of suites with its test_cases added.
     '''
@@ -162,6 +160,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_combination_utilities.TestModelPartCombinationUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_force_and_torque_utils.TestForceAndTorqueUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrices.TestSparseMatrixInterface]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_rbf_shape_functions_utility.TestRBFShapeFunctionsUtility]))
     if sympy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sympy_fe_utilities.TestSympyFEUtilities]))
 
