@@ -5,10 +5,12 @@ import KratosMultiphysics.DEMApplication.plot_variables as plot_variables
 import KratosMultiphysics.DEMApplication.Chung_Ooi_class as COC
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from math import pi, sin, cos, atan
+import os
 
 class ChungOoiTest4(KratosUnittest.TestCase):
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(KratosUnittest.TestCase, self).__init__(*args, **kwargs)
         self.remove_all_results = True
         self.initial_tangential_vel = 0
         self.degrees = 0
@@ -21,12 +23,13 @@ class ChungOoiTest4(KratosUnittest.TestCase):
         self.tangential_restitution_coefficient_list_outfile = None
 
     def GetInputParameters(self):
+        os.chdir(os.path.dirname(os.path.realpath(__file__)))
         file_name = "ProjectParameters4.json"
         with open(file_name, 'r') as parameters_file:
             parameters = Parameters(parameters_file.read())
         return parameters
 
-    def Run(self):
+    def test_Run(self):
         parameters = self.GetInputParameters()
         for iteration in range(1, 18):
             iteration_case = DEMAnalysisStageForChungOoiTest4(Model(), parameters, iteration)
@@ -95,7 +98,7 @@ class ChungOoiTest4(KratosUnittest.TestCase):
         self.gnuplot_outfile.write("plot [0:90][.4:1] '" + tangential_restitution_coefficient_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5 t 'DEM',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark4_graph1.dat' index 0 w lp ls 1 t 'reference',\\\n")
         self.gnuplot_outfile.close()
-        COC.print_gnuplot_files_on_screen(gnuplot_script_name_1)
+        #COC.print_gnuplot_files_on_screen(gnuplot_script_name_1)
         gnuplot_script_name_2 = 'benchmark4_comparison_2_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name_2, 'w')
         self.gnuplot_outfile.write("set grid\nset key right center\nset xlabel 'Incident angle (deg)'\nset ylabel 'Final angular velocity (rad/s)';\\\n")
@@ -103,7 +106,7 @@ class ChungOoiTest4(KratosUnittest.TestCase):
         self.gnuplot_outfile.write("plot [0:90][-800:0] '" + final_angular_vel_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5 t 'DEM',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark4_graph2.dat' index 0 w lp ls 1 t 'reference',\\\n")
         self.gnuplot_outfile.close()
-        COC.print_gnuplot_files_on_screen(gnuplot_script_name_2)
+        #COC.print_gnuplot_files_on_screen(gnuplot_script_name_2)
         gnuplot_script_name_3 = 'benchmark4_comparison_3_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name_3, 'w')
         self.gnuplot_outfile.write("set grid\nset key right center\nset xlabel 'Incident angle (deg)'\nset ylabel 'Rebound angle (deg)';\\\n")
@@ -111,7 +114,7 @@ class ChungOoiTest4(KratosUnittest.TestCase):
         self.gnuplot_outfile.write("plot [0:90][-30:90] '" + rebound_angle_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5 t 'DEM',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark4_graph3.dat' index 0 w lp ls 1 t 'reference',\\\n")
         self.gnuplot_outfile.close()
-        COC.print_gnuplot_files_on_screen(gnuplot_script_name_3)
+        #COC.print_gnuplot_files_on_screen(gnuplot_script_name_3)
 
 class DEMAnalysisStageForChungOoiTest4(DEMAnalysisStage):
 
@@ -152,4 +155,4 @@ class DEMAnalysisStageForChungOoiTest4(DEMAnalysisStage):
 
 if __name__ == "__main__":
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
-    ChungOoiTest4().Run()
+    KratosUnittest.main()

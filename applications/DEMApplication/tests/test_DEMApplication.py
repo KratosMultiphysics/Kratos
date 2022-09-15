@@ -31,6 +31,15 @@ import test_DEM_search_tolerance
 import test_DEM_search_flags
 import test_erase_particles
 import test_search_nodes
+import sys
+sys.path.append('DEM3D_chung_ooi_tests/test1_data')
+sys.path.append('DEM3D_chung_ooi_tests/test2_data')
+sys.path.append('DEM3D_chung_ooi_tests/test3_data')
+sys.path.append('DEM3D_chung_ooi_tests/test4_data')
+import Chung_Ooi_test_1
+import Chung_Ooi_test_2
+import Chung_Ooi_test_3
+import Chung_Ooi_test_4
 
 def AssembleTestSuites():
 
@@ -57,18 +66,14 @@ def AssembleTestSuites():
     smallSuite.addTest(test_glued_particles.TestGluedParticles("test_Glued_Particles_1"))
     smallSuite.addTest(test_DEM_2D.TestDEM2D("test_DEM2D_1"))
     smallSuite.addTest(test_DEM_3D_contact.TestDEM3DContact("test_DEM3D_contact"))
-
-
     smallSuite.addTest(test_DEM_2D_inlet.TestDEM2DInlet("test_DEM2D_inlet"))
     smallSuite.addTest(test_DEM_3D_inlet.TestDEM3DInlet("test_DEM3D_inlet"))
     smallSuite.addTest(test_inlet.TestPieceWiseLinearDEMInlet("test_piecewise_linear_inlet"))
-
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_1"))
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_2"))
     smallSuite.addTest(test_DEM_2D_restitution.TestDEM2DRestitution("test_DEM2D_restitution_1"))
     smallSuite.addTest(test_DEM_2D_restitution.TestDEM2DRestitution("test_DEM2D_restitution_2"))
     smallSuite.addTest(test_DEM_3D_continuum.TestDEM3DContinuum("test_DEM3D_continuum"))
-
     smallSuite.addTest(test_DEM_2D_control_module.TestDEM2DControlModule("test_DEM2D_control_module"))
     smallSuite.addTest(test_post_process.TestPostProcess("test_gid_printing_many_results"))
     smallSuite.addTest(test_friction_decay.TestFrictionDecay("test_Friction_Decay"))
@@ -87,18 +92,20 @@ def AssembleTestSuites():
     smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_no_delay"))
     smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_little_delay"))
     smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_with_delay"))
-    smallSuite.addTest(test_search_nodes.TestSearchNodes("test_SearchNodesInTargetModelPart"))
+    smallSuite.addTest(test_search_nodes.TestSearchNodes("test_SearchNodesInTargetModelPart"))  
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
-
+    nightSuite.addTest(Chung_Ooi_test_1.ChungOoiTest1("test_Run"))
+    nightSuite.addTest(Chung_Ooi_test_2.ChungOoiTest2("test_Run"))
+    nightSuite.addTest(Chung_Ooi_test_3.ChungOoiTest3("test_Run"))
+    nightSuite.addTest(Chung_Ooi_test_4.ChungOoiTest4("test_Run"))
     nightSuite.addTest(test_restart.TestRestartOneBall("test_execution"))
     nightSuite.addTest(test_restart.TestRestartTwoBalls("test_execution"))
     nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchA"))
     nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchB"))
     nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchC"))
     nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchD"))
-
 
     # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']

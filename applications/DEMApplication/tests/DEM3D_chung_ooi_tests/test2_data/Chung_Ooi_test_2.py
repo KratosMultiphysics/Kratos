@@ -4,19 +4,21 @@ from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStag
 import KratosMultiphysics.DEMApplication.plot_variables as plot_variables
 import KratosMultiphysics.DEMApplication.Chung_Ooi_class as COC
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-
+import os
 class ChungOoiTest2(KratosUnittest.TestCase):
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(KratosUnittest.TestCase, self).__init__(*args, **kwargs)
         self.remove_all_results = True
 
     def GetInputParameters(self):
+        os.chdir(os.path.dirname(os.path.realpath(__file__)))
         file_name = "ProjectParameters2.json"
         with open(file_name, 'r') as parameters_file:
             parameters = Parameters(parameters_file.read())
         return parameters
 
-    def Run(self):
+    def test_Run(self):
         parameters = self.GetInputParameters()
         DEMAnalysisStageForChungOoiTest2(Model(), parameters).Run()
         self.PrintResultsAfterAllComputations(parameters["MaxTimeStep"].GetDouble())
@@ -36,14 +38,14 @@ class ChungOoiTest2(KratosUnittest.TestCase):
         gnuplot_outfile1.write("plot [0:800][0:12] 'variables_for_node_1.dat' every 20 u (1e6*$1):(1e-3*$9) w lp ls 1 ps 1.5 pt 5 t 'DEM',\\\n")
         gnuplot_outfile1.write("'paper_data/benchmark2_graph2.dat' w lp ls 2 ps 1.5 pt 9 t 'reference',\\\n")
         gnuplot_outfile1.close()
-        COC.print_gnuplot_files_on_screen(gnuplot_script_name1)
+        #COC.print_gnuplot_files_on_screen(gnuplot_script_name1)
         gnuplot_script_name2 = 'benchmark2_dt_' + str(dt) + 's_indentation_vs_normal_force.gp'
         gnuplot_outfile2 = open(gnuplot_script_name2, 'w')
         gnuplot_outfile2.write("set grid; set key center right; set xlabel 'Normal contact displacement (um)'; set ylabel 'Normal contact force (KN)';\\\n")
         gnuplot_outfile2.write("plot [0:60][0:12] 'variables_for_node_1.dat' every 20 u (-1e6*$3):(1e-3*$9) w lp ls 1 ps 1.5 pt 5 t 'DEM',\\\n")
         gnuplot_outfile2.write("'paper_data/benchmark2_graph1.dat' w lp ls 2 ps 1.5 pt 9 t 'reference',\\\n")
         gnuplot_outfile2.close()
-        COC.print_gnuplot_files_on_screen(gnuplot_script_name2)
+        #COC.print_gnuplot_files_on_screen(gnuplot_script_name2)
 
     def ComputeErrors(self):
         import numpy as np
@@ -80,4 +82,4 @@ class DEMAnalysisStageForChungOoiTest2(DEMAnalysisStage):
 
 if __name__ == "__main__":
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
-    ChungOoiTest2().Run()
+    KratosUnittest.main()
