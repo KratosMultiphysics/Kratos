@@ -1998,7 +1998,7 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
 
     }
 
-    if (rVariable == PARTICLE_INELASTIC_ROLLRESIST_ENERGY) {
+    if (rVariable == PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY) {
 
       Output = GetInelasticRollResistEnergy();
 

@@ -211,12 +211,12 @@ namespace Kratos {
       double accum_energy_dissip_slid   = 0.0;
       double accum_energy_dissip_roll   = 0.0;
       double accum_energy_dissip_damp   = 0.0;
-      particle.Calculate(PARTICLE_GRAVITATIONAL_ENERGY,           energy_potential_gravity,   r_process_info);
-      particle.Calculate(PARTICLE_ELASTIC_ENERGY,                 energy_potential_elastic,   r_process_info);
-      particle.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY, energy_kinetic_translation, r_process_info);
-      particle.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY,    energy_kinetic_rotation,    r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_FRICTIONAL_ENERGY,    accum_energy_dissip_slid,   r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_ROLLRESIST_ENERGY,    accum_energy_dissip_roll,   r_process_info);
+      particle.Calculate(PARTICLE_GRAVITATIONAL_ENERGY,                energy_potential_gravity,   r_process_info);
+      particle.Calculate(PARTICLE_ELASTIC_ENERGY,                      energy_potential_elastic,   r_process_info);
+      particle.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY,      energy_kinetic_translation, r_process_info);
+      particle.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY,         energy_kinetic_rotation,    r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_FRICTIONAL_ENERGY,         accum_energy_dissip_slid,   r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY, accum_energy_dissip_roll,   r_process_info);
       particle.Calculate(PARTICLE_INELASTIC_VISCODAMPING_ENERGY,  accum_energy_dissip_damp,   r_process_info);
       double accum_energy_thermal_slid = particle.mThermalFrictionalEnergy;
       double accum_energy_thermal_roll = particle.mThermalRollResistEnergy;
