@@ -863,7 +863,7 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
         double bond_current_tau_max = bond_tau_zero;
 
         if (contact_sigma >= 0) {
-            bond_current_tau_max += tan(bond_interanl_friction) * contact_sigma;
+            bond_current_tau_max += tan(bond_interanl_friction * Globals::Pi / 180.0) * contact_sigma;
         }
 
         if(( fabs(contact_tau) + bond_rotational_moment_coefficient * bond_rotational_moment_normal_modulus * bond_radius / J > bond_current_tau_max) 

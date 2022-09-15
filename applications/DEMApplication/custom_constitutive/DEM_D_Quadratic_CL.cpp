@@ -61,8 +61,8 @@ namespace Kratos {
         const double k_alpha = properties_of_this_contact[K_ALPHA];
 
         // mKn for conical contact is from Sneddon, I. N., 1965, [The Relation between Load and Penetration in the Axisymmetric Boussinesq Problem for a Punch of Arbitrary Profile]
-        mKn = 4.0 * equiv_young * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha));
-        mKt = 4.0 * equiv_shear * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha));
+        mKn = 4.0 * equiv_young * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha * Globals::Pi / 180.0));
+        mKt = 4.0 * equiv_shear * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha * Globals::Pi / 180.0));
     }
 
     double DEM_D_Quadratic::CalculateNormalForce(const double indentation) {
@@ -88,8 +88,8 @@ namespace Kratos {
         Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
         const double k_alpha = properties_of_this_contact[K_ALPHA];
  
-        mKn = 4.0 * equiv_young * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha));
-        mKt = 4.0 * equiv_shear * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha));
+        mKn = 4.0 * equiv_young * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha * Globals::Pi / 180.0));
+        mKt = 4.0 * equiv_shear * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha * Globals::Pi / 180.0));
     }
 
 } //namespace Kratos
