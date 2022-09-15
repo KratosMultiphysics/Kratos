@@ -2,7 +2,7 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from glob import glob
-import shutil
+import os, shutil
 
 class variable_plotter:
 
@@ -114,7 +114,7 @@ def delete_archives():
     files_to_delete_list.extend(glob('*.txt'))
     files_to_delete_list.extend(glob('*.gp'))
     #files_to_delete_list.extend(glob('*.dat'))
-    
+
     for to_erase_file in files_to_delete_list:
         os.remove(to_erase_file)
 

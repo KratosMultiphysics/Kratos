@@ -3,31 +3,66 @@ from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 import KratosMultiphysics.DEMApplication.plot_variables as plot_variables
 import KratosMultiphysics.DEMApplication.Chung_Ooi_class as COC
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-remove_all_results = True
+class ChungOoiTest2(KratosUnittest.TestCase):
 
-def print_results(dt):
-    gnuplot_script_name1 = 'benchmark2_dt_' + str(dt) + 's_time_vs_normal_force.gp'
-    gnuplot_outfile1 = open(gnuplot_script_name1, 'w')
-    gnuplot_outfile1.write("set grid; set key center right; set xlabel 'Time (us)'; set ylabel 'Normal contact force (KN)'; plot [0:800][0:12] 'variables_for_node_1.dat' every 20 u (1e6*$1):(1e-3*$9) w lp ls 1 ps 1.5 pt 5 t 'DEM',\\\n")
-    gnuplot_outfile1.write("'paper_data/benchmark2_graph2.dat' w lp ls 2 ps 1.5 pt 9 t 'reference',\\\n")
-    gnuplot_outfile1.close()
-    COC.print_gnuplot_files_on_screen(gnuplot_script_name1)
-    gnuplot_script_name2 = 'benchmark2_dt_' + str(dt) + 's_indentation_vs_normal_force.gp'
-    gnuplot_outfile2 = open(gnuplot_script_name2, 'w')
-    gnuplot_outfile2.write("set grid; set key center right; set xlabel 'Normal contact displacement (um)'; set ylabel 'Normal contact force (KN)'; plot [0:60][0:12] 'variables_for_node_1.dat' every 20 u (-1e6*$3):(1e-3*$9) w lp ls 1 ps 1.5 pt 5 t 'DEM',\\\n")
-    gnuplot_outfile2.write("'paper_data/benchmark2_graph1.dat' w lp ls 2 ps 1.5 pt 9 t 'reference',\\\n")
-    gnuplot_outfile2.close()
-    COC.print_gnuplot_files_on_screen(gnuplot_script_name2)
+    def __init__(self):
+        self.remove_all_results = True
 
-def GetInputParameters():
-    file_name = "ProjectParameters2.json"
-    mat_name = "Materials2.json"
-    with open(file_name, 'r') as parameters_file:
-        parameters = Parameters(parameters_file.read())
-    with open(mat_name,'r') as mat_parameter_file:
-        mat_parameters = Parameters(mat_parameter_file.read())
-    return parameters, mat_parameters
+    def GetInputParameters(self):
+        file_name = "ProjectParameters2.json"
+        with open(file_name, 'r') as parameters_file:
+            parameters = Parameters(parameters_file.read())
+        return parameters
+
+    def Run(self):
+        parameters = self.GetInputParameters()
+        DEMAnalysisStageForChungOoiTest2(Model(), parameters).Run()
+        self.PrintResultsAfterAllComputations(parameters["MaxTimeStep"].GetDouble())
+        self.CheckResults()
+        if self.remove_all_results:
+            plot_variables.delete_archives()
+
+    def CheckResults(self):
+        self.ComputeErrors()
+        self.assertAlmostEqual(self.error1, 0.0, delta = 3.3e-3)
+        self.assertAlmostEqual(self.error2, 0.0, delta = 3e-3)
+
+    def PrintResultsAfterAllComputations(self, dt): 
+        gnuplot_script_name1 = 'benchmark2_dt_' + str(dt) + 's_time_vs_normal_force.gp'
+        gnuplot_outfile1 = open(gnuplot_script_name1, 'w')
+        gnuplot_outfile1.write("set grid; set key center right; set xlabel 'Time (us)'; set ylabel 'Normal contact force (KN)';\\\n")
+        gnuplot_outfile1.write("plot [0:800][0:12] 'variables_for_node_1.dat' every 20 u (1e6*$1):(1e-3*$9) w lp ls 1 ps 1.5 pt 5 t 'DEM',\\\n")
+        gnuplot_outfile1.write("'paper_data/benchmark2_graph2.dat' w lp ls 2 ps 1.5 pt 9 t 'reference',\\\n")
+        gnuplot_outfile1.close()
+        COC.print_gnuplot_files_on_screen(gnuplot_script_name1)
+        gnuplot_script_name2 = 'benchmark2_dt_' + str(dt) + 's_indentation_vs_normal_force.gp'
+        gnuplot_outfile2 = open(gnuplot_script_name2, 'w')
+        gnuplot_outfile2.write("set grid; set key center right; set xlabel 'Normal contact displacement (um)'; set ylabel 'Normal contact force (KN)';\\\n")
+        gnuplot_outfile2.write("plot [0:60][0:12] 'variables_for_node_1.dat' every 20 u (-1e6*$3):(1e-3*$9) w lp ls 1 ps 1.5 pt 5 t 'DEM',\\\n")
+        gnuplot_outfile2.write("'paper_data/benchmark2_graph1.dat' w lp ls 2 ps 1.5 pt 9 t 'reference',\\\n")
+        gnuplot_outfile2.close()
+        COC.print_gnuplot_files_on_screen(gnuplot_script_name2)
+
+    def ComputeErrors(self):
+        import numpy as np
+        reference_data = np.loadtxt('paper_data/benchmark2_graph2.dat', usecols = (0, 1))
+        dem_results = np.loadtxt('variables_for_node_1.dat', usecols = (0, 8), skiprows = 1)
+        dem_results[:, 0] *= 1e6
+        dem_results[:, 1] *= 1e-3
+        i_meas, i_truth = np.where(np.isclose(reference_data[:, None, 0], dem_results[:, 0], atol = 0.5))
+        a = reference_data[i_meas][:, 1]
+        b = dem_results[i_truth][:, 1]
+        self.error1 = COC.ComputeRelativeError(a, b)
+        reference_data = np.loadtxt('paper_data/benchmark2_graph1.dat', usecols = (0, 1))
+        dem_results = np.loadtxt('variables_for_node_1.dat', usecols = (2, 8), skiprows = 1)
+        dem_results[:, 0] *= -1e6
+        dem_results[:, 1] *= 1e-3
+        i_meas, i_truth = np.where(np.isclose(reference_data[:, None, 0], dem_results[:, 0], atol = 0.05))
+        a = reference_data[i_meas][:, 1]
+        b = dem_results[i_truth][:, 1]
+        self.error2 = COC.ComputeRelativeError(a, b)
 
 class DEMAnalysisStageForChungOoiTest2(DEMAnalysisStage):
 
@@ -43,8 +78,6 @@ class DEMAnalysisStageForChungOoiTest2(DEMAnalysisStage):
         super().FinalizeSolutionStep()
         self.plotter.plot_variables(self.time)
 
-parameters, _ = GetInputParameters()
-DEMAnalysisStageForChungOoiTest2(Model(), parameters).Run()
-print_results(parameters["MaxTimeStep"].GetDouble())
-if remove_all_results:
-    plot_variables.delete_archives()
+if __name__ == "__main__":
+    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
+    ChungOoiTest2().Run()

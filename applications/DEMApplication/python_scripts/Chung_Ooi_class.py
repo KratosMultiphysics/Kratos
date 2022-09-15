@@ -49,7 +49,7 @@ def initialize_time_parameters(benchmark_number):
         output_time_step                = 0.000005
         number_of_points_in_the_graphic = 10
 
-    return end_time, dt, output_time_step, number_of_points_in_the_graphic, number_of_coeffs_of_restitution
+    return end_time, dt, output_time_step, number_of_points_in_the_graphic
 
 class Benchmark5:
 
@@ -838,3 +838,12 @@ def print_gnuplot_files_on_screen(gnuplot_script_name):
 
 def create_pdf_document(pdf_script_name):
     system('gnuplot -persist ' + pdf_script_name)
+
+def ComputeRelativeError(a, b):
+    sum_a = 0.0
+    diff_sum = 0.0
+    for a_comp, b_comp in zip(a, b):
+        diff_sum += abs(a_comp - b_comp)
+        sum_a += abs(a_comp)
+    relative_error = diff_sum / sum_a
+    return relative_error
