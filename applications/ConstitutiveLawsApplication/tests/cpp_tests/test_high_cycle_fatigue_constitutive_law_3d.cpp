@@ -21,8 +21,8 @@
 
 // Application includes
 // Integrator
-#include "custom_constitutive/auxiliary_files/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
-// Yield surfaces and plastic potentials
+#include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_damage.h"
+// Yield surfaces
 #include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/plastic_potentials/von_mises_plastic_potential.h"
 // Constitutive law
