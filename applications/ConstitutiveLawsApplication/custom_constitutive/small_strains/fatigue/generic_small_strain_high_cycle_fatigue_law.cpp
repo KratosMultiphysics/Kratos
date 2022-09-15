@@ -21,7 +21,7 @@
 #include "constitutive_laws_application_variables.h"
 #include "constitutive_laws_application_variables.h"
 #include "generic_small_strain_high_cycle_fatigue_law.h"
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
+#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_cl_integrator_damage.h"
 #include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/high_cycle_fatigue_law_integrator.h"
 
 // Yield surfaces

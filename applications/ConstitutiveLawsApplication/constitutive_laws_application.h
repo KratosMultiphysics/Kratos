@@ -73,11 +73,11 @@
 #include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage_plane_stress.h"
 
 // Integrators
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_kinematic_plasticity.h"
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_compression_constitutive_law_integrator.h"
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_tension_constitutive_law_integrator.h"
+#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_cl_integrator_damage.h"
+#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_cl_integrator_plasticity.h"
+#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_cl_integrator_kinematic_plasticity.h"
+#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/d+d-cl_integrators/generic_compression_cl_integrator.h"
+#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/d+d-cl_integrators/generic_tension_cl_integrator.h"
 #include "custom_constitutive/small_strains/fatigue/generic_small_strain_high_cycle_fatigue_law.h"
 
 // Yield surfaces
