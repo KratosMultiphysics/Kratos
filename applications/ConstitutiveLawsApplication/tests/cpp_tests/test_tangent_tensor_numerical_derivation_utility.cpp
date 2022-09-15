@@ -107,7 +107,7 @@ void SettingBasicCase(
  */
 void Create3DGeometryHexahedra(
     ModelPart& rThisModelPart,
-    const std::string ElementName = "SmallDisplacementElement3D8N"
+    const std::string& ElementName = "SmallDisplacementElement3D8N"
     )
 {
     auto& process_info = rThisModelPart.GetProcessInfo();
@@ -144,7 +144,7 @@ void Create3DGeometryHexahedra(
  */
 void Create3DGeometryTetrahedra(
     ModelPart& rThisModelPart,
-    const std::string ElementName = "SmallDisplacementElement3D4N"
+    const std::string& ElementName = "SmallDisplacementElement3D4N"
     )
 {
     rThisModelPart.GetProcessInfo()[STEP] = 2;

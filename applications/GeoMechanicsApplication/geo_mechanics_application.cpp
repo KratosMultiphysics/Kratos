@@ -239,7 +239,12 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
 
     mAxisymmetricUPwNormalFaceLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<NodeType >( Condition::GeometryType::PointsArrayType(2)))),
     mAxisymmetricLineNormalLoadDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<NodeType >( Condition::GeometryType::PointsArrayType(3)))),
-    mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<NodeType >( Condition::GeometryType::PointsArrayType(3))))
+    mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<NodeType >( Condition::GeometryType::PointsArrayType(3)))),
+
+    mUPwLysmerAbsorbingCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
+    mUPwLysmerAbsorbingCondition2D3N(0, Condition::GeometryType::Pointer(new Line2D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+    mUPwLysmerAbsorbingCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3 <NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+    mUPwLysmerAbsorbingCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4 <NodeType >(Condition::GeometryType::PointsArrayType(4))))
 
     {}
 
@@ -446,6 +451,11 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION( "AxisymmetricLineNormalLoadDiffOrderCondition2D3N",      mAxisymmetricLineNormalLoadDiffOrderCondition2D3N )
     KRATOS_REGISTER_CONDITION( "AxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N", mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N )
 
+    KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition2D2N", mUPwLysmerAbsorbingCondition2D2N)
+    KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition2D3N", mUPwLysmerAbsorbingCondition2D3N)
+    KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition3D3N", mUPwLysmerAbsorbingCondition3D3N)
+    KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition3D4N", mUPwLysmerAbsorbingCondition3D4N)
+
     //Register Constitutive Laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw",           mBilinearCohesive3DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw",           mBilinearCohesive2DLaw)
@@ -572,6 +582,12 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( BISHOP_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( DERIVATIVE_OF_SATURATION )
     KRATOS_REGISTER_VARIABLE( RELATIVE_PERMEABILITY )
+
+    KRATOS_REGISTER_VARIABLE( ABSORBING_FACTORS )
+    KRATOS_REGISTER_VARIABLE( VIRTUAL_THICKNESS )
+
+    KRATOS_REGISTER_VARIABLE(CONFINED_STIFFNESS)
+    KRATOS_REGISTER_VARIABLE(SHEAR_STIFFNESS)
 
     // UDSM
     KRATOS_REGISTER_VARIABLE( UDSM_NAME )       // Also for UMAT

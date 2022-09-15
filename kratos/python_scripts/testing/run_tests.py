@@ -23,6 +23,7 @@ def Usage():
         '\t -a, --applications: List of applications to run separated by \':\'. All compiled applications will be run by default',  # noqa
         '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
         '\t -c, --command: Use the provided command to launch test cases. If not provided, the default \'runkratos\' executable is used',
+        '\t -t, --timer: Use the provided custom time limit for the execution. If not provided, the default values are used',
         '\t --using-mpi: If running in MPI and executing the MPI-tests'
     ]
     for l in lines:
@@ -54,6 +55,9 @@ class Commander(object):
 
         command: string
             command to be used to call the tests. Ex: Python, Python3, Runkratos
+
+        timer: integer
+            limit time considered to execute the tests
 
         '''
 
@@ -187,6 +191,7 @@ def main():
     verbosity = 1
     level = 'all'
     is_mpi = False
+    timer = -1
 
     # Keep the worst exit code
     exit_code = 0
@@ -255,6 +260,14 @@ def main():
         elif o in ('--using-mpi'):
             is_mpi = True
 
+        elif o in ('-t', '--timer'):
+            try:
+                timer = int(a)
+            except:
+                print('Error: Cannot parse command name {0}.'.format(a))
+                Usage()
+                sys.exit()
+
         else:
             assert False, 'unhandled option'
 
@@ -263,10 +276,13 @@ def main():
 
     # Set timeout of the different levels
     signalTime = None
-    if level == 'small':
-        signalTime = int(90)
-    elif level == 'nightly':
-        signalTime = int(900)
+    if timer > 0:
+        signalTime = timer
+    else:
+        if level == 'small':
+            signalTime = int(90)
+        elif level == 'nightly':
+            signalTime = int(900)
 
     # Create the commands
     commander = Commander()
