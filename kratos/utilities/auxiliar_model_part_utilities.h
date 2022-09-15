@@ -593,6 +593,42 @@ public:
         Model* pModel = nullptr
         );
 
+    /**
+     * @brief This method deep copies a entities
+     * @details Only works with Element and Condition due to the lack of consistency of the entities Clone methods
+     * @param rModelPart The model part to copy the entities
+     * @param rEntities The entities to be copied
+     * @param rReferenceEntities The entities to be copied
+     * @param rGeometryPointerDatabase The database of geometries
+     * @tparam TClassContainer rEntities type
+     * @tparam TReferenceClassContainer rReferenceEntities type
+     */
+    template<class TClassContainer, class TReferenceClassContainer>
+    void DeepCopyEntities(
+        ModelPart& rModelPart,
+        TClassContainer& rEntities,
+        TReferenceClassContainer& rReferenceEntities,
+        std::unordered_map<Geometry<Node<3>>::Pointer,Geometry<Node<3>>::Pointer>& rGeometryPointerDatabase
+        )
+    {   
+        auto& r_properties= rModelPart.rProperties();
+        rEntities.SetMaxBufferSize(rReferenceEntities.GetMaxBufferSize());
+        rEntities.SetSortedPartSize(rReferenceEntities.GetSortedPartSize());
+        const auto& r_reference_entities_container = rReferenceEntities.GetContainer();
+        auto& r_entities_container = rEntities.GetContainer();
+        const IndexType number_entities = r_reference_entities_container.size();
+        r_entities_container.resize(number_entities);
+        const auto it_ent_begin = r_reference_entities_container.begin();
+        IndexPartition<std::size_t>(number_entities).for_each([&it_ent_begin,&r_entities_container,&rGeometryPointerDatabase,&r_properties](std::size_t i) {
+            auto it_ent = it_ent_begin + i;
+            auto& p_old_ent = (*it_ent);
+            auto p_new_ent = p_old_ent->Create(p_old_ent->Id(), rGeometryPointerDatabase[p_old_ent->pGetGeometry()], r_properties(p_old_ent->pGetProperties()->Id()));
+            p_new_ent->SetData(p_old_ent->GetData());
+            p_new_ent->Set(Flags(*p_old_ent));
+            r_entities_container[i] = p_new_ent;
+        });
+    }
+
     /// Turn back information as a string.
     virtual std::string Info() const
     {

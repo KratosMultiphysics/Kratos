@@ -514,39 +514,11 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
 
     // Copy elements
     auto& r_elements = r_model_part.Elements();
-    r_elements.SetMaxBufferSize(r_reference_elements.GetMaxBufferSize());
-    r_elements.SetSortedPartSize(r_reference_elements.GetSortedPartSize());
-    const auto& r_reference_elements_container = r_reference_elements.GetContainer();
-    auto& r_elements_container = r_elements.GetContainer();
-    const IndexType number_elements = r_reference_elements_container.size();
-    r_elements_container.resize(number_elements);
-    const auto it_elem_begin = r_reference_elements_container.begin();
-    IndexPartition<std::size_t>(number_elements).for_each([&it_elem_begin,&r_elements_container,&geometry_pointers_database,&r_properties](std::size_t i) {
-        auto it_elem = it_elem_begin + i;
-        auto& p_old_elem = (*it_elem);
-        auto p_new_elem = p_old_elem->Create(p_old_elem->Id(), geometry_pointers_database[p_old_elem->pGetGeometry()], r_properties(p_old_elem->pGetProperties()->Id()));
-        p_new_elem->SetData(p_old_elem->GetData());
-        p_new_elem->Set(Flags(*p_old_elem));
-        r_elements_container[i] = p_new_elem;
-    });
+    DeepCopyEntities(r_model_part, r_elements, r_reference_elements, geometry_pointers_database);
 
     // Copy conditions
     auto& r_conditions = r_model_part.Conditions();
-    r_conditions.SetMaxBufferSize(r_reference_conditions.GetMaxBufferSize());
-    r_conditions.SetSortedPartSize(r_reference_conditions.GetSortedPartSize());
-    const auto& r_reference_conditions_container = r_reference_conditions.GetContainer();
-    auto& r_conditions_container = r_conditions.GetContainer();
-    const IndexType number_conditions = r_reference_conditions_container.size();
-    r_conditions_container.resize(number_conditions);
-    const auto it_cond_begin = r_reference_conditions_container.begin();
-    IndexPartition<std::size_t>(number_conditions).for_each([&it_cond_begin,&r_conditions_container,&geometry_pointers_database,&r_properties](std::size_t i) {
-        auto it_cond = it_cond_begin + i;
-        auto& p_old_cond = (*it_cond);
-        auto p_new_cond = p_old_cond->Create(p_old_cond->Id(), geometry_pointers_database[p_old_cond->pGetGeometry()], r_properties(p_old_cond->pGetProperties()->Id()));
-        p_new_cond->SetData(p_old_cond->GetData());
-        p_new_cond->Set(Flags(*p_old_cond));
-        r_conditions_container[i] = p_new_cond;
-    });
+    DeepCopyEntities(r_model_part, r_conditions, r_reference_conditions, geometry_pointers_database);
 
     // Copy constraints
     // NOTE: Constraints cannot be deep copied (most of the information in implemented in derived classes as the LinearMasterSlaveConstraint), therefore we will use the Clone method of the constraint to create a new one.
