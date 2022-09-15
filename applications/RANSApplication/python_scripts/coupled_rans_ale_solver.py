@@ -14,6 +14,12 @@ def CreateSolver(model, solver_settings, parallelism):
 
 """ Currently only supports monolithic FSI """
 class CoupledRANSALESolver(AleFluidSolver):
+    def IsConverged(self):
+        return self.GetFluidSolver().IsConverged()
+
+    def CheckAndExecuteAdaptiveMeshRefinement(self):
+        pass
+
     def _CreateFluidSolver(self, solver_settings, parallelism):
         return CoupledRANSSolver(self.model, solver_settings)
 
