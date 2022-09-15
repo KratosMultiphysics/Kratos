@@ -241,6 +241,7 @@ double GaussPointErrorUtility::Execute()
                     i_gauss_t_exact += rN[i_node] * CalculateTemperatureExactSolution(r_node.Coordinates());
                 }
                 i_gauss_t_err -= i_gauss_t_exact;
+                //i_gauss_t_err /= i_gauss_t_exact;
 
                 // Add the current Gauss pt. error to the total norm
                 t_error_norm += w * std::pow(i_gauss_t_err, 2);

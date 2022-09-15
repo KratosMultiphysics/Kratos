@@ -41,7 +41,7 @@ EmbeddedMLSConstraintProcess::EmbeddedMLSConstraintProcess(
 
     // Retrieve the required model parts
     const std::string model_part_name = ThisParameters["model_part_name"].GetString();
-    mpModelPart = &rModel.GetModelPart(model_part_name);
+    mpModelPart = &rModel.GetModelPart(model_part_name).GetSubModelPart("fluid_computational_model_part");
 
     // Set to which elements constraints are applied
     mApplyToAllNegativeCutNodes = ThisParameters["apply_to_all_negative_cut_nodes"].GetBool();
@@ -331,9 +331,9 @@ bool EmbeddedMLSConstraintProcess::IsSplit(const GeometryType& rGeometry)
 
 bool EmbeddedMLSConstraintProcess::IsSmallCut(const GeometryType& rGeometry)
 {
-    const double tol_d = 0.001;
+    const double tol_d = 0.000001;
     for (const auto& r_node : rGeometry) {
-        if (abs(r_node.FastGetSolutionStepValue(DISTANCE)) < tol_d) {
+        if (std::abs(r_node.FastGetSolutionStepValue(DISTANCE)) < tol_d) {
             return true;
         }
     }
