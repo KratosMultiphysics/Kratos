@@ -245,7 +245,9 @@ if(${MSVC})
   string( REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS} )
   string( REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
   # Remove deprecated warnings of C++17
-  add_compile_definitions(_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
+  if(${_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS})
+    add_compile_definitions(_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
+  endif(${_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS})
 endif(${MSVC})
 
 # Specific flags for different versions of MSVC
