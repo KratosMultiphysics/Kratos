@@ -27,7 +27,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         KratosUtils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write_mesh_only.time"))
 
     def test_model_part_io_read_model_part(self):
-        input_mdpa = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read")
+        input_mdpa = GetFilePath("auxiliary_files_for_python_unittest/mdpa_files/test_model_part_io_read")
 
         with self.subTest("string"):
             self.execute_test_model_part_io_read_model_part(str(input_mdpa))
@@ -42,7 +42,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliary_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+        model_part_io = KratosMultiphysics.ModelPartIO(input_mdpa)
         model_part_io.ReadModelPart(model_part)
 
         self.assertEqual(model_part.NumberOfSubModelParts(), 2)
