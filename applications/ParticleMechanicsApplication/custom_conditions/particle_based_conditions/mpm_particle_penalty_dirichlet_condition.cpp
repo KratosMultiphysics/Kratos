@@ -80,7 +80,7 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
         GeneralVariables Variables;
 
         // Calculating shape function
-        MPMParticleBaseCondition::MPMShapeFunctionPointValues(Variables.N);
+        MPMShapeFunctionPointValues(Variables.N);
 
         // Here MPC contribution of normal vector are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -174,7 +174,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         Matrix shape_function = ZeroMatrix(block_size, matrix_size);
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            if (Variables.N[i] > std::numeric_limits<double>::epsilon())
+            if (Variables.N[i] > std::numeric_limits<double>::epsilon() && r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) > std::numeric_limits<double>::epsilon())
             {
                 for (unsigned int j = 0; j < dimension; j++)
                 {

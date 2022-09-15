@@ -239,8 +239,6 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    /// Calculate Shape Function Values as a vector
-    virtual void MPMShapeFunctionPointValues(Vector& rResult) const override;
 
     virtual void CalculateContactForce( const ProcessInfo& rCurrentProcessInfo );
     /**

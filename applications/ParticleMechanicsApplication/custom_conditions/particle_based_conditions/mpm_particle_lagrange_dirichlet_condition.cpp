@@ -81,19 +81,8 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
     GeneralVariables Variables;
 
     // Calculating shape function --> the normal vectors should not be affected by the small cut!
-    MPMParticleBaseCondition::MPMShapeFunctionPointValues(Variables.N);
+    MPMShapeFunctionPointValues(Variables.N);
 
-    // Get NODAL_AREA from MPC_Area
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        if (r_geometry[i].SolutionStepsDataHas(NODAL_AREA))
-        {
-            r_geometry[i].SetLock();
-            r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0) += Variables.N[i] * this->GetIntegrationWeight();
-            r_geometry[i].UnSetLock();
-        }
-        else break;
-    }
 
     auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
     array_1d<double, 3 > & r_lagrange_multiplier  = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
@@ -123,7 +112,7 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
             r_geometry[i].UnSetLock();
         }
     }
-    
+
 
 }
 
@@ -153,41 +142,7 @@ void MPMParticleLagrangeDirichletCondition::InitializeNonLinearIteration(const P
 
 }
 
-void MPMParticleLagrangeDirichletCondition::MPMShapeFunctionPointValues( Vector& rResult ) const
-{
-    KRATOS_TRY
 
-    MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult);
-
-    // Additional check to modify zero shape function values
-    // Lagrange Condition is more sensitive for small cut then Penalty condition
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const GeometryType& r_geometry = GetGeometry();
-
-    double denominator = 1.0;
-    const double small_cut_instability_tolerance = 0.01;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        if (rResult[i] < small_cut_instability_tolerance){
-            denominator += (small_cut_instability_tolerance - rResult[i]);
-            rResult[i] = small_cut_instability_tolerance;
-        }
-    }
-
-    rResult = rResult / denominator;
-
-    // Nodes with zero mass are not connected to the body--> zero shape function result in zero line and columns in stiffness matrix
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
-            rResult[i]=0.0;
-        }
-    }
-
-    
-
-    KRATOS_CATCH( "" )
-}
 //************************************************************************************
 //************************************************************************************
 
@@ -280,8 +235,8 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
     // avoid singular matrices --> 2 nodes of the element should be conntected to the body to statisfy the inf-sub condition
     if (counter < necessary_nodes)
         apply_constraints = false;
-    
 
+    
     if (apply_constraints)
     {
         Matrix lagrange_matrix = ZeroMatrix(matrix_size, matrix_size);
@@ -289,11 +244,13 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
         // Loop over shape functions of displacements
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            const unsigned int ibase = dimension * number_of_nodes;
-            for (unsigned int k = 0; k < dimension; k++)
-            {
-                lagrange_matrix(i* dimension+k, ibase+k) = Variables.N[i];
-                lagrange_matrix(ibase+k, i*dimension + k) = Variables.N[i];
+            if (Variables.N[i] > std::numeric_limits<double>::epsilon() && r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) >= std::numeric_limits<double>::epsilon()){
+                const unsigned int ibase = dimension * number_of_nodes;
+                for (unsigned int k = 0; k < dimension; k++)
+                {
+                    lagrange_matrix(i* dimension+k, ibase+k) = Variables.N[i];
+                    lagrange_matrix(ibase+k, i*dimension + k) = Variables.N[i];
+                }
             }
         }
 
@@ -425,7 +382,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateContactForce( const Process
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
     GeneralVariables Variables;
-    Variables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
+    MPMShapeFunctionPointValues(Variables.N);
 
     array_1d<double, 3 > mpc_force = ZeroVector(3);
 
@@ -652,7 +609,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateOnIntegrationPoints(const V
 {
     if (rValues.size() != 1)
         rValues.resize(1);
-
+    
     else {
         MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
@@ -711,7 +668,7 @@ void MPMParticleLagrangeDirichletCondition::SetValuesOnIntegrationPoints(const V
     KRATOS_ERROR_IF(rValues.size() > 1)
         << "Only 1 value per integration point allowed! Passed values vector size: "
         << rValues.size() << std::endl;
-
+    
     else {
         MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
