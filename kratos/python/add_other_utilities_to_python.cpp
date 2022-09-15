@@ -52,6 +52,7 @@
 #include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/file_name_data_collector.h"
 #include "utilities/sensitivity_utilities.h"
+#include "utilities/force_and_torque_utils.h"
 
 namespace Kratos {
 namespace Python {
@@ -600,6 +601,12 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("Execute", &FillCommunicator::Execute)
         .def("PrintDebugInfo", &FillCommunicator::PrintDebugInfo)
     ;
+    py::class_<ForceAndTorqueUtils>(m, "ForceAndTorqueUtils")
+        .def(py::init<>())
+        .def_static("SumForce", &ForceAndTorqueUtils::SumForce)
+        .def_static("SumForceAndTorque", &ForceAndTorqueUtils::SumForceAndTorque)
+        .def_static("ComputeEquivalentForceAndTorque", &ForceAndTorqueUtils::ComputeEquivalentForceAndTorque)
+        ;
 }
 
 } // namespace Python.
