@@ -583,6 +583,7 @@ enum class OperationType {
     Replace,
     SumValues,
     MinValues,
+    MaxValues,
     OrAccessedFlags,
     AndAccessedFlags,
     ReplaceAccessedFlags
@@ -917,6 +918,40 @@ public:
     {
         MPIInternals::NodalDataAccess<Quaternion<double>> nodal_data_access(rThisVariable);
         SynchronizeFixedSizeValues(nodal_data_access);
+        return true;
+    }
+
+    bool SynchronizeCurrentDataToMax(Variable<double> const& ThisVariable) override
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        constexpr Operation<OperationType::MaxValues> max;
+        MPIInternals::NodalSolutionStepValueAccess<double> nodal_solution_step_access(ThisVariable);
+
+        // Calculate max on owner rank
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_solution_step_access, max);
+
+        // Synchronize result on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_solution_step_access, replace);
+
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalDataToMax(Variable<double> const& ThisVariable) override
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        constexpr Operation<OperationType::MaxValues> max;
+        MPIInternals::NodalDataAccess<double> nodal_data_access(ThisVariable);
+
+        // Calculate max on owner rank
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_data_access, max);
+
+        // Synchronize result on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_data_access, replace);
+
         return true;
     }
 
@@ -1599,6 +1634,22 @@ private:
         ValueType recv_value(r_current); // creating by copy to have the correct size in dynamic types
         MPIInternals::SendTools<ValueType>::ReadBuffer(pBuffer, recv_value);
         r_current += recv_value;
+
+        return MPIInternals::BufferAllocation<TDatabaseAccess>::GetSendSize(recv_value);
+    }
+
+    template<class TDatabaseAccess>
+    std::size_t ReduceValues(
+        const typename TDatabaseAccess::SendType* pBuffer,
+        TDatabaseAccess& rAccess,
+        typename TDatabaseAccess::IteratorType ContainerIterator,
+        Operation<OperationType::MaxValues>)
+    {
+        using ValueType = typename TDatabaseAccess::ValueType;
+        ValueType& r_current = rAccess.GetValue(ContainerIterator);
+        ValueType recv_value(r_current); // creating by copy to have the correct size in dynamic types
+        MPIInternals::SendTools<ValueType>::ReadBuffer(pBuffer, recv_value);
+        if (recv_value > r_current) r_current = recv_value;
 
         return MPIInternals::BufferAllocation<TDatabaseAccess>::GetSendSize(recv_value);
     }

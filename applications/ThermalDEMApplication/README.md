@@ -4,12 +4,25 @@ This application is an extension of the [DEM Application](https://github.com/Kra
 
 - Heat transfer between particle-particle, particle-rigid wall, and particle-surrounding fluid.
 - Heat transfer mechanisms by conduction, convection, and radiation.
-- Heat generation by friction, collision, and internal sources.
+- Heat generation by energy dissipation and internal sources.
 - Temperature dependent material properties.
 
 Theoretical information on thermal DEM analysis can be found [here](./ThermalDEMTheory.pdf).
 
 A [Matlab version](https://gitlab.com/rafaelrangel/demlab) of this application is also available.
+
+## Table of Contents
+- [Authorship](#authorship)
+- [License](#license)
+- [Getting Started](#getting-started)
+- [Instructions](#instructions)
+    - [MainKratos](#mainkratos-python-file)
+    - [Project Parameters](#project-parameters-json-file)
+    - [Materials](#materials-json-file)
+    - [DEM Model Parts](#dem-model-parts-mdpa-file)
+    - [DEM-FEM Boundary Model Parts](#dem-fem-boundary-model-parts-mdpa-file)
+- [Input Explanations](#input-explanations)
+- [Testing](#testing)
 
 ## Authorship
 
@@ -19,12 +32,16 @@ International Center for Numerical Methods in Engineering ([CIMNE](https://www.c
 
 ## License
 
-The Thermal DEM application is OPEN SOURCE. The main code and program structure is available and aimed to grow with the need of any users willing to expand it. The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
+The Thermal DEM application is OPEN SOURCE.
+The main code and program structure is available and aimed to grow with the need of any users willing to expand it.
+The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction,
+but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
 
-## Getting started
+## Getting Started
 
 This application is part of the ***Kratos Multiphysics*** framework.
-Instructions on how to get a copy of the project and run on your local machine for development and testing purposes are available for both [Linux](http://kratos-wiki.cimne.upc.edu/index.php/LinuxInstall) and [Windows](http://kratos-wiki.cimne.upc.edu/index.php/Windows_7_Download_and_Installation) systems.
+Instructions on how to get a copy of the project and run on your local machine for development and testing purposes are available for both
+[Linux](http://kratos-wiki.cimne.upc.edu/index.php/LinuxInstall) and [Windows](http://kratos-wiki.cimne.upc.edu/index.php/Windows_7_Download_and_Installation) systems.
 
 Before building *Kratos Multiphysics*, make sure to add the following applications to your configure file: 
 
@@ -34,6 +51,14 @@ Before building *Kratos Multiphysics*, make sure to add the following applicatio
 ## Instructions
 
 To create a model for the Thermal DEM Application, the following adaptations must be done to the input files of the DEM Application.
+
+### MainKratos (python file)
+
+Replace the import of the *AnalysisStage* of the DEM Application with the *AnalysisStage* of the Thermal DEM Application, which is imported as follows:
+
+	from KratosMultiphysics.ThermalDEMApplication.thermal_dem_analysis import ThermalDEMAnalysis
+
+You can check the template of the *MainKratos* file [here](https://github.com/KratosMultiphysics/Kratos/blob/4c8a07592cf4056557be0e5dff1c19839a5e3b98/applications/ThermalDEMApplication/python_scripts/MainKratosThermalDEMAnalysis.py).
 
 ### Project Parameters (json file)
 
@@ -63,13 +88,13 @@ Add **thermal settings** with desired options:
 		"compute_indirect_conduction"    : true or false,
 		"compute_convection"             : true or false,
 		"compute_radiation"              : true or false,
-		"compute_friction_heat"          : true or false,
+		"compute_heat_generation"        : true or false,
 		"compute_adjusted_contact"       : true or false,
 		"direct_conduction_model"        : "batchelor_obrien_simple" or "batchelor_obrien_complete" or "batchelor_obrien_modified" or "thermal_pipe" or "collisional",
 		"indirect_conduction_model"      : "surrounding_layer" or "voronoi_a" or "voronoi_b" or "vargas_mccarthy",
 		"nusselt_correlation"            : "sphere_hanz_marshall" or "sphere_whitaker" or "sphere_gunn" or "sphere_li_mason",
 		"radiation_model"                : "continuum_zhou" or "continuum_krause",
-		"friction_model"                 : "coulomb",
+		"heat_generation_model"          : ["sliding_friction","rolling_friction","contact_damping"],
 		"adjusted_contact_model"         : "zhou" or "lu" or "morris",
 		"voronoi_method"                 : "tesselation" or "porosity",
 		"porosity_method"                : "global" or "average_convex_hull" or "average_alpha_shape",
@@ -79,7 +104,7 @@ Add **thermal settings** with desired options:
 		"fluid_layer_thickness"          : 0.4,
 		"isothermal_core_radius"         : 0.5,
 		"max_radiation_distance"         : 2.0,
-		"friction_heat_conversion_ratio" : 1.0,
+		"heat_generation_ratio"          : 1.0,
 		"global_porosity"                : 0.0,
 		"alpha_shape_parameter"          : 1.2,
 		"integral_tolerance"             : 0.000001,
@@ -104,7 +129,8 @@ Add **post options** with desired options:
 	"PostGraphParticleTempAvg"       : true or false,
 	"PostGraphParticleTempDev"       : true or false,
 	"PostGraphModelTempAvg"          : true or false,
-	"PostGraphHeatFluxContributions" : true or false
+	"PostGraphHeatFluxContributions" : true or false,
+	"PostGraphHeatGenContributions"  : true or false
 
 ### Materials (json file)
 
@@ -220,8 +246,8 @@ Add **SubModelPartData** to sub model parts with desired options:
   Boolean for computing heat transfer between elements by radiation.\
   Default: false
 
-- *"compute_friction_heat"*:\
-  Boolean for computing heat generation by friction between elements.\
+- *"compute_heat_generation"*:\
+  Boolean for computing heat generation by energy dissipation between elements.\
   Default: false
 
 - *"compute_adjusted_contact"*:\
@@ -244,9 +270,9 @@ Add **SubModelPartData** to sub model parts with desired options:
   Selected model for simulating heat transfer by radiation.\
   Default: "continuum_zhou"
 
-- *"friction_model"*:\
-  Selected model for simulating heat generated by friction.\
-  Default: "coulomb"
+- *"heat_generation_model"*:\
+  List of selected models for simulating heat generation by energy dissipation.\
+  Default: ["sliding_friction"]
   
 - *"adjusted_contact_model"*:\
   Selected model for adjusting contact geometry.\
@@ -284,8 +310,8 @@ Add **SubModelPartData** to sub model parts with desired options:
   Maximum distance for heat radiation (ratio of particles radii) required for all radiation models.\
   Default: 2.0
 
-- *"friction_heat_conversion_ratio"*:\
-  Ratio of the work done by frictional forces that is converted into heat.\
+- *"heat_generation_ratio"*:\
+  Ratio of dissipated energy that is converted into heat.\
   Default: 1.0
 
 - *"global_porosity"*:\
@@ -368,6 +394,10 @@ Add **SubModelPartData** to sub model parts with desired options:
   Boolean for writing a graph with the contribution of each heat transfer mechanism to the total heat transfer.\
   Default: false
 
+- *"PostGraphHeatGenContributions"*:\
+  Boolean for writing a graph with the contribution of each heat generation mechanism to the total heat generation.\
+  Default: false
+  
 **Material properties**
 - *"materials.Variables.THERMAL_CONDUCTIVITY"*:\
   Thermal conductivity of material (always required).
@@ -391,7 +421,7 @@ Add **SubModelPartData** to sub model parts with desired options:
   Points of the curve given by the table.
 
 - *"material_relations.Variables.DYNAMIC_FRICTION"*:\
-  Dynamic friction coefficient between materials (required by frictional heat generation).
+  Dynamic friction coefficient between materials (required by heat generation by sliding friction).
 
 **SubModelPartData**
 - *TEMPERATURE*:\
@@ -420,4 +450,4 @@ Add **SubModelPartData** to sub model parts with desired options:
 
 ## Testing
 
-To test if the application is working correctly, run the test_ThermalDEMApplication.py file, located in the *tests* folder.
+To test if the application is working correctly, run the *test_ThermalDEMApplication.py* file, located in the *tests* folder.

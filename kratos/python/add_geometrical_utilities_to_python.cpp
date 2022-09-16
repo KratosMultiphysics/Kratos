@@ -11,9 +11,8 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 // System includes
-
+ 
 // External includes
 
 // Project includes
@@ -39,6 +38,7 @@
 #include "utilities/convect_particles_utilities.h"
 #include "utilities/mls_shape_functions_utility.h"
 #include "utilities/tessellation_utilities/delaunator_utilities.h"
+#include "utilities/rbf_shape_functions_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -181,7 +181,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("FindCondition", &BruteForcePointLocator::FindCondition)
         ;
 
-    //isoprinter
+    // IsosurfacePrinterApplication
     py::class_<IsosurfacePrinterApplication >(m,"IsosurfacePrinterApplication")
         .def(py::init<ModelPart& >() )
         .def("AddScalarVarIsosurface", &IsosurfacePrinterApplication::AddScalarVarIsosurface)
@@ -192,33 +192,53 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("CreateNodesArray", &IsosurfacePrinterApplication::CreateNodesArray)
         ;
 
-    //binbased locators
+    // BinBasedFastPointLocator
     py::class_< BinBasedFastPointLocator < 2 >, BinBasedFastPointLocator < 2 >::Pointer >(m,"BinBasedFastPointLocator2D")
         .def(py::init<ModelPart& >())
         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabase)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabaseAssignedSize)
-        .def("FindPointOnMesh", &BinBasedFastPointLocator < 2 > ::FindPointOnMeshSimplified)
+        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& rSelf, const array_1d<double,3>& rCoords ){
+            Element::Pointer p_elem = nullptr;
+            Vector N;
+            const bool is_found = rSelf.FindPointOnMeshSimplified(rCoords,N,p_elem);
+            return std::tuple<bool,Vector,Element::Pointer>{is_found,N,p_elem};
+        })
         ;
 
     py::class_< BinBasedFastPointLocator < 3 >, BinBasedFastPointLocator < 3 >::Pointer >(m,"BinBasedFastPointLocator3D")
         .def(py::init<ModelPart&  >())
         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabase)
-        .def("FindPointOnMesh", &BinBasedFastPointLocator < 3 > ::FindPointOnMeshSimplified)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
+        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 3 >& rSelf, const array_1d<double,3>& rCoords ){
+            Element::Pointer p_elem = nullptr;
+            Vector N;
+            const bool is_found = rSelf.FindPointOnMeshSimplified(rCoords,N,p_elem);
+            return std::tuple<bool,Vector,Element::Pointer>{is_found,N,p_elem};
+        })
         ;
 
     py::class_< BinBasedFastPointLocatorConditions < 2 > >(m,"BinBasedFastPointLocatorConditions2D")
         .def(py::init<ModelPart& >())
         .def("UpdateSearchDatabase", &BinBasedFastPointLocatorConditions < 2 > ::UpdateSearchDatabase)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocatorConditions < 2 > ::UpdateSearchDatabaseAssignedSize)
-        .def("FindPointOnMesh", &BinBasedFastPointLocatorConditions < 2 > ::FindPointOnMeshSimplified)
+        .def("FindPointOnMesh", [](BinBasedFastPointLocatorConditions < 2 >& rSelf, const array_1d<double,3>& rCoords ){
+            Condition::Pointer p_cond = nullptr;
+            Vector N;
+            const bool is_found = rSelf.FindPointOnMeshSimplified(rCoords,N,p_cond);
+            return std::tuple<bool,Vector,Condition::Pointer>{is_found,N,p_cond};
+        })
         ;
 
     py::class_< BinBasedFastPointLocatorConditions < 3 > >(m,"BinBasedFastPointLocatorConditions3D")
         .def(py::init<ModelPart&  >())
         .def("UpdateSearchDatabase", &BinBasedFastPointLocatorConditions < 3 > ::UpdateSearchDatabase)
-        .def("FindPointOnMesh", &BinBasedFastPointLocatorConditions < 3 > ::FindPointOnMeshSimplified)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocatorConditions < 3 > ::UpdateSearchDatabaseAssignedSize)
+        .def("FindPointOnMesh", [](BinBasedFastPointLocatorConditions < 3 >& rSelf, const array_1d<double,3>& rCoords ){
+            Condition::Pointer p_cond = nullptr;
+            Vector N;
+            const bool is_found = rSelf.FindPointOnMeshSimplified(rCoords,N,p_cond);
+            return std::tuple<bool,Vector,Condition::Pointer>{is_found,N,p_cond};
+        })
         ;
 
     py::class_< BinBasedNodesInElementLocator < 2 > >(m,"BinBasedNodesInElementLocator2D")
@@ -286,6 +306,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
         .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
         .def("IsInInterval", &IntervalUtility ::IsInInterval)
+        .def("__str__", PrintObject<IntervalUtility>)
         ;
 
     //particle convect utility
@@ -316,6 +337,19 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def_static("CalculateShapeFunctions3D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<3>)
         .def_static("CalculateShapeFunctionsAndGradients2D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2>)
         .def_static("CalculateShapeFunctionsAndGradients3D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3>)
+        ;
+
+    // Radial Basis FUnctions utility
+    using DenseQRPointerType = typename RBFShapeFunctionsUtility::DenseQRPointerType;
+    py::class_<RBFShapeFunctionsUtility>(m,"RBFShapeFunctionsUtility")
+        .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, Vector& rN){
+            return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, rN);})
+        .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, Vector& rN, DenseQRPointerType pDenseQR){
+            return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, rN, pDenseQR);})
+        .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
+            return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN);})
+        .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, DenseQRPointerType pDenseQR){
+            return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN, pDenseQR);})
         ;
 }
 
