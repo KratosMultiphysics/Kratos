@@ -34,8 +34,8 @@ add_app ${KRATOS_APP_DIR}/FSIApplication;
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
-# add_app ${KRATOS_APP_DIR}/FemToDemApplication;
-# add_app ${KRATOS_APP_DIR}/PfemFluidDynamicsApplication;
+add_app ${KRATOS_APP_DIR}/FemToDemApplication;
+add_app ${KRATOS_APP_DIR}/PfemFluidDynamicsApplication;
 add_app ${KRATOS_APP_DIR}/DelaunayMeshingApplication;
 add_app ${KRATOS_APP_DIR}/MeshingApplication;
 add_app ${KRATOS_APP_DIR}/MetisApplication;
@@ -54,6 +54,7 @@ add_app ${KRATOS_APP_DIR}/ChimeraApplication;
 add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
 add_app ${KRATOS_APP_DIR}/StatisticsApplication;
 add_app ${KRATOS_APP_DIR}/RomApplication;
+add_app ${KRATOS_APP_DIR}/ShallowWaterApplication;
 
 # Clean
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"
