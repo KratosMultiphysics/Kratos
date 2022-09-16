@@ -60,6 +60,7 @@ KRATOS_API_EXPORT std::string GetCommit();
 KRATOS_API_EXPORT std::string GetBuildType();
 KRATOS_API_EXPORT std::string GetVersionString();
 KRATOS_API_EXPORT std::string GetOSName();
+KRATOS_API_EXPORT std::string GetPythonVersion();
 KRATOS_API_EXPORT std::string GetCompiler();
 
 } // namespace Kratos

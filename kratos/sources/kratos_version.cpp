@@ -70,6 +70,16 @@ KRATOS_ARCH_TYPE
     #define KRATOS_OS_NAME "Unknown OS"
 #endif
 
+// Define Python version
+#if defined(PYTHON_VERSION_MAJOR) && defined(PYTHON_VERSION_MINOR)
+    #define KRATOS_PYTHON_VERSION "Python" \
+    KRATOS_TO_STRING(PYTHON_VERSION_MAJOR) \
+    "." \
+    KRATOS_TO_STRING(PYTHON_VERSION_MINOR)
+#else
+    #define KRATOS_PYTHON_VERSION "Unknown Python Version"
+#endif
+
 // Define compiler label
 #if defined(__clang__)
     #define KRATOS_COMPILER_LABEL "Clang-" \
@@ -106,6 +116,10 @@ std::string GetVersionString() {
 
 std::string GetOSName() {
     return KRATOS_OS_NAME;
+}
+
+std::string GetPythonVersion() {
+    return KRATOS_PYTHON_VERSION;
 }
 
 std::string GetCompiler() {
