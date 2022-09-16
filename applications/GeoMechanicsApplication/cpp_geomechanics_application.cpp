@@ -600,7 +600,7 @@ namespace Kratos
     int KratosExecute::execute_flow_analysis(string workingDirectory, string projectName,
                                              double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
                                              string criticalHeadBoundaryModelPartName,
-                                             void __stdcall logCallback(char *))
+                                             void logCallback(char *))
     {
         this->SetEchoLevel(1);
 
