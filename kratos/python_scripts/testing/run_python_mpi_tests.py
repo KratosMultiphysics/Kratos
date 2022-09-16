@@ -6,6 +6,7 @@ from KratosMultiphysics.testing import utilities as testing_utils
 
 import sys, os
 import argparse
+import multiprocessing
 from pathlib import Path
 
 if KM.IsDistributedRun():
@@ -23,7 +24,7 @@ def main():
     parser.add_argument('-l', '--level', default='all', choices=['all', 'nightly', 'small', 'validation'])
     parser.add_argument('-v', '--verbosity', default=1, type=int, choices=[0, 1, 2])
     # parser.add_argument('-a', '--applications', default=applications, choices=applications) # TODO
-    parser.add_argument('-n', '--processes', type=int, default=4)
+    parser.add_argument('-n', '--processes', type=int, default=multiprocessing.cpu_count())
     parser.add_argument('-m', '--mpi_command', default="mpiexec")
     parser.add_argument('-f', '--mpi_flags', default="")
     parser.add_argument('-p', '--num_processes_flag', default="-np")
