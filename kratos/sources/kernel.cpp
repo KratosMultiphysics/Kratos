@@ -42,7 +42,7 @@ void Kernel::Initialize() {
                     << " . \\  |   (   | |   (   |\\__ \\  \n"
                     << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/\n"
                     << "           Multi-Physics " << GetVersionString() << "\n"
-                    << "           Compiled for "<< GetOSName() << " with " << GetCompiler() << std::endl;
+                    << "           Compiled for "<< GetOSName() << " and " << GetPythonVersion() << " with " << GetCompiler() << std::endl;
 
     PrintParallelismSupportInfo();
 
