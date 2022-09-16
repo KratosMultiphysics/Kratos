@@ -442,11 +442,8 @@ void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<false>(
             const auto& geom = rElem.GetGeometry();
             
             unsigned int npos=0, nneg=0;
-            for(unsigned int i=0; i<geom.size(); ++i){
-                if(geom[i].FastGetSolutionStepValue(DISTANCE)>0)
-                    npos++;
-                else
-                    nneg++;
+            for (const auto& r_node : geom) {
+                r_node.FastGetSolutionStepValue(DISTANCE) > 0 ? ++npos : ++nneg;
             }
 
             if(npos>0 && nneg>0){ //element is split
