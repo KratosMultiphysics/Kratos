@@ -51,9 +51,9 @@ def main():
         signalTime = int(args.timer)
     else:
         if args.level == 'small':
-            signalTime = 90
+            signalTime = int(90)
         elif args.level == 'nightly':
-            signalTime = 900
+            signalTime = int(900)
 
     # Create the commands
     commander = testing_utils.Commander()
