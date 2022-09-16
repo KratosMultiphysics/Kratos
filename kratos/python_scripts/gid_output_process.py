@@ -128,6 +128,9 @@ class GiDOutputProcess(KM.OutputProcess):
         self.printed_step_count = 0
         self.next_output = 0.0
 
+        # This flag is used to initialize the mesh with the SingleFile option
+        self.single_mesh_initialized = False
+
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
         # Defining a string to help the user understand where the warnings come from (in case any is thrown)
@@ -229,35 +232,6 @@ class GiDOutputProcess(KM.OutputProcess):
             self.point_output_process.ExecuteInitialize()
 
     def ExecuteBeforeSolutionLoop(self):
-        '''Initialize output meshes.'''
-
-        if self.multifile_flag == KM.MultiFileFlag.SingleFile:
-            mesh_name = 0.0
-            self.__write_mesh(mesh_name)
-            self.__initialize_results(mesh_name)
-
-            if self.post_mode == KM.GiDPostMode.GiD_PostBinary:
-                self.__write_step_to_list()
-            else:
-                self.__write_step_to_list(0)
-
-        if self.multifile_flag == KM.MultiFileFlag.MultipleFiles:
-            label = 0.0
-            self.__write_mesh(label)
-            self.__initialize_results(label)
-            self.__write_nodal_results(label)
-            self.__write_gp_results(label)
-            self.__write_nonhistorical_nodal_results(label)
-            self.__write_nodal_flags(label)
-            self.__write_elemental_conditional_flags(label)
-            self.__finalize_results()
-
-            if self.output_label_is_time:
-                file_label = 0.0
-            else:
-                file_label = 0
-            self.__write_step_to_list(file_label)
-
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeSolutionLoop()
 
@@ -266,7 +240,6 @@ class GiDOutputProcess(KM.OutputProcess):
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteInitializeSolutionStep()
-
 
     def ExecuteFinalizeSolutionStep(self):
         if self.point_output_process is not None:
@@ -297,6 +270,17 @@ class GiDOutputProcess(KM.OutputProcess):
         if self.multifile_flag == KM.MultiFileFlag.MultipleFiles:
             self.__write_mesh(label)
             self.__initialize_results(label)
+
+        if self.multifile_flag == KM.MultiFileFlag.SingleFile and not self.single_mesh_initialized:
+            self.__write_mesh(label)
+            self.__initialize_results(label)
+
+            if self.post_mode == KM.GiDPostMode.GiD_PostBinary:
+                self.__write_step_to_list()
+            else:
+                self.__write_step_to_list(0)
+
+            self.single_mesh_initialized = True
 
         self.__write_nodal_results(time)
         self.__write_gp_results(time)
