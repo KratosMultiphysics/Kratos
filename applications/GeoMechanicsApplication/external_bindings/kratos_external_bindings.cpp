@@ -1,9 +1,6 @@
 #pragma once
 #define EXPORT __declspec(dllexport)
-
 #include "kratos_external_bindings.h"
-
-using namespace std;
 
 extern "C"
 {
@@ -15,10 +12,23 @@ extern "C"
         return new Kratos::KratosExecute();
     }
 
-    EXPORT int __stdcall DGeoFlow(Kratos::KratosExecute *instance, char *workingDirectory, char *projectFile,
-                                  double minCriticalHead, double maxCriticalHead, double stepCriticalHead, char *criticalHeadBoundaryModelPartName)
+    EXPORT int __stdcall execute_flow_analysis(Kratos::KratosExecute *instance,
+                                               char *workingDirectory,
+                                               char *projectFile,
+                                               double minCriticalHead,
+                                               double maxCriticalHead,
+                                               double stepCriticalHead,
+                                               char *criticalHeadBoundaryModelPartName,
+                                               void __stdcall logCallback(char *))
     {
-    	return instance->geoflow(workingDirectory, projectFile, minCriticalHead, maxCriticalHead, stepCriticalHead, criticalHeadBoundaryModelPartName);
+        int errorCode = instance->execute_flow_analysis(workingDirectory,
+                                                        projectFile,
+                                                        minCriticalHead,
+                                                        maxCriticalHead,
+                                                        stepCriticalHead,
+                                                        criticalHeadBoundaryModelPartName,
+                                                        logCallback);
+        return errorCode;
     }
 
 #endif

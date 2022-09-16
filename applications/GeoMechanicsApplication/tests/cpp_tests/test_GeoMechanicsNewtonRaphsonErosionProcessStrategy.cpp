@@ -24,17 +24,17 @@
 
 namespace Kratos
 {
-	namespace Testing
+    namespace Testing
     {
+        void emptyLog(char *log) {}
 
-    	KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategy, KratosGeoMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategy, KratosGeoMechanicsFastSuite)
         {
-			auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid"; 
+            auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
             auto projectFile = "ProjectParameters.json";
-            
+
             auto execute = KratosExecute();
-    		execute.geoflow(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head");
-            
+            execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog);
         }
     }
 }

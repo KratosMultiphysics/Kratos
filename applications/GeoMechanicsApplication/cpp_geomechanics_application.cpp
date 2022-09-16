@@ -15,6 +15,9 @@
 #include "cpp_geomechanics_application.h"
 #include <processes/apply_constant_scalarvalue_process.h>
 #include <utilities/read_materials_utility.h>
+#include "input_output/logger.h"
+#include "input_output/logger_output.h"
+#include "input_output/logger_table_output.h"
 
 using namespace std;
 
@@ -84,7 +87,6 @@ void NodeVOLUME_ACCELERATION::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &
 
 void NodeHYDRAULIC_DISCHARGE::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) { gid_io.WriteNodalResults(Kratos::HYDRAULIC_DISCHARGE, model_part.Nodes(), 0, 0); }
 
-
 void GaussOperation::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part){};
 
 void GaussFLUID_FLUX_VECTOR::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) { gid_io.PrintOnGaussPoints(Kratos::FLUID_FLUX_VECTOR, model_part, 0, 0); }
@@ -107,7 +109,6 @@ void GaussPIPE_ACTIVE::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_p
 
 void GaussPIPE_HEIGHT::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) { gid_io.PrintOnGaussPoints(Kratos::PIPE_HEIGHT, model_part, 0, 0); }
 
-
 namespace Kratos
 {
 
@@ -116,8 +117,8 @@ namespace Kratos
 
         KRATOS_INFO("Execution") << "Setting Up Execution" << std::endl;
 
-    	application.Register();
-        
+        application.Register();
+
         Kratos::OpenMPUtils::SetNumThreads(1);
         if (this->GetEchoLevel() > 0)
         {
@@ -127,7 +128,7 @@ namespace Kratos
         this->SetEchoLevel(0);
     }
 
-	int KratosExecute::GetEchoLevel()
+    int KratosExecute::GetEchoLevel()
     {
         return echoLevel;
     }
@@ -140,10 +141,10 @@ namespace Kratos
     void KratosExecute::ResetModelParts()
     {
         KRATOS_INFO("Resetting Model") << "Setting Up Execution" << std::endl;
-    	current_model.Reset();
+        current_model.Reset();
     }
 
-	KratosExecute::ConvergenceCriteriaType::Pointer KratosExecute::setup_criteria_dgeoflow()
+    KratosExecute::ConvergenceCriteriaType::Pointer KratosExecute::setup_criteria_dgeoflow()
     {
         const double rel_tol = 1.0e-4;
         const double abs_tol = 1.0e-9;
@@ -408,7 +409,6 @@ namespace Kratos
 
     void KratosExecute::parseMaterial(Model &model, string filepath)
     {
-
         string parameters = "{ \"Parameters\" : { \"materials_filename\" :\"" + filepath + "\"}}";
         Parameters material_file{parameters};
         ReadMaterialsUtility(material_file, model);
@@ -541,9 +541,7 @@ namespace Kratos
         GaussOutput["PIPE_ACTIVE"] = Kratos::make_unique<GaussPIPE_ACTIVE>();
         GaussOutput["PIPE_HEIGHT"] = Kratos::make_unique<GaussPIPE_HEIGHT>();
 
-
-
-    	auto gauss_outputs = outputParameters["postprocess_parameters"]["result_file_configuration"]["gauss_point_results"].GetStringArray();
+        auto gauss_outputs = outputParameters["postprocess_parameters"]["result_file_configuration"]["gauss_point_results"].GetStringArray();
         for (string var : gauss_outputs)
         {
             GaussOutput[var]->write(gid_io, model_part);
@@ -599,25 +597,33 @@ namespace Kratos
         return 0;
     }
 
-    int KratosExecute::geoflow(string workingDirectory, string projectName,
-                               double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
-                               string criticalHeadBoundaryModelPartName)
+    int KratosExecute::execute_flow_analysis(string workingDirectory, string projectName,
+                                             double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
+                                             string criticalHeadBoundaryModelPartName,
+                                             void __stdcall logCallback(char *))
     {
-        try {
+        this->SetEchoLevel(1);
+
+        static std::stringstream kratosLogBuffer;
+        LoggerOutput::Pointer p_output(new LoggerOutput(kratosLogBuffer));
+        Logger::AddOutput(p_output);
+
+        try
+        {
 
             string projectpath = workingDirectory + "/" + projectName;
             auto projectfile = openProjectParamsFile(projectpath);
 
             auto materialname = projectfile["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
             auto meshname = projectfile["solver_settings"]["model_import_settings"]["input_filename"].GetString() + "." +
-                projectfile["solver_settings"]["model_import_settings"]["input_type"].GetString();
+                            projectfile["solver_settings"]["model_import_settings"]["input_type"].GetString();
 
             string meshpath = workingDirectory + "/" + meshname;
             string materialpath = workingDirectory + "/" + materialname;
 
             auto modelName = projectfile["solver_settings"]["model_part_name"].GetString();
 
-            ModelPart& model_part = current_model.CreateModelPart(modelName);
+            ModelPart &model_part = current_model.CreateModelPart(modelName);
             model_part.SetBufferSize(2);
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Working Directory: " << workingDirectory << std::endl;
@@ -719,7 +725,7 @@ namespace Kratos
                 currentHead = minCriticalHead;
                 criticalHead = currentHead;
 
-                std::vector<Element*> pipeElements;
+                std::vector<Element *> pipeElements;
                 pipeElements = p_solving_strategy->GetPipingElements();
                 int noPipeElements = pipeElements.size();
 
@@ -735,7 +741,7 @@ namespace Kratos
                     mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
 
                     int count = 0;
-                    for (Element* element : pipeElements)
+                    for (Element *element : pipeElements)
                     {
                         if (element->GetValue(PIPE_ACTIVE))
                             count += 1;
@@ -761,7 +767,8 @@ namespace Kratos
                     if (RiverBoundary->Info() == "ApplyConstantScalarValueProcess")
                     {
                         ResetModelParts();
-                        throw std::logic_error("ApplyConstantScalarValueProcess process search is not Implemented");;
+                        throw std::logic_error("ApplyConstantScalarValueProcess process search is not Implemented");
+                        ;
                     }
 
                     if (RiverBoundary->Info() == "ApplyConstantHydrostaticPressureProcess")
@@ -794,10 +801,15 @@ namespace Kratos
                 CriticalHeadFile.close();
             }
 
+            logCallback(strdup(kratosLogBuffer.str().c_str()));
+
             ResetModelParts();
             return 0;
         }
-        catch(...) {
+        catch (...)
+        {
+            logCallback(strdup(kratosLogBuffer.str().c_str()));
+
             ResetModelParts();
             return 1;
         }
@@ -807,7 +819,7 @@ namespace Kratos
                                                                std::vector<std::shared_ptr<Process>> processes)
     {
         shared_ptr<Process> RiverBoundary;
-      
+
         for (shared_ptr<Process> process : processes)
         {
             if (process->Info() == "ApplyConstantHydrostaticPressureProcess")
@@ -902,5 +914,5 @@ namespace Kratos
 
         return RiverBoundary;
     }
-	
+
 }

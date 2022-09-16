@@ -16,7 +16,6 @@
 
 /* External includes */
 
-
 #include <geo_mechanics_application.h>
 
 /* Utility includes */
@@ -148,9 +147,10 @@ namespace Kratos
         KratosExecute();
         ~KratosExecute(){};
 
-        int geoflow(std::string workingDirectory, std::string parameterName,
-                    double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
-                    std::string criticalHeadBoundaryModelPartName);
+        int execute_flow_analysis(std::string workingDirectory, std::string parameterName,
+                                  double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
+                                  std::string criticalHeadBoundaryModelPartName,
+                                  void __stdcall logCallback(char *));
 
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
@@ -187,7 +187,8 @@ namespace Kratos
         // Dof arrays
         typedef SetIdentityFunction<Dof<double>> result_type;
         typedef PointerVectorSet<Dof<double>, SetIdentityFunction<Dof<double>>, std::less<result_type>,
-                                 std::equal_to<result_type>, Dof<double> *> DofsArrayType;
+                                 std::equal_to<result_type>, Dof<double> *>
+            DofsArrayType;
 
         ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
         LinearSolverType::Pointer setup_solver_dgeoflow();
@@ -200,13 +201,12 @@ namespace Kratos
         void outputGiD(Model &model, ModelPart &model_part, Parameters parameters, std::string workingDirectory);
 
     private:
-    	
         // Initial Setup
         Model current_model;
         KratosGeoMechanicsApplication application;
         void ResetModelParts();
-    	
-    	int echoLevel = 1;
+
+        int echoLevel = 1;
 
         int GetEchoLevel();
 

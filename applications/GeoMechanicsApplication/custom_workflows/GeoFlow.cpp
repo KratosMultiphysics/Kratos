@@ -13,6 +13,8 @@
 #include "GeoFlow.h"
 #include <iostream>
 
+void emptyLog(char *log) {}
+
 int main(int argc, char **argv)
 {
     try
@@ -39,14 +41,20 @@ int main(int argc, char **argv)
             double stepCriticalHead = std::stod(argv[5]);
 
             auto execute = Kratos::KratosExecute();
-            execute.geoflow(workingDirectory, projectName, minCriticalHead, maxCriticalHead, stepCriticalHead, criticalHeadBoundaryModelPartName);
+            execute.execute_flow_analysis(workingDirectory,
+                                          projectName,
+                                          minCriticalHead,
+                                          maxCriticalHead,
+                                          stepCriticalHead,
+                                          criticalHeadBoundaryModelPartName,
+                                          &emptyLog);
         }
         catch (...)
         {
             std::cerr << "Could not parse critical head parameters to double values. Please check the input and try again.";
         }
     }
-    catch (std::runtime_error& e)
+    catch (std::runtime_error &e)
     {
         std::cout << "Runtime error: " << e.what();
     }
