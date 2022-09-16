@@ -182,12 +182,6 @@ def main():
 
     args = parser.parse_args()
 
-    # Set verbosity
-    verbosity = args.verbosity
-
-    # Set level
-    level = args.level
-
     # Set if mpi
     if args.using_mpi:
         level = "mpi_" + level
@@ -228,8 +222,8 @@ def main():
             'KratosCore',
             'kratos',
             os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),
-            level,
-            verbosity,
+            args.level,
+            args.verbosity,
             cmd,
             signalTime
         )
@@ -246,8 +240,8 @@ def main():
                 application,
                 application,
                 KM.KratosPaths.kratos_applications+'/',
-                level,
-                verbosity,
+                args.level,
+                args.verbosity,
                 cmd,
                 signalTime
             )
