@@ -20,7 +20,7 @@ class ChungOoiTest4(KratosUnittest.TestCase):
         self.rebound_angle_list = []
         self.final_angular_vel_list_outfile = None
         self.rebound_angle_list_outfile = None
-        self.tangential_restitution_coefficient_list_outfile = None
+        self.tangential_rest_coeff_list_outfile = None
 
     def GetInputParameters(self):
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
@@ -54,14 +54,14 @@ class ChungOoiTest4(KratosUnittest.TestCase):
         self.tangential_restitution_coefficient_list_outfile_name = "benchmark4_dt_" + str(dt) + '_tangential_restitution_coefficient_list_data.dat'
         self.final_angular_vel_list_outfile_name = "benchmark4_dt_" + str(dt) + '_final_angular_vel_list_data.dat'
         self.rebound_angle_list_outfile_name = "benchmark4_dt_" + str(dt) + '_rebound_angle_list_data.dat'
-        self.tangential_restitution_coefficient_list_outfile = open(self.tangential_restitution_coefficient_list_outfile_name, 'w')
+        self.tangential_rest_coeff_list_outfile = open(self.tangential_restitution_coefficient_list_outfile_name, 'w')
         self.final_angular_vel_list_outfile = open(self.final_angular_vel_list_outfile_name, 'w')
         self.rebound_angle_list_outfile = open(self.rebound_angle_list_outfile_name, 'w')
         for i in range(0, 17):
-            self.tangential_restitution_coefficient_list_outfile.write("%14.8f %14.8f" % (self.angles_list[i], self.tangential_restitution_coefficient_list[i]) + '\n')
+            self.tangential_rest_coeff_list_outfile.write("%14.8f %14.8f" % (self.angles_list[i], self.tangential_restitution_coefficient_list[i]) + '\n')
             self.final_angular_vel_list_outfile.write("%14.8f %14.8f" % (self.angles_list[i], self.final_angular_vel_list[i]) + '\n')
             self.rebound_angle_list_outfile.write("%14.8f %14.8f" % (self.angles_list[i], self.rebound_angle_list[i]) + '\n')
-        self.tangential_restitution_coefficient_list_outfile.close()
+        self.tangential_rest_coeff_list_outfile.close()
         self.final_angular_vel_list_outfile.close()
         self.rebound_angle_list_outfile.close()
         self.create_gnuplot_scripts(self.tangential_restitution_coefficient_list_outfile_name, self.final_angular_vel_list_outfile_name,\
@@ -118,9 +118,9 @@ class ChungOoiTest4(KratosUnittest.TestCase):
 
 class DEMAnalysisStageForChungOoiTest4(DEMAnalysisStage):
 
-    def __init__(self, model, DEM_parameters, iter):
+    def __init__(self, model, DEM_parameters, iteration):
         super().__init__(model, DEM_parameters)
-        self.iteration = iter
+        self.iteration = iteration
 
     def Initialize(self):
         super().Initialize()
@@ -152,6 +152,7 @@ class DEMAnalysisStageForChungOoiTest4(DEMAnalysisStage):
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         self.plotter.plot_variables(self.time)
+
 
 if __name__ == "__main__":
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

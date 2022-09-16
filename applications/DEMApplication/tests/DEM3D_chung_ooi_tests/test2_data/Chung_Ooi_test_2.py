@@ -31,7 +31,7 @@ class ChungOoiTest2(KratosUnittest.TestCase):
         self.assertAlmostEqual(self.error1, 0.0, delta = 3.3e-3)
         self.assertAlmostEqual(self.error2, 0.0, delta = 3e-3)
 
-    def PrintResultsAfterAllComputations(self, dt): 
+    def PrintResultsAfterAllComputations(self, dt):
         gnuplot_script_name1 = 'benchmark2_dt_' + str(dt) + 's_time_vs_normal_force.gp'
         gnuplot_outfile1 = open(gnuplot_script_name1, 'w')
         gnuplot_outfile1.write("set grid; set key center right; set xlabel 'Time (us)'; set ylabel 'Normal contact force (KN)';\\\n")
@@ -79,6 +79,7 @@ class DEMAnalysisStageForChungOoiTest2(DEMAnalysisStage):
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         self.plotter.plot_variables(self.time)
+
 
 if __name__ == "__main__":
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

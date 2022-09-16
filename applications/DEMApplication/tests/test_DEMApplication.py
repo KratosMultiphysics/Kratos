@@ -92,7 +92,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_no_delay"))
     smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_little_delay"))
     smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_with_delay"))
-    smallSuite.addTest(test_search_nodes.TestSearchNodes("test_SearchNodesInTargetModelPart"))  
+    smallSuite.addTest(test_search_nodes.TestSearchNodes("test_SearchNodesInTargetModelPart"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']

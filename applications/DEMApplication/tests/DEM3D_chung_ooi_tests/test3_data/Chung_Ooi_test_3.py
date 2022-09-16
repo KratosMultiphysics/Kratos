@@ -2,7 +2,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 import KratosMultiphysics.DEMApplication.plot_variables as plot_variables
-import KratosMultiphysics.DEMApplication.Chung_Ooi_class as COC
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 class ChungOoiTest3(KratosUnittest.TestCase):
@@ -68,6 +67,7 @@ class DEMAnalysisStageForChungOoiTest3(DEMAnalysisStage):
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         self.plotter.plot_variables(self.time)
+
 
 if __name__ == "__main__":
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
