@@ -59,6 +59,35 @@ KRATOS_SHA1_NUMBER "-" \
 KRATOS_BUILD_TYPE  "-" \
 KRATOS_ARCH_TYPE
 
+// Define OS name
+#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
+    #define KRATOS_OS_NAME "GNU/Linux"
+#elif defined(__APPLE__) && defined(__MACH__)
+    #define KRATOS_OS_NAME "Mac OS"
+#elif defined(_WIN32) || defined(_WIN64)
+    #define KRATOS_OS_NAME "Windows" 
+#else
+    #define KRATOS_OS_NAME "Unknown OS"
+#endif
+
+// Define compiler label
+#if defined(__clang__)
+    #define KRATOS_COMPILER_LABEL "Clang-" \
+    KRATOS_TO_STRING(__clang_major__) \
+    "." \
+    KRATOS_TO_STRING(__clang_minor__)
+#elif defined(__GNUC__) || defined(__GNUG__)
+    #define KRATOS_COMPILER_LABEL "GCC-" \
+    KRATOS_TO_STRING(__GNUC__) \
+    "." \
+    KRATOS_TO_STRING(__GNUC_MINOR__)
+#elif defined(_MSC_VER)
+    #define KRATOS_COMPILER_LABEL "MSVC-" \
+    KRATOS_TO_STRING(_MSC_VER)
+#else
+    #define KRATOS_COMPILER_LABEL "Unknown compiler"
+#endif
+
 std::string GetPatchVersion() {
     return KRATOS_PATCH_VERSION;
 }
@@ -73,6 +102,14 @@ std::string GetBuildType() {
 
 std::string GetVersionString() {
     return KRATOS_VERSION_STRING;
+}
+
+std::string GetOSName() {
+    return KRATOS_OS_NAME;
+}
+
+std::string GetCompiler() {
+    return KRATOS_COMPILER_LABEL;
 }
 
 } // namespace Kratos
