@@ -50,8 +50,10 @@ double IntervalUtility::GetIntervalEnd() const
 
 bool IntervalUtility::IsInInterval(double Time)
 {
-    const double eps = std::max(1e-14*(mIntervalEnd-mIntervalBegin), 1e-30);
-    return (Time >= mIntervalBegin-eps && Time <= mIntervalEnd+eps);
+    const double eps_0 = std::max(1e-14*mIntervalBegin, 1e-30);
+    const double eps_1 = std::max(1e-14*mIntervalEnd, 1e-30);
+
+    return (Time > mIntervalBegin-eps_0 && Time < mIntervalEnd+eps_1);
 }
 
 std::string IntervalUtility::Info() const
