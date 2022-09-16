@@ -47,6 +47,7 @@
 #include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.hpp"
 #include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.hpp"
 #include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.hpp"
+#include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
 
 // elements
 #include "custom_elements/transient_Pw_element.hpp"
@@ -474,6 +475,11 @@ private:
     const AxisymmetricUPwNormalFaceLoadCondition<2,2>    mAxisymmetricUPwNormalFaceLoadCondition2D2N;
     const AxisymmetricLineNormalLoad2DDiffOrderCondition mAxisymmetricLineNormalLoadDiffOrderCondition2D3N;
     const AxisymmetricLineNormalFluidFlux2DDiffOrderCondition mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N;
+
+    const UPwLysmerAbsorbingCondition<2, 2> mUPwLysmerAbsorbingCondition2D2N;
+    const UPwLysmerAbsorbingCondition<2, 3> mUPwLysmerAbsorbingCondition2D3N;
+    const UPwLysmerAbsorbingCondition<3, 3> mUPwLysmerAbsorbingCondition3D3N;
+    const UPwLysmerAbsorbingCondition<3, 4> mUPwLysmerAbsorbingCondition3D4N;
 
     // constitutive models
     const BilinearCohesive3DLaw             mBilinearCohesive3DLaw;

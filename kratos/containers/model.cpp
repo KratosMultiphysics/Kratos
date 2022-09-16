@@ -56,7 +56,7 @@ ModelPart& Model::CreateModelPart( const std::string ModelPartName, ModelPart::I
 
     KRATOS_ERROR_IF( ModelPartName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
 
-    const auto delim_pos = ModelPartName.find(".");
+    const auto delim_pos = ModelPartName.find('.');
     const std::string& root_model_part_name = ModelPartName.substr(0, delim_pos);
 
     if (delim_pos == std::string::npos) {
@@ -117,7 +117,7 @@ ModelPart& Model::GetModelPart(const std::string& rFullModelPartName)
     KRATOS_ERROR_IF( rFullModelPartName.empty() ) << "Attempting to find a "
         << "ModelPart with empty name (\"\")!" << std::endl;
 
-    const auto delim_pos = rFullModelPartName.find(".");
+    const auto delim_pos = rFullModelPartName.find('.');
     const std::string& root_model_part_name = rFullModelPartName.substr(0, delim_pos);
 
     if (delim_pos == std::string::npos) { //it is a root model part
@@ -225,7 +225,7 @@ bool Model::HasModelPart(const std::string& rFullModelPartName) const
     KRATOS_ERROR_IF( rFullModelPartName.empty() ) << "Attempting to find a "
         << "ModelPart with empty name (\"\")!" << std::endl;
 
-    const auto delim_pos = rFullModelPartName.find(".");
+    const auto delim_pos = rFullModelPartName.find('.');
     const std::string& root_model_part_name = rFullModelPartName.substr(0, delim_pos);
 
     // token 0 is the root
