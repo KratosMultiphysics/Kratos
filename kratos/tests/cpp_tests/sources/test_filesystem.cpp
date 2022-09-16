@@ -354,7 +354,7 @@ KRATOS_TEST_CASE_IN_SUITE(ResolveSymlinksToFile, KratosCoreFastSuite)
 
     // Create symlinks
     for (unsigned short level=0; level<=2; ++level) {
-            symlinks.emplace_back(working_dir / Path("symlink_" + std::to_string(level) + ".test"), file_path);
+            symlinks.emplace_back(working_dir / Path("symlink_" + std::to_string(level) + ".test"), level ? symlinks.back() : file_path);
     }
 
     {
@@ -400,7 +400,7 @@ KRATOS_TEST_CASE_IN_SUITE(ResolveSymlinksToDirectory, KratosCoreFastSuite)
 
     // Create symlinks
     for (unsigned short level=0; level<=2; ++level) {
-        symlinks.emplace_back(working_dir / Path("symlink_" + std::to_string(level) + ".test"), directory_path);
+        symlinks.emplace_back(working_dir / Path("symlink_" + std::to_string(level) + ".test"), level ? symlinks.back() : directory_path);
     }
 
     {
