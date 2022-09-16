@@ -34,8 +34,8 @@ def main():
 
     # Set timeout of the different levels
     signalTime = None
-    if args.timer > 0:
-        signalTime = args.timer
+    if int(args.timer) > 0:
+        signalTime = int(args.timer)
     else:
         if args.level == 'small':
             signalTime = 90
