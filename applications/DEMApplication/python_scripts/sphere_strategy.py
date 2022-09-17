@@ -1,3 +1,4 @@
+from pickle import FALSE, TRUE
 import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
@@ -662,6 +663,31 @@ class ExplicitStrategy():
 
         rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
         rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
+
+        if self.DEM_parameters["RotationOption"].GetBool() and self.DEM_parameters["RollingFrictionOption"].GetBool():
+            
+            has_subproperties = False
+            has_rolling_friction_model_name = False
+
+            for subproperties in properties.GetSubProperties():
+                has_subproperties = True
+                if subproperties.Has(DEM_ROLLING_FRICTION_MODEL_NAME):
+                    has_rolling_friction_model_name = True
+
+            for subproperties in properties.GetSubProperties():
+                if not subproperties.Has(DEM_ROLLING_FRICTION_MODEL_NAME) and has_rolling_friction_model_name is False:
+                    properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelBounded"
+                    self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelBounded] for material property with parameter \"material_id\": [" + str(properties.Id) + "]")
+                else:
+                    properties[DEM_ROLLING_FRICTION_MODEL_NAME] = subproperties[DEM_ROLLING_FRICTION_MODEL_NAME]
+            
+            if has_subproperties is False and properties.Id != 0:
+                properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelBounded"
+                self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelBounded] for material property with parameter \"material_id\": [" + str(properties.Id) + "]")
+
+            if properties.Id != 0:
+                rolling_friction_model = globals().get(properties[DEM_ROLLING_FRICTION_MODEL_NAME])()
+                rolling_friction_model.SetAPrototypeOfThisInProperties(properties, False)
 
     def ModifySubProperties(self, properties, parent_id, param = 0):
 
