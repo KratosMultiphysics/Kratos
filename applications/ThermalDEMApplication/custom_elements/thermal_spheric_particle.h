@@ -53,10 +53,11 @@ namespace Kratos
       {
         int                 updated_step;
         double              impact_time;
+        double              viscodamping_energy;
+        double              frictional_energy;
+        double              rollresist_energy;
+        double              rolling_resistance;
         std::vector<double> impact_velocity;
-        std::vector<double> local_velocity;
-        std::vector<double> local_force_total;
-        std::vector<double> local_force_damping;
       };
 
       // Constructor
@@ -80,11 +81,12 @@ namespace Kratos
       void ComputeHeatFluxes               (const ProcessInfo& r_process_info);
       void ComputeHeatFluxWithNeighbor     (const ProcessInfo& r_process_info);
       void ComputeInteractionProps         (const ProcessInfo& r_process_info);
-      void StoreBallToBallContactInfo      (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
-      void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
+      void StoreBallToBallContactInfo      (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
+      void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
       void Move                            (const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) override;
 
       // Finalization methods
+      void FinalizeForceComputation                                         (ParticleDataBuffer& data_buffer) override;
       void FinalizeSolutionStep                                             (const ProcessInfo& r_process_info) override;
       void UpdateTemperatureDependentRadius                                 (const ProcessInfo& r_process_info);
       void UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion (const ProcessInfo& r_process_info, double& thermalDeltDisp, double& thermalRelVel, SphericParticle* element2);
@@ -205,40 +207,49 @@ namespace Kratos
       RealContactModel*            mpRealContactModel;
 
       // General properties
-      unsigned int mNumStepsEval;         // number of steps passed since last thermal evaluation
-      double       mPreviousTemperature;  // temperature from the beginning of the step
-      bool         mIsTimeToSolve;        // flag to solve thermal problem in current step
-      bool         mHasMotion;            // flag to solve mechanical behavior (forces and displacements)
-      bool         mHasFixedTemperature;  // flag for constant temperature
-      bool         mHasVariableRadius;    // flag for temperature-dependent radius
-      bool         mStoreContactParam;    // flag to store contact parameters with neighbors when solving the mechanical problem
+      unsigned int mNumStepsEval;        // number of steps passed since last thermal evaluation
+      double       mPreviousTemperature; // temperature from the beginning of the step
+      bool         mIsTimeToSolve;       // flag to solve thermal problem in current step
+      bool         mHasMotion;           // flag to solve mechanical behavior (forces and displacements)
+      bool         mHasFixedTemperature; // flag for constant temperature
+      bool         mHasVariableRadius;   // flag for temperature-dependent radius
+      bool         mStoreContactParam;   // flag to store contact parameters with neighbors when solving the mechanical problem
 
       // Heat flux components
       double mConductionDirectHeatFlux;
       double mConductionIndirectHeatFlux;
       double mRadiationHeatFlux;
       double mGenerationHeatFlux;
+      double mGenerationHeatFlux_damp_particle;
+      double mGenerationHeatFlux_damp_wall;
       double mGenerationHeatFlux_slid_particle;
       double mGenerationHeatFlux_slid_wall;
       double mGenerationHeatFlux_roll_particle;
       double mGenerationHeatFlux_roll_wall;
-      double mGenerationHeatFlux_damp_particle;
-      double mGenerationHeatFlux_damp_wall;
       double mConvectionHeatFlux;
       double mPrescribedHeatFluxSurface;
       double mPrescribedHeatFluxVolume;
       double mPrescribedHeatFlux;
       double mTotalHeatFlux;
 
+      // Energy properties
+      double mThermalViscodampingEnergy;  // accumulated thermal energy generated due to viscodamping dissipation
+      double mThermalFrictionalEnergy;    // accumulated thermal energy generated due to frictional dissipation
+      double mThermalRollResistEnergy;    // accumulated thermal energy generated due to rolling resistance dissipation
+      double mPreviousViscodampingEnergy; // accumulated viscodamping energy dissipation from previous interaction
+      double mPreviousFrictionalEnergy;   // accumulated frictional energy dissipation from previous interaction
+      double mPreviousRollResistEnergy;   // accumulated rolling resistance energy dissipation from previous step
+      double mPreviousRollResistCoeff;    // total rolling resistance coefficient from previous step
+
       // Interaction properties
-      bool   mNeighborInContact;           // flag for contact interaction
-      double mRealYoungRatio;              // real value of Young modulus
-      double mContactRadius;               // simulation contact radius
-      double mNeighborDistance;            // simulation neighbor distance
-      double mNeighborSeparation;          // simulation neighbor separation (negative value indicates an indentation)
-      double mContactRadiusAdjusted;       // adjusted contact radius from real Young modulus
-      double mNeighborDistanceAdjusted;    // adjusted neighbor distance from adjusted contact radius
-      double mNeighborSeparationAdjusted;  // adjusted neighbor separation (negative value indicates an indentation)
+      bool   mNeighborInContact;          // flag for contact interaction
+      double mRealYoungRatio;             // real value of Young modulus
+      double mContactRadius;              // simulation contact radius
+      double mNeighborDistance;           // simulation neighbor distance
+      double mNeighborSeparation;         // simulation neighbor separation (negative value indicates an indentation)
+      double mContactRadiusAdjusted;      // adjusted contact radius from real Young modulus
+      double mNeighborDistanceAdjusted;   // adjusted neighbor distance from adjusted contact radius
+      double mNeighborSeparationAdjusted; // adjusted neighbor separation (negative value indicates an indentation)
 
       // Radiation environment-related
       unsigned int mRadiativeNeighbors;

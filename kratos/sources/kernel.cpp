@@ -37,11 +37,12 @@ Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_sha
 }
 
 void Kernel::Initialize() {
-    KRATOS_INFO("") << " |  /           |\n"
-                    << " ' /   __| _` | __|  _ \\   __|\n"
-                    << " . \\  |   (   | |   (   |\\__ \\\n"
+    KRATOS_INFO("") << " |  /           |                  \n"
+                    << " ' /   __| _` | __|  _ \\   __|    \n"
+                    << " . \\  |   (   | |   (   |\\__ \\  \n"
                     << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/\n"
-                    << "           Multi-Physics " << GetVersionString() << std::endl;
+                    << "           Multi-Physics " << GetVersionString() << "\n"
+                    << "           Compiled for "<< GetOSName() << " and " << GetPythonVersion() << " with " << GetCompiler() << std::endl;
 
     PrintParallelismSupportInfo();
 

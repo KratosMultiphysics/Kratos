@@ -119,6 +119,7 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     mElasticEnergy = rOther.mElasticEnergy;
     mInelasticFrictionalEnergy = rOther.mInelasticFrictionalEnergy;
     mInelasticViscodampingEnergy = rOther.mInelasticViscodampingEnergy;
+    mInelasticRollResistEnergy = rOther.mInelasticRollResistEnergy;
     mNeighbourElements = rOther.mNeighbourElements;
     mContactingNeighbourIds = rOther.mContactingNeighbourIds;
     mContactingFaceNeighbourIds = rOther.mContactingFaceNeighbourIds;
@@ -246,6 +247,8 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     inelastic_frictional_energy = 0.0;
     double& inelastic_viscodamping_energy = this->GetInelasticViscodampingEnergy();
     inelastic_viscodamping_energy = 0.0;
+    double& inelastic_rollresist_energy = this->GetInelasticRollResistEnergy();
+    inelastic_rollresist_energy = 0.0;
 
     DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
     DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
@@ -277,6 +280,7 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
 
     data_buffer.mDt = dt;
     data_buffer.mMultiStageRHS = false;
+    data_buffer.mRollingResistance = 0.0;
 
     array_1d<double, 3> additional_forces = ZeroVector(3);
     array_1d<double, 3> additionally_applied_moment = ZeroVector(3);
@@ -856,7 +860,6 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
 
             // ROTATION FORCES AND ROLLING FRICTION
             if (this->Is(DEMFlags::HAS_ROTATION) && !data_buffer.mMultiStageRHS) {
-
                 ComputeMoments(LocalContactForce[2], GlobalContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation, i);
                     
                 if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
@@ -891,7 +894,7 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
             }
 
             // Store contact information needed for later processes
-            StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForce, ViscoDampingLocalContactForce, sliding);
+            StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForce, LocalContactForce, ViscoDampingLocalContactForce, sliding);
 
             DEM_SET_COMPONENTS_TO_ZERO_3(DeltDisp)
             DEM_SET_COMPONENTS_TO_ZERO_3(LocalDeltDisp)
@@ -1112,7 +1115,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
             }
 
             // Store contact information needed for later processes
-            StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForce, ViscoDampingLocalContactForce, sliding);
+            StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForce, LocalContactForce, ViscoDampingLocalContactForce, sliding);
 
         } //ContactType if
     } //rNeighbours.size loop
@@ -1936,9 +1939,9 @@ std::unique_ptr<DEMRollingFrictionModel> SphericParticle::pCloneRollingFrictionM
 
 void SphericParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {}
 
-void SphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) {}
+void SphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) {}
 
-void SphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) {}
+void SphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) {}
 
 double SphericParticle::GetInitialDeltaWithFEM(int index) {//only available in continuum_particle
     return 0.0;
@@ -1971,6 +1974,15 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
         return;
     }
 
+    if (rVariable == PARTICLE_GRAVITATIONAL_ENERGY) {
+
+       // Energy relative to the distance from particle to plane containing the origin and whose normal vector is gravity
+       const double coord[3] = { this->GetGeometry()[0][0], this->GetGeometry()[0][1], this->GetGeometry()[0][2] };
+       Output = - this->GetMass() * DEM_INNER_PRODUCT_3(r_process_info[GRAVITY], coord);
+
+        return;
+    }
+
     if (rVariable == PARTICLE_ELASTIC_ENERGY) {
 
         Output = GetElasticEnergy();
@@ -1986,6 +1998,12 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
     if (rVariable == PARTICLE_INELASTIC_VISCODAMPING_ENERGY) {
 
         Output = GetInelasticViscodampingEnergy();
+
+    }
+
+    if (rVariable == PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY) {
+
+      Output = GetInelasticRollResistEnergy();
 
     }
 
@@ -2213,6 +2231,7 @@ array_1d<double, 3>& SphericParticle::GetForce()                                
 double&              SphericParticle::GetElasticEnergy()                                  { return mElasticEnergy; }
 double&              SphericParticle::GetInelasticFrictionalEnergy()                      { return mInelasticFrictionalEnergy; }
 double&              SphericParticle::GetInelasticViscodampingEnergy()                    { return mInelasticViscodampingEnergy; }
+double&              SphericParticle::GetInelasticRollResistEnergy()                      { return mInelasticRollResistEnergy; }
 
 void   SphericParticle::SetYoungFromProperties(double* young)                                          { GetFastProperties()->SetYoungFromProperties( young);                                            }
 void   SphericParticle::SetPoissonFromProperties(double* poisson)                                      { GetFastProperties()->SetPoissonFromProperties( poisson);                                        }
