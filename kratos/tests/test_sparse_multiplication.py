@@ -9,7 +9,6 @@ import numpy as np
 
 try:
     from scipy import sparse, io
-    import KratosMultiphysics.scipy_conversion_tools
     missing_scipy = False
 except ImportError as e:
     missing_scipy = True
