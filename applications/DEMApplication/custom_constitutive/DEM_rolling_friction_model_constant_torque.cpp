@@ -4,6 +4,8 @@
 // Date: Aug 2022
 /////////////////////////////////////////////////
 
+//This model can be found as Model Type A in [Jun Ai, 2011, Assessment of rolling resistance models in discrete element simulations]
+
 #include "DEM_rolling_friction_model_constant_torque.h"
 #include "custom_utilities/GeometryFunctions.h"
 

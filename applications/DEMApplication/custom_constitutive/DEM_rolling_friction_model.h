@@ -35,6 +35,10 @@ namespace Kratos{
 
         DEMRollingFrictionModel();
 
+        virtual bool CheckIfThisModelRequiresRecloningForEachNeighbour() {
+            return true;
+        }
+
         virtual void SetAPrototypeOfThisInProperties(Properties::Pointer pProp, bool verbose = true);
 
         virtual void Check(Properties::Pointer pProp) const;
@@ -48,6 +52,12 @@ namespace Kratos{
         virtual void ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, double LocalContactForce[3], array_1d<double, 3>& mContactMoment, double indentation);
         
         virtual void ComputeRollingFrictionWithWall(double LocalContactForce[3], SphericParticle* p_element, Condition* const wall, double indentation, array_1d<double, 3>& mContactMoment);
+
+        virtual void InitializeSolutionStep() {}
+
+        virtual void ComputeRollingResistance(const double& NormalLocalContactForce, const double& equiv_rolling_friction_coeff, const unsigned int i) {}
+
+        virtual void DoFinalOperations(SphericParticle* p_element, double dt, array_1d<double, 3>& mContactMoment) {}
     
     private:
 

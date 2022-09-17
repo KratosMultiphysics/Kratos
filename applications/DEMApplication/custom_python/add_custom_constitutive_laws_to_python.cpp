@@ -60,6 +60,7 @@
 #include "custom_constitutive/dem_kdem_fabric_2d_cl.h"
 #include "custom_constitutive/DEM_parallel_bond_CL.h"
 #include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
+#include "custom_constitutive/DEM_rolling_friction_model_bounded.h"
 
 
 namespace Kratos {
@@ -307,6 +308,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEMRollingFrictionModelConstantTorque, DEMRollingFrictionModelConstantTorque::Pointer, DEMRollingFrictionModel>(m, "DEMRollingFrictionModelConstantTorque")
+    .def(py::init<>())
+    ;
+
+    py::class_<DEMRollingFrictionModelBounded, DEMRollingFrictionModelBounded::Pointer, DEMRollingFrictionModel>(m, "DEMRollingFrictionModelBounded")
     .def(py::init<>())
     ;
 }

@@ -48,6 +48,7 @@
 #include "custom_constitutive/DEM_parallel_bond_CL.h"
 #include "custom_constitutive/DEM_rolling_friction_model.h"
 #include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
+#include "custom_constitutive/DEM_rolling_friction_model_bounded.h"
 
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_strategies/schemes/forward_euler_scheme.h"
@@ -314,7 +315,7 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_AUX_ANGULAR_VELOCITY)
 // FORCE AND MOMENTUM
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONTACT_IMPULSE)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_MOMENT)
-//KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ROLLING_RESISTANCE_MOMENT)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ROLLING_RESISTANCE_MOMENT)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(MAX_ROTA_MOMENT)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ELASTIC_FORCES)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONTACT_FORCES)
@@ -786,7 +787,7 @@ void KratosDEMApplication::Register() {
     // FORCE AND MOMENTUM
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONTACT_IMPULSE)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_MOMENT)
-    //KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ROLLING_RESISTANCE_MOMENT)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ROLLING_RESISTANCE_MOMENT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MAX_ROTA_MOMENT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ELASTIC_FORCES)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONTACT_FORCES)
@@ -997,6 +998,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEM_ExponentialHC", DEM_ExponentialHC());
     Serializer::Register("DEM_parallel_bond", DEM_parallel_bond());
     Serializer::Register("DEMRollingFrictionModelConstantTorque", DEMRollingFrictionModelConstantTorque());
+    Serializer::Register("DEMRollingFrictionModelBounded", DEMRollingFrictionModelBounded());
 
     Serializer::Register("ForwardEulerScheme", ForwardEulerScheme());
     Serializer::Register("SymplecticEulerScheme", SymplecticEulerScheme());

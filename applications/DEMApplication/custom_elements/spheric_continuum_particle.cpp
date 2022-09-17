@@ -207,8 +207,7 @@ namespace Kratos {
     void SphericContinuumParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::ParticleDataBuffer & data_buffer,
                                                                 const ProcessInfo& r_process_info,
                                                                 array_1d<double, 3>& rElasticForce,
-                                                                array_1d<double, 3>& rContactForce,
-                                                                double& RollingResistance)
+                                                                array_1d<double, 3>& rContactForce)
     {
         KRATOS_TRY
 
@@ -352,8 +351,8 @@ namespace Kratos {
                 const double previous_indentation = indentation + LocalDeltDisp[2];
                 mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithNeighbour(data_buffer.mpOtherParticle);
                 mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce,
-                        LocalDeltDisp, LocalRelVel, indentation, previous_indentation,
-                        ViscoDampingLocalContactForce, cohesive_force, this, data_buffer.mpOtherParticle, sliding, data_buffer.mLocalCoordSystem);
+                                                                LocalDeltDisp, LocalRelVel, indentation, previous_indentation,
+                                                                ViscoDampingLocalContactForce, cohesive_force, this, data_buffer.mpOtherParticle, sliding, data_buffer.mLocalCoordSystem);
             } else { //Not bonded and no idata_buffer.mpOtherParticlendentation
                 LocalElasticContactForce[0] = 0.0;      LocalElasticContactForce[1] = 0.0;      LocalElasticContactForce[2] = 0.0;
                 ViscoDampingLocalContactForce[0] = 0.0; ViscoDampingLocalContactForce[1] = 0.0; ViscoDampingLocalContactForce[2] = 0.0;
@@ -366,38 +365,69 @@ namespace Kratos {
             GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
 
             //******************Moments calculation start****************
-            if (this->Is(DEMFlags::HAS_ROTATION) && i < (int)mContinuumInitialNeighborsSize) {
-                mContinuumConstitutiveLawArray[i]->CalculateMoments(this, 
-                                                                    neighbour_iterator, 
-                                                                    equiv_young, 
-                                                                    data_buffer.mDistance, 
-                                                                    calculation_area,
-                                                                    data_buffer.mLocalCoordSystem, 
-                                                                    ElasticLocalRotationalMoment, 
-                                                                    ViscoLocalRotationalMoment, 
-                                                                    equiv_poisson, 
-                                                                    indentation, 
-                                                                    LocalElasticContactForce,
-                                                                    LocalContactForce[2],
-                                                                    GlobalElasticContactForce,                                                                  
-                                                                    data_buffer.mLocalCoordSystem[2],
-                                                                    i);
-               
-                if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
-                    mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                    mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment, indentation);
-                }
-
-            } else { //for unbonded particles
-            
-                double GlobalElasticContactForce[3] = {0.0};
-                GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
-                ComputeMoments(LocalContactForce[2], GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, indentation, i);
-
+            if (this->Is(DEMFlags::HAS_ROTATION)) {
+                if (i < (int)mContinuumInitialNeighborsSize) {
+                    mContinuumConstitutiveLawArray[i]->CalculateMoments(this, 
+                                                                        neighbour_iterator, 
+                                                                        equiv_young, 
+                                                                        data_buffer.mDistance, 
+                                                                        calculation_area,
+                                                                        data_buffer.mLocalCoordSystem, 
+                                                                        ElasticLocalRotationalMoment, 
+                                                                        ViscoLocalRotationalMoment, 
+                                                                        equiv_poisson, 
+                                                                        indentation, 
+                                                                        LocalElasticContactForce,
+                                                                        LocalContactForce[2],
+                                                                        GlobalElasticContactForce,                                                                  
+                                                                        data_buffer.mLocalCoordSystem[2],
+                                                                        i);
                 
-                if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
-                    mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                    mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment, indentation);
+                    if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
+
+                        if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
+
+                            mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
+
+                            mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment, indentation);
+
+                        } else {
+
+                            Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour_iterator->GetProperties().Id());
+                            const double min_radius = std::min(GetRadius(), neighbour_iterator->GetRadius());
+                            const double equiv_rolling_friction_coeff = properties_of_this_contact[ROLLING_FRICTION] * min_radius;
+
+                            if (equiv_rolling_friction_coeff && ((i >= mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i])) {
+                                mRollingFrictionModel->ComputeRollingResistance(LocalContactForce[2], equiv_rolling_friction_coeff, i);
+                            }
+                        }
+                    }
+
+                } else { //for unbonded particles
+            
+                    double GlobalElasticContactForce[3] = {0.0};
+                    GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
+                    ComputeMoments(LocalContactForce[2], GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, indentation, i);
+
+                    
+                    if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
+                        
+                        if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
+
+                            mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
+                            mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment, indentation);
+
+                        } else {
+
+                            Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour_iterator->GetProperties().Id());
+                            const double min_radius = std::min(GetRadius(), neighbour_iterator->GetRadius());
+                            const double equiv_rolling_friction_coeff = properties_of_this_contact[ROLLING_FRICTION] * min_radius;
+
+                            if (equiv_rolling_friction_coeff && ((i >= mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i])) {
+                                mRollingFrictionModel->ComputeRollingResistance(LocalContactForce[2],  equiv_rolling_friction_coeff, i);
+                            }
+                        }
+                    }
                 }
             }
             //*****************Moments calculation end******************
@@ -447,17 +477,6 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     } //  ComputeBallToBallContactForceAndMoment
-
-    void SphericContinuumParticle::ComputeRollingResistance(double& RollingResistance, const double& NormalLocalContactForce, const double& equiv_rolling_friction_coeff, const unsigned int i) {
-
-        KRATOS_TRY
-
-        if ((i >= mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
-            SphericParticle::ComputeRollingResistance(RollingResistance, NormalLocalContactForce, equiv_rolling_friction_coeff, i);
-        }
-
-        KRATOS_CATCH("")
-    } // ComputeRollingResistance
 
     void SphericContinuumParticle::ComputeForceWithNeighbourFinalOperations(){}
 

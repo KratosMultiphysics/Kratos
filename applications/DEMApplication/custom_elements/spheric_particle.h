@@ -274,22 +274,17 @@ std::unique_ptr<DEMDiscontinuumConstitutiveLaw> pCloneDiscontinuumConstitutiveLa
 
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> pCloneDiscontinuumConstitutiveLawWithFEMNeighbour(Condition* neighbour);
 
+std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModel(SphericParticle* element);
+
 std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModelWithNeighbour(SphericParticle* neighbour);
 
 std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModelWithFEMNeighbour(Condition* neighbour);
-
-
-virtual void ComputeRollingResistance(double& RollingResistance,
-                                    const double& NormalLocalContactForce,
-                                    const double& equiv_rolling_friction_coeff,
-                                    const unsigned int i);
 
 protected:
 
 virtual void ComputeBallToRigidFaceContactForceAndMoment(ParticleDataBuffer & data_buffer,
                                                 array_1d<double, 3>& rElasticForce,
                                                 array_1d<double, 3>& rContactForce,
-                                                double& RollingResistance,
                                                 array_1d<double, 3>& rigid_element_force,
                                                 const ProcessInfo& r_process_info) ;
 
@@ -300,8 +295,7 @@ virtual void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum
 virtual void ComputeBallToBallContactForceAndMoment(ParticleDataBuffer & data_buffer,
                                         const ProcessInfo& r_process_info,
                                         array_1d<double, 3>& rElasticForce,
-                                        array_1d<double, 3>& rContactForce,
-                                        double& RollingResistance);
+                                        array_1d<double, 3>& rContactForce);
 
 virtual void EvaluateDeltaDisplacement(ParticleDataBuffer & data_buffer,
                                     double DeltDisp[3],
