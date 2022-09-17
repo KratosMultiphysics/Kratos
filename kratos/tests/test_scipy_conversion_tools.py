@@ -7,13 +7,13 @@ try:
     import scipy
     import scipy.sparse
     import KratosMultiphysics.scipy_conversion_tools
-    scipy_available = True
-except ImportError:
-    scipy_available = False
+    missing_scipy = False
+except ImportError as e:
+    missing_scipy = True
 
 class TestScipyConversionTools(KratosUnittest.TestCase):
 
-    @KratosUnittest.skipIf(not scipy_available,"Missing python libraries (scipy)")
+    @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
     def test_scipy_conversion_tools(self):
         # Create a kratos matrix
         A = KratosMultiphysics.CompressedMatrix(3,3)

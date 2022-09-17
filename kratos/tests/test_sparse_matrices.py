@@ -6,9 +6,9 @@ import numpy as np
 
 try:
     import KratosMultiphysics.scipy_conversion_tools
-    scipy_available = True
-except ImportError:
-    scipy_available = False
+    missing_scipy = False
+except ImportError as e:
+    missing_scipy = True
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -96,7 +96,7 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
             self.assertEqual(B.index1_data()[i], validation_index1[i])
 
         # the following should be added back in case scipy support is enabled in testing
-        if scipy_available:
+        if not missing_scipy:
              #test conversion to scipy matrix
             Ascipy = KratosMultiphysics.scipy_conversion_tools.to_csr(A)
 
