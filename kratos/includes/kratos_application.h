@@ -64,6 +64,7 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
+#include "geometries/quadrature_point_geometry.h"
 
 // Modelers
 #include "modeler/modeler.h"
