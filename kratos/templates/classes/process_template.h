@@ -10,9 +10,7 @@
 //  Main authors:    @{KRATOS_APP_AUTHOR}
 //
 
-#if !defined(KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED )
-#define  KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED
-
+#pragma once
 
 // System includes
 @{KRATOS_SYSTEM_INCLUDES}
@@ -240,5 +238,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED  defined

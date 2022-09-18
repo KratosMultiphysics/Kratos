@@ -11,11 +11,7 @@
 //                   Author2 Fullname
 //
 
-
-#if !defined(KRATOS_FILENAME_H_INCLUDED )
-#define  KRATOS_FILENAME_H_INCLUDED
-
-
+#pragma once
 
 // System includes
 
@@ -799,7 +795,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_FILENAME_H_INCLUDED  defined
-
-
