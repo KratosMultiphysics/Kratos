@@ -478,7 +478,7 @@ private:
     template<typename TContainerType>
     void WriteIdsToFile(
         const TContainerType& rContainer,
-        const std::string DataName,
+        const std::string& DataName,
         std::ofstream& rFileStream) const;
 
 

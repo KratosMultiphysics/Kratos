@@ -56,7 +56,7 @@ std::unordered_set<std::string> &Kernel::GetApplicationsList() {
   return application_list;
 }
 
-bool Kernel::IsImported(std::string ApplicationName) const {
+bool Kernel::IsImported(const std::string& ApplicationName) const {
     if (GetApplicationsList().find(ApplicationName) !=
         GetApplicationsList().end())
         return true;

@@ -100,7 +100,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///@{
 
     /// Default constructor.
-    explicit KratosApplication(const std::string ApplicationName);
+    explicit KratosApplication(const std::string& ApplicationName);
 
     KratosApplication() = delete;
 
