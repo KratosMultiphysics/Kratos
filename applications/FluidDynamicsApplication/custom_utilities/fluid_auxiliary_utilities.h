@@ -180,8 +180,7 @@ public:
      * It is designed for use together with the "embedded solver"
      * @param rVolumeModelPart is the destination domain on which EMBEDDED_VELOCITY will be calculated
      * @param rSkinModelPart is the skin of the object from which the velocity will be taken
-     * @param SearchRadius is the radius which will be used in searching the neighbours. It needs to be sufficiently large otherwise the 
-     *                     method will fail in the calculation of the RBF basis
+     * @param SearchRadius is the radius which will be used in searching the neighbours. It needs to be sufficiently large otherwise the method will fail in the calculation of the RBF basis
      */
     static void EmbeddedSkinToVolumeMapping(
         ModelPart& rVolumeModelPart,
