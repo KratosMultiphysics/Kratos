@@ -258,7 +258,6 @@ private:
         std::vector<array_1d<double,3>>& rNormals,
         Vector& rWeights);
 
-
 };
 
 ///@}
