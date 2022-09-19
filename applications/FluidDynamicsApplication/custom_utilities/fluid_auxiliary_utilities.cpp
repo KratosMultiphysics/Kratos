@@ -446,8 +446,9 @@ void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<false>(
             }
 
             if(npos>0 && nneg>0){ //element is split
-                for(unsigned int i=0; i<geom.size(); ++i)
-                    cut_elem_nodes.push_back(geom(i));
+                for(unsigned int i=0; i<r_geom.size(); ++i) {
+                    cut_elem_nodes.push_back(r_geom(i));
+                }
             }
         }
         cut_elem_nodes.Unique();
