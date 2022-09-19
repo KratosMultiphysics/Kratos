@@ -459,22 +459,23 @@ void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<false>(
         //for every interface node (nodes in cut elements)
         block_for_each(cut_elem_nodes, TLS, [&locator, SearchRadius](auto& rNode, auto& rTLS){
                 //find all neighbours within a radius
-                auto& neighbours = rTLS.first;
-                auto& distances  = rTLS.second;
-                const unsigned int nfound = locator.SearchInRadius( rNode, 
-                                                                SearchRadius, 
-                                                                neighbours.begin(), 
-                                                                distances.begin(), 
-                                                                neighbours.size());
+                auto& r_neighbours = rTLS.first;
+                auto& r_distances  = rTLS.second;
+                const unsigned int nfound = locator.SearchInRadius(
+                    rNode, 
+                    SearchRadius, 
+                    r_neighbours.begin(), 
+                    r_distances.begin(), 
+                    r_neighbours.size());
                 KRATOS_ERROR_IF(nfound == 0) << "Not found any neighbor for node " << rNode.Id() << " in skin model part." << std::endl;
 
                 //compute RBF basis
                 Matrix cloud_coords(nfound,3);
                 Vector shape_functions(nfound);
                 for(unsigned int i=0; i<nfound; ++i){
-                    cloud_coords(i,0)=neighbours[i]->X(); 
-                    cloud_coords(i,1)=neighbours[i]->Y(); 
-                    cloud_coords(i,2)=neighbours[i]->Z();
+                    cloud_coords(i,0)=r_neighbours[i]->X(); 
+                    cloud_coords(i,1)=r_neighbours[i]->Y(); 
+                    cloud_coords(i,2)=r_neighbours[i]->Z();
                 }
                 RBFShapeFunctionsUtility::CalculateShapeFunctions(cloud_coords,rNode.Coordinates(), shape_functions);
 
