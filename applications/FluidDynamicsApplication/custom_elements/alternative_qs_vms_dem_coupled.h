@@ -204,6 +204,7 @@ public:
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override;
+    void GetShapeSecondDerivatives(DenseVector<DenseVector<Matrix>> &rDDN_DDX) const;
 
 
     ///@}
@@ -223,7 +224,9 @@ protected:
     ///@name Protected member Variables
     ///@{
     DenseVector <BoundedMatrix<double,Dim,Dim>> mViscousResistanceTensor;
-
+    // Velocity subscale history, stored at integration points
+    DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
+    DenseVector< array_1d<double,Dim> > mPreviousVelocity;
     ///@}
     ///@name Protected Operators
     ///@{
@@ -236,7 +239,6 @@ protected:
     // Protected interface of FluidElement ////////////////////////////////////
 
     /// Determine the shape second derivative in the gauss point
-    void GetShapeSecondDerivatives(DenseVector<DenseVector<Matrix>> &rDDN_DDX) const;
 
     void AlgebraicMomentumResidual(
         const TElementData& rData,
@@ -263,6 +265,9 @@ protected:
         const array_1d<double,3> &Velocity,
         BoundedMatrix<double,Dim,Dim> &TauOne,
         double &TauTwo) const;
+
+    void CalculateProjections(
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     void UpdateIntegrationPointData(
         TElementData& rData,
@@ -339,11 +344,11 @@ protected:
 
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    //void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    //void UpdateSubscaleVelocity(const TElementData& rData);
+    void UpdateSubscaleVelocity(const TElementData& rData);
 
-    //array_1d<double,3> FullConvectiveVelocity(const TElementData& rData) const;
+    array_1d<double,3> FullConvectiveVelocity(const TElementData& rData) const;
 
     ///@}
     ///@name Protected  Access
