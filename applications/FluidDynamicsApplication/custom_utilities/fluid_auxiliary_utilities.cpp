@@ -24,7 +24,6 @@
 #include "utilities/reduction_utilities.h"
 #include "spatial_containers/bins_dynamic.h"
 #include "utilities/rbf_shape_functions_utility.h"
-#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "fluid_auxiliary_utilities.h"
