@@ -96,6 +96,7 @@ double mRadiusSum;
 double mDt;
 double mOtherRadius;
 double mIndentation;
+double mRollingResistance;
 double mMyCoors[3];
 double mOtherCoors[3];
 double mLocalRelVel[3];
@@ -212,6 +213,7 @@ array_1d<double, 3>& GetForce();
 virtual double& GetElasticEnergy();
 virtual double& GetInelasticFrictionalEnergy();
 virtual double& GetInelasticViscodampingEnergy();
+virtual double& GetInelasticRollResistEnergy();
 
 PropertiesProxy* GetFastProperties();
 void   SetFastProperties(PropertiesProxy* pProps);
@@ -239,6 +241,7 @@ virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "Sphe
 double mElasticEnergy;
 double mInelasticFrictionalEnergy;
 double mInelasticViscodampingEnergy;
+double mInelasticRollResistEnergy;
 double mPartialRepresentativeVolume;
 
 std::vector<ParticleContactElement*> mBondElements;
@@ -279,7 +282,6 @@ protected:
 virtual void ComputeBallToRigidFaceContactForce(ParticleDataBuffer & data_buffer,
                                                 array_1d<double, 3>& rElasticForce,
                                                 array_1d<double, 3>& rContactForce,
-                                                double& RollingResistance,
                                                 array_1d<double, 3>& rigid_element_force,
                                                 const ProcessInfo& r_process_info) ;
 
@@ -290,8 +292,7 @@ virtual void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum
 virtual void ComputeBallToBallContactForce(ParticleDataBuffer & data_buffer,
                                         const ProcessInfo& r_process_info,
                                         array_1d<double, 3>& rElasticForce,
-                                        array_1d<double, 3>& rContactForce,
-                                        double& RollingResistance);
+                                        array_1d<double, 3>& rContactForce);
 
 virtual void EvaluateDeltaDisplacement(ParticleDataBuffer & data_buffer,
                                     double DeltDisp[3],
@@ -360,9 +361,9 @@ virtual double GetInitialDeltaWithFEM(int index);
 
 virtual void ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces);
 
-virtual void StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding);
+virtual void StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding);
 
-virtual void StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding);
+virtual void StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding);
 
 virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
                                                             const ProcessInfo& r_process_info,
@@ -462,6 +463,7 @@ virtual void save(Serializer& rSerializer) const override
     rSerializer.save("mElasticEnergy", mElasticEnergy);
     rSerializer.save("mInelasticFrictionalEnergy", mInelasticFrictionalEnergy);
     rSerializer.save("mInelasticViscodampingEnergy", mInelasticViscodampingEnergy);
+    rSerializer.save("mInelasticRollResistEnergy", mInelasticRollResistEnergy);
     rSerializer.save("mPartialRepresentativeVolume", mPartialRepresentativeVolume);
     rSerializer.save("mBondElements", mBondElements);
     rSerializer.save("mNeighbourElements", mNeighbourElements);
@@ -504,6 +506,7 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mElasticEnergy", mElasticEnergy);
     rSerializer.load("mInelasticFrictionalEnergy", mInelasticFrictionalEnergy);
     rSerializer.load("mInelasticViscodampingEnergy", mInelasticViscodampingEnergy);
+    rSerializer.load("mInelasticRollResistEnergy", mInelasticRollResistEnergy);
     rSerializer.load("mPartialRepresentativeVolume", mPartialRepresentativeVolume);
     rSerializer.load("mBondElements", mBondElements);
     rSerializer.load("mNeighbourElements", mNeighbourElements);

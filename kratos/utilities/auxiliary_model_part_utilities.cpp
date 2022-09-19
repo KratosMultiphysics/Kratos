@@ -151,7 +151,7 @@ void AuxiliaryModelPartUtilities::RemoveElementAndBelongings(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliaryModelPartUtilities::RemoveElementAndBelongings(Element& ThisElement, Flags IdentifierFlag , IndexType ThisIndex)
+void AuxiliaryModelPartUtilities::RemoveElementAndBelongings(Element& ThisElement, const Flags IdentifierFlag , IndexType ThisIndex)
 {
     RemoveElementAndBelongings(ThisElement.Id(), IdentifierFlag, ThisIndex);
 }
@@ -159,7 +159,7 @@ void AuxiliaryModelPartUtilities::RemoveElementAndBelongings(Element& ThisElemen
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliaryModelPartUtilities::RemoveElementAndBelongings(Element::Pointer pThisElement, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliaryModelPartUtilities::RemoveElementAndBelongings(Element::Pointer pThisElement, const Flags IdentifierFlag, IndexType ThisIndex)
 {
     RemoveElementAndBelongings(pThisElement->Id(), IdentifierFlag, ThisIndex);
 }
@@ -167,7 +167,7 @@ void AuxiliaryModelPartUtilities::RemoveElementAndBelongings(Element::Pointer pT
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliaryModelPartUtilities::RemoveElementAndBelongingsFromAllLevels(IndexType ElementId, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliaryModelPartUtilities::RemoveElementAndBelongingsFromAllLevels(IndexType ElementId, const Flags IdentifierFlag, IndexType ThisIndex)
 {
     if (mrModelPart.IsSubModelPart()) {
         AuxiliaryModelPartUtilities aux_utility = AuxiliaryModelPartUtilities(mrModelPart.GetParentModelPart());
@@ -180,7 +180,7 @@ void AuxiliaryModelPartUtilities::RemoveElementAndBelongingsFromAllLevels(IndexT
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliaryModelPartUtilities::RemoveElementAndBelongingsFromAllLevels(Element& ThisElement, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliaryModelPartUtilities::RemoveElementAndBelongingsFromAllLevels(Element& ThisElement, const Flags IdentifierFlag, IndexType ThisIndex)
 {
     RemoveElementAndBelongingsFromAllLevels(ThisElement.Id(), IdentifierFlag, ThisIndex);
 }
@@ -188,7 +188,7 @@ void AuxiliaryModelPartUtilities::RemoveElementAndBelongingsFromAllLevels(Elemen
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliaryModelPartUtilities::RemoveElementAndBelongingsFromAllLevels(Element::Pointer pThisElement, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliaryModelPartUtilities::RemoveElementAndBelongingsFromAllLevels(Element::Pointer pThisElement, const Flags IdentifierFlag, IndexType ThisIndex)
 {
     RemoveElementAndBelongingsFromAllLevels(pThisElement->Id(), IdentifierFlag, ThisIndex);
 }
@@ -236,7 +236,7 @@ void AuxiliaryModelPartUtilities::RemoveElementsAndBelongings(Flags IdentifierFl
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliaryModelPartUtilities::RemoveElementsAndBelongingsFromAllLevels(Flags IdentifierFlag)
+void AuxiliaryModelPartUtilities::RemoveElementsAndBelongingsFromAllLevels(const Flags IdentifierFlag)
 {
     ModelPart& root_model_part = mrModelPart.GetRootModelPart();
     AuxiliaryModelPartUtilities aux_utility = AuxiliaryModelPartUtilities(root_model_part);
@@ -280,7 +280,7 @@ void AuxiliaryModelPartUtilities::RemoveConditionAndBelongings(IndexType Conditi
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliaryModelPartUtilities::RemoveConditionAndBelongings(Condition& ThisCondition, Flags IdentifierFlag , IndexType ThisIndex)
+void AuxiliaryModelPartUtilities::RemoveConditionAndBelongings(Condition& ThisCondition, const Flags IdentifierFlag , IndexType ThisIndex)
 {
     RemoveConditionAndBelongings(ThisCondition.Id(), IdentifierFlag, ThisIndex);
 }
@@ -288,7 +288,7 @@ void AuxiliaryModelPartUtilities::RemoveConditionAndBelongings(Condition& ThisCo
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliaryModelPartUtilities::RemoveConditionAndBelongings(Condition::Pointer pThisCondition, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliaryModelPartUtilities::RemoveConditionAndBelongings(Condition::Pointer pThisCondition, const Flags IdentifierFlag, IndexType ThisIndex)
 {
     RemoveConditionAndBelongings(pThisCondition->Id(), IdentifierFlag, ThisIndex);
 }
@@ -296,7 +296,7 @@ void AuxiliaryModelPartUtilities::RemoveConditionAndBelongings(Condition::Pointe
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliaryModelPartUtilities::RemoveConditionAndBelongingsFromAllLevels(IndexType ConditionId, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliaryModelPartUtilities::RemoveConditionAndBelongingsFromAllLevels(IndexType ConditionId, const Flags IdentifierFlag, IndexType ThisIndex)
 {
     if (mrModelPart.IsSubModelPart()) {
         AuxiliaryModelPartUtilities aux_utility = AuxiliaryModelPartUtilities(mrModelPart.GetParentModelPart());
@@ -309,7 +309,7 @@ void AuxiliaryModelPartUtilities::RemoveConditionAndBelongingsFromAllLevels(Inde
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliaryModelPartUtilities::RemoveConditionAndBelongingsFromAllLevels(Condition& ThisCondition, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliaryModelPartUtilities::RemoveConditionAndBelongingsFromAllLevels(Condition& ThisCondition, const Flags IdentifierFlag, IndexType ThisIndex)
 {
     RemoveConditionAndBelongingsFromAllLevels(ThisCondition.Id(), IdentifierFlag, ThisIndex);
 }
@@ -317,7 +317,7 @@ void AuxiliaryModelPartUtilities::RemoveConditionAndBelongingsFromAllLevels(Cond
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliaryModelPartUtilities::RemoveConditionAndBelongingsFromAllLevels(Condition::Pointer pThisCondition, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliaryModelPartUtilities::RemoveConditionAndBelongingsFromAllLevels(Condition::Pointer pThisCondition, const Flags IdentifierFlag, IndexType ThisIndex)
 {
     RemoveConditionAndBelongingsFromAllLevels(pThisCondition->Id(), IdentifierFlag, ThisIndex);
 }
@@ -365,7 +365,7 @@ void AuxiliaryModelPartUtilities::RemoveConditionsAndBelongings(Flags Identifier
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliaryModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels(Flags IdentifierFlag)
+void AuxiliaryModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels(const Flags IdentifierFlag)
 {
     ModelPart& root_model_part = mrModelPart.GetRootModelPart();
     AuxiliaryModelPartUtilities aux_utility = AuxiliaryModelPartUtilities(root_model_part);

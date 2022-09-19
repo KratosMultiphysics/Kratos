@@ -1364,7 +1364,7 @@ private:
     }
 
     template<class TNodesArrayType>
-    void PrintNodesId(TNodesArrayType& rNodes, std::string Tag, int color)
+    void PrintNodesId(TNodesArrayType& rNodes, const std::string& Tag, int color)
     {
         int rank = mrDataCommunicator.Rank();
         std::cout << Tag << rank << " with color " << color << ":";

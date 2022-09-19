@@ -104,14 +104,14 @@ public:
      * @param ModelPartName The name of the new model part to be created
      * @param NewBufferSize The size of the buffer of the new model part created
      */
-    ModelPart& CreateModelPart( const std::string ModelPartName, IndexType NewBufferSize=1 );
+    ModelPart& CreateModelPart( const std::string& ModelPartName, IndexType NewBufferSize=1 );
 
     /**
      * @brief This method deletes a modelpart with a given name
      * @details Raises a warning in case the model part does not exists
      * @param ModelPartName The name of the model part to be removed
      */
-    void DeleteModelPart( const std::string ModelPartName );
+    void DeleteModelPart( const std::string& ModelPartName );
 
     /**
      * @brief This method renames a modelpart with a given name
@@ -119,7 +119,7 @@ public:
      * @param OldName The name of the model part to be renamed
      * @param NewName The new name for the model part to be renamed
      */
-    void RenameModelPart( const std::string OldName, const std::string NewName );
+    void RenameModelPart( const std::string& OldName, const std::string& NewName );
 
     /**
      * @brief This method returns a model part given a certain name
@@ -259,7 +259,7 @@ private:
      * @param ModelPartName The name of the new model part to be created
      * @param NewBufferSize The size of the buffer of the new model part created
      */
-    void CreateRootModelPart(const std::string ModelPartName, ModelPart::IndexType NewBufferSize);
+    void CreateRootModelPart(const std::string& ModelPartName, ModelPart::IndexType NewBufferSize);
 
     ///@}
     ///@name Private  Access

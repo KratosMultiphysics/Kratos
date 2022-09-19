@@ -1022,7 +1022,7 @@ void VtkOutput::WritePropertiesIdsToFile(
 template<typename TContainerType>
 void VtkOutput::WriteIdsToFile(
     const TContainerType& rContainer,
-    const std::string DataName,
+    const std::string& DataName,
     std::ofstream& rFileStream) const
 {
     rFileStream << DataName << " 1 "
