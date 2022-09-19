@@ -1,5 +1,4 @@
 from KratosMultiphysics import Parameters, Model, Logger, VELOCITY_Y
-from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 import KratosMultiphysics.DEMApplication.plot_variables as plot_variables
 import KratosMultiphysics.KratosUnittest as KratosUnittest

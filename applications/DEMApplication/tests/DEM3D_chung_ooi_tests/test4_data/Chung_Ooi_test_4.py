@@ -1,5 +1,4 @@
 from KratosMultiphysics import Parameters, Model, Logger, VELOCITY_Y, VELOCITY_Z, ANGULAR_VELOCITY_X
-from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 import KratosMultiphysics.DEMApplication.plot_variables as plot_variables
 import KratosMultiphysics.DEMApplication.Chung_Ooi_class as COC
