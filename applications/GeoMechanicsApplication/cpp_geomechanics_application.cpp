@@ -802,13 +802,15 @@ namespace Kratos
             }
 
             logCallback(strdup(kratosLogBuffer.str().c_str()));
-
+            Logger::RemoveOutput(p_output);
+            
             ResetModelParts();
             return 0;
         }
         catch (...)
         {
             logCallback(strdup(kratosLogBuffer.str().c_str()));
+            Logger::RemoveOutput(p_output);
 
             ResetModelParts();
             return 1;
