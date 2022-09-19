@@ -117,5 +117,6 @@ def AssembleTestSuites():
 
     return suites
 
+
 if __name__ == '__main__':
     KratosUnittest.runTests(AssembleTestSuites())
