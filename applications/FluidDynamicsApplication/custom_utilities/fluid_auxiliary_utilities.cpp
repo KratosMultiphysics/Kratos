@@ -480,9 +480,9 @@ void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<false>(
                 RBFShapeFunctionsUtility::CalculateShapeFunctions(cloud_coords,rNode.Coordinates(), shape_functions);
 
                 //assign interpolation
-                auto& v = rNode.GetValue(EMBEDDED_VELOCITY); //we know it is zero since we zeroed all the nodes at the beginning of the function
+                auto& r_v = rNode.GetValue(EMBEDDED_VELOCITY); //we know it is zero since we zeroed all the nodes at the beginning of the function
                 for(unsigned int i=0; i<nfound; ++i){
-                    noalias(v) += shape_functions[i]*neighbours[i]->FastGetSolutionStepValue(VELOCITY);
+                    noalias(r_v) += shape_functions[i]*neighbours[i]->FastGetSolutionStepValue(VELOCITY);
                 }
             });
     }
