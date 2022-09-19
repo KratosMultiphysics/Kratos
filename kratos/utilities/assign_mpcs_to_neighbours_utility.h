@@ -190,7 +190,7 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
        * @details Collects Dofs and Coordinates for a given node or set of nodes.
        * @param rStructureNodes Nodes Container.
        * @param pNode Obtain respective dofs and coordinates for a given node or set of nodes.
-       * @param rVariable Dof variable.
+       * @param rVariable Dof variable array or double.
        * @param rCloud_of_dofs Dofs container.
        * @param rCloud_of_nodes_coordinates Coordinates container.
        **/
@@ -221,6 +221,7 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
         KRATOS_CATCH("");
       }
 
+      // Get Dofs and coordinates arrays for a given variable array. (For nodes)
       void GetDofsAndCoordinatesForNodes(
         ResultNodesContainerType nodes_array,
         const Variable<array_1d<double, 3>>& rVariable,
@@ -259,6 +260,37 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
         KRATOS_CATCH("");
       }
 
+      void GetDofsAndCoordinatesForNodes(
+        NodeType::Pointer pNode,
+        const Variable<double>& rVariable,
+        DofPointerVectorType& rCloud_of_dofs,
+        array_1d<double,3>& rSlave_coordinates
+      ){
+        KRATOS_TRY;
+        rCloud_of_dofs.push_back(pNode->pGetDof(rVariable));
+        rSlave_coordinates = pNode->Coordinates();
+        KRATOS_CATCH("");
+      }
+
+      // Get Dofs and Coordinates arrays for a given variable double. (For nodes)
+      void GetDofsAndCoordinatesForNodes(
+        ResultNodesContainerType nodes_array,
+        const Variable<double>& rVariable,
+        DofPointerVectorType& rCloud_of_dofs,
+        Matrix& rCloud_of_nodes_coordinates
+        )
+      {
+        KRATOS_TRY;
+        rCloud_of_dofs.resize(nodes_array.size());
+        rCloud_of_nodes_coordinates.resize(nodes_array.size(),3);
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
+        {
+          rCloud_of_dofs[i] = nodes_array[i]->pGetDof(rVariable);
+          noalias(row(rCloud_of_nodes_coordinates,i)) = nodes_array[i]->Coordinates();
+        }
+        KRATOS_CATCH("");
+      }
+
       void AssignRotationToNodes(
         NodesContainerType pNodes,
         Matrix RotationMatrix
@@ -290,7 +322,7 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
        * @param pNodes Nodes to set MPCs.
        * @param Radius Search radius.
        * @param rComputinModelPart Model Part to which MPCs are applied.
-       * @param rVariable
+       * @param rVariable DOFs to assign the MPCs. 
        * @param h Shape parameter (to scale the input of the radial kernel)
        **/
       void AssignMPCsToNodes(
@@ -311,6 +343,7 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
             ModelPart::MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
             ConstraintContainerType all_constraints;
             all_constraints.reserve(nodes_array.size()*3);
+            int prev_num_mpcs = rComputingModelPart.NumberOfMasterSlaveConstraints();
 
             // #pragma omp for
               for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
@@ -343,9 +376,68 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
                 noalias(row(shape_matrix,0)) = rN_container;// Shape functions matrix
                 const Vector constant_vector = ZeroVector(rN_container.size());
                 IndexType it = i*3;
-                all_constraints.push_back(r_clone_constraint.Create(it+1,rCloud_of_dofs_x,rSlave_dof_x,shape_matrix,constant_vector));
-                all_constraints.push_back(r_clone_constraint.Create(it+2,rCloud_of_dofs_y,rSlave_dof_y,shape_matrix,constant_vector));
-                all_constraints.push_back(r_clone_constraint.Create(it+3,rCloud_of_dofs_z,rSlave_dof_z,shape_matrix,constant_vector));
+                all_constraints.push_back(r_clone_constraint.Create(prev_num_mpcs + it + 1,rCloud_of_dofs_x,rSlave_dof_x,shape_matrix,constant_vector));
+                all_constraints.push_back(r_clone_constraint.Create(prev_num_mpcs + it + 2,rCloud_of_dofs_y,rSlave_dof_y,shape_matrix,constant_vector));
+                all_constraints.push_back(r_clone_constraint.Create(prev_num_mpcs + it + 3,rCloud_of_dofs_z,rSlave_dof_z,shape_matrix,constant_vector));
+              }
+              rComputingModelPart.AddMasterSlaveConstraints(all_constraints.begin(),all_constraints.end());
+              KRATOS_INFO("AssignMPCsToNeighboursUtility") << "Build and Assign MPCs Time: " << build_and_assign_mpcs.ElapsedSeconds() << std::endl;
+          }
+          KRATOS_CATCH("");
+      }
+
+      void AssignMPCsToNodes(
+          NodesContainerType pNodes,
+          double const Radius,
+          ModelPart& rComputingModelPart,
+          const Variable<double>& rVariable
+          )
+          //TODO: Do it in parallel and allow rVariable to be a double variable i.e. TEMPERATURE (Make a template)
+      {
+          KRATOS_TRY;
+          // #pragma omp parallel
+          {
+            BuiltinTimer build_and_assign_mpcs;
+
+            NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(pNodes.GetContainer());
+
+            ModelPart::MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+            ConstraintContainerType all_constraints;
+            all_constraints.reserve(nodes_array.size()*3);
+            int prev_num_mpcs = rComputingModelPart.NumberOfMasterSlaveConstraints();
+
+            // #pragma omp for
+              for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
+              {
+                //Set slave nodes' slip condition to false
+                // nodes_array[i]->Set(SLIP,false);
+
+                // Search cloud of nodes for slave node
+                ResultNodesContainerType  Results;
+                double localRadius = Radius;
+                while (Results.size()<3){
+                  Results.clear();
+                  SearchNodesInRadiusForNode(nodes_array[i], localRadius, Results);
+                  localRadius += Radius;
+                }
+
+                // Get Dofs and Coordinates
+                DofPointerVectorType rCloud_of_dofs,rSlave_dof;
+                Matrix rCloud_of_nodes_coordinates;
+                array_1d<double,3> rSlave_coordinates;
+                GetDofsAndCoordinatesForNodes(nodes_array[i], rVariable, rSlave_dof, rSlave_coordinates);
+                GetDofsAndCoordinatesForNodes(Results, rVariable, rCloud_of_dofs, rCloud_of_nodes_coordinates);
+
+                // Calculate shape functions
+                Vector rN_container;
+                RBFShapeFunctionsUtility::CalculateShapeFunctions(rCloud_of_nodes_coordinates,rSlave_coordinates,rN_container);
+
+                //Create MPCs
+                Matrix shape_matrix(1,rN_container.size());
+                noalias(row(shape_matrix,0)) = rN_container;// Shape functions matrix
+                const Vector constant_vector = ZeroVector(rN_container.size());
+                IndexType it = i;
+                all_constraints.push_back(r_clone_constraint.Create(prev_num_mpcs + it + 1,rCloud_of_dofs,rSlave_dof,shape_matrix,constant_vector));
               }
               rComputingModelPart.AddMasterSlaveConstraints(all_constraints.begin(),all_constraints.end());
               KRATOS_INFO("AssignMPCsToNeighboursUtility") << "Build and Assign MPCs Time: " << build_and_assign_mpcs.ElapsedSeconds() << std::endl;

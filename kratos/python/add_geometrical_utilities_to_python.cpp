@@ -353,11 +353,17 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         ;
 
     // Radial Node Search and MPCs Assignation Utility
+    using NodesContainerType = typename AssignMPCsToNeighboursUtility::NodesContainerType;
     py::class_<AssignMPCsToNeighboursUtility>(m, "AssignMPCsToNeighboursUtility")
         .def(py::init<ModelPart::NodesContainerType&>())
         .def("SearchCloudOfNodesForNodes", &AssignMPCsToNeighboursUtility::SearchCloudOfNodesForNodes)
         .def("AssignRotationToNodes", &AssignMPCsToNeighboursUtility::AssignRotationToNodes)
-        .def("AssignMPCsToNodes", &AssignMPCsToNeighboursUtility::AssignMPCsToNodes)
+        // .def("AssignMPCsToNodes", &AssignMPCsToNeighboursUtility::AssignMPCsToNodes)
+        .def("AssignMPCsToNodes", [](AssignMPCsToNeighboursUtility& rAssignMPCsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const Variable<double>& rVariable){
+            return rAssignMPCsToNeighboursUtility.AssignMPCsToNodes(pNodes, Radius, rComputingModelPart, rVariable);})
+        .def("AssignMPCsToNodes", [](AssignMPCsToNeighboursUtility& rAssignMPCsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const Variable<array_1d<double, 3>>& rVariable){
+            return rAssignMPCsToNeighboursUtility.AssignMPCsToNodes(pNodes, Radius, rComputingModelPart, rVariable);})
+        // .def("AssignMPCsToNodes", &AssignMPCsToNeighboursUtility::AssignMPCsToNodes)
         ;
 }
 

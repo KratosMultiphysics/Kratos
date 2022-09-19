@@ -38,7 +38,6 @@
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
-#include "custom_utilities/node_search_utility.h"
 
 #include "utilities/split_tetrahedra.h"
 
