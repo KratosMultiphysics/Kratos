@@ -25,7 +25,7 @@
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 
 // Plasticity Integrator includes
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+#include "custom_constitutive/auxiliar_files/cl_integrators/generic_cl_integrator_plasticity.h"
 
 // Yield surfaces
 #include "custom_constitutive/auxiliar_files/yield_surfaces/generic_yield_surface.h"
