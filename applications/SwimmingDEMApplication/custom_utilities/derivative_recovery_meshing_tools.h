@@ -16,7 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "includes/model_part.h"
 

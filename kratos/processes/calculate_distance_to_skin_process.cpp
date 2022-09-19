@@ -192,7 +192,7 @@ namespace Kratos
 		double result_distance = std::numeric_limits<double>::max();
 
 		// For each intersecting object of the element, compute its nodal distance
-		for (auto it_int_obj : rIntersectedObjects.GetContainer()) {
+		for (const auto& it_int_obj : rIntersectedObjects.GetContainer()) {
 			// Compute the intersecting object distance to the current element node
 			const auto &r_int_obj_geom = it_int_obj->GetGeometry();
 			const double distance = this->CalculatePointDistance(r_int_obj_geom, rNode);
