@@ -599,3 +599,4 @@ protected:
 }// namespace Kratos.
 
 #endif // KRATOS_GID_GAUSS_POINT_CONTAINER_H_INCLUDED defined
+
