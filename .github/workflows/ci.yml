@@ -153,6 +153,7 @@ jobs:
       run: |
         pip install numpy
         pip install sympy
+        pip install scipy
         pip install h5py
 
     - name: Build
@@ -338,6 +339,7 @@ jobs:
       run: |
         pip install numpy
         pip install sympy
+        pip install scipy
 
     - name: Build
       shell: cmd
