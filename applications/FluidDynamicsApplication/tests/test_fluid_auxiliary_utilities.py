@@ -129,7 +129,7 @@ class FluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
         for node in skin_model_part.Nodes:
             node.SetSolutionStepValue(Kratos.VELOCITY,0,ref_v)
 
-        KratosFluid.FluidAuxiliaryUtilities.EmbeddedVelocityFromSkinToVolumeMapping(fluid_model_part, skin_model_part, 1.2)
+        KratosFluid.FluidAuxiliaryUtilities.MapEmbeddedVelocityFromSkinToVolume(fluid_model_part, skin_model_part, 1.2)
         
         for elem in fluid_model_part.Elements:
             npos=0
