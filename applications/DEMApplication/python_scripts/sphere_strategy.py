@@ -665,29 +665,9 @@ class ExplicitStrategy():
         rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
 
         if self.DEM_parameters["RotationOption"].GetBool() and self.DEM_parameters["RollingFrictionOption"].GetBool():
-            
-            has_subproperties = False
-            has_rolling_friction_model_name = False
-
-            for subproperties in properties.GetSubProperties():
-                has_subproperties = True
-                if subproperties.Has(DEM_ROLLING_FRICTION_MODEL_NAME):
-                    has_rolling_friction_model_name = True
-
-            for subproperties in properties.GetSubProperties():
-                if not subproperties.Has(DEM_ROLLING_FRICTION_MODEL_NAME) and has_rolling_friction_model_name is False:
-                    properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelBounded"
-                    self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelBounded] for material property with parameter \"material_id\": [" + str(properties.Id) + "]")
-                else:
-                    properties[DEM_ROLLING_FRICTION_MODEL_NAME] = subproperties[DEM_ROLLING_FRICTION_MODEL_NAME]
-            
-            if has_subproperties is False and properties.Id != 0:
-                properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelBounded"
-                self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelBounded] for material property with parameter \"material_id\": [" + str(properties.Id) + "]")
-
-            if properties.Id != 0:
-                rolling_friction_model = globals().get(properties[DEM_ROLLING_FRICTION_MODEL_NAME])()
-                rolling_friction_model.SetAPrototypeOfThisInProperties(properties, False)
+            #The function is to transfer the Rolling Friction Model Name from subProperties to Properties or set a default name
+            #Because some rolling friction models depend the particle but not the contact between particles
+            self.TransferRollingFrictionModelNameOrSetDefault(properties)
 
     def ModifySubProperties(self, properties, parent_id, param = 0):
 
@@ -759,3 +739,28 @@ class ExplicitStrategy():
 
     def GetComputingModelPart(self):
         return self.spheres_model_part
+
+    def TransferRollingFrictionModelNameOrSetDefault(self, properties):
+
+        has_subproperties = False
+        has_rolling_friction_model_name = False
+
+        for subproperties in properties.GetSubProperties():
+            has_subproperties = True
+            if subproperties.Has(DEM_ROLLING_FRICTION_MODEL_NAME):
+                has_rolling_friction_model_name = True
+
+        for subproperties in properties.GetSubProperties():
+            if not subproperties.Has(DEM_ROLLING_FRICTION_MODEL_NAME) and has_rolling_friction_model_name is False:
+                properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelBounded"
+                self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelBounded] for material property with parameter \"material_id\": [" + str(properties.Id) + "]")
+            else:
+                properties[DEM_ROLLING_FRICTION_MODEL_NAME] = subproperties[DEM_ROLLING_FRICTION_MODEL_NAME]
+        
+        if has_subproperties is False and properties.Id != 0:
+            properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelBounded"
+            self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelBounded] for material property with parameter \"material_id\": [" + str(properties.Id) + "]")
+
+        if properties.Id != 0:
+            rolling_friction_model = globals().get(properties[DEM_ROLLING_FRICTION_MODEL_NAME])()
+            rolling_friction_model.SetAPrototypeOfThisInProperties(properties, False)

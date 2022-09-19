@@ -1617,7 +1617,8 @@ class DEMIo():
 
             if self.contact_mesh_option:
                 #We overwrite the Id of the properties 0 not to overlap with other entities that use layer 0 for PRINTING
-                contact_model_part.GetProperties(0).Id = 9184
+                if contact_model_part.HasProperties(0):
+                    contact_model_part.GetProperties(0).Id = 9184
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
 
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
