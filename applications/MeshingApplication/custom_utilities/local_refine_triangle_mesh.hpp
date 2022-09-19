@@ -236,7 +236,7 @@ public:
 			}
 
                         // Transfer elemental variables
-                        p_element->Data() = it->Data();
+                        p_element->GetData() = it->GetData();
                         //const unsigned int& level = it->GetValue(REFINEMENT_LEVEL);
                         p_element->GetValue(SPLIT_ELEMENT) = false;
                         //p_element->SetValue(REFINEMENT_LEVEL, 1);
@@ -261,7 +261,7 @@ public:
                             InterpolateInteralVariables(number_elem, *it.base(), p_element, rCurrentProcessInfo);
 
                         // Transfer elemental variables
-                        p_element->Data() = it->Data();
+                        p_element->GetData() = it->GetData();
                         p_element->GetValue(SPLIT_ELEMENT) = false;
                         New_Elements.push_back(p_element);
                     }
@@ -359,8 +359,8 @@ public:
                             Condition::Pointer pcond1 = it->Create(current_id++, newgeom1, it->pGetProperties());
                             Condition::Pointer pcond2 = it->Create(current_id++, newgeom2, it->pGetProperties());
 
-                            pcond1->Data() = it->Data();
-                            pcond2->Data() = it->Data();
+                            pcond1->GetData() = it->GetData();
+                            pcond2->GetData() = it->GetData();
 
                             New_Conditions.push_back(pcond1);
                             New_Conditions.push_back(pcond2);
@@ -380,8 +380,8 @@ public:
                             Condition::Pointer pcond1 = it->Create(current_id++, newgeom1, it->pGetProperties());
                             Condition::Pointer pcond2 = it->Create(current_id++, newgeom2, it->pGetProperties());
 
-                            pcond1->Data() = it->Data();
-                            pcond2->Data() = it->Data();
+                            pcond1->GetData() = it->GetData();
+                            pcond2->GetData() = it->GetData();
 
                             New_Conditions.push_back(pcond1);
                             New_Conditions.push_back(pcond2);

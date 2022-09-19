@@ -397,7 +397,7 @@ namespace Kratos {
                             const double min_radius = std::min(GetRadius(), neighbour_iterator->GetRadius());
                             const double equiv_rolling_friction_coeff = properties_of_this_contact[ROLLING_FRICTION] * min_radius;
 
-                            if (equiv_rolling_friction_coeff && ((i >= mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i])) {
+                            if (equiv_rolling_friction_coeff && ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i])) {
                                 mRollingFrictionModel->ComputeRollingResistance(LocalContactForce[2], equiv_rolling_friction_coeff, i);
                             }
                         }
@@ -423,7 +423,7 @@ namespace Kratos {
                             const double min_radius = std::min(GetRadius(), neighbour_iterator->GetRadius());
                             const double equiv_rolling_friction_coeff = properties_of_this_contact[ROLLING_FRICTION] * min_radius;
 
-                            if (equiv_rolling_friction_coeff && ((i >= mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i])) {
+                            if (equiv_rolling_friction_coeff && ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i])) {
                                 mRollingFrictionModel->ComputeRollingResistance(LocalContactForce[2],  equiv_rolling_friction_coeff, i);
                             }
                         }

@@ -145,7 +145,6 @@ namespace Kratos
                                                 const ProcessInfo& r_process_info,
                                                 array_1d<double, 3>& rElasticForce,
                                                 array_1d<double, 3>& rContactForce) override;
-
         virtual void ComputeBrokenBondsRatio();
         virtual void AddContributionToRepresentativeVolume(const double distance,
                                                     const double radius_sum,

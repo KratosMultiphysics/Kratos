@@ -398,7 +398,7 @@ protected:
         // Firts we generate the variable list
         std::unordered_set<std::string> list_variables;
         const auto it_begin_old = rOldContainer.begin();
-        auto& data = it_begin_old->Data();
+        auto& data = it_begin_old->GetData();
         for(auto i = data.begin() ; i != data.end() ; ++i) {
             list_variables.insert((i->first)->Name());
         }

@@ -24,6 +24,65 @@
 namespace Kratos {
 namespace Testing {
 
+namespace {
+
+class ScopedEntry
+{
+public:
+    ScopedEntry(const std::filesystem::path& rPath)
+        : mPath(rPath)
+    {}
+
+    ScopedEntry(ScopedEntry&& rOther) = default;
+
+    ScopedEntry(const ScopedEntry& rOther) = delete;
+
+    ScopedEntry& operator=(ScopedEntry&& rOther) = delete;
+
+    ScopedEntry& operator=(const ScopedEntry& rOther) = delete;
+
+    virtual ~ScopedEntry()
+    {
+        std::filesystem::is_directory(mPath) ? std::filesystem::remove_all(mPath) : std::filesystem::remove(mPath);
+    }
+
+    operator const std::filesystem::path& () const
+    {
+        return mPath;
+    }
+private:
+    const std::filesystem::path mPath;
+}; // class ScopedEntry
+
+struct ScopedDirectory : public ScopedEntry
+{
+    ScopedDirectory(const std::filesystem::path& rPath)
+        : ScopedEntry(rPath)
+    {
+        std::filesystem::create_directories(rPath);
+    }
+}; // struct ScopedDirectory
+
+struct ScopedFile : public ScopedEntry
+{
+    ScopedFile(const std::filesystem::path& rPath)
+        : ScopedEntry(rPath)
+    {
+        std::ofstream file(rPath);
+    }
+}; // struct ScopedFile
+
+struct ScopedSymlink : public ScopedEntry
+{
+    ScopedSymlink(const std::filesystem::path& rSymlinkPath, const std::filesystem::path& rTargetPath)
+        : ScopedEntry(rSymlinkPath)
+    {
+        std::filesystem::exists(rTargetPath) && std::filesystem::is_directory(rTargetPath) ? std::filesystem::create_directory_symlink(rTargetPath, rSymlinkPath) : std::filesystem::create_symlink(rTargetPath, rSymlinkPath);
+    }
+}; // struct ScopedSymlink
+
+} // unnamed namespace
+
 KRATOS_TEST_CASE_IN_SUITE(FileSystemExists, KratosCoreFastSuite)
 {
     KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists("StupidNameShouldNotExist"));
@@ -281,6 +340,98 @@ KRATOS_TEST_CASE_IN_SUITE(MPISafeCreateDirectories, KratosCoreFastSuite)
     // final cleanup after test
     Kratos::filesystem::remove_all(base_dir_name);
     KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(base_dir_name));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ResolveSymlinksToFile, KratosCoreFastSuite)
+{
+    using Path = std::filesystem::path;
+
+    const ScopedDirectory working_dir("test_resolve_symlinks");
+    const Path file_path = working_dir / Path("file.test");
+
+    std::vector<ScopedSymlink> symlinks;
+    symlinks.reserve(3);
+
+    // Create symlinks
+    for (unsigned short level=0; level<=2; ++level) {
+            symlinks.emplace_back(working_dir / Path("symlink_" + std::to_string(level) + ".test"), level ? symlinks.back() : file_path);
+    }
+
+    {
+        // Level 0-2 indirections to a non-existent path
+        for (const auto& r_symlink : symlinks) {
+            KRATOS_CHECK_EQUAL(FilesystemExtensions::ResolveSymlinks(r_symlink), file_path);
+        }
+    }
+
+    {
+        // Level 0-2 indirections to an existing path
+        const ScopedFile file(file_path);
+        for (const auto& r_symlink : symlinks) {
+            KRATOS_CHECK_EQUAL(FilesystemExtensions::ResolveSymlinks(r_symlink), file_path);
+        }
+
+        // Input is a file
+        KRATOS_CHECK_EQUAL(FilesystemExtensions::ResolveSymlinks(file), file_path);
+    }
+
+    {
+        // Cyclic indirections 2-4 cycles
+        for (const auto& r_symlink : symlinks) {
+            ScopedSymlink loopback(file_path, r_symlink);
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(FilesystemExtensions::ResolveSymlinks(r_symlink), "cyclic");
+        }
+
+        // 1-cycle
+        ScopedSymlink loopback(file_path, file_path);
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(FilesystemExtensions::ResolveSymlinks(loopback), "cyclic");
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ResolveSymlinksToDirectory, KratosCoreFastSuite)
+{
+    using Path = std::filesystem::path;
+
+    const ScopedDirectory working_dir("test_resolve_symlinks");
+    const Path directory_path = working_dir / Path("directory");
+
+    std::vector<ScopedSymlink> symlinks;
+    symlinks.reserve(3);
+
+    // Create symlinks
+    for (unsigned short level=0; level<=2; ++level) {
+        symlinks.emplace_back(working_dir / Path("symlink_" + std::to_string(level) + ".test"), level ? symlinks.back() : directory_path);
+    }
+
+    {
+        // Level 0-2 indirections to a non-existent path
+        for (const auto& r_symlink : symlinks) {
+            KRATOS_CHECK_EQUAL(FilesystemExtensions::ResolveSymlinks(r_symlink), directory_path);
+        }
+    }
+
+    {
+        // Level 0-2 indirections to an existing directory
+        const ScopedDirectory directory(directory_path);
+        for (const auto& r_symlink : symlinks) {
+            KRATOS_CHECK_EQUAL(FilesystemExtensions::ResolveSymlinks(r_symlink), directory_path);
+        }
+
+        // Input is a directory
+        KRATOS_CHECK_EQUAL(FilesystemExtensions::ResolveSymlinks(directory), directory_path);
+    }
+
+    {
+        // Cyclic indirections 2-4 cycles
+        for (const auto& r_symlink : symlinks) {
+            ScopedSymlink loopback(directory_path, r_symlink);
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(FilesystemExtensions::ResolveSymlinks(r_symlink), "cyclic");
+        }
+
+        // 1-cycle
+        ScopedSymlink loopback(directory_path, directory_path);
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(FilesystemExtensions::ResolveSymlinks(loopback), "cyclic");
+    }
 }
 
 } // namespace Testing
