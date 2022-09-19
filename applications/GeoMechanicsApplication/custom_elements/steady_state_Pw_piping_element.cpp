@@ -11,9 +11,8 @@
 //
 
 // Application includes
-#define _USE_MATH_DEFINES
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
-#include <math.h>
+#include <cmath>
 namespace Kratos
 {
 

@@ -13,8 +13,8 @@
 #pragma once
 
 #include "cpp_geomechanics_application.h"
-#include <processes/apply_constant_scalarvalue_process.h>
-#include <utilities/read_materials_utility.h>
+#include "processes/apply_constant_scalarvalue_process.h"
+#include "utilities/read_materials_utility.h"
 #include "input_output/logger.h"
 #include "input_output/logger_output.h"
 #include "input_output/logger_table_output.h"

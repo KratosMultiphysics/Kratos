@@ -5,6 +5,8 @@ message("**** configuring KratosGeoMechanicsApplication ****")
 # PYBIND11
 include(pybind11Tools)
 
+add_compile_definitions(_USE_MATH_DEFINES)
+
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
