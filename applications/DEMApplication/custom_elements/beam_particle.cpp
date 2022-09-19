@@ -141,8 +141,7 @@ namespace Kratos {
     void BeamParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
                                                      const ProcessInfo& r_process_info,
                                                      array_1d<double, 3>& rElasticForce,
-                                                     array_1d<double, 3>& rContactForce,
-                                                     double& RollingResistance)
+                                                     array_1d<double, 3>& rContactForce)
     {
 
         KRATOS_TRY
@@ -364,7 +363,7 @@ namespace Kratos {
 
                 ComputeMoments(LocalContactForce[2],
                                TotalGlobalElasticContactForce,
-                               RollingResistance,
+                               data_buffer.mRollingResistance,
                                data_buffer.mLocalCoordSystem[2],
                                data_buffer.mpOtherParticle,
                                indentation,
