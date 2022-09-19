@@ -1,4 +1,4 @@
-from KratosMultiphysics import Parameters, Model, Logger
+import KratosMultiphysics as Kratos
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 import KratosMultiphysics.DEMApplication.plot_variables as plot_variables
 import KratosMultiphysics.DEMApplication.Chung_Ooi_class as COC
@@ -14,12 +14,12 @@ class ChungOoiTest2(KratosUnittest.TestCase):
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
         file_name = "ProjectParameters2.json"
         with open(file_name, 'r') as parameters_file:
-            parameters = Parameters(parameters_file.read())
+            parameters = Kratos.Parameters(parameters_file.read())
         return parameters
 
     def test_Run(self):
         parameters = self.GetInputParameters()
-        DEMAnalysisStageForChungOoiTest2(Model(), parameters).Run()
+        DEMAnalysisStageForChungOoiTest2(Kratos.Model(), parameters).Run()
         self.PrintResultsAfterAllComputations(parameters["MaxTimeStep"].GetDouble())
         self.CheckResults()
         if self.remove_all_results:
@@ -81,5 +81,5 @@ class DEMAnalysisStageForChungOoiTest2(DEMAnalysisStage):
 
 
 if __name__ == "__main__":
-    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
+    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
     KratosUnittest.main()

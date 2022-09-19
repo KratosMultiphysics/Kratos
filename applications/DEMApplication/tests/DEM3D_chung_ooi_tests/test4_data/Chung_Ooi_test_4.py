@@ -1,4 +1,4 @@
-from KratosMultiphysics import Parameters, Model, Logger, VELOCITY_Y, VELOCITY_Z, ANGULAR_VELOCITY_X
+import KratosMultiphysics as Kratos
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 import KratosMultiphysics.DEMApplication.plot_variables as plot_variables
 import KratosMultiphysics.DEMApplication.Chung_Ooi_class as COC
@@ -25,13 +25,13 @@ class ChungOoiTest4(KratosUnittest.TestCase):
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
         file_name = "ProjectParameters4.json"
         with open(file_name, 'r') as parameters_file:
-            parameters = Parameters(parameters_file.read())
+            parameters = Kratos.Parameters(parameters_file.read())
         return parameters
 
     def test_Run(self):
         parameters = self.GetInputParameters()
         for iteration in range(1, 18):
-            iteration_case = DEMAnalysisStageForChungOoiTest4(Model(), parameters, iteration)
+            iteration_case = DEMAnalysisStageForChungOoiTest4(Kratos.Model(), parameters, iteration)
             iteration_case.Run()
             self.final_angular_vel_list.append(iteration_case.final_angular_vel)
             self.rebound_angle_list.append(iteration_case.rebound_angle)
@@ -131,14 +131,14 @@ class DEMAnalysisStageForChungOoiTest4(DEMAnalysisStage):
         self.initial_tangential_vel =  -3.9 * sin(self.degrees * pi / 180.0)
         initial_normal_vel = -3.9 * cos(self.degrees * pi / 180.0)
         for node in modelpart.Nodes:
-            node.SetSolutionStepValue(VELOCITY_Y, initial_normal_vel)
-            node.SetSolutionStepValue(VELOCITY_Z, self.initial_tangential_vel)
+            node.SetSolutionStepValue(Kratos.VELOCITY_Y, initial_normal_vel)
+            node.SetSolutionStepValue(Kratos.VELOCITY_Z, self.initial_tangential_vel)
 
     def GetFinalData(self, modelpart):
         for node in modelpart.Nodes:
-            self.final_angular_vel = node.GetSolutionStepValue(ANGULAR_VELOCITY_X)
-            self.final_normal_center_velocity = node.GetSolutionStepValue(VELOCITY_Y)
-            self.final_tangential_center_velocity = node.GetSolutionStepValue(VELOCITY_Z)
+            self.final_angular_vel = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY_X)
+            self.final_normal_center_velocity = node.GetSolutionStepValue(Kratos.VELOCITY_Y)
+            self.final_tangential_center_velocity = node.GetSolutionStepValue(Kratos.VELOCITY_Z)
             self.final_tangential_contact_velocity = self.final_tangential_center_velocity - self.final_angular_vel * 0.0025
             self.rebound_angle = 180 / pi * atan(self.final_tangential_contact_velocity / -self.final_normal_center_velocity)
             self.tangential_restitution_coefficient = self.final_tangential_center_velocity / self.initial_tangential_vel
@@ -154,5 +154,5 @@ class DEMAnalysisStageForChungOoiTest4(DEMAnalysisStage):
 
 
 if __name__ == "__main__":
-    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
+    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
     KratosUnittest.main()

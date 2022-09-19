@@ -1,4 +1,4 @@
-from KratosMultiphysics import Parameters, Model, Logger, VELOCITY_Y
+import KratosMultiphysics as Kratos
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 import KratosMultiphysics.DEMApplication.plot_variables as plot_variables
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -14,13 +14,13 @@ class ChungOoiTest3(KratosUnittest.TestCase):
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
         file_name = "ProjectParameters3" + str(iteration) + ".json"
         with open(file_name, 'r') as parameters_file:
-            parameters = Parameters(parameters_file.read())
+            parameters = Kratos.Parameters(parameters_file.read())
         return parameters
 
     def test_Run(self):
         for iteration in range(1, 7):
             parameters = self.GetInputParameters(iteration)
-            iteration_case = DEMAnalysisStageForChungOoiTest3(Model(), parameters)
+            iteration_case = DEMAnalysisStageForChungOoiTest3(Kratos.Model(), parameters)
             iteration_case.Run()
             self.measured_restitution_numbers.append(iteration_case.restitution_coefficient)
 
@@ -58,7 +58,7 @@ class DEMAnalysisStageForChungOoiTest3(DEMAnalysisStage):
 
     def Finalize(self):
         for node in self.spheres_model_part.Nodes:
-            final_vel = node.GetSolutionStepValue(VELOCITY_Y)
+            final_vel = node.GetSolutionStepValue(Kratos.VELOCITY_Y)
         self.restitution_coefficient = final_vel / 3.9
         self.plotter.close_files()
         super().Finalize()
@@ -69,5 +69,5 @@ class DEMAnalysisStageForChungOoiTest3(DEMAnalysisStage):
 
 
 if __name__ == "__main__":
-    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
+    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
     KratosUnittest.main()
