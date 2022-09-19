@@ -442,7 +442,7 @@ void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<false>(
             const auto& r_geom = rElem.GetGeometry();
             
             unsigned int npos=0, nneg=0;
-            for (const auto& r_node : geom) {
+            for (const auto& r_node : r_geom) {
                 r_node.FastGetSolutionStepValue(DISTANCE) > 0 ? ++npos : ++nneg;
             }
 
