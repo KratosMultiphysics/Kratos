@@ -439,7 +439,7 @@ void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<false>(
         //detect all the nodes that belong to cut elements
         ModelPart::NodesContainerType cut_elem_nodes;
         for(const auto& rElem : rVolumeModelPart.Elements()){
-            const auto& geom = rElem.GetGeometry();
+            const auto& r_geom = rElem.GetGeometry();
             
             unsigned int npos=0, nneg=0;
             for (const auto& r_node : geom) {
