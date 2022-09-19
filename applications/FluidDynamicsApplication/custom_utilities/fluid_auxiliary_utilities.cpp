@@ -466,7 +466,7 @@ void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<false>(
                                                                 neighbours.begin(), 
                                                                 distances.begin(), 
                                                                 neighbours.size());
-                KRATOS_ERROR_IF(nfound == 0) << "not found any neighbour!!! for node " << rNode.Id() << std::endl;
+                KRATOS_ERROR_IF(nfound == 0) << "Not found any neighbor for node " << rNode.Id() << " in skin model part." << std::endl;
 
                 //compute RBF basis
                 Matrix cloud_coords(nfound,3);
