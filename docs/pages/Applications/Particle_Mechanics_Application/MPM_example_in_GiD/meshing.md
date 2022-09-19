@@ -16,11 +16,27 @@ For the Meshing we click on **`Mesh`** in the upper toolbar. Then a dropdown men
 
 In a first step, we assign a structured mesh to the cantilever (body mesh). Therefore select the area of the cantilever by clicking on the purple rectangle within it that changes its color from purple to red as a consequence. One can see this in the picture above. Thereafter, a pop-up window appears where we have to enter the mesh size of lines. Here we enter in our example **0.2**. 
 
-![assign_body_mesh_11](https://user-images.githubusercontent.com/51473791/168787212-de5a83b8-7c5a-4da3-b870-349ddf3d6294.png)
+![bodymesh_enter_sizes](https://user-images.githubusercontent.com/51473791/190999754-934c1ee9-e118-4ddc-b9b7-828a5fe6ae1a.jpg)
 
 As we assign a strucutured mesh to the area of the cantilever we also have specify edges of the area to create the structure of the mesh. The mesh size of the assigned lines creates the mesh size of the area. In the example we choose for the cantilever its the upper and lower edge. Usually one should provide four edges for a good mesh generation, but in this case the outer edges of cantilever area are part of the background rectangle. So we can't select them.
 
-![assign_body_mesh_2](https://user-images.githubusercontent.com/51473791/168787234-3f996da7-f688-449b-a7e3-5703debf3888.png)
+![bodymesh_enter_surrounding_lines_1](https://user-images.githubusercontent.com/51473791/191000193-4f8d1395-8570-4e1f-8e28-db843173b354.jpg)
+
+Choose correct lines for vertical sides of rectangle: 
+
+![bodymesh_enter_surrounding_lines_2](https://user-images.githubusercontent.com/51473791/191000262-fe2cf0a1-5b6e-4d56-a8cb-376a54a54359.jpg)
+
+Error message:
+
+![bodymesh_enter_surrounding_lines_3](https://user-images.githubusercontent.com/51473791/191000297-1a883ceb-d3c1-4782-a969-edf62fad323c.jpg)
+
+After confirming the error-message, one should end up with the following lines (in case the horizontal lines aren't red anymore, just click on one of the once again):
+
+![final_lines](https://user-images.githubusercontent.com/51473791/191000366-28d219af-b8ae-470c-8dde-bc3379175dba.jpg)
+
+Finally, the meshsize on the surrounding lines must be specified. Here we enter 0.05 once more.
+
+![size_on_lines](https://user-images.githubusercontent.com/51473791/191000597-291537e2-2b47-46c7-b10e-9c0450828c9d.jpg)
 
 The background grid is created in an analogous manner. Instead of the area of the cantilever we choose the area of the background domain and here we can assign a size to the four edges of the rectangle for the mesh generation.
 
@@ -32,4 +48,5 @@ When we are done with adjusting the meshing parameters, we create the mesh by cl
 
 The meshing parameters we defined in the previous step override the size that is displayed in the pop-up window. So we simply click **`Ok`**. A further pop-up window informs us about the number of elements, etc. that were generated. Thereafter, the meshed geometry is displayed.
 
-![meshed_geometry](https://user-images.githubusercontent.com/51473791/168790908-22e3b59b-2ef8-4346-8035-031df06e0639.png)
+![refined_mesh](https://user-images.githubusercontent.com/51473791/191000975-fb7b4628-4276-4f12-8e06-6d0c055f22f0.jpg)
+
