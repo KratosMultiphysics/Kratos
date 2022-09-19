@@ -420,7 +420,7 @@ void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<false>(
     rpModShapeFunc->ComputeNegativeExteriorFaceAreaNormals(rNormals, FaceId, GeometryData::IntegrationMethod::GI_GAUSS_2);
 }
 
-    void FluidAuxiliaryUtilities::EmbeddedSkinToVolumeMapping(
+    void FluidAuxiliaryUtilities::MapEmbeddedVelocityFromSkinToVolume(
         ModelPart& rVolumeModelPart,
         ModelPart& rSkinModelPart,
         const double SearchRadius
@@ -482,7 +482,7 @@ void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<false>(
                 //assign interpolation
                 auto& r_v = rNode.GetValue(EMBEDDED_VELOCITY); //we know it is zero since we zeroed all the nodes at the beginning of the function
                 for(unsigned int i=0; i<nfound; ++i){
-                    noalias(r_v) += shape_functions[i]*neighbours[i]->FastGetSolutionStepValue(VELOCITY);
+                    noalias(r_v) += shape_functions[i]*r_neighbours[i]->FastGetSolutionStepValue(VELOCITY);
                 }
             });
     }
