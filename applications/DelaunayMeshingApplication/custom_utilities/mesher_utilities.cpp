@@ -504,14 +504,11 @@ namespace Kratos
       for (unsigned int i = 0; i < size; ++i)
       {
 
-        // std::cout<<" V: ("<<rGeometry[i].Id()<<"): ["<<rGeometry[i].X()<<", "<<rGeometry[i].Y()<<", "<<rGeometry[i].Z()<<"]  Normal:"<<rGeometry[i].FastGetSolutionStepValue(NORMAL)<<std::endl;
-
         Normal = rGeometry[i].FastGetSolutionStepValue(NORMAL);
 
         double NormNormal = norm_2(Normal);
         if (NormNormal != 0)
           Normal /= NormNormal;
-
 
         // change position to be the vector from the vertex to the geometry center
         Corner = Center - Vertices[i];
@@ -535,8 +532,6 @@ namespace Kratos
         }
 
         double coplanar = inner_prod(Coplanar, Normal);
-
-        // std::cout<<" V["<<i<<"]: "<<rGeometry[i]<<" Normal:"<<Normal<<" coplanar "<<fabs(coplanar)<<" < "<<ortho<<std::endl;
 
 	    if(coplanar>0){
           numsamedirection++;
@@ -577,15 +572,8 @@ namespace Kratos
       if (numsamedirection == num && numorthogonal == 0)
         outer = false;
 
-      // if(numorthogonal>=1)
-      //   outer=false;
+ }
 
-      // std::cout<<std::endl;
-      // std::cout<<"  [ no:"<<numouter<<";ne:"<<numextra<<";nc:"<<numcoplanar<<";ns: "<<numsamedirection<<";nor:"<<numorthogonal<<"] ACCEPTED: "<<outer<<std::endl;
-    }
-    else{
-      // std::cout<<" No boundary Element "<<BoundaryNodes<<std::endl;
-    }
 
     return outer; // if is outside the body domain returns true
 
@@ -792,11 +780,6 @@ namespace Kratos
       if (rGeometry[i].Is(BOUNDARY))
         NumberOfBoundaryNodes += 1;
 
-    // for(unsigned int i=0; i<FaceNormals.size(); ++i)
-    //   {
-    //     std::cout<<"FaceNormal ["<<i<<"] "<<FaceNormals[i]<<std::endl;
-    //   }
-
     if (NumberOfBoundaryNodes == size)
     { // boundary elements
       if (CoincidentNormals >= 4)
@@ -938,14 +921,12 @@ namespace Kratos
       { // EDGE_EDGE
 
         // compare vertex normals (detect coplanar faces and orthogonal faces)
-        // if( !CheckVertexNormals(rGeometry) )
         distorted = true;
       }
       else if (ContactType == PointToPoint)
       { // POINT_POINT
 
         // compare vertex normals (detect coplanar faces and orthogonal faces)
-        // if( !CheckVertexNormals(rGeometry) )
         distorted = true;
       }
     }
@@ -976,9 +957,9 @@ namespace Kratos
 
     if ((BoundaryPoint.GetValue(NEIGHBOUR_NODES)).size() != 0)
     {
-      double xc = BoundaryPoint.X();
-      double yc = BoundaryPoint.Y();
-      double zc = BoundaryPoint.Z();
+      const double xc = BoundaryPoint.X();
+      const double yc = BoundaryPoint.Y();
+      const double zc = BoundaryPoint.Z();
 
       double h_nodes = 0;
       double h = 1000.0;
@@ -988,9 +969,9 @@ namespace Kratos
       {
         if (i_nnode.Is(BOUNDARY))
         {
-          double x = i_nnode.X();
-          double y = i_nnode.Y();
-          double z = i_nnode.Z();
+          const double x = i_nnode.X();
+          const double y = i_nnode.Y();
+          const double z = i_nnode.Z();
           double l = (x - xc) * (x - xc);
           l += (y - yc) * (y - yc);
           l += (z - zc) * (z - zc);
@@ -1399,10 +1380,10 @@ namespace Kratos
     if (rDimension == 2)
     {
       Triangle2D3<Node<3>> CurrentTriangle(rVertices);
-      double CurrentArea = CurrentTriangle.Area();
+      const double CurrentArea = CurrentTriangle.Area();
 
       // new volume with a 1.0 * DeltaDisplacement
-      double MovedArea = GetMovedVolume(rVertices, rDimension, 1.0);
+      const double MovedArea = GetMovedVolume(rVertices, rDimension, 1.0);
 
       // std::cout<<" control fluid  "<<MovedArea<<" "<<CurrentArea<<std::endl;
       VolumeChange = CurrentArea - MovedArea;
@@ -1416,10 +1397,10 @@ namespace Kratos
     {
 
       Tetrahedra3D4<Node<3>> CurrentTetrahedron(rVertices);
-      double CurrentVolume = CurrentTetrahedron.Volume();
+      const double CurrentVolume = CurrentTetrahedron.Volume();
 
       // new volume with a 1.0 * DeltaDisplacement
-      double MovedVolume = GetMovedVolume(rVertices, rDimension, 1.0);
+      const double MovedVolume = GetMovedVolume(rVertices, rDimension, 1.0);
 
       // std::cout<<" control fluid  "<<MovedVolume<<" "<<CurrentVolume<<std::endl;
       VolumeChange = CurrentVolume - MovedVolume;
@@ -1448,13 +1429,13 @@ namespace Kratos
       array_1d<double, 3> P1;
       noalias(P1) = rVertices[1].Coordinates() + MovementFactor * (rVertices[1].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[1].FastGetSolutionStepValue(DISPLACEMENT, 1));
 
-      double x10 = P1[0] - P0[0];
-      double y10 = P1[1] - P0[1];
+      const double x10 = P1[0] - P0[0];
+      const double y10 = P1[1] - P0[1];
 
       noalias(P1) = rVertices[2].Coordinates() + MovementFactor * (rVertices[2].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[2].FastGetSolutionStepValue(DISPLACEMENT, 1));
 
-      double x20 = P1[0] - P0[0];
-      double y20 = P1[1] - P0[1];
+      const double x20 = P1[0] - P0[0];
+      const double y20 = P1[1] - P0[1];
 
       MovedVolume = 0.5 * (x10 * y20 - y10 * x20);
     }
@@ -1470,21 +1451,21 @@ namespace Kratos
       array_1d<double, 3> P1;
       noalias(P1) = rVertices[1].Coordinates() + MovementFactor * (rVertices[1].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[1].FastGetSolutionStepValue(DISPLACEMENT, 1));
 
-      double x10 = P1[0] - P0[0];
-      double y10 = P1[1] - P0[1];
-      double z10 = P1[2] - P0[2];
+      const double x10 = P1[0] - P0[0];
+      const double y10 = P1[1] - P0[1];
+      const double z10 = P1[2] - P0[2];
 
       noalias(P1) = rVertices[2].Coordinates() + MovementFactor * (rVertices[2].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[2].FastGetSolutionStepValue(DISPLACEMENT, 1));
 
-      double x20 = P1[0] - P0[0];
-      double y20 = P1[1] - P0[1];
-      double z20 = P1[2] - P0[2];
+      const double x20 = P1[0] - P0[0];
+      const double y20 = P1[1] - P0[1];
+      const double z20 = P1[2] - P0[2];
 
       noalias(P1) = rVertices[3].Coordinates() + MovementFactor * (rVertices[3].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[3].FastGetSolutionStepValue(DISPLACEMENT, 1));
 
-      double x30 = P1[0] - P0[0];
-      double y30 = P1[1] - P0[1];
-      double z30 = P1[2] - P0[2];
+      const double x30 = P1[0] - P0[0];
+      const double y30 = P1[1] - P0[1];
+      const double z30 = P1[2] - P0[2];
 
       MovedVolume = onesixth * (x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30);
 
@@ -1566,8 +1547,7 @@ namespace Kratos
     }
     double detF = MathUtils<double>::Det(F);
 
-    if (detF < 0)
-      std::cout << " NEGATIVE ELEMENT (DET_F: " << detF << ")" << std::endl;
+    KRATOS_WARNING_IF("CheckDetF", detF < 0) << "NEGATIVE ELEMENT (DET_F:" << detF << ")" << std::endl;
 
     return detF;
   }
