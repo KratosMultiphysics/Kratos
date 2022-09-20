@@ -31,7 +31,7 @@ DEBUG_PRINTING_ID_2 2
 End Properties
 
 Begin Nodes
-    1   0.0001500000   0.0000000000   0.0000000000
+    1   0.00014900000   0.0000000000   0.0000000000
     2   0.0000000000   0.0000000000   0.0000000000
 End Nodes
 
@@ -67,8 +67,8 @@ Begin SubModelPart PartsCont_dems // Group dems // Subtree PartsCont
 End SubModelPart
 Begin SubModelPart 1 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: right
   Begin SubModelPartData // DEM-VelocityBC. Group name: right
-    IMPOSED_VELOCITY_X_VALUE 0.0
-    IMPOSED_VELOCITY_Y_VALUE 0.1
+    IMPOSED_VELOCITY_X_VALUE 0.1
+    IMPOSED_VELOCITY_Y_VALUE 0.0
     IMPOSED_VELOCITY_Z_VALUE 0.0
     IMPOSED_ANGULAR_VELOCITY_X_VALUE 0.0
     IMPOSED_ANGULAR_VELOCITY_Y_VALUE 0.0
@@ -82,12 +82,15 @@ Begin SubModelPart 1 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: 
   Begin SubModelPartNodes
          1
   End SubModelPartNodes
+  Begin SubModelPartElements
+            1
+  End SubModelPartElements
 End SubModelPart
 
 Begin SubModelPart 2 // GUI DEM-VelocityBC - DEM-VelocityBC2D - group identifier: left
   Begin SubModelPartData // DEM-VelocityBC. Group name: left
-    IMPOSED_VELOCITY_X_VALUE 0.0
-    IMPOSED_VELOCITY_Y_VALUE -0.1
+    IMPOSED_VELOCITY_X_VALUE -0.1
+    IMPOSED_VELOCITY_Y_VALUE 0.0
     IMPOSED_VELOCITY_Z_VALUE 0.0
     IMPOSED_ANGULAR_VELOCITY_X_VALUE 0.0
     IMPOSED_ANGULAR_VELOCITY_Y_VALUE 0.0
@@ -101,5 +104,8 @@ Begin SubModelPart 2 // GUI DEM-VelocityBC - DEM-VelocityBC2D - group identifier
   Begin SubModelPartNodes
          2
   End SubModelPartNodes
+  Begin SubModelPartElements
+            2
+  End SubModelPartElements
 End SubModelPart
 
