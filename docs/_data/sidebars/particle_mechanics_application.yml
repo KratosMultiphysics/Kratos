@@ -13,6 +13,21 @@ entries:
     output: web
     folderitems:
     - title: Description
+      url: /pages/Applications/Particle_Mechanics_Application/MPM_example_in_GiD/introduction.html
+      output: web
+    - title: Set up of example
+      url: /pages/Applications/Particle_Mechanics_Application/MPM_example_in_GiD/set_up.html
+      output: web
+    - title: Meshing
+      url: /pages/Applications/Particle_Mechanics_Application/MPM_example_in_GiD/meshing.html
+      output: web
+    - title: Description
+      url: /pages/Applications/Particle_Mechanics_Application/MPM_example_in_GiD/calculation.html
+      output: web
+    - title: Post processing
+      url: /pages/Applications/Particle_Mechanics_Application/MPM_example_in_GiD/post_processing.html
+      output: web
+    - title: Description
       url: /pages/Applications/Particle_Mechanics_Application/MPM_example_in_GiD/Description.html
       output: web
   - title: Examples
