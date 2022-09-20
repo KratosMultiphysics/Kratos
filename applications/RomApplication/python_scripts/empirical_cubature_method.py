@@ -15,49 +15,79 @@ class EmpiricalCubatureMethod():
     """
 
 
+
+    def __init__(
+        self,
+        ECM_tolerance = 0,
+        Filter_tolerance = 1e-16,
+        Plotting = False,
+        MaximumNumberUnsuccesfulIterations = 100
+    ):
         """
         Constructor setting up the parameters for the Element Selection Strategy
             ECM_tolerance: approximation tolerance for the element selection algorithm
             Filter_tolerance: parameter limiting the number of candidate points (elements) to those above this tolerance
             Plotting: whether to plot the error evolution of the element selection algorithm
         """
-    def __init__(self, ECM_tolerance = 0, Filter_tolerance = 1e-16, Plotting = False):
         self.ECM_tolerance = ECM_tolerance
         self.Filter_tolerance = Filter_tolerance
         self.Name = "EmpiricalCubature"
         self.Plotting = Plotting
+        self.MaximumNumberUnsuccesfulIterations = MaximumNumberUnsuccesfulIterations
 
-
-
+    def SetUp(
+        self,
+        ResidualsBasis,
+        InitialCandidatesSet = None,
+        constrain_sum_of_weights=True
+    ):
         """
         Method for setting up the element selection
         input:  ResidualsBasis: numpy array containing a basis to the residuals projected
         """
-    def SetUp(self, ResidualsBasis, constrain_sum_of_weights=True):
-
         self.W = np.ones(np.shape(ResidualsBasis)[0])
         self.G = ResidualsBasis.T
+        self.y = InitialCandidatesSet
         if constrain_sum_of_weights:
-            self.G = np.vstack([ self.G , np.ones( np.shape(self.G)[1] )]  )
+            """
+            -This is necessary in case the sum of the columns of G equals the 0 vector,to avoid the trivial solution
+            -It is enforcing that the sum of the weights equals the number of columns in G (total number of elements). It
+            loses this meaning if algorithm is being called within a nested strategy
+            """
+            a = self.W - self.G.T@( self.G @ self.W)
+            self.G = np.vstack([ self.G , a] )
         self.b = self.G @ self.W
+        self.UnsuccesfulIterations = 0
 
 
+
+    def Initialize(self):
         """
         Method performing calculations required before launching the Calculate method
         """
-    def Initialize(self):
         self.Gnorm = np.sqrt(sum(np.multiply(self.G, self.G), 0))
         M = np.shape(self.G)[1]
         normB = np.linalg.norm(self.b)
-        self.y = np.arange(0,M,1) # Set of candidate points (those whose associated column has low norm are removed)
         GnormNOONE = np.sqrt(sum(np.multiply(self.G[:-1,:], self.G[:-1,:]), 0))
-        if self.Filter_tolerance > 0:
-            TOL_REMOVE = self.Filter_tolerance * normB
-            rmvpin = np.where(GnormNOONE[self.y] < TOL_REMOVE)
-            self.y = np.delete(self.y,rmvpin)
+
+        if self.y is None:
+            self.y = np.arange(0,M,1) # Set of candidate points (those whose associated column has low norm are removed)
+
+            if self.Filter_tolerance > 0:
+                TOL_REMOVE = self.Filter_tolerance * normB
+                rmvpin = np.where(GnormNOONE[self.y] < TOL_REMOVE)
+                self.y = np.delete(self.y,rmvpin)
+        else:
+            self.y_complement = np.arange(0,M,1)
+            self.y_complement = np.delete(self.y_complement, self.y)# Set of candidate points (those whose associated column has low norm are removed)
+            if self.Filter_tolerance > 0:
+                TOL_REMOVE = self.Filter_tolerance * normB
+                rmvpin = np.where(GnormNOONE[self.y_complement] < TOL_REMOVE)
+                self.y_complement = np.delete(self.y_complement,rmvpin)
+
         self.z = {}  # Set of intergration points
         self.mPOS = 0 # Number of nonzero weights
-        self.r = self.b # residual vector
+        self.r = self.b.copy() # residual vector
         self.m = len(self.b) # Default number of points
         self.nerror = np.linalg.norm(self.r)/normB
         self.nerrorACTUAL = self.nerror
