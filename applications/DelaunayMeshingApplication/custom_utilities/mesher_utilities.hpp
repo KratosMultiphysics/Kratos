@@ -698,15 +698,17 @@ namespace Kratos
                   array_1d<double, 3> BoundingBoxLowerPoint;
                   array_1d<double, 3> BoundingBoxUpperPoint;
 
-                  std::vector<bool> UseRefiningBox;
-                  std::vector<double> RefiningBoxInitialTime;
-                  std::vector<double> RefiningBoxFinalTime;
-                  std::vector<double> RefiningBoxMeshSize;
-                  std::vector<array_1d<double, 3>> RefiningBoxMinimumPoint;
-                  std::vector<array_1d<double, 3>> RefiningBoxMaximumPoint;
+                  bool UseRefiningBox;
+                  double RefiningBoxInitialTime;
+                  double RefiningBoxFinalTime;
+                  double RefiningBoxMeshSize;
+                  array_1d<double, 3> RefiningBoxMinimumPoint;
+                  array_1d<double, 3> RefiningBoxMaximumPoint;
 
-                  std::vector<array_1d<double, 3>> RefiningBoxShiftedMinimumPoint;
-                  std::vector<array_1d<double, 3>> RefiningBoxShiftedMaximumPoint;
+                  array_1d<double, 3> RefiningBoxMinInternalPoint;
+                  array_1d<double, 3> RefiningBoxMinExternalPoint;
+                  array_1d<double, 3> RefiningBoxMaxInternalPoint;
+                  array_1d<double, 3> RefiningBoxMaxExternalPoint;
 
                   void Set(Flags ThisFlag)
                   {
@@ -867,6 +869,11 @@ namespace Kratos
                         OutMesh.Initialize();
                         MidMesh.Initialize();
 
+                        RefiningBoxMinInternalPoint = ZeroVector(3);
+                        RefiningBoxMinExternalPoint = ZeroVector(3);
+                        RefiningBoxMaxInternalPoint = ZeroVector(3);
+                        RefiningBoxMaxExternalPoint = ZeroVector(3);
+
                         // RemeshInfo.Initialize();
                         // Refine.Initialize();
                   };
@@ -910,60 +917,62 @@ namespace Kratos
                         BoundingBoxFinalTime = rBoundingBoxFinalTime;
                   };
 
-                  void InitializeRefiningBoxParameters(unsigned int size)
+                  void SetUseRefiningBox(bool rUseRefiningBox)
                   {
-                        UseRefiningBox.resize(size);
-                        RefiningBoxMinimumPoint.resize(size);
-                        RefiningBoxMaximumPoint.resize(size);
-                        RefiningBoxShiftedMinimumPoint.resize(size);
-                        RefiningBoxShiftedMaximumPoint.resize(size);
-                        RefiningBoxInitialTime.resize(size);
-                        RefiningBoxFinalTime.resize(size);
-                        RefiningBoxMeshSize.resize(size);
-                  }
-
-                  void SetUseRefiningBox(unsigned int index, bool rUseRefiningBox)
-                  {
-                        UseRefiningBox[index] = rUseRefiningBox;
+                        UseRefiningBox = rUseRefiningBox;
                   };
 
-                  void SetRefiningBoxMinimumPoint(unsigned int index, double rRefiningBoxMinimumPointX, double rRefiningBoxMinimumPointY, double rRefiningBoxMinimumPointZ)
+                  void SetRefiningBoxMinimumPoint(double rRefiningBoxMinimumPointX, double rRefiningBoxMinimumPointY, double rRefiningBoxMinimumPointZ)
                   {
-                        RefiningBoxMinimumPoint[index][0] = rRefiningBoxMinimumPointX;
-                        RefiningBoxMinimumPoint[index][1] = rRefiningBoxMinimumPointY;
-                        RefiningBoxMinimumPoint[index][2] = rRefiningBoxMinimumPointZ;
+                        RefiningBoxMinimumPoint[0] = rRefiningBoxMinimumPointX;
+                        RefiningBoxMinimumPoint[1] = rRefiningBoxMinimumPointY;
+                        RefiningBoxMinimumPoint[2] = rRefiningBoxMinimumPointZ;
                   };
 
-                  void SetRefiningBoxMaximumPoint(unsigned int index, double rRefiningBoxMaximumPointX, double rRefiningBoxMaximumPointY, double rRefiningBoxMaximumPointZ)
+                  void SetRefiningBoxMaximumPoint(double rRefiningBoxMaximumPointX, double rRefiningBoxMaximumPointY, double rRefiningBoxMaximumPointZ)
                   {
-                        RefiningBoxMaximumPoint[index][0] = rRefiningBoxMaximumPointX;
-                        RefiningBoxMaximumPoint[index][1] = rRefiningBoxMaximumPointY;
-                        RefiningBoxMaximumPoint[index][2] = rRefiningBoxMaximumPointZ;
+                        RefiningBoxMaximumPoint[0] = rRefiningBoxMaximumPointX;
+                        RefiningBoxMaximumPoint[1] = rRefiningBoxMaximumPointY;
+                        RefiningBoxMaximumPoint[2] = rRefiningBoxMaximumPointZ;
                   };
 
-                  void SetRefiningBoxShiftedMinimumPoint(unsigned int index, double rPointX, double rPointY, double rPointZ)
+                  void SetRefiningBoxMinExternalPoint(double rPointX, double rPointY, double rPointZ)
                   {
-                        RefiningBoxShiftedMinimumPoint[index][0] = rPointX;
-                        RefiningBoxShiftedMinimumPoint[index][1] = rPointY;
-                        RefiningBoxShiftedMinimumPoint[index][2] = rPointZ;
+                        RefiningBoxMinExternalPoint[0] = rPointX;
+                        RefiningBoxMinExternalPoint[1] = rPointY;
+                        RefiningBoxMinExternalPoint[2] = rPointZ;
                   };
 
-                  void SetRefiningBoxShiftedMaximumPoint(unsigned int index, double rPointX, double rPointY, double rPointZ)
+                  void SetRefiningBoxMinInternalPoint(double rPointX, double rPointY, double rPointZ)
                   {
-                        RefiningBoxShiftedMaximumPoint[index][0] = rPointX;
-                        RefiningBoxShiftedMaximumPoint[index][1] = rPointY;
-                        RefiningBoxShiftedMaximumPoint[index][2] = rPointZ;
+                        RefiningBoxMinInternalPoint[0] = rPointX;
+                        RefiningBoxMinInternalPoint[1] = rPointY;
+                        RefiningBoxMinInternalPoint[2] = rPointZ;
                   };
 
-                  void SetRefiningBoxTimeInterval(unsigned int index, double rRefiningBoxInitialTime, double rRefiningBoxFinalTime)
+                  void SetRefiningBoxMaxExternalPoint(double rPointX, double rPointY, double rPointZ)
                   {
-                        RefiningBoxInitialTime[index] = rRefiningBoxInitialTime;
-                        RefiningBoxFinalTime[index] = rRefiningBoxFinalTime;
+                        RefiningBoxMaxExternalPoint[0] = rPointX;
+                        RefiningBoxMaxExternalPoint[1] = rPointY;
+                        RefiningBoxMaxExternalPoint[2] = rPointZ;
                   };
 
-                  void SetRefiningBoxMeshSize(unsigned int index, double rRefiningBoxMeshSize)
+                  void SetRefiningBoxMaxInternalPoint(double rPointX, double rPointY, double rPointZ)
                   {
-                        RefiningBoxMeshSize[index] = rRefiningBoxMeshSize;
+                        RefiningBoxMaxInternalPoint[0] = rPointX;
+                        RefiningBoxMaxInternalPoint[1] = rPointY;
+                        RefiningBoxMaxInternalPoint[2] = rPointZ;
+                  };
+
+                  void SetRefiningBoxTimeInterval(double rRefiningBoxInitialTime, double rRefiningBoxFinalTime)
+                  {
+                        RefiningBoxInitialTime = rRefiningBoxInitialTime;
+                        RefiningBoxFinalTime = rRefiningBoxFinalTime;
+                  };
+
+                  void SetRefiningBoxMeshSize(double rRefiningBoxMeshSize)
+                  {
+                        RefiningBoxMeshSize = rRefiningBoxMeshSize;
                   };
             };
 
@@ -1045,17 +1054,6 @@ namespace Kratos
             // computes deformation gradient determinant
             double GetDeformationGradientDeterminant(GeometryType &rVertices, const unsigned int &rDimension);
 
-            void DefineMeshSizeInTransitionZones2D(MeshingParameters &rMeshingVariables,
-                                                   double currentTime,
-                                                   array_1d<double, 3> NodeCoordinates,
-                                                   double &meanMeshSize,
-                                                   bool &insideTransitionZone);
-
-            void DefineMeshSizeInTransitionZones3D(MeshingParameters &rMeshingVariables,
-                                                   double currentTime,
-                                                   array_1d<double, 3> NodeCoordinates,
-                                                   double &meanMeshSize,
-                                                   bool &insideTransitionZone);
             //*******************************************************************************************
             //*******************************************************************************************
 

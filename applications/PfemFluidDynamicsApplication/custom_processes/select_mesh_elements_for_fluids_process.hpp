@@ -118,17 +118,22 @@ namespace Kratos
 
             const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
             double currentTime = rCurrentProcessInfo[TIME];
+            double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+            bool firstMesh = false;
+            if (currentTime < 2 * timeInterval)
+            {
+                firstMesh = true;
+            }
+
             bool box_side_element = false;
             bool wrong_added_node = false;
+
             int number_of_slivers = 0;
 
-            bool refiningBox = false;
-            for (unsigned int index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
+            bool refiningBox = mrRemesh.UseRefiningBox;
+            if (!(mrRemesh.UseRefiningBox == true && currentTime > mrRemesh.RefiningBoxInitialTime && currentTime < mrRemesh.RefiningBoxFinalTime))
             {
-                if (mrRemesh.UseRefiningBox[index] == true && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
-                {
-                    refiningBox = true;
-                }
+                refiningBox = false;
             }
 
             if (mrRemesh.ExecutionOptions.IsNot(MesherUtilities::SELECT_TESSELLATION_ELEMENTS))
@@ -179,10 +184,6 @@ namespace Kratos
                     std::vector<array_1d<double, 3>> nodesVelocities;
                     nodesVelocities.resize(nds);
                     unsigned int isolatedNodesInTheElement = 0;
-                    double rigidNodeLocalMeshSize = 0;
-                    double rigidNodeMeshCounter = 0;
-                    // array_1d<double, 3> Edges(3, 0.0); // neighbor 3D edges to a node
-
                     for (unsigned int pn = 0; pn < nds; pn++)
                     {
                         if (OutElementList[el * nds + pn] <= 0)
@@ -212,7 +213,6 @@ namespace Kratos
                         if (vertices.back().GetValue(NO_MESH))
                         {
                             noremesh = true;
-                            std::cout << "I SHOULD NOT ENTER HERE" << std::endl;
                         }
 
                         previouslyFreeSurfaceNodes += vertices.back().FastGetSolutionStepValue(FREESURFACE);       // it is 1 if it was free-surface (set in build_mesh_boundary_for_fluids)
@@ -220,12 +220,6 @@ namespace Kratos
 
                         if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID))
                         {
-                            if (vertices.back().Is(RIGID))
-                            {
-                                rigidNodeLocalMeshSize += vertices.back().FastGetSolutionStepValue(NODAL_H_WALL);
-                                rigidNodeMeshCounter += 1.0;
-                            }
-
                             numrigid++;
 
                             NodeWeakPtrVectorType &rN = vertices.back().GetValue(NEIGHBOUR_NODES);
@@ -267,15 +261,13 @@ namespace Kratos
                         {
                             if (dimension == 2)
                             {
-                                MesherUtils.DefineMeshSizeInTransitionZones2D(mrRemesh, currentTime, vertices.back().Coordinates(), meanMeshSize, increaseAlfa);
+                                SetAlphaForRefinedZones2D(meanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y());
                             }
                             else if (dimension == 3)
                             {
-                                MesherUtils.DefineMeshSizeInTransitionZones3D(mrRemesh, currentTime, vertices.back().Coordinates(), meanMeshSize, increaseAlfa);
+                                SetAlphaForRefinedZones3D(meanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y(), vertices.back().Z());
                             }
-                            CriticalVolume = 0.05 * (pow(meanMeshSize, 3) / (6.0 * sqrt(2)));
                         }
-
                         if (dimension == 3)
                         {
                             nodesCoordinates[pn] = vertices.back().Coordinates();
@@ -290,34 +282,16 @@ namespace Kratos
 
                     double Alpha = mrRemesh.AlphaParameter; //*nds;
 
-                    if (rigidNodeMeshCounter > 0 && rigidNodeMeshCounter < nds)
-                    {
-                        // double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
-
-                        // if (rigidWallMeshSize > meanMeshSize)
-                        // {
-                        //     if (numfreesurf == 0 && numisolated == 0)
-                        //     {
-                        //         meanMeshSize *= 0.5;
-                        //         meanMeshSize += 0.5 * rigidWallMeshSize;
-                        //     }
-                        // }
-
-                        double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
-                        double tolerance = 1.8;
-                        double ratio = rigidWallMeshSize / meanMeshSize;
-                        if (ratio > tolerance && numfreesurf == 0 && previouslyFreeSurfaceNodes == 0)
-                        {
-                            meanMeshSize *= 0.5;
-                            meanMeshSize += 0.5 * rigidWallMeshSize;
-                        }
-                        // suitableElementForSecondAdd = false;
-                    }
-
                     if (refiningBox == true)
                     {
+
                         IncreaseAlphaForRefininedZones(Alpha, increaseAlfa, nds, numfreesurf, numrigid, numisolated);
-                    }
+
+                        if (dimension == 3)
+                        {
+                            Alpha *= 1.1;
+                        }
+  }
 
                     sumIsolatedFreeSurf = numisolated + numfreesurf;
                     sumPreviouslyIsolatedFreeSurf = previouslyFreeSurfaceNodes + previouslyIsolatedNodes;
@@ -376,6 +350,11 @@ namespace Kratos
                             }
                         }
                     }
+                    if (firstMesh == true)
+                    {
+                        Alpha *= 1.15;
+                    }
+
                     if (numinlet > 0)
                     {
                         Alpha *= 1.5;
@@ -390,22 +369,7 @@ namespace Kratos
                         accepted = false;
                     }
 
-                    // if (dimension == 3 && accepted == true && (sumIsolatedFreeSurf>0 || sumPreviouslyIsolatedFreeSurf>0) && numrigid>0)
-                    // {
-                    //     double wallLength = 0;
-                    //     double toleranceRate = 5.0;
-                    //     double rate1=Edges[0] / Edges[1];
-                    //     double rate2=Edges[0] / Edges[2];
-                    //     double rate3=Edges[1] / Edges[2];
-                    //     if (rate1 > toleranceRate || rate1 < (1.0/toleranceRate) || rate2 > toleranceRate || rate2 < (1.0/toleranceRate) || rate3 > toleranceRate || rate3 < (1.0/toleranceRate))
-                    //     {
-                    //         accepted = false; // erase this swewed element
-                    //         std::cout << " accepted = false; //erase this swewed element  Edges[0] is " <<Edges[0]<<"   Edges[1] is "<<Edges[1]<<"   Edges[2] is "<<Edges[2]<<std::endl;
-                    //         std::cout << " rate1 is " <<rate1<<"  rate2 "<<rate2<<"  rate3 "<<rate3<<std::endl;
-                    //     }
-                    // }
-
-                    if (accepted == true && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds))
+                    if (accepted == true && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds) && firstMesh == false)
                     {
                         if (dimension == 2)
                         {
@@ -765,6 +729,121 @@ namespace Kratos
         ///@}
         ///@name Un accessible methods
         ///@{
+        void SetAlphaForRefinedZones2D(double &MeanMeshSize, bool &increaseAlfa, double coorX, double coorY)
+        {
+
+            KRATOS_TRY
+            array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
+            array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
+            array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPoint;
+            array_1d<double, 3> minInternalPoint = mrRemesh.RefiningBoxMinInternalPoint;
+            array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
+            array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
+            double distance = 2.0 * mrRemesh.Refine->CriticalRadius;
+            double seperation = 0;
+            double coefficient = 0;
+            if (coorX > RefiningBoxMinimumPoint[0] && coorY > RefiningBoxMinimumPoint[1] &&
+                coorX < RefiningBoxMaximumPoint[0] && coorY < RefiningBoxMaximumPoint[1])
+            {
+                MeanMeshSize = mrRemesh.RefiningBoxMeshSize;
+            }
+            else if (coorX < RefiningBoxMinimumPoint[0] && coorX > (minExternalPoint[0] - distance) && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1])
+            {
+                seperation = coorX - RefiningBoxMinimumPoint[0];
+                coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                increaseAlfa = true;
+            }
+            else if (coorY < RefiningBoxMinimumPoint[1] && coorY > (minExternalPoint[1] - distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0])
+            {
+                seperation = coorY - RefiningBoxMinimumPoint[1];
+                coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                increaseAlfa = true;
+            }
+            else if (coorX > RefiningBoxMaximumPoint[0] && coorX < (maxExternalPoint[0] + distance) && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1])
+            {
+                seperation = coorX - RefiningBoxMaximumPoint[0];
+                coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                increaseAlfa = true;
+            }
+            else if (coorY > RefiningBoxMaximumPoint[1] && coorY < (maxExternalPoint[1] + distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0])
+            {
+                seperation = coorY - RefiningBoxMaximumPoint[1];
+                coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                increaseAlfa = true;
+            }
+
+            KRATOS_CATCH("")
+        }
+
+        void SetAlphaForRefinedZones3D(double &MeanMeshSize, bool &increaseAlfa, double coorX, double coorY, double coorZ)
+        {
+
+            KRATOS_TRY
+            array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
+            array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
+            array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPoint;
+            array_1d<double, 3> minInternalPoint = mrRemesh.RefiningBoxMinInternalPoint;
+            array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
+            array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
+            double distance = 2.0 * mrRemesh.Refine->CriticalRadius;
+            double seperation = 0;
+            double coefficient = 0;
+
+            if (coorX > RefiningBoxMinimumPoint[0] && coorX < RefiningBoxMaximumPoint[0] &&
+                coorY > RefiningBoxMinimumPoint[1] && coorY < RefiningBoxMaximumPoint[1] &&
+                coorZ > RefiningBoxMinimumPoint[2] && coorZ < RefiningBoxMaximumPoint[2])
+            {
+                MeanMeshSize = mrRemesh.RefiningBoxMeshSize;
+            }
+            else if (coorX < RefiningBoxMinimumPoint[0] && coorX > (minExternalPoint[0] - distance) && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1] && coorZ > minExternalPoint[2] && coorZ < maxExternalPoint[2])
+            {
+                seperation = coorX - RefiningBoxMinimumPoint[0];
+                coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                increaseAlfa = true;
+            }
+            else if (coorY < RefiningBoxMinimumPoint[1] && coorY > (minExternalPoint[1] - distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0] && coorZ > minExternalPoint[2] && coorZ < maxExternalPoint[2])
+            {
+                seperation = coorY - RefiningBoxMinimumPoint[1];
+                coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                increaseAlfa = true;
+            }
+            else if (coorZ < RefiningBoxMinimumPoint[2] && coorZ > (minExternalPoint[2] - distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0] && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1])
+            {
+                seperation = coorZ - RefiningBoxMinimumPoint[2];
+                coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                increaseAlfa = true;
+            }
+            else if (coorX > RefiningBoxMaximumPoint[0] && coorX < (maxExternalPoint[0] + distance) && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1] && coorZ > minExternalPoint[2] && coorZ < maxExternalPoint[2])
+            {
+                seperation = coorX - RefiningBoxMaximumPoint[0];
+                coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                increaseAlfa = true;
+            }
+            else if (coorY > RefiningBoxMaximumPoint[1] && coorY < (maxExternalPoint[1] + distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0] && coorZ > minExternalPoint[2] && coorZ < maxExternalPoint[2])
+            {
+                seperation = coorY - RefiningBoxMaximumPoint[1];
+                coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                increaseAlfa = true;
+            }
+            else if (coorZ > RefiningBoxMaximumPoint[2] && coorZ < (maxExternalPoint[2] + distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0] && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1])
+            {
+                seperation = coorZ - RefiningBoxMaximumPoint[2];
+                coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                increaseAlfa = true;
+            }
+
+            KRATOS_CATCH("")
+        }
 
         void IncreaseAlphaForRefininedZones(double &Alpha,
                                             bool increaseAlfa,
@@ -779,7 +858,7 @@ namespace Kratos
             {
                 if (numfreesurf < nds && numisolated == 0)
                 {
-                    Alpha *= 1.2;
+                    Alpha *= 1.275;
                 }
                 else if (numfreesurf == 0 && numrigid == 0 && numisolated == 0)
                 {
@@ -794,7 +873,21 @@ namespace Kratos
                     Alpha *= 1.8;
                 }
             }
-
+            if (numfreesurf < (0.5 * nds) && (numrigid < (0.5 * nds) && numfreesurf > 0))
+            {
+                if (numisolated > 0)
+                {
+                    Alpha *= 1.0;
+                }
+                else if (numfreesurf == 0)
+                {
+                    Alpha *= 1.1;
+                }
+                else
+                {
+                    Alpha *= 1.05;
+                }
+            }
             KRATOS_CATCH("")
         }
 

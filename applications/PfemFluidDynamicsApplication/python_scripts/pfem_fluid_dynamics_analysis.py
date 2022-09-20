@@ -415,7 +415,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ISOLATED_NODE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_H_WALL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.SHRINK_FACTOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)
