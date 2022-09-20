@@ -55,6 +55,9 @@ topnav_dropdowns:
     - title: Meshing Application
       url: /Kratos/pages/Applications/Meshing_Application/General/Utilities-MMG-Process.html
       output: web
+    - title: Particle Mechanics Application
+      url: /Kratos/pages/Applications/Particle_Mechanics_Application/General/Overview.html
+      output: web
     - title: Reduced Order Modelling Application
       url: /Kratos/pages/Applications/Reduced_Order_Modelling_Application/General/API-for-RomApplication-(draft-to-be-moved-elsewhere).html
       output: web
