@@ -9,7 +9,8 @@ summary:
 ## 4. Calculation
 By now, the setup of the model of the cantilever is complete. To calculate the displacement of the cantilever, click in the top toolbar on **`Calculate`&rightarrow;`Calculate`**, as shown in the image below. 
 
-![calculate_cantilever_wa](https://user-images.githubusercontent.com/51473791/170933305-179a5ab5-c8ff-4b6d-b4f9-6f6c4f8965aa.png)
+![calculation_refined_mesh](https://user-images.githubusercontent.com/51473791/191244080-393633b9-19c8-4123-969d-c9c4ef4431aa.jpg)
+
 
 Then the calculation of the problem is carried out. As already mentioned in the first paragraph, the calculation is done within the [KRATOS Multiphysics](https://github.com/KratosMultiphysics/Kratos) framework. More information on the material point method and its implementation within KRATOS is available under [ParticleMechanicsApplication](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ParticleMechanicsApplication).
 
