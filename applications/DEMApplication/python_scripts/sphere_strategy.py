@@ -1,4 +1,3 @@
-from pickle import FALSE, TRUE
 import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
