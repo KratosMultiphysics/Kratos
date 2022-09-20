@@ -113,9 +113,8 @@ class FluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
         negative_flow_rate_top = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(top_skin_model_part)
         self.assertAlmostEqual(negative_flow_rate_top, ref_negative_flow_rate_top, 12)
 
-    def testCalculateFluidVolume(self):
+    def testMapEmbeddedVelocityFromSkinToVolume(self):
         fluid_model_part = self.model.GetModelPart("FluidModelPart")
-        fluid_model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
         for node in fluid_model_part.Nodes:
             node.GetValue(Kratos.EMBEDDED_VELOCITY)
             node.SetSolutionStepValue(Kratos.DISTANCE,0,node.X-0.5)
@@ -129,7 +128,7 @@ class FluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
         for node in skin_model_part.Nodes:
             node.SetSolutionStepValue(Kratos.VELOCITY,0,ref_v)
 
-        KratosFluid.FluidAuxiliaryUtilities.MapEmbeddedVelocityFromSkinToVolume(fluid_model_part, skin_model_part, 1.2)
+        KratosFluid.FluidAuxiliaryUtilities.MapVelocityFromSkinToVolumeRBF(fluid_model_part, skin_model_part, 1.2)
         
         for elem in fluid_model_part.Elements:
             npos=0

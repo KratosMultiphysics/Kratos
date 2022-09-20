@@ -420,7 +420,7 @@ void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<false>(
     rpModShapeFunc->ComputeNegativeExteriorFaceAreaNormals(rNormals, FaceId, GeometryData::IntegrationMethod::GI_GAUSS_2);
 }
 
-    void FluidAuxiliaryUtilities::MapEmbeddedVelocityFromSkinToVolume(
+    void FluidAuxiliaryUtilities::MapVelocityFromSkinToVolumeRBF(
         ModelPart& rVolumeModelPart,
         ModelPart& rSkinModelPart,
         const double SearchRadius

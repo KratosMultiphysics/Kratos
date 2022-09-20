@@ -184,7 +184,7 @@ public:
      * NOTE: historical variable VELOCITY is assumed to be present on the nodes of the rSkinModelPArt 
      * NOTE: non historical variable EMBEDDED_VELOCITY is assumed to be present in rVolumeModelPart prior to calling the function
      */
-    static void MapEmbeddedVelocityFromSkinToVolume(
+    static void MapVelocityFromSkinToVolumeRBF(
         ModelPart& rVolumeModelPart,
         ModelPart& rSkinModelPart,
         const double SearchRadius
