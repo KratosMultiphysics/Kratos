@@ -24,7 +24,7 @@
 #include "constitutive_laws_application_variables.h"
 
 // Integrator
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
+#include "custom_constitutive/auxiliar_files/cl_integrators/generic_cl_integrator_damage.h"
 
 // Yield surfaces
 #include "custom_constitutive/auxiliar_files/yield_surfaces/generic_yield_surface.h"

@@ -20,8 +20,8 @@
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "constitutive_laws_application_variables.h"
 #include "generic_small_strain_d_plus_d_minus_damage.h"
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_compression_constitutive_law_integrator.h"
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_tension_constitutive_law_integrator.h"
+#include "custom_constitutive/auxiliar_files/cl_integrators/d+d-cl_integrators/generic_compression_cl_integrator.h"
+#include "custom_constitutive/auxiliar_files/cl_integrators/d+d-cl_integrators/generic_tension_cl_integrator.h"
 
 // Yield surfaces
 #include "custom_constitutive/auxiliar_files/yield_surfaces/generic_yield_surface.h"

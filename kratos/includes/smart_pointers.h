@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Pooyan Dadvand
 //
 
-#if !defined(KRATOS_SHARED_POINTERS_H_INCLUDED)
-#define KRATOS_SHARED_POINTERS_H_INCLUDED
+#pragma once
 
 // System includes
 #include <iostream>
@@ -80,5 +79,3 @@ template< class T > class GlobalPointer;
 typedef Kratos::GlobalPointer<a > WeakPointer; \
 typedef Kratos::unique_ptr<a > UniquePointer; \
 typename a::Pointer shared_from_this(){ return a::Pointer(this); }
-
-#endif // KRATOS_SHARED_POINTERS_H_INCLUDED defined
