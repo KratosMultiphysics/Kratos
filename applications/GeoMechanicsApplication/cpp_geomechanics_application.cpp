@@ -690,6 +690,9 @@ namespace Kratos
 
             if (shouldCancel())
             {
+                logCallback(strdup(kratosLogBuffer.str().c_str()));
+                Logger::RemoveOutput(p_output);
+                ResetModelParts();
                 return 0;
             }
 
@@ -786,6 +789,9 @@ namespace Kratos
 
                     if (shouldCancel())
                     {
+                        logCallback(strdup(kratosLogBuffer.str().c_str()));
+                        Logger::RemoveOutput(p_output);
+                        ResetModelParts();
                         return 0;
                     }
                 }
