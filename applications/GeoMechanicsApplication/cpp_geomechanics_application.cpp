@@ -688,6 +688,11 @@ namespace Kratos
 
             bool hasPiping = stepCriticalHead != 0;
 
+            if (shouldCancel())
+            {
+                return 0;
+            }
+
             if (!hasPiping)
             {
                 mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
@@ -769,7 +774,6 @@ namespace Kratos
                     {
                         ResetModelParts();
                         throw std::logic_error("ApplyConstantScalarValueProcess process search is not Implemented");
-                        ;
                     }
 
                     if (RiverBoundary->Info() == "ApplyConstantHydrostaticPressureProcess")
@@ -778,6 +782,11 @@ namespace Kratos
                         criticalHead = currentProcess->GetReferenceCoord();
                         currentHead = criticalHead + stepCriticalHead;
                         currentProcess->SetReferenceCoord(currentHead);
+                    }
+
+                    if (shouldCancel())
+                    {
+                        return 0;
                     }
                 }
 
@@ -804,7 +813,7 @@ namespace Kratos
 
             logCallback(strdup(kratosLogBuffer.str().c_str()));
             Logger::RemoveOutput(p_output);
-            
+
             ResetModelParts();
             return 0;
         }
