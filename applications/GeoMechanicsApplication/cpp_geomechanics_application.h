@@ -150,7 +150,8 @@ namespace Kratos
         int execute_flow_analysis(std::string workingDirectory, std::string parameterName,
                                   double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
                                   std::string criticalHeadBoundaryModelPartName,
-                                  void logCallback(char *));
+                                  void logCallback(char *),
+                                  bool shouldCancel());
 
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;

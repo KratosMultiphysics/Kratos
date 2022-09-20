@@ -27,6 +27,9 @@ namespace Kratos
     namespace Testing
     {
         void emptyLog(char *log) {}
+        bool emptyCancel() {
+            return false;
+        }
 
         KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategy, KratosGeoMechanicsFastSuite)
         {
@@ -34,7 +37,7 @@ namespace Kratos
             auto projectFile = "ProjectParameters.json";
 
             auto execute = KratosExecute();
-            execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog);
+            execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog, &emptyCancel);
         }
     }
 }

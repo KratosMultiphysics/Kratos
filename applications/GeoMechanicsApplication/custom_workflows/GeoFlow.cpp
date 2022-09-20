@@ -15,6 +15,11 @@
 
 void emptyLog(char *log) {}
 
+bool emptyCancel()
+{
+    return false;
+}
+
 int main(int argc, char **argv)
 {
     try
@@ -47,7 +52,8 @@ int main(int argc, char **argv)
                                           maxCriticalHead,
                                           stepCriticalHead,
                                           criticalHeadBoundaryModelPartName,
-                                          &emptyLog);
+                                          &emptyLog,
+                                          &emptyCancel);
         }
         catch (...)
         {

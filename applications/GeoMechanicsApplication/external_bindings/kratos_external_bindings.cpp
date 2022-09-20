@@ -19,7 +19,8 @@ extern "C"
                                                double maxCriticalHead,
                                                double stepCriticalHead,
                                                char *criticalHeadBoundaryModelPartName,
-                                               void __stdcall logCallback(char *))
+                                               void __stdcall logCallback(char *),
+                                               bool __stdcall shouldCancel())
     {
         int errorCode = instance->execute_flow_analysis(workingDirectory,
                                                         projectFile,
@@ -27,7 +28,8 @@ extern "C"
                                                         maxCriticalHead,
                                                         stepCriticalHead,
                                                         criticalHeadBoundaryModelPartName,
-                                                        logCallback);
+                                                        logCallback,
+                                                        shouldCancel);
         return errorCode;
     }
 
