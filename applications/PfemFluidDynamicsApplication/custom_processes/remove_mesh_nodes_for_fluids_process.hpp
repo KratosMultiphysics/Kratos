@@ -435,6 +435,7 @@ namespace Kratos
 				double rigidNodeLocalMeshSize = 0;
 				double rigidNodeMeshCounter = 0;
 				NodeWeakPtrVectorType &rN = in->GetValue(NEIGHBOUR_NODES);
+				bool freeSurfaceElement = false;
 
 				for (unsigned int i = 0; i < rN.size(); i++)
 				{
@@ -442,6 +443,10 @@ namespace Kratos
 					{
 						rigidNodeLocalMeshSize += rN[i].FastGetSolutionStepValue(NODAL_H_WALL);
 						rigidNodeMeshCounter += 1.0;
+					}
+					if (rN[i].Is(FREE_SURFACE))
+					{
+						freeSurfaceElement = true;
 					}
 				}
 
@@ -460,11 +465,23 @@ namespace Kratos
 					}
 				}
 
-				if (rigidNodeMeshCounter > 0)
+				// if (rigidNodeMeshCounter > 0 && freeSurfaceElement == false)
+				// {
+				// 	double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+				// 	meshSize *= 0.5;
+				// 	meshSize += 0.5 * rigidWallMeshSize;
+				// }
+				if (rigidNodeMeshCounter > 0 && freeSurfaceElement == false)
 				{
 					double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
-					meshSize *= 0.5;
-					meshSize += 0.5 * rigidWallMeshSize;
+					double tolerance = 1.8;
+					double ratio = rigidWallMeshSize / meshSize;
+					if (ratio > tolerance)
+					{
+						meshSize *= 0.5;
+						meshSize += 0.5 * rigidWallMeshSize;
+					}
+					// suitableElementForSecondAdd = false;
 				}
 
 				double size_for_distance_boundary = 0.6 * meshSize;
@@ -952,6 +969,7 @@ namespace Kratos
 
 				if (refiningBox == true && currentTime > initialTime && currentTime < finalTime)
 				{
+					double meanMeshSize = mrRemesh.RefiningBoxMeshSize[index] * 0.5 + mrRemesh.Refine->CriticalRadius * 0.5;
 					array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxShiftedMinimumPoint[index];
 					array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxShiftedMaximumPoint[index];
 					array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint[index];
@@ -966,13 +984,12 @@ namespace Kratos
 							 (baricenterY < RefiningBoxMinimumPoint[1] && baricenterY > minExternalPoint[1]) || (baricenterY > RefiningBoxMaximumPoint[1] && baricenterY < maxExternalPoint[1]) ||
 							 (baricenterZ < RefiningBoxMinimumPoint[2] && baricenterZ > minExternalPoint[2]) || (baricenterZ > RefiningBoxMaximumPoint[2] && baricenterZ < maxExternalPoint[2])) // transition zone
 					{
-						double meanMeshSize = mrRemesh.RefiningBoxMeshSize[index] * 0.5 + mrRemesh.Refine->CriticalRadius * 0.5;
 						criticalVolume = 0.005 * (pow(meanMeshSize, 3) / (6.0 * sqrt(2)));
 						safetyCoefficient3D *= 0.5;
 					}
 					else
 					{
-						criticalVolume = 0.01 * (pow(mrRemesh.Refine->CriticalRadius, 3) / (6.0 * sqrt(2)));
+						criticalVolume = 0.01 * (pow(meanMeshSize, 3) / (6.0 * sqrt(2)));
 					}
 				}
 			}

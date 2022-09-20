@@ -292,16 +292,26 @@ namespace Kratos
 
                     if (rigidNodeMeshCounter > 0 && rigidNodeMeshCounter < nds)
                     {
-                        double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+                        // double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
 
-                        if (rigidWallMeshSize > meanMeshSize)
+                        // if (rigidWallMeshSize > meanMeshSize)
+                        // {
+                        //     if (numfreesurf == 0 && numisolated == 0)
+                        //     {
+                        //         meanMeshSize *= 0.5;
+                        //         meanMeshSize += 0.5 * rigidWallMeshSize;
+                        //     }
+                        // }
+
+                        double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+                        double tolerance = 1.8;
+                        double ratio = rigidWallMeshSize / meanMeshSize;
+                        if (ratio > tolerance && numfreesurf == 0 && previouslyFreeSurfaceNodes == 0)
                         {
-                            if (numfreesurf == 0 && numisolated == 0)
-                            {
-                                meanMeshSize *= 0.5;
-                                meanMeshSize += 0.5 * rigidWallMeshSize;
-                            }
+                            meanMeshSize *= 0.5;
+                            meanMeshSize += 0.5 * rigidWallMeshSize;
                         }
+                        // suitableElementForSecondAdd = false;
                     }
 
                     if (refiningBox == true)
