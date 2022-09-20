@@ -439,11 +439,11 @@ namespace Kratos
 					array_1d<double, 3> NodeCoordinates = in->Coordinates();
 					if (dimension == 2)
 					{
-						initialMeanRadius = SetMeshSizeInMeshRefinementArea(NodeCoordinates);
+						meshSize = SetMeshSizeInMeshRefinementArea(NodeCoordinates);
 					}
 					else if (dimension == 3)
 					{
-						initialMeanRadius = SetMeshSizeInMeshRefinementVolume(NodeCoordinates);
+						meshSize = SetMeshSizeInMeshRefinementVolume(NodeCoordinates);
 					}
 				}
 
