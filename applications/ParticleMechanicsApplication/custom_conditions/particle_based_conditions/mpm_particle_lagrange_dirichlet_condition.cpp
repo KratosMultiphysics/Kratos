@@ -244,7 +244,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
         // Loop over shape functions of displacements
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            if (Variables.N[i] > std::numeric_limits<double>::epsilon() && r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) >= std::numeric_limits<double>::epsilon()){
+            if (Variables.N[i] > std::numeric_limits<double>::epsilon() ){
                 const unsigned int ibase = dimension * number_of_nodes;
                 for (unsigned int k = 0; k < dimension; k++)
                 {
@@ -267,13 +267,13 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
             Vector right_hand_side = ZeroVector(matrix_size);
             for (unsigned int i = 0; i < number_of_nodes; i++)
             {
-                const array_1d<double, 3>& r_displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
-                const int index = dimension * i;
+                    const array_1d<double, 3>& r_displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+                    const int index = dimension * i;
 
-                for (unsigned int j = 0; j < dimension; j++)
-                {
-                    gap_function[index+j] = r_displacement[j] - m_imposed_displacement[j] ;
-                }
+                    for (unsigned int j = 0; j < dimension; j++)
+                    {
+                        gap_function[index+j] = r_displacement[j] - m_imposed_displacement[j] ;
+                    }
 
 
             }
@@ -325,7 +325,6 @@ void MPMParticleLagrangeDirichletCondition::FinalizeNonLinearIteration(const Pro
     MPMShapeFunctionPointValues(Variables.N);
 
     // Calculate nodal forces
-    Vector nodal_force = ZeroVector(3);
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         
