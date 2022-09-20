@@ -15,12 +15,12 @@ class EmpiricalCubatureMethod():
     """
 
 
-    """
-    Constructor setting up the parameters for the Element Selection Strategy
-        ECM_tolerance: approximation tolerance for the element selection algorithm
-        Filter_tolerance: parameter limiting the number of candidate points (elements) to those above this tolerance
-        Plotting: whether to plot the error evolution of the element selection algorithm
-    """
+        """
+        Constructor setting up the parameters for the Element Selection Strategy
+            ECM_tolerance: approximation tolerance for the element selection algorithm
+            Filter_tolerance: parameter limiting the number of candidate points (elements) to those above this tolerance
+            Plotting: whether to plot the error evolution of the element selection algorithm
+        """
     def __init__(self, ECM_tolerance = 0, Filter_tolerance = 1e-16, Plotting = False):
         self.ECM_tolerance = ECM_tolerance
         self.Filter_tolerance = Filter_tolerance
@@ -29,10 +29,10 @@ class EmpiricalCubatureMethod():
 
 
 
-    """
-    Method for setting up the element selection
-    input:  ResidualsBasis: numpy array containing a basis to the residuals projected
-    """
+        """
+        Method for setting up the element selection
+        input:  ResidualsBasis: numpy array containing a basis to the residuals projected
+        """
     def SetUp(self, ResidualsBasis, constrain_sum_of_weights=True):
 
         self.W = np.ones(np.shape(ResidualsBasis)[0])
@@ -42,9 +42,9 @@ class EmpiricalCubatureMethod():
         self.b = self.G @ self.W
 
 
-    """
-    Method performing calculations required before launching the Calculate method
-    """
+        """
+        Method performing calculations required before launching the Calculate method
+        """
     def Initialize(self):
         self.Gnorm = np.sqrt(sum(np.multiply(self.G, self.G), 0))
         M = np.shape(self.G)[1]
@@ -64,13 +64,16 @@ class EmpiricalCubatureMethod():
 
 
     def Run(self):
+        """
+        Method launching the element selection algorithm to find a set of elements: self.z, and weights: self.w
+        """
         self.Initialize()
         self.Calculate()
 
 
-    """
-    Method launching the element selection algorithm to find a set of elements: self.z, and wiegths: self.w
-    """
+        """
+        Method calculating the elements and weights, after the Initialize method was performed
+        """
     def Calculate(self):
 
         k = 1 # number of iterations
@@ -138,10 +141,10 @@ class EmpiricalCubatureMethod():
             plt.show()
 
 
-
-    """
-    Method for the quick update of weights (self.w), whenever a negative weight is found
-    """
+    def _UpdateWeightsInverse(self, A,Aast,a,xold):
+        """
+        Method for the cheap update of weights (self.w), whenever a negative weight is found
+        """
     def _UpdateWeightsInverse(self, A,Aast,a,xold):
         c = np.dot(A.T, a)
         d = np.dot(Aast, c).reshape(-1, 1)
@@ -157,10 +160,10 @@ class EmpiricalCubatureMethod():
         return Bast, x
 
 
-
-    """
-    Method for the quick update of weights (self.w), whenever a negative weight is found
-    """
+    def _MultiUpdateInverseHermitian(self, invH, neg_indexes):
+        """
+        Method for the cheap update of weights (self.w), whenever a negative weight is found
+        """
     def _MultiUpdateInverseHermitian(self, invH, neg_indexes):
         neg_indexes = np.sort(neg_indexes)
         for i in range(np.size(neg_indexes)):
@@ -169,10 +172,10 @@ class EmpiricalCubatureMethod():
         return invH
 
 
-
-    """
-    Method for the quick update of weights (self.w), whenever a negative weight is found
-    """
+    def _UpdateInverseHermitian(self, invH, neg_index):
+        """
+        Method for the cheap update of weights (self.w), whenever a negative weight is found
+        """
     def _UpdateInverseHermitian(self, invH, neg_index):
         if neg_index == np.shape(invH)[1]:
             aux = (invH[0:-1, -1] * invH[-1, 0:-1]) / invH(-1, -1)
