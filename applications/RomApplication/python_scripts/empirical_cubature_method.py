@@ -101,13 +101,19 @@ class EmpiricalCubatureMethod():
         self.Calculate()
 
 
+    def Calculate(self):
         """
         Method calculating the elements and weights, after the Initialize method was performed
         """
-    def Calculate(self):
-
+        MaximumLengthZ = 0
+        ExpandedSetFlag = False
         k = 1 # number of iterations
         while self.nerrorACTUAL > self.ECM_tolerance and self.mPOS < self.m and len(self.y) != 0:
+
+            if  self.UnsuccesfulIterations >  self.MaximumNumberUnsuccesfulIterations and not ExpandedSetFlag:
+                self.y = np.union1d(self.y, self.y_complement)
+                print('expanding set to include the complement...')
+                ExpandedSetFlag = True
 
             #Step 1. Compute new point
             ObjFun = self.G[:,self.y].T @ self.r.T
@@ -137,6 +143,13 @@ class EmpiricalCubatureMethod():
                 alpha = H @ (self.G[:, self.z].T @ self.b)
                 alpha = alpha.reshape(len(alpha),1)
 
+
+            if np.size(self.z) > MaximumLengthZ :
+                self.UnsuccesfulIterations = 0
+            else:
+                self.UnsuccesfulIterations += 1
+
+
             #Step 6 Update the residual
             if len(alpha)==1:
                 self.r = self.b - (self.G[:,self.z] * alpha)
@@ -157,6 +170,7 @@ class EmpiricalCubatureMethod():
                 ERROR_GLO = np.c_[ ERROR_GLO , self.nerrorACTUAL]
                 NPOINTS = np.c_[ NPOINTS , np.size(self.z)]
 
+            MaximumLengthZ = max(MaximumLengthZ, np.size(self.z))
             k = k+1
 
         self.w = alpha.T * np.sqrt(self.W[self.z])
@@ -175,7 +189,6 @@ class EmpiricalCubatureMethod():
         """
         Method for the cheap update of weights (self.w), whenever a negative weight is found
         """
-    def _UpdateWeightsInverse(self, A,Aast,a,xold):
         c = np.dot(A.T, a)
         d = np.dot(Aast, c).reshape(-1, 1)
         s = np.dot(a.T, a) - np.dot(c.T, d)
@@ -194,7 +207,6 @@ class EmpiricalCubatureMethod():
         """
         Method for the cheap update of weights (self.w), whenever a negative weight is found
         """
-    def _MultiUpdateInverseHermitian(self, invH, neg_indexes):
         neg_indexes = np.sort(neg_indexes)
         for i in range(np.size(neg_indexes)):
             neg_index = neg_indexes[i] - i
@@ -206,7 +218,6 @@ class EmpiricalCubatureMethod():
         """
         Method for the cheap update of weights (self.w), whenever a negative weight is found
         """
-    def _UpdateInverseHermitian(self, invH, neg_index):
         if neg_index == np.shape(invH)[1]:
             aux = (invH[0:-1, -1] * invH[-1, 0:-1]) / invH(-1, -1)
             invH_new = invH[:-1, :-1] - aux
