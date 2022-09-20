@@ -432,7 +432,6 @@ void BaseSolidElement::GetSecondDerivativesVector(
         rValues.resize(mat_size, false);
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         const array_1d<double, 3 >& acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
-        //const array_1d<double, 3 >& acceleration = GetGeometry()[i].FastGetSolutionStepValue(DAMAGE_VARIABLE, Step);
         const SizeType index = i * dimension;
         for(unsigned int k = 0; k < dimension; ++k)
             rValues[index + k] = acceleration[k];
@@ -533,9 +532,7 @@ void BaseSolidElement::CalculateLocalSystem(
     //calculation flags
     const bool CalculateStiffnessMatrixFlag = true;
     const bool CalculateResidualVectorFlag = true;
-
     CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-
     KRATOS_CATCH("");
 }
 
@@ -551,7 +548,6 @@ void BaseSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     const bool CalculateStiffnessMatrixFlag = true;
     const bool CalculateResidualVectorFlag = false;
     VectorType RHS;
-
     CalculateAll( rLeftHandSideMatrix, RHS, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
 
     KRATOS_CATCH("");
@@ -571,7 +567,6 @@ void BaseSolidElement::CalculateRightHandSide(
     const bool CalculateStiffnessMatrixFlag = false;
     const bool CalculateResidualVectorFlag = true;
     MatrixType temp = Matrix();
-
     CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
 
     KRATOS_CATCH("");

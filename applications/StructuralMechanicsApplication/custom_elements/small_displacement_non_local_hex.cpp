@@ -338,6 +338,7 @@ void SmallDisplacementNonLocalHex::CalculateAll(
 
         // Calculate and set non locl constitutive variables
         CalculateNonLocalConstitutiveVariables(this_kinematic_variables, this_non_local_constitutive_variables, Values, DAMAGE_VARIABLE, point_number);
+
         SetNonLocalConstitutiveVariables(mConstitutiveMatrix, this_constitutive_variables, this_non_local_constitutive_variables);
 
         // Calculating weights for integration on the reference configuration
@@ -364,13 +365,11 @@ void SmallDisplacementNonLocalHex::CalculateAll(
             CalculateAndAddResidualForceVector(Fu, this_kinematic_variables, rCurrentProcessInfo, body_force, this_constitutive_variables.StressVector, int_to_reference_weight);
 
             CalculateAndAddResidualNonLocalVector(FNL, this_kinematic_variables, this_non_local_constitutive_variables, rCurrentProcessInfo, int_to_reference_weight);
-
+            
         }
     }
     //assemble right hand side and left hand sides
     AssembleRHSAndLHS(rLeftHandSideMatrix, rRightHandSideVector, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag, Kuu, Kud, Kdu, Kdd, Fu, FNL); 
-    if ( CalculateResidualVectorFlag ) {KRATOS_WATCH(rRightHandSideVector);}
-    if ( CalculateStiffnessMatrixFlag ) {KRATOS_WATCH(rLeftHandSideMatrix);}
     KRATOS_CATCH( "" )
 }
 
@@ -380,7 +379,6 @@ void SmallDisplacementNonLocalHex::CalculateAll(
 void SmallDisplacementNonLocalHex::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     // We finalize the material reponse if required
-    KRATOS_WATCH("///////////////////////////////finalize_solution_step/////////////////////////////");
     bool required = false;
     for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
         if (mConstitutiveLawVector[point_number]->RequiresFinalizeMaterialResponse()) {
@@ -513,7 +511,7 @@ void SmallDisplacementNonLocalHex::SetConstitutiveVariables(
 
     //displacement vector
     Vector displacements(number_of_nodes * dimension);
-    BaseSolidElement::GetValuesVector(displacements);
+    BaseSolidElement::GetValuesVector(displacements,0);
 
     // Compute strain
     noalias(rThisConstitutiveVariables.StrainVector) = prod(rThisKinematicVariables.B, displacements);
@@ -545,9 +543,12 @@ void SmallDisplacementNonLocalHex::CalculateNonLocalConstitutiveVariables(
     const auto& r_geometry = GetGeometry();
     const auto& N = rThisKinematicVariables.N;
     double local_damage_gp = 0.0; 
+    rThisNonLocalConstitutiveVariables.NL_D_GP = 0;
+
     for (unsigned int i = 0; i < N.size(); ++i) {
         rThisNonLocalConstitutiveVariables.NL_D_GP += N[i] * r_geometry[i].FastGetSolutionStepValue(NON_LOCAL_DAMAGE, 0);
     }
+    KRATOS_WATCH(rThisNonLocalConstitutiveVariables.NL_D_GP);
     mConstitutiveLawVector[PointNumber]->CalculateValue(rValues, rThisVariable, local_damage_gp); 
     rThisNonLocalConstitutiveVariables.Local_D_GP = local_damage_gp;
     KRATOS_CATCH( "" )
@@ -715,7 +716,6 @@ void SmallDisplacementNonLocalHex::CalculateAndAddResidualNonLocalVector(
     }
     rResidualNonLocalVector -= IntegrationWeight * rN * (rNL_D_GP-rLocal_D_GP);
     rResidualNonLocalVector -= IntegrationWeight * pow(Lc, 2) * prod(prod(rdNdX, trans(rdNdX)),NL_Damage );
-    
     KRATOS_CATCH( "" )
 }
 

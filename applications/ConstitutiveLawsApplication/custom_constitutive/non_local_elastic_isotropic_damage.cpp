@@ -281,7 +281,6 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
         for (size_t i = 0; i < N.size(); ++i) {
             NL_Damage_GP += N[i] * rParametersValues.GetElementGeometry()[i].FastGetSolutionStepValue(NON_LOCAL_DAMAGE, 0);
         }
-        KRATOS_WATCH(NL_Damage_GP);
         if (NL_Damage_GP == 0){
 
             AssembleConstitutiveMatrix(r_constitutive_matrix, r_elastic_tensor, HDNLu, HuDNL, HDNLDNL);
@@ -303,7 +302,6 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
         }
         if(D < 0.0) D = 0.0;
         rDamageVariable = D;
-        KRATOS_WATCH(D);
         KRATOS_WATCH(r_stress_vector);
         KRATOS_WATCH(rParametersValues.GetProcessInfo()[TIME]);
         KRATOS_WATCH("-------------------------------------------");
@@ -467,7 +465,6 @@ double& NonLocalElasticIsotropicDamage::CalculateValue(
     )
 {
     KRATOS_TRY
-    KRATOS_WATCH("...............calculatevalue....................")
     if (rThisVariable == DAMAGE_VARIABLE) {
         double damage_variable;
         this->CalculateStressResponse( rParametersValues, damage_variable);
