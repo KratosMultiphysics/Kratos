@@ -23,7 +23,7 @@
         "material_ids_list"   : [1,1],
         "Variables"           : {
             "PARTICLE_MATERIAL": 1,
-            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME" : "DEM_D_Quadratic",
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME" : "DEM_D_Linear_classic",
             "STATIC_FRICTION"                        : 0.25,
             "DYNAMIC_FRICTION"                       : 0.24,
             "FRICTION_DECAY"                         : 500,
