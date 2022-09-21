@@ -82,6 +82,9 @@ void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
     else if (rVariable == MPC_IMPOSED_ACCELERATION) {
         rValues[0] = m_imposed_acceleration;
     }
+    else if (rVariable == MPC_DISPLACEMENT) {
+        rValues[0] = m_displacement;
+    }
     else {
         MPMParticleBaseCondition::CalculateOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
@@ -105,6 +108,9 @@ void MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
     }
     else if (rVariable == MPC_IMPOSED_ACCELERATION) {
         m_imposed_acceleration = rValues[0];
+    }
+    else if (rVariable == MPC_DISPLACEMENT) {
+        m_displacement = rValues[0];
     }
     else {
         MPMParticleBaseCondition::SetValuesOnIntegrationPoints(

@@ -171,9 +171,10 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
     {
         // Arrange shape function
         Matrix shape_function = ZeroMatrix(block_size, matrix_size);
+        GeometryType& r_geometry = GetGeometry();
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            if (Variables.N[i] > std::numeric_limits<double>::epsilon())
+            if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) >= std::numeric_limits<double>::epsilon() )
             {
                 for (unsigned int j = 0; j < dimension; j++)
                 {
