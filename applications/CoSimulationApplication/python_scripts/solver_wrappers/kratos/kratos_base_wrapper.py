@@ -72,10 +72,6 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
         self._analysis_stage.time = new_time # only needed to print the time correctly
         return new_time
 
-    def BeforeSolutionLoop(self):
-        with self.thread_manager:
-            self._analysis_stage.BeforeSolutionLoop()
-
     def InitializeSolutionStep(self):
         with self.thread_manager:
             self._analysis_stage.InitializeSolutionStep()
