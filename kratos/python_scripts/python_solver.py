@@ -71,6 +71,11 @@ class PythonSolver:
         """
         raise Exception("This function has to be implemented in the derived class")
 
+    def BeforeSolutionLoop(self):
+        """This function is called before solution loop starts
+        """
+        pass
+
     def ImportModelPart(self):
         """This function reads the ModelPart
         """
