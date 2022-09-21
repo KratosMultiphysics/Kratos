@@ -53,6 +53,7 @@ int main(int argc, char **argv)
                                           stepCriticalHead,
                                           criticalHeadBoundaryModelPartName,
                                           &emptyLog,
+                                          &emptyLog,
                                           &emptyCancel);
         }
         catch (...)
