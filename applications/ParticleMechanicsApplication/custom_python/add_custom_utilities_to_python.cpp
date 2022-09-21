@@ -65,11 +65,18 @@ namespace Python{
             rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart);
     }
 
+    void GenerateLagrangeNodes(
+        ModelPart& rBackgroundGridModelPart)
+    {
+        MPMParticleGeneratorUtility::GenerateLagrangeNodes(rBackgroundGridModelPart);
+    }
+
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
         m.def("SearchElement", SearchElementAccordingToDimension);
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
+        m.def("GenerateLagrangeNodes", GenerateLagrangeNodes);
     }
 
 }  // namespace Python.
