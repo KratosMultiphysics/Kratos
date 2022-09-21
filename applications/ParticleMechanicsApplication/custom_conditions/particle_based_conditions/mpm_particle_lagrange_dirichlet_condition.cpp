@@ -327,16 +327,9 @@ void MPMParticleLagrangeDirichletCondition::FinalizeNonLinearIteration(const Pro
     // Calculate nodal forces
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        
-        // Check whether there nodes are active and associated to material point elements
-        const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
-        if (nodal_mass > std::numeric_limits<double>::epsilon())
-        {
             r_geometry[i].SetLock();
             r_geometry[i].FastGetSolutionStepValue(REACTION) += mpc_force * Variables.N[i] * this->GetIntegrationWeight();
             r_geometry[i].UnSetLock();
-        }
-
     }
     KRATOS_CATCH( "" )
 }
@@ -391,11 +384,10 @@ void MPMParticleLagrangeDirichletCondition::CalculateContactForce( const Process
         {
             auto r_geometry = GetGeometry();
             
-            const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
             const double nodal_area  = r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
             const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
 
-            if (nodal_mass > std::numeric_limits<double>::epsilon() && nodal_area > std::numeric_limits<double>::epsilon())
+            if (nodal_area > std::numeric_limits<double>::epsilon())
             {
                 mpc_force += Variables.N[i] * nodal_force * this->GetIntegrationWeight() / nodal_area;
             }
