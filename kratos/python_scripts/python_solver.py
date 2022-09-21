@@ -71,11 +71,6 @@ class PythonSolver:
         """
         raise Exception("This function has to be implemented in the derived class")
 
-    def BeforeSolutionLoop(self):
-        """This function is called before solution loop starts
-        """
-        pass
-
     def ImportModelPart(self):
         """This function reads the ModelPart
         """
@@ -111,6 +106,11 @@ class PythonSolver:
     def Finalize(self):
         """This function finalizes the PythonSolver
         Usage: It is designed to be called ONCE, AFTER the execution of the solution-loop
+        """
+        pass
+
+    def BeforeSolutionLoop(self):
+        """This function is called before solution loop starts
         """
         pass
 
