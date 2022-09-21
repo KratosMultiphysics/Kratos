@@ -147,7 +147,7 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::ExecuteFinalizeSolutionStep
 
 void PlateauBumpPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosityField()
 {
-    double Dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    int Dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double alpha_min = mAlphaMin;
     const double alpha_max = mAlphaMax;
     const double rho = mDensity;
@@ -184,10 +184,6 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPoros
 
         Matrix& r_sigma = it_node->FastGetSolutionStepValue(PERMEABILITY);
 
-        double& du11 = it_node->FastGetSolutionStepValue(VELOCITY_X_GRADIENT_X);
-        double& du12 = it_node->FastGetSolutionStepValue(VELOCITY_X_GRADIENT_Y);
-        double& du21 = it_node->FastGetSolutionStepValue(VELOCITY_Y_GRADIENT_X);
-        double& du22 = it_node->FastGetSolutionStepValue(VELOCITY_Y_GRADIENT_Y);
 
         double t = (std::pow(x1-x10,2) - std::pow(a,2))/(std::pow(b,2) - std::pow(a,2)) + (std::pow(x2-x20,2) - std::pow(a,2))/(std::pow(b,2) - std::pow(a,2));
 
@@ -281,6 +277,7 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPoros
 
             }
 
+
         r_pressure = 2.0*std::sin(Globals::Pi*x2)*std::cos(Globals::Pi*x1);
 
         r_sigma = mSigma * I;
@@ -294,8 +291,8 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPoros
         const double grad_of_div1 = du111 + du221;
         const double grad_of_div2 = du112 + du222;
 
-        const double press_grad1 = -2*Globals::Pi*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2);
-        const double press_grad2 = 2*Globals::Pi*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2);
+        const double press_grad1 = -2.0*Globals::Pi*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2);
+        const double press_grad2 = 2.0*Globals::Pi*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2);
 
         if (mAlternativeFormulation){
             const double grad_alpha_sym_grad1 = (1.0/2.0) * (2 * r_alpha1 * du11 + r_alpha2 * (du21 + du12));
@@ -323,7 +320,7 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPoros
 
 void PlateauBumpPorositySolutionAndBodyForceProcess::SetValuesOnIntegrationPoints()
 {
-    const double Dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    const unsigned int Dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double alpha_min = mAlphaMin;
     const double alpha_max = mAlphaMax;
     const double u_char = mUchar;
@@ -342,8 +339,13 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetValuesOnIntegrationPoint
         const auto it_elem = mrModelPart.ElementsBegin() + i_elem;
         int id_elem = it_elem->Id();
         const GeometryType& r_geometry = it_elem->GetGeometry();
+
         const GeometryData::IntegrationMethod integration_method = it_elem->GetIntegrationMethod();
         const auto& r_number_integration_points = r_geometry.IntegrationPointsNumber(integration_method);
+
+        Matrix NContainer = r_geometry.ShapeFunctionsValues(integration_method);
+        const unsigned int NumNodes = r_geometry.PointsNumber();
+
         std::vector<double> pressure_on_gauss_points;
         Matrix velocity_on_gauss_points = ZeroMatrix(Dim, r_number_integration_points);
         Matrix pressure_gradient_on_gauss_points = ZeroMatrix(Dim, r_number_integration_points);
@@ -367,12 +369,17 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetValuesOnIntegrationPoint
 
         for (unsigned int g = 0; g < r_number_integration_points; g++){
 
-            GeometryType::CoordinatesArrayType point_coordinates;
-            r_geometry.GlobalCoordinates(point_coordinates,g);
+            Matrix gauss_point_coordinates = ZeroMatrix(r_number_integration_points,Dim);
+            for (unsigned int i = 0; i < NumNodes; ++i){
+                const array_1d<double, 3>& r_coordinates = r_geometry[i].Coordinates();
+                for (unsigned int d = 0; d < Dim; ++d)
+                    gauss_point_coordinates(g,d) += NContainer(g,i) * r_coordinates[d];
+                }
+
             velocity_gradient_on_gauss_points[g] = ZeroMatrix(Dim,Dim);
 
-            const double x1 = point_coordinates[0];
-            const double x2 = point_coordinates[1];
+            const double x1 = gauss_point_coordinates(g,0);
+            const double x2 = gauss_point_coordinates(g,1);
 
             double t = (std::pow(x1-x10,2) - std::pow(a,2))/(std::pow(b,2) - std::pow(a,2)) + (std::pow(x2-x20,2) - std::pow(a,2))/(std::pow(b,2) - std::pow(a,2));
 

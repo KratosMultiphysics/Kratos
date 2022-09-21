@@ -33,7 +33,10 @@
 
 namespace Kratos
 {
-
+extern DenseVector<std::vector<double>> mExactScalar;
+extern DenseVector<Matrix> mExactVector;
+extern DenseVector<Matrix> mExactScalarGradient;
+extern DenseVector<DenseVector<Matrix>> mExactVectorGradient;
 /* Public functions *******************************************************/
 PorositySolutionAndBodyForceProcess::PorositySolutionAndBodyForceProcess(
     ModelPart& rModelPart)
@@ -112,10 +115,10 @@ void PorositySolutionAndBodyForceProcess::ExecuteInitialize()
 
 void PorositySolutionAndBodyForceProcess::ExecuteBeforeSolutionLoop()
 {
-    this->SetFluidProperties();
     if (mInitialConditions == true)
     {
         this->SetInitialBodyForceAndPorosityField();
+        this->SetValuesOnIntegrationPoints();
     }
 }
 
@@ -239,33 +242,102 @@ void PorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosityField()
 
         r_mass_source = r_dalphat + r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22);
 
-        //it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
-        //it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
-        // it_node->FastGetSolutionStepValue(VELOCITY_X,1) = r_u1;
-        // it_node->FastGetSolutionStepValue(VELOCITY_Y,1) = r_u2;
-        // it_node->FastGetSolutionStepValue(VELOCITY_X,2) = r_u1;
-        // it_node->FastGetSolutionStepValue(VELOCITY_Y,2) = r_u2;
-        //it_node->FastGetSolutionStepValue(PRESSURE) = r_pressure;
         it_node->FastGetSolutionStepValue(FLUID_FRACTION_OLD) = r_alpha;
     }
 
 }
 
-void PorositySolutionAndBodyForceProcess::SetFluidProperties()
+void PorositySolutionAndBodyForceProcess::SetValuesOnIntegrationPoints()
 {
-    (mrModelPart.pGetProperties(1))->SetValue(DENSITY, mDensity);
-    (mrModelPart.pGetProperties(1))->SetValue(DYNAMIC_VISCOSITY, mViscosity * mDensity);
-    (mrModelPart.pGetProperties(1))->SetValue(VISCOSITY, mViscosity);
+    const unsigned int Dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    const double u_char = mUchar;
+    double u1, u2, pressure, du11, du12, du21, du22;
+    double alpha = 1.0;
 
-    block_for_each(mrModelPart.Elements(), [&](Element& rElement){
-        rElement.SetProperties(mrModelPart.pGetProperties(1));
-    });
+    unsigned int n_elem = mrModelPart.NumberOfElements();
 
-    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
-        rNode.FastGetSolutionStepValue(VISCOSITY) = mViscosity;
-        rNode.FastGetSolutionStepValue(DENSITY) = mDensity;
-        rNode.FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = mViscosity * mDensity;
-    });
+    // Computation of the BodyForce and Porosity fields
+    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
+
+        const auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+        int id_elem = it_elem->Id();
+        const GeometryType& r_geometry = it_elem->GetGeometry();
+
+        const GeometryData::IntegrationMethod integration_method = it_elem->GetIntegrationMethod();
+        const auto& r_number_integration_points = r_geometry.IntegrationPointsNumber(integration_method);
+
+        Matrix NContainer = r_geometry.ShapeFunctionsValues(integration_method);
+        const unsigned int NumNodes = r_geometry.PointsNumber();
+
+        std::vector<double> pressure_on_gauss_points;
+        Matrix velocity_on_gauss_points = ZeroMatrix(Dim, r_number_integration_points);
+        Matrix pressure_gradient_on_gauss_points = ZeroMatrix(Dim, r_number_integration_points);
+        DenseVector<Matrix> velocity_gradient_on_gauss_points(r_number_integration_points);
+
+        if (mExactScalar.size() != n_elem)
+            mExactScalar.resize(n_elem);
+
+        if (mExactVector.size() != n_elem)
+            mExactVector.resize(n_elem);
+
+        if (mExactScalarGradient.size() != n_elem)
+            mExactScalarGradient.resize(n_elem);
+
+        if (mExactVectorGradient.size() != n_elem)
+            mExactVectorGradient.resize(n_elem);
+
+        if (pressure_on_gauss_points.size() != r_number_integration_points)
+            pressure_on_gauss_points.resize(r_number_integration_points);
+
+
+        for (unsigned int g = 0; g < r_number_integration_points; g++){
+
+            Matrix gauss_point_coordinates = ZeroMatrix(r_number_integration_points,Dim);
+            for (unsigned int i = 0; i < NumNodes; ++i){
+                const array_1d<double, 3>& r_coordinates = r_geometry[i].Coordinates();
+                for (unsigned int d = 0; d < Dim; ++d)
+                    gauss_point_coordinates(g,d) += NContainer(g,i) * r_coordinates[d];
+                }
+
+            velocity_gradient_on_gauss_points[g] = ZeroMatrix(Dim,Dim);
+
+            const double x1 = gauss_point_coordinates(g,0);
+            const double x2 = gauss_point_coordinates(g,1);
+
+            u1 = u_char*std::pow(x1,2)*std::pow((1 - x1),2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))/alpha;
+
+            u2 = u_char*std::pow(x2,2)*std::pow((1 - x2),2)*(-u_char*std::pow(x1,2)*(2*x1 - 2) - 2*u_char*x1*std::pow((1 - x1),2))/alpha;
+
+            pressure = 0.0;
+
+            du11 = u_char*std::pow(x1,2)*(2*x1 - 2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))/alpha + 2*u_char*x1*std::pow((1 - x1),2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))/alpha;
+
+            du12 = u_char*std::pow(x1,2)*std::pow((1 - x1),2)*(2*u_char*std::pow(x2,2) + 4*u_char*x2*(2*x2 - 2) + 2*u_char*std::pow((1 - x2),2))/alpha;
+
+            du21 = u_char*std::pow(x2,2)*std::pow((1 - x2),2)*(-2*u_char*std::pow(x1,2) - 4*u_char*x1*(2*x1 - 2) - 2*u_char*std::pow((1 - x1),2))/alpha;
+
+            du22 = u_char*std::pow(x2,2)*(2*x2 - 2)*(-u_char*std::pow(x1,2)*(2*x1 - 2) - 2*u_char*x1*std::pow((1 - x1),2))/alpha + 2*u_char*x2*std::pow((1 - x2),2)*(-u_char*std::pow(x1,2)*(2*x1 - 2) - 2*u_char*x1*std::pow((1 - x1),2))/alpha;
+
+            const double press_grad1 = 0.0;
+            const double press_grad2 = 0.0;
+
+            pressure_on_gauss_points[g] = pressure;
+            velocity_on_gauss_points(0,g) = u1;
+            velocity_on_gauss_points(1,g) = u2;
+            pressure_gradient_on_gauss_points(0,g) = press_grad1;
+            pressure_gradient_on_gauss_points(1,g) = press_grad2;
+            velocity_gradient_on_gauss_points[g](0,0) = du11;
+            velocity_gradient_on_gauss_points[g](0,1) = du21;
+            velocity_gradient_on_gauss_points[g](1,0) = du12;
+            velocity_gradient_on_gauss_points[g](1,1) = du22;
+        }
+
+        mExactScalar[id_elem-1] = pressure_on_gauss_points;
+        mExactVector[id_elem-1] = velocity_on_gauss_points;
+        mExactScalarGradient[id_elem-1] = pressure_gradient_on_gauss_points;
+        mExactVectorGradient[id_elem-1] = velocity_gradient_on_gauss_points;
+
+    }
 }
 
 /* Private functions ****************************************************/
