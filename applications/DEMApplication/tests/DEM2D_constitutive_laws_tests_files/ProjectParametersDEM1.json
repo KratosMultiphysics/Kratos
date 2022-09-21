@@ -1,5 +1,5 @@
 {
-"Dimension"                        : 3,
+"Dimension"                        : 2,
 "PeriodicDomainOption"             : false,
 "BoundingBoxOption"                : false,
 "AutomaticBoundingBoxOption"       : false,
@@ -21,8 +21,11 @@
 "RotationOption"                   : false,
 "CleanIndentationsOption"          : false,
 "solver_settings" : {
-"strategy"                   : "continuum_sphere_strategy",
-    "RemoveBallsInitiallyTouchingWalls"          : false
+    "strategy"                   : "continuum_sphere_strategy",
+    "RemoveBallsInitiallyTouchingWalls"          : false,
+    "material_import_settings"           : {
+        "materials_filename" : "MaterialsDEM.json"
+    }
 },
 "DeltaOption"                      : "Absolute",
 "CoordinationNumber"               : 11,
@@ -45,8 +48,8 @@
 "RotationalIntegrationScheme"      : "Direct_Integration",
 "AutomaticTimestep"                : false,
 "DeltaTimeSafetyFactor"            : 1.0,
-"MaxTimeStep"                      : 5e-9,
-"FinalTime"                        : 2e-6,
+"MaxTimeStep"                      : 50e-9,
+"FinalTime"                        : 3e-6,
 "ControlTime"                      : 4.0,
 "NeighbourSearchFrequency"         : 20,
 "material_test_settings"              : {
@@ -56,18 +59,18 @@
         "SpecimenLength"      : 0.008187944,
         "SpecimenDiameter"    : 0.004081475
 },
-"GraphExportFreq"                  : 5e-9,
-"VelTrapGraphExportFreq"           : 5e-9,
-"OutputTimeStep"                   : 5e-9,
+"GraphExportFreq"                  : 50e-9,
+"VelTrapGraphExportFreq"           : 50e-9,
+"OutputTimeStep"                   : 50e-9,
 "PostBoundingBox"                  : false,
 "PostDisplacement"                 : true,
 "PostVelocity"                     : true,
-"PostTotalForces"                  : false,
+"PostTotalForces"                  : true,
 "PostRigidElementForces"           : false,
 "PostSkinSphere"                   : true,
 "PostPoissonRatio"                 : false,
 "PostRadius"                       : true,
-"PostAngularVelocity"              : false,
+"PostAngularVelocity"              : true,
 "PostParticleMoment"               : false,
 "PostEulerAngles"                  : false,
 "PostRollingResistanceMoment"      : false,
@@ -91,5 +94,5 @@
 "PostAppliedForces"                : false,
 "PostGroupId"                      : false,
 "PostExportId"                     : false,
-"problem_name" : "tangential"
+"problem_name" : "normal"
 }
