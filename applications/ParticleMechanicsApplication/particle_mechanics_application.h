@@ -45,6 +45,7 @@
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_coupling_interface_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_load_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_point_load_condition.h"
+#include "custom_conditions/particle_based_conditions/mpm_particle_lagrange_dirichlet_condition.h"
 
 //---element
 #include "custom_elements/updated_lagrangian.hpp"
@@ -255,6 +256,7 @@ private:
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition;
     const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition;
+    const MPMParticleLagrangeDirichletCondition mMPMParticleLagrangeDirichletCondition;
     
     // Deprecated Conditions
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D3N;
@@ -269,6 +271,10 @@ private:
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition3D4N;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition2D4N;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition3D8N;
+    const MPMParticleLagrangeDirichletCondition mMPMParticleLagrangeDirichletCondition2D3N;
+    const MPMParticleLagrangeDirichletCondition mMPMParticleLagrangeDirichletCondition2D4N;
+    const MPMParticleLagrangeDirichletCondition mMPMParticleLagrangeDirichletCondition3D4N;
+    const MPMParticleLagrangeDirichletCondition mMPMParticleLagrangeDirichletCondition3D8N;
 
 
     // Constitutive laws
