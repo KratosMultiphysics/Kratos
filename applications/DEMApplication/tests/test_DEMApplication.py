@@ -1,6 +1,6 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import test_guis
+#import test_guis
 import test_kinematic_constraints
 import test_particle_creator_destructor
 import test_wall_creator_destructor
@@ -8,12 +8,12 @@ import test_analytics
 import test_glued_particles
 import test_restart
 import test_DEM_2D
-import test_DEM_3D_contact
 import test_DEM_2D_contact
+import test_DEM_3D_contact
 import test_DEM_2D_constitutive_laws
 import test_DEM_3D_constitutive_laws
-import test_DEM_3D_restitution
 import test_DEM_2D_restitution
+import test_DEM_3D_restitution
 import test_DEM_2D_continuum_vs_discontinuum
 import test_DEM_3D_continuum_vs_discontinuum
 import test_DEM_3D_continuum
@@ -103,7 +103,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_with_delay"))
     smallSuite.addTest(test_search_nodes.TestSearchNodes("test_SearchNodesInTargetModelPart"))
     smallSuite.addTest(test_dem_3d_parallel_bond_model.TestParallelBondModel("test_ParallelBondModel_1"))
-
+    
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTest(test_restart.TestRestartOneBall("test_execution"))

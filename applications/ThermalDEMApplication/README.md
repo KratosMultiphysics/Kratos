@@ -130,7 +130,8 @@ Add **post options** with desired options:
 	"PostGraphParticleTempDev"       : true or false,
 	"PostGraphModelTempAvg"          : true or false,
 	"PostGraphHeatFluxContributions" : true or false,
-	"PostGraphHeatGenContributions"  : true or false
+	"PostGraphHeatGenContributions"  : true or false,
+	"PostGraphEnergyContributions"   : true or false
 
 ### Materials (json file)
 
@@ -396,6 +397,10 @@ Add **SubModelPartData** to sub model parts with desired options:
 
 - *"PostGraphHeatGenContributions"*:\
   Boolean for writing a graph with the contribution of each heat generation mechanism to the total heat generation.\
+  Default: false
+  
+- *"PostGraphEnergyContributions"*:\
+  Boolean for writing a graph with the energy composition (conservative and accumulated dissipative components) of all partilces.\
   Default: false
   
 **Material properties**

@@ -1292,7 +1292,7 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousConditions()
             std::sort(ids.begin(), ids.end());
             if(faces_map.find(ids) != faces_map.end()) {
                 // Found condition in element face, do not erase
-                for (auto p_cond : faces_map[ids]) {
+                for (const auto& p_cond : faces_map[ids]) {
                     p_cond->Set(TO_ERASE,false);
                 }
             }

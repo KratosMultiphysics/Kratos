@@ -1,13 +1,16 @@
 <p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>
 
-[![License][license-image]][license] [![C++][c++-image]][c++standard] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI] [![Twitter][twitter-image]][twitter]
+[![License][license-image]][license] [![C++][c++-image]][c++standard] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI] [![GitHub stars][stars-image]][stars] [![Twitter][twitter-image]][twitter]
 
 [![Release][release-image]][releases]
 <a href="https://github.com/KratosMultiphysics/Kratos/releases/latest"><img src="https://img.shields.io/github/release-date/KratosMultiphysics/Kratos?label="></a>
 <a href="https://github.com/KratosMultiphysics/Kratos/compare/Release-8.1...master"><img src="https://img.shields.io/github/commits-since/KratosMultiphysics/Kratos/latest?label=commits%20since"></a>
 <a href="https://github.com/KratosMultiphysics/Kratos/commit/master"><img src="https://img.shields.io/github/last-commit/KratosMultiphysics/Kratos?label=latest%20commit"></a>
 
-[release-image]: https://img.shields.io/badge/release-9.1-green.svg?style=flat
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/KratosMultiphysics.svg)](https://pypi.org/project/KratosMultiphysics/)
+[![Downloads](https://pepy.tech/badge/KratosMultiphysics/month)](https://pepy.tech/project/KratosMultiphysics)
+
+[release-image]: https://img.shields.io/badge/release-9.2-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
@@ -21,6 +24,9 @@
 
 [DOI-image]: https://zenodo.org/badge/DOI/10.5281/zenodo.3234644.svg
 [DOI]: https://doi.org/10.5281/zenodo.3234644
+
+[stars-image]: https://img.shields.io/github/stars/KratosMultiphysics/Kratos?label=Stars&logo=github
+[stars]: https://github.com/KratosMultiphysics/Kratos/stargazers
 
 [twitter-image]: https://img.shields.io/twitter/follow/kratosmultiphys.svg?label=Follow&style=social
 [twitter]: https://twitter.com/kratosmultiphys

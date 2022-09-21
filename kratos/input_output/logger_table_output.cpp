@@ -209,7 +209,7 @@ namespace Kratos
           this->GetStream() << "" << std::endl;
       }
   }
-  std::string LoggerTableOutput::Centered(int width, const std::string str)
+  std::string LoggerTableOutput::Centered(int width, const std::string& str)
     {
       int len = str.length();
       if(width < len) { return str; }
