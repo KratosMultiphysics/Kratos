@@ -110,7 +110,7 @@ class CoSimulationAnalysis(AnalysisStage):
     def _GetSimulationName(self):
         """Returns the name of the Simulation
         """
-        simulation_name = type(self).__name__ + ": " + self._GetSolver()._ClassName() + " "
+        simulation_name = type(self).__name__ + ": " + self._GetSolver()._ClassName() + " coupling "
         list_solvers = self.cosim_settings["solver_settings"]["solvers"].keys()
         for solver_name in list_solvers:
             simulation_name += self._GetSolver(solver_name)._ClassName() + " - "
