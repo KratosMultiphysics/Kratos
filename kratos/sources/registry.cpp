@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -21,97 +21,105 @@
 namespace Kratos
 {
 
-namespace {
+namespace
+{
     std::once_flag flag_once;
 }
 
     RegistryItem* Registry::mspRootRegistryItem = nullptr;
 
-    RegistryItem& Registry::GetItem(std::string const& ItemFullName){
+    RegistryItem& Registry::GetItem(std::string const& rItemFullName)
+    {
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
 
-        auto item_path = StringUtilities::SplitStringByDelimiter(ItemFullName, '.');
+        auto item_path = StringUtilities::SplitStringByDelimiter(rItemFullName, '.');
         KRATOS_ERROR_IF(item_path.empty()) << "The item full name is empty" << std::endl;
 
-        
+
         RegistryItem* p_current_item = &GetRootRegistryItem();
 
         for(std::size_t i = 0 ; i < item_path.size() ; i++){
-            auto& item_name = item_path[i];
-            if(p_current_item->HasItem(item_name)){
-                p_current_item = &p_current_item->GetItem(item_name);
+            auto& r_item_name = item_path[i];
+            if(p_current_item->HasItem(r_item_name)){
+                p_current_item = &p_current_item->GetItem(r_item_name);
             }
             else{
-                KRATOS_ERROR << "The item \"" << ItemFullName << "\" is not found in the registry. The item \"" << p_current_item->Name() << "\" does not have \"" << item_name << "\"" << std::endl;
+                KRATOS_ERROR << "The item \"" << rItemFullName << "\" is not found in the registry. The item \"" << p_current_item->Name() << "\" does not have \"" << r_item_name << "\"" << std::endl;
             }
         }
 
         return *p_current_item;
     }
 
-    void Registry::RemoveItem(std::string const& ItemFullName){
+    void Registry::RemoveItem(std::string const& rItemFullName)
+    {
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
 
-        auto item_path = StringUtilities::SplitStringByDelimiter(ItemFullName, '.');
+        auto item_path = StringUtilities::SplitStringByDelimiter(rItemFullName, '.');
         KRATOS_ERROR_IF(item_path.empty()) << "The item full name is empty" << std::endl;
-        
+
         RegistryItem* p_current_item = &GetRootRegistryItem();
 
         for(std::size_t i = 0 ; i < item_path.size() - 1 ; i++){
-            auto& item_name = item_path[i];
-            if(p_current_item->HasItem(item_name)){
-                p_current_item = &p_current_item->GetItem(item_name);
+            auto& r_item_name = item_path[i];
+            if(p_current_item->HasItem(r_item_name)){
+                p_current_item = &p_current_item->GetItem(r_item_name);
             }
             else{
-                KRATOS_ERROR << "The item \"" << ItemFullName << "\" is not found in the registry. The item \"" << p_current_item->Name() << "\" does not have \"" << item_name << "\"" << std::endl;
+                KRATOS_ERROR << "The item \"" << rItemFullName << "\" is not found in the registry. The item \"" << p_current_item->Name() << "\" does not have \"" << r_item_name << "\"" << std::endl;
             }
         }
 
-        auto& item_name = item_path.back();
-        if(p_current_item->HasItem(item_name)){
-            p_current_item->RemoveItem(item_name);
+        auto& r_item_name = item_path.back();
+        if(p_current_item->HasItem(r_item_name)){
+            p_current_item->RemoveItem(r_item_name);
         }
         else{
-            KRATOS_ERROR << "The item \"" << ItemFullName << "\" is not found in the registry. The item \"" << p_current_item->Name() << "\" does not have \"" << item_name << "\"" << std::endl;
+            KRATOS_ERROR << "The item \"" << rItemFullName << "\" is not found in the registry. The item \"" << p_current_item->Name() << "\" does not have \"" << r_item_name << "\"" << std::endl;
         }
     }
 
-    bool Registry::HasItem(std::string const& ItemFullName){
+    bool Registry::HasItem(std::string const& rItemFullName)
+    {
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
 
-        auto item_path = StringUtilities::SplitStringByDelimiter(ItemFullName, '.');
+        auto item_path = StringUtilities::SplitStringByDelimiter(rItemFullName, '.');
         KRATOS_ERROR_IF(item_path.empty()) << "The item full name is empty" << std::endl;
-        
+
         RegistryItem* p_current_item = &GetRootRegistryItem();
 
         for(std::size_t i = 0 ; i < item_path.size() ; i++){
-            auto& item_name = item_path[i];
-            if(p_current_item->HasItem(item_name)){
-                p_current_item = &p_current_item->GetItem(item_name);
+            auto& r_item_name = item_path[i];
+            if(p_current_item->HasItem(r_item_name)){
+                p_current_item = &p_current_item->GetItem(r_item_name);
             }
             else{
                return false;
             }
         }
-        return true;    
+        return true;
     }
 
-    std::string Registry::Info() const{
+    std::string Registry::Info() const
+    {
         return "Registry";
     }
 
-    void Registry::PrintInfo(std::ostream &rOStream) const{
+    void Registry::PrintInfo(std::ostream &rOStream) const
+    {
         rOStream << Info();
     }
 
-    void Registry::PrintData(std::ostream &rOStream) const{
-    }
+    void Registry::PrintData(std::ostream &rOStream) const
+    {}
 
-    std::string Registry::ToJson(std::string const& Indentation) const {
+    std::string Registry::ToJson(std::string const& Indentation) const
+    {
         return GetRootRegistryItem().ToJson(Indentation);
     }
 
-    RegistryItem& Registry::GetRootRegistryItem(){
+    RegistryItem& Registry::GetRootRegistryItem()
+    {
         if (!mspRootRegistryItem) {
             std::call_once(flag_once, [](){
                 static RegistryItem root_item("Registry");
@@ -119,9 +127,7 @@ namespace {
             });
         }
 
-    return *mspRootRegistryItem;
-
+        return *mspRootRegistryItem;
     }
-
 
 } // namespace Kratos.

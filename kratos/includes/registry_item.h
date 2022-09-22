@@ -4,21 +4,18 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_REGISTRY_ITEM_H_INCLUDED )
-#define  KRATOS_REGISTRY_ITEM_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
 #include <unordered_map>
-
 
 // External includes
 
@@ -26,10 +23,9 @@
 // Project includes
 #include "includes/define.h"
 
-
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -53,12 +49,12 @@ namespace Kratos
 
 /// The registry item to be stored by Registry class. It is the base class for some more specific ones.
 /** RegistryItem has a tree node structure and stores its name, an optional
- *  value, and an unorder_set of its sub data. 
+ *  value, and an unorder_set of its sub data.
  *  This structure let us to have registry of the elements and then different
  *  registries for each elements inside it.
- *  Please note that RegistryItem stores a pointer to the value. 
- *  To have a copy of the value you may use the derived RegistryValueItem 
- *  which crates a copy in construction and delete it in its destructor 
+ *  Please note that RegistryItem stores a pointer to the value.
+ *  To have a copy of the value you may use the derived RegistryValueItem
+ *  which crates a copy in construction and delete it in its destructor
  *  to make the memory management easier.
 */
 class RegistryItem
@@ -85,8 +81,7 @@ public:
     RegistryItem(std::string Name, TValueType const& Value) : mName(Name), mpValue(&Value){}
 
     /// Destructor.
-    virtual ~RegistryItem(){
-    }
+    virtual ~RegistryItem(){}
 
     ///@}
     ///@name Operators
@@ -98,7 +93,10 @@ public:
     ///@{
 
     template< typename TItemType, class... TArgumentsList >
-    RegistryItem& AddItem(std::string const& ItemName, TArgumentsList&&... Arguments){
+    RegistryItem& AddItem(
+        std::string const& ItemName,
+        TArgumentsList&&... Arguments)
+    {
         KRATOS_ERROR_IF(this->HasItem(ItemName)) << "The RegistryItem " << this->Name() << " already has an item with name " << ItemName << std::endl;
         auto insert_result = mSubRegistryItem.emplace(std::make_pair(ItemName, Kratos::make_unique<TItemType>(ItemName, std::forward<TArgumentsList>(Arguments)...)));
         KRATOS_ERROR_IF_NOT(insert_result.second) << "Error in inserting " << ItemName << " in registry item with name " << this->Name() << std::endl;
@@ -111,7 +109,8 @@ public:
     ///@name Access
     ///@{
 
-    const std::string& Name() const{
+    const std::string& Name() const
+    {
         return mName;
     }
 
@@ -125,17 +124,20 @@ public:
     ///@name Inquiry
     ///@{
 
-        bool HasValue() const{
-            return (mpValue != nullptr);
-        }
+    bool HasValue() const
+    {
+        return (mpValue != nullptr);
+    }
 
-        bool HasItems() const{
-            return (!mSubRegistryItem.empty());
-        }
+    bool HasItems() const
+    {
+        return (!mSubRegistryItem.empty());
+    }
 
-        bool HasItem(std::string const& ItemName) const{
-            return (mSubRegistryItem.find(ItemName) != mSubRegistryItem.end());
-        }
+    bool HasItem(std::string const& ItemName) const
+    {
+        return (mSubRegistryItem.find(ItemName) != mSubRegistryItem.end());
+    }
 
 
     ///@}
@@ -153,14 +155,12 @@ public:
 
     virtual std::string ToJson(std::string const& Indetation = "") const;
 
-
     ///@}
     ///@name Friends
     ///@{
 
 
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -200,12 +200,9 @@ protected:
 
 
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
-
 
 
     ///@}
@@ -243,13 +240,10 @@ private:
     /// Copy constructor.
     RegistryItem(RegistryItem const& rOther);
 
-
     ///@}
-
 }; // Class RegistryItem
 
 ///@}
-
 ///@name Type Definitions
 ///@{
 
@@ -258,14 +252,15 @@ private:
 ///@name Input and output
 ///@{
 
-
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                RegistryItem& rThis);
+inline std::istream& operator >> (
+    std::istream& rIStream,
+    RegistryItem& rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                const RegistryItem& rThis)
+inline std::ostream& operator << (
+    std::ostream& rOStream,
+    const RegistryItem& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -278,5 +273,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_REGISTRY_ITEM_H_INCLUDED  defined

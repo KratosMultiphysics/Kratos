@@ -4,21 +4,17 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_REGISTRY_VALUE_ITEM_H_INCLUDED )
-#define  KRATOS_REGISTRY_VALUE_ITEM_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
-
-
 
 // External includes
 
@@ -26,10 +22,9 @@
 // Project includes
 #include "includes/registry_item.h"
 
-
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -52,10 +47,10 @@ namespace Kratos
 ///@{
 
 /// The registry value item is a registry item which stores a copy of a value.
-/** This class is derived from RegistryItem and the difference is that it creates a 
- *  copy of the value in initialization and delete that copy at destruction. 
- *  This make it suitable for storing values that we want to have one copy of them 
- *  in the registry but not for the values that are stored in other places (like static variables) 
+/** This class is derived from RegistryItem and the difference is that it creates a
+ *  copy of the value in initialization and delete that copy at destruction.
+ *  This make it suitable for storing values that we want to have one copy of them
+ *  in the registry but not for the values that are stored in other places (like static variables)
  *  Value type should be copy constructable.
 */
 template<typename TValueType>
@@ -79,13 +74,16 @@ public:
     RegistryValueItem(std::string Name) : RegistryItem(Name){}
 
     /// Constructor with the name and value
-
     template<class... TArgumentsList >
-    RegistryValueItem(std::string const& Name, TArgumentsList&&... Arguments) : RegistryItem(Name, *(new TValueType(std::forward<TArgumentsList>(Arguments)...))){
-    }
+    RegistryValueItem(
+        std::string const& Name,
+        TArgumentsList&&... Arguments)
+        : RegistryItem(Name, *(new TValueType(std::forward<TArgumentsList>(Arguments)...)))
+    {}
 
-   /// Destructor.
-    virtual ~RegistryValueItem(){
+    /// Destructor.
+    virtual ~RegistryValueItem()
+    {
         delete static_cast<TValueType*>(const_cast<void*>(mpValue));
     }
 
@@ -94,11 +92,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override {
+    virtual std::string Info() const override
+    {
         return Name() + " RegistryValueItem ";
     }
 
-    std::string ToJson(std::string const& Indentation = "") const override {
+    std::string ToJson(std::string const& Indentation = "") const override
+    {
         std::stringstream buffer;
 
         if(HasValue()){
@@ -112,7 +112,8 @@ public:
         return buffer.str();
     }
 
-    std::string ValueToJson() const {
+    std::string ValueToJson() const
+    {
         std::stringstream buffer;
         buffer << "\"" << *static_cast<const TValueType*>(mpValue) << "\"";
 
@@ -222,5 +223,3 @@ private:
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_REGISTRY_VALUE_ITEM_H_INCLUDED  defined
