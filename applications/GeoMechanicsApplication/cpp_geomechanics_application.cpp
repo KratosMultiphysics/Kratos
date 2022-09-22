@@ -740,7 +740,7 @@ namespace Kratos
                 int noPipeElements = pipeElements.size();
 
                 int step = 1;
-                int maxSteps = std::ceil((maxCriticalHead - minCriticalHead) / stepCriticalHead);
+                int maxSteps = std::ceil((maxCriticalHead - minCriticalHead) / stepCriticalHead) + 2;
 
                 while (true)
                 {
