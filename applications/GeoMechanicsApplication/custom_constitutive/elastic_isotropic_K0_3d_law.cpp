@@ -302,7 +302,7 @@ void ElasticIsotropicK03DLaw::CalculateElasticMatrix(Matrix& rConstitutiveMatrix
     }
 
     NU = K0 / (K0 + 1.0);
-    NU = std::max(NU, 0.0);
+    NU = std::max<double>(NU, 0.0);
 
     const double limit = 0.005;
     if (NU < (0.5 + limit) && NU > (0.5 - limit)) NU = 0.5 - limit;
