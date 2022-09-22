@@ -73,6 +73,17 @@ void AlternativeQSVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCu
     // Base class does things with constitutive law here.
     QSVMS<TElementData>::Initialize(rCurrentProcessInfo);
 
+    mInterpolationOrder = 1;
+
+    if(Dim == 2){
+        if (NumNodes == 9 || NumNodes == 6)
+            mInterpolationOrder = 2;
+    }
+    else if(Dim == 3){
+        if (NumNodes == 10 || NumNodes == 27)
+            mInterpolationOrder = 2;
+    }
+
     const unsigned int number_of_gauss_points = this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
 
     // The old velocity may be already defined (if restarting)
@@ -387,6 +398,12 @@ void AlternativeQSVMSDEMCoupled<TElementData>::Calculate(
     }
 }
 
+template< class TElementData >
+GeometryData::IntegrationMethod AlternativeQSVMSDEMCoupled<TElementData>::GetIntegrationMethod() const
+{
+    return GeometryData::IntegrationMethod::GI_GAUSS_3;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
 
@@ -550,6 +567,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::MomentumProjTerm(
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
+    MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
     const auto& r_body_forces = rData.BodyForce;
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
@@ -558,9 +576,10 @@ void AlternativeQSVMSDEMCoupled<TElementData>::MomentumProjTerm(
         for (unsigned int d = 0; d < Dim; d++)
             fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
 
-    Vector grad_alpha_sym_grad_u, grad_div_u, div_sym_grad_u;
+    Vector grad_alpha_sym_grad_u, grad_div_u, sigma_U, div_sym_grad_u;
     BoundedMatrix<double,Dim,Dim> sym_gradient_u;
     for (unsigned int i = 0; i < NumNodes; i++) {
+        sigma_U = ZeroVector(Dim);
         grad_div_u = ZeroVector(Dim);
         sym_gradient_u = ZeroMatrix(Dim, Dim);
         grad_alpha_sym_grad_u = ZeroVector(Dim);
@@ -568,6 +587,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::MomentumProjTerm(
         for (unsigned int d = 0; d < Dim; d++) {
             double div_u = 0.0;
             for (unsigned int e = 0; e < Dim; e++){
+                sigma_U[d] += sigma(d,e) * rData.N[i] * r_velocities(i,e);
                 sym_gradient_u(d,e) += 1.0/2.0 * (rData.DN_DX(i,d) * r_velocities(i,e) + rData.DN_DX(i,e) * r_velocities(i,d));
                 grad_alpha_sym_grad_u[d] += fluid_fraction_gradient[e] * sym_gradient_u(d,e);
                 div_u += rData.DN_DX(i,e) * r_velocities(i,e);
@@ -577,7 +597,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::MomentumProjTerm(
                 else
                     div_sym_grad_u[d] += 1.0/2.0 * (rData.DDN_DDX[i](e,d) * r_velocities(i,e) + rData.DDN_DDX[i](e,e) * r_velocities(i,d));
             }
-            rMomentumRHS[d] += density * (rData.N[i] * r_body_forces(i,d) - fluid_fraction * AGradN[i] * r_velocities(i,d)) + 2.0 * grad_alpha_sym_grad_u[d] * viscosity - 2.0/3.0 * viscosity * fluid_fraction_gradient[d] * div_u + 2.0 * fluid_fraction * viscosity * div_sym_grad_u[d] - 2.0/3.0 * fluid_fraction * viscosity * grad_div_u[d] - fluid_fraction * rData.DN_DX(i,d) * r_pressures[i];
+            rMomentumRHS[d] += density * (rData.N[i] * r_body_forces(i,d) - fluid_fraction * AGradN[i] * r_velocities(i,d)) + 2.0 * grad_alpha_sym_grad_u[d] * viscosity - 2.0/3.0 * viscosity * fluid_fraction_gradient[d] * div_u + 2.0 * fluid_fraction * viscosity * div_sym_grad_u[d] - 2.0/3.0 * fluid_fraction * viscosity * grad_div_u[d] - fluid_fraction * rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
         }
     }
 }
@@ -942,14 +962,21 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
                     RSigmaG += tau_one(d,d) * fluid_fraction * sigma(d,e) * rData.N[i] * rData.DN_DX(j,e);
                     GR += tau_one(d,d) * fluid_fraction * rData.DN_DX(i,e) * sigma(e,d) * rData.N[j];
 
-                    LHS(row+d,col+e) += rData.Weight * (GS - DnuD + DD + DU + GU + GD + GBetaA - GBetaG + GBetaD + GBetaSigma - DBetaA + DBetaG - DBetaD - AGBeta + ADBeta - DBetaSigma + RGBeta - RDBeta + RSigma + ASigma - RRSigma - RSigmaA - AL + LA + AC - CA + LC + CL - CC - LL - LGBeta + LDBeta + LSigma + CGBeta - CDBeta - CSigma - GBetaL + GBetaC + DBetaL - DBetaC + RSigmaL - RSigmaC);
+                    LHS(row+d,col+e) += rData.Weight * (GS - DnuD + DD + DU + GU + GD + GBetaA - GBetaG + GBetaD - DBetaA + DBetaG - DBetaD - AGBeta + ADBeta + RSigma - AL + LA + AC - CA + LC + CL - CC - LL - LGBeta + LDBeta + CGBeta - CDBeta - GBetaL + GBetaC + DBetaL - DBetaC);
+
+                    //Adding reactive terms in stabilization
+                    LHS(row+d,col+e) += rData.Weight * (GBetaSigma + RGBeta - DBetaSigma - RDBeta + ASigma - RRSigma - RSigmaA + LSigma - CSigma + RSigmaL - RSigmaC);
                 }
                 double GGBeta = GGBeta_1 + GGBeta_2;
                 double GG = GG_1 + GG_2;
 
-                LHS(row+Dim,col+d) += rData.Weight * (GA - GL + GC + QD - GGBeta + GDBeta + GAlphaD + GR);
+                LHS(row+Dim,col+d) += rData.Weight * (GA - GL + GC + QD - GGBeta + GDBeta + GAlphaD);
 
-                LHS(row+d,col+Dim) += rData.Weight * (AG + LG - CG - P - GP - RSigmaG + GG - DG);
+                LHS(row+d,col+Dim) += rData.Weight * (AG + LG - CG - P - GP + GG - DG);
+
+                //Adding reactive terms in stabilization
+                LHS(row+Dim,col+d) += rData.Weight * GR;
+                LHS(row+d,col+Dim) -= rData.Weight * RSigmaG;
 
             }
 
@@ -963,6 +990,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
         {
             // v*BodyForce
             double VF = rData.N[i] * body_force[d];
+            double VPhi = 0.0;
             // ( a * Grad(v) ) * TauOne * (Density * BodyForce - Projection)
             double AF = tau_one(d,d) * fluid_fraction * AGradN[i] * (body_force[d] - MomentumProj[d]);
             double LF = 0.0;
@@ -974,15 +1002,14 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
                 LF += tau_one(d,d) * fluid_fraction * viscosity * rData.DDN_DDX[i](d,e) * (body_force[e] - MomentumProj[e]);
                 LF += tau_one(d,d) * fluid_fraction * viscosity * rData.DDN_DDX[i](e,e) * (body_force[d] - MomentumProj[d]);
                 CF += 2.0 / 3.0 * tau_one(d,d) * fluid_fraction * viscosity * rData.DDN_DDX[i](d,e) * (body_force[e] - MomentumProj[e]);
-                if(!rData.UseOSS)
-                    RSigmaF += tau_one(d,d) * rData.N[i] * sigma(d,e) * (body_force[e] - MomentumProj[e]);
+                RSigmaF += tau_one(d,d) * rData.N[i] * sigma(d,e) * (body_force[e] - MomentumProj[e]);
                 GBetaF += tau_one(d,d) * viscosity * fluid_fraction_gradient[d] * rData.DN_DX(i,e) * (body_force[e] - MomentumProj[e]);
                 GBetaF += tau_one(d,d) * viscosity * fluid_fraction_gradient[e] * rData.DN_DX(i,e) * (body_force[d] - MomentumProj[d]);
                 DBetaF += 2.0 / 3.0 * tau_one(d,d) * viscosity * rData.DN_DX(i,d) * fluid_fraction_gradient[e] * (body_force[e] - MomentumProj[e]);
             }
             // Grad(q) * TauOne * (Density * BodyForce - Projection)
             QAlphaF += tau_one(d,d) * rData.DN_DX(i,d) * fluid_fraction * (body_force[d] - MomentumProj[d]);
-            double VPhi = tau_two * rData.N[i] * fluid_fraction_gradient[d] * (mass_source - fluid_fraction_rate - MassProj);
+            VPhi += tau_two * rData.N[i] * fluid_fraction_gradient[d] * (mass_source - fluid_fraction_rate - MassProj);
             // OSS pressure subscale projection
             double DPhi = rData.DN_DX(i,d) * tau_two * fluid_fraction * (mass_source - fluid_fraction_rate - MassProj);
             rLocalRHS[row+d] += rData.Weight * (VF + AF + LF - CF + DPhi - RSigmaF + GBetaF - DBetaF + VPhi);
@@ -1152,9 +1179,12 @@ void AlternativeQSVMSDEMCoupled<TElementData>::MassProjTerm(
                 fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
 
         // Compute this node's contribution to the residual (evaluated at integration point)
-        for (unsigned int i = 0; i < NumNodes; i++)
-            for (unsigned int d = 0; d < Dim; ++d)
-                rMassRHS -= fluid_fraction * rData.DN_DX(i,d) * velocities(i,d) + fluid_fraction_gradient[d] * rData.N[i] * velocities(i,d);
+        for (unsigned int i = 0; i < NumNodes; i++){
+            for (unsigned int d = 0; d < Dim; ++d){
+                rMassRHS -= fluid_fraction * rData.DN_DX(i,d) * velocities(i,d);
+                rMassRHS -= fluid_fraction_gradient[d] * rData.N[i] * velocities(i,d);
+                }
+                }
 
         rMassRHS += mass_source - fluid_fraction_rate;
 }
@@ -1168,7 +1198,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::CalculateTau(
 {
     constexpr double c1 = 12.0;
     constexpr double c2 = 2.0;
-    const double p = 2.0;
+    const int p = mInterpolationOrder;
     double inv_tau;
     double inv_tau_NS;
     //double spectral_radius = 0.0;

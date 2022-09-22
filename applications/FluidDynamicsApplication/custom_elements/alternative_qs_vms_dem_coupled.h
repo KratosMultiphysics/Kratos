@@ -184,6 +184,8 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -223,6 +225,8 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    int mInterpolationOrder = 1;
     DenseVector <BoundedMatrix<double,Dim,Dim>> mViscousResistanceTensor;
     // Velocity subscale history, stored at integration points
     DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
