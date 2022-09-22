@@ -15,7 +15,7 @@ class ChienDragAnalysis(SwimmingDEMAnalysis, KratosUnittest.TestCase):
         super().FinalizeSolutionStep()
 
     def CheckValues(self, x_vel):
-        tol = 1.0e-18
+        tol = 1.0e-12
         x_vel_ref = 0.9886575480896711 #ChienDragLaw
 
         # Other results.
