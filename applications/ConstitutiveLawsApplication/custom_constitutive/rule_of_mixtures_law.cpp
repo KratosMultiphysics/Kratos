@@ -1124,7 +1124,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
                 delamination_damage[i+1] = 1.0 - (initial_threshold / T_eq) * std::exp(AParameter *
                     (1.0 - T_eq / initial_threshold)); // Exponential
 
-                delamination_damage[i+1] = (delamination_damage[i+1] >= 0.9999) ? 0.9999 : delamination_damage[i+1];
+                delamination_damage[i+1] = (delamination_damage[i+1] >= 0.99999) ? 0.99999 : delamination_damage[i+1];
                 delamination_damage[i+1] = (delamination_damage[i+1] < 0.0) ? 0.0 : delamination_damage[i+1];
             }
 
@@ -1848,7 +1848,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
                 delamination_damage[i+1] = 1.0 - (initial_threshold / T_eq) * std::exp(AParameter *
                     (1.0 - T_eq / initial_threshold)); // Exponential
 
-                delamination_damage[i+1] = (delamination_damage[i+1] >= 0.9999) ? 0.9999 : delamination_damage[i+1]; //0.98
+                delamination_damage[i+1] = (delamination_damage[i+1] >= 0.99999) ? 0.99999 : delamination_damage[i+1]; //0.98
                 delamination_damage[i+1] = (delamination_damage[i+1] < 0.0) ? 0.0 : delamination_damage[i+1];
 
                 mdelamination_damage[i+1] = delamination_damage[i+1];
