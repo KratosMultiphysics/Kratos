@@ -159,7 +159,7 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPoros
     const double x20 = mX2Origin;
     Matrix I = IdentityMatrix(Dim, Dim);
 
-    double du1dt, du2dt, du111, du112, du121, du122, du211, du212, du221, du222;
+    double du1dt, du2dt, du11, du12, du21, du22, du111, du112, du121, du122, du211, du212, du221, du222;
     // Computation of the BodyForce and Porosity fields
     for (auto it_node = mrModelPart.NodesBegin(); it_node != mrModelPart.NodesEnd(); it_node++){
 
