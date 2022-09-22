@@ -755,7 +755,7 @@ namespace Kratos
 
                     std::string progress = "Calculating head level " + std::to_string(currentHead) + "m (" + std::to_string(step) + "/" + std::to_string(maxSteps) + ")";
                     reportTextualProgress(progress.data());
-                    reportProgress(step / maxSteps);
+                    reportProgress(((double) step) / ((double) maxSteps));
 
                     mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
 
