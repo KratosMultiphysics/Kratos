@@ -8,6 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Máté Kelemen
+//                   Riccardo Rossi
+//                   Miguel Maso Sotomayor
 //
 
 // Project includes
@@ -109,6 +111,43 @@ void IntervalUtility<int>::SetBoundaries(int begin, int end) noexcept
 {
     mBegin = begin;
     mEnd = end;
+}
+
+
+template <>
+std::string IntervalUtility<double>::Info() const
+{
+    return "IntervalUtility";
+}
+
+
+template <>
+std::string IntervalUtility<int>::Info() const
+{
+    return "DiscreteIntervalUtility";
+}
+
+template <class TValue>
+void IntervalUtility<TValue>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+
+template <class TValue>
+void IntervalUtility<TValue>::PrintData(std::ostream& rOStream) const
+{
+    rOStream << "[" << GetIntervalBegin() << ", " << GetIntervalEnd() << "]";
+}
+
+
+template <class TValue>
+inline std::ostream& operator << (std::ostream& rOStream, const IntervalUtility<TValue>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << " : ";
+    rThis.PrintData(rOStream);
+    return rOStream;
 }
 
 

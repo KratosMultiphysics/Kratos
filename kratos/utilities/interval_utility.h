@@ -28,7 +28,7 @@ namespace Detail
  *  @ingroup KratosCore
  */
 template <class TValue>
-class IntervalUtility
+class KRATOS_API(KRATOS_CORE) IntervalUtility
 {
 public:
 
@@ -76,6 +76,15 @@ public:
 
     static Parameters GetDefaultParameters();
 
+    /// Return information as a string.
+    std::string Info() const;
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const;
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const;
+
 private:
     /**
      *  @brief Set the boundaries from numeric values in the input @a parameters.
@@ -91,6 +100,12 @@ private:
 
     TValue mEnd;
 };
+
+
+/// output stream function
+template <class TValue>
+inline std::ostream& operator << (std::ostream& rOStream, const IntervalUtility<TValue>& rThis);
+
 
 } // namespace Detail
 

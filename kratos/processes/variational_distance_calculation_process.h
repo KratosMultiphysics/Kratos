@@ -269,7 +269,7 @@ public:
                     GeometryUtils::CalculateExactDistancesToPlane(geom, distances);
                 }
                 else {
-                    if(TDim==3){
+                    if constexpr (TDim==3){
                         GeometryUtils::CalculateTetrahedraDistances(geom, distances);
                     }
                     else {
