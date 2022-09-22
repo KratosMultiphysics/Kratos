@@ -206,12 +206,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             computing_model_part)
         neighbour_search.Execute()
 
-        dimensions = computing_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
-        avg_num_elements = 10
-        elemental_neighbour_search = KratosMultiphysics.FindElementalNeighboursProcess(
-            computing_model_part,
-            dimensions,
-            avg_num_elements)
+        elemental_neighbour_search = KratosMultiphysics.GenericFindElementalNeighboursProcess(
+            computing_model_part)
         elemental_neighbour_search.Execute()
 
         # Set and initialize the solution strategy

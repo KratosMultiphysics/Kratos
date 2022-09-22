@@ -290,8 +290,6 @@ namespace Kratos
                   unsigned int InsertedBoundaryNodes;
                   unsigned int InsertedBoundaryConditions;
 
-                  unsigned int IdPrincipalModelPart;
-                  
                   unsigned int CriticalElements;
 
                   bool GeometricalSmoothingRequired;

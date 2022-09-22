@@ -31,12 +31,6 @@ namespace Kratos
     KratosShallowWaterApplication::KratosShallowWaterApplication():
         KratosApplication("ShallowWaterApplication"),
 
-        mSWE2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
-        mSWE2D4N(0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
-
-        mLagrangianSWE2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
-        mLagrangianSWE2D4N(0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
-
         mWaveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
         mWaveElement2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
         mWaveElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
@@ -48,8 +42,6 @@ namespace Kratos
         mConservativeElementGJ2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
         mConservativeElementRV2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
         mConservativeElementFC2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-
-        mShallowWater2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
 
         mWaveCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
         mWaveCondition2D3N(0, Element::GeometryType::Pointer(new Line2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
@@ -124,12 +116,6 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MOMENTUM_ERROR)
 
         // Registering elements and conditions here
-        KRATOS_REGISTER_ELEMENT("SWE2D3N", mSWE2D3N) // TODO: remove
-        KRATOS_REGISTER_ELEMENT("SWE2D4N", mSWE2D4N) // TODO: remove
-
-        KRATOS_REGISTER_ELEMENT("LagrangianSWE2D3N", mLagrangianSWE2D3N) // TODO: remove
-        KRATOS_REGISTER_ELEMENT("LagrangianSWE2D4N", mLagrangianSWE2D4N) // TODO: remove
-
         KRATOS_REGISTER_ELEMENT("WaveElement2D3N", mWaveElement2D3N)
         KRATOS_REGISTER_ELEMENT("WaveElement2D6N", mWaveElement2D6N)
         KRATOS_REGISTER_ELEMENT("WaveElement2D4N", mWaveElement2D4N)
@@ -141,8 +127,6 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("ConservativeElementGJ2D3N", mConservativeElementGJ2D3N)
         KRATOS_REGISTER_ELEMENT("ConservativeElementRV2D3N", mConservativeElementRV2D3N)
         KRATOS_REGISTER_ELEMENT("ConservativeElementFC2D3N", mConservativeElementFC2D3N)
-
-        KRATOS_REGISTER_ELEMENT("ShallowWater2D3N", mShallowWater2D3N) // TODO: move to ConservativeElement
 
         KRATOS_REGISTER_CONDITION("WaveCondition2D2N", mWaveCondition2D2N)
         KRATOS_REGISTER_CONDITION("WaveCondition2D3N", mWaveCondition2D3N)

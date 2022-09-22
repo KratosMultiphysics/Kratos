@@ -112,7 +112,7 @@ namespace Kratos
 			if (!(refiningBox == true && currentTime > initialTimeRefiningBox && currentTime < finalTimeRefiningBox))
 			{
 				refiningBox = false;
-			}
+				}
 
 			if (currentTime < 2 * timeInterval)
 			{
@@ -128,14 +128,14 @@ namespace Kratos
 
 			int initialNumberOfNodes = mrRemesh.Info->InitialNumberOfNodes;
 			int numberOfNodes = mrRemesh.Info->NumberOfNodes;
-			int extraNodes = numberOfNodes - initialNumberOfNodes;
+			int extraNodes = initialNumberOfNodes - numberOfNodes;
 			int toleredExtraNodes = int(0.05 * mrRemesh.Info->InitialNumberOfNodes);
 
 			if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
 			{
-				if ((extraNodes + ElementsToRefine) > toleredExtraNodes && refiningBox == false)
+				if ((ElementsToRefine - extraNodes) > toleredExtraNodes && refiningBox == false)
 				{
-					ElementsToRefine = toleredExtraNodes - extraNodes;
+					ElementsToRefine = toleredExtraNodes + extraNodes;
 					if (ElementsToRefine < 0)
 					{
 						ElementsToRefine = 0;
@@ -154,14 +154,12 @@ namespace Kratos
 					std::vector<array_1d<double, 3>> NewPositions;
 					std::vector<double> BiggestVolumes;
 					std::vector<array_1d<unsigned int, 4>> NodesIDToInterpolate;
-					// std::vector<Node<3>::DofsContainerType> NewDofs;
 
 					int CountNodes = 0;
 
 					NewPositions.resize(ElementsToRefine);
 					BiggestVolumes.resize(ElementsToRefine, false);
 					NodesIDToInterpolate.resize(ElementsToRefine);
-					// NewDofs.resize(ElementsToRefine, false);
 
 					for (int nn = 0; nn < ElementsToRefine; nn++)
 					{
@@ -213,7 +211,6 @@ namespace Kratos
 						NewPositions.resize(CountNodes);
 						BiggestVolumes.resize(CountNodes, false);
 						NodesIDToInterpolate.resize(CountNodes);
-						// NewDofs.resize(CountNodes, false);
 					}
 					unsigned int maxId = 0;
 					CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, ElementsToRefine, maxId);
@@ -737,6 +734,7 @@ namespace Kratos
 			KRATOS_TRY
 
 			const unsigned int nds = Element.size();
+			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
 
 			unsigned int rigidNodes = 0;
 			unsigned int boundaryNodes = 0;
@@ -768,12 +766,11 @@ namespace Kratos
 				}
 			}
 
-			double limitEdgeLength = 1.4 * mrRemesh.Refine->CriticalRadius;
+			double limitEdgeLength = 1.4 * meanMeshSize;
 			double safetyCoefficient2D = 1.5;
-			double penalization = 1.0;
+			double penalization = 1.0; // to penalize adding node, penalization here should be smaller than 1
 			if (rigidNodes > 1)
 			{
-				// penalization=0.7;
 				penalization = 0.8;
 				if (inletNodes > 0)
 				{
@@ -845,7 +842,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.9;
+						penalization = 0.9; // 10% less than normal nodes
 					}
 				}
 			}
@@ -876,8 +873,8 @@ namespace Kratos
 					bool suitableElement = true;
 					for (int j = 0; j < CountNodes; j++)
 					{
-						double diffX = fabs(NewPositions[j][0] - NewPosition[0]) - mrRemesh.Refine->CriticalRadius * 0.5;
-						double diffY = fabs(NewPositions[j][1] - NewPosition[1]) - mrRemesh.Refine->CriticalRadius * 0.5;
+						double diffX = fabs(NewPositions[j][0] - NewPosition[0]) - meanMeshSize * 0.5;
+						double diffY = fabs(NewPositions[j][1] - NewPosition[1]) - meanMeshSize * 0.5;
 						if (diffX < 0 && diffY < 0) //  the node is in the same zone of a previously inserted node
 						{
 							suitableElement = false;
@@ -922,8 +919,8 @@ namespace Kratos
 								{
 									for (int j = 0; j < ElementsToRefine; j++)
 									{
-										double diffX = fabs(NewPositions[j][0] - NewPosition[0]) - mrRemesh.Refine->CriticalRadius * 0.5;
-										double diffY = fabs(NewPositions[j][1] - NewPosition[1]) - mrRemesh.Refine->CriticalRadius * 0.5;
+										double diffX = fabs(NewPositions[j][0] - NewPosition[0]) - meanMeshSize * 0.5;
+										double diffY = fabs(NewPositions[j][1] - NewPosition[1]) - meanMeshSize * 0.5;
 										if (diffX < 0 && diffY < 0) // the node is in the same zone of a previously inserted node
 										{
 											// std::cout << " the nodes has more or less the same position of a previously inserted node" << NewPositions[j][0] << " " << NewPositions[j][1] << " versus " << NewPosition[0] << " " << NewPosition[1] << std::endl;
@@ -972,6 +969,7 @@ namespace Kratos
 			KRATOS_TRY
 
 			const unsigned int nds = Element.size();
+			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
 
 			unsigned int rigidNodes = 0;
 			unsigned int freesurfaceNodes = 0;
@@ -998,9 +996,9 @@ namespace Kratos
 				}
 			}
 
-			double limitEdgeLength = 1.25 * mrRemesh.Refine->CriticalRadius;
+			double limitEdgeLength = 1.25 * meanMeshSize;
 			double safetyCoefficient3D = 1.6;
-			double penalization = 1.0;
+			double penalization = 1.0; // penalization here should be smaller than 1
 			if (rigidNodes > 2)
 			{
 				penalization = 0.7;
@@ -1082,7 +1080,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.9;
+						penalization = 0.8; // 20% less than normal nodes
 					}
 				}
 			}
@@ -1143,9 +1141,9 @@ namespace Kratos
 					bool suitableElement = true;
 					for (int j = 0; j < CountNodes; j++)
 					{
-						double diffX = fabs(NewPositions[j][0] - NewPosition[0]) - mrRemesh.Refine->CriticalRadius * 0.5;
-						double diffY = fabs(NewPositions[j][1] - NewPosition[1]) - mrRemesh.Refine->CriticalRadius * 0.5;
-						double diffZ = fabs(NewPositions[j][2] - NewPosition[2]) - mrRemesh.Refine->CriticalRadius * 0.5;
+						double diffX = fabs(NewPositions[j][0] - NewPosition[0]) - meanMeshSize * 0.5;
+						double diffY = fabs(NewPositions[j][1] - NewPosition[1]) - meanMeshSize * 0.5;
+						double diffZ = fabs(NewPositions[j][2] - NewPosition[2]) - meanMeshSize * 0.5;
 						if (diffX < 0 && diffY < 0 && diffZ < 0) //  the node is in the same zone of a previously inserted node
 						{
 							suitableElement = false;
@@ -1193,9 +1191,9 @@ namespace Kratos
 								{
 									for (int j = 0; j < ElementsToRefine; j++)
 									{
-										double diffX = fabs(NewPositions[j][0] - NewPosition[0]) - mrRemesh.Refine->CriticalRadius * 0.5;
-										double diffY = fabs(NewPositions[j][1] - NewPosition[1]) - mrRemesh.Refine->CriticalRadius * 0.5;
-										double diffZ = fabs(NewPositions[j][2] - NewPosition[2]) - mrRemesh.Refine->CriticalRadius * 0.5;
+										double diffX = fabs(NewPositions[j][0] - NewPosition[0]) - meanMeshSize * 0.5;
+										double diffY = fabs(NewPositions[j][1] - NewPosition[1]) - meanMeshSize * 0.5;
+										double diffZ = fabs(NewPositions[j][2] - NewPosition[2]) - meanMeshSize * 0.5;
 										if (diffX < 0 && diffY < 0 && diffZ < 0) // the node is in the same zone of a previously inserted node
 										{
 											suitableElement = false;
@@ -1281,10 +1279,10 @@ namespace Kratos
 				if (Element[pn].Is(INLET))
 				{
 					inletNodes++;
-				}
+			}
 
 				if (refiningBox == true)
-				{
+			{
 
 					array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
 					array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
@@ -1293,12 +1291,12 @@ namespace Kratos
 					array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
 					array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
 					if (mrRemesh.Refine->CriticalRadius > mrRemesh.RefiningBoxMeshSize)
-					{
+				{
 						if (Element[pn].X() > RefiningBoxMinimumPoint[0] && Element[pn].Y() > RefiningBoxMinimumPoint[1] &&
 							Element[pn].X() < RefiningBoxMaximumPoint[0] && Element[pn].Y() < RefiningBoxMaximumPoint[1])
 						{
 							meanMeshSize = mrRemesh.RefiningBoxMeshSize;
-						}
+				}
 						else if ((Element[pn].X() < RefiningBoxMinimumPoint[0] && Element[pn].X() > (minExternalPoint[0] - distance) && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1]))
 						{
 							seperation = Element[pn].X() - RefiningBoxMinimumPoint[0];
@@ -1384,7 +1382,7 @@ namespace Kratos
 				}
 			}
 
-			double penalization = 1.0;
+			double penalization = 1.0; // penalization here should be greater than 1
 			if (refiningBox == true)
 			{
 				if (freesurfaceNodes > 0)
@@ -1398,7 +1396,6 @@ namespace Kratos
 				}
 			}
 
-			double limitEdgeLength = 1.9 * meanMeshSize * penalization;
 			double safetyCoefficient2D = 1.5;
 
 			double ElementalVolume = Element.Area();
@@ -1461,7 +1458,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.9;
+						penalization = 1.1; // 10% more than normal nodes
 					}
 				}
 			}
@@ -1469,6 +1466,7 @@ namespace Kratos
 			{
 				dangerousElement = true;
 			}
+			double limitEdgeLength = 1.9 * meanMeshSize * penalization;
 
 			if (dangerousElement == false && toEraseNodeFound == false)
 			{
@@ -1576,10 +1574,10 @@ namespace Kratos
 				if (Element[pn].Is(INLET))
 				{
 					inletNodes++;
-				}
+			}
 
 				if (refiningBox == true)
-				{
+			{
 
 					array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
 					array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
@@ -1588,13 +1586,13 @@ namespace Kratos
 					array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
 					array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
 					if (mrRemesh.Refine->CriticalRadius > mrRemesh.RefiningBoxMeshSize)
-					{
+				{
 						if (Element[pn].X() > RefiningBoxMinimumPoint[0] && Element[pn].X() < RefiningBoxMaximumPoint[0] &&
 							Element[pn].Y() > RefiningBoxMinimumPoint[1] && Element[pn].Y() < RefiningBoxMaximumPoint[1] &&
 							Element[pn].Z() > RefiningBoxMinimumPoint[2] && Element[pn].Z() < RefiningBoxMaximumPoint[2])
 						{
 							meanMeshSize = mrRemesh.RefiningBoxMeshSize;
-						}
+				}
 						else if ((Element[pn].X() < RefiningBoxMinimumPoint[0] && Element[pn].X() > (minExternalPoint[0] - distance) && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1] && Element[pn].Z() > minExternalPoint[2] && Element[pn].Z() < maxExternalPoint[2]))
 						{
 							seperation = Element[pn].X() - RefiningBoxMinimumPoint[0];
@@ -1716,13 +1714,13 @@ namespace Kratos
 					}
 				}
 			}
-			double penalization = 1.0;
+			double penalization = 1.0; // penalization here should be greater than 1
 			if (refiningBox == true)
 			{
 				if (freesurfaceNodes > 0)
 				{
 					penalization = 1.2; // to avoid to gain too much volume during remeshing step
-				}
+			}
 
 				if (rigidNodes > 0 && penalizationRigid == true)
 				{
@@ -1730,7 +1728,6 @@ namespace Kratos
 				}
 			}
 
-			double limitEdgeLength = 1.6 * meanMeshSize * penalization;
 			double safetyCoefficient3D = 1.6;
 
 			double ElementalVolume = Element.Volume();
@@ -1795,7 +1792,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.9;
+						penalization = 1.2; // 20% less than normal nodes
 					}
 				}
 			}
@@ -1831,6 +1828,7 @@ namespace Kratos
 			{
 				dangerousElement = true;
 			}
+			double limitEdgeLength = 1.6 * meanMeshSize * penalization;
 
 			// just to fill the vector
 			if (dangerousElement == false && toEraseNodeFound == false)
@@ -1992,7 +1990,9 @@ namespace Kratos
 
 			// assign data to dofs
 			VariablesList &VariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
-			unsigned int principalPropertyId = mrRemesh.Info->IdPrincipalModelPart;
+
+			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+			unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
 
 			for (unsigned int nn = 0; nn < NewPositions.size(); nn++)
 			{
@@ -2050,8 +2050,8 @@ namespace Kratos
 				{
 
 					unsigned int propertyIdNodeSlave1 = SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID);
-					if ((mrRemesh.Info->BalancePrincipalSecondaryPartsNodes < 0 && propertyIdNodeSlave1 == principalPropertyId) ||
-						(mrRemesh.Info->BalancePrincipalSecondaryPartsNodes > 0 && propertyIdNodeSlave1 != principalPropertyId) ||
+					if ((mrRemesh.Info->BalancePrincipalSecondaryPartsNodes > 0 && propertyIdNodeSlave1 == principalModelPartId) ||
+						(mrRemesh.Info->BalancePrincipalSecondaryPartsNodes < 0 && propertyIdNodeSlave1 != principalModelPartId) ||
 						(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)))
 					{
 						TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
@@ -2060,18 +2060,14 @@ namespace Kratos
 					{
 						TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
 					}
-
 				}
 
 				unsigned int propertyIdNode = pnode->FastGetSolutionStepValue(PROPERTY_ID);
-				if (propertyIdNode == principalPropertyId)
+				if (propertyIdNode != principalModelPartId)
 				{
 					mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
 				}
-				else
-				{
-					mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-				}
+
 			}
 
 			// set the coordinates to the original value

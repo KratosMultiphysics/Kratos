@@ -153,8 +153,7 @@ public:
 
         const auto pAamgcl_transpose = transpose(*pAamgcl);
 
-        auto pAt = ConvertToCsrMatrix<TDataType,TIndexType>(*pAamgcl_transpose, comm);
-        return pAt;
+        return ConvertToCsrMatrix<TDataType,TIndexType>(*pAamgcl_transpose, comm);
     }
 };
 

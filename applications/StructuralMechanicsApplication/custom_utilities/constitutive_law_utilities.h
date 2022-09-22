@@ -22,6 +22,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -242,6 +243,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
             KRATOS_ERROR << "The norm of one LOCAL_AXIS is null" << std::endl;
         }
     }
+
+        /**
+    * It calculates the constitutive matrix C in plane stress, strain or in 3D
+    * @param C: The constitutive matrix
+    * @param rValues Parameters of the constitutive law
+    */
+    static void CalculateElasticMatrixPlaneStress(MatrixType &C, ConstitutiveLaw::Parameters &rValues);
+    static void CalculateElasticMatrixPlaneStrain(MatrixType &C, ConstitutiveLaw::Parameters &rValues);
+    static void CalculateElasticMatrix(MatrixType &C, ConstitutiveLaw::Parameters &rValues);
 
 private:
 

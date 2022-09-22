@@ -398,7 +398,7 @@ protected:
         // Firts we generate the variable list
         std::unordered_set<std::string> list_variables;
         const auto it_begin_old = rOldContainer.begin();
-        auto& data = it_begin_old->Data();
+        auto& data = it_begin_old->GetData();
         for(auto i = data.begin() ; i != data.end() ; ++i) {
             list_variables.insert((i->first)->Name());
         }
@@ -449,6 +449,12 @@ protected:
      * @param rOldModelPart The old model part before remesh
      */
     virtual void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
+
+    /**
+     * @brief Applies local hmin, hmax and hausd values to entitities as specified
+     * in the parameters, to locally control the size and curvature of the remeshing.
+    */
+    void ApplyLocalParameters();
 
     ///@}
     ///@name Protected  Access
