@@ -548,7 +548,6 @@ void SmallDisplacementNonLocalHex::CalculateNonLocalConstitutiveVariables(
     for (unsigned int i = 0; i < N.size(); ++i) {
         rThisNonLocalConstitutiveVariables.NL_D_GP += N[i] * r_geometry[i].FastGetSolutionStepValue(NON_LOCAL_DAMAGE, 0);
     }
-    KRATOS_WATCH(rThisNonLocalConstitutiveVariables.NL_D_GP);
     mConstitutiveLawVector[PointNumber]->CalculateValue(rValues, rThisVariable, local_damage_gp); 
     rThisNonLocalConstitutiveVariables.Local_D_GP = local_damage_gp;
     KRATOS_CATCH( "" )

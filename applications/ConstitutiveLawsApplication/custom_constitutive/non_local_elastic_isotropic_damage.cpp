@@ -205,7 +205,6 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
         Vector HuDNL        = ZeroVector(6);
         Vector HDNLu        = ZeroVector(6);
         double HDNLDNL      = 0.0;
-        KRATOS_WATCH(r_stress_vector);
         const double eps = 1e-8;
         const double E   = r_material_properties[YOUNG_MODULUS];
         const double fck = r_material_properties[YIELD_STRESS_COMPRESSION];
@@ -250,14 +249,13 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
         }
         //local damage equivalent strain
         Eps_eq = (std::sqrt( 3. * J2 ) + alphaL * I1 + betaL * H * SprMax) /(E * ( 1. - alphaL)) ;
-        
         const double beta1t = 0.85;
         const double beta2t = 0.18;
         const double beta1c = 0.0;
         const double beta2c = 0.095;
 
-        const double k0t = fck/E;
-        const double k0c = (10./3.) * ft/E;
+        const double k0t = r_material_properties[DAMAGE_THRESHOLD_TENSION];;
+        const double k0c = r_material_properties[DAMAGE_THRESHOLD_COMPRESSION];;
 
         double k0 = k0t  * H  + (1.-H) * k0c;
         double beta1 = beta1t  * H  + (1.-H) * beta1c;

@@ -146,6 +146,8 @@ PYBIND11_MODULE(KratosConstitutiveLawsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TRIAXIAL_COMPRESSION_COEFFICIENT)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATION_IMPLEX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TENSION_YIELD_MODEL)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DAMAGE_THRESHOLD_COMPRESSION)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DAMAGE_THRESHOLD_TENSION)
 
     // The ratios between the yield strength in the isotropic space and the anisotropic space
     // at each direction in local coordinates ratio_x = ft / ft,x
