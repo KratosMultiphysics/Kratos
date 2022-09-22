@@ -20,6 +20,7 @@ extern "C"
                                                double stepCriticalHead,
                                                char *criticalHeadBoundaryModelPartName,
                                                void __stdcall logCallback(char *),
+                                               void __stdcall reportProgress(double),
                                                void __stdcall reportTextualProgress(char *),
                                                bool __stdcall shouldCancel())
     {
@@ -30,6 +31,7 @@ extern "C"
                                                         stepCriticalHead,
                                                         criticalHeadBoundaryModelPartName,
                                                         logCallback,
+                                                        reportProgress,
                                                         reportTextualProgress,
                                                         shouldCancel);
         return errorCode;

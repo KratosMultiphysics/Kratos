@@ -26,6 +26,7 @@ namespace Kratos
 {
     namespace Testing
     {
+        void emptyProgress(double progress) {}
         void emptyLog(char *log) {}
         bool emptyCancel() {
             return false;
@@ -37,7 +38,7 @@ namespace Kratos
             auto projectFile = "ProjectParameters.json";
 
             auto execute = KratosExecute();
-            execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog, &emptyLog, &emptyCancel);
+            execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog, &emptyProgress, &emptyLog, &emptyCancel);
         }
     }
 }
