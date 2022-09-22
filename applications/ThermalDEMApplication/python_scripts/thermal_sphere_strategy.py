@@ -191,13 +191,14 @@ class ExplicitStrategy(BaseStrategy):
         self.fluid_velocity[2]          = self.fluid_props["fluid_velocity_Z"].GetDouble()
         
         # Graph writing
-        self.PostGraphParticleTempMin   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMin")
-        self.PostGraphParticleTempMax   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMax")
-        self.PostGraphParticleTempAvg   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAvg")
-        self.PostGraphParticleTempDev   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempDev")
-        self.PostGraphModelTempAvg      = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphModelTempAvg")
-        self.PostGraphFluxContributions = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatFluxContributions")
-        self.PostGraphGenContributions  = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatGenContributions")
+        self.PostGraphParticleTempMin     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMin")
+        self.PostGraphParticleTempMax     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMax")
+        self.PostGraphParticleTempAvg     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAvg")
+        self.PostGraphParticleTempDev     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempDev")
+        self.PostGraphModelTempAvg        = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphModelTempAvg")
+        self.PostGraphFluxContributions   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatFluxContributions")
+        self.PostGraphGenContributions    = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatGenContributions")
+        self.PostGraphEnergyContributions = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphEnergyContributions")
 
     #----------------------------------------------------------------------------------------------
     def CheckProjectParameters(self):
@@ -323,13 +324,14 @@ class ExplicitStrategy(BaseStrategy):
     
     #----------------------------------------------------------------------------------------------
     def SetGraphFlags(self):
-        if (self.PostGraphParticleTempMin   or
-            self.PostGraphParticleTempMax   or
-            self.PostGraphParticleTempAvg   or 
-            self.PostGraphParticleTempDev   or
-            self.PostGraphModelTempAvg      or
-            self.PostGraphFluxContributions or
-            self.PostGraphGenContributions):
+        if (self.PostGraphParticleTempMin     or
+            self.PostGraphParticleTempMax     or
+            self.PostGraphParticleTempAvg     or 
+            self.PostGraphParticleTempDev     or
+            self.PostGraphModelTempAvg        or
+            self.PostGraphFluxContributions   or
+            self.PostGraphGenContributions    or
+            self.PostGraphEnergyContributions):
             self.write_graph = True
         else:
             self.write_graph = False
@@ -566,7 +568,8 @@ class ExplicitStrategy(BaseStrategy):
                                                self.PostGraphParticleTempDev,
                                                self.PostGraphModelTempAvg,
                                                self.PostGraphFluxContributions,
-                                               self.PostGraphGenContributions)
+                                               self.PostGraphGenContributions,
+                                               self.PostGraphEnergyContributions)
 
     #----------------------------------------------------------------------------------------------
     def IsTimeToUpdateVoronoi(self):

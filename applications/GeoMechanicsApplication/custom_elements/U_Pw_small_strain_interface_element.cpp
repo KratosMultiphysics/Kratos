@@ -956,13 +956,13 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
                                        TransversalPermeability);
 
             noalias(GradPressureTerm) = prod(trans(GradNpT), Variables.PressureVector);
-            noalias(GradPressureTerm) +=  PORE_PRESSURE_SIGN_FACTOR
+            noalias(GradPressureTerm) +=  PORE_PRESSURE_SIGN_FACTOR 
                                         * Variables.FluidDensity
                                         * Variables.BodyAcceleration;
 
-            noalias(LocalFluidFlux) =   PORE_PRESSURE_SIGN_FACTOR
+            noalias(LocalFluidFlux) =   PORE_PRESSURE_SIGN_FACTOR 
                                       * Variables.DynamicViscosityInverse
-                                      * Variables.RelativePermeability
+                                      * Variables.RelativePermeability  
                                       * prod(Variables.LocalPermeabilityMatrix, GradPressureTerm);
 
             noalias(FluidFlux) = prod(trans(RotationMatrix),LocalFluidFlux);
@@ -1972,7 +1972,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     noalias(rVariables.UVector) = prod(rVariables.UDimMatrix,rVariables.VoigtVector);
 
-    noalias(rVariables.UPMatrix) =  PORE_PRESSURE_SIGN_FACTOR
+    noalias(rVariables.UPMatrix) =  PORE_PRESSURE_SIGN_FACTOR 
                                   * rVariables.BiotCoefficient
                                   * rVariables.BishopCoefficient
                                   * outer_prod(rVariables.UVector, rVariables.Np)
@@ -1983,7 +1983,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        noalias(rVariables.PUMatrix) =  PORE_PRESSURE_SIGN_FACTOR
+        noalias(rVariables.PUMatrix) =  PORE_PRESSURE_SIGN_FACTOR 
                                       * SaturationCoefficient
                                       * rVariables.VelocityCoefficient
                                       * trans(rVariables.UPMatrix);
@@ -2005,7 +2005,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement::CalculateAndAddCompressibilityMatrix()") << std::endl;
 
-    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR
+    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
                                   * rVariables.DtPressureCoefficient
                                   * rVariables.BiotModulusInverse
                                   * outer_prod(rVariables.Np, rVariables.Np)
@@ -2028,7 +2028,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement::CalculateAndAddPermeabilityMatrix()") << std::endl;
 
-    noalias(rVariables.PDimMatrix) = - PORE_PRESSURE_SIGN_FACTOR
+    noalias(rVariables.PDimMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
                                      * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
 
     noalias(rVariables.PMatrix) =   rVariables.DynamicViscosityInverse
@@ -2164,7 +2164,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     noalias(rVariables.UVector) = prod(rVariables.UDimMatrix, rVariables.VoigtVector);
 
-    noalias(rVariables.UPMatrix) = - PORE_PRESSURE_SIGN_FACTOR
+    noalias(rVariables.UPMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
                                    * rVariables.BiotCoefficient
                                    * rVariables.BishopCoefficient
                                    * outer_prod(rVariables.UVector, rVariables.Np)
@@ -2199,7 +2199,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement::CalculateAndAddCompressibilityFlow()") << std::endl;
 
-    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR
+    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
                                   * rVariables.BiotModulusInverse
                                   * outer_prod(rVariables.Np, rVariables.Np)
                                   * rVariables.JointWidth
@@ -2225,7 +2225,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
 
-    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR
+    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
                                   * rVariables.DynamicViscosityInverse
                                   * rVariables.RelativePermeability
                                   * prod(rVariables.PDimMatrix, trans(rVariables.GradNpT))
@@ -2250,7 +2250,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement::CalculateAndAddFluidBodyFlow()") << std::endl;
 
-    noalias(rVariables.PDimMatrix) = - PORE_PRESSURE_SIGN_FACTOR
+    noalias(rVariables.PDimMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
                                      * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix)
                                      * rVariables.JointWidth
                                      * rVariables.IntegrationCoefficient;

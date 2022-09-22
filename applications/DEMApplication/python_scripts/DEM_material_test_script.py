@@ -62,9 +62,8 @@ class MaterialTest():
         self.strain = 0.0; self.strain_bts = 0.0; self.volumetric_strain = 0.0; self.radial_strain = 0.0; self.first_time_entry = 1; self.first_time_entry_2 = 1
         self.total_stress_top = 0.0; self.total_stress_bot = 0.0; self.total_stress_mean = 0.0
 
-        self.new_strain = 0.0
         self.LoadingVelocity = 0.0
-        self.MeasuringSurface = 1.0
+        self.MeasuringSurface = 0.0
 
         # for the graph plotting
         if "material_test_settings" in DEM_parameters.keys():
@@ -160,7 +159,7 @@ class MaterialTest():
             absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
             absolute_path_to_file2 = os.path.join(self.graphs_path, self.problem_name + "_graph_top.grf")
             absolute_path_to_file3 = os.path.join(self.graphs_path, self.problem_name + "_graph_bot.grf")
-            absolute_path_to_file4 = os.path.join(self.graphs_path, self.problem_name + "_graph_strain_vs_q_in_psi.grf")
+            absolute_path_to_file4 = os.path.join(self.graphs_path, self.problem_name + "_graph_strain_vs_q.grf")
             self.graph_export_1 = open(absolute_path_to_file1, 'w')
             self.graph_export_2 = open(absolute_path_to_file2, 'w')
             self.graph_export_3 = open(absolute_path_to_file3, 'w')
@@ -188,19 +187,16 @@ class MaterialTest():
     def ComputeLoadingVelocity(self):
         top_vel = bot_vel = 0.0
         for smp in self.rigid_face_model_part.SubModelParts:
-            if smp[TOP]:
+            if smp[IDENTIFIER] == 'TOP':
                 top_vel = smp[LINEAR_VELOCITY_Y]
-            if smp[BOTTOM]:
+            if smp[IDENTIFIER] == 'BOTTOM':
                 bot_vel = smp[LINEAR_VELOCITY_Y]
         self.LoadingVelocity = top_vel - bot_vel
 
     def ComputeMeasuringSurface(self):
         self.MeasuringSurface = 0.25 * math.pi * self.diameter * self.diameter
 
-    def CylinderSkinDetermination(self): #model_part, solver, DEM_parameters):
-
-        # SKIN DETERMINATION
-        total_cross_section = 0.0
+    def CylinderSkinDetermination(self):
 
         # Cylinder dimensions
         h = self.height
@@ -325,19 +321,19 @@ class MaterialTest():
         self.total_check = 0
 
         for smp in self.rigid_face_model_part.SubModelParts:
-            if smp[TOP]:
+            if smp[IDENTIFIER] == 'TOP':
                 self.top_mesh_nodes = smp.Nodes
                 prepare_check[0] = 1
-            if smp[BOTTOM]:
+            if smp[IDENTIFIER] == 'BOTTOM':
                 self.bot_mesh_nodes = smp.Nodes
                 prepare_check[1] = 1
 
         for smp in self.spheres_model_part.SubModelParts:
-            if smp[TOP]:
+            if smp[IDENTIFIER] == 'TOP':
                 self.top_mesh_nodes = smp.Nodes
                 prepare_check[2] = -1
 
-            if smp[BOTTOM]:
+            if smp[IDENTIFIER] == 'BOTTOM':
                 self.bot_mesh_nodes = smp.Nodes
                 prepare_check[3] = -1
 
@@ -407,6 +403,7 @@ class MaterialTest():
     def PrintGraph(self, time):
 
         if self.graph_counter == self.graph_frequency:
+
             self.graph_counter = 0
 
             if self.test_type == "BTS":
@@ -414,8 +411,8 @@ class MaterialTest():
                 self.Flush(self.bts_export)
             else:
                 self.graph_export_1.write(str("%.6g"%self.strain).rjust(13) + "  " + str("%.6g"%(self.total_stress_mean * 1e-6)).rjust(13) + "  " + str("%.8g"%time).rjust(12) + '\n')
-                self.graph_export_2.write(str("%.8g"%self.strain).rjust(15) + "  " + str("%.6g"%(self.total_stress_top * 1e-6)).rjust(13)+'\n')
-                self.graph_export_3.write(str("%.8g"%self.strain).rjust(15) + "  " + str("%.6g"%(self.total_stress_bot * 1e-6)).rjust(13)+'\n')
+                self.graph_export_2.write(str("%.8g"%self.strain).rjust(13) + "  " + str("%.6g"%(self.total_stress_top  * 1e-6)).rjust(13) + "  " + str("%.8g"%time).rjust(12) + '\n')
+                self.graph_export_3.write(str("%.8g"%self.strain).rjust(13) + "  " + str("%.6g"%(self.total_stress_bot  * 1e-6)).rjust(13) + "  " + str("%.8g"%time).rjust(12) + '\n')
                 self.Flush(self.graph_export_1)
                 self.Flush(self.graph_export_2)
                 self.Flush(self.graph_export_3)
@@ -429,17 +426,6 @@ class MaterialTest():
                     self.Flush(self.graph_export_volumetric)
 
         self.graph_counter += 1
-
-    def PrintCoordinationNumberGraph(self, time, solver):
-
-        if self.CN_graph_counter == self.graph_frequency:
-            self.CN_graph_counter = 0
-            dummy = 0
-            CN = self.solver.cplusplus_strategy.ComputeCoordinationNumber(dummy)
-            self.CN_export.write(str("%.8g"%time).rjust(12) + "  " + str(CN) + '\n')
-            self.Flush(self.CN_export)
-
-        self.CN_graph_counter += 1
 
     def PrintChart(self):
 

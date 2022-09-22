@@ -391,13 +391,13 @@ GetNeighbourElementVariables(
     const IndexType NumGPointsNeighbour = rNeighbourGeom.IntegrationPointsNumber(rIntegrationMethodNeighbour);
 
     // get density and porosity from element
-    std::vector<double> SaturationVector;
-    vector<double> DensityVector(NumGPointsNeighbour);
-    vector<double> ConfinedStiffness(NumGPointsNeighbour);
-    vector<double> ShearStiffness(NumGPointsNeighbour);
+    std::vector <double> SaturationVector;
+    Vector DensityVector(NumGPointsNeighbour);
+    Vector ConfinedStiffness(NumGPointsNeighbour);
+    Vector ShearStiffness(NumGPointsNeighbour);
 
-    std::vector<double> stdConfinedStiffness(NumGPointsNeighbour);
-    std::vector<double> stdShearStiffness(NumGPointsNeighbour);
+    std::vector <double> stdConfinedStiffness(NumGPointsNeighbour);
+    std::vector <double> stdShearStiffness(NumGPointsNeighbour);
 
     // get parameters at neighbour element integration points
     rNeighbour.CalculateOnIntegrationPoints(DEGREE_OF_SATURATION, SaturationVector, rCurrentProcessInfo);
@@ -415,11 +415,11 @@ GetNeighbourElementVariables(
     }
 
     Matrix rExtrapolationMatrix = CalculateExtrapolationMatrixNeighbour(rNeighbour);
-   
+    
     // project parameters on neighbour nodes
-    vector<double> EcNodesNeighbour = prod(rExtrapolationMatrix, ConfinedStiffness);
-    vector<double> GNodesNeighbour = prod(rExtrapolationMatrix, ShearStiffness);
-    vector<double> rhoNodesNeighbour = prod(rExtrapolationMatrix, DensityVector);
+    Vector EcNodesNeighbour = prod(rExtrapolationMatrix, ConfinedStiffness);
+    Vector GNodesNeighbour = prod(rExtrapolationMatrix, ShearStiffness);
+    Vector rhoNodesNeighbour = prod(rExtrapolationMatrix, DensityVector);
 
     // add parameters to condition nodes
     for (unsigned int k = 0; k < rNumNodesNeighbour; ++k)

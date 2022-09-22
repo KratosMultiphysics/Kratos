@@ -96,6 +96,65 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],FluidFlux);
         }
     }
+    else if(rVariable == CONTACT_STRESS_VECTOR)
+    {
+        //Defining necessary variables
+        const PropertiesType& Prop = this->GetProperties();
+        const GeometryType& Geom = this->GetGeometry();
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+        array_1d<double,TNumNodes*TDim> DisplacementVector;
+        PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
+        BoundedMatrix<double,TDim, TDim> RotationMatrix;
+        this->CalculateRotationMatrix(RotationMatrix,Geom);
+        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+        array_1d<double,TDim> RelDispVector;
+        const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+        double JointWidth;
+        array_1d<double,TDim> LocalStressVector;
+        array_1d<double,TDim> ContactStressVector;
+        
+        //Create constitutive law parameters:
+        Vector StrainVector(TDim);
+        Vector StressVectorDynamic(TDim);
+        Matrix ConstitutiveMatrix(TDim,TDim);
+        Vector Np(TNumNodes);
+        Matrix GradNpT(TNumNodes,TDim);
+        Matrix F = identity_matrix<double>(TDim);
+        double detF = 1.0;
+        ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
+        ConstitutiveParameters.SetStressVector(StressVectorDynamic);
+        ConstitutiveParameters.SetStrainVector(StrainVector);
+        ConstitutiveParameters.SetShapeFunctionsValues(Np);
+        ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
+        ConstitutiveParameters.SetDeterminantF(detF);
+        ConstitutiveParameters.SetDeformationGradientF(F);
+        
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
+        {
+            InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
+
+            noalias(RelDispVector) = prod(Nu,DisplacementVector);
+            
+            noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
+            
+            this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint);
+            
+            noalias(Np) = row(NContainer,GPoint);
+            
+            //compute constitutive tensor and/or stresses
+            mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+            
+            noalias(LocalStressVector) = StressVectorDynamic;
+
+            noalias(ContactStressVector) = prod(trans(RotationMatrix),LocalStressVector);
+            
+            PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],ContactStressVector);
+        }
+    }
     else if(rVariable == LOCAL_STRESS_VECTOR)
     {
         //Defining necessary variables

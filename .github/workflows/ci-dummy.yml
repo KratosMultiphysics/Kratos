@@ -9,8 +9,13 @@ on:
       - master
     paths:              # This must be the same as .github/workflows/ci.yml - "paths-ignore" !
       - '**.md'
-      - '/documents/**'
-      - '/scripts/**'
+      - 'documents/**'
+      - 'scripts/**'
+      - 'kratos/templates/**'
+      - 'kratos/python_scripts/application_generator/**'
+
+permissions:
+  contents: read
 
 jobs:
   ubuntu:

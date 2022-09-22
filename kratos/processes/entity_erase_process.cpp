@@ -32,7 +32,7 @@ KRATOS_CREATE_LOCAL_FLAG(EntitiesEraseProcessFlags, ERASE_ALL_ENTITIES,     1);
 template<class TEntity>
 EntitiesEraseProcess<TEntity>::EntitiesEraseProcess(
     ModelPart& rModelPart,
-    Flags Options
+    const Flags Options
     )
     : mrModelPart(rModelPart),
      mrOptions(Options)
