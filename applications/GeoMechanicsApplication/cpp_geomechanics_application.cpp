@@ -601,7 +601,7 @@ namespace Kratos
                                              double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
                                              string criticalHeadBoundaryModelPartName,
                                              void logCallback(char *),
-                                             void reportProgress(char *),
+                                             void reportTextualProgress(char *),
                                              bool shouldCancel())
     {
         this->SetEchoLevel(1);
@@ -753,7 +753,7 @@ namespace Kratos
                     KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Searching at head: " << currentHead << std::endl;
 
                     std::string progress = "Calculating head level " + std::to_string(currentHead) + "m (" + std::to_string(step) + "/" + std::to_string(maxSteps) + ")";
-                    reportProgress(progress.data());
+                    reportTextualProgress(progress.data());
 
                     mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
 

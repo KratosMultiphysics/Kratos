@@ -151,7 +151,7 @@ namespace Kratos
                                   double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
                                   std::string criticalHeadBoundaryModelPartName,
                                   void logCallback(char *),
-                                  void reportProgress(char *),
+                                  void reportTextualProgress(char *),
                                   bool shouldCancel());
 
         typedef Node<3> NodeType;
