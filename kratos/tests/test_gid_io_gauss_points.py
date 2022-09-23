@@ -111,8 +111,8 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
         self.gid_io.FinalizeResults()
 
     def outputMatchesReferenceSolution(self):
-        msh_file_matches = filecmp.cmp(self.reference_file_name+'.post.msh',self.output_file_name+'.post.msh')
-        res_file_matches = filecmp.cmp(self.reference_file_name+'.post.res',self.output_file_name+'.post.res')
+        msh_file_matches = filecmp.cmp(self.reference_file_name+'.post.msh.ref',self.output_file_name+'.post.msh')
+        res_file_matches = filecmp.cmp(self.reference_file_name+'.post.res.ref',self.output_file_name+'.post.res')
         return msh_file_matches and res_file_matches
 
 
