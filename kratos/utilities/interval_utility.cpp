@@ -25,6 +25,21 @@ namespace Detail
 {
 
 
+namespace {
+template <class TValue>
+bool CheckValueType(Parameters Item)
+{
+    return Item.Is<TValue>();
+}
+
+template <>
+bool CheckValueType<double>(Parameters Item)
+{
+    return Item.Is<double>() || Item.Is<int>();
+}
+} // unnamed namespace
+
+
 template <class TValue>
 IntervalUtility<TValue>::IntervalUtility()
     : IntervalUtility(IntervalUtility<TValue>::GetDefaultParameters())
@@ -52,7 +67,7 @@ IntervalUtility<TValue>::IntervalUtility(Parameters settings)
             KRATOS_ERROR << "the first value of \"interval\" can be \"Begin\" or a number, \"interval\" currently:\n" << interval.PrettyPrintJsonString();
         }
     } else {
-        KRATOS_ERROR_IF_NOT(interval[0].Is<TValue>()) << "the first value of \"interval\" can be \"Begin\" or a number, \"interval\" currently:\n" << interval.PrettyPrintJsonString();
+        KRATOS_ERROR_IF_NOT(CheckValueType<TValue>(interval[0])) << "the first value of \"interval\" can be \"Begin\" or a number, \"interval\" currently:\n" << interval.PrettyPrintJsonString();
     }
 
     // Replace "End" with the maximum representable value
@@ -63,7 +78,7 @@ IntervalUtility<TValue>::IntervalUtility(Parameters settings)
             KRATOS_ERROR << "the second value of \"interval\" can be \"End\" or a number, \"interval\" currently:\n" << interval.PrettyPrintJsonString();
         }
     } else {
-        KRATOS_ERROR_IF_NOT(interval[1].Is<TValue>()) << "the second value of \"interval\" can be \"End\" or a number, \"interval\" currently:\n" << interval.PrettyPrintJsonString();
+        KRATOS_ERROR_IF_NOT(CheckValueType<TValue>(interval[1])) << "the second value of \"interval\" can be \"End\" or a number, \"interval\" currently:\n" << interval.PrettyPrintJsonString();
     }
 
     this->SetBoundaries(interval[0].Get<TValue>(), interval[1].Get<TValue>());
