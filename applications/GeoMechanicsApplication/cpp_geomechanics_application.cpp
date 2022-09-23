@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <sstream>
+#include <iomanip>
 #include "cpp_geomechanics_application.h"
 #include "processes/apply_constant_scalarvalue_process.h"
 #include "utilities/read_materials_utility.h"
@@ -753,7 +755,11 @@ namespace Kratos
 
                     KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Searching at head: " << currentHead << std::endl;
 
-                    std::string progress = "Calculating head level " + std::to_string(currentHead) + "m (" + std::to_string(step) + "/" + std::to_string(maxSteps) + ")";
+                    std::ostringstream currentHeadStream;
+                    currentHeadStream << std::setprecision(8) << std::noshowpoint << currentHead;
+                    std::string currentHeadString = currentHeadStream.str();
+                    
+                    std::string progress = "Calculating head level " + currentHeadString + "m (" + std::to_string(step) + "/" + std::to_string(maxSteps) + ")";
                     reportTextualProgress(progress.data());
                     reportProgress(((double) step) / ((double) maxSteps));
 
