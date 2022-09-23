@@ -56,9 +56,6 @@ IntervalUtility<TValue>::IntervalUtility(Parameters settings)
     }
 
     // Replace "End" with the maximum representable value
-    /// @todo setting "End" to the maximum representable value will lead to incorrect behaviour
-    /// when the test value is also the maximum representable value. This is an unlikely case for
-    /// @a double and @a int but still a logical inconsistency.
     if(interval[1].Is<std::string>()) {
         if(interval[1].Get<std::string>() == "End") {
             interval[1].Set(std::numeric_limits<TValue>::max());
