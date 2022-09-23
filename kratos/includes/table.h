@@ -529,9 +529,9 @@ public:
         KRATOS_ERROR_IF(u == -1) << "Get value from empty table" << std::endl;
         if(u==0) {
             // constant table. Returning the only value we have.
-            return mData.begin()->second[0];
+            return mData[0].second[0];
         }
-        if(X <=  mData.begin()->first) {
+        if(X <=  mData[0].first) {
             return ExtrapolateBelowLowest(X,  mData.begin()->first, mData.begin()->second[0], mData[1].first, mData[1].second[0]);
         }
 
@@ -546,15 +546,122 @@ public:
         int m;
 
         while(u>l+1){
-            m = round((u+l)/2);
+            m = (u+l)/2;
             if(X < mData[m].first){
                 u = m;
             }else{
                 l = m;
             }
+            // std::cout << l <<"-" << u << "|";
+
         }
+        // std::cout << std::endl;
         return Interpolate(X, mData[l].first, mData[l].second[0], mData[u].first, mData[u].second[0]);
+
     }
+
+    result_type GetValueOldInterpolation(argument_type const& X) const
+    {
+        int u = mData.size()-1; //using directly u for optimizing one allocation
+        KRATOS_ERROR_IF(u == -1) << "Get value from empty table" << std::endl;
+        if(u==0) {
+            // constant table. Returning the only value we have.
+            return mData.begin()->second[0];
+        }
+        if(X <=  mData[0].first) {
+            return ExtrapolateBelowLowest(X,  mData.begin()->first, mData.begin()->second[0], mData[1].first, mData[1].second[0]);
+        }
+
+        if(X >= mData[u].first) {
+            // now the x is outside the table and we hae to extrapolate it using last two records of table.
+            return ExtrapolateAboveHighest(X, mData[u-1].first, mData[u-1].second[0], mData[u].first, mData[u].second[0]);
+        }
+
+
+        // Now the value lies inside the table domain, we apply a binary search
+        int l(0);
+        int m;
+
+        while(u>l+1){
+            m = (u+l)/2;
+            if(X < mData[m].first){
+                u = m;
+            }else{
+                l = m;
+            }
+            // std::cout << l <<"-" << u << "|";
+        }
+        // std::cout << std::endl;
+        result_type res;
+        return InterpolateOld(X, mData[l].first, mData[l].second[0], mData[u].first, mData[u].second[0],res);
+
+    }
+
+    result_type OldGetValue(argument_type const& X) const
+    {
+
+        std::size_t size = mData.size();
+
+        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
+
+        if(size==1) // constant table. Returning the only value we have.
+            return mData.begin()->second[0];
+
+        result_type result;
+        if(X <= mData[0].first)
+            return InterpolateOld(X, mData[0].first, mData[0].second[0], mData[1].first, mData[1].second[0], result);
+
+        for(std::size_t i = 1 ; i < size ; i++)
+            if(X <= mData[i].first)
+                return InterpolateOld(X, mData[i-1].first, mData[i-1].second[0], mData[i].first, mData[i].second[0], result);
+
+        // now the x is outside the table and we hae to extrapolate it using last two records of table.
+        return InterpolateOld(X, mData[size-2].first, mData[size-2].second[0], mData[size-1].first, mData[size-1].second[0], result);
+    }
+
+    result_type NewProposalGetValue(argument_type const& X) const
+    {
+
+        std::size_t size = mData.size();
+
+        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
+
+        if(size==1) // constant table. Returning the only value we have.
+            return mData.begin()->second[0];
+
+        result_type result;
+        if(X <= mData[0].first)
+            return InterpolateOld(X, mData[0].first, mData[0].second[0], mData[1].first, mData[1].second[0], result);
+
+        std::size_t k = ( (X <= mData[size/2].second[0]) ? 0 : size/2);
+        for(std::size_t i = k ; i < size ; i++)
+            if(X <= mData[i].first)
+                return InterpolateOld(X, mData[i-1].first, mData[i-1].second[0], mData[i].first, mData[i].second[0], result);
+
+        // now the x is outside the table and we hae to extrapolate it using last two records of table.
+        return InterpolateOld(X, mData[size-2].first, mData[size-2].second[0], mData[size-1].first, mData[size-1].second[0], result);
+    }
+
+    result_type& InterpolateOld(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2, result_type& Result) const
+    {
+        //const double epsilon = 1e-12;
+
+        double dx = X2 - X1;
+        result_type dy = Y2 - Y1;
+
+        double scale = 0.00;
+
+        if (dx > epsilon)
+            scale = (X - X1) / dx;
+
+        Result = Y1 + dy * scale;
+
+        return Result;
+
+    }
+
+
+
 
     // Get the nesrest value for the given argument
     result_row_type& GetNearestRow(argument_type const& X)
@@ -621,7 +728,16 @@ public:
 
     result_type Interpolate(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2) const
     {
-        return Y1 + (X2 - X1 > epsilon) * ( (Y2 - Y1)*(X - X1)/(X2 - X1) );
+        double dx = X2 - X1;
+        result_type dy = Y2 - Y1;
+
+        double scale = 0.00;
+
+        if (dx > epsilon)
+            scale = (X - X1) / dx;
+
+        return Y1 + dy * scale;
+//        return Y1 + (X2 - X1 > epsilon) * ( (Y2 - Y1)*(X - X1)/(X2 - X1) );
     }
     result_type ExtrapolateBelowLowest(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2) const
     {
@@ -874,6 +990,342 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
+
+
+class SimplifiedTable
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of Table
+    KRATOS_CLASS_POINTER_DEFINITION(SimplifiedTable);
+
+    typedef double argument_type; // To be STL conformance.
+    typedef double result_type; // To be STL conformance.
+    typedef std::array<double, 64> storage_type;
+
+    //typedef std::array<TResultType, TResultsColumns>  result_row_type;
+
+    //typedef std::pair<argument_type, result_row_type> RecordType;
+
+    //typedef std::vector<RecordType> TableContainerType;
+
+
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    Table() : mDataX(), mDataY(), mSize(0)
+    {
+    }
+
+    /// Destructor.
+    virtual ~Table()
+    {
+    }
+
+    /// Assignment operator.
+    Table& operator=(Table const& rOther)
+    {
+        mDataX = rOther.mDataX;
+        mDataY = rOther.mDataY;
+        mSize = rOther.mSize;
+        return *this;
+    }
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    // This operator gives the first column result for the nearest argument found in table
+    result_type const& operator()(argument_type const& X) const
+    {
+        return GetNearestRow(X);
+    }
+
+    // This operator gives the first column result for the nearest argument found in table
+    result_type& operator()(argument_type const& X)
+    {
+        return GetNearestRow(X);
+    }
+
+    // This operator gives the row for the nearest value to argument found in table
+    result_type const & operator[](argument_type const& X) const
+    {
+        return GetNearestRow(X);
+    }
+
+    // This operator gives the row for the nearest value to argument found in table
+    result_type & operator[](argument_type& X)
+    {
+        return GetNearestRow(X);
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+
+    // // Get the nesrest value for the given argument
+    // result_type& GetNearestRow(argument_type const& X)
+    // {
+    //     std::size_t size = mData.mSize;
+
+    //     KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
+
+    //     if(size==1) // constant table. Returning the only value we have.
+    //         return mDataY[0];
+
+    //     if(X <= mDataX[0])
+    //         return mDataY[0];
+
+    //     for(std::size_t i = 1 ; i < size ; i++)
+    //         if(X <= mDataX[i])
+    //             return ((X - mDataX[i-1]) < (mDataX[i] - X)) ? mDataY[i-1] : mDataY[i];
+
+    //     // now the x is outside the table and we hae to extrapolate it using last two records of table.
+    //     return mDataY[size-1];
+    // }
+
+    // // Get the nesrest value for the given argument
+    // result_type const& GetNearestRow(argument_type const& X)  const
+    // {
+    //     std::size_t size = mData.mSize;
+
+    //     KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
+
+    //     if(size==1) // constant table. Returning the only value we have.
+    //         return mDataY[0];
+
+    //     if(X <= mDataX[0])
+    //         return mDataY[0];
+
+    //     for(std::size_t i = 1 ; i < size ; i++)
+    //         if(X <= mDataX[i])
+    //             return ((X - mDataX[i-1]) < (mDataX[i] - X)) ? mDataY[i-1] : mDataY[i];
+
+    //     // now the x is outside the table and we hae to extrapolate it using last two records of table.
+    //     return mDataY[size-1];
+    // }
+
+    // // inserts a row in a sorted position where Xi-1 < X < Xi+1 and fills the first column with Y
+    // void insert(argument_type const& X, result_type const& Y)
+    // {
+    //     result_row_type a = {{Y}};
+    //     insert(X,a);
+    // }
+
+    // inserts a row in a sorted position where Xi-1 < X < Xi+1 and fills the first column with Y
+    // assumes that Y has [] operator with TResultsColumns element
+    // template<class TArrayType>
+    // void insert(argument_type const& X, TArrayType const& Y)
+    // {
+    //     result_row_type a;
+    //     for(std::size_t i = 0 ; i < TResultsColumns ; i++)
+    //         a[i] = Y[i];
+    //     insert(X,a);
+    // }
+
+    // // inserts a row in a sorted position where Xi-1 < X < Xi+1
+    // void insert(argument_type const& X, result_row_type const& Y)
+    // {
+    //     std::size_t size = mData.size();
+
+    //     if(size == 0)
+    //         mData.push_back(RecordType(X,Y));
+
+    //     else if(X <= mData[0].first)
+    //         mData.insert(mData.begin(), RecordType(X,Y));
+    //     else if(X <= mData.back().first)
+    //         mData.push_back(RecordType(X,Y));
+    //     else
+    //         for(std::size_t i = 1 ; i < size ; i++)
+    //             if((X > mData[i-1].first) && (X <= mData[i].first))
+    //             {
+    //                 mData.insert(mData.begin() + i, RecordType(X,Y));
+    //                 break;
+    //             }
+
+    // }
+
+
+    // assumes that the X is the greater than the last argument and put the row at the end.
+    // faster than insert.
+    void PushBack(argument_type const& X, result_type const& Y)
+    {
+        mDataX.push_back(X);
+        mDataY.push_back(Y);
+        mSize+=1;
+    }
+
+
+    /**
+     * @brief This method clears databse
+     */
+    void Clear()
+    {
+        mData.clear();
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "TestTable";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    storage_type mDataX;
+    storage_type mDataY;
+    std::size_t mSize;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        std::size_t  local_size = mData.size();
+
+        rSerializer.save("size", local_size);
+
+        for(auto i_row = mData.begin() ; i_row != mData.end() ; i_row++){
+            rSerializer.save("Argument", i_row->first);
+            for(auto j = i_row->second.begin() ; j != i_row->second.end(); j++)
+                rSerializer.save("Column", j);
+        }
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        std::size_t local_size;
+
+        rSerializer.load("size", local_size);
+
+        mData.resize(local_size);
+
+        for(auto i_row = mData.begin() ; i_row != mData.end() ; i_row++){
+            rSerializer.load("Argument", i_row->first);
+            for(auto j = i_row->second.begin() ; j != i_row->second.end() ; j++)
+                rSerializer.load("Column", j);
+        }
+    }
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Copy constructor.
+    Table(Table const& rOther);
+
+
+    ///@}
+
+}; // Class Table
+
 
 ///@}
 
