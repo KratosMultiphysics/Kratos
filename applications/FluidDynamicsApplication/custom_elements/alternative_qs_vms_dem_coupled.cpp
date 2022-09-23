@@ -152,38 +152,85 @@ void AlternativeQSVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(
         if (DN_DX.size1() != r_geometry.PointsNumber() || DN_DX.size2() != r_geometry.LocalSpaceDimension())
             DN_DX.resize( r_geometry.PointsNumber(), r_geometry.LocalSpaceDimension(), false );
 
-        Vector auxiliar_vector = ZeroVector(3);
+
         const GeometryType::CoordinatesArrayType& local_point_coordinates = IntegrationPoints[g];
 
         ShapeFunctionsSecondDerivativesType DDN_DDe;
         r_geometry.ShapeFunctionsSecondDerivatives(DDN_DDe, local_point_coordinates);
 
-        Matrix A = ZeroMatrix(3,3);
+
+        Matrix A;
 
         r_geometry.Jacobian(J,g,integration_method);
         MathUtils<double>::InvertMatrix( J, Jinv, DetJ );
 
         DN_DX = prod(DN_De[g],Jinv);
 
-        A(0,0) = J(0,0) * J(0,0);
-        A(0,1) = 2.0 * J(0,0) * J(1,0);
-        A(0,2) = J(1,0) * J(1,0);
+        if(Dim == 2){
+            A = ZeroMatrix(3,3);
+            A(0,0) = J(0,0) * J(0,0);
+            A(0,1) = J(1,0) * J(1,0);
+            A(0,2) = 2.0 * J(0,0) * J(1,0);
 
-        A(1,0) = J(0,0) * J(0,1);
-        A(1,1) = J(0,0) * J(1,1) + J(0,1) * J(1,0);
-        A(1,2) = J(1,0) * J(1,1);
+            A(1,0) = J(0,1) * J(0,1);
+            A(1,1) = J(1,1) * J(1,1);
+            A(1,2) = 2.0 * J(0,1) * J(1,1);
 
-        A(2,0) = J(0,1) * J(0,1);
-        A(2,1) = 2.0 * J(0,1) * J(1,1);
-        A(2,2) = J(1,1) * J(1,1);
+            A(2,0) = J(0,0) * J(0,1);
+            A(2,1) = J(1,0) * J(1,1);
+            A(2,2) = J(0,0) * J(1,1) + J(0,1) * J(1,0);
+        }
+        else if(Dim == 3){
+            A = ZeroMatrix(6,6);
+
+            A(0,0) = J(0,0) * J(0,0);
+            A(0,1) = J(1,0) * J(1,0);
+            A(0,2) = J(2,0) * J(2,0);
+            A(0,3) = 2.0 * J(0,0) * J(1,0);
+            A(0,4) = 2.0 * J(1,0) * J(2,0);
+            A(0,5) = 2.0 * J(0,0) * J(2,0);
+
+            A(1,0) = J(0,1) * J(0,1);
+            A(1,1) = J(1,1) * J(1,1);
+            A(1,2) = J(2,1) * J(2,1);
+            A(1,3) = 2.0 * J(0,1) * J(1,1);
+            A(1,4) = 2.0 * J(1,1) * J(2,1);
+            A(1,5) = 2.0 * J(0,1) * J(2,1);
+
+            A(2,0) = J(0,2) * J(1,2);
+            A(2,1) = 2.0 * J(0,1) * J(1,1);
+            A(2,2) = J(2,2) * J(2,2);
+            A(2,3) = 2.0 * J(0,2) * J(1,2);
+            A(2,4) = 2.0 * J(1,2) * J(2,2);
+            A(2,5) = 2.0 * J(0,2) * J(2,2);
+
+            A(3,0) = J(0,0) * J(0,1);
+            A(3,1) = J(1,0) * J(1,1);
+            A(3,2) = J(2,0) * J(2,1);
+            A(3,3) = J(0,0) * J(1,1) + J(0,1) * J(1,0);
+            A(3,4) = J(1,0) * J(2,1) + J(1,1) * J(2,0);
+            A(3,5) = J(0,0) * J(2,1) + J(0,1) * J(2,0);
+
+            A(4,0) = J(0,1) * J(0,2);
+            A(4,1) = J(1,1) * J(1,2);
+            A(4,2) = J(2,1) * J(2,2);
+            A(4,3) = J(0,1) * J(1,2) + J(0,2) * J(1,1);
+            A(4,4) = J(1,1) * J(2,2) + J(1,2) * J(2,1);
+            A(4,5) = J(0,1) * J(2,2) + J(0,2) * J(2,1);
+
+            A(5,0) = J(0,0) * J(0,2);
+            A(5,1) = J(1,0) * J(1,2);
+            A(5,2) = J(2,0) * J(2,2);
+            A(5,3) = J(0,0) * J(1,2) + J(0,2) * J(1,0);
+            A(5,4) = J(1,0) * J(2,2) + J(1,2) * J(2,0);
+            A(5,5) = J(0,0) * J(2,2) + J(1,2) * J(2,0);
+
+        }
 
         MathUtils<double>::InvertMatrix( A, Ainv, DetA );
-
-        DetA = std::pow(DetJ, 2.0);
         DenseVector<Matrix> H(r_geometry.WorkingSpaceDimension());
         for (unsigned int d = 0; d < r_geometry.WorkingSpaceDimension(); d++)
             H[d] = ZeroMatrix(r_geometry.LocalSpaceDimension(),r_geometry.LocalSpaceDimension());
-
 
         for (IndexType p = 0; p < r_geometry.PointsNumber(); ++p) {
             const array_1d<double, 3>& r_coordinates = r_geometry[p].Coordinates();
@@ -197,23 +244,69 @@ void AlternativeQSVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(
             H[1](1,0) += r_coordinates[1] * DDN_DDe[p](1,0);
             H[1](1,1) += r_coordinates[1] * DDN_DDe[p](1,1);
 
+            if(Dim == 3){
+                H[0](0,2) += r_coordinates[0] * DDN_DDe[p](0,2);
+                H[0](1,2) += r_coordinates[0] * DDN_DDe[p](1,2);
+                H[0](2,0) += r_coordinates[0] * DDN_DDe[p](2,0);
+                H[0](2,1) += r_coordinates[0] * DDN_DDe[p](2,1);
+                H[0](2,2) += r_coordinates[0] * DDN_DDe[p](2,2);
+
+                H[1](0,2) += r_coordinates[1] * DDN_DDe[p](0,2);
+                H[1](1,2) += r_coordinates[1] * DDN_DDe[p](1,2);
+                H[1](2,0) += r_coordinates[1] * DDN_DDe[p](2,0);
+                H[1](2,1) += r_coordinates[1] * DDN_DDe[p](2,1);
+                H[1](2,2) += r_coordinates[1] * DDN_DDe[p](2,2);
+
+                H[2](0,0) += r_coordinates[2] * DDN_DDe[p](0,0);
+                H[2](0,1) += r_coordinates[2] * DDN_DDe[p](0,1);
+                H[2](1,0) += r_coordinates[2] * DDN_DDe[p](1,0);
+                H[2](1,1) += r_coordinates[2] * DDN_DDe[p](1,1);
+                H[2](0,2) += r_coordinates[2] * DDN_DDe[p](0,2);
+                H[2](1,2) += r_coordinates[2] * DDN_DDe[p](1,2);
+                H[2](2,0) += r_coordinates[2] * DDN_DDe[p](2,0);
+                H[2](2,1) += r_coordinates[2] * DDN_DDe[p](2,1);
+                H[2](2,2) += r_coordinates[2] * DDN_DDe[p](2,2);
+            }
         }
 
-        //Matrix first_term = prod(DDN_DDX_e[g],Jinv_sq);
         for (IndexType p = 0; p < r_geometry.PointsNumber(); ++p) {
-            Vector auxiliar_vector_2 = ZeroVector(3);
-            auxiliar_vector[0] = DDN_DDe[p](0,0) - DN_DX(p,0) * H[0](0,0) - DN_DX(p,1) * H[1](0,0);
-            auxiliar_vector[1] = DDN_DDe[p](0,1) - DN_DX(p,0) * H[0](0,1) - DN_DX(p,1) * H[1](0,1);
-            auxiliar_vector[2] = DDN_DDe[p](1,1) - DN_DX(p,0) * H[0](1,1) - DN_DX(p,1) * H[1](1,1);
+            Vector result = ZeroVector(3);
+            Vector rhs;
+            if (Dim == 2){
+                rhs = ZeroVector(3);
+                rhs[0] = DDN_DDe[p](0,0) - DN_DX(p,0) * H[0](0,0) - DN_DX(p,1) * H[1](0,0);
+                rhs[1] = DDN_DDe[p](1,1) - DN_DX(p,0) * H[0](1,1) - DN_DX(p,1) * H[1](1,1);
+                rhs[2] = DDN_DDe[p](0,1) - DN_DX(p,0) * H[0](0,1) - DN_DX(p,1) * H[1](0,1);
+            }
+            else if (Dim == 3){
+                rhs = ZeroVector(6);
+                rhs[0] = DDN_DDe[p](0,0) - DN_DX(p,0) * H[0](0,0) - DN_DX(p,1) * H[1](0,0) - DN_DX(p,2) * H[2](0,0);
+                rhs[1] = DDN_DDe[p](1,1) - DN_DX(p,0) * H[0](1,1) - DN_DX(p,1) * H[1](1,1) - DN_DX(p,2) * H[2](0,0);
+                rhs[2] = DDN_DDe[p](2,2) - DN_DX(p,0) * H[0](2,2) - DN_DX(p,1) * H[1](2,2) - DN_DX(p,2) * H[2](2,2);
+                rhs[3] = DDN_DDe[p](0,1) - DN_DX(p,0) * H[0](0,1) - DN_DX(p,1) * H[1](0,1) - DN_DX(p,2) * H[2](0,1);
+                rhs[4] = DDN_DDe[p](1,2) - DN_DX(p,0) * H[0](1,2) - DN_DX(p,1) * H[1](1,2) - DN_DX(p,2) * H[2](1,2);
+                rhs[5] = DDN_DDe[p](0,2) - DN_DX(p,0) * H[0](0,2) - DN_DX(p,1) * H[1](0,2) - DN_DX(p,2) * H[2](0,2);
+            }
 
             aux[p].resize(r_geometry.WorkingSpaceDimension(), r_geometry.WorkingSpaceDimension(), false );
 
-            auxiliar_vector_2 = prod(Ainv, auxiliar_vector);
+            result = prod(Ainv, rhs);
 
-            aux[p](0,0) = auxiliar_vector_2[0];
-            aux[p](0,1) = auxiliar_vector_2[1];
-            aux[p](1,0) = auxiliar_vector_2[1];
-            aux[p](1,1) = auxiliar_vector_2[2];
+            aux[p](0,0) = result[0];
+            aux[p](1,1) = result[1];
+            if (Dim == 2){
+                aux[p](0,1) = result[2];
+                aux[p](1,0) = result[2];
+            }
+            else if (Dim == 3){
+                aux[p](2,2) = result[2];
+                aux[p](0,1) = result[3];
+                aux[p](1,0) = result[3];
+                aux[p](0,2) = result[5];
+                aux[p](2,0) = result[5];
+                aux[p](2,1) = result[4];
+                aux[p](1,2) = result[4];
+            }
         }
 
         rDDN_DDX[g] = aux;
