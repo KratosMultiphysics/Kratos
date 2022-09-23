@@ -658,27 +658,6 @@ bool Parameters::Is<Parameters>() const
     return this->IsSubParameter();
 }
 
-template <>
-Parameters Parameters::Get<Parameters>() const
-{
-    // To return by "reference" (return *this) or not to return by "reference" (return this->Clone())?
-    // Other specializations of this function template return by value
-    // (cannot change the value stored here), so this should behave
-    // similarly as well, at the expense of performance.
-    return this->Clone();
-}
-
-template <>
-void Parameters::Set<Parameters>(const Parameters& rValue)
-{
-    // This is dangerous when the value to be set is
-    // a subparameter of the current object. The user
-    // is expected to consider and avoid this possibility,
-    // and this scenario is not checked here for performance
-    // reasons.
-    *this = rValue;
-}
-
 /***********************************************************************************/
 /***********************************************************************************/
 
