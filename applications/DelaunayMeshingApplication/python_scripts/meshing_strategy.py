@@ -171,11 +171,6 @@ class MeshingStrategy(object):
 
         self.SetMeshInfo()
 
-        info_parameters    = self.MeshingParameters.GetInfoParameters()
-        smoothing_required = info_parameters.CheckMechanicalSmoothing()
-
-        refining_parameters = self.MeshingParameters.GetRefiningParameters()
-
         if( self.global_transfer == True ):
             self.MeshDataTransfer.TransferNodalValuesToElements(self.TransferParameters,self.model_part)
 

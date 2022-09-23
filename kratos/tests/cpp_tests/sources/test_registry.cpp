@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -19,19 +19,10 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/registry.h"
-#include "includes/condition.h"
-
 
 namespace Kratos {
+
 namespace Testing {
-
-// namespace {
-
-// // dummy-conditions required for testing
-// class DummyCondition1 : public Condition {};
-// class DummyCondition2 : public Condition {};
-
-// }
 
 KRATOS_TEST_CASE_IN_SUITE(RegistryItem, KratosCoreFastSuite)
 {
@@ -123,14 +114,14 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryAddAndRemove, KratosCoreFastSuite)
     Registry::AddItem<RegistryItem>("item_in_root");
     KRATOS_CHECK(Registry::HasItem("item_in_root"));
     KRATOS_CHECK_IS_FALSE(Registry::HasItem("path.to.the.registry.new_item"));
-    auto& item_in_root = Registry::GetItem("item_in_root");    
+    auto& item_in_root = Registry::GetItem("item_in_root");
     KRATOS_CHECK_STRING_EQUAL(item_in_root.Name(),"item_in_root");
 
 
     Registry::AddItem<RegistryItem>("path.to.the.registry.new_item");
     KRATOS_CHECK(Registry::HasItem("item_in_root"));
     KRATOS_CHECK(Registry::HasItem("path.to.the.registry.new_item"));
-    auto& new_item = Registry::GetItem("path.to.the.registry.new_item");    
+    auto& new_item = Registry::GetItem("path.to.the.registry.new_item");
     KRATOS_CHECK_STRING_EQUAL(new_item.Name(),"new_item");
 
     Registry::RemoveItem("item_in_root");
@@ -158,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryParallelAddAndRemove, KratosCoreFastSuite)
                 std::string item_name = "item_" + std::to_string(i);
                 Registry::AddItem<RegistryItem>(item_name);
                 KRATOS_CHECK(Registry::HasItem(item_name));
-                auto& item = Registry::GetItem(item_name);    
+                auto& item = Registry::GetItem(item_name);
                 KRATOS_CHECK_STRING_EQUAL(item.Name(),item_name);
             }
         );
@@ -167,7 +158,7 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryParallelAddAndRemove, KratosCoreFastSuite)
         [&](int i){
                 std::string item_name = "item_" + std::to_string(i);
                 KRATOS_CHECK(Registry::HasItem(item_name));
-                auto& item = Registry::GetItem(item_name);    
+                auto& item = Registry::GetItem(item_name);
                 KRATOS_CHECK_STRING_EQUAL(item.Name(),item_name);
             }
         );
@@ -178,7 +169,7 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryParallelAddAndRemove, KratosCoreFastSuite)
                 std::string item_path = std::string("path.to.the.registry.new_item.") + item_name;
                 Registry::AddItem<RegistryItem>(item_path);
                 KRATOS_CHECK(Registry::HasItem(item_path));
-                auto& item = Registry::GetItem(item_path);    
+                auto& item = Registry::GetItem(item_path);
                 KRATOS_CHECK_STRING_EQUAL(item.Name(),item_name);
             }
         );
@@ -188,7 +179,7 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryParallelAddAndRemove, KratosCoreFastSuite)
                 std::string item_name = "item_" + std::to_string(i);
                 std::string item_path = std::string("path.to.the.registry.new_item.") + item_name;
                 KRATOS_CHECK(Registry::HasItem(item_path));
-                auto& item = Registry::GetItem(item_path);    
+                auto& item = Registry::GetItem(item_path);
                 KRATOS_CHECK_STRING_EQUAL(item.Name(),item_name);
             }
         );

@@ -4,23 +4,19 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_REGISTRY_H_INCLUDED )
-#define  KRATOS_REGISTRY_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/registry_item.h"
@@ -30,7 +26,8 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -52,10 +49,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
-class KRATOS_API(KRATOS_CORE) Registry
+/**
+ * @brief Kratos base registry
+ * This class is intended to act as global registry
+ * Each time the AddItem method is called a pair of name and prototype is called
+ */
+class Registry
 {
 public:
     ///@name Type Definitions
@@ -83,34 +82,36 @@ public:
     ///@name Operations
     ///@{
 
-
     template< typename TItemType, class... TArgumentsList >
-    static RegistryItem& AddItem(std::string const& ItemFullName, TArgumentsList&&... Arguments){
+    static RegistryItem& AddItem(
+        std::string const& rItemFullName,
+        TArgumentsList&&... Arguments)
+    {
 
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
 
-        auto item_path = StringUtilities::SplitStringByDelimiter(ItemFullName, '.');
+        auto item_path = StringUtilities::SplitStringByDelimiter(rItemFullName, '.');
         KRATOS_ERROR_IF(item_path.empty()) << "The item full name is empty" << std::endl;
 
         RegistryItem* p_current_item = &GetRootRegistryItem();
 
         for(std::size_t i = 0 ; i < item_path.size() - 1 ; i++){
-            auto& item_name = item_path[i];
-            if(p_current_item->HasItem(item_name)){
-                p_current_item = &p_current_item->GetItem(item_name);
+            auto& r_item_name = item_path[i];
+            if(p_current_item->HasItem(r_item_name)){
+                p_current_item = &p_current_item->GetItem(r_item_name);
             }
             else{
-                p_current_item = &p_current_item->AddItem<RegistryItem>(item_name);
+                p_current_item = &p_current_item->AddItem<RegistryItem>(r_item_name);
             }
         }
 
         // I am doing the last one out of the loop to create it with the given type and argument
-        auto& item_name = item_path.back();
-        if(p_current_item->HasItem(item_name)){
-            KRATOS_ERROR << "The item \"" << ItemFullName << "\" is already registered." << std::endl;
+        auto& r_item_name = item_path.back();
+        if(p_current_item->HasItem(r_item_name)){
+            KRATOS_ERROR << "The item \"" << rItemFullName << "\" is already registered." << std::endl;
         }
         else{
-            p_current_item = &p_current_item->AddItem<TItemType>(item_name, std::forward<TArgumentsList>(Arguments)...);
+            p_current_item = &p_current_item->AddItem<TItemType>(r_item_name, std::forward<TArgumentsList>(Arguments)...);
         }
 
         return *p_current_item;
@@ -120,16 +121,16 @@ public:
     ///@name Access
     ///@{
 
-    static RegistryItem& GetItem(std::string const& ItemFullName);
+    static RegistryItem& GetItem(std::string const& rItemFullName);
 
 
     static void RemoveItem(std::string const& ItemName);
-    
+
     ///@}
     ///@name Inquiry
     ///@{
 
-    static bool HasItem(std::string const& ItemFullName);
+    static bool HasItem(std::string const& rItemFullName);
 
     ///@}
     ///@name Input and output
@@ -146,57 +147,17 @@ public:
 
     std::string ToJson(std::string const& Indentation) const;
 
-
     ///@}
     ///@name Friends
     ///@{
 
 
     ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
 
         static RegistryItem* mspRootRegistryItem;
-
 
     ///@}
     ///@name Member Variables
@@ -218,8 +179,8 @@ private:
     ///@{
 
         static RegistryItem& GetRootRegistryItem();
-        static std::vector<std::string> SplitFullName(std::string const& FullName);
 
+        static std::vector<std::string> SplitFullName(std::string const& FullName);
 
     ///@}
     ///@name Private Inquiry
@@ -236,9 +197,7 @@ private:
     /// Copy constructor.
     Registry(Registry const& rOther);
 
-
     ///@}
-
 }; // Class Registry
 
 ///@}
@@ -253,12 +212,14 @@ private:
 
 
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                Registry& rThis);
+inline std::istream& operator >> (
+    std::istream& rIStream,
+    Registry& rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                const Registry& rThis)
+inline std::ostream& operator << (
+    std::ostream& rOStream,
+    const Registry& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -266,10 +227,8 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
-///@}
 
+///@}
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_REGISTRY_H_INCLUDED  defined

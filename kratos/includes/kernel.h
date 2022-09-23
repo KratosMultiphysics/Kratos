@@ -110,7 +110,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     */
     void InitializeApplication(KratosApplication& NewApplication) {}
 
-    bool IsImported(std::string ApplicationName) const;
+    bool IsImported(const std::string& ApplicationName) const;
 
     static bool IsDistributedRun();
 

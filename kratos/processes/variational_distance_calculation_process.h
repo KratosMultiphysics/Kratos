@@ -269,7 +269,7 @@ public:
                     GeometryUtils::CalculateExactDistancesToPlane(geom, distances);
                 }
                 else {
-                    if(TDim==3){
+                    if constexpr (TDim==3){
                         GeometryUtils::CalculateTetrahedraDistances(geom, distances);
                     }
                     else {
@@ -344,6 +344,8 @@ public:
 
         // Unfix the distances
         VariableUtils().ApplyFixity(DISTANCE, false, r_distance_model_part.Nodes());
+        VariableUtils().SetFlag(BOUNDARY, false, r_distance_model_part.Nodes());
+        VariableUtils().SetFlag(BLOCKED, false, r_distance_model_part.Nodes());
 
         KRATOS_CATCH("")
     }

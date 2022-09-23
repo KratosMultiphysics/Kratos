@@ -75,7 +75,6 @@ namespace Kratos {
         const double my_poisson      = element1->GetPoisson();
         const double other_poisson   = element2->GetPoisson();
         const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
-
         //Get equivalent Shear Modulus
         const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
         const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
@@ -338,10 +337,10 @@ namespace Kratos {
         ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];
         ViscoDampingLocalContactForce[2] = - normal_damping_coefficient     * LocalRelVel[2];
-
     }
 
     double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(const double indentation) {
+
         return 0.666666666666666666667 * mKn * indentation;
     }
 

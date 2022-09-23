@@ -346,6 +346,9 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.ISOLATED_NODE):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ISOLATED_NODE)
 
+        if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.NODAL_H_WALL):
+            self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_H_WALL)
+
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KM.NODAL_H):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H)
 
