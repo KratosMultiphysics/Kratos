@@ -38,6 +38,7 @@
 #include "custom_conditions/U_Pw_normal_flux_FIC_condition.hpp"
 #include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
 #include "custom_conditions/U_Pw_normal_flux_interface_condition.hpp"
+#include "custom_conditions/Pw_normal_flux_condition.hpp"
 #include "custom_conditions/line_load_2D_diff_order_condition.hpp"
 #include "custom_conditions/line_normal_load_2D_diff_order_condition.hpp"
 #include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.hpp"
@@ -47,6 +48,7 @@
 #include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.hpp"
 #include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.hpp"
 #include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.hpp"
+#include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
 
 // elements
 #include "custom_elements/transient_Pw_element.hpp"
@@ -66,6 +68,7 @@
 #include "custom_elements/U_Pw_small_strain_axisymmetric_FIC_element.hpp"
 #include "custom_elements/transient_Pw_interface_element.hpp"
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
+#include "custom_elements/steady_state_Pw_piping_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_axisymmetric_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_axisymmetric_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_axisymmetric_FIC_element.hpp"
@@ -319,6 +322,10 @@ private:
     const SteadyStatePwInterfaceElement<3,6> mSteadyStatePwInterfaceElement3D6N;
     const SteadyStatePwInterfaceElement<3,8> mSteadyStatePwInterfaceElement3D8N;
 
+    const SteadyStatePwPipingElement<2,4> mSteadyStatePwPipingElement2D4N;
+    const SteadyStatePwPipingElement<3,6> mSteadyStatePwPipingElement3D6N;
+    const SteadyStatePwPipingElement<3,8> mSteadyStatePwPipingElement3D8N;
+
     // small strain elements:
     const UPwSmallStrainElement<2,3> mUPwSmallStrainElement2D3N;
     const UPwSmallStrainElement<2,4> mUPwSmallStrainElement2D4N;
@@ -446,6 +453,9 @@ private:
     const UPwNormalFluxCondition<2,2> mUPwNormalFluxCondition2D2N;
     const UPwNormalFluxCondition<3,3> mUPwNormalFluxCondition3D3N;
     const UPwNormalFluxCondition<3,4> mUPwNormalFluxCondition3D4N;
+    const PwNormalFluxCondition<2, 2> mPwNormalFluxCondition2D2N;
+    const PwNormalFluxCondition<3, 3> mPwNormalFluxCondition3D3N;
+    const PwNormalFluxCondition<3, 4> mPwNormalFluxCondition3D4N;
 
     const UPwFaceLoadCondition<2,3> mUPwFaceLoadCondition2D3N;
 
@@ -474,6 +484,11 @@ private:
     const AxisymmetricUPwNormalFaceLoadCondition<2,2>    mAxisymmetricUPwNormalFaceLoadCondition2D2N;
     const AxisymmetricLineNormalLoad2DDiffOrderCondition mAxisymmetricLineNormalLoadDiffOrderCondition2D3N;
     const AxisymmetricLineNormalFluidFlux2DDiffOrderCondition mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N;
+
+    const UPwLysmerAbsorbingCondition<2, 2> mUPwLysmerAbsorbingCondition2D2N;
+    const UPwLysmerAbsorbingCondition<2, 3> mUPwLysmerAbsorbingCondition2D3N;
+    const UPwLysmerAbsorbingCondition<3, 3> mUPwLysmerAbsorbingCondition3D3N;
+    const UPwLysmerAbsorbingCondition<3, 4> mUPwLysmerAbsorbingCondition3D4N;
 
     // constitutive models
     const BilinearCohesive3DLaw             mBilinearCohesive3DLaw;

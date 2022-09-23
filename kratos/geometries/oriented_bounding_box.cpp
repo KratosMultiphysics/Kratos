@@ -316,7 +316,7 @@ bool OrientedBoundingBox<TDim>::DirectHasIntersection(const OrientedBoundingBox<
     auto geom2 = rOtherOrientedBoundingBox.GetEquivalentGeometry();
 
     // Id 2D we check edges
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         const auto r_edges_1 = geom1.GenerateEdges();
         const auto r_edges_2 = geom2.GenerateEdges();
         Point int_pt(0.0,0.0,0.0);
@@ -427,7 +427,7 @@ bool OrientedBoundingBox<TDim>::GetSeparatingPlane(
     ) const
 {
     // 2D/3D computation
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         return GetSeparatingPlane2D(rRelativePosition, rPlane, rOtherOrientedBoundingBox);
     } else {
         return GetSeparatingPlane3D(rRelativePosition, rPlane, rOtherOrientedBoundingBox);
@@ -590,7 +590,7 @@ void OrientedBoundingBox<TDim>::RotateNode2D(array_1d<double, 3>& rCoords) const
 template<std::size_t TDim>
 void OrientedBoundingBox<TDim>::RotateNode3D(
     array_1d<double, 3>& rCoords,
-    BoundedMatrix<double, 4, 4> rInvertedRotationMatrix
+    const BoundedMatrix<double, 4, 4>& rInvertedRotationMatrix
     ) const
 {
     array_1d<double, 4> old_coords;

@@ -1,13 +1,9 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics ThermalDEM Application
+//  Kratos Multi-Physics - ThermalDEM Application
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
+//  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
 #ifndef GRAPH_UTILITIES_H_INCLUDED
@@ -41,7 +37,9 @@ namespace Kratos
                              bool ParticleTempAvg,
                              bool ParticleTempDev,
                              bool ModelTempAvg,
-                             bool ParticleHeatFluxContributions);
+                             bool ParticleHeatFluxContributions,
+                             bool ParticleHeatGenContributions,
+                             bool ParticleEnergyContributions);
       void ExecuteFinalizeSolutionStep(ModelPart& rModelPart);
       void ExecuteFinalize(void);
 
@@ -54,6 +52,8 @@ namespace Kratos
       bool mGraph_ParticleTempDev;
       bool mGraph_ModelTempAvg;
       bool mGraph_ParticleHeatFluxContributions;
+      bool mGraph_ParticleHeatGenContributions;
+      bool mGraph_ParticleEnergyContributions;
 
       std::ofstream mFile_ParticleTempMin;
       std::ofstream mFile_ParticleTempMax;
@@ -61,6 +61,8 @@ namespace Kratos
       std::ofstream mFile_ParticleTempDev;
       std::ofstream mFile_ModelTempAvg;
       std::ofstream mFile_ParticleHeatFluxContributions;
+      std::ofstream mFile_ParticleHeatGenContributions;
+      std::ofstream mFile_ParticleEnergyContributions;
 
     private:
 

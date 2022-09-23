@@ -9,6 +9,9 @@ on:
       - 'scripts/docker_files/docker_file_wheelbuilder_windows/*'
       - '.github/workflows/build_docker_image_wheelbuilder_windows.yml'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: windows-latest

@@ -10,10 +10,7 @@
 //  Main authors:    @{KRATOS_APP_AUTHOR}
 //
 
-
-#if !defined(KRATOS_@{APP_NAME_CAPS}_APPLICATION_H_INCLUDED )
-#define  KRATOS_@{APP_NAME_CAPS}_APPLICATION_H_INCLUDED
-
+#pragma once
 
 // System includes
 
@@ -228,5 +225,3 @@ private:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_@{APP_NAME_CAPS}_APPLICATION_H_INCLUDED  defined
