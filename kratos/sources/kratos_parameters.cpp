@@ -533,7 +533,7 @@ bool Parameters::IsSubParameter() const
 
 double Parameters::GetDouble() const
 {
-    KRATOS_ERROR_IF_NOT(mpValue->is_number()) << "Argument must be a number" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpValue->is_number_float()) << "Argument must be a floating point precision number" << std::endl;
     return mpValue->get<double>();
 }
 
@@ -542,7 +542,7 @@ double Parameters::GetDouble() const
 
 int Parameters::GetInt() const
 {
-    KRATOS_ERROR_IF_NOT(mpValue->is_number()) << "Argument must be a number" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpValue->is_number_integer()) << "Argument must be a integer" << std::endl;
     return mpValue->get<int>();
 }
 
