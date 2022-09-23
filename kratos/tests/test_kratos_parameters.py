@@ -521,7 +521,7 @@ class TestParameters(KratosUnittest.TestCase):
             else:
                 self.assertFalse(tmp[key].IsInt())
 
-            if val_type == "double":
+            if val_type == "double" or val_type == "int":
                 self.assertTrue(tmp[key].IsDouble())
             else:
                 self.assertFalse(tmp[key].IsDouble())
