@@ -542,7 +542,7 @@ double Parameters::GetDouble() const
 
 int Parameters::GetInt() const
 {
-    KRATOS_ERROR_IF_NOT(mpValue->is_number_integer()) << "Argument must be an integer number" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpValue->is_number()) << "Argument must be a number" << std::endl;
     return mpValue->get<int>();
 }
 
