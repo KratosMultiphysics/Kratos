@@ -303,7 +303,7 @@ Parameters& Parameters::operator=(Parameters&& rOther)
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters Parameters::Clone()
+Parameters Parameters::Clone() const
 {
     //TODO: make a clone
     //TODO: find a better way to make the copy

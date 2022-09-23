@@ -383,7 +383,7 @@ public:
      * @brief Generates a clone of the current document
      * @return A clone of the given Parameters
      */
-    Parameters Clone();
+    Parameters Clone() const;
 
     /**
      * @brief This method returns a string with the corresponding text to the equivalent *.json file
