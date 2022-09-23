@@ -1,0 +1,111 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+PARTICLE_DENSITY 2650.0
+YOUNG_MODULUS 1006.4e8
+POISSON_RATIO 0.3
+FRICTION 0.5
+PARTICLE_COHESION 0.0
+COEFFICIENT_OF_RESTITUTION 0.01
+PARTICLE_MATERIAL 1
+ROLLING_FRICTION 0.025
+ROLLING_FRICTION_WITH_WALLS 0.0
+DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEM_with_damage_parallel_bond_Hertz
+INTERNAL_COHESION 13.72
+INTERNAL_FRICTION_ANGLE 24.1
+DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_HighStiffness
+CONTACT_TAU_ZERO 10e4
+CONTACT_SIGMA_MIN 13.72e6
+CONTACT_INTERNAL_FRICC 0.0
+ROTATIONAL_MOMENT_COEFFICIENT 0.01
+KDEM_STANDARD_DEVIATION_TAU_ZERO 3.43
+KDEM_STANDARD_DEVIATION_FRICTION 0.2235
+SHEAR_ENERGY_COEF 4.0
+LOOSE_MATERIAL_YOUNG_MODULUS 1000e8 //6.27e8
+FRACTURE_ENERGY 0.0 //3e-3
+DEBUG_PRINTING_OPTION 1
+DEBUG_PRINTING_ID_1 1
+DEBUG_PRINTING_ID_2 2
+End Properties
+
+Begin Nodes
+    1   0.0001500000   0.0000000000   0.0000000000
+    2   0.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+Begin Elements SphericContinuumParticle3D // GUI group identifier: dems
+        1          1     1 
+        2          1     2 
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: dems
+          1 0 0.000075
+          2 0 0.000075
+End NodalData
+
+Begin NodalData COHESIVE_GROUP // GUI group identifier: dems
+          1 0 1
+          2 0 1
+End NodalData
+
+Begin NodalData SKIN_SPHERE
+End NodalData
+
+Begin SubModelPart PartsCont_dems // Group dems // Subtree PartsCont
+    Begin SubModelPartNodes
+            1
+            2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart 1 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: right
+  Begin SubModelPartData // DEM-VelocityBC. Group name: right
+    IMPOSED_VELOCITY_X_VALUE 0.0
+    IMPOSED_VELOCITY_Y_VALUE 0.1
+    IMPOSED_VELOCITY_Z_VALUE 0.0
+    IMPOSED_ANGULAR_VELOCITY_X_VALUE 0.0
+    IMPOSED_ANGULAR_VELOCITY_Y_VALUE 0.0
+    IMPOSED_ANGULAR_VELOCITY_Z_VALUE 0.0
+    VELOCITY_START_TIME 0.0
+    VELOCITY_STOP_TIME 100.0
+    RIGID_BODY_MOTION 0
+    FORCE_INTEGRATION_GROUP 0
+    IDENTIFIER right
+  End SubModelPartData
+  Begin SubModelPartNodes
+         1
+  End SubModelPartNodes
+  Begin SubModelPartElements
+            1
+  End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart 2 // GUI DEM-VelocityBC - DEM-VelocityBC2D - group identifier: left
+  Begin SubModelPartData // DEM-VelocityBC. Group name: left
+    IMPOSED_VELOCITY_X_VALUE 0.0
+    IMPOSED_VELOCITY_Y_VALUE -0.1
+    IMPOSED_VELOCITY_Z_VALUE 0.0
+    IMPOSED_ANGULAR_VELOCITY_X_VALUE 0.0
+    IMPOSED_ANGULAR_VELOCITY_Y_VALUE 0.0
+    IMPOSED_ANGULAR_VELOCITY_Z_VALUE 0.0
+    VELOCITY_START_TIME 0.0
+    VELOCITY_STOP_TIME 100.0
+    RIGID_BODY_MOTION 0
+    FORCE_INTEGRATION_GROUP 0
+    IDENTIFIER left
+  End SubModelPartData
+  Begin SubModelPartNodes
+         2
+  End SubModelPartNodes
+  Begin SubModelPartElements
+            2
+  End SubModelPartElements
+End SubModelPart
+

@@ -4,6 +4,7 @@ message("**** configuring KratosDemStructuresCouplingApplication ****")
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/PoromechanicsApplication)
 
 ################### PYBIND11
 include(pybind11Tools)
@@ -21,6 +22,7 @@ set(KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_from_DEM_condition_3d.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/multiaxial_control_module_fem_dem_generalized_2d_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/permeability_tensor_communicator_utility.cpp
 )
 
 set(KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_PYTHON_INTERFACE
@@ -33,13 +35,13 @@ set(KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_PYTHON_INTERFACE
 
 
 add_library(KratosDemStructuresCouplingCore SHARED ${KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_CORE})
-target_link_libraries(KratosDemStructuresCouplingCore PUBLIC KratosDEMCore KratosStructuralMechanicsCore KratosCore)
+target_link_libraries(KratosDemStructuresCouplingCore PUBLIC KratosDEMCore KratosStructuralMechanicsCore KratosCore KratosPoromechanicsCore)
 set_target_properties(KratosDemStructuresCouplingCore PROPERTIES COMPILE_DEFINITIONS "DEM_STRUCTURES_COUPLING_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosDemStructuresCouplingApplication MODULE THIN_LTO ${KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosDemStructuresCouplingApplication PUBLIC KratosDemStructuresCouplingCore)
+target_link_libraries(KratosDemStructuresCouplingApplication PUBLIC KratosDemStructuresCouplingCore KratosPoromechanicsCore)
 set_target_properties(KratosDemStructuresCouplingApplication PROPERTIES PREFIX "")
 
 # Set batch size in the unity build

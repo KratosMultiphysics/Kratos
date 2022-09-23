@@ -369,7 +369,7 @@ The result should be:
    ' /   __| _` | __|  _ \   __|
    . \  |   (   | |   (   |\__ \
   _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.1
+           Multi-Physics 9.2
 ```
 
 
