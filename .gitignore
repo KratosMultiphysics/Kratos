@@ -79,3 +79,7 @@ bin/*
 
 # External downloaded libs (TPL downloaded libs, etc...)
 external_libraries/tetgen/*
+
+# Inclusion of post files for testing
+!**/auxiliar_files_for_python_unittest/**/*.post.res
+!**/auxiliar_files_for_python_unittest/**/*.post.msh
