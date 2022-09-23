@@ -114,11 +114,11 @@ public:
         return mName;
     }
 
-    RegistryItem const& GetItem(std::string const& ItemName) const;
+    RegistryItem const& GetItem(std::string const& rItemName) const;
 
-    RegistryItem& GetItem(std::string const& ItemName);
+    RegistryItem& GetItem(std::string const& rItemName);
 
-    void RemoveItem(std::string const& ItemName);
+    void RemoveItem(std::string const& rItemName);
 
     ///@}
     ///@name Inquiry
@@ -134,9 +134,9 @@ public:
         return (!mSubRegistryItem.empty());
     }
 
-    bool HasItem(std::string const& ItemName) const
+    bool HasItem(std::string const& rItemName) const
     {
-        return (mSubRegistryItem.find(ItemName) != mSubRegistryItem.end());
+        return (mSubRegistryItem.find(rItemName) != mSubRegistryItem.end());
     }
 
 
@@ -153,7 +153,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const;
 
-    virtual std::string ToJson(std::string const& Indetation = "") const;
+    virtual std::string ToJson(std::string const& rIndetation = "") const;
 
     ///@}
     ///@name Friends
