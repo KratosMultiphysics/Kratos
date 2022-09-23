@@ -27,6 +27,8 @@
 #include "utilities/geometry_utilities.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
+#include "utilities/sparse_matrix_multiplication_utility.h"
+
 
 namespace Kratos
 {
@@ -517,6 +519,17 @@ private:
 		const MatrixType& rHTot,
 		MatrixType& rKeeTot,
 		const VectorType& rRHSeeTot);
+
+    /**
+     * @brief Calculate the MPCs connectivities
+     * This method calculates the MPCs connectivities matrix from the edge distances
+     * This will be used later on to strongly impose the pressure continuity at the interface
+     * @param rData Element data container
+     * @param rConnectivityMatrix Reference to the MPC connectivities matrix to be filled
+     */
+    void CalculateConnectivityMPCsMatrix(
+        const TElementData& rData,
+        MatrixType& rConnectivityMatrix);
 
     /**
      * @brief Condense the enrichment without penalty

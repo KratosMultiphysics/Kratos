@@ -518,6 +518,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
+    const Matrix &C = rData.C;
 
     // Get shape function values
     const auto &N = rData.N;
@@ -568,6 +569,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
+    const Matrix &C = rData.C;
 
     // Get shape function values
     const auto &N = rData.N;
@@ -1065,45 +1067,158 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichmentWithContinuity(
     //We only enrich elements which are not almost empty/full
     if (positive_volume / Vol > min_area_ratio && negative_volume / Vol > min_area_ratio) {
 
-        // Compute the maximum diagonal value in the enrichment stiffness matrix
-        double max_diag = 0.0;
-        for (unsigned int k = 0; k < NumNodes; ++k){
-            if (std::abs(rKeeTot(k, k)) > max_diag){
-                max_diag = std::abs(rKeeTot(k, k));
-            }
-        }
-        if (max_diag == 0.0){
-            max_diag = 1.0;
-        }
-        // "weakly" impose continuity
-        for (unsigned int i = 0; i < Dim; ++i){
-            const double di = std::abs(rData.Distance[i]);
-            for (unsigned int j = i + 1; j < NumNodes; ++j){
-                const double dj = std::abs(rData.Distance[j]);
-                // Check if the edge is cut, if it is, set the penalty constraint
-                if (rData.Distance[i] * rData.Distance[j] < 0.0){
-                    double sum_d = di + dj;
-                    double Ni = dj / sum_d;
-                    double Nj = di / sum_d;
-                    double penalty_coeff = max_diag * 0.001; // h/BDFVector[0];
-                    rKeeTot(i, i) += penalty_coeff * Ni * Ni;
-                    rKeeTot(i, j) -= penalty_coeff * Ni * Nj;
-                    rKeeTot(j, i) -= penalty_coeff * Nj * Ni;
-                    rKeeTot(j, j) += penalty_coeff * Nj * Nj;
-                }
+        // // Compute the maximum diagonal value in the enrichment stiffness matrix
+        // double max_diag = 0.0;
+        // for (unsigned int k = 0; k < NumNodes; ++k){
+        //     if (std::abs(rKeeTot(k, k)) > max_diag){
+        //         max_diag = std::abs(rKeeTot(k, k));
+        //     }
+        // }
+        // if (max_diag == 0.0){
+        //     max_diag = 1.0;
+        // }
+        // // "weakly" impose continuity
+        // for (unsigned int i = 0; i < Dim; ++i){
+        //     const double di = std::abs(rData.Distance[i]);
+        //     for (unsigned int j = i + 1; j < NumNodes; ++j){
+        //         const double dj = std::abs(rData.Distance[j]);
+        //         // Check if the edge is cut, if it is, set the penalty constraint
+        //         if (rData.Distance[i] * rData.Distance[j] < 0.0){
+        //             double sum_d = di + dj;
+        //             double Ni = dj / sum_d;
+        //             double Nj = di / sum_d;
+        //             double penalty_coeff = max_diag * 0.001; // h/BDFVector[0];
+        //             rKeeTot(i, i) += penalty_coeff * Ni * Ni;
+        //             rKeeTot(i, j) -= penalty_coeff * Ni * Nj;
+        //             rKeeTot(j, i) -= penalty_coeff * Nj * Ni;
+        //             rKeeTot(j, j) += penalty_coeff * Nj * Nj;
+        //         }
+        //     }
+        // }
+
+        // // Enrichment condensation (add to LHS and RHS the enrichment contributions)
+        // double det;
+        // MatrixType inverse_diag(NumNodes, NumNodes);
+        // MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
+
+        // const Matrix tmp = prod(inverse_diag, rHtot);
+        // noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);
+
+        // const Vector tmp2 = prod(inverse_diag, rRHSeeTot);
+        // noalias(rRightHandSideVector) -= prod(rVtot, tmp2);
+
+        // -----------------------------------------------------------
+        // "Strongly impose continuity"
+        //----------------------------------------------------------
+        MatrixType t_mpc_matrix;
+        CalculateConnectivityMPCsMatrix(rData, t_mpc_matrix);
+        KRATOS_WATCH(t_mpc_matrix)
+
+        // // Enrichment condensation (add to LHS and RHS the enrichment contributions)
+        MatrixType t_transpose_matrix = ZeroMatrix(t_mpc_matrix.size2(), t_mpc_matrix.size1());
+        for (unsigned int i = 0; i < t_mpc_matrix.size1(); ++i)
+        {
+            for (unsigned int j = 0; j < t_mpc_matrix.size2(); ++j)
+            {
+                t_transpose_matrix(j, i) = t_mpc_matrix(i, j);
             }
         }
 
-        // Enrichment condensation (add to LHS and RHS the enrichment contributions)
+        // ( Tt kee T)^-1
+
         double det;
-        MatrixType inverse_diag(NumNodes, NumNodes);
-        MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
+        MatrixType inverse_diag;
+        const Matrix ttxkenr = prod(t_transpose_matrix, rKeeTot);
+        const Matrix ttxkenrxt = prod(ttxkenr, t_mpc_matrix);
+        MathUtils<double>::InvertMatrix(ttxkenrxt, inverse_diag, det);
+        // V T ( Tt kee T)^-1 Tt H
+        const Matrix msc = prod(rVtot, t_mpc_matrix);
+        const Matrix msc1 = prod(msc, inverse_diag);
+        const Matrix msc2 = prod(msc1, t_transpose_matrix);
 
-        const Matrix tmp = prod(inverse_diag, rHtot);
-        noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);
+        // Adding erichment contribution to LHS
+        noalias(rLeftHandSideMatrix) -= prod(msc2, rHtot);
+        // V T ( Tt kee T)^-1 Tt Fenr
+        // Adding erichment contribution to RHS
 
-        const Vector tmp2 = prod(inverse_diag, rRHSeeTot);
-        noalias(rRightHandSideVector) -= prod(rVtot, tmp2);
+        const Vector msc3 = prod(msc2, rRHSeeTot);
+
+        noalias(rRightHandSideVector) -= msc3;
+    }
+
+}
+
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::CalculateConnectivityMPCsMatrix(
+    const TElementData &rData,
+    MatrixType &rConnectivityMatrix)
+{
+    // Determine slave/master nodes and Id all the cases:
+    std::size_t pos_nodes = 0;
+    std::size_t neg_nodes = 0;
+    std::size_t master_no = 0;
+    std::size_t slave_no = 0;
+    std::vector<std::size_t> neg_nodes_id;
+    std::vector<std::size_t> pos_nodes_id;
+    std::vector<std::size_t> *p_master_nodes_ids = nullptr;
+    std::vector<std::size_t> *p_slave_nodes_ids = nullptr;
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        if (rData.Distance[i] < 0.0)
+        {
+            neg_nodes++;
+            neg_nodes_id.push_back(i);
+        }
+        else
+        {
+            pos_nodes++;
+            pos_nodes_id.push_back(i);
+        }
+    }
+
+    if (pos_nodes > neg_nodes)
+    {
+        master_no = neg_nodes;
+        slave_no = pos_nodes;
+        p_master_nodes_ids = &neg_nodes_id;
+        p_slave_nodes_ids = &pos_nodes_id;
+    }
+    else
+    {
+        // Note this is valid for both the 2D and 3D cases
+        // In the 3D case, it covers both the 1 slave and 3 masters and the 2 slave 2 master nodes
+        // Also note that in the 3D 2-2 case we decide to take the negative ones as master nodes
+        master_no = pos_nodes;
+        slave_no = neg_nodes;
+        p_master_nodes_ids = &pos_nodes_id;
+        p_slave_nodes_ids = &neg_nodes_id;
+    }
+
+    // Resize T multi point contraint matrix
+    rConnectivityMatrix = ZeroMatrix(NumNodes, master_no);
+    const double mpc_weight = 1.0;
+
+    // Fill the master MPC entries
+    for (std::size_t i = 0; i < p_master_nodes_ids->size(); ++i)
+    {
+        rConnectivityMatrix((*p_master_nodes_ids)[i], i) = 1.0;
+    }
+
+    // Fill the slave MPC entries
+    for (auto slave_id : *p_slave_nodes_ids)
+    {
+        const double slave_distance_i = std::abs(rData.Distance[slave_id]);
+        for (std::size_t j = 0; j < rConnectivityMatrix.size2(); ++j)
+        {
+            const std::size_t master_id = (*p_master_nodes_ids)[j];
+            const double master_distance_j = std::abs(rData.Distance[master_id]);
+
+            const double enr_sh_func_slave = master_distance_j / (slave_distance_i + master_distance_j);
+            const double enr_sh_func_master = slave_distance_i / (slave_distance_i + master_distance_j);
+
+            rConnectivityMatrix(slave_id, j) = mpc_weight * enr_sh_func_master / enr_sh_func_slave;
+        }
     }
 }
 

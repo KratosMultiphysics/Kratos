@@ -1,3 +1,4 @@
+from cmath import tau
 import sympy
 from KratosMultiphysics import *
 from KratosMultiphysics.sympy_fe_utilities import *
@@ -140,10 +141,13 @@ for dim in dim_vector:
         raise Exception(err_msg)
 
     if time_integration=="bdf2":
-        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h) + K_darcy)   # Stabilization parameter 1
+        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h) + K_darcy)   #
+        # tau1=0.0
+        # Stabilization parameter 1
     else:
         tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h))  # Stabilization parameter 1
     tau2 = mu + (stab_c2*rho*vconv_gauss_norm*h)/stab_c1
+    # tau2=0.0
 
     ## Data interpolation to the Gauss points
     p_gauss = p.transpose()*N #NOTE: We evaluate p-related terms at n+1 as temporal component makes no sense in this case for both time integration schemes
@@ -232,6 +236,11 @@ for dim in dim_vector:
     if time_integration=="bdf2":
         rv_stab -= w_gauss.transpose()*K_darcy*vel_subscale
 
+    #missing stab term from viscous term
+    grad_sym_accel_voigt = grad_sym_voigtform(DN, acceleration)
+    # grad_sym_f_voigt = grad_sym_voigtform(DN, f_gauss)
+    rv_stab += (tau1*rho)*grad_sym_w_voigt.transpose()*C*grad_sym_accel_voigt
+
     ## Add the stabilization terms to the original residual terms
     if (ASGS_stabilization):
         rv = rv_galerkin + rv_stab
@@ -273,7 +282,8 @@ for dim in dim_vector:
         vel_residual_enr-= K_darcy*v_gauss
     vel_subscale_enr = vel_residual_enr * tau1
 
-    rv_galerkin_enriched = div_w*penr_gauss
+    # rv_galerkin_enriched = div_w*penr_gauss
+    rv_galerkin_enriched = -w_gauss.transpose()*grad_penr
 
     if (divide_by_rho):
         rv_galerkin_enriched += qenr_gauss*(volume_error_ratio - div_v[0,0])
