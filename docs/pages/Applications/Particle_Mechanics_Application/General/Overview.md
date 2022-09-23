@@ -9,12 +9,7 @@ summary:
 
 This application features continuum-based meshfree and particle methods with main motivations of simulating non-linear large deformable materials, such as free-surface flows, geomechanical phenomena, and extreme events involving impact, penetration, fragmentation, blast, multi-phase interaction, failure evolution, etc.
 
-
-
-!!! GRAPHIC IS STILL MISSING !!!
-<p align="center">
-  <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Readme_files/ParticleMechanicsApplication.gif" width="618" height="280"/>
-</p>
+![ParticleMechanicsApplication](https://user-images.githubusercontent.com/51473791/191960884-1f1c5a0c-efec-40ca-ac6d-2d53b5530739.gif)
 
 
 The recent research and development have been focused solely on the Material Point Method (MPM) and on partiotioned coupled formulations MPM-FEM and MPM-DEM.
