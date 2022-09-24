@@ -121,10 +121,6 @@ namespace EntitiesUtilities
                 // Detect if the entity is active or not. If the user did not make any choice the entity
                 // It is active by default
                 const bool entity_is_active = (rEntity.IsDefined(ACTIVE)) ? rEntity.Is(ACTIVE) : true;
-                KRATOS_INFO("element") << rEntity.Id() 
-                        << " IsDefined: " << rEntity.IsDefined(ACTIVE) 
-                        << " Set: "       << rEntity.Is(ACTIVE) << std::endl;
-
                 if (entity_is_active) {
                     rEntity.InitializeSolutionStep(r_current_process_info);
                 }
