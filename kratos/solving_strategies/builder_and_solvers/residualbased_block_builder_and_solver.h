@@ -233,14 +233,7 @@ public:
             {
                 ModelPart::ElementsContainerType::iterator it = el_begin + k;
 
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool element_is_active = true;
-                if ((it)->IsDefined(ACTIVE))
-                    element_is_active = (it)->Is(ACTIVE);
-
-                if (element_is_active)
-                {
+                if ((it)->IsActive()) {
                     //calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
@@ -255,14 +248,7 @@ public:
             {
                 ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
 
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool condition_is_active = true;
-                if ((it)->IsDefined(ACTIVE))
-                    condition_is_active = (it)->Is(ACTIVE);
-
-                if (condition_is_active)
-                {
+                if ((it)->IsActive()) {
                     //calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
