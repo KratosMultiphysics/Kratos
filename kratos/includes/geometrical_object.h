@@ -55,7 +55,7 @@ namespace Kratos
  * @details Derives from IndexedObject, so it has an ID, and from Flags
  * @author Pooyan Dadvand
 */
-class GeometricalObject : public IndexedObject, public Flags
+class KRATOS_API(KRATOS_CORE) GeometricalObject : public IndexedObject, public Flags
 {
 public:
     ///@name Type Definitions
