@@ -263,6 +263,15 @@ public:
     ///@{
 
     /**
+     * @brief Checks if the GeometricalObject is active
+     * @return True by default, otherwise depending on the ACTIVE flag
+     */
+    bool IsActive() const 
+    {
+        return IsDefined(ACTIVE) ? Is(ACTIVE) : true;
+    }
+
+    /**
      * @brief Checks if two GeometricalObject have the same type
      * @return True if the objects are the same type, false otherwise
      */
