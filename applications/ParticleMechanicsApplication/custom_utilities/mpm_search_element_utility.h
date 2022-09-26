@@ -238,7 +238,10 @@ namespace MPMSearchElementUtility
                     CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
                         condition_itr->pGetGeometry(), local_coordinates,
                         condition_itr->GetGeometry().IntegrationPoints()[0].Weight(), r_found_geom);
-                        
+                    
+                    int& mpc_counter = r_found_geom.GetValue(MPC_COUNTER) ; 
+                    mpc_counter +=1;
+                    
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j)
                         r_found_geom[j].Set(ACTIVE);
                 }
@@ -380,6 +383,9 @@ namespace MPMSearchElementUtility
                         
                         auto& r_geometry = condition_itr->GetGeometry();
 
+                        int& mpc_counter = pelem->GetGeometry().GetValue(MPC_COUNTER) ; 
+                        mpc_counter +=1;
+
                         for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
                             r_geometry[j].Set(ACTIVE);
                     } else {
@@ -402,6 +408,9 @@ namespace MPMSearchElementUtility
             auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
             auto& r_geometry = element_itr->GetGeometry();
             element_itr->Reset(ACTIVE);
+
+            int& mpc_counter = element_itr->GetValue(MPC_COUNTER) ; 
+            mpc_counter =0;
 
             for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
                 r_geometry[j].Reset(ACTIVE);

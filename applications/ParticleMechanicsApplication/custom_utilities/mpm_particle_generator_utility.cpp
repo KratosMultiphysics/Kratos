@@ -568,6 +568,7 @@ namespace MPMParticleGeneratorUtility
             p_new_node->AddDof(DISPLACEMENT_Z,REACTION_Z);
 
             element_itr->GetGeometry().SetValue(MPC_LAGRANGE_NODE, p_new_node);
+            element_itr->GetGeometry().SetValue(MPC_COUNTER, 0);
 
         }
     }
