@@ -208,9 +208,9 @@ namespace Kratos
         }
         else {
             if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) {
-                rOutput.resize(0, local_size, false);
+                rOutput.resize(1, local_size, false);
             }
-            noalias(rOutput) = ZeroMatrix(0, local_size);
+            noalias(rOutput) = ZeroMatrix(1, local_size);
         }
 
         KRATOS_CATCH( "" )
@@ -283,9 +283,9 @@ namespace Kratos
         }
         else {
             if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) {
-                rOutput.resize(0, local_size, false);
+                rOutput.resize(1, local_size, false);
             }
-            noalias(rOutput) = ZeroMatrix(0, local_size);
+            noalias(rOutput) = ZeroMatrix(1, local_size);
         }
 
         KRATOS_CATCH( "" )

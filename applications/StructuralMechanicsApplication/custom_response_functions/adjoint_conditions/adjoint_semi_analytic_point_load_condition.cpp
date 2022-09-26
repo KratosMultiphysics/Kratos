@@ -51,7 +51,7 @@ namespace Kratos
         }
         else
         {
-            rOutput = ZeroMatrix(0, mat_size);
+            rOutput = ZeroMatrix(1, mat_size);
         }
 
         KRATOS_CATCH( "" )
