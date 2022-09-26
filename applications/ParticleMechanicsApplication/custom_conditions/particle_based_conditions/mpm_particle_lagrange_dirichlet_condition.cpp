@@ -213,26 +213,38 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
             
         }
     }
-    
+
+    int counter = 0;
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+    {
+        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon() ){
+            counter+=1;
+        }
+    }
+
+    if (counter >= number_of_nodes-1)
+        apply_constraints = false;
+     
     if (apply_constraints)
     {
         Matrix lagrange_matrix = ZeroMatrix(matrix_size, matrix_size);
 
-        // Loop over shape functions of displacements
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            const unsigned int ibase = dimension * number_of_nodes;
-            for (unsigned int k = 0; k < dimension; k++)
-            {
-                lagrange_matrix(i* dimension+k, ibase+k) = Variables.N[i];
-                lagrange_matrix(ibase+k, i*dimension + k) = Variables.N[i];
-            }
-            if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon() ){
+            const unsigned int ibase = dimension * number_of_nodes;          
                 for (unsigned int k = 0; k < dimension; k++)
                 {
-                    lagrange_matrix(i* dimension+k, i* dimension+k) = m_penalty;
+                    lagrange_matrix(i* dimension+k, ibase+k) = Variables.N[i];
+                    lagrange_matrix(ibase+k, i*dimension + k) = Variables.N[i];
                 }
-            }
+                if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) < std::numeric_limits<double>::epsilon() ){
+                    auto mpc_counter = r_geometry.GetGeometryParent(0).GetValue(MPC_COUNTER);
+                    auto volume = r_geometry.GetGeometryParent(0).Area();
+                    for (unsigned int k = 0; k < dimension; k++)
+                    {
+                        lagrange_matrix(i* dimension+k, i* dimension+k) = m_penalty/mpc_counter /  this->GetIntegrationWeight() * volume ;
+                    }
+                }
         }
 
         // Calculate LHS Matrix and RHS Vector
