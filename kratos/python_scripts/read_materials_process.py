@@ -191,17 +191,18 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         # Add / override the values of material parameters in the properties
         for key, value in mat["Variables"].items():
             var = self._GetVariable(key)
-            if value.IsDouble():
+            var_type = KratosMultiphysics.KratosGlobals.GetVariableType(var.Name())
+            if var_type is "Double":
                 prop.SetValue( var, value.GetDouble() )
-            elif value.IsInt():
+            elif var_type is "Integer" or  var_type is "Unsigned Integer":
                 prop.SetValue( var, value.GetInt() )
-            elif value.IsBool():
+            elif var_type is "Bool":
                 prop.SetValue( var, value.GetBool() )
-            elif value.IsString():
+            elif var_type is "String":
                 prop.SetValue( var, value.GetString() )
-            elif value.IsMatrix():
+            elif var_type is "Matrix":
                 prop.SetValue( var, value.GetMatrix() )
-            elif value.IsVector():
+            elif var_type is "Vector" or var_type is "Array" or var_type is "Array4" or var_type is "Array6" or var_type is "Array9":
                 prop.SetValue( var, value.GetVector() )
             else:
                 raise ValueError("Type of value is not available")
