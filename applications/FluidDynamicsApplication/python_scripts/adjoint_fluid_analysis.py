@@ -16,6 +16,14 @@ class AdjointFluidAnalysis(AnalysisStage):
 
         problem_data = self.project_parameters["problem_data"]
 
+        # check that old input is not provided
+        if problem_data.Has("nsteps"):
+            raise Exception("'nsteps' is no longer supported. Use 'start_time' and 'end_time' instead")
+        if problem_data.Has("start_step"):
+            raise Exception("'start_step' is no longer supported. Use 'start_time' and 'end_time' instead")
+        if problem_data.Has("end_step"):
+            raise Exception("'end_step' is no longer supported. Use 'start_time' and 'end_time' instead")
+
         # compute delta time
         delta_time = self._GetSolver()._ComputeDeltaTime()
         if delta_time >= 0.0:
