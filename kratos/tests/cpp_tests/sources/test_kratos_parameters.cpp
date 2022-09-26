@@ -538,7 +538,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMethods, KratosCoreFastSuite)
             KRATOS_CHECK_IS_FALSE(tmp[key].IsInt());
         }
 
-        if (key.find("double") != std::string::npos) {
+        if (key.find("double") != std::string::npos || key.find("int") != std::string::npos) {
             KRATOS_CHECK(tmp[key].IsDouble());
         } else {
             KRATOS_CHECK_IS_FALSE(tmp[key].IsDouble());
