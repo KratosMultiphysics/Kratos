@@ -94,6 +94,7 @@ protected:
         double density;
         // MP_VOLUME
         double volume;
+        double error =0.0;
 
         // MP_DISPLACEMENT
         array_1d<double, 3> displacement;
