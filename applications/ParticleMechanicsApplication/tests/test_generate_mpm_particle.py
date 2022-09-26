@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
@@ -221,11 +220,11 @@ class TestGenerateMPMParticle(KratosUnittest.TestCase):
     def test_GenerateMPMParticleQuadrilateral3DSkew(self):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_element_and_check_mp_volume(current_model, dimension=3, geometry_element="QuadrilateralSkew", num_particle=4, expected_mp_volume=0.20275105849101815)
-    
+
     def test_GenerateMPMParticleTriangle2DSkew(self):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_element_and_check_mp_volume(current_model, dimension=2, geometry_element="TriangleSkew", num_particle=3, expected_mp_volume=0.3333333333333333)
-    
+
     def test_GenerateMPMParticleTriangle3DSkew(self):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_element_and_check_mp_volume(current_model, dimension=3, geometry_element="TriangleSkew", num_particle=3, expected_mp_volume=0.08333333333333333)
@@ -237,11 +236,11 @@ class TestGenerateMPMParticle(KratosUnittest.TestCase):
     def test_GenerateMPMParticleQuadrilateral3DNotSkew(self):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_element_and_check_mp_volume(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=4, expected_mp_volume=0.12499999999999993)
-    
+
     def test_GenerateMPMParticleTriangle2DNotSkew(self):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_element_and_check_mp_volume(current_model, dimension=2, geometry_element="Triangle", num_particle=3, expected_mp_volume=0.16666666666666666)
-    
+
     def test_GenerateMPMParticleTriangle3DNotSkew(self):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_element_and_check_mp_volume(current_model, dimension=3, geometry_element="Triangle", num_particle=3, expected_mp_volume=0.041666666666666664)
