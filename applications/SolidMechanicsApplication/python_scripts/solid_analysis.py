@@ -1,4 +1,3 @@
-# makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Import system python modules
 import time as timer

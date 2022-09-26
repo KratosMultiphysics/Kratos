@@ -8,7 +8,6 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # additional imports
 from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_internal import KratosInternalAnalyzer

@@ -2,7 +2,6 @@
 # Imports
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics as km
