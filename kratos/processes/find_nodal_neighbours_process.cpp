@@ -25,11 +25,11 @@ FindNodalNeighboursProcess::FindNodalNeighboursProcess(ModelPart& rModelPart)
     : mrModelPart(rModelPart)
 {
     mpNodeNeighboursCalculator = Kratos::make_unique<FindGlobalNodalNeighboursProcess>(mrModelPart);
-    mpElemNeighboursCalculator = Kratos::make_unique<FindGlobalNodalElementalNeighboursProcess>(mrModelPart);
+    mpElemNeighboursCalculator = Kratos::make_unique<FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>>(mrModelPart);
 
     KRATOS_INFO("FindNodalNeighboursProcess") <<
         R"(please call separetely FindGlobalNodalNeighboursProcess
-        and FindGlobalNodalElementalNeighboursProcess.
+        and FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>.
         The two calculations are currently independent,
             hence memory savings can be achieved)" << std::endl;
 }
@@ -61,7 +61,7 @@ void FindNodalNeighboursProcess::Execute()
 void FindNodalNeighboursProcess::ClearNeighbours()
 {
     mpNodeNeighboursCalculator->ClearNeighbours();
-    mpElemNeighboursCalculator->ClearNeighbours();
+    mpElemNeighboursCalculator->Clear();
 }
 
 }  // namespace Kratos.

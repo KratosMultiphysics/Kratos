@@ -26,17 +26,30 @@
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 
+#ifndef MMG_VERSION_GT
+    #define MMG_VERSION_GT(MAJOR,MINOR) false
+#endif
 #ifndef MMG_VERSION_GE
     #define MMG_VERSION_GE(MAJOR,MINOR) false
+#endif
+#ifndef MMG_VERSION_LT
+    #define MMG_VERSION_LT(MAJOR,MINOR) false
+#endif
+#ifndef MMG_VERSION_LE
+    #define MMG_VERSION_LE(MAJOR,MINOR) false
 #endif
 #ifndef MMG_VERSION_MAJOR
     #define MMG_VERSION_MAJOR 5
 #endif
 #ifndef MMG_VERSION_MINOR
-    #define MMG_VERSION_MINOR 4
+    #define MMG_VERSION_MINOR 5
 #endif
 #ifndef MMG_VERSION_PATCH
     #define MMG_VERSION_PATCH 0
+#endif
+
+#if MMG_VERSION_LT(5,5)
+    #error "ERROR:: The minimal MMG compatible version is 5.5.0. Please update your MMG library"
 #endif
 
 // NOTE: The following contains the license of the MMG library
@@ -729,6 +742,18 @@ public:
      * @param[in,out] rModelPart The model part of interest to study
      */
     virtual void AssignAndClearAuxiliarSubModelPartForFlags(ModelPart& rModelPart);
+
+    /**
+     * @brief Sets the number of parameters to be defined locally at each reference color.
+     * Required by the library.
+     */
+    void SetNumberOfLocalParameters(IndexType NumberOfLocalParameter);
+
+    /**
+     * @brief Sets the local hmin, hmax and hausdorff value for all entities with the given
+     * color reference.
+     */
+    void SetLocalParameter(IndexType rColor, double HMin, double HMax, double HausdorffValue);
 
     ///@}
     ///@name Access

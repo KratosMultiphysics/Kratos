@@ -115,7 +115,7 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideM
     noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-    if (TElementData::ElementManagesTimeIntegration) {
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
@@ -150,7 +150,7 @@ void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSide
 
     noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
-    if (TElementData::ElementManagesTimeIntegration) {
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
@@ -182,7 +182,7 @@ void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSi
 
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-    if (TElementData::ElementManagesTimeIntegration) {
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
