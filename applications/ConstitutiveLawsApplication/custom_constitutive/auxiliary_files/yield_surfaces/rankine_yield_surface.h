@@ -17,7 +17,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "generic_yield_surface.h"
-#include "custom_constitutive/auxiliar_files/plastic_potentials/rankine_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/rankine_plastic_potential.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
 
 
