@@ -217,7 +217,7 @@ public:
         const Variable<TVarType> &rEmbeddedNodalVariable,
         const double GradientPenaltyCoefficient = 0.0,
         const unsigned int BufferPosition = 0,
-        const std::string AuxPartName = "IntersectedElementsModelPart",
+        const std::string& AuxPartName = "IntersectedElementsModelPart",
         const std::size_t EchoLevel = 0)
         : Process()
         , mEchoLevel(EchoLevel)

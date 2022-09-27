@@ -1,81 +1,50 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 
-
-
-
-
-
-
-
-
-
-
-
 // Project includes
 #include "includes/reorder_consecutive_model_part_io.h"
 
 
-
 namespace Kratos
 {
-    /// Constructor with  filenames.
-    ReorderConsecutiveModelPartIO::ReorderConsecutiveModelPartIO(std::string const& Filename, const Flags Options )
-        : ModelPartIO(Filename, Options),
-		mNumberOfNodes(0),
-		mNumberOfElements(0),
-		mNumberOfConditions(0),
-		mNodeIdMap(),
-		mElementIdMap(),
-		mConditionIdMap()
-    {
-    }
 
+ModelPartIO::SizeType ReorderConsecutiveModelPartIO::ReorderedNodeId(ModelPartIO::SizeType NodeId)
+{
+    IdMapType::iterator i = mNodeIdMap.find(NodeId);
+    if(i != mNodeIdMap.end())
+        return i->second;
 
-    /// Destructor.
-    ReorderConsecutiveModelPartIO::~ReorderConsecutiveModelPartIO() {}
+    mNodeIdMap.insert(IdMapType::value_type(NodeId, ++mNumberOfNodes));
+    return mNumberOfNodes;
+}
 
-	
+ModelPartIO::SizeType ReorderConsecutiveModelPartIO::ReorderedElementId(ModelPartIO::SizeType ElementId)
+{
+    IdMapType::iterator i = mElementIdMap.find(ElementId);
+    if(i != mElementIdMap.end())
+        return i->second;
 
-	ModelPartIO::SizeType ReorderConsecutiveModelPartIO::ReorderedNodeId(ModelPartIO::SizeType NodeId)
-	{
-		IdMapType::iterator i = mNodeIdMap.find(NodeId);
-		if(i != mNodeIdMap.end())
-			return i->second;
+    mElementIdMap.insert(IdMapType::value_type(ElementId, ++mNumberOfElements));
+    return mNumberOfElements;
+}
 
-		mNodeIdMap.insert(IdMapType::value_type(NodeId, ++mNumberOfNodes));
-		return mNumberOfNodes;
-	}
-	ModelPartIO::SizeType ReorderConsecutiveModelPartIO::ReorderedElementId(ModelPartIO::SizeType ElementId)
-	{
-		IdMapType::iterator i = mElementIdMap.find(ElementId);
-		if(i != mElementIdMap.end())
-			return i->second;
+ModelPartIO::SizeType ReorderConsecutiveModelPartIO::ReorderedConditionId(ModelPartIO::SizeType ConditionId)
+{
+    IdMapType::iterator i = mConditionIdMap.find(ConditionId);
+    if(i != mConditionIdMap.end())
+        return i->second;
 
-		mElementIdMap.insert(IdMapType::value_type(ElementId, ++mNumberOfElements));
-		return mNumberOfElements;
-	}
+    mConditionIdMap.insert(IdMapType::value_type(ConditionId, ++mNumberOfConditions));
+    return mNumberOfConditions;
+}
 
-	ModelPartIO::SizeType ReorderConsecutiveModelPartIO::ReorderedConditionId(ModelPartIO::SizeType ConditionId)
-	{
-		IdMapType::iterator i = mConditionIdMap.find(ConditionId);
-		if(i != mConditionIdMap.end())
-			return i->second;
-
-		mConditionIdMap.insert(IdMapType::value_type(ConditionId, ++mNumberOfConditions));
-		return mNumberOfConditions;
-	}
-
-
-
-}  // namespace Kratos.
-
+} // namespace Kratos.
