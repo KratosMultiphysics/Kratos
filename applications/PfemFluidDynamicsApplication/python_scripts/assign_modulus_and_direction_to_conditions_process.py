@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as PfemFluid
@@ -108,7 +107,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         else:
 
             self.function_expression = self.settings["modulus"].GetString()
-            self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval', optimize=2))            
+            self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval', optimize=2))
 
             self.value_is_spatial_function = True
 
@@ -125,7 +124,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
         # set model part
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
-        
+
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
         # set processes

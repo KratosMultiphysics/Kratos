@@ -1,6 +1,5 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-import KratosMultiphysics 
+import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPFEMSolid
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
@@ -38,7 +37,7 @@ class ConePenetrationUtility(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.model_part = model_part['Main_Domain']
-        
+
         self.Y0 = settings["u2_initial_depth"].GetDouble()
         self.Vy = settings["velocity"].GetDouble()
         self.radius = settings["cone_radius"].GetDouble()
@@ -46,8 +45,8 @@ class ConePenetrationUtility(KratosMultiphysics.Process):
         self.dissipation_set = settings["dissipation_set"].GetBool()
         if ( self.dissipation_set):
             self.dissipation_depth = settings["dissipation_depth"].GetDouble()
-        
-        
+
+
         problem_path = os.getcwd()
         self.figure_path = os.path.join(problem_path, "cone_penetration_data.csv")
 
@@ -64,7 +63,7 @@ class ConePenetrationUtility(KratosMultiphysics.Process):
                 delta_disp[ii] = delta_disp[ii] / delta_time
             if (node.SolutionStepsDataHas(KratosMultiphysics.VELOCITY)):
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, delta_disp)
-            
+
     def ExecuteAfterOutputStep(self):
 
 
@@ -140,17 +139,17 @@ class ConePenetrationUtility(KratosMultiphysics.Process):
         YLim = self._GetU2Position()
 
         for node in self.model_part.GetNodes(0):
-            Force = node.GetSolutionStepValue( KratosMultiphysics.CONTACT_FORCE); 
+            Force = node.GetSolutionStepValue( KratosMultiphysics.CONTACT_FORCE);
             if ( ( abs(Force[0]) + abs(Force[1]) > 1.0e-7 ) or (node.X0 < 1e-5 and node.Y > YLim-0.1) ) :
                 x = node.X;
                 y = node.Y;
-                Force = node.GetSolutionStepValue( KratosMultiphysics.CONTACT_FORCE);  
-                Stress = node.GetSolutionStepValue( KratosContact.CONTACT_STRESS);  
-                EfForce = node.GetSolutionStepValue( KratosContact.EFFECTIVE_CONTACT_FORCE);  
-                EfStress = node.GetSolutionStepValue( KratosContact.EFFECTIVE_CONTACT_STRESS);  
-                WP = node.GetSolutionStepValue( KratosMultiphysics.WATER_PRESSURE); 
-                
-                line = str(x) + "  " + str(y) + "  " + str(YLim) + " " + str(WP) + " " 
+                Force = node.GetSolutionStepValue( KratosMultiphysics.CONTACT_FORCE);
+                Stress = node.GetSolutionStepValue( KratosContact.CONTACT_STRESS);
+                EfForce = node.GetSolutionStepValue( KratosContact.EFFECTIVE_CONTACT_FORCE);
+                EfStress = node.GetSolutionStepValue( KratosContact.EFFECTIVE_CONTACT_STRESS);
+                WP = node.GetSolutionStepValue( KratosMultiphysics.WATER_PRESSURE);
+
+                line = str(x) + "  " + str(y) + "  " + str(YLim) + " " + str(WP) + " "
                 line = line + self.AddVector( Force)
                 line = line + self.AddVector( Stress)
                 line = line + self.AddVector( EfForce)
@@ -160,7 +159,7 @@ class ConePenetrationUtility(KratosMultiphysics.Process):
 
 
         self.other_file.close()
-        
+
     def AddVector( self, vector):
         line = str(vector[0]) + " " + str(vector[1]) + " "
         return line
@@ -207,7 +206,7 @@ class ConePenetrationUtility(KratosMultiphysics.Process):
         YLim = self._GetU2Position()
         for node in self.model_part.GetNodes(0):
             if ( node.Y < YLim):
-                Force = node.GetSolutionStepValue( KratosMultiphysics.CONTACT_FORCE);  
+                Force = node.GetSolutionStepValue( KratosMultiphysics.CONTACT_FORCE);
                 result = result + Force[1];
 
         return result;
@@ -258,14 +257,14 @@ class ConePenetrationUtility(KratosMultiphysics.Process):
                 elif ( (YThis-YSearch) <= 0):
                     if ( abs( YThis-YSearch) < abs( YBestBottom - YSearch) ):
                         nBestBottom = node.Id
-                        YBestBottom = YThis; 
+                        YBestBottom = YThis;
 
         if (  (nBestTop < 1) or (nBestBottom < 1) ):
             print( ' In the Usomething. NotFound Contacting nodes that are in the range of this kind of thing')
             return 0.0
 
         # Now i want to kwnow if there is an element that has these nodes
-        ReallyFound = False; 
+        ReallyFound = False;
         for elem in self.model_part.GetElements(0):
             a = [1, 2, 3]
             conec = [];
