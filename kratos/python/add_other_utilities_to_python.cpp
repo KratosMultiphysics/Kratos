@@ -64,6 +64,7 @@
 #include "utilities/single_import_model_part.h"
 #include "utilities/rve_periodicity_utility.h"
 #include "utilities/communication_coloring_utilities.h"
+#include "utilities/model_part_graph_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -100,6 +101,7 @@ void SetOnProcessInfo(
 //timer
 void PrintTimingInformation(Timer& rTimer)
 {
+    KRATOS_WARNING("[DEPRECATED] Timer.PrintTimingInformation") << "This will be removed at end of 2022. Please, call this function without arguments." << std::endl;
     rTimer.PrintTimingInformation();
 }
 
@@ -250,6 +252,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("SetPrintOnScreen", &Timer::SetPrintOnScreen)
         .def_static("GetPrintIntervalInformation", &Timer::GetPrintIntervalInformation)
         .def_static("SetPrintIntervalInformation", &Timer::SetPrintIntervalInformation)
+        .def_static("PrintTimingInformation", [](){Timer::PrintTimingInformation();})
         .def_static("PrintTimingInformation", PrintTimingInformation)
         .def("__str__", PrintObject<Timer>)
         ;
@@ -719,6 +722,14 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<>())
         .def("ComputeRecvList", &MPIColoringUtilities::ComputeRecvList)
         .def("ComputeCommunicationScheduling", &MPIColoringUtilities::ComputeCommunicationScheduling)
+        ;
+
+    py::class_<ModelPartGraphUtilities>(m, "ModelPartGraphUtilities")
+        .def_static("ComputeGraph", &ModelPartGraphUtilities::ComputeGraph)
+        .def_static("ComputeCSRGraph", &ModelPartGraphUtilities::ComputeCSRGraph)
+        .def_static("ComputeConnectedComponents", &ModelPartGraphUtilities::ComputeConnectedComponents)
+        .def_static("ComputeConnectedComponentsWithActiveNodesCheck", &ModelPartGraphUtilities::ComputeConnectedComponentsWithActiveNodesCheck)
+        .def_static("ApplyMinimalScalarFixity", &ModelPartGraphUtilities::ApplyMinimalScalarFixity)
         ;
 
     auto fs_extensions = m.def_submodule("FilesystemExtensions");

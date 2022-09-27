@@ -1077,12 +1077,12 @@ public:
 
         if (length_1 <= (length + tolerance) && length_2 <= (length + tolerance)) {
             rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0;
-        } else if (length_1 > (length + tolerance)) {
-            rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0; // NOTE: The same value as before, but it will be > than 1
-        } else if (length_2 > (length + tolerance)) {
-            rResult[0] = 1.0 - 2.0 * length_2/(length + tolerance);
         } else {
-            rResult[0] = 2.0; // Out of the line!!!
+            if (length_1 > length_2) {
+                rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0;
+            } else {
+                rResult[0] = -2.0 * length_1/(length + tolerance) - 1.0;
+            }
         }
 
         return rResult ;

@@ -115,7 +115,7 @@ public:
 
     void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const override;
 
-    IntegrationMethod GetIntegrationMethod() override
+    IntegrationMethod GetIntegrationMethod() const override
     {
         return mpPrimalCondition->GetIntegrationMethod();
     }

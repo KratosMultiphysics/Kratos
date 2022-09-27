@@ -15,7 +15,7 @@
 
 // Project includes
 #include "adjoint_nodal_displacement_response_function.h"
-#include "processes/find_elements_neighbours_process.h"
+#include "processes/generic_find_elements_neighbours_process.h"
 
 namespace Kratos
 {
@@ -199,7 +199,7 @@ namespace Kratos
         KRATOS_TRY;
 
         ModelPart& response_part = mrModelPart.GetSubModelPart(mResponsePartName);
-        FindElementalNeighboursProcess neighbour_elements_finder(mrModelPart, 10, 10);
+        GenericFindElementalNeighboursProcess neighbour_elements_finder(mrModelPart);
         neighbour_elements_finder.Execute();
 
         for(auto& node_i : response_part.Nodes()) {

@@ -31,7 +31,6 @@
             "use_block_builder" : false
         },
         "clear_storage"                      : true,
-        "line_search"                        : false,
         "compute_reactions"                  : false,
         "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.001,

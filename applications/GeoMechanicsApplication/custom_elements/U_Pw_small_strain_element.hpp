@@ -145,6 +145,7 @@ protected:
         double SolidDensity;
         double Density;
         double Porosity;
+        double PermeabilityUpdateFactor;
 
         double BiotCoefficient;
         double BiotModulusInverse;
@@ -190,6 +191,7 @@ protected:
         double DerivativeOfSaturation;
         double RelativePermeability;
         double BishopCoefficient;
+        double EffectiveSaturation;
 
         // needed for updated Lagrangian:
         double detJ;
@@ -215,7 +217,7 @@ protected:
 
     void SaveGPStress( Matrix &rStressContainer,
                        const Vector &StressVector,
-                       const unsigned int &GPoint );
+                       unsigned int GPoint );
 
     void ExtrapolateGPValues( const Matrix &StressContainer);
 
@@ -240,10 +242,12 @@ protected:
     void SetRetentionParameters(const ElementVariables &rVariables,
                                 RetentionLaw::Parameters &rRetentionParameters);
 
-    virtual void CalculateKinematics( ElementVariables &rVariables, const unsigned int &PointNumber );
+    virtual void CalculateKinematics( ElementVariables &rVariables, unsigned int PointNumber );
 
     void InitializeBiotCoefficients( ElementVariables &rVariables,
                                      const bool &hasBiotCoefficient=false );
+
+    void CalculatePermeabilityUpdateFactor( ElementVariables &rVariables);
 
     virtual void CalculateBMatrix( Matrix &rB,
                                    const Matrix &GradNpT,
@@ -310,20 +314,20 @@ protected:
     virtual void CalculateCauchyGreenStrain( ElementVariables &rVariables );
     virtual void CalculateCauchyStrain( ElementVariables &rVariables );
     virtual void CalculateHenckyStrain( ElementVariables& rVariables );
-    virtual void CalculateStrain( ElementVariables &rVariables, const IndexType& GPoint );
+    virtual void CalculateStrain( ElementVariables &rVariables, unsigned int GPoint );
     virtual void CalculateDeformationGradient( ElementVariables& rVariables,
-                                               const IndexType& GPoint );
+                                               unsigned int GPoint );
 
     void InitializeNodalDisplacementVariables( ElementVariables &rVariables );
     void InitializeNodalPorePressureVariables( ElementVariables &rVariables );
     void InitializeNodalVolumeAccelerationVariables( ElementVariables &rVariables );
 
     void InitializeProperties( ElementVariables &rVariables );
-    double CalculateFluidPressure( const ElementVariables &rVariables, const unsigned int &PointNumber );
+    double CalculateFluidPressure( const ElementVariables &rVariables);
 
     void CalculateRetentionResponse( ElementVariables &rVariables,
                                      RetentionLaw::Parameters &rRetentionParameters,
-                                     const unsigned int &GPoint );
+                                     unsigned int GPoint );
 
     void CalculateExtrapolationMatrix(BoundedMatrix<double,TNumNodes,TNumNodes> &rExtrapolationMatrix);
 

@@ -18,11 +18,16 @@
 #include <vector>
 #include <list>
 #include <algorithm>
+#include <atomic>
+
+#include "concurrentqueue/concurrentqueue.h"
 
 #include "includes/chunk.h"
 
 namespace Kratos
 {
+	std::atomic_flag ThreadFixedSizeMemoryPoolLock = ATOMIC_FLAG_INIT ;
+
   ///@addtogroup KratosCore
   ///@{
 
@@ -36,21 +41,20 @@ namespace Kratos
 	  This class is the owner of the chunks of this thread and the only one who can
 	  allocate in them. The rest of the threads would only deallocate objects.
   */
-  class ThreadFixedSizeMemoryPool : public LockObject
+  class ThreadFixedSizeMemoryPool
     {
     public:
 	  ///@name Type Definitions
 	  ///@{
 
-		using DataType = Chunk::DataType;
-
-		using SizeType = DataType;
+		using SizeType = Chunk::SizeType;
 
 		using ChunkList = std::list<Chunk*>;
 
 	  ///@}
 
-		static constexpr SizeType MaximumEmptyChunksToKeep = 100000000;
+		static constexpr SizeType MaximumEmptyChunksToKeep = 4;
+		static constexpr SizeType MaximumPointersToKeep = 1024;
 
 	  ///@name Life Cycle
       ///@{
@@ -66,13 +70,13 @@ namespace Kratos
 
 	  /// The constructor to be called
 	  ThreadFixedSizeMemoryPool(std::size_t BlockSizeInBytes, SizeType ChunkSize, std::size_t ThreadNumber)
-		  : LockObject()
-		  , mBlockSizeInBytes(BlockSizeInBytes)
+		  : mBlockSizeInBytes(BlockSizeInBytes)
 		  , mChunkSize(ChunkSize)
 		  , mThreadNumber(ThreadNumber)
 		  , mChunks()
 		  , mAvailableChunks()
 		  , mNumberOfReleasedChunks(0)
+		  , mpCurrentChunk(nullptr)
 	  {
 	  }
 
@@ -92,45 +96,55 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-	  /// This function does not throw and returns zero if cannot allocate
-	  void* Allocate() {
-		  if (mAvailableChunks.empty())
-			  AddChunk();
+	/// This function does not throw and returns zero if cannot allocate
+	void* Allocate() {
+		void* p_result = nullptr;
+		if(mAvailablePointers.try_dequeue(p_result))
+			return p_result;
 
-		  void* p_result = nullptr;
-		  Chunk& r_available_chunk = *(GetAvailableChunks().front());
-		  if (r_available_chunk.IsReleased())
-			  r_available_chunk.Initialize();
-		  KRATOS_CHECK_IS_FALSE(r_available_chunk.IsFull());
-		  p_result = r_available_chunk.Allocate();
-		  KRATOS_DEBUG_CHECK_NOT_EQUAL(p_result, nullptr);
-		  if (r_available_chunk.IsFull())
-			  mAvailableChunks.pop_front();
-		  return p_result;
-	  }
+		if(mpCurrentChunk == nullptr){
+			AddChunk();
+		}
 
-	  bool Deallocate(void* pPointrerToRelease) {
-		  if (!mAvailableChunks.empty()) {
-			  auto i_chunk = mAvailableChunks.begin();
-			  if ((*i_chunk)->Has(pPointrerToRelease)) {
-				  DeallocateFromAvailableChunk(pPointrerToRelease, i_chunk);
+		if (mpCurrentChunk->IsFull())
+			if (!mAvailableChunks.try_dequeue(mpCurrentChunk))
+				AddChunk();
+
+
+		if (mpCurrentChunk->IsReleased())
+			mpCurrentChunk->Initialize();
+		KRATOS_CHECK_IS_FALSE(mpCurrentChunk->IsFull());
+		p_result = mpCurrentChunk->Allocate();
+		KRATOS_DEBUG_CHECK_NOT_EQUAL(p_result, nullptr);
+
+
+		return p_result;
+	}
+
+	  bool Deallocate(void* pPointerToRelease) {
+		  if(mAvailablePointers.size_approx() < MaximumPointersToKeep){
+			  mAvailablePointers.enqueue(pPointerToRelease);
+			  return true;
+		  }
+
+
+			  if (mpCurrentChunk->Has(pPointerToRelease)) {
+				  DeallocateFromAvailableChunk(pPointerToRelease, mpCurrentChunk);
 				  return true;
 			  }
-		  }
 
 		  for (auto i_chunk = mChunks.begin(); i_chunk != mChunks.end(); i_chunk++)
 		  {
-			  if (i_chunk->Has(pPointrerToRelease)) {
+			  if (i_chunk->Has(pPointerToRelease)) {
 				  if (i_chunk->IsFull())
-					DeallocateFromFullChunk(pPointrerToRelease, &(*i_chunk));
+					DeallocateFromFullChunk(pPointerToRelease, &(*i_chunk));
 				  else {
-					  auto i_available_chunk = std::find(mAvailableChunks.begin(), mAvailableChunks.end(), &(*i_chunk));
-					  KRATOS_DEBUG_CHECK_NOT_EQUAL(i_available_chunk, mAvailableChunks.end()); // Un explicable!
-					  DeallocateFromAvailableChunk(pPointrerToRelease, i_available_chunk);
+					  DeallocateFromAvailableChunk(pPointerToRelease, &(*i_chunk));
 				  }
 				  return true;
 			  }
 		  }
+
 
 		  return false;
 	  }
@@ -138,9 +152,8 @@ namespace Kratos
 	  void Release() {
 		  mChunks.clear();
 		  mNumberOfReleasedChunks += mChunks.size();
-		  mAvailableChunks.clear();
-		  for (auto i_chunk = mChunks.begin(); i_chunk != mChunks.end(); i_chunk++)
-			  mAvailableChunks.push_front(&(*i_chunk));
+		  Chunk* p_dummy;
+		  while(mAvailableChunks.try_dequeue(p_dummy));
 	  }
 
 	  SizeType ChunkSize() const {
@@ -148,17 +161,26 @@ namespace Kratos
 	  }
 
 	  std::size_t MemoryUsed() const {
-		  std::size_t memory_used = sizeof(ThreadFixedSizeMemoryPool) + (mAvailableChunks.size() * 2 * sizeof(std::size_t));
+		  std::size_t memory_used = sizeof(ThreadFixedSizeMemoryPool) + (mChunks.size() * 2 * sizeof(std::size_t));
 		  for (auto i_chunk = mChunks.begin(); i_chunk != mChunks.end(); i_chunk++)
 			  memory_used += i_chunk->MemoryUsed();
 		  return memory_used;
 	  }
 
 	  std::size_t MemoryOverhead() const {
-		  std::size_t memory_overhead = sizeof(ThreadFixedSizeMemoryPool) + (mAvailableChunks.size() * sizeof(std::size_t));
+		  std::size_t memory_overhead = sizeof(ThreadFixedSizeMemoryPool) + (mAvailableChunks.size_approx() * sizeof(std::size_t));
 		  for (auto i_chunk = mChunks.begin(); i_chunk != mChunks.end(); i_chunk++)
 			  memory_overhead += i_chunk->MemoryOverhead();
 		  return memory_overhead;
+	  }
+
+	  void lock(){
+		while(std::atomic_flag_test_and_set_explicit(&ThreadFixedSizeMemoryPoolLock, std::memory_order_acquire))
+             ; // spin until the lock is acquired
+	  }
+
+	  void unlock(){
+		std::atomic_flag_clear_explicit(&ThreadFixedSizeMemoryPoolLock, std::memory_order_release);
 	  }
 
 	  ///@}
@@ -170,7 +192,7 @@ namespace Kratos
 	  }
 
 	  std::size_t GetNumberOfAvailableChunks() const {
-		  return mAvailableChunks.size();
+		  return mAvailableChunks.size_approx();
 	  }
 
 	  std::size_t GetNumberOfReleasedChunks() const {
@@ -182,7 +204,7 @@ namespace Kratos
       ///@{
 
 	  bool HasAvailableChunk() {
-		  return !(mAvailableChunks.empty());
+		  return !(mAvailableChunks.size_approx() == 0);
 	  }
 
 
@@ -226,9 +248,10 @@ namespace Kratos
 		SizeType mChunkSize;
 		std::size_t mThreadNumber;
 		std::list<Chunk> mChunks;
-		std::list<Chunk*> mAvailableChunks;
+		moodycamel::ConcurrentQueue<Chunk*> mAvailableChunks;
 		std::size_t mNumberOfReleasedChunks;
-
+		moodycamel::ConcurrentQueue<void*> mAvailablePointers;
+		Chunk* mpCurrentChunk= nullptr;
 
 
       ///@}
@@ -237,42 +260,41 @@ namespace Kratos
 
 		void AddChunk() {
 			if (mThreadNumber != static_cast<std::size_t>(OpenMPUtils::ThisThread()))
-                KRATOS_ERROR;
+                KRATOS_ERROR << "Trying to add chunk in thread " << mThreadNumber << " pool by thread " << static_cast<std::size_t>(OpenMPUtils::ThisThread());
 
 			KRATOS_DEBUG_CHECK_EQUAL(mThreadNumber, static_cast<std::size_t>(OpenMPUtils::ThisThread()));
 
             mChunks.emplace_back(mBlockSizeInBytes, mChunkSize);
-            Chunk* p_available_chunk = &(mChunks.back());
-            p_available_chunk->Initialize();
-            mAvailableChunks.push_front(p_available_chunk);
+            mpCurrentChunk = &(mChunks.back());
+            mpCurrentChunk->Initialize();
+			// std::cout << "crating " << *p_available_chunk << std::endl;
 		}
 
-		void DeallocateFromAvailableChunk(void* pPointrerToRelease, ChunkList::iterator iChunk) {
-			(*iChunk)->Deallocate(pPointrerToRelease);
-			if ((*iChunk)->IsEmpty())
-				if (mAvailableChunks.size() - mNumberOfReleasedChunks > MaximumEmptyChunksToKeep)
-					ReleaseChunk(iChunk);
+		void DeallocateFromAvailableChunk(void* pPointrerToRelease, Chunk* pChunk) {
+			pChunk->Deallocate(pPointrerToRelease);
+			if (pChunk->IsEmpty())
+				if (mAvailableChunks.size_approx() - mNumberOfReleasedChunks > MaximumEmptyChunksToKeep)
+					ReleaseChunk(pChunk);
 		}
 
 		void DeallocateFromFullChunk(void* pPointrerToRelease, Chunk* pChunk) {
 			// It will be available after deallocating but is not in the list yet
-			mAvailableChunks.push_front(pChunk);
-			auto i_chunk = mAvailableChunks.begin();
-			(*i_chunk)->Deallocate(pPointrerToRelease);
-			if ((*i_chunk)->IsEmpty()) // a rare case where a chunk has only one block! simptom of bad configuration
-				if (mAvailableChunks.size() - mNumberOfReleasedChunks > MaximumEmptyChunksToKeep)
-					ReleaseChunk(i_chunk);
+			mAvailableChunks.enqueue(pChunk);
+			pChunk->Deallocate(pPointrerToRelease);
+			if (pChunk->IsEmpty()) // a rare case where a chunk has only one block! simptom of bad configuration
+				if (mAvailableChunks.size_approx() - mNumberOfReleasedChunks > MaximumEmptyChunksToKeep)
+					ReleaseChunk(pChunk);
 		}
 
-		void ReleaseChunk(ChunkList::iterator iChunk) {
-			//(*iChunk)->Release();
-			//mAvailableChunks.splice(mAvailableChunks.end(), mAvailableChunks, iChunk);
-			//mNumberOfReleasedChunks++;
+		void ReleaseChunk(Chunk* pChunk) {
+			pChunk->Release();
+			// mAvailableChunks.splice(mAvailableChunks.end(), mAvailableChunks, iChunk);
+			mNumberOfReleasedChunks++;
 		}
 
-		std::list<Chunk*> const& GetAvailableChunks() {
-			return mAvailableChunks;
-		}
+		// std::list<Chunk*> const& GetAvailableChunks() {
+		// 	return mAvailableChunks;
+		// }
 
 		std::string SizeInBytesToString(std::size_t Bytes) const {
 			std::stringstream buffer;
