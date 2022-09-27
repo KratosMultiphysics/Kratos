@@ -22,7 +22,6 @@
         "time_stepping"                      : {
             "time_step" : 1.01
         },
-        "line_search"                        : false,
         "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,

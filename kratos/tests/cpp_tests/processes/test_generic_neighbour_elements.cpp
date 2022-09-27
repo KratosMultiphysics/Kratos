@@ -61,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(HexasGenericFindElementsNeighbourProcessTest,
         28	0	11	1
     End Nodes
     Begin Elements	Element3D8N
-        1	1	1	2	5	4	7	8	11	10	
+        1	1	1	2	5	4	7	8	11	10
         2	1	2	3	6	5	8	9	12	11
         3	1	8	9	12	11	13	14	15	16
         4	1	21	22	23	24	25	26	27	28
@@ -71,9 +71,9 @@ KRATOS_TEST_CASE_IN_SUITE(HexasGenericFindElementsNeighbourProcessTest,
 
     //call process to create vector of neighbours
     auto neigh_process = GenericFindElementalNeighboursProcess(model_part);
-    neigh_process.ExecuteInitialize();
+    neigh_process.Execute();
 
-    //element 1 must have a single neighbour in third face 
+    //element 1 must have a single neighbour in third face
     const auto& elem1_neighs = model_part.Elements()[1].GetValue(NEIGHBOUR_ELEMENTS);
     KRATOS_CHECK_EQUAL(elem1_neighs.size(),6); // 6 faces
     for(unsigned int i_face = 0; i_face<elem1_neighs.size(); i_face++){
@@ -100,7 +100,7 @@ KRATOS_TEST_CASE_IN_SUITE(HexasGenericFindElementsNeighbourProcessTest,
         }
     }
 
-    //element 3 must have a single neighbour in first face 
+    //element 3 must have a single neighbour in first face
     const auto& elem3_neighs = model_part.Elements()[3].GetValue(NEIGHBOUR_ELEMENTS);
     KRATOS_CHECK_EQUAL(elem3_neighs.size(),6); // 6 faces
     for(unsigned int i_face = 0; i_face<elem3_neighs.size(); i_face++){
@@ -148,19 +148,19 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraGenericFindElementsNeighbourProcessTest,
         8	1	1	1
     End Nodes
     Begin Elements	Element3D4N
-        1	1	2	6	8	1	
-        2	1	1	2	4	8	
-        3	1	5	7	8	1	
-        4	1	1	3	7	8	
-        5	1	1	5	6	8	
-        6	1	3	4	8	1	
+        1	1	2	6	8	1
+        2	1	1	2	4	8
+        3	1	5	7	8	1
+        4	1	1	3	7	8
+        5	1	1	5	6	8
+        6	1	3	4	8	1
     End Elements
     )input"));
     ModelPartIO(p_input).ReadModelPart(model_part);
-    
+
     //call process to create vector of neighbours
     auto neigh_process = GenericFindElementalNeighboursProcess(model_part);
-    neigh_process.ExecuteInitialize();
+    neigh_process.Execute();
 
     //checking single element, complete model part test was done for hexas
     const auto& elem1_neighs = model_part.Elements()[1].GetValue(NEIGHBOUR_ELEMENTS);
@@ -216,7 +216,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrianglesQuadilateralsGenericFindElementsNeighbourProc
     End Elements
 
     Begin Elements	Element2D4N
-        5	1	5 1 3 9 
+        5	1	5 1 3 9
     End Elements
 
 
@@ -225,7 +225,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrianglesQuadilateralsGenericFindElementsNeighbourProc
 
     //call process to create vector of neighbours
     auto neigh_process = GenericFindElementalNeighboursProcess(model_part);
-    neigh_process.ExecuteInitialize();
+    neigh_process.Execute();
 
     //element 1 must have a two neighs
     const auto& elem1_neighs = model_part.Elements()[1].GetValue(NEIGHBOUR_ELEMENTS);
@@ -239,7 +239,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrianglesQuadilateralsGenericFindElementsNeighbourProc
             KRATOS_CHECK_EQUAL( elem1_neighs[i_face].Id(),3); //element #3 is in this face
         } else {
             KRATOS_CHECK_NOT_EQUAL( elem1_neighs(i_face).get(),nullptr); //real pointer in this face
-            KRATOS_CHECK_EQUAL( elem1_neighs[i_face].Id(),5); //element #5 is in this face 
+            KRATOS_CHECK_EQUAL( elem1_neighs[i_face].Id(),5); //element #5 is in this face
         }
     }
 

@@ -455,6 +455,7 @@ void  AddVectorToPython(pybind11::module& m)
     py::implicitly_convertible<py::list, Vector>();
     py::implicitly_convertible<array_1d<double,3>, Vector>();
 
+    //***********************************************************************************
     auto int_vector_binder = CreateVectorInterface<DenseVector<int>>(m, "DenseVectorInt");
     int_vector_binder.def(py::init<typename DenseVector<int>::size_type>());
     int_vector_binder.def(py::init<typename DenseVector<int>::size_type, int>());
@@ -493,6 +494,46 @@ void  AddVectorToPython(pybind11::module& m)
     });
     py::implicitly_convertible<py::list, DenseVector<int>>();
 
+//***********************************************************************************
+    auto unsigned_int_vector_binder = CreateVectorInterface<DenseVector<unsigned int>>(m, "DenseVectorUnsignedInt");
+    unsigned_int_vector_binder.def(py::init<typename DenseVector<unsigned int>::size_type>());
+    unsigned_int_vector_binder.def(py::init<typename DenseVector<unsigned int>::size_type, int>());
+    unsigned_int_vector_binder.def(py::init<DenseVector<unsigned int>>());
+    unsigned_int_vector_binder.def(py::init( [](const py::list& input)
+    {
+        DenseVector<unsigned int> tmp(input.size());
+        for(unsigned int i=0; i<tmp.size(); ++i)
+            tmp[i] = py::cast<int>(input[i]);
+        return tmp;
+    }));
+    unsigned_int_vector_binder.def(py::init( [](py::buffer b)
+    {
+        py::buffer_info info = b.request();
+        KRATOS_ERROR_IF( info.format != py::format_descriptor<typename DenseVector<unsigned int>::value_type >::value ) << "Expected a double array\n";
+        KRATOS_ERROR_IF( info.ndim != 1 ) << "Buffer dimension of 1 is required, got: " << info.ndim << std::endl;
+        DenseVector<unsigned int> vec(info.shape[0]);
+
+        for( unsigned int i=0; i<info.shape[0]; ++i ) {
+            vec[i]= static_cast<typename DenseVector<unsigned int>::value_type *>(info.ptr)[i];
+        }
+
+        return vec;
+    }));
+    unsigned_int_vector_binder.def_buffer( [](DenseVector<unsigned int>& self)-> py::buffer_info
+    {
+        return py::buffer_info(
+            self.data().begin(),
+            sizeof(typename DenseVector<unsigned int>::value_type),
+            py::format_descriptor<typename DenseVector<unsigned int>::value_type>::format(),
+            1,
+        {self.size()},
+        {sizeof(typename DenseVector<unsigned int>::value_type)}
+        );
+    });
+    py::implicitly_convertible<py::list, DenseVector<unsigned int>>();
+
+
+    //***********************************************************************************
     auto cplx_vector_binder = CreateVectorInterface<ComplexVector>(m, "ComplexVector");
     cplx_vector_binder.def(py::init<typename ComplexVector::size_type>());
     cplx_vector_binder.def(py::init<typename ComplexVector::size_type, double>());

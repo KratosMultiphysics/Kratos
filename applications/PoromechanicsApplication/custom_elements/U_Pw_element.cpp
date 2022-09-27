@@ -179,7 +179,7 @@ void UPwElement<TDim,TNumNodes>::GetDofList( DofsVectorType& rElementalDofList, 
     {
         rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
         rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
-        if(TDim>2)
+        if constexpr (TDim>2)
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
         rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
     }

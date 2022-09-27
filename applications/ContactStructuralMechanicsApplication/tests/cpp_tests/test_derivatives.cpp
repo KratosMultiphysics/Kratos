@@ -268,7 +268,7 @@ namespace Kratos
                                     rVariables.jMaster = r_master_geometry_1.Jacobian( rVariables.jMaster, projected_gp_local);
 
                                     // Now we compute the derivatives
-                                    if (TDim == 3) DerivativesUtilitiesType::CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, r_slave_geometry_1, r_master_geometry_1, r_normal_slave_1);
+                                    if constexpr (TDim == 3) DerivativesUtilitiesType::CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, r_slave_geometry_1, r_master_geometry_1, r_normal_slave_1);
 
                                     // Update the derivative of DetJ
                                     DerivativesUtilitiesType::CalculateDeltaDetjSlave(decomp_geom, rVariables, rDerivativeData);
@@ -471,7 +471,7 @@ namespace Kratos
             Point aux_point;
             aux_point.Coordinates() = ZeroVector(3);
 
-            if (TDim == 2 && TNumNodes == 2) {
+            if constexpr (TDim == 2 && TNumNodes == 2) {
                 rModelPart.CreateNewNode(5, rModelPart.pGetNode(1)->X(), rModelPart.pGetNode(1)->Y(), rModelPart.pGetNode(1)->Z());
                 rModelPart.CreateNewNode(6, rModelPart.pGetNode(2)->X(), rModelPart.pGetNode(2)->Y(), rModelPart.pGetNode(2)->Z());
 
@@ -508,7 +508,7 @@ namespace Kratos
                 }
 
                 TestDerivatives<2, 2>( rModelPart, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, rNodesPerturbation, IndexPerturbation, rCoefficients, NumberIterations, Derivative, Check);
-            } else if (TDim == 3 && TNumNodes == 3) {
+            } else if constexpr (TDim == 3 && TNumNodes == 3) {
                 rModelPart.CreateNewNode(7, rModelPart.pGetNode(1)->X(), rModelPart.pGetNode(1)->Y(), rModelPart.pGetNode(1)->Z());
                 rModelPart.CreateNewNode(8, rModelPart.pGetNode(2)->X(), rModelPart.pGetNode(2)->Y(), rModelPart.pGetNode(2)->Z());
                 rModelPart.CreateNewNode(9, rModelPart.pGetNode(3)->X(), rModelPart.pGetNode(3)->Y(), rModelPart.pGetNode(3)->Z());
@@ -547,7 +547,7 @@ namespace Kratos
                 }
 
                 TestDerivatives<3, 3>( rModelPart, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, rNodesPerturbation, IndexPerturbation, rCoefficients, NumberIterations, Derivative, Check);
-            } else if (TDim == 3 && TNumNodes == 4) {
+            } else if constexpr (TDim == 3 && TNumNodes == 4) {
                 rModelPart.CreateNewNode(9, rModelPart.pGetNode(1)->X(), rModelPart.pGetNode(1)->Y(), rModelPart.pGetNode(1)->Z());
                 rModelPart.CreateNewNode(10, rModelPart.pGetNode(2)->X(), rModelPart.pGetNode(2)->Y(), rModelPart.pGetNode(2)->Z());
                 rModelPart.CreateNewNode(11, rModelPart.pGetNode(3)->X(), rModelPart.pGetNode(3)->Y(), rModelPart.pGetNode(3)->Z());
@@ -604,7 +604,7 @@ namespace Kratos
             const std::size_t PairIndex
             )
         {
-            if (TDim == 2 && TNumNodes == 2) {
+            if constexpr (TDim == 2 && TNumNodes == 2) {
                 if (PairIndex == 1) {
                     rModelPart.CreateNewNode(1, -1.0,0.0,0.0);
                     rModelPart.CreateNewNode(2,  1.0,0.0,0.0);
@@ -632,7 +632,7 @@ namespace Kratos
                 } else {
                     KRATOS_ERROR << "NOT IMPLEMENTED YET" << std::endl;
                 }
-            } else if (TDim == 3 && TNumNodes == 3) {
+            } else if constexpr (TDim == 3 && TNumNodes == 3) {
                 if (PairIndex == 1) {
                     rModelPart.CreateNewNode(1, 0.0,0.0,0.0);
                     rModelPart.CreateNewNode(2, 1.0,0.0,0.0);
@@ -684,7 +684,7 @@ namespace Kratos
                 } else {
                     KRATOS_ERROR << "NOT IMPLEMENTED YET" << std::endl;
                 }
-            } else if (TDim == 3 && TNumNodes == 4) {
+            } else if constexpr (TDim == 3 && TNumNodes == 4) {
                 if (PairIndex == 1) {
                     rModelPart.CreateNewNode(1, 0.0,0.2,1.0e-3);
                     rModelPart.CreateNewNode(2, 1.0,0.2,1.0e-3);
