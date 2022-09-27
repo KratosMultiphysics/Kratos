@@ -178,11 +178,11 @@ double ElementSizeCalculator<2,4>::MinimumElementSizeDerivative(
     const Node<3>& r_node_3 = rGeometry[3];
 
     // Calculate face centers
-    const double x10 = (r_node_1.X() + r_node_0.X())/2.;
-    const double x10_derivative = ((DerivativeNodeIndex == 1) + (DerivativeNodeIndex == 0)) * (DerivativeDirectionIndex == 0) / 2.;
+    const double x10 = (r_node_1.X() + r_node_3.X())/2.;
+    const double x10_derivative = ((DerivativeNodeIndex == 1) + (DerivativeNodeIndex == 3)) * (DerivativeDirectionIndex == 0) / 2.;
 
-    const double y10 = (r_node_1.Y() + r_node_0.Y())/2.;
-    const double y10_derivative = ((DerivativeNodeIndex == 1) + (DerivativeNodeIndex == 0)) * (DerivativeDirectionIndex == 1) / 2.;
+    const double y10 = (r_node_1.Y() + r_node_3.Y())/2.;
+    const double y10_derivative = ((DerivativeNodeIndex == 1) + (DerivativeNodeIndex == 3)) * (DerivativeDirectionIndex == 1) / 2.;
 
     const double x21 = (r_node_2.X() + r_node_1.X())/2.;
     const double x21_derivative = ((DerivativeNodeIndex == 2) + (DerivativeNodeIndex == 1)) * (DerivativeDirectionIndex == 0) / 2.;
