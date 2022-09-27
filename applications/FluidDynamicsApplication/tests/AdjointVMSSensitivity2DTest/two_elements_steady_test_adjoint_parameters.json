@@ -1,8 +1,8 @@
 {
     "problem_data" : {
         "problem_name"    : "one_element",
-        "start_step"      : 2.0,
-        "nsteps"          : 1,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP"
     },
@@ -45,7 +45,7 @@
         },
         "time_stepping"                : {
             "automatic_time_step" : false,
-            "time_step"           : -1.0
+            "time_step"           : 1.0
         }
     },
     "processes": {
