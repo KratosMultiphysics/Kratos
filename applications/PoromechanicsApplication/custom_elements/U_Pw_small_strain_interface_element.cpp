@@ -401,9 +401,19 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         {
             GPValues[i] = mInitialGap[i] + GPAuxValues[i][TDim-1];
 
-            if(GPValues[i] < MinimumJointWidth)
-            {
-                GPValues[i] = MinimumJointWidth;
+            // No contact
+            if(GPValues[i] > 0.0) {
+                if(GPValues[i] < MinimumJointWidth)
+                {
+                    GPValues[i] = MinimumJointWidth;
+                }
+            } else {
+                // Contact
+                if(std::abs(GPValues[i]) < MinimumJointWidth){
+                    GPValues[i] = MinimumJointWidth;
+                } else {
+                    GPValues[i] = -GPValues[i];
+                }
             }
         }
 
@@ -1351,9 +1361,19 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateJointWidth(double&
 {
     rJointWidth = mInitialGap[GPoint] + NormalRelDisp;
 
-    if(rJointWidth < MinimumJointWidth)
-    {
-        rJointWidth = MinimumJointWidth;
+    // No contact
+    if(rJointWidth > 0.0) {
+        if(rJointWidth < MinimumJointWidth)
+        {
+            rJointWidth = MinimumJointWidth;
+        }
+    } else {
+        // Contact
+        if(std::abs(rJointWidth) < MinimumJointWidth){
+            rJointWidth = MinimumJointWidth;
+        } else {
+            rJointWidth = -rJointWidth;
+        }
     }
 }
 
@@ -1367,29 +1387,20 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CheckAndCalculateJointWidth
 
     rConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY); // No contact between interfaces
 
-    // Initially open joint
-    if(mIsOpen[GPoint]==true)
-    {
+    // No contact
+    if(rJointWidth > 0.0) {
         if(rJointWidth < MinimumJointWidth)
         {
-            rConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY); // Contact between interfaces
-            rNormalRelDisp = rJointWidth - MinimumJointWidth;
             rJointWidth = MinimumJointWidth;
         }
-    }
-    // Initially closed joint
-    else
-    {
-        if(rJointWidth < 0.0)
-        {
-            rConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY); // Contact between interfaces
-            rNormalRelDisp = rJointWidth;
+    } else {
+        // Contact
+        if(std::abs(rJointWidth) < MinimumJointWidth){
             rJointWidth = MinimumJointWidth;
+        } else {
+            rJointWidth = -rJointWidth;
         }
-        else if(rJointWidth < MinimumJointWidth)
-        {
-            rJointWidth = MinimumJointWidth;
-        }
+        rConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY); // Contact between interfaces
     }
 }
 
@@ -1895,7 +1906,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessMat
                                         BoundedMatrix<double,TDim,TDim>(prod(rVariables.ConstitutiveMatrix,
                                         rVariables.RotationMatrix)));
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),rVariables.DimMatrix);
-    noalias(rVariables.UMatrix) = prod(rVariables.UDimMatrix,rVariables.Nu)*rVariables.IntegrationCoefficient;
+    noalias(rVariables.UMatrix) = prod(rVariables.UDimMatrix,rVariables.Nu)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block matrix into the elemental matrix
     PoroElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix,rVariables.UMatrix);
@@ -1910,7 +1921,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCouplingMatr
 
     noalias(rVariables.UVector) = prod(rVariables.UDimMatrix,rVariables.VoigtVector);
 
-    noalias(rVariables.UPMatrix) = -rVariables.BiotCoefficient*outer_prod(rVariables.UVector,rVariables.Np)*rVariables.IntegrationCoefficient;
+    noalias(rVariables.UPMatrix) = -rVariables.BiotCoefficient*outer_prod(rVariables.UVector,rVariables.Np)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
 
     //Distribute coupling block matrix into the elemental matrix
     PoroElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix,rVariables.UPMatrix);
@@ -1971,7 +1982,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessFor
 {
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),trans(rVariables.RotationMatrix));
 
-    noalias(rVariables.UVector) = -1.0*prod(rVariables.UDimMatrix,rVariables.StressVector)*rVariables.IntegrationCoefficient;
+    noalias(rVariables.UVector) = -1.0*prod(rVariables.UDimMatrix,rVariables.StressVector)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block vector into elemental vector
     PoroElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
@@ -1997,7 +2008,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCouplingTerm
 
     noalias(rVariables.UVector) = prod(rVariables.UDimMatrix,rVariables.VoigtVector);
 
-    noalias(rVariables.UPMatrix) = rVariables.BiotCoefficient*outer_prod(rVariables.UVector,rVariables.Np)*rVariables.IntegrationCoefficient;
+    noalias(rVariables.UPMatrix) = rVariables.BiotCoefficient*outer_prod(rVariables.UVector,rVariables.Np)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
 
     noalias(rVariables.UVector) = prod(rVariables.UPMatrix,rVariables.PressureVector);
 
