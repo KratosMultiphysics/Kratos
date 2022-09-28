@@ -261,20 +261,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # bdf_coefs[0] = 1.0/dt
             # bdf_coefs[1] = -1.0/dt
             # bdf_coefs[2] = 0.0
-
-            h = 0.6
-            for node in self.GetComputingModelPart().GetNodes():
-                exact = node.Y - 0.6
-                obtained = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                print(f"Node {node.Id} phi error {abs(exact-obtained)})")
-
             # Perform the level-set convection according to the previous step velocity
             self._PerformLevelSetConvection()
-
-            for node in self.GetComputingModelPart().GetNodes():
-                exact = node.Y - 0.6
-                obtained = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                print(f"Node {node.Id} phi error {abs(exact-obtained)})")
 
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
@@ -301,7 +289,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             for node in self.GetComputingModelPart().GetNodes():
                 exact = node.Y - 0.6
                 obtained = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                print(f"Node {node.Id} phi error {abs(exact-obtained)})")
+                # print(f"Node {node.Id} phi error {abs(exact-obtained)})")
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
             self._SetNodalProperties()
@@ -322,7 +310,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             for node in self.GetComputingModelPart().GetNodes():
                 exact = node.Y - 0.6
                 obtained = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                print(f"Node {node.Id} phi error {abs(exact-obtained)})")
+                # print(f"Node {node.Id} phi error {abs(exact-obtained)})")
 
             # We set this value at every time step as other processes/solvers also use them
             dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
@@ -337,7 +325,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             exact = node.Y - 0.6
             obtained = node.GetSolutionStepValue(
                 KratosMultiphysics.DISTANCE)
-            print(f"Node {node.Id} phi error {abs(exact-obtained)})")
+            # print(f"Node {node.Id} phi error {abs(exact-obtained)})")
 
         if self._TimeBufferIsInitialized():
             # Recompute the distance field according to the new level-set position
@@ -350,7 +338,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 exact = node.Y - 0.6
                 obtained = node.GetSolutionStepValue(
                     KratosMultiphysics.DISTANCE)
-                print(f"Node {node.Id} phi error {abs(exact-obtained)})")
+                # print(f"Node {node.Id} phi error {abs(exact-obtained)})")
             # Prepare distance correction for next step
             self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 

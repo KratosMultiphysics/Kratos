@@ -140,6 +140,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     noalias(H) = ZeroMatrix(TNumNodes, TNumNodes*(TDim + 1));
     noalias(Kee) = ZeroMatrix(TNumNodes, TNumNodes);
     noalias(rhs_ee) = ZeroVector(TNumNodes);
+    ElementSize = ElementSizeCalculator<TDim, TNumNodes>::MinimumElementSize(r_geometry);
 
     NumPositiveNodes = 0;
     NumNegativeNodes = 0;
@@ -159,7 +160,8 @@ void UpdateGeometryValues(
     const BoundedMatrix<double, TNumNodes, TDim>& rDN_DX) override
 {
     FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex, NewWeight,rN,rDN_DX);
-    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(rDN_DX);
+    // ElementSize = ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(rDN_DX);
+    
     CalculateDensityAtGaussPoint();
 }
 
@@ -172,7 +174,7 @@ void UpdateGeometryValues(
     const BoundedMatrix<double, TNumNodes, TDim>& rDN_DXenr)
 {
     FluidElementData<TDim, TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex, NewWeight, rN, rDN_DX);
-    ElementSize = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rDN_DX);
+    // ElementSize = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rDN_DX);
     noalias(this->Nenr) = rNenr;
     noalias(this->DN_DXenr) = rDN_DXenr;
     CalculateDensityAtGaussPoint();

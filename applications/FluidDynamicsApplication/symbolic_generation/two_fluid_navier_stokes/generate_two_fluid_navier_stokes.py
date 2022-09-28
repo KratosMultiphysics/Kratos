@@ -236,10 +236,10 @@ for dim in dim_vector:
     if time_integration=="bdf2":
         rv_stab -= w_gauss.transpose()*K_darcy*vel_subscale
 
-    #missing stab term from viscous term
-    grad_sym_accel_voigt = grad_sym_voigtform(DN, acceleration)
-    # grad_sym_f_voigt = grad_sym_voigtform(DN, f_gauss)
-    rv_stab += (tau1*rho)*grad_sym_w_voigt.transpose()*C*grad_sym_accel_voigt
+    # #missing stab term from viscous term
+    # grad_sym_accel_voigt = grad_sym_voigtform(DN, acceleration)
+    # # grad_sym_f_voigt = grad_sym_voigtform(DN, f_gauss)
+    # rv_stab += (tau1*rho)*grad_sym_w_voigt.transpose()*C*grad_sym_accel_voigt
 
     ## Add the stabilization terms to the original residual terms
     if (ASGS_stabilization):
