@@ -36,7 +36,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(PoromechanicsNewtonRaphsonNonlocalStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> GrandMotherType;
     typedef PoromechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> MotherType;
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
@@ -52,7 +52,6 @@ public:
     using GrandMotherType::mpb; //Residual vector of iteration i
     using GrandMotherType::mpDx; //Delta x of iteration i
     using GrandMotherType::mCalculateReactionsFlag;
-    using GrandMotherType::mSolutionStepIsInitialized;
     using GrandMotherType::mMaxIterationNumber;
     using GrandMotherType::mInitializeWasPerformed;
     using MotherType::mpParameters;
@@ -117,24 +116,21 @@ public:
     {
         KRATOS_TRY
 
-        if (mSolutionStepIsInitialized == false)
-		{
-            GrandMotherType::InitializeSolutionStep();
+        GrandMotherType::InitializeSolutionStep();
 
-            if(mNonlocalDamageIsInitialized == false)
+        if(mNonlocalDamageIsInitialized == false)
+        {
+            if(BaseType::GetModelPart().GetProcessInfo()[DOMAIN_SIZE]==2)
             {
-                if(BaseType::GetModelPart().GetProcessInfo()[DOMAIN_SIZE]==2)
-                {
-                    mpNonlocalDamageUtility = new NonlocalDamage2DUtilities();
-                }
-                else
-                {
-                    mpNonlocalDamageUtility = new NonlocalDamage3DUtilities();
-                }
-                mpNonlocalDamageUtility->SearchGaussPointsNeighbours(mpParameters,BaseType::GetModelPart());
-
-                mNonlocalDamageIsInitialized = true;
+                mpNonlocalDamageUtility = new NonlocalDamage2DUtilities();
             }
+            else
+            {
+                mpNonlocalDamageUtility = new NonlocalDamage3DUtilities();
+            }
+            mpNonlocalDamageUtility->SearchGaussPointsNeighbours(mpParameters,BaseType::GetModelPart());
+
+            mNonlocalDamageIsInitialized = true;
         }
 
         KRATOS_CATCH( "" )

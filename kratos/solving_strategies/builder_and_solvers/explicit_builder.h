@@ -26,6 +26,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "includes/kratos_parameters.h"
+#include "factories/factory.h"
 #include "utilities/atomic_utilities.h"
 
 namespace Kratos
@@ -104,10 +105,6 @@ public:
 
     /// Definition of the DoF vector type
     typedef ModelPart::DofsVectorType DofsVectorType;
-
-    /// The definition of the DoF objects
-    typedef typename DofsArrayType::iterator DofIteratorType;
-    typedef typename DofsArrayType::const_iterator DofConstantIteratorType;
 
     /// The definition of the DoF set type
     typedef typename std::unordered_set<DofType::Pointer, DofPointerHasher> DofSetType;
@@ -834,6 +831,42 @@ protected:
 
     ///@}
     ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    static std::vector<Internals::RegisteredPrototypeBase<ClassType>> msPrototypes;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
     ///@{
 
 

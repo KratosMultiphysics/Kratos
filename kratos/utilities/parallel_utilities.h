@@ -9,7 +9,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
-//                   Philipp Bucher
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
 #if !defined(KRATOS_PARALLEL_UTILITIES_H_INCLUDED)
@@ -24,6 +24,7 @@
 #include <limits>
 #include <future>
 #include <thread>
+#include <mutex>
 
 // External includes
 #ifdef KRATOS_SMP_OPENMP
@@ -33,8 +34,25 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/global_variables.h"
-#include "utilities/reduction_utilities.h"
+#include "includes/lock_object.h"
 
+#define KRATOS_PREPARE_CATCH_THREAD_EXCEPTION std::stringstream err_stream;
+
+#define KRATOS_CATCH_THREAD_EXCEPTION \
+} catch(Exception& e) { \
+    const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
+    err_stream << "Thread #" << i << " caught exception: " << e.what(); \
+} catch(std::exception& e) { \
+    const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
+    err_stream << "Thread #" << i << " caught exception: " << e.what(); \
+} catch(...) { \
+    const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
+    err_stream << "Thread #" << i << " caught unknown exception:"; \
+}
+
+#define KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION \
+const std::string& err_msg = err_stream.str(); \
+KRATOS_ERROR_IF_NOT(err_msg.empty()) << "The following errors occured in a parallel region!\n" << err_msg << std::endl;
 
 namespace Kratos
 {
@@ -72,9 +90,19 @@ public:
 
     ///@}
 
+    /** @brief Returns the global lock
+     * Global lock that can be used for critical sections
+     * @return global lock
+     */
+    static LockObject& GetGlobalLock();
+
+    ///@}
+
 private:
     ///@name Static Member Variables
     ///@{
+
+    static LockObject* mspGlobalLock;
 
     static int* mspNumThreads;
 
@@ -158,12 +186,18 @@ public:
     template <class TUnaryFunction>
     inline void for_each(TUnaryFunction&& f)
     {
+        KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
         #pragma omp parallel for
         for (int i=0; i<mNchunks; ++i) {
+            KRATOS_TRY
             for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
                 f(*it); //note that we pass the value to the function, not the iterator
             }
+            KRATOS_CATCH_THREAD_EXCEPTION
         }
+
+        KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
     }
 
     /** @brief loop allowing reductions. f called on every entry in rData
@@ -174,15 +208,22 @@ public:
     template <class TReducer, class TUnaryFunction>
     inline typename TReducer::return_type for_each(TUnaryFunction &&f)
     {
+        KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
         TReducer global_reducer;
         #pragma omp parallel for
         for (int i=0; i<mNchunks; ++i) {
+            KRATOS_TRY
             TReducer local_reducer;
             for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
                 local_reducer.LocalReduce(f(*it));
             }
             global_reducer.ThreadSafeReduce(local_reducer);
+            KRATOS_CATCH_THREAD_EXCEPTION
         }
+
+        KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
+
         return global_reducer.GetValue();
     }
 
@@ -195,6 +236,8 @@ public:
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
+        KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
         #pragma omp parallel
         {
             // copy the prototype to create the thread local storage
@@ -202,11 +245,14 @@ public:
 
             #pragma omp for
             for(int i=0; i<mNchunks; ++i){
+                KRATOS_TRY
                 for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it){
                     f(*it, thread_local_storage); // note that we pass the value to the function, not the iterator
                 }
+                KRATOS_CATCH_THREAD_EXCEPTION
             }
         }
+        KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
     }
 
     /** @brief loop with thread local storage (TLS) allowing reductions. f called on every entry in rData
@@ -220,6 +266,8 @@ public:
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
+        KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
         TReducer global_reducer;
 
         #pragma omp parallel
@@ -229,13 +277,16 @@ public:
 
             #pragma omp for
             for (int i=0; i<mNchunks; ++i) {
+                KRATOS_TRY
                 TReducer local_reducer;
                 for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
                     local_reducer.LocalReduce(f(*it, thread_local_storage));
                 }
                 global_reducer.ThreadSafeReduce(local_reducer);
+                KRATOS_CATCH_THREAD_EXCEPTION
             }
         }
+        KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
         return global_reducer.GetValue();
     }
 
@@ -363,12 +414,17 @@ public:
     template <class TUnaryFunction>
     inline void for_each(TUnaryFunction &&f)
     {
+        KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
         #pragma omp parallel for
         for (int i=0; i<mNchunks; ++i) {
+            KRATOS_TRY
             for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
                 f(k); //note that we pass a reference to the value, not the iterator
             }
+            KRATOS_CATCH_THREAD_EXCEPTION
         }
+        KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
     }
 
     /** version with reduction to be called for each index in the partition
@@ -379,15 +435,20 @@ public:
     template <class TReducer, class TUnaryFunction>
     inline typename TReducer::return_type for_each(TUnaryFunction &&f)
     {
+        KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
         TReducer global_reducer;
         #pragma omp parallel for
         for (int i=0; i<mNchunks; ++i) {
+            KRATOS_TRY
             TReducer local_reducer;
             for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
                 local_reducer.LocalReduce(f(k));
             }
             global_reducer.ThreadSafeReduce(local_reducer);
+            KRATOS_CATCH_THREAD_EXCEPTION
         }
+        KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
         return global_reducer.GetValue();
     }
 
@@ -401,6 +462,8 @@ public:
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
+        KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
         #pragma omp parallel
         {
             // copy the prototype to create the thread local storage
@@ -408,11 +471,14 @@ public:
 
             #pragma omp for
             for (int i=0; i<mNchunks; ++i) {
+                KRATOS_TRY
                 for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
                     f(k, thread_local_storage); //note that we pass a reference to the value, not the iterator
                 }
+                KRATOS_CATCH_THREAD_EXCEPTION
             }
         }
+        KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
     }
 
     /** version with reduction and thread local storage (TLS) to be called for each index in the partition
@@ -426,6 +492,8 @@ public:
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
+        KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
         TReducer global_reducer;
 
         #pragma omp parallel
@@ -435,13 +503,17 @@ public:
 
             #pragma omp for
             for (int i=0; i<mNchunks; ++i) {
+                KRATOS_TRY
                 TReducer local_reducer;
                 for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
                     local_reducer.LocalReduce(f(k, thread_local_storage));
                 }
                 global_reducer.ThreadSafeReduce(local_reducer);
+                KRATOS_CATCH_THREAD_EXCEPTION
             }
         }
+        KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
+
         return global_reducer.GetValue();
     }
 
@@ -451,5 +523,9 @@ private:
 };
 
 } // namespace Kratos.
+
+#undef KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+#undef KRATOS_CATCH_THREAD_EXCEPTION
+#undef KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
 
 #endif // KRATOS_PARALLEL_UTILITIES_H_INCLUDED defined

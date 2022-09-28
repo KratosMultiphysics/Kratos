@@ -16,11 +16,12 @@ message( "**** configuring KratosLinearSolversApplication ****" )
 ################### PYBIND11
 include(pybind11Tools)
 
-add_definitions( -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY )
+add_definitions( -DEIGEN_MPL2_ONLY)
 
 include_directories(
     ${KRATOS_SOURCE_DIR}/kratos
-        SYSTEM external_libraries/eigen3 # Including as System to suppress compile-warnings from it
+    SYSTEM external_libraries/eigen3 # Including as System to suppress compile-warnings from it
+    SYSTEM external_libraries/spectra1/include # Including as System to suppress compile-warnings from it
 )
 
 if( USE_EIGEN_MKL MATCHES ON )
@@ -63,6 +64,11 @@ if( USE_EIGEN_FEAST MATCHES ON )
     set(FEAST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0 )
     include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0/include )
     add_definitions(-DUSE_EIGEN_FEAST)
+    # MKL implements some of FEAST's function. This definition excludes the definitions of MKL's FEAST
+    # functions in mkl/include/mkl_solvers_ee.h. Otherwise, some functions are defined multiple times
+    # defining both as MKL uses either, depending on the version
+    add_definitions(-D_MKL_SOLVERS_EE_H)
+    add_definitions(-D__MKL_SOLVERS_EE_H)
 endif()
 
 ## generate variables with the sources
@@ -96,18 +102,22 @@ IF(CMAKE_UNITY_BUILD MATCHES ON)
 ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 if( USE_EIGEN_MKL MATCHES ON )
-    if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
+    if( MSVC )
         find_library(MKL_RT_LIB mkl_rt)
-        message( "mkl_rt.lib found at: ${MKL_RT_LIB}")
-        target_link_libraries( KratosLinearSolversCore PUBLIC ${MKL_RT_LIB} )
+        if(NOT MKL_RT_LIB)
+            message( FATAL_ERROR "mkl_rt.lib not found")
+        else(NOT MKL_RT_LIB)
+            message( "mkl_rt.lib found at: ${MKL_RT_LIB}")
+            target_link_libraries( KratosLinearSolversCore PUBLIC ${MKL_RT_LIB} )
+        endif(NOT MKL_RT_LIB)
     elseif( ${CMAKE_CXX_COMPILER_ID} MATCHES Clang )
         message( FATAL_ERROR "Clang does not yet support MKL" )
-    else( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
+    else( MSVC )
         target_link_libraries( KratosLinearSolversCore PUBLIC mkl_rt )
         if( USE_EIGEN_FEAST MATCHES ON )
             target_link_libraries(KratosLinearSolversCore PUBLIC feast4 gfortran m)
         endif()
-    endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
+    endif( MSVC )
 endif()
 
 # changing the .dll suffix to .pyd
@@ -138,3 +148,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install( TARGETS KratosLinearSolversCore DESTINATION libs )
 install( TARGETS KratosLinearSolversApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosLinearSolversCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosLinearSolversApplication" PARENT_SCOPE)

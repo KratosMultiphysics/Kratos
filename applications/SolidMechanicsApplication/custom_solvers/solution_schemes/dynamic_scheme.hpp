@@ -167,7 +167,7 @@ namespace Kratos
 	DerivedType::Initialize(rModelPart);
 
 	// Allocate auxiliary memory
-	const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+	const unsigned int NumThreads = ParallelUtilities::GetNumThreads();
 
 	mMatrix.M.resize(NumThreads);
 	mMatrix.D.resize(NumThreads);

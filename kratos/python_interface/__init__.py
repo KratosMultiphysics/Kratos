@@ -3,8 +3,8 @@ import re
 import sys
 from . import kratos_globals
 
-if sys.version_info < (3, 5):
-    raise Exception("Kratos only supports Python version 3.5 and above")
+if sys.version_info < (3, 6):
+    raise Exception("Kratos only supports Python version 3.6 and above")
 
 class KratosPaths(object):
     kratos_install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -50,8 +50,8 @@ def __ModuleInitDetail():
                     sys.__excepthook__(exc_type, exc_value, exc_traceback)
                     return
 
-                from KratosMultiphysics import DataCommunicator
-                exc_value = exc_type("(on rank {}): {}".format(DataCommunicator.GetDefault().Rank(), exc_value))
+                from KratosMultiphysics import ParallelEnvironment
+                exc_value = exc_type("(on rank {}): {}".format(ParallelEnvironment.GetDataCommunicator("World").Rank(), exc_value))
                 sys.__excepthook__(exc_type, exc_value, exc_traceback)
 
             sys.excepthook = CustomExceptionHook
@@ -73,18 +73,16 @@ def __ModuleInitDetail():
                 ]
                 Logger.PrintWarning("KRATOS INITIALIZATION WARNING:", "".join(msg))
 
-    # Try to detect kratos library version
-    try:
-        kre = re.compile('Kratos\.([^\d]+)(\d+).+')
-        kratos_version_info = [(kre.match(f))[2] for f in os.listdir(KratosPaths.kratos_libs) if kre.match(f)][0]
+    # Detect kratos library version
+    python_version = Kernel(using_mpi).PythonVersion()
+    python_version = python_version.replace("Python","")
+    kratos_version_info = python_version.split(".")
 
-        if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.minor != int(kratos_version_info[1]):
-            print("Warning: Kratos is running with python {}.{} but was compiled with python {}.{}. Please ensure the versions match.".format(
-                sys.version_info.major, sys.version_info.minor, 
-                kratos_version_info[0], kratos_version_info[1]
-            ))
-    except:
-        print("Warning: Could not determine python version used to build kratos.")
+    if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.minor != int(kratos_version_info[1]):
+        print("Warning: Kratos is running with python {}.{} but was compiled with python {}.{}. Please ensure the versions match.".format(
+            sys.version_info.major, sys.version_info.minor,
+            kratos_version_info[0], kratos_version_info[1]
+        ))
 
     return kratos_globals.KratosGlobalsImpl(Kernel(using_mpi), KratosPaths.kratos_applications)
 

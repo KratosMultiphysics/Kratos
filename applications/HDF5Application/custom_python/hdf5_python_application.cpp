@@ -23,6 +23,7 @@
 #include "hdf5_application_variables.h"
 #include "custom_python/add_custom_io_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
 namespace Kratos {
 namespace Python {
@@ -39,6 +40,7 @@ PYBIND11_MODULE(KratosHDF5Application,m)
 
     AddCustomIOToPython(m);
     AddCustomProcessesToPython(m);
+    AddCustomUtilitiesToPython(m);
 }
 
 

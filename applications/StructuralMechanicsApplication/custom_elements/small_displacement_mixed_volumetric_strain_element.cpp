@@ -156,7 +156,7 @@ void SmallDisplacementMixedVolumetricStrainElement::Initialize(const ProcessInfo
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         // Integration method initialization
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
         const auto& r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
         // Constitutive Law Vector initialisation
@@ -1140,6 +1140,48 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateOnIntegrationPoints
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Parameters SmallDisplacementMixedVolumetricStrainElement::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static"],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : ["CAUCHY_STRESS_VECTOR"],
+            "nodal_historical"       : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
+        "required_dofs"              : [],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Triangle2D3", "Quadrilateral2D4", "Tetrahedra3D4","Hexahedra3D8"],
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : ["PlaneStrain","PlaneStress","ThreeDimensional"],
+            "dimension"   : ["2D","3D"],
+            "strain_size" : [3,6]
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   :
+            "This element implements a mixed displacement - volumetric strain formulation with Variational MultiScales (VMS) stabilization. This formulation is capable to deal with materials in the incompressible limit as well as with anisotropy."
+    })");
+
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    if (dimension == 2) {
+        std::vector<std::string> dofs_2d({"DISPLACEMENT_X","DISPLACEMENT_Y","VOLUMETRIC_STRAIN"});
+        specifications["required_dofs"].SetStringArray(dofs_2d);
+    } else {
+        std::vector<std::string> dofs_3d({"DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z","VOLUMETRIC_STRAIN"});
+        specifications["required_dofs"].SetStringArray(dofs_3d);
+    }
+
+    return specifications;
+}
 
 /***********************************************************************************/
 /***********************************************************************************/

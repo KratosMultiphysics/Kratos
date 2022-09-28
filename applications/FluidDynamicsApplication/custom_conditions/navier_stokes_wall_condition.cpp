@@ -25,7 +25,7 @@ namespace Kratos
  */
 template <>
 void NavierStokesWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
-                                                      const ProcessInfo& rCurrentProcessInfo) const 
+                                                      const ProcessInfo& rCurrentProcessInfo) const
 {
     const unsigned int NumNodes = 2;
     const unsigned int LocalSize = 6;
@@ -48,7 +48,7 @@ void NavierStokesWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rRes
  */
 template <>
 void NavierStokesWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
-                                                      const ProcessInfo& rCurrentProcessInfo) const 
+                                                      const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -109,11 +109,11 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType&
 
     // Gauss point information
     GeometryType& rGeom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
     const unsigned int NumGauss = IntegrationPoints.size();
     Vector GaussPtsJDet = ZeroVector(NumGauss);
-    rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
-    const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+    rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     if ( this->Is(SLIP) ){
         // finding parent element to retrieve viscous stresses which are later stored in "data"
@@ -188,11 +188,11 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorTyp
 
     // Gauss point information
     GeometryType& rGeom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
     const unsigned int NumGauss = IntegrationPoints.size();
     Vector GaussPtsJDet = ZeroVector(NumGauss);
-    rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
-    const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+    rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     if ( this->Is(SLIP) ){
         // finding parent element to retrieve viscous stresses which are later stored in "data"
@@ -267,7 +267,7 @@ int NavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrent
  */
 template <>
 void NavierStokesWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
-                                                const ProcessInfo& rCurrentProcessInfo) const 
+                                                const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType NumNodes = 2;
     const SizeType LocalSize = 6;
@@ -289,7 +289,7 @@ void NavierStokesWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofLis
 
 template <>
 void NavierStokesWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
-                                                const ProcessInfo& rCurrentProcessInfo) const 
+                                                const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -318,11 +318,11 @@ void NavierStokesWallCondition<TDim, TNumNodes>::Calculate(
 
     if (rVariable == DRAG_FORCE) {
         const auto& r_geom = GetGeometry();
-        const auto& r_integration_points = r_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const auto& r_integration_points = r_geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
         unsigned int n_gauss = r_integration_points.size();
         Vector det_J_vect = ZeroVector(n_gauss);
-        r_geom.DeterminantOfJacobian(det_J_vect, GeometryData::GI_GAUSS_2);
-        const auto N_container = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+        r_geom.DeterminantOfJacobian(det_J_vect, GeometryData::IntegrationMethod::GI_GAUSS_2);
+        const auto N_container = r_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
         // Calculate normal
         array_1d<double,3> normal;
@@ -513,7 +513,7 @@ template<>
 void NavierStokesWallCondition<2,2>::ProjectViscousStress(
     const Vector& rViscousStress,
     const array_1d<double,3> rNormal,
-    array_1d<double,3> rProjectedViscousStress)
+    array_1d<double,3>& rProjectedViscousStress)
 {
     rProjectedViscousStress[0] = rViscousStress[0] * rNormal[0] + rViscousStress[2] * rNormal[1];
     rProjectedViscousStress[1] = rViscousStress[2] * rNormal[0] + rViscousStress[1] * rNormal[1];
@@ -524,7 +524,7 @@ template<>
 void NavierStokesWallCondition<3,3>::ProjectViscousStress(
     const Vector& rViscousStress,
     const array_1d<double,3> rNormal,
-    array_1d<double,3> rProjectedViscousStress)
+    array_1d<double,3>& rProjectedViscousStress)
 {
     rProjectedViscousStress[0] = rViscousStress[0] * rNormal[0] + rViscousStress[3] * rNormal[1] + rViscousStress[5] * rNormal[2];
     rProjectedViscousStress[1] = rViscousStress[3] * rNormal[0] + rViscousStress[1] * rNormal[1] + rViscousStress[4] * rNormal[2];

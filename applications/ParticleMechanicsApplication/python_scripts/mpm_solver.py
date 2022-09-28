@@ -435,7 +435,15 @@ class MPMSolver(PythonSolver):
     ### Solver private functions
 
     def __ComputeDeltaTime(self):
-        return self.settings["time_stepping"]["time_step"].GetDouble()
+        if self.settings["time_stepping"].Has("time_step"):
+            return self.settings["time_stepping"]["time_step"].GetDouble()
+        elif self.settings["time_stepping"].Has("time_step_table"):
+            current_time = self.grid_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            time_step_table = self.settings["time_stepping"]["time_step_table"].GetMatrix()
+            tb = KratosMultiphysics.PiecewiseLinearTable(time_step_table)
+            return tb.GetValue(current_time)
+        else:
+            raise Exception("::[ParticleSolver]:: Time stepping not defined!")
 
     def __ExecuteCheckAndPrepare(self):
         # Specific active node and element check for particle MPM solver

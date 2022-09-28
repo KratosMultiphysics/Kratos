@@ -62,11 +62,11 @@ ModelPart& RansKEpsilonK2D3NSetUp(
     RansVariableUtilities::SetElementConstitutiveLaws(r_model_part.Elements());
 
     // set nodal historical variables
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 1.0, 100.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY_RATE, 1.0, 50.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_1, 1.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 1.0, 100.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY_RATE, 1.0, 50.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_1, 1.0, 10.0);
 
     for (auto& r_node : r_model_part.Nodes()) {
         r_node.SetValue(TURBULENT_KINETIC_ENERGY, r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY));
@@ -108,11 +108,11 @@ ModelPart& RansKEpsilonEpsilon2D3NSetUp(
     RansVariableUtilities::SetElementConstitutiveLaws(r_model_part.Elements());
 
     // set nodal historical variables
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 1.0, 100.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_2, 1.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 1.0, 100.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_2, 1.0, 10.0);
 
     for (auto& r_node : r_model_part.Nodes()) {
         r_node.SetValue(TURBULENT_KINETIC_ENERGY, r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY));
@@ -160,10 +160,10 @@ ModelPart& RansKEpsilonEpsilon2D2NSetUp(
     RansVariableUtilities::SetElementConstitutiveLaws(r_model_part.Elements());
 
     // set nodal historical variables
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -100.0, 100.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 10.0, 40.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, VELOCITY, -100.0, 100.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 10.0, 40.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
 
     for (auto& r_condition : r_model_part.Conditions()) {
         Vector values(2);

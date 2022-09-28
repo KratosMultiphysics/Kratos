@@ -20,7 +20,7 @@ from KratosMultiphysics.RANSApplication.formulations.fractional_step.fractional_
 from KratosMultiphysics.RANSApplication.formulations.monolithic_vms.monolithic_k_omega_sst_rans_formulation import MonolithicKOmegaSSTRansFormulation
 from KratosMultiphysics.RANSApplication.formulations.fractional_step.fractional_step_k_omega_sst_rans_formulation import FractionalStepKOmegaSSTRansFormulation
 
-def Factory(model_part, settings):
+def Factory(model_part, settings, deprecated_settings):
     formulation_name = settings["formulation_name"].GetString()
     formulations_list = [
         ["incompressible_potential_flow", IncompressiblePotentialFlowRansFormulation],
@@ -47,7 +47,7 @@ def Factory(model_part, settings):
         raise Exception(msg + "\n")
 
     current_formulation = formulation_list[formulation_names_list.index(
-        formulation_name)](model_part, settings)
+        formulation_name)](model_part, settings, deprecated_settings)
 
     Kratos.Logger.PrintInfo("RansFormulationFactory",
                             "Created " + formulation_name + " formulation.")

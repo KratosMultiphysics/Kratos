@@ -48,7 +48,7 @@ ModelPart& RansIncompressiblePotentialFlowVelocity2D3NSetUp(
         add_variables_function, VELOCITY_POTENTIAL, 1);
 
     // set nodal historical variables
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, VELOCITY_POTENTIAL, -10.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, VELOCITY_POTENTIAL, -10.0, 10.0);
 
     RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
 
@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_EquationId
     auto& r_model_part = RansIncompressiblePotentialFlowVelocity2D3NSetUp(model);
 
     // Test:
-    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityEquationIdVectorTest(r_model_part, {&VELOCITY_POTENTIAL});
+    FluidTestUtilities::RunEntityEquationIdVectorTest(r_model_part.Elements(), r_model_part.GetProcessInfo(), {&VELOCITY_POTENTIAL});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_GetDofList, KratosRansFastSuite)
@@ -74,7 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_GetDofList
     auto& r_model_part = RansIncompressiblePotentialFlowVelocity2D3NSetUp(model);
 
     // Test:
-    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityGetDofListTest(r_model_part, {&VELOCITY_POTENTIAL});
+    FluidTestUtilities::RunEntityGetDofListTest(r_model_part.Elements(), r_model_part.GetProcessInfo(), {&VELOCITY_POTENTIAL});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateLocalSystem,

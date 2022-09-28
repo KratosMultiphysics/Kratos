@@ -761,7 +761,7 @@ Begin Conditions SurfaceCondition3D3N// GUI group identifier: _HIDDEN__SKIN_
     216 0 17 8 3
 End Conditions
 
-Begin Conditions LineCondition3D2N
+Begin Conditions LineCondition2D2N
     217 0 109 87
     218 0 87 56
     219 0 56 49

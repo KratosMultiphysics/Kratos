@@ -184,22 +184,30 @@ const ProcessInfo::Pointer ProcessInfo::pGetPreviousSolutionStepInfo(IndexType S
 
 void ProcessInfo::save(Serializer& rSerializer) const
 {
+    KRATOS_TRY
+
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
     rSerializer.save("Is Time Step",mIsTimeStep);
     rSerializer.save("Solution Step Index",mSolutionStepIndex);
     rSerializer.save("Previous Solution Step Info",mpPreviousSolutionStepInfo);
     rSerializer.save("Previous Time Step Info", mpPreviousTimeStepInfo);
+
+    KRATOS_CATCH("")
 }
 
 void ProcessInfo::load(Serializer& rSerializer)
 {
+    KRATOS_TRY
+
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
     rSerializer.load("Is Time Step",mIsTimeStep);
     rSerializer.load("Solution Step Index",mSolutionStepIndex);
     rSerializer.load("Previous Solution Step Info",mpPreviousSolutionStepInfo);
     rSerializer.load("Previous Time Step Info", mpPreviousTimeStepInfo);
+
+    KRATOS_CATCH("")
 }
 
 }  // namespace Kratos.

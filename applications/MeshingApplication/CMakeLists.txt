@@ -10,16 +10,15 @@ include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/triangle )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
-if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
-    add_definitions( -DTETGEN143 )
-    add_definitions( -DTETLIBRARY )
-    add_definitions( -DUSE_TETGEN_NONFREE_TPL )
-    include_directories(${TETGEN_INCLUDES})
-endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
-
 ##add subdirectories for compilation of dependent libraries
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt)
 set(KRATOS_MESHING_APPLICATION_EXTRA_LIBS tetMeshOpt)
+
+if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
+    include_directories(${TETGEN_INCLUDE})
+    add_library(tetgen STATIC ${TETGEN_INCLUDE}/tetgen.cxx ${TETGEN_INCLUDE}/predicates.cxx)
+    target_compile_definitions(tetgen PRIVATE -DTETLIBRARY)
+endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 
 ## generate variables with the sources
 file( GLOB KRATOS_MESHING_APPLICATION_CORE
@@ -64,7 +63,28 @@ if(${INCLUDE_MMG} MATCHES ON)
     find_package(MMGS)
 
     include_directories(${MMG_INCLUDE_DIRS} ${MMG2D_INCLUDE_DIRS} ${MMG3D_INCLUDE_DIRS} ${MMGS_INCLUDE_DIRS})
-    set(KRATOS_MESHING_APPLICATION_EXTRA_LIBS ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS} ${MMG_LIBRARIES} ${MMG2D_LIBRARIES} ${MMG3D_LIBRARIES} ${MMGS_LIBRARIES})
+    set(ALL_MMG_LIBRARIES ${MMG_LIBRARIES} ${MMG2D_LIBRARIES} ${MMG3D_LIBRARIES} ${MMGS_LIBRARIES})
+    set(KRATOS_MESHING_APPLICATION_EXTRA_LIBS ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS} ${ALL_MMG_LIBRARIES})
+    FOREACH (FILE ${ALL_MMG_LIBRARIES})
+        GET_FILENAME_COMPONENT(RESOLVED_FILE_LIB "${FILE}" REALPATH)
+        LIST(APPEND RESOLVED_FILES_LIBS "${RESOLVED_FILE_LIB}")
+
+        # Adding other missing libs (that may be linked)
+        GET_FILENAME_COMPONENT(FILE_PATH ${FILE} DIRECTORY)
+        GET_FILENAME_COMPONENT(FILE_NAME ${FILE} NAME)
+        FILE(GLOB LOCATION_FILE "${FILE_PATH}/${FILE_NAME}*")
+        FOREACH (AUX_FILE ${LOCATION_FILE})
+            LIST(FIND RESOLVED_FILES_LIBS ${AUX_FILE} FOUND_AUX)
+            IF (${AUX_FILE} STREQUAL ${FILE})
+                SET(FOUND_AUX 0)
+            ENDIF (${AUX_FILE} STREQUAL ${FILE})
+            IF (${FOUND_AUX} EQUAL -1)
+                LIST(APPEND RESOLVED_FILES_LIBS "${AUX_FILE}")
+            ENDIF (${FOUND_AUX} EQUAL -1)
+        ENDFOREACH (AUX_FILE ${LOCATION_FILE})
+
+        INSTALL(FILES ${RESOLVED_FILES_LIBS} DESTINATION ${CMAKE_INSTALL_PREFIX}/libs  COMPONENT libraries)
+    ENDFOREACH (FILE ${ALL_MMG_LIBRARIES})
 
     message(STATUS "Compilation with MMG: ${MMG_LIBRARIES} ${MMG_INCLUDE_DIRS}")
     message(STATUS "Compilation with MMG2D: ${MMG2D_LIBRARIES} ${MMG2D_INCLUDE_DIRS}")
@@ -128,9 +148,29 @@ if(${INCLUDE_PMMG} MATCHES ON)
         ENDIF(NOT DEFINED PMMG_LIBRARY)
     ENDIF (PMMG_ROOT)
 
-    set(KRATOS_MESHING_APPLICATION_EXTRA_LIBS ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS} KratosMPICore ${PMMG_LIBRARY})
-
     include_directories(${PMMG_INCLUDE_DIR})
+    set(KRATOS_MESHING_APPLICATION_EXTRA_LIBS ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS} KratosMPICore ${PMMG_LIBRARY})
+    set(ALL_PMMG_LIBRARIES ${PMMG_LIBRARY})
+    FOREACH (FILE ${ALL_PMMG_LIBRARIES})
+        GET_FILENAME_COMPONENT(RESOLVED_FILE_LIB "${FILE}" REALPATH)
+        LIST(APPEND RESOLVED_FILES_LIBS "${RESOLVED_FILE_LIB}")
+
+        # Adding other missing libs (that may be linked)
+        GET_FILENAME_COMPONENT(FILE_PATH ${FILE} DIRECTORY)
+        GET_FILENAME_COMPONENT(FILE_NAME ${FILE} NAME)
+        FILE(GLOB LOCATION_FILE "${FILE_PATH}/${FILE_NAME}*")
+        FOREACH (AUX_FILE ${LOCATION_FILE})
+            LIST(FIND RESOLVED_FILES_LIBS ${AUX_FILE} FOUND_AUX)
+            IF (${AUX_FILE} STREQUAL ${FILE})
+                SET(FOUND_AUX 0)
+            ENDIF (${AUX_FILE} STREQUAL ${FILE})
+            IF (${FOUND_AUX} EQUAL -1)
+                LIST(APPEND RESOLVED_FILES_LIBS "${AUX_FILE}")
+            ENDIF (${FOUND_AUX} EQUAL -1)
+        ENDFOREACH (AUX_FILE ${LOCATION_FILE})
+
+        INSTALL(FILES ${RESOLVED_FILES_LIBS} DESTINATION ${CMAKE_INSTALL_PREFIX}/libs  COMPONENT libraries)
+    ENDFOREACH (FILE ${ALL_PMMG_LIBRARIES})
 
     message("Compilation with PMMG = " ${PMMG_LIBRARY})
     message("... and MMG3D = " ${MMG3D_LIBRARIES})
@@ -196,3 +236,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosMeshingCore DESTINATION libs )
 install(TARGETS KratosMeshingApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMeshingCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosMeshingApplication" PARENT_SCOPE)

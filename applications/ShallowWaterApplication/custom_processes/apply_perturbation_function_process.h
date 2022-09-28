@@ -225,7 +225,7 @@ private:
 
     void ValidateParameters(Parameters& rParameters);
 
-    double ComputeDistance(NodePointerType pNode);
+    double ComputeDistance(NodeType& rNode);
 
     double PointPointSquareDistance(array_1d<double, 3>& rCoordA, array_1d<double, 3>& rCoordB);
 

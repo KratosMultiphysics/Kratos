@@ -6,6 +6,8 @@ import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import main_coupling_for_testing
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+import os
+
 def Wait():
     input("Press Something")
 
@@ -69,14 +71,14 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
 
 
 class TestAnalytics(KratosUnittest.TestCase):
-    
+
     def setUp(self):
         pass
 
     @classmethod
     def face_load(self):
         model = KratosMultiphysics.Model()
-        MainCouplingFemDemForTestingSolution(model, "small_tests/pressure_face_load/").Run()
+        MainCouplingFemDemForTestingSolution(model, os.path.join(os.path.dirname(os.path.realpath(__file__)), "small_tests", "pressure_face_load")).Run()
 
 if __name__ == "__main__":
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

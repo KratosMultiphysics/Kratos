@@ -6,7 +6,7 @@
 #include "utilities/openmp_utils.h"
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 //#include "custom_elements/fractional_step.h"
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -51,7 +51,7 @@ template<class TSparseSpace,
 class TDenseSpace,
 class TLinearSolver
 >
-class PFEM2MonolithicSlipStrategy : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+class PFEM2MonolithicSlipStrategy : public ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -60,7 +60,7 @@ public:
     /// Counted pointer of FSStrategy
     typedef boost::shared_ptr< FSStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -76,7 +76,7 @@ public:
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
+    typedef typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
     typedef SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver> SolverSettingsType;
 
@@ -148,7 +148,7 @@ MoveMeshFlag)
         // Additional Typedefs
         typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3 > > > VarComponent;
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
-        typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+        typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
         //initializing fractional velocity solution step
         typedef Scheme< TSparseSpace, TDenseSpace > SchemeType;
@@ -345,7 +345,6 @@ MoveMeshFlag)
             for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
             {
 
-                //itElem->InitializeNonLinearIteration(rCurrentProcessInfo);
 
                 // Build local system
                 itElem->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);

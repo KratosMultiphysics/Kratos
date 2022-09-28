@@ -172,6 +172,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitRHS2D3N, FluidDynamics
     KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-4);
 }
 
+
 /**
  * @brief Test the 3D explicit compressible Navier-Stokes element RHS
  * This test checks the residual calculation of the explicit compressible Navier-Stokes tetrahedra element

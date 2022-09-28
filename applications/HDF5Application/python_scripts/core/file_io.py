@@ -124,24 +124,20 @@ class _FilenameGetter(object):
 
 class _FilenameGetterWithDirectoryInitialization(object):
 
-    def __init__(self, settings):
+    def __init__(self, settings, data_comm):
         self.filename_getter = _FilenameGetter(settings)
+        self.data_comm = data_comm
 
     def Get(self, model_part=None):
         file_name = self.filename_getter.Get(model_part)
         self._InitializeDirectory(file_name)
         return file_name
 
-    @staticmethod
-    def _InitializeDirectory(file_name):
-        dirname = os.path.dirname(file_name)
-        if dirname != '' and not os.path.exists(dirname):
-            if KratosMultiphysics.DataCommunicator.GetDefault().Rank() == 0:
-                os.makedirs(dirname)
-            KratosMultiphysics.DataCommunicator.GetDefault().Barrier()
+    def _InitializeDirectory(self, file_name):
+        dirname = Path(file_name).absolute().parent
+        KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(str(dirname))
 
-
-def Create(settings):
+def Create(settings, data_comm):
     '''Return the IO object specified by the setting 'io_type'.
 
     Empty settings will contain default values after returning from the
@@ -149,8 +145,29 @@ def Create(settings):
     '''
     _SetDefaults(settings)
     io = _GetIO(settings['io_type'])
-    io.filename_getter = _FilenameGetterWithDirectoryInitialization(settings)
+    io.filename_getter = _FilenameGetterWithDirectoryInitialization(settings, data_comm)
     io.file_access_mode = settings['file_access_mode']
     io.file_driver = settings['file_driver']
     io.echo_level = settings['echo_level']
     return io
+
+class OpenHDF5File(object):
+    """@brief A context responsible for managing the lifetime of HDF5 files."""
+
+    def __init__(self, file_parameters: KratosMultiphysics.Parameters, model_part: KratosMultiphysics.ModelPart):
+        self.__parameters = ParametersWrapper(file_parameters)
+        self.__model_part = model_part
+        self.__file: KratosHDF5.HDF5File = None
+
+    def __enter__(self) -> KratosHDF5.HDF5File:
+        distributed = "parallel_hdf5_file_io" if self.__model_part.IsDistributed() else "serial_hdf5_file_io"
+        if self.__parameters.Has("io_type"):
+            self.__parameters["io_type"].SetString(distributed)
+        else:
+            self.__parameters.AddString("io_type", distributed)
+        self.__file = Create(self.__parameters, self.__model_part.GetCommunicator().GetDataCommunicator()).Get(self.__model_part)
+        return self.__file
+
+    def __exit__(self, exit_type, exit_value, exit_traceback) -> None:
+        self.__file.Close()
+        self.__file = None

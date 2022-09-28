@@ -14,12 +14,11 @@ namespace Kratos {
 
         DEM_D_JKR_Cohesive_Law();
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
         virtual ~DEM_D_JKR_Cohesive_Law();
 
-
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
+
+        std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override;
 
         double CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;
         double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation) override;

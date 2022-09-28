@@ -2,6 +2,7 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import IsDistributedRun
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
@@ -11,6 +12,7 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 # Import application specific modules
 from KratosMultiphysics.RANSApplication.formulations import Factory as FormulationFactory
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializeWallLawProperties
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetRansFormulationsListRecursively
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
 from KratosMultiphysics.FluidDynamicsApplication.check_and_prepare_model_process_fluid import CheckAndPrepareModelProcess
 
@@ -33,6 +35,7 @@ class CoupledRANSSolver(PythonSolver):
         """
 
         self._validate_settings_in_baseclass = True  # To be removed eventually
+        self.BackwardCompatibilityHelper(custom_settings)
         super().__init__(model, custom_settings)
 
         model_part_name = self.settings["model_part_name"].GetString()
@@ -55,7 +58,8 @@ class CoupledRANSSolver(PythonSolver):
                                                   self.domain_size)
 
         self.formulation = FormulationFactory(self.main_model_part,
-                                self.settings["formulation_settings"])
+                                self.settings["formulation_settings"],
+                                self.deprecated_settings)
 
         self.formulation.SetConstants(self.settings["constants"])
         self.formulation.SetIsPeriodic(self.settings["consider_periodic_conditions"].GetBool())
@@ -63,12 +67,20 @@ class CoupledRANSSolver(PythonSolver):
         self.is_periodic = self.formulation.IsPeriodic()
 
         self.formulation.SetTimeSchemeSettings(self.settings["time_scheme_settings"])
-        self.formulation.SetWallFunctionSettings(self.settings["wall_function_settings"])
+        self.formulation.SetWallFunctionSettings()
         scheme_type = self.settings["time_scheme_settings"]["scheme_type"].GetString()
         if (scheme_type == "steady"):
             self.is_steady = True
         else:
             self.is_steady = False
+
+        if (self.settings["time_scheme_settings"].Has("ramp_up_interval")):
+            self.ramp_up_interval = self.settings["time_scheme_settings"]["ramp_up_interval"].GetVector()
+            self.ramp_up_interval = sorted(self.ramp_up_interval)
+            if (len(self.ramp_up_interval) != 2):
+                raise Exception("Ramp up interval should only have two values indicating ramp up start time and end time.")
+        else:
+            self.ramp_up_interval = None
 
         self.main_model_part.ProcessInfo[KratosRANS.RANS_IS_STEADY] = self.is_steady
 
@@ -79,6 +91,15 @@ class CoupledRANSSolver(PythonSolver):
 
         Kratos.Logger.PrintInfo(self.__class__.__name__,
                                             "Solver construction finished.")
+
+    def BackwardCompatibilityHelper(self, settings):
+        self.deprecated_settings = {}
+        if settings.Has("wall_function_settings"):
+            IssueDeprecationWarning(self.__class__.__name__, "Specifying \"wall_function_settings\" in \"solver_settings\" is deprecated. Please specify it in each respective formulations seperately.")
+            self.deprecated_settings["wall_function_settings"] = settings["wall_function_settings"].Clone()
+            print(self.deprecated_settings["wall_function_settings"])
+            # raise Exception(1)
+            settings.RemoveValue("wall_function_settings")
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -98,7 +119,6 @@ class CoupledRANSSolver(PythonSolver):
             },
             "consider_periodic_conditions": false,
             "formulation_settings": {},
-            "wall_function_settings": {},
             "echo_level": 0,
             "volume_model_part_name": "volume_model_part",
             "skin_parts"   : [""],
@@ -106,7 +126,8 @@ class CoupledRANSSolver(PythonSolver):
             "assign_neighbour_elements_to_conditions": true,
             "move_mesh": false,
             "time_scheme_settings":{
-                "scheme_type": "steady"
+                "scheme_type": "steady",
+                "ramp_up_interval": [-1.0, -1.0]
             },
             "time_stepping": {
                 "automatic_time_step" : false,
@@ -250,7 +271,19 @@ class CoupledRANSSolver(PythonSolver):
         return self.is_steady
 
     def IsConverged(self):
-        return self.is_steady and self.is_converged
+        if (self.IsSteadySimulation()):
+            current_time = self.main_model_part.ProcessInfo[Kratos.TIME]
+            if (self.ramp_up_interval is not None):
+                if (current_time >= self.ramp_up_interval[0] and current_time <= self.ramp_up_interval[1]):
+                    if (self.is_converged):
+                        Kratos.Logger.PrintInfo(self.__class__.__name__, "Continuing steady simulation because it is still within ramp up interval.")
+                    return False
+                else:
+                    return self.is_converged
+            else:
+                return self.is_converged
+        else:
+            return False
 
     def GetComputingModelPart(self):
         if not self.main_model_part.HasSubModelPart(

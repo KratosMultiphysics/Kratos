@@ -49,10 +49,10 @@ ModelPart& RansIncompressiblePotentialFlowVelocityInlet2D2NSetUp(
         set_properties, add_variables_function, VELOCITY_POTENTIAL, 1);
 
     // set nodal historical variables
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, VELOCITY_POTENTIAL, -10.0, 10.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -5.0, 5.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, VELOCITY_POTENTIAL, -10.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, VELOCITY, -5.0, 5.0);
 
-    FluidTestUtilities::RandomFillContainerNonHistoricalVariable(r_model_part.Conditions(), NORMAL, 2, -2.0, -1.0);
+    FluidTestUtilities::RandomFillNonHistoricalVariable(r_model_part.Conditions(), NORMAL, 2, -2.0, -1.0);
 
     RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
 
@@ -69,7 +69,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocityInlet2D2N_Equat
     auto& r_model_part = RansIncompressiblePotentialFlowVelocityInlet2D2NSetUp(model);
 
     // Test:
-    FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>::RunEntityEquationIdVectorTest(r_model_part, {&VELOCITY_POTENTIAL});
+    FluidTestUtilities::RunEntityEquationIdVectorTest(r_model_part.Conditions(), r_model_part.GetProcessInfo(), {&VELOCITY_POTENTIAL});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocityInlet2D2N_GetDofList, KratosRansFastSuite)
@@ -79,7 +79,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocityInlet2D2N_GetDo
     auto& r_model_part = RansIncompressiblePotentialFlowVelocityInlet2D2NSetUp(model);
 
     // Test:
-    FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>::RunEntityGetDofListTest(r_model_part, {&VELOCITY_POTENTIAL});
+    FluidTestUtilities::RunEntityGetDofListTest(r_model_part.Conditions(), r_model_part.GetProcessInfo(), {&VELOCITY_POTENTIAL});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocityInlet2D2N_CalculateLocalSystem,

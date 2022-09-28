@@ -8,6 +8,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
+//                   Alejandro Cornejo Velazquez
 //
 
 #if !defined(KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED )
@@ -23,6 +24,7 @@
 #include "utilities/integration_utilities.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/geometrical_sensitivity_utility.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos
 {
@@ -108,9 +110,9 @@ protected:
      */
     struct ConstitutiveVariables
     {
-        Vector StrainVector;
-        Vector StressVector;
-        Matrix D;
+        ConstitutiveLaw::StrainVectorType StrainVector;
+        ConstitutiveLaw::StressVectorType StressVector;
+        ConstitutiveLaw::VoigtSizeMatrixType D;
 
         /**
          * The default constructor
@@ -118,9 +120,18 @@ protected:
          */
         ConstitutiveVariables(const SizeType StrainSize)
         {
-            StrainVector = ZeroVector(StrainSize);
-            StressVector = ZeroVector(StrainSize);
-            D = ZeroMatrix(StrainSize, StrainSize);
+            if (StrainVector.size() != StrainSize)
+                StrainVector.resize(StrainSize);
+
+            if (StressVector.size() != StrainSize)
+                StressVector.resize(StrainSize);
+
+            if (D.size1() != StrainSize || D.size2() != StrainSize)
+                D.resize(StrainSize, StrainSize);
+
+            noalias(StrainVector) = ZeroVector(StrainSize);
+            noalias(StressVector) = ZeroVector(StrainSize);
+            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
         }
     };
 public:
@@ -149,6 +160,8 @@ public:
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BaseSolidElement );
 
+    KRATOS_DEFINE_LOCAL_FLAG(ROTATED);
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -163,7 +176,10 @@ public:
 
     // Constructor using an array of nodes with properties
     BaseSolidElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Element(NewId,pGeometry,pProperties)
-    {};
+    {
+        // This is needed to prevent uninitialised integration method in inactive elements
+        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+    };
 
     // Copy constructor
     BaseSolidElement(BaseSolidElement const& rOther)
@@ -258,6 +274,32 @@ public:
     {
         return mThisIntegrationMethod;
     }
+
+    /**
+    * element can be integrated using the GP provided by the geometry or custom ones
+    * by default, the base element will use the standard integration provided by the geom
+    * @return bool to select if use/not use GPs given by the geometry
+    */
+    bool virtual UseGeometryIntegrationMethod() const
+    {
+        return true;
+    }
+
+    const virtual GeometryType::IntegrationPointsArrayType  IntegrationPoints() const 
+    {
+        return GetGeometry().IntegrationPoints();
+    }
+
+    const virtual GeometryType::IntegrationPointsArrayType  IntegrationPoints(IntegrationMethod ThisMethod) const
+    {
+        return GetGeometry().IntegrationPoints(ThisMethod);
+    }
+
+    const virtual Matrix& ShapeFunctionsValues(IntegrationMethod ThisMethod) const
+    {
+        return GetGeometry().ShapeFunctionsValues(ThisMethod);
+    }
+
 
     /**
      * @brief Sets on rValues the nodal displacements
@@ -587,7 +629,14 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-
+    
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @details This can be used to enhance solvers and analysis
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
+    
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -928,6 +977,39 @@ private:
             mConstitutiveLawVector[point_number]->GetValue( rVariable,rOutput[point_number]);
         }
     }
+
+    /**
+     * @brief This method rotates the F or strain according to local axis from
+     * global to local coordinates
+     * @param rValues The constitutive laws parameters
+     * @param rThisKinematicVariables The Kinematic parameters
+     */
+    void RotateToLocalAxes(
+        ConstitutiveLaw::Parameters &rValues,
+        KinematicVariables& rThisKinematicVariables);
+
+    /**
+     * @brief This method rotates the F or strain according to local axis from
+     * local de global
+     * @param rValues The constitutive laws parameters
+     * @param rThisKinematicVariables The Kinematic parameters
+     */
+    void RotateToGlobalAxes(
+        ConstitutiveLaw::Parameters &rValues,
+        KinematicVariables& rThisKinematicVariables);
+
+    /**
+     * @brief This method builds the rotation matrices and local axes
+     */
+    void BuildRotationSystem(
+        BoundedMatrix<double, 3, 3> &rRotationMatrix,
+        const SizeType StrainSize);
+
+    /**
+     * @brief This method checks is an element has to be rotated
+     * according to a set of local axes
+     */
+    bool IsElementRotated() const;
 
     /**
      * @brief This method computes directly in the CL

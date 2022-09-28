@@ -21,7 +21,7 @@ namespace Kratos {
 
         BuoyancyLaw(){}
 
-        BuoyancyLaw(Parameters& r_hydrodynamic_parameters){}
+        BuoyancyLaw(Parameters r_hydrodynamic_parameters){}
 
         ~BuoyancyLaw(){}
 
