@@ -20,7 +20,6 @@
 //Utilities
 #include "custom_utilities/rayleigh_damping_coefficients_utilities.h"
 #include "custom_utilities/explicit_integration_utilities.h"
-#include "custom_utilities/rve_periodicity_utility.h"
 #include "custom_utilities/project_vector_on_surface_utility.h"
 #include "custom_utilities/perturb_geometry_sparse_utility.h"
 #include "custom_utilities/perturb_geometry_subgrid_utility.h"
@@ -47,13 +46,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     // ExplicitIntegrationUtilities
     m.def("CalculateDeltaTime",&ExplicitIntegrationUtilities::CalculateDeltaTime);
-
-    py::class_<RVEPeriodicityUtility>(m,"RVEPeriodicityUtility")
-        .def(py::init<ModelPart&>())
-        .def(py::init<ModelPart&, std::size_t>())
-        .def("AssignPeriodicity",&RVEPeriodicityUtility::AssignPeriodicity)
-        .def("Finalize",&RVEPeriodicityUtility::Finalize)
-        ;
 
     py::class_<ProjectVectorOnSurfaceUtility>(m,"ProjectVectorOnSurfaceUtility")
         .def_static("Execute",&ProjectVectorOnSurfaceUtility::Execute);

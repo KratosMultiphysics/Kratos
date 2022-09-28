@@ -23,7 +23,6 @@
 #include "containers/array_1d.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/coordinate_transformation_utilities.h"
-#include "utilities/variable_utils.h"
 #include "processes/process.h"
 
 namespace Kratos {
@@ -105,14 +104,6 @@ public:
     mPressureRelaxationFactor = factor;
   }
 
-  void Initialize(ModelPart& rModelPart) override
-  {
-      BaseType::Initialize(rModelPart);
-
-      // This is required only for steady state adjoints.
-      VariableUtils().SetNonHistoricalVariableToZero(RELAXED_ACCELERATION, rModelPart.Nodes());
-  }
-
   void Update(ModelPart& rModelPart,
                       DofsArrayType& rDofSet,
                       TSystemMatrixType& rA,
@@ -141,7 +132,6 @@ public:
   {
     KRATOS_TRY;
 
-    rCurrentElement.InitializeNonLinearIteration(CurrentProcessInfo);
     rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
     Matrix SteadyLHS;
@@ -167,7 +157,6 @@ public:
   {
     KRATOS_TRY;
 
-    rCurrentCondition.InitializeNonLinearIteration(CurrentProcessInfo);
     rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
     Matrix SteadyLHS;
@@ -297,7 +286,6 @@ public:
     for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin();
          itElem != rModelPart.Elements().ptr_end(); ++itElem)
     {
-      (*itElem)->InitializeNonLinearIteration(rCurrentProcessInfo);
       (*itElem)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
       Matrix SteadyLHS;
       (*itElem)->CalculateLocalVelocityContribution(SteadyLHS,RHS_Contribution,rCurrentProcessInfo);

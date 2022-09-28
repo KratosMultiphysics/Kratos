@@ -84,16 +84,14 @@ public:
     explicit GeometricalObject(IndexType NewId = 0)
         : IndexedObject(NewId),
           Flags(),
-          mpGeometry(),
-          mReferenceCounter(0)
+          mpGeometry()
     {}
 
     /// Default constructor.
     GeometricalObject(IndexType NewId, GeometryType::Pointer pGeometry)
         : IndexedObject(NewId),
           Flags(),
-          mpGeometry(pGeometry),
-          mReferenceCounter(0)
+          mpGeometry(pGeometry)
     {}
 
     /// Destructor.
@@ -103,8 +101,7 @@ public:
     GeometricalObject(GeometricalObject const& rOther)
         : IndexedObject(rOther.Id()),
           Flags(rOther),
-          mpGeometry(rOther.mpGeometry),
-          mReferenceCounter(0)
+          mpGeometry(rOther.mpGeometry)
     {}
 
 
@@ -207,7 +204,13 @@ public:
     /**
      * Access Data:
      */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use 'GetData()' instead.")
     DataValueContainer& Data()
+    {
+        return pGetGeometry()->GetData();
+    }
+
+    DataValueContainer& GetData()
     {
         return pGetGeometry()->GetData();
     }
@@ -237,7 +240,7 @@ public:
         const TVariableType& rThisVariable,
         typename TVariableType::Type const& rValue)
     {
-        Data().SetValue(rThisVariable, rValue);
+        GetData().SetValue(rThisVariable, rValue);
     }
 
     /**
@@ -246,7 +249,7 @@ public:
     template<class TVariableType> typename TVariableType::Type& GetValue(
         const TVariableType& rThisVariable)
     {
-        return Data().GetValue(rThisVariable);
+        return GetData().GetValue(rThisVariable);
     }
 
     template<class TVariableType> typename TVariableType::Type const& GetValue(
@@ -400,7 +403,7 @@ private:
 
     //*********************************************
     //this block is needed for refcounting
-    mutable std::atomic<int> mReferenceCounter;
+    mutable std::atomic<int> mReferenceCounter{0};
 
     friend void intrusive_ptr_add_ref(const GeometricalObject* x)
     {

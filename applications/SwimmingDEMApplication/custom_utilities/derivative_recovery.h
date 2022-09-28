@@ -11,7 +11,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
 // Project includes
 #include "includes/define.h"
@@ -31,7 +31,6 @@
 
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
-//#include "../../DEMApplication/DEM_application.h"
 
 // /* External includes */
 #ifdef _OPENMP

@@ -21,11 +21,10 @@
 // External includes
 
 // Project includes
-#include "utilities/python_function_callback_utility.h"
+#include "utilities/function_parser_utility.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
-
 
 namespace Kratos
 {
@@ -47,7 +46,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
 */
 template<class TEntity>
-class AssignScalarFieldToEntitiesProcess
+class KRATOS_API(KRATOS_CORE) AssignScalarFieldToEntitiesProcess
     : public Process
 {
 public:
@@ -191,13 +190,13 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;                           /// The modelpart where compute
+    ModelPart& mrModelPart;                     /// The modelpart where compute
 
-    PythonGenericFunctionUtility::Pointer mpFunction; /// The python function used, depends on X, Y, Z, and t
+    Kratos::unique_ptr<GenericFunctionUtility> mpFunction; /// The python function used, depends on X, Y, Z, and t (it could also depend on X0, Y0, Z0)
 
-    std::string mVariableName;                        /// The name of the vaiable to assign
+    std::string mVariableName;                  /// The name of the vaiable to assign
 
-    std::size_t mMeshId = 0;                          /// The id of the mesh (0 by deafault)
+    std::size_t mMeshId = 0;                    /// The id of the mesh (0 by deafault)
 
     ///@}
     ///@name Private Operators

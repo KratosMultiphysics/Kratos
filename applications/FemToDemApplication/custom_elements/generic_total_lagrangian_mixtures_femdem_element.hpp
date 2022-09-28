@@ -8,8 +8,8 @@
 //                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo
-//                   
-//                   
+//
+//
 
 #if !defined(KRATOS_GENERIC_TOTAL_LAGRANGIAN_MIXTURES_FEMDEM_ELEMENT_H_INCLUDED)
 #define KRATOS_GENERIC_TOTAL_LAGRANGIAN_MIXTURES_FEMDEM_ELEMENT_H_INCLUDED
@@ -52,7 +52,7 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 template<unsigned int TDim, unsigned int TyieldSurf>
-class GenericTotalLagrangianMixturesFemDemElement 
+class GenericTotalLagrangianMixturesFemDemElement
     : public GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>
 {
 public:
@@ -262,7 +262,7 @@ protected:
         if (this->mDamage >= 0.98 && this->CalculateAverageAcumulatedPlasticStrain() >= rProperties[MAX_PLASTIC_STRAIN]) {
             this->Set(ACTIVE, false);
             this->mDamage = 0.98;
-            // We set a "flag" to generate the DEM 
+            // We set a "flag" to generate the DEM
             // rCurrentProcessInfo[GENERATE_DEM] = true;
             this->SetValue(GENERATE_DEM, true);
         }

@@ -191,8 +191,8 @@ namespace Kratos
 
 						const double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
 
-						LHS_Contribution = ZeroMatrix(neighSize, neighSize);
-						RHS_Contribution = ZeroVector(neighSize);
+						noalias(LHS_Contribution) = ZeroMatrix(neighSize, neighSize);
+						noalias(RHS_Contribution) = ZeroVector(neighSize);
 
 						if (EquationId.size() != neighSize)
 							EquationId.resize(neighSize, false);
@@ -504,8 +504,8 @@ namespace Kratos
 
 						const double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
 
-						LHS_Contribution = ZeroMatrix(neighSize, neighSize);
-						RHS_Contribution = ZeroVector(neighSize);
+						noalias(LHS_Contribution) = ZeroMatrix(neighSize, neighSize);
+						noalias(RHS_Contribution) = ZeroVector(neighSize);
 
 						if (EquationId.size() != neighSize)
 							EquationId.resize(neighSize, false);
@@ -749,8 +749,8 @@ namespace Kratos
 
 						const double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
 
-						LHS_Contribution = ZeroMatrix(neighSize, neighSize);
-						RHS_Contribution = ZeroVector(neighSize);
+						noalias(LHS_Contribution) = ZeroMatrix(neighSize, neighSize);
+						noalias(RHS_Contribution) = ZeroVector(neighSize);
 
 						if (EquationId.size() != neighSize)
 							EquationId.resize(neighSize, false);
@@ -912,8 +912,8 @@ namespace Kratos
 
 						const double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
 
-						LHS_Contribution = ZeroMatrix(neighSize, neighSize);
-						RHS_Contribution = ZeroVector(neighSize);
+						noalias(LHS_Contribution) = ZeroMatrix(neighSize, neighSize);
+						noalias(RHS_Contribution) = ZeroVector(neighSize);
 
 						if (EquationId.size() != neighSize)
 							EquationId.resize(neighSize, false);
@@ -1027,8 +1027,8 @@ namespace Kratos
 					if (RHS_Contribution.size() != 1)
 						RHS_Contribution.resize(1, false); //false says not to preserve existing storage!!
 
-					LHS_Contribution = ZeroMatrix(1, 1);
-					RHS_Contribution = ZeroVector(1);
+					noalias(LHS_Contribution) = ZeroMatrix(1, 1);
+					noalias(RHS_Contribution) = ZeroVector(1);
 
 					if (EquationId.size() != 1)
 						EquationId.resize(1, false);
@@ -1089,7 +1089,7 @@ namespace Kratos
 			//	}
 
 			ElementsArrayType &pElements = rModelPart.Elements();
-			int number_of_threads = OpenMPUtils::GetNumThreads();
+			int number_of_threads = ParallelUtilities::GetNumThreads();
 
 #ifdef _OPENMP
 			int A_size = A.size1();
@@ -1323,7 +1323,7 @@ namespace Kratos
 			TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
 			//create a partition of the element array
-			int number_of_threads = OpenMPUtils::GetNumThreads();
+			int number_of_threads = ParallelUtilities::GetNumThreads();
 
 #ifdef _OPENMP
 			int A_size = A.size1();
@@ -1343,7 +1343,7 @@ namespace Kratos
 				KRATOS_WATCH(element_partition);
 			}
 
-			double start_prod = OpenMPUtils::GetCurrentTime();
+			// double start_prod = OpenMPUtils::GetCurrentTime();
 
 #pragma omp parallel for firstprivate(number_of_threads) schedule(static, 1)
 			for (int k = 0; k < number_of_threads; k++)
@@ -1384,11 +1384,11 @@ namespace Kratos
 				}
 			}
 
-			if (this->GetEchoLevel() > 0)
-			{
-				double stop_prod = OpenMPUtils::GetCurrentTime();
-				std::cout << "parallel building time: " << stop_prod - start_prod << std::endl;
-			}
+			// if (this->GetEchoLevel() > 0)
+			// {
+			// 	double stop_prod = OpenMPUtils::GetCurrentTime();
+			// 	std::cout << "parallel building time: " << stop_prod - start_prod << std::endl;
+			// }
 
 #ifdef _OPENMP
 			for (int i = 0; i < A_size; i++)
@@ -1422,7 +1422,7 @@ namespace Kratos
 
 			const ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-			unsigned int nthreads = OpenMPUtils::GetNumThreads();
+			unsigned int nthreads = ParallelUtilities::GetNumThreads();
 
 			//         typedef boost::fast_pool_allocator< NodeType::DofType::Pointer > allocator_type;
 			//         typedef std::unordered_set < NodeType::DofType::Pointer,

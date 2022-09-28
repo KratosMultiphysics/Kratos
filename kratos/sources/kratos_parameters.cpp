@@ -661,6 +661,21 @@ void Parameters::SetString(const std::string& rValue)
 /***********************************************************************************/
 /***********************************************************************************/
 
+void Parameters::SetStringArray(const std::vector<std::string>& rValue)
+{
+    const SizeType size = rValue.size();
+
+    nlohmann::json j_array(0.0, size);
+    (*mpValue) = j_array;
+
+    for (IndexType i = 0; i < size; ++i) {
+        (*mpValue)[i] = rValue[i];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Parameters::SetVector(const Vector& rValue)
 {
     const SizeType size = rValue.size();
@@ -696,7 +711,7 @@ void Parameters::SetMatrix(const Matrix& rValue)
 
 /***********************************************************************************/
 /***********************************************************************************/
-  
+
 void Parameters::AddDouble(
     const std::string& rEntry,
     const double Value
@@ -749,6 +764,19 @@ void Parameters::AddString(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void Parameters::AddStringArray(
+    const std::string& rEntry,
+    const std::vector<std::string>& rValue
+    )
+{
+    Parameters aux_parameters(R"({"value": []})");
+    aux_parameters["value"].SetStringArray(rValue);
+    this->AddValue(rEntry, aux_parameters["value"]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Parameters::AddVector(
     const std::string& rEntry,
     const Vector& rValue
@@ -770,21 +798,6 @@ void Parameters::AddMatrix(
     Parameters aux_parameters(R"({"value": []})");
     aux_parameters["value"].SetMatrix(rValue);
     this->AddValue(rEntry, aux_parameters["value"]);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void Parameters::SetStringArray(const std::vector<std::string>& rValue)
-{
-    const SizeType size = rValue.size();
-
-    nlohmann::json j_array(0.0, size);
-    (*mpValue) = j_array;
-
-    for (IndexType i = 0; i < size; ++i) {
-        (*mpValue)[i] = rValue[i];
-    }
 }
 
 /***********************************************************************************/
@@ -949,15 +962,7 @@ void Parameters::Append(const std::string& rValue)
 void Parameters::Append(const Vector& rValue)
 {
     KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
-    const SizeType size = rValue.size();
-
-    nlohmann::json j_array(0.0, size);
-
-    for (IndexType i = 0; i < size; ++i) {
-        j_array = rValue[i];
-    }
-
-    mpValue->push_back(j_array);
+    mpValue->push_back(nlohmann::json(rValue));
 }
 
 /***********************************************************************************/

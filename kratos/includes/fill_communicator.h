@@ -64,7 +64,12 @@ public:
     ///@{
 
     /// Constructor.
+    KRATOS_DEPRECATED_MESSAGE("This constructor is deprecated, please use the one that accepts a DataCommunicator")
     FillCommunicator(ModelPart& rModelPart);
+
+    FillCommunicator(
+        ModelPart& rModelPart,
+        const DataCommunicator& rDataComm);
 
     /// Copy constructor.
     FillCommunicator(FillCommunicator const& rOther) = delete;
@@ -142,6 +147,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    const DataCommunicator& mrDataComm;
 
     ///@}
     ///@name Protected Operators

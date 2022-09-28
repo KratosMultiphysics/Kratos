@@ -51,13 +51,13 @@ public:
     ///@{
 
     template<unsigned int TNumNodes, class TElementData>
-    class TurbulenceVariableDerivative : public QSVMSDerivativeUtilities<TDim>::Derivative
+    class TurbulenceVariableDerivative : public QSVMSDerivativeUtilities<TDim>::template Derivative<0>
     {
     public:
         /// name@ Type Definitions
         ///@{
 
-        using BaseType = typename QSVMSDerivativeUtilities<TDim>::Derivative;
+        using BaseType = typename QSVMSDerivativeUtilities<TDim>::template Derivative<0>;
 
         using ElementDataType = TElementData;
 
@@ -73,7 +73,6 @@ public:
 
         TurbulenceVariableDerivative(
             const IndexType NodeIndex,
-            const IndexType DirectionIndex,
             const GeometryType& rGeometry,
             const double W,
             const Vector& rN,
@@ -81,7 +80,7 @@ public:
             const double WDerivative,
             const double DetJDerivative,
             const Matrix& rdNdXDerivative)
-            : BaseType(NodeIndex, DirectionIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
+            : BaseType(NodeIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
         {
         }
 

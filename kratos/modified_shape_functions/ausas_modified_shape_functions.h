@@ -101,7 +101,6 @@ public:
     ///@{
 
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -118,6 +117,21 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void SetCondensationMatrix(Matrix& rIntPointCondMatrix) override
+    {
+        KRATOS_ERROR << "\'SetCondensationMatrix\' cannot be used with the Ausas FE space. Use either \'SetPositiveSideCondensationMatrix\' or \'SetNegativeSideCondensationMatrix\' instead." << std::endl;
+    }
+
+    void SetPositiveSideCondensationMatrix(Matrix& rPosSideCondMatrix) override
+    {
+        KRATOS_ERROR << "Calling Ausas base class \'SetPositiveSideCondensationMatrix\'. Call the derived class one instead." << std::endl;
+    }
+
+    void SetNegativeSideCondensationMatrix(Matrix& rNegSideCondMatrix) override
+    {
+        KRATOS_ERROR << "Calling Ausas base class \'SetNegativeSideCondensationMatrix\'. Call the derived class one instead." << std::endl;
+    }
+
     /**
     * Returns the intersection points condensation matrix for positive side Ausas sh functions.
     * This matrix is used to extrapolate the subdivisions shape funtion values to the
@@ -127,7 +141,7 @@ protected:
     * @param rEdgeNodeJ Integers array containing the nodes "J" that conform the edges.
     * @param rSplitEdges Integers array containing the original nodes ids and the intersected edges nodes ones.
     */
-    virtual void SetPositiveSideCondensationMatrix(
+    void SetPositiveSideCondensationMatrix(
         Matrix& rPosSideCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,
@@ -142,7 +156,7 @@ protected:
     * @param rEdgeNodeJ Integers array containing the nodes "J" that conform the edges.
     * @param rSplitEdges Integers array containing the original nodes ids and the intersected edges nodes ones.
     */
-    virtual void SetNegativeSideCondensationMatrix(
+    void SetNegativeSideCondensationMatrix(
         Matrix& rNegSideCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,

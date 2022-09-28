@@ -320,7 +320,7 @@ namespace Kratos
   //***********************************************************************************
 
 
-  int SurfaceElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int SurfaceElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 

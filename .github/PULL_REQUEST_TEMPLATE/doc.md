@@ -1,5 +1,5 @@
 ---
-name: Documentation and Styling
+name: 🗎 Documentation and Styling
 about: Adding or modifying **documentation** or **code style**.
 
 ---

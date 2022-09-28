@@ -167,7 +167,7 @@ class KRATOS_API(KRATOS_CORE) InitialState
 
     //*********************************************
         //this block is needed for refcounting
-        mutable std::atomic<int> mReferenceCounter;
+        mutable std::atomic<int> mReferenceCounter{0};
         friend void intrusive_ptr_add_ref(const InitialState* x)
         {
             x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);

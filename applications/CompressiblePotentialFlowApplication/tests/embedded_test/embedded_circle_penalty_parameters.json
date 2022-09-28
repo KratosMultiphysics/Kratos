@@ -15,8 +15,11 @@
         },
         "formulation": {
             "element_type":"embedded_incompressible",
-            "stabilization_factor": 1.0
+            "penalty_coefficient": 10.0,
+            "stabilization_factor": 0.1
          },
+        "relative_tolerance"     : 1e-7,
+        "absolute_tolerance"     : 1e-7,
         "maximum_iterations"     : 10,
         "echo_level"             : 0,
         "volume_model_part_name" : "Parts_Parts_Auto1",
@@ -45,6 +48,7 @@
                 "Parameters"    : {
                     "model_part_name" : "MainModelPart.Parts_Parts_Auto1",
                     "skin_model_part_name": "circle_05_test",
+                    "initial_angle_of_attack": 5.0,
                     "remeshing_flag": false
                 }
             },{
