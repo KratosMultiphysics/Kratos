@@ -1235,6 +1235,7 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateRotationMatrix(BoundedMatrix<
     Vx[1] *= inv_norm_x;
 
     //Rotation Matrix
+    // We need to determine the unitary vector in local y direction pointing towards the TOP face of the joint
     rRotationMatrix(0,0) = Vx[0];
     rRotationMatrix(0,1) = Vx[1];
 
@@ -1905,8 +1906,10 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessMat
     noalias(rVariables.DimMatrix) = prod(trans(rVariables.RotationMatrix),
                                         BoundedMatrix<double,TDim,TDim>(prod(rVariables.ConstitutiveMatrix,
                                         rVariables.RotationMatrix)));
+    // Note. We actually have B matrix here, but we cancel its rVariables.JointWidth with the one missing in rVariables.ConstitutiveMatrix
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),rVariables.DimMatrix);
-    noalias(rVariables.UMatrix) = prod(rVariables.UDimMatrix,rVariables.Nu)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
+    // Note. We actually have B matrix here, but we cancel its rVariables.JointWidth with the one missing next to rVariables.IntegrationCoefficient
+    noalias(rVariables.UMatrix) = prod(rVariables.UDimMatrix,rVariables.Nu)*rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block matrix into the elemental matrix
     PoroElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix,rVariables.UMatrix);
@@ -1917,11 +1920,12 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessMat
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
 {
+    // Note. We actually have B matrix here, but we cancel its rVariables.JointWidth with the one missing next to rVariables.IntegrationCoefficient
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),trans(rVariables.RotationMatrix));
 
     noalias(rVariables.UVector) = prod(rVariables.UDimMatrix,rVariables.VoigtVector);
 
-    noalias(rVariables.UPMatrix) = -rVariables.BiotCoefficient*outer_prod(rVariables.UVector,rVariables.Np)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
+    noalias(rVariables.UPMatrix) = -rVariables.BiotCoefficient*outer_prod(rVariables.UVector,rVariables.Np)*rVariables.IntegrationCoefficient;
 
     //Distribute coupling block matrix into the elemental matrix
     PoroElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix,rVariables.UPMatrix);
@@ -1980,9 +1984,10 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddRHS(VectorTy
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
 {
+    // Note. We actually have B matrix here, but we cancel its rVariables.JointWidth with the one missing next to rVariables.IntegrationCoefficient
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),trans(rVariables.RotationMatrix));
 
-    noalias(rVariables.UVector) = -1.0*prod(rVariables.UDimMatrix,rVariables.StressVector)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
+    noalias(rVariables.UVector) = -1.0*prod(rVariables.UDimMatrix,rVariables.StressVector)*rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block vector into elemental vector
     PoroElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
@@ -2004,11 +2009,12 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddMixBodyForce
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
 {
+    // Note. We actually have B matrix here, but we cancel its rVariables.JointWidth with the one missing next to rVariables.IntegrationCoefficient
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),trans(rVariables.RotationMatrix));
 
     noalias(rVariables.UVector) = prod(rVariables.UDimMatrix,rVariables.VoigtVector);
 
-    noalias(rVariables.UPMatrix) = rVariables.BiotCoefficient*outer_prod(rVariables.UVector,rVariables.Np)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
+    noalias(rVariables.UPMatrix) = rVariables.BiotCoefficient*outer_prod(rVariables.UVector,rVariables.Np)*rVariables.IntegrationCoefficient;
 
     noalias(rVariables.UVector) = prod(rVariables.UPMatrix,rVariables.PressureVector);
 
