@@ -193,6 +193,11 @@ private:
         );
 
     /**
+     * @brief This synchronizes the nodal contributions in parallel runs. Only needed in MPI.
+     */
+    void SynchronizeDivergenceAndVolume();
+
+    /**
      * @brief This divides the divergence value by the nodal area
      */
     void PonderateDivergence();

@@ -1,6 +1,5 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-import KratosMultiphysics 
+import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPFEMSolid
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
@@ -27,7 +26,7 @@ class SoilSamplerUtility(KratosMultiphysics.Process):
         {
          "inner_separation_point": [0.03,0,0],
          "outer_separation_point": [0.0375,0,0],
-         "bottom_point"          : [0.03375, -0.00375, 0.0], 
+         "bottom_point"          : [0.03375, -0.00375, 0.0],
          "piston_position": [100000.0, 100000.0, 100000.0],
          "velocity": 0.0375
         }
@@ -82,7 +81,7 @@ class SoilSamplerUtility(KratosMultiphysics.Process):
                 delta_disp[ii] = delta_disp[ii] / delta_time
             if (node.SolutionStepsDataHas(KratosMultiphysics.VELOCITY)):
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, delta_disp)
-            
+
     def ExecuteAfterOutputStep(self):
 
         for node in self.model_part.GetNodes(0):
@@ -148,7 +147,7 @@ class SoilSamplerUtility(KratosMultiphysics.Process):
         return line
 
     def _SetVariablesToZero(self):
-        
+
         for ii in range(0,3):
             self.InnerForce[ii]  = 0.0
             self.OuterForce[ii]  = 0.0
@@ -157,7 +156,7 @@ class SoilSamplerUtility(KratosMultiphysics.Process):
 
         self.InnerLength = 0.0
         self.OuterLength = 0.0
-        
+
         self.Filling = 0.0
 
     def  _GetStepTime(self):

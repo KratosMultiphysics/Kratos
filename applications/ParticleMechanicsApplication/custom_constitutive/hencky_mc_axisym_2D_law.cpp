@@ -76,7 +76,7 @@ HenckyMCPlasticAxisym2DLaw::~HenckyMCPlasticAxisym2DLaw()
 //*********************************CHECK**********************************************
 //************************************************************************************
 
-int HenckyMCPlasticAxisym2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+int HenckyMCPlasticAxisym2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     HenckyElasticPlasticAxisym2DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
 

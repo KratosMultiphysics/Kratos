@@ -19,7 +19,7 @@ namespace Kratos {
         // TODO: make mDoApplyFaxenCorrections an option
         OesterleAndDinhLiftLaw(){}
 
-        OesterleAndDinhLiftLaw(Parameters& r_parameters);
+        OesterleAndDinhLiftLaw(Parameters r_parameters);
 
         ~OesterleAndDinhLiftLaw(){}
 

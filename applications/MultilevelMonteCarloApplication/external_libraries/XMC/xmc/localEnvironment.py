@@ -46,7 +46,7 @@ block_length = "block_length"
 stride = "stride"
 
 
-class ExaquteTask(object):
+class task(object):
     def __init__(self, *args, **kwargs):
         pass
 

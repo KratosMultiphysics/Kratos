@@ -10,11 +10,14 @@
 //  Main author:     Jordi Cotela
 //
 
+// System includes
+#include <mutex>
+
 // Project includes
 #include "includes/parallel_environment.h"
 #include "includes/kratos_components.h"
 #include "input_output/logger.h"
-#include "includes/lock_object.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 
@@ -56,16 +59,56 @@ void ParallelEnvironment::SetUpMPIEnvironment(EnvironmentManager::Pointer pEnvir
     env.SetUpMPIEnvironmentDetail(std::move(pEnvironmentManager));
 }
 
-void ParallelEnvironment::RegisterFillCommunicatorFactory(std::function<FillCommunicator::Pointer(ModelPart&)> FillCommunicatorFactory)
+template<class TDataCommunicatorInputType>
+void ParallelEnvironment::RegisterFillCommunicatorFactory(std::function<FillCommunicator::Pointer(ModelPart&, TDataCommunicatorInputType&)> FillCommunicatorFactory)
 {
     ParallelEnvironment& env = GetInstance();
-    env.RegisterFillCommunicatorFactoryDetail(FillCommunicatorFactory);
+    env.RegisterFillCommunicatorFactoryDetail<TDataCommunicatorInputType>(FillCommunicatorFactory);
+}
+
+template<class TDataCommunicatorInputType>
+void ParallelEnvironment::RegisterCommunicatorFactory(std::function<Communicator::UniquePointer(ModelPart&, TDataCommunicatorInputType&)> CommunicatorFactory)
+{
+    ParallelEnvironment& env = GetInstance();
+    env.RegisterCommunicatorFactoryDetail<TDataCommunicatorInputType>(CommunicatorFactory);
 }
 
 FillCommunicator::Pointer ParallelEnvironment::CreateFillCommunicator(ModelPart& rModelPart)
 {
     ParallelEnvironment& env = GetInstance();
-    return env.mFillCommunicatorFactory(rModelPart);
+    return env.mFillCommunicatorReferenceFactory(rModelPart, GetDefaultDataCommunicator());
+}
+
+FillCommunicator::Pointer ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(
+    ModelPart& rModelPart,
+    const std::string& rDataCommunicatorName)
+{
+    ParallelEnvironment& env = GetInstance();
+    return env.mFillCommunicatorStringFactory(rModelPart, rDataCommunicatorName);
+}
+
+FillCommunicator::Pointer ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(
+    ModelPart& rModelPart,
+    const DataCommunicator& rDataCommunicator)
+{
+    ParallelEnvironment& env = GetInstance();
+    return env.mFillCommunicatorReferenceFactory(rModelPart, rDataCommunicator);
+}
+
+Communicator::UniquePointer ParallelEnvironment::CreateCommunicatorFromGlobalParallelism(
+    ModelPart& rModelPart,
+    const std::string& rDataCommunicatorName)
+{
+    ParallelEnvironment& env = GetInstance();
+    return env.mCommunicatorStringFactory(rModelPart, rDataCommunicatorName);
+}
+
+Communicator::UniquePointer ParallelEnvironment::CreateCommunicatorFromGlobalParallelism(
+    ModelPart& rModelPart,
+    const DataCommunicator& rDataCommunicator)
+{
+    ParallelEnvironment& env = GetInstance();
+    return env.mCommunicatorReferenceFactory(rModelPart, rDataCommunicator);
 }
 
 void ParallelEnvironment::RegisterDataCommunicator(
@@ -127,10 +170,51 @@ void ParallelEnvironment::PrintData(std::ostream &rOStream)
 
 // Implementation details /////////////////////////////////////////////////////
 
+template<>
+void ParallelEnvironment::RegisterFillCommunicatorFactoryDetail(std::function<FillCommunicator::Pointer(ModelPart&, const std::string&)> FillCommunicatorFactory)
+{
+    mFillCommunicatorStringFactory = FillCommunicatorFactory;
+}
+
+template<>
+void ParallelEnvironment::RegisterFillCommunicatorFactoryDetail(std::function<FillCommunicator::Pointer(ModelPart&, const DataCommunicator&)> FillCommunicatorFactory)
+{
+    mFillCommunicatorReferenceFactory = FillCommunicatorFactory;
+}
+
+template<>
+void ParallelEnvironment::RegisterCommunicatorFactoryDetail(std::function<Communicator::UniquePointer(ModelPart&, const std::string&)> CommunicatorFactory)
+{
+    mCommunicatorStringFactory = CommunicatorFactory;
+}
+
+template<>
+void ParallelEnvironment::RegisterCommunicatorFactoryDetail(std::function<Communicator::UniquePointer(ModelPart&, const DataCommunicator&)> CommunicatorFactory)
+{
+    mCommunicatorReferenceFactory = CommunicatorFactory;
+}
+
 ParallelEnvironment::ParallelEnvironment()
 {
     RegisterDataCommunicatorDetail("Serial", DataCommunicator::Create(), MakeDefault);
-    RegisterFillCommunicatorFactoryDetail([&](ModelPart& rModelPart)->FillCommunicator::Pointer{return FillCommunicator::Pointer(new FillCommunicator(rModelPart));});
+
+    RegisterCommunicatorFactoryDetail<const std::string>([](ModelPart& rModelPart, const std::string& rDataCommunicatorName)->Communicator::UniquePointer{
+        const auto& r_data_communicator = ParallelEnvironment::GetDataCommunicator("Serial");
+        return Kratos::make_unique<Communicator>(r_data_communicator);
+    });
+    RegisterCommunicatorFactoryDetail<const DataCommunicator>([](ModelPart& rModelPart, const DataCommunicator& rDataCommunicator)->Communicator::UniquePointer{
+        KRATOS_ERROR_IF(rDataCommunicator.IsDistributed()) << "Trying to create an serial communicator with a distributed data communicator." << std::endl;
+        return Kratos::make_unique<Communicator>(rDataCommunicator);
+    });
+
+    RegisterFillCommunicatorFactoryDetail<const std::string>([](ModelPart& rModelPart, const std::string& rDataCommunicatorName)->FillCommunicator::Pointer{
+        const auto& r_data_communicator = ParallelEnvironment::GetDataCommunicator("Serial");
+        return Kratos::make_shared<FillCommunicator>(rModelPart, r_data_communicator);
+    });
+    RegisterFillCommunicatorFactoryDetail<const DataCommunicator>([](ModelPart& rModelPart, const DataCommunicator& rDataCommunicator)->FillCommunicator::Pointer{
+        KRATOS_ERROR_IF(rDataCommunicator.IsDistributed()) << "Trying to create an serial communicator with a distributed data communicator." << std::endl;
+        return Kratos::make_shared<FillCommunicator>(rModelPart, rDataCommunicator);
+    });
 }
 
 ParallelEnvironment::~ParallelEnvironment()
@@ -148,17 +232,25 @@ ParallelEnvironment::~ParallelEnvironment()
     mpInstance = nullptr;
 }
 
+std::string ParallelEnvironment::RetrieveRegisteredName(const DataCommunicator& rComm)
+{
+    ParallelEnvironment& env = GetInstance();
+    for(const auto& item : env.mDataCommunicators){
+        if(&*(item.second) == &rComm)
+            return item.first;
+    }
+    KRATOS_ERROR << "the required communicator was not registered" << std::endl;
+}
+
 ParallelEnvironment& ParallelEnvironment::GetInstance()
 {
     // Using double-checked locking to ensure thread safety in the first creation of the singleton.
     if (!mpInstance) {
-        LockObject lock;
-        lock.lock();
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
         if (!mpInstance) {
             KRATOS_ERROR_IF(mDestroyed) << "Accessing ParallelEnvironment after its destruction" << std::endl;
             Create();
         }
-        lock.unlock();
     }
 
     return *mpInstance;
@@ -185,11 +277,6 @@ void ParallelEnvironment::SetUpMPIEnvironmentDetail(EnvironmentManager::Pointer 
     << "Trying to configure run for MPI twice. This should not be happening!" << std::endl;
 
     mpEnvironmentManager = std::move(pEnvironmentManager);
-}
-
-void ParallelEnvironment::RegisterFillCommunicatorFactoryDetail(std::function<FillCommunicator::Pointer(ModelPart&)> FillCommunicatorFactory)
-{
-    mFillCommunicatorFactory = FillCommunicatorFactory;
 }
 
 void ParallelEnvironment::RegisterDataCommunicatorDetail(
@@ -298,5 +385,12 @@ void ParallelEnvironment::PrintDataDetail(std::ostream &rOStream) const
 
 ParallelEnvironment* ParallelEnvironment::mpInstance = nullptr;
 bool ParallelEnvironment::mDestroyed = false;
+
+// Explicit template instantiation
+template void ParallelEnvironment::RegisterFillCommunicatorFactory<const std::string>(std::function<FillCommunicator::Pointer(ModelPart&, const std::string&)> CommunicatorFactory);
+template void ParallelEnvironment::RegisterFillCommunicatorFactory<const DataCommunicator>(std::function<FillCommunicator::Pointer(ModelPart&, const DataCommunicator&)> CommunicatorFactory);
+
+template void ParallelEnvironment::RegisterCommunicatorFactory<const std::string>(std::function<Communicator::UniquePointer(ModelPart&, const std::string&)> CommunicatorFactory);
+template void ParallelEnvironment::RegisterCommunicatorFactory<const DataCommunicator>(std::function<Communicator::UniquePointer(ModelPart&, const DataCommunicator&)> CommunicatorFactory);
 
 }

@@ -26,14 +26,13 @@ namespace Kratos {
 typedef std::size_t IndexType;
 typedef std::size_t SizeType;
 
-void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject,
-                                                      const double NeighborDistance)
+void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject)
 {
     SaveSearchResult(rInterfaceObject, false);
+    mNumSearchResults++;
 }
 
-void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject,
-                                                                      const double NeighborDistance)
+void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject)
 {
     SaveSearchResult(rInterfaceObject, true);
 }
@@ -146,19 +145,35 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     else ResizeToZero(rLocalMappingMatrix, rOriginIds, rDestinationIds, rPairingStatus);
 }
 
-std::string NearestElementLocalSystem::PairingInfo(const int EchoLevel) const
+void NearestElementLocalSystem::PairingInfo(std::ostream& rOStream, const int EchoLevel) const
 {
     KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
 
-    std::stringstream buffer;
-    buffer << "NearestElementLocalSystem based on " << mpNode->Info();
-    if (EchoLevel > 1) {// TODO leave here?
-        buffer << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
-        if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
-            mpNode->SetValue(PAIRING_STATUS, (int)mPairingIndex);
-        }
+    rOStream << "NearestElementLocalSystem based on " << mpNode->Info();
+    if (EchoLevel > 3) {
+        rOStream << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
     }
-    return buffer.str();
+}
+
+void NearestElementLocalSystem::SetPairingStatusForPrinting()
+{
+    if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
+        mpNode->SetValue(PAIRING_STATUS, (int)mPairingIndex);
+    }
+}
+
+bool NearestElementLocalSystem::IsDoneSearching() const
+{
+    if (HasInterfaceInfoThatIsNotAnApproximation()) {return true;};
+
+    std::size_t sum_search_results = 0;
+
+    for (const auto& rp_info : mInterfaceInfos) {
+        const NearestElementInterfaceInfo& r_info = static_cast<const NearestElementInterfaceInfo&>(*rp_info);
+        sum_search_results += r_info.GetNumSearchResults();
+    }
+
+    return sum_search_results > 20;
 }
 
 }  // namespace Kratos.

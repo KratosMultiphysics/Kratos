@@ -6,7 +6,6 @@
 #if !defined(KRATOS_VERLET_SOLVER_STRATEGY)
 #define  KRATOS_VERLET_SOLVER_STRATEGY
 #include "custom_strategies/strategies/explicit_solver_continuum.h"
-#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
 namespace Kratos
 {
@@ -38,7 +37,7 @@ namespace Kratos
       /// Destructor.
       virtual ~VelocityVerletSolverStrategy()
       {
-         Timer::SetOuputFile("TimesPartialRelease");
+         //Timer::SetOuputFile("TimesPartialRelease");
          Timer::PrintTimingInformation();
       }
 

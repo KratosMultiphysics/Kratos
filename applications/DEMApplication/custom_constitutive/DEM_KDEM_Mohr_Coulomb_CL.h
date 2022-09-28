@@ -10,23 +10,31 @@
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEM_Mohr_Coulomb : public DEM_KDEM_Rankine {
+
+        typedef DEM_KDEM_Rankine BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_Mohr_Coulomb);
 
-        DEM_KDEM_Mohr_Coulomb() {
-        }
+        DEM_KDEM_Mohr_Coulomb() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
         void Check(Properties::Pointer pProp) const override;
 
-        ~DEM_KDEM_Mohr_Coulomb() {
-        }
+        ~DEM_KDEM_Mohr_Coulomb() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
         double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
-        void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
+        virtual void CheckFailure(const int i_neighbour_count, 
+                                    SphericContinuumParticle* element1, 
+                                    SphericContinuumParticle* element2,
+                                    double& contact_sigma,
+                                    double& contact_tau, 
+                                    double LocalElasticContactForce[3],
+                                    double ViscoDampingLocalContactForce[3],
+                                    double ElasticLocalRotationalMoment[3],
+                                    double ViscoLocalRotationalMoment[3]) override;
         bool CheckRequirementsOfStressTensor() override;
 
     private:

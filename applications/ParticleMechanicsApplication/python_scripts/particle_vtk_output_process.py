@@ -17,7 +17,7 @@ def Factory(settings, Model):
     parameters = settings["Parameters"]
     return ParticleVTKOutputProcess(model_part, parameters)
 
-class ParticleVTKOutputProcess(KratosMultiphysics.Process):
+class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
     defaults = KratosMultiphysics.Parameters("""{
         "model_part_name"                    : "MPM_Material",
         "output_control_type"                : "step",
@@ -31,7 +31,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.Process):
     }""")
 
     def __init__(self, model_part, param):
-        KratosMultiphysics.Process.__init__(self)
+        KratosMultiphysics.OutputProcess.__init__(self)
 
         if param is None:
             param = self.defaults
@@ -97,6 +97,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.Process):
         self._write_vtk()
 
         # Schedule next output
+        time = self._get_pretty_time(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
         if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
             if self.output_control_is_time:
                 while self._get_pretty_time(self.next_output) <= time:

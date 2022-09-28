@@ -65,15 +65,6 @@ namespace Kratos
   template <unsigned int TDim>
   class TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement : public TwoStepUpdatedLagrangianVPImplicitElement<TDim>
   {
-
-  protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
   public:
     ///@name Type Definitions
     ///@{

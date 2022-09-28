@@ -297,9 +297,9 @@ public:
           }
         }
 
-        //Sort
-        rComputingModelPart.Nodes().Sort();
-        rComputingModelPart.Elements().Sort();
+        // //Sort
+        // rComputingModelPart.Nodes().Sort();
+        // rComputingModelPart.Elements().Sort();
 
         //Unique
         rComputingModelPart.Nodes().Unique();

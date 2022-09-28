@@ -1,8 +1,8 @@
 #ifndef STATIONARITY_CHECKER_H
 #define STATIONARITY_CHECKER_H
 
-#include "includes/define.h"
 #include "includes/variables.h"
+#include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
 #include "utilities/timer.h"
@@ -14,15 +14,20 @@ namespace Kratos {
         public:
 
         KRATOS_CLASS_POINTER_DEFINITION(StationarityChecker);
-        
+
         StationarityChecker();
-                
+
         virtual ~StationarityChecker();
-        
+
         bool CheckIfItsTimeToChangeGravity(ModelPart& rSpheresModelPart,
                                        const double velocity_threshold_for_gravity_change,
                                        const double min_time_between_changes,
                                        const double max_time_between_changes);
+
+        bool CheckIfVariableIsNullInModelPart(ModelPart& rSpheresModelPart,
+                                    const Variable<double>& var,
+                                    const double tolerance,
+                                    const bool ignore_isolated_particles);
 
         virtual std::string Info() const;
 
@@ -31,7 +36,7 @@ namespace Kratos {
         virtual void PrintData(std::ostream& rOStream) const;
 
         double mPreviousChangeTime;
-        
+
         protected:
 
         private:

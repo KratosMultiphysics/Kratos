@@ -209,19 +209,19 @@ void ShellThickElement3D4N::EASOperatorStorage::Initialize(
 }
 
 void ShellThickElement3D4N::EASOperatorStorage::InitializeSolutionStep(
-    ProcessInfo &CurrentProcessInfo) {
+    const ProcessInfo &CurrentProcessInfo) {
   displ = displ_converged;
   alpha = alpha_converged;
 }
 
 void ShellThickElement3D4N::EASOperatorStorage::FinalizeSolutionStep(
-    ProcessInfo &CurrentProcessInfo) {
+    const ProcessInfo &CurrentProcessInfo) {
   displ_converged = displ;
   alpha_converged = alpha;
 }
 
 void ShellThickElement3D4N::EASOperatorStorage::FinalizeNonLinearIteration(
-    const Vector &displacementVector, ProcessInfo &CurrentProcessInfo) {
+    const Vector &displacementVector, const ProcessInfo &CurrentProcessInfo) {
   Vector incrementalDispl(24);
   noalias(incrementalDispl) = displacementVector - displ;
   noalias(displ) = displacementVector;
@@ -419,7 +419,7 @@ ShellThickElement3D4N::Create(IndexType NewId, NodesArrayType const &ThisNodes,
   return Kratos::make_intrusive<ShellThickElement3D4N>(NewId, newGeom, pProperties,mpCoordinateTransformation->Create(newGeom));
 }
 
-void ShellThickElement3D4N::Initialize() {
+void ShellThickElement3D4N::Initialize(const ProcessInfo& rCurrentProcessInfo) {
   KRATOS_TRY
 
   const GeometryType &geom = GetGeometry();
@@ -463,7 +463,7 @@ void ShellThickElement3D4N::Initialize() {
     }
   }
 
-  mpCoordinateTransformation->Initialize();
+  mpCoordinateTransformation->Initialize(rCurrentProcessInfo);
 
   this->SetupOrientationAngles();
 
@@ -487,15 +487,15 @@ void ShellThickElement3D4N::ResetConstitutiveLaw() {
 }
 
 void ShellThickElement3D4N::EquationIdVector(EquationIdVectorType &rResult,
-                                             ProcessInfo &rCurrentProcessInfo) {
+                                             const ProcessInfo &rCurrentProcessInfo) const {
   if (rResult.size() != 24)
     rResult.resize(24, false);
 
-  GeometryType &geom = this->GetGeometry();
+  const GeometryType &geom = this->GetGeometry();
 
   for (int i = 0; i < 4; i++) {
     int index = i * 6;
-    NodeType &iNode = geom[i];
+    const NodeType &iNode = geom[i];
 
     rResult[index] = iNode.GetDof(DISPLACEMENT_X).EquationId();
     rResult[index + 1] = iNode.GetDof(DISPLACEMENT_Y).EquationId();
@@ -508,14 +508,14 @@ void ShellThickElement3D4N::EquationIdVector(EquationIdVectorType &rResult,
 }
 
 void ShellThickElement3D4N::GetDofList(DofsVectorType &ElementalDofList,
-                                       ProcessInfo &CurrentProcessInfo) {
+                                       const ProcessInfo &CurrentProcessInfo) const {
   ElementalDofList.resize(0);
   ElementalDofList.reserve(24);
 
-  GeometryType &geom = this->GetGeometry();
+  const GeometryType &geom = this->GetGeometry();
 
   for (int i = 0; i < 4; i++) {
-    NodeType &iNode = geom[i];
+    const NodeType &iNode = geom[i];
 
     ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_X));
     ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_Y));
@@ -527,10 +527,10 @@ void ShellThickElement3D4N::GetDofList(DofsVectorType &ElementalDofList,
   }
 }
 
-int ShellThickElement3D4N::Check(const ProcessInfo &rCurrentProcessInfo) {
+int ShellThickElement3D4N::Check(const ProcessInfo &rCurrentProcessInfo) const {
   KRATOS_TRY
 
-  GeometryType &geom = GetGeometry();
+  const GeometryType &geom = GetGeometry();
 
   // verify that the variables are correctly initialized
   if (DISPLACEMENT.Key() == 0)
@@ -723,7 +723,7 @@ void ShellThickElement3D4N::GetSecondDerivativesVector(Vector &values,
 }
 
 void ShellThickElement3D4N::InitializeNonLinearIteration(
-    ProcessInfo &CurrentProcessInfo) {
+    const ProcessInfo &CurrentProcessInfo) {
   mpCoordinateTransformation->InitializeNonLinearIteration(CurrentProcessInfo);
 
   const GeometryType &geom = this->GetGeometry();
@@ -736,8 +736,8 @@ void ShellThickElement3D4N::InitializeNonLinearIteration(
 }
 
 void ShellThickElement3D4N::FinalizeNonLinearIteration(
-    ProcessInfo &CurrentProcessInfo) {
-  mpCoordinateTransformation->FinalizeNonLinearIteration(CurrentProcessInfo);
+    const ProcessInfo &rCurrentProcessInfo) {
+  mpCoordinateTransformation->FinalizeNonLinearIteration(rCurrentProcessInfo);
 
   ShellQ4_LocalCoordinateSystem LCS(
       mpCoordinateTransformation->CreateLocalCoordinateSystem());
@@ -748,7 +748,7 @@ void ShellThickElement3D4N::FinalizeNonLinearIteration(
           LCS, globalDisplacementVector));
 
   mEASStorage.FinalizeNonLinearIteration(localDisplacementVector,
-                                         CurrentProcessInfo);
+                                         rCurrentProcessInfo);
 
   const GeometryType &geom = this->GetGeometry();
   const Matrix &shapeFunctionsValues =
@@ -756,11 +756,11 @@ void ShellThickElement3D4N::FinalizeNonLinearIteration(
   for (int i = 0; i < 4; i++)
     mSections[i]->FinalizeNonLinearIteration(GetProperties(), geom,
                                              row(shapeFunctionsValues, i),
-                                             CurrentProcessInfo);
+                                             rCurrentProcessInfo);
 }
 
 void ShellThickElement3D4N::InitializeSolutionStep(
-    ProcessInfo &CurrentProcessInfo) {
+    const ProcessInfo &rCurrentProcessInfo) {
   const PropertiesType &props = GetProperties();
   const GeometryType &geom = GetGeometry();
   const Matrix &shapeFunctionsValues =
@@ -768,15 +768,15 @@ void ShellThickElement3D4N::InitializeSolutionStep(
 
   for (int i = 0; i < 4; i++)
     mSections[i]->InitializeSolutionStep(
-        props, geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
+        props, geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
 
-  mpCoordinateTransformation->InitializeSolutionStep(CurrentProcessInfo);
+  mpCoordinateTransformation->InitializeSolutionStep(rCurrentProcessInfo);
 
-  mEASStorage.InitializeSolutionStep(CurrentProcessInfo);
+  mEASStorage.InitializeSolutionStep(rCurrentProcessInfo);
 }
 
 void ShellThickElement3D4N::FinalizeSolutionStep(
-    ProcessInfo &CurrentProcessInfo) {
+    const ProcessInfo &rCurrentProcessInfo) {
   const PropertiesType &props = GetProperties();
   const GeometryType &geom = GetGeometry();
   const Matrix &shapeFunctionsValues =
@@ -784,15 +784,15 @@ void ShellThickElement3D4N::FinalizeSolutionStep(
 
   for (int i = 0; i < 4; i++)
     mSections[i]->FinalizeSolutionStep(
-        props, geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
+        props, geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
 
-  mpCoordinateTransformation->FinalizeSolutionStep(CurrentProcessInfo);
+  mpCoordinateTransformation->FinalizeSolutionStep(rCurrentProcessInfo);
 
-  mEASStorage.FinalizeSolutionStep(CurrentProcessInfo);
+  mEASStorage.FinalizeSolutionStep(rCurrentProcessInfo);
 }
 
 void ShellThickElement3D4N::CalculateMassMatrix(
-    MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo) {
+    MatrixType &rMassMatrix, const ProcessInfo &rCurrentProcessInfo) {
   if ((rMassMatrix.size1() != 24) || (rMassMatrix.size2() != 24))
     rMassMatrix.resize(24, 24, false);
   noalias(rMassMatrix) = ZeroMatrix(24, 24);
@@ -829,7 +829,7 @@ void ShellThickElement3D4N::CalculateMassMatrix(
 }
 
 void ShellThickElement3D4N::CalculateDampingMatrix(
-    MatrixType &rDampingMatrix, ProcessInfo &rCurrentProcessInfo) {
+    MatrixType &rDampingMatrix, const ProcessInfo &rCurrentProcessInfo) {
   if ((rDampingMatrix.size1() != 24) || (rDampingMatrix.size2() != 24))
     rDampingMatrix.resize(24, 24, false);
 
@@ -838,13 +838,13 @@ void ShellThickElement3D4N::CalculateDampingMatrix(
 
 void ShellThickElement3D4N::CalculateLocalSystem(
     MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo) {
+    const ProcessInfo &rCurrentProcessInfo) {
   CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
                true, true);
 }
 
 void ShellThickElement3D4N::CalculateRightHandSide(
-    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
+    VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo) {
   Matrix dummy;
   CalculateAll(dummy, rRightHandSideVector, rCurrentProcessInfo, true, true);
 }
@@ -855,7 +855,7 @@ void ShellThickElement3D4N::CalculateRightHandSide(
 //
 // =====================================================================================
 
-void ShellThickElement3D4N::GetValueOnIntegrationPoints(
+void ShellThickElement3D4N::CalculateOnIntegrationPoints(
     const Variable<double> &rVariable, std::vector<double> &rValues,
     const ProcessInfo &rCurrentProcessInfo) {
   SizeType size = GetGeometry().size();
@@ -880,11 +880,11 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(
   }
 }
 
-void ShellThickElement3D4N::GetValueOnIntegrationPoints(
+void ShellThickElement3D4N::CalculateOnIntegrationPoints(
     const Variable<Vector> &rVariable, std::vector<Vector> &rValues,
     const ProcessInfo &rCurrentProcessInfo) {}
 
-void ShellThickElement3D4N::GetValueOnIntegrationPoints(
+void ShellThickElement3D4N::CalculateOnIntegrationPoints(
     const Variable<Matrix> &rVariable, std::vector<Matrix> &rValues,
     const ProcessInfo &rCurrentProcessInfo) {
   if (TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(
@@ -892,7 +892,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(
     return;
 }
 
-void ShellThickElement3D4N::GetValueOnIntegrationPoints(
+void ShellThickElement3D4N::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>> &rVariable,
     std::vector<array_1d<double, 3>> &rValues,
     const ProcessInfo &rCurrentProcessInfo) {
@@ -901,7 +901,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(
     return;
 }
 
-void ShellThickElement3D4N::GetValueOnIntegrationPoints(
+void ShellThickElement3D4N::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 6>> &rVariable,
     std::vector<array_1d<double, 6>> &rValues,
     const ProcessInfo &rCurrentProcessInfo) {}
@@ -1103,7 +1103,7 @@ void ShellThickElement3D4N::CalculateBMatrix(double xi, double eta,
 
 void ShellThickElement3D4N::CalculateAll(MatrixType &rLeftHandSideMatrix,
                                          VectorType &rRightHandSideVector,
-                                         ProcessInfo &rCurrentProcessInfo,
+                                         const ProcessInfo &rCurrentProcessInfo,
                                          const bool LHSrequired,
                                          const bool RHSrequired) {
   // Resize the Left Hand Side if necessary,

@@ -190,13 +190,13 @@ public:
         if (results_found > 0) {
             // Loop over the candidate entities and check if the particle falls within
             for (IndexType i = 0; i < results_found; i++) {
-                GeometryType& geom = (*(ItResultBegin + i))->GetGeometry();
+                GeometryType& r_geom = (*(ItResultBegin + i))->GetGeometry();
 
                 // Find local position
                 array_1d<double, 3> point_local_coordinates;
                 Vector shape_function;
-                const bool is_found = geom.IsInside(rCoordinates, point_local_coordinates, Tolerance);
-                geom.ShapeFunctionsValues(shape_function, point_local_coordinates);
+                const bool is_found = LocalIsInside(r_geom, rCoordinates, point_local_coordinates, Tolerance);
+                r_geom.ShapeFunctionsValues(shape_function, point_local_coordinates);
                 noalias(rNShapeFunction) = shape_function;
 
                 if (is_found) {
@@ -234,18 +234,18 @@ public:
         )
     {
         // Ask to the container for the list of candidate entities
-        const int results_found = mpBinsObjectDynamic->SearchObjectsInCell(typename BinsObjectDynamic<ConfigureType>::PointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
+        const SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(typename BinsObjectDynamic<ConfigureType>::PointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
 
         if (results_found > 0) {
             // Loop over the candidate entities and check if the particle falls within
             for (IndexType i = 0; i < static_cast<IndexType>(results_found); i++) {
 
-                GeometryType& geom = (*(ItResultBegin + i))->GetGeometry();
+                GeometryType& r_geom = (*(ItResultBegin + i))->GetGeometry();
 
                 // Find local position
                 array_1d<double, 3> point_local_coordinates;
-                const bool is_found = geom.IsInside(rCoordinates, point_local_coordinates, Tolerance);
-                geom.ShapeFunctionsValues(rNShapeFunction, point_local_coordinates);
+                const bool is_found = LocalIsInside(r_geom, rCoordinates, point_local_coordinates, Tolerance);
+                r_geom.ShapeFunctionsValues(rNShapeFunction, point_local_coordinates);
 
                 if (is_found) {
                     pEntity = (*(ItResultBegin + i));
@@ -312,6 +312,27 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+    * @brief Checks if given point in global space coordinates
+    *        is inside the geometry boundaries. This function
+    *        computes the local coordinates and checks then if
+    *        this point lays within the boundaries.
+    * @param rPointGlobalCoordinates the global coordinates of the
+    *        external point.
+    * @param rResult the local coordinates of the point.
+    * @param Tolerance the tolerance to the boundary.
+    * @return true if the point is inside, false otherwise
+    */
+    virtual bool LocalIsInside(
+        const GeometryType& rGeometry,
+        const GeometryType::CoordinatesArrayType& rPointGlobalCoordinates,
+        GeometryType::CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const
+    {
+        return rGeometry.IsInside(rPointGlobalCoordinates, rResult, Tolerance);
+    }
 
     ///@}
     ///@name Protected  Access
