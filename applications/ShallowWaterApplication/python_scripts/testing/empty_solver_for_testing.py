@@ -42,7 +42,7 @@ class EmptySolverForTesting(PythonSolver):
         elif formulation_variables == "boussinesq":
             KM.VariableUtils().AddDof(KM.VELOCITY_X, self.model_part)
             KM.VariableUtils().AddDof(KM.VELOCITY_Y, self.model_part)
-            KM.VariableUtils().AddDof(SW.FREE_SURFACE_ELEVATION, self.model_part)
+            KM.VariableUtils().AddDof(SW.HEIGHT, self.model_part)
 
     def GetMinimumBufferSize(self):
         return 2

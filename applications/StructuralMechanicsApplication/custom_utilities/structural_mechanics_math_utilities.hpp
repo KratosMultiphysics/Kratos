@@ -320,7 +320,7 @@ public:
      */
 
     static inline double CalculateRadius(
-        const Vector N,
+        const Vector& N,
         const GeometryType& Geom,
         const Configuration ThisConfiguration = Current
         )

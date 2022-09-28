@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_filesystem.h"
 #include "utilities/constraint_utilities.h"
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "structural_mechanics_application_variables.h"
@@ -163,6 +164,11 @@ PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart& rModelPa
     );
 
     mOutputParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+    const std::string folder_name = mOutputParameters["folder_name"].GetString();
+    if (!Kratos::filesystem::exists(folder_name)) {
+        Kratos::filesystem::create_directories(folder_name);
+    }
 }
 
 void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()

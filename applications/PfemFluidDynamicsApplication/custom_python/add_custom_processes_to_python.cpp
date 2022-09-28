@@ -49,6 +49,7 @@
 #include "custom_processes/fix_free_velocity_on_nodes_process.h"
 #include "custom_processes/set_dummy_property_for_rigid_boundaries_process.hpp"
 #include "custom_processes/set_main_material_property_process.hpp"
+#include "custom_processes/find_nodal_h_for_rigid_walls_process.hpp"
 
 #include "custom_processes/assign_scalar_variable_to_pfem_entities_process.hpp"
 #include "custom_processes/assign_vector_variable_to_pfem_conditions_process.hpp"
@@ -151,6 +152,10 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
     py::class_<ComputeAveragePfemMeshParametersProcess, ComputeAveragePfemMeshParametersProcess::Pointer, MesherProcess>(m, "ComputeAveragePfemMeshParameters")
         .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
+
+    py::class_<FindNodalHForRigidWallsProcess, FindNodalHForRigidWallsProcess::Pointer, ProcessBaseType>(m, "FindNodalHForRigidWallsProcess")
+        .def(py::init<ModelPart &>());
+  
 
     //**********FIX AND FREE DOFS PROCESSES*********//
 

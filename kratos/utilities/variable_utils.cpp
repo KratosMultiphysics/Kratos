@@ -323,6 +323,24 @@ KRATOS_API(KRATOS_CORE) const ModelPart::ConditionsContainerType& VariableUtils:
     return rModelPart.Conditions();
 }
 
+template<class TDataType>
+void VariableUtils::AuxiliaryHistoricalValueSetter(
+    const Variable<TDataType>& rVariable,
+    const TDataType& rValue,
+    NodeType& rNode)
+{
+    rNode.FastGetSolutionStepValue(rVariable) = rValue;
+}
+
+template<>
+void VariableUtils::AuxiliaryHistoricalValueSetter(
+    const Variable<array_1d<double,3>>& rVariable,
+    const array_1d<double,3>& rValue,
+    NodeType& rNode)
+{
+    noalias(rNode.FastGetSolutionStepValue(rVariable)) = rValue;
+}
+
 template <class TDataType, class TContainerType, class TWeightDataType>
 void VariableUtils::WeightedAccumulateVariableOnNodes(
     ModelPart& rModelPart,
@@ -371,6 +389,147 @@ void VariableUtils::WeightedAccumulateVariableOnNodes(
     KRATOS_CATCH("");
 }
 
+
+KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetCurrentPositionsVector(
+    const ModelPart::NodesContainerType& rNodes,
+    const unsigned int Dimension)
+{
+    KRATOS_ERROR_IF((Dimension>3)) << " Only Dimension<=3 is admitted by the function" << std::endl;
+    Vector pos(rNodes.size()*Dimension);
+
+    IndexPartition<unsigned int>(rNodes.size()).for_each(
+    [&](unsigned int i){
+        auto& coords = (rNodes.begin()+i)->Coordinates();
+        for(unsigned int k=0; k<Dimension; k++)
+            pos[i*Dimension+k] = coords[k];
+        }
+    );
+    return pos;
+}
+
+KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetInitialPositionsVector(
+    const ModelPart::NodesContainerType& rNodes,
+    const unsigned int Dimension)
+{
+    KRATOS_ERROR_IF((Dimension>3)) << " Only Dimension<=3 is admitted by the function" << std::endl;
+    Vector pos(rNodes.size()*Dimension);
+
+    IndexPartition<unsigned int>(rNodes.size()).for_each(
+    [&](unsigned int i){
+        auto& coords = (rNodes.begin()+i)->GetInitialPosition();
+        for(unsigned int k=0; k<Dimension; k++)
+            pos[i*Dimension+k] = coords[k];
+        }
+    );
+    return pos;
+}
+
+KRATOS_API(KRATOS_CORE) void VariableUtils::SetCurrentPositionsVector(
+    ModelPart::NodesContainerType& rNodes,
+    const Vector& rPositions)
+{
+    KRATOS_ERROR_IF(rPositions.size()%rNodes.size()!=0) << "Incompatible number of nodes and position data" << std::endl;
+
+    unsigned int Dimension = rPositions.size()/rNodes.size();
+
+    IndexPartition<unsigned int>(rNodes.size()).for_each(
+    [&](unsigned int i){
+        auto& coords = (rNodes.begin()+i)->Coordinates();
+        for(unsigned int k=0; k<Dimension; k++)
+            coords[k] = rPositions[i*Dimension+k];
+        }
+    );
+}
+
+KRATOS_API(KRATOS_CORE) void VariableUtils::SetInitialPositionsVector(
+    ModelPart::NodesContainerType& rNodes,
+    const Vector& rPositions)
+{
+    KRATOS_ERROR_IF(rPositions.size()%rNodes.size()!=0) << "Incompatible number of nodes and position data" << std::endl;
+
+    unsigned int Dimension = rPositions.size()/rNodes.size();
+
+    IndexPartition<unsigned int>(rNodes.size()).for_each(
+    [&](unsigned int i){
+        auto& coords = (rNodes.begin()+i)->GetInitialPosition();
+        for(unsigned int k=0; k<Dimension; k++)
+            coords[k] = rPositions[i*Dimension+k];
+        }
+    );
+}
+
+KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetSolutionStepValuesVector(
+                            const ModelPart::NodesContainerType& rNodes,
+                            const Variable<array_1d<double,3>>& rVar,
+                            const unsigned int Step,
+                            const unsigned int Dimension
+                            )
+{
+    Vector out(rNodes.size()*Dimension);
+
+    IndexPartition<unsigned int>(rNodes.size()).for_each(
+        [&](unsigned int i){
+            auto& v = (rNodes.begin()+i)->FastGetSolutionStepValue(rVar,Step);
+            for(unsigned int k=0; k<Dimension; k++)
+                out[i*Dimension+k] = v[k];
+            }
+        );
+    return out;
+}
+
+KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetSolutionStepValuesVector(
+                            const ModelPart::NodesContainerType& rNodes,
+                            const Variable<double>& rVar,
+                            const unsigned int Step
+                            )
+{
+    Vector out(rNodes.size());
+
+    IndexPartition<unsigned int>(rNodes.size()).for_each(
+        [&](unsigned int i){
+            out[i] = (rNodes.begin()+i)->FastGetSolutionStepValue(rVar,Step);
+            }
+        );
+    return out;
+}
+
+KRATOS_API(KRATOS_CORE) void VariableUtils::SetSolutionStepValuesVector(
+                            ModelPart::NodesContainerType& rNodes,
+                            const Variable<array_1d<double,3>>& rVar,
+                            const Vector& rData,
+                            const unsigned int Step
+                            )
+{
+    KRATOS_ERROR_IF(rData.size()%rNodes.size()!=0) << "Incompatible number of nodes and position data" << std::endl;
+
+    const unsigned int Dimension = rData.size()/rNodes.size();
+
+    IndexPartition<unsigned int>(rNodes.size()).for_each(
+        [&](unsigned int i){
+            auto& v = (rNodes.begin()+i)->FastGetSolutionStepValue(rVar,Step);
+            for(unsigned int k=0; k<Dimension; k++)
+                v[k] = rData[i*Dimension+k];
+            }
+        );
+}
+
+KRATOS_API(KRATOS_CORE) void VariableUtils::SetSolutionStepValuesVector(
+                            ModelPart::NodesContainerType& rNodes,
+                            const Variable<double>& rVar,
+                            const Vector& rData,
+                            const unsigned int Step
+                            )
+{
+    KRATOS_ERROR_IF(rData.size()%rNodes.size()!=0) << "Incompatible number of nodes and position data" << std::endl;
+
+    IndexPartition<unsigned int>(rNodes.size()).for_each(
+        [&](unsigned int i){
+            auto& v = (rNodes.begin()+i)->FastGetSolutionStepValue(rVar,Step);
+            v = rData[i];
+            }
+        );
+}
+
 // template instantiations
 template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ConditionsContainerType, int>(
     ModelPart&, const Variable<double>&, const Variable<int>&, const bool);
@@ -391,5 +550,10 @@ template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableO
     ModelPart&, const Variable<double>&, const Variable<double>&, const bool);
 template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ElementsContainerType, double>(
     ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<double>&, const bool);
+
+template void VariableUtils::AuxiliaryHistoricalValueSetter<int>(const Variable<int>&, const int&, NodeType&);
+template void VariableUtils::AuxiliaryHistoricalValueSetter<double>(const Variable<double>&, const double&, NodeType&);
+template void VariableUtils::AuxiliaryHistoricalValueSetter<Vector>(const Variable<Vector>&, const Vector&, NodeType&);
+template void VariableUtils::AuxiliaryHistoricalValueSetter<Matrix>(const Variable<Matrix>&, const Matrix&, NodeType&);
 
 } /* namespace Kratos.*/

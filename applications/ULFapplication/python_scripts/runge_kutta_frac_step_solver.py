@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #CURRENT IMPLEMENTATION IS JUST FOR 2D
 from KratosMultiphysics import *
 from KratosMultiphysics.MeshingApplication import *
@@ -171,7 +170,7 @@ class RungeKuttaFracStepSolver:
             node.Set(TO_ERASE, False)
 
         (self.fluid_neigh_finder).Execute();
-        (self.elem_neighbor_finder).ExecuteInitialize()
+        (self.elem_neighbor_finder).Execute()
         (self.condition_neigh_finder).Execute();
 
         (self.mark_free_surface_process).Execute();

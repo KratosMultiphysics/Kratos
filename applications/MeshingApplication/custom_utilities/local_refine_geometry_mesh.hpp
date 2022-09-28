@@ -243,7 +243,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
+        ModelPart& mModelPart;
     ///@}
     ///@name Protected Operators
     ///@{
@@ -272,8 +272,6 @@ private:
     ///@}
     ///@name Private member Variables
     ///@{
-
-    ModelPart& mModelPart;
 
     ///@}
     ///@name Private Operators
