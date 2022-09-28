@@ -109,6 +109,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int block_size = this->GetBlockSize();
+    GeometryType& r_geometry = GetGeometry();
 
     // Resizing as needed the LHS
     const unsigned int matrix_size = number_of_nodes * block_size;
@@ -173,7 +174,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         Matrix shape_function = ZeroMatrix(block_size, matrix_size);
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            if (Variables.N[i] > std::numeric_limits<double>::epsilon())
+            if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) >= std::numeric_limits<double>::epsilon() )
             {
                 for (unsigned int j = 0; j < dimension; j++)
                 {
