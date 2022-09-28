@@ -163,34 +163,6 @@ public:
         return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }
 
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     * @return The default parameters
-     */
-    Parameters GetDefaultParameters() const override
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"                         : "implicit_solving_strategy",
-            "build_level"                  : 2
-        })");
-
-        // Getting base class default parameters
-        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
-        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
-
-        return default_parameters;
-    }
-
-    /**
-     * @brief Returns the name of the class as used in the settings (snake_case format)
-     * @return The name of the class
-     */
-    static std::string Name()
-    {
-        return "implicit_solving_strategy";
-    }
-
     ///@}
     ///@name Access
     ///@{
@@ -224,6 +196,34 @@ public:
     int GetRebuildLevel() const override
     {
         return mRebuildLevel;
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                         : "implicit_solving_strategy",
+            "build_level"                  : 2
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "implicit_solving_strategy";
     }
 
     /**
