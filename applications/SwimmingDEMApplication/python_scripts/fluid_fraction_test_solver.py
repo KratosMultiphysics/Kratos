@@ -41,8 +41,37 @@ class FluidFractionTestSolver(BaseSolver):
         self.L2_error_calculator = L2_error_calculator.L2ErrorCalculatorUtility(self.fluid_solver.main_model_part, self.project_parameters)
 
     def CalculateL2Error(self):
-        self.velocity_error_norm, self.pressure_error_norm, self.error_model_part = self.L2_error_calculator.CalculateL2()
-        return self.velocity_error_norm, self.pressure_error_norm, self.error_model_part
+        self.velocity_error_norm, self.pressure_error_norm, self.error_model_part, self.reynolds_number, self.porosity_mean = self.L2_error_calculator.CalculateL2()
+        return self.velocity_error_norm, self.pressure_error_norm, self.error_model_part, self.reynolds_number, self.porosity_mean
+
+    def _ConstructProjectionModule(self):
+        pass
+
+    def ComputePostProcessResults(self):
+        pass
+
+    def ApplyForwardCoupling(self, alpha='None'):
+        pass
+
+    def ApplyForwardCouplingOfVelocityToAuxVelocityOnly(self, alpha=None):
+        pass
+
+    def _GetProjectionModule(self):
+        pass
+
+    def SolveSolutionStep(self):
+        # update possible movements of the fluid mesh
+        self.UpdateALEMeshMovement(self.time)
+
+        # Solving the fluid part
+        self.solve_system = not self.project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool() and not self.stationarity
+        if self.CannotIgnoreFluidNow():
+            self.SolveFluidSolutionStep()
+
+        # Solving the disperse-phase component
+        self.SolveDEM()
+
+        return True
 
     def SolveDEM(self):
         super(FluidFractionTestSolver, self).SolveDEM()

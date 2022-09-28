@@ -54,10 +54,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<double>)
         .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<array_1d<double, 3>>)
         .def("SetElementConstitutiveLaws", &RansVariableUtilities::SetElementConstitutiveLaws)
+        .def("CalculateNodalNormal", &RansVariableUtilities::CalculateNodalNormal)
         ;
 
     m.def_submodule("RansCalculationUtilities")
-        .def("CalculateLogarithmicYPlusLimit", &RansCalculationUtilities::CalculateLogarithmicYPlusLimit, py::arg("kappa"), py::arg("beta"), py::arg("max_iterations") = 20, py::arg("tolerance") = 1e-6);
+        .def("CalculateLogarithmicYPlusLimit", &RansCalculationUtilities::CalculateLogarithmicYPlusLimit, py::arg("kappa"), py::arg("beta"), py::arg("max_iterations") = 20, py::arg("tolerance") = 1e-6)
+        .def("CalculateWallHeight", &RansCalculationUtilities::CalculateWallHeight)
+        ;
 }
 
 } // namespace Python.

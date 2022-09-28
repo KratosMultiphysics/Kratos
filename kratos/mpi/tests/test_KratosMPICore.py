@@ -15,10 +15,12 @@ import test_mpi_data_communicator_python
 import test_mpi_model_part
 import test_mpi_serializer
 import test_neighbours
-import test_nodal_elemental_neighbours
+import test_nodal_entity_neighbours
 import test_parallel_environment
 import test_mpi_processes
 import test_distributed_model_part_initializer
+import test_distributed_import_model_part_utility
+import test_distributed_sparse_matrices
 
 # importing OpenMP tests in MPI scope.
 with KratosUnittest.WorkFolderScope("../../tests", __file__, True):
@@ -26,6 +28,7 @@ with KratosUnittest.WorkFolderScope("../../tests", __file__, True):
     import test_normal_utils
     import test_sensitivity_utilities
     from test_model_part_io import TestModelPartIOMPI
+    import test_variable_redistribution
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -52,10 +55,12 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_model_part.TestMPIModelPart]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_serializer.TestMPISerializer]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_neighbours.TestNeighbours]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nodal_elemental_neighbours.TestNodalElementalNeighbours]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nodal_entity_neighbours.TestNodalEntityNeighbours]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_parallel_environment.TestParallelEnvironment]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_processes.TestMPIProcesses]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_distributed_model_part_initializer.TestDistributedModelPartInitializer]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_distributed_import_model_part_utility.TestDistributedImportModelPartUtility]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_distributed_sparse_matrices.TestDistributedSparseMatrices]))
 
     # adding non-mpi tests also as mpi tests
     smallSuite.addTest(TestProcesses("test_FindGlobalNodalNeighboursProcess"))
@@ -64,6 +69,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_normal_utils.TestNormalUtilsQuadSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensitivity_utilities.TestSensitivityUtilitiesTwoDimSymmetricalSquare]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModelPartIOMPI]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_redistribution.TestVariableRedistributionUtility]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['mpi_nightly']

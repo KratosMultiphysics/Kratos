@@ -92,7 +92,7 @@ namespace Kratos
     SizeType WorkingSpaceDimension() override { return 3; }
 
     /// Law Voigt Strain Size
-    SizeType GetStrainSize() override { return 6; }
+    SizeType GetStrainSize() const override { return 6; }
 
 
     /**
@@ -111,7 +111,7 @@ namespace Kratos
      * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access

@@ -80,6 +80,12 @@ std::vector<const Variable<double>*> QSVMSAdjointElementData<TDim, TNumNodes>::G
     return GetQSVMSAdjointDofsList<TDim>();
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+GeometryData::IntegrationMethod QSVMSAdjointElementData<TDim, TNumNodes>::GetIntegrationMethod()
+{
+    return TResidualsDerivatives::GetIntegrationMethod();
+}
+
 // template instantiations
 
 template class QSVMSAdjointElementData<2, 3>;

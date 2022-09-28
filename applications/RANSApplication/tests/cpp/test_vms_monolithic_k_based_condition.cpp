@@ -68,13 +68,13 @@ ModelPart& RansVMSMonolithicKBasedWall2D2NSetUp(Model& rModel)
     RansVariableUtilities::SetElementConstitutiveLaws(r_model_part.Elements());
 
     // set nodal historical variables
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, PRESSURE, 10.0, 100.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, MESH_VELOCITY, 1e-3, 1e-1);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 10.0, 40.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ACCELERATION, 1.0, 1000.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, PRESSURE, 10.0, 100.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, MESH_VELOCITY, 1e-3, 1e-1);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 10.0, 40.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, ACCELERATION, 1.0, 1000.0);
 
-    FluidTestUtilities::RandomFillContainerNonHistoricalVariable(r_model_part.Conditions(), NORMAL, 2, -2.0, -1.0);
+    FluidTestUtilities::RandomFillNonHistoricalVariable(r_model_part.Conditions(), NORMAL, 2, -2.0, -1.0);
 
     auto& r_condition = r_model_part.Conditions().front();
     auto& r_element = r_model_part.Elements().front();
@@ -99,7 +99,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_EquationIdVector, Krat
     auto& r_model_part = RansVMSMonolithicKBasedWall2D2NSetUp(model);
 
     // Test:
-    FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>::RunEntityEquationIdVectorTest(r_model_part, {&VELOCITY_X, &VELOCITY_Y, &PRESSURE});
+    FluidTestUtilities::RunEntityEquationIdVectorTest(r_model_part.Conditions(), r_model_part.GetProcessInfo(), {&VELOCITY_X, &VELOCITY_Y, &PRESSURE});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_GetDofList, KratosRansFastSuite)
@@ -109,7 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_GetDofList, KratosRans
     auto& r_model_part = RansVMSMonolithicKBasedWall2D2NSetUp(model);
 
     // Test:
-    FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>::RunEntityGetDofListTest(r_model_part, {&VELOCITY_X, &VELOCITY_Y, &PRESSURE});
+    FluidTestUtilities::RunEntityGetDofListTest(r_model_part.Conditions(), r_model_part.GetProcessInfo(), {&VELOCITY_X, &VELOCITY_Y, &PRESSURE});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalSystem, KratosRansFastSuite)

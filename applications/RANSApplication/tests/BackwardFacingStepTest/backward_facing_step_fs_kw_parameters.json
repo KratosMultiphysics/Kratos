@@ -33,10 +33,6 @@
         "material_import_settings": {
             "materials_filename": "backward_facing_step_material_properties.json"
         },
-        "wall_function_settings": {
-            "wall_function_region_type": "logarithmic_region_only",
-            "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
-        },
         "formulation_settings": {
             "formulation_name": "fractional_step_k_omega",
             "incompressible_potential_flow_initialization_settings": {},
@@ -61,6 +57,9 @@
                     "solver_type": "amgcl",
                     "tolerance": 1e-10,
                     "smoother_type": "damped_jacobi"
+                },
+                "wall_function_settings": {
+                    "wall_function_region_type": "logarithmic_region_only"
                 }
             },
             "k_omega_solver_settings": {
@@ -75,6 +74,10 @@
                         "solver_type": "amgcl",
                         "tolerance": 1e-9,
                         "verbosity": 0
+                    },
+                    "wall_function_settings": {
+                        "wall_function_region_type": "logarithmic_region_only",
+                        "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
                     }
                 },
                 "turbulent_specific_energy_dissipation_rate_solver_settings": {
@@ -87,6 +90,10 @@
                         "solver_type": "amgcl",
                         "tolerance": 1e-9,
                         "verbosity": 0
+                    },
+                    "wall_function_settings": {
+                        "wall_function_region_type": "logarithmic_region_only",
+                        "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
                     }
                 },
                 "echo_level": 0,

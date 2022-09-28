@@ -100,6 +100,47 @@ int SymbolicStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public I/O
 
+template<class TElementData>
+const Parameters SymbolicStokes<TElementData>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["implicit"],
+        "framework"                  : "ale",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : [],
+            "nodal_historical"       : ["VELOCITY","PRESSURE"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["VELOCITY","ACCELERATION","MESH_VELOCITY","PRESSURE","IS_STRUCTURE","DISPLACEMENT","BODY_FORCE","NODAL_AREA","NODAL_H","ADVPROJ","DIVPROJ","REACTION","REACTION_WATER_PRESSURE","EXTERNAL_PRESSURE","NORMAL","Y_WALL","Q_VALUE"]
+        "required_dofs"              : [],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Triangle2D3","Quadrilateral2D4","Tetrahedra3D4","Prism3D6","Hexahedra3D8"],
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : ["Newtonian2DLaw","Newtonian3DLaw","NewtonianTemperatureDependent2DLaw","NewtonianTemperatureDependent3DLaw","Euler2DLaw","Euler3DLaw"],
+            "dimension"   : ["2D","3D"],
+            "strain_size" : [3,6]
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   :
+            "This implements an Stokes element with quasi-static Variational MultiScales (VMS) stabilization. Note that no viscous behavior is hardcoded, meaning that any fluid constitutive model can be used through a constitutive law."
+    })");
+
+    if (Dim == 2) {
+        std::vector<std::string> dofs_2d({"VELOCITY_X","VELOCITY_Y","PRESSURE"});
+        specifications["required_dofs"].SetStringArray(dofs_2d);
+    } else {
+        std::vector<std::string> dofs_3d({"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"});
+        specifications["required_dofs"].SetStringArray(dofs_3d);
+    }
+
+    return specifications;
+}
+
+
 template <class TElementData>
 std::string SymbolicStokes<TElementData>::Info() const
 {
@@ -196,6 +237,69 @@ void SymbolicStokes<TElementData>::AddBoundaryTraction(
     rData.lhs *= rData.Weight;
     noalias(rLHS) -= rData.lhs;
     noalias(rRHS) += prod(rData.lhs,values);
+}
+
+template <class TElementData>
+void SymbolicStokes<TElementData>::Calculate(
+    const Variable<double> &rVariable,
+    double &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    rOutput = 0.0;
+
+    if (rVariable == HEAT_FLUX) {
+        TElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+        rOutput = 0.0;
+        // Shape functions
+        const auto &r_geometry = this->GetGeometry();
+
+        const unsigned int num_nodes = r_geometry.PointsNumber();
+        Vector data_N(num_nodes);
+        for (unsigned int i = 0; i < num_nodes; i++) {
+            data_N[i] = 1.0 / static_cast<double>(num_nodes);
+        }
+        data.N = data_N;
+        // Shape functions gradients
+        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+        Vector DetJ;
+        r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, DetJ, integration_method);
+        data.DN_DX = shape_derivatives[0]; // Note: Valid only for linear elements
+        // Compute strain and stress
+        this->CalculateMaterialResponse(data);
+        // Compute dissipation
+        rOutput = inner_prod(data.ShearStress, data.StrainRate);
+    }
+    else if (rVariable == EQ_STRAIN_RATE || rVariable == EFFECTIVE_VISCOSITY) {
+        TElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+        rOutput = 0.0;
+        // Shape functions
+        const auto &r_geometry = this->GetGeometry();
+        const unsigned int num_nodes = r_geometry.PointsNumber();
+        Vector data_N(num_nodes);
+        for (unsigned int i = 0; i < num_nodes; i++) {
+            data_N[i] = 1.0 / static_cast<double>(num_nodes);
+        }
+        data.N = data_N;
+        // Shape function gradients
+        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+        Vector DetJ;
+        r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, DetJ, integration_method);
+        data.DN_DX = shape_derivatives[0]; // Note: Valid only for linear elements
+        // Compute strain and stress
+        this->CalculateMaterialResponse(data);
+        const auto &p_constitutive_law = this->GetConstitutiveLaw();
+        rOutput = p_constitutive_law->GetValue(rVariable, rOutput);
+    }
+    else {
+        this->Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH("")
 }
 
 template <>

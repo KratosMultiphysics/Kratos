@@ -857,7 +857,7 @@ public:
 
             KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
             KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,rNode);
-            if (TDim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
+            if constexpr (TDim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
             KRATOS_CHECK_DOF_IN_NODE(PRESSURE,rNode);
         }
         // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1

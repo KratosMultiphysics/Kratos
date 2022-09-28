@@ -742,7 +742,7 @@ def OutputMatrix_CollectingFactors(A,name, mode, initial_tabs = 1, max_index=30,
         value = factor[1]
         output_value = OutputSymbolicVariable(value, mode, varname, aux_dict)
         Acoefficient_str += "    const double " + varname.__str__() + " = " + output_value
-    A_out = Acoefficient_str+"\n" + OutputMatrix(A, name, mode, initial_tabs, max_index, aux_dict)
+    A_out = Acoefficient_str+"\n" + OutputMatrix(A, name, mode, initial_tabs, aux_dict)
     return A_out
 
 # TODO: Unify with base utilities
@@ -769,7 +769,7 @@ def OutputVector_CollectingFactors(A,name, mode, initial_tabs = 1, max_index=30,
         value = factor[1]
         output_value = OutputSymbolicVariable(value, mode, varname, aux_dict)
         Acoefficient_str += "    const double " + varname.__str__() + " = " + output_value
-    A_out = Acoefficient_str + "\n" + OutputVector(A, name, mode, initial_tabs, max_index, aux_dict)
+    A_out = Acoefficient_str + "\n" + OutputVector(A, name, mode, initial_tabs, aux_dict)
     return A_out
 
 # TODO: Unify with base utilities

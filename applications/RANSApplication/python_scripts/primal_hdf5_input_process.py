@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics as Kratos
+import KratosMultiphysics
 import KratosMultiphysics.RANSApplication as KratosRANS
 import KratosMultiphysics.HDF5Application as KratosHDF5
 
@@ -98,4 +99,4 @@ def Factory(parameters, model):
         CreateOperationSettings("nodal_data_value_input", list_of_nodal_variables)
     ]
 
-    return core.Factory(core_settings, model)
+    return core.Factory(core_settings, model, KratosMultiphysics.Process)
