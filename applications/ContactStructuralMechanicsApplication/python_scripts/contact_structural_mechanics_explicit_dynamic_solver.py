@@ -69,18 +69,18 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
 
         # No verbosity from strategy
         if self.contact_settings["silent_strategy"].GetBool():
-            mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+            mechanical_solution_strategy = self._GetSolutionStrategy()
             mechanical_solution_strategy.SetEchoLevel(0)
 
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
 
-        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+        mechanical_solution_strategy = self._GetSolutionStrategy()
         auxiliar_methods_solvers.AuxiliarSolve(mechanical_solution_strategy)
 
     def SolveSolutionStep(self):
-        is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        is_converged = self._GetSolutionStrategy().SolveSolutionStep()
         return is_converged
 
     def ExecuteFinalizeSolutionStep(self):

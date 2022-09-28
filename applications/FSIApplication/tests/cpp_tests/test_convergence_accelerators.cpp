@@ -151,8 +151,11 @@ namespace Kratos {
 	    KRATOS_TEST_CASE_IN_SUITE(MVQNConvergenceAccelerator, FSIApplicationFastSuite)
 		{
             // Set the convergence accelerator pointer
-            const double w_0 = 0.825;
-            ConvAccPointerType p_MVQN = Kratos::make_unique<MVQNFullJacobianConvergenceAccelerator<SparseSpaceType, DenseSpaceType>>(w_0);
+            Parameters mvqn_settings(R"(
+            {
+                "w_0" : 0.825
+            })");
+            ConvAccPointerType p_MVQN = Kratos::make_unique<MVQNFullJacobianConvergenceAccelerator<SparseSpaceType, DenseSpaceType>>(mvqn_settings);
 
             // Solve the Ax = b problem
             const bool is_converged = SolveProblem(p_MVQN);

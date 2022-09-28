@@ -382,7 +382,7 @@ class RansFormulation(ABC):
         """Returns strategy used in this formulation, if used any.
 
         Returns:
-            Kratos.SolvingStrategy: Strategy used in this formulation, None if not used.
+            Kratos.ImplicitSolvingStrategy: Strategy used in this formulation, None if not used.
         """
         return None
 

@@ -4,6 +4,7 @@ from KratosMultiphysics import Logger
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import main_coupling_for_testing
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import os
 
 def Wait():
     input("Press Something")
@@ -69,7 +70,7 @@ class TestAnalytics(KratosUnittest.TestCase):
     @classmethod
     def fracture_3_point(self):
         model = KratosMultiphysics.Model()
-        MainCouplingFemDemForTestingSolution(model, "fracture_tests/three_point_bending/").Run()
+        MainCouplingFemDemForTestingSolution(model, os.path.join(os.path.dirname(os.path.realpath(__file__)), "fracture_tests", "three_point_bending")).Run()
 
 
 if __name__ == "__main__":

@@ -27,7 +27,7 @@
 
 // Strategies
 #include "custom_utilities/solver_settings.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/strategies/fs_strategy_for_chimera.h"
 
 // Builder and solvers

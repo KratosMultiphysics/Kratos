@@ -1,0 +1,59 @@
+Begin Properties 0
+End Properties
+
+Begin Nodes
+	1	0.00000	0.00000	0.00000
+	2	1.00000	0.00000	0.00000
+	3	1.00000	1.00000	0.00000
+	4	0.00000	1.00000	0.00000
+End Nodes
+
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: Parts Auto2
+	 1	  0	 1	 2	 3	 4
+End Elements
+
+Begin SubModelPart Parts_Parts_Auto2 // Group Parts Auto2 // Subtree Parts
+	Begin SubModelPartNodes
+	 1
+	 2
+	 3
+	 4
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	 1
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Contact_Part_1
+	Begin SubModelPartNodes
+	3
+	4
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
+	Begin SubModelPartNodes
+	 1
+	 2
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto2 // Group Displacement Auto2 // Subtree DISPLACEMENT
+	Begin SubModelPartNodes
+	 1
+	 2
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart

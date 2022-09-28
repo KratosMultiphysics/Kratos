@@ -1,9 +1,7 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
-import KratosMultiphysics.DelaunayMeshingApplication  as KratosDelaunay
 from KratosMultiphysics.python_solver import PythonSolver
 
 
@@ -125,14 +123,14 @@ class PfemFluidSolver(PythonSolver):
         self.computing_model_part = self.GetComputingModelPart()
 
         self.fluid_solver = KratosPfemFluid.TwoStepVPStrategy(self.computing_model_part,
-                                                              self.velocity_linear_solver,
-                                                              self.pressure_linear_solver,
-                                                              self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                              self.settings["velocity_tolerance"].GetDouble(),
-                                                              self.settings["pressure_tolerance"].GetDouble(),
-                                                              self.settings["maximum_pressure_iterations"].GetInt(),
-                                                              self.settings["time_order"].GetInt(),
-                                                              self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
+                                                               self.velocity_linear_solver,
+                                                               self.pressure_linear_solver,
+                                                               self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                               self.settings["velocity_tolerance"].GetDouble(),
+                                                               self.settings["pressure_tolerance"].GetDouble(),
+                                                               self.settings["maximum_pressure_iterations"].GetInt(),
+                                                               self.settings["time_order"].GetInt(),
+                                                               self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
 
         echo_level = self.settings["echo_level"].GetInt()
 
@@ -254,7 +252,7 @@ class PfemFluidSolver(PythonSolver):
     def SolveSolutionStep(self):
         converged = self.fluid_solver.SolveSolutionStep()
         return converged
-        
+
     def FinalizeSolutionStep(self):
         #pass
         self.fluid_solver.FinalizeSolutionStep()

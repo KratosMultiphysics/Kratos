@@ -72,7 +72,7 @@ class ALMHyperSimplePatchFrictionalSlipTestContact(TestFactory):
 class ALMHyperSimplePatchFrictionalStickTestContact(TestFactory):
     file_name = "ALM_frictional_contact_test_2D/hyper_simple_stick_patch_test"
 
-class PenaltyFrictionlessHyperSimplePatchFrictionalTestContact(TestFactory):
+class PenaltyFrictionlessHyperSimplePatchTestContact(TestFactory):
     file_name = "penalty_frictionless_contact_test_2D/hyper_simple_patch_test"
 
 class PenaltyNoFrictionHyperSimplePatchFrictionalTestContact(TestFactory):

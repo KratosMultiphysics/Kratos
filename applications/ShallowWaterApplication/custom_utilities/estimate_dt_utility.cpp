@@ -20,6 +20,8 @@
 // Project includes
 #include "estimate_dt_utility.h"
 #include "includes/model_part.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "shallow_water_application_variables.h"
 
 
@@ -34,6 +36,7 @@ EstimateTimeStepUtility::EstimateTimeStepUtility(
 
     Parameters default_parameters(R"({
         "automatic_time_step"   : true,
+        "adaptive_time_step"    : true,
         "time_step"             : 1.0,
         "courant_number"        : 1.0,
         "minimum_delta_time"    : 1e-4,
@@ -43,17 +46,25 @@ EstimateTimeStepUtility::EstimateTimeStepUtility(
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     mEstimateDt = ThisParameters["automatic_time_step"].GetBool();
+    mAdaptiveDt = ThisParameters["adaptive_time_step"].GetBool();
     mConstantDt = ThisParameters["time_step"].GetDouble();
     mCourant = ThisParameters["courant_number"].GetDouble();
     mMinDt = ThisParameters["minimum_delta_time"].GetDouble();
     mMaxDt = ThisParameters["maximum_delta_time"].GetDouble();
 
+    if (mEstimateDt && !mAdaptiveDt) {
+        mConstantDt = EstimateTimeStep();
+    }
 }
 
 double EstimateTimeStepUtility::Execute() const
 {
     if (mEstimateDt) {
-        return EstimateTimeStep();
+        if (mAdaptiveDt) {
+            return EstimateTimeStep();
+        } else {
+            return mConstantDt;
+        }
     } else {
         return mConstantDt;
     }
@@ -62,19 +73,9 @@ double EstimateTimeStepUtility::Execute() const
 double EstimateTimeStepUtility::EstimateTimeStep() const
 {
     const double gravity = mrModelPart.GetProcessInfo().GetValue(GRAVITY_Z);
-    const auto elements_begin = mrModelPart.ElementsBegin();
-    double min_characteristic_time = std::numeric_limits<double>::max();
-
-    #pragma omp parallel for shared(min_characteristic_time)
-    for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
-    {
-        const auto& r_geometry = (elements_begin + i)->GetGeometry();
-        const double local_thread_min_characteristic_time = ElementCharacteristicTime(r_geometry, gravity);
-        #pragma omp critical
-        {
-            min_characteristic_time = std::min(min_characteristic_time, local_thread_min_characteristic_time);
-        }
-    }
+    const double min_characteristic_time = block_for_each<MinReduction<double>>(
+        mrModelPart.Elements(), [&](Element& rElement){return ElementCharacteristicTime(rElement.GetGeometry(), gravity);
+        });
 
     double current_time = min_characteristic_time * mCourant;
 

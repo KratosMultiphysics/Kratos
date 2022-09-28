@@ -71,7 +71,12 @@ void HistoryLinearElastic3DLaw::AddInitialStresses( Parameters& rValues, Vector&
     noalias(gp_initial_stress_vector) = ZeroVector(voigt_size);
 
     for (unsigned int i = 0; i < number_of_nodes; i++) {
-        noalias(nodal_initial_stress_tensor) = geometry[i].GetSolutionStepValue(INITIAL_STRESS_TENSOR);
+        const Matrix& r_initial_stress_tensor = geometry[i].GetSolutionStepValue(INITIAL_STRESS_TENSOR);
+        for(unsigned int j=0; j < dimension; j++) {
+            for(unsigned int k=0; k < dimension; k++) {
+                nodal_initial_stress_tensor(j,k) = r_initial_stress_tensor(j,k);
+            }
+        }
         noalias(nodal_initial_stress_vector) = MathUtils<double>::StressTensorToVector(nodal_initial_stress_tensor);
 
         for(unsigned int j=0; j < voigt_size; j++) {

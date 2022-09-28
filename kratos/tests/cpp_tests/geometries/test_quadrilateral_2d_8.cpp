@@ -105,7 +105,7 @@ namespace {
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D8DeterminantOfJacobianArray1, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceQuadrilateral2D8();
         Vector JacobianDeterminants;
-        geom->DeterminantOfJacobian(JacobianDeterminants, GeometryData::GI_GAUSS_2);
+        geom->DeterminantOfJacobian(JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_2);
         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
             KRATOS_CHECK_NEAR(JacobianDeterminants[i], 0.25, TOLERANCE);
     }

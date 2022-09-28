@@ -14,24 +14,6 @@ class RestartUtility:
     in the main-script
     """
     def __init__(self, model_part, settings):
-        # max_files_to_keep    : max number of restart files to keep
-        #                       - negative value keeps all restart files (default)
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "input_filename"                 : "",
-            "input_output_path"              : "",
-            "echo_level"                     : 0,
-            "serializer_trace"               : "no_trace",
-            "restart_load_file_label"        : "",
-            "load_restart_files_from_folder" : true,
-            "restart_save_frequency"         : 0.0,
-            "restart_control_type"           : "time",
-            "save_restart_files_in_folder"   : true,
-            "set_mpi_communicator"           : true,
-            "max_files_to_keep"              : -1
-        }
-        """)
-
         __serializer_flags = {
             "no_trace":           KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE,     # binary
             "trace_error":        KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR,  # ascii
@@ -43,7 +25,7 @@ class RestartUtility:
             settings.RemoveValue("io_foldername")
             KratosMultiphysics.Logger.PrintWarning('RestartUtility', '"io_foldername" key is deprecated. Use "input_output_path" instead.')
 
-        settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(self._GetDefaultParameters())
 
         self.model_part = model_part
         self.model_part_name = model_part.Name
@@ -96,7 +78,7 @@ class RestartUtility:
         self.save_restart_files_in_folder   = settings["save_restart_files_in_folder"].GetBool()
         self.max_files_to_keep              = settings["max_files_to_keep"].GetInt()
         if (self.max_files_to_keep < -1) or (self.max_files_to_keep == 0):
-            err_msg += 'Specifier for \'max_files_to_keep\' with value ' + str(self.max_files_to_keep) +' invalid\n'
+            err_msg  = 'Specifier for \'max_files_to_keep\' with value ' + str(self.max_files_to_keep) +' invalid\n'
             err_msg += 'Use -1 or any non-negative values'
             raise Exception(err_msg)
 
@@ -123,6 +105,7 @@ class RestartUtility:
 
         # Load the ModelPart
         serializer = KratosMultiphysics.FileSerializer(restart_path, self.serializer_flag)
+        serializer.Set(self._GetSerializerFlags())
         serializer.Load(self.model_part_name, self.model_part)
 
         self._ExecuteAfterLoad()
@@ -158,6 +141,7 @@ class RestartUtility:
 
         # Save the ModelPart
         serializer = KratosMultiphysics.FileSerializer(file_name, self.serializer_flag)
+        serializer.Set(self._GetSerializerFlags())
         serializer.Save(self.model_part.Name, self.model_part)
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("Restart Utility", "Saved restart file", file_name + ".rest")
@@ -166,7 +150,6 @@ class RestartUtility:
         if self.restart_save_frequency > 0.0: # Note: if == 0, we'll just always print
             while self.next_output <= control_label:
                 self.next_output += self.restart_save_frequency
-
 
         # Cleanup
         self._ClearObsoleteRestartFiles()
@@ -182,10 +165,7 @@ class RestartUtility:
 
     def CreateOutputFolder(self):
         if self.save_restart_files_in_folder:
-            folder_path = self.__GetFolderPathSave()
-            if not os.path.isdir(folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
-                os.makedirs(folder_path)
-            self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
+            KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(self.__GetFolderPathSave())
 
     #### Protected functions ####
 
@@ -245,6 +225,26 @@ class RestartUtility:
             file_name_pattern += "_<step>"
         file_name_pattern += ".rest"
         return file_name_pattern
+
+    def _GetSerializerFlags(self):
+        return KratosMultiphysics.Serializer.SHALLOW_GLOBAL_POINTERS_SERIALIZATION
+
+    @classmethod
+    def _GetDefaultParameters(cls):
+        # max_files_to_keep    : max number of restart files to keep
+        #                       - negative value keeps all restart files (default)
+        return KratosMultiphysics.Parameters("""{
+            "input_filename"                 : "",
+            "input_output_path"              : "",
+            "echo_level"                     : 0,
+            "serializer_trace"               : "no_trace",
+            "restart_load_file_label"        : "",
+            "load_restart_files_from_folder" : true,
+            "restart_save_frequency"         : 0.0,
+            "restart_control_type"           : "time",
+            "save_restart_files_in_folder"   : true,
+            "max_files_to_keep"              : -1
+        }""")
 
     #### Private functions ####
 

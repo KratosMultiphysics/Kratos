@@ -290,7 +290,7 @@ private:
 /** @brief Mapper Class whic allows to project values from a domain to other
  */
 
-class AdvancedNMPointsMapper
+class KRATOS_API(FSI_APPLICATION) AdvancedNMPointsMapper
 {
     ///@name Type Definitions
     ///@{

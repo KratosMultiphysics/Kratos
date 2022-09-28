@@ -141,22 +141,6 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofList(Dof
     }
 }
 
-template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    bool active = true;
-    if ((this)->IsDefined(ACTIVE))
-        active = (this)->Is(ACTIVE);
-
-    const CompressiblePerturbationPotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake != 0 && active == true)
-    {
-        ComputePotentialJump(rCurrentProcessInfo);
-    }
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
 
@@ -472,8 +456,8 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
     CalculateLeftHandSideContribution(lower_lhs_total, rCurrentProcessInfo, lower_velocity, data);
 
     // Compute lhs wake condition
-    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
-    const BoundedMatrix<double, NumNodes, NumNodes> lhs_wake_condition = data.vol * free_stream_density * prod(data.DN_DX, trans(data.DN_DX));
+    const BoundedMatrix<double, NumNodes, NumNodes> lhs_wake_condition =
+        CalculateLeftHandSideWakeConditions(data, rCurrentProcessInfo);
 
     if (this->Is(STRUCTURE)){
         Matrix lhs_positive = ZeroMatrix(NumNodes, NumNodes);
@@ -486,6 +470,39 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
     else{
         AssignLeftHandSideWakeElement(rLeftHandSideMatrix, upper_lhs_total, lower_lhs_total, lhs_wake_condition, data);
     }
+}
+
+// In 2D
+template <>
+BoundedMatrix<double, 3, 3> CompressiblePerturbationPotentialFlowElement<2, 3>::CalculateLeftHandSideWakeConditions(
+    const ElementalData<3, 2>& rData, const ProcessInfo& rCurrentProcessInfo)
+{
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    return rData.vol * free_stream_density * prod(rData.DN_DX, trans(rData.DN_DX));
+}
+
+// In 3D
+template <>
+BoundedMatrix<double, 4, 4> CompressiblePerturbationPotentialFlowElement<3, 4>::CalculateLeftHandSideWakeConditions(
+    const ElementalData<4, 3>& rData, const ProcessInfo& rCurrentProcessInfo)
+{
+    // Computing linearized pressure equality condition lhs
+    const array_1d<double, 3>& free_stream_velocity_direction =
+        rCurrentProcessInfo[FREE_STREAM_VELOCITY_DIRECTION];
+    const BoundedVector<double, 4> DNv = prod(rData.DN_DX, free_stream_velocity_direction);
+    const BoundedMatrix<double, 4, 4> pressure_equality_lhs =
+        outer_prod(DNv, trans(DNv));
+
+    // Computing wake normal condition lhs
+    // Attention: this only works for straight trailing edges
+    // TODO: Make it work for curved trailing edges, i.e., find the way to store
+    // the local normal vector of the skin in the element.
+    const array_1d<double, 3>& wake_normal = rCurrentProcessInfo[WAKE_NORMAL];
+    const BoundedVector<double, 4> DNn = prod(rData.DN_DX, wake_normal);
+    const BoundedMatrix<double, 4, 4> normal_condition_lhs = outer_prod(DNn, trans(DNn));
+
+    // Adding contributions
+    return rData.vol * (pressure_equality_lhs + normal_condition_lhs);
 }
 
 template <int Dim, int NumNodes>
@@ -517,8 +534,8 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
     const array_1d<double, Dim>& diff_velocity = upper_velocity - lower_velocity;
 
     // Compute wake condition rhs
-    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
-    const BoundedVector<double, NumNodes> wake_rhs = - data.vol * free_stream_density * prod(data.DN_DX, diff_velocity);
+    const BoundedVector<double, NumNodes> wake_rhs =
+        CalculateRightHandSideWakeConditions(data, rCurrentProcessInfo, diff_velocity);
 
     if (this->Is(STRUCTURE)){
         double upper_vol = 0.0;
@@ -540,6 +557,42 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
             AssignRightHandSideWakeNode(rRightHandSideVector, upper_rhs, lower_rhs, wake_rhs, data, i);
         }
     }
+}
+
+// In 2D
+template <>
+BoundedVector<double, 3> CompressiblePerturbationPotentialFlowElement<2, 3>::CalculateRightHandSideWakeConditions(
+    const ElementalData<3, 2>& rData,
+    const ProcessInfo& rCurrentProcessInfo,
+    const array_1d<double, 2>& rDiff_velocity)
+{
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    return -rData.vol * free_stream_density * prod(rData.DN_DX, rDiff_velocity);
+}
+
+// In 3D
+template <>
+BoundedVector<double, 4> CompressiblePerturbationPotentialFlowElement<3, 4>::CalculateRightHandSideWakeConditions(
+    const ElementalData<4, 3>& rData,
+    const ProcessInfo& rCurrentProcessInfo,
+    const array_1d<double, 3>& rDiff_velocity)
+{
+    // Computing linearized pressure equality condition
+    const array_1d<double, 3>& free_stream_velocity_direction =
+        rCurrentProcessInfo[FREE_STREAM_VELOCITY_DIRECTION];
+    const double pressure_equality_condition =
+        inner_prod(free_stream_velocity_direction, rDiff_velocity);
+    const array_1d<double, 3> vp = free_stream_velocity_direction * pressure_equality_condition;
+
+    // Computing wake normal flux condition
+    // Attention: this only works for straight trailing edges
+    // TODO: Make it work for curved trailing edges, i.e., find the way to store
+    // the local normal vector of the skin in the element.
+    const array_1d<double, 3>& wake_normal = rCurrentProcessInfo[WAKE_NORMAL];
+    const double wake_normal_condition = inner_prod(wake_normal, rDiff_velocity);
+    const array_1d<double, 3> nn = wake_normal * wake_normal_condition;
+
+    return -rData.vol * prod(rData.DN_DX, vp + nn);
 }
 
 template <int Dim, int NumNodes>
@@ -804,37 +857,6 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignRightHan
     else{
         rRightHandSideVector[rRow] = rWake_rhs(rRow);
         rRightHandSideVector[rRow + NumNodes] = rLower_rhs(rRow);
-    }
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo)
-{
-    const array_1d<double, 3>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    const double vinfinity_norm = sqrt(inner_prod(vinfinity, vinfinity));
-
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
-
-    auto& r_geometry = GetGeometry();
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        double aux_potential = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-        double potential = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-        double potential_jump = aux_potential - potential;
-
-        if (distances[i] > 0)
-        {
-            r_geometry[i].SetLock();
-            r_geometry[i].SetValue(POTENTIAL_JUMP, -2.0 / vinfinity_norm * (potential_jump));
-            r_geometry[i].UnSetLock();
-        }
-        else
-        {
-            r_geometry[i].SetLock();
-            r_geometry[i].SetValue(POTENTIAL_JUMP, 2.0 / vinfinity_norm * (potential_jump));
-            r_geometry[i].UnSetLock();
-        }
     }
 }
 

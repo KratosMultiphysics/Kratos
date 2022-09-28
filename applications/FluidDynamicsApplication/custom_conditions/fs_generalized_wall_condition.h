@@ -529,7 +529,7 @@ protected:
 	  ShapeFunctionDerivativesArrayType DN_DX;
 	  Vector DetJ;
 	  rElemGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, DetJ,
-		          GeometryData::GI_GAUSS_1);
+		          GeometryData::IntegrationMethod::GI_GAUSS_1);
 	  ShapeFunctionDerivativesType& rDN_DX = DN_DX[0];
 
 	  const double& pres = rElemGeom[0].FastGetSolutionStepValue(PRESSURE,1);
@@ -566,7 +566,7 @@ protected:
 	 */
 	double EvaluateWallFunctionResidual(const double& rWallHeight, const double& rWallVel, const double& rWallStress, const double& rWallGradP)
 	{
-		const ShapeFunctionsType& N = row(this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1),0);
+		const ShapeFunctionsType& N = row(this->GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1),0);
 		double rho, nu, func1, func2, Vel1, Vel2, Vel12, YPlus1, YPlus2, sign1, sign2;
 		EvaluateInPoint(rho, DENSITY, N);
 		EvaluateInPoint(nu, VISCOSITY, N);

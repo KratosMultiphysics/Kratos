@@ -8,6 +8,8 @@ namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEM2D : public DEM_KDEM {
 
+        typedef DEM_KDEM BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM2D);
@@ -17,8 +19,6 @@ namespace Kratos {
         ~DEM_KDEM2D() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
-
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         void CalculateContactArea(double radius, double other_radius, double& calculation_area) override;
 

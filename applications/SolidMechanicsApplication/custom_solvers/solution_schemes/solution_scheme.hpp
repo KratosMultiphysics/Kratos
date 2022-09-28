@@ -357,7 +357,7 @@ class SolutionScheme : public Flags
   {
     KRATOS_TRY
 
-    const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+    const unsigned int NumThreads = ParallelUtilities::GetNumThreads();
 
     // Update of displacement (by DOF)
     OpenMPUtils::PartitionVector DofPartition;
@@ -391,7 +391,7 @@ class SolutionScheme : public Flags
   {
     KRATOS_TRY
 
-    const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+    const unsigned int NumThreads = ParallelUtilities::GetNumThreads();
 
     // Update of displacement (by DOF)
     OpenMPUtils::PartitionVector DofPartition;
@@ -445,7 +445,7 @@ class SolutionScheme : public Flags
     if( this->mOptions.Is(LocalFlagType::UPDATE_VARIABLES) ){
 
       // Updating time derivatives (nodally for efficiency)
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+      const unsigned int NumThreads = ParallelUtilities::GetNumThreads();
       OpenMPUtils::PartitionVector NodePartition;
       OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 
@@ -473,7 +473,7 @@ class SolutionScheme : public Flags
     KRATOS_TRY
 
     // Updating time derivatives (nodally for efficiency)
-    const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+    const unsigned int NumThreads = ParallelUtilities::GetNumThreads();
     OpenMPUtils::PartitionVector NodePartition;
     OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 
@@ -825,7 +825,7 @@ class SolutionScheme : public Flags
       for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++)
       {
         auto itElem = rModelPart.ElementsBegin() + i;
-        itElem->Initialize();
+        itElem->Initialize(rModelPart.GetProcessInfo());
       }
 
     this->Set(LocalFlagType::ELEMENTS_INITIALIZED, true);
@@ -852,7 +852,7 @@ class SolutionScheme : public Flags
       for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++)
       {
         auto itCond = rModelPart.ConditionsBegin() + i;
-        itCond->Initialize();
+        itCond->Initialize(rModelPart.GetProcessInfo());
       }
 
       this->Set(LocalFlagType::CONDITIONS_INITIALIZED, true);

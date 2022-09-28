@@ -377,7 +377,7 @@ void VMSMonolithicUBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-GeometryData::IntegrationMethod VMSMonolithicUBasedWallCondition<TDim, TNumNodes>::GetIntegrationMethod()
+GeometryData::IntegrationMethod VMSMonolithicUBasedWallCondition<TDim, TNumNodes>::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }

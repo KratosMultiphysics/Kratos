@@ -37,7 +37,7 @@ ModifiedMisesNonlocalDamagePlaneStress2DLaw::~ModifiedMisesNonlocalDamagePlaneSt
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-int ModifiedMisesNonlocalDamagePlaneStress2DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
+int ModifiedMisesNonlocalDamagePlaneStress2DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo) const
 {
     int ierr = NonlocalDamage3DLaw::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
     if(ierr != 0) return ierr;

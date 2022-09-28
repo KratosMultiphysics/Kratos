@@ -26,6 +26,9 @@
             "serializer_trace"             : "no_trace",
             "input_filenames" : ["SpheresPart"],
             "restart_load_file_label" : "0.03001"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "MaterialsDEM.json"
         }
     },
     "VirtualMassCoefficient"         : 1.0,
