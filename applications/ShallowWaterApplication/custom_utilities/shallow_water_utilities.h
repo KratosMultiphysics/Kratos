@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "shallow_water_application_variables.h"
 
 
@@ -65,6 +66,8 @@ public:
 
     typedef Geometry<NodeType> GeometryType;
 
+    typedef ModelPart::NodesContainerType NodesContainerType;
+
     ///@}
     ///@name Pointer definition
     ///@{
@@ -89,6 +92,8 @@ public:
 
     void ComputeMomentum(ModelPart& rModelPart);
 
+    void ComputeLinearizedMomentum(ModelPart& rModelPart);
+
     template<bool THistorical>
     void ComputeFroude(ModelPart& rModelPart, const double Epsilon);
 
@@ -103,7 +108,23 @@ public:
 
     void ExtrapolateElementalFlagToNodes(ModelPart& rModelPart, Flags Flag);
 
-    void NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable);
+    void NormalizeVector(ModelPart& rModelPart, const Variable<array_1d<double,3>>& rVariable);
+
+    template<class TDataType, class TVarType = Variable<TDataType>>
+    void SmoothHistoricalVariable(
+        const TVarType& rVariable,
+        NodesContainerType& rNodes,
+        const double ElapsedTime,
+        const double SemiPeriod)
+    {
+        const double smooth = -std::expm1(-ElapsedTime / SemiPeriod);
+        block_for_each(rNodes, [&](NodeType& rNode){
+            TDataType& initial = rNode.FastGetSolutionStepValue(rVariable, 1);
+            TDataType& current = rNode.FastGetSolutionStepValue(rVariable);
+            TDataType increment = current - initial;
+            current = initial + smooth * increment;
+        });
+    }
 
     template<class TVarType>
     void CopyVariableToPreviousTimeStep(ModelPart& rModelPart, const TVarType& rVariable)
@@ -131,6 +152,11 @@ public:
     void SetMeshZCoordinate(ModelPart& rModelPart, const Variable<double>& rVariable);
 
     /**
+     * @brief Move the z-coordinate of the mesh according to a variable
+     */
+    void OffsetMeshZCoordinate(ModelPart& rModelPart, const double Increment);
+
+    /**
      * @brief Swap the Y and Z coordinates of the nodes
      */
     void SwapYZCoordinates(ModelPart& rModelPart);
@@ -144,6 +170,29 @@ public:
      * @brief Store a double variable as NonHistorical and set the value to no-data if the node is dry
      */
     void StoreNonHistoricalGiDNoDataIfDry(ModelPart& rModelPart, const Variable<double>& rVariable);
+
+    /**
+     * @brief Swap the Y and Z components of a vector variable
+     */
+    void SwapYZComponents(const Variable<array_1d<double,3>>& rVariable, NodesContainerType& rNodes)
+    {
+        block_for_each(rNodes, [&](NodeType& rNode){
+            array_1d<double,3>& r_value = rNode.FastGetSolutionStepValue(rVariable);
+            std::swap(r_value[1], r_value[2]);
+        });
+    }
+
+    /**
+     * @brief Swap the Y and Z components of a vector variable
+     */
+    template<class TContainerType>
+    void SwapYZComponentsNonHistorical(const Variable<array_1d<double,3>>& rVariable, TContainerType& rContainer)
+    {
+        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+            array_1d<double,3>& r_value = rEntity.GetValue(rVariable);
+            std::swap(r_value[1], r_value[2]);
+        });
+    }
 
     /**
      * @brief Offset the ids of the given container for visualization purpose in GiD
@@ -192,30 +241,21 @@ public:
         const double RelativeDryHeight = -1.0)
     {
         KRATOS_ERROR_IF_NOT(rProcessInfo.Has(GRAVITY)) << "ShallowWaterUtilities::ComputeHydrostaticForces : GRAVITY is not defined in the ProcessInfo" << std::endl;
-        KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DENSITY)) << "ShallowWaterUtilities::ComputeHydrostaticForces : DENSITY is not defined in the ProcessInfo" << std::endl;
-        const double gravity = rProcessInfo.GetValue(GRAVITY_Z);
-        const double density = rProcessInfo.GetValue(DENSITY);
+        if (rContainer.size() > 0) {
+            const auto& r_prop = rContainer.begin()->GetProperties();
+            KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "ShallowWaterUtilities::ComputeHydrostaticForces : DENSITY is not defined in the Properties" << std::endl;
+        }
 
         array_1d<double,3> forces = ZeroVector(3);
         forces = block_for_each<SumReduction<array_1d<double,3>>>(
             rContainer, [&](typename TContainerType::value_type& rEntity){
-                const auto& r_geom = rEntity.GetGeometry();
-                const double area = r_geom.Area();
-                const array_1d<double,3> normal = r_geom.UnitNormal(r_geom[0]); // At the first Point
-                double height = 0.0;
-                for (auto& r_node : r_geom) {
-                    height += r_node.FastGetSolutionStepValue(HEIGHT);
-                }
-                height /= r_geom.size();
-                array_1d<double,3> local_force;
+                array_1d<double,3> local_force = ZeroVector(3);
                 if (RelativeDryHeight >= 0.0) {
-                    if (IsWet(r_geom, height, RelativeDryHeight)) {
-                        local_force = EvaluateHydrostaticForce<TContainerType>(density, gravity, height, area, normal);
-                    } else {
-                        local_force = ZeroVector(3);
+                    if (IsWet(rEntity.GetGeometry(), RelativeDryHeight)) {
+                        rEntity.Calculate(FORCE, local_force, rProcessInfo);
                     }
                 } else {
-                    local_force = EvaluateHydrostaticForce<TContainerType>(density, gravity, height, area, normal);
+                    rEntity.Calculate(FORCE, local_force, rProcessInfo);
                 }
                 return local_force;
             }
@@ -240,14 +280,6 @@ private:
     bool IsWet(const GeometryType& rGeometry, const double Height, const double RelativeDryHeight);
 
     bool IsWet(const double Height, const double DryHeight);
-
-    template<class TContainerType>
-    array_1d<double,3> EvaluateHydrostaticForce(
-        const double Density,
-        const double Gravity,
-        const double Height,
-        const double Area,
-        const array_1d<double,3>& rNormal);
 
     ///@}
 

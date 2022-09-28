@@ -17,13 +17,9 @@ namespace Kratos {
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack_torque);
 
-        DEM_Dempack_torque() {
-        }
+        DEM_Dempack_torque() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
-        ~DEM_Dempack_torque() {
-        }
+        ~DEM_Dempack_torque() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
@@ -36,7 +32,8 @@ namespace Kratos {
                                               double ElasticLocalRotationalMoment[3],
                                               double ViscoLocalRotationalMoment[3],
                                               double equiv_poisson,
-                                              double indentation) override;
+                                              double indentation,
+                                              double LocalElasticContactForce[3]) override;
     private:
 
         friend class Serializer;

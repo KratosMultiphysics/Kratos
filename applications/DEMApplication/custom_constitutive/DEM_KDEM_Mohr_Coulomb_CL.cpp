@@ -14,12 +14,6 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEM_Mohr_Coulomb::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        KRATOS_INFO("DEM") << "Assigning DEM_KDEM_Mohr_Coulomb to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-        this->Check(pProp);
-    }
-
     void DEM_KDEM_Mohr_Coulomb::Check(Properties::Pointer pProp) const {
         DEM_KDEM::Check(pProp);
 
@@ -63,7 +57,15 @@ namespace Kratos {
         return u1;
     }
 
-    void DEM_KDEM_Mohr_Coulomb::CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2){
+    void DEM_KDEM_Mohr_Coulomb::CheckFailure(const int i_neighbour_count, 
+                                        SphericContinuumParticle* element1, 
+                                        SphericContinuumParticle* element2,
+                                        double& contact_sigma,
+                                        double& contact_tau, 
+                                        double LocalElasticContactForce[3],
+                                        double ViscoDampingLocalContactForce[3],
+                                        double ElasticLocalRotationalMoment[3],
+                                        double ViscoLocalRotationalMoment[3]){
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 

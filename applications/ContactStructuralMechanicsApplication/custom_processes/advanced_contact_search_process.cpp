@@ -166,8 +166,10 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeLine
     SizeType n = 0;
 
     // Initialize the values
-    double xi = 0.0;
-    double yi = 0.0;
+    struct AuxValues {
+        double xi = 0.0;
+        double yi = 0.0;
+    };
     double sum_x, sum_xsq, sum_y, sum_xy;
 
     sum_x = 0.0;
@@ -181,26 +183,22 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeLine
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
 
     // We compute now the normal gap and set the nodes under certain threshold as active
-    #pragma omp parallel for firstprivate(xi, yi) reduction(+:sum_x,sum_xsq,sum_y,sum_xy,n)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = r_nodes_array.begin() + i;
-
-        if (it_node->Is(ACTIVE)) {
-            xi = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
+    using FiveReduction = CombinedReduction<SumReduction<double>, SumReduction<double>, SumReduction<double>, SumReduction<double>, SumReduction<SizeType>>;
+    std::tie(sum_x,sum_xsq,sum_y,sum_xy,n) = block_for_each<FiveReduction>(r_nodes_array, AuxValues(), [&](NodeType& rNode, AuxValues& aux_values) {
+        // We get the condition geometry
+        if (rNode.Is(ACTIVE)) {
+            aux_values.xi = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
             if (BaseType::mTypeSolution == BaseType::TypeSolution::NormalContactStress) {
-                yi = it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
+                aux_values.yi = rNode.FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
             } else {
-                const array_1d<double, 3>& lm = it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-                const array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
-                yi = inner_prod(lm, normal);
+                const array_1d<double, 3>& lm = rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                const array_1d<double, 3>& normal = rNode.FastGetSolutionStepValue(NORMAL);
+                aux_values.yi = inner_prod(lm, normal);
             }
-            sum_x += xi;
-            sum_xsq += std::pow(xi, 2);
-            sum_y += yi;
-            sum_xy += xi * yi;
-            n += 1;
+            return std::make_tuple(aux_values.xi, std::pow(aux_values.xi, 2), aux_values.yi, aux_values.xi * aux_values.yi, 1);
         }
-    }
+        return std::make_tuple(0.0,0.0,0.0,0.0,0);
+    });
 
     const double size = static_cast<double>(n);
     const double denom = size * sum_xsq - std::pow(sum_x, 2);

@@ -4,8 +4,6 @@
 //   Date:                $Date:               June 2021 $
 //   Revision:            $Revision:                 0.0 $
 //
-//   Implementation of the Gauss-Seidel two step Updated Lagrangian Velocity-Pressure element
-//     ( There is a ScalingConstant to multiply the mass balance equation for a number because i read it somewhere)
 //
 
 // System includes
@@ -140,7 +138,7 @@ namespace Kratos
 
           dynamicRHSi += rDN_DX(i, 0) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 1)) / TimeStep;
           dynamicRHSi += rDN_DX(i, 1) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 1)) / TimeStep;
-          if (TDim == 3)
+          if constexpr (TDim == 3)
           {
             dynamicRHSi += rDN_DX(i, 2) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 1)) / TimeStep;
           }

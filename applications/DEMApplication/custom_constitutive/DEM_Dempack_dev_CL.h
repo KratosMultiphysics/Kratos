@@ -18,10 +18,7 @@ namespace Kratos {
 
         DEM_Dempack_dev() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
-        ~DEM_Dempack_dev() {
-        }
+        ~DEM_Dempack_dev() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
@@ -100,7 +97,8 @@ namespace Kratos {
                                                       double ElasticLocalRotationalMoment[3],
                                                       double ViscoLocalRotationalMoment[3],
                                                       double equiv_poisson,
-                                                      double indentation) override;
+                                                      double indentation,
+                                                      double LocalElasticContactForce[3]) override;
 
 
         void AddPoissonContribution(const double equiv_poisson,

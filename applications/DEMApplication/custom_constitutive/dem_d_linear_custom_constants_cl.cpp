@@ -15,11 +15,6 @@ namespace Kratos {
         return Kratos::make_unique<DEM_D_Linear_Custom_Constants>();
     }
 
-    void DEM_D_Linear_Custom_Constants::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Linear_Custom_Constants to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }
-
     void DEM_D_Linear_Custom_Constants::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
 
         //Normal and Tangent elastic constants

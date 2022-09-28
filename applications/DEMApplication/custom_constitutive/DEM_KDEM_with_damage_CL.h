@@ -16,9 +16,12 @@ namespace Kratos {
 
         DEM_KDEM_with_damage() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
-        void SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose) override;
+
+
+
+
+
 
         ~DEM_KDEM_with_damage() {}
 
@@ -93,14 +96,17 @@ namespace Kratos {
                                                     double ElasticLocalRotationalMoment[3],
                                                     double ViscoLocalRotationalMoment[3],
                                                     double equiv_poisson,
-                                                    double indentation) override;
+                                                    double indentation,
+                                                    double LocalElasticContactForce[3]) override;
 
-        void FindMaximumValueOfNormalAndTangentialDamageComponents();
+
+        void CalculateNormalAndTangentialDamageComponents();
 
         double mDamageNormal = 0.0;
         double mDamageTangential = 0.0;
         double mDamageMoment = 0.0;
-        const double mDamageThresholdTolerance = 0.9999;
+        const double mDamageThresholdTolerance = 0.999;
+        double mDamageReal = 0.0;
 
     private:
 

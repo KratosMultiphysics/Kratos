@@ -17,6 +17,8 @@
 // Project includes
 #include "containers/model.h"
 #include "processes/from_json_check_result_process.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -374,7 +376,7 @@ void FromJSONCheckResultProcess::CheckNodeValues(IndexType& rCheckCounter)
 
 /***********************************************************************************/
 /***********************************************************************************/
-    
+
 void FromJSONCheckResultProcess::CheckNodeHistoricalValues(IndexType& rCheckCounter)
 {
     // Get time

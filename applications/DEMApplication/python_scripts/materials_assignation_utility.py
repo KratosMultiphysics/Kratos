@@ -26,6 +26,7 @@ class MaterialsAssignationUtility:
             properties_of_model_part_with_this_id = self.spheres_model_part.GetProperties()[material_id]
             properties = material["Variables"]
             self.read_materials_utility.AssignVariablesToProperty(material, properties_of_model_part_with_this_id)
+            self.read_materials_utility.AssignTablesToProperty(material, properties_of_model_part_with_this_id)
 
             for material_relation in list_of_material_relations:
                 subprops = None
@@ -43,7 +44,7 @@ class MaterialsAssignationUtility:
 
                     if subprops.Has(DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME):
                         continuum_constitutive_law_instance = globals().get(subprops[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME])()
-                        continuum_constitutive_law_instance.SetConstitutiveLawInPropertiesWithParameters(subprops, material_relation, True)
+                        continuum_constitutive_law_instance.SetConstitutiveLawInPropertiesWithParameters(subprops, material_relation, True)    
 
                     properties_of_model_part_with_this_id.AddSubProperties(subprops)
 

@@ -9,8 +9,6 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
 import KratosMultiphysics as KM
@@ -30,6 +28,7 @@ class DesignLoggerVTK( DesignLogger ):
             "name"       : "vtk",
             "vtk_parameters" : {
                 "model_part_name"        : "PLEASE_SPECIFY_MODEL_PART_NAME",
+                "write_ids"              : false,
                 "file_format"            : "binary",
                 "output_sub_model_parts" : false,
                 "output_path"            : "Optimization_Results"

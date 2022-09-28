@@ -20,8 +20,6 @@ namespace Kratos {
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
         void CalculateContactArea(double radius, double other_radius, double& calculation_area) override;
 
         void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
@@ -33,7 +31,8 @@ namespace Kratos {
                                               double ElasticLocalRotationalMoment[3],
                                               double ViscoLocalRotationalMoment[3],
                                               double equiv_poisson,
-                                              double indentation) override;
+                                              double indentation,
+                                              double LocalElasticContactForce[3]) override;
 
     private:
 

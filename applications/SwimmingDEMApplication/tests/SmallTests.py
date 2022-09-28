@@ -131,7 +131,12 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
+    debug_mode = False
+    if debug_mode:
+        severity = Logger.Severity.DETAIL
+    else:
+        severity = Logger.Severity.WARNING
+    Logger.GetDefaultOutput().SetSeverity(severity)
     UnitTest.runTests(AssembleTestSuites())
     UnitTest.main()
 

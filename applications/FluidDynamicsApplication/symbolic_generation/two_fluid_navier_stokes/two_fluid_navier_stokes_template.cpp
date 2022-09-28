@@ -13,6 +13,7 @@
 
 #include "two_fluid_navier_stokes.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
+#include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
 
 namespace Kratos
 {
@@ -79,7 +80,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
     noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-    if (TElementData::ElementManagesTimeIntegration){
+    if constexpr (TElementData::ElementManagesTimeIntegration){
         TElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
 
@@ -89,12 +90,6 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
             Matrix shape_functions_enr_pos, shape_functions_enr_neg;
             GeometryType::ShapeFunctionsGradientsType shape_derivatives_pos, shape_derivatives_neg;
             GeometryType::ShapeFunctionsGradientsType shape_derivatives_enr_pos, shape_derivatives_enr_neg;
-            Matrix int_shape_function_neg;                                       // interface shape functions
-            Matrix int_shape_function_enr_neg, int_shape_function_enr_pos;       // interface enriched shape functions
-            GeometryType::ShapeFunctionsGradientsType int_shape_derivatives_neg; // interface shape functions derivatives
-            Vector int_gauss_pts_weights;                                // interface Gauss points weights
-            std::vector<Vector> int_normals_neg;                                 // interface normal vector based on the negative side
-            Vector gauss_pts_curvature;                                  // curvatures calculated on interface Gauss points
 
             ModifiedShapeFunctions::Pointer p_modified_sh_func = pGetModifiedShapeFunctionsUtility(p_geom, data.Distance);
 
@@ -148,7 +143,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                         shape_derivatives_enr_pos[g_pos]);
 
                     this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
-                    ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
+                    this->ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
                 }
 
                 for (unsigned int g_neg = 0; g_neg < data.w_gauss_neg_side.size(); ++g_neg){
@@ -161,14 +156,80 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                         row(shape_functions_enr_neg, g_neg),
                         shape_derivatives_enr_neg[g_neg]);
                     this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
-                    ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
+                    this->ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
+                }
+
+                Matrix int_shape_function, int_shape_function_enr_neg, int_shape_function_enr_pos;
+                GeometryType::ShapeFunctionsGradientsType int_shape_derivatives;
+                Vector int_gauss_pts_weights;
+                std::vector< array_1d<double,3> > int_normals_neg;
+
+                if (rCurrentProcessInfo[SURFACE_TENSION] || rCurrentProcessInfo[MOMENTUM_CORRECTION]){
+                    ComputeSplitInterface(
+                        data,
+                        int_shape_function,
+                        int_shape_function_enr_pos,
+                        int_shape_function_enr_neg,
+                        int_shape_derivatives,
+                        int_gauss_pts_weights,
+                        int_normals_neg,
+                        p_modified_sh_func);
+                }
+
+                if (rCurrentProcessInfo[MOMENTUM_CORRECTION]){
+                    BoundedMatrix<double, LocalSize, LocalSize> lhs_acc_correction = ZeroMatrix(LocalSize,LocalSize);
+
+                    double positive_density = 0.0;
+                    double negative_density = 0.0;
+
+                    const auto& r_geom = this->GetGeometry();
+
+                    for (unsigned int intgp = 0; intgp < int_gauss_pts_weights.size(); ++intgp){
+                        double u_dot_n = 0.0;
+                        for (unsigned int i = 0; i < NumNodes; ++i){
+                            u_dot_n += int_shape_function(intgp,i)*r_geom[i].GetValue(DISTANCE_CORRECTION);
+
+                            if (data.Distance[i] > 0.0){
+                                positive_density = data.NodalDensity[i];
+                            } else {
+                                negative_density = data.NodalDensity[i];
+                            }
+                        }
+
+                        u_dot_n /= data.DeltaTime;
+
+                        for (unsigned int i = 0; i < NumNodes; ++i){
+                            for (unsigned int j = 0; j < NumNodes; ++j){
+                                for (unsigned int dim = 0; dim < NumNodes-1; ++dim){
+                                    lhs_acc_correction( i*(NumNodes) + dim, j*(NumNodes) + dim) +=
+                                        int_shape_function(intgp,i)*int_shape_function(intgp,j)*u_dot_n*int_gauss_pts_weights(intgp);
+                                }
+                            }
+                        }
+                    }
+
+                    lhs_acc_correction = (negative_density - positive_density)*lhs_acc_correction;
+                    noalias(rLeftHandSideMatrix) += lhs_acc_correction;
+
+                    Kratos::array_1d<double, LocalSize> tempU; // Unknowns vector containing only velocity components
+                    for (unsigned int i = 0; i < NumNodes; ++i){
+                        for (unsigned int dimi = 0; dimi < Dim; ++dimi){
+                            tempU[i*(Dim+1) + dimi] = data.Velocity(i,dimi);
+                        }
+                    }
+                    noalias(rRightHandSideVector) -= prod(lhs_acc_correction,tempU);
                 }
 
                 if (rCurrentProcessInfo[SURFACE_TENSION]){
 
                     AddSurfaceTensionContribution(
                         data,
-                        p_modified_sh_func,
+                        int_shape_function,
+                        int_shape_function_enr_pos,
+                        int_shape_function_enr_neg,
+                        int_shape_derivatives,
+                        int_gauss_pts_weights,
+                        int_normals_neg,
                         rLeftHandSideMatrix,
                         rRightHandSideVector,
                         Htot,
@@ -229,6 +290,46 @@ int TwoFluidNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcess
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public I/O
+
+template <class TElementData>
+const Parameters TwoFluidNavierStokes<TElementData>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["implicit"],
+        "framework"                  : "ale",
+        "symmetric_lhs"              : false,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : [],
+            "nodal_historical"       : ["VELOCITY","PRESSURE"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISTANCE","VELOCITY","PRESSURE","MESH_VELOCITY","DENSITY","DYNAMIC_VISCOSITY"],
+        "required_dofs"              : [],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : ["NewtonianTwoFluid2DLaw","NewtonianTwoFluid3DLaw"],
+            "dimension"   : ["2D","3D"],
+            "strain_size" : [3,6]
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   :
+            "This element implements Navier-Stokes biphasic fluid-air formulation with a levelset-based interface representation with Variational MultiScales (VMS) stabilization. Note that any viscous behavior can be used for the fluid phase through a constitutive law. The air phase is assumed to be Newtonian. Surface tension contribution can be accounted for by setting the SURFACE_TENSION variable to true in the ProcessInfo container.
+    })");
+
+    if (Dim == 2) {
+        std::vector<std::string> dofs_2d({"VELOCITY_X","VELOCITY_Y","PRESSURE"});
+        specifications["required_dofs"].SetStringArray(dofs_2d);
+    } else {
+        std::vector<std::string> dofs_3d({"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"});
+        specifications["required_dofs"].SetStringArray(dofs_3d);
+    }
+
+    return specifications;
+}
 
 template <class TElementData>
 std::string TwoFluidNavierStokes<TElementData>::Info() const
@@ -750,6 +851,22 @@ ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokes
     return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
 }
 
+template <>
+ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokesAlphaMethodData<2, 3> >::pGetModifiedShapeFunctionsUtility(
+    const GeometryType::Pointer pGeometry,
+    const Vector& rDistances)
+{
+    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
+}
+
+template <>
+ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokesAlphaMethodData<3, 4> >::pGetModifiedShapeFunctionsUtility(
+        const GeometryType::Pointer pGeometry,
+        const Vector& rDistances)
+{
+    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
+}
+
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::CalculateCurvatureOnInterfaceGaussPoints(
         const Matrix& rInterfaceShapeFunctions,
@@ -916,6 +1033,12 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
 }
 
 template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::CalculateStrainRate(TElementData& rData) const
+{
+    FluidElement<TElementData>::CalculateStrainRate(rData);
+}
+
+template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::CondenseEnrichmentWithContinuity(
     const TElementData &rData,
     Matrix &rLeftHandSideMatrix,
@@ -1008,7 +1131,12 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::AddSurfaceTensionContribution(
     const TElementData& rData,
-    ModifiedShapeFunctions::Pointer pModifiedShapeFunctions,
+    MatrixType& rInterfaceShapeFunction,
+    MatrixType& rEnrInterfaceShapeFunctionPos,
+    MatrixType& rEnrInterfaceShapeFunctionNeg,
+    GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
+    Vector& rInterfaceWeights,
+    std::vector< array_1d<double, 3> >& rInterfaceNormalsNeg,
     Matrix &rLeftHandSideMatrix,
     VectorType &rRightHandSideVector,
     const MatrixType &rHtot,
@@ -1018,40 +1146,27 @@ void TwoFluidNavierStokes<TElementData>::AddSurfaceTensionContribution(
 {
     // Surface tension coefficient is set in material properties
     const double surface_tension_coefficient = this->GetProperties().GetValue(SURFACE_TENSION_COEFFICIENT);
-    Matrix int_shape_function, int_shape_function_enr_neg, int_shape_function_enr_pos;
-    GeometryType::ShapeFunctionsGradientsType int_shape_derivatives;
-    Vector int_gauss_pts_weights;
-    std::vector<array_1d<double,3>> int_normals_neg;
-    Vector gauss_pts_curvature;
 
-    ComputeSplitInterface(
-        rData,
-        int_shape_function,
-        int_shape_function_enr_pos,
-        int_shape_function_enr_neg,
-        int_shape_derivatives,
-        int_gauss_pts_weights,
-        int_normals_neg,
-        pModifiedShapeFunctions);
+    Vector gauss_pts_curvature; // curvatures calculated on interface Gauss points
 
     CalculateCurvatureOnInterfaceGaussPoints(
-        int_shape_function,
+        rInterfaceShapeFunction,
         gauss_pts_curvature);
 
     SurfaceTension(
         surface_tension_coefficient,
         gauss_pts_curvature,
-        int_gauss_pts_weights,
-        int_shape_function,
-        int_normals_neg,
+        rInterfaceWeights,
+        rInterfaceShapeFunction,
+        rInterfaceNormalsNeg,
         rRightHandSideVector);
 
-    PressureGradientStabilization(
+    this->PressureGradientStabilization(
         rData,
-        int_gauss_pts_weights,
-        int_shape_function_enr_pos,
-        int_shape_function_enr_neg,
-        int_shape_derivatives,
+        rInterfaceWeights,
+        rEnrInterfaceShapeFunctionPos,
+        rEnrInterfaceShapeFunctionNeg,
+        rInterfaceShapeDerivatives,
         rKeeTot,
         rRHSeeTot);
 
@@ -1110,10 +1225,67 @@ void TwoFluidNavierStokes<TElementData>::CalculateOnIntegrationPoints(
     }
 }
 
+template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointLHSContribution(
+    TwoFluidNavierStokesAlphaMethodData<2, 3> &rData,
+    MatrixType &rLHS)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
+template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGaussPointLHSContribution(
+    TwoFluidNavierStokesAlphaMethodData<3, 4> &rData,
+    MatrixType &rLHS)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
+template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointRHSContribution(
+    TwoFluidNavierStokesAlphaMethodData<2, 3> &rData,
+    VectorType &rRHS)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
+template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGaussPointRHSContribution(
+    TwoFluidNavierStokesAlphaMethodData<3, 4> &rData,
+    VectorType &RLHS)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
+template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<2, 3>>::ComputeGaussPointEnrichmentContributions(
+    TwoFluidNavierStokesAlphaMethodData<2, 3> &rData,
+    MatrixType &rV,
+    MatrixType &rH,
+    MatrixType &rKee,
+    VectorType &rRHS_ee)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
+template <>
+void TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<3, 4>>::ComputeGaussPointEnrichmentContributions(
+    TwoFluidNavierStokesAlphaMethodData<3, 4> &rData,
+    MatrixType &rV,
+    MatrixType &rH,
+    MatrixType &rKee,
+    VectorType &rRHS_ee)
+{
+    KRATOS_ERROR << "This function should never be called. It is only to enable the explicit template instantiation." << std::endl;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
 template class TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>;
 template class TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>;
+
+template class TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<2, 3>>;
+template class TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<3, 4>>;
 
 } // namespace Kratos

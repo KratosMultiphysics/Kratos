@@ -419,7 +419,7 @@ protected:
             )
         {
             /* DoF */
-            if (TTensor == 1) {
+            if constexpr (TTensor == 1) {
                 for (IndexType i_node = 0; i_node < NumNodesMaster; ++i_node) {
                     u2(i_node, 0) = rGeometryInput[i_node].FastGetSolutionStepValue(*rpDoubleVariables[0]);
                 }
@@ -513,7 +513,7 @@ protected:
         // Slave element info
         rDofData.Initialize(GetParentGeometry());
 
-        if (TTensor == ScalarValue) {
+        if constexpr (TTensor == ScalarValue) {
             for (IndexType i_node = 0; i_node < NumNodes; i_node++) {
                 const double value = GetParentGeometry()[i_node].FastGetSolutionStepValue(*mpDoubleVariables[0]);
                 const double lm = GetParentGeometry()[i_node].FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER);
@@ -607,7 +607,7 @@ protected:
      * It returns theintegration method considered
      */
 
-    IntegrationMethod GetIntegrationMethod() override
+    IntegrationMethod GetIntegrationMethod() const override
     {
         // Setting the auxiliar integration points
         const IndexType integration_order = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;

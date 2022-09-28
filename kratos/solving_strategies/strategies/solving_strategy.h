@@ -86,10 +86,6 @@ public:
 
     typedef typename ModelPart::DofsArrayType                                  DofsArrayType;
 
-    typedef typename DofsArrayType::iterator                                 DofIteratorType;
-
-    typedef typename DofsArrayType::const_iterator                   DofConstantIteratorType;
-
     typedef ModelPart::NodesContainerType                                     NodesArrayType;
 
     typedef ModelPart::ElementsContainerType                               ElementsArrayType;
@@ -387,17 +383,7 @@ public:
             VariableUtils().CheckVariableExists<>(DISPLACEMENT, GetModelPart().Nodes());
         }
 
-        // Check elements, conditions and constraints
-        const auto& r_process_info = GetModelPart().GetProcessInfo();
-        for (const auto& r_elem : GetModelPart().Elements()) {
-            r_elem.Check(r_process_info);
-        }
-        for (const auto& r_cond : GetModelPart().Conditions()) {
-            r_cond.Check(r_process_info);
-        }
-        for (const auto& r_cons : GetModelPart().MasterSlaveConstraints()) {
-            r_cons.Check(r_process_info);
-        }
+        GetModelPart().Check();
 
         return 0;
 

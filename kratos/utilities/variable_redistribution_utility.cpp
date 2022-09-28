@@ -14,6 +14,7 @@
 #include "includes/fsi_variables.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "variable_redistribution_utility.h"
 
 namespace Kratos
@@ -358,7 +359,7 @@ void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
     });
 
     // Make sure that the distributed values are equal between processors
-    if (TIsHistorical) {
+    if constexpr (TIsHistorical) {
         rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
     } else {
         rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDistributedVariable);
@@ -378,7 +379,7 @@ void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
     });
 
     // Add the contributions between processors
-    if (TIsHistorical) {
+    if constexpr (TIsHistorical) {
         rModelPart.GetCommunicator().AssembleCurrentData(rPointVariable);
     } else {
         rModelPart.GetCommunicator().AssembleNonHistoricalData(rPointVariable);
@@ -392,14 +393,14 @@ void VariableRedistributionUtility::DummySpecializedConvertDistributedValuesToPo
     const Variable< TValueType >& rPointVariable)
 {
     // Make sure that the distributed values are equal between processors
-    if (TIsHistorical) {
+    if constexpr (TIsHistorical) {
         rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
     } else {
         rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDistributedVariable);
     }
 
     // Add the contributions between processors
-    if (TIsHistorical) {
+    if constexpr (TIsHistorical) {
         rModelPart.GetCommunicator().AssembleCurrentData(rPointVariable);
     } else {
         rModelPart.GetCommunicator().AssembleNonHistoricalData(rPointVariable);
@@ -430,7 +431,7 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
     });
 
     // Make sure that the initial approximation is the same between processes
-    if (TIsHistorical) {
+    if constexpr (TIsHistorical) {
         rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
     } else {
         rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDistributedVariable);
@@ -462,7 +463,7 @@ void VariableRedistributionUtility::DummySpecializedDistributePointValues(
     unsigned int MaximumIterations)
 {
     // Make sure that the initial approximation is the same between processes
-    if (TIsHistorical) {
+    if constexpr (TIsHistorical) {
         rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
     } else {
         rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDistributedVariable);

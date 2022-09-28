@@ -87,7 +87,7 @@ namespace Kratos
         const double dt_inv = 1.0 / delta_t;
         const double theta = rCurrentProcessInfo.Has(TIME_INTEGRATION_THETA) ? rCurrentProcessInfo[TIME_INTEGRATION_THETA] : 0.5;
 
-        auto p_conv_diff_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+        const auto& p_conv_diff_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const auto& r_unknown_var = p_conv_diff_settings->GetUnknownVariable();
         const auto& r_conv_var = p_conv_diff_settings->GetConvectionVariable();
         const auto& r_grad_var = p_conv_diff_settings->GetGradientVariable();
@@ -104,9 +104,8 @@ namespace Kratos
         array_1d<double,TNumNodes> phi, phi_old;
         array_1d< array_1d<double,3 >, TNumNodes> v, vold;
 
-        array_1d<double,3 > X_mean_tmp = ZeroVector(3);
-        array_1d< array_1d<double,3 >, TNumNodes> X_node;
-        double phi_mean_old = 0.0;
+        array_1d<double,3 > x_mean_tmp = ZeroVector(3);
+        array_1d< array_1d<double,3 >, TNumNodes> x_node;
         double phi_mean = 0.0;
 
         for (unsigned int i = 0; i < TNumNodes; ++i)
@@ -119,27 +118,26 @@ namespace Kratos
             v[i] = r_node.FastGetSolutionStepValue(r_conv_var);
             vold[i] = r_node.FastGetSolutionStepValue(r_conv_var,1);
 
-            X_mean_tmp += r_node.Coordinates();
-            X_node[i] = r_node.Coordinates();
+            x_mean_tmp += r_node.Coordinates();
+            x_node[i] = r_node.Coordinates();
 
-            phi_mean_old += r_node.FastGetSolutionStepValue(r_unknown_var,1);
             phi_mean += r_node.FastGetSolutionStepValue(r_unknown_var);
         }
 
         const double aux_weight = 1.0/static_cast<double>(TNumNodes);
 
         phi_mean *= aux_weight;
-        phi_mean_old *= aux_weight;
 
-        array_1d<double,TDim> X_mean;
+        array_1d<double,TDim> x_mean;
         for(unsigned int k = 0; k < TDim; k++)
         {
-            X_mean[k] = aux_weight*X_mean_tmp[k];
+            x_mean[k] = aux_weight*x_mean_tmp[k];
         }
 
         BoundedMatrix<double,TNumNodes, TNumNodes> K_matrix = ZeroMatrix(TNumNodes, TNumNodes); // convection
         BoundedMatrix<double,TNumNodes, TNumNodes> S_matrix = ZeroMatrix(TNumNodes, TNumNodes); // LHS stabilization
         Vector S_vector = ZeroVector(TNumNodes); // RHS stabilization
+        BoundedMatrix<double,TNumNodes, TNumNodes> S_vector_LHS = ZeroMatrix(TNumNodes, TNumNodes); // LHS contribution of S_vector (for theta method)
         BoundedMatrix<double,TNumNodes, TNumNodes> Mc_matrix = ZeroMatrix(TNumNodes, TNumNodes); // consistent mass matrix
         BoundedMatrix<double,TNumNodes, TNumNodes> Ml_matrix = IdentityMatrix(TNumNodes, TNumNodes); // lumped mass matrix
 
@@ -150,8 +148,9 @@ namespace Kratos
         this->GetShapeFunctionsOnGauss(Ncontainer);
 
         array_1d<double, TDim > vel_gauss;
-        array_1d<double, TDim > X_gauss;
+        array_1d<double, TDim > x_gauss;
         array_1d<double, TNumNodes > v_dot_grad_N;
+        array_1d<double, TNumNodes > dx_dot_grad_N;
 
         const double limiter = this->GetValue(LIMITER_COEFFICIENT);
 
@@ -161,19 +160,17 @@ namespace Kratos
 
             // Obtaining the velocity/coordinate at the gauss point
             vel_gauss = ZeroVector(TDim);
-            X_gauss = ZeroVector(TDim);
+            x_gauss = ZeroVector(TDim);
             double phi_gauss = 0.0;
-            double phi_gauss_old = 0.0;
 
             for (unsigned int i = 0; i < TNumNodes; ++i)
             {
                 for(unsigned int k=0; k<TDim; ++k)
                 {
-                    vel_gauss[k] += N[i]*v[i][k];
-                    X_gauss[k] += N[i]*X_node[i][k];
+                    vel_gauss[k] += N[i]*( (1.0 - theta)*vold[i][k] + theta*v[i][k] );
+                    x_gauss[k] += N[i]*x_node[i][k];
                 }
                 phi_gauss += N[i]*phi[i];
-                phi_gauss_old += N[i]*phi_old[i];
             }
 
             v_dot_grad_N = prod(DN_DX, vel_gauss);
@@ -185,6 +182,7 @@ namespace Kratos
             // If the high-order terms are necessary
             if (limiter > 1.0e-15){
                 array_1d<double,3 > grad_phi_mean_tmp = ZeroVector(3);
+                array_1d<double,3 > grad_phi_mean_predicted_tmp = ZeroVector(3);
 
                 for (unsigned int i = 0; i < TNumNodes; ++i){
                     const auto& r_node = r_geom[i];
@@ -192,12 +190,19 @@ namespace Kratos
                 }
 
                 array_1d<double,TDim> grad_phi_mean;
+                array_1d<double,TDim> grad_phi_mean_predicted;
                 for(unsigned int k = 0; k < TDim; k++) {
                     grad_phi_mean[k] = aux_weight*grad_phi_mean_tmp[k];
+                    grad_phi_mean_predicted[k] = aux_weight*grad_phi_mean_predicted_tmp[k];
                 }
 
+                dx_dot_grad_N = prod(DN_DX, x_gauss - x_mean);
+
                 for (unsigned int i = 0; i < TNumNodes; ++i){
-                    S_vector[i] += ( (phi_gauss_old - phi_mean_old) - inner_prod( grad_phi_mean, (X_gauss - X_mean) ) )*N[i];
+                    S_vector[i] += (  (1.0 - theta)*(phi_gauss - phi_mean ) - inner_prod( ( (1.0 - theta)*grad_phi_mean ), (x_gauss - x_mean) ) )*N[i];
+                    for (unsigned int j = 0; j < TNumNodes; ++j){
+                        S_vector_LHS(i, j) = (aux_weight - N[j] + dx_dot_grad_N[j]) * N[i];
+                    }
                 }
             }
         }
@@ -217,7 +222,7 @@ namespace Kratos
         }
 
         // Determining the necessity to add higher-order terms
-        if (limiter > 1.0e-15){
+        if (limiter > 1.0e-12){
             noalias(M_matrix)  = dt_inv*((1.0-limiter)*Ml_matrix + limiter*Mc_matrix);
             noalias(L_matrix) = K_matrix + (1.0-limiter)*nu_e*S_matrix;
         } else {
@@ -225,7 +230,7 @@ namespace Kratos
             noalias(L_matrix) = K_matrix + nu_e*S_matrix;
         }
 
-        noalias(rLeftHandSideMatrix)  = M_matrix + theta*L_matrix;
+        noalias(rLeftHandSideMatrix)  = M_matrix + theta*( L_matrix + S_vector_LHS );
         noalias(rRightHandSideVector) = prod( M_matrix - (1.0 - theta)*L_matrix , phi_old) - limiter*nu_e*S_vector;
 
         // Taking out the dirichlet part to finish computing the residual

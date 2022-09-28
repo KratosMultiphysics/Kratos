@@ -198,6 +198,13 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(CouplingGeometryCurvesOnSurfaceCreateIntegrationPoints, KratosCoreCouplingGeometriesFastSuite) {
             auto p_coupling_geometry = GenerateNurbsCurveOnSurfaceCouplingGeometry();
 
+            std::vector<double> spans;
+            p_coupling_geometry->SpansLocalSpace(spans, 0);
+            KRATOS_CHECK_EQUAL(spans.size(), 3);
+            KRATOS_CHECK_NEAR(spans[0], 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(spans[1], 0.355753, TOLERANCE);
+            KRATOS_CHECK_NEAR(spans[2], 1.570796, TOLERANCE);
+
             typename GeometryType::IntegrationPointsArrayType integration_points;
             IntegrationInfo integration_info = p_coupling_geometry->GetDefaultIntegrationInfo();
             p_coupling_geometry->CreateIntegrationPoints(integration_points, integration_info);

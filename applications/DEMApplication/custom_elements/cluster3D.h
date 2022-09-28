@@ -57,6 +57,9 @@ namespace Kratos
         virtual double SlowGetDensity();
         virtual int SlowGetParticleMaterial();
 
+        double GetProgrammedDestructionTime() const {return mProgrammedDestructionTime;}
+        void SetProgrammedDestructionTime(const double destruction_time){mProgrammedDestructionTime = destruction_time;}
+
         virtual std::string Info() const override
         {
 	    std::stringstream buffer;
@@ -78,8 +81,9 @@ namespace Kratos
 
     protected:
 
-        std::vector<double>               mListOfRadii;
-        std::vector<SphericParticle*>     mListOfSphericParticles;
+        std::vector<double> mListOfRadii;
+        std::vector<SphericParticle*> mListOfSphericParticles;
+        double mProgrammedDestructionTime = -1.0; // set to a negative value, so that when marked TO_ERASE, elimination is by default.
 
     private:
 

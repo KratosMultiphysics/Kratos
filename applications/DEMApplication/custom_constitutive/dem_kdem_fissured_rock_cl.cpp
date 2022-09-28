@@ -14,11 +14,6 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEM_Fissured_Rock_CL::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        KRATOS_INFO("DEM") << "Assigning DEM_KDEM_Fissured_Rock_CL to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }
-
     double DEM_KDEM_Fissured_Rock_CL::LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
 
         const double& mohr_coulomb_c = (*mpProperties)[INTERNAL_COHESION];
@@ -45,7 +40,15 @@ namespace Kratos {
         return u1;
     }
 
-    void DEM_KDEM_Fissured_Rock_CL::CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2){
+    void DEM_KDEM_Fissured_Rock_CL::CheckFailure(const int i_neighbour_count, 
+                                        SphericContinuumParticle* element1, 
+                                        SphericContinuumParticle* element2,
+                                        double& contact_sigma,
+                                        double& contact_tau, 
+                                        double LocalElasticContactForce[3],
+                                        double ViscoDampingLocalContactForce[3],
+                                        double ElasticLocalRotationalMoment[3],
+                                        double ViscoLocalRotationalMoment[3]){
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 

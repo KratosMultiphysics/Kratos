@@ -9,8 +9,6 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
 import KratosMultiphysics as KM
@@ -117,6 +115,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
         self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.mapper_settings)
         self.mapper.Initialize()
+        self.model_part_controller.InitializeDamping()
 
         if self.filter_penalty_term:
             penalty_filter_radius = self.algorithm_settings["penalty_filter_radius"].GetDouble()
@@ -210,7 +209,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                     new_shape_change = node.GetSolutionStepValue(KSO.ALPHA_MAPPED) * node.GetValue(KSO.BEAD_DIRECTION) * self.bead_height
                     node.SetSolutionStepValue(KSO.SHAPE_CHANGE, new_shape_change)
 
-                self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_CHANGE)
+                self.model_part_controller.DampNodalUpdateVariableIfSpecified(KSO.SHAPE_CHANGE)
 
                 for node in self.design_surface.Nodes:
                     shape_update = node.GetSolutionStepValue(KSO.SHAPE_CHANGE,0) - node.GetSolutionStepValue(KSO.SHAPE_CHANGE,1)
@@ -230,7 +229,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
                 WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX)
 
-                self.model_part_controller.DampNodalVariableIfSpecified(KSO.DF1DX)
+                self.model_part_controller.DampNodalSensitivityVariableIfSpecified(KSO.DF1DX)
 
                 # Compute sensitivities w.r.t. scalar design variable alpha
                 for node in self.design_surface.Nodes:

@@ -17,18 +17,23 @@ namespace Kratos {
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_Rankine);
 
-        DEM_KDEM_Rankine() {
-        }
+        DEM_KDEM_Rankine() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
         void Check(Properties::Pointer pProp) const override;
 
-        ~DEM_KDEM_Rankine() {
-        }
+        ~DEM_KDEM_Rankine() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
-        void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
+        virtual void CheckFailure(const int i_neighbour_count, 
+                                    SphericContinuumParticle* element1, 
+                                    SphericContinuumParticle* element2,
+                                    double& contact_sigma,
+                                    double& contact_tau, 
+                                    double LocalElasticContactForce[3],
+                                    double ViscoDampingLocalContactForce[3],
+                                    double ElasticLocalRotationalMoment[3],
+                                    double ViscoLocalRotationalMoment[3]) override;
 
         void CalculateNormalForces(double LocalElasticContactForce[3],
                 const double kn_el,

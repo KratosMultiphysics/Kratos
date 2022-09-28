@@ -14,12 +14,6 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_Dempack_dev::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_Dempack_dev to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }
-
-
     void DEM_Dempack_dev::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
 
         double rmin = radius;
@@ -317,7 +311,8 @@ namespace Kratos {
                                                     double ElasticLocalRotationalMoment[3],
                                                     double ViscoLocalRotationalMoment[3],
                                                     double equiv_poisson,
-                                                    double indentation) {
+                                                    double indentation,
+                                                    double LocalElasticContactForce[3]) {
 
         KRATOS_TRY
         double LocalDeltaRotatedAngle[3]    = {0.0};

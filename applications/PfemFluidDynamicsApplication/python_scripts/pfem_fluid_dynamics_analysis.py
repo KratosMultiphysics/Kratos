@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import time as timer
 import os
@@ -249,7 +248,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
             self.output_settings = self.project_parameters["output_configuration"]
             self.post_process_model_part = self.model.CreateModelPart("output_model_part")
             return GiDOutputProcess(self.post_process_model_part,
-                                    self.problem_name,
+                                    "gid_output/" + self.problem_name,
                                     self.output_settings)
         else:
             return (KratosMultiphysics.Process())
@@ -355,7 +354,8 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
             elif (self.constitutive_laws_names[i].GetString()=="Hypoelastic2DLaw" or self.constitutive_laws_names[i].GetString()=="Hypoelastic3DLaw"):
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO)
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
-            elif (self.constitutive_laws_names[i].GetString()=="Bingham2DLaw" or self.constitutive_laws_names[i].GetString()=="Bingham3DLaw"):
+            elif (self.constitutive_laws_names[i].GetString()=="Bingham2DLaw" or self.constitutive_laws_names[i].GetString()=="Bingham3DLaw" or
+            self.constitutive_laws_names[i].GetString()=="HerschelBulkley2DLaw" or self.constitutive_laws_names[i].GetString()=="HerschelBulkley3DLaw"):
                 self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX)
                 self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELD_SHEAR)
                 self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELDED)
@@ -414,6 +414,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ISOLATED_NODE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_H_WALL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.SHRINK_FACTOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)

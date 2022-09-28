@@ -8,8 +8,6 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
 import KratosMultiphysics as KM
@@ -79,6 +77,12 @@ class Optimizer:
     def __AddVariablesToBeUsedByDesignVariables(self):
         if self.optimization_settings["design_variables"]["filter"].Has("in_plane_morphing") and \
             self.optimization_settings["design_variables"]["filter"]["in_plane_morphing"].GetBool():
+                model_part = self.model_part_controller.GetOptimizationModelPart()
+                model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
+                model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
+                model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
+        if self.optimization_settings["design_variables"]["filter"].Has("sliding_morphing") and \
+            self.optimization_settings["design_variables"]["filter"]["sliding_morphing"].GetBool():
                 model_part = self.model_part_controller.GetOptimizationModelPart()
                 model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
                 model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)

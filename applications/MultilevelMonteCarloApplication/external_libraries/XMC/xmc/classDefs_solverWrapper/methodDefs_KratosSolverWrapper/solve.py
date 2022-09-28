@@ -11,30 +11,12 @@ import KratosMultiphysics
 from KratosMultiphysics.MultilevelMonteCarloApplication.adaptive_refinement_utilities import AdaptiveRefinement
 from exaqute import *
 
-try:
-    computing_units_mlmc_execute_0 = int(os.environ["computing_units_mlmc_execute_0"])
-except:
-    computing_units_mlmc_execute_0 = 1
-try:
-    computing_units_mlmc_execute_1 = int(os.environ["computing_units_mlmc_execute_1"])
-except:
-    computing_units_mlmc_execute_1 = 1
-try:
-    computing_units_mlmc_execute_2 = int(os.environ["computing_units_mlmc_execute_2"])
-except:
-    computing_units_mlmc_execute_2 = 1
-try:
-    computing_units_mlmc_execute_3 = int(os.environ["computing_units_mlmc_execute_3"])
-except:
-    computing_units_mlmc_execute_3 = 1
-try:
-    computing_units_mlmc_execute_4 = int(os.environ["computing_units_mlmc_execute_4"])
-except:
-    computing_units_mlmc_execute_4 = 1
-try:
-    computing_units_mlmc_execute_5 = int(os.environ["computing_units_mlmc_execute_5"])
-except:
-    computing_units_mlmc_execute_5 = 1
+computing_units_mlmc_execute_0 = int(os.getenv("computing_units_mlmc_execute_0", 1))
+computing_units_mlmc_execute_1 = int(os.getenv("computing_units_mlmc_execute_1", 1))
+computing_units_mlmc_execute_2 = int(os.getenv("computing_units_mlmc_execute_2", 1))
+computing_units_mlmc_execute_3 = int(os.getenv("computing_units_mlmc_execute_3", 1))
+computing_units_mlmc_execute_4 = int(os.getenv("computing_units_mlmc_execute_4", 1))
+computing_units_mlmc_execute_5 = int(os.getenv("computing_units_mlmc_execute_5", 1))
 
 ####################################################################################################
 ############################################ WRAPPERS ##############################################

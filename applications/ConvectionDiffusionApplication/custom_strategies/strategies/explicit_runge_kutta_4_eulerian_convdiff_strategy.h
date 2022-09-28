@@ -19,7 +19,7 @@
 /* External includes */
 
 /* Project includes */
-#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta.h"
 #include "includes/convection_diffusion_settings.h"
 
 namespace Kratos
@@ -155,7 +155,6 @@ public:
                 r_node.SetValue(r_settings.GetProjectionVariable(), 0.0);
             }
         }
-        r_process_info.GetValue(TIME_INTEGRATION_THETA) = 0.0;
 
         KRATOS_CATCH("");
     }
@@ -214,16 +213,7 @@ protected:
 
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
-        // set interpolation parameter TIME_INTEGRATION_THETA
-        if (r_process_info.GetValue(RUNGE_KUTTA_STEP) == 1) {
-            r_process_info.GetValue(TIME_INTEGRATION_THETA) = 0.0;
-        }
-        else if (r_process_info.GetValue(RUNGE_KUTTA_STEP) == 2 || r_process_info.GetValue(RUNGE_KUTTA_STEP) == 3) {
-            r_process_info.GetValue(TIME_INTEGRATION_THETA) = 0.5;
-        }
-        else {
-            KRATOS_ERROR << "RUNGE-KUTTA step not correctly set.";
-        }
+
         // execute OSS step, if needed
         if (r_process_info[OSS_SWITCH] == 1) {
             CalculateOSSNodalProjections();
@@ -243,13 +233,7 @@ protected:
         BaseType::InitializeRungeKuttaLastSubStep();
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
-        // set interpolation parameter TIME_INTEGRATION_THETA
-        if (r_process_info.GetValue(RUNGE_KUTTA_STEP) == 4) {
-            r_process_info.GetValue(TIME_INTEGRATION_THETA) = 1.0;
-        }
-        else {
-            KRATOS_ERROR << "RUNGE-KUTTA step not correctly set.";
-        }
+
         // execute OSS step, if needed
         if (r_process_info[OSS_SWITCH] == 1) {
             CalculateOSSNodalProjections();
@@ -270,8 +254,6 @@ protected:
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
         if (r_process_info.GetValue(RUNGE_KUTTA_STEP) == 4) {
-            // set interpolation parameter TIME_INTEGRATION_THETA
-            r_process_info.GetValue(TIME_INTEGRATION_THETA) = 1.0;
             // execute OSS step, if needed
             if (r_process_info[OSS_SWITCH] == 1) {
                 CalculateOSSNodalProjections();

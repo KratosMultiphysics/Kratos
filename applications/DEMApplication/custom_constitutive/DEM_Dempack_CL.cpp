@@ -9,6 +9,7 @@
 #include "DEM_Dempack_CL.h"
 //#include "custom_elements/spheric_particle.h"
 #include "custom_elements/spheric_continuum_particle.h"
+#include "dem_contact.h"
 
 namespace Kratos {
 
@@ -29,19 +30,6 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_Dempack::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_Dempack to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }
-
-    void DEM_Dempack::SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose) {
-        KRATOS_INFO("DEM") << "Assigning DEM_Dempack to Properties " << pProp->Id() <<" with given parameters"<< std::endl;
-        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-
-        TransferParametersToProperties(parameters, pProp);
-
-        this->Check(pProp);
-    }
 
     void DEM_Dempack::TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp)  {
         BaseClassType::TransferParametersToProperties(parameters, pProp);
@@ -58,10 +46,6 @@ namespace Kratos {
         pProp->SetValue(SLOPE_LIMIT_COEFF_C3, parameters["CONTACT_TAU_ZERO"].GetDouble());
         pProp->SetValue(SLOPE_LIMIT_COEFF_C3, parameters["CONTACT_INTERNAL_FRICC"].GetDouble());
         pProp->SetValue(SLOPE_LIMIT_COEFF_C3, parameters["SHEAR_ENERGY_COEF"].GetDouble());
-    }
-
-    void DEM_Dempack::Check(Properties::Pointer pProp) const {
-        BaseClassType::Check(pProp);
     }
 
     void DEM_Dempack::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
@@ -368,13 +352,44 @@ namespace Kratos {
     }
 
 
+    void DEM_Dempack::Check(Properties::Pointer pProp) const {
+        if(!pProp->Has(STATIC_FRICTION)) {
+            if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
+                KRATOS_WARNING("DEM")<<std::endl;
+                KRATOS_WARNING("DEM")<<"WARNING: Variable STATIC_FRICTION or FRICTION should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+                KRATOS_WARNING("DEM")<<std::endl;
+                pProp->GetValue(STATIC_FRICTION) = 0.0;
+            }
+            else {
+                pProp->GetValue(STATIC_FRICTION) = pProp->GetValue(FRICTION);
+            }
+        }
+        if(!pProp->Has(DYNAMIC_FRICTION)) {
+            if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
+                KRATOS_WARNING("DEM")<<std::endl;
+                KRATOS_WARNING("DEM")<<"WARNING: Variable DYNAMIC_FRICTION or FRICTION should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+                KRATOS_WARNING("DEM")<<std::endl;
+                pProp->GetValue(DYNAMIC_FRICTION) = 0.0;
+            }
+            else {
+                pProp->GetValue(DYNAMIC_FRICTION) = pProp->GetValue(FRICTION);
+            }
+        }
+        if(!pProp->Has(FRICTION_DECAY)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable FRICTION_DECAY should be present in the properties when using DEMContinuumConstitutiveLaw. 500.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(FRICTION_DECAY) = 500.0;
+        }
+        if(!pProp->Has(COEFFICIENT_OF_RESTITUTION)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable COEFFICIENT_OF_RESTITUTION should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(COEFFICIENT_OF_RESTITUTION) = 0.0;
+        }
+    }
 
-      /////// check old tangential forces calculations with unstable rotations
 
-
-
-
-//     /*
     void DEM_Dempack::CalculateTangentialForces(double OldLocalElasticContactForce[3],
                                                 double LocalElasticContactForce[3],
 						                        double LocalElasticExtraContactForce[3],
@@ -481,6 +496,52 @@ namespace Kratos {
     KRATOS_CATCH("")
     }
 
+    void DEM_Dempack::CalculateMoments(SphericContinuumParticle* element, 
+                    SphericContinuumParticle* neighbor, 
+                    double equiv_young, 
+                    double distance, 
+                    double calculation_area,
+                    double LocalCoordSystem[3][3], 
+                    double ElasticLocalRotationalMoment[3], 
+                    double ViscoLocalRotationalMoment[3], 
+                    double equiv_poisson, 
+                    double indentation, 
+                    double LocalElasticContactForce[3],
+                    double normalLocalContactForce,
+                    double GlobalElasticContactForces[3],
+                    double LocalCoordSystem_2[3],
+                    const int i_neighbor_count) 
+    {
+        KRATOS_TRY
+
+        int failure_type = element->mIniNeighbourFailureId[i_neighbor_count];
+        //int continuum_ini_neighbors_size = element->mContinuumInitialNeighborsSize;
+
+        if (failure_type == 0) {
+                ComputeParticleRotationalMoments(element, 
+                                        neighbor, 
+                                        equiv_young, 
+                                        distance, 
+                                        calculation_area,
+                                        LocalCoordSystem, 
+                                        ElasticLocalRotationalMoment, 
+                                        ViscoLocalRotationalMoment, 
+                                        equiv_poisson, 
+                                        indentation, 
+                                        LocalElasticContactForce);
+        }             
+
+        DemContact::ComputeParticleContactMoments(normalLocalContactForce,
+                                                GlobalElasticContactForces,
+                                                LocalCoordSystem_2,
+                                                element,
+                                                neighbor,
+                                                indentation,
+                                                i_neighbor_count);
+
+        KRATOS_CATCH("")
+    }
+
     void DEM_Dempack::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                     SphericContinuumParticle* neighbor,
                                                     double equiv_young,
@@ -490,7 +551,8 @@ namespace Kratos {
                                                     double ElasticLocalRotationalMoment[3],
                                                     double ViscoLocalRotationalMoment[3],
                                                     double equiv_poisson,
-                                                    double indentation) {}  //ComputeParticleRotationalMoments
+                                                    double indentation,
+                                                    double LocalElasticContactForce[3]) {}  //ComputeParticleRotationalMoments
 
 
 

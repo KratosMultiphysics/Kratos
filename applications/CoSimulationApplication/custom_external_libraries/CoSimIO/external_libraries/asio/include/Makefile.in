@@ -273,7 +273,9 @@ top_srcdir = @top_srcdir@
 nobase_include_HEADERS = \
 	asio/any_io_executor.hpp \
 	asio/associated_allocator.hpp \
+	asio/associated_cancellation_slot.hpp \
 	asio/associated_executor.hpp \
+	asio/associator.hpp \
 	asio/async_result.hpp \
 	asio/awaitable.hpp \
 	asio/basic_datagram_socket.hpp \
@@ -291,6 +293,7 @@ nobase_include_HEADERS = \
 	asio/basic_streambuf.hpp \
 	asio/basic_stream_socket.hpp \
 	asio/basic_waitable_timer.hpp \
+	asio/bind_cancellation_slot.hpp \
 	asio/bind_executor.hpp \
 	asio/buffered_read_stream_fwd.hpp \
 	asio/buffered_read_stream.hpp \
@@ -300,6 +303,9 @@ nobase_include_HEADERS = \
 	asio/buffered_write_stream.hpp \
 	asio/buffer.hpp \
 	asio/buffers_iterator.hpp \
+	asio/cancellation_signal.hpp \
+	asio/cancellation_state.hpp \
+	asio/cancellation_type.hpp \
 	asio/co_spawn.hpp \
 	asio/completion_condition.hpp \
 	asio/compose.hpp \
@@ -312,6 +318,7 @@ nobase_include_HEADERS = \
 	asio/detail/array.hpp \
 	asio/detail/assert.hpp \
 	asio/detail/atomic_count.hpp \
+	asio/detail/base_from_cancellation_state.hpp \
 	asio/detail/base_from_completion_cond.hpp \
 	asio/detail/bind_handler.hpp \
 	asio/detail/blocking_executor_op.hpp \
@@ -390,6 +397,7 @@ nobase_include_HEADERS = \
 	asio/detail/impl/strand_executor_service.ipp \
 	asio/detail/impl/strand_service.hpp \
 	asio/detail/impl/strand_service.ipp \
+	asio/detail/impl/thread_context.ipp \
 	asio/detail/impl/throw_error.ipp \
 	asio/detail/impl/timer_queue_ptime.ipp \
 	asio/detail/impl/timer_queue_set.ipp \
@@ -580,8 +588,8 @@ nobase_include_HEADERS = \
 	asio/execution/detail/as_operation.hpp \
 	asio/execution/detail/as_receiver.hpp \
 	asio/execution/detail/bulk_sender.hpp \
-	asio/execution/detail/void_receiver.hpp \
 	asio/execution/detail/submit_receiver.hpp \
+	asio/execution/detail/void_receiver.hpp \
 	asio/execution/execute.hpp \
 	asio/execution/executor.hpp \
 	asio/execution/impl/bad_executor.ipp \
@@ -605,8 +613,28 @@ nobase_include_HEADERS = \
 	asio/execution/submit.hpp \
 	asio/executor.hpp \
 	asio/executor_work_guard.hpp \
+	asio/experimental/append.hpp \
 	asio/experimental/as_single.hpp \
+	asio/experimental/as_tuple.hpp \
+	asio/experimental/awaitable_operators.hpp \
+	asio/experimental/cancellation_condition.hpp \
+	asio/experimental/coro.hpp \
+	asio/experimental/deferred.hpp \
+	asio/experimental/detail/completion_handler_erasure.hpp \
+	asio/experimental/detail/coro_promise_allocator.hpp \
+	asio/experimental/detail/coro_traits.hpp \
+	asio/experimental/detail/partial_promise.hpp \
+	asio/experimental/impl/append.hpp \
 	asio/experimental/impl/as_single.hpp \
+	asio/experimental/impl/as_tuple.hpp \
+	asio/experimental/impl/deferred.hpp \
+	asio/experimental/impl/parallel_group.hpp \
+	asio/experimental/impl/prepend.hpp \
+	asio/experimental/impl/promise.hpp \
+	asio/experimental/parallel_group.hpp \
+	asio/experimental/prepend.hpp \
+	asio/experimental/promise.hpp \
+	asio/experimental/use_coro.hpp \
 	asio/generic/basic_endpoint.hpp \
 	asio/generic/datagram_protocol.hpp \
 	asio/generic/detail/endpoint.hpp \
@@ -646,7 +674,6 @@ nobase_include_HEADERS = \
 	asio/impl/serial_port_base.hpp \
 	asio/impl/serial_port_base.ipp \
 	asio/impl/spawn.hpp \
-	asio/impl/src.cpp \
 	asio/impl/src.hpp \
 	asio/impl/system_context.hpp \
 	asio/impl/system_context.ipp \

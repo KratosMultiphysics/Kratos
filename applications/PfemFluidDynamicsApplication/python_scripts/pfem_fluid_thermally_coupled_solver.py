@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 
 # Importing the Kratos Library
 import KratosMultiphysics as KM
@@ -60,7 +59,7 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
                 "compute_contact_forces": false,
                 "block_builder": false,
                 "component_wise": false,
-                "predictor_corrector": true,         
+                "predictor_corrector": true,
                 "time_order": 2,
                 "maximum_velocity_iterations": 1,
                 "maximum_pressure_iterations": 7,
@@ -229,13 +228,22 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
 
     def PrepareThermalModelPart(self):
         # Thermal model part is being prepared here instead of calling its application
-        # because there is a small change needed in that function (self.thermal_solver.PrepareModelPart())
+        # because there is a small change needed in that function (self.thermal_solver.PrepareModelPart()).
+        # ATTENTION: in the future, better call self.thermal_solver.PrepareModelPart(), but sending a flag
+        # to not execute TetrahedralMeshOrientationCheck inside that function.
         if not self.thermal_solver.is_restarted():
-            self.thermal_solver._execute_after_reading()
+            materials_imported = self.thermal_solver.import_materials()
+            if materials_imported:
+                KM.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were successfully imported.")
+            else:
+                KM.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
+
             KM.ReplaceElementsAndConditionsProcess(self.thermal_solver.main_model_part,self.thermal_solver._get_element_condition_replace_settings()).Execute()
             self.thermal_solver._set_and_fill_buffer()
+
         if (self.thermal_solver.settings["echo_level"].GetInt() > 0):
             KM.Logger.PrintInfo(self.thermal_solver.model)
+
         KM.Logger.PrintInfo("::[ConvectionDiffusionSolver]::", "ModelPart prepared for Solver.")
 
     def AddMaterialVariables(self):
@@ -250,7 +258,7 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KM.BULK_MODULUS)
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KM.DYNAMIC_VISCOSITY):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KM.DYNAMIC_VISCOSITY)
-        
+
         for i in range(self.constitutive_laws_names.size()):
             if (self.constitutive_laws_names[i].GetString()=="FrictionalViscoplasticTemperatureDependent2DLaw" or self.constitutive_laws_names[i].GetString()=="FrictionalViscoplasticTemperatureDependent3DLaw"):
                 if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KM.INTERNAL_FRICTION_ANGLE):
@@ -300,7 +308,7 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
                         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ALPHA_PARAMETER)
             elif (self.constitutive_laws_names[i].GetString()!="None" and self.constitutive_laws_names[i].GetString()!="NewtonianTemperatureDependent2DLaw" and self.constitutive_laws_names[i].GetString()!="NewtonianTemperatureDependent3DLaw"):
                 print("ERROR: THE CONSTITUTIVE LAW PROVIDED FOR THIS SUBMODEL PART IS NOT IN THE PFEM FLUID DATABASE")
-        
+
 
     def AddPfemVariables(self):
         print("Add Pfem Variables in pfem_fluid_thermally_coupled_analysis")
@@ -336,6 +344,9 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
 
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.ISOLATED_NODE):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ISOLATED_NODE)
+
+        if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.NODAL_H_WALL):
+            self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_H_WALL)
 
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KM.NODAL_H):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H)

@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/stream_serializer.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "mapper_utilities.h"
 #include "mapping_application_variables.h"
 
@@ -328,7 +329,7 @@ void RestoreCurrentConfiguration(ModelPart& rModelPart)
 
         block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
             noalias(rNode.Coordinates()) = rNode.GetValue(CURRENT_COORDINATES);
-            rNode.Data().Erase(CURRENT_COORDINATES);
+            rNode.GetData().Erase(CURRENT_COORDINATES);
         });
     }
 
@@ -361,7 +362,7 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
 
             const auto& rp_local_sys = rMapperLocalSystems[i_local_sys];
 
-            if (!rp_local_sys->HasInterfaceInfoThatIsNotAnApproximation()) {
+            if (!rp_local_sys->IsDoneSearching()) {
                 const auto& r_coords = rp_local_sys->Coordinates();
                 if (MapperUtilities::PointIsInsideBoundingBox(bounding_box, r_coords)) {
                     // These push_backs are threadsafe bcs only one vector is accessed per thread!
@@ -411,7 +412,7 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
             double int_part;
             double fract_part = std::modf((r_rank_buffer[j*4]+0.1), &int_part);
 
-            KRATOS_ERROR_IF(std::abs(fract_part-0.1) > 1e-12)
+            KRATOS_ERROR_IF(std::abs(fract_part-0.1) > 1e-10)
                 << "Buffer contains a double (" << r_rank_buffer[j*4]
                 << ") that was not casted from an int, i.e. it contains a "
                 << "fractional part of " << std::abs(fract_part-0.1) << "!" << std::endl;
