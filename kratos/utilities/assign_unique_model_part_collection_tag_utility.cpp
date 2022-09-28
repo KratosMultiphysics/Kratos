@@ -161,6 +161,7 @@ void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
             aux_set.insert(r_name);
         }
         std::vector<std::string> aux_vector;
+        aux_vector.reserve(aux_set.size());
         for (auto& r_name : aux_set) {
             aux_vector.push_back(r_name);
         }
@@ -302,7 +303,7 @@ std::vector<std::string> AssignUniqueModelPartCollectionTagUtility::GetRecursive
         r_name.insert(0, Prefix);
         sub_model_parts_names.push_back(r_name);
         const auto sub_names = GetRecursiveSubModelPartNames(r_sub_model_part, r_name);
-        for (auto r_sub_name : sub_names)
+        for (const auto& r_sub_name : sub_names)
             sub_model_parts_names.push_back(r_sub_name);
     }
 

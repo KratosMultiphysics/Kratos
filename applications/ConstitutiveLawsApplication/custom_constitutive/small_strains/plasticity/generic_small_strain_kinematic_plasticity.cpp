@@ -19,7 +19,7 @@
 #include "constitutive_laws_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "generic_small_strain_kinematic_plasticity.h"
-#include "custom_constitutive/auxiliar_files/constitutive_laws_integrators/generic_constitutive_law_integrator_kinematic_plasticity.h"
+#include "custom_constitutive/auxiliar_files/cl_integrators/generic_cl_integrator_kinematic_plasticity.h"
 
 // Yield surfaces
 #include "custom_constitutive/auxiliar_files/yield_surfaces/generic_yield_surface.h"

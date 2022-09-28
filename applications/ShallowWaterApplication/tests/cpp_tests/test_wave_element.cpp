@@ -140,9 +140,9 @@ KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3N_BottomFriction, ShallowWaterApplicatio
     const double manning = 0.01;
     const double height = 5.0;
     array_1d<double,3> velocity = ZeroVector(3);
-    velocity[0] = 0.6;
+    velocity[0] = 0.2;
     array_1d<double,3> height_gradient = ZeroVector(3);
-    height_gradient[0] = 0.03;
+    height_gradient[0] = 0.01;
     const double central_height = height + height_gradient[0] / 3.; // at the barycenter of the element
     const array_1d<double,3> friction = std::pow(manning,2) * norm_2(velocity) * velocity / std::pow(central_height,4.0/3.0);
     const array_1d<double,3> slope = -height_gradient -friction;

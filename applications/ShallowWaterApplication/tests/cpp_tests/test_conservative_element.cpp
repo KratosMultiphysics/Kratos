@@ -186,9 +186,9 @@ KRATOS_TEST_CASE_IN_SUITE(ConservativeElement2D3N_SteadyStateVariableVelocityX, 
     const double manning = 0.01;
     const double height = 5.0;
     array_1d<double,3> momentum = ZeroVector(3);
-    momentum[0] = 0.6;
+    momentum[0] = 0.2;
     array_1d<double,3> height_grad = ZeroVector(3);
-    height_grad[0] = 0.03;
+    height_grad[0] = 0.01;
     const double gravity = 9.81;
     const double central_height = height + height_grad[0] / 3.; // at the barycenter of the element
     const array_1d<double,3> friction = std::pow(manning,2) * norm_2(momentum) * momentum / std::pow(central_height,10.0/3.0);

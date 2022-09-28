@@ -113,6 +113,11 @@ public:
     SparseContiguousRowGraph(const SparseContiguousRowGraph& rOther)
     {
         mpComm = rOther.mpComm;
+        mGraph.resize(rOther.mGraph.size());
+        IndexPartition<IndexType>(rOther.mGraph.size()).for_each([&](IndexType i) {
+            mGraph[i] = std::unordered_set<IndexType>();
+        });
+        mLocks.resize(rOther.mLocks.size());
         this->AddEntries(rOther);
     }
 

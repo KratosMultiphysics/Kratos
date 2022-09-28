@@ -121,6 +121,22 @@ namespace Kratos {
                                 bool& sliding,
                                 int failure_id) override;
 
+        virtual void CalculateMoments(SphericContinuumParticle* element, 
+                                      SphericContinuumParticle* neighbor, 
+                                      double equiv_young, 
+                                      double distance, 
+                                      double calculation_area,
+                                      double LocalCoordSystem[3][3], 
+                                      double ElasticLocalRotationalMoment[3], 
+                                      double ViscoLocalRotationalMoment[3], 
+                                      double equiv_poisson, 
+                                      double indentation, 
+                                      double LocalElasticContactForce[3],
+                                      double normalLocalContactForce,
+                                      double GlobalElasticContactForces[3],
+                                      double LocalCoordSystem_2[3],
+                                      const int i_neighbor_count) override;
+
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                     SphericContinuumParticle* neighbor,
                                                     double equiv_young,
@@ -130,7 +146,8 @@ namespace Kratos {
                                                     double ElasticLocalRotationalMoment[3],
                                                     double ViscoLocalRotationalMoment[3],
                                                     double equiv_poisson,
-                                                    double indentation) override;
+                                                    double indentation,
+                                                    double LocalElasticContactForce[3]) override;
 
         void AddPoissonContribution(const double equiv_poisson,
                                     double LocalCoordSystem[3][3],
