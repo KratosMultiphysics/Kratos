@@ -1105,7 +1105,8 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
             const double GIc = 270; // Mode I Energy Release Rate
             const double GIIc = 687; // Mode II Energy Release Rate
             const double Eta = 2.3; // Benzeggagh-Kenane (B-K) Law Coefficient
-            const double characteristic_length = 0.0003; // Characteristic Length of the Cohesive Part
+            // const double characteristic_length = 0.0003; // Characteristic Length of the Cohesive Part
+            const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
             const double tolerance = std::numeric_limits<double>::epsilon();
             // const double Fd = std::pow(interfacial_stress[i][0]/T0n,2.0)+std::pow(interfacial_stress[i][1]/T0s,2.0)+std::pow(interfacial_stress[i][2]/T0t,2.0); // Damage Initiation Criterion
             double T_eq = std::sqrt(std::pow(interfacial_stress[i][0],2.0)+std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
@@ -1829,7 +1830,8 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
             const double GIc = 270; // Mode I Energy Release Rate
             const double GIIc = 687; // Mode II Energy Release Rate
             const double Eta = 2.3; // Benzeggagh-Kenane (B-K) Law Coefficient
-            const double characteristic_length = 0.0003; // Characteristic Length of the Cohesive Part
+            // const double characteristic_length = 0.0003; // Characteristic Length of the Cohesive Part
+            const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
             const double tolerance = std::numeric_limits<double>::epsilon();
             // const double Fd = std::pow(interfacial_stress[i][0]/T0n,2.0)+std::pow(interfacial_stress[i][1]/T0s,2.0)+std::pow(interfacial_stress[i][2]/T0t,2.0); // Damage Initiation Criterion
             double T_eq = std::sqrt(std::pow(interfacial_stress[i][0],2.0)+std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
