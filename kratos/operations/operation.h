@@ -59,6 +59,10 @@ public:
     /// Destructor.
     virtual ~Operation() {}
 
+    /// Copy constructor.
+    //TODO: Check. It is required by the registry
+    Operation(Operation const& rOther) {}
+
     ///@}
     ///@name Operators
     ///@{
@@ -151,8 +155,8 @@ private:
     /// Assignment operator.
     Operation& operator=(Operation const& rOther) = delete;
 
-    /// Copy constructor.
-    Operation(Operation const& rOther) = delete;
+    //TODO: Check. It is required by the registry
+    // Operation(Operation const& rOther) = delete;
 
     ///@}
 }; // Class Operation

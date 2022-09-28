@@ -70,6 +70,7 @@
 #include "add_dofs_to_python.h"
 #include "add_mapper_to_python.h"
 #include "add_sparse_matrices_to_python.h"
+#include "add_registry_to_python.h"
 
 namespace Kratos
 {
@@ -99,6 +100,7 @@ PYBIND11_MODULE(Kratos, m)
     AddPropertiesToPython(m);
     AddMeshToPython(m);
     AddQuaternionToPython(m);
+    AddRegistryToPython(m);
 
     AddCFDVariablesToPython(m);
     AddDEMVariablesToPython(m);

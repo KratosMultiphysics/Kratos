@@ -210,6 +210,17 @@ private:
 ///@name Input and output
 ///@{
 
+/// Define macro for registry
+///TODO: Discuss where to place this
+#ifdef KRATOS_REGISTER_OPERATION
+#undef KRATOS_REGISTER_OPERATION
+#endif
+#define KRATOS_REGISTER_OPERATION(name, module_name, reference) \
+    std::string all_path = std::string("operations.all.") + name; \
+    if (!Registry::HasItem(all_path)) {Registry::AddItem<RegistryValueItem<Operation>>(all_path, reference);} \
+    else {KRATOS_ERROR << "Operation " << name << " is already registered." << std::endl;} \
+    std::string module_path = std::string("operations.") + module_name + std::string(".") + name; \
+    if (!Registry::HasItem(module_path)) {Registry::AddItem<RegistryValueItem<Operation>>(module_path, reference);};
 
 /// input stream function
 inline std::istream& operator >> (

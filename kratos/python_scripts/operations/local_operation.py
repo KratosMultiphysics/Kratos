@@ -2,14 +2,14 @@
 # in Kratos.
 
 import KratosMultiphysics as KMP
-import KratosMultiphysics.python_operation as python_operation
 
-class LocalOperation(python_operation.PythonOperation):
-    def __init__(self):
+class LocalOperation(KMP.Operation):
+    def __init__(self, model, settings):
         super().__init__()
 
     def Execute(self):
         KMP.Logger.PrintWarning("LocalOperation", "Calling the fake LocalOperation Execute().")
 
-def Create(settings, model):
-    return LocalOperation()
+    @staticmethod
+    def Create(model,settings):
+        return LocalOperation(model,settings)

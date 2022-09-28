@@ -14,22 +14,39 @@ class KratosOperationFactory(object):
         for i in range(operations_list.size()):
             item = operations_list[i]
 
-            if item.Has("operation"): 
+            if item.Has("operation"):
                 """Location of the operations in Kratos; e.g.:
-                - Full path in Kratos:              KratosMultiphysics.operations.sample_operation.SampleOperation
-                - Full path to custom operation:    user_operation.UserOperation  (this has to be located in your simulation directory)
+                - Registered c++ operation:                     operations.KratosMultiphysics.Operation
+                - Registered c++ application operation:         operations.KratosMultiphysics.FluidDynamicsApplication.FluidOperation
+                - Python operation:                             KratosMultiphysics.sample_operation.SampleOperation
+                - Python application operation:                 KratosMultiphysics.FluidDynamicsApplication.fluid_sample_operation.FluidSampleOperation
+                - Full path to custom operation:                user_operation.UserOperation (this has to be located in the simulation directory)
                 """
 
+                # Check if current operation is in the c++ registry
+                # If not found, search for the corresponding Python module
                 operation_string = item["operation"].GetString()
-                operation_module, operation_name = operation_string.rsplit(".", 1)
-                print("Importing operation:", operation_module, operation_name)
+                operation_settings = item["Parameters"]
+                if KM.Registry.HasItem(operation_string):
+                    # FIXME: Use this once the GetValueItem is exported to Python
+                    # operation_prototype = KM.Registry.GetValueItem(operation_string)
+                    # operation = operation_prototype.Create(self.model, operation_settings)
+                    # TODO: Remove this once we have the registry ready
+                    operation = KM.Operation()
+                    KM.Logger.PrintWarning(f"Here the c++ operation {operation_string} will be constructed")
+                else:
+                    operation_module_name, operation_name = operation_string.rsplit(".", 1)
+                    try:
+                        operation_module = import_module(operation_module_name)
+                        operation = getattr(operation_module, operation_name).Create(self.model, operation_settings)
+                    except ModuleNotFoundError as e:
+                        raise ModuleNotFoundError(e)
 
-                module = import_module(operation_module)
-
-                p = module.Create(operation_name, self.model)
-                constructed_operations.append( p )
+                # Append the operation to the current operation list
+                constructed_operations.append(operation)
             else:
-                KM.Logger.PrintWarning("Your list of operations: ", operations_list)
-                raise NameError('"operation" must be defined in your parameters. Check all your operations')
+                error_msg = f"Provided operation is incomplete: {item}.\n"
+                error_msg += "'operation' field must be defined for each operation."
+                raise NameError(error_msg)
 
         return constructed_operations
