@@ -68,13 +68,13 @@ void KOmegaSetVariables(ModelPart& rModelPart)
 {
     using namespace RansApplicationTestUtilities;
 
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, -10.0, 10.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY, 1.0, 100.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, 1.0, 100.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY_RATE, 1.0, 50.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, 1.0, 50.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, RANS_AUXILIARY_VARIABLE_1, 1.0, 10.0);
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, RANS_AUXILIARY_VARIABLE_2, 1.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, VELOCITY, -10.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY, 1.0, 100.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, 1.0, 100.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY_RATE, 1.0, 50.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, 1.0, 50.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, RANS_AUXILIARY_VARIABLE_1, 1.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, RANS_AUXILIARY_VARIABLE_2, 1.0, 10.0);
 
     KOmegaUpdateVariables(rModelPart);
 
