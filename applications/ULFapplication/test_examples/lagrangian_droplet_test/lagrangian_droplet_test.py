@@ -1,3 +1,4 @@
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #
 #
 # import the configuration data as read from the GiD
@@ -145,7 +146,7 @@ zeta_dissapative_SM = 0.0
 
 # option 2: assign: zeta_dissapative_BM = 1.0, for Bracke's model : 2.24 ca ^(0.54)
 
-## or
+## or 
 
 # option 3 :assign: zeta_dissapative_SM = 1.0, for Seeberg's model: 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
 

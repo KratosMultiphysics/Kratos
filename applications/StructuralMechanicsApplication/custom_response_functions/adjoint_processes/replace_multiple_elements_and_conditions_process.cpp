@@ -40,7 +40,7 @@ void ReplaceEntities(TEntityContainer& rEntityContainer,
 
     // create set with entities that should be ignored
     std::set<std::string> ignore_entities;
-    for(const auto& it : IgnoreEntities){
+    for(auto it : IgnoreEntities){
         ignore_entities.insert( it.GetString() );
     }
 

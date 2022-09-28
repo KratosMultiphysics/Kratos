@@ -64,7 +64,6 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
-#include "geometries/quadrature_point_geometry.h"
 
 // Modelers
 #include "modeler/modeler.h"
@@ -100,7 +99,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///@{
 
     /// Default constructor.
-    explicit KratosApplication(const std::string& ApplicationName);
+    explicit KratosApplication(const std::string ApplicationName);
 
     KratosApplication() = delete;
 

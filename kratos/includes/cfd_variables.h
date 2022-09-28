@@ -10,10 +10,23 @@
 //  Main authors:    Jordi Cotela
 //
 
+
+
+
+
+
+
+
+
+
 #if !defined(KRATOS_CFD_VARIABLES_H_INCLUDED )
 #define  KRATOS_CFD_VARIABLES_H_INCLUDED
 
+
+
 // System includes
+#include <string>
+#include <iostream>
 
 // External includes
 
@@ -22,7 +35,10 @@
 #include "includes/define.h"
 #include "containers/variable.h"
 #include "includes/kratos_components.h"
+#include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
+#include "containers/global_pointers_vector.h"
+#include "containers/periodic_variables_container.h"
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
@@ -30,6 +46,7 @@
 //TODO: move to the FluidDynamics application
 namespace Kratos
 {
+
     // Useful variables
 
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( ADVPROJ )

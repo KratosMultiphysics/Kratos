@@ -223,11 +223,11 @@ public:
         * sets the variable or the pointer of a specified variable: assigns the direction of the pointer for the mpvariables, only non const values can be modified
         */
 
-        void Set(const Flags ThisFlag)
+        void Set(Flags ThisFlag)
         {
             mOptions.Set(ThisFlag);
         };
-        void Reset(const Flags ThisFlag)
+        void Reset(Flags ThisFlag)
         {
             mOptions.Reset(ThisFlag);
         };

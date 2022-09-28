@@ -40,8 +40,7 @@
             "FRICTION_DECAY": 500.0,
             "ROLLING_FRICTION": 0.01,
             "ROLLING_FRICTION_WITH_WALLS": 0.01,
-            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb",
-            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
         }
     },{
         "material_names_list":["mat_spheres1", "mat_spheres2"],
@@ -53,8 +52,7 @@
             "FRICTION_DECAY": 252.5,
             "ROLLING_FRICTION": 0.01,
             "ROLLING_FRICTION_WITH_WALLS": 0.001,
-            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb",
-            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
         }
     },{
         "material_names_list":["mat_spheres2", "mat_spheres2"],
@@ -66,8 +64,7 @@
             "FRICTION_DECAY": 5.0,
             "ROLLING_FRICTION": 0.01,
             "ROLLING_FRICTION_WITH_WALLS": 0.001,
-            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb",
-            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
         }
     },{
         "material_names_list":["mat_spheres1", "mat_walls1"],
@@ -79,8 +76,7 @@
             "FRICTION_DECAY": 500.0,
             "ROLLING_FRICTION": 0.01,
             "ROLLING_FRICTION_WITH_WALLS": 0.001,
-            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb",
-            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
         }
     },{
         "material_names_list":["mat_spheres1", "mat_walls2"],
@@ -92,8 +88,7 @@
             "FRICTION_DECAY": 252.5,
             "ROLLING_FRICTION": 0.01,
             "ROLLING_FRICTION_WITH_WALLS": 0.001,
-            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb",
-            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
         }
     },{
         "material_names_list":["mat_spheres2", "mat_walls1"],
@@ -105,8 +100,7 @@
             "FRICTION_DECAY": 252.5,
             "ROLLING_FRICTION": 0.01,
             "ROLLING_FRICTION_WITH_WALLS": 0.001,
-            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb",
-            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
         }
     },{
         "material_names_list":["mat_spheres2", "mat_walls2"],
@@ -118,8 +112,7 @@
             "FRICTION_DECAY": 5.0,
             "ROLLING_FRICTION": 0.01,
             "ROLLING_FRICTION_WITH_WALLS": 0.001,
-            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb",
-            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
         }
     }],
     "material_assignation_table":[

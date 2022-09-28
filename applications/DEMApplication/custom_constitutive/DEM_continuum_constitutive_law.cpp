@@ -66,8 +66,7 @@ namespace Kratos {
                                                                        double ElasticLocalRotationalMoment[3],
                                                                        double ViscoLocalRotationalMoment[3],
                                                                        double equiv_poisson,
-                                                                       double indentation,
-                                                                       double LocalElasticContactForce[3]) {
+                                                                       double indentation) {
         KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::ComputeParticleRotationalMoments) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 

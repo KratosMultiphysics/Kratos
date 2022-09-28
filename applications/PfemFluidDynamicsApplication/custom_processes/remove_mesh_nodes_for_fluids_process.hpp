@@ -357,6 +357,12 @@ namespace Kratos
 
 			//***SIZES :::: parameters do define the tolerance in mesh size:
 
+			// if(dimension==3){
+			//   size_for_distance_inside       = 0.5 * initialMeanRadius;//compared to element radius
+			//   size_for_distance_boundary     = 0.5 * initialMeanRadius; //compared to element radius
+			//   size_for_wall_tip_contact_side = 0.15 * mrRemesh.Refine->CriticalSide;
+			// }
+
 			bool derefine_wall_tip_contact = false;
 
 			bool any_node_removed = false;
@@ -390,6 +396,7 @@ namespace Kratos
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			double currentTime = rCurrentProcessInfo[TIME];
 
+			double initialMeanRadius = mrRemesh.Refine->CriticalRadius;
 
 			double initialTimeForRefinement = mrRemesh.RefiningBoxInitialTime;
 			double finalTimeForRefinement = mrRemesh.RefiningBoxFinalTime;
@@ -432,22 +439,21 @@ namespace Kratos
 			{
 
 				unsigned int propertyIdNode = in->FastGetSolutionStepValue(PROPERTY_ID);
-				double meshSize = mrRemesh.Refine->CriticalRadius;
 
 				if (refiningBox == true)
 				{
 					array_1d<double, 3> NodeCoordinates = in->Coordinates();
 					if (dimension == 2)
 					{
-						meshSize = SetMeshSizeInMeshRefinementArea(NodeCoordinates);
+						initialMeanRadius = SetMeshSizeInMeshRefinementArea(NodeCoordinates);
 					}
 					else if (dimension == 3)
 					{
-						meshSize = SetMeshSizeInMeshRefinementVolume(NodeCoordinates);
+						initialMeanRadius = SetMeshSizeInMeshRefinementVolume(NodeCoordinates);
 					}
 				}
 
-				double size_for_distance_boundary = 0.6 * meshSize;
+				double size_for_distance_boundary = 0.6 * initialMeanRadius;
 				double size_for_wall_tip_contact_side = 0.15 * mrRemesh.Refine->CriticalSide;
 
 				if (in->Is(TO_ERASE))
@@ -463,7 +469,7 @@ namespace Kratos
 				// if( in->IsNot(NEW_ENTITY) )
 				{
 					unsigned int neighErasedNodes = 0;
-					radius = 0.6 * meshSize;
+					radius = 0.6 * initialMeanRadius;
 
 					work_point[0] = in->X();
 					work_point[1] = in->Y();
@@ -476,7 +482,8 @@ namespace Kratos
 					{
 						// it must be more difficult to erase a free_surface node, otherwise, lot of volume is lost
 						// this value has a strong effect on volume variation due to remeshing
-						radius = 0.475 * meshSize; // compared with element radius
+						radius = 0.475 * initialMeanRadius; // compared with element radius
+						// radius = 0.4  * initialMeanRadius;//compared with element radius
 						NodeWeakPtrVectorType &neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 						unsigned int countRigid = 0;
 
@@ -493,7 +500,7 @@ namespace Kratos
 						}
 						if (countRigid == neighb_nodes.size())
 						{
-							radius = 0.15 * meshSize;
+							radius = 0.15 * initialMeanRadius;
 						}
 					}
 					else
@@ -514,24 +521,32 @@ namespace Kratos
 							{
 								interfaceElement = true;
 							}
+							// if((nn)->Is(RIGID)){
+							//   rigidNeighNodes++;
+							// }
 						}
 					}
 
+					// if (freeSurfaceNeighNodes > 1 || interfaceElement == true)
+					// {
+					// 	radius = 0.5 * initialMeanRadius;
+					// }
+
 					if (freeSurfaceNeighNodes > 1)
 					{
-						radius = 0.5 * meshSize;
+						radius = 0.5 * initialMeanRadius;
 					}
 					else if (interfaceElement == true)
 					{
 						if (dimension == 2)
-							radius = 0.54 * meshSize; // 10% less than normal nodes
+							radius = 0.54 * initialMeanRadius; // 10% less than normal nodes
 						if (dimension == 3)
-							radius = 0.48 * meshSize; // 20% less than normal nodes
+							radius = 0.48 * initialMeanRadius; // 20% less than normal nodes
 					}
 
 					if (in->Is(INLET))
 					{
-						radius = 0.3 * meshSize; // compared with element radius
+						radius = 0.3 * initialMeanRadius; // compared with element radius
 					}
 					n_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, neighbours.begin(), neighbour_distances.begin(), num_neighbours);
 
@@ -1126,21 +1141,21 @@ namespace Kratos
 			{
 				array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
 				array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
-					if (baricenterX > RefiningBoxMinimumPoint[0] && baricenterX < RefiningBoxMaximumPoint[0] &&
-						baricenterY > RefiningBoxMinimumPoint[1] && baricenterY < RefiningBoxMaximumPoint[1] &&
-						baricenterZ > RefiningBoxMinimumPoint[2] && baricenterZ < RefiningBoxMaximumPoint[2])
-					{
+				if (baricenterX > RefiningBoxMinimumPoint[0] && baricenterX < RefiningBoxMaximumPoint[0] &&
+					baricenterY > RefiningBoxMinimumPoint[1] && baricenterY < RefiningBoxMaximumPoint[1] &&
+					baricenterZ > RefiningBoxMinimumPoint[2] && baricenterZ < RefiningBoxMaximumPoint[2])
+				{
 					criticalVolume = 0.01 * (pow(mrRemesh.RefiningBoxMeshSize, 3) / (6.0 * sqrt(2))); // mean Volume of a regular tetrahedral per node with 0.01 of penalization
-					}
+				}
 				else
-					{
+				{
 					criticalVolume = 0.01 * (pow(mrRemesh.Refine->CriticalRadius, 3) / (6.0 * sqrt(2)));
-					}
+				}
 				double meanSize = 0.5 * (mrRemesh.RefiningBoxMeshSize + mrRemesh.Refine->CriticalRadius);
 				if ((baricenterX > (RefiningBoxMinimumPoint[0] - meanSize) && baricenterX < (RefiningBoxMaximumPoint[0] + meanSize)) ||
 					(baricenterY > (RefiningBoxMinimumPoint[1] - meanSize) && baricenterY < (RefiningBoxMaximumPoint[1] + meanSize)) ||
 					(baricenterZ > (RefiningBoxMinimumPoint[2] - meanSize) && baricenterZ < (RefiningBoxMaximumPoint[2] + meanSize))) // transition zone
-					{
+				{
 					safetyCoefficient3D *= 0.8;
 				}
 			}
@@ -1188,7 +1203,7 @@ namespace Kratos
 					}
 				}
 			}
-			double wallNodeDistance = -1;
+			double wallNodedistance = -1;
 			if (rigidNode == 3 && eElement[notRigidNodeId].IsNot(TO_ERASE))
 			{
 
@@ -1252,7 +1267,7 @@ namespace Kratos
 				{
 					pwdDistance += std::pow(eElement[notRigidNodeId].Coordinates()[i] - WallBaricenter[i], 2);
 				}
-				wallNodeDistance = std::sqrt(pwdDistance);
+				wallNodedistance = std::sqrt(pwdDistance);
 			}
 
 			bool longDamBreak = false; // to attivate in case of long dam breaks to avoid separated elements in the water front
@@ -1341,8 +1356,10 @@ namespace Kratos
 			array_1d<unsigned int, 6> FirstEdgeNode(6, 0);
 			array_1d<unsigned int, 6> SecondEdgeNode(6, 0);
 			double wallLength = 0;
+			// array_1d<double,3> CoorDifference(3,0.0);
 
 			// ////////  to compute the length of the wall edge /////////
+			// CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
 			array_1d<double, 3> CoorDifference = eElement[1].Coordinates() - eElement[0].Coordinates();
 
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] +
@@ -1436,7 +1453,7 @@ namespace Kratos
 				}
 			}
 
-			if ((minimumLength < (0.35 * wallLength) || (wallNodeDistance < (0.25 * wallLength) && wallNodeDistance > 0)) && erasableNode > -1)
+			if ((minimumLength < (0.35 * wallLength) || (wallNodedistance < (0.25 * wallLength) && wallNodedistance > 0)) && erasableNode > -1)
 			{
 				if (eElement[erasableNode].IsNot(RIGID) && eElement[erasableNode].IsNot(TO_ERASE) && eElement[erasableNode].IsNot(SOLID) && eElement[erasableNode].IsNot(ISOLATED) && eElement[erasableNode].IsNot(FREE_SURFACE))
 				{

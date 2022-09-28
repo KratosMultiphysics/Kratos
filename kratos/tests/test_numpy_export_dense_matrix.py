@@ -1,9 +1,15 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import numpy as np 
+
+try:
+    import numpy as np
+    missing_numpy = False
+except ImportError as e:
+    missing_numpy = True
 
 class TestNumpyExportDenseMatrix(KratosUnittest.TestCase):
 
+    @KratosUnittest.skipIf(missing_numpy,"Missing python libraries (numpy)")
     def test_numpy_export_dense_matrix_no_copying(self):
         # Create a Kratos matrix
         KratosMatrix = KratosMultiphysics.Matrix(3,3)
@@ -29,6 +35,7 @@ class TestNumpyExportDenseMatrix(KratosUnittest.TestCase):
         # Test change in Kratos matrix
         self.assertEqual(KratosMatrix[2,2], NumpyMatrix[2,2])
 
+    @KratosUnittest.skipIf(missing_numpy,"Missing python libraries (numpy)")
     def test_numpy_export_complex_dense_matrix_no_copying(self):
         # Create a Kratos matrix
         KratosMatrix = KratosMultiphysics.ComplexMatrix(3,3)
@@ -54,6 +61,7 @@ class TestNumpyExportDenseMatrix(KratosUnittest.TestCase):
         # Test change in Kratos matrix
         self.assertEqual(KratosMatrix[2,2], NumpyMatrix[2,2])
 
+    @KratosUnittest.skipIf(missing_numpy,"Missing python libraries (numpy)")
     def test_numpy_export_dense_matrix_copying(self):
         # Create a Kratos matrix
         KratosMatrix = KratosMultiphysics.Matrix(3,3)
@@ -75,7 +83,7 @@ class TestNumpyExportDenseMatrix(KratosUnittest.TestCase):
             for j in range(3):
                 self.assertAlmostEqual(1.0, CopyNumpyMatrix[i,j], delta=1e-12)
 
-    
+    @KratosUnittest.skipIf(missing_numpy,"Missing python libraries (numpy)")
     def test_numpy_import_dense_matrix(self):
         # Create numpy array
         np_array = np.ones((3,2))
@@ -90,6 +98,7 @@ class TestNumpyExportDenseMatrix(KratosUnittest.TestCase):
             for j in range(2):
                 self.assertAlmostEqual(kratos_matrix[i,j], np_array[i,j], delta=1e-12)
 
+    @KratosUnittest.skipIf(missing_numpy,"Missing python libraries (numpy)")
     def test_numpy_import_complex_dense_matrix(self):
         # Create numpy array
         np_array = np.ones((3,2), dtype=complex)
@@ -108,6 +117,7 @@ class TestNumpyExportDenseMatrix(KratosUnittest.TestCase):
             for j in range(2):
                 self.assertAlmostEqual(kratos_matrix[i,j], np_array[i,j], delta=1e-12)
 
+    @KratosUnittest.skipIf(missing_numpy,"Missing python libraries (numpy)")
     def test_numpy_import_real_to_complex_dense_matrix(self):
         # Create numpy array
         np_array = np.ones((3,2))
@@ -123,6 +133,7 @@ class TestNumpyExportDenseMatrix(KratosUnittest.TestCase):
                 self.assertAlmostEqual(kratos_matrix[i,j].real, np_array[i,j], delta=1e-12)
                 self.assertAlmostEqual(kratos_matrix[i,j].imag, 0.0, delta=1e-12)
 
+    @KratosUnittest.skipIf(missing_numpy,"Missing python libraries (numpy)")
     def test_numpy_import_dense_matrix_format(self):
         # Create three-dimensional numpy array
         np_array = np.ones((3,2,4))

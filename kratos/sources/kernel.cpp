@@ -37,12 +37,11 @@ Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_sha
 }
 
 void Kernel::Initialize() {
-    KRATOS_INFO("") << " |  /           |                  \n"
-                    << " ' /   __| _` | __|  _ \\   __|    \n"
-                    << " . \\  |   (   | |   (   |\\__ \\  \n"
+    KRATOS_INFO("") << " |  /           |\n"
+                    << " ' /   __| _` | __|  _ \\   __|\n"
+                    << " . \\  |   (   | |   (   |\\__ \\\n"
                     << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/\n"
-                    << "           Multi-Physics " << GetVersionString() << "\n"
-                    << "           Compiled for "<< GetOSName() << " and " << GetPythonVersion() << " with " << GetCompiler() << std::endl;
+                    << "           Multi-Physics " << GetVersionString() << std::endl;
 
     PrintParallelismSupportInfo();
 
@@ -56,7 +55,7 @@ std::unordered_set<std::string> &Kernel::GetApplicationsList() {
   return application_list;
 }
 
-bool Kernel::IsImported(const std::string& ApplicationName) const {
+bool Kernel::IsImported(std::string ApplicationName) const {
     if (GetApplicationsList().find(ApplicationName) !=
         GetApplicationsList().end())
         return true;
@@ -115,18 +114,6 @@ std::string Kernel::BuildType() {
 // To be removed with the new entry points
 std::string Kernel::Version() {
     return GetVersionString();
-}
-
-std::string Kernel::OSName() {
-    return GetOSName();
-}
-
-std::string Kernel::PythonVersion() {
-    return GetPythonVersion();
-}
-
-std::string Kernel::Compiler() {
-    return GetCompiler();
 }
 
 void Kernel::PrintParallelismSupportInfo() const

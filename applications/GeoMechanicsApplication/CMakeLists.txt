@@ -5,8 +5,6 @@ message("**** configuring KratosGeoMechanicsApplication ****")
 # PYBIND11
 include(pybind11Tools)
 
-add_compile_definitions(_USE_MATH_DEFINES)
-
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
@@ -16,7 +14,6 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/GeoMechanicsApplication )
 ## GeoMechanics Core sources
 file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/geo_mechanics_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/cpp_geomechanics_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/geo_mechanics_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/*.cpp
@@ -27,7 +24,6 @@ file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/*.cpp	
 )
 
 ## GeoMechanics testing sources
@@ -41,7 +37,6 @@ file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURR
 add_library(KratosGeoMechanicsCore SHARED ${KRATOS_GEO_MECHANICS_APPLICATION_CORE} ${KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosGeoMechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore ${CMAKE_DL_LIBS})
 set_target_properties(KratosGeoMechanicsCore PROPERTIES COMPILE_DEFINITIONS "GEO_MECHANICS_APPLICATION=EXPORT,API")
-
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

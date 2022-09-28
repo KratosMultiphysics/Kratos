@@ -16,7 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <cstdlib>
+#include <stdlib.h>
 #include <boost/timer.hpp>
 
 

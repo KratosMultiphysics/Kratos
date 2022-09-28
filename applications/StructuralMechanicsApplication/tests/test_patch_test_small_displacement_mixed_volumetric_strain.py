@@ -9,14 +9,7 @@ from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCase):
     def setUp(self):
-        self.tolerances = {
-            "relative" : 1e-6,
-            "absolute" : {
-                "displacement" : 1e-6,
-                "stress"       : 1e2,
-                "strain"       : 1e-2
-            }
-        }
+        self.tolerance = 1.0e-6
         self.print_output = True
 
     def _add_variables(self, ModelPart):
@@ -139,10 +132,10 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
             d = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
             for i in range(3):
                 if abs(u[i]) > 0.0:
-                    error = abs((d[i] - u[i])/u[i])
-                    self.assertLess(error, self.tolerances["relative"], msg=f"NODE {node.Id}: Component {coor_list[i]}: {u[i]} {d[i]} Error: {error}")
-                else:
-                    self.assertLess(abs(d[i]), self.tolerances["absolute"]["displacement"])
+                    error = (d[i] - u[i])/u[i]
+                    if error > self.tolerance:
+                       print("NODE ", node.Id,": Component ", coor_list[i],":\t",u[i],"\t",d[i], "\tError: ", error)
+                    self.assertLess(error, self.tolerance)
 
     def _calculate_reference_strain(self, A, dim):
         # Given the matrix A, the analytic deformation gradient is F+I
@@ -221,9 +214,7 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
             for stress in out:
                 for i in range(len(reference_stress)):
                     if abs(stress[i]) > 0.0:
-                        self.assertLess((reference_stress[i] - stress[i])/stress[i], self.tolerances["relative"])
-                    else:
-                        self.assertLess(abs(stress[i]), self.tolerances["absolute"]["stress"])
+                        self.assertLess((reference_stress[i] - stress[i])/stress[i], self.tolerance)
 
     def _check_stress_user_provided(self, model_part, A, dim):
         # Calculate the reference strain
@@ -238,9 +229,7 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
             for stress in out:
                 for i in range(len(reference_stress)):
                     if abs(stress[i]) > 0.0:
-                        self.assertLess((reference_stress[i] - stress[i])/stress[i], self.tolerances["relative"])
-                    else:
-                        self.assertLess(abs(stress[i]), self.tolerances["absolute"]["stress"])
+                        self.assertLess((reference_stress[i] - stress[i])/stress[i], self.tolerance)
 
     def testSmallDisplacementMixedVolumetricStrainElement2DTriangle(self):
         dimension = 2

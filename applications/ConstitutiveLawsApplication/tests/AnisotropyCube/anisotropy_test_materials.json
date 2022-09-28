@@ -17,7 +17,7 @@
             "properties_id"   : 10,
             "Material"        : {
                 "constitutive_law" : {
-                    "name" : "SmallStrainIsotropicDamage3DVonMises"
+                    "name" : "SmallStrainIsotropicDamage3DVonMisesVonMises"
                 },
                 "Variables"        : {
                     "DENSITY"         : 2400.0,

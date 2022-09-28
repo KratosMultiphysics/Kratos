@@ -112,7 +112,6 @@ jobs:
         pip install numpy
         pip install h5py
         pip install sympy
-        pip install scipy
 
     - name: Build
       shell: cmd

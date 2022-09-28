@@ -23,15 +23,11 @@ namespace Kratos {
 
         std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override;
 
-        void Check(Properties::Pointer pProp) const override;
-
         void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;
 
         void InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0) override;
 
-    protected:
-
     };
-} /* namespace Kratos.*/
 
+} /* namespace Kratos.*/
 #endif /* DEM_D_LINEAR_HIGHSTIFFNESS_CL_H_INCLUDED  defined */

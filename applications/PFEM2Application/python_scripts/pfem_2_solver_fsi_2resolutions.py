@@ -1,3 +1,4 @@
+from __future__ import print_function
 from KratosMultiphysics import *
 from KratosMultiphysics.PFEM2Application import *
 from KratosMultiphysics.ConvectionDiffusionApplication import *

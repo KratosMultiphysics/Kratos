@@ -49,7 +49,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 #include <string>
 #include <iostream>
-#include <cstdlib>
+#include <stdlib.h>
 #include "density_function.h"
 #include <cmath>
 

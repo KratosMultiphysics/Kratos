@@ -1,3 +1,4 @@
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import time as timer
 import os
@@ -248,7 +249,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
             self.output_settings = self.project_parameters["output_configuration"]
             self.post_process_model_part = self.model.CreateModelPart("output_model_part")
             return GiDOutputProcess(self.post_process_model_part,
-                                    "gid_output/" + self.problem_name,
+                                    self.problem_name,
                                     self.output_settings)
         else:
             return (KratosMultiphysics.Process())
@@ -414,7 +415,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ISOLATED_NODE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_H_WALL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.SHRINK_FACTOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)

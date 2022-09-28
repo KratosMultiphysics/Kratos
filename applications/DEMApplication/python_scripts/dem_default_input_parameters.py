@@ -81,8 +81,6 @@ def GetDefaultInputParameters():
             "SkinFactorRadius" : 1.0,
             "AmplifiedSearchRadiusExtension"   : 0.0,
             "MaxAmplificationRatioOfSearchRadius" : 10,
-            "YCoordinateOfCylinderBottomBase"     : 0.0,
-            "ZCoordinateOfCylinderBottomBase"     : 0.0,
             "ModelDataInfo"                    : false,
             "VirtualMassCoefficient"           : 1.0,
             "RollingFrictionOption"            : false,
@@ -171,8 +169,6 @@ def GetDefaultInputParameters():
             "PostFaceTangentialImpactVelocity" : false,
             "PostControlModule"                : false,
             "PostDeltaDisplacement"            : false,
-            "print_CN_graph"                   : false,
-            "PostBrokenRatio"                  : false,
             "output_configuration" : {
                 "print_number_of_neighbours_histogram" : false
             },

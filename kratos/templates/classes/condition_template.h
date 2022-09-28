@@ -4,13 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    @{KRATOS_APP_AUTHOR}
 //
 
-#pragma once
+#if !defined(KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED )
+#define KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED
+
 
 // System includes
 
@@ -405,3 +407,5 @@ private:
 ///@}
 
 } // namespace Kratos.
+
+#endif // KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED  defined

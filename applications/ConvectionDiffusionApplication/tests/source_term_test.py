@@ -1,3 +1,4 @@
+from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_analysis

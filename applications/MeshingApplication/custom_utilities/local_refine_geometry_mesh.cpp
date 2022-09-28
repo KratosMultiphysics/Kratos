@@ -480,7 +480,6 @@ namespace Kratos
         for (ModelPart::SubModelPartIterator iSubModelPart = rModelPart.SubModelPartsBegin();
                 iSubModelPart != rModelPart.SubModelPartsEnd(); iSubModelPart++)
         {
-            bool added_nodes = false;
             for (auto iNode = rModelPart.Nodes().ptr_begin();
                     iNode != rModelPart.Nodes().ptr_end(); iNode++)
             {
@@ -500,16 +499,9 @@ namespace Kratos
                             ParentsInSubModelPart++;
                     }
 
-                    if ( ParentCount == ParentsInSubModelPart ) {
+                    if ( ParentCount == ParentsInSubModelPart )
                         iSubModelPart->AddNode( *iNode );
-                        added_nodes = true;
-                    }
                 }
-            }
-            if(added_nodes)
-            {
-                 ModelPart &rSubModelPart = *iSubModelPart;
-                 UpdateSubModelPartNodes(rSubModelPart);
             }
         }
     }

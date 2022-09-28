@@ -11,14 +11,19 @@
 //
 
 // System includes
+#include <string>
+#include <iostream>
+#include <vector>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "includes/dem_variables.h"
-#include "includes/kratos_application.h"
+#include "includes/kernel.h"
+#include "includes/node.h"
 
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {

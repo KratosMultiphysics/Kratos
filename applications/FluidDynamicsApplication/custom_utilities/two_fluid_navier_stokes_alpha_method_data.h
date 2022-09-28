@@ -52,6 +52,7 @@ typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 NodalVectorData Velocity;
 NodalVectorData Velocity_OldStep1;
 NodalScalarData Pressure;
+NodalScalarData Pressure_OldStep1;
 NodalVectorData AccelerationAlphaMethod;
 
 NodalVectorData MeshVelocity;
@@ -73,8 +74,8 @@ double Density;
 double DynamicViscosity;
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
-double VolumeErrorRate;    // Mass loss time rate (m^3/s) to be used as source term in the mass conservation equation
-double MaxSpectralRadius;
+double VolumeError; //TODO: RENAME TO VolumeErrorTimeRatio
+double MaxSprectraRadius;
 
 // Auxiliary containers for the symbolically-generated matrices
 BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
@@ -119,6 +120,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromHistoricalNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
     this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
+    this->FillFromHistoricalNodalData(Pressure_OldStep1,PRESSURE,r_geometry,1);
 
     this->FillFromHistoricalNodalData(Distance, DISTANCE, r_geometry);
 
@@ -135,7 +137,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromNonHistoricalNodalData(AccelerationAlphaMethod,ACCELERATION,r_geometry);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
-    this->FillFromProcessInfo(MaxSpectralRadius,SPECTRAL_RADIUS_LIMIT,rProcessInfo);
+    this->FillFromProcessInfo(MaxSprectraRadius,SPECTRAL_RADIUS_LIMIT,rProcessInfo);
 
 
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
@@ -159,16 +161,12 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     // Also note that we do consider time varying time step but a constant theta (we incur in a small error when switching from BE to CN)
     // Note as well that there is a minus sign (this comes from the divergence sign)
     if (IsCut()) {
-        // Get the previous time increment. Note that we check its value in case the previous ProcessInfo is empty (e.g. first step)
         double previous_dt = rProcessInfo.GetPreviousTimeStepInfo()[DELTA_TIME];
-        if (previous_dt < 1.0e-12) {
-            previous_dt = rProcessInfo[DELTA_TIME];
-        }
-        // Get the absolute volume error from the ProcessInfo and calculate the time rate
-        this->FillFromProcessInfo(VolumeErrorRate,VOLUME_ERROR,rProcessInfo);
-        VolumeErrorRate /= -previous_dt;
+        this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
+        // double ratio_dt = (1.0-theta)*previous_dt + theta*DeltaTime;
+        VolumeError /= -previous_dt;
     } else {
-        VolumeErrorRate = 0.0;
+        VolumeError = 0.0;
     }
 
 }
@@ -272,7 +270,7 @@ void CalculateAirMaterialResponse() {
 
 void ComputeStrain()
 {
-    const double rho_inf=this->MaxSpectralRadius;
+    const double rho_inf=this->MaxSprectraRadius;
     const double alpha_f= 1/(rho_inf+1);
     const BoundedMatrix<double, TNumNodes, TDim>& v = Velocity_OldStep1+alpha_f*(Velocity-Velocity_OldStep1);
     const BoundedMatrix<double, TNumNodes, TDim>& DN = this->DN_DX;

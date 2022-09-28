@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <algorithm>
-#include <cmath>
+#include <math.h>
 
 int Min ( int a, int b );
 double Min ( double a, double b );

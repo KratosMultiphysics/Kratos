@@ -76,8 +76,8 @@ public:
         QuadratureMethod ThisQuadratureMethod = QuadratureMethod::GAUSS);
 
     IntegrationInfo(
-        const std::vector<SizeType>& NumberOfIntegrationPointsPerSpanVector,
-        const std::vector<QuadratureMethod>& ThisQuadratureMethodVector);
+        std::vector<SizeType> NumberOfIntegrationPointsPerSpanVector,
+        std::vector<QuadratureMethod> ThisQuadratureMethodVector);
 
     ///@}
     ///@name Dimension

@@ -1,3 +1,4 @@
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 #import kratos core and applications
 import KratosMultiphysics
@@ -47,7 +48,7 @@ class PfemFluidThreeStepSolver(BaseSolver.PfemFluidSolver):
             "compute_contact_forces": false,
             "block_builder": false,
             "component_wise": false,
-            "predictor_corrector": true,
+            "predictor_corrector": true,       
             "time_order": 2,
             "maximum_velocity_iterations": 1,
             "maximum_pressure_iterations": 7,

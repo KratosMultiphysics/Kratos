@@ -3,7 +3,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <cstdlib>
+#include <stdlib.h>
 
 // Project includes
 #include "cluster3D.h"

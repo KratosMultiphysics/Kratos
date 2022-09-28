@@ -16,7 +16,7 @@
 #define  KRATOS_TFQMR_SOLVER_H_INCLUDED
 
 // System includes
-#include <cmath>
+#include <math.h>
 
 // External includes
 
@@ -203,7 +203,7 @@ private:
         double errtol = BaseType::mBNorm*BaseType::GetTolerance();
 
 
-        const VectorType& r(rB);
+        VectorType r(rB);
         VectorType w(r);
 
 

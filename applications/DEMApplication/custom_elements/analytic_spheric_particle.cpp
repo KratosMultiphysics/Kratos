@@ -207,17 +207,19 @@ void AnalyticSphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(S
 
 }
 
-void AnalyticSphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticle::ParticleDataBuffer & data_buffer,
+void AnalyticSphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
                                                                 array_1d<double, 3>& r_elastic_force,
                                                                 array_1d<double, 3>& r_contact_force,
+                                                                double& RollingResistance,
                                                                 array_1d<double, 3>& rigid_element_force,
                                                                 const ProcessInfo& r_process_info)
 
 {
 
-    SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(data_buffer,
+    SphericParticle::ComputeBallToRigidFaceContactForce(data_buffer,
                                         r_elastic_force,
                                         r_contact_force,
+                                        RollingResistance,
                                         rigid_element_force,
                                         r_process_info);
 

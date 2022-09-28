@@ -68,7 +68,7 @@ public:
     QuadraturePointSurfaceInVolumeGeometry(
         const PointsArrayType& ThisPoints,
         GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
-        const TangentMatrixType& LocalTangents )
+        TangentMatrixType LocalTangents )
         : BaseType(ThisPoints, ThisGeometryShapeFunctionContainer)
     {
         KRATOS_ERROR_IF( mLocalTangents.size1() != LocalTangents.size1() || mLocalTangents.size2() != LocalTangents.size2() )
@@ -81,7 +81,7 @@ public:
     QuadraturePointSurfaceInVolumeGeometry(
         const PointsArrayType& ThisPoints,
         GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
-        const TangentMatrixType& LocalTangents,
+        TangentMatrixType LocalTangents,
         GeometryType* pGeometryParent)
         : BaseType(ThisPoints, ThisGeometryShapeFunctionContainer, pGeometryParent)
     {

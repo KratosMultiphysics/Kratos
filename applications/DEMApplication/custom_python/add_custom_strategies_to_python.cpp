@@ -167,16 +167,12 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("ResetPrescribedMotionFlagsRespectingImposedDofs", &ExplicitSolverStrategy::ResetPrescribedMotionFlagsRespectingImposedDofs)
         .def("PrepareContactElementsForPrinting", &ExplicitSolverStrategy::PrepareContactElementsForPrinting)
         .def("AttachSpheresToStickyWalls", &ExplicitSolverStrategy::AttachSpheresToStickyWalls)
-        .def("ComputeCoordinationNumber", &ExplicitSolverStrategy::ComputeCoordinationNumber)
         ;
 
     py::class_<ContinuumExplicitSolverStrategy, ContinuumExplicitSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "ContinuumExplicitSolverStrategy")
-        .def(py::init< ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
         .def("ComputeCoordinationNumber", &ContinuumExplicitSolverStrategy::ComputeCoordinationNumber)
-        .def("BreakAllBonds", &ContinuumExplicitSolverStrategy::BreakAllBonds)
-        .def("HealAllBonds", &ContinuumExplicitSolverStrategy::HealAllBonds)
-        .def("ComputeSkin", &ContinuumExplicitSolverStrategy::ComputeSkin)
         .def("RebuildListOfContinuumSphericParticles", &ContinuumExplicitSolverStrategy::RebuildListOfContinuumSphericParticles)
+        .def(py::init< ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
         ;
 
     py::class_<IterativeSolverStrategy, IterativeSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "IterativeSolverStrategy")
@@ -190,6 +186,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_<VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>, VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>::Pointer, ContinuumExplicitSolverStrategy>(m, "ContinuumVelocityVerletSolverStrategy")
         .def(py::init<ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
         ;
+
 }
+
 }  // namespace Python.
+
 } // Namespace Kratos

@@ -1,6 +1,6 @@
 #include "u_Types.h"
 #include "Math3D.h"
-#include <cmath>
+#include <math.h>
 #include <stdio.h>
 
 class    TetQuality 

@@ -11,6 +11,7 @@
 //                   Guillermo Casas
 //
 
+
 #ifndef KRATOS_MULTIAXIAL_CONTROL_MODULE_FEM_DEM_GENERALIZED_2D_UTILITIES
 #define KRATOS_MULTIAXIAL_CONTROL_MODULE_FEM_DEM_GENERALIZED_2D_UTILITIES
 
@@ -18,7 +19,9 @@
 
 // Application includes
 #include "custom_utilities/multiaxial_control_module_generalized_2d_utilities.hpp"
+
 #include "dem_structures_coupling_application_variables.h"
+
 
 namespace Kratos
 {
@@ -68,9 +71,11 @@ void ExecuteFinalizeSolutionStep() override;
 ///@name Inquiry
 ///@{
 
+
 ///@}
 ///@name Input and output
 ///@{
+
 
 ///@}
 ///@name Friends
@@ -82,13 +87,16 @@ protected:
 ///@name Protected static Member r_variables
 ///@{
 
+
 ///@}
 ///@name Protected member r_variables
 ///@{ template<class T, std::size_t dim>
 
+
 ///@}
 ///@name Protected Operators
 ///@{
+
 
 ///@}
 ///@name Protected Operations
@@ -104,9 +112,11 @@ Vector MeasureReactionStress(const Variable<array_1d<double,3>>& rVariable) over
 ///@name Protected Inquiry
 ///@{
 
+
 ///@}
 ///@name Protected LifeCycle
 ///@{
+
 
 ///@}
 
@@ -114,6 +124,7 @@ private:
 
 ///@name Static Member r_variables
 ///@{
+
 
 ///@}
 ///@name Member r_variables
@@ -130,9 +141,11 @@ private:
 ///@name Private  Access
 ///@{
 
+
 ///@}
 ///@name Private Inquiry
 ///@{
+
 
 ///@}
 ///@name Un accessible methods
@@ -140,6 +153,7 @@ private:
 
 /// Assignment operator.
 MultiaxialControlModuleFEMDEMGeneralized2DUtilities & operator=(MultiaxialControlModuleFEMDEMGeneralized2DUtilities const& rOther);
+
 
 ///@}
 

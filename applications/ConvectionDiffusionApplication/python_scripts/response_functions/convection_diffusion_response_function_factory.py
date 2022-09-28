@@ -1,3 +1,4 @@
+from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
 from KratosMultiphysics.ConvectionDiffusionApplication.response_functions import convection_diffusion_response

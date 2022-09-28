@@ -415,7 +415,7 @@ namespace Kratos
         const double& rEdgeTolerance)
     {
         // Check if there is a close intersection (repeated intersection point)
-        for (const auto& aux_pt : rIntersectionPointsVector){
+        for (auto aux_pt : rIntersectionPointsVector){
                 const double aux_dist = norm_2(rIntersectionPoint - aux_pt);
                 if (aux_dist < rEdgeTolerance){
                     return true;

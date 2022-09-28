@@ -11,9 +11,6 @@ on:
   schedule:
     - cron: '0 0 * * *' # update it every night
 
-permissions:
-  contents: read
-
 jobs:
   build:
     runs-on: ubuntu-latest

@@ -8,19 +8,17 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 
-
 def get_file_path(fileName):
     import os
     return os.path.dirname(__file__) + "/" + fileName
 
 
-def run_kratos(file_path, model=None):
+def run_kratos(file_path):
     """
     Runs 1 stage in kratos
     :param file_path:
     :return:
     """
-    currentWorking = os.getcwd()
 
     parameter_file_name = os.path.join(file_path, 'ProjectParameters.json')
     os.chdir(file_path)
@@ -28,12 +26,9 @@ def run_kratos(file_path, model=None):
     with open(parameter_file_name, 'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
 
-    if model is None:
-        model = Kratos.Model()
+    model = Kratos.Model()
     simulation = analysis.GeoMechanicsAnalysis(model, parameters)
     simulation.Run()
-
-    os.chdir(currentWorking)
     return simulation
 
 def run_stages(project_path,n_stages):
@@ -44,10 +39,10 @@ def run_stages(project_path,n_stages):
     :param n_stages:
     :return:
     """
-    currentWorking = os.getcwd()
+
     stages = get_stages(project_path,n_stages)
     [stage.Run() for stage in stages]
-    os.chdir(currentWorking)
+
     return stages
 
 def get_stages(project_path,n_stages):
@@ -71,6 +66,7 @@ def get_stages(project_path,n_stages):
 
     model = Kratos.Model()
     stages = [analysis.GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
+
     return stages
 
 
@@ -265,46 +261,6 @@ def get_local_stress_vector(simulation):
         KratosGeo.LOCAL_STRESS_VECTOR, model_part.ProcessInfo) for element in elements]
     return local_stress_vector
 
-def get_hydraylic_head_with_intergration_points(simulation):
-    """
-    Gets hydraylic head on all nodal points from Kratos simulation
-    :param simulation:
-    :return: force
-    """
-    model_part = simulation._list_of_output_processes[0].model_part
-    elements = model_part.Elements
-
-    x = []
-    y = []
-    head = []
-    for element in elements:
-        values = element.CalculateOnIntegrationPoints(KratosGeo.HYDRAULIC_HEAD, model_part.ProcessInfo)
-        points = element.GetIntegrationPoints()
-        for counter, head_value in enumerate(values):
-            x.append(points[counter][0])
-            y.append(points[counter][1])
-            head.append(head_value)
-    return x, y , head
-
-def get_pipe_active_in_elements(simulation):
-    """
-    Gets the pipe active value on all elements from Kratos simulation
-    :param simulation:
-    :return: pipe_active : list of booleans determine whether pipe element is active or not
-    """
-    model_part = simulation._list_of_output_processes[0].model_part
-    pipe_elements = [element for element in model_part.Elements if element.Has(KratosGeo.PIPE_ELEMENT_LENGTH)]
-    return [element.GetValue(KratosGeo.PIPE_ACTIVE) for element in pipe_elements]
-
-def get_pipe_length(simulation):
-    """
-    Gets the length of all active pipe elemnets
-    :param simulation:
-    :return: pipe_length :
-    """
-    model_part = simulation._list_of_output_processes[0].model_part
-    elements = model_part.Elements
-    return sum([element.GetValue(KratosGeo.PIPE_ELEMENT_LENGTH) for element in elements if element.GetValue(KratosGeo.PIPE_ACTIVE)])
 
 def get_force(simulation):
     """

@@ -186,17 +186,17 @@ public:
     ///@name Operations
     ///@{
 
-    void Set(const Flags ThisFlag);
+    void Set(Flags ThisFlag);
 
-    void Set(const Flags ThisFlag, bool Value);
+    void Set(Flags ThisFlag, bool Value);
 
-    void Reset(const Flags ThisFlag)
+    void Reset(Flags ThisFlag)
     {
         mIsDefined &= (~ThisFlag.mIsDefined);
         mFlags &= (~ThisFlag.mIsDefined); // I want to put to zero the ones are set regardless to their value. Pooyan.
     }
 
-    void Flip(const Flags ThisFlag)
+    void Flip(Flags ThisFlag)
     {
         mIsDefined |= ThisFlag.mIsDefined;
         mFlags ^= (ThisFlag.mIsDefined); // I want to flip  the ones are set in this flags regardless to their value. Pooyan.

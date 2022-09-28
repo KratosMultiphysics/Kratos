@@ -26,6 +26,7 @@
 /* External includes */
 #include "input_output/logger.h"
 #include "includes/ublas_interface.h"
+#include "containers/array_1d.h"
 
 namespace Kratos
 {
@@ -125,7 +126,8 @@ public:
      * @param c Third length
      * @return Heron solution: Heron's formula states that the area of a triangle whose sides have lengths a, b, and c
      */
-    template<bool TCheck>// = false>
+
+    template<bool check>// = false>
     static inline double Heron(
         double a,
         double b,
@@ -134,7 +136,7 @@ public:
     {
         const double s = 0.5 * (a + b + c);
         const double A2 = s * (s - a) * (s - b) * (s - c);
-        if constexpr(TCheck) {
+        if(check) {
             if(A2 < 0.0) {
                 KRATOS_ERROR << "The square of area is negative, probably the triangle is in bad shape:" << A2 << std::endl;
             } else {

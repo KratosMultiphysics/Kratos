@@ -86,10 +86,10 @@ protected:
         double p_factor; // p wave relaxation factor
         double s_factor; // s wave relaxation factor
         double virtual_thickness;
-        Vector EcNodes;
-        Vector GNodes;
-        Vector SaturationNodes;
-        Vector rhoNodes;
+        vector<double> EcNodes;
+        vector<double> GNodes;
+        vector<double> SaturationNodes;
+        vector<double> rhoNodes;
 
         BoundedMatrix<double, TDim, TDim> CAbsMatrix; // damping part of absorbing matrix;
         BoundedMatrix<double, TDim, TDim> KAbsMatrix; // stiffness part of absorbing matrix;

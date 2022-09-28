@@ -37,7 +37,6 @@ class ThermalDEMAnalysis(DEMAnalysisStage):
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphModelTempAvg")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphHeatFluxContributions")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphHeatGenContributions")
-        SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphEnergyContributions")
 
         return dem_parameters
 

@@ -399,7 +399,7 @@ private:
      */
     void RotateNode3D(
         array_1d<double, 3>& rCoords,
-        const BoundedMatrix<double, 4, 4>& rInvertedRotationMatrix
+        BoundedMatrix<double, 4, 4> rInvertedRotationMatrix
         ) const;
 
     /**

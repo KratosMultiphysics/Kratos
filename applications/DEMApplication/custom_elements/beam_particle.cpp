@@ -138,10 +138,11 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void BeamParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::ParticleDataBuffer & data_buffer,
+    void BeamParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
                                                      const ProcessInfo& r_process_info,
                                                      array_1d<double, 3>& rElasticForce,
-                                                     array_1d<double, 3>& rContactForce)
+                                                     array_1d<double, 3>& rContactForce,
+                                                     double& RollingResistance)
     {
 
         KRATOS_TRY
@@ -363,6 +364,7 @@ namespace Kratos {
 
                 ComputeMoments(LocalContactForce[2],
                                TotalGlobalElasticContactForce,
+                               RollingResistance,
                                data_buffer.mLocalCoordSystem[2],
                                data_buffer.mpOtherParticle,
                                indentation,
@@ -379,8 +381,7 @@ namespace Kratos {
                                                                                    ElasticLocalRotationalMoment,
                                                                                    ViscoLocalRotationalMoment,
                                                                                    equiv_poisson,
-                                                                                   indentation,
-                                                                                   LocalElasticContactForce);
+                                                                                   indentation);
                 }
 
                 AddUpMomentsAndProject(data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
@@ -388,13 +389,11 @@ namespace Kratos {
 
             if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
                 double total_local_elastic_contact_force[3] = {0.0};
-                double Elastic_Local_Rotational_Moment[3] = {0.0};
                 total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
                 total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
                 total_local_elastic_contact_force[2] = LocalElasticContactForce[2] + LocalElasticExtraContactForce[2];
                 SphericContinuumParticle::CalculateOnContinuumContactElements(i,
                                                                               total_local_elastic_contact_force,
-                                                                              Elastic_Local_Rotational_Moment,
                                                                               contact_sigma,
                                                                               contact_tau,
                                                                               failure_criterion_state,
@@ -404,7 +403,7 @@ namespace Kratos {
         } // for each neighbor
 
         KRATOS_CATCH("")
-    } //  ComputeBallToBallContactForceAndMoment
+    } //  ComputeBallToBallContactForce
 
     void BeamParticle::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
 

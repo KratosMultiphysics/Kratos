@@ -4,7 +4,7 @@
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                 "name"              : "SmallStrainHighCycleFatigue3DLawVonMises",
+                 "name"              : "SmallStrainHighCycleFatigue3DLawVonMisesVonMises",
 				 "yield_surface"     : "VonMises",
 				 "plastic_potential" : "VonMises"
             },

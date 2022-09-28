@@ -3,7 +3,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <cstdlib>
+#include <stdlib.h>
 #include "density_function.h"
 
 namespace Kratos

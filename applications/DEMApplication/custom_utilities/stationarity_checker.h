@@ -1,8 +1,8 @@
 #ifndef STATIONARITY_CHECKER_H
 #define STATIONARITY_CHECKER_H
 
-#include "includes/variables.h"
 #include "includes/define.h"
+#include "includes/variables.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
 #include "utilities/timer.h"
@@ -24,10 +24,9 @@ namespace Kratos {
                                        const double min_time_between_changes,
                                        const double max_time_between_changes);
 
-        bool CheckIfVariableIsNullInModelPart(ModelPart& rSpheresModelPart,
+        bool CheckIfVariableIsNullInModelPart(const ModelPart& rSpheresModelPart,
                                     const Variable<double>& var,
-                                    const double tolerance,
-                                    const bool ignore_isolated_particles);
+                                    const double& tolerance);
 
         virtual std::string Info() const;
 

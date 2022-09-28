@@ -16,7 +16,7 @@
 
 /* External includes */
 // #include "boost/smart_ptr.hpp"
-#include <cstdlib>
+#include <stdlib.h>
 #include <boost/timer.hpp>
 
 

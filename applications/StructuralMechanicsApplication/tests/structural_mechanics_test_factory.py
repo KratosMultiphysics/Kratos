@@ -76,9 +76,6 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
         with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.Finalize()
 
-class AutomatedInitialVariableProcessTest(StructuralMechanicsTestFactory):
-    file_name = "automated_initial_variable_process_test/automated_initial_variable_process_test"
-
 class SimpleMeshMovingTest(StructuralMechanicsTestFactory):
     file_name = "mesh_moving_test/simple_mesh_moving_test"
 

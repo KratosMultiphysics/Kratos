@@ -108,20 +108,16 @@ public:
     ///@{
 
     /// Default constructor.
-    IO() = default;
+    IO() {}
 
     /// Destructor.
-    virtual ~IO() = default;
+    virtual ~IO() {}
 
-    /// Copy constructor.
-    IO(IO const& rOther) = delete;
 
     ///@}
     ///@name Operators
     ///@{
 
-    /// Assignment operator.
-    IO& operator=(IO const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -595,6 +591,13 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
+
+    /// Assignment operator.
+    IO& operator=(IO const& rOther);
+
+    /// Copy constructor.
+    IO(IO const& rOther);
+
 
     ///@}
 

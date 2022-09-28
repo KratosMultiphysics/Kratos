@@ -23,9 +23,9 @@
 #include <fstream>
 #include <vector>
 #include <ctime>
-#include <cstdlib>
+#include <stdlib.h>
 #include <iomanip>
-#include <cmath>
+#include <math.h>
 
 
 // External includes

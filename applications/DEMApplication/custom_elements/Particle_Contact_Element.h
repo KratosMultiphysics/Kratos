@@ -67,7 +67,6 @@ public:
     ///@}
     ///@name Access
     array_1d<double,3> mLocalContactForce;
-    array_1d<double,3> mElasticLocalRotationalMoment;
     double mContactSigma;
     double mContactTau;
     double mContactFailure;

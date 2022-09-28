@@ -2,7 +2,7 @@
 //
 #include <iostream>
 #include <vector>
-#include <cstdlib>
+#include <stdlib.h>
 #include <omp.h>
 #include "u_Types.h"
 #include "u_MeshLoaders.h"

@@ -51,8 +51,8 @@ namespace Kratos
     }
 
     IntegrationInfo::IntegrationInfo(
-        const std::vector<SizeType>& NumberOfIntegrationPointsPerSpanVector,
-        const std::vector<QuadratureMethod>& ThisQuadratureMethodVector)
+        std::vector<SizeType> NumberOfIntegrationPointsPerSpanVector,
+        std::vector<QuadratureMethod> ThisQuadratureMethodVector)
         : mNumberOfIntegrationPointsPerSpanVector(NumberOfIntegrationPointsPerSpanVector),
           mQuadratureMethodVector(ThisQuadratureMethodVector)
     {

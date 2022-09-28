@@ -571,13 +571,10 @@ public:
         if ( mMode == GiD_PostAscii && ! mResultFileOpen )
         {
             std::stringstream file_name;
-            if ( mUseMultiFile == SingleFile ) {
-                file_name << mResultFileName << ".post.res";
-            } else {
-                file_name << mResultFileName << std::setprecision(12) << "_" << name << ".post.res";
-            }
+            file_name << mResultFileName << std::setprecision(12) << "_" << name << ".post.res";
             mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
             mResultFileOpen = true;
+
         }
         //initializing gauss points containers
         if ( mWriteConditions != WriteConditionsOnly )
@@ -1082,6 +1079,7 @@ public:
             {
                 std::stringstream file_name;
                 file_name << mResultFileName << ".post.bin";
+                //KRATOS_WATCH(file_name.str())
                 mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
                 if ( mResultFile == 0) //error handler can not be zero
                 {
@@ -1095,7 +1093,7 @@ public:
             if ( mMode == GiD_PostAscii && ! mMeshFileOpen )
             {
                 std::stringstream file_name;
-                file_name << mMeshFileName << ".post.msh";
+                file_name << mMeshFileName << "_" << name << ".post.msh";
                 mMeshFile = GiD_fOpenPostMeshFile( (char *)(file_name.str()).c_str(), mMode);
                 mMeshFileOpen = true;
             }

@@ -356,8 +356,10 @@ class ResidualBasedDEMCoupledNewtonRaphsonStrategy
             BaseType::Initialize();
 
         //initialize solution step
-        BaseType::InitializeSolutionStep();
-        mpDEMStrategy->InitializeSolutionStep();
+        if (this->mSolutionStepIsInitialized == false) {
+            BaseType::InitializeSolutionStep();
+            mpDEMStrategy->InitializeSolutionStep();
+        }
 
         TSystemMatrixType& rA  = *this->mpA;
         TSystemVectorType& rDx = *this->mpDx;

@@ -1,6 +1,6 @@
 
 #include "Math3D.h"
-#include <cmath>
+#include <math.h>
 #include <stdio.h>
 #include "u_ShowMetrics.h"
 #include "u_TetraFunctions.h"

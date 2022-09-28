@@ -60,10 +60,11 @@ namespace Kratos {
 
         virtual void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
 
-        virtual void ComputeBallToBallContactForceAndMoment(SphericParticle::ParticleDataBuffer &,
+        virtual void ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer &,
                                                    const ProcessInfo& r_process_info,
                                                    array_1d<double, 3>& rElasticForce,
-                                                   array_1d<double, 3>& rContactForce) override;
+                                                   array_1d<double, 3>& rContactForce,
+                                                   double& RollingResistance) override;
 
         void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) override;
 
