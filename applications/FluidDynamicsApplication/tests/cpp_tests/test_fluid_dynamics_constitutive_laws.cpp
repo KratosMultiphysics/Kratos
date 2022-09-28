@@ -29,7 +29,9 @@
 #include "custom_constitutive/euler_2d_law.h"
 #include "custom_constitutive/euler_3d_law.h"
 #include "custom_constitutive/newtonian_2d_law.h"
+#include "custom_constitutive/newtonian_compressible_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
+#include "custom_constitutive/newtonian_compressible_3d_law.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
@@ -187,6 +189,72 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(stress_vector(1), 1.8, tolerance);
             KRATOS_CHECK_NEAR(stress_vector(2), 0.3, tolerance);
 	    }
+
+	    /**
+	     * Checks the Newtonian Compressible fluid 2D constitutive law.
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(NewtonianCompressible2DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
+		{
+            // Declare the constitutive law pointer as well as its required arrays
+            const unsigned int strain_size = 3;
+            CompressibleNewtonian2DLaw::Pointer p_cons_law(new CompressibleNewtonian2DLaw());
+            Vector stress_vector = ZeroVector(strain_size);
+            Vector strain_vector = ZeroVector(strain_size);
+            Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
+
+            // Get the trial element
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
+            GenerateTriangle(model_part, p_cons_law, SetProperties);
+            Element::Pointer p_element = model_part.pGetElement(1);
+
+            // Set the constitutive law values
+            ConstitutiveLaw::Parameters cons_law_values(
+                p_element->GetGeometry(),
+                p_element->GetProperties(),
+                model_part.GetProcessInfo());
+
+            for (auto &r_node : model_part.Nodes()){
+                // Set shock capturing values
+                r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.1);
+                r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.3);
+            }
+
+            // Set constitutive law flags:
+            Flags& constitutive_law_options = cons_law_values.GetOptions();
+            constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
+            constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+            // Set the constitutive arrays
+            strain_vector(0) = 3.0;
+            strain_vector(1) = 6.0;
+            strain_vector(2) = 1.0;
+            cons_law_values.SetStrainVector(strain_vector);  // Input strain values
+            cons_law_values.SetStressVector(stress_vector);  // Output stress values
+            cons_law_values.SetConstitutiveMatrix(c_matrix); // Output constitutive tensor
+            const Vector &r_N = row((p_element->GetGeometry()).ShapeFunctionsValues(),0);
+            cons_law_values.SetShapeFunctionsValues(r_N); // Centered Gauss pt. shape functions
+        
+            p_cons_law->CalculateMaterialResponseCauchy(cons_law_values);
+
+            // Check computed values
+            const double tolerance = 1e-10;
+
+            KRATOS_CHECK_NEAR(c_matrix(0,0),  0.9, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(0,1), -0.3, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(0,2),  0.0, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,0), -0.3, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,1),  0.9, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,2),  0.0, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,0),  0.0, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,1),  0.0, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,2),  0.6, tolerance);
+
+            KRATOS_CHECK_NEAR(stress_vector(0), 0.9, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(1), 4.5, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(2), 0.6, tolerance);
+	    }
+
 
 	    /**
 	     * Checks the Newtonian fluid temperature dependent viscosity 2D constitutive law.
@@ -394,6 +462,84 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(stress_vector(4),  0.9, tolerance);
             KRATOS_CHECK_NEAR(stress_vector(5),  1.2, tolerance);
 	    }
+
+
+
+	    // /**
+	    //  * Checks the Compressible Newtonian fluid 3D constitutive law.
+	    //  */
+	    KRATOS_TEST_CASE_IN_SUITE(NewtonianCompressible3DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
+		{
+            // Declare the constitutive law pointer as well as its required arrays
+            const unsigned int strain_size = 6;
+            CompressibleNewtonian3DLaw::Pointer p_cons_law(new CompressibleNewtonian3DLaw());
+            Vector stress_vector = ZeroVector(strain_size);
+            Vector strain_vector = ZeroVector(strain_size);
+            Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
+
+            // Get the trial element
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
+            GenerateTetrahedron(model_part, p_cons_law, SetProperties);
+            Element::Pointer p_element = model_part.pGetElement(1);
+
+            // Set the constitutive law values
+            ConstitutiveLaw::Parameters cons_law_values(
+                p_element->GetGeometry(),
+                p_element->GetProperties(),
+                model_part.GetProcessInfo());
+
+            for (auto &r_node : model_part.Nodes()){
+                // Set shock capturing values
+                r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.1);
+                r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.3);
+            }
+
+            // Set constitutive law flags:
+            Flags& constitutive_law_options = cons_law_values.GetOptions();
+            constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
+            constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+            // Set the constitutive arrays
+            strain_vector(0) = 3.0;
+            strain_vector(1) = 6.0;
+            strain_vector(2) = 1.0;
+            strain_vector(3) = 2.0;
+            strain_vector(4) = 3.0;
+            strain_vector(5) = 4.0;
+            cons_law_values.SetStrainVector(strain_vector);  // Input strain values
+            cons_law_values.SetStressVector(stress_vector);  // Output stress values
+            cons_law_values.SetConstitutiveMatrix(c_matrix); // Output constitutive tensor
+            const Vector &r_N = row((p_element->GetGeometry()).ShapeFunctionsValues(),0);
+            cons_law_values.SetShapeFunctionsValues(r_N); // Centered Gauss pt. shape functions
+
+            p_cons_law->CalculateMaterialResponseCauchy(cons_law_values);
+
+            // Check computed values
+            const double tolerance = 1e-10;
+
+            KRATOS_CHECK_NEAR(c_matrix(0,0),  0.9, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(0,1), -0.3, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(0,2), -0.3, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,0), -0.3, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,1),  0.9, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,2), -0.3, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,0), -0.3, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,1), -0.3, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,2),  0.9, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(3,3),  0.6, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(4,4),  0.6, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(5,5),  0.6, tolerance);
+
+            KRATOS_CHECK_NEAR(stress_vector(0),  0.6, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(1),  4.2, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(2), -1.8, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(3),  1.2, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(4),  1.8, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(5),  2.4, tolerance);
+	    }
+
+
 
         /**
 	     * Checks the Newtonian Two Fluid 3D constitutive law.
