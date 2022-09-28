@@ -60,6 +60,12 @@ namespace Kratos {
         Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
         const double k_alpha = properties_of_this_contact[K_ALPHA];
 
+        if(k_alpha <= 0){
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_ERROR << "Error: Variable ALPHA_K for DEM_D_Quadratic_LAW should be bigger than 0.0. "<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+        }
+
         // mKn for conical contact is from Sneddon, I. N., 1965, [The Relation between Load and Penetration in the Axisymmetric Boussinesq Problem for a Punch of Arbitrary Profile]
         mKn = 4.0 * equiv_young * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha * Globals::Pi / 180.0));
         mKt = 4.0 * equiv_shear * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha * Globals::Pi / 180.0));
