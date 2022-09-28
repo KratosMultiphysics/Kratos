@@ -11,8 +11,7 @@
 //                   Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_LOCK_OBJECT_H_INCLUDED)
-#define KRATOS_LOCK_OBJECT_H_INCLUDED
+#pragma once
 
 // System includes
 #include <mutex>
@@ -54,13 +53,6 @@ public:
 
     /// Copy constructor.
     LockObject(LockObject const& rOther) = delete;
-
-    /// Move constructor.
-    KRATOS_DEPRECATED_MESSAGE("The move constructor is deprecated and will be removed in the future!")
-    LockObject(LockObject&& rOther)
-    {
-        KRATOS_ERROR << "The move constructor cannot be used!" << std::endl;
-    }
 
     /// Destructor.
     virtual ~LockObject() noexcept
@@ -142,5 +134,3 @@ private:
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LOCK_OBJECT_H_INCLUDED defined
