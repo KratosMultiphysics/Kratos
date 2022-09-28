@@ -315,7 +315,27 @@ void ThermalFace::AddIntegrationPointRHSContribution(
     const double gauss_pt_unknown = rData.GaussPointUnknown();
     const double gauss_pt_flux = rData.GaussPointFaceHeatFlux();
     const double aux_rad_rhs = rData.Emissivity * StefanBoltzmann * (std::pow(gauss_pt_unknown, 4) - pow(rData.AmbientTemperature, 4));
-    const double aux_conv_rhs = rData.ConvectionCoefficient * (gauss_pt_unknown - rData.AmbientTemperature);
+    
+	const double T1 = rData.GaussPointUnknown();
+    const double T2 = rData.AmbientTemperature;
+    const double dT = T1 - T2;
+
+    double h = 0.0;
+    if (dT > 0.0) {
+      const double factor = 3.0;
+      const double g      = 9.81;
+      const double L      = 0.0225;
+      const double K      = 0.02514;
+      const double rho    = 1.2040;
+      const double beta   = 0.00343;
+      const double mu     = 0.00001825;
+      const double alpha  = 0.00002074;
+      const double Ra     = g * rho * beta * pow(L, 3) * dT / (mu * alpha);
+      const double Nu     = 0.54 * pow(Ra, 0.25);
+      h = factor * Nu * K / L;
+    }
+    const double aux_conv_rhs = h * (gauss_pt_unknown - rData.AmbientTemperature);
+	
     for (unsigned int i = 0; i < (this->GetGeometry()).PointsNumber(); ++i) {
         // Add external face heat flux contribution
         rRightHandSideVector[i] += rData.N(i) * gauss_pt_flux * rData.Weight;
@@ -339,7 +359,26 @@ void ThermalFace::AddIntegrationPointLHSContribution(
             // Add ambient radiation contribution
             rLeftHandSideMatrix(i,j) += rData.N(i) * aux_rad_lhs * rData.N(j) * rData.Weight;
             // Ambient temperature convection contribution
-            rLeftHandSideMatrix(i,j) += rData.N(i) * rData.ConvectionCoefficient * rData.N(j) * rData.Weight;
+            const double T1 = rData.GaussPointUnknown();
+            const double T2 = rData.AmbientTemperature;
+            const double dT = T1 - T2;
+
+            double h = 0.0;
+            if (dT > 0.0) {
+              const double factor = 3.0;
+              const double g      = 9.81;
+              const double L      = 0.0225;
+              const double K      = 0.02514;
+              const double rho    = 1.2040;
+              const double beta   = 0.00343;
+              const double mu     = 0.00001825;
+              const double alpha  = 0.00002074;
+              const double Ra     = g * rho * beta * pow(L, 3) * dT / (mu * alpha);
+              const double Nu     = 0.54 * pow(Ra, 0.25);
+              h = factor * Nu * K / L;
+            }
+
+            rLeftHandSideMatrix(i,j) += rData.N(i) * h * rData.N(j) * rData.Weight;
         }
     }
 
