@@ -106,7 +106,7 @@ public:
     inline bool try_lock() const
     {
 #ifdef KRATOS_SMP_CXX11
-        mLock.try_lock();
+        return mLock.try_lock();
 #elif KRATOS_SMP_OPENMP
         return omp_test_lock(&mLock);
 #endif
