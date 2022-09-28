@@ -13,26 +13,24 @@
 //
 
 // System includes
-#include <unordered_set>
-#include <filesystem>
+#include <set>
 
 // Project includes
 #include "includes/model_part_io.h"
-#include "includes/kratos_filesystem.h"
 #include "input_output/logger.h"
-#include "utilities/quaternion.h"
-#include "utilities/openmp_utils.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
+#include "utilities/openmp_utils.h"
+#include "utilities/quaternion.h"
+#include "utilities/timer.h"
 
 // External includes
 
 namespace Kratos
 {
 /// Constructor with  filenames.
-ModelPartIO::ModelPartIO(std::string const& Filename, const Flags Options)
+ModelPartIO::ModelPartIO(std::filesystem::path const& Filename, const Flags Options)
     : mNumberOfLines(1)
     , mBaseFilename(Filename)
-    , mFilename(Filename + ".mdpa")
     , mOptions(Options)
 {
     Kratos::shared_ptr<std::fstream> pFile = Kratos::make_shared<std::fstream>();
@@ -51,14 +49,19 @@ ModelPartIO::ModelPartIO(std::string const& Filename, const Flags Options)
         OpenMode = std::fstream::in;
     }
 
-    pFile->open(mFilename.c_str(), OpenMode);
+    std::filesystem::path mdpa_file_name(Filename);
+    mdpa_file_name += ".mdpa";
+    std::filesystem::path time_file_name(Filename);
+    time_file_name += ".time";
 
-    KRATOS_ERROR_IF_NOT(pFile->is_open()) << "Error opening mdpa file : " << mFilename.c_str() << std::endl;
+    pFile->open(mdpa_file_name.c_str(), OpenMode);
+
+    KRATOS_ERROR_IF_NOT(pFile->is_open()) << "Error opening mdpa file : " << mdpa_file_name << std::endl;
 
     // Store the pointer as a regular std::iostream
     mpStream = pFile;
 
-    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(Filename + ".time");
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(time_file_name.string());
 }
 
 /// Constructor with stream
@@ -189,7 +192,7 @@ void ModelPartIO::WriteProperties(PropertiesContainerType const& rThisProperties
             std::string::size_type it_constitutive_law_begin = aux_string.find("CONSTITUTIVE_LAW");
 
             if (it_constitutive_law_begin != std::string::npos) {
-            std::string::size_type it_constitutive_law_end = aux_string.find("\n", it_constitutive_law_begin);
+            std::string::size_type it_constitutive_law_end = aux_string.find('\n', it_constitutive_law_begin);
                 aux_string.erase(it_constitutive_law_begin, it_constitutive_law_end);
             }
 
@@ -994,10 +997,8 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
     OutputFilesContainerType output_files;
 
     // create folder for partitioned files
-    const std::filesystem::path base_path(mBaseFilename);
-
-    const std::filesystem::path raw_file_name = base_path.stem();
-    const std::filesystem::path folder_name = base_path.parent_path() / raw_file_name += "_partitioned";
+    const auto raw_file_name = mBaseFilename.stem();
+    const auto folder_name = mBaseFilename.parent_path() / raw_file_name += "_partitioned";
 
     std::filesystem::remove_all(folder_name); // to remove leftovers
     FilesystemExtensions::MPISafeCreateDirectories(folder_name.string());
@@ -5300,12 +5301,6 @@ void ModelPartIO::ReadSubModelPartElementsAndConditionsIds(
     KRATOS_CATCH("")
 
 }
-
-/// Unaccessible assignment operator.
-ModelPartIO& ModelPartIO::operator=(ModelPartIO const& rOther){return *this;}
-
-/// Unaccessible copy constructor.
-ModelPartIO::ModelPartIO(ModelPartIO const& rOther){}
 
 ModelPartIO::SizeType ModelPartIO::ReorderedNodeId(ModelPartIO::SizeType NodeId)
 {

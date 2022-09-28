@@ -543,7 +543,7 @@ inline void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation,
     DerivativeDataType& rDerivativeData,
     const GeometryType& rSlaveGeometry,
     const GeometryType& rMasterGeometry,
-    const array_1d<double, 3> rSlaveNormal,
+    const array_1d<double, 3>& rSlaveNormal,
     const DecompositionType& rDecompGeom,
     const PointType& rLocalPointDecomp,
     const PointType& rLocalPointParent,
@@ -940,7 +940,7 @@ bool DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
         const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, rSlaveGeometry.Length() * 1.0e-12) : MortarUtilities::HeronCheck(decomp_geom);
 
         if (!bad_shape) {
-            const GeometryType::IntegrationPointsArrayType integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
+            const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
 
             // Integrating the mortar operators
             array_1d<double,3> gp_normal;

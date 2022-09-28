@@ -3,7 +3,6 @@
         "problem_name": "one_element",
         "start_time": 0.0,
         "end_time": 3.0,
-        "nsteps": 3,
         "echo_level": 0,
         "parallel_type": "OpenMP"
     },

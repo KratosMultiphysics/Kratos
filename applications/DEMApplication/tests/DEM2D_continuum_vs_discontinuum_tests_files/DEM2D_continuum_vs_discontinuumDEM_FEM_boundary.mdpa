@@ -1,0 +1,44 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 3
+End Properties
+
+Begin Nodes
+     9   -3.0000000000   -0.0100000000    0.0
+    10   20.0000000000   -0.0100000000    0.0
+End Nodes
+
+Begin Conditions RigidEdge2D2N // GUI group identifier: floor
+    9          3     9     10
+End Conditions
+
+Begin SubModelPart 1 // DEM-FEM-Wall2D - group identifier: floor
+  Begin SubModelPartData // DEM-FEM-Wall2D. Group name: floor
+    LINEAR_VELOCITY [3] (0.0, 0.0, 0.0)
+    VELOCITY_PERIOD 0.0
+    ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
+    ROTATION_CENTER [3] (0.0,0.0,0.0)
+    ANGULAR_VELOCITY_PERIOD 0.0
+    VELOCITY_START_TIME 0.0
+    VELOCITY_STOP_TIME 100.0
+    ANGULAR_VELOCITY_START_TIME 0.0
+    ANGULAR_VELOCITY_STOP_TIME 100.0
+    FIXED_MESH_OPTION 0
+    RIGID_BODY_MOTION 1
+    FREE_BODY_MOTION 0
+    IS_GHOST 0
+    IDENTIFIER floor
+    TOP 0
+    BOTTOM 0
+    FORCE_INTEGRATION_GROUP 0
+  End SubModelPartData
+  Begin SubModelPartNodes
+         9
+         10
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+         9
+  End SubModelPartConditions
+End SubModelPart
