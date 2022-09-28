@@ -60,7 +60,7 @@ namespace Kratos
     /// A stabilized element for the incompressible Navier-Stokes equations.
     /**
      */
-    template< unsigned int TDim >
+    template< unsigned int TDim, unsigned int TNumNodes = TDim + 1 >
     class FractionalStep : public Element
     {
     public:
@@ -171,7 +171,7 @@ namespace Kratos
 	    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                                 Element::PropertiesType::Pointer pProperties) const override
 	    {
-            return Kratos::make_intrusive< FractionalStep<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+            return Kratos::make_intrusive< FractionalStep<TDim, TNumNodes> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 	    }
 
         /**
@@ -184,7 +184,7 @@ namespace Kratos
 
         Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override
         {
-            return Kratos::make_intrusive< FractionalStep<TDim> >(NewId, pGeom, pProperties);
+            return Kratos::make_intrusive< FractionalStep<TDim, TNumNodes> >(NewId, pGeom, pProperties);
         }
 
         /**
@@ -689,7 +689,7 @@ namespace Kratos
              with associated value of 0.0). This is catastrophic if the variable referenced
              goes out of scope.
              */
-            const FractionalStep<TDim>* const_this = static_cast<const FractionalStep<TDim>*> (this);
+            const FractionalStep<TDim, TNumNodes>* const_this = static_cast<const FractionalStep<TDim, TNumNodes>*> (this);
             const TValueType& Val = const_this->GetValue(rVariable);
 
             for (unsigned int i = 0; i < NumValues; i++)
@@ -783,17 +783,17 @@ namespace Kratos
 
 
     /// input stream function
-    template< unsigned int TDim >
+    template< unsigned int TDim, unsigned int TNumNodes >
     inline std::istream& operator >>(std::istream& rIStream,
-                                     FractionalStep<TDim>& rThis)
+                                     FractionalStep<TDim, TNumNodes>& rThis)
     {
         return rIStream;
     }
 
     /// output stream function
-    template< unsigned int TDim >
+    template< unsigned int TDim, unsigned int TNumNodes >
     inline std::ostream& operator <<(std::ostream& rOStream,
-                                     const FractionalStep<TDim>& rThis)
+                                     const FractionalStep<TDim, TNumNodes>& rThis)
     {
         rThis.PrintInfo(rOStream);
         rOStream << std::endl;
