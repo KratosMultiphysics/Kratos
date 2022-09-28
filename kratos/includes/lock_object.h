@@ -45,7 +45,8 @@ public:
     ///@{
 
     /// Default constructor.
-    LockObject() noexcept {
+    LockObject() noexcept
+    {
 #ifdef KRATOS_SMP_OPENMP
         omp_init_lock(&mLock);
 #endif
