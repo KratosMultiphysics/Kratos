@@ -91,7 +91,7 @@ public:
       mLocalGraph(LocalSize)
     {
         mNonLocalGraphs.resize(mpComm->Size(),false);
-        mNonLocalLocks.resize(mpComm->Size());
+        mNonLocalLocks = std::vector<LockObject>(mpComm->Size());
 
         mpRowNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(*mpComm,LocalSize);
     }
