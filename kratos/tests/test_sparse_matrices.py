@@ -2,19 +2,13 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-try:
-    import numpy as np 
-    numpy_availabe = True
-except ImportError:
-    numpy_availabe = False
+import numpy as np 
 
 try:
-    import scipy
-    import scipy.sparse
     import KratosMultiphysics.scipy_conversion_tools
-    scipy_available = True
-except ImportError:
-    scipy_available = False
+    missing_scipy = False
+except ImportError as e:
+    missing_scipy = True
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -54,7 +48,6 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
         self.assertEqual(y[1],0.0)
         self.assertEqual(y[2],13.0)
 
-    @KratosUnittest.skipIf(not numpy_availabe, "This test requires numpy")
     def test_matrix_assembly(self):
         #data to be assembled
         values = np.array([[1.0,-1.0],[-1.0,1.0]])
@@ -103,7 +96,7 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
             self.assertEqual(B.index1_data()[i], validation_index1[i])
 
         # the following should be added back in case scipy support is enabled in testing
-        if scipy_available:
+        if not missing_scipy:
              #test conversion to scipy matrix
             Ascipy = KratosMultiphysics.scipy_conversion_tools.to_csr(A)
 

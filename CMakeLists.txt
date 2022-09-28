@@ -20,8 +20,8 @@ endif(POLICY CMP0074)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
-set (KratosMultiphysics_MINOR_VERSION 1)
-set (KratosMultiphysics_PATCH_VERSION 3)
+set (KratosMultiphysics_MINOR_VERSION 2)
+set (KratosMultiphysics_PATCH_VERSION 0)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -51,15 +51,12 @@ endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
 
 # If no test policy enable by default
-if(NOT DEFINED KRATOS_BUILD_TESTING)
-message("-- No KRATOS_BUILD_TESTING is defined. Setting to ON")
-SET (KRATOS_BUILD_TESTING ON)
-endif(NOT DEFINED KRATOS_BUILD_TESTING)
+option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are compiled. These increase compilation time, but if not set only python tests can be executed. Default setting is ON" ON)
 
 # If not defined mute the very verbose installation messages
 if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
-	message("-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER")
-	SET (CMAKE_INSTALL_MESSAGE NEVER)
+  message("-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER")
+  SET (CMAKE_INSTALL_MESSAGE NEVER)
 endif(NOT DEFINED CMAKE_INSTALL_MESSAGE)
 
 # Set kratos specific module path

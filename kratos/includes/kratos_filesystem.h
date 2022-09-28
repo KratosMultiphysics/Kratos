@@ -98,15 +98,15 @@ std::vector<std::string> KRATOS_API(KRATOS_CORE) ListDirectory(const std::string
  */
 void KRATOS_API(KRATOS_CORE) MPISafeCreateDirectories(const std::string& rPath);
 
-/** 
- * @brief Resolve symlinks recursively.
+/** @brief Resolve symlinks recursively.
+ *
  *  @param rPath: path to a symbolic link.
  *  @return The result of the recursive dereferencing.
  *  @throws If the input path does not exist or the symlink is cyclic.
- *  @note The existence of the final result is not checked and is up to the user to handle.
+ *  @note The existence of the final result is not checked and is up to the user.
  *  @note The input is returned if it is not a symlink.
  */
-std::string ResolveSymlinks(const std::string& rPath);
+std::filesystem::path ResolveSymlinks(const std::filesystem::path& rPath);
 
 } // namespace FilesystemExtensions
 } // namespace Kratos
