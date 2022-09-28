@@ -42,7 +42,6 @@
                 "heat_capacity_ratio": 1.4,
                 "speed_of_sound": 340.3,
                 "inlet_potential": 1.0,
-                "mach_number_limit": 0.94,
                 "critical_mach": 0.90,
                 "upwind_factor_constant": 1.0,
                 "mach_number_squared_limit":3.0,

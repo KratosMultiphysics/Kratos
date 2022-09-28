@@ -56,7 +56,7 @@ NewtonianTemperatureDependent3DLaw::~NewtonianTemperatureDependent3DLaw()
 int NewtonianTemperatureDependent3DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     // If the viscosity is not table provided, check its value
     if (!rMaterialProperties.HasTable(TEMPERATURE, DYNAMIC_VISCOSITY)) {

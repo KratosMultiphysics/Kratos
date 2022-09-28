@@ -111,7 +111,7 @@ namespace Kratos
       mRayleighDamping            = rRayleighDamping;
 
       //Allocate auxiliary memory
-      int NumThreads = OpenMPUtils::GetNumThreads();
+      int NumThreads = ParallelUtilities::GetNumThreads();
 
 
       mMatrix.D.resize(NumThreads);
@@ -155,8 +155,6 @@ namespace Kratos
     virtual void Initialize(ModelPart& r_model_part)
     {
       KRATOS_TRY
-
-        mModelPart = r_model_part;
 
       if(mDeltaTime.PredictionLevel>0)
         {
@@ -297,7 +295,7 @@ namespace Kratos
         ElementsArrayType& rElements = rModelPart.Elements();
         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
 
@@ -997,8 +995,6 @@ namespace Kratos
 
     bool                mSchemeIsInitialized;
 
-    ModelPart           mModelPart;
-
 
     TimeVariables       mTime;
     DeltaTimeParameters mDeltaTime;
@@ -1124,4 +1120,3 @@ namespace Kratos
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_EXPLICIT_HAMILTON_SCHEME_H_INCLUDED  defined */
-

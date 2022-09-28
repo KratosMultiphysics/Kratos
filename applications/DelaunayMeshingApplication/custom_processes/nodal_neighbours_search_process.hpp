@@ -104,7 +104,7 @@ class NodalNeighboursSearchProcess
 
     int method = 0; //Kratos or Lohner method
 
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
 
     if(method==0)
     {
@@ -120,15 +120,15 @@ class NodalNeighboursSearchProcess
     {
       std::cout<<" ERROR:  Nodal Neighbours Search FAILED !!! "<<std::endl;
     }
-    else
-    {
-      //print out the mesh generation time
-      if( mEchoLevel > 1 ){
-        double end_time = OpenMPUtils::GetCurrentTime();
-        std::cout<<"  Neighbour Nodes Search time = "<<end_time-begin_time<<std::endl;
-      }
-      //PrintNodeNeighbours();
-    }
+    // else
+    // {
+    //   //print out the mesh generation time
+    //   if( mEchoLevel > 1 ){
+    //     double end_time = OpenMPUtils::GetCurrentTime();
+    //     std::cout<<"  Neighbour Nodes Search time = "<<end_time-begin_time<<std::endl;
+    //   }
+    //   //PrintNodeNeighbours();
+    // }
 
   };
 

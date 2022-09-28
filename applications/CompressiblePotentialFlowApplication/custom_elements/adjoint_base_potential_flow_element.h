@@ -108,6 +108,10 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+            std::vector<int>& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo) override;

@@ -7,14 +7,17 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
 // System includes
+#include <cmath>
+#include <iomanip>
 
 // External includes
 
 // Project includes
+#include "includes/kratos_filesystem.h"
 #include "utilities/constraint_utilities.h"
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "structural_mechanics_application_variables.h"
@@ -161,6 +164,11 @@ PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart& rModelPa
     );
 
     mOutputParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+    const std::string folder_name = mOutputParameters["folder_name"].GetString();
+    if (!Kratos::filesystem::exists(folder_name)) {
+        Kratos::filesystem::create_directories(folder_name);
+    }
 }
 
 void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
@@ -190,7 +198,7 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
         const double cos_angle = std::cos(2 * Globals::Pi * i / num_animation_steps);
 
         for (SizeType j=0; j<num_eigenvalues; ++j) {
-            const std::string label = GetLabel(j, eigenvalue_vector[j]);
+            const std::string label = GetLabel(j, num_eigenvalues, eigenvalue_vector[j]);
 
             #pragma omp parallel for
             for (int k=0; k<static_cast<int>(mrModelPart.NumberOfNodes()); ++k) {
@@ -241,12 +249,13 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& 
 }
 
 std::string PostprocessEigenvaluesProcess::GetLabel(const int NumberOfEigenvalue,
+                                                    const int NumberOfEigenvalues,
                                                     const double EigenvalueSolution) const
 {
     double label_number;
 
     std::stringstream parser;
-    parser << (NumberOfEigenvalue + 1);
+    parser << std::setfill('0') << std::setw(std::floor(std::log10(NumberOfEigenvalues))+1) << (NumberOfEigenvalue + 1);
     std::string label = parser.str();
 
     const std::string lable_type = mOutputParameters["label_type"].GetString();

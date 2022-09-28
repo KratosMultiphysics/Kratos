@@ -237,7 +237,7 @@ void SPRErrorProcess<TDim>::CalculatePatch(
         p_k(0,0) = 1.0;
         p_k(0,1) = coordinates_vector[0][0] - itPatchNode->X();
         p_k(0,2) = coordinates_vector[0][1] - itPatchNode->Y();
-        if(TDim == 3)
+        if constexpr (TDim == 3)
             p_k(0,3)=coordinates_vector[0][2] - itPatchNode->Z();
 
         // Finally we add the contributiosn to our local system (A, b)
@@ -270,7 +270,7 @@ void SPRErrorProcess<TDim>::CalculatePatch(
     } else {
         p_k(0,1) = itNode->X() - itPatchNode->X();
         p_k(0,2) = itNode->Y() - itPatchNode->Y();
-        if(TDim ==3)
+        if constexpr (TDim ==3)
             p_k(0,3) = itNode->Z() - itPatchNode->Z();
         const BoundedMatrix<double, 1, SigmaSize> sigma = prod(p_k,coeff);
         noalias(rSigmaRecovered) = row(sigma, 0);

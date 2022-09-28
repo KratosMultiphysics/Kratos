@@ -8,28 +8,28 @@ class SodShockTubeTest(KratosUnittest.TestCase):
     def testSodShockTubeExplicitASGS(self):
         self.solver_type = "CompressibleExplicit"
         self.use_oss = False
-        self.shock_capturing = False
+        self.shock_capturing_type = "none"
         self._CustomizeTestSettings()
         self._RunSodShockTubeTest()
 
     def testSodShockTubeExplicitASGSShockCapturing(self):
         self.solver_type = "CompressibleExplicit"
         self.use_oss = False
-        self.shock_capturing = True
+        self.shock_capturing_type = "physics_based"
         self._CustomizeTestSettings()
         self._RunSodShockTubeTest()
 
     def testSodShockTubeExplicitOSS(self):
         self.solver_type = "CompressibleExplicit"
         self.use_oss = True
-        self.shock_capturing = False
+        self.shock_capturing_type = "none"
         self._CustomizeTestSettings()
         self._RunSodShockTubeTest()
 
     def testSodShockTubeExplicitOSSShockCapturing(self):
         self.solver_type = "CompressibleExplicit"
         self.use_oss = True
-        self.shock_capturing = True
+        self.shock_capturing_type = "physics_based"
         self._CustomizeTestSettings()
         self._RunSodShockTubeTest()
 
@@ -61,7 +61,7 @@ class SodShockTubeTest(KratosUnittest.TestCase):
         # Customize simulation settings
         self.parameters["solver_settings"]["solver_type"].SetString(self.solver_type)
         self.parameters["solver_settings"]["use_oss"].SetBool(self.use_oss)
-        self.parameters["solver_settings"]["shock_capturing"].SetBool(self.shock_capturing)
+        self.parameters["solver_settings"]["shock_capturing_settings"]["type"].SetString(self.shock_capturing_type)
 
         # If required, add the output process to the test settings
         if self.print_output:
@@ -108,7 +108,7 @@ class SodShockTubeTest(KratosUnittest.TestCase):
         output_name = "sod_shock_tube{0}{1}{2}".format(
             "_explicit" if self.solver_type == "CompressibleExplicit" else "_implicit",
             "_ASGS" if self.use_oss == False else "_OSS",
-            "_SC" if self.shock_capturing else "")
+            "" if self.shock_capturing_type=="none" else "_SC")
         gid_output_settings["Parameters"]["output_name"].SetString(output_name)
         self.parameters["output_processes"]["gid_output"].Append(gid_output_settings)
 
@@ -127,7 +127,7 @@ class SodShockTubeTest(KratosUnittest.TestCase):
         output_file_name = "sod_shock_tube{0}{1}{2}_results.json".format(
             "_explicit" if self.solver_type == "CompressibleExplicit" else "_implicit",
             "_ASGS" if self.use_oss == False else "_OSS",
-            "_SC" if self.shock_capturing else "")
+            "" if self.shock_capturing_type=="none" else "_SC")
         json_output_settings["Parameters"]["output_file_name"].SetString(output_file_name)
         self.parameters["processes"]["json_check_process_list"].Append(json_output_settings)
 
@@ -148,7 +148,7 @@ class SodShockTubeTest(KratosUnittest.TestCase):
         input_file_name = "sod_shock_tube{0}{1}{2}_results.json".format(
             "_explicit" if self.solver_type == "CompressibleExplicit" else "_implicit",
             "_ASGS" if self.use_oss == False else "_OSS",
-            "_SC" if self.shock_capturing else "")
+            "" if self.shock_capturing_type=="none" else "_SC")
         json_check_settings["Parameters"]["input_file_name"].SetString(input_file_name)
         json_check_settings["Parameters"]["tolerance"].SetDouble(self.check_absolute_tolerance)
         json_check_settings["Parameters"]["relative_tolerance"].SetDouble(self.check_relative_tolerance)

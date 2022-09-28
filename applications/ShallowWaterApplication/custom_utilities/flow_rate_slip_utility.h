@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "utilities/parallel_utilities.h"
 #include "utilities/coordinate_transformation_utilities.h"
 
 namespace Kratos
@@ -168,30 +169,31 @@ public:
      */
 	virtual void RotateVelocities(ModelPart& rModelPart) const override
     {
-        TLocalVectorType vel(BaseType::GetDomainSize());
-        TLocalVectorType tmp(BaseType::GetDomainSize());
+        struct TLS {
+            TLocalVectorType vel;
+            TLocalVectorType tmp;
+        };
+        TLS tls;
+        tls.vel.resize(BaseType::GetDomainSize());
+        tls.tmp.resize(BaseType::GetDomainSize());
 
-        ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
-        #pragma omp parallel for firstprivate(vel, tmp)
-        for(int i = 0; i < static_cast<int>(rModelPart.Nodes().size()); ++i)
-        {
-            ModelPart::NodeIterator it_node = it_begin + i;
-            if (this->IsSlip(*it_node))
+        block_for_each(rModelPart.Nodes(), tls, [&](NodeType& rNode, TLS& rTLS){
+            if (this->IsSlip(rNode))
             {
                 // For shallow water problems, domain size is always 2
                 BoundedMatrix<double,2,2> rot;
-                BaseType::LocalRotationOperatorPure(rot, *it_node);
+                BaseType::LocalRotationOperatorPure(rot, rNode);
 
-                array_1d<double,3>& r_velocity = it_node->FastGetSolutionStepValue(MOMENTUM);
+                array_1d<double,3>& r_velocity = rNode.FastGetSolutionStepValue(MOMENTUM);
                 for(SizeType i = 0; i < 2; i++) {
-                    vel[i] = r_velocity[i];
+                    rTLS.vel[i] = r_velocity[i];
                 }
-                noalias(tmp) = prod(rot, vel);
+                noalias(rTLS.tmp) = prod(rot, rTLS.vel);
                 for(SizeType i = 0; i < 2; i++) {
-                    r_velocity[i] = tmp[i];
+                    r_velocity[i] = rTLS.tmp[i];
                 }
             }
-        }
+        });
     }
 
 	/**
@@ -201,30 +203,31 @@ public:
      */
 	virtual void RecoverVelocities(ModelPart& rModelPart) const override
     {
-        TLocalVectorType vel(BaseType::GetDomainSize());
-        TLocalVectorType tmp(BaseType::GetDomainSize());
+        struct TLS {
+            TLocalVectorType vel;
+            TLocalVectorType tmp;
+        };
+        TLS tls;
+        tls.vel.resize(BaseType::GetDomainSize());
+        tls.tmp.resize(BaseType::GetDomainSize());
 
-        ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
-        #pragma omp parallel for firstprivate(vel, tmp)
-        for(int i = 0; i<static_cast<int>(rModelPart.Nodes().size()); ++i)
-        {
-            ModelPart::NodeIterator it_node = it_begin + i;
-            if( this->IsSlip(*it_node) )
+        block_for_each(rModelPart.Nodes(), tls, [&](NodeType& rNode, TLS& rTLS){
+            if( this->IsSlip(rNode) )
             {
                 // For shallow water problems, domain size is always 2
                 BoundedMatrix<double,2,2> rot;
-                BaseType::LocalRotationOperatorPure(rot,*it_node);
+                BaseType::LocalRotationOperatorPure(rot, rNode);
 
-                array_1d<double,3>& r_velocity = it_node->FastGetSolutionStepValue(MOMENTUM);
+                array_1d<double,3>& r_velocity = rNode.FastGetSolutionStepValue(MOMENTUM);
                 for(SizeType i = 0; i < 2; i++) {
-                    vel[i] = r_velocity[i];
+                    rTLS.vel[i] = r_velocity[i];
                 }
-                noalias(tmp) = prod(trans(rot),vel);
+                noalias(rTLS.tmp) = prod(trans(rot), rTLS.vel);
                 for(SizeType i = 0; i < 2; i++) {
-                    r_velocity[i] = tmp[i];
+                    r_velocity[i] = rTLS.tmp[i];
                 }
             }
-        }
+        });
     }
 
     ///@}

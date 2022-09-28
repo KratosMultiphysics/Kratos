@@ -27,6 +27,10 @@
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.h"
+#include "modified_shape_functions/triangle_2d_3_ausas_incised_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_ausas_incised_shape_functions.h"
+
+
 
 // Application includes
 #include "embedded_skin_visualization_process.h"
@@ -547,7 +551,9 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationMesh()
     // If MPI, this creates the communication plan among processes
     // If serial, it is only required to set the current mesh as local mesh in order to output the values
     if (mrVisualizationModelPart.IsDistributed()) {
-        ParallelEnvironment::CreateFillCommunicator(mrVisualizationModelPart)->Execute();
+        ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(
+            mrVisualizationModelPart, mrVisualizationModelPart.GetCommunicator().GetDataCommunicator()
+            )->Execute();
     } else {
         mrVisualizationModelPart.GetCommunicator().SetLocalMesh(mrVisualizationModelPart.pGetMesh(0));
     }
@@ -624,7 +630,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
     for (int i_elem = 0; i_elem < n_elems; ++i_elem){
         ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i_elem;
 
-        // Get element geometry
+        // Get element geometry and nodal distances
         const Geometry<Node<3>>::Pointer p_geometry = it_elem->pGetGeometry();
         const unsigned int n_nodes = p_geometry->PointsNumber();
         const Vector nodal_distances = this->SetDistancesVector(it_elem);
@@ -637,34 +643,47 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
         }
         const bool is_split = this->ElementIsSplit(p_geometry, nodal_distances);
 
-        // If the element is split, create the new entities
-        if (is_split){
-            // Set the split utility and compute the splitting pattern
-            ModifiedShapeFunctions::Pointer p_modified_shape_functions = this->SetModifiedShapeFunctionsUtility(p_geometry, nodal_distances);
-            DivideGeometry::Pointer p_split_utility = p_modified_shape_functions->pGetSplittingUtil();
+        // If the element is split or Ausas incised, create the new entities
+        if (is_split) {
+            // Check whether element is incised. NOTE: ElementIsSplit() also returns 'true' for Ausas incised elements!
+            const Vector edge_distances_extrapolated = this->SetEdgeDistancesExtrapolatedVector(*it_elem);
+            const bool is_incised = this->ElementIsIncised(edge_distances_extrapolated);
+
+            // Set the split utility
+            ModifiedShapeFunctions::Pointer p_modified_shape_functions;
+            if (is_incised) {
+                p_modified_shape_functions = this->SetAusasIncisedModifiedShapeFunctionsUtility(p_geometry, nodal_distances, edge_distances_extrapolated);
+            } else {
+                p_modified_shape_functions = this->SetModifiedShapeFunctionsUtility(p_geometry, nodal_distances);
+            }
+
+            // Compute the splitting pattern
+            DivideGeometry<Node<3>>::Pointer p_split_utility = p_modified_shape_functions->pGetSplittingUtil();
 
             // Create the auxiliar map that will be used to generate the skin
             std::unordered_map<std::pair<unsigned int,bool>, unsigned int, Hash, KeyEqual> new_nodes_map;
 
             // Get the split geometries from the splitting pattern
-            const unsigned int n_pos_split_geom = (p_split_utility->mPositiveSubdivisions).size();
-            const unsigned int n_neg_split_geom = (p_split_utility->mNegativeSubdivisions).size();
-            std::vector<DivideGeometry::IndexedPointGeometryPointerType> split_geometries;
+            const auto& r_pos_subdivisions = p_split_utility->GetPositiveSubdivisions();
+            const auto& r_neg_subdivisions = p_split_utility->GetNegativeSubdivisions();
+            const unsigned int n_pos_split_geom = r_pos_subdivisions.size();
+            const unsigned int n_neg_split_geom = r_neg_subdivisions.size();
+            std::vector<DivideGeometry<Node<3>>::IndexedPointGeometryPointerType> split_geometries;
             split_geometries.reserve(n_pos_split_geom + n_neg_split_geom);
-            split_geometries.insert(split_geometries.end(), (p_split_utility->mPositiveSubdivisions).begin(), (p_split_utility->mPositiveSubdivisions).end());
-            split_geometries.insert(split_geometries.end(), (p_split_utility->mNegativeSubdivisions).begin(), (p_split_utility->mNegativeSubdivisions).end());
+            split_geometries.insert(split_geometries.end(), r_pos_subdivisions.begin(), r_pos_subdivisions.end());
+            split_geometries.insert(split_geometries.end(), r_neg_subdivisions.begin(), r_neg_subdivisions.end());
 
             // Create the split geometries in the visualization model part
             for (unsigned int i_geom = 0; i_geom < split_geometries.size(); ++i_geom){
                 const bool pos_side = i_geom < n_pos_split_geom ? true : false;
-                const DivideGeometry::IndexedPointGeometryPointerType p_sub_geom = split_geometries[i_geom];
+                const DivideGeometry<Node<3>>::IndexedPointGeometryPointerType p_sub_geom = split_geometries[i_geom];
                 const unsigned int sub_geom_n_nodes = p_sub_geom->PointsNumber();
 
                 // Fill the new element nodes array
                 Element::NodesArrayType sub_geom_nodes_array;
                 for (unsigned int i_sub_geom_node = 0; i_sub_geom_node < sub_geom_n_nodes; ++i_sub_geom_node){
 
-                    DivideGeometry::IndexedPointType &sub_geom_node = p_sub_geom->operator[](i_sub_geom_node);
+                    DivideGeometry<Node<3>>::IndexedPointType &sub_geom_node = p_sub_geom->operator[](i_sub_geom_node);
                     const unsigned int local_id = sub_geom_node.Id();
 
                     // Non-intersection node. Get the copied original geometry nodes
@@ -729,18 +748,20 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
             }
 
             // Get the interface geometries from the splitting pattern
-            const unsigned int n_pos_interface_geom = (p_split_utility->mPositiveInterfaces).size();
-            const unsigned int n_neg_interface_geom = (p_split_utility->mNegativeInterfaces).size();
+            const auto& r_pos_interfaces = p_split_utility->GetPositiveInterfaces();
+            const auto& r_neg_interfaces = p_split_utility->GetNegativeInterfaces();
+            const unsigned int n_pos_interface_geom = r_pos_interfaces.size();
+            const unsigned int n_neg_interface_geom = r_neg_interfaces.size();
 
-            std::vector<DivideGeometry::IndexedPointGeometryPointerType> split_interface_geometries;
+            std::vector<DivideGeometry<Node<3>>::IndexedPointGeometryPointerType> split_interface_geometries;
             split_interface_geometries.reserve(n_pos_interface_geom + n_neg_interface_geom);
-            split_interface_geometries.insert(split_interface_geometries.end(), (p_split_utility->mPositiveInterfaces).begin(), (p_split_utility->mPositiveInterfaces).end());
-            split_interface_geometries.insert(split_interface_geometries.end(), (p_split_utility->mNegativeInterfaces).begin(), (p_split_utility->mNegativeInterfaces).end());
+            split_interface_geometries.insert(split_interface_geometries.end(), r_pos_interfaces.begin(), r_pos_interfaces.end());
+            split_interface_geometries.insert(split_interface_geometries.end(), r_neg_interfaces.begin(), r_neg_interfaces.end());
 
             // Create the split interface geometries in the visualization model part
             for (unsigned int i_int_geom = 0; i_int_geom < split_interface_geometries.size(); ++i_int_geom){
                 const bool int_pos_side = (i_int_geom < n_pos_interface_geom) ? true : false;
-                DivideGeometry::IndexedPointGeometryPointerType p_int_sub_geom = split_interface_geometries[i_int_geom];
+                DivideGeometry<Node<3>>::IndexedPointGeometryPointerType p_int_sub_geom = split_interface_geometries[i_int_geom];
                 GeometryData::KratosGeometryType p_int_sub_geom_type = p_int_sub_geom->GetGeometryType();
                 const unsigned int sub_int_geom_n_nodes = p_int_sub_geom->PointsNumber();
 
@@ -748,7 +769,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
                 Condition::NodesArrayType sub_int_geom_nodes_array;
                 for (unsigned int i_node = 0; i_node < sub_int_geom_n_nodes; ++i_node){
 
-                    DivideGeometry::IndexedPointType &sub_int_geom_node = p_int_sub_geom->operator[](i_node);
+                    DivideGeometry<Node<3>>::IndexedPointType &sub_int_geom_node = p_int_sub_geom->operator[](i_node);
                     const unsigned int local_id = sub_int_geom_node.Id();
 
                     // Get the global id from the intersection nodes map
@@ -885,7 +906,7 @@ bool EmbeddedSkinVisualizationProcess::ElementIsPositive(
 }
 
 bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
-    Geometry<Node<3>>::Pointer pGeometry,
+    const Geometry<Node<3>>::Pointer pGeometry,
     const Vector &rNodalDistances)
 {
     const unsigned int pts_number = pGeometry->PointsNumber();
@@ -898,9 +919,23 @@ bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
             n_neg++;
     }
 
+    //NOTE: applies to intersected elements as well as incised elements, for which extrapolated edge distances were calculated
     const bool is_split = (n_pos > 0 && n_neg > 0) ? true : false;
 
     return is_split;
+}
+
+bool EmbeddedSkinVisualizationProcess::ElementIsIncised(const Vector &rEdgeDistancesExtrapolated)
+{
+    // Check whether one edge has intersection ratio with extrapolated skin if the vector is not empty
+    if (mShapeFunctionsType == ShapeFunctionsType::Ausas) {
+        for (unsigned int i_edge = 0; i_edge < rEdgeDistancesExtrapolated.size(); ++i_edge){
+            if (rEdgeDistancesExtrapolated[i_edge] > 0.0) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::ElementIterator ItElem)
@@ -925,6 +960,15 @@ const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::Ele
     }
 
     return nodal_distances;
+}
+
+const inline Vector EmbeddedSkinVisualizationProcess::SetEdgeDistancesExtrapolatedVector(const Element& rElem)
+{
+    Vector edge_distances_extrapolated;
+    if (mLevelSetType == LevelSetType::Discontinuous) {
+        edge_distances_extrapolated = rElem.GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
+    }
+    return edge_distances_extrapolated;
 }
 
 ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedShapeFunctionsUtility(
@@ -959,6 +1003,25 @@ ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedSha
     }
 }
 
+ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetAusasIncisedModifiedShapeFunctionsUtility(
+    const Geometry<Node<3>>::Pointer pGeometry,
+    const Vector& rNodalDistancesWithExtra,
+    const Vector& rEdgeDistancesExtrapolated)
+{
+    // Get the geometry type
+    const GeometryData::KratosGeometryType geometry_type = pGeometry->GetGeometryType();
+
+    // Return the modified shape functions utility
+    switch (geometry_type) {
+        case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+            return Kratos::make_shared<Triangle2D3AusasIncisedShapeFunctions>(pGeometry, rNodalDistancesWithExtra, rEdgeDistancesExtrapolated);
+        case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+            return Kratos::make_shared<Tetrahedra3D4AusasIncisedShapeFunctions>(pGeometry, rNodalDistancesWithExtra, rEdgeDistancesExtrapolated);
+        default:
+            KRATOS_ERROR << "Asking for a non-implemented Ausas modified shape functions geometry.";
+    }
+}
+
 Geometry< Node<3> >::Pointer EmbeddedSkinVisualizationProcess::SetNewConditionGeometry(
     const GeometryData::KratosGeometryType &rOriginGeometryType,
     const Condition::NodesArrayType &rNewNodesArray)
@@ -969,7 +1032,7 @@ Geometry< Node<3> >::Pointer EmbeddedSkinVisualizationProcess::SetNewConditionGe
         case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
             return Kratos::make_shared<Triangle3D3< Node<3> > >(rNewNodesArray);
         default:
-            KRATOS_ERROR << "Implement the visualization for the intersection geometry type " << rOriginGeometryType;
+            KRATOS_ERROR << "Implement the visualization for the intersection geometry type " << static_cast<int>(rOriginGeometryType);
     }
 }
 

@@ -6,6 +6,7 @@ import KratosMultiphysics.CoSimulationApplication.factories.io_factory as io_fac
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
+from KratosMultiphysics.CoSimulationApplication.utilities import data_communicator_utilities
 
 def Create(settings, name):
     raise Exception('"CoSimulationSolverWrapper" is a baseclass and cannot be used directly!')
@@ -43,7 +44,8 @@ class CoSimulationSolverWrapper:
             raise Exception("cannot contain dot!")
 
         self.echo_level = self.settings["echo_level"].GetInt()
-        self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model, data_name, self.name) for (data_name, data_config) in self.settings["data"].items()}
+
+        self.data_communicator = self._GetDataCommunicator()
 
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
         self.__io = None
@@ -52,14 +54,10 @@ class CoSimulationSolverWrapper:
         raise Exception('Trying to get SolverWrapper "{}" of "{}" which is not a coupled solver!'.format(solver_name, self.name))
 
     def Initialize(self):
+        self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model, data_name, self.name) for (data_name, data_config) in self.settings["data"].items()}
+
         if self.__HasIO():
             self.__GetIO().Initialize()
-
-    def InitializeCouplingInterfaceData(self):
-        # Initializing of the CouplingInterfaceData can only be done after the meshes are read
-        # and all ModelParts are created
-        for data in self.data_dict.values():
-            data.Initialize()
 
     def Finalize(self):
         if self.__HasIO():
@@ -93,9 +91,9 @@ class CoSimulationSolverWrapper:
         io_settings = self.settings["io_settings"]
 
         if not io_settings.Has("echo_level"):
-            io_settings.AddEmptyValue("echo_level").SetInt(self.echo_level)
+            io_settings.AddEmptyValue("echo_level").SetInt(io_echo_level)
 
-        self.__io = io_factory.CreateIO(self.settings["io_settings"], self.model, self.name, self._GetIOType())
+        self.__io = io_factory.CreateIO(self.settings["io_settings"], self.model, self.name, self.data_communicator, self._GetIOType())
 
     def ImportCouplingInterface(self, interface_config):
         if self.echo_level > 2:
@@ -117,6 +115,8 @@ class CoSimulationSolverWrapper:
             cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Exporting data of solver: "{}" with type: "{}"'.format(colors.blue(self.name), data_config["type"]))
         self.__GetIO().ExportData(data_config)
 
+    def IsDefinedOnThisRank(self):
+        return self.data_communicator.IsDefinedOnThisRank()
 
     def GetInterfaceData(self, data_name):
         try:
@@ -125,18 +125,11 @@ class CoSimulationSolverWrapper:
             raise Exception('Requested data field "{}" does not exist for solver "{}"'.format(data_name, self.name))
 
     def PrintInfo(self):
-        '''This function can be filled if desired, e.g. to print settings at higher echo-levels
-        '''
-        pass
+        if self.echo_level > 0 and self.data_communicator.IsDefinedOnThisRank():
+            cs_tools.cs_print_info("CoSimulationSolverWrapper", self._ClassName(), self.name, "Using {} mpi-processes".format(self.data_communicator.Size()))
 
     def Check(self):
-        print("!!!WARNING!!! your solver does not implement Check!!!")
-
-    def IsDistributed(self):
-        '''Returns whether this solver is executed distributed Aka MPI-parallel
-        '''
-        # TODO check if this method is necessary!
-        return False
+        cs_tools.cs_print_warning("CoSimulationSolverWrapper", "your solver does not implement Check!!!")
 
     @classmethod
     def _ClassName(cls):
@@ -154,6 +147,15 @@ class CoSimulationSolverWrapper:
     def __HasIO(self):
         return self.__io is not None
 
+    def _GetDataCommunicator(self):
+        if len(self.settings["mpi_settings"].keys()) > 0:
+            if self.settings["mpi_settings"]["num_processes"].GetInt() == 1:
+                return data_communicator_utilities.GetRankZeroDataCommunicator()
+            return data_communicator_utilities.CreateDataCommunicatorWithNProcesses(self.settings["mpi_settings"])
+        else:
+            # if no special input is specified use the default implementation from the baseclass
+            return KM.ParallelEnvironment.GetDefaultDataCommunicator()
+
     @classmethod
     def _GetDefaultParameters(cls):
         return KM.Parameters("""{
@@ -161,5 +163,6 @@ class CoSimulationSolverWrapper:
             "solver_wrapper_settings" : {},
             "io_settings"             : {},
             "data"                    : {},
+            "mpi_settings"            : {},
             "echo_level"              : 0
         }""")

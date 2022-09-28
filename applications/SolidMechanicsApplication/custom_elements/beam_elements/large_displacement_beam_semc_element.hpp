@@ -109,7 +109,7 @@ public:
      * @param rMassMatrix: the elemental mass matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this function is designed to make the element to assemble an rRHS vector
@@ -138,7 +138,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -217,7 +217,7 @@ protected:
       */
     void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
 					   ElementDataType& rVariables,
-					   ProcessInfo& rCurrentProcessInfo,
+					   const ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
 
 
@@ -226,7 +226,7 @@ protected:
       */
     void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
 					   ElementDataType& rVariables,
-					   ProcessInfo& rCurrentProcessInfo,
+					   const ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
 
 
@@ -289,4 +289,3 @@ private:
 
 } // namespace Kratos.
 #endif //  KRATOS_LARGE_DISPLACEMENT_BEAM_SEMC_ELEMENT_H_INCLUDED defined
-

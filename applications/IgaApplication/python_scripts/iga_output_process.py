@@ -106,7 +106,10 @@ class IgaOutputProcess(KratosMultiphysics.Process):
                 output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector OnGaussPoints\nValues\n")
                 for element in self.model_part.Elements:
                     value = element.CalculateOnIntegrationPoints(variable, self.model_part.ProcessInfo)[0]
-                    output_file.write(str(element.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
+                    if( len(value) == 3):
+                        output_file.write(str(element.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
+                    elif( len(value) == 6):
+                        output_file.write(str(element.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2])  + "  " + str(value[3]) + "  " +  str(value[4]) + "  " + str(value[5]) + "\n")
                 output_file.write("End Values\n")
 
         # Schedule next output

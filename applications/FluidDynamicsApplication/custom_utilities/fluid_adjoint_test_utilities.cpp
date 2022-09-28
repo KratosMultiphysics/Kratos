@@ -201,8 +201,8 @@ void RunAdjointEntityDerivativesTest(
 {
     KRATOS_TRY
 
-    auto& r_primal_container = FluidTestUtilities::Testing<TContainerType>::GetContainer(rPrimalModelPart);
-    auto& r_adjoint_container = FluidTestUtilities::Testing<TContainerType>::GetContainer(rAdjointModelPart);
+    auto& r_primal_container = FluidTestUtilities::GetContainer<TContainerType>()(rPrimalModelPart);
+    auto& r_adjoint_container = FluidTestUtilities::GetContainer<TContainerType>()(rAdjointModelPart);
     rAdjointModelPart.GetProcessInfo()[DELTA_TIME] =
         rPrimalModelPart.GetProcessInfo()[DELTA_TIME] * -1.0;
 

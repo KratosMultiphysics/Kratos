@@ -99,8 +99,7 @@ class TestEigenSolverWithConstraints(KratosUnittest.TestCase):
 
         self.assertEqual(eigen_val_vec.Size(), eigen_val_vec_with_constraints.Size())
 
-        for eig_val, eig_val_constr in zip(eigen_val_vec, eigen_val_vec_with_constraints):
-            self.assertAlmostEqual(eig_val, eig_val_constr, 8)
+        self.assertVectorAlmostEqual(eigen_val_vec, eigen_val_vec_with_constraints, 6)
 
         for node in model_part.Nodes:
             node_const = model_part_with_constraints.Nodes[node.Id] # to make sure to get the corresponding node

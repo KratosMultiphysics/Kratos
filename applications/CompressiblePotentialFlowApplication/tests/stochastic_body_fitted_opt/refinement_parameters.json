@@ -1,0 +1,23 @@
+{
+	"metric": {
+		"hessian_strategy_parameters": {
+			"metric_variable": [
+				"VELOCITY"
+			],
+			"non_historical_metric_variable": true,
+			"estimate_interpolation_error": false,
+			"interpolation_error": 1.0,
+			"coefficient_interpolation_error": 1.5
+		},
+		"minimal_size": 0.2,
+		"enforce_current": false,
+		"anisotropy_remeshing": false,
+		"enforce_anisotropy_relative_variable": false
+	},
+	"remeshing": {
+		"initialize_entities": false,
+		"echo_level": 0,
+		"preserve_flags": false,
+		"interpolate_nodal_values": false
+	}
+}

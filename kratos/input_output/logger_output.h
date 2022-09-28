@@ -132,11 +132,11 @@ public:
     return mCategory;
   }
 
-  void SetOption(Kratos::Flags ThisFlag, bool Value) {
+  void SetOption(const Kratos::Flags ThisFlag, bool Value) {
     mOptions.Set(ThisFlag, Value);
   }
 
-  bool GetOption(Kratos::Flags ThisFlag) {
+  bool GetOption(const Kratos::Flags ThisFlag) {
     return mOptions.Is(ThisFlag);
   }
 

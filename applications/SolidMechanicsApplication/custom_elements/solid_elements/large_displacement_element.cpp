@@ -194,7 +194,7 @@ void LargeDisplacementElement::SetElementData(ElementDataType& rVariables,
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -209,7 +209,7 @@ void LargeDisplacementElement::InitializeSolutionStep( ProcessInfo& rCurrentProc
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -434,7 +434,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
 //************************************************************************************
 //************************************************************************************
 
-int LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

@@ -20,7 +20,7 @@ def synthetic_matrix(degree, rows = 100,repetitions=20):
 
 class TestRandomizedSVD(KratosUnittest.TestCase):
 
-    @KratosUnittest.skipIf(numpy_available == False, "numpy is required for RomApplication")
+    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def test_radomized_svd(self):
 
         svd_truncation_tolerance = 1e-5

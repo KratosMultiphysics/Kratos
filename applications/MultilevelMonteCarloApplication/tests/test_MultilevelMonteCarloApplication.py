@@ -14,6 +14,8 @@ from momentEstimatorTests import TestMomentEstimator
 from momentEstimatorTests import TestCombinedMomentEstimator
 from momentEstimatorTests import TestMultiMomentEstimator
 from momentEstimatorTests import TestMultiCombinedMomentEstimator
+from test_randomGenerator import TestNumPyGenerator
+from solverWrapperTest import SolverWrapperTest, VanDerPolTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -44,6 +46,15 @@ def AssembleTestSuites():
     smallSuite.addTest(TestMultiCombinedMomentEstimator('test_updateD0'))
     smallSuite.addTest(TestMultiCombinedMomentEstimator('test_estimationD0'))
     smallSuite.addTest(TestXMCAlgorithm('test_mc_Kratos'))
+    smallSuite.addTest(TestNumPyGenerator('test_init'))
+    smallSuite.addTest(TestNumPyGenerator('test_realisation'))
+    smallSuite.addTest(TestNumPyGenerator('test_realisation_fromJSON'))
+    smallSuite.addTest(SolverWrapperTest('test_init'))
+    smallSuite.addTest(SolverWrapperTest('test_solve'))
+    smallSuite.addTest(VanDerPolTest('test_init'))
+    smallSuite.addTest(VanDerPolTest('test_solve'))
+    smallSuite.addTest(VanDerPolTest('test_harmonic_trajectory'))
+    smallSuite.addTest(VanDerPolTest('test_reference_solution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -52,13 +63,20 @@ def AssembleTestSuites():
     nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMonteCarlo'))
     if(hasattr(MeshingApplication,"MmgProcess2D")):
         nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMultilevelMonteCarlo'))
-        nightSuite.addTest(TestXMCAlgorithm('test_mlmc_Kratos'))
+    else:
+        print("MMG process is not compiled and the corresponding tests will not be executed")
+
+
+    validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite)
+    if(hasattr(MeshingApplication,"MmgProcess2D")):
+        validationSuite.addTest(TestXMCAlgorithm('test_mlmc_Kratos'))
     else:
         print("MMG process is not compiled and the corresponding tests will not be executed")
 
     # Create a test suit that contains all the tests
     allSuite = suites['all']
-    allSuite.addTests(nightSuite)
+    allSuite.addTests(validationSuite)
 
     return suites
 
